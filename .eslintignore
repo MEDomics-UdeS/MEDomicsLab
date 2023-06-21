@@ -1,0 +1,16 @@
+.vscode/*
+app/*
+flask_server/*
+main/*
+node_modules/*
+WorkspaceTemplate/*
+ressources/*
+*.md
+*.json
+*.yml
+*.cmd
+*.sh
+.eslintrc.js
+next.config.js
+*/utilities/fileManagementUtils.js
+

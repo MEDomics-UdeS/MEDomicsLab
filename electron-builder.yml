@@ -1,0 +1,12 @@
+appId: com.medomicslab.medapp
+productName: MEDapp
+copyright: Copyright © 2023 MEDomicsLab Team
+directories:
+  output: dist
+  buildResources: resources
+files:
+  - from: .
+    filter:
+      - package.json
+      - app
+publish: null
