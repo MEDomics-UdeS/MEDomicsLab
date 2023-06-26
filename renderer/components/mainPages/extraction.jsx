@@ -1,41 +1,26 @@
 import React, { useState } from "react";
-import "reactflow/dist/style.css";
-import { Row, Col } from "react-bootstrap";
-import { ReactFlowProvider } from "reactflow";
-import SideBar from "../extraction/sideBar";
-import FlowCanvas from "../extraction/flowCanvas";
-import { OffCanvasBackdropStyleProvider } from "../flow/OffCanvasBackdropStyleContext";
-import Backdrop from "../flow/backdrop";
+import Workflow from "../extraction/flowCanvas";
+import FlowPageBase from "../flow/flowPageBase";
 
 // Extraction tab referred to in pages/_app.js.
 // Shows sideBar nodes in a div on the left of the page,
 // then react flow canvas where the nodes can be dropped.
 const ExtractionPage = ({ pageId }) => {
-  // Hook for current module
-  const [flowType, setFlowType] = useState("extraction");
+  const [flowType, setFlowType] = useState("extraction"); // this state has been implemented because of subflows implementation
   return (
     <>
-      <OffCanvasBackdropStyleProvider>
-        <div className="extraction-div height-100 width-100 padding-10">
-          <Row className="width-100 height-100 " style={{ overflow: "hidden" }}>
-            <SideBar name="Workflow items" module={flowType} />
-            <Col lg>
-              <div className="height-100">
-                <ReactFlowProvider>
-                  <FlowCanvas
-                    id={pageId}
-                    workflowType={flowType}
-                    setWorkflowType={setFlowType}
-                  />
-                </ReactFlowProvider>
-              </div>
-            </Col>
-            <Backdrop pageId={pageId} />
-          </Row>
-        </div>
-      </OffCanvasBackdropStyleProvider>
+      <FlowPageBase
+        pageId={pageId}
+        workflowType={flowType}
+        workflowJSX={
+          <Workflow
+            id={pageId}
+            workflowType={flowType}
+            setWorkflowType={setFlowType}
+          />
+        }
+      />
     </>
   );
 };
-
 export default ExtractionPage;

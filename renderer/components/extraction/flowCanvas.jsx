@@ -70,7 +70,7 @@ function arrayUnique(array) {
  * This component is used to display a workflow (ui, nodes, edges, etc.).
  *
  */
-const Workflow = ({ id, changeSidebarType, workflowType }) => {
+const Workflow = ({ id, workflowType, setWorkflowType }) => {
   const [nodes, setNodes, onNodesChange] = useNodesState([]); // nodes array, setNodes is used to update the nodes array, onNodesChange is a callback hook that is executed when the nodes array is changed
   const [edges, setEdges, onEdgesChange] = useEdgesState([]); // edges array, setEdges is used to update the edges array, onEdgesChange is a callback hook that is executed when the edges array is changed
   const [reactFlowInstance, setReactFlowInstance] = useState(null); // reactFlowInstance is used to get the reactFlowInstance object important for the reactFlow library
