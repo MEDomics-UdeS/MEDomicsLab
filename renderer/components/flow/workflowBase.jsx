@@ -82,17 +82,22 @@ const WorkflowBase = ({
 				}
 			});
 
-			// check if the connection is valid according to setupParam
+			// get the source and target nodes
 			let sourceNode = deepCopy(
 				nodes.find((node) => node.id === params.source)
 			);
 			let targetNode = deepCopy(
 				nodes.find((node) => node.id === params.target)
 			);
-			let isValidConnection = targetNode.data.setupParam.input.includes(
-				sourceNode.data.setupParam.output[0]
-			);
+			// check if sourceNode's outputs is compatible with targetNode's inputs
+			let isValidConnection = false
+			sourceNode.data.setupParam.output.map((output) =>{
+				if(targetNode.data.setupParam.input.includes(output)){
+					isValidConnection = true
+				}
+			})
 			
+			// if isGoodConnection is defined, check if the connection is valid again with the isGoodConnection function
 			isGoodConnection && (isValidConnection = isValidConnection && isGoodConnection(params));
 
 			if (!alreadyExists && isValidConnection) {
