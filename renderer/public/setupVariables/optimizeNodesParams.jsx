@@ -8,6 +8,8 @@ const nodesParams = {
     tune_model: {
         type: "standardNode",
         classes: "action tune_model run",
+        nbInput: 1,
+        nbOutput: 1,
         input: ["model"],
         output: ["model"],
         img: 'optimize.png',
@@ -17,6 +19,8 @@ const nodesParams = {
     ensemble_model: {
         type: "standardNode",
         classes: "action ensemble_model run",
+        nbInput: 1,
+        nbOutput: 1,
         input: ["model"],
         output: ["model"],
         img: 'optimize.png',
@@ -26,6 +30,8 @@ const nodesParams = {
     blend_models: {
         type: "standardNode",
         classes: "action blend_models run",
+        nbInput: 1,
+        nbOutput: 1,
         input: ["model"],
         output: ["model"],
         img: 'optimize.png',
@@ -35,6 +41,8 @@ const nodesParams = {
     stack_models: {
         type: "standardNode",
         classes: "action stack_models run",
+        nbInput: 1,
+        nbOutput: 1,
         input: ["model"],
         output: ["model"],
         img: 'optimize.png',
@@ -44,6 +52,8 @@ const nodesParams = {
     calibrate_model: {
         type: "standardNode",
         classes: "action calibrate_model run",
+        nbInput: 1,
+        nbOutput: 1,
         input: ["model"],
         output: ["model"],
         img: 'optimize.png',
