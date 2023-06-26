@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import Node from "../../flow/node";
-import ImageViewer from "../buttonsTypes/viewButton";
+import ViewButton from "../buttonsTypes/viewButton";
 /**
  *
  * @param {string} id id of the node
@@ -14,7 +14,6 @@ import ImageViewer from "../buttonsTypes/viewButton";
  *
  */
 const StandardNode = ({ id, data, type }) => {
-  const [modalShow, setModalShow] = useState(false);
   return (
     <>
       <Node
@@ -23,8 +22,7 @@ const StandardNode = ({ id, data, type }) => {
         data={data}
         type={type}
         setupParam={data.setupParam}
-        nodeBody={<ImageViewer />}
-        defaultSettings={<></>}
+        defaultSettings={<ViewButton id={id} data={data} type={type} />}
         nodeSpecific={<></>}
       />
     </>

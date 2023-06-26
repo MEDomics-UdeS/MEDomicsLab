@@ -29,13 +29,16 @@ import ProgressBar from "react-bootstrap/ProgressBar";
 // Import node types
 import InputNode from "./nodesTypes/inputNode";
 import StandardNode from "./nodesTypes/standardNode";
-import GroupNode from "./nodesTypes/groupNode";
+import ExtractionNode from "./nodesTypes/extractionNode";
+import SegmentationNode from "./nodesTypes/segmentationNode";
+import FilterNode from "./nodesTypes/filterNode";
 
 // Import node parameters
 import nodesParams from "../../public/setupVariables/allNodesParams";
 
-// Top right button for run/clear/save/upload
-import UtilityButtons from "./utilityButtons";
+// Import buttons
+import UtilityButtons from "./buttonsTypes/utilityButtons";
+import ResultsButton from "./buttonsTypes/resultsButton";
 
 const staticNodesParams = nodesParams; // represents static nodes parameters
 
@@ -59,7 +62,7 @@ function arrayUnique(array) {
 /**
  *
  * @param {String} id id of the workflow for multiple workflows management
- * @param {function} setWorkflowType function to change the sidebar type
+ * @param {function} changeSidebarType function to change the sidebar type
  * @param {String} workflowType type of the workflow (learning or optimize)
  * @returns {JSX.Element} A workflow
  *
@@ -67,7 +70,7 @@ function arrayUnique(array) {
  * This component is used to display a workflow (ui, nodes, edges, etc.).
  *
  */
-const Workflow = ({ id, setWorkflowType, workflowType }) => {
+const Workflow = ({ id, changeSidebarType, workflowType }) => {
   const [nodes, setNodes, onNodesChange] = useNodesState([]); // nodes array, setNodes is used to update the nodes array, onNodesChange is a callback hook that is executed when the nodes array is changed
   const [edges, setEdges, onEdgesChange] = useEdgesState([]); // edges array, setEdges is used to update the edges array, onEdgesChange is a callback hook that is executed when the edges array is changed
   const [reactFlowInstance, setReactFlowInstance] = useState(null); // reactFlowInstance is used to get the reactFlowInstance object important for the reactFlow library
@@ -75,16 +78,17 @@ const Workflow = ({ id, setWorkflowType, workflowType }) => {
   const { setViewport } = useReactFlow(); // setViewport is used to update the viewport of the workflow
   const [treeData, setTreeData] = useState({}); // treeData is used to set the data of the tree menu
   const [groupNodeId, setGroupNodeId] = useState(null); // groupNodeId is used to know which optimize node has selected ()
-  const { getIntersectingNodes } = useReactFlow(); // getIntersectingNodes is used to get the intersecting nodes of a node
-  const [intersections, setIntersections] = useState([]); // intersections is used to store the intersecting nodes related to optimize nodes start and end
   const [progress, setProgress] = useState({}); // progress is used to store the progress of the workflow execution
+  const [results, setResults] = useState({}); // results is used to store radiomic features results
 
   // declare node types using useMemo hook to avoid re-creating component types unnecessarily (it memorizes the output) https://www.w3schools.com/react/react_usememo.asp
   const nodeTypes = useMemo(
     () => ({
       inputNode: InputNode,
       standardNode: StandardNode,
-      groupNode: GroupNode,
+      extractionNode: ExtractionNode,
+      segmentationNode: SegmentationNode,
+      filterNode: FilterNode,
     }),
     []
   );
@@ -114,86 +118,6 @@ const Workflow = ({ id, setWorkflowType, workflowType }) => {
   useEffect(() => {
     setTreeData(createTreeFromNodes());
   }, [nodes, edges]);
-
-  // execute this when groupNodeId change. I put it in useEffect because it assures groupNodeId is updated
-  useEffect(() => {
-    if (groupNodeId) {
-      setWorkflowType("optimize");
-      hideNodesbut(groupNodeId);
-    } else {
-      setWorkflowType("extraction");
-      hideNodesbut(groupNodeId);
-    }
-  }, [groupNodeId, nodeUpdate]);
-
-  // executed when intersections array is changed
-  // it updates nodes and eges array
-  useEffect(() => {
-    // first, we add 'intersect' class to the nodes that are intersecting with OptimizeIO nodes
-    setNodes((nds) =>
-      nds.map((node) => {
-        if (true) {
-          node.data = {
-            ...node.data,
-          };
-          node.className = "";
-          intersections.forEach((intersect) => {
-            if (
-              intersect.targetId == node.id ||
-              intersect.sourceId == node.id
-            ) {
-              node.className = "intersect";
-            }
-          });
-        }
-        return node;
-      })
-    );
-
-    // then, we add the edges between the intersecting nodes and hide them to simulate the connection between the nodes
-    // this is useful to create the recursive workflow automatically
-    // it basically bypasses the optimize nodes
-    setEdges((eds) => eds.filter((edge) => !edge.id.includes("opt"))); // remove all edges that are linked to optimize nodes
-    intersections.forEach((intersect, index) => {
-      let edgeSource = null;
-      let edgeTarget = null;
-      if (intersect.targetId.includes("start")) {
-        edgeSource = intersect.targetId.split(".")[1];
-        edgeTarget = intersect.sourceId;
-        let prevOptEdge = edges.find((edge) => edge.target == edgeSource);
-        if (prevOptEdge) {
-          edgeSource = prevOptEdge.source;
-        } else {
-          edgeSource = null;
-        }
-      } else if (intersect.targetId.includes("end")) {
-        edgeSource = intersect.sourceId;
-        edgeTarget = intersect.targetId.split(".")[1];
-        let nextOptEdge = edges.find((edge) => edge.source == edgeTarget);
-        if (nextOptEdge) {
-          edgeTarget = nextOptEdge.target;
-        } else {
-          edgeTarget = null;
-        }
-      }
-
-      edgeSource &&
-        edgeTarget &&
-        setEdges((eds) =>
-          addEdge(
-            {
-              source: edgeSource,
-              sourceHandle: "0_" + edgeSource, // we add 0_ because the sourceHandle always starts with 0_. Handles are created by a for loop so it represents an index
-              target: edgeTarget,
-              targetHandle: "0_" + edgeTarget,
-              id: index + intersect.targetId,
-              hidden: true,
-            },
-            eds
-          )
-        );
-    });
-  }, [intersections]);
 
   /**
    *
@@ -281,86 +205,6 @@ const Workflow = ({ id, setWorkflowType, workflowType }) => {
   };
 
   /**
-   * @param {Object} event event object
-   * @param {Object} node node object
-   *
-   * This function is called when a node is dragged
-   * It checks if the node is intersecting with another node
-   * If it is, it adds the intersection to the intersections array
-   */
-  const onNodeDrag = useCallback(
-    (event, node) => {
-      let rawIntersects = getIntersectingNodes(node).map((n) => n.id);
-      rawIntersects = rawIntersects.filter(
-        (n) =>
-          nodes.find((node) => node.id == n).data.internal.subflowId ==
-          node.data.internal.subflowId
-      );
-      let isNew = false;
-      let newIntersections = intersections;
-      rawIntersects.forEach((rawIntersect) => {
-        if (node.id.includes("opt")) {
-          newIntersections = newIntersections.concat({
-            sourceId: rawIntersect,
-            targetId: node.id,
-          });
-        } else if (rawIntersect.includes("opt")) {
-          newIntersections = newIntersections.concat({
-            sourceId: node.id,
-            targetId: rawIntersect,
-          });
-        }
-        newIntersections = arrayUnique(newIntersections);
-        isNew = true;
-        setIntersections(newIntersections);
-      });
-      if (!isNew) {
-        if (node.id.includes("opt")) {
-          setIntersections((intersects) =>
-            intersects.filter((int) => int.targetId !== node.id)
-          );
-        } else {
-          setIntersections((intersects) =>
-            intersects.filter((int) => int.sourceId !== node.id)
-          );
-        }
-      }
-    },
-    [nodes]
-  );
-
-  /**
-   * @param {Object} id id of the node to delete
-   *
-   * This function is called when the user clicks on the delete button of a node
-   * It deletes the node and its edges
-   * If the node is a group node, it deletes all the nodes inside the group node
-   */
-  const onDeleteNode = useCallback(
-    (id) => {
-      console.log("delete node", id);
-      setNodes((nds) =>
-        nds.reduce((filteredNodes, n) => {
-          if (n.id !== id) {
-            filteredNodes.push(n);
-          }
-          if (n.type == "groupNode") {
-            let childrenNodes = nds.filter(
-              (node) => node.data.internal.subflowId == id
-            );
-            childrenNodes.forEach((node) => {
-              onDeleteNode(node.id);
-            });
-          }
-          return filteredNodes;
-        }, [])
-      );
-      setEdges((eds) => eds.filter((e) => e.source !== id && e.target !== id));
-    },
-    [nodes]
-  );
-
-  /**
    *
    * @param {*} position initial position of the node
    * @param {*} node node information
@@ -384,6 +228,7 @@ const Workflow = ({ id, setWorkflowType, workflowType }) => {
       )
     );
     setupParams.possibleSettings = setupParams["possibleSettings"];
+
     // create new node for react flow
     const newNode = {
       id: `${newId}${associatedNode ? `.${associatedNode}` : ""}`, // if the node is a sub-group node, it has the id of the parent node seperated by a dot. useful when processing only ids
@@ -404,9 +249,10 @@ const Workflow = ({ id, setWorkflowType, workflowType }) => {
           })(),
           checkedOptions: [],
           subflowId: !associatedNode ? groupNodeId : associatedNode,
+          enableView: false, // used to enable the view of the node
         },
         parentFct: {
-          deleteNode: onDeleteNode,
+          deleteNode: deleteNode,
           updateNode: setNodeUpdate,
           runNode: runNode,
           changeSubFlow: setGroupNodeId,
@@ -416,6 +262,37 @@ const Workflow = ({ id, setWorkflowType, workflowType }) => {
     };
     return newNode;
   };
+
+  /**
+   * @param {Object} id id of the node to delete
+   *
+   * This function is called when the user clicks on the delete button of a node
+   * It deletes the node and its edges
+   * If the node is a group node, it deletes all the nodes inside the group node
+   */
+  const deleteNode = useCallback(
+    (id) => {
+      console.log("delete node", id);
+      setNodes((nds) =>
+        nds.reduce((filteredNodes, n) => {
+          if (n.id !== id) {
+            filteredNodes.push(n);
+          }
+          if (n.type == "groupNode") {
+            let childrenNodes = nds.filter(
+              (node) => node.data.internal.subflowId == id
+            );
+            childrenNodes.forEach((node) => {
+              deleteNode(node.id);
+            });
+          }
+          return filteredNodes;
+        }, [])
+      );
+      setEdges((eds) => eds.filter((e) => e.source !== id && e.target !== id));
+    },
+    [nodes]
+  );
 
   /**
    *
@@ -465,6 +342,25 @@ const Workflow = ({ id, setWorkflowType, workflowType }) => {
     });
   };
 
+  /**
+   * Save the workflow as a json file
+   */
+  const onSave = useCallback(() => {
+    if (reactFlowInstance) {
+      const flow = JSON.parse(JSON.stringify(reactFlowInstance.toObject()));
+      flow.nodes.forEach((node) => {
+        node.data.parentFct = null;
+        node.data.setupParam = null;
+        // Set enableView to false because only the scene is saved
+        // and importing it back would not reload the volumes that
+        // were loaded in the viewer
+        node.data.enableView = false;
+      });
+      console.log("flow", flow);
+      downloadJson(flow, "experiment");
+    }
+  }, [reactFlowInstance]);
+
   return (
     <>
       <WorkflowBase
@@ -478,10 +374,10 @@ const Workflow = ({ id, setWorkflowType, workflowType }) => {
         edges={edges}
         setEdges={setEdges}
         onEdgesChange={onEdgesChange}
-        onNodeDrag={onNodeDrag}
         ui={
           <>
-            <UtilityButtons />
+            <UtilityButtons save={onSave} />
+            <ResultsButton results={results} />
           </>
         }
       />

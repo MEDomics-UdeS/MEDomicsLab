@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import Node from "../../flow/node";
-import ImageViewer from "../buttonsTypes/viewButton";
+import ViewButton from "../buttonsTypes/viewButton";
 import UploadComponent from "../buttonsTypes/uploadButton";
 
 /**
@@ -14,7 +14,6 @@ import UploadComponent from "../buttonsTypes/uploadButton";
  *
  */
 const InputNode = ({ id, data, type }) => {
-  const [modalShow, setModalShow] = useState(false);
   return (
     <>
       <Node
@@ -23,13 +22,12 @@ const InputNode = ({ id, data, type }) => {
         data={data}
         type={type}
         setupParam={data.setupParam}
-        nodeBody={
+        defaultSettings={
           <>
-            <UploadComponent />
-            <ImageViewer />
+            <UploadComponent id={id} data={data} type={type} />
+            <ViewButton id={id} data={data} type={type} />
           </>
         }
-        defaultSettings={<></>}
         nodeSpecific={<></>}
       />
     </>
