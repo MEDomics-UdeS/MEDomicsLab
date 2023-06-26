@@ -23,13 +23,12 @@ import OptimizeIO from "./nodesTypes/optimizeIO";
 import nodesParams from "../../public/setupVariables/allNodesParams";
 
 // here are static functions used in the workflow
-import { removeDuplicates } from "../../utilities/staticFunctions";
+import { removeDuplicates, deepCopy } from "../../utilities/staticFunctions";
 
 const staticNodesParams = nodesParams; // represents static nodes parameters
 
 /**
  *
- * @param {String} id id of the workflow for multiple workflows management
  * @param {function} setWorkflowType function to change the sidebar type
  * @param {String} workflowType type of the workflow (learning or optimize)
  * @returns {JSX.Element} A workflow
@@ -38,7 +37,7 @@ const staticNodesParams = nodesParams; // represents static nodes parameters
  * This component is used to display a workflow (ui, nodes, edges, etc.).
  *
  */
-const Workflow = ({ id, setWorkflowType, workflowType }) => {
+const Workflow = ({setWorkflowType, workflowType }) => {
 	const [nodes, setNodes, onNodesChange] = useNodesState([]); // nodes array, setNodes is used to update the nodes array, onNodesChange is a callback hook that is executed when the nodes array is changed
 	const [edges, setEdges, onEdgesChange] = useEdgesState([]); // edges array, setEdges is used to update the edges array, onEdgesChange is a callback hook that is executed when the edges array is changed
 	const [reactFlowInstance, setReactFlowInstance] = useState(null); // reactFlowInstance is used to get the reactFlowInstance object important for the reactFlow library
@@ -375,12 +374,10 @@ const Workflow = ({ id, setWorkflowType, workflowType }) => {
 						let subworkflowType = node.data.internal.subflowId
 							? "optimize"
 							: "learning";
-						let setupParams = JSON.parse(
-							JSON.stringify(
-								staticNodesParams[subworkflowType][
-									node.name.toLowerCase().replaceAll(" ", "_")
-								]
-							)
+						let setupParams = deepCopy(
+							staticNodesParams[subworkflowType][
+								node.name.toLowerCase().replaceAll(" ", "_")
+							]
 						);
 						setupParams.possibleSettings =
 							setupParams["possibleSettings"][flow.MLType];
@@ -435,92 +432,56 @@ const Workflow = ({ id, setWorkflowType, workflowType }) => {
 		[nodes]
 	);
 
-	/**
-	 *
-	 * @param {*} position initial position of the node
-	 * @param {*} node node information
-	 * @param {*} newId new created id to be given to the node
-	 * @param {*} associatedNode useful when creating a sub-group node, it the parent node of the group node
-	 * @returns a node object
-	 *
-	 * This function creates a node object
-	 * it is called by the onDrop function in workflowBase.jsx
-	 *
-	 */
-	const createNode = (position, node, newId, associatedNode) => {
-		const { nodeType, name, image } = node;
-		let setupParams = {};
+	const addSpecificToNode = (newNode, associatedNode) => {
 		// if the node is not a static node for a optimize subflow, it needs possible settings
-		if (!newId.includes("opt")) {
-			setupParams = JSON.parse(
-				JSON.stringify(
-					staticNodesParams[workflowType][
-						name.toLowerCase().replaceAll(" ", "_")
-					]
-				)
+		let setupParams = {};
+		if (!newNode.id.includes("opt")) {
+			setupParams = deepCopy(
+				staticNodesParams[workflowType][
+					newNode.name.toLowerCase().replaceAll(" ", "_")
+				]
 			);
-			setupParams.possibleSettings =
-				setupParams["possibleSettings"][MLType];
+			setupParams.possibleSettings = setupParams["possibleSettings"][MLType];
 		}
-		// if the node is a group node, it creates subflow static nodes start and end using his id as subflowId for the sub-nodes
-		if (nodeType == "groupNode") {
-			let newNode = createNode(
-				{ x: 0, y: 200 },
-				{
-					nodeType: "optimizeIO",
-					name: "Start",
-					image: "/icon/dataset.png",
-				},
-				"opt-start",
-				newId
-			);
-			setNodes((nds) => nds.concat(newNode));
-			let newNode2 = createNode(
-				{ x: 500, y: 200 },
-				{
-					nodeType: "optimizeIO",
-					name: "End",
-					image: "/icon/dataset.png",
-				},
-				"opt-end",
-				newId
-			);
-			setNodes((nds) => nds.concat(newNode2));
-		}
-		const newNode = {
-			id: `${newId}${associatedNode ? `.${associatedNode}` : ""}`, // if the node is a sub-group node, it has the id of the parent node seperated by a dot. useful when processing only ids
-			type: nodeType,
-			name: name,
-			position,
-			hidden: nodeType == "optimizeIO",
-			zIndex: nodeType == "optimizeIO" ? 1 : 1010,
-			data: {
-				// here is the data accessible by children components
-				internal: {
-					name: `${name}`,
-					img: `${image}`,
-					type: `${name.toLowerCase()}`,
-					workflowInfos: { id: id, type: workflowType },
-					settings: (function () {
-						return {};
-					})(),
-					selection:
-						nodeType == "selectionNode" &&
-						Object.keys(setupParams.possibleSettings)[0],
-					checkedOptions: [],
-					subflowId: !associatedNode ? groupNodeId : associatedNode,
-				},
-				parentFct: {
-					deleteNode: onDeleteNode,
-					updateNode: setNodeUpdate,
-					runNode: runNode,
-					changeSubFlow: setGroupNodeId,
-				},
-				setupParam: setupParams,
-			},
-		};
+		newNode.id = `${newNode.id}${associatedNode ? `.${associatedNode}` : ""}`; // if the node is a sub-group node, it has the id of the parent node seperated by a dot. useful when processing only ids
+		newNode.hidden = newNode.type == "optimizeIO";
+		newNode.zIndex = newNode.type == "optimizeIO" ? 1 : 1010;
+		newNode.data.setupParam = setupParams;
+		newNode.data.internal.settings = {};
+		newNode.data.internal.selection = newNode.type == "selectionNode" && Object.keys(setupParams.possibleSettings)[0]
+		newNode.data.internal.checkedOptions = [];
+		newNode.data.parentFct.changeSubFlow = setGroupNodeId;
+		newNode.data.internal.subflowId = !associatedNode ? groupNodeId : associatedNode;
+
 		return newNode;
 	};
+
+	const groupNodeHandlingDefault = (createBaseNode, newId) => {
+
+		let newNodeStart = createBaseNode(
+			{ x: 0, y: 200 },
+			{
+				nodeType: "optimizeIO",
+				name: "Start",
+				image: "/icon/dataset.png",
+			},
+			"opt-start"
+		)
+		newNodeStart = addSpecificToNode(newNodeStart, newId);
+			
+		let newNodeEnd = createBaseNode(
+			{ x: 500, y: 200 },
+			{
+				nodeType: "optimizeIO",
+				name: "End",
+				image: "/icon/dataset.png",
+			},
+			"opt-end"
+		);
+		newNodeEnd = addSpecificToNode(newNodeEnd, newId);
+		setNodes((nds) => nds.concat(newNodeStart));
+		setNodes((nds) => nds.concat(newNodeEnd));
+	}
 
 	/**
 	 *
@@ -637,14 +598,13 @@ const Workflow = ({ id, setWorkflowType, workflowType }) => {
 			updatedData: groupNode.data.internal,
 		});
 	};
-
 	
 	return (
 		<>
 			<WorkflowBase
 				reactFlowInstance={reactFlowInstance}
 				setReactFlowInstance={setReactFlowInstance}
-				createNode={createNode}
+				addSpecificToNode={addSpecificToNode}
 				nodeTypes={nodeTypes}
 				nodes={nodes}
 				setNodes={setNodes}
@@ -653,6 +613,10 @@ const Workflow = ({ id, setWorkflowType, workflowType }) => {
 				setEdges={setEdges}
 				onEdgesChange={onEdgesChange}
 				onNodeDrag={onNodeDrag}
+				onDeleteNode={onDeleteNode}
+				setNodeUpdate={setNodeUpdate}
+				runNode={runNode}
+				groupNodeHandlingDefault={groupNodeHandlingDefault}
 				ui={
 					<>
 						<div className="btn-panel-top-corner-left">

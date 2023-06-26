@@ -1,14 +1,22 @@
 import { Row, Col } from "react-bootstrap"
 import "reactflow/dist/style.css";
-import React from "react";
-import SidebarAvailableNodes from "../flow/sidebarAvailableNodes";
-import {
-	ReactFlowProvider,
-} from "reactflow"
-import {OffCanvasBackdropStyleProvider} from "../flow/OffCanvasBackdropStyleContext"
-import Backdrop from "../flow/backdrop";
+import React, {useContext, useEffect} from "react";
+import SidebarAvailableNodes from "./sidebarAvailableNodes";
+import { ReactFlowProvider } from "reactflow"
+import {OffCanvasBackdropStyleProvider} from "./context/offCanvasBackdropStyleContext"
+import Backdrop from "./backdrop";
+import { FlowInfosProvider , FlowInfosContext} from "./context/flowInfosContext";
 
-export default function FlowPageBase({ pageId, workflowType, workflowJSX }) {
+const FlowPageBaseWithFlowInfos = ({ pageId, workflowType, workflowJSX }) => {
+	const { updateFlowInfos } = useContext(FlowInfosContext);
+
+	useEffect(() => {
+		updateFlowInfos({
+			id: pageId,
+			type: workflowType,
+		});
+	}, [pageId, workflowType]);
+
 	return (
 		<>
 			<OffCanvasBackdropStyleProvider>
@@ -29,3 +37,14 @@ export default function FlowPageBase({ pageId, workflowType, workflowJSX }) {
 		</>
 	)
 }
+
+
+const FlowPageBase = (props) => {
+	return (
+		<FlowInfosProvider>
+			<FlowPageBaseWithFlowInfos {...props}/>
+		</FlowInfosProvider>
+	)
+}
+export default FlowPageBase;
+
