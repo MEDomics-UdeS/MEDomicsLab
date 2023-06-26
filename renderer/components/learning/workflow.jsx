@@ -23,7 +23,7 @@ import OptimizeIO from "./nodesTypes/optimizeIO";
 import nodesParams from "../../public/setupVariables/allNodesParams";
 
 // here are static functions used in the workflow
-import { deepCopy, removeDuplicates } from "../../utilities/staticFunctions";
+import { removeDuplicates } from "../../utilities/staticFunctions";
 
 const staticNodesParams = nodesParams; // represents static nodes parameters
 
@@ -638,72 +638,7 @@ const Workflow = ({ id, setWorkflowType, workflowType }) => {
 		});
 	};
 
-	/**
-	 * @param {object} params
-	 * @param {string} params.source
-	 * @param {string} params.target
-	 * @param {string} params.sourceHandle
-	 * @param {string} params.targetHandle
-	 *
-	 * @returns {void}
-	 *
-	 * @description
-	 * This function is called when a connection is created between two nodes.
-	 * It checks if the connection is valid and if it is, it adds the connection to the edges array.
-	 * If the connection is not valid, it displays an error message.
-	 *
-	 */
-	const onConnect = useCallback(
-		(params) => {
-			console.log("new connection request", params);
-
-			// check if the connection already exists
-			let alreadyExists = false;
-			edges.forEach((edge) => {
-				if (
-					edge.source === params.source &&
-					edge.target === params.target
-				) {
-					alreadyExists = true;
-				}
-			});
-
-			// check if the connection is valid according to setupParam
-			let sourceNode = deepCopy(
-				nodes.find((node) => node.id === params.source)
-			);
-			let targetNode = deepCopy(
-				nodes.find((node) => node.id === params.target)
-			);
-			let isValidConnection = targetNode.data.setupParam.input.includes(
-				sourceNode.data.setupParam.output[0]
-			);
-
-			if (!alreadyExists && isValidConnection) {
-				setEdges((eds) => addEdge(params, eds));
-			} else {
-				toast.error(
-					`Connection refused: ${
-						alreadyExists
-							? "It already exists"
-							: "Not a valid connection"
-					}`,
-					{
-						position: "bottom-right",
-						autoClose: 2000,
-						hideProgressBar: false,
-						closeOnClick: true,
-						pauseOnHover: true,
-						draggable: true,
-						progress: undefined,
-						theme: "light",
-					}
-				);
-			}
-		},
-		[nodes, edges]
-	);
-
+	
 	return (
 		<>
 			<WorkflowBase
@@ -718,7 +653,6 @@ const Workflow = ({ id, setWorkflowType, workflowType }) => {
 				setEdges={setEdges}
 				onEdgesChange={onEdgesChange}
 				onNodeDrag={onNodeDrag}
-				onConnect={onConnect}
 				ui={
 					<>
 						<div className="btn-panel-top-corner-left">

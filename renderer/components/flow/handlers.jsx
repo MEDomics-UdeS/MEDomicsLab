@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { Handle } from "reactflow";
 import { Tooltip } from "react-tooltip";
 
@@ -9,63 +9,61 @@ import { Tooltip } from "react-tooltip";
  * @returns {JSX.Element} handlers of the node (connections points)
  */
 const Handlers = ({ id, setupParam }) => {
-  /**
+	/**
    *
    * @param {*} arr array of possibles connections
    * @param {*} i index of the connection
    * @returns % of the position of the connection according to the number of connections
    */
-  const getConnPositionStyle = (arr, i) => {
-    let length = arr.length;
-    return {
-      top: `${((i + 1) * 100) / (length + 1)}%`,
-    };
-  };
+	const getConnPositionStyle = (arr, i) => {
+		let length = arr.length;
+		return {
+			top: `${((i + 1) * 100) / (length + 1)}%`,
+		};
+	};
 
-  return (
-    <>
-      {setupParam["input"].map((input, i) => (
-        <div key={`left-${i}_${id}`}>
-          <Handle
-            id={`${i}_${id}`}
-            type="target"
-            position="left"
-            className={input}
-            style={getConnPositionStyle(setupParam["input"], i)}
-            isConnectable
-          />
-          <Tooltip
-            className="tooltip"
-            anchorSelect={`[data-handlepos='left'][data-handleid='${i}_${id}']`}
-            delayShow={1000}
-            place="left"
-          >
-            {input}
-          </Tooltip>
-        </div>
-      ))}
-      {setupParam["output"].map((output, i) => (
-        <div key={`right-${i}_${id}`}>
-          <Handle
-            id={`${i}_${id}`}
-            type="source"
-            position="right"
-            className={output}
-            style={getConnPositionStyle(setupParam["output"], i)}
-            isConnectable
-          />
-          <Tooltip
-            className="tooltip"
-            anchorSelect={`[data-handlepos='right'][data-handleid='${i}_${id}']`}
-            delayShow={1000}
-            place="right"
-          >
-            {output}
-          </Tooltip>
-        </div>
-      ))}
-    </>
-  );
+	return (
+		<>
+			{[...Array(setupParam["nbInput"])].map((x, i) => (
+				<div key={`left-${i}_${id}`}>
+					<Handle
+						id={`${i}_${id}`}
+						type="target"
+						position="left"
+						style={getConnPositionStyle(setupParam["input"], i)}
+						isConnectable
+					/>
+					<Tooltip
+						className="tooltip"
+						anchorSelect={`[data-handlepos='left'][data-handleid='${i}_${id}']`}
+						delayShow={1000}
+						place="left"
+					>
+						{setupParam["input"].join(", ")}
+					</Tooltip>
+				</div>
+			))}
+			{[...Array(setupParam["nbOutput"])].map((x, i) => (
+				<div key={`right-${i}_${id}`}>
+					<Handle
+						id={`${i}_${id}`}
+						type="source"
+						position="right"
+						style={getConnPositionStyle(setupParam["output"], i)}
+						isConnectable
+					/>
+					<Tooltip
+						className="tooltip"
+						anchorSelect={`[data-handlepos='right'][data-handleid='${i}_${id}']`}
+						delayShow={1000}
+						place="right"
+					>
+						{setupParam["output"].join(", ")}
+					</Tooltip>
+				</div>
+			))}
+		</>
+	);
 };
 
 export default Handlers;

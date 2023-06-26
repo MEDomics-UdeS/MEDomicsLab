@@ -6,14 +6,27 @@ import ReactFlow, {
 	Background,
 	MiniMap,
 	updateEdge,
+	addEdge,
 } from "reactflow";
 
-import { getId } from "../../utilities/staticFunctions";
+import { getId, deepCopy } from "../../utilities/staticFunctions";
+
 
 /**
  *
  * @param { JSX.Element } ui jsx element to display on the workflow
  * @param { function } createNode function to create a node
+ * @param { object } reactFlowInstance instance of the reactFlow
+ * @param { function } setReactFlowInstance function to set the reactFlowInstance
+ * @param { object } nodeTypes object containing the node types
+ * @param { object } nodes array containing the nodes
+ * @param { function } setNodes function to set the nodes
+ * @param { function } onNodesChange function called when the nodes change
+ * @param { object } edges array containing the edges
+ * @param { function } setEdges function to set the edges
+ * @param { function } onEdgesChange function called when the edges change
+ * @param { function } onNodeDrag function called when a node is dragged
+ * @param { function } isGoodConnection function to check if a connection is valid
  *
  * @returns {JSX.Element} A workflow
  *
@@ -34,9 +47,78 @@ const WorkflowBase = ({
 	setEdges,
 	onEdgesChange,
 	onNodeDrag,
-	onConnect,
+	isGoodConnection,
 }) => {
 	const edgeUpdateSuccessful = useRef(true);
+
+
+	/**
+	 * @param {object} params
+	 * @param {string} params.source
+	 * @param {string} params.target
+	 * @param {string} params.sourceHandle
+	 * @param {string} params.targetHandle
+	 *
+	 * @returns {void}
+	 *
+	 * @description
+	 * This function is called when a connection is created between two nodes.
+	 * It checks if the connection is valid and if it is, it adds the connection to the edges array.
+	 * If the connection is not valid, it displays an error message.
+	 *
+	 */
+	const onConnect = useCallback(
+		(params) => {
+			console.log("new connection request", params);
+
+			// check if the connection already exists
+			let alreadyExists = false;
+			edges.forEach((edge) => {
+				if (
+					edge.source === params.source &&
+					edge.target === params.target
+				) {
+					alreadyExists = true;
+				}
+			});
+
+			// check if the connection is valid according to setupParam
+			let sourceNode = deepCopy(
+				nodes.find((node) => node.id === params.source)
+			);
+			let targetNode = deepCopy(
+				nodes.find((node) => node.id === params.target)
+			);
+			let isValidConnection = targetNode.data.setupParam.input.includes(
+				sourceNode.data.setupParam.output[0]
+			);
+			
+			isGoodConnection && (isValidConnection = isValidConnection && isGoodConnection(params));
+
+			if (!alreadyExists && isValidConnection) {
+				setEdges((eds) => addEdge(params, eds));
+			} else {
+				toast.error(
+					`Connection refused: ${
+						alreadyExists
+							? "It already exists"
+							: "Not a valid connection"
+					}`,
+					{
+						position: "bottom-right",
+						autoClose: 2000,
+						hideProgressBar: false,
+						closeOnClick: true,
+						pauseOnHover: true,
+						draggable: true,
+						progress: undefined,
+						theme: "light",
+					}
+				);
+			}
+		},
+		[nodes, edges]
+	);
 
 	/**
 	 * @param {object} event
@@ -168,10 +250,8 @@ const WorkflowBase = ({
 				fitView
 			>
 				<Background />{" "}
-				{/* https://reactflow.dev/docs/api/background/ */}
 				<MiniMap className="minimapStyle" zoomable pannable />{" "}
-				{/* https://reactflow.dev/docs/api/minimap/ */}
-				<Controls /> {/* https://reactflow.dev/docs/api/controls/ */}
+				<Controls /> 
 				{ui}
 			</ReactFlow>
 		</div>

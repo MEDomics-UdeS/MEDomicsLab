@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import Card from "react-bootstrap/Card";
 import nodesParams from "../../public/setupVariables/allNodesParams";
+import { Col } from "react-bootstrap";
+
 
 /**
  *
@@ -14,9 +16,9 @@ import nodesParams from "../../public/setupVariables/allNodesParams";
  * @returns {void}
  */
 const onDragStart = (event, node) => {
-  const stringNode = JSON.stringify(node);
-  event.dataTransfer.setData("application/reactflow", stringNode);
-  event.dataTransfer.effectAllowed = "move";
+	const stringNode = JSON.stringify(node);
+	event.dataTransfer.setData("application/reactflow", stringNode);
+	event.dataTransfer.effectAllowed = "move";
 };
 
 /**
@@ -29,40 +31,51 @@ const onDragStart = (event, node) => {
  * This component is used to display the nodes available in the sidebar.
  *
  */
-const SidebarAvailableNodes = ({ sidebarType }) => {
-  return (
-    <>
-      {Object.keys(nodesParams[sidebarType]).map((nodeName) => {
-        // this code is executed for each node in nodesParams[sidebarType] and returns a Card for each node
-        let node = nodesParams[sidebarType][nodeName];
-        return (
-          <div
-            key={nodeName}
-            className="cursor-grab"
-            onDragStart={(event) =>
-              onDragStart(event, {
-                nodeType: `${node.type}`,
-                name: `${node.title}`,
-                image: `${node.img}`,
-              })
-            }
-            draggable
-          >
-            <Card key={node.title} className="text-left margin-vertical-10">
-              <Card.Header className="draggable-side-node">
-                {node.title}
-                <img
-                  src={`/icon/${sidebarType}/${node.img}`}
-                  alt={node.title}
-                  className="icon-nodes"
-                />
-              </Card.Header>
-            </Card>
-          </div>
-        );
-      })}
-    </>
-  );
+const SidebarAvailableNodes = ({ title, sidebarType }) => {
+	return (
+		<>
+			<Col className=" padding-0 available-nodes-panel" sm={2}>
+				<Card className="text-center height-100">
+					<Card.Header>
+						<h4>{title}</h4>
+					</Card.Header>
+					<Card.Body>
+						{/* Available nodes depend on current selected module */}
+      
+						{Object.keys(nodesParams[sidebarType]).map((nodeName) => {
+						// this code is executed for each node in nodesParams[sidebarType] and returns a Card for each node
+							let node = nodesParams[sidebarType][nodeName];
+							return (
+								<div
+									key={nodeName}
+									className="cursor-grab"
+									onDragStart={(event) =>
+										onDragStart(event, {
+											nodeType: `${node.type}`,
+											name: `${node.title}`,
+											image: `${node.img}`,
+										})
+									}
+									draggable
+								>
+									<Card key={node.title} className="text-left margin-vertical-10">
+										<Card.Header className="draggable-side-node">
+											{node.title}
+											<img
+												src={`/icon/${sidebarType}/${node.img}`}
+												alt={node.title}
+												className="icon-nodes"
+											/>
+										</Card.Header>
+									</Card>
+								</div>
+							);
+						})}
+					</Card.Body>
+				</Card>
+			</Col>
+		</>
+	);
 };
 
 export default SidebarAvailableNodes;
