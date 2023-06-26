@@ -3,6 +3,8 @@ const nodesParams = {
   morphological: {
     type: "featuresNode",
     classes: "object ntf morphological",
+    nbInput: 0,
+    nbOutput: 0,
     img: "features.svg",
     title: "MORPH",
     possibleSettings: {},
@@ -10,6 +12,8 @@ const nodesParams = {
   local_intensity: {
     type: "featuresNode",
     classes: "object ntf local_intensity",
+    nbInput: 0,
+    nbOutput: 0,
     img: "features.svg",
     title: "LI",
     possibleSettings: {},
@@ -17,6 +21,8 @@ const nodesParams = {
   statistical: {
     type: "featuresNode",
     classes: "object ntf statistical",
+    nbInput: 0,
+    nbOutput: 0,
     img: "features.svg",
     title: "IS, STAT",
     possibleSettings: {},
@@ -24,6 +30,8 @@ const nodesParams = {
   intensity_histogram: {
     type: "featuresNode",
     classes: "object ntf intensity_histogram",
+    nbInput: 0,
+    nbOutput: 0,
     img: "features.svg",
     title: "IH",
     possibleSettings: {},
@@ -31,6 +39,8 @@ const nodesParams = {
   ivh: {
     type: "featuresNode",
     classes: "object ntf ivh",
+    nbInput: 0,
+    nbOutput: 0,
     img: "features.svg",
     title: "IVH",
     possibleSettings: {},
@@ -38,6 +48,8 @@ const nodesParams = {
   glcm: {
     type: "featuresNode",
     classes: "object tf glcm",
+    nbInput: 0,
+    nbOutput: 0,
     img: "features.svg",
     title: "GLCM",
     possibleSettings: {},
@@ -45,6 +57,8 @@ const nodesParams = {
   gldzm: {
     type: "featuresNode",
     classes: "object tf gldzm",
+    nbInput: 0,
+    nbOutput: 0,
     img: "features.svg",
     title: "GLDZM",
     possibleSettings: {},
@@ -52,6 +66,8 @@ const nodesParams = {
   glcm: {
     type: "featuresNode",
     classes: "object tf glrlm",
+    nbInput: 0,
+    nbOutput: 0,
     img: "features.svg",
     title: "GLRLM",
     possibleSettings: {},
@@ -59,6 +75,8 @@ const nodesParams = {
   glszm: {
     type: "featuresNode",
     classes: "object tf glszm",
+    nbInput: 0,
+    nbOutput: 0,
     img: "features.svg",
     title: "GLSZM",
     possibleSettings: {},
@@ -66,6 +84,8 @@ const nodesParams = {
   ngldm: {
     type: "featuresNode",
     classes: "object tf ngldm",
+    nbInput: 0,
+    nbOutput: 0,
     img: "features.svg",
     title: "NGLDM",
     possibleSettings: {},
@@ -73,6 +93,8 @@ const nodesParams = {
   ngtdm: {
     type: "featuresNode",
     classes: "object tf ngtdm",
+    nbInput: 0,
+    nbOutput: 0,
     img: "features.svg",
     title: "NGTDM",
     possibleSettings: {},
