@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import { Form, Row, Col, Image } from "react-bootstrap";
 import DocLink from "../../docLink";
 
@@ -6,9 +6,9 @@ import DocLink from "../../docLink";
 const LawsFilter = ({ changeFilterForm, defaultFilterForm }) => {
   // lawsForm is the object containing the laws filter parameters
   // It contains the default values at the beginning
-  const [lawsForm, setLawsForm] = useState({});
+  const [lawsForm, setLawsForm] = useState(defaultFilterForm.laws);
 
-  const handleFormChange = (event) => {
+  const handleFormChange = useCallback((event) => {
     const { name, value } = event.target;
     const updatedValue = value ?? defaultFilterForm.laws[name];
 
@@ -19,21 +19,28 @@ const LawsFilter = ({ changeFilterForm, defaultFilterForm }) => {
 
     // Update node data content
     changeFilterForm("laws", name, value);
-  };
+  }, []);
 
-  const handleConfigChange = (event) => {
-    const { name, value } = event.target;
-    let configNumber = name.split("_")[1];
-    let newConfig = lawsForm.config;
-    newConfig[configNumber] = value;
+  const handleConfigChange = useCallback(
+    (event) => {
+      const { name, value } = event.target;
+      let configNumber = name.split("_")[1];
+      let newConfig = lawsForm.config;
+      newConfig[configNumber] = value;
 
-    setLawsForm((prevState) => ({
-      ...prevState,
-      config: newConfig,
-    }));
+      setLawsForm((prevState) => ({
+        ...prevState,
+        config: newConfig,
+      }));
 
-    changeFilterForm("laws", "config", lawsForm.config);
-  };
+      changeFilterForm(
+        "laws",
+        "config",
+        newConfig.filter((value) => value !== "")
+      );
+    },
+    [lawsForm]
+  );
 
   return (
     <Form.Group as={Row} controlId="filter-laws">
@@ -42,6 +49,7 @@ const LawsFilter = ({ changeFilterForm, defaultFilterForm }) => {
           "https://medimage.readthedocs.io/en/latest/configuration_file.html#laws"
         }
         name={"Laws filter documentation"}
+        image={"../icon/extraction/exclamation.svg"}
       />
       <Form.Group as={Row} controlId="config">
         <Row>

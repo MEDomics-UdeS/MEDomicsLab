@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { Form, Row, Col } from "react-bootstrap";
+import React, { useCallback, useState } from "react";
+import { Form, Row, Col, Image } from "react-bootstrap";
 import DocLink from "../../docLink";
 
 // Form group for log filter, used in the filter node component
@@ -28,6 +28,7 @@ const LogFilter = ({ changeFilterForm, defaultFilterForm }) => {
           "https://medimage.readthedocs.io/en/latest/configuration_file.html#log"
         }
         name={"Log filter documentation"}
+        image={"../icon/extraction/exclamation.svg"}
       />
 
       <Form.Group as={Row} controlId="ndims">

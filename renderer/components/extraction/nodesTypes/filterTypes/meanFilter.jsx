@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import { Form, Row, Col } from "react-bootstrap";
 import DocLink from "../../docLink";
 
@@ -8,7 +8,7 @@ const MeanFilter = ({ changeFilterForm, defaultFilterForm }) => {
   // It contains the default values at the beginning
   const [meanForm, setMeanForm] = useState(defaultFilterForm.mean);
 
-  const handleFormChange = (event) => {
+  const handleFormChange = useCallback((event) => {
     const { name, value } = event.target;
     const updatedValue = value ?? defaultFilterForm.mean[name];
 
@@ -18,7 +18,7 @@ const MeanFilter = ({ changeFilterForm, defaultFilterForm }) => {
     }));
 
     changeFilterForm("mean", name, value);
-  };
+  }, []);
 
   return (
     <Form.Group as={Row} controlId="filter-mean">
@@ -27,6 +27,7 @@ const MeanFilter = ({ changeFilterForm, defaultFilterForm }) => {
           "https://medimage.readthedocs.io/en/latest/configuration_file.html#mean"
         }
         name={"Mean filter documentation"}
+        image={"../icon/extraction/exclamation.svg"}
       />
 
       <Form.Group as={Row} controlId="ndims">

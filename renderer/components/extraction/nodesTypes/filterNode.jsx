@@ -43,7 +43,7 @@ const defaultFilterForm = {
   gabor: {
     sigma: 5,
     lambda: 2,
-    gabor: 1.5,
+    gamma: 1.5,
     theta: "Pi/8",
     rot_invariance: true,
     orthogonal_rot: true,
@@ -73,9 +73,9 @@ const FilterNode = ({ id, data, type }) => {
   const [filterForm, setFilterForm] = useState(defaultFilterForm);
 
   // Function used to change the selected filter type
-  const changeFilterChoice = (event) => {
+  const changeFilterChoice = useCallback((event) => {
     setSelectedFilter(event.target.value);
-  };
+  }, []);
 
   // Function used to change the filter form
   const changeFilterForm = useCallback((filter, name, value) => {
@@ -105,6 +105,8 @@ const FilterNode = ({ id, data, type }) => {
       updatedData: data.internal,
     });
   }, [filterForm]);
+
+  // TODO : Deplacer la fonction handleFormChange dans filterNode et l'enlever des types de filtres
 
   return (
     <>

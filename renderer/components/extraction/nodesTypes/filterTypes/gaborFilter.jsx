@@ -1,11 +1,24 @@
-import React, { useState } from "react";
-import { Form, Row, Col, Image } from "react-bootstrap";
+import React, { useCallback, useState } from "react";
+import { Form, Row, Col } from "react-bootstrap";
 import DocLink from "../../docLink";
 
 // Form group for gabor filter, used in the filter node component
-const GaborFilter = ({ id, data }) => {
+const GaborFilter = ({ changeFilterForm, defaultFilterForm }) => {
   // meanForm is the object containing the mean filter parameters
-  const [meanForm, setMeanForm] = useState({});
+  const [gaborForm, setGaborForm] = useState(defaultFilterForm.gabor);
+
+  const handleFormChange = useCallback((event) => {
+    const { name, value } = event.target;
+    const updatedValue = value ?? defaultFilterForm.gabor[name];
+
+    setGaborForm((prevState) => ({
+      ...prevState,
+      [name]: updatedValue,
+    }));
+
+    // Update node data content
+    changeFilterForm("gabor", name, value);
+  }, []);
 
   return (
     <Form.Group as={Row} controlId="filter-gabor">
@@ -14,6 +27,7 @@ const GaborFilter = ({ id, data }) => {
           "https://medimage.readthedocs.io/en/latest/configuration_file.html#gabor"
         }
         name={"Gabor filter documentation"}
+        image={"../icon/extraction/exclamation.svg"}
       />
       <Form.Group as={Row} controlId="sigma">
         <Form.Label column>Sigma:</Form.Label>
@@ -21,8 +35,9 @@ const GaborFilter = ({ id, data }) => {
           <Form.Control
             name="sigma"
             type="number"
-            value="5"
-            placeholder="Default: 5"
+            value={gaborForm.sigma}
+            placeholder={"Default: " + defaultFilterForm.gabor.sigma}
+            onChange={handleFormChange}
           />
         </Col>
       </Form.Group>
@@ -33,8 +48,9 @@ const GaborFilter = ({ id, data }) => {
           <Form.Control
             name="lambda"
             type="number"
-            value="2"
-            placeholder="Default: 2"
+            value={gaborForm.lambda}
+            placeholder={"Default: " + defaultFilterForm.gabor.lambda}
+            onChange={handleFormChange}
           />
         </Col>
       </Form.Group>
@@ -45,8 +61,9 @@ const GaborFilter = ({ id, data }) => {
           <Form.Control
             name="gamma"
             type="number"
-            value="1.5"
-            placeholder="Default: 1.5"
+            value={gaborForm.gamma}
+            placeholder={"Default: " + defaultFilterForm.gabor.gamma}
+            onChange={handleFormChange}
           />
         </Col>
       </Form.Group>
@@ -57,8 +74,9 @@ const GaborFilter = ({ id, data }) => {
           <Form.Control
             name="theta"
             type="text"
-            value="Pi/8"
-            placeholder="Default: Pi/8"
+            value={gaborForm.theta}
+            placeholder={"Default: " + defaultFilterForm.gabor.theta}
+            onChange={handleFormChange}
           />
         </Col>
       </Form.Group>
@@ -66,11 +84,14 @@ const GaborFilter = ({ id, data }) => {
       <Form.Group as={Row} controlId="rot_invariance">
         <Form.Label column>Rotational invariance:</Form.Label>
         <Col>
-          <Form.Control as="select" name="rot_invariance">
+          <Form.Control
+            as="select"
+            name="rot_invariance"
+            value={gaborForm.rot_invariance}
+            onChange={handleFormChange}
+          >
             <option value="false">False</option>
-            <option value="true" selected>
-              True
-            </option>
+            <option value="true">True</option>
           </Form.Control>
         </Col>
       </Form.Group>
@@ -78,11 +99,14 @@ const GaborFilter = ({ id, data }) => {
       <Form.Group as={Row} controlId="orthogonal_rot">
         <Form.Label column>Orthogonal rotation:</Form.Label>
         <Col>
-          <Form.Control as="select" name="orthogonal_rot">
+          <Form.Control
+            as="select"
+            name="orthogonal_rot"
+            value={gaborForm.orthogonal_rot}
+            onChange={handleFormChange}
+          >
             <option value="false">False</option>
-            <option value="true" selected>
-              True
-            </option>
+            <option value="true">True</option>
           </Form.Control>
         </Col>
       </Form.Group>
@@ -90,7 +114,12 @@ const GaborFilter = ({ id, data }) => {
       <Form.Group as={Row} controlId="padding">
         <Form.Label column>Padding:</Form.Label>
         <Col>
-          <Form.Control as="select" name="padding">
+          <Form.Control
+            as="select"
+            name="padding"
+            value={gaborForm.padding}
+            onChange={handleFormChange}
+          >
             <option value="constant">Constant</option>
             <option value="edge">Edge</option>
             <option value="linear_ramp">Linear ramp</option>
@@ -99,9 +128,7 @@ const GaborFilter = ({ id, data }) => {
             <option value="median">Median</option>
             <option value="minimum">Minimum</option>
             <option value="reflect">Reflect</option>
-            <option value="symmetric" selected>
-              Symmetric
-            </option>
+            <option value="symmetric">Symmetric</option>
             <option value="wrap">Wrap</option>
             <option value="empty">Empty</option>
           </Form.Control>
@@ -110,12 +137,13 @@ const GaborFilter = ({ id, data }) => {
 
       <Form.Group as={Row} controlId="name_save">
         <Form.Label column>Name save:</Form.Label>
-        <Col sm={9}>
+        <Col>
           <Form.Control
             name="name_save"
             type="text"
-            value=""
-            placeholder="Name"
+            value={gaborForm.name_save}
+            placeholder={defaultFilterForm.gabor.name_save}
+            onChange={handleFormChange}
           />
         </Col>
       </Form.Group>
