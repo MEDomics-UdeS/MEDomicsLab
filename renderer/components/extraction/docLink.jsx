@@ -1,7 +1,13 @@
 import React from "react";
 import { Image } from "react-bootstrap";
+import { shell } from "electron";
 
-const DocLink = ({ link, name }) => {
+const DocLink = ({ link, name, image }) => {
+  const handleLinkClick = (event) => {
+    event.preventDefault();
+    shell.openExternal(link);
+  };
+
   return (
     <>
       <p
@@ -11,13 +17,15 @@ const DocLink = ({ link, name }) => {
           marginTop: "10px",
         }}
       >
-        <Image
-          src="../icon/extraction/exclamation.svg"
-          width="20"
-          height="20"
-          style={{ marginRight: "10px" }}
-        />
-        <a href={link} target="_blank" rel="noopener noreferrer">
+        {image && (
+          <Image
+            src={image}
+            width="20"
+            height="20"
+            style={{ marginRight: "10px" }}
+          />
+        )}
+        <a href={link} onClick={handleLinkClick}>
           {name}
         </a>
       </p>
