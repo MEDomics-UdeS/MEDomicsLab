@@ -26,6 +26,7 @@ const SegmentationNode = ({ id, data, type }) => {
     result[string] = "2";
     return result;
   }, {});
+
   // Hook to keep track of selected ROIs
   const [selectedRois, setSelectedRois] = useState(defaultRois);
 
@@ -35,7 +36,7 @@ const SegmentationNode = ({ id, data, type }) => {
   }, [selectedRois]);
 
   // Handle radio button changes made by the user to select ROIs
-  const handleRadioChange = (event, currentRoi) => {
+  const handleRadioChange = useCallback((event, currentRoi) => {
     try {
       // TODO : this is probably not the best way to handle that error
       // If the target value is a negative ROI, check if there is at least one positive ROI
@@ -66,10 +67,10 @@ const SegmentationNode = ({ id, data, type }) => {
       });
       return;
     }
-  };
+  }, []);
 
   // Transform the selectedRois dict into a string respecting MEDimage conventions
-  const getRoisSelection = () => {
+  const getRoisSelection = useCallback(() => {
     let roisString = "";
     // Creating strings for positive and negative rois
     let positiveRois = "";
@@ -99,7 +100,7 @@ const SegmentationNode = ({ id, data, type }) => {
       id: id,
       updatedData: data.internal,
     });
-  };
+  }, []);
 
   return (
     <>
