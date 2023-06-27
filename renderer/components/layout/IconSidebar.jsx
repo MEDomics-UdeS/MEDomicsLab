@@ -33,7 +33,7 @@ const IconSidebar = ({ onSidebarItemSelect }) => {
 	};
 	return (
 		<>
-			<div className='col' style={{ display: 'flex', position: 'relative', height: '100%', width: '55px', maxWidth: '55px', backgroundColor: '#3a3a3a', borderRadius: '0px !important', paddingRight: '0px' }}>
+			<div className='col' style={{ display: 'flex', position: 'relative', height: '100%', width: '55px', maxWidth: '55px', minWidth:'55px', backgroundColor: '#3a3a3a', borderRadius: '0px !important', paddingRight: '0px' }}>
 				<Nav defaultActiveKey="/home" className="flex-column" style={{ width: '100%', maxWidth: '100%', minWidth: '100%' }}>
 
 					<OverlayTrigger placement={'right'} overlay={<Tooltip id={`tooltip-home`}>Home</Tooltip>}>

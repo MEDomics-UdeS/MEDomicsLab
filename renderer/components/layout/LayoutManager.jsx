@@ -77,8 +77,8 @@ const LayoutManager = (props) => {
 	return (
 		<>
 			<div className="row" style={{ height: '100%' }}>
-				<IconSidebar onSidebarItemSelect={handleSidebarItemSelect} activeSidebarItem={activeSidebarItem} />
-				<div className='col' style={{ height: '100%', width: '98%', padding: '0px' }}>
+				<IconSidebar onSidebarItemSelect={handleSidebarItemSelect} activeSidebarItem={activeSidebarItem}/>
+				<div className='col' style={{ height: '100%', width: '98%', padding: '0px', display:'grid' }}>
 					<PanelGroup autoSaveId="test" direction="horizontal">
 						<Panel
 							className={resizable.Panel}

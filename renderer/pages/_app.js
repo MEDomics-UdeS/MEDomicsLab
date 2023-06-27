@@ -19,7 +19,10 @@ import "../styles/workspaceSidebar.css";
 import "../styles/iconSidebar.css";
 import LayoutManager from "../components/layout/LayoutManager";
 import LayoutContextProvider from "../components/layout/LayoutContext";
-import { useEffect } from "react";
+import WorkspaceProvider from "../components/workspace/WorkspaceContext";
+import { useEffect } from 'react';
+import { ipcRenderer } from 'electron';
+
 
 // utilities
 
@@ -94,6 +97,26 @@ export default function App() {
    * @description Using the useState hook, the layout model is set to the initial layout model. Then, ever
    */
 	const [layoutModel, setLayoutModel] = useState(initialLayout);
+	const [workspaceObject, setWorkspaceObject] = useState({});
+
+	// ipcRenderer.send('messageFromNext', 'Hello from Next.js');
+
+	// ipcRenderer.on('messageFromElectron', (event, data) => {
+	// 	// console.log('Received message from Electron:', data);
+	// // Handle the received message from the Electron side
+	// });
+
+	useEffect(() => {
+		// This is a hook that is called when the ipcRenderer receives a message from the main process
+		// Log a message to the console whenever the ipcRenderer receives a message from the main process
+		ipcRenderer.on('messageFromElectron', (event, data) => {
+			console.log('Received message from Electron:', data);
+		// Handle the received message from the Electron side
+		});
+
+		
+
+	}, []); // Here, we specify that the hook should only be called when the ipcRenderer receives a message from the main process
 
 	useEffect(() => {
 		// This is a hook that is called whenever the layoutModel state variable changes
@@ -102,6 +125,7 @@ export default function App() {
 		console.log(layoutModel);
 	}, [layoutModel]); // Here, we specify that the hook should only be called when the layoutModel state variable changes
 
+	
 	return (
 		<>
 			<Head>
@@ -111,15 +135,18 @@ export default function App() {
 				{/* Uncomment if you want to use React Dev tools */}
 			</Head>
 			<div style={{ height: "100%" }}>
-				<LayoutContextProvider
-					layoutModel={layoutModel}
-					setLayoutModel={setLayoutModel}
-				>
-					{" "}
-					{/* This is the LayoutContextProvider, which provides the layout model to all the children components of the LayoutManager */}
-					<LayoutManager layout={initialLayout} />{" "}
-					{/** We pass the initialLayout as a parameter */}
-				</LayoutContextProvider>
+				<WorkspaceProvider > {/* This is the WorkspaceProvider, which provides the workspace model to all the children components of the LayoutManager */}
+
+					<LayoutContextProvider
+						layoutModel={layoutModel}
+						setLayoutModel={setLayoutModel}
+					>
+						{" "}
+						{/* This is the LayoutContextProvider, which provides the layout model to all the children components of the LayoutManager */}
+						<LayoutManager layout={initialLayout} />{" "}
+						{/** We pass the initialLayout as a parameter */}
+					</LayoutContextProvider>
+				</WorkspaceProvider>
 
 				<ToastContainer
 					position="bottom-right"
@@ -138,3 +165,5 @@ export default function App() {
 		</>
 	);
 }
+
+

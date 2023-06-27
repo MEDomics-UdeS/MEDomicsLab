@@ -1,8 +1,9 @@
-import { app, protocol, BrowserWindow, ipcMain, Menu } from "electron";
+import { app, protocol, BrowserWindow, ipcMain, Menu, dialog } from "electron";
 import axios from "axios";
 import serve from "electron-serve";
 import { createWindow } from "./helpers";
 var path = require("path");
+const dirTree = require("directory-tree");
 
 const isProd = process.env.NODE_ENV === "production";
 
@@ -115,6 +116,28 @@ if (isProd) {
 	//   console.error(err);
 	// });
 
+	ipcMain.handle("request", async (_, axios_request) => {
+		const result = await axios(axios_request)
+		return { data: result.data, status: result.status }
+	})
+
+	ipcMain.on("messageFromNext", (event, data) => {
+		console.log("messageFromNext : ", data);
+		if (data === "requestDialogFolder") {
+			setWorkingDirectory(event, mainWindow);
+		}
+		else if (data === "requestWorkingDirectory") {
+			event.reply("messageFromElectron", app.getPath('sessionData'));
+		}
+		else if (data === "requestAppExit") {
+			app.exit();
+		}
+		// event.reply("messageFromElectron", "Hello from Electron");
+		// event.reply("messageFromElectron", app.getPath('sessionData'));
+		// event.reply("messageFromElectron", );
+	});
+
+
 	const menu = Menu.buildFromTemplate(template)
 	Menu.setApplicationMenu(menu)
 
@@ -127,10 +150,50 @@ if (isProd) {
 	}
 })();
 
-ipcMain.handle("request", async (_, axios_request) => {
-	const result = await axios(axios_request)
-	return { data: result.data, status: result.status }
-})
+
+function setWorkingDirectory(event, mainWindow) {
+	dialog.showOpenDialog(mainWindow, {
+		properties: ['openDirectory']
+	}).then(result => {
+		if (result.canceled) {
+			console.log('Dialog was canceled')
+			event.reply("messageFromElectron", "Dialog was canceled");
+		} else {
+			const file = result.filePaths[0]
+			console.log(file)
+			if (file === app.getPath('sessionData')) {
+				console.log('Working directory is already set to ' + file)
+				event.reply("messageFromElectron", 'Working directory is already set to ' + file);
+			}
+			else {
+				console.log('Working directory set to ' + file)
+				event.reply("messageFromElectron", 'Working directory set to ' + file);
+				app.setPath('sessionData', file);
+				event.reply("messageFromElectron", dirTree(file));
+				//   app.relaunch({ e})
+				//   mainWindow.loadURL(`file://${file}`)
+			}
+		}
+	}).catch(err => {
+		console.log(err)
+	})
+}
+
+function getTheWorkingDirectoryStructure() {
+	const dirTree = require("directory-tree");
+	const tree = dirTree(getWorkingDirectory());
+	return tree;
+}
+
+function getWorkingDirectory() {
+	return app.getPath('sessionData');
+}
+
+
+// ipcMain.handle("request", async (_, axios_request) => {
+// 	const result = await axios(axios_request)
+// 	return { data: result.data, status: result.status }
+// })
 
 app.on("window-all-closed", () => {
 	app.quit();
