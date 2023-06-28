@@ -1,3 +1,5 @@
+import extractionDefaultSettings from "./possibleSettings/extraction/extractionDefaultSettings";
+
 // Node parameters for Home module of extraction tab
 const nodesParams = {
   input: {
@@ -31,7 +33,9 @@ const nodesParams = {
     output: ["re_segmentation"],
     img: "interpolation.png",
     title: "Interpolation",
-    possibleSettings: {},
+    possibleSettings: {
+      defaultSettings: extractionDefaultSettings.interpolation,
+    },
   },
   filter: {
     type: "filterNode",
@@ -42,7 +46,9 @@ const nodesParams = {
     output: ["roi_extraction", "extraction"],
     img: "filter.svg",
     title: "Filter",
-    possibleSettings: {},
+    possibleSettings: {
+      defaultSettings: extractionDefaultSettings.filter,
+    },
   },
   re_segmentation: {
     type: "standardNode",
@@ -53,9 +59,10 @@ const nodesParams = {
     output: ["roi_extraction", "filter", "extraction"],
     img: "segmentation.png",
     title: "Segmentation",
-    possibleSettings: {},
+    possibleSettings: {
+      defaultSettings: extractionDefaultSettings.segmentation,
+    },
   },
-
   roi_extraction: {
     type: "standardNode",
     classes: "object roi_extraction view run",
@@ -76,18 +83,9 @@ const nodesParams = {
     output: ["extraction"],
     img: "discretization.svg",
     title: "Discretization",
-    possibleSettings: {},
-  },
-  re_segmentation: {
-    type: "standardNode",
-    classes: "object resegmentation view run",
-    nbInput: 1,
-    nbOutput: 1,
-    input: ["interpolation"],
-    output: ["roi_extraction", "filter", "extraction"],
-    img: "segmentation.png",
-    title: "Re-segmentation",
-    possibleSettings: {},
+    possibleSettings: {
+      defaultSettings: extractionDefaultSettings.discretization,
+    },
   },
   extraction: {
     type: "standardNode",
