@@ -1,10 +1,4 @@
-import React, {
-  useState,
-  useEffect,
-  useLayoutEffect,
-  createElement,
-  useCallback,
-} from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Node from "../../flow/node";
 import { Form, Row, Col, Image } from "react-bootstrap";
 import ViewButton from "../buttonsTypes/viewButton";
@@ -15,62 +9,17 @@ import LawsFilter from "./filterTypes/lawsFilter";
 import GaborFilter from "./filterTypes/gaborFilter";
 import WaveletFilter from "./filterTypes/waveletFilter";
 
-const defaultFilterForm = {
-  filter_type: "mean",
-  mean: {
-    ndims: 3,
-    orthogonal_rot: false,
-    size: 5,
-    padding: "symmetric",
-    name_save: "mean_filter",
-  },
-  log: {
-    ndims: 3,
-    sigma: 1.5,
-    orthogonal_rot: false,
-    padding: "symmetric",
-    name_save: "log_filter",
-  },
-  laws: {
-    config: ["L3", "", ""],
-    energy_distance: 7,
-    rot_invariance: true,
-    orthogonal_rot: false,
-    energy_image: true,
-    padding: "symmetric",
-    name_save: "laws_filter",
-  },
-  gabor: {
-    sigma: 5,
-    lambda: 2,
-    gamma: 1.5,
-    theta: "Pi/8",
-    rot_invariance: true,
-    orthogonal_rot: true,
-    padding: "symmetric",
-    name_save: "gabor_filter",
-  },
-  wavelet: {
-    ndims: 3,
-    basis_function: "db3",
-    subband: "LLH",
-    level: 1,
-    rot_invariance: true,
-    padding: "symmetric",
-    name_save: "wavelet_filter",
-  },
-};
-
 // Filter node component, used in the flow editor (flowCanvas.jsx) for the extraction tab
 const FilterNode = ({ id, data, type }) => {
   // Default filter form for settings as of MEDimage documentation :
   // https://medimage.readthedocs.io/en/dev/configuration_file.html
   // TODO : put this in a separate file
-
   // Hook used to change the selected filter type (default set to mean filter)
   const [selectedFilter, setSelectedFilter] = useState("mean");
   // Hook used to change the filter form (default set to mean filter form)
-  const [filterForm, setFilterForm] = useState(defaultFilterForm);
+  const [filterForm, setFilterForm] = useState(
+    data.setupParam.possibleSettings.defaultSettings
+  );
 
   // Function used to change the selected filter type
   const changeFilterChoice = useCallback((event) => {
