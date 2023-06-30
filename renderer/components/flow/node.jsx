@@ -1,17 +1,18 @@
-import React, { useState, useEffect, useContext } from 'react';
-import { Button, Container } from 'react-bootstrap';
-import CloseButton from 'react-bootstrap/CloseButton';
-import Card from 'react-bootstrap/Card';
-import Offcanvas from 'react-bootstrap/Offcanvas';
-import { toast } from 'react-toastify'; // https://www.npmjs.com/package/react-toastify
-import EditableLabel from 'react-simple-editlabel';
-import Handlers from './handlers';
-import { OffCanvasBackdropStyleContext } from './OffCanvasBackdropStyleContext';
+import React, { useState, useEffect, useContext } from "react";
+import { Button, Container } from "react-bootstrap";
+import CloseButton from "react-bootstrap/CloseButton";
+import Card from "react-bootstrap/Card";
+import Offcanvas from "react-bootstrap/Offcanvas";
+import { toast } from "react-toastify"; // https://www.npmjs.com/package/react-toastify
+import EditableLabel from "react-simple-editlabel";
+import Handlers from "./handlers";
+import { OffCanvasBackdropStyleContext } from "./context/offCanvasBackdropStyleContext";
+import { FlowInfosContext} from "./context/flowInfosContext";
 
 /**
  *
  * @param {string} id used to identify the node
- * @param {object} data contains the data of the node. refer to renderer\components\flow\learning\workflow.jsx at function createNode for more information
+ * @param {object} data contains the data of the node. refer to renderer\components\learning\workflow.jsx at function createNode for more information
  * @param {JSX.Element} nodeSpecific jsx element to display specific settings of the node inside the offcanvas
  * @param {JSX.Element} nodeBody jsx element to display the body of the node
  * @param {JSX.Element} defaultSettings jsx element to display default settings of the node inside the offcanvas
@@ -31,6 +32,7 @@ const Node = ({ id, data, nodeSpecific, nodeBody, defaultSettings }) => {
 	const [nodeName, setNodeName] = useState(data.internal.name);
 	const [offcanvasComp, setOffcanvasComp] = useState(null);
 	const { updateBackdropStyle } = useContext(OffCanvasBackdropStyleContext);
+	const { flowInfos } = useContext(FlowInfosContext);
 
 	/**
 	 * @description
@@ -54,11 +56,10 @@ const Node = ({ id, data, nodeSpecific, nodeBody, defaultSettings }) => {
 	 * This is done for styling purposes (having the backdrop over the entire workflow).
 	 */
 	useEffect(() => {
-		console.log(data.internal);
 		setOffcanvasComp(
-			document.getElementById(data.internal.workflowInfos.id)
+			document.getElementById(flowInfos.id)
 		);
-	}, [data.internal.worklowInfos]);
+	}, [flowInfos]);
 
 	/**
 	 * @description
@@ -69,9 +70,9 @@ const Node = ({ id, data, nodeSpecific, nodeBody, defaultSettings }) => {
 	useEffect(() => {
 		let style = {};
 		if (showOffCanvas) {
-			style = { transition: 'none', zIndex: '2' };
+			style = { transition: "none", zIndex: "2" };
 		} else {
-			style = { transition: 'z-index 0.5s ease-in', zIndex: '-1' };
+			style = { transition: "z-index 0.5s ease-in", zIndex: "-1" };
 		}
 		updateBackdropStyle(style);
 	}, [showOffCanvas]);
@@ -89,17 +90,17 @@ const Node = ({ id, data, nodeSpecific, nodeBody, defaultSettings }) => {
 		if (value.length > 15) {
 			newName = value.substring(0, 15);
 			toast.warn(
-				'Node name cannot be over 15 characters. Only the first 15 characters will be saved.',
+				"Node name cannot be over 15 characters. Only the first 15 characters will be saved.",
 				{
-					position: 'bottom-right',
+					position: "bottom-right",
 					autoClose: 2000,
 					hideProgressBar: false,
 					closeOnClick: true,
 					pauseOnHover: true,
 					draggable: true,
 					progress: undefined,
-					theme: 'light',
-					toastId: 'customId',
+					theme: "light",
+					toastId: "customId",
 				}
 			);
 		}
@@ -115,8 +116,8 @@ const Node = ({ id, data, nodeSpecific, nodeBody, defaultSettings }) => {
 						<Card.Header onClick={handleOffCanvasShow}>
 							<img
 								src={
-									`/icon/${data.internal.workflowInfos.type}/` +
-									`${data.internal.img.replaceAll(' ', '_')}`
+									`/icon/${flowInfos.type}/` +
+									`${data.internal.img.replaceAll(" ", "_")}`
 								}
 								alt={data.internal.img}
 								className="icon-nodes"
@@ -161,14 +162,14 @@ const Node = ({ id, data, nodeSpecific, nodeBody, defaultSettings }) => {
 					</Offcanvas>
 				</Container>
 				<CloseButton onClick={() => data.parentFct.deleteNode(id)} />
-				{data.setupParam.classes.split(' ').includes('run') && (
+				{data.setupParam.classes.split(" ").includes("run") && (
 					<Button
 						variant="success"
 						className="btn-runNode"
 						onClick={() => data.parentFct.runNode(id)}
 					>
 						<img
-							src={'/icon/run.svg'}
+							src={"/icon/run.svg"}
 							alt="run"
 							className="img-fluid"
 						/>

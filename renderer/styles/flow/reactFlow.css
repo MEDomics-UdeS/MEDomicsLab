@@ -181,12 +181,13 @@
   top: 0;
   bottom: 0;
   right: 0;
-  width: 300px;
+  width: fit-content;
   /* adjust the width as needed */
   z-index: 1050;
   /* make sure it's above other elements */
   margin: 10px 10px 10px 0px;
   background-color: #e2e2e2;
+  min-width: 300px;
 }
 
 .workflow-settings .offcanvas-backdrop {

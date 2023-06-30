@@ -1,11 +1,10 @@
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useContext } from "react";
 import Node from "../../flow/node";
-import { toast } from "react-toastify"; // https://www.npmjs.com/package/react-toastify
 import Input from "../input";
 import { Button } from "react-bootstrap";
-import Modal from "react-bootstrap/Modal";
 import ModalSettingsChooser from "../modalSettingsChooser";
-import Option from "../checkOption";
+import { FlowInfosContext} from "../../flow/context/flowInfosContext";
+
 
 /**
  *
@@ -21,6 +20,8 @@ import Option from "../checkOption";
  */
 const StandardNode = ({ id, data, type }) => {
 	const [modalShow, setModalShow] = useState(false);
+	const { flowInfos } = useContext(FlowInfosContext);
+
 
 	const onInputChange = (inputUpdate) => {
 		data.internal.settings[inputUpdate.name] = inputUpdate.value;
@@ -64,7 +65,7 @@ const StandardNode = ({ id, data, type }) => {
 							onClick={() => setModalShow(true)}
 						>
 							<img
-								src={`/icon/${data.internal.workflowInfos.type}/add.png`}
+								src={`/icon/${flowInfos.type}/add.png`}
 								alt="add"
 								className="img-fluid"
 							/>

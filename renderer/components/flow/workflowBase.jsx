@@ -36,7 +36,7 @@ import { getId, deepCopy } from "../../utilities/staticFunctions";
  */
 const WorkflowBase = ({
 	ui,
-	createNode,
+	addSpecificToNode,
 	reactFlowInstance,
 	setReactFlowInstance,
 	nodeTypes,
@@ -48,6 +48,10 @@ const WorkflowBase = ({
 	onEdgesChange,
 	onNodeDrag,
 	isGoodConnection,
+	onDeleteNode,
+	setNodeUpdate,
+	runNode,
+	groupNodeHandlingDefault,
 }) => {
 	const edgeUpdateSuccessful = useRef(true);
 
@@ -82,17 +86,22 @@ const WorkflowBase = ({
 				}
 			});
 
-			// check if the connection is valid according to setupParam
+			// get the source and target nodes
 			let sourceNode = deepCopy(
 				nodes.find((node) => node.id === params.source)
 			);
 			let targetNode = deepCopy(
 				nodes.find((node) => node.id === params.target)
 			);
-			let isValidConnection = targetNode.data.setupParam.input.includes(
-				sourceNode.data.setupParam.output[0]
-			);
+			// check if sourceNode's outputs is compatible with targetNode's inputs
+			let isValidConnection = false
+			sourceNode.data.setupParam.output.map((output) =>{
+				if(targetNode.data.setupParam.input.includes(output)){
+					isValidConnection = true
+				}
+			})
 			
+			// if isGoodConnection is defined, check if the connection is valid again with the isGoodConnection function
 			isGoodConnection && (isValidConnection = isValidConnection && isGoodConnection(params));
 
 			if (!alreadyExists && isValidConnection) {
@@ -151,21 +160,50 @@ const WorkflowBase = ({
 				event.dataTransfer.getData("application/reactflow")
 			);
 			const { nodeType } = node;
+
 			if (nodeType in nodeTypes) {
 				const position = reactFlowInstance.project({
 					x: event.clientX - 300,
 					y: event.clientY - 75,
 				});
-				// creation of the node according to the function definition passed as props
-				const newNode = createNode(position, node, getId());
+				let newId = getId();
+				if (nodeType === "groupNode" && groupNodeHandlingDefault) {
+					groupNodeHandlingDefault(createBaseNode, newId);
+				}
+				let newNode = createBaseNode(position, node, newId)
+				newNode = addSpecificToNode(newNode);
 				setNodes((nds) => nds.concat(newNode));
 				console.log("new node created: ", node);
 			} else {
 				console.log("node type not found: ", nodeType);
 			}
 		},
-		[reactFlowInstance, createNode]
+		[reactFlowInstance, addSpecificToNode]
 	);
+
+	const createBaseNode = (position, node, id) => {
+		const { nodeType, name, image } = node;
+		let newNode = {
+			id: id,
+			type: nodeType,
+			name: name,
+			position,
+			data: {
+				// here is the data accessible by children components
+				internal: {
+					name: name,
+					img: image,
+					type: name.toLowerCase(),
+				},
+				parentFct: {
+					deleteNode: onDeleteNode,
+					updateNode: setNodeUpdate,
+					runNode: runNode,
+				},
+			},
+		};
+		return newNode
+	};
 
 	/**
 	 * @description
