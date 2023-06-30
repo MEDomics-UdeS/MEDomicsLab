@@ -58,9 +58,9 @@ const nodesParams = {
     input: ["interpolation"],
     output: ["roi_extraction", "filter", "extraction"],
     img: "segmentation.png",
-    title: "Segmentation",
+    title: "Re-Segmentation",
     possibleSettings: {
-      defaultSettings: extractionDefaultSettings.segmentation,
+      defaultSettings: extractionDefaultSettings.re_segmentation,
     },
   },
   roi_extraction: {

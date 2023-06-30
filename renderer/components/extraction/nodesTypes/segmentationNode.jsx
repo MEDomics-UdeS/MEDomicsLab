@@ -9,10 +9,10 @@ import { toast } from "react-toastify";
  * @param {string} id id of the node
  * @param {object} data data of the node
  * @param {string} type type of the node
- * @returns {JSX.Element} A StandardNode node
+ * @returns {JSX.Element} A segmentation node
  *
  * @description
- * This component is used to display a StandardNode node.
+ * This component is used to display a segmentation node.
  * it handles the display of the node and the modal
  *
  */

@@ -38,7 +38,7 @@ const MeanFilter = ({ changeFilterForm, defaultFilterForm }) => {
             name="ndims"
             type="number"
             value={meanForm.ndims}
-            placeholder="Default: 3"
+            placeholder={"Default : " + defaultFilterForm.mean.ndims}
             onChange={handleFormChange}
           />
         </Col>

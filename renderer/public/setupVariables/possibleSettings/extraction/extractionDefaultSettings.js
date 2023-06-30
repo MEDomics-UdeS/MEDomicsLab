@@ -1,9 +1,9 @@
 const extractionDefaultSettings = {
   interpolation: {
-    scale_non_text: [1, 1, 1],
-    scale_text: [[1, 1, 1]],
+    scale_non_text: [2, 2, 2],
+    scale_text: [[2, 2, 2]],
     vol_interp: "linear",
-    gl_round: [],
+    gl_round: 1,
     roi_interp: "linear",
     roi_pv: 0.5,
   },
@@ -53,7 +53,7 @@ const extractionDefaultSettings = {
     },
   },
   re_segmentation: {
-    range: [0, "inf"],
+    range: [-1000, 400],
     outliers: "",
   },
   discretization: {
@@ -62,8 +62,8 @@ const extractionDefaultSettings = {
       val: 25,
     },
     IVH: {
-      type: "FBN",
-      val: 10,
+      type: "FBS",
+      val: 25,
     },
     texture: {
       type: ["FBS"],

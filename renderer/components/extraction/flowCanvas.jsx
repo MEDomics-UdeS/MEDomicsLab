@@ -85,9 +85,9 @@ const Workflow = ({ id, workflowType, setWorkflowType }) => {
   const nodeTypes = useMemo(
     () => ({
       inputNode: InputNode,
+      segmentationNode: SegmentationNode,
       standardNode: StandardNode,
       extractionNode: ExtractionNode,
-      segmentationNode: SegmentationNode,
       filterNode: FilterNode,
     }),
     []
