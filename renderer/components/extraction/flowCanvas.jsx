@@ -1,20 +1,6 @@
-import React, {
-  useState,
-  useCallback,
-  useMemo,
-  useEffect,
-  use,
-  MouseEvent,
-} from "react";
-import { Button } from "react-bootstrap";
+import React, { useState, useCallback, useMemo, useEffect } from "react";
 import { toast } from "react-toastify";
-import Form from "react-bootstrap/Form";
-import ReactFlow, {
-  useNodesState,
-  useEdgesState,
-  useReactFlow,
-  addEdge,
-} from "reactflow";
+import { useNodesState, useEdgesState, useReactFlow, addEdge } from "reactflow";
 import WorkflowBase from "../flow/workflowBase";
 import TreeMenu from "react-simple-tree-menu"; // TODO: https://www.npmjs.com/package/react-simple-tree-menu change plus sign to chevron
 import {
@@ -22,7 +8,6 @@ import {
   downloadJson,
 } from "../../utilities/fileManagementUtils";
 import { requestJson } from "../../utilities/requests";
-import * as Icon from "react-bootstrap-icons";
 import EditableLabel from "react-simple-editlabel";
 import ProgressBar from "react-bootstrap/ProgressBar";
 
@@ -39,25 +24,12 @@ import nodesParams from "../../public/setupVariables/allNodesParams";
 // Import buttons
 import UtilityButtons from "./buttonsTypes/utilityButtons";
 import ResultsButton from "./buttonsTypes/resultsButton";
+import BtnDiv from "../flow/btnDiv";
+
+// Static functions used in the workflow
+import { removeDuplicates, deepCopy } from "../../utilities/staticFunctions";
 
 const staticNodesParams = nodesParams; // represents static nodes parameters
-
-/**
- *
- * @param {*} array input array
- * @returns an array without duplicates
- */
-function arrayUnique(array) {
-  var a = array.concat();
-  for (var i = 0; i < a.length; ++i) {
-    for (var j = i + 1; j < a.length; ++j) {
-      if (a[i].targetId == a[j].targetId && a[i].sourceId == a[j].sourceId)
-        a.splice(j--, 1);
-    }
-  }
-
-  return a;
-}
 
 /**
  *
@@ -77,11 +49,12 @@ const Workflow = ({ id, workflowType, setWorkflowType }) => {
   const [nodeUpdate, setNodeUpdate] = useState({}); // nodeUpdate is used to update a node internal data
   const { setViewport } = useReactFlow(); // setViewport is used to update the viewport of the workflow
   const [treeData, setTreeData] = useState({}); // treeData is used to set the data of the tree menu
-  const [groupNodeId, setGroupNodeId] = useState(null); // groupNodeId is used to know which optimize node has selected ()
+  const [groupNodeId, setGroupNodeId] = useState(null); // groupNodeId is used to know which groupNode is selected
   const [progress, setProgress] = useState({}); // progress is used to store the progress of the workflow execution
   const [results, setResults] = useState({}); // results is used to store radiomic features results
 
-  // declare node types using useMemo hook to avoid re-creating component types unnecessarily (it memorizes the output) https://www.w3schools.com/react/react_usememo.asp
+  // Declare node types using useMemo hook to avoid re-creating component types unnecessarily (it memorizes the output)
+  // https://www.w3schools.com/react/react_usememo.asp
   const nodeTypes = useMemo(
     () => ({
       inputNode: InputNode,
@@ -93,8 +66,8 @@ const Workflow = ({ id, workflowType, setWorkflowType }) => {
     []
   );
 
-  // execute this when a variable change or a function is called related to the callback hook in []
-  // setNodeUpdate function is passed to the node component to update the internal data of the node
+  // Execute this when a variable change or a function is called related to the callback hook in []
+  // setNodeUpdate function is passed to the node component to UPDATE THE INTERNAL DATA OF THE NODE
   useEffect(() => {
     // if the nodeUpdate object is not empty, update the node
     if (nodeUpdate.id) {
@@ -114,10 +87,26 @@ const Workflow = ({ id, workflowType, setWorkflowType }) => {
     }
   }, [nodeUpdate, setNodes]);
 
-  // executed when the nodes array and edges array are changed
+  // Execute setTreeData when there is a change in nodes or edges arrays.
   useEffect(() => {
     setTreeData(createTreeFromNodes());
   }, [nodes, edges]);
+
+  // Executed when groupNodeId changes. I put it in useEffect because it assures groupNodeId is updated.
+  useEffect(() => {
+    // If there is a groupNodeId, the workflow is a features workflow
+    if (groupNodeId) {
+      // Set the workflow type to features
+      setWorkflowType("features");
+      // Hide the nodes that are not in the features group
+      hideNodesbut(groupNodeId);
+    } else {
+      // Else the workflow is an extraction workflow
+      setWorkflowType("extraction");
+      // Hide the nodes that are not in the extraction group
+      hideNodesbut(groupNodeId);
+    }
+  }, [groupNodeId, nodeUpdate]);
 
   /**
    *
@@ -169,7 +158,7 @@ const Workflow = ({ id, workflowType, setWorkflowType }) => {
           let targetNode = JSON.parse(
             JSON.stringify(nodes.find((node) => node.id === edge.target))
           );
-          if (targetNode.type != "groupNode") {
+          if (targetNode.type != "extractionNode") {
             let subIdText = "";
             let subflowId = targetNode.data.internal.subflowId;
             if (subflowId) {
@@ -235,8 +224,6 @@ const Workflow = ({ id, workflowType, setWorkflowType }) => {
       type: nodeType,
       name: name,
       position,
-      hidden: nodeType == "optimizeIO",
-      zIndex: nodeType == "optimizeIO" ? 1 : 1010,
       data: {
         // here is the data accessible by children components
         internal: {
@@ -263,6 +250,35 @@ const Workflow = ({ id, workflowType, setWorkflowType }) => {
     return newNode;
   };
 
+  const addSpecificToNode = (newNode) => {
+    // Add defaut parameters of node to possibleSettings
+    let setupParams = {};
+    setupParams = JSON.parse(
+      JSON.stringify(
+        staticNodesParams[workflowType][
+          newNode.name.toLowerCase().replaceAll(" ", "_").replaceAll("-", "_")
+        ]
+      )
+    );
+    setupParams.possibleSettings = setupParams["possibleSettings"];
+
+    // Add default parameters to node data
+    newNode.data.setupParam = setupParams;
+
+    // Initialize settings in node data to put the parameters selected by the user
+    newNode.data.internal.settings = {};
+
+    // TODO : ??
+    newNode.data.parentFct.changeSubFlow = setGroupNodeId;
+
+    newNode.data.internal.subflowId = groupNodeId; // TODO : À vérifier!
+
+    // Used to enable the view button of a node (if it exists)
+    newNode.data.internal.enableView = false;
+
+    return newNode;
+  };
+
   /**
    * @param {Object} id id of the node to delete
    *
@@ -278,7 +294,7 @@ const Workflow = ({ id, workflowType, setWorkflowType }) => {
           if (n.id !== id) {
             filteredNodes.push(n);
           }
-          if (n.type == "groupNode") {
+          if (n.type == "extractionNode") {
             let childrenNodes = nds.filter(
               (node) => node.data.internal.subflowId == id
             );
@@ -307,42 +323,6 @@ const Workflow = ({ id, workflowType, setWorkflowType }) => {
   };
 
   /**
-   *
-   * @param {String} value new value of the node name
-   *
-   * This function is called when the user changes the name of the node (focus out of the input).
-   * It checks if the name is over 15 characters and if it is, it displays a warning message.
-   * It then updates the name of the node by calling the updateNode function of the parentFct object of the node
-   * this function is specific to groupNodes
-   */
-  const newNameHasBeenWritten = (value) => {
-    let newName = value;
-    if (value.length > 15) {
-      newName = value.substring(0, 15);
-      toast.warn(
-        "Node name cannot be over 15 characters. Only the first 15 characters will be saved.",
-        {
-          position: "bottom-right",
-          autoClose: 2000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
-          theme: "light",
-          toastId: "customId",
-        }
-      );
-    }
-    let groupNode = nodes.find((node) => node.id === groupNodeId);
-    groupNode.data.internal.name = newName;
-    groupNode.data.parentFct.updateNode({
-      id: groupNodeId,
-      updatedData: groupNode.data.internal,
-    });
-  };
-
-  /**
    * Save the workflow as a json file
    */
   const onSave = useCallback(() => {
@@ -361,12 +341,40 @@ const Workflow = ({ id, workflowType, setWorkflowType }) => {
     }
   }, [reactFlowInstance]);
 
+  /**
+   * Clear the canvas if the user confirms
+   */
+  const onClear = useCallback(() => {
+    let confirmation = confirm(
+      "Are you sure you want to clear the canvas?\nEvery data will be lost."
+    );
+    if (confirmation) {
+      setNodes([]);
+      setEdges([]);
+      setIntersections([]);
+    }
+  }, []);
+
+  /**
+   * @param {Object} info info about the node clicked
+   *
+   * This function is called when the user clicks on a tree item
+   *
+   */
+  const onTreeItemClick = (info) => {
+    console.log("tree item clicked: ", info);
+  };
+
+  const groupNodeHandlingDefault = (createBaseNode, newId) => {
+    console.log("Group node handling default.");
+  };
+
   return (
     <>
       <WorkflowBase
         reactFlowInstance={reactFlowInstance}
         setReactFlowInstance={setReactFlowInstance}
-        createNode={createNode}
+        addSpecificToNode={addSpecificToNode}
         nodeTypes={nodeTypes}
         nodes={nodes}
         setNodes={setNodes}
@@ -374,9 +382,13 @@ const Workflow = ({ id, workflowType, setWorkflowType }) => {
         edges={edges}
         setEdges={setEdges}
         onEdgesChange={onEdgesChange}
+        onDeleteNode={deleteNode}
+        setNodeUpdate={setNodeUpdate}
+        runNode={runNode}
+        groupNodeHandlingDefault={groupNodeHandlingDefault}
         ui={
           <>
-            <UtilityButtons save={onSave} />
+            <UtilityButtons save={onSave} clear={onClear} />
             <ResultsButton results={results} />
           </>
         }
