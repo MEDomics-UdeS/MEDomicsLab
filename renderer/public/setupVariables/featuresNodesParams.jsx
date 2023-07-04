@@ -1,40 +1,42 @@
+import extractionFeatures from "./possibleSettings/extraction/extractionFeatures.js";
+
 // Node parameters for Extraction module of extraction tab
 const nodesParams = {
-  morphological: {
+  morph: {
     type: "featuresNode",
     classes: "object ntf morphological",
     nbInput: 0,
     nbOutput: 0,
     img: "features.svg",
     title: "MORPH",
-    possibleSettings: {},
+    possibleSettings: { defaultSettings: extractionFeatures.morph },
   },
-  local_intensity: {
+  li: {
     type: "featuresNode",
     classes: "object ntf local_intensity",
     nbInput: 0,
     nbOutput: 0,
     img: "features.svg",
     title: "LI",
-    possibleSettings: {},
+    possibleSettings: { defaultSettings: extractionFeatures.li },
   },
-  statistical: {
+  isstat: {
     type: "featuresNode",
     classes: "object ntf statistical",
     nbInput: 0,
     nbOutput: 0,
     img: "features.svg",
     title: "IS, STAT",
-    possibleSettings: {},
+    possibleSettings: { defaultSettings: extractionFeatures.isstat },
   },
-  intensity_histogram: {
+  ih: {
     type: "featuresNode",
     classes: "object ntf intensity_histogram",
     nbInput: 0,
     nbOutput: 0,
     img: "features.svg",
     title: "IH",
-    possibleSettings: {},
+    possibleSettings: { defaultSettings: extractionFeatures.ih },
   },
   ivh: {
     type: "featuresNode",
@@ -43,7 +45,7 @@ const nodesParams = {
     nbOutput: 0,
     img: "features.svg",
     title: "IVH",
-    possibleSettings: {},
+    possibleSettings: { defaultSettings: extractionFeatures.ivh },
   },
   glcm: {
     type: "featuresNode",
@@ -52,7 +54,7 @@ const nodesParams = {
     nbOutput: 0,
     img: "features.svg",
     title: "GLCM",
-    possibleSettings: {},
+    possibleSettings: { defaultSettings: extractionFeatures.glcm },
   },
   gldzm: {
     type: "featuresNode",
@@ -61,16 +63,16 @@ const nodesParams = {
     nbOutput: 0,
     img: "features.svg",
     title: "GLDZM",
-    possibleSettings: {},
+    possibleSettings: { defaultSettings: extractionFeatures.gldzm },
   },
-  glcm: {
+  glrlm: {
     type: "featuresNode",
     classes: "object tf glrlm",
     nbInput: 0,
     nbOutput: 0,
     img: "features.svg",
     title: "GLRLM",
-    possibleSettings: {},
+    possibleSettings: { defaultSettings: extractionFeatures.glrlm },
   },
   glszm: {
     type: "featuresNode",
@@ -79,7 +81,7 @@ const nodesParams = {
     nbOutput: 0,
     img: "features.svg",
     title: "GLSZM",
-    possibleSettings: {},
+    possibleSettings: { defaultSettings: extractionFeatures.glszm },
   },
   ngldm: {
     type: "featuresNode",
@@ -88,7 +90,7 @@ const nodesParams = {
     nbOutput: 0,
     img: "features.svg",
     title: "NGLDM",
-    possibleSettings: {},
+    possibleSettings: { defaultSettings: extractionFeatures.ngldm },
   },
   ngtdm: {
     type: "featuresNode",
@@ -97,7 +99,7 @@ const nodesParams = {
     nbOutput: 0,
     img: "features.svg",
     title: "NGTDM",
-    possibleSettings: {},
+    possibleSettings: { defaultSettings: extractionFeatures.ngtdm },
   },
 };
 

@@ -17,6 +17,7 @@ import StandardNode from "./nodesTypes/standardNode";
 import ExtractionNode from "./nodesTypes/extractionNode";
 import SegmentationNode from "./nodesTypes/segmentationNode";
 import FilterNode from "./nodesTypes/filterNode";
+import FeaturesNode from "./nodesTypes/featuresNode";
 
 // Import node parameters
 import nodesParams from "../../public/setupVariables/allNodesParams";
@@ -62,6 +63,7 @@ const Workflow = ({ id, workflowType, setWorkflowType }) => {
       standardNode: StandardNode,
       extractionNode: ExtractionNode,
       filterNode: FilterNode,
+      featuresNode: FeaturesNode,
     }),
     []
   );
@@ -193,72 +195,12 @@ const Workflow = ({ id, workflowType, setWorkflowType }) => {
     return treeMenuData;
   };
 
-  /**
-   *
-   * @param {*} position initial position of the node
-   * @param {*} node node information
-   * @param {*} newId new created id to be given to the node
-   * @param {*} associatedNode useful when creating a sub-group node, it the parent node of the group node
-   * @returns a node object
-   *
-   * This function creates a node object
-   * it is called by the onDrop function in workflowBase.jsx
-   *
-   */
-  const createNode = (position, node, newId, associatedNode) => {
-    const { nodeType, name, image } = node;
-    // get node parameters
-    let setupParams = {};
-    setupParams = JSON.parse(
-      JSON.stringify(
-        staticNodesParams[workflowType][
-          name.toLowerCase().replaceAll(" ", "_").replaceAll("-", "_")
-        ]
-      )
-    );
-    setupParams.possibleSettings = setupParams["possibleSettings"];
-
-    // create new node for react flow
-    const newNode = {
-      id: `${newId}${associatedNode ? `.${associatedNode}` : ""}`, // if the node is a sub-group node, it has the id of the parent node seperated by a dot. useful when processing only ids
-      type: nodeType,
-      name: name,
-      position,
-      data: {
-        // here is the data accessible by children components
-        internal: {
-          name: `${name}`,
-          img: `${image}`,
-          type: `${name.toLowerCase()}`,
-          workflowInfos: { id: id, type: workflowType },
-          settings: (function () {
-            return {};
-          })(),
-          checkedOptions: [],
-          subflowId: !associatedNode ? groupNodeId : associatedNode,
-          enableView: false, // used to enable the view of the node
-        },
-        parentFct: {
-          deleteNode: deleteNode,
-          updateNode: setNodeUpdate,
-          runNode: runNode,
-          changeSubFlow: setGroupNodeId,
-        },
-        setupParam: setupParams,
-      },
-    };
-    return newNode;
-  };
-
   const addSpecificToNode = (newNode) => {
     // Add defaut parameters of node to possibleSettings
+    let type = newNode.data.internal.type.replace(/[^a-z]/g, "");
     let setupParams = {};
     setupParams = JSON.parse(
-      JSON.stringify(
-        staticNodesParams[workflowType][
-          newNode.name.toLowerCase().replaceAll(" ", "_").replaceAll("-", "_")
-        ]
-      )
+      JSON.stringify(staticNodesParams[workflowType][type])
     );
     setupParams.possibleSettings = setupParams["possibleSettings"];
 

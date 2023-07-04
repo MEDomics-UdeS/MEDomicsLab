@@ -1,5 +1,5 @@
 const extractionFeatures = {
-  morphological: {
+  morph: {
     MEDimageName: "morph",
     associatedFeatures: {
       "Area density aabb": "a_dens_aabb",
@@ -33,14 +33,14 @@ const extractionFeatures = {
       Volume: "vol",
     },
   },
-  local_intensity: {
+  li: {
     MEDimageName: "local_intensity",
     associatedFeatures: {
       "Global intensity peak": "peak_global",
       "Local intensity peak": "peak_local",
     },
   },
-  statistical: {
+  isstat: {
     MEDimageName: "stats",
     associatedFeatures: {
       "Coefficient of variation": "cov",
