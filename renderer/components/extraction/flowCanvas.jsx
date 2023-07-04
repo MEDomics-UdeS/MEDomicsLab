@@ -1,20 +1,6 @@
-import React, {
-  useState,
-  useCallback,
-  useMemo,
-  useEffect,
-  use,
-  MouseEvent,
-} from "react";
-import { Button } from "react-bootstrap";
+import React, { useState, useCallback, useMemo, useEffect } from "react";
 import { toast } from "react-toastify";
-import Form from "react-bootstrap/Form";
-import ReactFlow, {
-  useNodesState,
-  useEdgesState,
-  useReactFlow,
-  addEdge,
-} from "reactflow";
+import { useNodesState, useEdgesState, useReactFlow, addEdge } from "reactflow";
 import WorkflowBase from "../flow/workflowBase";
 import TreeMenu from "react-simple-tree-menu"; // TODO: https://www.npmjs.com/package/react-simple-tree-menu change plus sign to chevron
 import {
@@ -22,44 +8,32 @@ import {
   downloadJson,
 } from "../../utilities/fileManagementUtils";
 import { requestJson } from "../../utilities/requests";
-import * as Icon from "react-bootstrap-icons";
 import EditableLabel from "react-simple-editlabel";
-import ProgressBar from "react-bootstrap/ProgressBar";
 
 // Import node types
 import InputNode from "./nodesTypes/inputNode";
 import StandardNode from "./nodesTypes/standardNode";
-import GroupNode from "./nodesTypes/groupNode";
+import ExtractionNode from "./nodesTypes/extractionNode";
+import SegmentationNode from "./nodesTypes/segmentationNode";
+import FilterNode from "./nodesTypes/filterNode";
+import FeaturesNode from "./nodesTypes/featuresNode";
 
 // Import node parameters
 import nodesParams from "../../public/setupVariables/allNodesParams";
 
-// Top right button for run/clear/save/upload
-import UtilityButtons from "./utilityButtons";
+// Import buttons
+import ResultsButton from "./buttonsTypes/resultsButton";
+import BtnDiv from "../flow/btnDiv";
+
+// Static functions used in the workflow
+import { removeDuplicates, deepCopy } from "../../utilities/staticFunctions";
 
 const staticNodesParams = nodesParams; // represents static nodes parameters
 
 /**
  *
- * @param {*} array input array
- * @returns an array without duplicates
- */
-function arrayUnique(array) {
-  var a = array.concat();
-  for (var i = 0; i < a.length; ++i) {
-    for (var j = i + 1; j < a.length; ++j) {
-      if (a[i].targetId == a[j].targetId && a[i].sourceId == a[j].sourceId)
-        a.splice(j--, 1);
-    }
-  }
-
-  return a;
-}
-
-/**
- *
  * @param {String} id id of the workflow for multiple workflows management
- * @param {function} setWorkflowType function to change the sidebar type
+ * @param {function} changeSidebarType function to change the sidebar type
  * @param {String} workflowType type of the workflow (learning or optimize)
  * @returns {JSX.Element} A workflow
  *
@@ -67,30 +41,33 @@ function arrayUnique(array) {
  * This component is used to display a workflow (ui, nodes, edges, etc.).
  *
  */
-const Workflow = ({ id, setWorkflowType, workflowType }) => {
+const Workflow = ({ id, workflowType, setWorkflowType }) => {
   const [nodes, setNodes, onNodesChange] = useNodesState([]); // nodes array, setNodes is used to update the nodes array, onNodesChange is a callback hook that is executed when the nodes array is changed
   const [edges, setEdges, onEdgesChange] = useEdgesState([]); // edges array, setEdges is used to update the edges array, onEdgesChange is a callback hook that is executed when the edges array is changed
   const [reactFlowInstance, setReactFlowInstance] = useState(null); // reactFlowInstance is used to get the reactFlowInstance object important for the reactFlow library
   const [nodeUpdate, setNodeUpdate] = useState({}); // nodeUpdate is used to update a node internal data
   const { setViewport } = useReactFlow(); // setViewport is used to update the viewport of the workflow
   const [treeData, setTreeData] = useState({}); // treeData is used to set the data of the tree menu
-  const [groupNodeId, setGroupNodeId] = useState(null); // groupNodeId is used to know which optimize node has selected ()
-  const { getIntersectingNodes } = useReactFlow(); // getIntersectingNodes is used to get the intersecting nodes of a node
-  const [intersections, setIntersections] = useState([]); // intersections is used to store the intersecting nodes related to optimize nodes start and end
+  const [groupNodeId, setGroupNodeId] = useState(null); // groupNodeId is used to know which groupNode is selected
   const [progress, setProgress] = useState({}); // progress is used to store the progress of the workflow execution
+  const [results, setResults] = useState({}); // results is used to store radiomic features results
 
-  // declare node types using useMemo hook to avoid re-creating component types unnecessarily (it memorizes the output) https://www.w3schools.com/react/react_usememo.asp
+  // Declare node types using useMemo hook to avoid re-creating component types unnecessarily (it memorizes the output)
+  // https://www.w3schools.com/react/react_usememo.asp
   const nodeTypes = useMemo(
     () => ({
       inputNode: InputNode,
+      segmentationNode: SegmentationNode,
       standardNode: StandardNode,
-      groupNode: GroupNode,
+      extractionNode: ExtractionNode,
+      filterNode: FilterNode,
+      featuresNode: FeaturesNode,
     }),
     []
   );
 
-  // execute this when a variable change or a function is called related to the callback hook in []
-  // setNodeUpdate function is passed to the node component to update the internal data of the node
+  // Execute this when a variable change or a function is called related to the callback hook in []
+  // setNodeUpdate function is passed to the node component to UPDATE THE INTERNAL DATA OF THE NODE
   useEffect(() => {
     // if the nodeUpdate object is not empty, update the node
     if (nodeUpdate.id) {
@@ -110,90 +87,26 @@ const Workflow = ({ id, setWorkflowType, workflowType }) => {
     }
   }, [nodeUpdate, setNodes]);
 
-  // executed when the nodes array and edges array are changed
+  // Execute setTreeData when there is a change in nodes or edges arrays.
   useEffect(() => {
     setTreeData(createTreeFromNodes());
   }, [nodes, edges]);
 
-  // execute this when groupNodeId change. I put it in useEffect because it assures groupNodeId is updated
+  // Executed when groupNodeId changes. I put it in useEffect because it assures groupNodeId is updated.
   useEffect(() => {
+    // If there is a groupNodeId, the workflow is a features workflow
     if (groupNodeId) {
-      setWorkflowType("optimize");
+      // Set the workflow type to features
+      setWorkflowType("features");
+      // Hide the nodes that are not in the features group
       hideNodesbut(groupNodeId);
     } else {
+      // Else the workflow is an extraction workflow
       setWorkflowType("extraction");
+      // Hide the nodes that are not in the extraction group
       hideNodesbut(groupNodeId);
     }
   }, [groupNodeId, nodeUpdate]);
-
-  // executed when intersections array is changed
-  // it updates nodes and eges array
-  useEffect(() => {
-    // first, we add 'intersect' class to the nodes that are intersecting with OptimizeIO nodes
-    setNodes((nds) =>
-      nds.map((node) => {
-        if (true) {
-          node.data = {
-            ...node.data,
-          };
-          node.className = "";
-          intersections.forEach((intersect) => {
-            if (
-              intersect.targetId == node.id ||
-              intersect.sourceId == node.id
-            ) {
-              node.className = "intersect";
-            }
-          });
-        }
-        return node;
-      })
-    );
-
-    // then, we add the edges between the intersecting nodes and hide them to simulate the connection between the nodes
-    // this is useful to create the recursive workflow automatically
-    // it basically bypasses the optimize nodes
-    setEdges((eds) => eds.filter((edge) => !edge.id.includes("opt"))); // remove all edges that are linked to optimize nodes
-    intersections.forEach((intersect, index) => {
-      let edgeSource = null;
-      let edgeTarget = null;
-      if (intersect.targetId.includes("start")) {
-        edgeSource = intersect.targetId.split(".")[1];
-        edgeTarget = intersect.sourceId;
-        let prevOptEdge = edges.find((edge) => edge.target == edgeSource);
-        if (prevOptEdge) {
-          edgeSource = prevOptEdge.source;
-        } else {
-          edgeSource = null;
-        }
-      } else if (intersect.targetId.includes("end")) {
-        edgeSource = intersect.sourceId;
-        edgeTarget = intersect.targetId.split(".")[1];
-        let nextOptEdge = edges.find((edge) => edge.source == edgeTarget);
-        if (nextOptEdge) {
-          edgeTarget = nextOptEdge.target;
-        } else {
-          edgeTarget = null;
-        }
-      }
-
-      edgeSource &&
-        edgeTarget &&
-        setEdges((eds) =>
-          addEdge(
-            {
-              source: edgeSource,
-              sourceHandle: "0_" + edgeSource, // we add 0_ because the sourceHandle always starts with 0_. Handles are created by a for loop so it represents an index
-              target: edgeTarget,
-              targetHandle: "0_" + edgeTarget,
-              id: index + intersect.targetId,
-              hidden: true,
-            },
-            eds
-          )
-        );
-    });
-  }, [intersections]);
 
   /**
    *
@@ -245,7 +158,7 @@ const Workflow = ({ id, setWorkflowType, workflowType }) => {
           let targetNode = JSON.parse(
             JSON.stringify(nodes.find((node) => node.id === edge.target))
           );
-          if (targetNode.type != "groupNode") {
+          if (targetNode.type != "extractionNode") {
             let subIdText = "";
             let subflowId = targetNode.data.internal.subflowId;
             if (subflowId) {
@@ -280,54 +193,31 @@ const Workflow = ({ id, setWorkflowType, workflowType }) => {
     return treeMenuData;
   };
 
-  /**
-   * @param {Object} event event object
-   * @param {Object} node node object
-   *
-   * This function is called when a node is dragged
-   * It checks if the node is intersecting with another node
-   * If it is, it adds the intersection to the intersections array
-   */
-  const onNodeDrag = useCallback(
-    (event, node) => {
-      let rawIntersects = getIntersectingNodes(node).map((n) => n.id);
-      rawIntersects = rawIntersects.filter(
-        (n) =>
-          nodes.find((node) => node.id == n).data.internal.subflowId ==
-          node.data.internal.subflowId
-      );
-      let isNew = false;
-      let newIntersections = intersections;
-      rawIntersects.forEach((rawIntersect) => {
-        if (node.id.includes("opt")) {
-          newIntersections = newIntersections.concat({
-            sourceId: rawIntersect,
-            targetId: node.id,
-          });
-        } else if (rawIntersect.includes("opt")) {
-          newIntersections = newIntersections.concat({
-            sourceId: node.id,
-            targetId: rawIntersect,
-          });
-        }
-        newIntersections = arrayUnique(newIntersections);
-        isNew = true;
-        setIntersections(newIntersections);
-      });
-      if (!isNew) {
-        if (node.id.includes("opt")) {
-          setIntersections((intersects) =>
-            intersects.filter((int) => int.targetId !== node.id)
-          );
-        } else {
-          setIntersections((intersects) =>
-            intersects.filter((int) => int.sourceId !== node.id)
-          );
-        }
-      }
-    },
-    [nodes]
-  );
+  const addSpecificToNode = (newNode) => {
+    // Add defaut parameters of node to possibleSettings
+    let type = newNode.data.internal.type.replace(/[^a-z]/g, "");
+    let setupParams = {};
+    setupParams = JSON.parse(
+      JSON.stringify(staticNodesParams[workflowType][type])
+    );
+    setupParams.possibleSettings = setupParams["possibleSettings"];
+
+    // Add default parameters to node data
+    newNode.data.setupParam = setupParams;
+
+    // Initialize settings in node data to put the parameters selected by the user
+    newNode.data.internal.settings = {};
+
+    // TODO : ??
+    newNode.data.parentFct.changeSubFlow = setGroupNodeId;
+
+    newNode.data.internal.subflowId = groupNodeId; // TODO : À vérifier!
+
+    // Used to enable the view button of a node (if it exists)
+    newNode.data.internal.enableView = false;
+
+    return newNode;
+  };
 
   /**
    * @param {Object} id id of the node to delete
@@ -336,7 +226,7 @@ const Workflow = ({ id, setWorkflowType, workflowType }) => {
    * It deletes the node and its edges
    * If the node is a group node, it deletes all the nodes inside the group node
    */
-  const onDeleteNode = useCallback(
+  const deleteNode = useCallback(
     (id) => {
       console.log("delete node", id);
       setNodes((nds) =>
@@ -344,12 +234,12 @@ const Workflow = ({ id, setWorkflowType, workflowType }) => {
           if (n.id !== id) {
             filteredNodes.push(n);
           }
-          if (n.type == "groupNode") {
+          if (n.type == "extractionNode") {
             let childrenNodes = nds.filter(
               (node) => node.data.internal.subflowId == id
             );
             childrenNodes.forEach((node) => {
-              onDeleteNode(node.id);
+              deleteNode(node.id);
             });
           }
           return filteredNodes;
@@ -362,107 +252,80 @@ const Workflow = ({ id, setWorkflowType, workflowType }) => {
 
   /**
    *
-   * @param {*} position initial position of the node
-   * @param {*} node node information
-   * @param {*} newId new created id to be given to the node
-   * @param {*} associatedNode useful when creating a sub-group node, it the parent node of the group node
-   * @returns a node object
-   *
-   * This function creates a node object
-   * it is called by the onDrop function in workflowBase.jsx
-   *
-   */
-  const createNode = (position, node, newId, associatedNode) => {
-    const { nodeType, name, image } = node;
-    // get node parameters
-    let setupParams = {};
-    setupParams = JSON.parse(
-      JSON.stringify(
-        staticNodesParams[workflowType][
-          name.toLowerCase().replaceAll(" ", "_").replaceAll("-", "_")
-        ]
-      )
-    );
-    setupParams.possibleSettings = setupParams["possibleSettings"];
-    // create new node for react flow
-    const newNode = {
-      id: `${newId}${associatedNode ? `.${associatedNode}` : ""}`, // if the node is a sub-group node, it has the id of the parent node seperated by a dot. useful when processing only ids
-      type: nodeType,
-      name: name,
-      position,
-      hidden: nodeType == "optimizeIO",
-      zIndex: nodeType == "optimizeIO" ? 1 : 1010,
-      data: {
-        // here is the data accessible by children components
-        internal: {
-          name: `${name}`,
-          img: `${image}`,
-          type: `${name.toLowerCase()}`,
-          workflowInfos: { id: id, type: workflowType },
-          settings: (function () {
-            return {};
-          })(),
-          checkedOptions: [],
-          subflowId: !associatedNode ? groupNodeId : associatedNode,
-        },
-        parentFct: {
-          deleteNode: onDeleteNode,
-          updateNode: setNodeUpdate,
-          runNode: runNode,
-          changeSubFlow: setGroupNodeId,
-        },
-        setupParam: setupParams,
-      },
-    };
-    return newNode;
-  };
-
-  /**
-   *
    * @param {String} id id of the node to execute
    *
    * This function is called when the user clicks on the run button of a node
    * It executes the pipelines finishing with this node
    */
-  const runNode = (id) => {
+  const onRun = (id) => {
     console.log("run node", id);
     // TODO
   };
 
   /**
-   *
-   * @param {String} value new value of the node name
-   *
-   * This function is called when the user changes the name of the node (focus out of the input).
-   * It checks if the name is over 15 characters and if it is, it displays a warning message.
-   * It then updates the name of the node by calling the updateNode function of the parentFct object of the node
-   * this function is specific to groupNodes
+   * Clear the canvas if the user confirms
    */
-  const newNameHasBeenWritten = (value) => {
-    let newName = value;
-    if (value.length > 15) {
-      newName = value.substring(0, 15);
-      toast.warn(
-        "Node name cannot be over 15 characters. Only the first 15 characters will be saved.",
-        {
-          position: "bottom-right",
-          autoClose: 2000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
-          theme: "light",
-          toastId: "customId",
-        }
-      );
+  const onClear = useCallback(() => {
+    let confirmation = confirm(
+      "Are you sure you want to clear the canvas?\nEvery data will be lost."
+    );
+    if (confirmation) {
+      setNodes([]);
+      setEdges([]);
+      setIntersections([]);
     }
-    let groupNode = nodes.find((node) => node.id === groupNodeId);
-    groupNode.data.internal.name = newName;
-    groupNode.data.parentFct.updateNode({
-      id: groupNodeId,
-      updatedData: groupNode.data.internal,
-    });
+  }, []);
+
+  /**
+   * Save the workflow as a json file
+   */
+  const onSave = useCallback(() => {
+    if (reactFlowInstance) {
+      const flow = JSON.parse(JSON.stringify(reactFlowInstance.toObject()));
+      flow.nodes.forEach((node) => {
+        node.data.parentFct = null;
+        node.data.setupParam = null;
+        // Set enableView to false because only the scene is saved
+        // and importing it back would not reload the volumes that
+        // were loaded in the viewer
+        node.data.enableView = false;
+      });
+      console.log("flow", flow);
+      downloadJson(flow, "experiment");
+    }
+  }, [reactFlowInstance]);
+
+  /**
+   * Clear the canvas if the user confirms
+   */
+  const onLoad = useCallback(() => {
+    console.log("load workflow");
+    // TODO
+  }, []);
+
+  /**
+   * Set the subflow id to null to go back to the main workflow
+   */
+  const onBack = useCallback(() => {
+    setGroupNodeId(null);
+  }, []);
+
+  const onResults = useCallback(() => {
+    setGroupNodeId(null);
+  }, []);
+
+  /**
+   * @param {Object} info info about the node clicked
+   *
+   * This function is called when the user clicks on a tree item
+   *
+   */
+  const onTreeItemClick = (info) => {
+    console.log("tree item clicked: ", info);
+  };
+
+  const groupNodeHandlingDefault = (createBaseNode, newId) => {
+    console.log("Group node handling default.");
   };
 
   return (
@@ -470,7 +333,7 @@ const Workflow = ({ id, setWorkflowType, workflowType }) => {
       <WorkflowBase
         reactFlowInstance={reactFlowInstance}
         setReactFlowInstance={setReactFlowInstance}
-        createNode={createNode}
+        addSpecificToNode={addSpecificToNode}
         nodeTypes={nodeTypes}
         nodes={nodes}
         setNodes={setNodes}
@@ -478,10 +341,27 @@ const Workflow = ({ id, setWorkflowType, workflowType }) => {
         edges={edges}
         setEdges={setEdges}
         onEdgesChange={onEdgesChange}
-        onNodeDrag={onNodeDrag}
+        onDeleteNode={deleteNode}
+        setNodeUpdate={setNodeUpdate}
+        runNode={onRun}
+        groupNodeHandlingDefault={groupNodeHandlingDefault}
         ui={
           <>
-            <UtilityButtons />
+            <div className="btn-panel-top-corner-right">
+              {workflowType == "extraction" ? (
+                <BtnDiv
+                  buttonsList={[
+                    { type: "run", onClick: onRun },
+                    { type: "clear", onClick: onClear },
+                    { type: "save", onClick: onSave },
+                    { type: "load", onClick: onLoad },
+                  ]}
+                />
+              ) : (
+                <BtnDiv buttonsList={[{ type: "back", onClick: onBack }]} />
+              )}
+            </div>
+            <ResultsButton results={results} />
           </>
         }
       />

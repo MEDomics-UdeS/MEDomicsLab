@@ -1,8 +1,9 @@
 import React, { useState } from "react";
 import { Form, Row, Col, Button } from "react-bootstrap";
 
-const UploadComponent = () => {
-  const [file, setFile] = useState(null);
+const UploadComponent = ({ id, data, type }) => {
+  // Initialize filename to empty string
+  const [file, setFile] = useState("");
   const [uploadEnabled, setUploadEnabled] = useState(false);
 
   const handleFileChange = (event) => {
@@ -36,11 +37,14 @@ const UploadComponent = () => {
           console.log(
             "The file " + json_response.name + " was uploaded successfully"
           );
-
-          // TODO: Add your logic here for handling the response and updating the React component state
-
-          // Clear the file input
-          setFile(null);
+          // If the file was uploaded successfully, change the filename in the node
+          data.internal.settings["filename"] = file;
+          // And set changeView to true to update the view
+          data.internal.changeView = true;
+          data.parentFct.updateNode({
+            id: id,
+            updatedData: data.internal,
+          });
         });
     }
   };
@@ -59,7 +63,7 @@ const UploadComponent = () => {
             />
           </Form.Group>
         </Col>
-        <Col className="fit-content-card ">
+        <Col className="upload-button-col">
           <Form.Group controlId="uploadButton">
             <Button
               type="button"

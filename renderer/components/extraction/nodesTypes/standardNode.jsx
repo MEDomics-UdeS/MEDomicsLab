@@ -1,6 +1,10 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import Node from "../../flow/node";
-import ImageViewer from "../buttonsTypes/viewButton";
+import ViewButton from "../buttonsTypes/viewButton";
+import InterpolationForm from "./standardNodeForms/interpolationForm.jsx";
+import ReSegmentationForm from "./standardNodeForms/reSegmentationForm.jsx";
+import DiscretizationForm from "./standardNodeForms/discretizationForm.jsx";
+
 /**
  *
  * @param {string} id id of the node
@@ -13,8 +17,44 @@ import ImageViewer from "../buttonsTypes/viewButton";
  * it handles the display of the node and the modal
  *
  */
+const nodeTypes = {
+  interpolation: InterpolationForm,
+  re_segmentation: ReSegmentationForm,
+  discretization: DiscretizationForm,
+};
+
 const StandardNode = ({ id, data, type }) => {
-  const [modalShow, setModalShow] = useState(false);
+  const [nodeForm, setNodeForm] = useState(
+    data.setupParam.possibleSettings.defaultSettings
+  );
+  const changeNodeForm = useCallback(
+    (event) => {
+      const { name, value } = event.target;
+      const updatedValue =
+        value ?? data.setupParam.possibleSettings.defaultSettings[name];
+      const updatedNodeForm = {
+        ...nodeForm,
+        [name]: updatedValue,
+      };
+
+      // TODO : Should cast types for value depending on the name
+      setNodeForm(updatedNodeForm);
+    },
+    [nodeForm]
+  );
+
+  // Called when the form is changed, updates the node data
+  useEffect(() => {
+    data.internal.settings = nodeForm;
+    data.parentFct.updateNode({
+      id: id,
+      updatedData: data.internal,
+    });
+  }, [nodeForm]);
+
+  const nodeSpecificType = data.internal.type.replace(/-/g, "_");
+  const SpecificNodeComponent = nodeTypes[nodeSpecificType];
+
   return (
     <>
       <Node
@@ -23,9 +63,16 @@ const StandardNode = ({ id, data, type }) => {
         data={data}
         type={type}
         setupParam={data.setupParam}
-        nodeBody={<ImageViewer />}
-        defaultSettings={<></>}
-        nodeSpecific={<></>}
+        defaultSettings={<ViewButton id={id} data={data} type={type} />}
+        nodeSpecific={
+          SpecificNodeComponent ? (
+            <SpecificNodeComponent
+              nodeForm={nodeForm}
+              changeNodeForm={changeNodeForm}
+              data={data}
+            />
+          ) : null
+        }
       />
     </>
   );

@@ -18,7 +18,7 @@ import Handlers from "../../flow/handlers";
  * A GroupNode is a node that contains a subflow, so it handles a click that change the active display subflow.
  * It does not implement a Node because it does not need to have access to an offcanvas
  */
-const GroupNode = ({ id, data }) => {
+const ExtractionNode = ({ id, data }) => {
   return (
     <>
       <div>
@@ -54,4 +54,4 @@ const GroupNode = ({ id, data }) => {
   );
 };
 
-export default GroupNode;
+export default ExtractionNode;

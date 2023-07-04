@@ -1,22 +1,31 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import Button from "react-bootstrap/Button";
 
-const ImageViewer = ({ node_id, node_data, node_type }) => {
+const ViewButton = ({ id, data, type }) => {
+  //  Hook for disabling the button
+  const [isDisabled, setIsDisabled] = useState(true);
+
+  // Update the disabled state whenever the data.internal.enableView changes
+  useEffect(() => {
+    setIsDisabled(data.internal.enableView == false);
+  }, [data.internal.enableView]);
+
+  // Function to send a POST request to /extraction/view
   const viewImage = () => {
-    console.log("Viewing image for node " + node_id);
+    console.log("Viewing image for node " + id);
 
     // Construction of form data to send to /extraction/view. If the node is input, the name of the file is needed
     let form_data;
-    if (node_type === "input") {
+    if (type === "input") {
       form_data = JSON.stringify({
-        id: node_id,
-        name: node_type,
-        file_loaded: node_data.filepath,
+        id: id,
+        name: type,
+        file_loaded: data.filepath,
       });
     } else {
       form_data = JSON.stringify({
-        id: node_id,
-        name: node_type,
+        id: id,
+        name: type,
       });
     }
 
@@ -39,18 +48,16 @@ const ImageViewer = ({ node_id, node_data, node_type }) => {
   };
 
   return (
-    <div>
+    <div className="test">
       <Button
         type="button"
-        variant="primary"
         className="viewButton"
         onClick={viewImage}
-        disabled
+        disabled={isDisabled}
       >
         <img
-          src="../icon/extraction/view.png"
-          width="20"
-          height="20"
+          src="../icon/extraction/eye.svg"
+          className="viewImage"
           alt="View button"
         />
         View image
@@ -59,4 +66,4 @@ const ImageViewer = ({ node_id, node_data, node_type }) => {
   );
 };
 
-export default ImageViewer;
+export default ViewButton;
