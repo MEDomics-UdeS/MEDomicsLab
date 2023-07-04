@@ -216,7 +216,7 @@ const WorkflowBase = ({
 	 * @param {Object} position the drop position of the node ex. {x: 100, y: 100}
 	 * @param {Object} node the node object containing the nodeType, name and image path
 	 * @param {String} id the id of the node 
-	 * @returns 
+	 * @returns {Object} the node object with the common properties
 	 */
 	const createBaseNode = (position, node, id) => {
 		const { nodeType, name, image } = node;
