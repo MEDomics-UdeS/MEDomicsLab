@@ -4,26 +4,30 @@ import { Tooltip } from "react-tooltip";
 
 /**
  *
- * @param {string} id used to identify the node
- * @param {object} data contains the data of the node. refer to renderer\components\flow\learning\workflow.jsx at function createNode for more information
- * @returns {JSX.Element} handlers of the node (connections points)
+ * @param {Array} arr array of possibles connections
+ * @param {Int} i index of the connection
+ * @returns % of the position of the connection according to the number of connections
+ */
+const getConnPositionStyle = (arr, i) => {
+	let length = arr.length;
+	return {
+		top: `${((i + 1) * 100) / (length + 1)}%`,
+	};
+};
+
+
+/**
+ * 
+ * @param {String} id id of the node
+ * @param {Object} setupParam setupParam of the node. found in the config file of the node in /public
+ * @description This component is used to display the handlers of the node (connection points)
+ * Each handler has a tooltip that displays the possible connections
  */
 const Handlers = ({ id, setupParam }) => {
-	/**
-   *
-   * @param {*} arr array of possibles connections
-   * @param {*} i index of the connection
-   * @returns % of the position of the connection according to the number of connections
-   */
-	const getConnPositionStyle = (arr, i) => {
-		let length = arr.length;
-		return {
-			top: `${((i + 1) * 100) / (length + 1)}%`,
-		};
-	};
 
 	return (
 		<>
+			{/* We create a handler for each input of the node. */}
 			{[...Array(setupParam["nbInput"])].map((x, i) => (
 				<div key={`left-${i}_${id}`}>
 					<Handle
@@ -43,6 +47,7 @@ const Handlers = ({ id, setupParam }) => {
 					</Tooltip>
 				</div>
 			))}
+			{/* We create a handler for each output of the node. */}
 			{[...Array(setupParam["nbOutput"])].map((x, i) => (
 				<div key={`right-${i}_${id}`}>
 					<Handle

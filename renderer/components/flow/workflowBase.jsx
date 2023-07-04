@@ -1,5 +1,5 @@
 /* eslint-disable react/prop-types */
-import React, { useRef, useCallback } from "react";
+import React, { useRef, useCallback, useEffect, useState} from "react";
 import { toast } from "react-toastify";
 import ReactFlow, {
 	Controls,
@@ -35,26 +35,51 @@ import { getId, deepCopy } from "../../utilities/staticFunctions";
  * It manages base workflow functions such as node creation, node deletion, node connection, etc.
  */
 const WorkflowBase = ({
-	ui,
-	addSpecificToNode,
-	reactFlowInstance,
-	setReactFlowInstance,
-	nodeTypes,
-	nodes,
-	setNodes,
-	onNodesChange,
-	edges,
-	setEdges,
-	onEdgesChange,
-	onNodeDrag,
+	mandatoryProps,
 	isGoodConnection,
 	onDeleteNode,
-	setNodeUpdate,
-	runNode,
 	groupNodeHandlingDefault,
+	ui,
 }) => {
-	const edgeUpdateSuccessful = useRef(true);
 
+	const {
+		reactFlowInstance,
+		setReactFlowInstance,
+		nodeTypes,
+		nodes,
+		setNodes,
+		onNodesChange,
+		edges,
+		setEdges,
+		onEdgesChange,
+		onNodeDrag,
+		runNode,
+		addSpecificToNode,
+	} = mandatoryProps;
+	
+	const edgeUpdateSuccessful = useRef(true);
+	const [nodeUpdate, setNodeUpdate] = useState({}); // nodeUpdate is used to update a node internal data
+	// execute this when a variable change or a function is called related to the callback hook in []
+	// setNodeUpdate function is passed to the node component to update the internal data of the node
+	useEffect(() => {
+		// if the nodeUpdate object is not empty, update the node
+		if (nodeUpdate.id) {
+			setNodes((nds) =>
+				nds.map((node) => {
+					if (node.id == nodeUpdate.id) {
+						// it's important that you create a new object here in order to notify react flow about the change
+						node.data = {
+							...node.data,
+						};
+						// update the internal data of the node
+						node.data.internal = nodeUpdate.updatedData;
+					}
+					return node;
+				})
+			);
+		}
+	}, [nodeUpdate, setNodes]);
+	
 
 	/**
 	 * @param {object} params
@@ -166,12 +191,17 @@ const WorkflowBase = ({
 					x: event.clientX - 300,
 					y: event.clientY - 75,
 				});
+				// create a new random id for the node
 				let newId = getId();
+				// if the node is a group node, call the groupNodeHandlingDefault function if it is defined
 				if (nodeType === "groupNode" && groupNodeHandlingDefault) {
 					groupNodeHandlingDefault(createBaseNode, newId);
 				}
+				// create a base node with common properties
 				let newNode = createBaseNode(position, node, newId)
+				// add specific properties to the node
 				newNode = addSpecificToNode(newNode);
+				// add the new node to the nodes array
 				setNodes((nds) => nds.concat(newNode));
 				console.log("new node created: ", node);
 			} else {
@@ -181,6 +211,13 @@ const WorkflowBase = ({
 		[reactFlowInstance, addSpecificToNode]
 	);
 
+	/**
+	 * 
+	 * @param {Object} position the drop position of the node ex. {x: 100, y: 100}
+	 * @param {Object} node the node object containing the nodeType, name and image path
+	 * @param {String} id the id of the node 
+	 * @returns 
+	 */
 	const createBaseNode = (position, node, id) => {
 		const { nodeType, name, image } = node;
 		let newNode = {
@@ -196,13 +233,24 @@ const WorkflowBase = ({
 					type: name.toLowerCase(),
 				},
 				parentFct: {
-					deleteNode: onDeleteNode,
 					updateNode: setNodeUpdate,
+					deleteNode: onDeleteNode || deleteNode,
 					runNode: runNode,
 				},
 			},
 		};
 		return newNode
+	};
+
+	/**
+	 * 
+	 * @param {String} nodeId id of the node to delete
+	 * @description default function to delete a node
+	 */
+	const deleteNode = (nodeId) => {
+		setNodes((nds) => nds.filter((node) => node.id !== nodeId));
+		setEdges((eds) => eds.filter((edge) => edge.source !== nodeId && edge.target !== nodeId)
+		);
 	};
 
 	/**

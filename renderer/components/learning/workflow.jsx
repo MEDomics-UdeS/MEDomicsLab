@@ -26,7 +26,6 @@ import nodesParams from "../../public/setupVariables/allNodesParams";
 import { removeDuplicates, deepCopy } from "../../utilities/staticFunctions";
 
 const staticNodesParams = nodesParams; // represents static nodes parameters
-
 /**
  *
  * @param {function} setWorkflowType function to change the sidebar type
@@ -41,7 +40,6 @@ const Workflow = ({setWorkflowType, workflowType }) => {
 	const [nodes, setNodes, onNodesChange] = useNodesState([]); // nodes array, setNodes is used to update the nodes array, onNodesChange is a callback hook that is executed when the nodes array is changed
 	const [edges, setEdges, onEdgesChange] = useEdgesState([]); // edges array, setEdges is used to update the edges array, onEdgesChange is a callback hook that is executed when the edges array is changed
 	const [reactFlowInstance, setReactFlowInstance] = useState(null); // reactFlowInstance is used to get the reactFlowInstance object important for the reactFlow library
-	const [nodeUpdate, setNodeUpdate] = useState({}); // nodeUpdate is used to update a node internal data
 	const [MLType, setMLType] = useState("classification"); // MLType is used to know which machine learning type is selected
 	const { setViewport } = useReactFlow(); // setViewport is used to update the viewport of the workflow
 	const [treeData, setTreeData] = useState({}); // treeData is used to set the data of the tree menu
@@ -61,26 +59,7 @@ const Workflow = ({setWorkflowType, workflowType }) => {
 		[]
 	);
 
-	// execute this when a variable change or a function is called related to the callback hook in []
-	// setNodeUpdate function is passed to the node component to update the internal data of the node
-	useEffect(() => {
-		// if the nodeUpdate object is not empty, update the node
-		if (nodeUpdate.id) {
-			setNodes((nds) =>
-				nds.map((node) => {
-					if (node.id == nodeUpdate.id) {
-						// it's important that you create a new object here in order to notify react flow about the change
-						node.data = {
-							...node.data,
-						};
-						// update the internal data of the node
-						node.data.internal = nodeUpdate.updatedData;
-					}
-					return node;
-				})
-			);
-		}
-	}, [nodeUpdate, setNodes]);
+	
 
 	// executed when the machine learning type is changed
 	// it updates the possible settings of the nodes
@@ -130,7 +109,7 @@ const Workflow = ({setWorkflowType, workflowType }) => {
 			setWorkflowType("learning");
 			hideNodesbut(groupNodeId);
 		}
-	}, [groupNodeId, nodeUpdate]);
+	}, [groupNodeId]);
 
 	// executed when intersections array is changed
 	// it updates nodes and eges array
@@ -205,20 +184,20 @@ const Workflow = ({setWorkflowType, workflowType }) => {
 
 	/**
 	 *
-	 * @param {String} activeNodeId id of the group that is active
+	 * @param {String} activeSubflowId id of the group that is active
 	 *
 	 * This function hides the nodes and edges that are not in the active group
 	 * each node has a subflowId that is the id of the group it belongs to
 	 * if the subflowId is not equal to the activeNodeId, then the node is hidden
 	 *
 	 */
-	const hideNodesbut = (activeNodeId) => {
+	const hideNodesbut = (activeSubflowId) => {
 		setNodes((nodes) =>
 			nodes.map((node) => {
 				node = {
 					...node,
 				};
-				node.hidden = node.data.internal.subflowId != activeNodeId;
+				node.hidden = node.data.internal.subflowId != activeSubflowId;
 				return node;
 			})
 		);
@@ -230,9 +209,9 @@ const Workflow = ({setWorkflowType, workflowType }) => {
 				};
 				edge.hidden =
 					nodes.find((node) => node.id === edge.source).data.internal
-						.subflowId != activeNodeId ||
+						.subflowId != activeSubflowId ||
 					nodes.find((node) => node.id === edge.target).data.internal
-						.subflowId != activeNodeId;
+						.subflowId != activeSubflowId;
 				return edge;
 			})
 		);
@@ -250,21 +229,17 @@ const Workflow = ({setWorkflowType, workflowType }) => {
 			let children = {};
 			edges.forEach((edge) => {
 				if (edge.source == node.id) {
-					let targetNode = JSON.parse(
-						JSON.stringify(
-							nodes.find((node) => node.id === edge.target)
-						)
-					);
+					let targetNode = deepCopy(
+						nodes.find((node) => node.id === edge.target)
+					)
 					if (targetNode.type != "groupNode") {
 						let subIdText = "";
 						let subflowId = targetNode.data.internal.subflowId;
 						if (subflowId) {
 							subIdText =
-								JSON.parse(
-									JSON.stringify(
-										nodes.find(
-											(node) => node.id == subflowId
-										)
+								deepCopy(
+									nodes.find(
+										(node) => node.id == subflowId
 									)
 								).data.internal.name + ".";
 						}
@@ -432,6 +407,12 @@ const Workflow = ({setWorkflowType, workflowType }) => {
 		[nodes]
 	);
 
+	/**
+	 * 
+	 * @param {Object} newNode base node object
+	 * @param {String} associatedNode id of the parent node if the node is a sub-group node
+	 * @returns 
+	 */
 	const addSpecificToNode = (newNode, associatedNode) => {
 		// if the node is not a static node for a optimize subflow, it needs possible settings
 		let setupParams = {};
@@ -499,7 +480,7 @@ const Workflow = ({setWorkflowType, workflowType }) => {
 	 * execute the whole workflow
 	 */
 	const onRun = useCallback(() => {
-		console.log("run");
+		console.log(MLType);
 		requestJson(
 			5000,
 			"test",
@@ -511,16 +492,14 @@ const Workflow = ({setWorkflowType, workflowType }) => {
 				console.error(err);
 			}
 		);
-	}, []);
+	}, [ MLType ]);
 
 	/**
 	 * save the workflow as a json file
 	 */
 	const onSave = useCallback(() => {
 		if (reactFlowInstance) {
-			const flow = JSON.parse(
-				JSON.stringify(reactFlowInstance.toObject())
-			);
+			const flow = deepCopy(reactFlowInstance.toObject())
 			flow.MLType = MLType;
 			flow.nodes.forEach((node) => {
 				node.data.parentFct = null;
@@ -602,20 +581,21 @@ const Workflow = ({setWorkflowType, workflowType }) => {
 	return (
 		<>
 			<WorkflowBase
-				reactFlowInstance={reactFlowInstance}
-				setReactFlowInstance={setReactFlowInstance}
-				addSpecificToNode={addSpecificToNode}
-				nodeTypes={nodeTypes}
-				nodes={nodes}
-				setNodes={setNodes}
-				onNodesChange={onNodesChange}
-				edges={edges}
-				setEdges={setEdges}
-				onEdgesChange={onEdgesChange}
-				onNodeDrag={onNodeDrag}
+				mandatoryProps={{
+					reactFlowInstance : reactFlowInstance,
+					setReactFlowInstance : setReactFlowInstance,
+					addSpecificToNode : addSpecificToNode,
+					nodeTypes : nodeTypes,
+					nodes : nodes,
+					setNodes : setNodes,
+					onNodesChange : onNodesChange,
+					edges : edges,
+					setEdges : setEdges,
+					onEdgesChange : onEdgesChange,
+					onNodeDrag : onNodeDrag,
+					runNode : runNode,
+				}}
 				onDeleteNode={onDeleteNode}
-				setNodeUpdate={setNodeUpdate}
-				runNode={runNode}
 				groupNodeHandlingDefault={groupNodeHandlingDefault}
 				ui={
 					<>
@@ -648,10 +628,10 @@ const Workflow = ({setWorkflowType, workflowType }) => {
 									</Form.Select>
 									<BtnDiv
 										buttonsList={[
-											{ type: "run", onClick: onRun },
-											{ type: "clear", onClick: onClear },
-											{ type: "save", onClick: onSave },
-											{ type: "load", onClick: onLoad },
+											{ type: "run", 		onClick: onRun },
+											{ type: "clear", 	onClick: onClear },
+											{ type: "save", 	onClick: onSave },
+											{ type: "load", 	onClick: onLoad },
 										]}
 									/>
 								</>
