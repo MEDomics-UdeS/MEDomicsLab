@@ -9,7 +9,6 @@ import {
 } from "../../utilities/fileManagementUtils";
 import { requestJson } from "../../utilities/requests";
 import EditableLabel from "react-simple-editlabel";
-import ProgressBar from "react-bootstrap/ProgressBar";
 
 // Import node types
 import InputNode from "./nodesTypes/inputNode";
@@ -23,7 +22,6 @@ import FeaturesNode from "./nodesTypes/featuresNode";
 import nodesParams from "../../public/setupVariables/allNodesParams";
 
 // Import buttons
-import UtilityButtons from "./buttonsTypes/utilityButtons";
 import ResultsButton from "./buttonsTypes/resultsButton";
 import BtnDiv from "../flow/btnDiv";
 
@@ -259,10 +257,24 @@ const Workflow = ({ id, workflowType, setWorkflowType }) => {
    * This function is called when the user clicks on the run button of a node
    * It executes the pipelines finishing with this node
    */
-  const runNode = (id) => {
+  const onRun = (id) => {
     console.log("run node", id);
     // TODO
   };
+
+  /**
+   * Clear the canvas if the user confirms
+   */
+  const onClear = useCallback(() => {
+    let confirmation = confirm(
+      "Are you sure you want to clear the canvas?\nEvery data will be lost."
+    );
+    if (confirmation) {
+      setNodes([]);
+      setEdges([]);
+      setIntersections([]);
+    }
+  }, []);
 
   /**
    * Save the workflow as a json file
@@ -286,15 +298,20 @@ const Workflow = ({ id, workflowType, setWorkflowType }) => {
   /**
    * Clear the canvas if the user confirms
    */
-  const onClear = useCallback(() => {
-    let confirmation = confirm(
-      "Are you sure you want to clear the canvas?\nEvery data will be lost."
-    );
-    if (confirmation) {
-      setNodes([]);
-      setEdges([]);
-      setIntersections([]);
-    }
+  const onLoad = useCallback(() => {
+    console.log("load workflow");
+    // TODO
+  }, []);
+
+  /**
+   * Set the subflow id to null to go back to the main workflow
+   */
+  const onBack = useCallback(() => {
+    setGroupNodeId(null);
+  }, []);
+
+  const onResults = useCallback(() => {
+    setGroupNodeId(null);
   }, []);
 
   /**
@@ -326,11 +343,24 @@ const Workflow = ({ id, workflowType, setWorkflowType }) => {
         onEdgesChange={onEdgesChange}
         onDeleteNode={deleteNode}
         setNodeUpdate={setNodeUpdate}
-        runNode={runNode}
+        runNode={onRun}
         groupNodeHandlingDefault={groupNodeHandlingDefault}
         ui={
           <>
-            <UtilityButtons save={onSave} clear={onClear} />
+            <div className="btn-panel-top-corner-right">
+              {workflowType == "extraction" ? (
+                <BtnDiv
+                  buttonsList={[
+                    { type: "run", onClick: onRun },
+                    { type: "clear", onClick: onClear },
+                    { type: "save", onClick: onSave },
+                    { type: "load", onClick: onLoad },
+                  ]}
+                />
+              ) : (
+                <BtnDiv buttonsList={[{ type: "back", onClick: onBack }]} />
+              )}
+            </div>
             <ResultsButton results={results} />
           </>
         }
