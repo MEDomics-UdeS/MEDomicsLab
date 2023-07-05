@@ -8,11 +8,6 @@
     width: fit-content;
     max-width: 100px;
 }
-.test{
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
 
 .viewButton{
     width: 100%;
@@ -29,4 +24,22 @@
     width: 30px;
     height: 30px;
     margin-right: 8px !important;
+}
+
+.results-button {
+    width: 100%;
+    font-size: large;
+    color: black;
+    margin-top: 10px;
+    background-color: white;
+    border: black 1px solid;
+    width: fit-content;
+    height: fit-content;
+    margin-right: 10px;
+}
+
+.results-button:hover {
+    background-color: rgb(194, 194, 194);
+    color: black;
+    border: black 1px solid;
 }

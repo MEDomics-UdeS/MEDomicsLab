@@ -3,13 +3,7 @@ import Button from "react-bootstrap/Button";
 
 const ResultsButton = ({ results }) => {
   return (
-    <>
-      {results && (
-        <Button variant="success" className="results-button">
-          Show Results
-        </Button>
-      )}
-    </>
+    <>{results && <Button className="results-button">Show Results</Button>}</>
   );
 };
 

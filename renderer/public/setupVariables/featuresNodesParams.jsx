@@ -20,7 +20,7 @@ const nodesParams = {
     title: "LI",
     possibleSettings: { defaultSettings: extractionFeatures.li },
   },
-  isstat: {
+  is_stat: {
     type: "featuresNode",
     classes: "object ntf statistical",
     nbInput: 0,

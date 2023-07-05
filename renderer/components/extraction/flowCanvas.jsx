@@ -149,7 +149,7 @@ const Workflow = ({ id, workflowType, setWorkflowType }) => {
    * This function creates the tree data from the nodes array
    * it is used to create the recursive workflow
    */
-  const createTreeFromNodes = () => {
+  const createTreeFromNodes = useCallback(() => {
     // recursively create tree from nodes
     const createTreeFromNodesRec = (node) => {
       let children = {};
@@ -182,24 +182,31 @@ const Workflow = ({ id, workflowType, setWorkflowType }) => {
       let sourceNode = JSON.parse(
         JSON.stringify(nodes.find((node) => node.id === edge.source))
       );
-      if (sourceNode.name == "Dataset") {
-        treeMenuData[sourceNode.id] = {
-          label: sourceNode.data.internal.name,
-          nodes: createTreeFromNodesRec(sourceNode),
-        };
-      }
+
+      treeMenuData[sourceNode.id] = {
+        label: sourceNode.data.internal.name,
+        nodes: createTreeFromNodesRec(sourceNode),
+      };
     });
 
     return treeMenuData;
-  };
+  }, [nodes, edges]);
 
   const addSpecificToNode = (newNode) => {
     // Add defaut parameters of node to possibleSettings
-    let type = newNode.data.internal.type.replace(/[^a-z]/g, "");
+    console.log("NODE_TYPE", newNode.data.internal.type);
+
+    let type = newNode.data.internal.type
+      .replaceAll(/ |-/g, "_")
+      .replace(/[^a-z_]/g, "");
+
+    console.log("NEW TYPE", type);
     let setupParams = {};
-    setupParams = JSON.parse(
-      JSON.stringify(staticNodesParams[workflowType][type])
-    );
+    if (staticNodesParams[workflowType][type]) {
+      setupParams = JSON.parse(
+        JSON.stringify(staticNodesParams[workflowType][type])
+      );
+    }
     setupParams.possibleSettings = setupParams["possibleSettings"];
 
     // Add default parameters to node data
@@ -257,10 +264,19 @@ const Workflow = ({ id, workflowType, setWorkflowType }) => {
    * This function is called when the user clicks on the run button of a node
    * It executes the pipelines finishing with this node
    */
-  const onRun = (id) => {
+  const runNode = (id) => {
     console.log("run node", id);
+    const flow = JSON.parse(JSON.stringify(reactFlowInstance.toObject()));
     // TODO
   };
+
+  /**
+   * Clear all the pipelines in the workflow
+   */
+  const onRun = useCallback(() => {
+    console.log("run workflow");
+    // TODO
+  }, []);
 
   /**
    * Clear the canvas if the user confirms
@@ -343,10 +359,19 @@ const Workflow = ({ id, workflowType, setWorkflowType }) => {
         onEdgesChange={onEdgesChange}
         onDeleteNode={deleteNode}
         setNodeUpdate={setNodeUpdate}
-        runNode={onRun}
+        runNode={runNode}
         groupNodeHandlingDefault={groupNodeHandlingDefault}
         ui={
           <>
+            <div className="btn-panel-top-corner-left">
+              <ResultsButton results={results} />
+              <TreeMenu
+                data={treeData}
+                onClickItem={onTreeItemClick}
+                debounceTime={125}
+                hasSearch={false}
+              />
+            </div>
             <div className="btn-panel-top-corner-right">
               {workflowType == "extraction" ? (
                 <BtnDiv
@@ -361,7 +386,6 @@ const Workflow = ({ id, workflowType, setWorkflowType }) => {
                 <BtnDiv buttonsList={[{ type: "back", onClick: onBack }]} />
               )}
             </div>
-            <ResultsButton results={results} />
           </>
         }
       />
