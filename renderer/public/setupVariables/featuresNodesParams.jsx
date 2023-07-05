@@ -27,7 +27,7 @@ const nodesParams = {
     nbOutput: 0,
     img: "features.svg",
     title: "IS, STAT",
-    possibleSettings: { defaultSettings: extractionFeatures.isstat },
+    possibleSettings: { defaultSettings: extractionFeatures.is_stat },
   },
   ih: {
     type: "featuresNode",

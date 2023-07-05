@@ -1,7 +1,7 @@
 // Feature node component represents a radiomic feature family
 // The node specific settings are only shown if the user need to select distinct parameters for the feature family
 // The default settings are always a list of checkboxes for each feature in the feature family and are shown in the offcanvas
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import Node from "../../flow/node";
 import { Form } from "react-bootstrap";
 /**
@@ -16,8 +16,12 @@ import { Form } from "react-bootstrap";
  */
 
 const FeaturesNode = ({ id, data, type }) => {
-  const features = Object.keys(
-    data.setupParam.possibleSettings.defaultSettings.associatedFeatures
+  const features = useMemo(
+    () =>
+      Object.keys(
+        data.setupParam.possibleSettings.defaultSettings.associatedFeatures
+      ),
+    []
   );
   const [selectedFeatures, setSelectedFeatures] = useState(features);
 

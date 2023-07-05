@@ -194,13 +194,11 @@ const Workflow = ({ id, workflowType, setWorkflowType }) => {
 
   const addSpecificToNode = (newNode) => {
     // Add defaut parameters of node to possibleSettings
-    console.log("NODE_TYPE", newNode.data.internal.type);
 
     let type = newNode.data.internal.type
       .replaceAll(/ |-/g, "_")
       .replace(/[^a-z_]/g, "");
 
-    console.log("NEW TYPE", type);
     let setupParams = {};
     if (staticNodesParams[workflowType][type]) {
       setupParams = JSON.parse(
