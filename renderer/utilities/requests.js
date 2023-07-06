@@ -23,10 +23,10 @@ export const requestJson = (
     .catch((resp) => errorCB(resp));
 };
 
-export const axiosPostJson = async (jsonData) => {
+export const axiosPostJson = async (jsonData, pathName) => {
   try {
     const response = await axios.post(
-      "http://localhost:5000/api/message",
+      "http://localhost:5000/" + pathName,
       jsonData
     );
     return response.data.response;
