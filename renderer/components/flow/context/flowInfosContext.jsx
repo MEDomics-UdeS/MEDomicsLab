@@ -12,8 +12,8 @@ function FlowInfosProvider({ children }) {
 	const [flowInfos, setFlowInfos] = useState({}); // Initial style
 
 	// This function is used to update the flowInfos
-	const updateFlowInfos = (newStyle) => {
-		setFlowInfos(newStyle);
+	const updateFlowInfos = (newInfo) => {
+		setFlowInfos(newInfo);
 	};
 
 	return (

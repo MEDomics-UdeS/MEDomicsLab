@@ -111,7 +111,7 @@ const Node = ({ id, data, nodeSpecific, nodeBody, defaultSettings }) => {
 		<>
 			<div>
 				{/* here are the handlers (connection points)*/}
-				<Handlers id={id} setupParam={data.setupParam} />
+				<Handlers id={id} setupParam={data.setupParam} tooltipBy={data.tooltipBy}/>
 				{/* here is the node (the Card element)*/}
 				<Card key={id} id={id} className="text-left node">
 					{/* header of the node (name of the node)*/}

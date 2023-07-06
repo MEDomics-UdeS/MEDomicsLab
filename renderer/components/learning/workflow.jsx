@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo, useEffect } from "react";
+import React, { useState, useCallback, useMemo, useEffect, useContext } from "react";
 import { toast } from "react-toastify";
 import Form from "react-bootstrap/Form";
 import { useNodesState, useEdgesState, useReactFlow, addEdge } from "reactflow";
@@ -13,10 +13,11 @@ import EditableLabel from "react-simple-editlabel";
 import ProgressBar from "react-bootstrap/ProgressBar";
 import BtnDiv from "../flow/btnDiv";
 
+
 // here are the different types of nodes implemented in the workflow
 import StandardNode from "./nodesTypes/standardNode";
 import SelectionNode from "./nodesTypes/selectionNode";
-import GroupNode from "./nodesTypes/groupNode";
+import GroupNode from "../flow/groupNode";
 import OptimizeIO from "./nodesTypes/optimizeIO";
 
 // here are the parameters of the nodes
@@ -47,6 +48,8 @@ const Workflow = ({setWorkflowType, workflowType }) => {
 	const { getIntersectingNodes } = useReactFlow(); // getIntersectingNodes is used to get the intersecting nodes of a node
 	const [intersections, setIntersections] = useState([]); // intersections is used to store the intersecting nodes related to optimize nodes start and end
 	const [progress, setProgress] = useState({}); // progress is used to store the progress of the workflow execution
+	const [nodeUpdate, setNodeUpdate] = useState({}); // nodeUpdate is used to update a node internal data
+
 
 	// declare node types using useMemo hook to avoid re-creating component types unnecessarily (it memorizes the output) https://www.w3schools.com/react/react_usememo.asp
 	const nodeTypes = useMemo(
@@ -433,6 +436,7 @@ const Workflow = ({setWorkflowType, workflowType }) => {
 		newNode.data.internal.checkedOptions = [];
 		newNode.data.parentFct.changeSubFlow = setGroupNodeId;
 		newNode.data.internal.subflowId = !associatedNode ? groupNodeId : associatedNode;
+		newNode.data.tooltipBy = "type";
 
 		return newNode;
 	};
@@ -594,6 +598,8 @@ const Workflow = ({setWorkflowType, workflowType }) => {
 					onEdgesChange : onEdgesChange,
 					onNodeDrag : onNodeDrag,
 					runNode : runNode,
+					nodeUpdate : nodeUpdate,
+					setNodeUpdate : setNodeUpdate,
 				}}
 				onDeleteNode={onDeleteNode}
 				groupNodeHandlingDefault={groupNodeHandlingDefault}

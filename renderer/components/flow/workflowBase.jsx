@@ -14,32 +14,36 @@ import { getId, deepCopy } from "../../utilities/staticFunctions";
 
 /**
  *
- * @param { JSX.Element } ui jsx element to display on the workflow
- * @param { function } createNode function to create a node
- * @param { object } reactFlowInstance instance of the reactFlow
- * @param { function } setReactFlowInstance function to set the reactFlowInstance
- * @param { object } nodeTypes object containing the node types
- * @param { object } nodes array containing the nodes
- * @param { function } setNodes function to set the nodes
- * @param { function } onNodesChange function called when the nodes change
- * @param { object } edges array containing the edges
- * @param { function } setEdges function to set the edges
- * @param { function } onEdgesChange function called when the edges change
- * @param { function } onNodeDrag function called when a node is dragged
  * @param { function } isGoodConnection function to check if a connection is valid
+ * @param { function } onDeleteNode function to delete a node
+ * @param { function } groupNodeHandlingDefault function to handle a group node default actions such as creation of start and end nodes
+ * @param { JSX.Element } ui jsx element to display on the workflow
+ * @param { object } 	mandatoryProps.reactFlowInstance instance of the reactFlow
+ * @param { function } 	mandatoryProps.setReactFlowInstance function to set the reactFlowInstance
+ * @param { object } 	mandatoryProps.nodeTypes object containing the node types
+ * @param { object } 	mandatoryProps.nodes array containing the nodes
+ * @param { function } 	mandatoryProps.setNodes function to set the nodes
+ * @param { function } 	mandatoryProps.onNodesChange function called when the nodes change
+ * @param { object } 	mandatoryProps.edges array containing the edges
+ * @param { function } 	mandatoryProps.setEdges function to set the edges
+ * @param { function } 	mandatoryProps.onEdgesChange function called when the edges change
+ * @param { function } 	mandatoryProps.onNodeDrag function called when a node is dragged
+ * @param { function } 	mandatoryProps.runNode function called when a node is run
+ * @param { function } 	mandatoryProps.addSpecificToNode function called to add specific properties to a node
  *
  * @returns {JSX.Element} A workflow
  *
  * @description
+ * 
  * This component is used to display a workflow.
  * It manages base workflow functions such as node creation, node deletion, node connection, etc.
  */
 const WorkflowBase = ({
-	mandatoryProps,
 	isGoodConnection,
 	onDeleteNode,
 	groupNodeHandlingDefault,
 	ui,
+	mandatoryProps,
 }) => {
 
 	const {
@@ -55,10 +59,11 @@ const WorkflowBase = ({
 		onNodeDrag,
 		runNode,
 		addSpecificToNode,
+		nodeUpdate,
+		setNodeUpdate
 	} = mandatoryProps;
 	
 	const edgeUpdateSuccessful = useRef(true);
-	const [nodeUpdate, setNodeUpdate] = useState({}); // nodeUpdate is used to update a node internal data
 	// execute this when a variable change or a function is called related to the callback hook in []
 	// setNodeUpdate function is passed to the node component to update the internal data of the node
 	useEffect(() => {
@@ -79,6 +84,10 @@ const WorkflowBase = ({
 			);
 		}
 	}, [nodeUpdate, setNodes]);
+
+	useEffect(() => {
+		console.log("workflowBase useEffect");
+	}, []);
 	
 
 	/**
@@ -216,6 +225,10 @@ const WorkflowBase = ({
 	 * @param {Object} position the drop position of the node ex. {x: 100, y: 100}
 	 * @param {Object} node the node object containing the nodeType, name and image path
 	 * @param {String} id the id of the node 
+	 * 
+	 * @description
+	 * This function creates a base node with common properties
+	 * all of these propreties can be overrriden by the addSpecificToNode function but they are the same for all nodes so no need to rewrite them
 	 * @returns {Object} the node object with the common properties
 	 */
 	const createBaseNode = (position, node, id) => {
@@ -237,6 +250,7 @@ const WorkflowBase = ({
 					deleteNode: onDeleteNode || deleteNode,
 					runNode: runNode,
 				},
+				tooltipBy: "node" // this is a default value that can be changed in addSpecificToNode function see workflow.jsx for example
 			},
 		};
 		return newNode
