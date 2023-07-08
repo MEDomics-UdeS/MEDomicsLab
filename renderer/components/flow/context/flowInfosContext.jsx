@@ -17,6 +17,8 @@ function FlowInfosProvider({ children }) {
 	};
 
 	return (
+		// in the value attribute we pass the flowInfos and the function to update it.
+		// These will be available to all the components that use this context
 		<FlowInfosContext.Provider value={{ flowInfos, updateFlowInfos }}>
 			{children}
 		</FlowInfosContext.Provider>

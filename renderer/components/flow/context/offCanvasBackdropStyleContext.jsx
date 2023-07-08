@@ -17,6 +17,8 @@ function OffCanvasBackdropStyleProvider({ children }) {
 	};
 
 	return (
+		// in the value attribute we pass the flowInfos and the function to update it.
+		// These will be available to all the components that use this context
 		<OffCanvasBackdropStyleContext.Provider value={{ backdropStyle, updateBackdropStyle }}>
 			{children}
 		</OffCanvasBackdropStyleContext.Provider>

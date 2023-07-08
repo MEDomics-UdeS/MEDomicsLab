@@ -21,7 +21,6 @@ import { FlowInfosContext} from "./context/flowInfosContext";
 const GroupNode = ({ id, data }) => {
 	const { flowInfos } = useContext(FlowInfosContext);		// used to get the flow infos
 
-
 	return (
 		<>
 			<div>

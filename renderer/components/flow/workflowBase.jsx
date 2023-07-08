@@ -1,5 +1,5 @@
 /* eslint-disable react/prop-types */
-import React, { useRef, useCallback, useEffect, useState} from "react";
+import React, { useRef, useCallback, useEffect} from "react";
 import { toast } from "react-toastify";
 import ReactFlow, {
 	Controls,
@@ -30,6 +30,8 @@ import { getId, deepCopy } from "../../utilities/staticFunctions";
  * @param { function } 	mandatoryProps.onNodeDrag function called when a node is dragged
  * @param { function } 	mandatoryProps.runNode function called when a node is run
  * @param { function } 	mandatoryProps.addSpecificToNode function called to add specific properties to a node
+ * @param { object } 	mandatoryProps.nodeUpdate object containing the id of the node to update and the updated data
+ * @param { function } 	mandatoryProps.setNodeUpdate function to set the nodeUpdate
  *
  * @returns {JSX.Element} A workflow
  *
@@ -84,11 +86,6 @@ const WorkflowBase = ({
 			);
 		}
 	}, [nodeUpdate, setNodes]);
-
-	useEffect(() => {
-		console.log("workflowBase useEffect");
-	}, []);
-	
 
 	/**
 	 * @param {object} params
@@ -333,6 +330,7 @@ const WorkflowBase = ({
 
 	return (
 		<div className="height-100">
+			{/* here is the reactflow component which handles a lot of features listed below */}
 			<ReactFlow
 				nodes={nodes}
 				edges={edges}

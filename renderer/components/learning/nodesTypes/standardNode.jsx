@@ -19,8 +19,8 @@ import { FlowInfosContext} from "../../flow/context/flowInfosContext";
  *
  */
 const StandardNode = ({ id, data, type }) => {
-	const [modalShow, setModalShow] = useState(false);
-	const { flowInfos } = useContext(FlowInfosContext);
+	const [modalShow, setModalShow] = useState(false); 	// state of the modal
+	const { flowInfos } = useContext(FlowInfosContext); // get the flow infos from the context
 
 
 	const onInputChange = (inputUpdate) => {
@@ -33,12 +33,15 @@ const StandardNode = ({ id, data, type }) => {
 
 	return (
 		<>
+			{/* build on top of the Node component */}
 			<Node
 				key={id}
 				id={id}
 				data={data}
 				type={type}
 				setupParam={data.setupParam}
+				// no body for this node (particular to this node)
+				// default settings are the default settings of the node, so mandatory settings
 				defaultSettings={
 					<>
 						{"default" in data.setupParam.possibleSettings &&
@@ -50,15 +53,17 @@ const StandardNode = ({ id, data, type }) => {
 										key={settingName}
 										name={settingName}
 										settingInfos={setting}
-										data={data}
+										currentValue={data.internal.settings[settingName]}
 										onInputChange={onInputChange}
 									/>
 								);
 							})}
 					</>
 				}
+				// node specific is the body of the node, so optional settings
 				nodeSpecific={
 					<>
+						{/* the button to open the modal (the plus sign)*/}
 						<Button
 							variant="light"
 							className="width-100 btn-contour margin-bottom-25"
@@ -70,6 +75,7 @@ const StandardNode = ({ id, data, type }) => {
 								className="img-fluid"
 							/>
 						</Button>
+						{/* the modal component*/}
 						<ModalSettingsChooser
 							show={modalShow}
 							onHide={() => setModalShow(false)}
@@ -77,6 +83,7 @@ const StandardNode = ({ id, data, type }) => {
 							data={data}
 							id={id}
 						/>
+						{/* the inputs for the options */}
 						{data.internal.checkedOptions.map((optionName) => {
 							return (
 								<Input
@@ -86,7 +93,7 @@ const StandardNode = ({ id, data, type }) => {
 										data.setupParam.possibleSettings
 											.options[optionName]
 									}
-									data={data}
+									currentValue={data.internal.settings[optionName]}
 									onInputChange={onInputChange}
 								/>
 							);

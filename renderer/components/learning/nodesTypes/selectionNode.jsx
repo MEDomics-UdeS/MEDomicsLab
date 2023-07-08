@@ -1,9 +1,8 @@
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import Node from "../../flow/node";
 import Input from "../input";
 import { Button } from "react-bootstrap";
 import ModalSettingsChooser from "../modalSettingsChooser";
-import Option from "../checkOption";
 import Form from "react-bootstrap/Form";
 
 /**
@@ -19,12 +18,12 @@ import Form from "react-bootstrap/Form";
  * it also handles the selection of the option. According to the selected option, the settings are updated
  */
 const SelectionNode = ({ id, data, type }) => {
-	const [modalShow, setModalShow] = useState(false);
+	const [modalShow, setModalShow] = useState(false); // state of the modal
 	const [selection, setSelection] = useState(
 		Object.keys(data.setupParam.possibleSettings)[0]
 	); // default selection is the first option
 
-	// update the node when the selection changes
+	// update the node internal data when the selection changes
 	useEffect(() => {
 		data.internal.selection = selection;
 		data.parentFct.updateNode({
@@ -41,6 +40,7 @@ const SelectionNode = ({ id, data, type }) => {
 		setSelection(e.target.value);
 	};
 
+	// update the node when the input changes
 	const onInputChange = (inputUpdate) => {
 		data.internal.settings[inputUpdate.name] = inputUpdate.value;
 		data.parentFct.updateNode({
@@ -51,11 +51,13 @@ const SelectionNode = ({ id, data, type }) => {
 
 	return (
 		<>
+			{/* build on top of the Node component */}
 			<Node
 				id={id}
 				data={data}
 				type={type}
 				setupParam={data.setupParam}
+				// the body of the node is a form select (particular to this node)
 				nodeBody={
 					<>
 						<Form.Select
@@ -74,6 +76,7 @@ const SelectionNode = ({ id, data, type }) => {
 						</Form.Select>
 					</>
 				}
+				// the default settings are the settings of the selected option (this changes when the selection changes)
 				defaultSettings={
 					<>
 						{"default" in
@@ -90,15 +93,17 @@ const SelectionNode = ({ id, data, type }) => {
 										key={settingName + i}
 										name={settingName}
 										settingInfos={setting}
-										data={data}
+										currentValue={data.internal.settings[settingName]}
 										onInputChange={onInputChange}
 									/>
 								);
 							})}
 					</>
 				}
+				// the node specific settings are the settings of the selected option (this changes when the selection changes)
 				nodeSpecific={
 					<>
+						{/* the button to open the modal (the plus sign)*/}
 						<Button
 							variant="light"
 							className="width-100 btn-contour margin-bottom-25"
@@ -110,6 +115,7 @@ const SelectionNode = ({ id, data, type }) => {
 								className="img-fluid"
 							/>
 						</Button>
+						{/* the modal component*/}
 						<ModalSettingsChooser
 							show={modalShow}
 							onHide={() => setModalShow(false)}
@@ -117,10 +123,11 @@ const SelectionNode = ({ id, data, type }) => {
 								data.setupParam.possibleSettings[
 									data.internal.selection
 								].options
-							}
+							} // the options are the options of the selected option (this changes when the selection changes)
 							data={data}
 							id={id}
 						/>
+						{/* the inputs of the selected options (this reset when the selection changes)*/}
 						{data.internal.checkedOptions.map((optionName) => {
 							return (
 								<Input
@@ -131,7 +138,7 @@ const SelectionNode = ({ id, data, type }) => {
 											data.internal.selection
 										].options[optionName]
 									}
-									data={data}
+									currentValue={data.internal.settings[optionName]}
 									onInputChange={onInputChange}
 								/>
 							);

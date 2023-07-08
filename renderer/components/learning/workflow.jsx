@@ -62,8 +62,6 @@ const Workflow = ({setWorkflowType, workflowType }) => {
 		[]
 	);
 
-	
-
 	// executed when the machine learning type is changed
 	// it updates the possible settings of the nodes
 	useEffect(() => {
@@ -441,6 +439,11 @@ const Workflow = ({setWorkflowType, workflowType }) => {
 		return newNode;
 	};
 
+	/**
+	 * 
+	 * @param {function} createBaseNode function to create a base node. Useful to create automatically base nodes in the subflow 
+	 * @param {String} newId id of the parent node 
+	 */
 	const groupNodeHandlingDefault = (createBaseNode, newId) => {
 
 		let newNodeStart = createBaseNode(
@@ -585,6 +588,7 @@ const Workflow = ({setWorkflowType, workflowType }) => {
 	return (
 		<>
 			<WorkflowBase
+				// mandatory props
 				mandatoryProps={{
 					reactFlowInstance : reactFlowInstance,
 					setReactFlowInstance : setReactFlowInstance,
@@ -601,10 +605,13 @@ const Workflow = ({setWorkflowType, workflowType }) => {
 					nodeUpdate : nodeUpdate,
 					setNodeUpdate : setNodeUpdate,
 				}}
+				// optional props
 				onDeleteNode={onDeleteNode}
 				groupNodeHandlingDefault={groupNodeHandlingDefault}
+				// reprensents the visual over the workflow
 				ui={
 					<>
+						{/* top left corner - Tree menu*/}
 						<div className="btn-panel-top-corner-left">
 							<TreeMenu
 								data={treeData}
@@ -613,6 +620,7 @@ const Workflow = ({setWorkflowType, workflowType }) => {
 								hasSearch={false}
 							/>
 						</div>
+						{/* top right corner - buttons */}
 						<div className="btn-panel-top-corner-right">
 							{workflowType == "learning" && (
 								<>
@@ -643,6 +651,7 @@ const Workflow = ({setWorkflowType, workflowType }) => {
 								</>
 							)}
 						</div>
+						{/* top center - title when is sub group */}
 						<div className="btn-panel-top-center">
 							{workflowType == "optimize" && (
 								<>
@@ -684,6 +693,7 @@ const Workflow = ({setWorkflowType, workflowType }) => {
 								</>
 							)}
 						</div>
+						{/* bottom center - progress bar */}
 						<div className="panel-bottom-center">
 							<label>{progress.currentName || ""}</label>
 							<ProgressBar
