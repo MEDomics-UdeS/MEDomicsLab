@@ -10,8 +10,9 @@ import {
 } from "../../utilities/fileManagementUtils";
 import { requestJson } from "../../utilities/requests";
 import EditableLabel from "react-simple-editlabel";
-import ProgressBar from "react-bootstrap/ProgressBar";
 import BtnDiv from "../flow/btnDiv";
+import ProgressBarRequests from "../flow/progressBarRequests";
+import { FlowInfosContext } from "../flow/context/flowInfosContext";
 
 
 // here are the different types of nodes implemented in the workflow
@@ -38,17 +39,19 @@ const staticNodesParams = nodesParams; // represents static nodes parameters
  *
  */
 const Workflow = ({setWorkflowType, workflowType }) => {
-	const [nodes, setNodes, onNodesChange] = useNodesState([]); // nodes array, setNodes is used to update the nodes array, onNodesChange is a callback hook that is executed when the nodes array is changed
-	const [edges, setEdges, onEdgesChange] = useEdgesState([]); // edges array, setEdges is used to update the edges array, onEdgesChange is a callback hook that is executed when the edges array is changed
-	const [reactFlowInstance, setReactFlowInstance] = useState(null); // reactFlowInstance is used to get the reactFlowInstance object important for the reactFlow library
-	const [MLType, setMLType] = useState("classification"); // MLType is used to know which machine learning type is selected
-	const { setViewport } = useReactFlow(); // setViewport is used to update the viewport of the workflow
-	const [treeData, setTreeData] = useState({}); // treeData is used to set the data of the tree menu
-	const [groupNodeId, setGroupNodeId] = useState(null); // groupNodeId is used to know which optimize node has selected ()
-	const { getIntersectingNodes } = useReactFlow(); // getIntersectingNodes is used to get the intersecting nodes of a node
-	const [intersections, setIntersections] = useState([]); // intersections is used to store the intersecting nodes related to optimize nodes start and end
-	const [progress, setProgress] = useState({}); // progress is used to store the progress of the workflow execution
-	const [nodeUpdate, setNodeUpdate] = useState({}); // nodeUpdate is used to update a node internal data
+	const [nodes, setNodes, onNodesChange] = useNodesState([]); 		// nodes array, setNodes is used to update the nodes array, onNodesChange is a callback hook that is executed when the nodes array is changed
+	const [edges, setEdges, onEdgesChange] = useEdgesState([]); 		// edges array, setEdges is used to update the edges array, onEdgesChange is a callback hook that is executed when the edges array is changed
+	const [reactFlowInstance, setReactFlowInstance] = useState(null); 	// reactFlowInstance is used to get the reactFlowInstance object important for the reactFlow library
+	const [MLType, setMLType] = useState("classification"); 			// MLType is used to know which machine learning type is selected
+	const { setViewport } = useReactFlow(); 							// setViewport is used to update the viewport of the workflow
+	const [treeData, setTreeData] = useState({}); 						// treeData is used to set the data of the tree menu
+	const [groupNodeId, setGroupNodeId] = useState(null); 				// groupNodeId is used to know which optimize node has selected ()
+	const { getIntersectingNodes } = useReactFlow(); 					// getIntersectingNodes is used to get the intersecting nodes of a node
+	const [intersections, setIntersections] = useState([]); 			// intersections is used to store the intersecting nodes related to optimize nodes start and end
+	const [isProgressUpdating, setIsProgressUpdating] = useState(false); 						// progress is used to store the progress of the workflow execution
+	const [nodeUpdate, setNodeUpdate] = useState({}); 					// nodeUpdate is used to update a node internal data
+	const { flowInfos } = useContext(FlowInfosContext);					// used to get the flow infos
+
 
 
 	// declare node types using useMemo hook to avoid re-creating component types unnecessarily (it memorizes the output) https://www.w3schools.com/react/react_usememo.asp
@@ -76,12 +79,10 @@ const Workflow = ({setWorkflowType, workflowType }) => {
 					let subworkflowType = node.data.internal.subflowId
 						? "optimize"
 						: "learning";
-					node.data.setupParam.possibleSettings = JSON.parse(
-						JSON.stringify(
-							staticNodesParams[subworkflowType][
-								node.name.toLowerCase().replaceAll(" ", "_")
-							]["possibleSettings"][MLType]
-						)
+					node.data.setupParam.possibleSettings = deepCopy(
+						staticNodesParams[subworkflowType][
+							node.data.internal.type
+						]["possibleSettings"][MLType]
 					);
 					node.data.internal.settings = {};
 					node.data.internal.checkedOptions = [];
@@ -287,22 +288,31 @@ const Workflow = ({setWorkflowType, workflowType }) => {
 						.subflowId == node.data.internal.subflowId
 			);
 			let isNew = false;
-			let newIntersections = intersections;
+			
+			// clear all intersections associated with 
+			let newIntersections = intersections.filter((int) => int.sourceId !== node.id && int.targetId !== node.id);
+			
+			// add new intersections
 			rawIntersects.forEach((rawIntersect) => {
-				if (node.id.includes("opt")) {
-					newIntersections = newIntersections.concat({
-						sourceId: rawIntersect,
-						targetId: node.id,
-					});
-				} else if (rawIntersect.includes("opt")) {
-					newIntersections = newIntersections.concat({
-						sourceId: node.id,
-						targetId: rawIntersect,
-					});
+				// if the node is not a optimize node, it can't intersect with an optimize node
+				// this a XOR logic gate so only true when only one of the two is true
+				if(node.id.includes("opt") ^ rawIntersect.includes("opt")){
+
+					if (node.id.includes("opt")) {
+						newIntersections = newIntersections.concat({
+							sourceId: rawIntersect,
+							targetId: node.id,
+						});
+					} else if (rawIntersect.includes("opt")) {
+						newIntersections = newIntersections.concat({
+							sourceId: node.id,
+							targetId: rawIntersect,
+						});
+					}
+					newIntersections = removeDuplicates(newIntersections);
+					isNew = true;
+					setIntersections(newIntersections);
 				}
-				newIntersections = removeDuplicates(newIntersections);
-				isNew = true;
-				setIntersections(newIntersections);
 			});
 			if (!isNew) {
 				if (node.id.includes("opt")) {
@@ -315,8 +325,9 @@ const Workflow = ({setWorkflowType, workflowType }) => {
 					);
 				}
 			}
+
 		},
-		[nodes]
+		[nodes, intersections]
 	);
 
 	/**
@@ -352,7 +363,7 @@ const Workflow = ({setWorkflowType, workflowType }) => {
 							: "learning";
 						let setupParams = deepCopy(
 							staticNodesParams[subworkflowType][
-								node.name.toLowerCase().replaceAll(" ", "_")
+								node.data.internal.type
 							]
 						);
 						setupParams.possibleSettings =
@@ -404,8 +415,16 @@ const Workflow = ({setWorkflowType, workflowType }) => {
 			setEdges((eds) =>
 				eds.filter((e) => e.source !== id && e.target !== id)
 			);
+			setIntersections((ints) =>
+				ints.reduce((filteredInts, n) => {
+					if (n.sourceId !== id && n.targetId !== id) {
+						filteredInts.push(n);
+					}
+					return filteredInts;
+				}, [])
+			);
 		},
-		[nodes]
+		[]
 	);
 
 	/**
@@ -420,7 +439,7 @@ const Workflow = ({setWorkflowType, workflowType }) => {
 		if (!newNode.id.includes("opt")) {
 			setupParams = deepCopy(
 				staticNodesParams[workflowType][
-					newNode.name.toLowerCase().replaceAll(" ", "_")
+					newNode.data.internal.type
 				]
 			);
 			setupParams.possibleSettings = setupParams["possibleSettings"][MLType];
@@ -428,13 +447,14 @@ const Workflow = ({setWorkflowType, workflowType }) => {
 		newNode.id = `${newNode.id}${associatedNode ? `.${associatedNode}` : ""}`; // if the node is a sub-group node, it has the id of the parent node seperated by a dot. useful when processing only ids
 		newNode.hidden = newNode.type == "optimizeIO";
 		newNode.zIndex = newNode.type == "optimizeIO" ? 1 : 1010;
+		newNode.data.parentFct.changeSubFlow = setGroupNodeId;
+		newNode.data.tooltipBy = "type";
 		newNode.data.setupParam = setupParams;
+		newNode.data.internal.code = ""
 		newNode.data.internal.settings = {};
 		newNode.data.internal.selection = newNode.type == "selectionNode" && Object.keys(setupParams.possibleSettings)[0]
 		newNode.data.internal.checkedOptions = [];
-		newNode.data.parentFct.changeSubFlow = setGroupNodeId;
 		newNode.data.internal.subflowId = !associatedNode ? groupNodeId : associatedNode;
-		newNode.data.tooltipBy = "type";
 
 		return newNode;
 	};
@@ -478,28 +498,123 @@ const Workflow = ({setWorkflowType, workflowType }) => {
 	 * This function is called when the user clicks on the run button of a node
 	 * It executes the pipelines finishing with this node
 	 */
-	const runNode = (id) => {
+	const runNode = useCallback((id) => {
 		console.log("run node", id);
-		// TODO
-	};
+		console.log(reactFlowInstance)
+		onRun(null, id);
+	}, [reactFlowInstance, MLType, nodes, edges, intersections, treeData]);
 
 	/**
 	 * execute the whole workflow
 	 */
-	const onRun = useCallback(() => {
-		console.log(MLType);
-		requestJson(
-			5000,
-			"test",
-			{ test: "test" },
-			(jsonResponse) => {
-				console.log(jsonResponse);
-			},
-			function (err) {
-				console.error(err);
+	const onRun = useCallback((e, up2Id=undefined) => {
+		if (reactFlowInstance) {
+			let flow = deepCopy(reactFlowInstance.toObject())
+			flow.MLType = MLType;
+			flow.nodes.forEach((node) => {
+				node.data.parentFct = null;
+				node.data.setupParam = null;
+			});
+			flow = cleanJson2Send(flow, up2Id);
+			console.log("sended flow", flow);
+			setIsProgressUpdating(true);
+			requestJson(
+				5000,
+				"/learning/run_experiment",
+				flow,
+				(jsonResponse) => {
+					console.log(jsonResponse);
+					if(jsonResponse.error){
+						setIsProgressUpdating(false);
+						toast.error("Error detected while running the experiment");
+					}
+				},
+				function (err) {
+					console.error(err);
+					toast.error("Error while running the experiment");
+					setIsProgressUpdating(false);
+				}
+			);
+
+		}
+	}, [reactFlowInstance, MLType, nodes, edges, intersections, treeData]);
+
+	const cleanJson2Send = useCallback((json, up2Id) => {
+
+		//clean recursive pipelines from treeData
+		let nbNodes2Run = 0;
+		console.log("up2Id", up2Id);
+		const cleanTreeDataRec = (node) => {
+			let children = {};
+			Object.keys(node).forEach((key) => {
+				// check if node is a create model node
+				// n pipelines should be added according to model node inputs
+				let hasModels = false;
+				let currentNode = nodes.find((node) => node.id === key);
+				let nodeType = currentNode.data.internal.type;
+				let edgesCopy = deepCopy(edges);
+				if (nodeType == "create_model") {
+					edgesCopy = edgesCopy.filter((edge) => edge.target == currentNode.id);
+					edgesCopy = edgesCopy.reduce((acc, edge) => {
+						if (edge.target == currentNode.id) {
+							let sourceNode = nodes.find((node) => node.id == edge.source);
+							if (sourceNode.data.internal.type == "model") {
+								acc.push(edge);
+							}
+						}
+						return acc;
+					}
+					, []);
+					hasModels = true;
+				}
+				
+				// if this is not a leaf, we need to go deeper
+				if (node[key].nodes != {}) {
+					// if this is a create model node, we need to add n pipelines
+					if(hasModels){
+						edgesCopy.forEach((edge) => {
+							let id = key + "*" + edge.source;
+							if(key != up2Id){
+								children[id] = cleanTreeDataRec(node[key].nodes);
+							} else {
+								children[id] = {};
+							}
+						});
+					// if this is not a create model node, we continue normally
+					} else {
+						if(key != up2Id){
+							children[key] = cleanTreeDataRec(node[key].nodes);
+						} else {
+							children[key] = {};
+						}
+					}
+					nbNodes2Run++;
+				} 
 			}
-		);
-	}, [ MLType ]);
+			);
+			return children;
+		}
+		console.log("treeData", treeData)
+		let recursivePipelines = cleanTreeDataRec(treeData);
+		console.log("recursivePipelines", recursivePipelines);
+
+		//clean flow
+		let newJson = {};
+		newJson.MLType = json.MLType;
+		newJson.nodes = {};
+		let nodesCopy = deepCopy(json.nodes);
+		nodesCopy.forEach((node) => {
+			!node.id.includes("opt") && (newJson.nodes[node.id] = node);
+		});
+
+		newJson.pipelines = recursivePipelines
+		newJson.pageId = flowInfos.id
+		// eslint-disable-next-line camelcase
+		newJson.saving_path = flowInfos.savingPath
+		newJson.nbNodes2Run = nbNodes2Run;
+
+		return newJson;
+	}, [reactFlowInstance, MLType, nodes, edges, intersections, treeData]);
 
 	/**
 	 * save the workflow as a json file
@@ -695,12 +810,9 @@ const Workflow = ({setWorkflowType, workflowType }) => {
 						</div>
 						{/* bottom center - progress bar */}
 						<div className="panel-bottom-center">
-							<label>{progress.currentName || ""}</label>
-							<ProgressBar
-								variant="success"
-								animated
-								now={progress.now}
-								label={`${progress.now}%`}
+							<ProgressBarRequests
+								isUpdating={isProgressUpdating}
+								setIsUpdating={setIsProgressUpdating}
 							/>
 						</div>
 					</>

@@ -35,9 +35,22 @@ def create_pycaret_exp(ml_type: str) -> json:
         else:
             raise ValueError("ML type is not valid")
 
-def isPrimitive(obj):
+
+def isPrimitive2(obj):
     # print(type(obj), not hasattr(obj, '__dict__') and "sklearn" not in str(type(obj)))
+    if type(obj).__name__ == "RandomState" or type(obj).__name__ == "DecisionTreeClassifier" or type(obj).__name__ == "DecisionTreeRegressor" or type(obj).__name__ == "RandomForestClassifier" or type(obj).__name__ == "RandomForestRegressor" or type(obj).__name__ == "LogisticRegression" or type(obj).__name__ == "LinearRegression" or type(obj).__name__ == "KNeighborsClassifier" or type(obj).__name__ == "KNeighborsRegressor" or type(obj).__name__ == "SVC" or type(obj).__name__ == "SVR" or type(obj).__name__ == "GaussianNB" or type(obj).__name__ == "GaussianProcessClassifier" or type(obj).__name__ == "GaussianProcessRegressor" or type(obj).__name__ == "AdaBoostClassifier" or type(obj).__name__ == "AdaBoostRegressor" or type(obj).__name__ == "GradientBoostingClassifier" or type(obj).__name__ == "GradientBoostingRegressor" or type(obj).__name__ == "XGBClassifier" or type(obj).__name__ == "XGBRegressor" or type(obj).__name__ == "LGBMClassifier" or type(obj).__name__ == "LGBMRegressor" or type(obj).__name__ == "CatBoostClassifier" or type(obj).__name__ == "CatBoostRegressor" or type(obj).__name__ == "LinearDiscriminantAnalysis" or type(obj).__name__ == "QuadraticDiscriminantAnalysis" or type(obj).__name__ == "MLPClassifier" or type(obj).__name__ == "MLPRegressor" or type(obj).__name__ == "RidgeClassifier" or type(obj).__name__ == "RidgeRegressor" or type(obj).__name__ == "RidgeClassifierCV" or type(obj).__name__ == "RidgeCV" or type(obj).__name__ == "Lasso" or type(obj).__name__ == "LassoCV" or type(obj).__name__ == "LassoLars" or type(obj).__name__ == "LassoLarsCV" or type(obj).__name__ == "LassoLarsIC" or type(obj).__name__ == "ElasticNet" or type(obj).__name__ == "ElasticNetCV" or type(obj).__name__ == "BayesianRidge" or type(obj).__name__ == "ARDRegression" or type(obj).__name__ == "OrthogonalMatchingPursuit":
+        return False
     return not hasattr(obj, '__dict__') and "sklearn" not in str(type(obj))
+
+
+def isPrimitive(obj):
+    primitive_types = (int, float, bool, str, bytes, type(None), dict, list, tuple, np.ndarray, pd.DataFrame, pd.Series)
+    print(type(obj).__name__, isinstance(obj, primitive_types))
+    if isinstance(obj, primitive_types):
+        # Check if the object is one of the primitive types
+        return True
+
+    return False
 
 
 class MEDexperiment:
@@ -46,7 +59,7 @@ class MEDexperiment:
 
     """
 
-    def __init__(self, pipelines: json = None, global_json_config: json = None, nb_nodes: float = 0):
+    def __init__(self, global_json_config: json = None):
         """Constructor of the class. It initializes the experiment with the pipelines and the global configuration.
 
         Args:
@@ -58,24 +71,23 @@ class MEDexperiment:
         self.dfs_combinations = {}
         self.experiment_name = "Default experiment name"
         self.experiment = {}
-        self.pipelines = pipelines['pipelines']
-        self.pipelines_up_to_id = pipelines['pipelines_up_to_id']
-        self.pipelines_to_execute = self.pipelines_up_to_id if self.pipelines_up_to_id != {} else self.pipelines
+        self.pipelines = global_json_config['pipelines']
+        self.pipelines_to_execute = self.pipelines
         self.global_json_config = global_json_config
         self.pipelines_objects = {}
-        self.global_variables = {'dfs_from_input': global_json_config['dfs_from_input']}
+        self.global_variables = {}
         self._results_pipeline = {}
         self._progress = {'cur_node': '', 'progress': 0.0}
-        self._nb_nodes = nb_nodes
+        self._nb_nodes = global_json_config['nbNodes2Run']
         self._nb_nodes_done: float = 0.0
         self.global_json_config['unique_id'] = 0
         self.pipelines_objects = self.create_next_nodes(self.pipelines, copy.deepcopy(self.pipelines_objects))
-        tmp_dir = 'static/tmp/'
+        tmp_dir = global_json_config['saving_path']
         for f in os.listdir(tmp_dir):
             if f != '.gitkeep':
                 os.remove(os.path.join(tmp_dir, f))
 
-    def update(self, pipelines: json = None, global_json_config: json = None, nb_nodes: float = 0):
+    def update(self, global_json_config: json = None):
         """Updates the experiment with the pipelines and the global configuration.
 
         Args:
@@ -83,13 +95,12 @@ class MEDexperiment:
             global_json_config (json, optional): The global configuration of the experiment. Defaults to None.
             nb_nodes (float, optional): The number of nodes in the experiment. Defaults to 0.
         """
-        self.pipelines = pipelines['pipelines']
-        self.pipelines_up_to_id = pipelines['pipelines_up_to_id']
-        self.pipelines_to_execute = self.pipelines_up_to_id if self.pipelines_up_to_id != {} else self.pipelines
+        self.pipelines = global_json_config['pipelines']
+        self.pipelines_to_execute = self.pipelines
         self.global_json_config = global_json_config
-        self.global_variables = {'dfs_from_input': global_json_config['dfs_from_input']}
+        self.global_variables = {}
         self.global_json_config['unique_id'] = 0
-        self._nb_nodes = nb_nodes
+        self._nb_nodes = global_json_config['nbNodes2Run']
         self._nb_nodes_done: float = 0.0
         self._progress = {'cur_node': '', 'progress': 0.0}
         self.pipelines_objects = self.create_next_nodes(self.pipelines, copy.deepcopy(self.pipelines_objects))
@@ -107,6 +118,17 @@ class MEDexperiment:
         nodes = {}
         if next_nodes != {}:
             for current_node_id, next_nodes_id_json in next_nodes.items():
+                # if it is a create model node, we need to point to the model node
+                # To be consistent with the rest of the nodes,
+                # we create a new node with the same parameters but with the model id
+                tmp_subid_list = current_node_id.split('*')
+                if len(tmp_subid_list) > 1:
+                    self.global_json_config['nodes'][current_node_id] = \
+                        copy.deepcopy(self.global_json_config['nodes'][tmp_subid_list[0]])
+                    self.global_json_config['nodes'][current_node_id]['associated_model_id'] = \
+                        tmp_subid_list[1]
+                    self.global_json_config['nodes'][current_node_id]['id'] = current_node_id
+                # then, we create the node normally
                 node = self.create_Node(self.global_json_config['nodes'][current_node_id])
                 nodes[current_node_id] = self.handle_Node_creation(node, pipelines_objects)
                 nodes[current_node_id]['obj'].just_run = False
@@ -149,7 +171,7 @@ class MEDexperiment:
             for current_node_id, next_nodes_id_json in self.pipelines_to_execute.items():
                 node_info = self.pipelines_objects[current_node_id]
                 node = node_info['obj']
-                self._progress['cur_node'] = node.type
+                self._progress['cur_node'] = node.username
                 has_been_run = node.has_run()
                 if not has_been_run:
                     node_info['results'] = { 
@@ -159,7 +181,7 @@ class MEDexperiment:
                     experiment = self.setup_dataset(node)
                     node_info['experiment'] = experiment
                 else:
-                    print(f"already run {node.type} -----------------------------------------------------------------------------")
+                    print(f"already run {node.username} -----------------------------------------------------------------------------")
                     experiment = node_info['experiment']
                 self._nb_nodes_done += 1.0
                 self._progress['progress'] = round(self._nb_nodes_done / self._nb_nodes * 100.0, 2)
@@ -193,7 +215,7 @@ class MEDexperiment:
             for current_node_id, next_nodes_id_json in next_nodes_to_execute.items():
                 node_info = next_nodes[current_node_id]
                 node = node_info['obj']
-                self._progress['cur_node'] = node.type
+                self._progress['cur_node'] = node.username
                 if not node.has_run() or prev_node.has_changed():
                     node_info['results'] = {
                         'prev_node_id': prev_node.id,
@@ -203,7 +225,7 @@ class MEDexperiment:
                     node_info['experiment'] = experiment
                 else:
                     experiment = node_info['experiment']
-                    print(f"already run {node.type} -----------------------------------------------------------------------------")
+                    print(f"already run {node.username} -----------------------------------------------------------------------------")
 
                 self._nb_nodes_done += 1
                 self._progress['progress'] = round(self._nb_nodes_done / self._nb_nodes * 100, 2)
@@ -242,7 +264,9 @@ class MEDexperiment:
         Returns:
             Node: The created node.
         """
-        node_type = node_config['name']
+
+        node_type = node_config['data']['internal']['type']
+
         if node_type == "dataset":
             from MEDml.nodes.Dataset import Dataset
             return Dataset(node_config['id'], self.global_json_config)
@@ -281,7 +305,7 @@ class MEDexperiment:
             del kwargs['filesFromInput']
         if 'data' in kwargs:
             del kwargs['data']
-        pycaret_exp = create_pycaret_exp(ml_type=self.global_json_config['ml_type'])
+        pycaret_exp = create_pycaret_exp(ml_type=self.global_json_config['MLType'])
         temp_df = df[df[kwargs['target']].notna()]
         nan_value = float("NaN")
         temp_df.replace("", nan_value, inplace=True)
@@ -325,6 +349,7 @@ class MEDexperiment:
         """
         return_dict = {}
         for key, value in next.items():
+            # print(key, value, isPrimitive(value))
             if isPrimitive(value):
                 if isinstance(value, dict):
                     return_dict[key] = self.add_only_object(value)

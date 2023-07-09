@@ -140,4 +140,6 @@ dmypy.json
 
 # custom gitignore
 /flaskProject/static/tmp
-.idea/*
+/flask_server/.idea/*
+/learning-tests-scene
+/flask_server/local_dir

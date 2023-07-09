@@ -12,6 +12,7 @@ import json
 from pycaret.internal.meta_estimators import get_estimator_from_meta_estimator
 from pycaret.internal.pipeline import get_pipeline_estimator_label
 from termcolor import colored
+from colorama import Fore, Back, Style
 from pycaret.loggers.base_logger import BaseLogger
 
 if TYPE_CHECKING:
@@ -27,7 +28,7 @@ class MEDml_logger(BaseLogger):
         self.counter = 0
 
     def init_logger():
-        print("init logger")
+        print(Fore.GREEN + f"init logger" + Fore.RESET)
 
     def __del__(self):
         try:
@@ -40,7 +41,8 @@ class MEDml_logger(BaseLogger):
 
     def log_params(self, params, model_name=None):
         print()
-        print(colored(f"log params: {params}, {model_name}", 'green'))
+        print(Fore.GREEN + f"log params: {params}, {model_name}" + Fore.RESET)
+
         if self.current_experiment is not None:
             self.results['models'][self.current_experiment]['params'].append(params)
         else:
@@ -48,7 +50,8 @@ class MEDml_logger(BaseLogger):
 
     def init_experiment(self, exp_name_log, full_name=None, **kwargs):
         print()
-        print(colored(f"init experiment: {exp_name_log}, {full_name}", 'green'))
+        print(Fore.GREEN + f"init experiment: {exp_name_log}, {full_name}" + Fore.RESET)
+
         count = self.counter
         if full_name is not None:
             if 'models' not in self.results:
@@ -70,16 +73,16 @@ class MEDml_logger(BaseLogger):
                 self.results['setup'] = []
             self.current_experiment = None
 
-
     def set_tags(self, source, experiment_custom_tags, runtime):
         # print(colored(f"set tags: {source}, {experiment_custom_tags}, {runtime}", 'green'))
         pass
 
     def log_sklearn_pipeline(self, experiment, prep_pipe, model, path=None):
-        print(colored(f"log sklearn pipeline: {experiment}, {prep_pipe}, {model}, {path}", 'green'))
+        print(Fore.GREEN + f"log sklearn pipeline: {experiment}, {prep_pipe}, {model}, {path}" + Fore.RESET)
 
     def log_model_comparison(self, model_result, source):
-        print(colored(f"log model comparison: {model_result.__class__}, {source}", 'green'))
+        print(Fore.GREEN + f"log model comparison: {model_result.__class__}, {source}" + Fore.RESET)
+
         # if self.current_experiment is not None:
         #     if 'models' not in self.results:
         #         self.results['models'] = {self.current_experiment: {}}
@@ -89,38 +92,39 @@ class MEDml_logger(BaseLogger):
 
     def log_metrics(self, metrics, source=None):
         print()
-        print(colored(f"log metrics: {metrics}, {source}", 'green'))
+        print(Fore.GREEN + f"log metrics: {metrics}, {source}" + Fore.RESET)
+
         result_type = 'models' if self.current_experiment is not None else 'setup'
         self.results[result_type][self.current_experiment]['metrics'].append(metrics)
 
     def log_plot(self, plot, title):
-        print(colored(f"log plot: {plot}, {title}", 'green'))
+        print(Fore.GREEN + f"log plot: {plot}, {title}" + Fore.RESET)
 
     def log_hpram_grid(self, html_file, title="hpram_grid"):
-        print(colored(f"log hpram grid: {html_file}, {title}", 'green'))
+        print(Fore.GREEN + f"log hpram grid: {html_file}, {title}" + Fore.RESET)
 
     def log_artifact(self, file, type="artifact"):
         # print(colored(f"log artifact: {file}, {type}", 'green'))
         pass
 
     def finish_experiment(self) -> dict:
-        print(colored("finish experiment", 'green'))
-        cleaned_results = str(self.results)\
-            .replace('\'', '\"')\
-            .replace('(', '[')\
-            .replace(')', ']')\
-            .replace('True', '\"true\"')\
-            .replace('False', '\"false\"')\
-            .replace('MEDml_logger', '\"MEDml_logger\"')\
-            .replace('None', '\"None\"')\
-            .replace('\"\"true\"\"', '\"true\"')\
+        print(Fore.GREEN + f"Compiling logs" + Fore.RESET)
+        cleaned_results = str(self.results) \
+            .replace('\'', '\"') \
+            .replace('(', '[') \
+            .replace(')', ']') \
+            .replace('True', '\"true\"') \
+            .replace('False', '\"false\"') \
+            .replace('MEDml_logger', '\"MEDml_logger\"') \
+            .replace('None', '\"None\"') \
+            .replace('\"\"true\"\"', '\"true\"') \
             .replace(' nan,', '\"nan\",')
         # err_index = 1131
         # print(cleaned_results[err_index-20:err_index+20])
         return json.loads(cleaned_results)
 
     def get_results(self):
-        print(colored(f"gathering results", 'green'))
+        print(Fore.GREEN + f"gathering results" + Fore.RESET)
         results = copy.deepcopy(self.results)
         if 'setup' in results:
             del results['setup']['Log Experiment']
@@ -134,4 +138,4 @@ class MEDml_logger(BaseLogger):
         return results
 
     def info(self, msg):
-        print(colored(f"{msg}", 'green'))
+        print(Fore.GREEN + f"{msg}" + Fore.RESET)

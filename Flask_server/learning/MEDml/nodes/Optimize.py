@@ -1,9 +1,9 @@
-import copy
 
 import pandas as pd
 from itertools import chain, combinations
 import csv
 import os
+import copy
 import numpy as np
 # from pycaret.survival_analysis.oop import SurvivalAnalysisExperiment
 from pycaret.classification import ClassificationExperiment
@@ -13,48 +13,29 @@ from MEDml.utils.loading import Loader
 from MEDml.nodes.NodeObj import Node
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 from termcolor import colored
+from colorama import Fore, Back, Style
 
 DATAFRAME_LIKE = Union[dict, list, tuple, np.ndarray, pd.DataFrame]
 TARGET_LIKE = Union[int, str, list, tuple, np.ndarray, pd.Series]
 
 
-class ModelHandler(Node):
+class Optimize(Node):
 
     def __init__(self, id_: int, global_config_json: json) -> None:
         super().__init__(id_, global_config_json)
-        if self.type == 'create_model':
-            for input_conn in self._connections['inputs']:
-                print(input_conn)
-                input_id = self._connections['inputs'][input_conn]['connections'][0]['node']
-                input_obj = global_config_json['nodes'][input_id]
-                if input_obj['name'] == 'model':
-                    self.config_json['data']['estimator'] = {
-                        "type": input_obj['data']['selection'],
-                        "settings": input_obj['data']['settings']
-                    }
-
-                    break
 
     def get_final_code(self) -> str:
         return self._code
 
     def _execute(self, experiment: dict = None, **kwargs) -> json:
         print()
-        print(colored("=== fit ===", 'blue'))
-        print(colored(f"Using {self.type}", 'cyan'))
-        trained_models = None
-        trained_models_json = {}
+        print(Fore.BLUE + "=== optimizing === " + Fore.YELLOW + f"({self.username})" + Fore.RESET)
         settings = copy.deepcopy(self.settings)
-        if self.type == 'compare_models':
-            models = experiment['pycaret_exp'].compare_models(**settings)
-            if isinstance(models, list):
-                trained_models = models
-            else:
-                trained_models = [models]
-        elif self.type == 'create_model':
-            settings.update(self.config_json['data']['estimator']['settings'])
-            settings.update({'estimator': self.config_json['data']['estimator']['type']})
-            trained_models = [experiment['pycaret_exp'].create_model(**settings)]
+        trained_models = []
+        trained_models_json = {}
+        for model in kwargs['models']:
+            print(Fore.CYAN + f"optimizing: {model.__class__.__name__}" + Fore.RESET)
+            trained_models.append(getattr(experiment['pycaret_exp'], self.type)(model, **settings))
         trained_models_copy = trained_models.copy()
         self._info_for_next_node = {'models': trained_models}
         for model in trained_models_copy:
@@ -64,5 +45,3 @@ class ModelHandler(Node):
                 if isinstance(value, np.ndarray):
                     trained_models_json[model_copy.__class__.__name__][key] = value.tolist()
         return trained_models_json
-
-

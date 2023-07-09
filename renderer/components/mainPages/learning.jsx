@@ -9,6 +9,7 @@ const LearningPage = ({ pageId }) => {
 			<FlowPageBase 
 				pageId={pageId} 
 				workflowType={flowType} 
+				savingPath={"local_dir/"} 
 			>
 				<Workflow id={pageId} workflowType={flowType} setWorkflowType={setFlowType} />
 			</FlowPageBase>

@@ -3,7 +3,7 @@ import Node from "../../flow/node";
 import Input from "../input";
 import { Button } from "react-bootstrap";
 import ModalSettingsChooser from "../modalSettingsChooser";
-import { FlowInfosContext} from "../../flow/context/flowInfosContext";
+import * as Icon from "react-bootstrap-icons";
 
 
 /**
@@ -20,7 +20,6 @@ import { FlowInfosContext} from "../../flow/context/flowInfosContext";
  */
 const StandardNode = ({ id, data, type }) => {
 	const [modalShow, setModalShow] = useState(false); 	// state of the modal
-	const { flowInfos } = useContext(FlowInfosContext); // get the flow infos from the context
 
 
 	const onInputChange = (inputUpdate) => {
@@ -69,11 +68,7 @@ const StandardNode = ({ id, data, type }) => {
 							className="width-100 btn-contour margin-bottom-25"
 							onClick={() => setModalShow(true)}
 						>
-							<img
-								src={`/icon/${flowInfos.type}/add.png`}
-								alt="add"
-								className="img-fluid"
-							/>
+							<Icon.Plus width="30px" height="30px" className="img-fluid"/>
 						</Button>
 						{/* the modal component*/}
 						<ModalSettingsChooser

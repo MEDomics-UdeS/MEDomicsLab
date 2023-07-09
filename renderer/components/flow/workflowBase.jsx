@@ -1,5 +1,5 @@
 /* eslint-disable react/prop-types */
-import React, { useRef, useCallback, useEffect} from "react";
+import React, { useRef, useCallback, useEffect, useContext} from "react";
 import { toast } from "react-toastify";
 import ReactFlow, {
 	Controls,
@@ -8,6 +8,8 @@ import ReactFlow, {
 	updateEdge,
 	addEdge,
 } from "reactflow";
+import { FlowInfosContext} from "./context/flowInfosContext";
+
 
 import { getId, deepCopy } from "../../utilities/staticFunctions";
 
@@ -66,6 +68,8 @@ const WorkflowBase = ({
 	} = mandatoryProps;
 	
 	const edgeUpdateSuccessful = useRef(true);
+	const { flowInfos } = useContext(FlowInfosContext);							// used to get the flow infos
+
 	// execute this when a variable change or a function is called related to the callback hook in []
 	// setNodeUpdate function is passed to the node component to update the internal data of the node
 	useEffect(() => {
@@ -135,15 +139,21 @@ const WorkflowBase = ({
 			// if isGoodConnection is defined, check if the connection is valid again with the isGoodConnection function
 			isGoodConnection && (isValidConnection = isValidConnection && isGoodConnection(params));
 
-			if (!alreadyExists && isValidConnection) {
+			// check if the connection creates an infinite loop
+			let isLoop = verificationForLoopHoles(params)
+
+
+			if (!alreadyExists && isValidConnection && !isLoop) {
 				setEdges((eds) => addEdge(params, eds));
 			} else {
+				let message = "Not a valid connection"
+				if(alreadyExists){
+					message = "It already exists"
+				} else if (isLoop){
+					message = "It creates a loop"
+				}
 				toast.error(
-					`Connection refused: ${
-						alreadyExists
-							? "It already exists"
-							: "Not a valid connection"
-					}`,
+					`Connection refused: ${message}`,
 					{
 						position: "bottom-right",
 						autoClose: 2000,
@@ -159,6 +169,39 @@ const WorkflowBase = ({
 		},
 		[nodes, edges]
 	);
+
+	/**
+	 * 
+	 * @param {Object} params current new edge infos  
+	 * @returns true if the connection creates a loop
+	 */
+	const verificationForLoopHoles = (params) => {
+		let isLoop = (params.source == params.target);
+
+		// recursively find if the target node is a child of the source node
+		const verificationForLoopHolesRec = (node, isLoop) => {
+			
+			edges.forEach((edge) => {
+				if (edge.source == node.id) {
+					let targetNode = deepCopy(
+						nodes.find((node) => node.id === edge.target)
+					)
+					if (targetNode.id == params.source) {
+						isLoop = true;
+					} else if (targetNode.type != "groupNode") {
+						isLoop = verificationForLoopHolesRec(targetNode, isLoop)
+					}
+
+				}
+			});
+			return isLoop;
+		};
+
+		let targetNode = deepCopy(nodes.find((node) => node.id === params.target));
+		isLoop = verificationForLoopHolesRec(targetNode, false)
+
+		return isLoop;
+	};
 
 	/**
 	 * @param {object} event
@@ -193,9 +236,10 @@ const WorkflowBase = ({
 			const { nodeType } = node;
 
 			if (nodeType in nodeTypes) {
+				let flowWindow = document.getElementById(flowInfos.id).getBoundingClientRect();
 				const position = reactFlowInstance.project({
-					x: event.clientX - 300,
-					y: event.clientY - 75,
+					x: event.clientX - flowWindow.x - 300,
+					y: event.clientY - flowWindow.y - 25,
 				});
 				// create a new random id for the node
 				let newId = getId();
@@ -240,7 +284,7 @@ const WorkflowBase = ({
 				internal: {
 					name: name,
 					img: image,
-					type: name.toLowerCase(),
+					type: name.toLowerCase().replaceAll(" ", "_"),
 				},
 				parentFct: {
 					updateNode: setNodeUpdate,

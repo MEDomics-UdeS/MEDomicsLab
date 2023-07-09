@@ -16,7 +16,7 @@ import { FlowInfosProvider , FlowInfosContext} from "./context/flowInfosContext"
  * @description This component is the base for all the flow pages. It contains the sidebar, the workflow and the backdrop.
  * 
  */
-const FlowPageBaseWithFlowInfos = ({ children, pageId, workflowType }) => {
+const FlowPageBaseWithFlowInfos = ({ children, pageId, workflowType, savingPath="" }) => {
 	// here is the use of the context to update the flowInfos
 	const { updateFlowInfos } = useContext(FlowInfosContext); 
 
@@ -25,6 +25,7 @@ const FlowPageBaseWithFlowInfos = ({ children, pageId, workflowType }) => {
 		updateFlowInfos({
 			id: pageId,
 			type: workflowType,
+			savingPath: savingPath,
 		});
 	}, [pageId, workflowType]);
 

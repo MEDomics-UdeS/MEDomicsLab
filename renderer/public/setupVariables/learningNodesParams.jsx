@@ -20,7 +20,7 @@ const nodesParams = {
 	},
 	model: {
 		type: "selectionNode",
-		classes: "object model run",
+		classes: "object model",
 		nbInput: 0,
 		nbOutput: 1,
 		input: [],

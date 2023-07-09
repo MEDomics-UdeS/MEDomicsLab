@@ -4,6 +4,8 @@ import Input from "../input";
 import { Button } from "react-bootstrap";
 import ModalSettingsChooser from "../modalSettingsChooser";
 import Form from "react-bootstrap/Form";
+import * as Icon from "react-bootstrap-icons";
+
 
 /**
  *
@@ -109,11 +111,8 @@ const SelectionNode = ({ id, data, type }) => {
 							className="width-100 btn-contour margin-bottom-25"
 							onClick={() => setModalShow(true)}
 						>
-							<img
-								src={"/icon/learning/add.png"}
-								alt="add"
-								className="img-fluid"
-							/>
+							<Icon.Plus width="30px" height="30px" className="img-fluid"/>
+
 						</Button>
 						{/* the modal component*/}
 						<ModalSettingsChooser
