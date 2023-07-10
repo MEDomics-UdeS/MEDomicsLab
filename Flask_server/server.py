@@ -4,7 +4,7 @@ from flask_cors import CORS
 from utils.server_utils import get_json_from_request
 
 # Import blueprints
-from app_extraction_blueprint import app_extraction
+from extraction.app_extraction_blueprint import app_extraction
 from learning.app_learning_blueprint import app_learning
 
 # Creating main instance of Flask app
