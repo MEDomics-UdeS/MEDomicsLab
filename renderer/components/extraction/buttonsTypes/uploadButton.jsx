@@ -1,5 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import { Form, Row, Col, Button } from "react-bootstrap";
+import { toast } from "react-toastify";
+import { requestJson, axiosPostJson } from "../../../utilities/requests";
 
 const UploadComponent = ({ id, data, type }) => {
   // Initialize filename to empty string
@@ -11,32 +13,15 @@ const UploadComponent = ({ id, data, type }) => {
     setUploadEnabled(true);
   };
 
-  const handleUpload = () => {
-    if (file) {
+  const handleUpload = useCallback(() => {
+    if (file && file !== "") {
       const form_data = new FormData();
       form_data.append("file", file);
 
       // POST request to /extraction/upload for current node by sending form data of node
-      // TODO: Vérifier les headers
-      fetch("/extraction/upload", {
-        method: "POST",
-        headers: {
-          Accept: "multipart/form-data",
-        },
-        body: form_data,
-      })
-        .then(function (response) {
-          if (response.ok) {
-            return response.json();
-          } else {
-            // If the response from post shows an error, alert the user
-            alert("Something is wrong " + response.errors); // TODO: Error message
-          }
-        })
-        .then(function (json_response) {
-          console.log(
-            "The file " + json_response.name + " was uploaded successfully"
-          );
+      axiosPostJson(form_data, "extraction/upload")
+        .then((response) => {
+          console.log("Response:", response);
           // If the file was uploaded successfully, change the filename in the node
           data.internal.settings["filename"] = file;
           // And set changeView to true to update the view
@@ -45,9 +30,13 @@ const UploadComponent = ({ id, data, type }) => {
             id: id,
             updatedData: data.internal,
           });
+        })
+        .catch((error) => {
+          console.error("Error:", error);
+          toast.warn("Could not load file.");
         });
     }
-  };
+  }, [file]);
 
   return (
     <Form method="post" encType="multipart/form-data" className="inputFile">
