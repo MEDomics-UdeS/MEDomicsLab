@@ -18,6 +18,8 @@
     border: 1px solid #1a1a1a7a;
     cursor: pointer;
     height: 35px;
+    padding-top: 0px;
+    padding-bottom: 0px;
 }
 
 .btn-contour img {

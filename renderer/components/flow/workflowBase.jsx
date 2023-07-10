@@ -1,5 +1,5 @@
 /* eslint-disable react/prop-types */
-import React, { useRef, useCallback } from "react";
+import React, { useRef, useCallback, useEffect, useContext} from "react";
 import { toast } from "react-toastify";
 import ReactFlow, {
 	Controls,
@@ -8,53 +8,88 @@ import ReactFlow, {
 	updateEdge,
 	addEdge,
 } from "reactflow";
+import { FlowInfosContext} from "./context/flowInfosContext";
+
 
 import { getId, deepCopy } from "../../utilities/staticFunctions";
 
 
 /**
  *
- * @param { JSX.Element } ui jsx element to display on the workflow
- * @param { function } createNode function to create a node
- * @param { object } reactFlowInstance instance of the reactFlow
- * @param { function } setReactFlowInstance function to set the reactFlowInstance
- * @param { object } nodeTypes object containing the node types
- * @param { object } nodes array containing the nodes
- * @param { function } setNodes function to set the nodes
- * @param { function } onNodesChange function called when the nodes change
- * @param { object } edges array containing the edges
- * @param { function } setEdges function to set the edges
- * @param { function } onEdgesChange function called when the edges change
- * @param { function } onNodeDrag function called when a node is dragged
  * @param { function } isGoodConnection function to check if a connection is valid
+ * @param { function } onDeleteNode function to delete a node
+ * @param { function } groupNodeHandlingDefault function to handle a group node default actions such as creation of start and end nodes
+ * @param { JSX.Element } ui jsx element to display on the workflow
+ * @param { object } 	mandatoryProps.reactFlowInstance instance of the reactFlow
+ * @param { function } 	mandatoryProps.setReactFlowInstance function to set the reactFlowInstance
+ * @param { object } 	mandatoryProps.nodeTypes object containing the node types
+ * @param { object } 	mandatoryProps.nodes array containing the nodes
+ * @param { function } 	mandatoryProps.setNodes function to set the nodes
+ * @param { function } 	mandatoryProps.onNodesChange function called when the nodes change
+ * @param { object } 	mandatoryProps.edges array containing the edges
+ * @param { function } 	mandatoryProps.setEdges function to set the edges
+ * @param { function } 	mandatoryProps.onEdgesChange function called when the edges change
+ * @param { function } 	mandatoryProps.onNodeDrag function called when a node is dragged
+ * @param { function } 	mandatoryProps.runNode function called when a node is run
+ * @param { function } 	mandatoryProps.addSpecificToNode function called to add specific properties to a node
+ * @param { object } 	mandatoryProps.nodeUpdate object containing the id of the node to update and the updated data
+ * @param { function } 	mandatoryProps.setNodeUpdate function to set the nodeUpdate
  *
  * @returns {JSX.Element} A workflow
  *
  * @description
+ * 
  * This component is used to display a workflow.
  * It manages base workflow functions such as node creation, node deletion, node connection, etc.
  */
 const WorkflowBase = ({
-	ui,
-	addSpecificToNode,
-	reactFlowInstance,
-	setReactFlowInstance,
-	nodeTypes,
-	nodes,
-	setNodes,
-	onNodesChange,
-	edges,
-	setEdges,
-	onEdgesChange,
-	onNodeDrag,
 	isGoodConnection,
 	onDeleteNode,
-	setNodeUpdate,
-	runNode,
 	groupNodeHandlingDefault,
+	ui,
+	mandatoryProps,
 }) => {
-	const edgeUpdateSuccessful = useRef(true);
 
+	const {
+		reactFlowInstance,
+		setReactFlowInstance,
+		nodeTypes,
+		nodes,
+		setNodes,
+		onNodesChange,
+		edges,
+		setEdges,
+		onEdgesChange,
+		onNodeDrag,
+		runNode,
+		addSpecificToNode,
+		nodeUpdate,
+		setNodeUpdate
+	} = mandatoryProps;
+	
+	const edgeUpdateSuccessful = useRef(true);
+	const { flowInfos } = useContext(FlowInfosContext);							// used to get the flow infos
+
+	// execute this when a variable change or a function is called related to the callback hook in []
+	// setNodeUpdate function is passed to the node component to update the internal data of the node
+	useEffect(() => {
+		// if the nodeUpdate object is not empty, update the node
+		if (nodeUpdate.id) {
+			setNodes((nds) =>
+				nds.map((node) => {
+					if (node.id == nodeUpdate.id) {
+						// it's important that you create a new object here in order to notify react flow about the change
+						node.data = {
+							...node.data,
+						};
+						// update the internal data of the node
+						node.data.internal = nodeUpdate.updatedData;
+					}
+					return node;
+				})
+			);
+		}
+	}, [nodeUpdate, setNodes]);
 
 	/**
 	 * @param {object} params
@@ -104,15 +139,21 @@ const WorkflowBase = ({
 			// if isGoodConnection is defined, check if the connection is valid again with the isGoodConnection function
 			isGoodConnection && (isValidConnection = isValidConnection && isGoodConnection(params));
 
-			if (!alreadyExists && isValidConnection) {
+			// check if the connection creates an infinite loop
+			let isLoop = verificationForLoopHoles(params)
+
+
+			if (!alreadyExists && isValidConnection && !isLoop) {
 				setEdges((eds) => addEdge(params, eds));
 			} else {
+				let message = "Not a valid connection"
+				if(alreadyExists){
+					message = "It already exists"
+				} else if (isLoop){
+					message = "It creates a loop"
+				}
 				toast.error(
-					`Connection refused: ${
-						alreadyExists
-							? "It already exists"
-							: "Not a valid connection"
-					}`,
+					`Connection refused: ${message}`,
 					{
 						position: "bottom-right",
 						autoClose: 2000,
@@ -128,6 +169,39 @@ const WorkflowBase = ({
 		},
 		[nodes, edges]
 	);
+
+	/**
+	 * 
+	 * @param {Object} params current new edge infos  
+	 * @returns true if the connection creates a loop
+	 */
+	const verificationForLoopHoles = (params) => {
+		let isLoop = (params.source == params.target);
+
+		// recursively find if the target node is a child of the source node
+		const verificationForLoopHolesRec = (node, isLoop) => {
+			
+			edges.forEach((edge) => {
+				if (edge.source == node.id) {
+					let targetNode = deepCopy(
+						nodes.find((node) => node.id === edge.target)
+					)
+					if (targetNode.id == params.source) {
+						isLoop = true;
+					} else if (targetNode.type != "groupNode") {
+						isLoop = verificationForLoopHolesRec(targetNode, isLoop)
+					}
+
+				}
+			});
+			return isLoop;
+		};
+
+		let targetNode = deepCopy(nodes.find((node) => node.id === params.target));
+		isLoop = verificationForLoopHolesRec(targetNode, false)
+
+		return isLoop;
+	};
 
 	/**
 	 * @param {object} event
@@ -162,16 +236,22 @@ const WorkflowBase = ({
 			const { nodeType } = node;
 
 			if (nodeType in nodeTypes) {
+				let flowWindow = document.getElementById(flowInfos.id).getBoundingClientRect();
 				const position = reactFlowInstance.project({
-					x: event.clientX - 300,
-					y: event.clientY - 75,
+					x: event.clientX - flowWindow.x - 300,
+					y: event.clientY - flowWindow.y - 25,
 				});
+				// create a new random id for the node
 				let newId = getId();
+				// if the node is a group node, call the groupNodeHandlingDefault function if it is defined
 				if (nodeType === "groupNode" && groupNodeHandlingDefault) {
 					groupNodeHandlingDefault(createBaseNode, newId);
 				}
+				// create a base node with common properties
 				let newNode = createBaseNode(position, node, newId)
+				// add specific properties to the node
 				newNode = addSpecificToNode(newNode);
+				// add the new node to the nodes array
 				setNodes((nds) => nds.concat(newNode));
 				console.log("new node created: ", node);
 			} else {
@@ -181,6 +261,17 @@ const WorkflowBase = ({
 		[reactFlowInstance, addSpecificToNode]
 	);
 
+	/**
+	 * 
+	 * @param {Object} position the drop position of the node ex. {x: 100, y: 100}
+	 * @param {Object} node the node object containing the nodeType, name and image path
+	 * @param {String} id the id of the node 
+	 * 
+	 * @description
+	 * This function creates a base node with common properties
+	 * all of these propreties can be overrriden by the addSpecificToNode function but they are the same for all nodes so no need to rewrite them
+	 * @returns {Object} the node object with the common properties
+	 */
 	const createBaseNode = (position, node, id) => {
 		const { nodeType, name, image } = node;
 		let newNode = {
@@ -193,16 +284,28 @@ const WorkflowBase = ({
 				internal: {
 					name: name,
 					img: image,
-					type: name.toLowerCase(),
+					type: name.toLowerCase().replaceAll(" ", "_"),
 				},
 				parentFct: {
-					deleteNode: onDeleteNode,
 					updateNode: setNodeUpdate,
+					deleteNode: onDeleteNode || deleteNode,
 					runNode: runNode,
 				},
+				tooltipBy: "node" // this is a default value that can be changed in addSpecificToNode function see workflow.jsx for example
 			},
 		};
 		return newNode
+	};
+
+	/**
+	 * 
+	 * @param {String} nodeId id of the node to delete
+	 * @description default function to delete a node
+	 */
+	const deleteNode = (nodeId) => {
+		setNodes((nds) => nds.filter((node) => node.id !== nodeId));
+		setEdges((eds) => eds.filter((edge) => edge.source !== nodeId && edge.target !== nodeId)
+		);
 	};
 
 	/**
@@ -271,6 +374,7 @@ const WorkflowBase = ({
 
 	return (
 		<div className="height-100">
+			{/* here is the reactflow component which handles a lot of features listed below */}
 			<ReactFlow
 				nodes={nodes}
 				edges={edges}

@@ -11,6 +11,7 @@ from MEDml.utils.loading import Loader
 from MEDml.nodes.NodeObj import *
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 from termcolor import colored
+from colorama import Fore, Back, Style
 
 
 DATAFRAME_LIKE = Union[dict, list, tuple, np.ndarray, pd.DataFrame]
@@ -28,7 +29,7 @@ class Clean(Node):
 
     def _execute(self, experiment: dict = None, **options) -> json:
         print()
-        print(colored("=== cleaning ===", 'blue'))
+        print(Fore.BLUE + "=== cleaning === " + Fore.YELLOW + f"({self.username})" + Fore.RESET)
         ml_obj = experiment['pycaret_exp'].setup(
             data=experiment['dataset_metaData']['dataset'],
             target=options['target'],

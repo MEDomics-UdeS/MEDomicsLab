@@ -1,10 +1,10 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react'
-import { Button } from 'react-bootstrap';
-import { Handle } from 'reactflow'
-import Card from 'react-bootstrap/Card'
-import CloseButton from 'react-bootstrap/CloseButton';
-import { Tooltip } from 'react-tooltip'
-import Handlers from '../../flow/handlers'
+import React, { useContext } from "react"
+import { Button } from "react-bootstrap";
+import Card from "react-bootstrap/Card"
+import CloseButton from "react-bootstrap/CloseButton";
+import Handlers from "./handlers"
+import { FlowInfosContext} from "./context/flowInfosContext";
+
 
 /**
  * 
@@ -19,22 +19,23 @@ import Handlers from '../../flow/handlers'
  * It does not implement a Node because it does not need to have access to an offcanvas 
  */
 const GroupNode = ({ id, data }) => {
+	const { flowInfos } = useContext(FlowInfosContext);		// used to get the flow infos
 
 	return (
 		<>
 			<div>
 				<div >
-					<Handlers id={id} setupParam={data.setupParam} />
+					<Handlers id={id} setupParam={data.setupParam} tooltipBy={data.tooltipBy}/>
 					<Card key={`${id}`} id={`${id}`} className="text-left node">
 						<Card.Header onClick={() => data.parentFct.changeSubFlow(id)}>
-							<img src={"/icon/learning/" + `${data.internal.img.replaceAll(' ', '_')}`} alt={data.internal.img} className="icon-nodes" />
+							<img src={"/icon/"+flowInfos.type+"/" + `${data.internal.img.replaceAll(" ", "_")}`} alt={data.internal.img} className="icon-nodes" />
 							{data.internal.name}
 						</Card.Header>
 					</Card>
 				</div>
 
 				<CloseButton onClick={() => data.parentFct.deleteNode(id)} />
-				{data.setupParam.classes.split(' ').includes('run') &&
+				{data.setupParam.classes.split(" ").includes("run") &&
 					<Button variant="success" className='btn-runNode' onClick={() => data.parentFct.runNode(id)}>
 						<img src={"/icon/run.svg"} alt="run" className="img-fluid" />
 					</Button>

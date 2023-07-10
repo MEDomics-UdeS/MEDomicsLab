@@ -12,6 +12,7 @@ from MEDml.utils.loading import Loader
 from MEDml.nodes.NodeObj import Node
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 from termcolor import colored
+from colorama import Fore, Back, Style
 
 DATAFRAME_LIKE = Union[dict, list, tuple, np.ndarray, pd.DataFrame]
 TARGET_LIKE = Union[int, str, list, tuple, np.ndarray, pd.Series]
@@ -27,9 +28,9 @@ class Deploy(Node):
 
     def _execute(self, experiment: dict = None, **kwargs) -> json:
         print()
-        print(colored("=== Deploy ===", 'blue'))
-        selection = self.config_json['data']['selection']
-        print(colored(f"method : {selection}", 'cyan'))
+        print(Fore.BLUE + "=== Deploy === " + Fore.YELLOW + f"({self.username})" + Fore.RESET)
+        selection = self.config_json['data']['internal']['selection']
+        print(Fore.CYAN + f"Using {selection}" + Fore.RESET)
         settings = copy.deepcopy(self.settings)
         path_folder = ""
         if selection == 'predict_model':
@@ -42,14 +43,11 @@ class Deploy(Node):
                 del settings['folder_path']
         model_paths = {}
         for model in kwargs['models']:
-            print(settings)
             deploy_res = getattr(experiment['pycaret_exp'], selection)(model, **settings)
 
             if selection == 'save_model':
-                print(os.getcwd())
-                print(os.listdir(os.getcwd()))
                 path = deploy_res[1]
-                new_path = os.path.join("static/tmp/", f"{self.global_config_json['unique_id']}-{settings['model_name']}-{model.__class__.__name__}.pkl")
+                new_path = os.path.join(self.global_config_json['saving_path'], f"{self.global_config_json['unique_id']}-{settings['model_name']}-{model.__class__.__name__}.pkl")
                 self.global_config_json["unique_id"] += 1
                 if os.path.isfile(new_path):
                     os.remove(new_path)

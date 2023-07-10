@@ -14,6 +14,7 @@ from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 DATAFRAME_LIKE = Union[dict, list, tuple, np.ndarray, pd.DataFrame]
 TARGET_LIKE = Union[int, str, list, tuple, np.ndarray, pd.Series]
 from termcolor import colored
+from colorama import Fore, Back, Style
 
 
 def str2bool(v: str) -> bool:
@@ -40,13 +41,14 @@ class Node(ABC):
             id_: the corresponding id of the node
             global_config_json: specifies the configuration of the node (e.g. settings, inputs, outputs)
         """
+        print(colored(f"Node {id_} created", "green"))
         self.global_config_json = global_config_json
         self.config_json = global_config_json['nodes'][str(id_)]
-        self._code = self.config_json['data']['code']
-        self.settings = self.config_json['data']['settings']
-        self.type = self.config_json['name']
-        self._connections = {"inputs": self.config_json['inputs'], "outputs": self.config_json['outputs']}
-        self._class = self.config_json['class']
+        self._code = self.config_json['data']['internal']['code']
+        self.settings = self.config_json['data']['internal']['settings']
+        self.type = self.config_json['data']['internal']['type']
+        self.username = self.config_json['data']['internal']['name']
+        self._class = self.config_json['className']
         self.id = id_
         self._has_run = False
         self.just_run = False
@@ -95,6 +97,7 @@ class Node(ABC):
         """
         self.just_run = True
         self._has_run = True
+
         return self._execute(experiment, **kwargs)
 
     def __eq__(self, other):

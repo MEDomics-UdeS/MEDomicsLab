@@ -12,7 +12,7 @@ import { FlowInfosContext} from "./context/flowInfosContext";
 /**
  *
  * @param {string} id used to identify the node
- * @param {object} data contains the data of the node. refer to renderer\components\learning\workflow.jsx at function createNode for more information
+ * @param {object} data contains the data of the node. 
  * @param {JSX.Element} nodeSpecific jsx element to display specific settings of the node inside the offcanvas
  * @param {JSX.Element} nodeBody jsx element to display the body of the node
  * @param {JSX.Element} defaultSettings jsx element to display default settings of the node inside the offcanvas
@@ -26,13 +26,13 @@ import { FlowInfosContext} from "./context/flowInfosContext";
  * Note: see Powerpoint for additionnal
  */
 const Node = ({ id, data, nodeSpecific, nodeBody, defaultSettings }) => {
-	const [showOffCanvas, setShowOffCanvas] = useState(false);
-	const handleOffCanvasClose = () => setShowOffCanvas(false);
-	const handleOffCanvasShow = () => setShowOffCanvas(true);
-	const [nodeName, setNodeName] = useState(data.internal.name);
-	const [offcanvasComp, setOffcanvasComp] = useState(null);
-	const { updateBackdropStyle } = useContext(OffCanvasBackdropStyleContext);
-	const { flowInfos } = useContext(FlowInfosContext);
+	const [showOffCanvas, setShowOffCanvas] = useState(false); 					// used to display the offcanvas	
+	const handleOffCanvasClose = () => setShowOffCanvas(false);					// used to close the offcanvas
+	const handleOffCanvasShow = () => setShowOffCanvas(true);					// used to show the offcanvas
+	const [nodeName, setNodeName] = useState(data.internal.name);				// used to store the name of the node
+	const [offcanvasComp, setOffcanvasComp] = useState(null);					// used to store the offcanvas container
+	const { updateBackdropStyle } = useContext(OffCanvasBackdropStyleContext);	// used to update the backdrop style
+	const { flowInfos } = useContext(FlowInfosContext);							// used to get the flow infos
 
 	/**
 	 * @description
@@ -110,72 +110,80 @@ const Node = ({ id, data, nodeSpecific, nodeBody, defaultSettings }) => {
 	return (
 		<>
 			<div>
-				<div>
-					<Handlers id={id} setupParam={data.setupParam} />
-					<Card key={id} id={id} className="text-left node">
-						<Card.Header onClick={handleOffCanvasShow}>
-							<img
-								src={
-									`/icon/${flowInfos.type}/` +
-									`${data.internal.img.replaceAll(" ", "_")}`
-								}
-								alt={data.internal.img}
-								className="icon-nodes"
-							/>
-							{data.internal.name}
-						</Card.Header>
-						{nodeBody != undefined && (
-							<Card.Body>{nodeBody}</Card.Body>
-						)}
-					</Card>
-				</div>
-				<Container>
-					<Offcanvas
-						show={showOffCanvas}
-						onHide={handleOffCanvasClose}
-						placement="end"
-						scroll
-						backdrop
-						container={offcanvasComp}
-					>
-						<Offcanvas.Header closeButton>
-							<Offcanvas.Title>
-								<EditableLabel
-									text={data.internal.name}
-									labelClassName="node-editableLabel"
-									inputClassName="node-editableLabel"
-									inputWidth="20ch"
-									inputHeight="25px"
-									labelFontWeight="bold"
-									inputFontWeight="bold"
-									onFocusOut={(value) => {
-										newNameHasBeenWritten(value);
-									}}
-								/>
-							</Offcanvas.Title>
-						</Offcanvas.Header>
-						<Offcanvas.Body>
-							<hr className="solid" />
-							{defaultSettings}
-							{nodeSpecific}
-						</Offcanvas.Body>
-					</Offcanvas>
-				</Container>
-				<CloseButton onClick={() => data.parentFct.deleteNode(id)} />
-				{data.setupParam.classes.split(" ").includes("run") && (
-					<Button
-						variant="success"
-						className="btn-runNode"
-						onClick={() => data.parentFct.runNode(id)}
-					>
+				{/* here are the handlers (connection points)*/}
+				<Handlers id={id} setupParam={data.setupParam} tooltipBy={data.tooltipBy}/>
+				{/* here is the node (the Card element)*/}
+				<Card key={id} id={id} className="text-left node">
+					{/* header of the node (name of the node)*/}
+					<Card.Header onClick={handleOffCanvasShow}>
 						<img
-							src={"/icon/run.svg"}
-							alt="run"
-							className="img-fluid"
+							src={
+								`/icon/${flowInfos.type}/` +
+									`${data.internal.img.replaceAll(" ", "_")}`
+							}
+							alt={data.internal.img}
+							className="icon-nodes"
 						/>
-					</Button>
-				)}
+						{data.internal.name}
+					</Card.Header>
+					{/* body of the node*/}
+					{nodeBody != undefined && (
+						<Card.Body>{nodeBody}</Card.Body>
+					)}
+				</Card>
 			</div>
+			{/* offcanvas of the node (panel coming from right when a node is clicked )*/}
+			<Container>
+				<Offcanvas
+					show={showOffCanvas}
+					onHide={handleOffCanvasClose}
+					placement="end"
+					scroll
+					backdrop
+					container={offcanvasComp}
+				>
+					<Offcanvas.Header closeButton>
+						<Offcanvas.Title>
+							<EditableLabel
+								text={data.internal.name}
+								labelClassName="node-editableLabel"
+								inputClassName="node-editableLabel"
+								inputWidth="20ch"
+								inputHeight="25px"
+								labelFontWeight="bold"
+								inputFontWeight="bold"
+								onFocusOut={(value) => {
+									newNameHasBeenWritten(value);
+								}}
+							/>
+						</Offcanvas.Title>
+					</Offcanvas.Header>
+					<Offcanvas.Body>
+						<hr className="solid" />
+						{/* here are the default settings of the node. if nothing is specified, nothing is displayed*/}
+						{defaultSettings}
+						{/* here are the node specific settings. if nothing is specified, nothing is displayed*/}
+						{nodeSpecific}
+					</Offcanvas.Body>
+				</Offcanvas>
+			</Container>
+			{/* here are the buttons to delete and run the node*/}
+			<CloseButton onClick={() => data.parentFct.deleteNode(id)} />
+
+			{/* if the node is a run node (by checking setupParam classes), a button to run the node is displayed*/}
+			{data.setupParam.classes.split(" ").includes("run") && (
+				<Button
+					variant="success"
+					className="btn-runNode"
+					onClick={() => data.parentFct.runNode(id)}
+				>
+					<img
+						src={"/icon/run.svg"}
+						alt="run"
+						className="img-fluid"
+					/>
+				</Button>
+			)}
 		</>
 	);
 };

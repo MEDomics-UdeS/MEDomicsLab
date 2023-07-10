@@ -1,4 +1,4 @@
-import React from 'react'
+import React from "react"
 
 /**
  * 
@@ -10,16 +10,16 @@ import React from 'react'
  * it is simply a container with a label
  * its purpose is to be used in a subflow as visual marker of connection to the main flow
  */
-const OptimizeIO = ({ id, data, type }) => {
-    return (
-        <>
-            <div className={`${id} optimize-io text-center node`}>
-                <label>
-                    {data.internal.name}
-                </label>
-            </div>
-        </>
-    )
+const OptimizeIO = ({ id, data }) => {
+	return (
+		<>
+			<div className={`${id} optimize-io text-center node`}>
+				<label>
+					{data.internal.name}
+				</label>
+			</div>
+		</>
+	)
 }
 
 export default OptimizeIO

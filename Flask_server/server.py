@@ -1,3 +1,4 @@
+from learning.app_learning_blueprint import app_learning
 import sys
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, Blueprint
 from flask_cors import CORS
@@ -10,6 +11,7 @@ from app_extraction_blueprint import app_extraction
 
 # Creating main instance of Flask app
 app = Flask(__name__)
+app.register_blueprint(app_learning, url_prefix='/learning')
 
 # Configure Flask-CORS to specify that only requests coming from local port 8888 are allowed 
 # to access the API route 
@@ -25,12 +27,6 @@ def test():
     print(json.dumps(data, indent=4, sort_keys=True))
     return jsonify({"test": "réussi"})
 
-@app.route("/run_experiment", methods=["POST"])
-def run_experiment():
-    data = get_json_from_request(request)
-    print("received data from topic: /run_experiment:")
-    print(json.dumps(data, indent=4, sort_keys=True))
-    return run_experiment(data)
 
 # Test server to receive message
 @app.route("/message", methods=["POST"])

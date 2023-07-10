@@ -29,7 +29,7 @@ const createOption = (label) => ({
  * This component is used to display a Input component.
  * it handles multiple types of input and format them to be similar
  */
-const Input = ({ name, settingInfos, data , onInputChange}) => {
+const Input = ({ name, settingInfos, currentValue , onInputChange}) => {
 	const [inputUpdate, setInputUpdate] = useState({})
 	const [inputValue, setInputValue] = useState("");
 
@@ -47,8 +47,8 @@ const Input = ({ name, settingInfos, data , onInputChange}) => {
 		switch (event.key) {
 		case "Enter":
 		case "Tab":
-			(data.internal.settings[name] == undefined) && (data.internal.settings[name] = [])
-			setInputUpdate({ name: name, value: [...data.internal.settings[name], createOption(inputValue)], type: settingInfos.type })
+			(currentValue == undefined) && (currentValue = [])
+			setInputUpdate({ name: name, value: [...currentValue, createOption(inputValue)], type: settingInfos.type })
 			setInputValue("");
 			event.preventDefault();
 		}
@@ -91,6 +91,7 @@ const Input = ({ name, settingInfos, data , onInputChange}) => {
      */
 	const getCorrectInputType = (settingInfos) => {
 		switch (settingInfos.type) {
+		// for normal string input
 		case "string":
 			return (
 				<FloatingLabel
@@ -98,9 +99,10 @@ const Input = ({ name, settingInfos, data , onInputChange}) => {
 					label={name}
 					className="margin-bottom-15 input-hov"
 				>
-					<Form.Control type="text" defaultValue={data.internal.settings[name]} onChange={e => setInputUpdate({ name: name, value: e.target.value, type: settingInfos.type })} />
+					<Form.Control type="text" defaultValue={currentValue} onChange={e => setInputUpdate({ name: name, value: e.target.value, type: settingInfos.type })} />
 				</FloatingLabel >
 			)
+		// for integer input
 		case "int":
 			return (
 				<FloatingLabel
@@ -108,9 +110,10 @@ const Input = ({ name, settingInfos, data , onInputChange}) => {
 					label={name}
 					className="margin-bottom-15 input-hov"
 				>
-					<Form.Control type="number" defaultValue={data.internal.settings[name]} onChange={e => setInputUpdate({ name: name, value: e.target.value, type: settingInfos.type })} />
+					<Form.Control type="number" defaultValue={currentValue} onChange={e => setInputUpdate({ name: name, value: e.target.value, type: settingInfos.type })} />
 				</FloatingLabel >
 			)
+		// for float input
 		case "float":
 			return (
 				<FloatingLabel
@@ -118,9 +121,10 @@ const Input = ({ name, settingInfos, data , onInputChange}) => {
 					label={name}
 					className="margin-bottom-15 input-hov"
 				>
-					<Form.Control type="number" defaultValue={data.internal.settings[name]} onChange={e => setInputUpdate({ name: name, value: e.target.value, type: settingInfos.type })} />
+					<Form.Control type="number" defaultValue={currentValue} onChange={e => setInputUpdate({ name: name, value: e.target.value, type: settingInfos.type })} />
 				</FloatingLabel >
 			)
+		// for boolean input (form select of 2 options True/False)
 		case "bool":
 			return (
 				<FloatingLabel
@@ -128,13 +132,14 @@ const Input = ({ name, settingInfos, data , onInputChange}) => {
 					label={name}
 					className="margin-bottom-15 input-hov"
 				>
-					<Form.Select defaultValue={data.internal.settings[name]} onChange={e => setInputUpdate({ name: name, value: e.target.value, type: settingInfos.type })}>
+					<Form.Select defaultValue={currentValue} onChange={e => setInputUpdate({ name: name, value: e.target.value, type: settingInfos.type })}>
 						<option value="True">True</option>
 						<option value="False">False</option>
 					</Form.Select>
 				</FloatingLabel >
 
 			)
+		// for list input (form select of all the options)
 		case "list":
 			return (
 				<>
@@ -143,7 +148,7 @@ const Input = ({ name, settingInfos, data , onInputChange}) => {
 						label={name}
 						className="margin-bottom-15 input-hov"
 					>
-						<Form.Select className="" defaultValue={data.internal.settings[name]} onChange={e => setInputUpdate({ name: name, value: e.target.value, type: settingInfos.type })}>
+						<Form.Select className="" defaultValue={currentValue} onChange={e => setInputUpdate({ name: name, value: e.target.value, type: settingInfos.type })}>
 							{Object.entries(settingInfos.choices).map(([option, tooltip]) => {
 								return (<option key={option} value={option}>{option}</option>);
 							})}
@@ -151,6 +156,7 @@ const Input = ({ name, settingInfos, data , onInputChange}) => {
 					</FloatingLabel>
 				</>
 			)
+		// for list input (form select of all the options, multiple selection possible)
 		case "list-multiple":
 			return (
 				<>
@@ -159,15 +165,15 @@ const Input = ({ name, settingInfos, data , onInputChange}) => {
 						options={
 
 							Object.entries(settingInfos.choices).map(([option, tooltip]) => {
-								(data.internal.settings[name] == undefined) && (data.internal.settings[name] = [])
+								(currentValue == undefined) && (currentValue = [])
 								console.log("option", option)
-								console.log("data.internal.settings[name]", data.internal.settings[name])
-								if (!data.internal.settings[name].includes(option))
+								console.log("currentValue", currentValue)
+								if (!currentValue.includes(option))
 									return (createOption(option));
 							})
 						}
 
-						value={data.internal.settings[name]}
+						value={currentValue}
 						onChange={(newValue) => setInputUpdate({ name: name, value: newValue, type: settingInfos.type })}
 						isMulti
 						isClearable
@@ -176,6 +182,7 @@ const Input = ({ name, settingInfos, data , onInputChange}) => {
 					/>
 				</>
 			)
+		// for range input
 		case "range":
 			return (
 				<FloatingLabel
@@ -183,9 +190,10 @@ const Input = ({ name, settingInfos, data , onInputChange}) => {
 					label={name}
 					className="margin-bottom-15 input-hov"
 				>
-					<Form.Control type="range" defaultValue={data.internal.settings[name]} onChange={e => setInputUpdate({ name: name, value: e.target.value, type: settingInfos.type })} />
+					<Form.Control type="range" defaultValue={currentValue} onChange={e => setInputUpdate({ name: name, value: e.target.value, type: settingInfos.type })} />
 				</FloatingLabel >
 			)
+		// for custom list input (multiple custom string inputs)
 		case "custom-list":
 			return (
 				<>
@@ -202,12 +210,13 @@ const Input = ({ name, settingInfos, data , onInputChange}) => {
 						onInputChange={(newValue) => setInputValue(newValue)}
 						onKeyDown={handleKeyDown}
 						placeholder="Add"
-						value={data.internal.settings[name]}
+						value={currentValue}
 						className="margin-bottom-15 input-hov"
 					/>
 
 				</>
 			)
+		// for pandas dataframe input (basically a string input for now)
 		case "pandas.DataFrame":
 			return (
 				<FloatingLabel
@@ -215,9 +224,10 @@ const Input = ({ name, settingInfos, data , onInputChange}) => {
 					label={name}
 					className="margin-bottom-15 input-hov"
 				>
-					<Form.Control type="text" defaultValue={data.internal.settings[name]} onChange={e => setInputUpdate({ name: name, value: e.target.value, type: settingInfos.type })} />
+					<Form.Control type="text" defaultValue={currentValue} onChange={e => setInputUpdate({ name: name, value: e.target.value, type: settingInfos.type })} />
 				</FloatingLabel >
 			)
+		// for all the other types of input (basically a string input for now)
 		default:
 			return (
 				<FloatingLabel
@@ -225,7 +235,7 @@ const Input = ({ name, settingInfos, data , onInputChange}) => {
 					label={name}
 					className="margin-bottom-15 input-hov"
 				>
-					<Form.Control type="text" defaultValue={data.internal.settings[name]} onChange={e => setInputUpdate({ name: name, value: e.target.value, type: settingInfos.type })} />
+					<Form.Control type="text" defaultValue={currentValue} onChange={e => setInputUpdate({ name: name, value: e.target.value, type: settingInfos.type })} />
 				</FloatingLabel >
 			)
 		}
