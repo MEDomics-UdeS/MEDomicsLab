@@ -10,13 +10,13 @@ import numpy as np
 # from pycaret.survival_analysis.oop import SurvivalAnalysisExperiment
 from pycaret.classification import ClassificationExperiment
 from pycaret.regression import RegressionExperiment
-from MEDml.logger.MEDml_logger import MEDml_logger
+from learning.MEDml.logger.MEDml_logger import MEDml_logger
 import mlflow
 import json
 
-from MEDml.nodes.NodeObj import *
-from MEDml.nodes import *
-from MEDml.utils.loading import Loader
+from learning.MEDml.nodes.NodeObj import *
+from learning.MEDml.nodes import *
+from learning.MEDml.utils.loading import Loader
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 from termcolor import colored
 
