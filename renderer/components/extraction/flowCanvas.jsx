@@ -1,17 +1,20 @@
 import React, { useState, useCallback, useMemo, useEffect } from "react";
 import { toast } from "react-toastify";
-import { useNodesState, useEdgesState, useReactFlow, addEdge } from "reactflow";
-import WorkflowBase from "../flow/workflowBase";
-import TreeMenu from "react-simple-tree-menu"; // TODO: https://www.npmjs.com/package/react-simple-tree-menu change plus sign to chevron
+import EditableLabel from "react-simple-editlabel";
+import TreeMenu from "react-simple-tree-menu";
+
+// Import utilities
 import {
   loadJsonSync,
   downloadJson,
 } from "../../utilities/fileManagementUtils";
-import { requestJson } from "../../utilities/requests";
-import EditableLabel from "react-simple-editlabel";
+import { axiosPostJson } from "../../utilities/requests";
+
+// Workflow imports
+import { useNodesState, useEdgesState, useReactFlow, addEdge } from "reactflow";
+import WorkflowBase from "../flow/workflowBase";
 
 // Import node types
-import InputNode from "./nodesTypes/inputNode";
 import StandardNode from "./nodesTypes/standardNode";
 import ExtractionNode from "./nodesTypes/extractionNode";
 import SegmentationNode from "./nodesTypes/segmentationNode";
@@ -28,17 +31,18 @@ import BtnDiv from "../flow/btnDiv";
 // Static functions used in the workflow
 import { removeDuplicates, deepCopy } from "../../utilities/staticFunctions";
 
-const staticNodesParams = nodesParams; // represents static nodes parameters
+// Static nodes parameters
+const staticNodesParams = nodesParams;
 
 /**
  *
  * @param {String} id id of the workflow for multiple workflows management
  * @param {function} changeSidebarType function to change the sidebar type
- * @param {String} workflowType type of the workflow (learning or optimize)
- * @returns {JSX.Element} A workflow
+ * @param {String} workflowType type of the workflow (extraction or features)
+ * @returns {JSX.Element} A workflow component as defined in /flow
  *
  * @description
- * This component is used to display a workflow (ui, nodes, edges, etc.).
+ * Component used to display the workflow of the extraction tab of MEDomicsLab.
  *
  */
 const Workflow = ({ id, workflowType, setWorkflowType }) => {
@@ -56,7 +60,6 @@ const Workflow = ({ id, workflowType, setWorkflowType }) => {
   // https://www.w3schools.com/react/react_usememo.asp
   const nodeTypes = useMemo(
     () => ({
-      inputNode: InputNode,
       segmentationNode: SegmentationNode,
       standardNode: StandardNode,
       extractionNode: ExtractionNode,
@@ -65,27 +68,6 @@ const Workflow = ({ id, workflowType, setWorkflowType }) => {
     }),
     []
   );
-
-  // Execute this when a variable change or a function is called related to the callback hook in []
-  // setNodeUpdate function is passed to the node component to UPDATE THE INTERNAL DATA OF THE NODE
-  useEffect(() => {
-    // if the nodeUpdate object is not empty, update the node
-    if (nodeUpdate.id) {
-      setNodes((nds) =>
-        nds.map((node) => {
-          if (node.id == nodeUpdate.id) {
-            // it's important that you create a new object here in order to notify react flow about the change
-            node.data = {
-              ...node.data,
-            };
-            // update the internal data of the node
-            node.data.internal = nodeUpdate.updatedData;
-          }
-          return node;
-        })
-      );
-    }
-  }, [nodeUpdate, setNodes]);
 
   // Execute setTreeData when there is a change in nodes or edges arrays.
   useEffect(() => {
@@ -183,18 +165,25 @@ const Workflow = ({ id, workflowType, setWorkflowType }) => {
         JSON.stringify(nodes.find((node) => node.id === edge.source))
       );
 
-      treeMenuData[sourceNode.id] = {
-        label: sourceNode.data.internal.name,
-        nodes: createTreeFromNodesRec(sourceNode),
-      };
+      if (sourceNode.type === "inputNode") {
+        treeMenuData[sourceNode.id] = {
+          label: sourceNode.data.internal.name,
+          nodes: createTreeFromNodesRec(sourceNode),
+        };
+      }
     });
 
     return treeMenuData;
   }, [nodes, edges]);
 
+  /**
+   * @param {Object} newNode base node object
+   *
+   * Function passed to workflowBase to add the specific properties of a
+   * node in the workflow for extraction or features
+   */
   const addSpecificToNode = (newNode) => {
     // Add defaut parameters of node to possibleSettings
-
     let type = newNode.data.internal.type
       .replaceAll(/ |-/g, "_")
       .replace(/[^a-z_]/g, "");
@@ -228,8 +217,8 @@ const Workflow = ({ id, workflowType, setWorkflowType }) => {
    * @param {Object} id id of the node to delete
    *
    * This function is called when the user clicks on the delete button of a node
-   * It deletes the node and its edges
-   * If the node is a group node, it deletes all the nodes inside the group node
+   * it deletes the node and its edges. If the node is a group node, it deletes
+   * all the nodes inside the group node
    */
   const deleteNode = useCallback(
     (id) => {
@@ -269,32 +258,45 @@ const Workflow = ({ id, workflowType, setWorkflowType }) => {
   };
 
   /**
-   * Clear all the pipelines in the workflow
+   * Runs all the pipelines in the workflow
    */
   const onRun = useCallback(() => {
     console.log("run workflow");
-    // TODO
+    const data = { message: "Hello from the frontend!" };
+    axiosPostJson(data, "message")
+      .then((response) => {
+        console.log("Response:", response);
+        // Handle the response here
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+        // Handle the error here
+      });
+    // TEST DE COMMUNICATION BACKEND-FRONTEND
   }, []);
 
   /**
    * Clear the canvas if the user confirms
    */
   const onClear = useCallback(() => {
-    let confirmation = confirm(
-      "Are you sure you want to clear the canvas?\nEvery data will be lost."
-    );
-    if (confirmation) {
-      setNodes([]);
-      setEdges([]);
-      setIntersections([]);
+    if (reactFlowInstance & (nodes.length > 0)) {
+      let confirmation = confirm(
+        "Are you sure you want to clear the canvas?\nEvery data will be lost."
+      );
+      if (confirmation) {
+        setNodes([]);
+        setEdges([]);
+      }
+    } else {
+      toast.warn("No workflow to clear");
     }
-  }, []);
+  }, [reactFlowInstance, nodes]);
 
   /**
    * Save the workflow as a json file
    */
   const onSave = useCallback(() => {
-    if (reactFlowInstance) {
+    if (reactFlowInstance && nodes.length > 0) {
       const flow = JSON.parse(JSON.stringify(reactFlowInstance.toObject()));
       flow.nodes.forEach((node) => {
         node.data.parentFct = null;
@@ -306,16 +308,71 @@ const Workflow = ({ id, workflowType, setWorkflowType }) => {
       });
       console.log("flow", flow);
       downloadJson(flow, "experiment");
+    } else {
+      toast.warn("No workflow to save");
     }
-  }, [reactFlowInstance]);
+  }, [reactFlowInstance, nodes]);
 
   /**
-   * Clear the canvas if the user confirms
+   * Load a workflow from a json file
    */
   const onLoad = useCallback(() => {
-    console.log("load workflow");
-    // TODO
-  }, []);
+    // Ask confirmation from the user if the canvas is not empty,
+    // since the workflow will be replaced
+    let confirmation = true;
+    if (nodes.length > 0) {
+      confirmation = confirm(
+        "Are you sure you want to import a new experiment?\nEvery data will be lost."
+      );
+    }
+    if (confirmation) {
+      // If the user confirms, load the json file
+      const restoreFlow = async () => {
+        try {
+          // Ask user for the json file to open
+          const flow = await loadJsonSync(); // wait for the json file to be loaded (see /utilities/fileManagementUtils.js)
+          console.log("loaded flow", flow);
+
+          // TODO : should have conditions regarding json file used for import!
+          // For each nodes in the json file, add the specific parameters
+          Object.values(flow.nodes).forEach((node) => {
+            // the line below is important because functions are not serializable
+            // reset functions associated with nodes
+            node.data.parentFct = {
+              deleteNode: onDeleteNode,
+              updateNode: setNodeUpdate,
+              runNode: runNode,
+              changeSubFlow: setGroupNodeId,
+            };
+            // set workflow type
+            let subworkflowType = node.data.internal.subflowId
+              ? "extraction"
+              : "features";
+            // set node type
+            let setupParams = deepCopy(
+              staticNodesParams[subworkflowType][
+                node.name.toLowerCase().replaceAll(" ", "_")
+              ]
+            );
+            setupParams.possibleSettings = setupParams["possibleSettings"];
+            node.data.setupParam = setupParams;
+          });
+
+          if (flow) {
+            const { x = 0, y = 0, zoom = 1 } = flow.viewport;
+            setNodes(flow.nodes || []);
+            setEdges(flow.edges || []);
+            setViewport({ x, y, zoom });
+          }
+        } catch (error) {
+          toast.warn("Error loading file : ", error);
+        }
+      };
+
+      // Call the async function
+      restoreFlow();
+    }
+  }, [setNodes, setViewport, nodes]);
 
   /**
    * Set the subflow id to null to go back to the main workflow
@@ -342,33 +399,54 @@ const Workflow = ({ id, workflowType, setWorkflowType }) => {
     console.log("Group node handling default.");
   };
 
+  // TODO : take out of mandatory in flow/workflowBase.js
+  const onNodeDrag = useCallback(
+    (event, node) => {
+      console.log("dragged node", node);
+      // TODO
+    },
+    [nodes]
+  );
+
   return (
     <>
       <WorkflowBase
-        reactFlowInstance={reactFlowInstance}
-        setReactFlowInstance={setReactFlowInstance}
-        addSpecificToNode={addSpecificToNode}
-        nodeTypes={nodeTypes}
-        nodes={nodes}
-        setNodes={setNodes}
-        onNodesChange={onNodesChange}
-        edges={edges}
-        setEdges={setEdges}
-        onEdgesChange={onEdgesChange}
+        // mandatory props
+        mandatoryProps={{
+          reactFlowInstance: reactFlowInstance,
+          setReactFlowInstance: setReactFlowInstance,
+          addSpecificToNode: addSpecificToNode,
+          nodeTypes: nodeTypes,
+          nodes: nodes,
+          setNodes: setNodes,
+          onNodesChange: onNodesChange,
+          edges: edges,
+          setEdges: setEdges,
+          onEdgesChange: onEdgesChange,
+          onNodeDrag: onNodeDrag,
+          runNode: runNode,
+          nodeUpdate: nodeUpdate,
+          setNodeUpdate: setNodeUpdate,
+        }}
+        // optional props
         onDeleteNode={deleteNode}
-        setNodeUpdate={setNodeUpdate}
-        runNode={runNode}
         groupNodeHandlingDefault={groupNodeHandlingDefault}
+        // represents the visual over the workflow
         ui={
           <>
             <div className="btn-panel-top-corner-left">
-              <ResultsButton results={results} />
-              <TreeMenu
-                data={treeData}
-                onClickItem={onTreeItemClick}
-                debounceTime={125}
-                hasSearch={false}
-              />
+              {workflowType == "extraction" && (
+                <>
+                  {" "}
+                  <ResultsButton results={results} />
+                  <TreeMenu
+                    data={treeData}
+                    onClickItem={onTreeItemClick}
+                    debounceTime={125}
+                    hasSearch={false}
+                  />
+                </>
+              )}
             </div>
             <div className="btn-panel-top-corner-right">
               {workflowType == "extraction" ? (

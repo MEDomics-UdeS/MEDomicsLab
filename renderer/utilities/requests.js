@@ -29,7 +29,7 @@ export const axiosPostJson = async (jsonData, pathName) => {
       "http://localhost:5000/" + pathName,
       jsonData
     );
-    return response.data.response;
+    return response.data;
   } catch (error) {
     return error;
   }
