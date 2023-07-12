@@ -3,7 +3,7 @@ import extractionDefaultSettings from "./possibleSettings/extraction/extractionD
 // Node parameters for Home module of extraction tab
 const nodesParams = {
   input: {
-    type: "inputNode",
+    type: "standardNode",
     classes: "object input upload run",
     nbInput: 0,
     nbOutput: 1,
@@ -11,7 +11,9 @@ const nodesParams = {
     output: ["input_data"],
     img: "input.svg",
     title: "Input",
-    possibleSettings: {},
+    possibleSettings: {
+      defaultSettings: extractionDefaultSettings.input,
+    },
   },
   segmentation: {
     type: "segmentationNode",
@@ -22,7 +24,9 @@ const nodesParams = {
     output: ["segmentation_data"],
     img: "segmentation.svg",
     title: "Segmentation",
-    possibleSettings: {},
+    possibleSettings: {
+      defaultSettings: extractionDefaultSettings.segmentation,
+    },
   },
   interpolation: {
     type: "standardNode",

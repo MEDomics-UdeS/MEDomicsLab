@@ -1,15 +1,8 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import Button from "react-bootstrap/Button";
+import { axiosPostJson } from "../../../utilities/requests";
 
 const ViewButton = ({ id, data, type }) => {
-  //  Hook for disabling the button
-  const [isDisabled, setIsDisabled] = useState(true);
-
-  // Update the disabled state whenever the data.internal.enableView changes
-  useEffect(() => {
-    setIsDisabled(data.internal.enableView == false);
-  }, [data.internal.enableView]);
-
   // Function to send a POST request to /extraction/view
   const viewImage = () => {
     console.log("Viewing image for node " + id);
@@ -20,7 +13,7 @@ const ViewButton = ({ id, data, type }) => {
       form_data = JSON.stringify({
         id: id,
         name: type,
-        file_loaded: data.filepath,
+        file_loaded: data.internal.settings.filename,
       });
     } else {
       form_data = JSON.stringify({
@@ -30,21 +23,14 @@ const ViewButton = ({ id, data, type }) => {
     }
 
     // POST request to /extraction/view for current node by sending form_data
-    fetch("/extraction/view", {
-      method: "POST",
-      headers: {
-        "Content-type": "application/json",
-        Accept: "application/json",
-      },
-      body: form_data,
-    })
-      .then(function (response) {
+    axiosPostJson(form_data, "extraction/view")
+      .then((response) => {
         console.log(response);
       })
       .catch((error) => {
-        console.log(error);
-        console.log(error.message);
-      }); // TODO: Error message
+        console.error("Error:", error);
+        toast.warn("Could not open view.");
+      });
   };
 
   return (
@@ -53,7 +39,7 @@ const ViewButton = ({ id, data, type }) => {
         type="button"
         className="viewButton"
         onClick={viewImage}
-        disabled={isDisabled}
+        disabled={!data.internal.enableView}
       >
         <img
           src="../icon/extraction/eye.svg"

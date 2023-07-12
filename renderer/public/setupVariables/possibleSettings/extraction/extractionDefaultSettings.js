@@ -1,4 +1,11 @@
 const extractionDefaultSettings = {
+  input: {
+    filename: "",
+    rois: {},
+  },
+  segmentation: {
+    ROIname: "",
+  },
   interpolation: {
     scale_non_text: [2, 2, 2],
     scale_text: [[2, 2, 2]],

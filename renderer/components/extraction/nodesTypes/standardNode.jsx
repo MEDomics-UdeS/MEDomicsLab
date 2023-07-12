@@ -4,6 +4,7 @@ import ViewButton from "../buttonsTypes/viewButton";
 import InterpolationForm from "./standardNodeForms/interpolationForm.jsx";
 import ReSegmentationForm from "./standardNodeForms/reSegmentationForm.jsx";
 import DiscretizationForm from "./standardNodeForms/discretizationForm.jsx";
+import InputForm from "./standardNodeForms/inputForm";
 
 /**
  *
@@ -18,6 +19,7 @@ import DiscretizationForm from "./standardNodeForms/discretizationForm.jsx";
  *
  */
 const nodeTypes = {
+  input: InputForm,
   interpolation: InterpolationForm,
   re_segmentation: ReSegmentationForm,
   discretization: DiscretizationForm,
@@ -39,6 +41,17 @@ const StandardNode = ({ id, data, type }) => {
 
       // TODO : Should cast types for value depending on the name
       setNodeForm(updatedNodeForm);
+    },
+    [nodeForm]
+  );
+  const enableView = useCallback(
+    (value) => {
+      // Enable view button
+      data.internal.enableView = true;
+      data.parentFct.updateNode({
+        id: id,
+        updatedData: data.internal,
+      });
     },
     [nodeForm]
   );
@@ -70,6 +83,7 @@ const StandardNode = ({ id, data, type }) => {
               nodeForm={nodeForm}
               changeNodeForm={changeNodeForm}
               data={data}
+              enableView={enableView}
             />
           ) : null
         }
