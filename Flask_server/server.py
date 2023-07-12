@@ -1,7 +1,13 @@
+import sys
 import json
 from flask import Flask, request, jsonify, Blueprint
 from flask_cors import CORS
 from utils.server_utils import get_json_from_request
+
+# Temporary solution for accessing the code of different modules
+sys.path.append('extraction')
+sys.path.append('submodules/MEDimage')
+sys.path.append('learning')
 
 # Import blueprints
 from extraction.app_extraction_blueprint import app_extraction
@@ -9,7 +15,6 @@ from learning.app_learning_blueprint import app_learning
 
 # Creating main instance of Flask app
 app = Flask(__name__)
-
 
 # Configure Flask-CORS to specify that only requests coming from local port 8888 are allowed 
 # to access the API route 

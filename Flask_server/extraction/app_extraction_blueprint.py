@@ -28,17 +28,18 @@ pp = pprint.PrettyPrinter(indent=4, compact=True, width=40,
                           sort_dicts=False)  # allow pretty print of datatypes in console
 
 # Importation du submodule MEDimage
+#import Flask_server.submodules.MEDimage.MEDimage as MEDimage
 import submodules.MEDimage.MEDimage as MEDimage
 
-from MEDimageApp import utils
+import extraction.MEDimageApp.utils as utils
 
 # Global variables
 cwd = os.getcwd()
-
-pipelines_json_path = os.path.join(os.path.dirname(cwd), 'MEDimageApp/settings/accessible_pipelines.json')
+current_dir = os.path.dirname(os.path.abspath(__file__))
+pipelines_json_path = os.path.join(current_dir, "MEDimageApp/settings", "accessible_pipelines.json")
 ACCESSIBLE_PIPELINES = json.load(open(pipelines_json_path))
-UPLOAD_FOLDER = os.path.join(os.path.dirname(cwd), 'MEDimageApp/tmp')
-JSON_SETTINGS_PATH = os.path.join(os.path.dirname(cwd), 'MEDimageApp/settings/settings_frame.json')
+UPLOAD_FOLDER = os.path.join(current_dir, 'MEDimageApp/tmp')
+JSON_SETTINGS_PATH = os.path.join(current_dir, 'MEDimageApp/settings/settings_frame.json')
 
 MED_IMG_OBJ = {}
 RUNS = {}
@@ -1132,12 +1133,6 @@ def getUpload():  # Code selected from  https://flask.palletsprojects.com/en/2.2
             return up_file_infos
         file = request.files['file']
 
-        print(file)
-
-        # If the user does not select a file, the browser submits an empty file without a filename.
-        if file.filename == '':
-            flash('No selected file')
-            return up_file_infos
         if file and utils.allowed_pickle_object(file.filename):
             filename = secure_filename(file.filename)
             file_path = os.path.join(UPLOAD_FOLDER, filename)
@@ -1153,7 +1148,7 @@ def getUpload():  # Code selected from  https://flask.palletsprojects.com/en/2.2
             ROIS_list = medscan.data.ROI.roi_names
             up_file_infos["name"] = filename
             up_file_infos["rois_list"] = ROIS_list
-            return up_file_infos
+            return jsonify(up_file_infos)
 
 
 # Run all button to run all drawflow pipelines

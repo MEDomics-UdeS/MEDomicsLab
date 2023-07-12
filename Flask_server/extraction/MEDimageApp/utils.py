@@ -1,5 +1,5 @@
 import numpy as np
-from MEDimageApp.figure import Figure
+from extraction.MEDimageApp.figure import Figure
 
 
 # Remplace la fonction allowed_file de app_extraction_blueprint.py

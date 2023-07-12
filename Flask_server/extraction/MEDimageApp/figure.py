@@ -1,8 +1,5 @@
 import numpy as np
 import plotly.graph_objects as go
-import plotly.express as px
-import matplotlib.pyplot as plt
-import cv2
 from skimage import measure
 
 
