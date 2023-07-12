@@ -1,6 +1,5 @@
 import traceback
-from MEDml.WorkflowHandler import WorkflowHandler
-from MEDml.MEDexperiment import MEDexperiment
+from learning.MEDml.MEDexperiment import MEDexperiment
 from flask import Flask, flash, jsonify, redirect, render_template, request, Blueprint
 import sys
 import json

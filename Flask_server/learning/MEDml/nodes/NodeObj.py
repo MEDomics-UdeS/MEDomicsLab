@@ -9,7 +9,7 @@ import numpy as np
 from pycaret.classification import ClassificationExperiment
 from pycaret.regression import RegressionExperiment
 import json
-from MEDml.utils.loading import Loader
+from learning.MEDml.utils.loading import Loader
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 DATAFRAME_LIKE = Union[dict, list, tuple, np.ndarray, pd.DataFrame]
 TARGET_LIKE = Union[int, str, list, tuple, np.ndarray, pd.Series]
