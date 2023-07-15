@@ -1,45 +1,85 @@
-.inputFile{
-    width: 100%;
-    display: flexbox;
-    position: relative;
+.inputFile {
+  width: 100%;
+  display: flexbox;
+  position: relative;
 }
 
 .upload-button-col {
-    width: fit-content;
-    max-width: 100px;
+  width: fit-content;
+  max-width: 100px;
 }
 
-.viewButton{
-    width: 100%;
-    font-size: large;
-    color: black;
-    margin-top: 10px;
+.upload-button {
+  width: fit-content;
+  max-width: 100px;
+  color: black;
+}
+
+.upload-button:disabled {
+  opacity: 0.5;
+  color: black;
+}
+
+.viewButton {
+  width: 100%;
+  font-size: large;
+  font-weight: bold;
+  color: black;
+  margin-top: 10px;
+  border-radius: 10px;
+  padding: 2px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  text-align: center;
 }
 
 .viewButton:disabled {
-    opacity: 0.5;
-  }
+  opacity: 0.5;
+  color: black;
+}
 
 .viewImage {
-    width: 30px;
-    height: 30px;
-    margin-right: 8px !important;
+  width: 30px;
+  height: 30px;
+  margin-right: 8px !important;
 }
 
 .results-button {
-    width: 100%;
-    font-size: large;
-    color: black;
-    margin-top: 10px;
-    background-color: white;
-    border: black 1px solid;
-    width: fit-content;
-    height: fit-content;
-    margin-right: 10px;
+  width: 100%;
+  font-size: large;
+  color: black;
+  margin-top: 10px;
+  background-color: white;
+  border: black 1px solid;
+  width: fit-content;
+  height: fit-content;
+  margin-right: 10px;
 }
 
 .results-button:hover {
-    background-color: rgb(194, 194, 194);
-    color: black;
-    border: black 1px solid;
+  background-color: rgb(194, 194, 194);
+  color: black;
+  border: black 1px solid;
+}
+
+.cute-box {
+  margin-top: 10px;
+  background-color: #0d6dfd70;
+  border-radius: 10px;
+  padding: 2px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  text-align: center;
+}
+
+.form-group-box {
+  margin-top: 10px;
+  margin-right: 2px;
+  margin-left: 2px;
+  background-color: white;
+  border-radius: 10px;
+  padding: 2px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  text-align: center;
+  font-weight: bold;
+  padding-bottom: 10px;
+  padding-top: 10px;
 }
