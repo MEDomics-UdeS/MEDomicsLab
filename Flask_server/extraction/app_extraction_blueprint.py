@@ -10,19 +10,16 @@ Uses the "Plotly" library for 3D volume visualization: https://plotly.com/python
 @Date: 09/09/2022
 """
 import copy
+import shutil
 import os
 import pickle
 import pprint
-import sys
 from copy import deepcopy
-from pathlib import Path
 import json
-
 import numpy as np
-import pandas as pd
-from flask import Flask, flash, jsonify, redirect, render_template, request, Blueprint, url_for, make_response
-# from flask_socketio import SocketIO
+from flask import Flask, jsonify, redirect, render_template, request, Blueprint, url_for, make_response, Response
 from werkzeug.utils import secure_filename
+from utils.server_utils import get_json_from_request
 
 pp = pprint.PrettyPrinter(indent=4, compact=True, width=40,
                           sort_dicts=False)  # allow pretty print of datatypes in console
@@ -46,7 +43,7 @@ RUNS = {}
 NB_RUNS = 0
 df = {}
 
-# Creation of flask blueprint for extraction tab of MEDml
+# Creation of flask blueprint for extraction tab of MEDomicsLab
 app_extraction = Blueprint('app_extraction', __name__, static_folder='static', template_folder='templates')
 
 
@@ -1121,25 +1118,32 @@ def index():
     return render_template('layout.html')
 
 
-# TODO : fix warnings from flash
 # Upload file in Input Object node
 @app_extraction.route('/upload', methods=['GET', 'POST'])
 def getUpload():  # Code selected from  https://flask.palletsprojects.com/en/2.2.x/patterns/fileuploads/
     up_file_infos = {}
     if request.method == 'POST':
+        data = request.get_json()
+
         # check if the post request has the file part
-        if 'file' not in request.files:
-            flash('No file part')
-            return up_file_infos
-        file = request.files['file']
+        if 'file' not in data:
+            return Response("No file part", status = 400)
+        
+        file = data["file"]
 
-        if file and utils.allowed_pickle_object(file.filename):
-            filename = secure_filename(file.filename)
+        if file and utils.allowed_pickle_object(file):
+            # TODO : For the moment the file is copied in the UPLOAD_FOLDER
+            # but since the app is a local app, it doesn't need to be copied.
+            #filename = secure_filename(file)
+            filename = os.path.basename(file)
             file_path = os.path.join(UPLOAD_FOLDER, filename)
-            file.save(file_path)
 
-            #################### Load and store MEDimage instance from file loaded ########################
-            with open(os.path.join(UPLOAD_FOLDER, filename), 'rb') as f:
+            shutil.copy2(file, file_path)
+
+            #file.save(file_path)
+
+            # Load and store MEDimage instance from file loaded
+            with open(file_path, 'rb') as f:
                 medscan = pickle.load(f)
             medscan = MEDimage.MEDscan(medscan)
             MED_IMG_OBJ[filename] = medscan
@@ -1215,5 +1219,4 @@ def get3DView():
     print("User asked for view of : ", data)
 
     utils.image_viewer(MED_IMG_OBJ, data, RUNS)
-
-    return "200 OK"  # TODO: use make_response from flask
+    return Response("OK", status = 200)

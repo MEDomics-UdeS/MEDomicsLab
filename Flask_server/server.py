@@ -5,7 +5,6 @@ from flask_cors import CORS
 from utils.server_utils import get_json_from_request
 
 # Temporary solution for accessing the code of different modules
-sys.path.append('extraction')
 sys.path.append('submodules/MEDimage')
 
 # Import blueprints
