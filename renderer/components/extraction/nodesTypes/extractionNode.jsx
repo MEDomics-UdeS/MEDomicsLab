@@ -1,10 +1,10 @@
-import React, { useState, useEffect, useCallback, useRef } from "react";
-import { Button } from "react-bootstrap";
-import { Handle } from "reactflow";
-import Card from "react-bootstrap/Card";
-import CloseButton from "react-bootstrap/CloseButton";
-import { Tooltip } from "react-tooltip";
-import Handlers from "../../flow/handlers";
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { Button } from 'react-bootstrap';
+import { Handle } from 'reactflow';
+import Card from 'react-bootstrap/Card';
+import CloseButton from 'react-bootstrap/CloseButton';
+import { Tooltip } from 'react-tooltip';
+import Handlers from '../../flow/handlers';
 
 /**
  *
@@ -28,8 +28,8 @@ const ExtractionNode = ({ id, data }) => {
             <Card.Header onClick={() => data.parentFct.changeSubFlow(id)}>
               <img
                 src={
-                  "/icon/extraction/" +
-                  `${data.internal.img.replaceAll(" ", "_")}`
+                  '/icon/extraction/' +
+                  `${data.internal.img.replaceAll(' ', '_')}`
                 }
                 alt={data.internal.img}
                 className="icon-nodes"
@@ -40,13 +40,13 @@ const ExtractionNode = ({ id, data }) => {
         </div>
 
         <CloseButton onClick={() => data.parentFct.deleteNode(id)} />
-        {data.setupParam.classes.split(" ").includes("run") && (
+        {data.setupParam.classes.split(' ').includes('run') && (
           <Button
             variant="success"
             className="btn-runNode"
             onClick={() => data.parentFct.runNode(id)}
           >
-            <img src={"/icon/run.svg"} alt="run" className="img-fluid" />
+            <img src={'/icon/run.svg'} alt="run" className="img-fluid" />
           </Button>
         )}
       </div>

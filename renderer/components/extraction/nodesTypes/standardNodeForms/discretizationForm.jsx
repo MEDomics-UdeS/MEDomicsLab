@@ -1,6 +1,6 @@
-import React, { useCallback } from "react";
-import { Form, Row, Col } from "react-bootstrap";
-import DocLink from "../../docLink";
+import React, { useCallback } from 'react';
+import { Form, Row, Col } from 'react-bootstrap';
+import DocLink from '../../docLink';
 
 const DiscretizationForm = ({ nodeForm, changeNodeForm, data }) => {
   // Get default settings for the discretization node
@@ -11,13 +11,13 @@ const DiscretizationForm = ({ nodeForm, changeNodeForm, data }) => {
       // Separate event in name and value
       const { name, value } = event.target;
 
-      let [nameFeature, nameType] = name.split("-");
-      let newValue = nameType === "type" ? value : parseInt(value);
-      console.log("NEW VALUE", newValue);
+      let [nameFeature, nameType] = name.split('-');
+      let newValue = nameType === 'type' ? value : parseInt(value);
+      console.log('NEW VALUE', newValue);
 
       let newDict = { ...nodeForm[nameFeature] };
-      if (nameFeature === "texture") {
-        if (nameType === "type") {
+      if (nameFeature === 'texture') {
+        if (nameType === 'type') {
           newDict[nameType] = [newValue];
         } else {
           newDict[nameType] = [[newValue]];
@@ -32,8 +32,8 @@ const DiscretizationForm = ({ nodeForm, changeNodeForm, data }) => {
         target: {
           ...event.target,
           name: nameFeature,
-          value: newDict,
-        },
+          value: newDict
+        }
       };
 
       // Pass the modified event to changeNodeForm
@@ -43,16 +43,16 @@ const DiscretizationForm = ({ nodeForm, changeNodeForm, data }) => {
   );
 
   return (
-    <Form style={{ maxWidth: "400px" }}>
+    <Form style={{ maxWidth: '400px' }}>
       <DocLink
         link={
-          "https://medimage.readthedocs.io/en/latest/configuration_file.html#discretisation"
+          'https://medimage.readthedocs.io/en/latest/configuration_file.html#discretisation'
         }
-        name={"Discretisation documentation"}
-        image={"../icon/extraction/exclamation.svg"}
+        name={'Discretisation documentation'}
+        image={'../icon/extraction/exclamation.svg'}
       />
 
-      <Form.Group style={{ paddingTop: "10px" }}>
+      <Form.Group style={{ paddingTop: '10px' }}>
         <Form.Label>
           <b>Intensity Histogramm</b>
         </Form.Label>
@@ -76,14 +76,14 @@ const DiscretizationForm = ({ nodeForm, changeNodeForm, data }) => {
               name="IH-val"
               type="number"
               value={nodeForm.IH.val}
-              placeholder={"Default: " + String(defaultValues.IH.val)}
+              placeholder={'Default: ' + String(defaultValues.IH.val)}
               onChange={handleChange}
             />
           </Col>
         </Row>
       </Form.Group>
 
-      <Form.Group style={{ paddingTop: "10px" }}>
+      <Form.Group style={{ paddingTop: '10px' }}>
         <Form.Label>
           <b>Intensity Volume Hist</b>
         </Form.Label>
@@ -107,14 +107,14 @@ const DiscretizationForm = ({ nodeForm, changeNodeForm, data }) => {
               name="IVH-val"
               type="number"
               value={nodeForm.IVH.val}
-              placeholder={"Default: " + String(defaultValues.IVH.val)}
+              placeholder={'Default: ' + String(defaultValues.IVH.val)}
               onChange={handleChange}
             />
           </Col>
         </Row>
       </Form.Group>
 
-      <Form.Group style={{ paddingTop: "10px" }}>
+      <Form.Group style={{ paddingTop: '10px' }}>
         <Form.Label>
           <b>Texture features</b>
         </Form.Label>
@@ -139,7 +139,7 @@ const DiscretizationForm = ({ nodeForm, changeNodeForm, data }) => {
               type="number"
               value={nodeForm.texture.val[0][0]}
               placeholder={
-                "Default: " + String(defaultValues.texture.val[0][0])
+                'Default: ' + String(defaultValues.texture.val[0][0])
               }
               onChange={handleChange}
             />

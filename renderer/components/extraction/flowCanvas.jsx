@@ -1,35 +1,35 @@
-import React, { useState, useCallback, useMemo, useEffect } from "react";
-import { toast } from "react-toastify";
-import EditableLabel from "react-simple-editlabel";
-import TreeMenu from "react-simple-tree-menu";
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
+import { toast } from 'react-toastify';
+import EditableLabel from 'react-simple-editlabel';
+import TreeMenu from 'react-simple-tree-menu';
 
 // Import utilities
 import {
   loadJsonSync,
-  downloadJson,
-} from "../../utilities/fileManagementUtils";
-import { axiosPostJson } from "../../utilities/requests";
+  downloadJson
+} from '../../utilities/fileManagementUtils';
+import { axiosPostJson } from '../../utilities/requests';
 
 // Workflow imports
-import { useNodesState, useEdgesState, useReactFlow, addEdge } from "reactflow";
-import WorkflowBase from "../flow/workflowBase";
+import { useNodesState, useEdgesState, useReactFlow, addEdge } from 'reactflow';
+import WorkflowBase from '../flow/workflowBase';
 
 // Import node types
-import StandardNode from "./nodesTypes/standardNode";
-import ExtractionNode from "./nodesTypes/extractionNode";
-import SegmentationNode from "./nodesTypes/segmentationNode";
-import FilterNode from "./nodesTypes/filterNode";
-import FeaturesNode from "./nodesTypes/featuresNode";
+import StandardNode from './nodesTypes/standardNode';
+import ExtractionNode from './nodesTypes/extractionNode';
+import SegmentationNode from './nodesTypes/segmentationNode';
+import FilterNode from './nodesTypes/filterNode';
+import FeaturesNode from './nodesTypes/featuresNode';
 
 // Import node parameters
-import nodesParams from "../../public/setupVariables/allNodesParams";
+import nodesParams from '../../public/setupVariables/allNodesParams';
 
 // Import buttons
-import ResultsButton from "./buttonsTypes/resultsButton";
-import BtnDiv from "../flow/btnDiv";
+import ResultsButton from './buttonsTypes/resultsButton';
+import BtnDiv from '../flow/btnDiv';
 
 // Static functions used in the workflow
-import { removeDuplicates, deepCopy } from "../../utilities/staticFunctions";
+import { removeDuplicates, deepCopy } from '../../utilities/staticFunctions';
 
 // Static nodes parameters
 const staticNodesParams = nodesParams;
@@ -64,7 +64,7 @@ const Workflow = ({ id, workflowType, setWorkflowType }) => {
       standardNode: StandardNode,
       extractionNode: ExtractionNode,
       filterNode: FilterNode,
-      featuresNode: FeaturesNode,
+      featuresNode: FeaturesNode
     }),
     []
   );
@@ -79,12 +79,12 @@ const Workflow = ({ id, workflowType, setWorkflowType }) => {
     // If there is a groupNodeId, the workflow is a features workflow
     if (groupNodeId) {
       // Set the workflow type to features
-      setWorkflowType("features");
+      setWorkflowType('features');
       // Hide the nodes that are not in the features group
       hideNodesbut(groupNodeId);
     } else {
       // Else the workflow is an extraction workflow
-      setWorkflowType("extraction");
+      setWorkflowType('extraction');
       // Hide the nodes that are not in the extraction group
       hideNodesbut(groupNodeId);
     }
@@ -103,7 +103,7 @@ const Workflow = ({ id, workflowType, setWorkflowType }) => {
     setNodes((nodes) =>
       nodes.map((node) => {
         node = {
-          ...node,
+          ...node
         };
         node.hidden = node.data.internal.subflowId != activeNodeId;
         return node;
@@ -113,7 +113,7 @@ const Workflow = ({ id, workflowType, setWorkflowType }) => {
     setEdges((edges) =>
       edges.map((edge) => {
         edge = {
-          ...edge,
+          ...edge
         };
         edge.hidden =
           nodes.find((node) => node.id === edge.source).data.internal
@@ -140,18 +140,18 @@ const Workflow = ({ id, workflowType, setWorkflowType }) => {
           let targetNode = JSON.parse(
             JSON.stringify(nodes.find((node) => node.id === edge.target))
           );
-          if (targetNode.type != "extractionNode") {
-            let subIdText = "";
+          if (targetNode.type != 'extractionNode') {
+            let subIdText = '';
             let subflowId = targetNode.data.internal.subflowId;
             if (subflowId) {
               subIdText =
                 JSON.parse(
                   JSON.stringify(nodes.find((node) => node.id == subflowId))
-                ).data.internal.name + ".";
+                ).data.internal.name + '.';
             }
             children[targetNode.id] = {
               label: subIdText + targetNode.data.internal.name,
-              nodes: createTreeFromNodesRec(targetNode),
+              nodes: createTreeFromNodesRec(targetNode)
             };
           }
         }
@@ -165,10 +165,10 @@ const Workflow = ({ id, workflowType, setWorkflowType }) => {
         JSON.stringify(nodes.find((node) => node.id === edge.source))
       );
 
-      if (sourceNode.type === "inputNode") {
+      if (sourceNode.type === 'inputNode') {
         treeMenuData[sourceNode.id] = {
           label: sourceNode.data.internal.name,
-          nodes: createTreeFromNodesRec(sourceNode),
+          nodes: createTreeFromNodesRec(sourceNode)
         };
       }
     });
@@ -185,8 +185,8 @@ const Workflow = ({ id, workflowType, setWorkflowType }) => {
   const addSpecificToNode = (newNode) => {
     // Add defaut parameters of node to possibleSettings
     let type = newNode.data.internal.type
-      .replaceAll(/ |-/g, "_")
-      .replace(/[^a-z_]/g, "");
+      .replaceAll(/ |-/g, '_')
+      .replace(/[^a-z_]/g, '');
 
     let setupParams = {};
     if (staticNodesParams[workflowType][type]) {
@@ -194,7 +194,7 @@ const Workflow = ({ id, workflowType, setWorkflowType }) => {
         JSON.stringify(staticNodesParams[workflowType][type])
       );
     }
-    setupParams.possibleSettings = setupParams["possibleSettings"];
+    setupParams.possibleSettings = setupParams['possibleSettings'];
 
     // Add default parameters to node data
     newNode.data.setupParam = setupParams;
@@ -222,13 +222,13 @@ const Workflow = ({ id, workflowType, setWorkflowType }) => {
    */
   const deleteNode = useCallback(
     (id) => {
-      console.log("delete node", id);
+      console.log('delete node', id);
       setNodes((nds) =>
         nds.reduce((filteredNodes, n) => {
           if (n.id !== id) {
             filteredNodes.push(n);
           }
-          if (n.type == "extractionNode") {
+          if (n.type == 'extractionNode') {
             let childrenNodes = nds.filter(
               (node) => node.data.internal.subflowId == id
             );
@@ -252,7 +252,7 @@ const Workflow = ({ id, workflowType, setWorkflowType }) => {
    * It executes the pipelines finishing with this node
    */
   const runNode = (id) => {
-    console.log("run node", id);
+    console.log('run node', id);
     const flow = JSON.parse(JSON.stringify(reactFlowInstance.toObject()));
     // TODO
   };
@@ -261,15 +261,15 @@ const Workflow = ({ id, workflowType, setWorkflowType }) => {
    * Runs all the pipelines in the workflow
    */
   const onRun = useCallback(() => {
-    console.log("run workflow");
-    const data = { message: "Hello from the frontend!" };
-    axiosPostJson(data, "message")
+    console.log('run workflow');
+    const data = { message: 'Hello from the frontend!' };
+    axiosPostJson(data, 'message')
       .then((response) => {
-        console.log("Response:", response);
+        console.log('Response:', response);
         // Handle the response here
       })
       .catch((error) => {
-        console.error("Error:", error);
+        console.error('Error:', error);
         // Handle the error here
       });
     // TEST DE COMMUNICATION BACKEND-FRONTEND
@@ -281,14 +281,14 @@ const Workflow = ({ id, workflowType, setWorkflowType }) => {
   const onClear = useCallback(() => {
     if (reactFlowInstance & (nodes.length > 0)) {
       let confirmation = confirm(
-        "Are you sure you want to clear the canvas?\nEvery data will be lost."
+        'Are you sure you want to clear the canvas?\nEvery data will be lost.'
       );
       if (confirmation) {
         setNodes([]);
         setEdges([]);
       }
     } else {
-      toast.warn("No workflow to clear");
+      toast.warn('No workflow to clear');
     }
   }, [reactFlowInstance, nodes]);
 
@@ -306,10 +306,10 @@ const Workflow = ({ id, workflowType, setWorkflowType }) => {
         // were loaded in the viewer
         node.data.enableView = false;
       });
-      console.log("flow", flow);
-      downloadJson(flow, "experiment");
+      console.log('flow', flow);
+      downloadJson(flow, 'experiment');
     } else {
-      toast.warn("No workflow to save");
+      toast.warn('No workflow to save');
     }
   }, [reactFlowInstance, nodes]);
 
@@ -322,7 +322,7 @@ const Workflow = ({ id, workflowType, setWorkflowType }) => {
     let confirmation = true;
     if (nodes.length > 0) {
       confirmation = confirm(
-        "Are you sure you want to import a new experiment?\nEvery data will be lost."
+        'Are you sure you want to import a new experiment?\nEvery data will be lost.'
       );
     }
     if (confirmation) {
@@ -331,7 +331,7 @@ const Workflow = ({ id, workflowType, setWorkflowType }) => {
         try {
           // Ask user for the json file to open
           const flow = await loadJsonSync(); // wait for the json file to be loaded (see /utilities/fileManagementUtils.js)
-          console.log("loaded flow", flow);
+          console.log('loaded flow', flow);
 
           // TODO : should have conditions regarding json file used for import!
           // For each nodes in the json file, add the specific parameters
@@ -342,19 +342,19 @@ const Workflow = ({ id, workflowType, setWorkflowType }) => {
               deleteNode: onDeleteNode,
               updateNode: setNodeUpdate,
               runNode: runNode,
-              changeSubFlow: setGroupNodeId,
+              changeSubFlow: setGroupNodeId
             };
             // set workflow type
             let subworkflowType = node.data.internal.subflowId
-              ? "extraction"
-              : "features";
+              ? 'extraction'
+              : 'features';
             // set node type
             let setupParams = deepCopy(
               staticNodesParams[subworkflowType][
-                node.name.toLowerCase().replaceAll(" ", "_")
+                node.name.toLowerCase().replaceAll(' ', '_')
               ]
             );
-            setupParams.possibleSettings = setupParams["possibleSettings"];
+            setupParams.possibleSettings = setupParams['possibleSettings'];
             node.data.setupParam = setupParams;
           });
 
@@ -365,7 +365,7 @@ const Workflow = ({ id, workflowType, setWorkflowType }) => {
             setViewport({ x, y, zoom });
           }
         } catch (error) {
-          toast.warn("Error loading file : ", error);
+          toast.warn('Error loading file : ', error);
         }
       };
 
@@ -392,17 +392,13 @@ const Workflow = ({ id, workflowType, setWorkflowType }) => {
    *
    */
   const onTreeItemClick = (info) => {
-    console.log("tree item clicked: ", info);
-  };
-
-  const groupNodeHandlingDefault = (createBaseNode, newId) => {
-    console.log("Group node handling default.");
+    console.log('tree item clicked: ', info);
   };
 
   // TODO : take out of mandatory in flow/workflowBase.js
   const onNodeDrag = useCallback(
     (event, node) => {
-      console.log("dragged node", node);
+      console.log('dragged node', node);
       // TODO
     },
     [nodes]
@@ -426,18 +422,17 @@ const Workflow = ({ id, workflowType, setWorkflowType }) => {
           onNodeDrag: onNodeDrag,
           runNode: runNode,
           nodeUpdate: nodeUpdate,
-          setNodeUpdate: setNodeUpdate,
+          setNodeUpdate: setNodeUpdate
         }}
         // optional props
         onDeleteNode={deleteNode}
-        groupNodeHandlingDefault={groupNodeHandlingDefault}
         // represents the visual over the workflow
         ui={
           <>
             <div className="btn-panel-top-corner-left">
-              {workflowType == "extraction" && (
+              {workflowType == 'extraction' && (
                 <>
-                  {" "}
+                  {' '}
                   <ResultsButton results={results} />
                   <TreeMenu
                     data={treeData}
@@ -449,17 +444,17 @@ const Workflow = ({ id, workflowType, setWorkflowType }) => {
               )}
             </div>
             <div className="btn-panel-top-corner-right">
-              {workflowType == "extraction" ? (
+              {workflowType == 'extraction' ? (
                 <BtnDiv
                   buttonsList={[
-                    { type: "run", onClick: onRun },
-                    { type: "clear", onClick: onClear },
-                    { type: "save", onClick: onSave },
-                    { type: "load", onClick: onLoad },
+                    { type: 'run', onClick: onRun },
+                    { type: 'clear', onClick: onClear },
+                    { type: 'save', onClick: onSave },
+                    { type: 'load', onClick: onLoad }
                   ]}
                 />
               ) : (
-                <BtnDiv buttonsList={[{ type: "back", onClick: onBack }]} />
+                <BtnDiv buttonsList={[{ type: 'back', onClick: onBack }]} />
               )}
             </div>
           </>

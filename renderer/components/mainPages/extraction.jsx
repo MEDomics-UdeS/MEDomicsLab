@@ -7,22 +7,23 @@ import FlowPageBase from "../flow/flowPageBase";
 // Shows sideBar nodes in a div on the left of the page,
 // then react flow canvas where the nodes can be dropped.
 const ExtractionPage = ({ pageId }) => {
-  // Hook for current module
-  const [flowType, setFlowType] = useState("extraction");
-  return (
-    <>
-      <FlowPageBase
-        pageId={pageId}
-        workflowType={flowType}
-        savingPath={"local_dir/"}
-      >
-        <FlowCanvas
-          id={pageId}
-          workflowType={flowType}
-          setWorkflowType={setFlowType}
-        />
-      </FlowPageBase>
-    </>
-  );
+	// Hook for current module
+	const [flowType, setFlowType] = useState("extraction");
+	return (
+		<>
+			<FlowPageBase
+				pageId={pageId}
+				workflowType={flowType}
+				savingPath={"local_dir/"}
+				title={flowType}
+			>
+				<FlowCanvas
+					id={pageId}
+					workflowType={flowType}
+					setWorkflowType={setFlowType}
+				/>
+			</FlowPageBase>
+		</>
+	);
 };
 export default ExtractionPage;
