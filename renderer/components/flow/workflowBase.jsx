@@ -71,7 +71,6 @@ const WorkflowBase = ({
   // setNodeUpdate function is passed to the node component to update the internal data of the node
   useEffect(() => {
     // if the nodeUpdate object is not empty, update the node
-    console.log("nodeUpdate", nodeUpdate)
     if (nodeUpdate.id) {
       setNodes((nds) =>
         nds.map((node) => {

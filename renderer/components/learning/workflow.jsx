@@ -28,8 +28,10 @@ import nodesParams from "../../public/setupVariables/allNodesParams"
 
 // here are static functions used in the workflow
 import { removeDuplicates, deepCopy } from "../../utilities/staticFunctions"
+import { defaultValueFromType } from "../../utilities/learning/inputTypesUtils.js"
 
 const staticNodesParams = nodesParams // represents static nodes parameters
+
 /**
  *
  * @param {function} setWorkflowType function to change the sidebar type
@@ -432,7 +434,19 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
     newNode.data.tooltipBy = "type"
     newNode.data.setupParam = setupParams
     newNode.data.internal.code = ""
-    newNode.data.internal.settings = {}
+
+    let tempDefaultSettings = {}
+    if (newNode.data.setupParam.possibleSettings) {
+      "default" in newNode.data.setupParam.possibleSettings &&
+        Object.entries(newNode.data.setupParam.possibleSettings.default).map(
+          ([settingName, setting]) => {
+            tempDefaultSettings[settingName] =
+              defaultValueFromType[setting.type]
+          }
+        )
+    }
+    newNode.data.internal.settings = tempDefaultSettings
+
     newNode.data.internal.selection =
       newNode.type == "selectionNode" &&
       Object.keys(setupParams.possibleSettings)[0]
@@ -503,26 +517,30 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
           node.data.parentFct = null
           node.data.setupParam = null
         })
-        flow = cleanJson2Send(flow, up2Id)
-        console.log("sended flow", flow)
-        setIsProgressUpdating(true)
-        requestJson(
-          5000,
-          "/learning/run_experiment",
-          flow,
-          (jsonResponse) => {
-            console.log(jsonResponse)
-            if (jsonResponse.error) {
+        let { newflow, isValid } = cleanJson2Send(flow, up2Id)
+        console.log("newflow", isValid)
+        flow = newflow
+        if (isValid) {
+          console.log("sended flow", flow)
+          setIsProgressUpdating(true)
+          requestJson(
+            5000,
+            "/learning/run_experiment",
+            flow,
+            (jsonResponse) => {
+              console.log(jsonResponse)
+              if (jsonResponse.error) {
+                setIsProgressUpdating(false)
+                toast.error("Error detected while running the experiment")
+              }
+            },
+            function (err) {
+              console.error(err)
+              toast.error("Error while running the experiment")
               setIsProgressUpdating(false)
-              toast.error("Error detected while running the experiment")
             }
-          },
-          function (err) {
-            console.error(err)
-            toast.error("Error while running the experiment")
-            setIsProgressUpdating(false)
-          }
-        )
+          )
+        }
       }
     },
     [reactFlowInstance, MLType, nodes, edges, intersections, treeData]
@@ -530,9 +548,52 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
 
   const cleanJson2Send = useCallback(
     (json, up2Id) => {
+      // function to check if default values are set
+      const checkDefaultValues = (node) => {
+        let isValid = true
+        if ("default" in node.data.setupParam.possibleSettings) {
+          Object.entries(node.data.setupParam.possibleSettings.default).map(
+            ([settingName, setting]) => {
+              console.log("settingName", settingName)
+              console.log("settings", node)
+              if (settingName in node.data.internal.settings) {
+                if (
+                  node.data.internal.settings[settingName] ==
+                  defaultValueFromType[setting.type]
+                ) {
+                  isValid = false
+                }
+              } else {
+                isValid = false
+              }
+            }
+          )
+        }
+        if (!isValid) {
+          toast.warn(
+            "Some default values are not set for node: " +
+              node.data.internal.name +
+              ".",
+            {
+              position: "bottom-right",
+              autoClose: 2000,
+              hideProgressBar: false,
+              closeOnClick: true,
+              pauseOnHover: true,
+              draggable: true,
+              progress: undefined,
+              theme: "light",
+              toastId: "customId"
+            }
+          )
+        }
+        return isValid
+      }
+
       //clean recursive pipelines from treeData
       let nbNodes2Run = 0
       console.log("up2Id", up2Id)
+      let isValidDefault = true
       const cleanTreeDataRec = (node) => {
         let children = {}
         Object.keys(node).forEach((key) => {
@@ -557,6 +618,9 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
             }, [])
             hasModels = true
           }
+
+          // check if node has default values
+          isValidDefault = isValidDefault && checkDefaultValues(currentNode)
 
           // if this is not a leaf, we need to go deeper
           if (node[key].nodes != {}) {
@@ -602,7 +666,7 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
       newJson.saving_path = flowInfos.savingPath
       newJson.nbNodes2Run = nbNodes2Run
 
-      return newJson
+      return { flow: newJson, isValid: isValidDefault }
     },
     [reactFlowInstance, MLType, nodes, edges, intersections, treeData]
   )
@@ -614,12 +678,12 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
     if (reactFlowInstance) {
       const flow = deepCopy(reactFlowInstance.toObject())
       flow.MLType = MLType
+      console.log("flow debug", flow)
       flow.nodes.forEach((node) => {
         node.data.parentFct = null
         node.data.setupParam = null
       })
       flow.intersections = intersections
-      console.log("flow", flow)
       downloadJson(flow, "experiment")
     }
   }, [reactFlowInstance, MLType, intersections])
