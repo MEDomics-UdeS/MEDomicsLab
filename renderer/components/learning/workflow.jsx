@@ -706,7 +706,6 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
           edges: edges,
           setEdges: setEdges,
           onEdgesChange: onEdgesChange,
-          onNodeDrag: onNodeDrag,
           runNode: runNode,
           nodeUpdate: nodeUpdate,
           setNodeUpdate: setNodeUpdate
@@ -714,6 +713,7 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
         // optional props
         onDeleteNode={onDeleteNode}
         groupNodeHandlingDefault={groupNodeHandlingDefault}
+        onNodeDrag={onNodeDrag}
         // reprensents the visual over the workflow
         ui={
           <>
