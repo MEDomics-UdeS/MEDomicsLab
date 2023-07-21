@@ -3,6 +3,7 @@ import { Accordion, Stack } from 'react-bootstrap';
 import { ChevronRight, PlusSquare, PlusSquareFill } from 'react-bootstrap-icons';
 import { WorkspaceContext } from '../../workspace/WorkspaceContext';
 import { ipcRenderer } from 'electron';
+
 const ExplorerSidebar = (props) => {
 	useContext(WorkspaceContext);
 	const folderRef = React.useRef(null);

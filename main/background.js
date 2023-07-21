@@ -2,6 +2,7 @@ import { app, protocol, BrowserWindow, ipcMain, Menu, dialog } from "electron";
 import axios from "axios";
 import serve from "electron-serve";
 import { createWindow } from "./helpers";
+const fs = require("fs");
 var path = require("path");
 const dirTree = require("directory-tree");
 
@@ -170,6 +171,7 @@ function setWorkingDirectory(event, mainWindow) {
 				event.reply("messageFromElectron", 'Working directory set to ' + file);
 				app.setPath('sessionData', file);
 				event.reply("messageFromElectron", dirTree(file));
+				createFolder();
 				//   app.relaunch({ e})
 				//   mainWindow.loadURL(`file://${file}`)
 			}
@@ -178,6 +180,20 @@ function setWorkingDirectory(event, mainWindow) {
 		console.log(err)
 	})
 }
+
+function createFolder() {
+	const folderPath = path.join(app.getPath('sessionData'), 'new_folder');
+
+	fs.mkdir(folderPath, { recursive: true }, (err) => {
+		if (err) {
+			console.error(err);
+			return;
+		}
+
+		console.log('Folder created successfully!');
+	});
+}
+
 
 function getTheWorkingDirectoryStructure() {
 	const dirTree = require("directory-tree");
