@@ -69,17 +69,21 @@ def image_viewer(medimage_list, data, runs):
         for pip in runs[last_run]:
             for id in runs[last_run][pip]:
 
-                if ("node-" + str(id) == str(data["id"])):
-                    if (data["name"] == "re_segmentation" or data["name"] == "segmentation"):
+                if (str(id) == str(data["id"])):
+                    if (data["name"] == "segmentationNode" or data["name"] == "re_segmentation"):
                         # Code cleaning for ROI contour tracing
                         mask = runs[last_run][pip][id]['output']['roi']
                         if type(mask) != np.ndarray:
                             mask = mask.data
-
-                        vol = runs[last_run][pip][id]['output']['vol']
+                        
+                        if data["name"] == "re_segmentation":
+                            id_before_reseg = pip[-82:-41]
+                            vol = runs[last_run][pip][id_before_reseg]['output']['vol']
+                        else:
+                            vol = runs[last_run][pip][id]['output']['vol']
+                        
                         if type(vol) != np.ndarray:
                             vol = vol.data
-
                     else:
                         vol = runs[last_run][pip][id]['output']['vol']  # display VOL for others nodes
                     print(type(runs[last_run][pip][id]['output']['vol']))

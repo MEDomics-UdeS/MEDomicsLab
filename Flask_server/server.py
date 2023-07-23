@@ -29,17 +29,5 @@ def test():
     print(json.dumps(data, indent=4, sort_keys=True))
     return jsonify({"test": "réussi"})
 
-
-# Test server to receive message
-@app.route("/message", methods=["POST"])
-def receive_message():
-    data = request.json
-    message = data["message"]
-    # Process the message or perform any necessary logic
-    response = {"response": f"Received message: {message}"}
-    return jsonify(response)
-
-
-
 if __name__ == '__main__':
     app.run(debug=True, port=5000)

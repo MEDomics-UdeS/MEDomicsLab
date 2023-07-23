@@ -207,13 +207,16 @@ def getLastNodeOuputEnableFromPip(pip, output_name, nodes_to_parse):
                     - Node : ", pip[last_node_found]["type"], "\n \
                     - To parse : ", (pip[last_node_found]["type"] in nodes_to_parse))
             i += 1
-
-        elif (pip[last_node_found]["output"][output_name] == "empty"):  # Current parse node output empty or..
-            print("[Try", i, "] ", output_name, "empty detected \n \
+            
+        # NOTE : Ajouté isscalar pour une erreur après la discretization!
+        elif np.isscalar(pip[last_node_found]["output"][output_name]):
+        # If the element is a scalar (single value or string)
+            if pip[last_node_found]["output"][output_name] == "empty":
+                print("[Try", i, "] ", output_name, "empty detected \n \
                     - ID :", last_node_found, "\n \
                     - Node : ", pip[last_node_found]["type"], "\n \
                     - Output value : ", pip[last_node_found]["output"][output_name])
-            i += 1
+                i += 1
 
         else:  # Ouput found
             found = True
@@ -606,7 +609,7 @@ def execute_pips(pips, json_scene):
 
                     # ---------------------------------- NON TEXTURE FEATURES -----------------------------------------
                     # MORPH
-                    if feature_name == "morphological":
+                    if feature_name == "morph":
                         #TODO: temporary solution, need front end refactor
                         feature_name = "morph"
 
@@ -700,7 +703,7 @@ def execute_pips(pips, json_scene):
                         print("---> local_intensity features extracted")
 
                     # STATS
-                    elif feature_name == "statistical":
+                    elif feature_name == "stats":
                         nodes_allowed = [
                             "roi_extraction"]  # not really useful. ROI EXTRACTION dropped by default in GUI
                         extraction_allowed = minimumNodeRequired(pip_obj, nodes_allowed)
@@ -788,7 +791,7 @@ def execute_pips(pips, json_scene):
                         print("---> intensity_histogram features extracted")
 
                     # IVH
-                    elif feature_name == "ivh":
+                    elif feature_name == "int_vol_hist":
                         nodes_allowed = ["roi_extraction", "discretization"]
                         extraction_allowed = minimumNodeRequired(pip_obj, nodes_allowed)
                         discretization = minimumNodeRequired(pip_obj,
