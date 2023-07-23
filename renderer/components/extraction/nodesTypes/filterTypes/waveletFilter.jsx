@@ -1,45 +1,23 @@
-import React, { useCallback, useState, useMemo } from "react";
-import { Form, Row, Col } from "react-bootstrap";
-import DocLink from "../../docLink";
+import React, { useCallback } from "react"
+import { Form, Row, Col } from "react-bootstrap"
+import DocLink from "../../docLink"
 
 // Form group for wavelet filter, used in the filter node component
-const WaveletFilter = ({ changeFilterForm, defaultFilterForm }) => {
-  // waveletForm is the object containing the wavelet filter parameters
-  // It contains the default values at the beginning
-  const [waveletForm, setWaveletForm] = useState(defaultFilterForm.wavelet);
-
-  const handleFormChange = useCallback((event) => {
-    const { name, value } = event.target;
-    const updatedValue = value ?? defaultFilterForm.wavelet[name];
-
-    setWaveletForm((prevState) => ({
-      ...prevState,
-      [name]: updatedValue,
-    }));
-
-    // Update node data content
-    changeFilterForm("wavelet", name, value);
-  }, []);
-
+const WaveletFilter = ({ changeFilterForm, data }) => {
   const handleSubbandChange = useCallback(
     (event) => {
-      const { name, value } = event.target;
-      let subbandNumber = name.split("_")[1];
+      const { name, value } = event.target
+      let subbandNumber = name.split("_")[1]
 
-      let newSubband = waveletForm.subband.split("");
-      newSubband[subbandNumber] = value;
-      newSubband = newSubband.join("");
-
-      setWaveletForm((prevState) => ({
-        ...prevState,
-        subband: newSubband,
-      }));
+      let newSubband = data.internal.settings.wavelet.subband.split("")
+      newSubband[subbandNumber] = value
+      newSubband = newSubband.join("")
 
       // Update node data content
-      changeFilterForm("wavelet", "subband", newSubband.replace(/x/g, ""));
+      changeFilterForm("subband", newSubband.replace(/x/g, ""))
     },
-    [waveletForm]
-  );
+    [data.internal.settings.wavelet]
+  )
 
   return (
     <Form.Group as={Row} controlId="filter-wavelet">
@@ -57,9 +35,14 @@ const WaveletFilter = ({ changeFilterForm, defaultFilterForm }) => {
             className="int"
             name="ndims"
             type="number"
-            value={waveletForm.ndims}
-            placeholder={"Default: " + defaultFilterForm.wavelet.ndims}
-            onChange={handleFormChange}
+            value={data.internal.settings.wavelet.ndims}
+            placeholder={
+              "Default: " +
+              data.setupParam.possibleSettings.defaultSettings.wavelet.ndims
+            }
+            onChange={(event) =>
+              changeFilterForm(event.target.name, event.target.value)
+            }
           />
         </Col>
       </Form.Group>
@@ -77,8 +60,10 @@ const WaveletFilter = ({ changeFilterForm, defaultFilterForm }) => {
           <Form.Control
             as="select"
             name="basis_function"
-            value={waveletForm.basis_function}
-            onChange={handleFormChange}
+            value={data.internal.settings.wavelet.basis_function}
+            onChange={(event) =>
+              changeFilterForm(event.target.name, event.target.value)
+            }
           >
             <option value="haar">Haar</option>
             <option value="db">Daubechies</option>
@@ -87,7 +72,7 @@ const WaveletFilter = ({ changeFilterForm, defaultFilterForm }) => {
             <option value="bior">Biorthogonal</option>
             <option value="rbio">Reverse biorthogonal</option>
             <option value="dmey">
-              "Discrete" approximation of Meyer wavelet
+              &quot;Discrete&quot; approximation of Meyer wavelet
             </option>
           </Form.Control>
         </Col>
@@ -103,7 +88,7 @@ const WaveletFilter = ({ changeFilterForm, defaultFilterForm }) => {
               <Form.Control
                 as="select"
                 name="subband_0"
-                value={waveletForm.subband.split("")[0]}
+                value={data.internal.settings.wavelet.subband.split("")[0]}
                 onChange={handleSubbandChange}
               >
                 <option value="x"></option>
@@ -117,7 +102,7 @@ const WaveletFilter = ({ changeFilterForm, defaultFilterForm }) => {
               <Form.Control
                 as="select"
                 name="subband_1"
-                value={waveletForm.subband.split("")[1]}
+                value={data.internal.settings.wavelet.subband.split("")[1]}
                 onChange={handleSubbandChange}
               >
                 <option value="x"></option>
@@ -131,7 +116,7 @@ const WaveletFilter = ({ changeFilterForm, defaultFilterForm }) => {
               <Form.Control
                 as="select"
                 name="subband_2"
-                value={waveletForm.subband.split("")[2]}
+                value={data.internal.settings.wavelet.subband.split("")[2]}
                 onChange={handleSubbandChange}
               >
                 <option value="x"></option>
@@ -150,9 +135,14 @@ const WaveletFilter = ({ changeFilterForm, defaultFilterForm }) => {
             className="int"
             type="number"
             name="level"
-            value={waveletForm.level}
-            placeholder={"Default: " + defaultFilterForm.wavelet.level}
-            onChange={handleFormChange}
+            value={data.internal.settings.wavelet.level}
+            placeholder={
+              "Default: " +
+              data.setupParam.possibleSettings.defaultSettings.wavelet.level
+            }
+            onChange={(event) =>
+              changeFilterForm(event.target.name, event.target.value)
+            }
           />
         </Col>
       </Form.Group>
@@ -163,8 +153,10 @@ const WaveletFilter = ({ changeFilterForm, defaultFilterForm }) => {
           <Form.Control
             as="select"
             name="rot_invariance"
-            value={waveletForm.rot_invariance}
-            onChange={handleFormChange}
+            value={data.internal.settings.wavelet.rot_invariance}
+            onChange={(event) =>
+              changeFilterForm(event.target.name, event.target.value)
+            }
           >
             <option value="false">False</option>
             <option value="true">True</option>
@@ -178,8 +170,10 @@ const WaveletFilter = ({ changeFilterForm, defaultFilterForm }) => {
           <Form.Control
             as="select"
             name="padding"
-            value={waveletForm.padding}
-            onChange={handleFormChange}
+            value={data.internal.settings.wavelet.padding}
+            onChange={(event) =>
+              changeFilterForm(event.target.name, event.target.value)
+            }
           >
             <option value="constant">Constant</option>
             <option value="edge">Edge</option>
@@ -202,14 +196,18 @@ const WaveletFilter = ({ changeFilterForm, defaultFilterForm }) => {
           <Form.Control
             type="text"
             name="name_save"
-            value={waveletForm.name_save}
-            placeholder={defaultFilterForm.wavelet.name_save}
-            onChange={handleFormChange}
+            value={data.internal.settings.wavelet.name_save}
+            placeholder={
+              data.setupParam.possibleSettings.defaultSettings.wavelet.name_save
+            }
+            onChange={(event) =>
+              changeFilterForm(event.target.name, event.target.value)
+            }
           />
         </Col>
       </Form.Group>
     </Form.Group>
-  );
-};
+  )
+}
 
-export default WaveletFilter;
+export default WaveletFilter

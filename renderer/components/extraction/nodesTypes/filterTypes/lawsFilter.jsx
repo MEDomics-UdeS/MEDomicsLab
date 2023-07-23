@@ -1,46 +1,23 @@
-import React, { useCallback, useState } from "react";
-import { Form, Row, Col, Image } from "react-bootstrap";
-import DocLink from "../../docLink";
+import React, { useCallback, useState } from "react"
+import { Form, Row, Col, Image } from "react-bootstrap"
+import DocLink from "../../docLink"
 
 // Form group for laws filter, used in the filter node component
-const LawsFilter = ({ changeFilterForm, defaultFilterForm }) => {
-  // lawsForm is the object containing the laws filter parameters
-  // It contains the default values at the beginning
-  const [lawsForm, setLawsForm] = useState(defaultFilterForm.laws);
-
-  const handleFormChange = useCallback((event) => {
-    const { name, value } = event.target;
-    const updatedValue = value ?? defaultFilterForm.laws[name];
-
-    setLawsForm((prevState) => ({
-      ...prevState,
-      [name]: updatedValue,
-    }));
-
-    // Update node data content
-    changeFilterForm("laws", name, value);
-  }, []);
-
+const LawsFilter = ({ changeFilterForm, data }) => {
   const handleConfigChange = useCallback(
     (event) => {
-      const { name, value } = event.target;
-      let configNumber = name.split("_")[1];
-      let newConfig = lawsForm.config;
-      newConfig[configNumber] = value;
-
-      setLawsForm((prevState) => ({
-        ...prevState,
-        config: newConfig,
-      }));
+      const { name, value } = event.target
+      let configNumber = name.split("_")[1]
+      let newConfig = data.internal.settings.laws.config
+      newConfig[configNumber] = value
 
       changeFilterForm(
-        "laws",
         "config",
         newConfig.filter((value) => value !== "")
-      );
+      )
     },
-    [lawsForm]
-  );
+    [data.internal.settings]
+  )
 
   return (
     <Form.Group as={Row} controlId="filter-laws">
@@ -61,7 +38,7 @@ const LawsFilter = ({ changeFilterForm, defaultFilterForm }) => {
               <Form.Control
                 as="select"
                 name="config_0"
-                value={lawsForm.config[0]}
+                value={data.internal.settings.laws.config[0]}
                 onChange={handleConfigChange}
               >
                 <option value="L3">L3</option>
@@ -80,7 +57,7 @@ const LawsFilter = ({ changeFilterForm, defaultFilterForm }) => {
               <Form.Control
                 as="select"
                 name="config_1"
-                value={lawsForm.config[1]}
+                value={data.internal.settings.laws.config[1]}
                 onChange={handleConfigChange}
               >
                 <option value=""></option>
@@ -100,7 +77,7 @@ const LawsFilter = ({ changeFilterForm, defaultFilterForm }) => {
               <Form.Control
                 as="select"
                 name="config_2"
-                value={lawsForm.config[2]}
+                value={data.internal.settings.laws.config[2]}
                 onChange={handleConfigChange}
               >
                 <option value=""></option>
@@ -124,9 +101,15 @@ const LawsFilter = ({ changeFilterForm, defaultFilterForm }) => {
           <Form.Control
             name="energy_distance"
             type="number"
-            value={lawsForm.energy_distance}
-            placeholder="Default: 7"
-            onChange={handleFormChange}
+            value={data.internal.settings.laws.energy_distance}
+            placeholder={
+              "Default : " +
+              data.setupParam.possibleSettings.defaultSettings.laws
+                .energy_distance
+            }
+            onChange={(event) =>
+              changeFilterForm(event.target.name, event.target.value)
+            }
           />
         </Col>
       </Form.Group>
@@ -137,8 +120,10 @@ const LawsFilter = ({ changeFilterForm, defaultFilterForm }) => {
           <Form.Control
             as="select"
             name="rot_invariance"
-            value={lawsForm.rot_invairance}
-            onChange={handleFormChange}
+            value={data.internal.settings.laws.rot_invariance}
+            onChange={(event) =>
+              changeFilterForm(event.target.name, event.target.value)
+            }
           >
             <option value="false">False</option>
             <option value="true">True</option>
@@ -152,8 +137,10 @@ const LawsFilter = ({ changeFilterForm, defaultFilterForm }) => {
           <Form.Control
             as="select"
             name="orthogonal_rot"
-            value={lawsForm.rot_invariance}
-            onChange={handleFormChange}
+            value={data.internal.settings.laws.orthogonal_rot}
+            onChange={(event) =>
+              changeFilterForm(event.target.name, event.target.value)
+            }
           >
             <option value="false">False</option>
             <option value="true">True</option>
@@ -167,8 +154,10 @@ const LawsFilter = ({ changeFilterForm, defaultFilterForm }) => {
           <Form.Control
             as="select"
             name="energy_image"
-            value={lawsForm.energy_image}
-            onChange={handleFormChange}
+            value={data.internal.settings.laws.energy_image}
+            onChange={(event) =>
+              changeFilterForm(event.target.name, event.target.value)
+            }
           >
             <option value="false">False</option>
             <option value="true">True</option>
@@ -182,8 +171,10 @@ const LawsFilter = ({ changeFilterForm, defaultFilterForm }) => {
           <Form.Control
             as="select"
             name="padding"
-            value={lawsForm.padding}
-            onChange={handleFormChange}
+            value={data.internal.settings.laws.padding}
+            onChange={(event) =>
+              changeFilterForm(event.target.name, event.target.value)
+            }
           >
             <option value="constant">Constant</option>
             <option value="edge">Edge</option>
@@ -206,14 +197,18 @@ const LawsFilter = ({ changeFilterForm, defaultFilterForm }) => {
           <Form.Control
             name="name_save"
             type="text"
-            value={lawsForm.name_save}
-            placeholder={defaultFilterForm.laws.name_save}
-            onChange={handleFormChange}
+            value={data.internal.settings.laws.name_save}
+            placeholder={
+              data.setupParam.possibleSettings.defaultSettings.laws.name_save
+            }
+            onChange={(event) =>
+              changeFilterForm(event.target.name, event.target.value)
+            }
           />
         </Col>
       </Form.Group>
     </Form.Group>
-  );
-};
+  )
+}
 
-export default LawsFilter;
+export default LawsFilter

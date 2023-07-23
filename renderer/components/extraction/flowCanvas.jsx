@@ -1,38 +1,35 @@
-import React, { useState, useCallback, useMemo, useEffect } from 'react';
-import { toast } from 'react-toastify';
-import EditableLabel from 'react-simple-editlabel';
-import TreeMenu from 'react-simple-tree-menu';
+import React, { useState, useCallback, useMemo, useEffect, use } from "react"
+import { toast } from "react-toastify"
+import EditableLabel from "react-simple-editlabel"
+import TreeMenu from "react-simple-tree-menu"
 
 // Import utilities
-import {
-  loadJsonSync,
-  downloadJson
-} from '../../utilities/fileManagementUtils';
-import { axiosPostJson } from '../../utilities/requests';
+import { loadJsonSync, downloadJson } from "../../utilities/fileManagementUtils"
+import { axiosPostJson } from "../../utilities/requests"
 
 // Workflow imports
-import { useNodesState, useEdgesState, useReactFlow, addEdge } from 'reactflow';
-import WorkflowBase from '../flow/workflowBase';
+import { useNodesState, useEdgesState, useReactFlow, addEdge } from "reactflow"
+import WorkflowBase from "../flow/workflowBase"
 
 // Import node types
-import StandardNode from './nodesTypes/standardNode';
-import ExtractionNode from './nodesTypes/extractionNode';
-import SegmentationNode from './nodesTypes/segmentationNode';
-import FilterNode from './nodesTypes/filterNode';
-import FeaturesNode from './nodesTypes/featuresNode';
+import StandardNode from "./nodesTypes/standardNode"
+import SegmentationNode from "./nodesTypes/segmentationNode"
+import FilterNode from "./nodesTypes/filterNode"
+import FeaturesNode from "./nodesTypes/featuresNode"
+import GroupNode from "../flow/groupNode"
 
 // Import node parameters
-import nodesParams from '../../public/setupVariables/allNodesParams';
+import nodesParams from "../../public/setupVariables/allNodesParams"
 
 // Import buttons
-import ResultsButton from './buttonsTypes/resultsButton';
-import BtnDiv from '../flow/btnDiv';
+import ResultsButton from "./buttonsTypes/resultsButton"
+import BtnDiv from "../flow/btnDiv"
 
 // Static functions used in the workflow
-import { removeDuplicates, deepCopy } from '../../utilities/staticFunctions';
+import { removeDuplicates, deepCopy } from "../../utilities/staticFunctions"
 
 // Static nodes parameters
-const staticNodesParams = nodesParams;
+const staticNodesParams = nodesParams
 
 /**
  *
@@ -45,16 +42,79 @@ const staticNodesParams = nodesParams;
  * Component used to display the workflow of the extraction tab of MEDomicsLab.
  *
  */
-const Workflow = ({ id, workflowType, setWorkflowType }) => {
-  const [nodes, setNodes, onNodesChange] = useNodesState([]); // nodes array, setNodes is used to update the nodes array, onNodesChange is a callback hook that is executed when the nodes array is changed
-  const [edges, setEdges, onEdgesChange] = useEdgesState([]); // edges array, setEdges is used to update the edges array, onEdgesChange is a callback hook that is executed when the edges array is changed
-  const [reactFlowInstance, setReactFlowInstance] = useState(null); // reactFlowInstance is used to get the reactFlowInstance object important for the reactFlow library
-  const [nodeUpdate, setNodeUpdate] = useState({}); // nodeUpdate is used to update a node internal data
-  const { setViewport } = useReactFlow(); // setViewport is used to update the viewport of the workflow
-  const [treeData, setTreeData] = useState({}); // treeData is used to set the data of the tree menu
-  const [groupNodeId, setGroupNodeId] = useState(null); // groupNodeId is used to know which groupNode is selected
-  const [progress, setProgress] = useState({}); // progress is used to store the progress of the workflow execution
-  const [results, setResults] = useState({}); // results is used to store radiomic features results
+const Workflow = ({ workflowType, setWorkflowType }) => {
+  const [nodes, setNodes, onNodesChange] = useNodesState([]) // nodes array, setNodes is used to update the nodes array, onNodesChange is a callback hook that is executed when the nodes array is changed
+  const [edges, setEdges, onEdgesChange] = useEdgesState([]) // edges array, setEdges is used to update the edges array, onEdgesChange is a callback hook that is executed when the edges array is changed
+  const [reactFlowInstance, setReactFlowInstance] = useState(null) // reactFlowInstance is used to get the reactFlowInstance object important for the reactFlow library
+  const [nodeUpdate, setNodeUpdate] = useState({}) // nodeUpdate is used to update a node internal data
+  const { setViewport } = useReactFlow() // setViewport is used to update the viewport of the workflow
+  const [treeData, setTreeData] = useState({}) // treeData is used to set the data of the tree menu
+  const [groupNodeId, setGroupNodeId] = useState(null) // groupNodeId is used to know which groupNode is selected
+  const [progress, setProgress] = useState({}) // progress is used to store the progress of the workflow execution
+  const [results, setResults] = useState({}) // results is used to store radiomic features results
+
+  // Executed when edges change
+  useEffect(() => {
+    console.log("The use effect is executed")
+    // Check if there are any connections between an input and segmentation node
+    const inputSegmentationConnections = edges.filter(
+      (edge) =>
+        (nodes.find((node) => node.id === edge.source).data.internal.type ===
+          "input" &&
+          nodes.find((node) => node.id === edge.target).data.internal.type ===
+            "segmentation") ||
+        (nodes.find((node) => node.id === edge.source).data.internal.type ===
+          "segmentation" &&
+          nodes.find((node) => node.id === edge.target).data.internal.type ===
+            "inputNode")
+    )
+
+    // Update the segmentation node's data with the ROIs from the input node
+    inputSegmentationConnections.forEach((connection) => {
+      const inputNodeId = nodes.find((node) => node.id === connection.source).id
+      const segmentationNodeId = nodes.find(
+        (node) => node.id === connection.target
+      ).id
+
+      const inputNode = nodes.find((node) => node.id === inputNodeId)
+      const segmentationNode = nodes.find(
+        (node) => node.id === segmentationNodeId
+      )
+
+      const inputROIs = inputNode.data.internal.settings.rois
+      segmentationNode.data.internal.settings.rois = inputROIs
+
+      // Update the segmentation node
+      setNodes((prevNodes) =>
+        prevNodes.map((node) => {
+          if (node.id === segmentationNodeId) {
+            return segmentationNode
+          }
+          return node
+        })
+      )
+    })
+
+    // Remove ROIs from segmentation nodes that are not connected to an input node
+    nodes.forEach((node) => {
+      if (
+        node.data.internal.type === "segmentation" &&
+        !inputSegmentationConnections.some(
+          (connection) => connection.target === node.id
+        )
+      ) {
+        node.data.internal.settings.rois = {}
+        setNodes((prevNodes) =>
+          prevNodes.map((n) => {
+            if (n.id === node.id) {
+              return node
+            }
+            return n
+          })
+        )
+      }
+    })
+  }, [edges])
 
   // Declare node types using useMemo hook to avoid re-creating component types unnecessarily (it memorizes the output)
   // https://www.w3schools.com/react/react_usememo.asp
@@ -62,33 +122,33 @@ const Workflow = ({ id, workflowType, setWorkflowType }) => {
     () => ({
       segmentationNode: SegmentationNode,
       standardNode: StandardNode,
-      extractionNode: ExtractionNode,
       filterNode: FilterNode,
-      featuresNode: FeaturesNode
+      featuresNode: FeaturesNode,
+      groupNode: GroupNode
     }),
     []
-  );
+  )
 
   // Execute setTreeData when there is a change in nodes or edges arrays.
   useEffect(() => {
-    setTreeData(createTreeFromNodes());
-  }, [nodes, edges]);
+    setTreeData(createTreeFromNodes())
+  }, [nodes, edges])
 
   // Executed when groupNodeId changes. I put it in useEffect because it assures groupNodeId is updated.
   useEffect(() => {
     // If there is a groupNodeId, the workflow is a features workflow
     if (groupNodeId) {
       // Set the workflow type to features
-      setWorkflowType('features');
+      setWorkflowType("features")
       // Hide the nodes that are not in the features group
-      hideNodesbut(groupNodeId);
+      hideNodesbut(groupNodeId)
     } else {
       // Else the workflow is an extraction workflow
-      setWorkflowType('extraction');
+      setWorkflowType("extraction")
       // Hide the nodes that are not in the extraction group
-      hideNodesbut(groupNodeId);
+      hideNodesbut(groupNodeId)
     }
-  }, [groupNodeId, nodeUpdate]);
+  }, [groupNodeId])
 
   /**
    *
@@ -104,26 +164,26 @@ const Workflow = ({ id, workflowType, setWorkflowType }) => {
       nodes.map((node) => {
         node = {
           ...node
-        };
-        node.hidden = node.data.internal.subflowId != activeNodeId;
-        return node;
+        }
+        node.hidden = node.data.internal.subflowId != activeNodeId
+        return node
       })
-    );
+    )
 
     setEdges((edges) =>
       edges.map((edge) => {
         edge = {
           ...edge
-        };
+        }
         edge.hidden =
           nodes.find((node) => node.id === edge.source).data.internal
             .subflowId != activeNodeId ||
           nodes.find((node) => node.id === edge.target).data.internal
-            .subflowId != activeNodeId;
-        return edge;
+            .subflowId != activeNodeId
+        return edge
       })
-    );
-  };
+    )
+  }
 
   /**
    * @returns {Object} updated tree data
@@ -134,84 +194,92 @@ const Workflow = ({ id, workflowType, setWorkflowType }) => {
   const createTreeFromNodes = useCallback(() => {
     // recursively create tree from nodes
     const createTreeFromNodesRec = (node) => {
-      let children = {};
+      let children = {}
       edges.forEach((edge) => {
         if (edge.source == node.id) {
           let targetNode = JSON.parse(
             JSON.stringify(nodes.find((node) => node.id === edge.target))
-          );
-          if (targetNode.type != 'extractionNode') {
-            let subIdText = '';
-            let subflowId = targetNode.data.internal.subflowId;
+          )
+          if (targetNode.type != "groupNode") {
+            let subIdText = ""
+            let subflowId = targetNode.data.internal.subflowId
             if (subflowId) {
               subIdText =
                 JSON.parse(
                   JSON.stringify(nodes.find((node) => node.id == subflowId))
-                ).data.internal.name + '.';
+                ).data.internal.name + "."
             }
             children[targetNode.id] = {
               label: subIdText + targetNode.data.internal.name,
               nodes: createTreeFromNodesRec(targetNode)
-            };
+            }
           }
         }
-      });
-      return children;
-    };
+      })
+      return children
+    }
 
-    let treeMenuData = {};
+    let treeMenuData = {}
     edges.forEach((edge) => {
       let sourceNode = JSON.parse(
         JSON.stringify(nodes.find((node) => node.id === edge.source))
-      );
+      )
 
-      if (sourceNode.type === 'inputNode') {
+      if (sourceNode.type === "inputNode") {
         treeMenuData[sourceNode.id] = {
           label: sourceNode.data.internal.name,
           nodes: createTreeFromNodesRec(sourceNode)
-        };
+        }
       }
-    });
+    })
 
-    return treeMenuData;
-  }, [nodes, edges]);
+    return treeMenuData
+  }, [nodes, edges])
 
   /**
    * @param {Object} newNode base node object
+   * @param {String} associatedNode id of the parent node if the node is a sub-group node
+   * @returns
    *
    * Function passed to workflowBase to add the specific properties of a
    * node in the workflow for extraction or features
    */
-  const addSpecificToNode = (newNode) => {
+  const addSpecificToNode = (newNode, associatedNode) => {
+    newNode.id = `${newNode.id}${associatedNode ? `.${associatedNode}` : ""}`
+
     // Add defaut parameters of node to possibleSettings
     let type = newNode.data.internal.type
-      .replaceAll(/ |-/g, '_')
-      .replace(/[^a-z_]/g, '');
+      .replaceAll(/ |-/g, "_")
+      .replace(/[^a-z_]/g, "")
 
-    let setupParams = {};
+    let setupParams = {}
     if (staticNodesParams[workflowType][type]) {
       setupParams = JSON.parse(
         JSON.stringify(staticNodesParams[workflowType][type])
-      );
+      )
     }
-    setupParams.possibleSettings = setupParams['possibleSettings'];
 
     // Add default parameters to node data
-    newNode.data.setupParam = setupParams;
+    newNode.data.setupParam = setupParams
 
     // Initialize settings in node data to put the parameters selected by the user
-    newNode.data.internal.settings = {};
+    let featuresNodeDefaultSettings = { features: ["extract_all"] }
+    newNode.data.internal.settings =
+      newNode.type === "featuresNode"
+        ? featuresNodeDefaultSettings
+        : newNode.data.setupParam.possibleSettings.defaultSettings
 
-    // TODO : ??
-    newNode.data.parentFct.changeSubFlow = setGroupNodeId;
+    newNode.data.parentFct.changeSubFlow = setGroupNodeId
 
-    newNode.data.internal.subflowId = groupNodeId; // TODO : À vérifier!
+    newNode.data.internal.subflowId = !associatedNode
+      ? groupNodeId
+      : associatedNode
 
     // Used to enable the view button of a node (if it exists)
-    newNode.data.internal.enableView = false;
+    newNode.data.internal.enableView = false
 
-    return newNode;
-  };
+    return newNode
+  }
 
   /**
    * @param {Object} id id of the node to delete
@@ -222,27 +290,120 @@ const Workflow = ({ id, workflowType, setWorkflowType }) => {
    */
   const deleteNode = useCallback(
     (id) => {
-      console.log('delete node', id);
+      console.log("delete node", id)
       setNodes((nds) =>
         nds.reduce((filteredNodes, n) => {
           if (n.id !== id) {
-            filteredNodes.push(n);
+            filteredNodes.push(n)
           }
-          if (n.type == 'extractionNode') {
+          if (n.type == "groupNode") {
             let childrenNodes = nds.filter(
               (node) => node.data.internal.subflowId == id
-            );
+            )
             childrenNodes.forEach((node) => {
-              deleteNode(node.id);
-            });
+              deleteNode(node.id)
+            })
           }
-          return filteredNodes;
+          return filteredNodes
         }, [])
-      );
-      setEdges((eds) => eds.filter((e) => e.source !== id && e.target !== id));
+      )
+      setEdges((eds) => eds.filter((e) => e.source !== id && e.target !== id))
     },
     [nodes]
-  );
+  )
+
+  // Temporary fix used to simulate the call to the backend that is not yet refactored
+  // Will be removed when the backed is finished
+  // TODO : Did not do the special case for extraction node!
+  const transformFlowInstance = useCallback(() => {
+    // Initialize the new dictionnary for the modified flow
+    let modifiedFlow = {
+      drawflow: {
+        Home: {
+          data: {}
+        }
+      }
+    }
+
+    if (reactFlowInstance) {
+      let flow = JSON.parse(JSON.stringify(reactFlowInstance.toObject()))
+
+      flow.nodes.forEach((node) => {
+        const nodeID = node.id
+
+        // If the node is a features node
+        if (node.type === "featuresNode") {
+          // If the node is a featuresNode, it has a subflowId and its module name is extraction-subFlowId
+          let moduleName = "extraction-" + node.data.internal.subflowId
+          console.log(moduleName)
+          // If the subFlowId structure is not already created, create it
+          if (!(moduleName in modifiedFlow.drawflow)) {
+            modifiedFlow.drawflow[moduleName] = {
+              data: {}
+            }
+          }
+
+          // Add the node data to the subFlowId structure
+          modifiedFlow.drawflow[moduleName].data[nodeID] = {
+            id: nodeID,
+            name: node.data.setupParam.possibleSettings.defaultSettings
+              .MEDimageName,
+            data: node.data.internal.settings,
+            class: node.className,
+            inputs: {},
+            outputs: {}
+          }
+        } else {
+          modifiedFlow.drawflow.Home.data[nodeID] = {
+            id: nodeID,
+            name: node.data.internal.type.replaceAll(/ |-/g, "_"),
+            data: node.data.internal.settings
+              ? node.data.internal.settings
+              : {},
+            class: node.className,
+            inputs: {},
+            outputs: {}
+          }
+        }
+      })
+
+      // Note : only the nodes in home module can be connected, therefore it is not necessary to check
+      // if the edges to be in the structure other than Home in the dictionnary
+      flow.edges.forEach((edge) => {
+        const sourceNode = flow.nodes.find((node) => node.id === edge.source)
+        const targetNode = flow.nodes.find((node) => node.id === edge.target)
+
+        const sourceNodeID = sourceNode.id
+        const targetNodeID = targetNode.id
+
+        const outputKey = "output_1"
+        const inputKey = "input_1"
+
+        if (!modifiedFlow.drawflow.Home.data[sourceNodeID].outputs[outputKey]) {
+          modifiedFlow.drawflow.Home.data[sourceNodeID].outputs[outputKey] = {
+            connections: [{ node: targetNodeID, input: inputKey }]
+          }
+        } else {
+          modifiedFlow.drawflow.Home.data[sourceNodeID].outputs[
+            outputKey
+          ].connections.push({ node: targetNodeID, input: inputKey })
+        }
+
+        if (!modifiedFlow.drawflow.Home.data[targetNodeID].inputs[inputKey]) {
+          modifiedFlow.drawflow.Home.data[targetNodeID].inputs[inputKey] = {
+            connections: [{ node: sourceNodeID, output: outputKey }]
+          }
+        } else {
+          modifiedFlow.drawflow.Home.data[targetNodeID].inputs[
+            inputKey
+          ].connections.push({ node: sourceNodeID, output: outputKey })
+        }
+      })
+
+      return modifiedFlow
+    }
+    return null
+  }, [reactFlowInstance])
 
   /**
    *
@@ -251,67 +412,109 @@ const Workflow = ({ id, workflowType, setWorkflowType }) => {
    * This function is called when the user clicks on the run button of a node
    * It executes the pipelines finishing with this node
    */
-  const runNode = (id) => {
-    console.log('run node', id);
-    const flow = JSON.parse(JSON.stringify(reactFlowInstance.toObject()));
-    // TODO
-  };
+  const runNode = useCallback(
+    (id) => {
+      console.log("Running node", id)
+
+      // Transform the flow instance to a dictionnary compatible with the backend
+      let newFlow = transformFlowInstance()
+      console.log("Flow dictionnary sent to backend is : ")
+      console.log(newFlow)
+
+      // Get the node from id
+      let nodeName = newFlow.drawflow.Home.data[id]
+        ? newFlow.drawflow.Home.data[id].name
+        : "extraction"
+
+      // POST request to /extraction/run for current node by sending form_data
+      var formData = JSON.stringify({
+        id: id,
+        name: nodeName,
+        json_scene: newFlow
+      })
+      axiosPostJson(formData, "extraction/run")
+        .then((response) => {
+          console.log(response)
+          toast.success("Node executed successfully")
+          // enable view of node
+          setNodes((nds) =>
+            nds.map((n) => {
+              if (n.id === id) {
+                n.data.internal.enableView = true
+              }
+              return n
+            })
+          )
+        })
+        .catch((error) => {
+          console.error("Error:", error)
+          toast.warn("Could not run the node.")
+        })
+    },
+    [nodes, edges, reactFlowInstance]
+  )
 
   /**
    * Runs all the pipelines in the workflow
    */
   const onRun = useCallback(() => {
-    console.log('run workflow');
-    const data = { message: 'Hello from the frontend!' };
-    axiosPostJson(data, 'message')
+    console.log("Running workflow")
+    // Transform the flow instance to a dictionnary compatible with the backend
+    let newFlow = transformFlowInstance()
+    console.log("Flow dictionnary sent to back end is : ")
+    console.log(newFlow)
+
+    // Post request to extraction/run-all for current workflow
+    axiosPostJson(newFlow, "extraction/run-all")
       .then((response) => {
-        console.log('Response:', response);
-        // Handle the response here
+        console.log(response)
+        toast.success("Workflow executed successfully")
+        setResults(response.data)
       })
       .catch((error) => {
-        console.error('Error:', error);
-        // Handle the error here
-      });
-    // TEST DE COMMUNICATION BACKEND-FRONTEND
-  }, []);
+        console.error("Error:", error)
+        toast.warn("Could not run the workflow.")
+      })
+  }, [nodes, edges, reactFlowInstance])
 
   /**
    * Clear the canvas if the user confirms
    */
   const onClear = useCallback(() => {
+    console.log(reactFlowInstance.toObject())
     if (reactFlowInstance & (nodes.length > 0)) {
       let confirmation = confirm(
-        'Are you sure you want to clear the canvas?\nEvery data will be lost.'
-      );
+        "Are you sure you want to clear the canvas?\nEvery data will be lost."
+      )
       if (confirmation) {
-        setNodes([]);
-        setEdges([]);
+        setNodes([])
+        setEdges([])
       }
     } else {
-      toast.warn('No workflow to clear');
+      toast.warn("No workflow to clear")
     }
-  }, [reactFlowInstance, nodes]);
+  }, [reactFlowInstance, nodes])
 
   /**
    * Save the workflow as a json file
    */
   const onSave = useCallback(() => {
     if (reactFlowInstance && nodes.length > 0) {
-      const flow = JSON.parse(JSON.stringify(reactFlowInstance.toObject()));
+      const flow = JSON.parse(JSON.stringify(reactFlowInstance.toObject()))
       flow.nodes.forEach((node) => {
-        node.data.parentFct = null;
-        node.data.setupParam = null;
+        node.data.parentFct = null
+        node.data.setupParam = null
         // Set enableView to false because only the scene is saved
         // and importing it back would not reload the volumes that
         // were loaded in the viewer
-        node.data.enableView = false;
-      });
-      console.log('flow', flow);
-      downloadJson(flow, 'experiment');
+        node.data.enableView = false
+      })
+      console.log("flow", flow)
+      downloadJson(flow, "experiment")
     } else {
-      toast.warn('No workflow to save');
+      toast.warn("No workflow to save!")
     }
-  }, [reactFlowInstance, nodes]);
+  }, [reactFlowInstance, nodes])
 
   /**
    * Load a workflow from a json file
@@ -319,19 +522,19 @@ const Workflow = ({ id, workflowType, setWorkflowType }) => {
   const onLoad = useCallback(() => {
     // Ask confirmation from the user if the canvas is not empty,
     // since the workflow will be replaced
-    let confirmation = true;
+    let confirmation = true
     if (nodes.length > 0) {
       confirmation = confirm(
-        'Are you sure you want to import a new experiment?\nEvery data will be lost.'
-      );
+        "Are you sure you want to import a new experiment?\nEvery data will be lost."
+      )
     }
     if (confirmation) {
       // If the user confirms, load the json file
       const restoreFlow = async () => {
         try {
           // Ask user for the json file to open
-          const flow = await loadJsonSync(); // wait for the json file to be loaded (see /utilities/fileManagementUtils.js)
-          console.log('loaded flow', flow);
+          const flow = await loadJsonSync() // wait for the json file to be loaded (see /utilities/fileManagementUtils.js)
+          console.log("loaded flow", flow)
 
           // TODO : should have conditions regarding json file used for import!
           // For each nodes in the json file, add the specific parameters
@@ -343,47 +546,42 @@ const Workflow = ({ id, workflowType, setWorkflowType }) => {
               updateNode: setNodeUpdate,
               runNode: runNode,
               changeSubFlow: setGroupNodeId
-            };
+            }
             // set workflow type
             let subworkflowType = node.data.internal.subflowId
-              ? 'extraction'
-              : 'features';
+              ? "extraction"
+              : "features"
             // set node type
             let setupParams = deepCopy(
               staticNodesParams[subworkflowType][
-                node.name.toLowerCase().replaceAll(' ', '_')
+                node.name.toLowerCase().replaceAll(" ", "_")
               ]
-            );
-            setupParams.possibleSettings = setupParams['possibleSettings'];
-            node.data.setupParam = setupParams;
-          });
+            )
+            node.data.setupParam = setupParams
+          })
 
           if (flow) {
-            const { x = 0, y = 0, zoom = 1 } = flow.viewport;
-            setNodes(flow.nodes || []);
-            setEdges(flow.edges || []);
-            setViewport({ x, y, zoom });
+            const { x = 0, y = 0, zoom = 1 } = flow.viewport
+            setNodes(flow.nodes || [])
+            setEdges(flow.edges || [])
+            setViewport({ x, y, zoom })
           }
         } catch (error) {
-          toast.warn('Error loading file : ', error);
+          toast.warn("Error loading file : ", error)
         }
-      };
+      }
 
       // Call the async function
-      restoreFlow();
+      restoreFlow()
     }
-  }, [setNodes, setViewport, nodes]);
+  }, [setNodes, setViewport, nodes])
 
   /**
    * Set the subflow id to null to go back to the main workflow
    */
   const onBack = useCallback(() => {
-    setGroupNodeId(null);
-  }, []);
-
-  const onResults = useCallback(() => {
-    setGroupNodeId(null);
-  }, []);
+    setGroupNodeId(null)
+  }, [])
 
   /**
    * @param {Object} info info about the node clicked
@@ -392,17 +590,37 @@ const Workflow = ({ id, workflowType, setWorkflowType }) => {
    *
    */
   const onTreeItemClick = (info) => {
-    console.log('tree item clicked: ', info);
-  };
+    console.log("tree item clicked: ", info)
+  }
 
   // TODO : take out of mandatory in flow/workflowBase.js
   const onNodeDrag = useCallback(
     (event, node) => {
-      console.log('dragged node', node);
       // TODO
     },
     [nodes]
-  );
+  )
+
+  const isGoodConnection = (connection) => {
+    // Getting the source and target nodes
+    let sourceNode = nodes.find((node) => node.id == connection.source)
+    let targetNode = nodes.find((node) => node.id == connection.target)
+    let sourceNodeType = sourceNode.data.internal.type
+    let targetNodeType = targetNode.data.internal.type
+
+    // If the connection is between an input and a segmentation node
+    if (
+      (sourceNodeType == "input" && targetNodeType == "segmentation") ||
+      (sourceNodeType == "segmentation" && targetNodeType == "input")
+    ) {
+      // If the segmentation node already has an input, a connection to a new input is not allowed
+      if (edges.find((edge) => edge.target == targetNode.id)) {
+        return false
+      }
+    }
+
+    return true
+  }
 
   return (
     <>
@@ -426,13 +644,14 @@ const Workflow = ({ id, workflowType, setWorkflowType }) => {
         }}
         // optional props
         onDeleteNode={deleteNode}
+        isGoodConnection={isGoodConnection}
         // represents the visual over the workflow
         ui={
           <>
             <div className="btn-panel-top-corner-left">
-              {workflowType == 'extraction' && (
+              {workflowType == "extraction" && (
                 <>
-                  {' '}
+                  {" "}
                   <ResultsButton results={results} />
                   <TreeMenu
                     data={treeData}
@@ -444,24 +663,24 @@ const Workflow = ({ id, workflowType, setWorkflowType }) => {
               )}
             </div>
             <div className="btn-panel-top-corner-right">
-              {workflowType == 'extraction' ? (
+              {workflowType == "extraction" ? (
                 <BtnDiv
                   buttonsList={[
-                    { type: 'run', onClick: onRun },
-                    { type: 'clear', onClick: onClear },
-                    { type: 'save', onClick: onSave },
-                    { type: 'load', onClick: onLoad }
+                    { type: "run", onClick: onRun },
+                    { type: "clear", onClick: onClear },
+                    { type: "save", onClick: onSave },
+                    { type: "load", onClick: onLoad }
                   ]}
                 />
               ) : (
-                <BtnDiv buttonsList={[{ type: 'back', onClick: onBack }]} />
+                <BtnDiv buttonsList={[{ type: "back", onClick: onBack }]} />
               )}
             </div>
           </>
         }
       />
     </>
-  );
-};
+  )
+}
 
-export default Workflow;
+export default Workflow

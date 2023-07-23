@@ -1,10 +1,20 @@
-import React from 'react';
-import Button from 'react-bootstrap/Button';
+import React from "react"
+import Button from "react-bootstrap/Button"
 
 const ResultsButton = ({ results }) => {
-  return (
-    <>{results && <Button className="results-button">Show Results</Button>}</>
-  );
-};
+  const showResults = () => {
+    console.log("show results")
+  }
 
-export default ResultsButton;
+  return (
+    <>
+      {results && (
+        <Button className="results-button" onClick={showResults}>
+          Show Results
+        </Button>
+      )}
+    </>
+  )
+}
+
+export default ResultsButton

@@ -1,26 +1,9 @@
-import React, { useCallback, useState } from "react";
-import { Form, Row, Col, Image } from "react-bootstrap";
-import DocLink from "../../docLink";
+import React from "react"
+import { Form, Row, Col } from "react-bootstrap"
+import DocLink from "../../docLink"
 
 // Form group for log filter, used in the filter node component
-const LogFilter = ({ changeFilterForm, defaultFilterForm }) => {
-  // logForm is the object containing the log filter parameters
-  // It contains the default values at the beginning
-  const [logForm, setLogForm] = useState(defaultFilterForm.log);
-
-  const handleFormChange = (event) => {
-    const { name, value } = event.target;
-    const updatedValue = value ?? defaultLogForm[name];
-
-    setLogForm((prevState) => ({
-      ...prevState,
-      [name]: updatedValue,
-    }));
-
-    // Update node data content
-    changeFilterForm("log", name, value);
-  };
-
+const LogFilter = ({ changeFilterForm, data }) => {
   return (
     <Form.Group as={Row} controlId="filter-log">
       <DocLink
@@ -38,9 +21,14 @@ const LogFilter = ({ changeFilterForm, defaultFilterForm }) => {
             className="int"
             name="ndims"
             type="number"
-            value={logForm.ndims}
-            placeholder="Default: 3"
-            onChange={handleFormChange}
+            value={data.internal.settings.log.ndims}
+            placeholder={
+              "Default : " +
+              data.setupParam.possibleSettings.defaultSettings.log.ndims
+            }
+            onChange={(event) =>
+              changeFilterForm(event.target.name, event.target.value)
+            }
           />
         </Col>
       </Form.Group>
@@ -51,9 +39,14 @@ const LogFilter = ({ changeFilterForm, defaultFilterForm }) => {
           <Form.Control
             name="sigma"
             type="number"
-            value={logForm.sigma}
-            placeholder="Default: 1.5"
-            onChange={handleFormChange}
+            value={data.internal.settings.log.sigma}
+            placeholder={
+              "Default : " +
+              data.setupParam.possibleSettings.defaultSettings.log.sigma
+            }
+            onChange={(event) =>
+              changeFilterForm(event.target.name, event.target.value)
+            }
           />
         </Col>
       </Form.Group>
@@ -64,8 +57,10 @@ const LogFilter = ({ changeFilterForm, defaultFilterForm }) => {
           <Form.Control
             as="select"
             name="orthogonal_rot"
-            value={logForm.orthogonal_rot}
-            onChange={handleFormChange}
+            value={data.internal.settings.log.orthogonal_rot}
+            onChange={(event) =>
+              changeFilterForm(event.target.name, event.target.value)
+            }
           >
             <option value="false">False</option>
             <option value="true">True</option>
@@ -79,8 +74,10 @@ const LogFilter = ({ changeFilterForm, defaultFilterForm }) => {
           <Form.Control
             as="select"
             name="padding"
-            value={logForm.padding}
-            onChange={handleFormChange}
+            value={data.internal.settings.log.padding}
+            onChange={(event) =>
+              changeFilterForm(event.target.name, event.target.value)
+            }
           >
             <option value="constant">Constant</option>
             <option value="edge">Edge</option>
@@ -103,14 +100,18 @@ const LogFilter = ({ changeFilterForm, defaultFilterForm }) => {
           <Form.Control
             name="name_save"
             type="text"
-            value={logForm.name_save}
-            placeholder={defaultFilterForm.log.name_save}
-            onChange={handleFormChange}
+            value={data.internal.settings.log.name_save}
+            placeholder={
+              data.setupParam.possibleSettings.defaultSettings.log.name_save
+            }
+            onChange={(event) =>
+              changeFilterForm(event.target.name, event.target.value)
+            }
           />
         </Col>
       </Form.Group>
     </Form.Group>
-  );
-};
+  )
+}
 
-export default LogFilter;
+export default LogFilter

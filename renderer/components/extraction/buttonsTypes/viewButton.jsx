@@ -1,38 +1,38 @@
-import React from 'react';
-import Button from 'react-bootstrap/Button';
-import { toast } from 'react-toastify';
-import { axiosPostJson } from '../../../utilities/requests';
+import React from "react"
+import Button from "react-bootstrap/Button"
+import { toast } from "react-toastify"
+import { axiosPostJson } from "../../../utilities/requests"
 
 const ViewButton = ({ id, data, type }) => {
   // Function to send a POST request to /extraction/view
   const viewImage = () => {
-    console.log('Viewing image for node ' + id);
+    console.log("Viewing image for node " + id)
 
     // Construction of form data to send to /extraction/view. If the node is input, the name of the file is needed
-    let formData;
-    if (type === 'input') {
+    let formData
+    if (type === "input") {
       formData = JSON.stringify({
         id: id,
         name: type,
-        file_loaded: data.internal.settings.filename
-      });
+        file_loaded: data.internal.settings.filepath
+      })
     } else {
       formData = JSON.stringify({
         id: id,
         name: type
-      });
+      })
     }
 
     // POST request to /extraction/view for current node by sending form_data
-    axiosPostJson(formData, 'extraction/view')
+    axiosPostJson(formData, "extraction/view")
       .then((response) => {
-        console.log(response);
+        console.log(response)
       })
       .catch((error) => {
-        console.error('Error:', error);
-        toast.warn('Could not view image.');
-      });
-  };
+        console.error("Error:", error)
+        toast.warn("Could not view image.")
+      })
+  }
 
   return (
     <div className="test">
@@ -50,7 +50,7 @@ const ViewButton = ({ id, data, type }) => {
         View image
       </Button>
     </div>
-  );
-};
+  )
+}
 
-export default ViewButton;
+export default ViewButton

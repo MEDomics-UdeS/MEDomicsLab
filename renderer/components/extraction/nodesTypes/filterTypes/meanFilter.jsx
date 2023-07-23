@@ -1,25 +1,9 @@
-import React, { useCallback, useState } from "react";
-import { Form, Row, Col } from "react-bootstrap";
-import DocLink from "../../docLink";
+import React from "react"
+import { Form, Row, Col } from "react-bootstrap"
+import DocLink from "../../docLink"
 
 // Form group for mean filter, used in the filter node component
-const MeanFilter = ({ changeFilterForm, defaultFilterForm }) => {
-  // meanForm is the object containing the mean filter parameters
-  // It contains the default values at the beginning
-  const [meanForm, setMeanForm] = useState(defaultFilterForm.mean);
-
-  const handleFormChange = useCallback((event) => {
-    const { name, value } = event.target;
-    const updatedValue = value ?? defaultFilterForm.mean[name];
-
-    setMeanForm((prevState) => ({
-      ...prevState,
-      [name]: updatedValue,
-    }));
-
-    changeFilterForm("mean", name, value);
-  }, []);
-
+const MeanFilter = ({ changeFilterForm, data }) => {
   return (
     <Form.Group as={Row} controlId="filter-mean">
       <DocLink
@@ -37,9 +21,14 @@ const MeanFilter = ({ changeFilterForm, defaultFilterForm }) => {
             className="int"
             name="ndims"
             type="number"
-            value={meanForm.ndims}
-            placeholder={"Default : " + defaultFilterForm.mean.ndims}
-            onChange={handleFormChange}
+            value={data.internal.settings.mean.ndims}
+            placeholder={
+              "Default : " +
+              data.setupParam.possibleSettings.defaultSettings.mean.ndims
+            }
+            onChange={(event) =>
+              changeFilterForm(event.target.name, event.target.value)
+            }
           />
         </Col>
       </Form.Group>
@@ -50,8 +39,10 @@ const MeanFilter = ({ changeFilterForm, defaultFilterForm }) => {
           <Form.Control
             as="select"
             name="padding"
-            value={meanForm.padding}
-            onChange={handleFormChange}
+            value={data.internal.settings.mean.padding}
+            onChange={(event) =>
+              changeFilterForm(event.target.name, event.target.value)
+            }
           >
             <option value="constant">Constant</option>
             <option value="edge">Edge</option>
@@ -74,8 +65,10 @@ const MeanFilter = ({ changeFilterForm, defaultFilterForm }) => {
           <Form.Control
             as="select"
             name="orthogonal_rot"
-            value={meanForm.orthogonal_rot}
-            onChange={handleFormChange}
+            value={data.internal.settings.mean.orthogonal_rot}
+            onChange={(event) =>
+              changeFilterForm(event.target.name, event.target.value)
+            }
           >
             <option value="false">False</option>
             <option value="true">True</option>
@@ -89,14 +82,18 @@ const MeanFilter = ({ changeFilterForm, defaultFilterForm }) => {
           <Form.Control
             name="name_save"
             type="text"
-            value={meanForm.name_save}
-            placeholder={defaultFilterForm.mean.name_save}
-            onChange={handleFormChange}
+            value={data.internal.settings.mean.name_save}
+            placeholder={
+              data.setupParam.possibleSettings.defaultSettings.mean.name_save
+            }
+            onChange={(event) =>
+              changeFilterForm(event.target.name, event.target.value)
+            }
           />
         </Col>
       </Form.Group>
     </Form.Group>
-  );
-};
+  )
+}
 
-export default MeanFilter;
+export default MeanFilter

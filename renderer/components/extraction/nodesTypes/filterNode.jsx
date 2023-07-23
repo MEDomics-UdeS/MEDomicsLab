@@ -1,13 +1,12 @@
-import React, { useState, useEffect, useCallback } from "react";
-import Node from "../../flow/node";
-import { Form, Row, Col, Image } from "react-bootstrap";
-import ViewButton from "../buttonsTypes/viewButton";
-import DocLink from "../docLink";
-import MeanFilter from "./filterTypes/meanFilter";
-import LogFilter from "./filterTypes/logFilter";
-import LawsFilter from "./filterTypes/lawsFilter";
-import GaborFilter from "./filterTypes/gaborFilter";
-import WaveletFilter from "./filterTypes/waveletFilter";
+import React, { useState, useCallback } from "react"
+import Node from "../../flow/node"
+import { Form, Row, Col } from "react-bootstrap"
+import ViewButton from "../buttonsTypes/viewButton"
+import MeanFilter from "./filterTypes/meanFilter"
+import LogFilter from "./filterTypes/logFilter"
+import LawsFilter from "./filterTypes/lawsFilter"
+import GaborFilter from "./filterTypes/gaborFilter"
+import WaveletFilter from "./filterTypes/waveletFilter"
 
 // Filter node component, used in the flow editor (flowCanvas.jsx) for the extraction tab
 const FilterNode = ({ id, data, type }) => {
@@ -15,46 +14,31 @@ const FilterNode = ({ id, data, type }) => {
   // https://medimage.readthedocs.io/en/dev/configuration_file.html
   // TODO : put this in a separate file
   // Hook used to change the selected filter type (default set to mean filter)
-  const [selectedFilter, setSelectedFilter] = useState("mean");
-  // Hook used to change the filter form (default set to mean filter form)
-  const [filterForm, setFilterForm] = useState(
-    data.setupParam.possibleSettings.defaultSettings
-  );
+  const [selectedFilter, setSelectedFilter] = useState(
+    data.internal.settings.filter_type
+  )
 
   // Function used to change the selected filter type
-  const changeFilterChoice = useCallback((event) => {
-    setSelectedFilter(event.target.value);
-  }, []);
+  const changeFilterType = useCallback((event) => {
+    // Set the selected filter
+    setSelectedFilter(event.target.value)
 
-  // Function used to change the filter form
-  const changeFilterForm = useCallback((filter, name, value) => {
-    const updatedSettings = {
-      ...filterForm,
-      [filter]: {
-        ...filterForm[filter],
-        [name]: value,
-      },
-    };
-    setFilterForm(updatedSettings);
-  }, []);
-
-  // Called when selected filter is changed, updates the filter form
-  useEffect(() => {
-    setFilterForm((prevState) => ({
-      ...prevState,
-      filter_type: selectedFilter,
-    }));
-  }, [selectedFilter]);
-
-  // Called when filter form is changed, updates the node data
-  useEffect(() => {
-    data.internal.settings = filterForm;
+    // Change the filter_type in node data
+    data.internal.settings.filter_type = selectedFilter
     data.parentFct.updateNode({
       id: id,
-      updatedData: data.internal,
-    });
-  }, [filterForm]);
+      updatedData: data.internal
+    })
+  }, [])
 
+  // Function used to change the filter form
+  const changeFilterForm = useCallback((name, value) => {
+    data.internal.settings[selectedFilter][name] = value
+    data.parentFct.updateNode({
+      id: id,
+      updatedData: data.internal
+    })
+  }, [])
   // TODO : Deplacer la fonction handleFormChange dans filterNode et l'enlever des types de filtres
 
   return (
@@ -84,7 +68,7 @@ const FilterNode = ({ id, data, type }) => {
                   <Form.Control
                     as="select"
                     name="filter_type"
-                    onChange={changeFilterChoice}
+                    onChange={changeFilterType}
                     value={selectedFilter}
                   >
                     <option value="mean">Mean</option>
@@ -98,33 +82,21 @@ const FilterNode = ({ id, data, type }) => {
 
               {/* Showing element associated with selectedFilter */}
               {selectedFilter === "mean" && (
-                <MeanFilter
-                  changeFilterForm={changeFilterForm}
-                  defaultFilterForm={filterForm}
-                />
+                <MeanFilter changeFilterForm={changeFilterForm} data={data} />
               )}
               {selectedFilter === "log" && (
-                <LogFilter
-                  changeFilterForm={changeFilterForm}
-                  defaultFilterForm={filterForm}
-                />
+                <LogFilter changeFilterForm={changeFilterForm} data={data} />
               )}
               {selectedFilter === "laws" && (
-                <LawsFilter
-                  changeFilterForm={changeFilterForm}
-                  defaultFilterForm={filterForm}
-                />
+                <LawsFilter changeFilterForm={changeFilterForm} data={data} />
               )}
               {selectedFilter === "gabor" && (
-                <GaborFilter
-                  changeFilterForm={changeFilterForm}
-                  defaultFilterForm={filterForm}
-                />
+                <GaborFilter changeFilterForm={changeFilterForm} data={data} />
               )}
               {selectedFilter === "wavelet" && (
                 <WaveletFilter
                   changeFilterForm={changeFilterForm}
-                  defaultFilterForm={filterForm}
+                  data={data}
                 />
               )}
             </Form>
@@ -132,7 +104,7 @@ const FilterNode = ({ id, data, type }) => {
         }
       />
     </>
-  );
-};
+  )
+}
 
-export default FilterNode;
+export default FilterNode

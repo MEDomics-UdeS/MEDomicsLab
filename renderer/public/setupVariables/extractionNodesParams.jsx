@@ -92,8 +92,8 @@ const nodesParams = {
     }
   },
   extraction: {
-    type: "extractionNode",
-    classes: "object extraction",
+    type: "groupNode",
+    classes: "object extraction run",
     nbInput: 1,
     nbOutput: 0,
     input: [

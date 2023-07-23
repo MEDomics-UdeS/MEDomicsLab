@@ -83,3 +83,24 @@
   padding-bottom: 10px;
   padding-top: 10px;
 }
+
+.segmentation-warning {
+  margin-top: 10px;
+  margin-right: 2px;
+  margin-left: 2px;
+  border-radius: 10px;
+  padding: 2px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  text-align: center;
+  font-weight: bold;
+  padding-bottom: 10px;
+  padding-top: 10px;
+}
+
+.standard-form {
+  width: 350px;
+}
+
+.features-node-body {
+  font-size: small;
+}

@@ -1,106 +1,97 @@
-import React, { useState, useEffect, useCallback, useRef } from "react";
-import Node from "../../flow/node";
-import ViewButton from "../buttonsTypes/viewButton";
-import { Container, Row, Col, Table, Alert } from "react-bootstrap";
-import { toast } from "react-toastify";
+import React, { useState, useEffect, useCallback } from "react"
+import Node from "../../flow/node"
+import ViewButton from "../buttonsTypes/viewButton"
+import { Container, Row, Col, Table, Alert } from "react-bootstrap"
+import { toast } from "react-toastify"
 
-/**
- *
- * @param {string} id id of the node
- * @param {object} data data of the node
- * @param {string} type type of the node
- * @returns {JSX.Element} A segmentation node
- *
- * @description
- * This component is used to display a segmentation node.
- * it handles the display of the node and the modal
- *
- */
 const SegmentationNode = ({ id, data, type }) => {
-  // List of ROIS: only there for testing purposes
-  // TODO: La liste de ROIs devrait être récupérée du node input!
-  const roisList = ["ROI1", "ROI2", "ROI3"];
+  const [selectedRois, setSelectedRois] = useState(data.internal.settings.rois)
+  const [shouldUpdateRois, setShouldUpdateRois] = useState(false)
 
-  // Creating default ROI dict with 2 as default value
-  const defaultRois = roisList.reduce((result, string) => {
-    result[string] = "2";
-    return result;
-  }, {});
-
-  // Hook to keep track of selected ROIs
-  const [selectedRois, setSelectedRois] = useState(defaultRois);
-
-  // Hook to keep track of the selected ROIs to update roisString in the node data
   useEffect(() => {
-    getRoisSelection();
-  }, [selectedRois]);
-
-  // Handle radio button changes made by the user to select ROIs
-  const handleRadioChange = useCallback((event, currentRoi) => {
-    try {
-      // TODO : this is probably not the best way to handle that error
-      // If the target value is a negative ROI, check if there is at least one positive ROI
-      if (event.target.value === "1") {
-        let oldRois = { ...selectedRois };
-        oldRois[currentRoi] = "1";
-
-        if (!Object.values(oldRois).some((value) => value === "0")) {
-          throw new Error("At least one ROI should be positive.");
-        }
+    let newSelectedRois = {}
+    if (
+      data.internal.settings.rois &&
+      Object.keys(data.internal.settings.rois).length > 0
+    ) {
+      for (const roiNumber in data.internal.settings.rois) {
+        newSelectedRois[data.internal.settings.rois[roiNumber]] = "2"
       }
-
-      setSelectedRois((prevRoisList) => ({
-        ...prevRoisList,
-        [currentRoi]: event.target.value,
-      }));
-    } catch (error) {
-      // Show toast error to the user
-      toast.warn(error.message, {
-        position: "bottom-right",
-        autoClose: 5000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
-        theme: "light",
-      });
-      return;
     }
-  }, []);
+    setSelectedRois(newSelectedRois)
+  }, [data.internal.settings.rois])
 
-  // Transform the selectedRois dict into a string respecting MEDimage conventions
+  const handleRadioChange = useCallback(
+    (event, currentRoi) => {
+      try {
+        if (event.target.value === "1") {
+          const isPositiveRoiSelected = Object.values(selectedRois).some(
+            (value) => value === "0"
+          )
+          if (!isPositiveRoiSelected) {
+            throw new Error("At least one ROI should be positive.")
+          }
+        }
+
+        setSelectedRois((prevRoisList) => ({
+          ...prevRoisList,
+          [currentRoi]: event.target.value
+        }))
+
+        setShouldUpdateRois(true)
+      } catch (error) {
+        // Show toast error to the user
+        toast.warn(error.message, {
+          position: "bottom-right",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "light"
+        })
+      }
+    },
+    [selectedRois]
+  )
+
+  useEffect(() => {
+    if (shouldUpdateRois) {
+      getRoisSelection() // Call getRoisSelection when shouldUpdateRois is true
+      setShouldUpdateRois(false)
+    }
+  }, [shouldUpdateRois])
+
   const getRoisSelection = useCallback(() => {
-    let roisString = "";
-    // Creating strings for positive and negative rois
-    let positiveRois = "";
-    let negativeRois = "";
+    let roisString = ""
+    let positiveRois = ""
+    let negativeRois = ""
 
-    // Run through all selected ROIs in the component state
     for (const roi in selectedRois) {
       if (selectedRois[roi] === "0") {
         // If the ROI is positive, add it to positive_rois
-        positiveRois += "+{" + roi + "}";
+        positiveRois += "+{" + roi + "}"
       } else if (selectedRois[roi] === "1") {
         // If the ROI is negative, add it to negative_rois
-        negativeRois += "-{" + roi + "}";
+        negativeRois += "-{" + roi + "}"
       }
     }
 
-    // Note : There should be at least one positive ROI since it is checked upon clicking on a radio button
+    // Note: There should be at least one positive ROI since it is checked upon clicking on a radio button
     // ROI list is the concatenation of the strings positive_rois and negative_rois
     // Since the string starts with the positive rois, remove the first + character to be compliant with MEDimage's notation
-    roisString = (positiveRois + negativeRois).substring(1);
+    roisString = (positiveRois + negativeRois).substring(1)
 
-    console.log("ROIS SELECTED : ", roisString);
+    console.log("ROIS SELECTED : ", roisString)
     // Add the ROI list to the node's data
-    data.internal.settings["rois_data"] = roisString;
+    data.internal.settings["rois_data"] = roisString
     // And set changeView to true to update the view
     data.parentFct.updateNode({
       id: id,
-      updatedData: data.internal,
-    });
-  }, []);
+      updatedData: data.internal
+    })
+  }, [selectedRois, id, data.internal, data.parentFct])
 
   return (
     <>
@@ -113,7 +104,8 @@ const SegmentationNode = ({ id, data, type }) => {
         nodeSpecific={
           <>
             {/* Show segmentation warning when there is no roisList or the roisList is empty */}
-            {!roisList || roisList.length === 0 ? (
+            {!Object.keys(selectedRois) ||
+            Object.keys(selectedRois).length === 0 ? (
               <Alert variant="danger">
                 <b>No input node detected</b>
               </Alert>
@@ -152,7 +144,7 @@ const SegmentationNode = ({ id, data, type }) => {
                         </thead>
                         <tbody id={`segmentation-form-body-${id}`}>
                           {/* Map all possible ROIs to a set of radio buttons: add is 0, sub is 1 and unused is 2 (default value) */}
-                          {roisList.map((currentRoi) => (
+                          {Object.keys(selectedRois).map((currentRoi) => (
                             <tr key={currentRoi}>
                               <td>
                                 <label htmlFor={currentRoi}>{currentRoi}</label>
@@ -184,7 +176,7 @@ const SegmentationNode = ({ id, data, type }) => {
         }
       />
     </>
-  );
-};
+  )
+}
 
-export default SegmentationNode;
+export default SegmentationNode
