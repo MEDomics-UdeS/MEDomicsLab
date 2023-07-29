@@ -16,7 +16,7 @@ import StandardNode from "./nodesTypes/standardNode"
 import SegmentationNode from "./nodesTypes/segmentationNode"
 import FilterNode from "./nodesTypes/filterNode"
 import FeaturesNode from "./nodesTypes/featuresNode"
-import GroupNode from "../flow/groupNode"
+import ExtractionNode from "./nodesTypes/extractionNode"
 
 // Import node parameters
 import nodesParams from "../../public/setupVariables/allNodesParams"
@@ -50,7 +50,6 @@ const Workflow = ({ workflowType, setWorkflowType }) => {
   const { setViewport } = useReactFlow() // setViewport is used to update the viewport of the workflow
   const [treeData, setTreeData] = useState({}) // treeData is used to set the data of the tree menu
   const [groupNodeId, setGroupNodeId] = useState(null) // groupNodeId is used to know which groupNode is selected
-  const [progress, setProgress] = useState({}) // progress is used to store the progress of the workflow execution
   const [results, setResults] = useState({}) // results is used to store radiomic features results
 
   // Executed when edges change
@@ -124,7 +123,7 @@ const Workflow = ({ workflowType, setWorkflowType }) => {
       standardNode: StandardNode,
       filterNode: FilterNode,
       featuresNode: FeaturesNode,
-      groupNode: GroupNode
+      extractionNode: ExtractionNode
     }),
     []
   )
@@ -200,7 +199,7 @@ const Workflow = ({ workflowType, setWorkflowType }) => {
           let targetNode = JSON.parse(
             JSON.stringify(nodes.find((node) => node.id === edge.target))
           )
-          if (targetNode.type != "groupNode") {
+          if (targetNode.type != "extractionNode") {
             let subIdText = ""
             let subflowId = targetNode.data.internal.subflowId
             if (subflowId) {
@@ -225,7 +224,7 @@ const Workflow = ({ workflowType, setWorkflowType }) => {
         JSON.stringify(nodes.find((node) => node.id === edge.source))
       )
 
-      if (sourceNode.type === "inputNode") {
+      if (sourceNode.data.internal.type === "input") {
         treeMenuData[sourceNode.id] = {
           label: sourceNode.data.internal.name,
           nodes: createTreeFromNodesRec(sourceNode)
@@ -278,6 +277,11 @@ const Workflow = ({ workflowType, setWorkflowType }) => {
     // Used to enable the view button of a node (if it exists)
     newNode.data.internal.enableView = false
 
+    // Add dictionnary to put results in node data if the node is an extractionNode
+    if (newNode.type === "extractionNode") {
+      newNode.data.internal.results = {}
+    }
+
     return newNode
   }
 
@@ -296,7 +300,7 @@ const Workflow = ({ workflowType, setWorkflowType }) => {
           if (n.id !== id) {
             filteredNodes.push(n)
           }
-          if (n.type == "groupNode") {
+          if (n.type == "extractionNode") {
             let childrenNodes = nds.filter(
               (node) => node.data.internal.subflowId == id
             )
@@ -327,6 +331,8 @@ const Workflow = ({ workflowType, setWorkflowType }) => {
 
     if (reactFlowInstance) {
       let flow = JSON.parse(JSON.stringify(reactFlowInstance.toObject()))
+      console.log("REACT FLOW INSTANCE")
+      console.log(flow)
 
       flow.nodes.forEach((node) => {
         const nodeID = node.id
@@ -405,6 +411,74 @@ const Workflow = ({ workflowType, setWorkflowType }) => {
     return null
   }, [reactFlowInstance])
 
+  // TODO Function that would check every node has the necessary data and that the pipelines are functionnal before running a node or a workflow.
+  const preRunCheck = useCallback(() => {}, [reactFlowInstance])
+
+  // Handles merge between the already existing data of an extraction node and the response dictionnary from the backend
+  // TODO : Should not have to be used after refactoring of backend
+  const handleExtractionResults = (oldNodeData, response) => {
+    // Get the results that were in the node
+    let oldResults = oldNodeData
+    let newResults = oldResults
+    if (Object.keys(oldResults).length === 0) {
+      // If there is no results yet in this node (first run), create a new dictionnary
+      for (let file in response) {
+        newResults[file] = { RUN_1: {} }
+        let pipelineNumber = 1
+        for (let pip in response[file]) {
+          let newPipelineName = "pipeline " + pipelineNumber
+          newResults[file]["RUN_1"][newPipelineName] = response[file][pip]
+          newResults[file]["RUN_1"][newPipelineName]["settings"][
+            "fullPipelineName"
+          ] = { pip }
+          pipelineNumber++
+        }
+      }
+    } else {
+      for (let file in response) {
+        // Check if the file is alreay in the results
+        if (file in oldResults) {
+          // Add the new results to the dictionnary
+          let runNumber = Object.keys(oldResults[file]).length + 1
+          newResults[file]["RUN_" + runNumber] = {}
+          let pipelineNumber = 1
+          for (let pip in response[file]) {
+            let newPipelineName = "pipeline " + pipelineNumber
+            newResults[file]["RUN_" + runNumber][newPipelineName] =
+              response[file][pip]
+            newResults[file]["RUN_" + runNumber][newPipelineName]["settings"][
+              "fullPipelineName"
+            ] = { pip }
+            pipelineNumber++
+          }
+        } else {
+          // Create a new dictionnary for the file
+          newResults[file] = { RUN_1: {} }
+          let pipelineNumber = 1
+          for (let pip in response[file]) {
+            let newPipelineName = "pipeline " + pipelineNumber
+            newResults[file]["RUN_1"][newPipelineName] = response[file][pip]
+            newResults[file]["RUN_1"][newPipelineName]["settings"][
+              "fullPipelineName"
+            ] = { pip }
+            pipelineNumber++
+          }
+        }
+      }
+    }
+    return newResults
+  }
+
+  function mergeWithoutDuplicates(list1, list2) {
+    // Create a new Set by combining both lists
+    const mergedSet = new Set([...list1, ...list2])
+
+    // Convert the Set back to an array
+    const mergedArray = Array.from(mergedSet)
+
+    return mergedArray
+  }
+
   /**
    *
    * @param {String} id id of the node to execute
@@ -416,9 +490,9 @@ const Workflow = ({ workflowType, setWorkflowType }) => {
     (id) => {
       console.log("Running node", id)
 
-      // Transform the flow instance to a dictionnary compatible with the backend
+      // Transform the flow instance to a dictionary compatible with the backend
       let newFlow = transformFlowInstance()
-      console.log("Flow dictionnary sent to backend is : ")
+      console.log("Flow dictionary sent to backend is : ")
       console.log(newFlow)
 
       // Get the node from id
@@ -426,28 +500,68 @@ const Workflow = ({ workflowType, setWorkflowType }) => {
         ? newFlow.drawflow.Home.data[id].name
         : "extraction"
 
-      // POST request to /extraction/run for current node by sending form_data
+      // POST request to /extraction/run for the current node by sending form_data
       var formData = JSON.stringify({
         id: id,
         name: nodeName,
         json_scene: newFlow
       })
+
       axiosPostJson(formData, "extraction/run")
         .then((response) => {
-          console.log(response)
           toast.success("Node executed successfully")
-          // enable view of node
-          setNodes((nds) =>
-            nds.map((n) => {
-              if (n.id === id) {
-                n.data.internal.enableView = true
+          console.log("Response from backend is: ")
+          console.log(response)
+
+          // Get all the nodes in the executed pipeline
+          let executedNodes = []
+          for (let files in response) {
+            for (let pipeline in response[files]) {
+              let pipelineNodeIds = pipeline.match(/node_[a-f0-9-]+/g)
+              executedNodes = mergeWithoutDuplicates(
+                executedNodes,
+                pipelineNodeIds
+              )
+            }
+          }
+
+          // Update the extractionNode data with the response from the backend
+          // And enable the view button of the nodes
+          setNodes((prevNodes) =>
+            prevNodes.map((node) => {
+              if (node.id === id && node.type === "extractionNode") {
+                // Get the results that were in the node
+                let oldResults = node.data.internal.results
+                let newResults = handleExtractionResults(oldResults, response)
+
+                return {
+                  ...node,
+                  data: {
+                    ...node.data,
+                    internal: {
+                      ...node.data.internal,
+                      results: newResults // Update the results data with the response
+                    }
+                  }
+                }
               }
-              return n
+
+              if (executedNodes.includes(node.id)) {
+                // Enable the view button of the node
+                node.data.internal.enableView = true
+                node.data.parentFct.updateNode({
+                  id: node.id,
+                  updatedData: node.data.internal
+                })
+              }
+
+              return node
             })
           )
         })
         .catch((error) => {
-          console.error("Error:", error)
+          // Warn the user if the node could not be executed correctly
+          console.log(error)
           toast.warn("Could not run the node.")
         })
     },
@@ -459,6 +573,7 @@ const Workflow = ({ workflowType, setWorkflowType }) => {
    */
   const onRun = useCallback(() => {
     console.log("Running workflow")
+
     // Transform the flow instance to a dictionnary compatible with the backend
     let newFlow = transformFlowInstance()
     console.log("Flow dictionnary sent to back end is : ")
@@ -467,12 +582,46 @@ const Workflow = ({ workflowType, setWorkflowType }) => {
     // Post request to extraction/run-all for current workflow
     axiosPostJson(newFlow, "extraction/run-all")
       .then((response) => {
+        console.log("Response from the backend : ")
         console.log(response)
         toast.success("Workflow executed successfully")
-        setResults(response.data)
+
+        // A response from the backend is only given if there are e
+
+        setNodes((prevNodes) =>
+          prevNodes.map((node) => {
+            // If the type of the node is extractionNode, update the results according
+            // to the response from the backend
+            if (node.type === "extractionNode") {
+              // Get the results that were in the node
+              let oldResults = node.data.internal.results
+              let newResults = handleExtractionResults(oldResults, response)
+
+              return {
+                ...node,
+                data: {
+                  ...node.data,
+                  internal: {
+                    ...node.data.internal,
+                    results: newResults // Update the results data with the response
+                  }
+                }
+              }
+            }
+
+            // Enable the view button of the node
+            node.data.internal.enableView = true
+            node.data.parentFct.updateNode({
+              id: node.id,
+              updatedData: node.data.internal
+            })
+
+            return node
+          })
+        )
       })
       .catch((error) => {
-        console.error("Error:", error)
+        // Warn the user if the workflow could not be executed correctly
         toast.warn("Could not run the workflow.")
       })
   }, [nodes, edges, reactFlowInstance])
@@ -542,7 +691,7 @@ const Workflow = ({ workflowType, setWorkflowType }) => {
             // the line below is important because functions are not serializable
             // reset functions associated with nodes
             node.data.parentFct = {
-              deleteNode: onDeleteNode,
+              deleteNode: deleteNode,
               updateNode: setNodeUpdate,
               runNode: runNode,
               changeSubFlow: setGroupNodeId
@@ -651,8 +800,6 @@ const Workflow = ({ workflowType, setWorkflowType }) => {
             <div className="btn-panel-top-corner-left">
               {workflowType == "extraction" && (
                 <>
-                  {" "}
-                  <ResultsButton results={results} />
                   <TreeMenu
                     data={treeData}
                     onClickItem={onTreeItemClick}
