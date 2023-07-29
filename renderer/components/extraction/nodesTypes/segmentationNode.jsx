@@ -106,7 +106,7 @@ const SegmentationNode = ({ id, data, type }) => {
             {/* Show segmentation warning when there is no roisList or the roisList is empty */}
             {!Object.keys(selectedRois) ||
             Object.keys(selectedRois).length === 0 ? (
-              <Alert variant="danger">
+              <Alert variant="danger" className="warning-message">
                 <b>No input node detected</b>
               </Alert>
             ) : (

@@ -92,7 +92,7 @@ const nodesParams = {
     }
   },
   extraction: {
-    type: "groupNode",
+    type: "extractionNode",
     classes: "object extraction run",
     nbInput: 1,
     nbOutput: 0,
