@@ -18,42 +18,61 @@ const InputForm = ({ nodeForm, changeNodeForm, enableView }) => {
     }
   }
 
+  const handleFolderChange = (event) => {
+    const fileList = event.target.files
+    if (fileList.length > 0) {
+      const selectedFile = fileList[0]
+
+      // The path of the image needs to be the path of the common folder of all the files
+      // If the directory is constructed according to standard DICOM format, the path
+      // of the image is the one containning the folders image and mask
+      let selectedImageFolder =
+        "/" + selectedFile.path.split("/").slice(1, -2).join("/")
+      setSelectedFile(selectedImageFolder)
+    }
+  }
+
   // Function to send a POST request to /extraction/upload when the user
   // clicks on the upload button
-  const handleUpload = useCallback(() => {
-    // Check if the filename is not empty
-    if (selectedFile && selectedFile !== "") {
-      // Create a new form with the path to the file to upload
-      //const formData = new FormData();
-      let formData = JSON.stringify({ file: selectedFile })
+  const handleUpload = useCallback(
+    (fileType) => {
+      console.log("HANDLE UPLOAD CALLED")
+      // TODO : Check if the upload button clicked corresponds to the filetype
+      // Check if the filename is not empty
+      if (selectedFile && selectedFile !== "") {
+        // Create a new form with the path to the file to upload
+        //const formData = new FormData();
+        let formData = JSON.stringify({ file: selectedFile, type: fileType })
 
-      // POST request to /extraction/upload for current node by sending form data of node
-      axiosPostJson(formData, "extraction/upload")
-        .then((response) => {
-          // The response of the request should be the filename of the uploaded file, and
-          // the rois list for the image. Since the nodeForm was already updated with the user
-          // we only need to update the rois list
-          // Modify the event object
-          changeNodeForm({
-            target: { name: "rois", value: response.rois_list }
+        // POST request to /extraction/upload for current node by sending form data of node
+        axiosPostJson(formData, "extraction/upload")
+          .then((response) => {
+            // The response of the request should be the filename of the uploaded file, and
+            // the rois list for the image. Since the nodeForm was already updated with the user
+            // we only need to update the rois list
+            // Modify the event object
+            changeNodeForm({
+              target: { name: "rois", value: response.rois_list }
+            })
+            changeNodeForm({
+              target: { name: "filepath", value: response.name }
+            })
+
+            // Enable the view button
+            enableView(true)
           })
-          changeNodeForm({
-            target: { name: "filepath", value: response.name }
+          .catch((error) => {
+            // If there is an error, write it in the console and notify the user
+            console.error("Error:", error)
+            toast.warn("Could not load file.")
+
+            // Disable the view button
+            enableView(false)
           })
-
-          // Enable the view button
-          enableView(true)
-        })
-        .catch((error) => {
-          // If there is an error, write it in the console and notify the user
-          console.error("Error:", error)
-          toast.warn("Could not load file.")
-
-          // Disable the view button
-          enableView(false)
-        })
-    }
-  }, [nodeForm, selectedFile, changeNodeForm])
+      }
+    },
+    [nodeForm, selectedFile, changeNodeForm]
+  )
 
   return (
     <Form method="post" encType="multipart/form-data" className="inputFile">
@@ -72,9 +91,38 @@ const InputForm = ({ nodeForm, changeNodeForm, enableView }) => {
         <Col className="upload-button-col">
           <Form.Group controlId="uploadButton">
             <Button
+              name="uploadButtonFile"
               type="button"
               variant="primary"
-              onClick={handleUpload}
+              onClick={() => handleUpload("file")}
+              disabled={!selectedFile}
+              className="upload-button"
+            >
+              Upload
+            </Button>
+          </Form.Group>
+        </Col>
+      </Row>
+      <Row className="form-group-box">
+        <Form.Label htmlFor="file">DICOM image (folder)</Form.Label>
+        <Col style={{ width: "150px" }}>
+          <Form.Group controlId="enterFile">
+            <Form.Control
+              name="file"
+              type="file"
+              webkitdirectory="true"
+              directory="true"
+              onChange={handleFolderChange}
+            />
+          </Form.Group>
+        </Col>
+        <Col className="upload-button-col">
+          <Form.Group controlId="uploadButton">
+            <Button
+              name="uploadButtonFolder"
+              type="button"
+              variant="primary"
+              onClick={() => handleUpload("folder")}
               disabled={!selectedFile}
               className="upload-button"
             >
@@ -86,7 +134,9 @@ const InputForm = ({ nodeForm, changeNodeForm, enableView }) => {
       {nodeForm.filepath && nodeForm.filepath !== "" && (
         <Card className="cute-box">
           <Card.Body>
-            <Card.Text>Uploaded file: {nodeForm.filepath}</Card.Text>
+            <Card.Text>
+              <strong>Uploaded image:</strong> {nodeForm.filepath.slice(0, -4)}
+            </Card.Text>
           </Card.Body>
         </Card>
       )}

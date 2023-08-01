@@ -331,7 +331,7 @@ const Workflow = ({ workflowType, setWorkflowType }) => {
 
     if (reactFlowInstance) {
       let flow = JSON.parse(JSON.stringify(reactFlowInstance.toObject()))
-      console.log("REACT FLOW INSTANCE")
+      console.log("The current React Flow instance is : ")
       console.log(flow)
 
       flow.nodes.forEach((node) => {
@@ -341,7 +341,6 @@ const Workflow = ({ workflowType, setWorkflowType }) => {
         if (node.type === "featuresNode") {
           // If the node is a featuresNode, it has a subflowId and its module name is extraction-subFlowId
           let moduleName = "extraction-" + node.data.internal.subflowId
-          console.log(moduleName)
           // If the subFlowId structure is not already created, create it
           if (!(moduleName in modifiedFlow.drawflow)) {
             modifiedFlow.drawflow[moduleName] = {
