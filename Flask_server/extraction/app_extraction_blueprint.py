@@ -12,6 +12,8 @@ Uses the "Plotly" library for 3D volume visualization: https://plotly.com/python
 import copy
 import shutil
 import os
+import sys
+from pathlib import Path
 import pickle
 import pprint
 from copy import deepcopy
@@ -29,6 +31,8 @@ pp = pprint.PrettyPrinter(indent=4, compact=True, width=40,
 import submodules.MEDimage.MEDimage as MEDimage
 
 import extraction.MEDimageApp.utils as utils
+import ray
+
 
 # Global variables
 cwd = os.getcwd()
@@ -420,7 +424,7 @@ def execute_pips(pips, json_scene):
                     round_val=MEDimg.params.process.gl_round,
                     image_type='image',
                     roi_obj_s=last_roi_compute,  # roi_obj_init
-                    box_string=MEDimg.params.process.box_string
+                    box_string="full"
                 )
                 # Morphological Mask
                 roi_obj_morph = MEDimage.processing.interp_volume(
@@ -431,7 +435,7 @@ def execute_pips(pips, json_scene):
                     round_val=MEDimg.params.process.roi_pv,
                     image_type='roi',
                     roi_obj_s=last_roi_compute,  # roi_obj_init
-                    box_string=MEDimg.params.process.box_string
+                    box_string="full"
                 )
                 print(" --> ", content["name"], " executed.")
 
@@ -439,6 +443,7 @@ def execute_pips(pips, json_scene):
                 update_pip = True
                 output_obj["vol"] = vol_obj
                 output_obj["roi"] = roi_obj_morph
+                output_obj["roi_morph"] = roi_obj_morph
                 id_obj["output"] = output_obj
                 print(" --> outputs updated.")
                 # Update settings infos pour json response
@@ -610,8 +615,6 @@ def execute_pips(pips, json_scene):
                     # ---------------------------------- NON TEXTURE FEATURES -----------------------------------------
                     # MORPH
                     if feature_name == "morph":
-                        #TODO: temporary solution, need front end refactor
-                        feature_name = "morph"
 
                         nodes_allowed = ["interpolation", "re_segmentation", "filter_processing"]
                         # TODO: Ajouter test permettant de vérifier la présence de certains node dans pip
@@ -627,12 +630,22 @@ def execute_pips(pips, json_scene):
 
                         # Morphological features extraction
                         try:
+                            # Create an empty list to store the keys that match the condition
+                            roi_morph = []
+
+                            # Iterate through the outer dictionary items
+                            for key, inner_dict in pip_obj.items():
+                                if 'type' in inner_dict and inner_dict['type'] == 'interpolation':
+                                    # Append the key to the list if the condition is met
+                                    roi_morph = inner_dict['output']['roi_morph']
+                            
+                            
                             # If all features need to be extracted
                             if features_to_extract[0] == "extract_all":
                                 features = MEDimage.biomarkers.morph.extract_all(
                                     vol=last_feat_vol.data,  # vol_obj.data
                                     mask_int=last_feat_roi.data,  # roi_obj_morph.data,
-                                    mask_morph=last_feat_roi.data,  # roi_obj_morph.data,
+                                    mask_morph=roi_morph.data,  # roi_obj_morph.data,
                                     res=MEDimg.params.process.scale_non_text,
                                 )
 
@@ -1127,13 +1140,36 @@ def getUpload():  # Code selected from  https://flask.palletsprojects.com/en/2.2
     up_file_infos = {}
     if request.method == 'POST':
         data = request.get_json()
-
+        ######################################################################################
+        # CHECK IF THE REQUEST GAVE A FILE OR A FOLDER
+        # IF THE REQUEST IS A FILE, AND THE FILE IS A NPY FILE, TRY OPENING IT AS A MEDIMAGE
+        # PICKLE OBJECT.
+        # IF THE REQUEST IS A FOLDER, TRY OPENING IT AS A DICOM IMAGE USING MEDIMAGE.
+        ######################################################################################
+        
         # check if the post request has the file part
         if 'file' not in data:
             return Response("No file part", status = 400)
         
         file = data["file"]
-
+        file_type = data["type"]
+        
+        if file_type == "folder":
+            # Initialize the DataManager class
+            path_to_dicoms = file
+            dm = MEDimage.wrangling.DataManager(path_to_dicoms=path_to_dicoms, path_save=UPLOAD_FOLDER, save=True)
+            
+            # Process the DICOM scan
+            dm.process_all_dicoms()
+            
+            # Ray doesnt need to be shutdown in MEDimage but needs to be shutdown here to avoid
+            # connection error with the Flask server continues to run
+            ray.shutdown()
+            
+            # Get the path to the file created by MEDimage
+            file = dm.path_to_objects[0]            
+        
+        # Check if the file is a valid pickle object
         if file and utils.allowed_pickle_object(file):
             # TODO : For the moment the file is copied in the UPLOAD_FOLDER
             # but since the app is a local app, it doesn't need to be copied.
@@ -1141,9 +1177,9 @@ def getUpload():  # Code selected from  https://flask.palletsprojects.com/en/2.2
             filename = os.path.basename(file)
             file_path = os.path.join(UPLOAD_FOLDER, filename)
 
-            shutil.copy2(file, file_path)
-
-            #file.save(file_path)
+            if file_type == "file":
+                shutil.copy2(file, file_path)
+                #file.save(file_path)
 
             # Load and store MEDimage instance from file loaded
             with open(file_path, 'rb') as f:
@@ -1156,6 +1192,8 @@ def getUpload():  # Code selected from  https://flask.palletsprojects.com/en/2.2
             up_file_infos["name"] = filename
             up_file_infos["rois_list"] = ROIS_list
             return jsonify(up_file_infos)
+        else: 
+            return Response("The file you tried to upload doesnt have the right format.", status = 400)
 
 
 # Run all button to run all drawflow pipelines
