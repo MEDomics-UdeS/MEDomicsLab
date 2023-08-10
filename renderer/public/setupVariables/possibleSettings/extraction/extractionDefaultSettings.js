@@ -4,7 +4,7 @@ const extractionDefaultSettings = {
     rois: {}
   },
   segmentation: {
-    ROIname: "",
+    rois_data: "",
     rois: {}
   },
   interpolation: {

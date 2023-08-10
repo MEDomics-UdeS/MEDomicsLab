@@ -1,6 +1,5 @@
-import React, { useState, useCallback, useMemo, useEffect, use } from "react"
+import React, { useState, useCallback, useMemo, useEffect } from "react"
 import { toast } from "react-toastify"
-import EditableLabel from "react-simple-editlabel"
 import TreeMenu from "react-simple-tree-menu"
 
 // Import utilities
@@ -8,7 +7,7 @@ import { loadJsonSync, downloadJson } from "../../utilities/fileManagementUtils"
 import { axiosPostJson } from "../../utilities/requests"
 
 // Workflow imports
-import { useNodesState, useEdgesState, useReactFlow, addEdge } from "reactflow"
+import { useNodesState, useEdgesState, useReactFlow } from "reactflow"
 import WorkflowBase from "../flow/workflowBase"
 
 // Import node types
@@ -26,7 +25,10 @@ import ResultsButton from "./buttonsTypes/resultsButton"
 import BtnDiv from "../flow/btnDiv"
 
 // Static functions used in the workflow
-import { removeDuplicates, deepCopy } from "../../utilities/staticFunctions"
+import {
+  mergeWithoutDuplicates,
+  deepCopy
+} from "../../utilities/staticFunctions"
 
 // Static nodes parameters
 const staticNodesParams = nodesParams
@@ -52,9 +54,8 @@ const Workflow = ({ workflowType, setWorkflowType }) => {
   const [groupNodeId, setGroupNodeId] = useState(null) // groupNodeId is used to know which groupNode is selected
   const [results, setResults] = useState({}) // results is used to store radiomic features results
 
-  // Executed when edges change
+  // Hook executed upon modification of edges to verify the connections between input and segmentation nodes
   useEffect(() => {
-    console.log("The use effect is executed")
     // Check if there are any connections between an input and segmentation node
     const inputSegmentationConnections = edges.filter(
       (edge) =>
@@ -115,8 +116,7 @@ const Workflow = ({ workflowType, setWorkflowType }) => {
     })
   }, [edges])
 
-  // Declare node types using useMemo hook to avoid re-creating component types unnecessarily (it memorizes the output)
-  // https://www.w3schools.com/react/react_usememo.asp
+  // Declare node types using useMemo hook to avoid re-creating component types unnecessarily (memoize output)
   const nodeTypes = useMemo(
     () => ({
       segmentationNode: SegmentationNode,
@@ -128,12 +128,12 @@ const Workflow = ({ workflowType, setWorkflowType }) => {
     []
   )
 
-  // Execute setTreeData when there is a change in nodes or edges arrays.
+  // Executes setTreeData when there is a change in nodes or edges arrays.
   useEffect(() => {
     setTreeData(createTreeFromNodes())
   }, [nodes, edges])
 
-  // Executed when groupNodeId changes. I put it in useEffect because it assures groupNodeId is updated.
+  // Hook executed upon modification of groupNodeId to show the current workflow
   useEffect(() => {
     // If there is a groupNodeId, the workflow is a features workflow
     if (groupNodeId) {
@@ -150,13 +150,11 @@ const Workflow = ({ workflowType, setWorkflowType }) => {
   }, [groupNodeId])
 
   /**
-   *
    * @param {String} activeNodeId id of the group that is active
    *
    * This function hides the nodes and edges that are not in the active group
    * each node has a subflowId that is the id of the group it belongs to
    * if the subflowId is not equal to the activeNodeId, then the node is hidden
-   *
    */
   const hideNodesbut = (activeNodeId) => {
     setNodes((nodes) =>
@@ -191,7 +189,7 @@ const Workflow = ({ workflowType, setWorkflowType }) => {
    * it is used to create the recursive workflow
    */
   const createTreeFromNodes = useCallback(() => {
-    // recursively create tree from nodes
+    // Recursively create tree from nodes
     const createTreeFromNodesRec = (node) => {
       let children = {}
       edges.forEach((edge) => {
@@ -218,12 +216,14 @@ const Workflow = ({ workflowType, setWorkflowType }) => {
       return children
     }
 
+    // Create the tree data
     let treeMenuData = {}
     edges.forEach((edge) => {
       let sourceNode = JSON.parse(
         JSON.stringify(nodes.find((node) => node.id === edge.source))
       )
 
+      // If the node is an input node, add its tree to the treeMenuData (input node is always a root of a tree)
       if (sourceNode.data.internal.type === "input") {
         treeMenuData[sourceNode.id] = {
           label: sourceNode.data.internal.name,
@@ -294,12 +294,14 @@ const Workflow = ({ workflowType, setWorkflowType }) => {
    */
   const deleteNode = useCallback(
     (id) => {
-      console.log("delete node", id)
+      console.log("Deleting node ", id)
+
       setNodes((nds) =>
         nds.reduce((filteredNodes, n) => {
           if (n.id !== id) {
             filteredNodes.push(n)
           }
+
           if (n.type == "extractionNode") {
             let childrenNodes = nds.filter(
               (node) => node.data.internal.subflowId == id
@@ -308,6 +310,7 @@ const Workflow = ({ workflowType, setWorkflowType }) => {
               deleteNode(node.id)
             })
           }
+
           return filteredNodes
         }, [])
       )
@@ -316,9 +319,13 @@ const Workflow = ({ workflowType, setWorkflowType }) => {
     [nodes]
   )
 
-  // Temporary fix used to simulate the call to the backend that is not yet refactored
-  // Will be removed when the backed is finished
-  // TODO : Did not do the special case for extraction node!
+  /**
+   * @returns {Object} modified flow instance, if a reactFlowInstance exists
+   *
+   * Temporary fix used to simulate the call to the backend that is not yet refactored
+   * Will be removed when the backed is finished
+   * TODO : Did not do the special case for extraction node!
+   */
   const transformFlowInstance = useCallback(() => {
     // Initialize the new dictionnary for the modified flow
     let modifiedFlow = {
@@ -329,6 +336,7 @@ const Workflow = ({ workflowType, setWorkflowType }) => {
       }
     }
 
+    // If the reactFlowInstance exists
     if (reactFlowInstance) {
       let flow = JSON.parse(JSON.stringify(reactFlowInstance.toObject()))
       console.log("The current React Flow instance is : ")
@@ -405,16 +413,21 @@ const Workflow = ({ workflowType, setWorkflowType }) => {
         }
       })
 
+      // Return the modified flow instance that can be sent to the backend
       return modifiedFlow
     }
+
     return null
   }, [reactFlowInstance])
 
-  // TODO Function that would check every node has the necessary data and that the pipelines are functionnal before running a node or a workflow.
-  const preRunCheck = useCallback(() => {}, [reactFlowInstance])
-
-  // Handles merge between the already existing data of an extraction node and the response dictionnary from the backend
-  // TODO : Should not have to be used after refactoring of backend
+  /**
+   * @param {Object} oldNodeData data of the node before the backend call
+   * @param {Object} response response from the backend
+   * @returns {Object} new node data
+   *
+   * Handles merge between the already existing data of an extraction node and the response dictionnary from the backend
+   * TODO : Should not have to be used after refactoring of backend
+   */
   const handleExtractionResults = (oldNodeData, response) => {
     // Get the results that were in the node
     let oldResults = oldNodeData
@@ -468,18 +481,7 @@ const Workflow = ({ workflowType, setWorkflowType }) => {
     return newResults
   }
 
-  function mergeWithoutDuplicates(list1, list2) {
-    // Create a new Set by combining both lists
-    const mergedSet = new Set([...list1, ...list2])
-
-    // Convert the Set back to an array
-    const mergedArray = Array.from(mergedSet)
-
-    return mergedArray
-  }
-
   /**
-   *
    * @param {String} id id of the node to execute
    *
    * This function is called when the user clicks on the run button of a node
@@ -660,6 +662,7 @@ const Workflow = ({ workflowType, setWorkflowType }) => {
       console.log("flow", flow)
       downloadJson(flow, "experiment")
     } else {
+      // Warn the user if there is no workflow to save
       toast.warn("No workflow to save!")
     }
   }, [reactFlowInstance, nodes])
@@ -735,7 +738,6 @@ const Workflow = ({ workflowType, setWorkflowType }) => {
    * @param {Object} info info about the node clicked
    *
    * This function is called when the user clicks on a tree item
-   *
    */
   const onTreeItemClick = (info) => {
     console.log("tree item clicked: ", info)
@@ -748,7 +750,16 @@ const Workflow = ({ workflowType, setWorkflowType }) => {
     },
     [nodes]
   )
-
+  /**
+   * @param {object} params
+   * @param {string} params.source
+   * @param {string} params.target
+   * @param {string} params.sourceHandle
+   * @param {string} params.targetHandle
+   *
+   * This function is called when the user connects two nodes
+   * It verifies if a connection is valid for the current workflow
+   */
   const isGoodConnection = (connection) => {
     // Getting the source and target nodes
     let sourceNode = nodes.find((node) => node.id == connection.source)
@@ -793,9 +804,10 @@ const Workflow = ({ workflowType, setWorkflowType }) => {
         // optional props
         onDeleteNode={deleteNode}
         isGoodConnection={isGoodConnection}
-        // represents the visual over the workflow
+        // represents the visual of the workflow
         ui={
           <>
+            {/* Components in the upper left corner of the workflow */}
             <div className="btn-panel-top-corner-left">
               {workflowType == "extraction" && (
                 <>
@@ -808,6 +820,8 @@ const Workflow = ({ workflowType, setWorkflowType }) => {
                 </>
               )}
             </div>
+
+            {/* Components in the upper right corner of the workflow */}
             <div className="btn-panel-top-corner-right">
               {workflowType == "extraction" ? (
                 <BtnDiv
