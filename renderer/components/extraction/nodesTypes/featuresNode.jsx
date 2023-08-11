@@ -1,21 +1,22 @@
-// Feature node component represents a radiomic feature family
-// The node specific settings are only shown if the user need to select distinct parameters for the feature family
-// The default settings are always a list of checkboxes for each feature in the feature family and are shown in the offcanvas
-import React, { useState, useEffect, useCallback, useMemo, use } from "react"
+import React, { useState, useEffect, useCallback, useMemo } from "react"
 import Node from "../../flow/node"
 import { Form } from "react-bootstrap"
+
 /**
- *
  * @param {string} id id of the node
  * @param {object} data data of the node
  * @param {string} type type of the node
  * @returns {JSX.Element} A FeaturesNode node
  *
  * @description
- *
+ * This component is used to display a FeaturesNode node.
+ * it handles the display of the node and the modal
+ * A FeaturesNode is a component that represents a radiomic feature family.
+ * The node specific settings are only shown if the user need to select distinct parameters for the feature family
+ * The default settings are always a list of checkboxes for each feature in the feature family and are shown in the modal
  */
-
 const FeaturesNode = ({ id, data, type }) => {
+  // List of all the features in the feature family
   const features = useMemo(
     () =>
       Object.keys(
@@ -24,10 +25,12 @@ const FeaturesNode = ({ id, data, type }) => {
     []
   )
 
+  // Hook to keep the selected features
   const [selectedFeatures, setSelectedFeatures] = useState(
     data.internal.settings.features
   )
 
+  // Hook to change the selected features in the node data upon selectedFeatures change
   useEffect(() => {
     if (selectedFeatures.length === features.length) {
       setSelectedFeatures(["extract_all"])

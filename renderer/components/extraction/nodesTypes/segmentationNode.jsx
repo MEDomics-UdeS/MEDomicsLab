@@ -4,10 +4,21 @@ import ViewButton from "../buttonsTypes/viewButton"
 import { Container, Row, Col, Table, Alert } from "react-bootstrap"
 import { toast } from "react-toastify"
 
+/**
+ * @param {string} id id of the node
+ * @param {object} data data of the node
+ * @param {string} type type of the node
+ * @returns {JSX.Element} A SegmentationNode node
+ *
+ * @description
+ * This component is used to display a SegmentationNode node.
+ * it handles the display of the node and the modal
+ */
 const SegmentationNode = ({ id, data, type }) => {
-  const [selectedRois, setSelectedRois] = useState(data.internal.settings.rois)
-  const [shouldUpdateRois, setShouldUpdateRois] = useState(false)
+  const [selectedRois, setSelectedRois] = useState(data.internal.settings.rois) // Hook to keep track of the selected ROIs
+  const [shouldUpdateRois, setShouldUpdateRois] = useState(false) // Hook to keep track of whether the ROIs should be updated or not
 
+  // Hook called when the rois data of the node is changed, updates the selectedRois
   useEffect(() => {
     let newSelectedRois = {}
     if (
@@ -21,6 +32,15 @@ const SegmentationNode = ({ id, data, type }) => {
     setSelectedRois(newSelectedRois)
   }, [data.internal.settings.rois])
 
+  /**
+   * @param {Object} event event given by the form
+   * @param {string} currentRoi current ROI number
+   *
+   * @description
+   * This function is used to change the selected ROIs when the user changes the form
+   * It also checks if at least one ROI is positive
+   * If not, it throws an error
+   */
   const handleRadioChange = useCallback(
     (event, currentRoi) => {
       try {
@@ -40,7 +60,7 @@ const SegmentationNode = ({ id, data, type }) => {
 
         setShouldUpdateRois(true)
       } catch (error) {
-        // Show toast error to the user
+        // If there is not at least one positive ROI, throw an error
         toast.warn(error.message, {
           position: "bottom-right",
           autoClose: 5000,
@@ -56,6 +76,7 @@ const SegmentationNode = ({ id, data, type }) => {
     [selectedRois]
   )
 
+  // Hook called when the shouldUpdateRois is changed, updates the ROIs selection
   useEffect(() => {
     if (shouldUpdateRois) {
       getRoisSelection() // Call getRoisSelection when shouldUpdateRois is true
@@ -63,6 +84,10 @@ const SegmentationNode = ({ id, data, type }) => {
     }
   }, [shouldUpdateRois])
 
+  /**
+   * @description
+   * This function is used to get the ROIs selection from the selectedRois hook
+   */
   const getRoisSelection = useCallback(() => {
     let roisString = ""
     let positiveRois = ""
@@ -83,7 +108,7 @@ const SegmentationNode = ({ id, data, type }) => {
     // Since the string starts with the positive rois, remove the first + character to be compliant with MEDimage's notation
     roisString = (positiveRois + negativeRois).substring(1)
 
-    console.log("ROIS SELECTED : ", roisString)
+    console.log("The ROIs currently selected are : ", roisString)
     // Add the ROI list to the node's data
     data.internal.settings["rois_data"] = roisString
     // And set changeView to true to update the view

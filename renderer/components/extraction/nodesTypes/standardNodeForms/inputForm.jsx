@@ -1,8 +1,17 @@
-import React, { useState, useCallback, useEffect } from "react"
+import React, { useState, useCallback } from "react"
 import { Form, Row, Col, Button, Card } from "react-bootstrap"
 import { toast } from "react-toastify"
 import { axiosPostJson } from "../../../../utilities/requests"
 
+/**
+ * @param {Object} nodeForm form associated to the discretization node
+ * @param {Function} changeNodeForm function to change the node form
+ * @param {Function} enableView function to enable the view button of the node
+ * @returns {JSX.Element} A InputForm to display in the modal of an input node
+ *
+ * @description
+ * This component is used to display a InputForm.
+ */
 const InputForm = ({ nodeForm, changeNodeForm, enableView }) => {
   // Hook to keep the state of the upload button up to date with nodeForm.filename
   const [selectedFile, setSelectedFile] = useState("")

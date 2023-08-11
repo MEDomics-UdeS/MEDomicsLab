@@ -1,12 +1,22 @@
-import React from "react";
-import { Image } from "react-bootstrap";
-import { shell } from "electron";
+import React from "react"
+import { Image } from "react-bootstrap"
+import { shell } from "electron"
 
-const DocLink = ({ link, name, image }) => {
+/**
+ * @param {string} link - Link to the documentation
+ * @param {string} name - Name of the documentation
+ * @param {string} image - Image to display next to the documentation
+ * @returns {JSX.Element} - A link to the documentation
+ *
+ * @description
+ * This component is used to display a link to the documentation
+ * of a specific extraction method.
+ */
+const DocLink = ({ linkString, name, image }) => {
   const handleLinkClick = (event) => {
-    event.preventDefault();
-    shell.openExternal(link);
-  };
+    event.preventDefault()
+    shell.openExternal(linkString)
+  }
 
   return (
     <>
@@ -14,7 +24,7 @@ const DocLink = ({ link, name, image }) => {
         style={{
           display: "flex",
           alignItems: "center",
-          marginTop: "10px",
+          marginTop: "10px"
         }}
       >
         {image && (
@@ -25,12 +35,12 @@ const DocLink = ({ link, name, image }) => {
             style={{ marginRight: "10px" }}
           />
         )}
-        <a href={link} onClick={handleLinkClick}>
+        <a href={linkString} onClick={handleLinkClick}>
           {name}
         </a>
       </p>
     </>
-  );
-};
+  )
+}
 
-export default DocLink;
+export default DocLink

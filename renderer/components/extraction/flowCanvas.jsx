@@ -34,15 +34,13 @@ import {
 const staticNodesParams = nodesParams
 
 /**
- *
  * @param {String} id id of the workflow for multiple workflows management
- * @param {function} changeSidebarType function to change the sidebar type
+ * @param {Function} changeSidebarType function to change the sidebar type
  * @param {String} workflowType type of the workflow (extraction or features)
  * @returns {JSX.Element} A workflow component as defined in /flow
  *
  * @description
  * Component used to display the workflow of the extraction tab of MEDomicsLab.
- *
  */
 const Workflow = ({ workflowType, setWorkflowType }) => {
   const [nodes, setNodes, onNodesChange] = useNodesState([]) // nodes array, setNodes is used to update the nodes array, onNodesChange is a callback hook that is executed when the nodes array is changed
@@ -152,6 +150,7 @@ const Workflow = ({ workflowType, setWorkflowType }) => {
   /**
    * @param {String} activeNodeId id of the group that is active
    *
+   * @description
    * This function hides the nodes and edges that are not in the active group
    * each node has a subflowId that is the id of the group it belongs to
    * if the subflowId is not equal to the activeNodeId, then the node is hidden
@@ -185,6 +184,7 @@ const Workflow = ({ workflowType, setWorkflowType }) => {
   /**
    * @returns {Object} updated tree data
    *
+   * @description
    * This function creates the tree data from the nodes array
    * it is used to create the recursive workflow
    */
@@ -238,8 +238,9 @@ const Workflow = ({ workflowType, setWorkflowType }) => {
   /**
    * @param {Object} newNode base node object
    * @param {String} associatedNode id of the parent node if the node is a sub-group node
-   * @returns
+   * @returns {Object} updated node object
    *
+   * @description
    * Function passed to workflowBase to add the specific properties of a
    * node in the workflow for extraction or features
    */
@@ -288,6 +289,7 @@ const Workflow = ({ workflowType, setWorkflowType }) => {
   /**
    * @param {Object} id id of the node to delete
    *
+   * @description
    * This function is called when the user clicks on the delete button of a node
    * it deletes the node and its edges. If the node is a group node, it deletes
    * all the nodes inside the group node
@@ -322,6 +324,7 @@ const Workflow = ({ workflowType, setWorkflowType }) => {
   /**
    * @returns {Object} modified flow instance, if a reactFlowInstance exists
    *
+   * @description
    * Temporary fix used to simulate the call to the backend that is not yet refactored
    * Will be removed when the backed is finished
    * TODO : Did not do the special case for extraction node!
@@ -425,6 +428,7 @@ const Workflow = ({ workflowType, setWorkflowType }) => {
    * @param {Object} response response from the backend
    * @returns {Object} new node data
    *
+   * @description
    * Handles merge between the already existing data of an extraction node and the response dictionnary from the backend
    * TODO : Should not have to be used after refactoring of backend
    */
@@ -484,6 +488,7 @@ const Workflow = ({ workflowType, setWorkflowType }) => {
   /**
    * @param {String} id id of the node to execute
    *
+   * @description
    * This function is called when the user clicks on the run button of a node
    * It executes the pipelines finishing with this node
    */
@@ -570,6 +575,7 @@ const Workflow = ({ workflowType, setWorkflowType }) => {
   )
 
   /**
+   * @description
    * Runs all the pipelines in the workflow
    */
   const onRun = useCallback(() => {
@@ -628,6 +634,7 @@ const Workflow = ({ workflowType, setWorkflowType }) => {
   }, [nodes, edges, reactFlowInstance])
 
   /**
+   * @description
    * Clear the canvas if the user confirms
    */
   const onClear = useCallback(() => {
@@ -646,6 +653,7 @@ const Workflow = ({ workflowType, setWorkflowType }) => {
   }, [reactFlowInstance, nodes])
 
   /**
+   * @description
    * Save the workflow as a json file
    */
   const onSave = useCallback(() => {
@@ -668,6 +676,7 @@ const Workflow = ({ workflowType, setWorkflowType }) => {
   }, [reactFlowInstance, nodes])
 
   /**
+   * @description
    * Load a workflow from a json file
    */
   const onLoad = useCallback(() => {
@@ -728,6 +737,7 @@ const Workflow = ({ workflowType, setWorkflowType }) => {
   }, [setNodes, setViewport, nodes])
 
   /**
+   * @description
    * Set the subflow id to null to go back to the main workflow
    */
   const onBack = useCallback(() => {
@@ -737,6 +747,7 @@ const Workflow = ({ workflowType, setWorkflowType }) => {
   /**
    * @param {Object} info info about the node clicked
    *
+   * @description
    * This function is called when the user clicks on a tree item
    */
   const onTreeItemClick = (info) => {
@@ -757,6 +768,7 @@ const Workflow = ({ workflowType, setWorkflowType }) => {
    * @param {string} params.sourceHandle
    * @param {string} params.targetHandle
    *
+   * @description
    * This function is called when the user connects two nodes
    * It verifies if a connection is valid for the current workflow
    */

@@ -2,12 +2,20 @@ import React from "react"
 import { Form, Row, Col } from "react-bootstrap"
 import DocLink from "../../docLink"
 
-// Form group for log filter, used in the filter node component
+/**
+ * @param {Function} changeFilterForm function to change the filter form
+ * @param {Object} data data of the node
+ * @returns {JSX.Element} the form used for the Log filter
+ *
+ * @description
+ * This component is used to display the form of a Log filter.
+ * It is used in the filter node component.
+ */
 const LogFilter = ({ changeFilterForm, data }) => {
   return (
     <Form.Group as={Row} controlId="filter-log">
       <DocLink
-        link={
+        linkString={
           "https://medimage.readthedocs.io/en/latest/configuration_file.html#log"
         }
         name={"Log filter documentation"}

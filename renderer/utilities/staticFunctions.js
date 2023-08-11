@@ -27,6 +27,15 @@ export const removeDuplicates = (array) => {
   return a
 }
 
+/**
+ * @param {Array} list1
+ * @param {Array} list2
+ * @returns {Array} mergedArray
+ *
+ * @description
+ * This function merges two arrays without duplicates.
+ * It uses the Set data structure to remove duplicates.
+ */
 export const mergeWithoutDuplicates = (list1, list2) => {
   // Create a new Set by combining both lists
   const mergedSet = new Set([...list1, ...list2])

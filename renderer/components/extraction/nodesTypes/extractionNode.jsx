@@ -3,10 +3,18 @@ import { Offcanvas, Container, Alert } from "react-bootstrap"
 import TreeMenu from "react-simple-tree-menu"
 import { OffCanvasBackdropStyleContext } from "../../flow/context/offCanvasBackdropStyleContext"
 import { FlowInfosContext } from "../../flow/context/flowInfosContext"
-
 import GroupNode from "../../flow/groupNode"
 
-const extractionNode = ({ id, data, type }) => {
+/**
+ * @param {string} id id of the node
+ * @param {object} data data of the node
+ * @returns {JSX.Element} A extractionNode node
+ *
+ * @description
+ * This component is used to display a extractionNode node.
+ * It uses the GroupNode structure in /flow to display the node that contains a subflow.
+ */
+const extractionNode = ({ id, data }) => {
   const [showOffCanvas, setShowOffCanvas] = useState(false) // used to display the offcanvas
   const handleOffCanvasClose = () => setShowOffCanvas(false) // used to close the offcanvas
   const handleOffCanvasShow = () => setShowOffCanvas(true) // used to show the offcanvas

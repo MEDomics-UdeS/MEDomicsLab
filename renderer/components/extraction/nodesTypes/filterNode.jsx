@@ -2,23 +2,37 @@ import React, { useState, useCallback } from "react"
 import Node from "../../flow/node"
 import { Form, Row, Col } from "react-bootstrap"
 import ViewButton from "../buttonsTypes/viewButton"
+
+// Importing the different forms for the filter types
 import MeanFilter from "./filterTypes/meanFilter"
 import LogFilter from "./filterTypes/logFilter"
 import LawsFilter from "./filterTypes/lawsFilter"
 import GaborFilter from "./filterTypes/gaborFilter"
 import WaveletFilter from "./filterTypes/waveletFilter"
 
-// Filter node component, used in the flow editor (flowCanvas.jsx) for the extraction tab
+/**
+ * @param {string} id id of the node
+ * @param {object} data data of the node
+ * @param {string} type type of the node
+ * @returns {JSX.Element} A FilterNode node
+ *
+ * @description
+ * This component is used to display a FilterNode node.
+ * it handles the display of the node and the modal
+ */
 const FilterNode = ({ id, data, type }) => {
-  // Default filter form for settings as of MEDimage documentation :
-  // https://medimage.readthedocs.io/en/dev/configuration_file.html
-  // TODO : put this in a separate file
   // Hook used to change the selected filter type (default set to mean filter)
   const [selectedFilter, setSelectedFilter] = useState(
     data.internal.settings.filter_type
   )
 
-  // Function used to change the selected filter type
+  /**
+   * @param {Object} event event given by the form
+   *
+   * @description
+   * This function is used to change the selected filter type in the node data
+   * and the selectedFilter hook
+   */
   const changeFilterType = useCallback((event) => {
     // Set the selected filter
     setSelectedFilter(event.target.value)
@@ -31,7 +45,13 @@ const FilterNode = ({ id, data, type }) => {
     })
   }, [])
 
-  // Function used to change the filter form
+  /**
+   * @param {string} name name of the form element
+   * @param {string} value value of the form element
+   *
+   * @description
+   * This function is used to change the filter form in the node data
+   */
   const changeFilterForm = useCallback((name, value) => {
     data.internal.settings[selectedFilter][name] = value
     data.parentFct.updateNode({
@@ -39,6 +59,7 @@ const FilterNode = ({ id, data, type }) => {
       updatedData: data.internal
     })
   }, [])
+
   // TODO : Deplacer la fonction handleFormChange dans filterNode et l'enlever des types de filtres
 
   return (

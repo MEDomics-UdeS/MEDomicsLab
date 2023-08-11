@@ -1,11 +1,17 @@
-import React, { useState, useEffect, useCallback, useRef } from "react"
+import React, { useCallback } from "react"
 import { Form, Row, Col } from "react-bootstrap"
 import DocLink from "../../docLink"
 
+/**
+ * @param {Object} nodeForm form associated to the discretization node
+ * @param {Function} changeNodeForm function to change the node form
+ * @param {Object} data data of the node
+ * @returns {JSX.Element} A ReSegmentationForm to display in the modal of a re-segmentation node
+ *
+ * @description
+ * This component is used to display a ReSegmentationForm.
+ */
 const ReSegmentationForm = ({ nodeForm, changeNodeForm, data }) => {
-  // Get default settings for the re-segmentation node
-  const defaultValues = data.setupParam.possibleSettings.defaultSettings
-
   const handleRange = useCallback(
     (event) => {
       // Separate event in name and value
@@ -40,7 +46,7 @@ const ReSegmentationForm = ({ nodeForm, changeNodeForm, data }) => {
   return (
     <Form className="standard-form">
       <DocLink
-        link={
+        linkString={
           "https://medimage.readthedocs.io/en/latest/configuration_file.html#reseg"
         }
         name={"Re-segmentation documentation"}

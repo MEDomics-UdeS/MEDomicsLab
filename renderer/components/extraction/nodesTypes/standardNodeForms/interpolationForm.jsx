@@ -1,7 +1,16 @@
-import React, { useState, useEffect, useCallback, useRef } from "react"
+import React from "react"
 import { Form, Row, Col } from "react-bootstrap"
 import DocLink from "../../docLink"
 
+/**
+ * @param {Object} nodeForm form associated to the discretization node
+ * @param {Function} changeNodeForm function to change the node form
+ * @param {Object} data data of the node
+ * @returns {JSX.Element} A InterpolationForm to display in the modal of an interpolation node
+ *
+ * @description
+ * This component is used to display a InterpolationForm.
+ */
 const InterpolationForm = ({ nodeForm, changeNodeForm, data }) => {
   // Get default settings for the interpolation node
   const defaultValues = data.setupParam.possibleSettings.defaultSettings
@@ -50,7 +59,7 @@ const InterpolationForm = ({ nodeForm, changeNodeForm, data }) => {
   return (
     <Form className="standard-form">
       <DocLink
-        link={
+        linkString={
           "https://medimage.readthedocs.io/en/latest/configuration_file.html#interp"
         }
         name={"Interpolation documentation"}

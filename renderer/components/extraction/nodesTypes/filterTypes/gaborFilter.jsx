@@ -1,13 +1,21 @@
-import React, { useCallback, useState } from "react"
+import React from "react"
 import { Form, Row, Col } from "react-bootstrap"
 import DocLink from "../../docLink"
 
-// Form group for gabor filter, used in the filter node component
+/**
+ * @param {Function} changeFilterForm function to change the filter form
+ * @param {Object} data data of the node
+ * @returns {JSX.Element} the form used for the Gabor filter
+ *
+ * @description
+ * This component is used to display the form of a Gabor filter.
+ * It is used in the filter node component.
+ */
 const GaborFilter = ({ changeFilterForm, data }) => {
   return (
     <Form.Group as={Row} controlId="filter-gabor">
       <DocLink
-        link={
+        linkString={
           "https://medimage.readthedocs.io/en/latest/configuration_file.html#gabor"
         }
         name={"Gabor filter documentation"}

@@ -3,6 +3,16 @@ import Button from "react-bootstrap/Button"
 import { toast } from "react-toastify"
 import { axiosPostJson } from "../../../utilities/requests"
 
+/**
+ * @param {string} id id of the node
+ * @param {object} data data of the node
+ * @param {string} type type of the node
+ * @returns {JSX.Element} A ViewButton node
+ *
+ * @description
+ * This component is used to display the ViewButton.
+ * The state of the button is determined by the enableView property of the node.
+ */
 const ViewButton = ({ id, data, type }) => {
   // Function to send a POST request to /extraction/view
   const viewImage = () => {
