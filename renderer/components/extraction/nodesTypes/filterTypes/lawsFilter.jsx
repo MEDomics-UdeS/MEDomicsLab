@@ -13,6 +13,12 @@ import DocLink from "../../docLink"
  * It is used in the filter node component.
  */
 const LawsFilter = ({ changeFilterForm, data }) => {
+  /**
+   * @param {Event} event event given change of the 1D filters in the form
+   *
+   * @description
+   * This function is used to handle the change of the 1D filters in the form.
+   */
   const handleConfigChange = useCallback(
     (event) => {
       const { name, value } = event.target

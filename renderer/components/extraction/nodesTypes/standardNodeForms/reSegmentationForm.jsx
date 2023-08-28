@@ -12,6 +12,13 @@ import DocLink from "../../docLink"
  * This component is used to display a ReSegmentationForm.
  */
 const ReSegmentationForm = ({ nodeForm, changeNodeForm, data }) => {
+  /**
+   * @param {Event} event event given change of the range in the form
+   *
+   * @description
+   * This function is used to handle the range of the re-segmentation node.
+   * It is used to modify the nodeForm.
+   */
   const handleRange = useCallback(
     (event) => {
       // Separate event in name and value

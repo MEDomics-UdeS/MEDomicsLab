@@ -15,6 +15,12 @@ const InterpolationForm = ({ nodeForm, changeNodeForm, data }) => {
   // Get default settings for the interpolation node
   const defaultValues = data.setupParam.possibleSettings.defaultSettings
 
+  /**
+   * @param {Event} event event given change of the scale in the form
+   *
+   * @description
+   * This function is used to handle the scale of the interpolation node.
+   */
   const handleScale = (event) => {
     // Separate event in name and value
     const { name, value } = event.target

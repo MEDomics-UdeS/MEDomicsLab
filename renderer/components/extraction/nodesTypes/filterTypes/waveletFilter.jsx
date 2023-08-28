@@ -12,6 +12,12 @@ import DocLink from "../../docLink"
  * It is used in the filter node component.
  */
 const WaveletFilter = ({ changeFilterForm, data }) => {
+  /**
+   * @param {Event} event event given change of the subband selection
+   *
+   * @description
+   * This function is used to handle the change of the subband selection in the form.
+   */
   const handleSubbandChange = useCallback(
     (event) => {
       const { name, value } = event.target

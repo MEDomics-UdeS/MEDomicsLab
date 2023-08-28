@@ -15,6 +15,12 @@ const DiscretizationForm = ({ nodeForm, changeNodeForm, data }) => {
   // Get default settings for the discretization node
   const defaultValues = data.setupParam.possibleSettings.defaultSettings
 
+  /**
+   * @param {Event} event event given change of a Value in the form
+   *
+   * @description
+   * This function is used to handle the change of a Value in the form.
+   */
   const handleChange = useCallback(
     (event) => {
       // Separate event in name and value

@@ -13,10 +13,15 @@ import { axiosPostJson } from "../../../../utilities/requests"
  * This component is used to display a InputForm.
  */
 const InputForm = ({ nodeForm, changeNodeForm, enableView }) => {
-  // Hook to keep the state of the upload button up to date with nodeForm.filename
+  // Hook to keep the path of the selected file before upload
   const [selectedFile, setSelectedFile] = useState("")
 
-  // Upon selection of a file by the user, update the nodeForm.filename
+  /**
+   * @param {Event} event event given change of the file in the form
+   *
+   * @description
+   * This function is used to handle a file change when uploading a file to the input node.
+   */
   const handleFileChange = (event) => {
     // If the user selected a file, set filePath to the path of the file
     if (event.target.files && event.target.files.length !== 0) {
@@ -27,6 +32,12 @@ const InputForm = ({ nodeForm, changeNodeForm, enableView }) => {
     }
   }
 
+  /**
+   * @param {Event} event event given change of the folder in the form
+   *
+   * @description
+   * This function is used to handle a folder change when uploading a folder to the input node.
+   */
   const handleFolderChange = (event) => {
     const fileList = event.target.files
     if (fileList.length > 0) {
@@ -41,11 +52,15 @@ const InputForm = ({ nodeForm, changeNodeForm, enableView }) => {
     }
   }
 
-  // Function to send a POST request to /extraction/upload when the user
-  // clicks on the upload button
+  /**
+   * @param {String} fileType type of the file to upload (file or folder)
+   *
+   * @description
+   * This function is used to send a POST request to /extraction/upload when the user
+   * clicks on the upload button.
+   */
   const handleUpload = useCallback(
     (fileType) => {
-      console.log("HANDLE UPLOAD CALLED")
       // TODO : Check if the upload button clicked corresponds to the filetype
       // Check if the filename is not empty
       if (selectedFile && selectedFile !== "") {

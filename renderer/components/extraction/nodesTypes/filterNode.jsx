@@ -10,6 +10,8 @@ import LawsFilter from "./filterTypes/lawsFilter"
 import GaborFilter from "./filterTypes/gaborFilter"
 import WaveletFilter from "./filterTypes/waveletFilter"
 
+// TODO : all the filter nodes should become standard nodes eventually
+
 /**
  * @param {string} id id of the node
  * @param {object} data data of the node
@@ -27,7 +29,7 @@ const FilterNode = ({ id, data, type }) => {
   )
 
   /**
-   * @param {Object} event event given by the form
+   * @param {Event} event event given upon changing filter type in the form
    *
    * @description
    * This function is used to change the selected filter type in the node data

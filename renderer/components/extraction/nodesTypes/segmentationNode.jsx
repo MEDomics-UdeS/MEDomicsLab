@@ -33,7 +33,7 @@ const SegmentationNode = ({ id, data, type }) => {
   }, [data.internal.settings.rois])
 
   /**
-   * @param {Object} event event given by the form
+   * @param {Event} event event given upon form change
    * @param {string} currentRoi current ROI number
    *
    * @description

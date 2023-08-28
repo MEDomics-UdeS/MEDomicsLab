@@ -45,24 +45,42 @@ const FeaturesNode = ({ id, data, type }) => {
     })
   }, [selectedFeatures])
 
+  /**
+   * @param {Event} event event given upon form change
+   *
+   * @description
+   * This function is used to handle the extract all checkbox
+   * It updates the selectedFeatures hook to ["extract_all"] if the checkbox is checked
+   * and updates to [] if the checkbox is unchecked
+   */
   const handleToggleAll = useCallback((event) => {
     const isChecked = event.target.checked
     const updatedSelectedFeatures = isChecked ? ["extract_all"] : []
     setSelectedFeatures(updatedSelectedFeatures)
   }, [])
 
+  /**
+   * @param {Event} event event given upon form change
+   *
+   * @description
+   * This function is used to match the changes of feature checkboxes to the selectedFeatures hook
+   */
   const handleToggleFeature = useCallback((event) => {
     const feature = event.target.value
     const isChecked = event.target.checked
 
     setSelectedFeatures((prevSelectedFeatures) => {
+      // If a new feature is checked, add it to the selected features
       if (isChecked) {
         return [...prevSelectedFeatures, feature]
       } else {
-        // A feature is getting unchecked and the previous state was "extract_all"
+        // If a feature is getting unchecked and the previous state was "extract_all"
+        // Set the previous state to the list of all the features
         if (prevSelectedFeatures.length === 1) {
           prevSelectedFeatures = [...features]
         }
+
+        // Remove the feature unchecked feature from the previously selected features
         return prevSelectedFeatures.filter(
           (selectedFeature) => selectedFeature !== feature
         )
@@ -84,7 +102,12 @@ const FeaturesNode = ({ id, data, type }) => {
     })
   }, [selectedFeatures])
 
-  // Function used to update the node body when the distance correction or the merge method is changed
+  /**
+   * @param {Event} event event given upon form change
+   *
+   * @description
+   * This function is used to update the node body when the distance correction or the merge method is changed
+   */
   const updateNodeBody = useCallback(
     (event) => {
       const name = event.target.name

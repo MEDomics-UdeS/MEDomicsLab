@@ -14,7 +14,10 @@ import { axiosPostJson } from "../../../utilities/requests"
  * The state of the button is determined by the enableView property of the node.
  */
 const ViewButton = ({ id, data, type }) => {
-  // Function to send a POST request to /extraction/view
+  /**
+   * @description
+   * This function is used to send a POST request to /extraction/view.
+   */
   const viewImage = () => {
     console.log("Viewing image for node " + id)
 

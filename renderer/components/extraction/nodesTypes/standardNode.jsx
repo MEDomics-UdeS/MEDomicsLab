@@ -37,7 +37,7 @@ const StandardNode = ({ id, data }) => {
   }, [nodeForm])
 
   /**
-   * @param {Object} event event given by the form
+   * @param {Event} event event given upon form change
    *
    * @description
    * This function is used to change the node form when the user changes the form

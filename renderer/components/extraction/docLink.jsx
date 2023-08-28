@@ -13,6 +13,13 @@ import { shell } from "electron"
  * of a specific extraction method.
  */
 const DocLink = ({ linkString, name, image }) => {
+  /**
+   * @param {Event} event - Click event
+   *
+   * @description
+   * This function is used to handle the click event on the link
+   * it opens the link in the default browser
+   */
   const handleLinkClick = (event) => {
     event.preventDefault()
     shell.openExternal(linkString)
@@ -20,21 +27,8 @@ const DocLink = ({ linkString, name, image }) => {
 
   return (
     <>
-      <p
-        style={{
-          display: "flex",
-          alignItems: "center",
-          marginTop: "10px"
-        }}
-      >
-        {image && (
-          <Image
-            src={image}
-            width="20"
-            height="20"
-            style={{ marginRight: "10px" }}
-          />
-        )}
+      <p className="docLink">
+        {image && <Image className="docLink-image" />}
         <a href={linkString} onClick={handleLinkClick}>
           {name}
         </a>

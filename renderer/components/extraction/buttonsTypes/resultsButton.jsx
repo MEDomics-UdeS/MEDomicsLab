@@ -12,6 +12,7 @@ import Button from "react-bootstrap/Button"
 const ResultsButton = ({ results }) => {
   const showResults = () => {
     console.log("show results")
+    // TODO : Create an offCanvas to show the results of all the pipelines in the workflow
   }
 
   return (

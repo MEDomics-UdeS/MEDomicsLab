@@ -50,6 +50,14 @@ const extractionNode = ({ id, data }) => {
     updateBackdropStyle(style)
   }, [showOffCanvas])
 
+  /**
+   * @param {Object} data results of the extraction node in the form of a dictionary
+   * @returns {Object} nodes of the tree menu
+   *
+   * @description
+   * This function is used to convert the results of the extraction node into nodes that can
+   * can be used in a tree menu.
+   */
   const convertDataToNodes = (data) => {
     const nodes = []
     Object.keys(data).forEach((key) => {
@@ -65,6 +73,13 @@ const extractionNode = ({ id, data }) => {
     })
     return nodes
   }
+
+  /**
+   * @returns {JSX.Element} A tree menu or a warning message
+   *
+   * @description
+   * This function is used to render the tree menu of the extraction node.
+   */
   const renderTree = () => {
     // Check if data.internal.settings.results is available
     if (
