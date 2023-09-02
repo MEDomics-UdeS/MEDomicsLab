@@ -145,3 +145,6 @@ dmypy.json
 /flask_server/local_dir
 Flask_server/extraction/MEDimageApp/tmp/*
 !Flask_server/extraction/MEDimageApp/tmp/.gitkeep
+
+test/extraction/IBSI/data_sets/*
+test/extraction/IBSI/dicom/*
