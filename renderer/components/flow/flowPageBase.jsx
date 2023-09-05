@@ -1,12 +1,14 @@
 import { Row, Col } from "react-bootstrap"
 import "reactflow/dist/style.css"
-import React, { useContext, useEffect } from "react"
+import React, { useContext, useEffect, useState } from "react"
 import SidebarAvailableNodes from "./sidebarAvailableNodes"
 import { ReactFlowProvider } from "reactflow"
 import { OffCanvasBackdropStyleProvider } from "./context/offCanvasBackdropStyleContext"
 import Backdrop from "./backdrop"
 import { FlowInfosProvider, FlowInfosContext } from "./context/flowInfosContext"
-import { UpdateNodeProvider } from "./context/updateNodeContext"
+import { FlowFunctionsProvider } from "./context/flowFunctionsContext"
+import { loadJsonPath } from "../../utilities/fileManagementUtils"
+import { PageInfosContext } from "../mainPages/moduleBasics/pageInfosContext"
 
 /**
  *
@@ -17,23 +19,17 @@ import { UpdateNodeProvider } from "./context/updateNodeContext"
  * @description This component is the base for all the flow pages. It contains the sidebar, the workflow and the backdrop.
  *
  */
-const FlowPageBaseWithFlowInfos = ({
-  children,
-  pageId,
-  workflowType,
-  savingPath = ""
-}) => {
+const FlowPageBaseWithFlowInfos = ({ children, workflowType }) => {
   // here is the use of the context to update the flowInfos
   const { updateFlowInfos } = useContext(FlowInfosContext)
+  const { pageInfos } = useContext(PageInfosContext)
 
   // this useEffect is used to update the flowInfos when the pageId or the workflowType changes
   useEffect(() => {
     updateFlowInfos({
-      id: pageId,
-      type: workflowType,
-      savingPath: savingPath
+      type: workflowType
     })
-  }, [pageId, workflowType])
+  }, [workflowType])
 
   return (
     <>
@@ -52,7 +48,7 @@ const FlowPageBaseWithFlowInfos = ({
               </div>
             </Col>
             {/* here is the backdrop (darker screen when a node is clicked) */}
-            <Backdrop pageId={pageId} />
+            <Backdrop pageId={pageInfos.id} />
           </Row>
         </div>
       </OffCanvasBackdropStyleProvider>
@@ -69,9 +65,9 @@ const FlowPageBaseWithFlowInfos = ({
 const FlowPageBase = (props) => {
   return (
     <FlowInfosProvider>
-      <UpdateNodeProvider>
+      <FlowFunctionsProvider>
         <FlowPageBaseWithFlowInfos {...props} />
-      </UpdateNodeProvider>
+      </FlowFunctionsProvider>
     </FlowInfosProvider>
   )
 }

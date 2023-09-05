@@ -15,7 +15,8 @@ import { requestJson } from "../../utilities/requests"
 import EditableLabel from "react-simple-editlabel"
 import BtnDiv from "../flow/btnDiv"
 import ProgressBarRequests from "../flow/progressBarRequests"
-import { FlowInfosContext } from "../flow/context/flowInfosContext"
+import { PageInfosContext } from "../mainPages/moduleBasics/pageInfosContext"
+import { FlowFunctionsContext } from "../flow/context/flowFunctionsContext"
 
 // here are the different types of nodes implemented in the workflow
 import StandardNode from "./nodesTypes/standardNode"
@@ -49,12 +50,12 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
   const [MLType, setMLType] = useState("classification") // MLType is used to know which machine learning type is selected
   const { setViewport } = useReactFlow() // setViewport is used to update the viewport of the workflow
   const [treeData, setTreeData] = useState({}) // treeData is used to set the data of the tree menu
-  const [groupNodeId, setGroupNodeId] = useState(null) // groupNodeId is used to know which optimize node has selected ()
+  // const [groupNodeId, setGroupNodeId] = useState(null) // groupNodeId is used to know which optimize node has selected ()
   const { getIntersectingNodes } = useReactFlow() // getIntersectingNodes is used to get the intersecting nodes of a node
   const [intersections, setIntersections] = useState([]) // intersections is used to store the intersecting nodes related to optimize nodes start and end
   const [isProgressUpdating, setIsProgressUpdating] = useState(false) // progress is used to store the progress of the workflow execution
-  const [nodeUpdate, setNodeUpdate] = useState({}) // nodeUpdate is used to update a node internal data
-  const { flowInfos } = useContext(FlowInfosContext) // used to get the flow infos
+  const { pageInfos } = useContext(PageInfosContext) // used to get the page infos such as id and config path
+  const { groupNodeId, changeSubFlow } = useContext(FlowFunctionsContext)
 
   // declare node types using useMemo hook to avoid re-creating component types unnecessarily (it memorizes the output) https://www.w3schools.com/react/react_usememo.asp
   const nodeTypes = useMemo(
@@ -106,12 +107,12 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
 
   // execute this when groupNodeId change. I put it in useEffect because it assures groupNodeId is updated
   useEffect(() => {
-    if (groupNodeId) {
-      setWorkflowType("optimize")
-      hideNodesbut(groupNodeId)
-    } else {
+    if (groupNodeId.id == "MAIN") {
       setWorkflowType("learning")
-      hideNodesbut(groupNodeId)
+      hideNodesbut(groupNodeId.id)
+    } else {
+      setWorkflowType("optimize")
+      hideNodesbut(groupNodeId.id)
     }
   }, [groupNodeId])
 
@@ -224,6 +225,7 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
     // recursively create tree from nodes
     const createTreeFromNodesRec = (node) => {
       let children = {}
+
       edges.forEach((edge) => {
         if (edge.source == node.id) {
           let targetNode = deepCopy(
@@ -232,7 +234,7 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
           if (targetNode.type != "groupNode") {
             let subIdText = ""
             let subflowId = targetNode.data.internal.subflowId
-            if (subflowId) {
+            if (subflowId != "MAIN") {
               subIdText =
                 deepCopy(nodes.find((node) => node.id == subflowId)).data
                   .internal.name + "."
@@ -343,16 +345,8 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
 
         Object.values(flow.nodes).forEach((node) => {
           if (!node.id.includes("opt")) {
-            // the line below is important because functions are not serializable
-            node.data.parentFct = {
-              deleteNode: onDeleteNode,
-              updateNode: setNodeUpdate,
-              runNode: runNode,
-              changeSubFlow: setGroupNodeId
-            }
-            let subworkflowType = node.data.internal.subflowId
-              ? "optimize"
-              : "learning"
+            let subworkflowType =
+              node.data.internal.subflowId != "MAIN" ? "optimize" : "learning"
             let setupParams = deepCopy(
               staticNodesParams[subworkflowType][node.data.internal.type]
             )
@@ -430,7 +424,7 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
     newNode.id = `${newNode.id}${associatedNode ? `.${associatedNode}` : ""}` // if the node is a sub-group node, it has the id of the parent node seperated by a dot. useful when processing only ids
     newNode.hidden = newNode.type == "optimizeIO"
     newNode.zIndex = newNode.type == "optimizeIO" ? 1 : 1010
-    newNode.data.parentFct.changeSubFlow = setGroupNodeId
+    // newNode.data.parentFct.changeSubFlow = setGroupNodeId
     newNode.data.tooltipBy = "type"
     newNode.data.setupParam = setupParams
     newNode.data.internal.code = ""
@@ -452,7 +446,7 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
       Object.keys(setupParams.possibleSettings)[0]
     newNode.data.internal.checkedOptions = []
     newNode.data.internal.subflowId = !associatedNode
-      ? groupNodeId
+      ? groupNodeId.id
       : associatedNode
 
     return newNode
@@ -498,9 +492,11 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
    */
   const runNode = useCallback(
     (id) => {
-      console.log("run node", id)
-      console.log(reactFlowInstance)
-      onRun(null, id)
+      if (id) {
+        console.log("run node", id)
+        console.log(reactFlowInstance)
+        onRun(null, id)
+      }
     },
     [reactFlowInstance, MLType, nodes, edges, intersections, treeData]
   )
@@ -517,11 +513,13 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
           node.data.parentFct = null
           node.data.setupParam = null
         })
+        console.log("sended flow 1", flow)
+
         let { newflow, isValid } = cleanJson2Send(flow, up2Id)
         console.log("newflow", isValid)
         flow = newflow
         if (isValid) {
-          console.log("sended flow", flow)
+          console.log("sended flow 2", flow)
           setIsProgressUpdating(true)
           requestJson(
             5000,
@@ -541,11 +539,23 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
             }
           )
         }
+      } else {
+        toast.warn("react flow instance not found")
       }
     },
     [reactFlowInstance, MLType, nodes, edges, intersections, treeData]
   )
 
+  /**
+   * @param {Object} json json object to clean
+   * @param {String} up2Id id of the node to run
+   * @returns {Object} cleaned json object
+   *
+   * This function cleans the json object to send to the server
+   * It removes the optimize nodes and the edges linked to them
+   * It also checks if the default values are set for each node
+   * It returns the cleaned json object and a boolean to know if the default values are set
+   */
   const cleanJson2Send = useCallback(
     (json, up2Id) => {
       // function to check if default values are set
@@ -661,12 +671,12 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
       })
 
       newJson.pipelines = recursivePipelines
-      newJson.pageId = flowInfos.id
+      newJson.pageId = pageInfos.id
       // eslint-disable-next-line camelcase
-      newJson.saving_path = flowInfos.savingPath
+      newJson.saving_path = pageInfos.savingPath
       newJson.nbNodes2Run = nbNodes2Run
 
-      return { flow: newJson, isValid: isValidDefault }
+      return { newflow: newJson, isValid: isValidDefault }
     },
     [reactFlowInstance, MLType, nodes, edges, intersections, treeData]
   )
@@ -706,7 +716,7 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
    * Set the subflow id to null to go back to the main workflow
    */
   const onBack = useCallback(() => {
-    setGroupNodeId(null)
+    changeSubFlow("MAIN")
   }, [])
 
   /**
@@ -747,12 +757,8 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
         }
       )
     }
-    let groupNode = nodes.find((node) => node.id === groupNodeId)
+    let groupNode = nodes.find((node) => node.id === groupNodeId.id)
     groupNode.data.internal.name = newName
-    groupNode.data.parentFct.updateNode({
-      id: groupNodeId,
-      updatedData: groupNode.data.internal
-    })
   }
 
   return (
@@ -770,9 +776,7 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
           edges: edges,
           setEdges: setEdges,
           onEdgesChange: onEdgesChange,
-          runNode: runNode,
-          nodeUpdate: nodeUpdate,
-          setNodeUpdate: setNodeUpdate
+          runNode: runNode
         }}
         // optional props
         onDeleteNode={onDeleteNode}
@@ -820,12 +824,12 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
               {workflowType == "optimize" && (
                 <>
                   <div>
-                    {groupNodeId && (
+                    {groupNodeId.id != "MAIN" && (
                       <div className="subFlow-title">
                         <EditableLabel
                           text={
-                            nodes.find((node) => node.id === groupNodeId).data
-                              .internal.name
+                            nodes.find((node) => node.id === groupNodeId.id)
+                              .data.internal.name
                           }
                           labelClassName="node-editableLabel"
                           inputClassName="node-editableLabel"

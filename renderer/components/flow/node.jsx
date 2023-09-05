@@ -8,6 +8,8 @@ import EditableLabel from "react-simple-editlabel"
 import Handlers from "./handlers"
 import { OffCanvasBackdropStyleContext } from "./context/offCanvasBackdropStyleContext"
 import { FlowInfosContext } from "./context/flowInfosContext"
+import { FlowFunctionsContext } from "./context/flowFunctionsContext"
+import { PageInfosContext } from "../mainPages/moduleBasics/pageInfosContext"
 
 /**
  *
@@ -33,6 +35,8 @@ const Node = ({ id, data, nodeSpecific, nodeBody, defaultSettings }) => {
   const [offcanvasComp, setOffcanvasComp] = useState(null) // used to store the offcanvas container
   const { updateBackdropStyle } = useContext(OffCanvasBackdropStyleContext) // used to update the backdrop style
   const { flowInfos } = useContext(FlowInfosContext) // used to get the flow infos
+  const { pageInfos } = useContext(PageInfosContext) // used to get the page infos
+  const { updateNode, onDeleteNode, runNode } = useContext(FlowFunctionsContext) // used to get the function to update the node
 
   /**
    * @description
@@ -42,7 +46,7 @@ const Node = ({ id, data, nodeSpecific, nodeBody, defaultSettings }) => {
    */
   useEffect(() => {
     data.internal.name = nodeName
-    data.parentFct.updateNode({
+    updateNode({
       id: id,
       updatedData: data.internal
     })
@@ -56,8 +60,8 @@ const Node = ({ id, data, nodeSpecific, nodeBody, defaultSettings }) => {
    * This is done for styling purposes (having the backdrop over the entire workflow).
    */
   useEffect(() => {
-    setOffcanvasComp(document.getElementById(flowInfos.id))
-  }, [flowInfos])
+    setOffcanvasComp(document.getElementById(pageInfos.id))
+  }, [pageInfos])
 
   /**
    * @description
@@ -168,14 +172,14 @@ const Node = ({ id, data, nodeSpecific, nodeBody, defaultSettings }) => {
         </Offcanvas>
       </Container>
       {/* here are the buttons to delete and run the node*/}
-      <CloseButton onClick={() => data.parentFct.deleteNode(id)} />
+      <CloseButton onClick={() => onDeleteNode(id)} />
 
       {/* if the node is a run node (by checking setupParam classes), a button to run the node is displayed*/}
       {data.setupParam.classes.split(" ").includes("run") && (
         <Button
           variant="success"
           className="btn-runNode"
-          onClick={() => data.parentFct.runNode(id)}
+          onClick={() => runNode(id)}
         >
           <img src={"/icon/run.svg"} alt="run" className="img-fluid" />
         </Button>

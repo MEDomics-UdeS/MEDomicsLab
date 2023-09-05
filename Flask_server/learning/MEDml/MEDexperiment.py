@@ -82,7 +82,9 @@ class MEDexperiment:
         self._nb_nodes_done: float = 0.0
         self.global_json_config['unique_id'] = 0
         self.pipelines_objects = self.create_next_nodes(self.pipelines, copy.deepcopy(self.pipelines_objects))
-        tmp_dir = global_json_config['saving_path']
+        # tmp_dir = global_json_config['saving_path']
+        global_json_config['saving_path'] = "local_dir"
+        tmp_dir = "local_dir"
         for f in os.listdir(tmp_dir):
             if f != '.gitkeep':
                 os.remove(os.path.join(tmp_dir, f))

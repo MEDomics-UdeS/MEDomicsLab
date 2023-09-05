@@ -8,8 +8,8 @@ import ReactFlow, {
   updateEdge,
   addEdge
 } from "reactflow"
-import { FlowInfosContext } from "./context/flowInfosContext"
-
+import { FlowFunctionsContext } from "./context/flowFunctionsContext"
+import { PageInfosContext } from "../mainPages/moduleBasics/pageInfosContext"
 import { getId, deepCopy } from "../../utilities/staticFunctions"
 
 /**
@@ -42,8 +42,8 @@ import { getId, deepCopy } from "../../utilities/staticFunctions"
  */
 const WorkflowBase = ({
   isGoodConnection,
-  onDeleteNode,
   groupNodeHandlingDefault,
+  onDeleteNode,
   ui,
   onNodeDrag,
   mandatoryProps
@@ -58,14 +58,13 @@ const WorkflowBase = ({
     edges,
     setEdges,
     onEdgesChange,
-    runNode,
     addSpecificToNode,
-    nodeUpdate,
-    setNodeUpdate
+    runNode
   } = mandatoryProps
 
   const edgeUpdateSuccessful = useRef(true)
-  const { flowInfos } = useContext(FlowInfosContext) // used to get the flow infos
+  const { pageInfos } = useContext(PageInfosContext) // used to get the flow infos
+  const { nodeUpdate, node2Delete, node2Run } = useContext(FlowFunctionsContext) // used to get the function to update the node
 
   // execute this when a variable change or a function is called related to the callback hook in []
   // setNodeUpdate function is passed to the node component to update the internal data of the node
@@ -87,6 +86,14 @@ const WorkflowBase = ({
       )
     }
   }, [nodeUpdate, setNodes])
+
+  useEffect(() => {
+    onDeleteNode ? onDeleteNode(node2Delete) : deleteNode(node2Delete)
+  }, [node2Delete])
+
+  useEffect(() => {
+    runNode(node2Run)
+  }, [node2Run])
 
   /**
    * @param {object} params
@@ -222,7 +229,7 @@ const WorkflowBase = ({
 
       if (nodeType in nodeTypes) {
         let flowWindow = document
-          .getElementById(flowInfos.id)
+          .getElementById(pageInfos.id)
           .getBoundingClientRect()
         const position = reactFlowInstance.project({
           x: event.clientX - flowWindow.x - 300,
@@ -273,11 +280,11 @@ const WorkflowBase = ({
           img: image,
           type: name.toLowerCase().replaceAll(" ", "_")
         },
-        parentFct: {
-          updateNode: setNodeUpdate,
-          deleteNode: onDeleteNode || deleteNode,
-          runNode: runNode
-        },
+        // parentFct: {
+        //   updateNode: setNodeUpdate,
+        //   deleteNode: onDeleteNode || deleteNode,
+        //   runNode: runNode
+        // },
         tooltipBy: "node" // this is a default value that can be changed in addSpecificToNode function see workflow.jsx for example
       }
     }

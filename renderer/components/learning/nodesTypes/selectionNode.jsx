@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, useContext } from "react"
 import Node from "../../flow/node"
 import Input from "../input"
 import { Button } from "react-bootstrap"
 import ModalSettingsChooser from "../modalSettingsChooser"
 import Form from "react-bootstrap/Form"
 import * as Icon from "react-bootstrap-icons"
+import { FlowFunctionsContext } from "../../flow/context/flowFunctionsContext"
 
 /**
  *
@@ -21,11 +22,12 @@ import * as Icon from "react-bootstrap-icons"
 const SelectionNode = ({ id, data, type }) => {
   const [modalShow, setModalShow] = useState(false) // state of the modal
   const [selection, setSelection] = useState(data.internal.selection)
+  const { updateNode } = useContext(FlowFunctionsContext)
 
   // update the node internal data when the selection changes
   useEffect(() => {
     data.internal.selection = selection
-    data.parentFct.updateNode({
+    updateNode({
       id: id,
       updatedData: data.internal
     })
@@ -42,7 +44,7 @@ const SelectionNode = ({ id, data, type }) => {
   // update the node when the input changes
   const onInputChange = (inputUpdate) => {
     data.internal.settings[inputUpdate.name] = inputUpdate.value
-    data.parentFct.updateNode({
+    updateNode({
       id: id,
       updatedData: data.internal
     })
@@ -62,6 +64,7 @@ const SelectionNode = ({ id, data, type }) => {
             <Form.Select
               aria-label="machine learning model"
               onChange={onSelectionChange}
+              defaultValue={data.internal.selection}
             >
               {Object.entries(data.setupParam.possibleSettings).map(
                 ([optionName]) => {
@@ -69,7 +72,7 @@ const SelectionNode = ({ id, data, type }) => {
                     <option
                       key={optionName}
                       value={optionName}
-                      selected={optionName === selection}
+                      // selected={optionName === selection}
                     >
                       {optionName}
                     </option>

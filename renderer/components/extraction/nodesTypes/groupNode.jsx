@@ -1,10 +1,8 @@
-import React, { useState, useEffect, useCallback, useRef } from "react";
-import { Button } from "react-bootstrap";
-import { Handle } from "reactflow";
-import Card from "react-bootstrap/Card";
-import CloseButton from "react-bootstrap/CloseButton";
-import { Tooltip } from "react-tooltip";
-import Handlers from "../../flow/handlers";
+import React from "react"
+import { Button } from "react-bootstrap"
+import Card from "react-bootstrap/Card"
+import CloseButton from "react-bootstrap/CloseButton"
+import Handlers from "../../flow/handlers"
 
 /**
  *
@@ -51,7 +49,7 @@ const GroupNode = ({ id, data }) => {
         )}
       </div>
     </>
-  );
-};
+  )
+}
 
-export default GroupNode;
+export default GroupNode
