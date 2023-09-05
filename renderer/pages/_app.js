@@ -106,21 +106,12 @@ export default function App() {
 	// // Handle the received message from the Electron side
 	// });
 
-
-
-	
-
 	useEffect(() => {
 		// This is a hook that is called when the ipcRenderer receives a message from the main process
 		// Log a message to the console whenever the ipcRenderer receives a message from the main process
 		ipcRenderer.on('messageFromElectron', (event, data) => {
 			console.log('Received message from Electron:', data);
-			console.log(workspaceObject);
-			// if (data === "workingDirectorySet") {
-			// 	// workspace_object = 
-			// 	setWorkspaceObject(data);
-			// 	console.log(workspaceObject);
-			// }
+			// console.log(workspaceObject);
 		// Handle the received message from the Electron side
 		});
 	}, []); // Here, we specify that the hook should only be called when the ipcRenderer receives a message from the main process
@@ -130,10 +121,10 @@ export default function App() {
 		// The working directory tree is stored in the workspaceObject state variable
 		ipcRenderer.on('workingDirectorySet', (event, data) => {
 			console.log('WorkingDirectory set by Electron:', data);
-			const temp_workspace_object = { ...workspaceObject };
-			temp_workspace_object.workingDirectory = data.path;
-			temp_workspace_object.workingDirectoryTree = data;
+			let temp_workspace_object = { ...workspaceObject };
+			temp_workspace_object = data;
 			setWorkspaceObject(temp_workspace_object);
+			console.log(workspaceObject);
 		});
 	}, []); // Here, we specify that the hook should only be called when the ipcRenderer receives a message from the main process
 

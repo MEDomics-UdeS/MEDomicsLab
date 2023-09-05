@@ -133,9 +133,6 @@ if (isProd) {
 		else if (data === "requestAppExit") {
 			app.exit();
 		}
-		// event.reply("messageFromElectron", "Hello from Electron");
-		// event.reply("messageFromElectron", app.getPath('sessionData'));
-		// event.reply("messageFromElectron", );
 	});
 
 
@@ -172,9 +169,9 @@ function setWorkingDirectory(event, mainWindow) {
 				console.log('Working directory set to ' + file)
 				event.reply("messageFromElectron", 'Working directory set to ' + file);
 				app.setPath('sessionData', file);
+				createWorkingDirectory();
 				event.reply("messageFromElectron", dirTree(file));
 				event.reply("workingDirectorySet", dirTree(file));
-				createFolder();
 				//   app.relaunch({ e})
 				//   mainWindow.loadURL(`file://${file}`)
 			}
@@ -184,8 +181,17 @@ function setWorkingDirectory(event, mainWindow) {
 	})
 }
 
-function createFolder() {
-	const folderPath = path.join(app.getPath('sessionData'), 'new_folder');
+
+function createWorkingDirectory() {
+	createFolder("DATA");
+	createFolder("EXPERIMENTS");
+	createFolder("MODELS");
+	createFolder("RESULTS");
+}
+
+
+function createFolder(folderString) {
+	const folderPath = path.join(app.getPath('sessionData'), folderString);
 
 	fs.mkdir(folderPath, { recursive: true }, (err) => {
 		if (err) {
