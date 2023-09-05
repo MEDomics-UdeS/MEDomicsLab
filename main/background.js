@@ -165,12 +165,15 @@ function setWorkingDirectory(event, mainWindow) {
 			if (file === app.getPath('sessionData')) {
 				console.log('Working directory is already set to ' + file)
 				event.reply("messageFromElectron", 'Working directory is already set to ' + file);
+				event.reply("workingDirectorySet", dirTree(file));
+
 			}
 			else {
 				console.log('Working directory set to ' + file)
 				event.reply("messageFromElectron", 'Working directory set to ' + file);
 				app.setPath('sessionData', file);
 				event.reply("messageFromElectron", dirTree(file));
+				event.reply("workingDirectorySet", dirTree(file));
 				createFolder();
 				//   app.relaunch({ e})
 				//   mainWindow.loadURL(`file://${file}`)

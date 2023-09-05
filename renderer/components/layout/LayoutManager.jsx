@@ -18,6 +18,7 @@ import SearchSidebar from "./SidebarTools/searchSidebar";
 import LayoutTestPage from "../mainPages/layoutTest";
 import LayoutTestSidebar from "./SidebarTools/layoutTestSidebar";
 import MainFlexLayout from "./mainContainerFunctional";
+import InputSidebar from "./SidebarTools/inputSidebar";
 
 
 const LayoutManager = (props) => {
@@ -57,6 +58,7 @@ const LayoutManager = (props) => {
 	};
 
 	const renderSidebarComponent = () => {
+		console.log(activeSidebarItem);
 		switch (activeSidebarItem) {
 			case 'home':
 				return <HomeSidebar />;
@@ -66,6 +68,8 @@ const LayoutManager = (props) => {
 				return <SearchSidebar />;
 			case 'layoutTest':
 				return <LayoutTestSidebar />;
+			case 'input':
+				return <InputSidebar />;
 			default:
 				return <h5 style={{color:'#d3d3d3', marginLeft:'0.5rem'}}>{activeSidebarItem}</h5>;
 		}

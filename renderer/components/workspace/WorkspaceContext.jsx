@@ -20,7 +20,7 @@ export const WorkspaceContext = createContext(null);
 export default function WorkspaceProvider({ children }) {
 
     const [workspace, setWorkspace] = useState({hasBeenSet: false, workspaceObject: null});
-
+    
     return (
         <>
             <WorkspaceContext.Provider value={{ workspace, setWorkspace }}>

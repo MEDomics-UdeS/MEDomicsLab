@@ -1,7 +1,7 @@
 import React, { useCallback } from 'react'
 import { useDropzone } from 'react-dropzone'
 
-export default function DropzoneComponent() {
+export default function DropzoneComponent({children}) {
     const onDrop = useCallback((acceptedFiles) => {
         acceptedFiles.forEach((file) => {
             const reader = new FileReader()
@@ -20,9 +20,10 @@ export default function DropzoneComponent() {
     const { getRootProps, getInputProps } = useDropzone({ onDrop })
 
     return (
-        <div {...getRootProps()}>
+        <div {...getRootProps()} style={{alignContent: 'center'}}>
             <input {...getInputProps()} />
-            <p>Drag 'n' drop some files here, or click to select files</p>
+            {children}
+            {/* <p>Drag 'n' drop some files here, or click to select files</p> */}
         </div>
     )
 }
