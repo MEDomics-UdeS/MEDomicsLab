@@ -17,7 +17,7 @@ const SidebarItem = (props) => {
         if (parent.children !== undefined) { // If the parent has children, then we render the children, otherwise we render the file
             return (
                 <>
-                    <Accordion defaultActiveKey={parent.name} alwaysOpen >
+                    <Accordion defaultActiveKey={parent.name}  >
                         <Accordion.Item eventKey={parent.name}>
                             <Accordion.Header>
                                 {parent.name}
@@ -49,10 +49,13 @@ const SidebarItem = (props) => {
     );
 };
 
+
+
+
 const SidebarFolder = (props) => { // This component is used to render a folder in the sidebar 
 
     return (
-        <Accordion defaultActiveKey={props.name} alwaysOpen >
+        <Accordion defaultActiveKey={props.name}  >
             <Accordion.Item eventKey={props.name}>
                 <Accordion.Header>
                     <Stack  direction="horizontal" gap={1} style={{ padding: '0 0 0 0', alignContent: 'center' }}>

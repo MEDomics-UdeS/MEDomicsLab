@@ -1,9 +1,20 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { Accordion, Button, Stack } from 'react-bootstrap';
 import { ChevronRight, PlusSquare, PlusSquareFill, Plus } from 'react-bootstrap-icons';
 import DropzoneComponent from '../../mainPages/dataComponents/dropzoneComponent';
+import { SidebarFolder } from './components';
+import { WorkspaceContext } from '../../workspace/WorkspaceContext';
+import { useEffect } from 'react';
+import { SidebarDirectoryTree } from './sidebarDirectoryTree';
 
 const InputSidebar = (props) => {
+	const { workspace, setWorkspace } = useContext(WorkspaceContext);
+	
+	useEffect(() => {
+		console.log(workspace);
+		
+	}, [workspace]);
+
 	return (
 		<>
 			<Stack direction="vertical" gap={0}>
@@ -13,26 +24,8 @@ const InputSidebar = (props) => {
 						<Plus size={'2rem'} />
 					</Button>
 				</DropzoneComponent>
-
-				<Accordion defaultActiveKey={['0']} alwaysOpen >
-					<Accordion.Item eventKey="0">
-						<Accordion.Header>
-							<Stack direction="horizontal" style={{ flexGrow: '1' }}>
-								<p></p>
-								<div style={{ flexGrow: '10' }} />
-							</Stack>
-						</Accordion.Header>
-						<Accordion.Body>
-
-						</Accordion.Body>
-					</Accordion.Item>
-					<Accordion.Item eventKey="1">
-						<Accordion.Header></Accordion.Header>
-						<Accordion.Body>
-
-						</Accordion.Body>
-					</Accordion.Item>
-				</Accordion>
+				{workspace['name'] && SidebarFolder({ name: workspace['name'], children: workspace['children']})}
+				
 			</Stack>
 		</>
 	);

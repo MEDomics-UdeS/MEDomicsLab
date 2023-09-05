@@ -24,7 +24,6 @@ import { useEffect } from 'react';
 import { ipcRenderer } from 'electron';
 
 
-// utilities
 
 /**
  * This is the main app component. It is the root component of the app.
@@ -99,12 +98,6 @@ export default function App() {
 	const [layoutModel, setLayoutModel] = useState(initialLayout);
 	const [workspaceObject, setWorkspaceObject] = useState({});
 
-	// ipcRenderer.send('messageFromNext', 'Hello from Next.js');
-
-	// ipcRenderer.on('messageFromElectron', (event, data) => {
-	// 	// console.log('Received message from Electron:', data);
-	// // Handle the received message from the Electron side
-	// });
 
 	useEffect(() => {
 		// This is a hook that is called when the ipcRenderer receives a message from the main process
@@ -120,8 +113,15 @@ export default function App() {
 		// The working directory tree is stored in the workspaceObject state variable
 		ipcRenderer.on('workingDirectorySet', (event, data) => {
 			console.log('WorkingDirectory set by Electron:', data);
-			setWorkspaceObject(data);
+			if (workspaceObject !== data) {
+				setWorkspaceObject(data);
+			}
+			else {
+				console.log("workspaceObject is the same");
+			}
 		});
+		
+
 	}, []); // Here, we specify that the hook should only be called when the ipcRenderer receives a message from the main process
 
 	
@@ -144,8 +144,7 @@ export default function App() {
 				{/* Uncomment if you want to use React Dev tools */}
 			</Head>
 			<div style={{ height: "100%" }}>
-				<WorkspaceProvider > {/* This is the WorkspaceProvider, which provides the workspace model to all the children components of the LayoutManager */}
-
+				<WorkspaceProvider workspace={workspaceObject} setWorkspace={setWorkspaceObject}> {/* This is the WorkspaceProvider, which provides the workspace model to all the children components of the LayoutManager */}
 					<LayoutContextProvider
 						layoutModel={layoutModel}
 						setLayoutModel={setLayoutModel}

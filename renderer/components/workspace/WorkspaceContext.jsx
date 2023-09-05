@@ -17,10 +17,8 @@ export const WorkspaceContext = createContext(null);
  *          The 'hasBeenSet' property is a boolean that indicates if the workspace has been set. The 'workspaceObject' property is the workspace containing information about all the files and folders in the workspace.
  *  
  */
-export default function WorkspaceProvider({ children }) {
+export default function WorkspaceProvider({ workspace, setWorkspace, children }) {
 
-    const [workspace, setWorkspace] = useState({hasBeenSet: false, workspaceObject: null});
-    
     return (
         <>
             <WorkspaceContext.Provider value={{ workspace, setWorkspace }}>

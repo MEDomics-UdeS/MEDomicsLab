@@ -129,6 +129,7 @@ if (isProd) {
 		}
 		else if (data === "requestWorkingDirectory") {
 			event.reply("messageFromElectron", app.getPath('sessionData'));
+			event.reply("workingDirectorySet", dirTree(app.getPath('sessionData')));
 		}
 		else if (data === "requestAppExit") {
 			app.exit();

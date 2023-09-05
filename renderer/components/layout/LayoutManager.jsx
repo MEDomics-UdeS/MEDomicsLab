@@ -58,7 +58,7 @@ const LayoutManager = (props) => {
 	};
 
 	const renderSidebarComponent = () => {
-		console.log(activeSidebarItem);
+		// console.log(activeSidebarItem);
 		switch (activeSidebarItem) {
 			case 'home':
 				return <HomeSidebar />;
