@@ -10,7 +10,10 @@ import ReactFlow, {
 } from "reactflow"
 import { FlowFunctionsContext } from "./context/flowFunctionsContext"
 import { PageInfosContext } from "../mainPages/moduleBasics/pageInfosContext"
+import { FlowInfosContext } from "./context/flowInfosContext"
 import { getId, deepCopy } from "../../utilities/staticFunctions"
+import { Button } from "react-bootstrap"
+import * as Icon from "react-bootstrap-icons"
 
 /**
  *
@@ -18,6 +21,7 @@ import { getId, deepCopy } from "../../utilities/staticFunctions"
  * @param { function } onDeleteNode function to delete a node
  * @param { function } groupNodeHandlingDefault function to handle a group node default actions such as creation of start and end nodes
  * @param { JSX.Element } ui jsx element to display on the workflow
+ *
  * @param { object } 	mandatoryProps.reactFlowInstance instance of the reactFlow
  * @param { function } 	mandatoryProps.setReactFlowInstance function to set the reactFlowInstance
  * @param { object } 	mandatoryProps.nodeTypes object containing the node types
@@ -65,6 +69,8 @@ const WorkflowBase = ({
   const edgeUpdateSuccessful = useRef(true)
   const { pageInfos } = useContext(PageInfosContext) // used to get the flow infos
   const { nodeUpdate, node2Delete, node2Run } = useContext(FlowFunctionsContext) // used to get the function to update the node
+  const { setShowAvailableNodes } = useContext(FlowInfosContext) // used to update the flow infos
+  const handleShow = () => setShowAvailableNodes(true)
 
   // execute this when a variable change or a function is called related to the callback hook in []
   // setNodeUpdate function is passed to the node component to update the internal data of the node
@@ -389,6 +395,9 @@ const WorkflowBase = ({
         <Background /> <MiniMap className="minimapStyle" zoomable pannable />{" "}
         <Controls />
         {ui}
+        <Button variant="outline btn-top-left-menu" onClick={handleShow}>
+          <Icon.List width="30px" height="30px" />
+        </Button>
       </ReactFlow>
     </div>
   )

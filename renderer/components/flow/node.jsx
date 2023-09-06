@@ -10,6 +10,13 @@ import { OffCanvasBackdropStyleContext } from "./context/offCanvasBackdropStyleC
 import { FlowInfosContext } from "./context/flowInfosContext"
 import { FlowFunctionsContext } from "./context/flowFunctionsContext"
 import { PageInfosContext } from "../mainPages/moduleBasics/pageInfosContext"
+import Tab from "react-bootstrap/Tab"
+import Tabs from "react-bootstrap/Tabs"
+import * as Icon from "react-bootstrap-icons"
+import dynamic from "next/dynamic"
+const CodeEditor = dynamic(() => import("./codeEditor"), {
+  ssr: false
+})
 
 /**
  *
@@ -148,6 +155,7 @@ const Node = ({ id, data, nodeSpecific, nodeBody, defaultSettings }) => {
         >
           <Offcanvas.Header closeButton>
             <Offcanvas.Title>
+              <Icon.Pencil width="18px" height="18px" />
               <EditableLabel
                 text={data.internal.name}
                 labelClassName="node-editableLabel"
@@ -164,10 +172,22 @@ const Node = ({ id, data, nodeSpecific, nodeBody, defaultSettings }) => {
           </Offcanvas.Header>
           <Offcanvas.Body>
             <hr className="solid" />
-            {/* here are the default settings of the node. if nothing is specified, nothing is displayed*/}
-            {defaultSettings}
-            {/* here are the node specific settings. if nothing is specified, nothing is displayed*/}
-            {nodeSpecific}
+            <Tabs
+              defaultActiveKey="options"
+              id="justify-tab-example"
+              className="mb-3 tabs-offCanvas"
+              justify
+            >
+              <Tab eventKey="options" title="Options">
+                {/* here are the default settings of the node. if nothing is specified, nothing is displayed*/}
+                {defaultSettings}
+                {/* here are the node specific settings. if nothing is specified, nothing is displayed*/}
+                {nodeSpecific}
+              </Tab>
+              <Tab eventKey="code" title="Code">
+                <CodeEditor data={data} />
+              </Tab>
+            </Tabs>
           </Offcanvas.Body>
         </Offcanvas>
       </Container>

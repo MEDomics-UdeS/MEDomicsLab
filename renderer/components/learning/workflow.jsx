@@ -17,6 +17,7 @@ import BtnDiv from "../flow/btnDiv"
 import ProgressBarRequests from "../flow/progressBarRequests"
 import { PageInfosContext } from "../mainPages/moduleBasics/pageInfosContext"
 import { FlowFunctionsContext } from "../flow/context/flowFunctionsContext"
+import { FlowResultsContext } from "../flow/context/flowResultsContext"
 
 // here are the different types of nodes implemented in the workflow
 import StandardNode from "./nodesTypes/standardNode"
@@ -50,12 +51,15 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
   const [MLType, setMLType] = useState("classification") // MLType is used to know which machine learning type is selected
   const { setViewport } = useReactFlow() // setViewport is used to update the viewport of the workflow
   const [treeData, setTreeData] = useState({}) // treeData is used to set the data of the tree menu
+  const [treeActiveKey, setTreeActiveKey] = useState(null) // treeActiveKey is used to know which node is selected in the tree menu
   // const [groupNodeId, setGroupNodeId] = useState(null) // groupNodeId is used to know which optimize node has selected ()
   const { getIntersectingNodes } = useReactFlow() // getIntersectingNodes is used to get the intersecting nodes of a node
   const [intersections, setIntersections] = useState([]) // intersections is used to store the intersecting nodes related to optimize nodes start and end
   const [isProgressUpdating, setIsProgressUpdating] = useState(false) // progress is used to store the progress of the workflow execution
   const { pageInfos } = useContext(PageInfosContext) // used to get the page infos such as id and config path
   const { groupNodeId, changeSubFlow } = useContext(FlowFunctionsContext)
+  const { setShowResultsPane, setWhat2show, updateFlowResults } =
+    useContext(FlowResultsContext)
 
   // declare node types using useMemo hook to avoid re-creating component types unnecessarily (it memorizes the output) https://www.w3schools.com/react/react_usememo.asp
   const nodeTypes = useMemo(
@@ -79,9 +83,11 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
           ...node.data
         }
         if (!node.id.includes("opt")) {
-          let subworkflowType = node.data.internal.subflowId
-            ? "optimize"
-            : "learning"
+          let subworkflowType =
+            node.data.internal.subflowId != "MAIN" ? "optimize" : "learning"
+          console.log("subworkflowType", subworkflowType)
+          console.log("staticNodesParams", staticNodesParams)
+          console.log("node.data.internal.type", node.data.internal.type)
           node.data.setupParam.possibleSettings = deepCopy(
             staticNodesParams[subworkflowType][node.data.internal.type][
               "possibleSettings"
@@ -526,10 +532,15 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
             "/learning/run_experiment",
             flow,
             (jsonResponse) => {
-              console.log(jsonResponse)
+              console.log("received results:", jsonResponse)
               if (jsonResponse.error) {
                 setIsProgressUpdating(false)
                 toast.error("Error detected while running the experiment")
+              } else {
+                let results = {}
+                results.results = jsonResponse
+                results.nodes = nodes
+                updateFlowResults(results)
               }
             },
             function (err) {
@@ -726,7 +737,15 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
    *
    */
   const onTreeItemClick = (info) => {
-    console.log("tree item clicked: ", info)
+    if (info.key == treeActiveKey) {
+      setTreeActiveKey("null")
+      setShowResultsPane(false)
+      setWhat2show("")
+    } else {
+      setTreeActiveKey(info.key)
+      setShowResultsPane(true)
+      setWhat2show(info.key)
+    }
   }
 
   /**
@@ -792,6 +811,8 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
                 onClickItem={onTreeItemClick}
                 debounceTime={125}
                 hasSearch={false}
+                activeKey={treeActiveKey}
+                focusKey={treeActiveKey}
               />
             </div>
             {/* top right corner - buttons */}

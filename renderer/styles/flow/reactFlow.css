@@ -1,5 +1,5 @@
 .minimapStyle {
-  height: 120
+  height: 120;
 }
 
 .draggable-side-node {
@@ -50,7 +50,7 @@
 }
 
 .btn-close:hover {
-  fill: rgba(0, 0, 0, .5);
+  fill: rgba(0, 0, 0, 0.5);
 }
 
 .btn-close:focus {
@@ -60,7 +60,9 @@
 .node {
   background: #f5f5f6;
   color: #222;
-  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 15%), 0 2px 4px -1px rgb(0 0 0 / 8%);
+  box-shadow:
+    0 4px 6px -1px rgb(0 0 0 / 15%),
+    0 2px 4px -1px rgb(0 0 0 / 8%);
   border-radius: 2px;
   min-width: 200px;
 }
@@ -68,6 +70,18 @@
 .node .icon-nodes {
   margin-right: 10px;
   float: left;
+}
+
+.react-flow {
+  height: 100%;
+  width: 100%;
+  margin: 0px 5px;
+}
+
+.react-flow__container {
+  height: 100%;
+  width: 100%;
+  margin: 0px 5px;
 }
 
 .react-flow__handle.connectable {
@@ -116,16 +130,58 @@
   top: 42px;
 }
 
+.available-nodes-panel {
+  width: 100%;
+  z-index: 2;
+  height: 100%;
+  min-width: 210px;
+  margin-top: 5px;
+}
+
+.available-nodes-panel .col {
+  text-align: left;
+  padding: 0px;
+}
+
+.closeBtn-availableNodes.btn {
+  position: absolute;
+  top: 7px;
+  right: 10px;
+  padding: 0px;
+}
+
+.closeBtn-availableNodes.btn:hover {
+  background-color: #80808057;
+}
+
+.available-nodes-panel2 {
+  width: 100%;
+  z-index: 2;
+  min-width: 210px;
+  margin-top: 5px;
+  text-align: center;
+  height: -webkit-fill-available;
+}
+
+.available-nodes-panel2 .btn {
+  width: 100%;
+}
+
+.available-nodes-panel2 .card-body label {
+  font-size: 1.1rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
 .btn-panel-top-corner-right .form-select {
   display: inline;
   width: auto;
 }
 
-
 .btn-panel-top-corner-left {
   position: absolute;
   top: 10px;
-  left: 40px;
+  left: 60px;
   cursor: pointer;
   z-index: 10;
 }
@@ -145,6 +201,19 @@
   margin-left: 5px;
 }
 
+.btn-top-left-menu {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  cursor: pointer;
+  z-index: 10;
+}
+
+.btn-top-left-menu.btn:hover {
+  text-decoration: solid;
+  background-color: #80808057;
+}
+
 .panel-bottom-center {
   position: absolute;
   bottom: 20px;
@@ -155,7 +224,6 @@
   text-align: center;
   width: 50%;
 }
-
 
 .node-editableLabel {
   position: absolute;
@@ -168,12 +236,12 @@
   position: absolute;
   overflow: hidden;
   height: 100%;
+  width: -webkit-fill-available;
   z-index: -1;
   top: 0px;
   padding: 10px 10px 10px 0px;
   /* animation: move 2s linear; */
   /* transition: z-index 0.75s ease-in-out; */
-
 }
 
 .workflow-settings .offcanvas {
@@ -209,17 +277,17 @@
   border-radius: 2rem;
 }
 
-.intersect .node{
+.intersect .node {
   background-color: #28970087;
 }
 
-.intersect .card{
+.intersect .card {
   /* border: 2px solid #1817ff73; */
   background-color: var(--bs-card-bg);
-  box-shadow: 0 0 0.1rem 0.1rem #1817ff73
+  box-shadow: 0 0 0.1rem 0.1rem #1817ff73;
 }
 
-.optimize-io label{
+.optimize-io label {
   font-size: 30px;
 }
 
@@ -229,16 +297,15 @@
 
 .opt-end {
   background-color: #974b0087;
-
 }
 
-.tooltip-container-left{
+.tooltip-container-left {
   position: absolute;
   top: 50%;
   left: -3px;
 }
 
-.tooltip-container-right{
+.tooltip-container-right {
   position: absolute;
   top: 50%;
   width: 10px;
@@ -250,4 +317,50 @@
 
 .card-body {
   padding: 0.2rem;
+}
+
+#data-panel-id-sidebar {
+  max-width: 210px;
+}
+
+.tabs-offCanvas .nav-item .nav-link.active {
+  background-color: #adadad;
+  color: #000;
+}
+.tabs-offCanvas .nav-item .nav-link {
+  color: #000;
+  --bs-nav-tabs-border-width: 2px;
+  /* --bs-nav-tabs-border-color: #0080ff00; */
+  /* --bs-nav-tabs-link-border-color: #0281ff00 #b3ff0000 #f90b0b; */
+  /* --bs-nav-tabs-link-active-border-color: #0281ff00 #b3ff0000 #f90b0b; */
+  border-bottom: var(--bs-nav-tabs-border-width) solid #bbb;
+}
+
+.offcanvas-header {
+  padding-bottom: 0px;
+}
+
+.results-Panel {
+  height: -webkit-fill-available;
+}
+
+.results-Panel .card {
+  height: 100%;
+  margin: 0px 5px;
+}
+
+.resize-handle-results {
+  height: 0.25rem;
+  width: 100%;
+  background-color: #a1a1a1;
+  cursor: row-resize !important;
+  margin: 0px 5px;
+}
+
+.resize-handle-results:hover {
+  background-color: #808080;
+}
+
+.smooth-transition {
+  transition: all cubic-bezier(0.2, 0, 0, 1) 0.75s;
 }

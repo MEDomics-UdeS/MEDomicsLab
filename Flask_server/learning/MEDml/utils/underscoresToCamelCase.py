@@ -1,11 +1,8 @@
-import json
-import os
-
-import os
 import sys
 import argparse
 
 # py .\MEDml\utils\underscoresToCamelCase.py ./flaskProject/static/drawflow_objects.js -o ./MEDml/utils/convertedFile.js
+
 
 def main(arguments):
 

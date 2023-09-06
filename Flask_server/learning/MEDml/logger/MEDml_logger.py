@@ -1,18 +1,7 @@
 import copy
-import os
-import tempfile
-import traceback
-from pathlib import Path
-from typing import TYPE_CHECKING, Any, Dict, List, Optional
-
-import numpy as np
-import pandas as pd
+from typing import TYPE_CHECKING
 import json
-
-from pycaret.internal.meta_estimators import get_estimator_from_meta_estimator
-from pycaret.internal.pipeline import get_pipeline_estimator_label
-from termcolor import colored
-from colorama import Fore, Back, Style
+from colorama import Fore
 from pycaret.loggers.base_logger import BaseLogger
 
 if TYPE_CHECKING:

@@ -1,112 +1,104 @@
 .learning-div {
-    position: relative;
-    z-index: 1;
-    top: 0;
-}
-
-.available-nodes-panel {
-    width: 235px;
-    z-index: 2;
+  position: relative;
+  z-index: 1;
+  top: 0;
 }
 
 .icon-nodes {
-    float: right;
-    height: 20px;
+  float: right;
+  height: 20px;
 }
 
 .btn-contour {
-    border: 1px solid #1a1a1a7a;
-    cursor: pointer;
-    height: 35px;
-    padding-top: 0px;
-    padding-bottom: 0px;
+  border: 1px solid #1a1a1a7a;
+  cursor: pointer;
+  height: 35px;
+  padding-top: 0px;
+  padding-bottom: 0px;
 }
 
 .btn-contour img {
-    vertical-align: baseline;
-    height: 100%;
+  vertical-align: baseline;
+  height: 100%;
 }
 
 .tooltip {
-    max-width: 700px;
+  max-width: 700px;
 }
 
 .custom-list {
-    list-style-type: none;
-    padding: 0;
-    margin: 0;
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
 }
 
 .css-1fdsijx-ValueContainer {
-    margin-top: 20px;
+  margin-top: 20px;
 }
 
 .css-3w2yfm-ValueContainer {
-    margin-top: 20px;
+  margin-top: 20px;
 }
 
 .custom-lbl {
-    font-size: 14px;
-    font-weight: 400;
-    margin-bottom: 5px;
-    position: relative;
-    top: 0px;
-    left: 15px;
-    z-index: 10;
-    color: rgba(33, 37, 41);
-    opacity: 0.65;
-
+  font-size: 14px;
+  font-weight: 400;
+  margin-bottom: 5px;
+  position: relative;
+  top: 0px;
+  left: 15px;
+  z-index: 10;
+  color: rgba(33, 37, 41);
+  opacity: 0.65;
 }
 
 .css-b62m3t-container {
-    position: relative;
-    box-sizing: border-box;
-    top: -30px;
-    margin-bottom: -15px !important;
+  position: relative;
+  box-sizing: border-box;
+  top: -30px;
+  margin-bottom: -15px !important;
 }
-
-
 
 /* normal */
 .css-13cymwt-control {
-    cursor: text !important;
+  cursor: text !important;
 }
 
 /* focus */
 .css-t3ipsp-control {
-    border-color: hsl(0, 0%, 70%) !important;
-    box-shadow: 0 0 0 0.25rem rgb(13 110 253 / 25%) !important;
+  border-color: hsl(0, 0%, 70%) !important;
+  box-shadow: 0 0 0 0.25rem rgb(13 110 253 / 25%) !important;
 }
 
 .input-hov .form-select:hover {
-    border-color: hsl(0, 0%, 70%) !important;
+  border-color: hsl(0, 0%, 70%) !important;
 }
 
 .input-hov .form-control:hover {
-    border-color: hsl(0, 0%, 70%) !important;
+  border-color: hsl(0, 0%, 70%) !important;
 }
 
 .css-tj5bde-Svg {
-    cursor: pointer;
+  cursor: pointer;
 }
 
 .css-1nmdiq5-menu {
-    z-index: 100 !important;
+  z-index: 100 !important;
 }
 
-.subFlow-title{
-    font-size: 30px;
-    font-weight: 400;
-    position: absolute;
-    top: 0px;
-    left: 0px;
-    z-index: 10;
-    color: rgb(0 0 0 / 70%);
-    width: 100%;
+.subFlow-title {
+  font-size: 30px;
+  font-weight: 400;
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  z-index: 10;
+  color: rgb(0 0 0 / 70%);
+  width: 100%;
 }
 
-.subFlow-title .node-editableLabel{
-   position: relative;
-    top: 0px;
-    left:0px
+.subFlow-title .node-editableLabel {
+  position: relative;
+  top: 0px;
+  left: 0px;
 }

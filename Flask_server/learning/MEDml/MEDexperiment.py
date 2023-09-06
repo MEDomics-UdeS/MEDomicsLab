@@ -1,24 +1,8 @@
 import copy
-
-import pandas as pd
-from itertools import chain, combinations
-import csv
-import os
-import numpy as np
-
-
-# from pycaret.survival_analysis.oop import SurvivalAnalysisExperiment
-from pycaret.classification import ClassificationExperiment
-from pycaret.regression import RegressionExperiment
 from learning.MEDml.logger.MEDml_logger import MEDml_logger
-import mlflow
 import json
-
 from learning.MEDml.nodes.NodeObj import *
-from learning.MEDml.nodes import *
-from learning.MEDml.utils.loading import Loader
-from typing import Any, Callable, Dict, List, Optional, Tuple, Union
-from termcolor import colored
+from typing import Union
 
 DATAFRAME_LIKE = Union[dict, list, tuple, np.ndarray, pd.DataFrame]
 TARGET_LIKE = Union[int, str, list, tuple, np.ndarray, pd.Series]
@@ -36,14 +20,7 @@ def create_pycaret_exp(ml_type: str) -> json:
             raise ValueError("ML type is not valid")
 
 
-def isPrimitive2(obj):
-    # print(type(obj), not hasattr(obj, '__dict__') and "sklearn" not in str(type(obj)))
-    if type(obj).__name__ == "RandomState" or type(obj).__name__ == "DecisionTreeClassifier" or type(obj).__name__ == "DecisionTreeRegressor" or type(obj).__name__ == "RandomForestClassifier" or type(obj).__name__ == "RandomForestRegressor" or type(obj).__name__ == "LogisticRegression" or type(obj).__name__ == "LinearRegression" or type(obj).__name__ == "KNeighborsClassifier" or type(obj).__name__ == "KNeighborsRegressor" or type(obj).__name__ == "SVC" or type(obj).__name__ == "SVR" or type(obj).__name__ == "GaussianNB" or type(obj).__name__ == "GaussianProcessClassifier" or type(obj).__name__ == "GaussianProcessRegressor" or type(obj).__name__ == "AdaBoostClassifier" or type(obj).__name__ == "AdaBoostRegressor" or type(obj).__name__ == "GradientBoostingClassifier" or type(obj).__name__ == "GradientBoostingRegressor" or type(obj).__name__ == "XGBClassifier" or type(obj).__name__ == "XGBRegressor" or type(obj).__name__ == "LGBMClassifier" or type(obj).__name__ == "LGBMRegressor" or type(obj).__name__ == "CatBoostClassifier" or type(obj).__name__ == "CatBoostRegressor" or type(obj).__name__ == "LinearDiscriminantAnalysis" or type(obj).__name__ == "QuadraticDiscriminantAnalysis" or type(obj).__name__ == "MLPClassifier" or type(obj).__name__ == "MLPRegressor" or type(obj).__name__ == "RidgeClassifier" or type(obj).__name__ == "RidgeRegressor" or type(obj).__name__ == "RidgeClassifierCV" or type(obj).__name__ == "RidgeCV" or type(obj).__name__ == "Lasso" or type(obj).__name__ == "LassoCV" or type(obj).__name__ == "LassoLars" or type(obj).__name__ == "LassoLarsCV" or type(obj).__name__ == "LassoLarsIC" or type(obj).__name__ == "ElasticNet" or type(obj).__name__ == "ElasticNetCV" or type(obj).__name__ == "BayesianRidge" or type(obj).__name__ == "ARDRegression" or type(obj).__name__ == "OrthogonalMatchingPursuit":
-        return False
-    return not hasattr(obj, '__dict__') and "sklearn" not in str(type(obj))
-
-
-def isPrimitive(obj):
+def is_primitive(obj):
     primitive_types = (int, float, bool, str, bytes, type(None), dict, list, tuple, np.ndarray, pd.DataFrame, pd.Series)
     print(type(obj).__name__, isinstance(obj, primitive_types))
     if isinstance(obj, primitive_types):
@@ -83,8 +60,8 @@ class MEDexperiment:
         self.global_json_config['unique_id'] = 0
         self.pipelines_objects = self.create_next_nodes(self.pipelines, copy.deepcopy(self.pipelines_objects))
         # tmp_dir = global_json_config['saving_path']
-        global_json_config['saving_path'] = "local_dir"
-        tmp_dir = "local_dir"
+        global_json_config['saving_path'] = "flask_server/local_dir"
+        tmp_dir = global_json_config['saving_path']
         for f in os.listdir(tmp_dir):
             if f != '.gitkeep':
                 os.remove(os.path.join(tmp_dir, f))
@@ -270,22 +247,22 @@ class MEDexperiment:
         node_type = node_config['data']['internal']['type']
 
         if node_type == "dataset":
-            from MEDml.nodes.Dataset import Dataset
+            from learning.MEDml.nodes.Dataset import Dataset
             return Dataset(node_config['id'], self.global_json_config)
         elif node_type == "clean":
-            from MEDml.nodes.Clean import Clean
+            from learning.MEDml.nodes.Clean import Clean
             return Clean(node_config['id'], self.global_json_config)
         elif node_type == "compare_models" or node_type == "create_model":
-            from MEDml.nodes.ModelHandler import ModelHandler
+            from learning.MEDml.nodes.ModelHandler import ModelHandler
             return ModelHandler(node_config['id'], self.global_json_config)
         elif node_type == "tune_model" or node_type == "ensemble_model" or node_type == "blend_models" or node_type == "stack_models" or node_type == "calibrate_model":
-            from MEDml.nodes.Optimize import Optimize
+            from learning.MEDml.nodes.Optimize import Optimize
             return Optimize(node_config['id'], self.global_json_config)
         elif node_type == "analyse":
-            from MEDml.nodes.Analyse import Analyse
+            from learning.MEDml.nodes.Analyse import Analyse
             return Analyse(node_config['id'], self.global_json_config)
         elif node_type == "deploy":
-            from MEDml.nodes.Deploy import Deploy
+            from learning.MEDml.nodes.Deploy import Deploy
             return Deploy(node_config['id'], self.global_json_config)
 
     def setup_dataset(self, node: Node):
@@ -333,7 +310,7 @@ class MEDexperiment:
         """
         return_dict = {}
         for key, value in self._results_pipeline.items():
-            if isPrimitive(value):
+            if is_primitive(value):
                 if isinstance(value, dict):
                     return_dict[key] = self.add_only_object(value)
                 else:
@@ -351,8 +328,8 @@ class MEDexperiment:
         """
         return_dict = {}
         for key, value in next.items():
-            # print(key, value, isPrimitive(value))
-            if isPrimitive(value):
+            # print(key, value, is_primitive(value))
+            if is_primitive(value):
                 if isinstance(value, dict):
                     return_dict[key] = self.add_only_object(value)
                 else:
