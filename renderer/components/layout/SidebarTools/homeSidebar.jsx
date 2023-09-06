@@ -1,4 +1,4 @@
-import React, { useContext, useEffect} from "react";
+import React, { useContext} from "react";
 import { Accordion, Button, Stack } from "react-bootstrap";
 import { WorkspaceContext } from "../../workspace/WorkspaceContext";
 import { ipcRenderer } from "electron";
@@ -11,10 +11,6 @@ const HomeSidebar = () => {
 
 	const { workspace } = useContext(WorkspaceContext); // We get the workspace from the context to retrieve the directory tree of the workspace, thus retrieving the data files
 
-	useEffect(() => {
-		console.log(workspace);
-
-	}, [workspace]); // We log the workspace when it changes
 
 	async function handleWorkspaceChange() {
 		// console.log(e);

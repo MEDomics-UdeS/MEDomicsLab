@@ -7,7 +7,7 @@ var path = require("path");
 const dirTree = require("directory-tree");
 
 const isProd = process.env.NODE_ENV === "production";
-
+var hasBeenSet = false;
 if (isProd) {
 	serve({ directory: "app" });
 } else {
@@ -128,11 +128,11 @@ if (isProd) {
 			setWorkingDirectory(event, mainWindow);
 		}
 		else if (data === "requestWorkingDirectory") {
-			event.reply("messageFromElectron", app.getPath('sessionData'));
-			event.reply("workingDirectorySet", dirTree(app.getPath('sessionData')));
+			event.reply("messageFromElectron", { "workingDirectory": dirTree(app.getPath('sessionData')), "hasBeenSet": hasBeenSet });
+			event.reply("workingDirectorySet", { "workingDirectory": dirTree(app.getPath('sessionData')), "hasBeenSet": hasBeenSet });
 		}
 		else if (data === "updateWorkingDirectory") {
-			event.reply("updateDirectory", dirTree(app.getPath('sessionData')));
+			event.reply("updateDirectory", { "workingDirectory": dirTree(app.getPath('sessionData')), "hasBeenSet": hasBeenSet });
 		}
 		else if (data === "requestAppExit") {
 			app.exit();
@@ -166,7 +166,7 @@ function setWorkingDirectory(event, mainWindow) {
 			if (file === app.getPath('sessionData')) {
 				console.log('Working directory is already set to ' + file)
 				event.reply("messageFromElectron", 'Working directory is already set to ' + file);
-				event.reply("workingDirectorySet", dirTree(file));
+				event.reply("workingDirectorySet", { "workingDirectory": dirTree(file), "hasBeenSet": hasBeenSet });
 
 			}
 			else {
@@ -174,8 +174,10 @@ function setWorkingDirectory(event, mainWindow) {
 				event.reply("messageFromElectron", 'Working directory set to ' + file);
 				app.setPath('sessionData', file);
 				createWorkingDirectory();
+				hasBeenSet = true;
 				event.reply("messageFromElectron", dirTree(file));
-				event.reply("workingDirectorySet", dirTree(file));
+				event.reply("workingDirectorySet", { "workingDirectory": dirTree(file), "hasBeenSet": hasBeenSet });
+
 				//   app.relaunch({ e})
 				//   mainWindow.loadURL(`file://${file}`)
 			}

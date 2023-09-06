@@ -34,7 +34,7 @@ const IconSidebar = ({ onSidebarItemSelect }) => {
 
 	function handleClick(event, name) {
 		onSidebarItemSelect(name);
-		console.log(`clicked ${name}`, event.target);
+		console.log(`clicked ${name}`, event);
 		setActiveKey(name);	
 	}
 
@@ -42,7 +42,6 @@ const IconSidebar = ({ onSidebarItemSelect }) => {
 
 
 	const handleNavClick = () => {
-		// setShowDropdown(!showDropdown);
 		setButtonClass(buttonClass === "" ? "show" : "");
 	};
 

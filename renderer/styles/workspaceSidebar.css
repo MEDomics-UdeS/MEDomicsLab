@@ -188,9 +188,6 @@
 	border-left: #504f4f 0.07rem solid;
 }
 
-.accordionHeader {
-}
-
 .accordion-body-tight {
 	padding: 0;
 	margin: 0;
@@ -201,7 +198,9 @@
 }
 
 .buttonNoStyle {
+	border-radius: 0.3rem;
 	display: block;
+	color: white;
 	background-color: transparent;
 	border: none;
 	padding: 0;
@@ -210,13 +209,16 @@
 
 .buttonNoStyle:hover {
 	background-color: #ffffff31;
+	color: white;
+
 	border: none;
 	padding: 0;
 	margin: 0;
 }
 
 .buttonNoStyle:active {
-	background-color: #f00303;
+	background-color: #ffffff3b;
+	color: white;
 	border: none;
 	padding: 0;
 	margin: 0;

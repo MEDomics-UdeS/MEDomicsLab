@@ -108,36 +108,35 @@ export default function App() {
 		});
 	}, []); // Here, we specify that the hook should only be called at the launch of the app
 
+	/**
+	 * @ReadMe
+	 * This useEffect hook is called only once and it sets the ipcRenderer to listen for the "updateDirectory" message from the main process
+	 * *important* : The update directory message is used to call an update of the working directory tree
+	 * The HasBeenSet property is used to prevent the workspaceObject from being updated before the working directory has been set
+	 * The HasBeenSet property is set to true when the workingDirectorySet message is received
+	 */
+
 	useEffect(() => {
 		// This useEffect hook is called only once and it sets the ipcRenderer to listen for the "workingDirectorySet" message from the main process
 		// The working directory tree is stored in the workspaceObject state variable
 		ipcRenderer.on("workingDirectorySet", (event, data) => {
 			console.log("WorkingDirectory set by Electron:", data);
 			if (workspaceObject !== data) {
-				let workspace = { ...workspaceObject, workingDirectory: data, hasBeenSet: true };
+				let workspace = { ...data };
 				setWorkspaceObject(workspace);
-				console.log("workspaceObject has been set");
-			}
-			else {
-				console.log("workspaceObject is the same");
 			}
 		});
 
+
 		ipcRenderer.on("updateDirectory", (event, data) => {
 			console.log("WorkingDirectory update from Electron:", data);
-			if (workspaceObject.hasBeenSet === true) {
-				console.log("workspaceObject was set");
-				if (workspaceObject !== data) {
-					let workspace = { ...workspaceObject, workingDirectory: data };
-					setWorkspaceObject(workspace);
-				}
-				else {
-					console.log("workspaceObject is the same");
-				}
-			}
-			else {
-				console.log("workspaceObject has not been set");
-			}
+			// if (workspaceObject.hasBeenSet === true) {
+
+			let workspace = { ...data };
+			setWorkspaceObject(workspace);
+			console.log("WorkingDirectory updated:", workspace);
+
+			// }
 		});
 
 	}, []); // Here, we specify that the hook should only be called at the launch of the app

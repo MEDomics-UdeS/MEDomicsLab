@@ -1,16 +1,12 @@
-import React, {  useContext, useEffect } from "react";
+import React, {  useContext } from "react";
 import { Button, Stack } from "react-bootstrap";
 import {  Plus } from "react-bootstrap-icons";
 import DropzoneComponent from "../../mainPages/dataComponents/dropzoneComponent";
 import { WorkspaceContext } from "../../workspace/WorkspaceContext";
 import {WorkspaceDirectoryTree} from "./workspaceDirectoryTree";
 const InputSidebar = () => {
+	// eslint-disable-next-line no-unused-vars
 	const { workspace } = useContext(WorkspaceContext); // We get the workspace from the context to retrieve the directory tree of the workspace, thus retrieving the data files
-	
-	useEffect(() => {
-		console.log(workspace);
-	}, [workspace]); // We log the workspace when it changes
-
 
 	return (
 		<>
