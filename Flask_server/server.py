@@ -20,5 +20,6 @@ def test():
     print(json.dumps(data, indent=4, sort_keys=True))
     return jsonify({"test": "réussi"})
 
+
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
