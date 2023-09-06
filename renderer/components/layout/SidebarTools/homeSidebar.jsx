@@ -1,18 +1,21 @@
-import React, { useState } from 'react';
-import { Accordion, Stack } from 'react-bootstrap';
-import { ChevronRight, PlusSquare, PlusSquareFill } from 'react-bootstrap-icons';
+import React from "react";
+import { Accordion, Stack } from "react-bootstrap";
 
-const HomeSidebar = (props) => {
+const HomeSidebar = () => {
+	/**
+	 * @description - This component is the sidebar tools component that will be used in the sidebar component as the home page
+	 * 
+	 */
 	return (
 		<>
 			<Stack direction="vertical" gap={0}>
-				<p style={{ color: '#a3a3a3', font: 'Arial', fontSize: '12px', padding: '0.75rem 0.25rem 0.75rem 0.75rem', margin: '0 0 0 0' }}>HOME - TO BE IMPLEMENTED</p>
-				<Accordion defaultActiveKey={['0']} alwaysOpen >
+				<p style={{ color: "#a3a3a3", font: "Arial", fontSize: "12px", padding: "0.75rem 0.25rem 0.75rem 0.75rem", margin: "0 0 0 0" }}>HOME - TO BE IMPLEMENTED</p>
+				<Accordion defaultActiveKey={["0"]} alwaysOpen >
 					<Accordion.Item eventKey="0">
 						<Accordion.Header>
-							<Stack direction="horizontal" style={{ flexGrow: '1' }}>
+							<Stack direction="horizontal" style={{ flexGrow: "1" }}>
 								<p>OPEN EDITORS</p>
-								<div style={{ flexGrow: '10' }} />
+								<div style={{ flexGrow: "10" }} />
 							</Stack>
 						</Accordion.Header>
 						<Accordion.Body>

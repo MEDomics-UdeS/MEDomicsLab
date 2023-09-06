@@ -1,4 +1,4 @@
-import { React, useState, useContext, createContext } from 'react';
+import { React, createContext } from "react";
 
 /**
  * @typedef {React.Context} WorkspaceContext
@@ -19,13 +19,13 @@ export const WorkspaceContext = createContext(null);
  */
 export default function WorkspaceProvider({ workspace, setWorkspace, children }) {
 
-    return (
-        <>
-            <WorkspaceContext.Provider value={{ workspace, setWorkspace }}>
-                {children}
-            </WorkspaceContext.Provider>
-        </>
-    );
+	return (
+		<>
+			<WorkspaceContext.Provider value={{ workspace, setWorkspace }}>
+				{children}
+			</WorkspaceContext.Provider>
+		</>
+	);
 }
 
 

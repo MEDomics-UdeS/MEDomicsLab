@@ -1,6 +1,7 @@
+import fs from "fs";
 
 class StorageManager {
-	constructor(path="./") {
+	constructor(path = "./") {
 		this.root = path;
 	}
 
@@ -11,7 +12,7 @@ class StorageManager {
 	downloadJson(exportObj, exportName) {
 		var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportObj, null, 2));
 		var downloadAnchorNode = document.createElement("a");
-		downloadAnchorNode.setAttribute("href",     dataStr);
+		downloadAnchorNode.setAttribute("href", dataStr);
 		downloadAnchorNode.setAttribute("download", exportName + ".json");
 		document.body.appendChild(downloadAnchorNode); // required for firefox
 		downloadAnchorNode.click();
@@ -19,7 +20,6 @@ class StorageManager {
 	}
 
 	writeJson(exportObj, path, name) {
-		const fs = require("fs");
 		fs.writeFile(path + name + ".json", JSON.stringify(exportObj, null, 2), function (err) {
 			if (err) {
 				return console.log(err);
@@ -64,9 +64,8 @@ class StorageManager {
 	}
 
 	loadJsonFile(path) {
-		const fs = require("fs");
 		try {
-			const data = fs.readFileSync("./"+ path);
+			const data = fs.readFileSync("./" + path);
 			const jsonData = JSON.parse(data);
 			return jsonData;
 		} catch (error) {
@@ -75,5 +74,5 @@ class StorageManager {
 		}
 	}
 }
-  
+
 export default StorageManager;

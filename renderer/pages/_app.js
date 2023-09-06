@@ -20,8 +20,8 @@ import "../styles/iconSidebar.css";
 import LayoutManager from "../components/layout/LayoutManager";
 import LayoutContextProvider from "../components/layout/LayoutContext";
 import WorkspaceProvider from "../components/workspace/WorkspaceContext";
-import { useEffect } from 'react';
-import { ipcRenderer } from 'electron';
+import { useEffect } from "react";
+import { ipcRenderer } from "electron";
 
 
 
@@ -100,19 +100,19 @@ export default function App() {
 
 
 	useEffect(() => {
-		// This is a hook that is called when the ipcRenderer receives a message from the main process
+		// This useEffect hook is called only once and it sets the ipcRenderer to listen for the "messageFromElectron" message from the main process
 		// Log a message to the console whenever the ipcRenderer receives a message from the main process
-		ipcRenderer.on('messageFromElectron', (event, data) => {
-			console.log('Received message from Electron:', data);
-		// Handle the received message from the Electron side
+		ipcRenderer.on("messageFromElectron", (event, data) => {
+			console.log("Received message from Electron:", data);
+			// Handle the received message from the Electron side
 		});
-	}, []); // Here, we specify that the hook should only be called when the ipcRenderer receives a message from the main process
+	}, []); // Here, we specify that the hook should only be called at the launch of the app
 
 	useEffect(() => {
-		// This is a hook that is called when the ipcRenderer receives the working directory tree from the main process
+		// This useEffect hook is called only once and it sets the ipcRenderer to listen for the "workingDirectorySet" message from the main process
 		// The working directory tree is stored in the workspaceObject state variable
-		ipcRenderer.on('workingDirectorySet', (event, data) => {
-			console.log('WorkingDirectory set by Electron:', data);
+		ipcRenderer.on("workingDirectorySet", (event, data) => {
+			console.log("WorkingDirectory set by Electron:", data);
 			if (workspaceObject !== data) {
 				setWorkspaceObject(data);
 			}
@@ -120,21 +120,18 @@ export default function App() {
 				console.log("workspaceObject is the same");
 			}
 		});
-		
 
-	}, []); // Here, we specify that the hook should only be called when the ipcRenderer receives a message from the main process
 
-	
+	}, []); // Here, we specify that the hook should only be called at the launch of the app
+
+
 	useEffect(() => {
 		// This is a hook that is called whenever the layoutModel state variable changes
 		// Log a message to the console whenever the layoutModel state variable changes
-		console.log("layoutModel changed");
-		console.log(layoutModel);
-		console.log(workspaceObject);
-
+		console.log("layoutModel changed", layoutModel);
 	}, [layoutModel]); // Here, we specify that the hook should only be called when the layoutModel state variable changes
 
-	
+
 	return (
 		<>
 			<Head>
@@ -145,18 +142,18 @@ export default function App() {
 			</Head>
 			<div style={{ height: "100%" }}>
 				<WorkspaceProvider workspace={workspaceObject} setWorkspace={setWorkspaceObject}> {/* This is the WorkspaceProvider, which provides the workspace model to all the children components of the LayoutManager */}
-					<LayoutContextProvider
+					<LayoutContextProvider // This is the LayoutContextProvider, which provides the layout model to all the children components of the LayoutManager
 						layoutModel={layoutModel}
 						setLayoutModel={setLayoutModel}
 					>
-						{" "}
+
 						{/* This is the LayoutContextProvider, which provides the layout model to all the children components of the LayoutManager */}
-						<LayoutManager layout={initialLayout} />{" "}
+						<LayoutManager layout={initialLayout} />
 						{/** We pass the initialLayout as a parameter */}
 					</LayoutContextProvider>
 				</WorkspaceProvider>
 
-				<ToastContainer
+				<ToastContainer // This is the ToastContainer, which is used to display toast notifications
 					position="bottom-right"
 					autoClose={2000}
 					limit={3}

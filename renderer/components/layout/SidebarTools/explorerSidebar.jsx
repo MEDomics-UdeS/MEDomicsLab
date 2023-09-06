@@ -1,19 +1,16 @@
-import React, { useState, useContext } from 'react';
-import { Accordion, Stack } from 'react-bootstrap';
-import { ChevronRight, PlusSquare, PlusSquareFill } from 'react-bootstrap-icons';
-import { WorkspaceContext } from '../../workspace/WorkspaceContext';
-import { ipcRenderer } from 'electron';
+import React, { useContext } from "react";
+import { Accordion, Stack } from "react-bootstrap";
+import { WorkspaceContext } from "../../workspace/WorkspaceContext";
+import { ipcRenderer } from "electron";
 
-const ExplorerSidebar = (props) => {
+const ExplorerSidebar = () => {
 	useContext(WorkspaceContext);
-	const folderRef = React.useRef(null);
-	const [workspace, setWorkspace] = useState({ hasBeenSet: false, workspaceObject: null });
-	const [folder, setFolder] = useState(null);
 
 
-	async function handleWorkspaceChange(e) {
+
+	async function handleWorkspaceChange() {
 		// console.log(e);
-		ipcRenderer.send('messageFromNext', 'requestDialogFolder');
+		ipcRenderer.send("messageFromNext", "requestDialogFolder");
 		
 		// ipcRenderer.send('messageFromNext', 'requestAppExit');
 
@@ -23,22 +20,16 @@ const ExplorerSidebar = (props) => {
 		// console.log(dirHandle);
 	}
 
-	function handleFolderInput(e) {
-		console.log(e);
-		console.log(e.target.files);
-		console.log(e.target.files[0].path);
-
-	}
 	return (
 		<>
 			<Stack direction="vertical" gap={0}>
-				<p style={{ color: '#a3a3a3', font: 'Arial', fontSize: '12px', padding: '0.75rem 0.25rem 0.75rem 0.75rem', margin: '0 0 0 0' }}>EXPLORER - TO BE IMPLEMENTED</p>
-				<Accordion defaultActiveKey={['0']} alwaysOpen >
+				<p style={{ color: "#a3a3a3", font: "Arial", fontSize: "12px", padding: "0.75rem 0.25rem 0.75rem 0.75rem", margin: "0 0 0 0" }}>EXPLORER - TO BE IMPLEMENTED</p>
+				<Accordion defaultActiveKey={["0"]} alwaysOpen >
 					<Accordion.Item eventKey="0">
 						<Accordion.Header>
-							<Stack direction="horizontal" style={{ flexGrow: '1' }}>
+							<Stack direction="horizontal" style={{ flexGrow: "1" }}>
 								<p>OPEN EDITORS</p>
-								<div style={{ flexGrow: '10' }} />
+								<div style={{ flexGrow: "10" }} />
 							</Stack>
 						</Accordion.Header>
 						<Accordion.Body>
