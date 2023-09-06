@@ -4,7 +4,15 @@ import { parse } from "csv";
 import fs from "fs";
 import { WorkspaceContext } from "../../workspace/WorkspaceContext";
 
-export default function DropzoneComponent({ children }) {
+/**
+ * @typedef {React.FunctionComponent} DropzoneComponent
+ * @description This component is the dropzone component that will be used to upload files to the workspace.
+ * @params {Object} children - The children of the component
+ * @summary This component is used to upload files to the workspace. It is used in the InputSidebar.
+ * 
+ * @todo Add the functionality to upload more file types than just CSV files
+ */
+export default function DropzoneComponent({children }) {
 	// eslint-disable-next-line no-unused-vars
 	const [uploadedFile, setUploadedFile] = useState(null);
 	// eslint-disable-next-line no-unused-vars
@@ -12,7 +20,6 @@ export default function DropzoneComponent({ children }) {
 
 	// Retrieve the Workspace context from the WorkspaceProvider
 	const { workspace } = useContext(WorkspaceContext);
-	console.log("TEST",workspace["path"]);
 	const onDrop = useCallback(acceptedFiles => {
 		const reader = new FileReader();
 
@@ -22,29 +29,40 @@ export default function DropzoneComponent({ children }) {
 			// Parse CSV file
 			acceptedFiles.forEach((file) => {
 				console.log("file", file);
-				parse(reader.result, (err, data) => {
-					console.log("Parsed CSV data: ", data);
-					fs.writeFile(`${workspace["path"]}/DATA/${file["name"]}`, data.join("\n"), "utf8", (err) => {
-						if (err) {
-							console.error("Error writing file:", err);
-						} else {
-							console.log("File written successfully");
-						}
+				if (file.name.includes(".csv")) {
+					
+					parse(reader.result, (err, data) => {
+						console.log("Parsed CSV data: ", data);
+						
+					
+						fs.writeFile(`${workspace.workingDirectory.path}/DATA/${file["name"]}`, data.join("\n"), "utf8", (err) => {
+							if (err) {
+								console.error("Error writing file:", err);
+							} else {
+								console.log("File written successfully");
+							}
+						});
 					});
-				});
+				}
+				else if (file.name.includes(".xlsx")) {
+					console.log("xlsx file");
+				}
 			});
 		};
       
 		// read file contents
-		acceptedFiles.forEach((file) => reader.readAsText(file));
+		acceptedFiles.forEach((file) => reader.readAsBinaryString(file));
 	}, []);
 
     
 	const { getRootProps, getInputProps } = useDropzone({ onDrop });
 
-    
+	/**
+	 * @description - This function handles the download of the file
+	 * @todo Implement this function
+	 */
 	const handleDownload = () => {
-
+		
 	};
 
 	return (

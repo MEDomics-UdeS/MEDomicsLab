@@ -17,20 +17,21 @@ import SearchSidebar from "./SidebarTools/searchSidebar";
 import LayoutTestSidebar from "./SidebarTools/layoutTestSidebar";
 import MainFlexLayout from "./mainContainerFunctional";
 import InputSidebar from "./SidebarTools/inputSidebar";
-
+import { ipcRenderer } from "electron";
+import LearningSidebar from "./SidebarTools/learningSidebar";
 
 const LayoutManager = (props) => {
 	const [activeSidebarItem, setActiveSidebarItem] = useState("home"); // State to keep track of active nav item
 	
 	const handleSidebarItemSelect = (selectedItem) => {
 		setActiveSidebarItem(selectedItem); // Update activeNavItem state with selected item
-		
+		ipcRenderer.send("messageFromNext", "updateWorkingDirectory");
 	};
 	
 
 	// Render content component based on activeNavItem state
 	const renderContentComponent = ({props}) => {
-		
+
 		switch (activeSidebarItem) {
 		case "home":
 			return <Home />;
@@ -65,6 +66,9 @@ const LayoutManager = (props) => {
 			return <LayoutTestSidebar />;
 		case "input":
 			return <InputSidebar />;
+		case "learning":
+			return <LearningSidebar />;
+				
 		default:
 			return <h5 style={{color:"#d3d3d3", marginLeft:"0.5rem"}}>{activeSidebarItem}</h5>;
 		}

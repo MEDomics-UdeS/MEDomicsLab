@@ -131,6 +131,9 @@ if (isProd) {
 			event.reply("messageFromElectron", app.getPath('sessionData'));
 			event.reply("workingDirectorySet", dirTree(app.getPath('sessionData')));
 		}
+		else if (data === "updateWorkingDirectory") {
+			event.reply("updateDirectory", dirTree(app.getPath('sessionData')));
+		}
 		else if (data === "requestAppExit") {
 			app.exit();
 		}

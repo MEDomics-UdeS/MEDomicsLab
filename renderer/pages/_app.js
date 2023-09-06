@@ -96,7 +96,7 @@ export default function App() {
    * @description Using the useState hook, the layout model is set to the initial layout model. Then, ever
    */
 	const [layoutModel, setLayoutModel] = useState(initialLayout);
-	const [workspaceObject, setWorkspaceObject] = useState({});
+	const [workspaceObject, setWorkspaceObject] = useState({ "hasBeenSet": false, "workingDirectory": "" });
 
 
 	useEffect(() => {
@@ -114,13 +114,31 @@ export default function App() {
 		ipcRenderer.on("workingDirectorySet", (event, data) => {
 			console.log("WorkingDirectory set by Electron:", data);
 			if (workspaceObject !== data) {
-				setWorkspaceObject(data);
+				let workspace = { ...workspaceObject, workingDirectory: data, hasBeenSet: true };
+				setWorkspaceObject(workspace);
+				console.log("workspaceObject has been set");
 			}
 			else {
 				console.log("workspaceObject is the same");
 			}
 		});
 
+		ipcRenderer.on("updateDirectory", (event, data) => {
+			console.log("WorkingDirectory update from Electron:", data);
+			if (workspaceObject.hasBeenSet === true) {
+				console.log("workspaceObject was set");
+				if (workspaceObject !== data) {
+					let workspace = { ...workspaceObject, workingDirectory: data };
+					setWorkspaceObject(workspace);
+				}
+				else {
+					console.log("workspaceObject is the same");
+				}
+			}
+			else {
+				console.log("workspaceObject has not been set");
+			}
+		});
 
 	}, []); // Here, we specify that the hook should only be called at the launch of the app
 

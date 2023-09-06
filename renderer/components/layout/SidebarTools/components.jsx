@@ -58,8 +58,8 @@ const SidebarFolder = (props) => { // This component is used to render a folder 
 		<Accordion defaultActiveKey={props.name}  >
 			<Accordion.Item eventKey={props.name}>
 				<Accordion.Header>
-					<Stack direction="horizontal" gap={1} style={{ padding: "0 0 0 0", alignContent: "center" }}>
-						<Folder style={{ marginLeft: "0.2rem" }} />{props.name}
+					<Stack className="sidebar-file-stack" direction="horizontal" gap={1} style={{ padding: "0 0 0 0", alignContent: "center" }}>
+						<Folder size={"1rem"} style={{ marginLeft: "0.2rem" }} />{props.name}{props.afterHeader}
 					</Stack>
 				</Accordion.Header>
 				<Accordion.Body className="sidebar-acc-body">

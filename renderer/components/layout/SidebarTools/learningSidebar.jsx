@@ -3,8 +3,9 @@ import { Button, Stack } from "react-bootstrap";
 import {  Plus } from "react-bootstrap-icons";
 import DropzoneComponent from "../../mainPages/dataComponents/dropzoneComponent";
 import { WorkspaceContext } from "../../workspace/WorkspaceContext";
-import {WorkspaceDirectoryTree} from "./workspaceDirectoryTree";
-const InputSidebar = () => {
+import { WorkspaceDirectoryTree } from "./workspaceDirectoryTree";
+
+const LearningSidebar = () => {
 	const { workspace } = useContext(WorkspaceContext); // We get the workspace from the context to retrieve the directory tree of the workspace, thus retrieving the data files
 	
 	useEffect(() => {
@@ -22,7 +23,7 @@ const InputSidebar = () => {
 					</Button>
 				</DropzoneComponent>
 				
-				<WorkspaceDirectoryTree keepOnlyFolder={["DATA"]}>
+				<WorkspaceDirectoryTree keepOnlyFolder={["MODELS"]}>
 				</WorkspaceDirectoryTree>
 				{/* We render the workspace only if it is set, otherwise it throws an error */}
 				
@@ -31,4 +32,4 @@ const InputSidebar = () => {
 	);
 };
 
-export default InputSidebar;
+export default LearningSidebar;

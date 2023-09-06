@@ -95,7 +95,7 @@ const LayoutTestSidebar = () => {
 				<Accordion defaultActiveKey={["0"]} alwaysOpen >
 					<Accordion.Item eventKey="0">
 						<Accordion.Header>
-							Add page
+							<p className="title-text">Add page</p>
 						</Accordion.Header>
 						<Accordion.Body>
 							<Stack direction="vertical" gap={0}>

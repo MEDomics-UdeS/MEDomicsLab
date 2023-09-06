@@ -1,23 +1,19 @@
 import React, { useContext } from "react";
-import { Accordion, Stack } from "react-bootstrap";
+import { Accordion, Button, Stack } from "react-bootstrap";
 import { WorkspaceContext } from "../../workspace/WorkspaceContext";
 import { ipcRenderer } from "electron";
 
 const ExplorerSidebar = () => {
-	useContext(WorkspaceContext);
+	// eslint-disable-next-line no-unused-vars
+	const { workspace } = useContext(WorkspaceContext); // We get the workspace from the context to retrieve the directory tree of the workspace, thus retrieving the data files
 
 
-
-	async function handleWorkspaceChange() {
-		// console.log(e);
+	/**
+	 * @description - This function is called when the user clicks on the change workspace button
+	 * @summary - This function sends a message to the main process (Electron) to open a dialog box to change the workspace
+	 */
+	async function handleWorkspaceChange() { 
 		ipcRenderer.send("messageFromNext", "requestDialogFolder");
-		
-		// ipcRenderer.send('messageFromNext', 'requestAppExit');
-
-
-
-		// const dirHandle = await window.showDirectoryPicker();
-		// console.log(dirHandle);
 	}
 
 	return (
@@ -37,11 +33,11 @@ const ExplorerSidebar = () => {
 						</Accordion.Body>
 					</Accordion.Item>
 					<Accordion.Item eventKey="1">
-						<Accordion.Header>WORKSPACE</Accordion.Header>
+						<Accordion.Header>
+							<p style={{marginBottom: "0px", paddingLeft:"1rem"}}>WORKSPACE</p>
+						</Accordion.Header>
 						<Accordion.Body>
-							{/* <input onChange={handleFolderInput} directory="" webkitdirectory="" type="file"/> */}
-							<button onClick={handleWorkspaceChange}>Change Workspace</button>
-							{/* <button  */}
+							<Button onClick={handleWorkspaceChange}>Change Workspace</Button>
 						</Accordion.Body>
 					</Accordion.Item>
 				</Accordion>

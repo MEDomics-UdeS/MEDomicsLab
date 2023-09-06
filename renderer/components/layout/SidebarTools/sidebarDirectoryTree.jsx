@@ -17,8 +17,8 @@ const SidebarDirectoryTree = (props) => { // This component is used to render a 
 			<Accordion defaultActiveKey={props.name}>
 				<Accordion.Item eventKey={props.name}>
 					<Accordion.Header>
-						<Stack direction="horizontal" gap={1} style={{ padding: "0 0 0 0", alignContent: "center" }}>
-							<Folder style={{ marginLeft: "0.2rem" }} />{props.name}
+						<Stack direction="horizontal" gap={1} style={{ padding: "0 0 0 0", alignContent: "center", marginBottom:"0.2rem" }}>
+							<Folder size={"1rem"} style={{ marginLeft: "0.2rem" }} />{props.name}
 						</Stack>
 					</Accordion.Header>
 					<Accordion.Body className="sidebar-acc-body">
