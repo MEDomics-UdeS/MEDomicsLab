@@ -90,9 +90,8 @@ if (isProd) {
   // link: https://medium.com/red-buffer/integrating-python-flask-backend-with-electron-nodejs-frontend-8ac621d13f72
   if(!isProd) {
   //**** DEVELOPMENT ****//
-  // Select python interpreter (related to your virtual environment)
+  // IMPORTANT: Select python interpreter (related to your virtual environment)
   var path2conda = fs.readFileSync("./path2condaenv_toDeleteInProd.txt", "utf8")
-
   var python = require("child_process").spawn(path2conda, [
     "./flask_server/server.py"
   ])
@@ -103,38 +102,37 @@ if (isProd) {
     console.log(`stderr: ${data}`) // when error
   })
 
-  
   } else {
   //**** PRODUCTION ****//
-  //   let backend;
-  //   backend = path.join(process.cwd(), 'resources/backend/dist/app.exe')
-  //   var execfile = require(‘child_process’).execFile;
-  //   execfile(
-  //    backend,
-  //    {
-  // 	windowsHide: true,
-  //    },
-  //    (err, stdout, stderr) => {
-  // 	if (err) {
-  // 	console.log(err);
-  // 	}
-  // 	if (stdout) {
-  // 	console.log(stdout);
-  // 	}
-  // 	if (stderr) {
-  // 	console.log(stderr);
-  // 	}
-  //    }
-  //   )
-  // const { exec } = require(‘child_process’);
-  // exec(‘taskkill /f /t /im app.exe’, (err, stdout, stderr) => {
-  //  if (err) {
-  //   console.log(err)
-  //  return;
-  //  }
-  //  console.log(`stdout: ${stdout}`);
-  //  console.log(`stderr: ${stderr}`);
-  // });
+    let backend;
+    backend = path.join(process.cwd(), 'resources/backend/dist/app.exe')
+    var execfile = require('child_process').execFile;
+    execfile(
+     backend,
+     {
+  	windowsHide: true,
+     },
+     (err, stdout, stderr) => {
+  	if (err) {
+  	console.log(err);
+  	}
+  	if (stdout) {
+  	console.log(stdout);
+  	}
+  	if (stderr) {
+  	console.log(stderr);
+  	}
+     }
+    )
+  const { exec } = require('child_process');
+  exec('taskkill /f /t /im app.exe', (err, stdout, stderr) => {
+   if (err) {
+    console.log(err)
+   return;
+   }
+   console.log(`stdout: ${stdout}`);
+   console.log(`stderr: ${stderr}`);
+  });
   }
   const menu = Menu.buildFromTemplate(template)
   Menu.setApplicationMenu(menu)
