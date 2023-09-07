@@ -3,6 +3,8 @@ import axios from "axios"
 import serve from "electron-serve"
 import { createWindow } from "./helpers"
 var path = require("path")
+var fs = require("fs")
+
 
 const isProd = process.env.NODE_ENV === "production"
 
@@ -89,9 +91,7 @@ if (isProd) {
   if(!isProd) {
   //**** DEVELOPMENT ****//
   // Select python interpreter (related to your virtual environment)
-  var fs = require("fs")
   var path2conda = fs.readFileSync("./path2condaenv_toDeleteInProd.txt", "utf8")
-
 
   var python = require("child_process").spawn(path2conda, [
     "./flask_server/server.py"
@@ -102,6 +102,8 @@ if (isProd) {
   python.stderr.on("data", (data) => {
     console.log(`stderr: ${data}`) // when error
   })
+
+  
   } else {
   //**** PRODUCTION ****//
   //   let backend;
