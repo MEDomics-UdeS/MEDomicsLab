@@ -5,6 +5,7 @@ import { createWindow } from "./helpers"
 var path = require("path")
 var fs = require("fs")
 
+var serverProcess = null
 
 const isProd = process.env.NODE_ENV === "production"
 
@@ -92,14 +93,17 @@ if (isProd) {
   //**** DEVELOPMENT ****//
   // IMPORTANT: Select python interpreter (related to your virtual environment)
   var path2conda = fs.readFileSync("./path2condaenv_toDeleteInProd.txt", "utf8")
-  var python = require("child_process").spawn(path2conda, [
+  serverProcess = require("child_process").spawn(path2conda, [
     "./flask_server/server.py"
   ])
-  python.stdout.on("data", function (data) {
+  serverProcess.stdout.on("data", function (data) {
     console.log("data: ", data.toString("utf8"))
   })
-  python.stderr.on("data", (data) => {
+  serverProcess.stderr.on("data", (data) => {
     console.log(`stderr: ${data}`) // when error
+  })
+  serverProcess.on("close", (code) => {
+    console.log(`child process close all stdio with code ${code}`)
   })
 
   } else {
@@ -151,6 +155,12 @@ ipcMain.handle("request", async (_, axios_request) => {
   return { data: result.data, status: result.status }
 })
 
+
 app.on("window-all-closed", () => {
   app.quit()
+  console.log("app quit")
+  if(!isProd) {
+    serverProcess.kill()
+    console.log("serverProcess killed")
+  }
 })
