@@ -5,6 +5,12 @@ import DropzoneComponent from "../../mainPages/dataComponents/dropzoneComponent"
 import { WorkspaceContext } from "../../workspace/WorkspaceContext";
 import { WorkspaceDirectoryTree } from "./workspaceDirectoryTree";
 
+
+/**
+ * @description - This component is the sidebar tools component that will be used in the sidebar component as the learning page 
+ * @summary - It contains the dropzone component and the workspace directory tree filtered to only show the models and experiment folder and the model files
+ * @returns {JSX.Element} - This component is the sidebar tools component that will be used in the sidebar component as the learning page 
+ */
 const LearningSidebar = () => {
 	const { workspace } = useContext(WorkspaceContext); // We get the workspace from the context to retrieve the directory tree of the workspace, thus retrieving the data files
 	

@@ -13,7 +13,6 @@ const HomeSidebar = () => {
 
 
 	async function handleWorkspaceChange() {
-		// console.log(e);
 		ipcRenderer.send("messageFromNext", "requestDialogFolder");
 	}
 

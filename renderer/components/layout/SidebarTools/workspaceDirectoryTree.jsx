@@ -5,7 +5,11 @@ import { deepCopy } from "../../../utilities/staticFunctions";
 import { ArrowClockwise } from "react-bootstrap-icons";
 import { ipcRenderer } from "electron";
 
-
+/**
+ * @description This is an element that is displayed after the header of the workspace directory tree
+ * @summary It contains a refresh button that will refresh the workspace directory tree
+ * @returns HTML element
+ */
 const AfterHeader = () => {
 	function handleRefreshClick(event) {
 		event.stopPropagation();
@@ -15,6 +19,11 @@ const AfterHeader = () => {
 	return (<><div className='d-flex' style={{ flexGrow: "1" }} /><a type="button" className="buttonNoStyle" onClick={handleRefreshClick} style={{ display: "inline-block", marginInlineEnd: "1rem" }}><ArrowClockwise id={"test"} size={"1.2rem"}/></a></>)
 }
 
+/**
+ * @description - This component contains the directory tree of the workspace
+ * @param {*} props - It contains the props of the component which are the configurations of the component, such as which folders and files to display
+ * @returns {JSX.Element} - This component contains the directory tree of the workspace
+ */
 const WorkspaceDirectoryTree = (props) => {
 	const { workspace } = useContext(WorkspaceContext); // We get the workspace from the context to retrieve the directory tree of the workspace, thus retrieving the data files
 	const [workspaceTree, setWorkspaceTree] = useState({ ...workspace });// We set the workspace tree to an empty object, this will be used to store the workspace tree
@@ -39,7 +48,7 @@ const WorkspaceDirectoryTree = (props) => {
 	}, [workspace]); // We log the workspace when it changes
     
 
-	if (props.all == true) {
+	if (props.all == true) { // If the all prop is set to true, we display the whole workspace directory tree
 		return (
 			<>
 				{workspaceTree.workingDirectory["name"] && SidebarFolder({ afterHeader: afterHeader , name: workspaceTree.workingDirectory["name"], children: workspaceTree.workingDirectory["children"]})}
@@ -48,7 +57,7 @@ const WorkspaceDirectoryTree = (props) => {
 	}
     
 
-	return (
+	return ( // Otherwise we display only the data folder and the data files
 		<>
 			{workspaceTree.workingDirectory["name"] && SidebarFolder({ afterHeader: afterHeader, name: workspaceTree.workingDirectory["name"], children: workspaceTree.workingDirectory["children"]})}
 		</>
