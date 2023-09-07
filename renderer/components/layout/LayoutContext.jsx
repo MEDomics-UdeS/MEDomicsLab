@@ -1,4 +1,4 @@
-import { React, useState, useContext, createContext } from 'react';
+import { React, createContext } from "react";
 
 /**
  * @typedef {React.Context} LayoutModelContext
@@ -30,30 +30,30 @@ function LayoutContext({ children, layoutModel, setLayoutModel }) {
 	 */
 	const flexlayoutInterpreter = (action, model) => {
 		// Logging for debugging purposes
-		console.log('flexlayoutInterpreter', action);
-		console.log('flexlayoutInterpreter Model', model);
+		console.log("flexlayoutInterpreter", action);
+		console.log("flexlayoutInterpreter Model", model);
 
 		// When the function is called, the action is passed as a parameter like this: {type: "FlexLayout_AddTab", payload: {…}}
 		switch (action.type) {
-			case 'FlexLayout_DeleteTab':
-				Object.keys(model._idMap).map((key) => { 
-					// Here we go get the map of ids inside the flexlayout : model._idMap
-					// We compare it to the node that is passed on by the action and call the remove function if we find a match
-					console.log(key)
-					if (key === action.data.node) {
-						console.log('GOT IT', model._idMap[key]);
-						let target = model._idMap[key];
-						remove({ type: 'remove', payload: { name: target._attributes.name } })
-					}
-				})
-				return console.log('FlexLayout_DeleteTab', action);
-			case 'FlexLayout_SelectTab':
-				// Not implemented yet - Debbuging purposes and to see how the action is passed on
-				document.getElementById(action.data.node);
-				return console.log('FlexLayout_SelectTab', action);
+		case "FlexLayout_DeleteTab":
+			Object.keys(model._idMap).map((key) => { 
+				// Here we go get the map of ids inside the flexlayout : model._idMap
+				// We compare it to the node that is passed on by the action and call the remove function if we find a match
+				console.log(key)
+				if (key === action.data.node) {
+					console.log("GOT IT", model._idMap[key]);
+					let target = model._idMap[key];
+					remove({ type: "remove", payload: { name: target._attributes.name } })
+				}
+			})
+			return console.log("FlexLayout_DeleteTab", action);
+		case "FlexLayout_SelectTab":
+			// Not implemented yet - Debbuging purposes and to see how the action is passed on
+			document.getElementById(action.data.node);
+			return console.log("FlexLayout_SelectTab", action);
 
-			default:
-				return console.log('FlexLayout_Default', action);
+		default:
+			return console.log("FlexLayout_Default", action);
 		}
 	}
 	// }
@@ -64,12 +64,12 @@ function LayoutContext({ children, layoutModel, setLayoutModel }) {
 	 */
 	const dispatchLayout = (action) => {
 		switch (action.type) {
-			case 'add':
-				return add(action);
-			case 'remove':
-				return remove(action);
-			default:
-				throw new Error(`Unhandled action type: ${action.type}`);
+		case "add":
+			return add(action);
+		case "remove":
+			return remove(action);
+		default:
+			throw new Error(`Unhandled action type: ${action.type}`);
 		}
 	}
 
@@ -78,7 +78,7 @@ function LayoutContext({ children, layoutModel, setLayoutModel }) {
 	 * @params {Object} action - The action passed on by the dispatchLayout function, it uses the payload in the action as a JSON object to add a new child to the layout model
 	 */
 	const add = (action) => {
-		let text_string = action.payload;
+		let textString = action.payload;
 
 		const nextlayoutModel = { ...layoutModel };
 		// To add a new child to the layout model, we need to add it to the children array (layoutModel.layout.children[x].children)
@@ -89,7 +89,7 @@ function LayoutContext({ children, layoutModel, setLayoutModel }) {
 		];
 		nextlayoutModel.layout.children[0].children = newChildren;
 		setLayoutModel(nextlayoutModel);
-		console.log('ADD TEST', text_string);
+		console.log("ADD TEST", textString);
 		console.dir(layoutModel)
 	}
 
@@ -103,16 +103,16 @@ function LayoutContext({ children, layoutModel, setLayoutModel }) {
 	const remove = (action) => {
 		// Searches the layoutModel for the payload and removes it, iterates over the childen array (layoutModel.layout.children[x].children)
 		// and removes the payload if it exists
-		console.log('REMOVE TEST', action.payload);
-		let text_string = action.payload;
+		console.log("REMOVE TEST", action.payload);
+		let textString = action.payload;
 		const nextlayoutModel = { ...layoutModel };
 		/** Here, we iterate through the layout model children, then we filter out the ones specified
 		 * ****IMPORTANT**** For the hook to work, we need to create a new array and not modify the existing one
 		 */
 		for (let i = 0; i < nextlayoutModel.layout.children.length; i++) {
 			
-			nextlayoutModel.layout.children[i].children = nextlayoutModel.layout.children[i].children.filter((child) => child.name !== text_string.name);
-		};
+			nextlayoutModel.layout.children[i].children = nextlayoutModel.layout.children[i].children.filter((child) => child.name !== textString.name);
+		}
 		// nextlayoutModel.layout.children[0].children = nextlayoutModel.layout.children[0].children.filter((child) => child !== action.payload);
 		setLayoutModel(nextlayoutModel);
 	}
