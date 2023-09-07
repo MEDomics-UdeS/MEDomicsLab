@@ -86,11 +86,14 @@ if (isProd) {
   ]
 
   // link: https://medium.com/red-buffer/integrating-python-flask-backend-with-electron-nodejs-frontend-8ac621d13f72
+  if(!isProd) {
   //**** DEVELOPMENT ****//
   // Select python interpreter (related to your virtual environment)
-  var pythonInterpreter = "C:\\Users\\gblai\\anaconda3\\envs\\med\\python.exe"
+  var fs = require("fs")
+  var path2conda = fs.readFileSync("./path2condaenv_toDeleteInProd.txt", "utf8")
 
-  var python = require("child_process").spawn(pythonInterpreter, [
+
+  var python = require("child_process").spawn(path2conda, [
     "./flask_server/server.py"
   ])
   python.stdout.on("data", function (data) {
@@ -99,7 +102,7 @@ if (isProd) {
   python.stderr.on("data", (data) => {
     console.log(`stderr: ${data}`) // when error
   })
-
+  } else {
   //**** PRODUCTION ****//
   //   let backend;
   //   backend = path.join(process.cwd(), 'resources/backend/dist/app.exe')
@@ -130,7 +133,7 @@ if (isProd) {
   //  console.log(`stdout: ${stdout}`);
   //  console.log(`stderr: ${stderr}`);
   // });
-
+  }
   const menu = Menu.buildFromTemplate(template)
   Menu.setApplicationMenu(menu)
 
