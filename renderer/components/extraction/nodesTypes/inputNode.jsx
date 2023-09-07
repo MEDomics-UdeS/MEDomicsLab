@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import Node from "../../flow/node";
 import ImageViewer from "../buttonsTypes/viewButton";
+import UploadComponent from "../buttonsTypes/uploadButton";
+
 /**
  *
  * @param {string} id id of the node
@@ -9,11 +11,9 @@ import ImageViewer from "../buttonsTypes/viewButton";
  * @returns {JSX.Element} A StandardNode node
  *
  * @description
- * This component is used to display a StandardNode node.
- * it handles the display of the node and the modal
  *
  */
-const StandardNode = ({ id, data, type }) => {
+const InputNode = ({ id, data, type }) => {
   const [modalShow, setModalShow] = useState(false);
   return (
     <>
@@ -23,7 +23,12 @@ const StandardNode = ({ id, data, type }) => {
         data={data}
         type={type}
         setupParam={data.setupParam}
-        nodeBody={<ImageViewer />}
+        nodeBody={
+          <>
+            <UploadComponent />
+            <ImageViewer />
+          </>
+        }
         defaultSettings={<></>}
         nodeSpecific={<></>}
       />
@@ -31,4 +36,4 @@ const StandardNode = ({ id, data, type }) => {
   );
 };
 
-export default StandardNode;
+export default InputNode;

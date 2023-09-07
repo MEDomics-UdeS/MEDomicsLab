@@ -1,1 +1,1 @@
-C:\\Users\\gblai\\anaconda3\\envs\\MEDapp_env\\python.exe
+C:\\Users\\nicol\\anaconda3\\envs\\dev_med\\python.exe

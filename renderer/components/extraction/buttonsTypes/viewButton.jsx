@@ -1,69 +1,62 @@
-import React from "react"
-import Button from "react-bootstrap/Button"
-import { toast } from "react-toastify"
-import { axiosPostJson } from "../../../utilities/requests"
+import React, { useState, useEffect, useCallback, useRef } from "react";
+import Button from "react-bootstrap/Button";
 
-/**
- * @param {string} id id of the node
- * @param {object} data data of the node
- * @param {string} type type of the node
- * @returns {JSX.Element} A ViewButton node
- *
- * @description
- * This component is used to display the ViewButton.
- * The state of the button is determined by the enableView property of the node.
- */
-const ViewButton = ({ id, data, type }) => {
-  /**
-   * @description
-   * This function is used to send a POST request to /extraction/view.
-   */
+const ImageViewer = ({ node_id, node_data, node_type }) => {
   const viewImage = () => {
-    console.log("Viewing image for node " + id)
+    console.log("Viewing image for node " + node_id);
 
     // Construction of form data to send to /extraction/view. If the node is input, the name of the file is needed
-    let formData
-    if (type === "input") {
-      formData = JSON.stringify({
-        id: id,
-        name: type,
-        file_loaded: data.internal.settings.filepath
-      })
+    let form_data;
+    if (node_type === "input") {
+      form_data = JSON.stringify({
+        id: node_id,
+        name: node_type,
+        file_loaded: node_data.filepath,
+      });
     } else {
-      formData = JSON.stringify({
-        id: id,
-        name: type
-      })
+      form_data = JSON.stringify({
+        id: node_id,
+        name: node_type,
+      });
     }
 
     // POST request to /extraction/view for current node by sending form_data
-    axiosPostJson(formData, "extraction/view")
-      .then((response) => {
-        console.log(response)
+    fetch("/extraction/view", {
+      method: "POST",
+      headers: {
+        "Content-type": "application/json",
+        Accept: "application/json",
+      },
+      body: form_data,
+    })
+      .then(function (response) {
+        console.log(response);
       })
       .catch((error) => {
-        console.error("Error:", error)
-        toast.warn("Could not view image.")
-      })
-  }
+        console.log(error);
+        console.log(error.message);
+      }); // TODO: Error message
+  };
 
   return (
-    <div className="test">
+    <div>
       <Button
         type="button"
+        variant="primary"
         className="viewButton"
         onClick={viewImage}
-        disabled={!data.internal.enableView}
+        disabled
       >
         <img
-          src="../icon/extraction/eye.svg"
-          className="viewImage"
+          src="../icon/extraction/view.png"
+          width="20"
+          height="20"
           alt="View button"
         />
         View image
       </Button>
     </div>
-  )
-}
+  );
+};
 
-export default ViewButton
+export default ImageViewer;

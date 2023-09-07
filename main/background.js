@@ -142,11 +142,6 @@ if (isProd) {
   Menu.setApplicationMenu(menu)
 
 
-	ipcMain.handle("request", async (_, axios_request) => {
-		const result = await axios(axios_request)
-		return { data: result.data, status: result.status }
-	})
-
 	ipcMain.on("messageFromNext", (event, data) => { // Receives a message from Next.js
 		console.log("messageFromNext : ", data);
 		if (data === "requestDialogFolder") { // If the message is "requestDialogFolder", the function setWorkingDirectory is called
@@ -163,10 +158,6 @@ if (isProd) {
 			app.exit();
 		}
 	});
-
-
-	const menu = Menu.buildFromTemplate(template)
-	Menu.setApplicationMenu(menu)
 
   if (isProd) {
     await mainWindow.loadURL("app://./index.html")
