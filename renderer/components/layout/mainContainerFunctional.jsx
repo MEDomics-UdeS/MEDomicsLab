@@ -1,43 +1,20 @@
-import React, { useRef, useState, useEffect, useContext} from 'react';
-import test from '../../styles/test.module.css';
-import Home from '../mainPages/home';
-import StorageManager from "../../utilities/storageManager";
-import { downloadFile } from '../../utilities/requests';
+import React, { useRef, useState, useEffect, useContext} from "react";
+import test from "../../styles/test.module.css";
+
 import * as Prism from "prismjs";
-import { NewFeatures } from "./flexlayoutComponents/NewFeatures";
-import { showPopup } from "./flexlayoutComponents/PopupMenu";
-import { TabStorage } from "./flexlayoutComponents/TabStorage";
-import { LayoutModelContext } from './LayoutContext';
+
+import { LayoutModelContext } from "./LayoutContext";
 import {
-	Action,
 	Actions,
-	BorderNode,
 	CLASSES,
-	DockLocation,
-	DragDrop,
-	DropInfo,
-	IJsonTabNode,
-	ILayoutProps,
-	ITabRenderValues,
-	ITabSetRenderValues,
 	Layout,
 	Model,
-	Node,
-	TabNode,
-	TabSetNode
-} from 'flexlayout-react';
+	TabNode} from "flexlayout-react";
 
 
 var fields = ["Name", "Field1", "Field2", "Field3", "Field4", "Field5"];
 
-const ContextExample = React.createContext('');
 
-function useForceUpdate() {
-	const [value, setValue] = useState(0); // integer state
-	return () => setValue(value => value + 1); // update state to force render
-	// A function that increment the previous state like here 
-	// is better than directly setting `setValue(value + 1)`
-}
 
 
 /**
@@ -47,10 +24,9 @@ function useForceUpdate() {
  * @description - This component is the main container for the application. Each page will be a tab in this container. It is a functional component.
  * @warning - You should not be playing around with this component unless you know what you are doing.
  */
-export default function MainFlexLayout(props) {
+export default function MainFlexLayout() {
 	// let inner_model = layoutmodel;
 	const layoutRef = useRef(null); // Reference to the layout component
-	const storageManager = new StorageManager(); // Storage manager to save and load layouts - For future use, for now we are using local storage
 	const [mainState, setMainState] = useState({}); // State to keep track of the main state of the application/this component
 	const [nextGridIndex, setNextGridIndex] = useState(0); // State to keep track of the next grid index
 	// let contents; // Variable to hold the contents of the main container - Not used for now
@@ -76,111 +52,33 @@ export default function MainFlexLayout(props) {
 
 	// console.log("Inner model", inner_model);
 
-	const [activeSidebarItem, setActiveSidebarItem] = useState('home'); // State to keep track of active nav item
-	const handleSidebarItemSelect = (selectedItem) => {
-		setActiveSidebarItem(selectedItem); // Update activeNavItem state with selected item
-
-	};
 
 	function handleNextGridIndex() { // Function to handle the next grid index
 		setNextGridIndex(nextGridIndex + 1);
 		return nextGridIndex - 1;
 	}
 
-	var last_state = <Home />; // Variable to hold the last state of the application - Not used for now
 
 
-	let loadingLayoutName = null; 
 	let htmlTimer = null;
 	let showingPopupMenu = false;
 
 
 
-	function onModelChange(event) { // Function to handle model changes that uses a timer to update the model
+	function onModelChange() { // Function to handle model changes that uses a timer to update the model
 		if (htmlTimer) { 
 			clearTimeout(htmlTimer);
 		}
 		// console.log("onModelChange", event);
 		htmlTimer = setTimeout(() => {
 			const jsonText = JSON.stringify(model && model.toJson(), null, "\t");
-			const html = Prism.highlight(jsonText, Prism.languages.javascript, 'javascript');
+			const html = Prism.highlight(jsonText, Prism.languages.javascript, "javascript");
 			setMainState({ ...mainState, json: html });
 			htmlTimer = null;
 		}, 500);
-	};
-
-	function save() { // Function to save the layout in the local storage
-		var jsonStr = JSON.stringify(model && model.toJson(), null, "\t");
-		localStorage.setItem(mainState.layoutFile || '', jsonStr || '');
 	}
 
-	function loadLayout(layoutName, reload) { // Function to load the layout from the local storage or from the layouts folder
-		if (mainState.layoutFile !== null) {
-			save();
-		}
 
-		loadingLayoutName = layoutName;
-		let loaded = false;
-		if (!reload) {
-			var json = localStorage.getItem(layoutName);
-			if (json != null) {
-				load(json);
-				loaded = true;
-			}
-		}
-
-		if (!loaded) {
-			downloadFile("layouts/" + layoutName + ".layout", load, error);
-		}
-	}
-
-	function load(jsonText) { // Function to load the layout from the JSON passed as a parameter
-		let json = JSON.parse(jsonText);
-		let model = Model.fromJson(json);
-		const html = Prism.highlight(jsonText, Prism.languages.javascript, 'javascript');
-		setMainState({ ...mainState, mainState: loadingLayoutName ? loadingLayoutName : null, model: model, json: html });
-	}
-
-	function allowDrop(dragNode, dropInfo) { // Function to allow dropping of tabs in the layout - Not used for now
-		let dropNode = dropInfo.node;
-
-		// prevent non-border tabs dropping into borders
-		if (dropNode.getType() === "border" && (dragNode.getParent() == null || dragNode.getParent().getType() != "border"))
-			return false;
-
-		// prevent border tabs dropping into main layout
-		if (dropNode.getType() !== "border" && (dragNode.getParent() != null && dragNode.getParent().getType() == "border"))
-			return false;
-
-		return true;
-	}
-
-	function error(reason) { // Function to handle errors when loading the layout
-		alert("Error loading json config file: " + this.loadingLayoutName + "\n" + reason);
-	}
-
-	function onAddDragMouseDown(event) { // Function to handle the mouse down event when dragging a tab to add a new tab
-		event.stopPropagation();
-		event.preventDefault();
-		(layoutRef.current).addTabWithDragAndDrop(undefined, {
-			component: "grid",
-			icon: "images/article.svg",
-			name: "Grid " + handleNextGridIndex()
-		}, onAdded);
-		// this.setState({ adding: true });
-	}
-
-	function onAddActiveClick(event) { // Function to handle the click event when adding a new tab and adding it to the active tab set - Not used for now
-		(layoutRef.current).addTabToActiveTabSet({
-			component: "grid",
-			icon: "images/article.svg",
-			name: "Grid " + handleNextGridIndex()
-		});
-	}
-
-	function onAddActiveClickFromJson(event, json) { // Function to handle the click event when adding a new tab and adding it to the active tab set from a JSON passed as a parameter - Not used for now
-		(layoutRef.current).addTabToActiveTabSet({ json });
-	}
 
 	function onAddFromTabSetButton(node) { // Function to handle the click event when adding a new tab and adding it to the tab set 
 		(layoutRef.current).addTabToTabSet(node.getId(), {
@@ -189,24 +87,9 @@ export default function MainFlexLayout(props) {
 		});
 	}
 
-	function onAddIndirectClick(event) { // Function to handle the click event when adding a new tab and adding it to the tab set - Not used for now
-		if (this.layoutRef) {
-			this.layoutRef.current.addTabWithDragAndDropIndirect("Add grid\n(Drag to location)", {
-				component: "grid",
-				name: "Grid " + handleNextGridIndex()
-			}, this.onAdded);
-			this.setState({ adding: true });
-		}
-	}
 
-	function onRealtimeResize(event) { // Function to handle the realtime resize event of the tabs - Not used for now
-		setMainState({
-			...mainState,
-			realtimeResize: event.target.checked
-		});
-	}
 
-	function onRenderDragRect(content, node, json) { // Function to handle the rendering of the drag rectangle 
+	function onRenderDragRect(content) { // Function to handle the rendering of the drag rectangle 
 		if (mainState.layoutFile === "newfeatures") {
 			return (<>
 				{content}
@@ -227,15 +110,6 @@ export default function MainFlexLayout(props) {
 			event.preventDefault();
 			event.stopPropagation();
 			console.log(node, event);
-			showPopup(
-				node instanceof TabNode ? "Tab: " + node.getName() : "Type: " + node.getType(),
-				layoutRef && layoutRef.current && layoutRef.current.getRootDiv(),
-				event.clientX, event.clientY,
-				["Option 1", "Option 2"],
-				(item) => {
-					console.log("selected: " + item);
-					showingPopupMenu = false;
-				});
 			showingPopupMenu = true;
 		}
 	}
@@ -299,32 +173,26 @@ export default function MainFlexLayout(props) {
 				}
 			}
 		}
-	};
+	}
 
 	function onTabDrag(dragging, over, x, y, location, refresh) {
-		const tabStorageImpl = over.getExtraData()['tabStorage_onTabDrag'];
+		const tabStorageImpl = over.getExtraData()["tabStorage_onTabDrag"];
 		if (tabStorageImpl) {
 			return tabStorageImpl(dragging, over, x, y, location, refresh)
 		}
 		return undefined
-	};
-
-	function onShowLayoutClick(event) {
-		console.log(JSON.stringify(model.toJson(), null, "\t"));
 	}
 
-	function onAdded() {
-		setMainState({ ...mainState, adding: false });
-	}
 
-	function onTableClick(node, event) {
+
+	function onTableClick() {
 	}
 
 	function onAction(action) {
 		console.log("action: ", action);
 		flexlayoutInterpreter(action, model);
 		return action;
-	};
+	}
 
 	function titleFactory(node) {
 		if (node.getId() === "custom-tab") {
@@ -338,41 +206,16 @@ export default function MainFlexLayout(props) {
 
 	function iconFactory(node) {
 		if (node.getId() === "custom-tab") {
-			return <><span style={{ marginRight: 3 }}>:)</span></>
+			return <><span style={{ marginRight: 3 }}></span></>
 		}
 		return;
 	}
 
-	function onSelectLayout(event) {
-		var target = event.target;
-		loadLayout(target.value);
-	}
 
-	function onReloadFromFile(event) {
-		if (mainState.layoutFile) {
-			loadLayout(mainState.layoutFile, true);
-		}
-	}
 
-	function onThemeChange(event) {
-		var target = event.currentTarget;
-		let flexlayout_stylesheet = window.document.getElementById("flexlayout-stylesheet");
-		let index = flexlayout_stylesheet.href.lastIndexOf("/");
-		let newAddress = flexlayout_stylesheet.href.substr(0, index);
-		flexlayout_stylesheet.setAttribute("href", newAddress + "/" + target.value + ".css");
-		let page_stylesheet = window.document.getElementById("page-stylesheet");
-		if (page_stylesheet) {
-			page_stylesheet.setAttribute("href", target.value + ".css");
-		}
-		useForceUpdate();
-	}
 
-	function onSizeChange(event) {
-		var target = event.target;
-		setMainState({ ...mainState, fontSize: target.value });
-	}
 
-	function onRenderTab(node, renderValues) {
+	function onRenderTab() {
 		// renderValues.content = (<InnerComponent/>);
 		// renderValues.content += " *";
 		// renderValues.leading = <img style={{width:"1em", height:"1em"}}src="images/folder.svg"/>;
@@ -394,9 +237,9 @@ export default function MainFlexLayout(props) {
 				/>
 			);
 		}
-	};
+	}
 
-	function onTabSetPlaceHolder(node) {
+	function onTabSetPlaceHolder() {
 		return <div>Drag tabs to this area</div>;
 	}
 
@@ -456,7 +299,7 @@ export default function MainFlexLayout(props) {
 			}
 		}
 		else if (component === "newfeatures") {
-			return <NewFeatures />;
+			return <></>;
 		}
 		else if (component === "multitype") {
 			try {
@@ -476,15 +319,14 @@ export default function MainFlexLayout(props) {
 			}
 		}
 		else if (component === "tabstorage") {
-			return <TabStorage tab={node} layout={layoutRef && layoutRef.current} />;
-		}
+			return <></>;		}
 
 		return null;
-	};
+	}
 
 	return (
 		<>
-			<div style={{ position: 'relative', width: '100%', height: '100%' }}>
+			<div style={{ position: "relative", width: "100%", height: "100%" }}>
 				<div className={test.Container}>
 					<Layout
 						ref={layoutRef}
