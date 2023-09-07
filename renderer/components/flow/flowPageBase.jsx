@@ -108,7 +108,7 @@ const FlowPageBaseWithFlowInfos = ({ children, workflowType }) => {
                 ref={resultsPanelRef}
                 id="results"
                 maxSize={75}
-                defaultSize={25}
+                defaultSize={0}
                 order={2}
                 collapsible={true}
                 collapsibleSize={5}

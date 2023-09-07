@@ -144,3 +144,4 @@ dmypy.json
 /learning-tests-scene
 /flask_server/local_dir
 /path2condaenv_toDeleteInProd.txt
+path2condaenv_toDeleteInProd.txt

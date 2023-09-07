@@ -55,6 +55,7 @@ const WorkflowBase = ({
   const {
     reactFlowInstance,
     setReactFlowInstance,
+    addSpecificToNode,
     nodeTypes,
     nodes,
     setNodes,
@@ -62,7 +63,6 @@ const WorkflowBase = ({
     edges,
     setEdges,
     onEdgesChange,
-    addSpecificToNode,
     runNode
   } = mandatoryProps
 
@@ -286,11 +286,6 @@ const WorkflowBase = ({
           img: image,
           type: name.toLowerCase().replaceAll(" ", "_")
         },
-        // parentFct: {
-        //   updateNode: setNodeUpdate,
-        //   deleteNode: onDeleteNode || deleteNode,
-        //   runNode: runNode
-        // },
         tooltipBy: "node" // this is a default value that can be changed in addSpecificToNode function see workflow.jsx for example
       }
     }

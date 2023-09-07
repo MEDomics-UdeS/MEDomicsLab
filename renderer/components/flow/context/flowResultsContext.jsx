@@ -10,7 +10,7 @@ const FlowResultsContext = createContext()
  */
 function FlowResultsProvider({ children }) {
   const [flowResults, setFlowResults] = useState({}) // Initial style
-  const [showResultsPane, setShowResultsPane] = useState(true) // Initial state
+  const [showResultsPane, setShowResultsPane] = useState(false) // Initial state
   const [what2show, setWhat2show] = useState("") // Initial state
 
   // This function is used to update the flowResults

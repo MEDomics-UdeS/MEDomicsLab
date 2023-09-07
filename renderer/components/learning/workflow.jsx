@@ -52,7 +52,6 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
   const { setViewport } = useReactFlow() // setViewport is used to update the viewport of the workflow
   const [treeData, setTreeData] = useState({}) // treeData is used to set the data of the tree menu
   const [treeActiveKey, setTreeActiveKey] = useState(null) // treeActiveKey is used to know which node is selected in the tree menu
-  // const [groupNodeId, setGroupNodeId] = useState(null) // groupNodeId is used to know which optimize node has selected ()
   const { getIntersectingNodes } = useReactFlow() // getIntersectingNodes is used to get the intersecting nodes of a node
   const [intersections, setIntersections] = useState([]) // intersections is used to store the intersecting nodes related to optimize nodes start and end
   const [isProgressUpdating, setIsProgressUpdating] = useState(false) // progress is used to store the progress of the workflow execution
@@ -430,7 +429,6 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
     newNode.id = `${newNode.id}${associatedNode ? `.${associatedNode}` : ""}` // if the node is a sub-group node, it has the id of the parent node seperated by a dot. useful when processing only ids
     newNode.hidden = newNode.type == "optimizeIO"
     newNode.zIndex = newNode.type == "optimizeIO" ? 1 : 1010
-    // newNode.data.parentFct.changeSubFlow = setGroupNodeId
     newNode.data.tooltipBy = "type"
     newNode.data.setupParam = setupParams
     newNode.data.internal.code = ""
@@ -516,7 +514,6 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
         let flow = deepCopy(reactFlowInstance.toObject())
         flow.MLType = MLType
         flow.nodes.forEach((node) => {
-          node.data.parentFct = null
           node.data.setupParam = null
         })
         console.log("sended flow 1", flow)
@@ -701,7 +698,6 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
       flow.MLType = MLType
       console.log("flow debug", flow)
       flow.nodes.forEach((node) => {
-        node.data.parentFct = null
         node.data.setupParam = null
       })
       flow.intersections = intersections
@@ -754,7 +750,7 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
    *
    * This function is called when the user changes the name of the node (focus out of the input).
    * It checks if the name is over 15 characters and if it is, it displays a warning message.
-   * It then updates the name of the node by calling the updateNode function of the parentFct object of the node
+   * It then updates the name of the node by calling the updateNode function
    * this function is specific to groupNodes
    */
   const newNameHasBeenWritten = (value) => {
