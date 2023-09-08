@@ -15,9 +15,9 @@
 ```
 git clone git@github.com:NicoLongfield/MEDml.git
 cd MEDml
-conda env create --name MEDml --file environment.yml
+conda env create --name MEDml python=3.9
 conda activate MEDml
-git submodule update --init --recursive
+pip install -r requirements.txt
 ```
 ## To generate the documentation locally
 We used sphinx to create the documentation for this project and you check it out in this [link](https://medimage.readthedocs.io/en/latest/). But you can generate and host it locally by compiling the documentation source code using:

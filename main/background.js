@@ -5,94 +5,142 @@ import { createWindow } from "./helpers";
 const fs = require("fs");
 var path = require("path");
 const dirTree = require("directory-tree");
+var serverProcess = null
 
 const isProd = process.env.NODE_ENV === "production";
 var hasBeenSet = false;
 if (isProd) {
-	serve({ directory: "app" });
+  serve({ directory: "app" })
 } else {
-	app.setPath("userData", `${app.getPath("userData")} (development)`);
+  app.setPath("userData", `${app.getPath("userData")} (development)`)
 }
 
-(async () => {
-	await app.whenReady();
+;(async () => {
+  await app.whenReady()
 
-	const mainWindow = createWindow("main", {
-		width: 1500,
-		height: 1000,
-	});
-	const template = [
-		{
-			label: "File",
-			submenu: [
-				{
-					label: "New Experiment",
-					click() {
-						console.log("New expriment created")
-					}
-				},
-				{
-					label: "New Workspace",
-					click() {
-						console.log("New expriment created")
-					}
-				},
-				{ type: "separator" },
-				{
-					label: "Open Experiment",
-					click() {
-						console.log("Open expriment")
-					}
-				},
-				{
-					label: "Open Workspace",
-					click() {
-						console.log("Workspace opened")
-					}
-				},
-				{ type: "separator" },
-				{ role: "quit" }
-			]
-		},
-		{
-			label: "Edit",
-			submenu: [
-				{ role: "undo" },
-				{ role: "redo" },
-				{ type: "separator" },
-				{ role: "cut" },
-				{ role: "copy" },
-				{ role: "paste" }
-			]
-		},
-		{
-			label: "Hello From Electron!",
-			submenu: [
-				{
-					label: "I have a custom handler",
-					click() {
-						console.log("👋")
-					}
-				},
-				{ type: "separator" },
-				{ role: "reload" },
-				{ role: "forcereload" },
-				{ role: "toggledevtools" },
-				{ type: "separator" },
-				{ role: "resetzoom" },
-				{ role: "zoomin" },
-				{ role: "zoomout" },
-				{ type: "separator" }
-			]
-		}
-	]
+  const mainWindow = createWindow("main", {
+    width: 1500,
+    height: 1000
+  })
+  const template = [
+    {
+      label: "File",
+      submenu: [
+        {
+          label: "New Experiment",
+          click() {
+            console.log("New expriment created")
+          }
+        },
+        {
+          label: "New Workspace",
+          click() {
+            console.log("New expriment created")
+          }
+        },
+        { type: "separator" },
+        {
+          label: "Open Experiment",
+          click() {
+            console.log("Open expriment")
+          }
+        },
+        {
+          label: "Open Workspace",
+          click() {
+            console.log("Workspace opened")
+          }
+        },
+        { type: "separator" },
+        { role: "quit" }
+      ]
+    },
+    {
+      label: "Edit",
+      submenu: [
+        { role: "undo" },
+        { role: "redo" },
+        { type: "separator" },
+        { role: "cut" },
+        { role: "copy" },
+        { role: "paste" }
+      ]
+    },
+    {
+      label: "Hello From Electron!",
+      submenu: [
+        {
+          label: "I have a custom handler",
+          click() {
+            console.log("👋")
+          }
+        },
+        { type: "separator" },
+        { role: "reload" },
+        { role: "forcereload" },
+        { role: "toggledevtools" },
+        { type: "separator" },
+        { role: "resetzoom" },
+        { role: "zoomin" },
+        { role: "zoomout" },
+        { type: "separator" }
+      ]
+    }
+  ]
 
+  // link: https://medium.com/red-buffer/integrating-python-flask-backend-with-electron-nodejs-frontend-8ac621d13f72
+  if(!isProd) {
+  //**** DEVELOPMENT ****//
+  // IMPORTANT: Select python interpreter (related to your virtual environment)
+  var path2conda = fs.readFileSync("./path2condaenv_toDeleteInProd.txt", "utf8")
+  serverProcess = require("child_process").spawn(path2conda, [
+    "./flask_server/server.py"
+  ])
+  serverProcess.stdout.on("data", function (data) {
+    console.log("data: ", data.toString("utf8"))
+  })
+  serverProcess.stderr.on("data", (data) => {
+    console.log(`stderr: ${data}`) // when error
+  })
+  serverProcess.on("close", (code) => {
+    console.log(`child process close all stdio with code ${code}`)
+  })
 
+  } else {
+  //**** PRODUCTION ****//
+    let backend;
+    backend = path.join(process.cwd(), 'resources/backend/dist/app.exe')
+    var execfile = require('child_process').execFile;
+    execfile(
+     backend,
+     {
+  	windowsHide: true,
+     },
+     (err, stdout, stderr) => {
+  	if (err) {
+  	console.log(err);
+  	}
+  	if (stdout) {
+  	console.log(stdout);
+  	}
+  	if (stderr) {
+  	console.log(stderr);
+  	}
+     }
+    )
+  const { exec } = require('child_process');
+  exec('taskkill /f /t /im app.exe', (err, stdout, stderr) => {
+   if (err) {
+    console.log(err)
+   return;
+   }
+   console.log(`stdout: ${stdout}`);
+   console.log(`stderr: ${stderr}`);
+  });
+  }
+  const menu = Menu.buildFromTemplate(template)
+  Menu.setApplicationMenu(menu)
 
-	ipcMain.handle("request", async (_, axios_request) => {
-		const result = await axios(axios_request)
-		return { data: result.data, status: result.status }
-	})
 
 	ipcMain.on("messageFromNext", (event, data) => { // Receives a message from Next.js
 		console.log("messageFromNext : ", data);
@@ -111,18 +159,14 @@ if (isProd) {
 		}
 	});
 
-
-	const menu = Menu.buildFromTemplate(template)
-	Menu.setApplicationMenu(menu)
-
-	if (isProd) {
-		await mainWindow.loadURL("app://./index.html");
-	} else {
-		const port = process.argv[2];
-		await mainWindow.loadURL(`http://localhost:${port}/`);
-		mainWindow.webContents.openDevTools();
-	}
-})();
+  if (isProd) {
+    await mainWindow.loadURL("app://./index.html")
+  } else {
+    const port = process.argv[2]
+    await mainWindow.loadURL(`http://localhost:${port}/`)
+    mainWindow.webContents.openDevTools()
+  }
+})()
 
 /**
  * @description Set the working directory
@@ -198,7 +242,17 @@ function getWorkingDirectory() { // Returns the working directory
 	return app.getPath('sessionData');
 }
 
+ipcMain.handle("request", async (_, axios_request) => {
+  const result = await axios(axios_request)
+  return { data: result.data, status: result.status }
+})
+
 
 app.on("window-all-closed", () => {
-	app.quit();
-});
+  app.quit()
+  console.log("app quit")
+  if(!isProd) {
+    serverProcess.kill()
+    console.log("serverProcess killed")
+  }
+})

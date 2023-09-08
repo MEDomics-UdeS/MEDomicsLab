@@ -1,7 +1,14 @@
-import React from 'react';
-import { Button } from 'react-bootstrap';
-import * as Icon from 'react-bootstrap-icons';
+import React from "react";
+import { Button } from "react-bootstrap";
+import * as Icon from "react-bootstrap-icons";
 
+/**
+ * 
+ * @param {List} buttonList List of buttons to display
+ * @description This component is used to display a list of buttons
+ * @example
+ * <BtnDiv buttonsList={[{type: 'clear', onClick: () => {}}]}/> 
+ */
 const BtnDiv = ({ buttonsList }) => {
 	return (
 		<>
@@ -13,6 +20,9 @@ const BtnDiv = ({ buttonsList }) => {
 };
 export default BtnDiv;
 
+// This is the list of buttons that can be displayed
+// Each button has a type and an onClick function
+// You can add more buttons here
 const buttonType = {
 	clear: (onClear) => {
 		return (

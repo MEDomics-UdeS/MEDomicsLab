@@ -7,6 +7,8 @@ const nodesParams = {
 	dataset: {
 		type: "standardNode",
 		classes: "object dataset run",
+		nbInput: 0,
+		nbOutput: 1,
 		input: [],
 		output: ["dataset"],
 		img: "dataset.png",
@@ -18,7 +20,9 @@ const nodesParams = {
 	},
 	model: {
 		type: "selectionNode",
-		classes: "object model run",
+		classes: "object model",
+		nbInput: 0,
+		nbOutput: 1,
 		input: [],
 		output: ["model_config"],
 		img: "model.png",
@@ -28,6 +32,8 @@ const nodesParams = {
 	clean: {
 		type: "standardNode",
 		classes: "action clean run",
+		nbInput: 1,
+		nbOutput: 1,
 		input: ["dataset"],
 		output: ["dataset"],
 		img: "clean.png",
@@ -37,7 +43,8 @@ const nodesParams = {
 	split: {
 		type: "standardNode",
 		classes: "action split run",
-		data: { "input": ["dataset"], "output": ["dataset"] },
+		nbInput: 1,
+		nbOutput: 2,
 		input: ["dataset"],
 		output: ["dataset", "dataset"],
 		img: "split.png",
@@ -47,6 +54,8 @@ const nodesParams = {
 	compare_models: {
 		type: "standardNode",
 		classes: "action compare_models run",
+		nbInput: 1,
+		nbOutput: 1,
 		input: ["dataset"],
 		output: ["model"],
 		img: "compare_models.png",
@@ -56,6 +65,8 @@ const nodesParams = {
 	create_model: {
 		type: "standardNode",
 		classes: "action create_model run",
+		nbInput: 2,
+		nbOutput: 1,
 		input: ["dataset", "model_config"],
 		output: ["model"],
 		img: "create_model.png",
@@ -65,6 +76,8 @@ const nodesParams = {
 	optimize: {
 		type: "groupNode",
 		classes: "action optimize run",
+		nbInput: 1,
+		nbOutput: 1,
 		input: ["model"],
 		output: ["model"],
 		img: "optimize.png",
@@ -74,7 +87,8 @@ const nodesParams = {
 	analyse: {
 		type: "selectionNode",
 		classes: "action analyse run",
-		data: { "input": ["model"], "output": ["model"] },
+		nbInput: 1,
+		nbOutput: 0,		
 		input: ["model"],
 		output: [],
 		img: "analyse.png",
@@ -84,7 +98,8 @@ const nodesParams = {
 	deploy: {
 		type: "selectionNode",
 		classes: "action deploy run",
-		data: { "input": ["model"], "output": ["model"] },
+		nbInput: 1,
+		nbOutput: 0,
 		input: ["model"],
 		output: [],
 		img: "deploy.png",
