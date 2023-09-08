@@ -25,6 +25,7 @@ const ModulePageWithProvider = ({
   useEffect(() => {
     const config = loadJsonPath(configPath)
     setConfig(config)
+    console.log("config", config)
   }, [configPath])
 
   // this useEffect is used to update the flowInfos when the pageId or the workflowType changes
@@ -33,6 +34,7 @@ const ModulePageWithProvider = ({
       id: pageId,
       configPath: configPath,
       config: config,
+      setConfig: setConfig,
       savingPath: tempPath
     })
   }, [pageId, config])
