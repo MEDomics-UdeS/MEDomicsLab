@@ -145,6 +145,8 @@ dmypy.json
 /flask_server/local_dir
 Flask_server/extraction/MEDimageApp/tmp/*
 !Flask_server/extraction/MEDimageApp/tmp/.gitkeep
+/path2condaenv_toDeleteInProd.txt
+path2condaenv_toDeleteInProd.txt
 
 test/extraction/IBSI/data_sets/*
 test/extraction/IBSI/dicom/*

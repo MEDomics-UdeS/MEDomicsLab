@@ -1,20 +1,24 @@
-import Workflow from "../learning/workflow";
-import React, { useState} from "react";
-import FlowPageBase from "../flow/flowPageBase";
+import Workflow from "../learning/workflow"
+import React, { useState } from "react"
+import FlowPageBase from "../flow/flowPageBase"
+import ModulePage from "./moduleBasics/modulePage"
 
-const LearningPage = ({ pageId }) => {
-	const [flowType, setFlowType] = useState("learning") // this state has been implemented because of subflows implementation
-	return (
-		<>
-			<FlowPageBase 
-				pageId={pageId} 
-				workflowType={flowType} 
-				savingPath={"local_dir/"} 
-			>
-				<Workflow id={pageId} workflowType={flowType} setWorkflowType={setFlowType} />
-			</FlowPageBase>
-		</>
-	)
+const LearningPage = ({ pageId, configPath = "" }) => {
+  const [flowType, setFlowType] = useState("learning") // this state has been implemented because of subflows implementation
+
+  return (
+    <>
+      <ModulePage pageId={pageId} configPath={configPath}>
+        <FlowPageBase workflowType={flowType}>
+          <Workflow
+            id={pageId}
+            workflowType={flowType}
+            setWorkflowType={setFlowType}
+          />
+        </FlowPageBase>
+      </ModulePage>
+    </>
+  )
 }
 
 export default LearningPage

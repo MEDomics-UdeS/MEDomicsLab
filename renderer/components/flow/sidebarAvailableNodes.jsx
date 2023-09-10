@@ -1,7 +1,10 @@
-import React from "react"
+import React, { useContext } from "react"
 import Card from "react-bootstrap/Card"
 import nodesParams from "../../public/setupVariables/allNodesParams"
-import { Col } from "react-bootstrap"
+import { Col, Row } from "react-bootstrap"
+import { FlowInfosContext } from "./context/flowInfosContext"
+import Button from "react-bootstrap/Button"
+import * as Icon from "react-bootstrap-icons"
 
 /**
  *
@@ -21,7 +24,7 @@ const onDragStart = (event, node) => {
 }
 
 /**
- *
+ * @param {string} title The title of the sidebar
  * @param {string} sidebarType Corresponding to a key in nodesParams
  *
  * @returns {JSX.Element} A Card for each node in nodesParams[sidebarType]
@@ -31,16 +34,30 @@ const onDragStart = (event, node) => {
  *
  */
 const SidebarAvailableNodes = ({ title, sidebarType }) => {
+  const { showAvailableNodes, setShowAvailableNodes } =
+    useContext(FlowInfosContext)
+  const handleToggle = () => setShowAvailableNodes(!showAvailableNodes)
+
   return (
     <>
-      <Col className=" padding-0 available-nodes-panel" sm={2}>
-        <Card className="text-center height-100">
+      <Col className=" padding-0 available-nodes-panel">
+        <Card className="text-center">
           <Card.Header>
-            <h4>{title}</h4>
+            <Row>
+              <Col>
+                <h5>{title}</h5>
+              </Col>
+              <Col xs="3">
+                <Button
+                  variant="outline closeBtn-availableNodes"
+                  onClick={handleToggle}
+                >
+                  <Icon.X width="30px" height="30px" />
+                </Button>
+              </Col>
+            </Row>
           </Card.Header>
           <Card.Body>
-            {/* Available nodes depend on current selected module */}
-
             {Object.keys(nodesParams[sidebarType]).map((nodeName) => {
               // this code is executed for each node in nodesParams[sidebarType] and returns a Card for each node
               // it also attaches the onDragStart function to each Card so that the node can be dragged from the sidebar and dropped in the flow
@@ -59,7 +76,6 @@ const SidebarAvailableNodes = ({ title, sidebarType }) => {
                   }
                   draggable
                 >
-                  {/* here we create the Card for each node */}
                   <Card
                     key={node.title}
                     className="text-left margin-vertical-10"
@@ -76,6 +92,26 @@ const SidebarAvailableNodes = ({ title, sidebarType }) => {
                 </div>
               )
             })}
+          </Card.Body>
+        </Card>
+        <Card className=" padding-0 available-nodes-panel2">
+          <Card.Header>
+            <h5>Code generation</h5>
+          </Card.Header>
+          <Card.Body>
+            <p>Generate the code for the current workflow.</p>
+            <Button
+              onClick={() => {
+                console.log("generate code")
+              }}
+            >
+              <label>Generate</label>
+              <Icon.CodeSlash
+                width="30px"
+                height="30px"
+                style={{ marginLeft: "10px" }}
+              />
+            </Button>
           </Card.Body>
         </Card>
       </Col>

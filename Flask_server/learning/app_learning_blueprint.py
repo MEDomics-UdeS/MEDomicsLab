@@ -1,6 +1,6 @@
 import traceback
 from learning.MEDml.MEDexperiment import MEDexperiment
-from flask import Flask, flash, jsonify, redirect, render_template, request, Blueprint
+from flask import jsonify, request, Blueprint
 import sys
 import json
 from utils.server_utils import get_json_from_request
@@ -18,6 +18,11 @@ df = []
 
 @app_learning.route("/run_experiment", methods=["POST"]) 
 def run_experiment():
+    """
+    triggered by the button play in the dashboard, it starts the execution of the pipeline
+
+    Returns: the results of the pipeline execution
+    """
     json_config = get_json_from_request(request)
     print("received data from topic: /run_experiment:")
     print(json.dumps(json_config, indent=4, sort_keys=True))
@@ -53,6 +58,12 @@ def run_experiment():
 
 @app_learning.route('/progress', methods=['POST'])
 def progress():
+    """
+    triggered each x millisecond by the dashboard, it returns the progress of the pipeline execution
+
+    Returns: the progress of the pipeline execution
+
+    """
     json_config = get_json_from_request(request)
     global experiment
     if experiment is not None:

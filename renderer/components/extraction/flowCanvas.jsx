@@ -9,6 +9,8 @@ import { axiosPostJson } from "../../utilities/requests"
 // Workflow imports
 import { useNodesState, useEdgesState, useReactFlow } from "reactflow"
 import WorkflowBase from "../flow/workflowBase"
+import { FlowFunctionsContext } from "../flow/context/flowFunctionsContext"
+
 
 // Import node types
 import StandardNode from "./nodesTypes/standardNode"
@@ -42,15 +44,15 @@ const staticNodesParams = nodesParams
  * @description
  * Component used to display the workflow of the extraction tab of MEDomicsLab.
  */
-const Workflow = ({ workflowType, setWorkflowType }) => {
+const FlowCanvas = ({ workflowType, setWorkflowType }) => {
   const [nodes, setNodes, onNodesChange] = useNodesState([]) // nodes array, setNodes is used to update the nodes array, onNodesChange is a callback hook that is executed when the nodes array is changed
   const [edges, setEdges, onEdgesChange] = useEdgesState([]) // edges array, setEdges is used to update the edges array, onEdgesChange is a callback hook that is executed when the edges array is changed
   const [reactFlowInstance, setReactFlowInstance] = useState(null) // reactFlowInstance is used to get the reactFlowInstance object important for the reactFlow library
   const [nodeUpdate, setNodeUpdate] = useState({}) // nodeUpdate is used to update a node internal data
   const { setViewport } = useReactFlow() // setViewport is used to update the viewport of the workflow
   const [treeData, setTreeData] = useState({}) // treeData is used to set the data of the tree menu
-  const [groupNodeId, setGroupNodeId] = useState(null) // groupNodeId is used to know which groupNode is selected
   const [results, setResults] = useState({}) // results is used to store radiomic features results
+  const { groupNodeId, changeSubFlow, updateNode } = useContext(FlowFunctionsContext)
 
   // Hook executed upon modification of edges to verify the connections between input and segmentation nodes
   useEffect(() => {
@@ -134,16 +136,16 @@ const Workflow = ({ workflowType, setWorkflowType }) => {
   // Hook executed upon modification of groupNodeId to show the current workflow
   useEffect(() => {
     // If there is a groupNodeId, the workflow is a features workflow
-    if (groupNodeId) {
+    if (groupNodeId.id != "MAIN") {
       // Set the workflow type to features
       setWorkflowType("features")
       // Hide the nodes that are not in the features group
-      hideNodesbut(groupNodeId)
+      hideNodesbut(groupNodeId.id)
     } else {
       // Else the workflow is an extraction workflow
       setWorkflowType("extraction")
       // Hide the nodes that are not in the extraction group
-      hideNodesbut(groupNodeId)
+      hideNodesbut(groupNodeId.id)
     }
   }, [groupNodeId])
 
@@ -494,82 +496,84 @@ const Workflow = ({ workflowType, setWorkflowType }) => {
    */
   const runNode = useCallback(
     (id) => {
-      console.log("Running node", id)
+      if(id) {
+        console.log("Running node", id)
 
-      // Transform the flow instance to a dictionary compatible with the backend
-      let newFlow = transformFlowInstance()
-      console.log("Flow dictionary sent to backend is : ")
-      console.log(newFlow)
+        // Transform the flow instance to a dictionary compatible with the backend
+        let newFlow = transformFlowInstance()
+        console.log("Flow dictionary sent to backend is : ")
+        console.log(newFlow)
 
-      // Get the node from id
-      let nodeName = newFlow.drawflow.Home.data[id]
-        ? newFlow.drawflow.Home.data[id].name
-        : "extraction"
+        // Get the node from id
+        let nodeName = newFlow.drawflow.Home.data[id]
+          ? newFlow.drawflow.Home.data[id].name
+          : "extraction"
 
-      // POST request to /extraction/run for the current node by sending form_data
-      var formData = JSON.stringify({
-        id: id,
-        name: nodeName,
-        json_scene: newFlow
-      })
+        // POST request to /extraction/run for the current node by sending form_data
+        var formData = JSON.stringify({
+          id: id,
+          name: nodeName,
+          json_scene: newFlow
+        })
 
-      axiosPostJson(formData, "extraction/run")
-        .then((response) => {
-          toast.success("Node executed successfully")
-          console.log("Response from backend is: ")
-          console.log(response)
+        axiosPostJson(formData, "extraction/run")
+          .then((response) => {
+            toast.success("Node executed successfully")
+            console.log("Response from backend is: ")
+            console.log(response)
 
-          // Get all the nodes in the executed pipeline
-          let executedNodes = []
-          for (let files in response) {
-            for (let pipeline in response[files]) {
-              let pipelineNodeIds = pipeline.match(/node_[a-f0-9-]+/g)
-              executedNodes = mergeWithoutDuplicates(
-                executedNodes,
-                pipelineNodeIds
-              )
+            // Get all the nodes in the executed pipeline
+            let executedNodes = []
+            for (let files in response) {
+              for (let pipeline in response[files]) {
+                let pipelineNodeIds = pipeline.match(/node_[a-f0-9-]+/g)
+                executedNodes = mergeWithoutDuplicates(
+                  executedNodes,
+                  pipelineNodeIds
+                )
+              }
             }
-          }
 
-          // Update the extractionNode data with the response from the backend
-          // And enable the view button of the nodes
-          setNodes((prevNodes) =>
-            prevNodes.map((node) => {
-              if (node.id === id && node.type === "extractionNode") {
-                // Get the results that were in the node
-                let oldResults = node.data.internal.results
-                let newResults = handleExtractionResults(oldResults, response)
+            // Update the extractionNode data with the response from the backend
+            // And enable the view button of the nodes
+            setNodes((prevNodes) =>
+              prevNodes.map((node) => {
+                if (node.id === id && node.type === "extractionNode") {
+                  // Get the results that were in the node
+                  let oldResults = node.data.internal.results
+                  let newResults = handleExtractionResults(oldResults, response)
 
-                return {
-                  ...node,
-                  data: {
-                    ...node.data,
-                    internal: {
-                      ...node.data.internal,
-                      results: newResults // Update the results data with the response
+                  return {
+                    ...node,
+                    data: {
+                      ...node.data,
+                      internal: {
+                        ...node.data.internal,
+                        results: newResults // Update the results data with the response
+                      }
                     }
                   }
                 }
-              }
 
-              if (executedNodes.includes(node.id)) {
-                // Enable the view button of the node
-                node.data.internal.enableView = true
-                node.data.parentFct.updateNode({
-                  id: node.id,
-                  updatedData: node.data.internal
-                })
-              }
+                if (executedNodes.includes(node.id)) {
+                  // Enable the view button of the node
+                  node.data.internal.enableView = true
+                  updateNode({
+                    id: node.id,
+                    updatedData: node.data.internal
+                  })
+                }
 
-              return node
-            })
-          )
-        })
-        .catch((error) => {
-          // Warn the user if the node could not be executed correctly
-          console.log(error)
-          toast.warn("Could not run the node.")
-        })
+                return node
+              })
+            )
+          })
+          .catch((error) => {
+            // Warn the user if the node could not be executed correctly
+            console.log(error)
+            toast.warn("Could not run the node.")
+          })
+      }
     },
     [nodes, edges, reactFlowInstance]
   )
@@ -618,7 +622,7 @@ const Workflow = ({ workflowType, setWorkflowType }) => {
 
             // Enable the view button of the node
             node.data.internal.enableView = true
-            node.data.parentFct.updateNode({
+            updateNode({
               id: node.id,
               updatedData: node.data.internal
             })
@@ -660,7 +664,6 @@ const Workflow = ({ workflowType, setWorkflowType }) => {
     if (reactFlowInstance && nodes.length > 0) {
       const flow = JSON.parse(JSON.stringify(reactFlowInstance.toObject()))
       flow.nodes.forEach((node) => {
-        node.data.parentFct = null
         node.data.setupParam = null
         // Set enableView to false because only the scene is saved
         // and importing it back would not reload the volumes that
@@ -694,23 +697,16 @@ const Workflow = ({ workflowType, setWorkflowType }) => {
         try {
           // Ask user for the json file to open
           const flow = await loadJsonSync() // wait for the json file to be loaded (see /utilities/fileManagementUtils.js)
-          console.log("The loaded flow is:", flow)
+          console.log("loaded flow", flow)
 
           // TODO : should have conditions regarding json file used for import!
           // For each nodes in the json file, add the specific parameters
           Object.values(flow.nodes).forEach((node) => {
             // the line below is important because functions are not serializable
-            // reset functions associated with nodes
-            node.data.parentFct = {
-              deleteNode: deleteNode,
-              updateNode: setNodeUpdate,
-              runNode: runNode,
-              changeSubFlow: setGroupNodeId
-            }
             // set workflow type
             let subworkflowType = node.data.internal.subflowId
-              ? "features"
-              : "extraction"
+              ? "extraction"
+              : "features"
             // set node type
             let setupParams = deepCopy(
               staticNodesParams[subworkflowType][
@@ -727,7 +723,7 @@ const Workflow = ({ workflowType, setWorkflowType }) => {
             setViewport({ x, y, zoom })
           }
         } catch (error) {
-          console.log("Error loading file : ", error)
+          toast.warn("Error loading file : ", error)
         }
       }
 
@@ -741,7 +737,7 @@ const Workflow = ({ workflowType, setWorkflowType }) => {
    * Set the subflow id to null to go back to the main workflow
    */
   const onBack = useCallback(() => {
-    setGroupNodeId(null)
+    changeSubFlow("MAIN")
   }, [])
 
   /**

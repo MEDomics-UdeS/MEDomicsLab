@@ -4,6 +4,7 @@ import Card from "react-bootstrap/Card"
 import CloseButton from "react-bootstrap/CloseButton"
 import Handlers from "./handlers"
 import { FlowInfosContext } from "./context/flowInfosContext"
+import { FlowFunctionsContext } from "./context/flowFunctionsContext"
 
 /**
  *
@@ -17,8 +18,10 @@ import { FlowInfosContext } from "./context/flowInfosContext"
  * A GroupNode is a node that contains a subflow, so it handles a click that change the active display subflow.
  * It does not implement a Node because it does not need to have access to an offcanvas
  */
-const GroupNode = ({ id, data, nodeBody }) => {
+const GroupNode = ({ id, data }) => {
   const { flowInfos } = useContext(FlowInfosContext) // used to get the flow infos
+  const { changeSubFlow, runNode, onDeleteNode } =
+    useContext(FlowFunctionsContext) // used to get the functions to change the subflow, run the node and delete the node
 
   return (
     <>
@@ -30,7 +33,7 @@ const GroupNode = ({ id, data, nodeBody }) => {
             tooltipBy={data.tooltipBy}
           />
           <Card key={`${id}`} id={`${id}`} className="text-left node">
-            <Card.Header onClick={() => data.parentFct.changeSubFlow(id)}>
+            <Card.Header onClick={() => changeSubFlow(id)}>
               <img
                 src={
                   "/icon/" +
@@ -43,17 +46,15 @@ const GroupNode = ({ id, data, nodeBody }) => {
               />
               {data.internal.name}
             </Card.Header>
-            {/* body of the node*/}
-            {nodeBody != undefined && <Card.Body>{nodeBody}</Card.Body>}
           </Card>
         </div>
 
-        <CloseButton onClick={() => data.parentFct.deleteNode(id)} />
+        <CloseButton onClick={() => onDeleteNode(id)} />
         {data.setupParam.classes.split(" ").includes("run") && (
           <Button
             variant="success"
             className="btn-runNode"
-            onClick={() => data.parentFct.runNode(id)}
+            onClick={() => runNode(id)}
           >
             <img src={"/icon/run.svg"} alt="run" className="img-fluid" />
           </Button>

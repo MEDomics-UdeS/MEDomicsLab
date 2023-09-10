@@ -19,9 +19,11 @@ import "../styles/workspaceSidebar.css";
 import "../styles/iconSidebar.css";
 import LayoutManager from "../components/layout/LayoutManager";
 import LayoutContextProvider from "../components/layout/LayoutContext";
+import WorkspaceProvider from "../components/workspace/WorkspaceContext";
 import { useEffect } from "react";
+import { ipcRenderer } from "electron";
 
-// utilities
+
 
 /**
  * This is the main app component. It is the root component of the app.
@@ -94,13 +96,58 @@ export default function App() {
    * @description Using the useState hook, the layout model is set to the initial layout model. Then, ever
    */
 	const [layoutModel, setLayoutModel] = useState(initialLayout);
+	const [workspaceObject, setWorkspaceObject] = useState({ "hasBeenSet": false, "workingDirectory": "" });
+
+
+	useEffect(() => {
+		// This useEffect hook is called only once and it sets the ipcRenderer to listen for the "messageFromElectron" message from the main process
+		// Log a message to the console whenever the ipcRenderer receives a message from the main process
+		ipcRenderer.on("messageFromElectron", (event, data) => {
+			console.log("Received message from Electron:", data);
+			// Handle the received message from the Electron side
+		});
+	}, []); // Here, we specify that the hook should only be called at the launch of the app
+
+	/**
+	 * @ReadMe
+	 * This useEffect hook is called only once and it sets the ipcRenderer to listen for the "updateDirectory" message from the main process
+	 * *important* : The update directory message is used to call an update of the working directory tree
+	 * The HasBeenSet property is used to prevent the workspaceObject from being updated before the working directory has been set
+	 * The HasBeenSet property is set to true when the workingDirectorySet message is received
+	 */
+
+	useEffect(() => {
+		// This useEffect hook is called only once and it sets the ipcRenderer to listen for the "workingDirectorySet" message from the main process
+		// The working directory tree is stored in the workspaceObject state variable
+		ipcRenderer.on("workingDirectorySet", (event, data) => {
+			console.log("WorkingDirectory set by Electron:", data);
+			if (workspaceObject !== data) {
+				let workspace = { ...data };
+				setWorkspaceObject(workspace);
+			}
+		});
+
+
+		ipcRenderer.on("updateDirectory", (event, data) => {
+			console.log("WorkingDirectory update from Electron:", data);
+			// if (workspaceObject.hasBeenSet === true) {
+
+			let workspace = { ...data };
+			setWorkspaceObject(workspace);
+			console.log("WorkingDirectory updated:", workspace);
+
+			// }
+		});
+
+	}, []); // Here, we specify that the hook should only be called at the launch of the app
+
 
 	useEffect(() => {
 		// This is a hook that is called whenever the layoutModel state variable changes
 		// Log a message to the console whenever the layoutModel state variable changes
-		console.log("layoutModel changed");
-		console.log(layoutModel);
+		console.log("layoutModel changed", layoutModel);
 	}, [layoutModel]); // Here, we specify that the hook should only be called when the layoutModel state variable changes
+
 
 	return (
 		<>
@@ -111,17 +158,19 @@ export default function App() {
 				{/* Uncomment if you want to use React Dev tools */}
 			</Head>
 			<div style={{ height: "100%" }}>
-				<LayoutContextProvider
-					layoutModel={layoutModel}
-					setLayoutModel={setLayoutModel}
-				>
-					{" "}
-					{/* This is the LayoutContextProvider, which provides the layout model to all the children components of the LayoutManager */}
-					<LayoutManager layout={initialLayout} />{" "}
-					{/** We pass the initialLayout as a parameter */}
-				</LayoutContextProvider>
+				<WorkspaceProvider workspace={workspaceObject} setWorkspace={setWorkspaceObject}> {/* This is the WorkspaceProvider, which provides the workspace model to all the children components of the LayoutManager */}
+					<LayoutContextProvider // This is the LayoutContextProvider, which provides the layout model to all the children components of the LayoutManager
+						layoutModel={layoutModel}
+						setLayoutModel={setLayoutModel}
+					>
 
-				<ToastContainer
+						{/* This is the LayoutContextProvider, which provides the layout model to all the children components of the LayoutManager */}
+						<LayoutManager layout={initialLayout} />
+						{/** We pass the initialLayout as a parameter */}
+					</LayoutContextProvider>
+				</WorkspaceProvider>
+
+				<ToastContainer // This is the ToastContainer, which is used to display toast notifications
 					position="bottom-right"
 					autoClose={2000}
 					limit={3}
@@ -138,3 +187,5 @@ export default function App() {
 		</>
 	);
 }
+
+
