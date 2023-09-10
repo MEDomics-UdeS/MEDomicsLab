@@ -694,7 +694,7 @@ const Workflow = ({ workflowType, setWorkflowType }) => {
         try {
           // Ask user for the json file to open
           const flow = await loadJsonSync() // wait for the json file to be loaded (see /utilities/fileManagementUtils.js)
-          console.log("loaded flow", flow)
+          console.log("The loaded flow is:", flow)
 
           // TODO : should have conditions regarding json file used for import!
           // For each nodes in the json file, add the specific parameters
@@ -709,8 +709,8 @@ const Workflow = ({ workflowType, setWorkflowType }) => {
             }
             // set workflow type
             let subworkflowType = node.data.internal.subflowId
-              ? "extraction"
-              : "features"
+              ? "features"
+              : "extraction"
             // set node type
             let setupParams = deepCopy(
               staticNodesParams[subworkflowType][
@@ -727,7 +727,7 @@ const Workflow = ({ workflowType, setWorkflowType }) => {
             setViewport({ x, y, zoom })
           }
         } catch (error) {
-          toast.warn("Error loading file : ", error)
+          console.log("Error loading file : ", error)
         }
       }
 

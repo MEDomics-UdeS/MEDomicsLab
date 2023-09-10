@@ -28,7 +28,7 @@ pp = pprint.PrettyPrinter(indent=4, compact=True, width=40,
 
 # Importation du submodule MEDimage
 #import Flask_server.submodules.MEDimage.MEDimage as MEDimage
-import submodules.MEDimage.MEDimage as MEDimage
+import medimage_pkg as MEDimage
 
 import extraction.MEDimageApp.utils as utils
 import ray
