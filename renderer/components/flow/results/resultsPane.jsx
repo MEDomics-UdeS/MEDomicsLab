@@ -7,6 +7,8 @@ import * as Icon from "react-bootstrap-icons"
 import { deepCopy } from "../../../utilities/staticFunctions"
 import DataTable from "../../dataTypeVisualisation/dataTableWrapper"
 import { loadCSVPath } from "../../../utilities/fileManagementUtils"
+import Parameters from "./type/parameters"
+import Images from "./type/images"
 
 /**
  *
@@ -21,7 +23,14 @@ const ResultsPane = () => {
     useContext(FlowResultsContext)
   const [body, setBody] = useState(<></>)
   const [title, setTitle] = useState("")
-  const [data, setData] = useState([])
+  const getResultsJSX = {
+    params: (props) => {
+      return <Parameters {...props} />
+    },
+    images: (props) => {
+      return <Images {...props} />
+    }
+  }
 
   const handleClose = () => setShowResultsPane(false)
 
@@ -58,10 +67,6 @@ const ResultsPane = () => {
     return title
   }
 
-  const whenDataLoaded = (data) => {
-    setData(data)
-  }
-
   /**
    *
    * @returns {JSX.Element} A JSX element containing the body of the results pane
@@ -70,7 +75,6 @@ const ResultsPane = () => {
     let selectedId = what2show.split("/")[what2show.split("/").length - 1]
     let selectedNode = flowResults.nodes.find((node) => node.id == selectedId)
     console.log("selectedId", selectedId)
-    let toReturn = <></>
     let selectedResults = deepCopy(flowResults.results)
     what2show.split("/").forEach((id) => {
       selectedResults = checkIfObjectContainsId(selectedResults, id)
@@ -82,15 +86,15 @@ const ResultsPane = () => {
         }
       } else {
         console.log("id " + id + " not found in results")
-        return toReturn
+        return <></>
       }
     })
-    console.log("seletced results", selectedResults, selectedNode)
-    let path = "./learning-tests-scene/data/eicu_processed.csv"
-    loadCSVPath(path, whenDataLoaded)
-    toReturn = <></>
-    return toReturn
-  }, [what2show, flowResults, data])
+    console.log("selected results", selectedResults, selectedNode)
+    return getResultsJSX[selectedNode.data.internal.type]({
+      data: selectedResults,
+      node: selectedNode
+    })
+  }, [what2show, flowResults])
 
   /**
    *
@@ -122,21 +126,7 @@ const ResultsPane = () => {
               <Icon.X width="30px" height="30px" />
             </Button>
           </Card.Header>
-          <Card.Body>
-            {body}
-            <DataTable
-              data={data}
-              tablePropsData={{
-                paginator: true,
-                rows: 10,
-                scrollable: true,
-                scrollHeight: "400px"
-              }}
-              tablePropsColumn={{
-                sortable: true
-              }}
-            />
-          </Card.Body>
+          <Card.Body>{body}</Card.Body>
         </Card>
       </Col>
     </>
