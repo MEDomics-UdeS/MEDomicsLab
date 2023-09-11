@@ -363,14 +363,13 @@ export default function MainFlexLayout() {
     } else if (component === "dataTable") {
       const config = node.getConfig()
       console.log("dataTable config", config)
-      const [data, setData] = useState([])
       const whenDataLoaded = (data) => {
-        setData(data)
+        node.getExtraData().data = data
       }
       loadCSVPath(config.path, whenDataLoaded)
       return (
         <DataTable
-          data={data}
+          data={node.getExtraData().data}
           tablePropsData={{
             paginator: true,
             rows: 10,
