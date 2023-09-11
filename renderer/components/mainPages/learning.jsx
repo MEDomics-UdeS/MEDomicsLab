@@ -3,7 +3,10 @@ import React, { useState } from "react"
 import FlowPageBase from "../flow/flowPageBase"
 import ModulePage from "./moduleBasics/modulePage"
 
-const LearningPage = ({ pageId, configPath = "" }) => {
+const LearningPage = ({
+  pageId,
+  configPath = "/learning-tests-scene/simple_createModel.json"
+}) => {
   const [flowType, setFlowType] = useState("learning") // this state has been implemented because of subflows implementation
 
   return (

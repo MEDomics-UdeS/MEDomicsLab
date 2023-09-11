@@ -24,6 +24,7 @@ const ModulePageWithProvider = ({
 
   useEffect(() => {
     const config = loadJsonPath(configPath)
+    console.log("loaded config", config)
     setConfig(config)
   }, [configPath])
 
