@@ -1,6 +1,11 @@
 import { ToastContainer } from "react-toastify"
 import React, { useState } from "react"
 import Head from "next/head"
+import LayoutManager from "../components/layout/layoutManager"
+import LayoutContextProvider from "../components/layout/layoutContext"
+import WorkspaceProvider from "../components/workspace/workspaceContext"
+import { useEffect } from "react"
+import { ipcRenderer } from "electron"
 
 // CSS
 import "bootstrap/dist/css/bootstrap.min.css"
@@ -9,11 +14,11 @@ import "react-toastify/dist/ReactToastify.css"
 import "react-tooltip/dist/react-tooltip.css"
 import "react-simple-tree-menu/dist/main.css"
 
-// primereact
+// --primereact
 import "primereact/resources/primereact.min.css"
 import "primereact/resources/themes/lara-light-indigo/theme.css"
 
-// my styles (priority over bootstrap and other dist styles)
+// --my styles (priority over bootstrap and other dist styles)
 import "../styles/flow/reactFlow.css"
 import "../styles/globals.css"
 import "../styles/learning/learning.css"
@@ -22,11 +27,7 @@ import "../styles/extraction/extraction.css"
 import "flexlayout-react/style/light.css"
 import "../styles/workspaceSidebar.css"
 import "../styles/iconSidebar.css"
-import LayoutManager from "../components/layout/LayoutManager"
-import LayoutContextProvider from "../components/layout/LayoutContext"
-import WorkspaceProvider from "../components/workspace/workspaceContext"
-import { useEffect } from "react"
-import { ipcRenderer } from "electron"
+import "../styles/learning/sidebar.css"
 
 /**
  * This is the main app component. It is the root component of the app.

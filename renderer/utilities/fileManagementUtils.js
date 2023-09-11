@@ -1,4 +1,5 @@
 const fs = require("fs")
+const path = require("path")
 const { parse } = require("csv-parse")
 
 /**
@@ -162,11 +163,26 @@ const loadCSVPath = (path, whenLoaded) => {
     })
 }
 
+function createFolder(path_, folderName) {
+  // Creates a folder in the working directory
+  const folderPath = path.join(path_, folderName)
+
+  fs.mkdir(folderPath, { recursive: true }, (err) => {
+    if (err) {
+      console.error(err)
+      return
+    }
+
+    console.log("Folder created successfully!")
+  })
+}
+
 export {
   downloadJson,
   writeJson,
   loadJson,
   loadJsonSync,
   loadJsonPath,
-  loadCSVPath
+  loadCSVPath,
+  createFolder
 }
