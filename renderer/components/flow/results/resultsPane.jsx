@@ -58,13 +58,6 @@ const ResultsPane = () => {
     return title
   }
 
-  /**
-   * to delete
-   */
-  useEffect(() => {
-    console.log("data", data)
-  }, [data])
-
   const whenDataLoaded = (data) => {
     setData(data)
   }
@@ -93,8 +86,7 @@ const ResultsPane = () => {
       }
     })
     console.log("seletced results", selectedResults, selectedNode)
-    let path =
-      "C:\\Users\\gblai\\Documents\\github\\MEDomicsLab\\learning-tests-scene\\data\\eicu_processed.csv"
+    let path = "./learning-tests-scene/data/eicu_processed.csv"
     loadCSVPath(path, whenDataLoaded)
     toReturn = <></>
     return toReturn

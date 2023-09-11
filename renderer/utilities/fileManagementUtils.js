@@ -108,8 +108,9 @@ const loadJsonPath = (path) => {
   }
   try {
     const cwd = process.cwd()
-  console.log("cwd: " + cwd)
-  path.charAt(0) == "." ? path = cwd + path : path = path
+    console.log("cwd: " + cwd)
+    path.charAt(0) == "." &&
+      (path = cwd + path.substring(1).replaceAll("/", "\\"))
     const data = fs.readFileSync(path)
     const jsonData = JSON.parse(data)
     return jsonData
@@ -132,7 +133,8 @@ const loadCSVPath = (path, whenLoaded) => {
   // get current working directory
   const cwd = process.cwd()
   console.log("cwd: " + cwd)
-  path.charAt(0) == "." ? path = cwd + path : path = path
+  path.charAt(0) == "." &&
+    (path = cwd + path.substring(1).replaceAll("/", "\\"))
   fs.createReadStream(path)
     .pipe(
       parse({
