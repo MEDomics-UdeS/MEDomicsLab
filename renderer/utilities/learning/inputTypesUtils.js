@@ -3,7 +3,6 @@ const createConstants = () => {
   let defaultValue = {}
   let implementedTypes = []
   implementedTypesDescription.map((typeInfo) => {
-    console.log(typeInfo)
     defaultValue[typeInfo.type] = typeInfo.default
     implementedTypes.push(typeInfo.type)
   })
