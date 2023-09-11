@@ -24,7 +24,7 @@ import "../styles/workspaceSidebar.css"
 import "../styles/iconSidebar.css"
 import LayoutManager from "../components/layout/LayoutManager"
 import LayoutContextProvider from "../components/layout/LayoutContext"
-import WorkspaceProvider from "../components/workspace/WorkspaceContext"
+import WorkspaceProvider from "../components/workspace/workspaceContext"
 import { useEffect } from "react"
 import { ipcRenderer } from "electron"
 
@@ -103,6 +103,7 @@ export default function App() {
     hasBeenSet: false,
     workingDirectory: ""
   })
+  const [port, setPort] = useState(5000)
 
   useEffect(() => {
     // This useEffect hook is called only once and it sets the ipcRenderer to listen for the "messageFromElectron" message from the main process
@@ -142,6 +143,11 @@ export default function App() {
 
       // }
     })
+
+    ipcRenderer.on("getFlaskPort", (event, data) => {
+      console.log("flask port update from Electron:", data)
+      setPort(data.newPort)
+    })
   }, []) // Here, we specify that the hook should only be called at the launch of the app
 
   useEffect(() => {
@@ -162,6 +168,8 @@ export default function App() {
         <WorkspaceProvider
           workspace={workspaceObject}
           setWorkspace={setWorkspaceObject}
+          port={port}
+          setPort={setPort}
         >
           {" "}
           {/* This is the WorkspaceProvider, which provides the workspace model to all the children components of the LayoutManager */}
