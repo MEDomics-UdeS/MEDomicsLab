@@ -28,6 +28,7 @@ import "flexlayout-react/style/light.css"
 import "../styles/workspaceSidebar.css"
 import "../styles/iconSidebar.css"
 import "../styles/learning/sidebar.css"
+import "../styles/learning/results.css"
 
 /**
  * This is the main app component. It is the root component of the app.

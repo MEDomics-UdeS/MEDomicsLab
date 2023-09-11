@@ -165,6 +165,7 @@ class MEDexperiment:
                         'prev_node_id': None,
                         'data': node.execute()
                     }
+
                     experiment = self.setup_dataset(node)
                     node_info['experiment'] = experiment
                 else:
@@ -178,6 +179,7 @@ class MEDexperiment:
                     'next_nodes': copy.deepcopy(next_nodes_id_json),
                     'results': copy.deepcopy(node_info['results'])
                 }
+                print()
                 self.execute_next_nodes(
                     prev_node=node,
                     next_nodes_to_execute=next_nodes_id_json,
@@ -304,7 +306,12 @@ class MEDexperiment:
             'X_test': pycaret_exp.get_config('X_test'),
             'y_test': pycaret_exp.get_config('y_test'),
         }
-        self.pipelines_objects[node.id]['results']['data'] = dataset_metaData['dataset'].to_json(orient='records')
+        self.pipelines_objects[node.id]['results']['data'] = {
+            "table": dataset_metaData['dataset'].to_json(orient='records'),
+            "paths": node.get_path_list(),
+            }
+        
+
         return {'pycaret_exp': pycaret_exp,
                 'medml_logger': medml_logger,
                 'dataset_metaData': dataset_metaData

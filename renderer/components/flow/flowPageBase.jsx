@@ -12,7 +12,7 @@ import {
 import { FlowFunctionsProvider } from "./context/flowFunctionsContext"
 import { PageInfosContext } from "../mainPages/moduleBasics/pageInfosContext"
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels"
-import ResultsPane from "./results/resultsPane"
+import ResultsPane from "../learning/results/resultsPane"
 
 /**
  *
@@ -111,7 +111,7 @@ const FlowPageBaseWithFlowInfos = ({ children, workflowType }) => {
                 defaultSize={0}
                 order={2}
                 collapsible={true}
-                collapsibleSize={25}
+                collapsibleSize={50}
                 onResize={(size) => {
                   size > 5
                     ? setShowResultsPane(true)

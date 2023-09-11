@@ -19,6 +19,8 @@ import { PageInfosContext } from "../mainPages/moduleBasics/pageInfosContext"
 import { FlowFunctionsContext } from "../flow/context/flowFunctionsContext"
 import { FlowResultsContext } from "../flow/context/flowResultsContext"
 import { WorkspaceContext } from "../workspace/workspaceContext"
+import { Button } from "primereact/button"
+import { Dialog } from "primereact/dialog"
 
 // here are the different types of nodes implemented in the workflow
 import StandardNode from "./nodesTypes/standardNode"
@@ -61,6 +63,8 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
   const { setShowResultsPane, setWhat2show, updateFlowResults } =
     useContext(FlowResultsContext)
   const { port } = useContext(WorkspaceContext)
+  const [showError, setShowError] = useState(false)
+  const [error, setError] = useState({})
 
   // declare node types using useMemo hook to avoid re-creating component types unnecessarily (it memorizes the output) https://www.w3schools.com/react/react_usememo.asp
   const nodeTypes = useMemo(
@@ -72,6 +76,13 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
     }),
     []
   )
+
+  useEffect(() => {
+    console.log("error", error)
+    if (Object.keys(error).length > 0) {
+      setShowError(true)
+    }
+  }, [error])
 
   useEffect(() => {
     console.log("pageInfos", pageInfos)
@@ -549,6 +560,7 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
               if (jsonResponse.error) {
                 setIsProgressUpdating(false)
                 toast.error("Error detected while running the experiment")
+                setError(jsonResponse.error)
               } else {
                 let results = {}
                 results.results = jsonResponse
@@ -899,6 +911,26 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
           </>
         }
       />
+      {/* this is a dialog to show error when it occur in the running process */}
+      <Dialog
+        header="Error occured during execution"
+        visible={showError}
+        style={{ width: "70vw" }}
+        onHide={() => setShowError(false)}
+        footer={
+          <div>
+            <Button
+              label="Ok"
+              icon=""
+              onClick={() => setShowError(false)}
+              autoFocus
+            />
+          </div>
+        }
+      >
+        <h5>{error.message}</h5>
+        <pre>{error.stack_trace}</pre>
+      </Dialog>
     </>
   )
 }

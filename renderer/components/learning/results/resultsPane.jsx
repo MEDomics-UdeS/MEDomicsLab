@@ -1,14 +1,11 @@
 import React, { useContext, useState, useEffect, useCallback } from "react"
 import Card from "react-bootstrap/Card"
 import { Col } from "react-bootstrap"
-import { FlowResultsContext } from "../context/flowResultsContext"
+import { FlowResultsContext } from "../../flow/context/flowResultsContext"
 import Button from "react-bootstrap/Button"
 import * as Icon from "react-bootstrap-icons"
 import { deepCopy } from "../../../utilities/staticFunctions"
-import DataTable from "../../dataTypeVisualisation/dataTableWrapper"
-import { loadCSVPath } from "../../../utilities/fileManagementUtils"
-import Parameters from "./type/parameters"
-import Images from "./type/images"
+import DatasetCleanResults from "./type/datasetCleanResults"
 
 /**
  *
@@ -23,21 +20,13 @@ const ResultsPane = () => {
     useContext(FlowResultsContext)
   const [body, setBody] = useState(<></>)
   const [title, setTitle] = useState("")
-  const getResultsJSX = {
-    params: (props) => {
-      return <Parameters {...props} />
-    },
-    images: (props) => {
-      return <Images {...props} />
-    }
-  }
 
   const handleClose = () => setShowResultsPane(false)
 
   // callback function to update title and body when what2show changes
   useEffect(() => {
     console.log("results update", what2show, flowResults)
-    if (what2show == "") {
+    if (what2show == "" || Object.keys(flowResults).length == 0) {
       setTitle("Results")
       setBody(
         <>
@@ -90,10 +79,16 @@ const ResultsPane = () => {
       }
     })
     console.log("selected results", selectedResults, selectedNode)
-    return getResultsJSX[selectedNode.data.internal.type]({
-      data: selectedResults,
-      node: selectedNode
-    })
+    let toReturn = <></>
+
+    let type = selectedNode.data.internal.type
+    if (type == "dataset" || type == "clean") {
+      toReturn = <DatasetCleanResults selectedResults={selectedResults} />
+    } else if (type == "create_model") {
+      console.log("create model")
+    }
+
+    return toReturn
   }, [what2show, flowResults])
 
   /**
