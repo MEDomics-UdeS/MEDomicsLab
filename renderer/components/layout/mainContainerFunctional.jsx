@@ -1,10 +1,11 @@
 import React, { useRef, useState, useEffect, useContext } from "react"
 import test from "../../styles/test.module.css"
-
+import DataTable from "../../components/dataTypeVisualisation/dataTableWrapper"
 import * as Prism from "prismjs"
 
 import { LayoutModelContext } from "./layoutContext"
 import { Actions, CLASSES, Layout, Model, TabNode } from "flexlayout-react"
+import { loadCSVPath } from "../../utilities/fileManagementUtils"
 
 var fields = ["Name", "Field1", "Field2", "Field3", "Field4", "Field5"]
 
@@ -359,6 +360,28 @@ export default function MainFlexLayout() {
       }
     } else if (component === "tabstorage") {
       return <></>
+    } else if (component === "dataTable") {
+      const config = node.getConfig()
+      console.log("dataTable config", config)
+      const [data, setData] = useState([])
+      const whenDataLoaded = (data) => {
+        setData(data)
+      }
+      loadCSVPath(config.path, whenDataLoaded)
+      return (
+        <DataTable
+          data={data}
+          tablePropsData={{
+            paginator: true,
+            rows: 10,
+            scrollable: true,
+            scrollHeight: "400px"
+          }}
+          tablePropsColumn={{
+            sortable: true
+          }}
+        />
+      )
     }
 
     return null

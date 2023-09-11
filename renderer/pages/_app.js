@@ -66,8 +66,11 @@ export default function App() {
           children: [
             {
               type: "tab",
-              name: "Learning",
-              component: "grid"
+              name: "data table",
+              component: "dataTable",
+              config: {
+                path: "./learning-tests-scene/data/eicu_processed.csv"
+              }
             }
           ]
         },

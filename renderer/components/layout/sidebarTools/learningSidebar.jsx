@@ -5,7 +5,7 @@ import { WorkspaceDirectoryTree } from "./workspaceDirectoryTree"
 import * as Icon from "react-bootstrap-icons"
 import { Dialog } from "primereact/dialog"
 import { InputText } from "primereact/inputtext"
-import { createFolder } from "../../../utilities/fileManagementUtils"
+import { loadJsonPath, writeJson } from "../../../utilities/fileManagementUtils"
 
 /**
  * @description - This component is the sidebar tools component that will be used in the sidebar component as the learning page
@@ -16,7 +16,7 @@ const LearningSidebar = () => {
   const { workspace } = useContext(WorkspaceContext) // We get the workspace from the context to retrieve the directory tree of the workspace, thus retrieving the data files
   const [showDialog, setShowDialog] = useState(false)
   const [btnDialogState, setBtnDialogState] = useState(false)
-  const [experimentName, setExperimentName] = useState("") // We initialize the experiment name state to an empty string
+  const [sceneName, setSceneName] = useState("") // We initialize the experiment name state to an empty string
   const [experimentList, setExperimentList] = useState([]) // We initialize the experiment list state to an empty array
   const [showErrorMessage, setShowErrorMessage] = useState(false) // We initialize the create experiment error message state to an empty string
 
@@ -33,20 +33,25 @@ const LearningSidebar = () => {
   }, [workspace]) // We log the workspace when it changes
 
   useEffect(() => {
-    if (experimentName != "" && !experimentList.includes(experimentName)) {
+    if (sceneName != "" && !experimentList.includes(sceneName)) {
       setBtnDialogState(true)
       setShowErrorMessage(false)
     } else {
       setBtnDialogState(false)
       setShowErrorMessage(true)
     }
-  }, [experimentName]) // We set the button state to true if the experiment name is empty, otherwise we set it to false
+  }, [sceneName]) // We set the button state to true if the experiment name is empty, otherwise we set it to false
 
   const createExperiment = () => {
     console.log("Create Scene")
-    console.log(`Scene Name: ${experimentName}`) // We log the experiment name when the create button is clicked
+    console.log(`Scene Name: ${sceneName}`) // We log the experiment name when the create button is clicked
     setShowDialog(false)
-    createFolder(workspace.workingDirectory.children[1].path, experimentName)
+    createEmptyScene(workspace.workingDirectory.children[1].path, sceneName)
+  }
+
+  const createEmptyScene = (path, name) => {
+    const emptyScene = loadJsonPath("./resources/emptyScene.json")
+    writeJson(emptyScene, path, name)
   }
 
   const importExperiment = () => {
@@ -112,8 +117,8 @@ const LearningSidebar = () => {
         <span className="p-float-label">
           <InputText
             id="expName"
-            value={experimentName}
-            onChange={(e) => setExperimentName(e.target.value)}
+            value={sceneName}
+            onChange={(e) => setSceneName(e.target.value)}
             aria-describedby="name-msg"
             className={showErrorMessage ? "p-invalid" : ""}
           />
