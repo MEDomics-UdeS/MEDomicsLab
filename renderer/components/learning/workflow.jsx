@@ -71,6 +71,11 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
     []
   )
 
+  useEffect(() => {
+    console.log("pageInfos", pageInfos)
+    updateScene(pageInfos.config)
+  }, [pageInfos])
+
   // executed when the machine learning type is changed
   // it updates the possible settings of the nodes
   useEffect(() => {
@@ -345,10 +350,19 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
     }
     if (confirmation) {
       const restoreFlow = async () => {
-        const flow = await loadJsonSync() // wait for the json file to be loaded (see /utilities/fileManagementUtils.js)
-        console.log("loaded flow", flow)
+        const newScene = await loadJsonSync()
+        updateScene(newScene)
+      }
 
-        Object.values(flow.nodes).forEach((node) => {
+      restoreFlow()
+    }
+  }, [setNodes, setViewport, nodes])
+
+  const updateScene = (newScene) => {
+    console.log("newScene", newScene)
+    if (newScene) {
+      if (Object.keys(newScene).length > 0) {
+        Object.values(newScene.nodes).forEach((node) => {
           if (!node.id.includes("opt")) {
             let subworkflowType =
               node.data.internal.subflowId != "MAIN" ? "optimize" : "learning"
@@ -356,24 +370,19 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
               staticNodesParams[subworkflowType][node.data.internal.type]
             )
             setupParams.possibleSettings =
-              setupParams["possibleSettings"][flow.MLType]
+              setupParams["possibleSettings"][newScene.MLType]
             node.data.setupParam = setupParams
           }
         })
-
-        if (flow) {
-          const { x = 0, y = 0, zoom = 1 } = flow.viewport
-          setMLType(flow.MLType)
-          setNodes(flow.nodes || [])
-          setEdges(flow.edges || [])
-          setViewport({ x, y, zoom })
-          setIntersections(flow.intersections || [])
-        }
+        const { x = 0, y = 0, zoom = 1 } = newScene.viewport
+        setMLType(newScene.MLType)
+        setNodes(newScene.nodes || [])
+        setEdges(newScene.edges || [])
+        setViewport({ x, y, zoom })
+        setIntersections(newScene.intersections || [])
       }
-
-      restoreFlow()
     }
-  }, [setNodes, setViewport, nodes])
+  }
 
   /**
    * @param {Object} id id of the node to delete

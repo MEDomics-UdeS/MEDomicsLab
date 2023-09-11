@@ -1,3 +1,6 @@
+const fs = require("fs")
+const { parse } = require("csv-parse")
+
 /**
  *
  * @param {Object} exportObj object to be exported
@@ -104,7 +107,10 @@ const loadJsonPath = (path) => {
     return null
   }
   try {
-    const data = fs.readFileSync("./" + path)
+    const cwd = process.cwd()
+  console.log("cwd: " + cwd)
+  path.charAt(0) == "." ? path = cwd + path : path = path
+    const data = fs.readFileSync(path)
     const jsonData = JSON.parse(data)
     return jsonData
   } catch (error) {
@@ -113,4 +119,48 @@ const loadJsonPath = (path) => {
   }
 }
 
-export { downloadJson, writeJson, loadJson, loadJsonSync, loadJsonPath }
+/**
+ *
+ * @param {String} path
+ * @returns {Object} json object
+ *
+ * @description
+ * This function takes a path and returns the json object
+ */
+const loadCSVPath = (path, whenLoaded) => {
+  const data = []
+  // get current working directory
+  const cwd = process.cwd()
+  console.log("cwd: " + cwd)
+  path.charAt(0) == "." ? path = cwd + path : path = path
+  fs.createReadStream(path)
+    .pipe(
+      parse({
+        delimiter: ",",
+        columns: true,
+        ltrim: true
+      })
+    )
+    .on("data", function (row) {
+      // This will push the object row into the array
+      data.push(row)
+    })
+    .on("error", function (error) {
+      console.log(error.message)
+    })
+    .on("end", function () {
+      // Here log the result array
+      console.log("parsed csv data:")
+      console.log(data)
+      whenLoaded(data)
+    })
+}
+
+export {
+  downloadJson,
+  writeJson,
+  loadJson,
+  loadJsonSync,
+  loadJsonPath,
+  loadCSVPath
+}
