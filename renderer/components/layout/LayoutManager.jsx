@@ -8,6 +8,7 @@ import Home from "../mainPages/home";
 import Input from "../mainPages/input";
 import Learning from "../mainPages/learning";
 import ExtractionPage from "../mainPages/extraction";
+import TestPage from "../mainPages/test";
 import DiscoveryPage from "../mainPages/discovery";
 import ResultsPage from "../mainPages/results";
 import ApplicationPage from "../mainPages/application";
@@ -41,6 +42,8 @@ const LayoutManager = (props) => {
 			return <Learning pageId='123'/>;
 		case "extraction":
 			return <ExtractionPage pageId='1234'/>;
+		case "test":
+			return <TestPage pageId='1234'/>;
 		case "discovery":
 			return <DiscoveryPage />;
 		case "results":

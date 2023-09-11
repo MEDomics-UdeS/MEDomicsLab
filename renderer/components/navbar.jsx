@@ -38,6 +38,11 @@ const MedNavbar = ({ onNavItemSelect }) => {
                                     Extraction
 								</Nav.Link>
 							</Nav.Item>
+							<Nav.Item>
+								<Nav.Link href="#test" onClick={() => onNavItemSelect("test")}>
+                                    Test
+								</Nav.Link>
+							</Nav.Item>
 						</Nav>
 					</Navbar.Collapse>
 				</Navbar>

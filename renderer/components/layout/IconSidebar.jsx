@@ -71,6 +71,10 @@ const IconSidebar = ({ onSidebarItemSelect }) => {
 						<Nav.Link className="btnSidebar" eventKey="extraction" data-tooltip-id="tooltip-extraction" onClick={(event) => handleClick(event, "extraction")} disabled={disabledIcon} ><Magnet size={"1.25rem"} width={"100%"} height={"100%"} style={{ scale: "0.65" }} /></Nav.Link>
 					</OverlayTrigger>
 
+					<OverlayTrigger placement={"right"} overlay={<Tooltip id={"tooltip-test"}>Test Module</Tooltip>}>
+						<Nav.Link className="btnSidebar" eventKey="test" data-tooltip-id="tooltip-test" onClick={(event) => handleClick(event, "test")} disabled={disabledIcon} ><Magnet size={"1.25rem"} width={"100%"} height={"100%"} style={{ scale: "0.65" }} /></Nav.Link>
+					</OverlayTrigger>
+
 					<OverlayTrigger placement={"right"} overlay={<Tooltip id={"tooltip-discovery"}>Discovery Module</Tooltip>}>
 						<Nav.Link className="btnSidebar" eventKey="discovery" data-tooltip-id="tooltip-discovery" onClick={(event) => handleClick(event, "discovery")} disabled={disabledIcon} ><FileEarmarkBarGraph size={"1.25rem"} width={"100%"} height={"100%"} style={{ scale: "0.65" }} /></Nav.Link>
 					</OverlayTrigger>
