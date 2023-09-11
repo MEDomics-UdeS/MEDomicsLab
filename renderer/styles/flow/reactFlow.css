@@ -1,0 +1,366 @@
+.minimapStyle {
+  height: 120;
+}
+
+.draggable-side-node {
+  cursor: grab;
+  min-width: 200px;
+  /* border: 1px solid rgba(0, 0, 0, 0.0); */
+}
+
+.draggable-side-node:hover {
+  box-shadow: 0 0 0.3rem #000000;
+  z-index: 999;
+}
+
+.header {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px;
+  min-height: 30px;
+}
+
+.btn-close {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 15px;
+  height: 15px;
+  cursor: pointer;
+  padding: 0px;
+}
+
+.btn-runNode {
+  position: absolute;
+  top: 23px;
+  right: 5px;
+  width: 15px;
+  height: 15px;
+  cursor: pointer;
+  padding: 0px;
+  border-radius: 3px;
+}
+
+.btn-runNode img {
+  cursor: pointer;
+  vertical-align: baseline;
+  margin: 0px 0px 5px 1px;
+}
+
+.btn-close:hover {
+  fill: rgba(0, 0, 0, 0.5);
+}
+
+.btn-close:focus {
+  outline: 0;
+}
+
+.node {
+  background: #f5f5f6;
+  color: #222;
+  box-shadow:
+    0 4px 6px -1px rgb(0 0 0 / 15%),
+    0 2px 4px -1px rgb(0 0 0 / 8%);
+  border-radius: 2px;
+  min-width: 200px;
+}
+
+.node .icon-nodes {
+  margin-right: 10px;
+  float: left;
+}
+
+.react-flow {
+  height: 100%;
+  width: 100%;
+  margin: 0px 5px;
+}
+
+.react-flow__container {
+  height: 100%;
+  width: 100%;
+  margin: 0px 5px;
+}
+
+.react-flow__handle.connectable {
+  cursor: crosshair;
+  border-radius: 10px;
+  border: medium none;
+  width: 10px;
+  height: 10px;
+  background-color: #262626;
+  margin: 0px -3px;
+}
+
+.react-flow__handle-valid {
+  background: #55dd99;
+}
+
+.react-flow__node {
+  height: fit-content;
+}
+
+.cursor-grab {
+  cursor: grab;
+}
+
+.btn-panel-top-corner-right {
+  position: absolute;
+  top: 10px;
+  right: 40px;
+  cursor: pointer;
+  z-index: 10;
+}
+
+.btn-panel-top-corner-right button:hover {
+  background-color: #80808057;
+}
+
+.btn-panel-top-center button:hover {
+  background-color: #80808057;
+}
+
+.btn-panel-top-center button {
+  margin-left: 0px;
+  position: absolute;
+  left: 50%;
+  transform: translate(-50%, 0);
+  top: 42px;
+}
+
+.available-nodes-panel {
+  width: 100%;
+  z-index: 2;
+  height: 100%;
+  min-width: 210px;
+  margin-top: 5px;
+}
+
+.available-nodes-panel .col {
+  text-align: left;
+  padding: 0px;
+}
+
+.closeBtn-availableNodes.btn {
+  position: absolute;
+  top: 7px;
+  right: 10px;
+  padding: 0px;
+}
+
+.closeBtn-availableNodes.btn:hover {
+  background-color: #80808057;
+}
+
+.available-nodes-panel2 {
+  width: 100%;
+  z-index: 2;
+  min-width: 210px;
+  margin-top: 5px;
+  text-align: center;
+  height: -webkit-fill-available;
+}
+
+.available-nodes-panel2 .btn {
+  width: 100%;
+}
+
+.available-nodes-panel2 .card-body label {
+  font-size: 1.1rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.btn-panel-top-corner-right .form-select {
+  display: inline;
+  width: auto;
+}
+
+.btn-panel-top-corner-left {
+  position: absolute;
+  top: 10px;
+  left: 60px;
+  cursor: pointer;
+  z-index: 10;
+}
+
+.btn-panel-top-center {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translate(-50%, 0);
+  cursor: pointer;
+  z-index: 5;
+  text-align: center;
+  width: 100%;
+}
+
+.btn-panel-top-corner button {
+  margin-left: 5px;
+}
+
+.btn-top-left-menu {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  cursor: pointer;
+  z-index: 10;
+}
+
+.btn-top-left-menu.btn:hover {
+  text-decoration: solid;
+  background-color: #80808057;
+}
+
+.panel-bottom-center {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translate(-50%, 0);
+  cursor: progress;
+  z-index: 5;
+  text-align: center;
+  width: 50%;
+}
+
+.node-editableLabel {
+  position: absolute;
+  top: 18px;
+  left: 40px;
+  cursor: text;
+}
+
+.workflow-settings {
+  position: absolute;
+  overflow: hidden;
+  height: 100%;
+  width: -webkit-fill-available;
+  z-index: -1;
+  top: 0px;
+  padding: 10px 10px 10px 0px;
+  /* animation: move 2s linear; */
+  /* transition: z-index 0.75s ease-in-out; */
+}
+
+.workflow-settings .offcanvas {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  width: fit-content;
+  /* adjust the width as needed */
+  z-index: 1050;
+  /* make sure it's above other elements */
+  margin: 10px 10px 10px 0px;
+  background-color: #e2e2e2;
+  min-width: 300px;
+}
+
+.workflow-settings .offcanvas-backdrop {
+  position: relative;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #000;
+  opacity: 0.5;
+  z-index: 1040;
+  border-radius: 5px;
+}
+
+.optimize-io {
+  width: 200px;
+  height: 200px;
+  border-radius: 2rem;
+}
+
+.intersect .node {
+  background-color: #28970087;
+}
+
+.intersect .card {
+  /* border: 2px solid #1817ff73; */
+  background-color: var(--bs-card-bg);
+  box-shadow: 0 0 0.1rem 0.1rem #1817ff73;
+}
+
+.optimize-io label {
+  font-size: 30px;
+}
+
+.opt-start {
+  background-color: #28970087;
+}
+
+.opt-end {
+  background-color: #974b0087;
+}
+
+.tooltip-container-left {
+  position: absolute;
+  top: 50%;
+  left: -3px;
+}
+
+.tooltip-container-right {
+  position: absolute;
+  top: 50%;
+  width: 10px;
+  left: -3px;
+  height: 10px;
+  translate: -4px -4px;
+  z-index: 0;
+}
+
+.card-body {
+  padding: 0.2rem;
+}
+
+#data-panel-id-sidebar {
+  max-width: 210px;
+}
+
+.tabs-offCanvas .nav-item .nav-link.active {
+  background-color: #adadad;
+  color: #000;
+}
+.tabs-offCanvas .nav-item .nav-link {
+  color: #000;
+  --bs-nav-tabs-border-width: 2px;
+  /* --bs-nav-tabs-border-color: #0080ff00; */
+  /* --bs-nav-tabs-link-border-color: #0281ff00 #b3ff0000 #f90b0b; */
+  /* --bs-nav-tabs-link-active-border-color: #0281ff00 #b3ff0000 #f90b0b; */
+  border-bottom: var(--bs-nav-tabs-border-width) solid #bbb;
+}
+
+.offcanvas-header {
+  padding-bottom: 0px;
+}
+
+.results-Panel {
+  height: -webkit-fill-available;
+}
+
+.results-Panel .card {
+  height: 100%;
+  margin: 0px 5px;
+}
+
+.resize-handle-results {
+  height: 0.25rem;
+  width: 100%;
+  background-color: #a1a1a1;
+  cursor: row-resize !important;
+  margin: 0px 5px;
+}
+
+.resize-handle-results:hover {
+  background-color: #808080;
+}
+
+.smooth-transition {
+  transition: all cubic-bezier(0.2, 0, 0, 1) 0.75s;
+}
