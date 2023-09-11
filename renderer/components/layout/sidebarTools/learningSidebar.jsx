@@ -45,14 +45,14 @@ const LearningSidebar = () => {
   }, [experimentName]) // We set the button state to true if the experiment name is empty, otherwise we set it to false
 
   const createExperiment = () => {
-    console.log("Create Experiment")
-    console.log(`Experiment Name: ${experimentName}`) // We log the experiment name when the create button is clicked
+    console.log("Create Scene")
+    console.log(`Scene Name: ${experimentName}`) // We log the experiment name when the create button is clicked
     setShowDialog(false)
     createFolder(workspace.workingDirectory.children[1].path, experimentName)
   }
 
   const importExperiment = () => {
-    console.log("Import Experiment")
+    console.log("Import Scene")
   }
 
   return (
@@ -73,11 +73,11 @@ const LearningSidebar = () => {
           className="btn-sidebar-learning"
           onClick={() => setShowDialog(true)}
         >
-          Create Experiment
+          Create Scene
           <Icon.Plus />
         </Button>
         <Button className="btn-sidebar-learning" onClick={importExperiment}>
-          Import Experiment
+          Import Scene
           <Icon.Download />
         </Button>
 
@@ -86,7 +86,7 @@ const LearningSidebar = () => {
       </Stack>
 
       <Dialog
-        header="Create Experiment"
+        header="Create Scene"
         visible={showDialog}
         style={{ width: "50vw" }}
         onHide={() => setShowDialog(false)}
@@ -119,10 +119,10 @@ const LearningSidebar = () => {
             aria-describedby="name-msg"
             className={showErrorMessage ? "p-invalid" : ""}
           />
-          <label htmlFor="expName">Enter experiment name</label>
+          <label htmlFor="expName">Enter scene name</label>
         </span>
         <small id="name-msg" className="text-red">
-          {showErrorMessage ? "Experiment name is empty or already exists" : ""}
+          {showErrorMessage ? "Scene name is empty or already exists" : ""}
         </small>
       </Dialog>
     </>
