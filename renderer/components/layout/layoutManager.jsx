@@ -17,8 +17,8 @@ import SearchSidebar from "./sidebarTools/searchSidebar"
 import LayoutTestSidebar from "./sidebarTools/layoutTestSidebar"
 import MainFlexLayout from "./mainContainerFunctional"
 import InputSidebar from "./sidebarTools/inputSidebar"
-import { ipcRenderer } from "electron"
 import LearningSidebar from "./sidebarTools/learningSidebar"
+import { ipcRenderer } from "electron"
 
 const LayoutManager = (props) => {
   const [activeSidebarItem, setActiveSidebarItem] = useState("home") // State to keep track of active nav item

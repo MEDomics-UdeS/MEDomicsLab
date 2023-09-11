@@ -1,7 +1,5 @@
 import React, { useContext, useEffect, useState } from "react"
 import { Button, Stack } from "react-bootstrap"
-import { Plus } from "react-bootstrap-icons"
-import DropzoneComponent from "../../mainPages/dataComponents/dropzoneComponent"
 import { WorkspaceContext } from "../../workspace/workspaceContext"
 import { WorkspaceDirectoryTree } from "./workspaceDirectoryTree"
 import * as Icon from "react-bootstrap-icons"
