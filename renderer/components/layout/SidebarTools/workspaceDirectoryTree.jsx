@@ -83,7 +83,6 @@ const WorkspaceDirectoryTree = (props) => {
 		}
 		associateDataToFiles(newWorkspaceTree.workingDirectory.children, newGlobalDataCopy);
 		setWorkspaceTree(newWorkspaceTree);
-		console.log("WorkspaceTree", newWorkspaceTree);
 
 	}, [workspace, globalData]); // We log the workspace when it changes
 

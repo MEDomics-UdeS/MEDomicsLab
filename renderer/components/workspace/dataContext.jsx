@@ -2,25 +2,23 @@ import { React, createContext, useState } from "react";
 
 /**
  * @typedef {React.Context} DataContext
- * @description 
- * @summary 	
- * @see 
+ * @description A context object that provides global data and data request state to its children components.
+ * @see https://reactjs.org/docs/context.html
  */
 export const DataContext = createContext(null);
 
 /**
  * @typedef {React.FunctionComponent} DataContextProvider
- * @description This component provides the context for the workspace. It will provide the workspace object and the setWorkspace function to the children.
- * @params {Object} children -
- * @params {Object} workspaceObject -
- * @summary The workspace object is the object that contains the workspace information. It is an object that contains the following properties:'hasBeenSet' and 'workspaceObject'.
- *          The 'hasBeenSet' property is a boolean that indicates if the workspace has been set. The 'workspaceObject' property is the workspace containing information about all the files and folders in the workspace.
- *  
+ * @description A provider component that wraps its children components with the DataContext context object.
+ * @param {Object} props - The props for the DataContextProvider component.
+ * @param {Object} props.children - The children components to wrap with the DataContext context object.
+ * @param {Object} props.globalData - The global data object to provide to the children components.
+ * @param {Function} props.setGlobalData - The function to update the global data object.
+ * @returns {JSX.Element} - The DataContextProvider component.
  */
 export default function DataContextProvider({ children, globalData, setGlobalData }) {
 
     const [dataRequest, setDataRequest] = useState({});
-
 
     return (
         <>
@@ -36,6 +34,4 @@ export default function DataContextProvider({ children, globalData, setGlobalDat
         </>
     );
 }
-
-
 

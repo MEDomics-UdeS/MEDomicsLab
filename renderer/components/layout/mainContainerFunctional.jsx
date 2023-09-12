@@ -2,7 +2,6 @@ import React, { useRef, useState, useEffect, useContext } from "react";
 import test from "../../styles/test.module.css";
 
 import * as Prism from "prismjs";
-import fs from "fs";
 import { LayoutModelContext } from "./LayoutContext";
 import {
 	Actions,

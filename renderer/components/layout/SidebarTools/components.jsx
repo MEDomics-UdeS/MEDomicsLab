@@ -43,13 +43,13 @@ const SidebarItem = (props) => {
 	return <>{renderChildren(props)}</>
 }
 
+
+/**
+ * @description - This component is the sidebar folder component that will be used in the sidebar component
+ * @param {Object} props - Props passed from parent component
+ * @returns a sidebar folder component
+ */
 const SidebarFolder = (props) => {
-
-	// const { globalData } = useContext(DataContext)
-
-	// console.log("GlobalData", props.globalData)
-
-
 
 	return (
 		<Accordion defaultActiveKey={props.name}>
@@ -69,7 +69,6 @@ const SidebarFolder = (props) => {
 				<Accordion.Body className="sidebar-acc-body">
 					<Stack className="sidebar-folder-stack" direction="vertical" gap={0}>
 						{props.children.map((child) => {
-							console.log("child", child)
 							if (child.children !== undefined) {
 								return (
 									<SidebarFolder name={child.name} key={randomUUID()}>
@@ -80,10 +79,8 @@ const SidebarFolder = (props) => {
 								let UUID = ""
 								try {
 									UUID = child.metadata.UUID
-									console.log("UUID", UUID)
 								} catch (error) {
 									UUID = randomUUID()
-									// console.log("globalData", props)
 								}
 								return <SidebarFile name={child.name} key={UUID} />
 							}
@@ -98,18 +95,22 @@ const SidebarFolder = (props) => {
 
 const SidebarFile = (props) => {
 
+	// Define state variables for the component.
 	const [isRenaming, setIsRenaming] = useState(false);
 	const [newName, setNewName] = useState(props.name);
 
 	const [showContextMenu, setShowContextMenu] = useState(false)
 	const [contextMenuPosition, setContextMenuPosition] = useState({ x: 0, y: 0 })
 
+	// Get the `dispatchLayout` and `globalData` state objects from the `LayoutModelContext` and `DataContext` contexts, respectively.
 	const { dispatchLayout } = useContext(LayoutModelContext);
 	const { globalData, setGlobalData } = useContext(DataContext)
 
+	// Define functions to handle various events.
 	const handleRename = () => {
 		setIsRenaming(true);
 	};
+
 
 	const handleRenameCancel = () => {
 		setIsRenaming(false);
@@ -117,13 +118,16 @@ const SidebarFile = (props) => {
 	};
 
 	function handleNameChange(event) {
+		// Check if the new name is the same as the current name.
 		if (event == props.name) {
 			handleRenameCancel();
 		}
 		else {
+			// Get the UUID of the `MedDataObject` with the current name from the `globalData` object.
 			let uuid = MedDataObject.checkIfMedDataObjectInContextbyName(props.name, globalData)
 			let dataObject = globalData[uuid]
 
+			// Rename the `MedDataObject` with the new name and update the `globalData` object.
 			let renamedDataObject = MedDataObject.rename(dataObject, event, globalData)
 			let globalDataCopy = { ...globalData }
 			globalDataCopy[uuid] = renamedDataObject
@@ -133,25 +137,26 @@ const SidebarFile = (props) => {
 
 	}
 
+	// Define functions to handle the click events on the add and delete buttons.
+	function OnClickAdd(e, name) { dispatchLayout({ type: "add", payload: { type: "tab", name: name, component: "grid" } }); }
+	function OnClickDelete(e, name) { dispatchLayout({ type: "remove", payload: { type: "tab", name: name, component: "grid" } }); }
 
-
-	function OnClickAdd(e, name) { dispatchLayout({ type: "add", payload: { type: "tab", name: name, component: "grid" } }); } // This function is used to handle the click on the add button
-	function OnClickDelete(e, name) { dispatchLayout({ type: "remove", payload: { type: "tab", name: name, component: "grid" } }); } // This function is used to handle the click on the delete button
+	// Define functions to handle the open and delete actions from the context menu.
 	function onOpen(name) {
 		let dataObjectUUID = MedDataObject.checkIfMedDataObjectInContextbyName(name, globalData)
-		console.log("dataObjectUUID", dataObjectUUID)
 		let path = globalData[dataObjectUUID].path
 		dispatchLayout({ type: "add", payload: { type: "tab", name: name, component: "dataTable", config: { "path": path } } })
 	}
 
 	function onDelete(name) {
+		// Get the UUID of the `MedDataObject` with the current name from the `globalData` object.
 		let uuid = MedDataObject.checkIfMedDataObjectInContextbyName(props.name, globalData)
 		if (uuid == "") {
 			console.log("Error: UUID not found")
 			return
 		}
 		else {
-			console.log("UUID", uuid)
+			// Delete the `MedDataObject` with the current name from the `globalData` object.
 			let globalDataCopy = { ...globalData }
 			MedDataObject.delete(globalDataCopy[uuid])
 			delete globalDataCopy[uuid]
@@ -160,19 +165,27 @@ const SidebarFile = (props) => {
 		}
 	}
 
-
-
+	// Define functions to handle the click and context menu events on the file.
 	function handleClick(event, name) {
 		console.log(`Clicked on file ${name}`)
 	}
 
-	function handleContextMenu(event, name) {
-		// console.log(`Context - Right clicked on file ${name}`)
+	/**
+	 * Handles the right-click event on the sidebar file component to show the context menu.
+	 * @param {Event} event - The right-click event.
+	 * @param {string} name - The name of the file.
+	 */
+	function handleContextMenu(event) {
 		event.preventDefault()
 		setShowContextMenu(true)
 		setContextMenuPosition({ x: event.clientX, y: event.clientY })
 	}
 
+	/**
+	 * Handles the click event on a context menu action.
+	 * @param {string} action - The name of the action that was clicked.
+	 * @param {string} name - The name of the file.
+	 */
 	function handleContextMenuAction(action, name) {
 		console.log(`Clicked on action ${action} of the file ${name}`)
 		switch (action) {
@@ -181,7 +194,6 @@ const SidebarFile = (props) => {
 				break
 			case "Rename":
 				handleRename()
-				// onRename(name)
 				break
 			case "Delete":
 				onDelete(name)
@@ -192,11 +204,18 @@ const SidebarFile = (props) => {
 		setShowContextMenu(false)
 	}
 
+	/**
+	 * Handles the focus out event on the sidebar file component to hide the context menu.
+	 * @param {Event} event - The focus out event.
+	 */
 	function handleFocusOut(event) {
-		// console.log(`Focus Out`, event)
 		setShowContextMenu(false)
 	}
 
+	/**
+	 * Handles the key down event on the sidebar file component to hide the context menu and cancel renaming if the escape key is pressed.
+	 * @param {Event} event - The key down event.
+	 */
 	function handleKeyDown(event) {
 		if (event.key === "Escape") {
 			setShowContextMenu(false)
@@ -204,20 +223,27 @@ const SidebarFile = (props) => {
 		}
 	}
 
+	/**
+	 * Handles the click outside event on the sidebar file component to hide the context menu.
+	 * @param {Event} event - The click outside event.
+	 */
 	function handleClickOutside(event) {
 		if (showContextMenu && !event.target.closest(".context-menu-overlay")) {
 			setShowContextMenu(false)
 		}
 	}
 
+	/**
+	 * Handles the context menu outside event on the sidebar file component to hide the context menu.
+	 * @param {Event} event - The context menu outside event.
+	 */
 	function handleContextMenuOutside(event) {
 		if (props.name !== event.target.innerText) {
 			setShowContextMenu(false)
 		}
 	}
 
-
-
+	// Add event listeners for various events.
 	useEffect(() => {
 		window.addEventListener("click", handleClickOutside)
 		window.addEventListener("keydown", handleKeyDown)
@@ -232,6 +258,7 @@ const SidebarFile = (props) => {
 		}
 	}, [showContextMenu])
 
+	// Define variables for the add and delete icons.
 	let plusIcon = (
 		<button
 			className="sidebar-file-button"
@@ -248,6 +275,8 @@ const SidebarFile = (props) => {
 			<XSquare />
 		</button>
 	)
+
+	// Define variables for the `before` and `after` elements.
 	let before = <></>
 	let after = <></>
 
