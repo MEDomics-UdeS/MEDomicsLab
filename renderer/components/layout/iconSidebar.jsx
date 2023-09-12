@@ -16,7 +16,7 @@ import OverlayTrigger from "react-bootstrap/OverlayTrigger"
 import Tooltip from "react-bootstrap/Tooltip"
 import Nav from "react-bootstrap/Nav"
 import { NavDropdown } from "react-bootstrap"
-import { WorkspaceContext } from "../workspace/WorkspaceContext"
+import { WorkspaceContext } from "../workspace/workspaceContext"
 
 /**
  * @description Sidebar component containing icons for each page

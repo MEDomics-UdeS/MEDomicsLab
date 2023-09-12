@@ -2,7 +2,7 @@ import React, { useState, useContext } from "react"
 import ProgressBar from "react-bootstrap/ProgressBar"
 import useInterval from "@khalidalansi/use-interval"
 import { requestJson } from "../../utilities/requests"
-
+import { WorkspaceContext } from "../workspace/workspaceContext"
 import { PageInfosContext } from "../mainPages/moduleBasics/pageInfosContext"
 
 const ProgressBarRequests = ({ isUpdating, setIsUpdating }) => {
@@ -12,11 +12,12 @@ const ProgressBarRequests = ({ isUpdating, setIsUpdating }) => {
     now: 0,
     currentName: ""
   })
+  const { port } = useContext(WorkspaceContext) // used to get the port
 
   useInterval(
     () => {
       requestJson(
-        5000,
+        port,
         "/learning/progress",
         { experimentId: pageInfos.id },
         (data) => {
