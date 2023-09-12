@@ -1,7 +1,7 @@
 import { React, createContext, useState } from "react";
 
 /**
- * @typedef {React.Context} WorkspaceContext
+ * @typedef {React.Context} DataContext
  * @description 
  * @summary 	
  * @see 
@@ -17,8 +17,8 @@ export const DataContext = createContext(null);
  *          The 'hasBeenSet' property is a boolean that indicates if the workspace has been set. The 'workspaceObject' property is the workspace containing information about all the files and folders in the workspace.
  *  
  */
-export default function DataContextProvider({ children }) {
-    const [globalData, setDataContext] = useState({});
+export default function DataContextProvider({ children, globalData, setGlobalData }) {
+
     const [dataRequest, setDataRequest] = useState({});
 
 
@@ -27,8 +27,10 @@ export default function DataContextProvider({ children }) {
             <DataContext.Provider value={{
                 globalData,
                 setGlobalData,
-
+                dataRequest,
+                setDataRequest,
             }}>
+
                 {children}
             </DataContext.Provider>
         </>

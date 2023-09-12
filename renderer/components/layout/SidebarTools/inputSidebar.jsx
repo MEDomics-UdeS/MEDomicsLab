@@ -25,7 +25,7 @@ const InputSidebar = () => {
 					</Button>
 				</DropzoneComponent>
 				
-				<WorkspaceDirectoryTree keepOnlyFolder={["DATA"]}>
+				<WorkspaceDirectoryTree>
 				</WorkspaceDirectoryTree>
 				{/* We render the workspace only if it is set, otherwise it throws an error */}
 				
