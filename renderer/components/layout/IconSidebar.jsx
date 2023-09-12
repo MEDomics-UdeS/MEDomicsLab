@@ -1,10 +1,11 @@
-import React, { useState, useContext, useEffect } from "react";
-import { Files, HouseFill, Gear, Magnet, Server, Stack, FileEarmarkBarGraph, RocketTakeoff, PatchCheck, Search, BandaidFill } from "react-bootstrap-icons"
+import React, { useRef, useState, useContext, useEffect } from "react";
+import { Files, HouseFill, Gear, GraphUp, Image, Magnet, Server, Stack, TextLeft, FileEarmarkBarGraph, RocketTakeoff, PatchCheck, Search, BandaidFill } from "react-bootstrap-icons"
 import OverlayTrigger from "react-bootstrap/OverlayTrigger";
 import Tooltip from "react-bootstrap/Tooltip";
 import Nav from "react-bootstrap/Nav";
 import { NavDropdown } from "react-bootstrap";
 import { WorkspaceContext } from "../workspace/WorkspaceContext";
+
 
 /**
  * @description Sidebar component containing icons for each page 
@@ -29,9 +30,6 @@ const IconSidebar = ({ onSidebarItemSelect }) => {
 		}
 	}, [workspace]);
 
-
-
-
 	function handleClick(event, name) {
 		onSidebarItemSelect(name);
 		console.log(`clicked ${name}`, event);
@@ -43,7 +41,7 @@ const IconSidebar = ({ onSidebarItemSelect }) => {
 
 	const handleNavClick = () => {
 		setButtonClass(buttonClass === "" ? "show" : "");
-	};
+	};	  
 
 	return (
 		<>
@@ -67,13 +65,17 @@ const IconSidebar = ({ onSidebarItemSelect }) => {
 						<Nav.Link className="btnSidebar" eventKey="input" data-tooltip-id='tooltip-input' onClick={(event) => handleClick(event, "input")} disabled={disabledIcon} ><Server size={"1.25rem"} width={"100%"} height={"100%"} style={{ scale: "0.65" }} /></Nav.Link>
 					</OverlayTrigger>
 
-					<OverlayTrigger placement={"right"} overlay={<Tooltip id={"tooltip-extraction"}>Extraction Module</Tooltip>}>
-						<Nav.Link className="btnSidebar" eventKey="extraction" data-tooltip-id="tooltip-extraction" onClick={(event) => handleClick(event, "extraction")} disabled={disabledIcon} ><Magnet size={"1.25rem"} width={"100%"} height={"100%"} style={{ scale: "0.65" }} /></Nav.Link>
-					</OverlayTrigger>
-
-					<OverlayTrigger placement={"right"} overlay={<Tooltip id={"tooltip-test"}>Test Module</Tooltip>}>
-						<Nav.Link className="btnSidebar" eventKey="test" data-tooltip-id="tooltip-test" onClick={(event) => handleClick(event, "test")} disabled={disabledIcon} ><Magnet size={"1.25rem"} width={"100%"} height={"100%"} style={{ scale: "0.65" }} /></Nav.Link>
-					</OverlayTrigger>
+					<NavDropdown className="btnSidebar" data-tooltip-id="tooltip-extraction" title={
+						<OverlayTrigger placement={"right"} overlay={<Tooltip id={"tooltip-extraction"}>Extraction Module</Tooltip>}>
+							<Magnet size={"1.25rem"} width={"100%"} height={"100%"} style={{ scale: "0.65" }} />
+						</OverlayTrigger>} disabled={disabledIcon}>
+							<NavDropdown.Item className="btnSidebar" eventKey="extraction_images" onClick={(event) => handleClick(event, "extraction_images")}>
+								<Image/>	Images</NavDropdown.Item>
+							<NavDropdown.Item className="btnSidebar" eventKey="extraction_text" onClick={(event) => handleClick(event, "extraction_text")}>
+								<TextLeft/>	Text Notes</NavDropdown.Item>
+							<NavDropdown.Item className="btnSidebar" eventKey="extraction_ts" onClick={(event) => handleClick(event, "extraction_ts")}>
+								<GraphUp/>	Time Series</NavDropdown.Item>					
+					</NavDropdown>					
 
 					<OverlayTrigger placement={"right"} overlay={<Tooltip id={"tooltip-discovery"}>Discovery Module</Tooltip>}>
 						<Nav.Link className="btnSidebar" eventKey="discovery" data-tooltip-id="tooltip-discovery" onClick={(event) => handleClick(event, "discovery")} disabled={disabledIcon} ><FileEarmarkBarGraph size={"1.25rem"} width={"100%"} height={"100%"} style={{ scale: "0.65" }} /></Nav.Link>
