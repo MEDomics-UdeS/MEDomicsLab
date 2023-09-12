@@ -1,6 +1,7 @@
 import { randomUUID } from 'crypto';
 import React from 'react';
 import { toast } from 'react-toastify';
+import { ipcRenderer } from 'electron';
 /**
  * This class represents a custom data object. It is the base class for all custom data objects.
  * @class MedDataObject
@@ -54,6 +55,13 @@ export default class MedDataObject {
         this.size = 0;
         this.metadata = {};
     }
+
+    static updateWorkspaceDataObject(timer = 200) {
+        setTimeout(() => {
+            ipcRenderer.send("messageFromNext", "updateWorkingDirectory")
+        }, timer)
+    }
+
 
 
 
@@ -156,6 +164,22 @@ export default class MedDataObject {
 
         return dataObject;
     }
+
+    static delete(dataObject) {
+        let fs = require("fs");
+        let answer = "";
+        let path = dataObject.path;
+        fs.rm(path, { recursive: true }, (err) => {
+            if (err) {
+                console.log(err);
+            }
+            else {
+                console.log("File deleted");
+                toast.success("Data object deleted");
+            }
+        });
+    }
+
 
     static getNewName({ dataObject, newName, globalDataContext } = {}) {
         let answer = "";

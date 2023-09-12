@@ -167,30 +167,48 @@ export default function App() {
         console.log("workspace_object", child);
         let uuid = MedDataObject.checkIfMedDataObjectInContextbyName(child.name, newGlobalData)
         console.log("uuid", uuid)
+        let folderType = "folder"
+        let folderUUID = uuid
         if (uuid == "") {
-          let folderType = "folder"
           let dataObjectFolder = new MedDataObject({ originalName: child.name, path: child.path, type: folderType })
-          let folderUUID = dataObjectFolder.getUUID()
+          folderUUID = dataObjectFolder.getUUID()
           newGlobalData[folderUUID] = dataObjectFolder
-          child.children.forEach((fileChild) => {
-            if (fileChild.children === undefined) {
+
+        }
+        else {
+          console.log("Folder is already in globalDataContext", child)
+        }
+
+        child.children.forEach((fileChild) => {
+          console.log("fileChild", fileChild)
+          if (fileChild.children === undefined) {
+            let fileUUID = MedDataObject.checkIfMedDataObjectInContextbyName(fileChild.name, newGlobalData)
+            if (fileUUID == "") {
+
               let type = fileChild.name.split(".")[1]
               let dataObject = new MedDataObject({ originalName: fileChild.name, path: fileChild.path, type: type })
-              console.log(dataObject)
+              console.log("dataObject", dataObject)
+              console.log("folderUUID", folderUUID)
+              console.log("newGlobalData", newGlobalData)
               dataObject.parentIDs.push(folderUUID)
               newGlobalData[dataObject.getUUID()] = dataObject
-              newGlobalData[folderUUID].childrenIDs.push(dataObject.getUUID())
+
+              newGlobalData[folderUUID]["childrenIDs"].push(dataObject.getUUID())
 
             }
+            else {
+              console.log("File is already in globalDataContext", fileChild)
+            }
           }
+        })
 
 
-
-          )
-        }
-      }
-      )
+      })
     }
+
+
+
+
     setGlobalData(newGlobalData)
     console.log('GlobalData', newGlobalData)
   }, [workspaceObject])

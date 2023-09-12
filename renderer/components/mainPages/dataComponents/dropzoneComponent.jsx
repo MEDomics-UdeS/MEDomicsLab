@@ -3,7 +3,7 @@ import { useDropzone } from "react-dropzone"
 import { parse } from "csv";
 import fs from "fs";
 import { WorkspaceContext } from "../../workspace/WorkspaceContext";
-
+import MedDataObject from "../../workspace/medDataObject";
 /**
  * @typedef {React.FunctionComponent} DropzoneComponent
  * @description This component is the dropzone component that will be used to upload files to the workspace.
@@ -12,7 +12,7 @@ import { WorkspaceContext } from "../../workspace/WorkspaceContext";
  * 
  * @todo Add the functionality to upload more file types than just CSV files
  */
-export default function DropzoneComponent({children }) {
+export default function DropzoneComponent({ children }) {
 	// eslint-disable-next-line no-unused-vars
 	const [uploadedFile, setUploadedFile] = useState(null);
 	// eslint-disable-next-line no-unused-vars
@@ -30,11 +30,11 @@ export default function DropzoneComponent({children }) {
 			acceptedFiles.forEach((file) => {
 				console.log("file", file);
 				if (file.name.includes(".csv")) {
-					
+
 					parse(reader.result, (err, data) => {
 						console.log("Parsed CSV data: ", data);
-						
-					
+
+
 						fs.writeFile(`${workspace.workingDirectory.path}/DATA/${file["name"]}`, data.join("\n"), "utf8", (err) => {
 							if (err) {
 								console.error("Error writing file:", err);
@@ -49,12 +49,15 @@ export default function DropzoneComponent({children }) {
 				}
 			});
 		};
-      
+
 		// read file contents
-		acceptedFiles.forEach((file) => reader.readAsBinaryString(file));
+		acceptedFiles.forEach((file) => {
+			reader.readAsBinaryString(file);
+			MedDataObject.updateWorkspaceDataObject();
+		});
 	}, []);
 
-    
+
 	const { getRootProps, getInputProps } = useDropzone({ onDrop });
 
 	/**
@@ -62,7 +65,7 @@ export default function DropzoneComponent({children }) {
 	 * @todo Implement this function
 	 */
 	const handleDownload = () => {
-		
+
 	};
 
 	return (

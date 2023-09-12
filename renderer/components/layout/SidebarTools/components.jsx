@@ -6,6 +6,7 @@ import { LayoutModelContext } from "../LayoutContext"
 import { DataContext } from "../../workspace/dataContext"
 import MedDataObject from "../../workspace/medDataObject"
 import EditableLabel from "react-simple-editlabel"
+import { ipcRenderer } from "electron"
 /**
  * @description - This component is the sidebar tools component that will be used in the sidebar component
  * @param {Object} props - Props passed from parent component
@@ -112,25 +113,24 @@ const SidebarFile = (props) => {
 
 	const handleRenameCancel = () => {
 		setIsRenaming(false);
-		// setNewName(props.name);
+		setNewName(props.name);
 	};
 
 	function handleNameChange(event) {
-		console.log("event", event)
-		console.log("props", props)
-		console.log("globalData", globalData)
-		console.log("props.name", props.name)
-		let uuid = MedDataObject.checkIfMedDataObjectInContextbyName(props.name, globalData)
-		console.log("uuid", uuid)
-		let dataObject = globalData[uuid]
+		if (event == props.name) {
+			handleRenameCancel();
+		}
+		else {
+			let uuid = MedDataObject.checkIfMedDataObjectInContextbyName(props.name, globalData)
+			let dataObject = globalData[uuid]
 
-		let renamedDataObject = MedDataObject.rename(dataObject, event, globalData)
-		let globalDataCopy = { ...globalData }
-		globalDataCopy[uuid] = renamedDataObject
-		setGlobalData(globalDataCopy)
+			let renamedDataObject = MedDataObject.rename(dataObject, event, globalData)
+			let globalDataCopy = { ...globalData }
+			globalDataCopy[uuid] = renamedDataObject
+			setGlobalData(globalDataCopy)
+			MedDataObject.updateWorkspaceDataObject()
+		}
 
-		// MedDataObject.updateDataObjectInContext(renamedDataObject, globalData, setGlobalData)
-		// setNewName(event.target.innerText);
 	}
 
 
@@ -144,10 +144,21 @@ const SidebarFile = (props) => {
 		dispatchLayout({ type: "add", payload: { type: "tab", name: name, component: "dataTable", config: { "path": path } } })
 	}
 
-	function onRename(name) {
-
+	function onDelete(name) {
+		let uuid = MedDataObject.checkIfMedDataObjectInContextbyName(props.name, globalData)
+		if (uuid == "") {
+			console.log("Error: UUID not found")
+			return
+		}
+		else {
+			console.log("UUID", uuid)
+			let globalDataCopy = { ...globalData }
+			MedDataObject.delete(globalDataCopy[uuid])
+			delete globalDataCopy[uuid]
+			setGlobalData(globalDataCopy)
+			MedDataObject.updateWorkspaceDataObject()
+		}
 	}
-
 
 
 
@@ -173,6 +184,7 @@ const SidebarFile = (props) => {
 				// onRename(name)
 				break
 			case "Delete":
+				onDelete(name)
 				break
 			default:
 				break
@@ -204,12 +216,6 @@ const SidebarFile = (props) => {
 		}
 	}
 
-	// useEffect(() => {
-	// 	window.addEventListener("keydown", handleKeyDown)
-	// 	return () => {
-	// 		window.removeEventListener("keydown", handleKeyDown)
-	// 	}
-	// }, [isRenaming])
 
 
 	useEffect(() => {
