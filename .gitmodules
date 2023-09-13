@@ -1,0 +1,4 @@
+[submodule "flask_server/submodules/MEDimage"]
+	path = flask_server/submodules/MEDimage
+	url = https://github.com/MahdiAll99/MEDimage.git
+	branch = dev

@@ -11,7 +11,6 @@ import { useNodesState, useEdgesState, useReactFlow } from "reactflow"
 import WorkflowBase from "../flow/workflowBase"
 import { FlowFunctionsContext } from "../flow/context/flowFunctionsContext"
 
-
 // Import node types
 import StandardNode from "./nodesTypes/standardNode"
 import SegmentationNode from "./nodesTypes/segmentationNode"
@@ -52,7 +51,8 @@ const FlowCanvas = ({ workflowType, setWorkflowType }) => {
   const { setViewport } = useReactFlow() // setViewport is used to update the viewport of the workflow
   const [treeData, setTreeData] = useState({}) // treeData is used to set the data of the tree menu
   const [results, setResults] = useState({}) // results is used to store radiomic features results
-  const { groupNodeId, changeSubFlow, updateNode } = useContext(FlowFunctionsContext)
+  const { groupNodeId, changeSubFlow, updateNode } =
+    useContext(FlowFunctionsContext)
 
   // Hook executed upon modification of edges to verify the connections between input and segmentation nodes
   useEffect(() => {
@@ -496,7 +496,7 @@ const FlowCanvas = ({ workflowType, setWorkflowType }) => {
    */
   const runNode = useCallback(
     (id) => {
-      if(id) {
+      if (id) {
         console.log("Running node", id)
 
         // Transform the flow instance to a dictionary compatible with the backend
@@ -851,4 +851,4 @@ const FlowCanvas = ({ workflowType, setWorkflowType }) => {
   )
 }
 
-export default Workflow
+export default FlowCanvas
