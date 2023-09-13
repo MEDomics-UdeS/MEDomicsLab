@@ -95,6 +95,8 @@ const LayoutManager = (props) => {
             <Panel
               className={resizable.Panel}
               collapsible={true}
+              minSize={20}
+              maxSize={80}
               defaultSize={20}
               order={1}
             >

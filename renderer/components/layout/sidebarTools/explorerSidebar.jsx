@@ -2,6 +2,7 @@ import React, { useContext } from "react"
 import { Accordion, Button, Stack } from "react-bootstrap"
 import { WorkspaceContext } from "../../workspace/workspaceContext"
 import { ipcRenderer } from "electron"
+import { SidebarDirectoryTree } from "./sidebarDirectoryTree"
 
 const ExplorerSidebar = () => {
   // eslint-disable-next-line no-unused-vars
@@ -37,7 +38,9 @@ const ExplorerSidebar = () => {
                 <div style={{ flexGrow: "10" }} />
               </Stack>
             </Accordion.Header>
-            <Accordion.Body></Accordion.Body>
+            <Accordion.Body className="sidebar-acc-body">
+              <SidebarDirectoryTree name="test" />
+            </Accordion.Body>
           </Accordion.Item>
           <Accordion.Item eventKey="1">
             <Accordion.Header>

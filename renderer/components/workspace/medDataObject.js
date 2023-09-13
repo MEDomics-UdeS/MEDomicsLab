@@ -7,15 +7,15 @@ import { ipcRenderer } from "electron"
 /**
  * Represents a data object in the workspace.
  * @class
- * @property {String} originalName - The original name of the data object.
- * @property {String} name - The name of the data object.
- * @property {String} nameWithoutExtension - The name of the data object without the extension.
- * @property {String} extension - The extension of the data object.
- * @property {String} type - The type of the data object.
- * @property {String} path - The path of the data object.
+ * @property {string} originalName - The original name of the data object.
+ * @property {string} name - The name of the data object.
+ * @property {string} nameWithoutExtension - The name of the data object without the extension.
+ * @property {string} extension - The extension of the data object.
+ * @property {string} type - The type of the data object.
+ * @property {string} path - The path of the data object.
  * @property {Array} virtualPath - The virtual path of the data object.
- * @property {String} _UUID - The UUID of the data object.
- * @property {Array} parentIDs - The parent IDs of the data object.
+ * @property {string} _UUID - The UUID of the data object.
+ * @property {Array} parentID - The parent IDs of the data object.
  * @property {Array} childrenIDs - The children IDs of the data object.
  * @property {Date} lastModified - The date when the data object was last modified.
  * @property {Date} created - The date when the data object was created.
@@ -33,7 +33,7 @@ export default class MedDataObject {
    * @param {string} [options.originalName="Unnamed"] - The original name of the object.
    * @param {string} [options.name=undefined] - The name of the object.
    * @param {string} [options.type=""] - The type of the object.
-   * @param {Array<string>} [options.parentIDs=[]] - The IDs of the parent objects.
+   * @param {Array<string>} [options.parentID=[]] - The IDs of the parent objects.
    * @param {string} [options.path=""] - The path of the object.
    * @param {Array<string>} [options.childrenIDs=[]] - The IDs of the child objects.
    */
@@ -41,9 +41,10 @@ export default class MedDataObject {
     originalName = "Unnamed",
     name = undefined,
     type = "",
-    parentIDs = [],
+    parentID = [],
     path = "",
-    childrenIDs = []
+    childrenIDs = [],
+    _UUID = undefined
   } = {}) {
     this.originalName = originalName
     if (name === undefined) {
@@ -51,14 +52,25 @@ export default class MedDataObject {
     } else {
       this.name = name
     }
-    this.nameWithoutExtension = splitStringAtTheLastSeparator(this.name, ".")[0]
-    this.extension = splitStringAtTheLastSeparator(this.name, ".")[1]
+    this.nameWithoutExtension =
+      splitStringAtTheLastSeparator(this.name, ".")[0].length > 0
+        ? splitStringAtTheLastSeparator(this.name, ".")[0]
+        : this.name
+
+    this.extension =
+      splitStringAtTheLastSeparator(this.name, ".")[0].length > 0
+        ? splitStringAtTheLastSeparator(this.name, ".")[1]
+        : ""
     this.type = type
     this.path = path
     this.virtualPath = []
 
-    this._UUID = randomUUID()
-    this.parentIDs = parentIDs
+    if (_UUID === undefined) {
+      this._UUID = randomUUID()
+    } else {
+      this._UUID = _UUID
+    }
+    this.parentID = parentID
     this.childrenIDs = childrenIDs
 
     this.lastModified = Date(Date.now())
@@ -162,11 +174,11 @@ export default class MedDataObject {
       dataObject.originalName,
       copyName,
       dataObject.type,
-      dataObject.parentIDs,
+      dataObject.parentID,
       dataObject.path,
       dataObject.childrenIDs
     )
-    copy.parentIDs = dataObject.getUUID()
+    copy.parentID = dataObject.getUUID()
   }
 
   /**
@@ -223,6 +235,8 @@ export default class MedDataObject {
 
     return dataObject
   }
+
+  static move(dataObject, newPath) {}
 
   /**
    * Deletes the file associated with the provided `dataObject`.
@@ -286,7 +300,7 @@ export default class MedDataObject {
       json.originalName,
       json.name,
       json.type,
-      json.parentIDs,
+      json.parentID,
       json.path,
       json.childrenIDs
     )
@@ -310,25 +324,18 @@ export default class MedDataObject {
     return medDataObjectList
   }
   /**
-   * Modifies the properties of the provided `dataObject` instance with the provided `name`, `type`, `parentIDs`, `path`, and `childrenIDs`. It also updates the `lastModified` property to the current date and time.
+   * Modifies the properties of the provided `dataObject` instance with the provided `name`, `type`, `parentID`, `path`, and `childrenIDs`. It also updates the `lastModified` property to the current date and time.
    * @param {MedDataObject} dataObject - The `MedDataObject` instance to modify.
    * @param {string} name - The new name for the `MedDataObject` instance.
    * @param {string} type - The new type for the `MedDataObject` instance.
-   * @param {Array} parentIDs - The new parent IDs for the `MedDataObject` instance.
+   * @param {Array} parentID - The new parent IDs for the `MedDataObject` instance.
    * @param {string} path - The new path for the `MedDataObject` instance.
    * @param {Array} childrenIDs - The new children IDs for the `MedDataObject` instance.
    */
-  static modifyDataObject(
-    dataObject,
-    name,
-    type,
-    parentIDs,
-    path,
-    childrenIDs
-  ) {
+  static modifyDataObject(dataObject, name, type, parentID, path, childrenIDs) {
     dataObject.name = name
     dataObject.type = type
-    dataObject.parentIDs = parentIDs
+    dataObject.parentID = parentID
     dataObject.path = path
     dataObject.childrenIDs = childrenIDs
     dataObject.lastModified = Date(Date.now())
@@ -362,7 +369,10 @@ export default class MedDataObject {
       splitStringAtTheLastSeparator(this.path, separator)[0] +
       separator +
       newName
+    console.log("newPath#1: " + newPath)
     newPath = newPath.replaceAll(cwdSlashTypeInv, cwdSlashType)
+    console.log("newPath#2: " + newPath)
+
     if (this.type === "folder") {
       this.extension = ""
       this.nameWithoutExtension = newName
@@ -373,7 +383,6 @@ export default class MedDataObject {
       )[0]
     }
     this.path = newPath
-
     this.lastModified = Date(Date.now())
     return this
   }
@@ -388,11 +397,11 @@ export default class MedDataObject {
   }
 
   /**
-   * Changes the parent IDs of the `MedDataObject` instance to the provided `parentIDs`.
-   * @param {Array} parentIDs - The new parent IDs for the `MedDataObject` instance.
+   * Changes the parent IDs of the `MedDataObject` instance to the provided `parentID`.
+   * @param {Array} parentID - The new parent IDs for the `MedDataObject` instance.
    */
-  changeParentID(parentIDs) {
-    this.parentIDs = parentIDs
+  changeParentID(parentID) {
+    this.parentID = parentID
     this.lastModified = Date(Date.now())
   }
 
@@ -530,6 +539,38 @@ export default class MedDataObject {
    */
   getUUID() {
     return this._UUID
+  }
+
+  /**
+   * Sets the type of the `MedDataObject` instance to the provided `type`.
+   * @param {string} type - The new type for the `MedDataObject` instance.
+   */
+  setType(type) {
+    this.type = type
+  }
+
+  /**
+   * Returns the type of the `MedDataObject` instance.
+   * @returns {string} - The type of the `MedDataObject` instance.
+   */
+  getType() {
+    return this.type
+  }
+
+  /**
+   * Sets the children IDs of the `MedDataObject` instance to the provided `childrenIDs`.
+   * @param {Array<string>} childrenIDs
+   */
+  setChildrenIDs(childrenIDs) {
+    this.childrenIDs = childrenIDs
+  }
+
+  /**
+   * Returns the children IDs of the `MedDataObject` instance.
+   * @returns {Array<string>} - The children IDs of the `MedDataObject` instance.
+   */
+  getChildrenIDs() {
+    return this.childrenIDs
   }
 }
 
