@@ -2,7 +2,7 @@ import React, { useState } from "react";
 
 import { PanelGroup, Panel, PanelResizeHandle } from "react-resizable-panels";
 import resizable from "../../styles/resizable.module.css";
-import IconSidebar from "../layout/IconSidebar";
+import IconSidebar from "./iconSidebar";
 // import WorkspaceSidebar from '../layout/WorkspaceSidebar';
 import Home from "../mainPages/home";
 import Input from "../mainPages/input";
