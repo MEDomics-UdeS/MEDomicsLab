@@ -49,18 +49,20 @@ const ResultsPane = () => {
 
   useEffect(() => {
     console.log("results update - flowContent", flowContent, flowResults)
-    // find selected ids
-    let selectedIds = []
-    flowContent.nodes.forEach((node) => {
-      if (node.data.internal.results.checked) {
-        selectedIds.push(node.id)
-      }
-    })
-    console.log("selectedIds", selectedIds)
+    if (flowContent.nodes) {
+      // find selected ids
+      let selectedIds = []
+      flowContent.nodes.forEach((node) => {
+        if (node.data.internal.results.checked) {
+          selectedIds.push(node.id)
+        }
+      })
+      console.log("selectedIds", selectedIds)
 
-    // find all pipelines
-    let pipelines = getAllPipelines(flowContent)
-    console.log("pipelines", pipelines)
+      // find all pipelines
+      let pipelines = getAllPipelines(flowContent)
+      console.log("pipelines", pipelines)
+    }
   }, [flowContent, flowResults])
 
   const getAllPipelines = (flowContent) => {
