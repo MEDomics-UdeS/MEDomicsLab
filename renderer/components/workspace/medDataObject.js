@@ -215,6 +215,7 @@ export default class MedDataObject {
       let dataObjectRenamed = dataObject.rename(newName)
       // Write data to file
       let newPath = dataObjectRenamed.path
+
       fs.renameSync(oldPath, newPath, () => {
         console.log(`Data object renamed from ${oldPath} to ${newPath}`)
       })
@@ -346,12 +347,21 @@ export default class MedDataObject {
    * @returns {MedDataObject} - The modified `MedDataObject` instance.
    */
   rename(newName) {
+    let separator = "\\"
     this.name = newName
     let oldPath = this.path
+
     let cwdSlashType = oldPath.includes("/") ? "/" : "\\"
     let cwdSlashTypeInv = cwdSlashType == "/" ? "\\" : "/"
+    if (process.platform === "win32") {
+      separator = "\\"
+    } else if (process.platform === "linux") {
+      separator = "/"
+    }
     let newPath =
-      splitStringAtTheLastSeparator(this.path, "\\")[0] + "\\" + newName
+      splitStringAtTheLastSeparator(this.path, separator)[0] +
+      separator +
+      newName
     newPath = newPath.replaceAll(cwdSlashTypeInv, cwdSlashType)
     if (this.type === "folder") {
       this.extension = ""
