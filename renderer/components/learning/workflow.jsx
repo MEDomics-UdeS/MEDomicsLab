@@ -18,6 +18,7 @@ import ProgressBarRequests from "../flow/progressBarRequests"
 import { PageInfosContext } from "../mainPages/moduleBasics/pageInfosContext"
 import { FlowFunctionsContext } from "../flow/context/flowFunctionsContext"
 import { FlowResultsContext } from "../flow/context/flowResultsContext"
+import { WorkspaceContext } from "../workspace/workspaceContext"
 
 // here are the different types of nodes implemented in the workflow
 import StandardNode from "./nodesTypes/standardNode"
@@ -59,6 +60,7 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
   const { groupNodeId, changeSubFlow } = useContext(FlowFunctionsContext)
   const { setShowResultsPane, setWhat2show, updateFlowResults } =
     useContext(FlowResultsContext)
+  const { port } = useContext(WorkspaceContext)
 
   // declare node types using useMemo hook to avoid re-creating component types unnecessarily (it memorizes the output) https://www.w3schools.com/react/react_usememo.asp
   const nodeTypes = useMemo(
@@ -358,6 +360,12 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
     }
   }, [setNodes, setViewport, nodes])
 
+  /**
+   *
+   * @param {Object} newScene new scene to update the workflow
+   *
+   * This function updates the workflow with the new scene
+   */
   const updateScene = (newScene) => {
     console.log("newScene", newScene)
     if (newScene) {
@@ -525,16 +533,15 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
         flow.nodes.forEach((node) => {
           node.data.setupParam = null
         })
-        console.log("sended flow 1", flow)
 
         let { newflow, isValid } = cleanJson2Send(flow, up2Id)
-        console.log("newflow", isValid)
         flow = newflow
         if (isValid) {
-          console.log("sended flow 2", flow)
+          console.log("sended flow", flow)
+          console.log("port", port)
           setIsProgressUpdating(true)
           requestJson(
-            5000,
+            port,
             "/learning/run_experiment",
             flow,
             (jsonResponse) => {

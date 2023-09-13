@@ -2,14 +2,14 @@ import React, { useCallback, useState, useContext } from "react"
 import { useDropzone } from "react-dropzone"
 import { parse } from "csv";
 import fs from "fs";
-import { WorkspaceContext } from "../../workspace/WorkspaceContext";
+import { WorkspaceContext } from "../../workspace/workspaceContext";
 import MedDataObject from "../../workspace/medDataObject";
 /**
  * @typedef {React.FunctionComponent} DropzoneComponent
  * @description This component is the dropzone component that will be used to upload files to the workspace.
  * @params {Object} children - The children of the component
  * @summary This component is used to upload files to the workspace. It is used in the InputSidebar.
- * 
+ *
  * @todo Add the functionality to upload more file types than just CSV files
  */
 export default function DropzoneComponent({ children }) {
@@ -68,24 +68,24 @@ export default function DropzoneComponent({ children }) {
 
 	};
 
-	return (
-		<div style={{ display: "block" }}>
-			<div {...getRootProps()} style={{ display: "grid" }} >
-				<input {...getInputProps()} />
-				{children}
-			</div>
-			{uploadedFile && (
-				<div>
-					<p>File uploaded: {uploadedFile}</p>
-					<button onClick={handleDownload}>Download File</button>
-				</div>
-			)}
-			{uploadProgress > 0 && (
-				<div>
-					<p>Upload Progress: {uploadProgress.toFixed(2)}%</p>
-					<progress max="100" value={uploadProgress}></progress>
-				</div>
-			)}
-		</div>
-	)
+  return (
+    <div style={{ display: "block" }}>
+      <div {...getRootProps()} style={{ display: "grid" }}>
+        <input {...getInputProps()} />
+        {children}
+      </div>
+      {uploadedFile && (
+        <div>
+          <p>File uploaded: {uploadedFile}</p>
+          <button onClick={handleDownload}>Download File</button>
+        </div>
+      )}
+      {uploadProgress > 0 && (
+        <div>
+          <p>Upload Progress: {uploadProgress.toFixed(2)}%</p>
+          <progress max="100" value={uploadProgress}></progress>
+        </div>
+      )}
+    </div>
+  )
 }

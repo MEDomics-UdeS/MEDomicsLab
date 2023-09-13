@@ -1,4 +1,5 @@
 const fs = require("fs")
+const path = require("path")
 const { parse } = require("csv-parse")
 
 /**
@@ -108,8 +109,11 @@ const loadJsonPath = (path) => {
   }
   try {
     const cwd = process.cwd()
-  console.log("cwd: " + cwd)
-  path.charAt(0) == "." ? path = cwd + path : path = path
+    let cwdSlashType = cwd.includes("/") ? "/" : "\\"
+    let cwdSlashTypeInv = cwdSlashType == "/" ? "\\" : "/"
+    path.charAt(0) == "." &&
+      (path = cwd + path.substring(1).replaceAll(cwdSlashTypeInv, cwdSlashType))
+    console.log("reading json file: " + path)
     const data = fs.readFileSync(path)
     const jsonData = JSON.parse(data)
     return jsonData
@@ -131,8 +135,11 @@ const loadCSVPath = (path, whenLoaded) => {
   const data = []
   // get current working directory
   const cwd = process.cwd()
-  console.log("cwd: " + cwd)
-  path.charAt(0) == "." ? path = cwd + path : path = path
+  let cwdSlashType = cwd.includes("/") ? "/" : "\\"
+  let cwdSlashTypeInv = cwdSlashType == "/" ? "\\" : "/"
+  path.charAt(0) == "." &&
+    (path = cwd + path.substring(1).replaceAll(cwdSlashTypeInv, cwdSlashType))
+  console.log("reading csv file: " + path)
   fs.createReadStream(path)
     .pipe(
       parse({
@@ -156,11 +163,26 @@ const loadCSVPath = (path, whenLoaded) => {
     })
 }
 
+function createFolder(path_, folderName) {
+  // Creates a folder in the working directory
+  const folderPath = path.join(path_, folderName)
+
+  fs.mkdir(folderPath, { recursive: true }, (err) => {
+    if (err) {
+      console.error(err)
+      return
+    }
+
+    console.log("Folder created successfully!")
+  })
+}
+
 export {
   downloadJson,
   writeJson,
   loadJson,
   loadJsonSync,
   loadJsonPath,
-  loadCSVPath
+  loadCSVPath,
+  createFolder
 }

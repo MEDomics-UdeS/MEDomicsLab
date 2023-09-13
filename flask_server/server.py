@@ -2,6 +2,10 @@ from flask import Flask, request, jsonify
 from learning.app_learning_blueprint import app_learning
 from utils.server_utils import get_json_from_request
 import json
+import argparse
+parser = argparse.ArgumentParser(description='Script so useful.')
+parser.add_argument("--port", type=int, default=5000, help="port to run the server on")
+args = parser.parse_args()
 
 # app definition and blueprint registration
 app = Flask(__name__)
@@ -22,4 +26,4 @@ def test():
 
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    app.run(debug=True, port=args.port)

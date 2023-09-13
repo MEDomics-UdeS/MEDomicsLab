@@ -14,6 +14,7 @@ import { FlowInfosContext } from "./context/flowInfosContext"
 import { getId, deepCopy } from "../../utilities/staticFunctions"
 import { Button } from "react-bootstrap"
 import * as Icon from "react-bootstrap-icons"
+import { ipcRenderer } from "electron"
 
 /**
  *
@@ -92,6 +93,11 @@ const WorkflowBase = ({
       )
     }
   }, [nodeUpdate, setNodes])
+
+  useEffect(() => {
+    console.log("send update flask port")
+    ipcRenderer.send("messageFromNext", "getFlaskPort")
+  }, [])
 
   useEffect(() => {
     onDeleteNode ? onDeleteNode(node2Delete) : deleteNode(node2Delete)

@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState } from "react";
 import { SidebarFolder } from "./components";
-import { WorkspaceContext } from "../../workspace/WorkspaceContext";
+import { WorkspaceContext } from "../../workspace/workspaceContext";
 import { deepCopy } from "../../../utilities/staticFunctions";
 import { ArrowClockwise } from "react-bootstrap-icons";
 import { ipcRenderer } from "electron";

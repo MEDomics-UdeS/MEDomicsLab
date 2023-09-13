@@ -1,6 +1,11 @@
 import { ToastContainer } from "react-toastify"
 import React, { useState } from "react"
 import Head from "next/head"
+import LayoutManager from "../components/layout/layoutManager"
+import LayoutContextProvider from "../components/layout/layoutContext"
+import WorkspaceProvider from "../components/workspace/workspaceContext"
+import { useEffect } from "react"
+import { ipcRenderer } from "electron"
 
 // CSS
 import "bootstrap/dist/css/bootstrap.min.css"
@@ -9,11 +14,11 @@ import "react-toastify/dist/ReactToastify.css"
 import "react-tooltip/dist/react-tooltip.css"
 import "react-simple-tree-menu/dist/main.css"
 
-// primereact
+// --primereact
 import "primereact/resources/primereact.min.css"
 import "primereact/resources/themes/lara-light-indigo/theme.css"
 
-// my styles (priority over bootstrap and other dist styles)
+// --my styles (priority over bootstrap and other dist styles)
 import "../styles/flow/reactFlow.css"
 import "../styles/globals.css"
 import "../styles/learning/learning.css"
@@ -22,11 +27,7 @@ import "../styles/extraction/extraction.css"
 import "flexlayout-react/style/light.css"
 import "../styles/workspaceSidebar.css"
 import "../styles/iconSidebar.css"
-import LayoutManager from "../components/layout/LayoutManager"
-import LayoutContextProvider from "../components/layout/LayoutContext"
-import WorkspaceProvider from "../components/workspace/WorkspaceContext"
-import { useEffect } from "react"
-import { ipcRenderer } from "electron"
+import "../styles/learning/sidebar.css"
 import DataContextProvider from "../components/workspace/dataContext"
 import MedDataObject from "../components/workspace/medDataObject"
 
@@ -115,6 +116,7 @@ export default function App() {
     hasBeenSet: false,
     workingDirectory: ""
   })
+  const [port, setPort] = useState(5000)
 
   const [globalData, setGlobalData] = useState({})
 
@@ -151,6 +153,12 @@ export default function App() {
       setWorkspaceObject(workspace)
       console.log("WorkingDirectory updated:", workspace)
 
+      // }
+    })
+
+    ipcRenderer.on("getFlaskPort", (event, data) => {
+      console.log("flask port update from Electron:", data)
+      setPort(data.newPort)
     })
   }, []) // Here, we specify that the hook should only be called at the launch of the app
 
@@ -233,7 +241,9 @@ export default function App() {
           <WorkspaceProvider
             workspace={workspaceObject}
             setWorkspace={setWorkspaceObject}
-          >
+            port={port}
+          setPort={setPort}
+        >
             {" "}
             {/* This is the WorkspaceProvider, which provides the workspace model to all the children components of the LayoutManager */}
             <LayoutContextProvider // This is the LayoutContextProvider, which provides the layout model to all the children components of the LayoutManager
