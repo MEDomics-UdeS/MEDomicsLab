@@ -4,11 +4,11 @@ import test from "../../styles/test.module.css";
 import * as Prism from "prismjs";
 import { LayoutModelContext } from "./layoutContext";
 import {
-	Actions,
-	CLASSES,
-	Layout,
-	Model,
-	TabNode
+  Actions,
+  CLASSES,
+  Layout,
+  Model,
+  TabNode
 } from "flexlayout-react";
 
 import DataTable from "../dataTypeVisualisation/dataTableWrapper";
@@ -28,20 +28,20 @@ var fields = ["Name", "Field1", "Field2", "Field3", "Field4", "Field5"];
  * @warning - You should not be playing around with this component unless you know what you are doing.
  */
 export default function MainFlexLayout() {
-	// let inner_model = layoutmodel;
-	const layoutRef = useRef(null); // Reference to the layout component
-	const [mainState, setMainState] = useState({}); // State to keep track of the main state of the application/this component
-	const [nextGridIndex, setNextGridIndex] = useState(0); // State to keep track of the next grid index
-	// let contents; // Variable to hold the contents of the main container - Not used for now
+  // let inner_model = layoutmodel;
+  const layoutRef = useRef(null); // Reference to the layout component
+  const [mainState, setMainState] = useState({}); // State to keep track of the main state of the application/this component
+  const [nextGridIndex, setNextGridIndex] = useState(0); // State to keep track of the next grid index
+  // let contents; // Variable to hold the contents of the main container - Not used for now
 
-	const { layoutModel, flexlayoutInterpreter } = useContext(LayoutModelContext); // Get the layout model and the flexlayout interpreter from the context
-
-
-	const [myInnerModel, setMyInnerModel] = useState(layoutModel); // State to keep track of the inner model - Used to update the layout model - for debugging purposes mainly
-	// setMyInnerModel(inner_model);
+  const { layoutModel, flexlayoutInterpreter } = useContext(LayoutModelContext); // Get the layout model and the flexlayout interpreter from the context
 
 
-	const [model, setModel] = useState(Model.fromJson(layoutModel)); // State to keep track of the model - Used to update the layout model also
+  const [myInnerModel, setMyInnerModel] = useState(layoutModel); // State to keep track of the inner model - Used to update the layout model - for debugging purposes mainly
+  // setMyInnerModel(inner_model);
+
+
+  const [model, setModel] = useState(Model.fromJson(layoutModel)); // State to keep track of the model - Used to update the layout model also
 
   useEffect(() => {
     // Use effect to update the model when the layout model changes
@@ -218,7 +218,7 @@ export default function MainFlexLayout() {
     return undefined
   }
 
-  function onTableClick() {}
+  function onTableClick() { }
 
   function onAction(action) {
     console.log("action: ", action)
@@ -226,15 +226,15 @@ export default function MainFlexLayout() {
     return action
   }
 
-	function titleFactory(node) {
-		if (node.getId() === "custom-tab") {
-			return {
-				titleContent: <div>(Added by titleFactory) {node.getName()}</div>,
-				name: "the name for custom tab"
-			};
-		}
-		return;
-	}
+  function titleFactory(node) {
+    if (node.getId() === "custom-tab") {
+      return {
+        titleContent: <div>(Added by titleFactory) {node.getName()}</div>,
+        name: "the name for custom tab"
+      };
+    }
+    return;
+  }
 
   function iconFactory(node) {
     if (node.getId() === "custom-tab") {
@@ -303,85 +303,85 @@ export default function MainFlexLayout() {
   function factory(node) {
     var component = node.getComponent()
 
-		if (component === "json") {
-			return (
-				<pre style={{ tabSize: "20px" }}>
-					{mainState.json ? (
-						<span dangerouslySetInnerHTML={{ __html: mainState.json }} />
-					) : null}
-				</pre>
-			);
-		}
-		else if (component === "grid") {
-			if (node.getExtraData().data == null) {
-				// create data in node extra data first time accessed
-				node.getExtraData().data = makeFakeData();
-			}
-			return <SimpleTable fields={fields} onClick={onTableClick.bind(node)} data={node.getExtraData().data} />;
-		}
+    if (component === "json") {
+      return (
+        <pre style={{ tabSize: "20px" }}>
+          {mainState.json ? (
+            <span dangerouslySetInnerHTML={{ __html: mainState.json }} />
+          ) : null}
+        </pre>
+      );
+    }
+    else if (component === "grid") {
+      if (node.getExtraData().data == null) {
+        // create data in node extra data first time accessed
+        node.getExtraData().data = makeFakeData();
+      }
+      return <SimpleTable fields={fields} onClick={onTableClick.bind(node)} data={node.getExtraData().data} />;
+    }
 
-		else if (component === "text") {
-			try {
-				return <div dangerouslySetInnerHTML={{ __html: node.getConfig().text }} />;
-			} catch (e) {
-				console.log(e);
-			}
-		}
-		else if (component === "newfeatures") {
-			return <></>;
-		}
-		else if (component === "multitype") {
-			try {
-				const config = node.getConfig();
-				if (config.type === "url") {
-					return <iframe title={node.getId()} src={config.data} style={{ display: "block", border: "none", boxSizing: "border-box" }} width="100%" height="100%" />;
-				} else if (config.type === "html") {
-					return (<div dangerouslySetInnerHTML={{ __html: config.data }} />);
-				} else if (config.type === "text") {
-					return (
-						<textarea style={{ position: "absolute", width: "100%", height: "100%", resize: "none", boxSizing: "border-box", border: "none" }}
-							defaultValue={config.data}
-						/>);
-				}
-			} catch (e) {
-				return (<div>{String(e)}</div>);
-			}
-		}
-		else if (component === "tabstorage") {
-			return <></>;
-		}
-		else if (component === "dataTable") {
-			if (node.getExtraData().data == null) {
+    else if (component === "text") {
+      try {
+        return <div dangerouslySetInnerHTML={{ __html: node.getConfig().text }} />;
+      } catch (e) {
+        console.log(e);
+      }
+    }
+    else if (component === "newfeatures") {
+      return <></>;
+    }
+    else if (component === "multitype") {
+      try {
+        const config = node.getConfig();
+        if (config.type === "url") {
+          return <iframe title={node.getId()} src={config.data} style={{ display: "block", border: "none", boxSizing: "border-box" }} width="100%" height="100%" />;
+        } else if (config.type === "html") {
+          return (<div dangerouslySetInnerHTML={{ __html: config.data }} />);
+        } else if (config.type === "text") {
+          return (
+            <textarea style={{ position: "absolute", width: "100%", height: "100%", resize: "none", boxSizing: "border-box", border: "none" }}
+              defaultValue={config.data}
+            />);
+        }
+      } catch (e) {
+        return (<div>{String(e)}</div>);
+      }
+    }
+    else if (component === "tabstorage") {
+      return <></>;
+    }
+    else if (component === "dataTable") {
+      if (node.getExtraData().data == null) {
 
-				const config = node.getConfig()
-				console.log("dataTable config", config)
-				const whenDataLoaded = (data) => {
-					node.getExtraData().data = data
-					console.log("node", node)
-					console.log("retrieve node in layoutModel", model.getNodeById(node.getId()))
-					model.getNodeById(node.getId())._attributes.config["data"] = data
-					// let layout = layoutModel.layout
-					// layout.tabs[node.getId()].config.data = data
-				}
-				loadCSVPath(config.path, whenDataLoaded)
-			}
-			return (
-				<DataTable
-					data={node.getExtraData().data}
-					tablePropsData={{
-						paginator: true,
-						rows: 10,
-						scrollable: true,
-						scrollHeight: "400px"
-					}}
-					tablePropsColumn={{
-						sortable: true
-					}}
-				/>
-			)
-		}
-		return null;
-	}
+        const config = node.getConfig()
+        console.log("dataTable config", config)
+        const whenDataLoaded = (data) => {
+          node.getExtraData().data = data
+          console.log("node", node)
+          console.log("retrieve node in layoutModel", model.getNodeById(node.getId()))
+          model.getNodeById(node.getId())._attributes.config["data"] = data
+          // let layout = layoutModel.layout
+          // layout.tabs[node.getId()].config.data = data
+        }
+        loadCSVPath(config.path, whenDataLoaded)
+      }
+      return (
+        <DataTable
+          data={node.getExtraData().data}
+          tablePropsData={{
+            paginator: true,
+            rows: 10,
+            scrollable: true,
+            scrollHeight: "400px"
+          }}
+          tablePropsColumn={{
+            sortable: true
+          }}
+        />
+      )
+    }
+    return null;
+  }
 
   return (
     <>

@@ -1,11 +1,11 @@
-import { React, createContext, useState } from "react";
+import { React, createContext, useState } from "react"
 
 /**
  * @typedef {React.Context} DataContext
  * @description A context object that provides global data and data request state to its children components.
  * @see https://reactjs.org/docs/context.html
  */
-export const DataContext = createContext(null);
+export const DataContext = createContext(null)
 
 /**
  * @typedef {React.FunctionComponent} DataContextProvider
@@ -16,22 +16,25 @@ export const DataContext = createContext(null);
  * @param {Function} props.setGlobalData - The function to update the global data object.
  * @returns {JSX.Element} - The DataContextProvider component.
  */
-export default function DataContextProvider({ children, globalData, setGlobalData }) {
+export default function DataContextProvider({
+  children,
+  globalData,
+  setGlobalData
+}) {
+  const [dataRequest, setDataRequest] = useState({})
 
-    const [dataRequest, setDataRequest] = useState({});
-
-    return (
-        <>
-            <DataContext.Provider value={{
-                globalData,
-                setGlobalData,
-                dataRequest,
-                setDataRequest,
-            }}>
-
-                {children}
-            </DataContext.Provider>
-        </>
-    );
+  return (
+    <>
+      <DataContext.Provider
+        value={{
+          globalData,
+          setGlobalData,
+          dataRequest,
+          setDataRequest
+        }}
+      >
+        {children}
+      </DataContext.Provider>
+    </>
+  )
 }
-
