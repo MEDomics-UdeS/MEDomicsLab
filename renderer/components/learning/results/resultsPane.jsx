@@ -2,10 +2,14 @@ import React, { useContext, useState, useEffect, useCallback } from "react"
 import Card from "react-bootstrap/Card"
 import { Col } from "react-bootstrap"
 import { FlowResultsContext } from "../../flow/context/flowResultsContext"
+import { FlowInfosContext } from "../../flow/context/flowInfosContext"
 import Button from "react-bootstrap/Button"
 import * as Icon from "react-bootstrap-icons"
 import { deepCopy } from "../../../utilities/staticFunctions"
-import DatasetCleanResults from "./type/datasetCleanResults"
+import DataParamResults from "./node/dataParamResults"
+import ModelsResults from "./node/modelsResults"
+import { TabView, TabPanel } from "primereact/tabview"
+import { Menubar } from "primereact/menubar"
 
 /**
  *
@@ -18,6 +22,8 @@ import DatasetCleanResults from "./type/datasetCleanResults"
 const ResultsPane = () => {
   const { setShowResultsPane, what2show, flowResults } =
     useContext(FlowResultsContext)
+  const { flowContent } = useContext(FlowInfosContext)
+
   const [body, setBody] = useState(<></>)
   const [title, setTitle] = useState("")
 
@@ -41,19 +47,69 @@ const ResultsPane = () => {
     }
   }, [what2show, flowResults])
 
+  useEffect(() => {
+    console.log("results update - flowContent", flowContent, flowResults)
+    // find selected ids
+    let selectedIds = []
+    flowContent.nodes.forEach((node) => {
+      if (node.data.internal.results.checked) {
+        selectedIds.push(node.id)
+      }
+    })
+    console.log("selectedIds", selectedIds)
+
+    // find all pipelines
+    let pipelines = getAllPipelines(flowContent)
+    console.log("pipelines", pipelines)
+  }, [flowContent, flowResults])
+
+  const getAllPipelines = (flowContent) => {
+    let pipelines = []
+
+    const getAllPipelinesRec = (currentPipe, nodeId) => {
+      currentPipe = deepCopy(currentPipe)
+      let foundSomething = false
+      flowContent.edges.forEach((edge) => {
+        let sourceNode = flowContent.nodes.find(
+          (node) => node.id == edge.source
+        )
+        let targetNode = flowContent.nodes.find(
+          (node) => node.id == edge.target
+        )
+        if (nodeId == edge.source) {
+          foundSomething = true
+          currentPipe.push(sourceNode.data.internal.name)
+          getAllPipelinesRec(currentPipe, edge.target)
+        }
+      })
+
+      if (!foundSomething) {
+        // let sourceNode = flowContent.nodes.find((node) => node.id == nodeId)
+        // currentPipe.push(sourceNode.data.internal.name)
+        pipelines.push(currentPipe)
+      }
+    }
+
+    flowContent.edges.forEach((edge) => {
+      let sourceNode = flowContent.nodes.find((node) => node.id == edge.source)
+      if (sourceNode.data.internal.type == "dataset") {
+        let pipeline = []
+        pipeline.push(sourceNode.data.internal.name)
+        getAllPipelinesRec(pipeline, edge.target)
+      }
+    })
+    return pipelines
+  }
+
   /**
    *
    * @returns {string} A string containing the title of the results pane
    */
   const createTitle = () => {
-    let pipeFlowListId = what2show.split("/")
-    let title = "Results for pipeline: "
-    pipeFlowListId.forEach((id) => {
-      title +=
-        " --> " +
-        flowResults.nodes.find((node) => node.id == id).data.internal.name
-    })
-    return title
+    let selectedId = what2show.split("/")[what2show.split("/").length - 1]
+    let selectedNode = flowContent.nodes.find((node) => node.id == selectedId)
+
+    return selectedNode.data.internal.name
   }
 
   /**
@@ -62,9 +118,9 @@ const ResultsPane = () => {
    */
   const createBody = useCallback(() => {
     let selectedId = what2show.split("/")[what2show.split("/").length - 1]
-    let selectedNode = flowResults.nodes.find((node) => node.id == selectedId)
+    let selectedNode = flowContent.nodes.find((node) => node.id == selectedId)
     console.log("selectedId", selectedId)
-    let selectedResults = deepCopy(flowResults.results)
+    let selectedResults = deepCopy(flowResults)
     what2show.split("/").forEach((id) => {
       selectedResults = checkIfObjectContainsId(selectedResults, id)
       if (selectedResults) {
@@ -83,9 +139,10 @@ const ResultsPane = () => {
 
     let type = selectedNode.data.internal.type
     if (type == "dataset" || type == "clean") {
-      toReturn = <DatasetCleanResults selectedResults={selectedResults} />
-    } else if (type == "create_model") {
-      console.log("create model")
+      toReturn = <DataParamResults selectedResults={selectedResults} />
+    } else if (type == "create_model" || type == "compare_models") {
+      console.log("create model / compare models")
+      toReturn = <ModelsResults selectedResults={selectedResults} />
     }
 
     return toReturn
@@ -113,9 +170,9 @@ const ResultsPane = () => {
       <Col className=" padding-0 results-Panel">
         <Card>
           <Card.Header>
-            <h5>{title}</h5>
+            <h5>Results</h5>
             <Button
-              variant="outline closeBtn-availableNodes end-5"
+              variant="outline closeBtn closeBtn-resultsPane end-5"
               onClick={handleClose}
             >
               <Icon.X width="30px" height="30px" />

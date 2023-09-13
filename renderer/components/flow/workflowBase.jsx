@@ -11,10 +11,12 @@ import ReactFlow, {
 import { FlowFunctionsContext } from "./context/flowFunctionsContext"
 import { PageInfosContext } from "../mainPages/moduleBasics/pageInfosContext"
 import { FlowInfosContext } from "./context/flowInfosContext"
+import { FlowResultsContext } from "./context/flowResultsContext"
 import { getId, deepCopy } from "../../utilities/staticFunctions"
 import { Button } from "react-bootstrap"
 import * as Icon from "react-bootstrap-icons"
 import { ipcRenderer } from "electron"
+import { ToggleButton } from "primereact/togglebutton"
 
 /**
  *
@@ -70,7 +72,10 @@ const WorkflowBase = ({
   const edgeUpdateSuccessful = useRef(true)
   const { pageInfos } = useContext(PageInfosContext) // used to get the flow infos
   const { nodeUpdate, node2Delete, node2Run } = useContext(FlowFunctionsContext) // used to get the function to update the node
-  const { setShowAvailableNodes } = useContext(FlowInfosContext) // used to update the flow infos
+  const { setShowAvailableNodes, updateFlowContent } =
+    useContext(FlowInfosContext) // used to update the flow infos
+  const { showResultsPane, setShowResultsPane, isResults } =
+    useContext(FlowResultsContext) // used to update the flow infos
   const handleShow = () => setShowAvailableNodes(true)
 
   // execute this when a variable change or a function is called related to the callback hook in []
@@ -92,7 +97,19 @@ const WorkflowBase = ({
         })
       )
     }
+    updateFlowContent({
+      nodes: nodes,
+      edges: edges
+    })
   }, [nodeUpdate, setNodes])
+
+  useEffect(() => {
+    console.log("update of nodes and edges")
+    updateFlowContent({
+      nodes: nodes,
+      edges: edges
+    })
+  }, [nodes, edges])
 
   useEffect(() => {
     console.log("send update flask port")
@@ -290,7 +307,8 @@ const WorkflowBase = ({
         internal: {
           name: name,
           img: image,
-          type: name.toLowerCase().replaceAll(" ", "_")
+          type: name.toLowerCase().replaceAll(" ", "_"),
+          results: { checked: false }
         },
         tooltipBy: "node" // this is a default value that can be changed in addSpecificToNode function see workflow.jsx for example
       }
@@ -399,6 +417,16 @@ const WorkflowBase = ({
         <Button variant="outline btn-top-left-menu" onClick={handleShow}>
           <Icon.List width="30px" height="30px" />
         </Button>
+        <ToggleButton
+          onLabel="Results mode on"
+          offLabel="See results"
+          onIcon="pi pi-chart-bar"
+          offIcon="pi pi-eye"
+          disabled={!isResults}
+          checked={showResultsPane}
+          onChange={(e) => setShowResultsPane(e.value)}
+          className="btn-bottom-show-results"
+        />
       </ReactFlow>
     </div>
   )

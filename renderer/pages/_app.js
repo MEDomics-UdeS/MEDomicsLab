@@ -17,6 +17,7 @@ import "react-simple-tree-menu/dist/main.css"
 // --primereact
 import "primereact/resources/primereact.min.css"
 import "primereact/resources/themes/lara-light-indigo/theme.css"
+import "primeicons/primeicons.css"
 
 // --my styles (priority over bootstrap and other dist styles)
 import "../styles/flow/reactFlow.css"

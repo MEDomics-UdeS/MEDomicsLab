@@ -77,7 +77,7 @@ const FlowPageBaseWithFlowInfos = ({ children, workflowType }) => {
             id="sidebar"
             minSize={17.5}
             maxSize={17.5}
-            defaultSize={17.5}
+            defaultSize={0}
             order={1}
             collapsible={true}
             collapsibleSize={5}
@@ -91,7 +91,7 @@ const FlowPageBaseWithFlowInfos = ({ children, workflowType }) => {
           <PanelResizeHandle />
           <Panel minSize={25} order={2}>
             <PanelGroup
-              className="width-100 height-100 "
+              className="width-100 height-100 panel-group"
               style={{ overflow: "hidden" }}
               direction="vertical"
             >
@@ -108,6 +108,7 @@ const FlowPageBaseWithFlowInfos = ({ children, workflowType }) => {
                 ref={resultsPanelRef}
                 id="results"
                 maxSize={75}
+                minSize={30}
                 defaultSize={0}
                 order={2}
                 collapsible={true}

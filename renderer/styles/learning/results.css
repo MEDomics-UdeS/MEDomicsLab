@@ -1,2 +1,70 @@
-.params-element-results {
+.results-Panel {
+  height: -webkit-fill-available;
+}
+
+.results-Panel .card {
+  height: 100%;
+}
+
+.results-Panel .p-tabview-nav .p-tabview-title {
+  padding-right: 0.2rem;
+}
+
+.p-scrollpanel-content {
+  padding: 0.25rem;
+  overflow-x: hidden;
+}
+.p-scrollpanel-wrapper {
+  padding-right: 1.2rem;
+}
+
+.p-scrollpanel .p-scrollpanel-bar {
+  background-color: #0077ff;
+  width: 1rem;
+  /* TODO: figure out how to use custom style. For now, opacity at 0 */
+  opacity: 0;
+}
+
+.col-group-text-center div {
+  text-align: center;
+  justify-content: center;
+}
+
+.p-tabview .p-tabview-panels {
+  padding: 0.25rem 0rem 0rem 0rem;
+  height: -webkit-fill-available;
+}
+
+.panel-group {
+  padding-left: 0.25rem;
+  padding-right: 1.5rem;
+}
+
+.closeBtn-resultsPane {
+  position: absolute;
+  top: 7px;
+  right: 10px;
+  padding: 0px;
+}
+
+.data-param-results-accordion .p-accordion-header .p-accordion-header-link {
+  padding: 0.5rem 0.5rem;
+}
+
+.data-param-results-accordion .p-accordion-content {
+  padding: 0.5rem 0.5rem;
+}
+
+.results-Panel .card-body {
+  padding: 0;
+  padding-top: 0.2rem;
+}
+
+.btn-bottom-show-results {
+  position: absolute;
+  bottom: 1rem;
+  left: 6rem;
+  padding: 0.4rem;
+  cursor: pointer;
+  z-index: 10;
 }

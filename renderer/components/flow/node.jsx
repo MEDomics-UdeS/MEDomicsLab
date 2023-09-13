@@ -13,6 +13,7 @@ import { PageInfosContext } from "../mainPages/moduleBasics/pageInfosContext"
 import Tab from "react-bootstrap/Tab"
 import Tabs from "react-bootstrap/Tabs"
 import * as Icon from "react-bootstrap-icons"
+import NodeWrapperResults from "./nodeWrapperResults"
 import dynamic from "next/dynamic"
 const CodeEditor = dynamic(() => import("./codeEditor"), {
   ssr: false
@@ -34,7 +35,7 @@ const CodeEditor = dynamic(() => import("./codeEditor"), {
  * Note: all JSX.Element props are not mandatory
  * Note: see Powerpoint for additionnal
  */
-const Node = ({ id, data, nodeSpecific, nodeBody, defaultSettings }) => {
+const NodeObject = ({ id, data, nodeSpecific, nodeBody, defaultSettings }) => {
   const [showOffCanvas, setShowOffCanvas] = useState(false) // used to display the offcanvas
   const handleOffCanvasClose = () => setShowOffCanvas(false) // used to close the offcanvas
   const handleOffCanvasShow = () => setShowOffCanvas(true) // used to show the offcanvas
@@ -137,6 +138,19 @@ const Node = ({ id, data, nodeSpecific, nodeBody, defaultSettings }) => {
               alt={data.internal.img}
               className="icon-nodes"
             />
+            {/* here are the buttons to delete and run the node*/}
+            <CloseButton onClick={() => onDeleteNode(id)} />
+
+            {/* if the node is a run node (by checking setupParam classes), a button to run the node is displayed*/}
+            {data.setupParam.classes.split(" ").includes("run") && (
+              <Button
+                variant="success"
+                className="btn-runNode"
+                onClick={() => runNode(id)}
+              >
+                <img src={"/icon/run.svg"} alt="run" className="img-fluid" />
+              </Button>
+            )}
             {data.internal.name}
           </Card.Header>
           {/* body of the node*/}
@@ -191,19 +205,16 @@ const Node = ({ id, data, nodeSpecific, nodeBody, defaultSettings }) => {
           </Offcanvas.Body>
         </Offcanvas>
       </Container>
-      {/* here are the buttons to delete and run the node*/}
-      <CloseButton onClick={() => onDeleteNode(id)} />
+    </>
+  )
+}
 
-      {/* if the node is a run node (by checking setupParam classes), a button to run the node is displayed*/}
-      {data.setupParam.classes.split(" ").includes("run") && (
-        <Button
-          variant="success"
-          className="btn-runNode"
-          onClick={() => runNode(id)}
-        >
-          <img src={"/icon/run.svg"} alt="run" className="img-fluid" />
-        </Button>
-      )}
+const Node = (props) => {
+  return (
+    <>
+      <NodeWrapperResults {...props}>
+        <NodeObject {...props} />
+      </NodeWrapperResults>
     </>
   )
 }

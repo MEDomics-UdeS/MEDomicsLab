@@ -14,7 +14,7 @@ nvm use lts
 
 ## 3. Setup server side
 
-[Setup here](./Flask_server/README.md)
+[Setup here](./flask_server/README.md)
 
 ## 4. Run the Electron app in development mode
 

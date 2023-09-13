@@ -11,6 +11,7 @@ const DataTableResults = ({ tableResults }) => {
 
   const whenDataLoaded = (data) => {
     setData(data)
+    console.log("data", data)
   }
 
   return (

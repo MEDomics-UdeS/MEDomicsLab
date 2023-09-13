@@ -12,10 +12,12 @@ function FlowResultsProvider({ children }) {
   const [flowResults, setFlowResults] = useState({}) // Initial style
   const [showResultsPane, setShowResultsPane] = useState(false) // Initial state
   const [what2show, setWhat2show] = useState("") // Initial state
+  const [isResults, setIsResults] = useState(false) // Initial state
 
   // This function is used to update the flowResults
   const updateFlowResults = (newInfo) => {
-    setFlowResults(newInfo)
+    setFlowResults({ ...newInfo })
+    setIsResults(true)
   }
 
   return (
@@ -28,7 +30,9 @@ function FlowResultsProvider({ children }) {
         showResultsPane,
         setShowResultsPane,
         what2show,
-        setWhat2show
+        setWhat2show,
+        isResults,
+        setIsResults
       }}
     >
       {children}

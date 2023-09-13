@@ -49,7 +49,7 @@ const SidebarAvailableNodes = ({ title, sidebarType }) => {
               </Col>
               <Col xs="3">
                 <Button
-                  variant="outline closeBtn-availableNodes"
+                  variant="outline closeBtn closeBtn-availableNodes"
                   onClick={handleToggle}
                 >
                   <Icon.X width="30px" height="30px" />

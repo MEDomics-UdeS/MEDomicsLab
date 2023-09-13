@@ -562,10 +562,7 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
                 toast.error("Error detected while running the experiment")
                 setError(jsonResponse.error)
               } else {
-                let results = {}
-                results.results = jsonResponse
-                results.nodes = nodes
-                updateFlowResults(results)
+                updateFlowResults(jsonResponse)
               }
             },
             function (err) {
@@ -663,6 +660,35 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
               return acc
             }, [])
             hasModels = true
+          }
+
+          // refomat multiple list to backend to understand
+          if (nodeType == "compare_models") {
+            const reformatMultipleList = (list) => {
+              let newList = []
+              list.forEach((item) => {
+                newList.push(item.value)
+              })
+              return newList
+            }
+            let currentNodeCanModify = json.nodes.find(
+              (node) => node.id === key
+            )
+            console.log(currentNodeCanModify)
+            if (currentNode.data.internal.settings.include) {
+              let reformattedList = reformatMultipleList(
+                currentNode.data.internal.settings.include
+              )
+              currentNodeCanModify.data.internal.settings.include =
+                reformattedList
+            }
+            if (currentNode.data.internal.settings.exclude) {
+              let reformattedList = reformatMultipleList(
+                currentNode.data.internal.settings.exclude
+              )
+              currentNodeCanModify.data.internal.settings.exclude =
+                reformattedList
+            }
           }
 
           // check if node has default values
