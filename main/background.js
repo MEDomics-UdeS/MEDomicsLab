@@ -16,7 +16,7 @@ if (isProd) {
   app.setPath("userData", `${app.getPath("userData")} (development)`)
 }
 
-;(async () => {
+; (async () => {
   await app.whenReady()
 
   const mainWindow = createWindow("main", {

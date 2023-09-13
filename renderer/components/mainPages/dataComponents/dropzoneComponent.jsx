@@ -1,9 +1,9 @@
 import React, { useCallback, useState, useContext } from "react"
 import { useDropzone } from "react-dropzone"
-import { parse } from "csv"
-import fs from "fs"
-import { WorkspaceContext } from "../../workspace/workspaceContext"
-
+import { parse } from "csv";
+import fs from "fs";
+import { WorkspaceContext } from "../../workspace/workspaceContext";
+import MedDataObject from "../../workspace/medDataObject";
 /**
  * @typedef {React.FunctionComponent} DropzoneComponent
  * @description This component is the dropzone component that will be used to upload files to the workspace.
@@ -13,56 +13,60 @@ import { WorkspaceContext } from "../../workspace/workspaceContext"
  * @todo Add the functionality to upload more file types than just CSV files
  */
 export default function DropzoneComponent({ children }) {
-  // eslint-disable-next-line no-unused-vars
-  const [uploadedFile, setUploadedFile] = useState(null)
-  // eslint-disable-next-line no-unused-vars
-  const [uploadProgress, setUploadProgress] = useState(0)
+	// eslint-disable-next-line no-unused-vars
+	const [uploadedFile, setUploadedFile] = useState(null);
+	// eslint-disable-next-line no-unused-vars
+	const [uploadProgress, setUploadProgress] = useState(0);
 
-  // Retrieve the Workspace context from the WorkspaceProvider
-  const { workspace } = useContext(WorkspaceContext)
-  const onDrop = useCallback((acceptedFiles) => {
-    const reader = new FileReader()
+	// Retrieve the Workspace context from the WorkspaceProvider
+	const { workspace } = useContext(WorkspaceContext);
+	const onDrop = useCallback(acceptedFiles => {
+		const reader = new FileReader();
 
-    reader.onabort = () => console.log("file reading was aborted")
-    reader.onerror = () => console.log("file reading failed")
-    reader.onload = () => {
-      // Parse CSV file
-      acceptedFiles.forEach((file) => {
-        console.log("file", file)
-        if (file.name.includes(".csv")) {
-          parse(reader.result, (err, data) => {
-            console.log("Parsed CSV data: ", data)
+		reader.onabort = () => console.log("file reading was aborted");
+		reader.onerror = () => console.log("file reading failed");
+		reader.onload = () => {
+			// Parse CSV file
+			acceptedFiles.forEach((file) => {
+				console.log("file", file);
+				if (file.name.includes(".csv")) {
 
-            fs.writeFile(
-              `${workspace.workingDirectory.path}/DATA/${file["name"]}`,
-              data.join("\n"),
-              "utf8",
-              (err) => {
-                if (err) {
-                  console.error("Error writing file:", err)
-                } else {
-                  console.log("File written successfully")
-                }
-              }
-            )
-          })
-        } else if (file.name.includes(".xlsx")) {
-          console.log("xlsx file")
-        }
-      })
-    }
+					parse(reader.result, (err, data) => {
+						console.log("Parsed CSV data: ", data);
 
-    // read file contents
-    acceptedFiles.forEach((file) => reader.readAsBinaryString(file))
-  }, [])
 
-  const { getRootProps, getInputProps } = useDropzone({ onDrop })
+						fs.writeFile(`${workspace.workingDirectory.path}/DATA/${file["name"]}`, data.join("\n"), "utf8", (err) => {
+							if (err) {
+								console.error("Error writing file:", err);
+							} else {
+								console.log("File written successfully");
+							}
+						});
+					});
+				}
+				else if (file.name.includes(".xlsx")) {
+					console.log("xlsx file");
+				}
+			});
+		};
 
-  /**
-   * @description - This function handles the download of the file
-   * @todo Implement this function
-   */
-  const handleDownload = () => {}
+		// read file contents
+		acceptedFiles.forEach((file) => {
+			reader.readAsBinaryString(file);
+			MedDataObject.updateWorkspaceDataObject();
+		});
+	}, []);
+
+
+	const { getRootProps, getInputProps } = useDropzone({ onDrop });
+
+	/**
+	 * @description - This function handles the download of the file
+	 * @todo Implement this function
+	 */
+	const handleDownload = () => {
+
+	};
 
   return (
     <div style={{ display: "block" }}>
