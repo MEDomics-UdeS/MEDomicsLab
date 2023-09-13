@@ -1,9 +1,10 @@
 import React, { useContext, useState } from "react";
-import { Accordion, Stack,  } from "react-bootstrap";
+import { Accordion, Stack, } from "react-bootstrap";
 import { Folder, } from "react-bootstrap-icons";
 import { SidebarFile, SidebarFolder } from "./components";
-import { LayoutModelContext } from "../LayoutContext";
+import { LayoutModelContext } from "../layoutContext";
 import { useEffect } from "react";
+import { WorkspaceDirectoryTree } from "./workspaceDirectoryTree";
 
 const LayoutTestSidebar = () => {
 	/**
@@ -43,15 +44,25 @@ const LayoutTestSidebar = () => {
 					<Accordion.Item eventKey="1">
 						<Accordion.Header>
 							<Stack direction="horizontal" gap={1} style={{ padding: "0 0 0 0", alignContent: "center" }}>
-								<Folder style={{marginLeft:"0.2rem"}} />Tabs explorer
+								<Folder style={{ marginLeft: "0.2rem" }} />Tabs explorer
 							</Stack>
 						</Accordion.Header>
 						<Accordion.Body className='sidebar-acc-body'>
 							<Stack direction="vertical" gap={0}>
 								<SidebarFolder name={"Workspace #1"}>
 									{tabsList.layout.children}
-								</SidebarFolder> 
+								</SidebarFolder>
 							</Stack>
+						</Accordion.Body>
+					</Accordion.Item>
+					<Accordion.Item eventKey="2">
+						<Accordion.Header>
+							<Stack direction="horizontal" gap={1} style={{ padding: "0 0 0 0", alignContent: "center" }}>
+								<Folder style={{ marginLeft: "0.2rem" }} />File Explorer
+							</Stack>
+						</Accordion.Header>
+						<Accordion.Body className='sidebar-acc-body'>
+							<WorkspaceDirectoryTree />
 						</Accordion.Body>
 					</Accordion.Item>
 				</Accordion>

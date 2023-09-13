@@ -1,6 +1,6 @@
 import React, { useContext} from "react";
 import { Accordion, Button, Stack } from "react-bootstrap";
-import { WorkspaceContext } from "../../workspace/WorkspaceContext";
+import { WorkspaceContext } from "../../workspace/workspaceContext";
 import { ipcRenderer } from "electron";
 import {WorkspaceDirectoryTree} from "./workspaceDirectoryTree";
 const HomeSidebar = () => {

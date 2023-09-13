@@ -6,7 +6,7 @@ import ModulePage from "./moduleBasics/modulePage"
 // Extraction tab referred to in pages/_app.js.
 // Shows sideBar nodes in a div on the left of the page,
 // then react flow canvas where the nodes can be dropped.
-const ExtractionPage = ({ pageId, configPath = "" }) => {
+const ExtractionImagePage = ({ pageId, configPath = "" }) => {
   // Hook for current module
   const [flowType, setFlowType] = useState("extraction")
   return (
@@ -24,4 +24,4 @@ const ExtractionPage = ({ pageId, configPath = "" }) => {
   )
 }
 
-export default ExtractionPage
+export default ExtractionImagePage

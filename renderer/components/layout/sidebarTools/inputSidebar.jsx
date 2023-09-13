@@ -2,7 +2,7 @@ import React, {  useContext } from "react";
 import { Button, Stack } from "react-bootstrap";
 import {  Plus } from "react-bootstrap-icons";
 import DropzoneComponent from "../../mainPages/dataComponents/dropzoneComponent";
-import { WorkspaceContext } from "../../workspace/WorkspaceContext";
+import { WorkspaceContext } from "../../workspace/workspaceContext";
 import {WorkspaceDirectoryTree} from "./workspaceDirectoryTree";
 
 
@@ -25,7 +25,7 @@ const InputSidebar = () => {
 					</Button>
 				</DropzoneComponent>
 				
-				<WorkspaceDirectoryTree keepOnlyFolder={["DATA"]}>
+				<WorkspaceDirectoryTree>
 				</WorkspaceDirectoryTree>
 				{/* We render the workspace only if it is set, otherwise it throws an error */}
 				

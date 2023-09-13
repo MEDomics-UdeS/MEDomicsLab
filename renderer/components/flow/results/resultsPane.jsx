@@ -1,10 +1,12 @@
-import React, { useContext, useState, useEffect } from "react"
+import React, { useContext, useState, useEffect, useCallback } from "react"
 import Card from "react-bootstrap/Card"
 import { Col } from "react-bootstrap"
-import { FlowResultsContext } from "./context/flowResultsContext"
+import { FlowResultsContext } from "../context/flowResultsContext"
 import Button from "react-bootstrap/Button"
 import * as Icon from "react-bootstrap-icons"
-import { deepCopy } from "../../utilities/staticFunctions"
+import { deepCopy } from "../../../utilities/staticFunctions"
+import DataTable from "../../dataTypeVisualisation/dataTableWrapper"
+import { loadCSVPath } from "../../../utilities/fileManagementUtils"
 
 /**
  *
@@ -19,6 +21,7 @@ const ResultsPane = () => {
     useContext(FlowResultsContext)
   const [body, setBody] = useState(<></>)
   const [title, setTitle] = useState("")
+  const [data, setData] = useState([])
 
   const handleClose = () => setShowResultsPane(false)
 
@@ -55,11 +58,15 @@ const ResultsPane = () => {
     return title
   }
 
+  const whenDataLoaded = (data) => {
+    setData(data)
+  }
+
   /**
    *
    * @returns {JSX.Element} A JSX element containing the body of the results pane
    */
-  const createBody = () => {
+  const createBody = useCallback(() => {
     let selectedId = what2show.split("/")[what2show.split("/").length - 1]
     let selectedNode = flowResults.nodes.find((node) => node.id == selectedId)
     console.log("selectedId", selectedId)
@@ -79,7 +86,11 @@ const ResultsPane = () => {
       }
     })
     console.log("seletced results", selectedResults, selectedNode)
-  }
+    let path = "./learning-tests-scene/data/eicu_processed.csv"
+    loadCSVPath(path, whenDataLoaded)
+    toReturn = <></>
+    return toReturn
+  }, [what2show, flowResults, data])
 
   /**
    *
@@ -111,7 +122,21 @@ const ResultsPane = () => {
               <Icon.X width="30px" height="30px" />
             </Button>
           </Card.Header>
-          <Card.Body>{body}</Card.Body>
+          <Card.Body>
+            {body}
+            <DataTable
+              data={data}
+              tablePropsData={{
+                paginator: true,
+                rows: 10,
+                scrollable: true,
+                scrollHeight: "400px"
+              }}
+              tablePropsColumn={{
+                sortable: true
+              }}
+            />
+          </Card.Body>
         </Card>
       </Col>
     </>
