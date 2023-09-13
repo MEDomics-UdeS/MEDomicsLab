@@ -151,9 +151,9 @@ components
 │           offCanvasBackdropStyleContext.jsx
 │
 ├───layout
-│   │   IconSidebar.jsx
-│   │   LayoutContext.jsx
-│   │   LayoutManager.jsx
+│   │   iconSidebar.jsx
+│   │   layoutContext.jsx
+│   │   layoutManager.jsx
 │   │   mainContainerFunctional.jsx
 │   │   WorkspaceSidebar.jsx
 │   │
