@@ -68,7 +68,6 @@ class MEDexperiment:
         self._nb_nodes_done: float = 0.0
         self.global_json_config['unique_id'] = 0
         self.pipelines_objects = self.create_next_nodes(self.pipelines, copy.deepcopy(self.pipelines_objects))
-        # tmp_dir = global_json_config['saving_path']
         global_json_config['saving_path'] = "flask_server/local_dir"
         tmp_dir = global_json_config['saving_path']
         for f in os.listdir(tmp_dir):
@@ -212,8 +211,8 @@ class MEDexperiment:
                     }
                     node_info['experiment'] = experiment
                 else:
-                    experiment = node_info['experiment']
                     print(f"already run {node.username} -----------------------------------------------------------------------------")
+                    experiment = node_info['experiment']
 
                 self._nb_nodes_done += 1
                 self._progress['progress'] = round(self._nb_nodes_done / self._nb_nodes * 100, 2)

@@ -1,3 +1,7 @@
+const fs = require("fs")
+const path = require("path")
+const { parse } = require("csv-parse")
+
 /**
  *
  * @param {Object} exportObj object to be exported
@@ -104,7 +108,13 @@ const loadJsonPath = (path) => {
     return null
   }
   try {
-    const data = fs.readFileSync("./" + path)
+    const cwd = process.cwd()
+    let cwdSlashType = cwd.includes("/") ? "/" : "\\"
+    let cwdSlashTypeInv = cwdSlashType == "/" ? "\\" : "/"
+    path.charAt(0) == "." &&
+      (path = cwd + path.substring(1).replaceAll(cwdSlashTypeInv, cwdSlashType))
+    console.log("reading json file: " + path)
+    const data = fs.readFileSync(path)
     const jsonData = JSON.parse(data)
     return jsonData
   } catch (error) {
@@ -113,4 +123,66 @@ const loadJsonPath = (path) => {
   }
 }
 
-export { downloadJson, writeJson, loadJson, loadJsonSync, loadJsonPath }
+/**
+ *
+ * @param {String} path
+ * @returns {Object} json object
+ *
+ * @description
+ * This function takes a path and returns the json object
+ */
+const loadCSVPath = (path, whenLoaded) => {
+  const data = []
+  // get current working directory
+  const cwd = process.cwd()
+  let cwdSlashType = cwd.includes("/") ? "/" : "\\"
+  let cwdSlashTypeInv = cwdSlashType == "/" ? "\\" : "/"
+  path.charAt(0) == "." &&
+    (path = cwd + path.substring(1).replaceAll(cwdSlashTypeInv, cwdSlashType))
+  console.log("reading csv file: " + path)
+  fs.createReadStream(path)
+    .pipe(
+      parse({
+        delimiter: ",",
+        columns: true,
+        ltrim: true
+      })
+    )
+    .on("data", function (row) {
+      // This will push the object row into the array
+      data.push(row)
+    })
+    .on("error", function (error) {
+      console.log(error.message)
+    })
+    .on("end", function () {
+      // Here log the result array
+      console.log("parsed csv data:")
+      console.log(data)
+      whenLoaded(data)
+    })
+}
+
+function createFolder(path_, folderName) {
+  // Creates a folder in the working directory
+  const folderPath = path.join(path_, folderName)
+
+  fs.mkdir(folderPath, { recursive: true }, (err) => {
+    if (err) {
+      console.error(err)
+      return
+    }
+
+    console.log("Folder created successfully!")
+  })
+}
+
+export {
+  downloadJson,
+  writeJson,
+  loadJson,
+  loadJsonSync,
+  loadJsonPath,
+  loadCSVPath,
+  createFolder
+}
