@@ -305,7 +305,11 @@ export default class MedDataObject {
      */
     rename(newName) {
         this.name = newName;
+        let oldPath = this.path;
+        let cwdSlashType = oldPath.includes("/") ? "/" : "\\"
+        let cwdSlashTypeInv = cwdSlashType == "/" ? "\\" : "/"
         let newPath = splitStringAtTheLastSeparator(this.path, "\\")[0] + "\\" + newName;
+        newPath = newPath.replaceAll(cwdSlashTypeInv, cwdSlashType);
         if (this.type === "folder") {
             this.extension = "";
             this.nameWithoutExtension = newName;
