@@ -2,7 +2,7 @@ import React, { useRef, useState, useEffect, useContext } from "react";
 import test from "../../styles/test.module.css";
 
 import * as Prism from "prismjs";
-import { LayoutModelContext } from "./LayoutContext";
+import { LayoutModelContext } from "./layoutContext";
 import {
 	Actions,
 	CLASSES,

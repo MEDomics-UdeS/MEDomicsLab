@@ -2,7 +2,7 @@ import React, { useContext, useState } from "react";
 import { Accordion, Stack, } from "react-bootstrap";
 import { Folder, } from "react-bootstrap-icons";
 import { SidebarFile, SidebarFolder } from "./components";
-import { LayoutModelContext } from "../LayoutContext";
+import { LayoutModelContext } from "../layoutContext";
 import { useEffect } from "react";
 import { WorkspaceDirectoryTree } from "./workspaceDirectoryTree";
 
