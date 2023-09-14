@@ -257,6 +257,8 @@ export default class MedDataObject {
         toast.success("Data object deleted")
       }
     })
+    this.updateWorkspaceDataObject()
+    return dataObject
   }
 
   /**

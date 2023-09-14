@@ -138,30 +138,7 @@ const SidebarDirectoryTree = () => {
     )
   }
 
-  function onDelete(uuid) {
-		// Get the UUID of the `MedDataObject` with the current name from the `globalData` object.
-		
-    if (uuid == "") {
-			console.log("Error: UUID not found")
-			return
-		}
-    else if (uuid == "UUID_ROOT") {
-      console.log("Error: Cannot delete root")
-      return
-    }
-    else if (globalData[uuid] == undefined) {
-      console.log("Error: UUID not found in globalData")
-    }
-
-		else {
-			// Delete the `MedDataObject` with the current name from the `globalData` object.
-			let globalDataCopy = { ...globalData }
-			MedDataObject.delete(globalDataCopy[uuid])
-			delete globalDataCopy[uuid]
-			setGlobalData(globalDataCopy)
-			MedDataObject.updateWorkspaceDataObject(300)
-		}
-	}
+  
 
 
   function handleContextMenuAction(action, name)
@@ -261,6 +238,32 @@ const SidebarDirectoryTree = () => {
     return true
   }
 
+  function onDelete(uuid) {
+		// Get the UUID of the `MedDataObject` with the current name from the `globalData` object.
+		
+    if (uuid == "") {
+			console.log("Error: UUID not found")
+			return
+		}
+    else if (uuid == "UUID_ROOT") {
+      console.log("Error: Cannot delete root")
+      return
+    }
+    else if (globalData[uuid] == undefined) {
+      console.log("Error: UUID not found in globalData")
+    }
+
+		else {
+			// Delete the `MedDataObject` with the current name from the `globalData` object.
+			let globalDataCopy = { ...globalData }
+			MedDataObject.delete(globalDataCopy[uuid])
+			delete globalDataCopy[uuid]
+			setGlobalData(globalDataCopy)
+			MedDataObject.updateWorkspaceDataObject(300)
+		}
+	}
+
+
   function handleNameChange(medObject, newName) {
     // Check if the new name is the same as the current name.
 
@@ -306,17 +309,18 @@ const SidebarDirectoryTree = () => {
     console.log("TREE TO SEND", treeToSend)
     return treeToSend
   }
-
-  const dataProvider = new StaticTreeDataProvider(dirTree, (item, data) => ({
+  const [staticTree, setStaticTree] = useState(new StaticTreeDataProvider(dirTree, (item, data) => ({
     ...item,
     data
-  }))
+  })))
+
+  
 
   async function listener(changedItemIds) {
     // const changedItems = changedItemIds.map(dataProvider.getTreeItem)
     console.log("CHANGED ITEMS", changedItemIds)
     changedItemIds.forEach((changedItemId) => {
-      dataProvider.getTreeItem(changedItemId).then((item) => {
+      staticTree.getTreeItem(changedItemId).then((item) => {
         console.log("ITEM", item)
         let medDataObject = globalData[item.UUID]
         console.log("MED DATA OBJECT", medDataObject)
@@ -324,16 +328,37 @@ const SidebarDirectoryTree = () => {
     })
   }
 
-  dataProvider.onDidChangeTreeData(listener)
+  
+  useEffect(() => {
+    // const dataProvider = new StaticTreeDataProvider(dirTree, (item, data) => ({
+    //   ...item,
+    //   data
+    // }))
+    // dataProvider.onDidChangeTreeData(listener)
+    // setStaticTree(dataProvider)
+    // console.log("DIR TREE", dirTree)
 
-  useState(() => {
+
+  }, [dirTree])
+
+  useEffect(() => {
+    
+    console.log("Static TREE", staticTree)
+
+
+  }, [staticTree])
+
+
+  useEffect(() => {
     console.log("GLOBAL DATA", globalData)
     if (globalData) {
-      let newTree = fromJSONtoTree(globalData)
+
+      let newTree = fromJSONtoTree({...globalData})
       console.log("NEW TREE", newTree)
       setDirTree(newTree)
     }
   }, [globalData])
+  
 
   // This component is used to render a directory tree in the sidebar
   // console.log("PROPS", props)
@@ -342,7 +367,10 @@ const SidebarDirectoryTree = () => {
     <>
       <UncontrolledTreeEnvironment
         props={{ "data-testid": "tree-environment" }}
-        dataProvider={dataProvider}
+        dataProvider={new StaticTreeDataProvider({dirTree}, (item, data) => ({
+          ...item,
+          data
+        }))}
         getItemTitle={(item) => item.data}
         viewState={{}}
         canDropOnFolder={true}
@@ -358,6 +386,7 @@ const SidebarDirectoryTree = () => {
         onPrimaryAction={(item) => {
           console.log("ITEM-PrimaryAction", item)
         }}
+
         renderItem={(json) =>
           renderItem(json, {
             showContextMenu,
@@ -368,7 +397,7 @@ const SidebarDirectoryTree = () => {
           })
         }
       >
-        <Tree treeId="tree-1" rootItem="UUID_ROOT" treeLabel="tree" />
+        <Tree treeId="tree-1" rootItem="UUID_ROOT" treeLabel="tree" test={globalData} />
       </UncontrolledTreeEnvironment>
     </>
   )
