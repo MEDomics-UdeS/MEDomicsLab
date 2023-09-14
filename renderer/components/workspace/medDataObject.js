@@ -205,11 +205,14 @@ export default class MedDataObject {
    * @returns {string} - The new name for the MED data object.
    */
   static rename(dataObject, newName, globalDataContext) {
+   
     let newNameFound = this.getNewName({
       dataObject: dataObject,
       newName: newName,
       globalDataContext: globalDataContext
     })
+    console.log("newNameFound: " + newNameFound)
+    console.log("newName: " + newName)
     if (newNameFound !== "") {
       if (newNameFound !== newName) {
         toast.warning(
@@ -268,11 +271,18 @@ export default class MedDataObject {
     let answer = ""
     let copyCanBeCreated = false
     let copyIndex = 1
-    let newNameWithoutExtension = splitStringAtTheLastSeparator(newName, ".")[0]
+    let newNameWithoutExtension = newName
+    let dataObjectSuffix = ""
+    if ( dataObject.type !== "folder") {
+      newNameWithoutExtension = splitStringAtTheLastSeparator(newName, ".")[0]
+      dataObjectSuffix = "." + dataObject.extension
+    } 
+
+    console.log("newNameWithoutExtension: " + newNameWithoutExtension)
     if (globalDataContext === undefined) {
       globalDataContext = {}
     }
-    let copyName = newNameWithoutExtension + "." + dataObject.extension
+    let copyName = newNameWithoutExtension + dataObjectSuffix
     while (!copyCanBeCreated) {
       // Check if a data object with the same name already exists in the context
       let dataObjectUUID = MedDataObject.checkIfMedDataObjectInContextbyName(
