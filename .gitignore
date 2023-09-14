@@ -153,3 +153,4 @@ test/extraction/IBSI/data_sets/*
 test/extraction/IBSI/dicom/*
 
 !.gitkeep
+path2condaenv_toDeleteInProd.txt

@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo, useEffect } from "react"
+import React, { useState, useCallback, useMemo, useEffect, useContext } from "react"
 import { toast } from "react-toastify"
 import TreeMenu from "react-simple-tree-menu"
 
@@ -271,10 +271,8 @@ const FlowCanvas = ({ workflowType, setWorkflowType }) => {
         ? featuresNodeDefaultSettings
         : newNode.data.setupParam.possibleSettings.defaultSettings
 
-    newNode.data.parentFct.changeSubFlow = setGroupNodeId
-
     newNode.data.internal.subflowId = !associatedNode
-      ? groupNodeId
+      ? groupNodeId.id
       : associatedNode
 
     // Used to enable the view button of a node (if it exists)
@@ -704,7 +702,7 @@ const FlowCanvas = ({ workflowType, setWorkflowType }) => {
           Object.values(flow.nodes).forEach((node) => {
             // the line below is important because functions are not serializable
             // set workflow type
-            let subworkflowType = node.data.internal.subflowId
+            let subworkflowType = node.data.internal.subflowId != "MAIN"
               ? "extraction"
               : "features"
             // set node type
