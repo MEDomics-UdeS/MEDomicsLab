@@ -137,6 +137,7 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
       setWorkflowType("optimize")
       hideNodesbut(groupNodeId.id)
     }
+    console.log("groupNodeId", groupNodeId)
   }, [groupNodeId])
 
   // executed when intersections array is changed

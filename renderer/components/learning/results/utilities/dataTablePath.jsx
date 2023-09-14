@@ -2,11 +2,11 @@ import React, { useEffect, useState } from "react"
 import DataTable from "../../../dataTypeVisualisation/dataTableWrapper"
 import { loadCSVPath } from "../../../../utilities/fileManagementUtils"
 
-const DataTableResults = ({ tableResults }) => {
+const DataTablePath = ({ path }) => {
   const [data, setData] = useState([])
 
   useEffect(() => {
-    loadCSVPath(tableResults.paths[0], whenDataLoaded)
+    loadCSVPath(path, whenDataLoaded)
   }, [])
 
   const whenDataLoaded = (data) => {
@@ -32,4 +32,4 @@ const DataTableResults = ({ tableResults }) => {
   )
 }
 
-export default DataTableResults
+export default DataTablePath

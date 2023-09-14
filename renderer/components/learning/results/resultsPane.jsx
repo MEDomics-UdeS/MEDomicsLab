@@ -23,6 +23,7 @@ const ResultsPane = () => {
   const { setShowResultsPane, what2show, flowResults } =
     useContext(FlowResultsContext)
   const { flowContent } = useContext(FlowInfosContext)
+  
 
   const [body, setBody] = useState(<></>)
   const [title, setTitle] = useState("")

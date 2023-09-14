@@ -3,6 +3,7 @@
 ## 1. Install nvm (Node Version Manager)
 
 Ubuntu : https://github.com/nvm-sh/nvm#installing-and-updating
+
 Windows : https://github.com/coreybutler/nvm-windows
 
 ## 2. Install npm and node.js

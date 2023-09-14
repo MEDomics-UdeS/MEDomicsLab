@@ -68,7 +68,7 @@ class MEDexperiment:
         self._nb_nodes_done: float = 0.0
         self.global_json_config['unique_id'] = 0
         self.pipelines_objects = self.create_next_nodes(self.pipelines, copy.deepcopy(self.pipelines_objects))
-        self.global_json_config['saving_path'] = "flask_server\\local_dir"
+        self.global_json_config['saving_path'] = "flask_server/local_dir"
         tmp_dir = global_json_config['saving_path']
         for f in os.listdir(tmp_dir):
             if f != '.gitkeep':
@@ -91,7 +91,7 @@ class MEDexperiment:
         self._nb_nodes_done: float = 0.0
         self._progress = {'cur_node': '', 'progress': 0.0}
         self.pipelines_objects = self.create_next_nodes(self.pipelines, copy.deepcopy(self.pipelines_objects))
-        self.global_json_config['saving_path'] = "flask_server\\local_dir"
+        self.global_json_config['saving_path'] = "flask_server/local_dir"
 
     def create_next_nodes(self, next_nodes: json, pipelines_objects: dict) -> dict:
         """Recursive function that creates the next nodes of the experiment.

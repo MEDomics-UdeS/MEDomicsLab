@@ -18,11 +18,11 @@ conda create --name medomics_env python=3.9
 
 conda activate medomics_env
 
-pip install -r Flask_server/requirements.txt
+pip install -r flask_server/requirements.txt
 
 ```
 
-### 3. Additionnal setup
+### 3. Additionnal setup (developement)
 
 You must replace the content of this file: path2condaenv_toDeleteInProd.txt located at the root of the project.
 You should place the absolute path that explicit wich interpreter to use. Following the precedent step, you have to find where the python.exe of your newly created environnement is located and copy it into the file.
