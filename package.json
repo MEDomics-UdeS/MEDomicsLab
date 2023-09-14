@@ -28,7 +28,7 @@
     "install": "^0.13.0",
     "interweave": "^13.1.0",
     "jquery-csv": "^1.0.21",
-    "prettier": "^3.0.3",
+    "prettier": "^3.0.0",
     "primereact": "^9.6.2",
     "prismjs": "^1.29.0",
     "react-ace": "^10.1.0",
@@ -58,7 +58,7 @@
     "eslint-plugin-react": "^7.32.2",
     "next": "^13.4.1",
     "nextron": "^8.5.0",
-    "prettier": "^2.8.8",
+    "prettier": "^3.0.3",
     "react": "^18.2.0",
     "react-bootstrap": "^2.7.1",
     "react-dom": "^18.2.0"
