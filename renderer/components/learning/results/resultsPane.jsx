@@ -10,6 +10,8 @@ import DataParamResults from "./node/dataParamResults"
 import ModelsResults from "./node/modelsResults"
 import { TabView, TabPanel } from "primereact/tabview"
 import { Menubar } from "primereact/menubar"
+import PipelinesResults from "./pipelinesResults"
+import { Accordion, AccordionTab } from "primereact/accordion"
 
 /**
  *
@@ -23,7 +25,7 @@ const ResultsPane = () => {
   const { setShowResultsPane, what2show, flowResults } =
     useContext(FlowResultsContext)
   const { flowContent } = useContext(FlowInfosContext)
-  
+  const [selectedPipelines, setSelectedPipelines] = useState([])
 
   const [body, setBody] = useState(<></>)
   const [title, setTitle] = useState("")
@@ -32,20 +34,20 @@ const ResultsPane = () => {
 
   // callback function to update title and body when what2show changes
   useEffect(() => {
-    console.log("results update", what2show, flowResults)
-    if (what2show == "" || Object.keys(flowResults).length == 0) {
-      setTitle("Results")
-      setBody(
-        <>
-          <div style={{ textAlign: "center" }}>
-            <h6>Nothing is selected or results are not generated yet </h6>
-          </div>
-        </>
-      )
-    } else {
-      setTitle(createTitle())
-      setBody(createBody())
-    }
+    // console.log("results update", what2show, flowResults)
+    // if (what2show == "" || Object.keys(flowResults).length == 0) {
+    //   setTitle("Results")
+    //   setBody(PipelineResult
+    //     <>
+    //       <div style={{ textAlign: "center" }}>
+    //         <h6>Nothing is selected or results are not generated yet </h6>
+    //       </div>
+    //     </>
+    //   )
+    // } else {
+    //   setTitle(createTitle())
+    //   setBody(createBody())
+    // }
   }, [what2show, flowResults])
 
   useEffect(() => {
@@ -61,111 +63,75 @@ const ResultsPane = () => {
       console.log("selectedIds", selectedIds)
 
       // find all pipelines
-      let pipelines = getAllPipelines(flowContent)
+      let pipelines = findAllPaths(flowContent)
       console.log("pipelines", pipelines)
+
+      // find pipelines that includes all the selected ids
+      let selectedPipelines = []
+      pipelines.forEach((pipeline) => {
+        let found = true
+        selectedIds.forEach((id) => {
+          if (!pipeline.includes(id)) {
+            found = false
+          }
+        })
+        if (found) {
+          selectedPipelines.push(pipeline)
+        }
+      })
+      console.log("selectedPipelines", selectedPipelines)
+      setSelectedPipelines(selectedPipelines)
     }
   }, [flowContent, flowResults])
 
-  const getAllPipelines = (flowContent) => {
-    let pipelines = []
+  useEffect(() => {
+    console.log("selectedPipelines", selectedPipelines)
+  }, [selectedPipelines])
 
-    const getAllPipelinesRec = (currentPipe, nodeId) => {
-      currentPipe = deepCopy(currentPipe)
-      let foundSomething = false
-      flowContent.edges.forEach((edge) => {
-        let sourceNode = flowContent.nodes.find(
-          (node) => node.id == edge.source
-        )
-        let targetNode = flowContent.nodes.find(
-          (node) => node.id == edge.target
-        )
-        if (nodeId == edge.source) {
-          foundSomething = true
-          currentPipe.push(sourceNode.data.internal.name)
-          getAllPipelinesRec(currentPipe, edge.target)
+  function findAllPaths(flowContent) {
+    let links = flowContent.edges
+    // Create a graph as an adjacency list
+    const graph = {}
+
+    // Populate the graph based on the links
+    links.forEach((link) => {
+      const { source, target } = link
+
+      if (!graph[source]) {
+        graph[source] = []
+      }
+
+      graph[source].push(target)
+    })
+
+    console.log("graph", graph)
+
+    function explore(node, path) {
+      if (!graph[node]) {
+        // If there are no outgoing links from this node, add the path to the result
+        result.push(path)
+        return
+      }
+
+      graph[node].forEach((neighbor) => {
+        // Avoid cycles by checking if the neighbor is not already in the path
+        if (!path.includes(neighbor)) {
+          explore(neighbor, [...path, neighbor])
         }
       })
-
-      if (!foundSomething) {
-        // let sourceNode = flowContent.nodes.find((node) => node.id == nodeId)
-        // currentPipe.push(sourceNode.data.internal.name)
-        pipelines.push(currentPipe)
-      }
     }
 
-    flowContent.edges.forEach((edge) => {
-      let sourceNode = flowContent.nodes.find((node) => node.id == edge.source)
+    const result = []
+
+    // Start exploring from all nodes that start with "0"
+    Object.keys(graph).forEach((id) => {
+      let sourceNode = flowContent.nodes.find((node) => node.id == id)
       if (sourceNode.data.internal.type == "dataset") {
-        let pipeline = []
-        pipeline.push(sourceNode.data.internal.name)
-        getAllPipelinesRec(pipeline, edge.target)
+        explore(id, [id])
       }
     })
-    return pipelines
-  }
 
-  /**
-   *
-   * @returns {string} A string containing the title of the results pane
-   */
-  const createTitle = () => {
-    let selectedId = what2show.split("/")[what2show.split("/").length - 1]
-    let selectedNode = flowContent.nodes.find((node) => node.id == selectedId)
-
-    return selectedNode.data.internal.name
-  }
-
-  /**
-   *
-   * @returns {JSX.Element} A JSX element containing the body of the results pane
-   */
-  const createBody = useCallback(() => {
-    let selectedId = what2show.split("/")[what2show.split("/").length - 1]
-    let selectedNode = flowContent.nodes.find((node) => node.id == selectedId)
-    console.log("selectedId", selectedId)
-    let selectedResults = deepCopy(flowResults)
-    what2show.split("/").forEach((id) => {
-      selectedResults = checkIfObjectContainsId(selectedResults, id)
-      if (selectedResults) {
-        if (id == selectedId) {
-          selectedResults = selectedResults.results
-        } else {
-          selectedResults = selectedResults.next_nodes
-        }
-      } else {
-        console.log("id " + id + " not found in results")
-        return <></>
-      }
-    })
-    console.log("selected results", selectedResults, selectedNode)
-    let toReturn = <></>
-
-    let type = selectedNode.data.internal.type
-    if (type == "dataset" || type == "clean") {
-      toReturn = <DataParamResults selectedResults={selectedResults} />
-    } else if (type == "create_model" || type == "compare_models") {
-      console.log("create model / compare models")
-      toReturn = <ModelsResults selectedResults={selectedResults} />
-    }
-
-    return toReturn
-  }, [what2show, flowResults])
-
-  /**
-   *
-   * @param {Object} obj
-   * @param {string} id
-   * @returns the sub-object corresponding at the id in the obj
-   * @description equivalent to obj[id] but the id can be a substring of the key
-   */
-  const checkIfObjectContainsId = (obj, id) => {
-    let res = false
-    Object.keys(obj).forEach((key) => {
-      if (key.includes(id)) {
-        res = obj[key]
-      }
-    })
-    return res
+    return result
   }
 
   return (
@@ -181,7 +147,9 @@ const ResultsPane = () => {
               <Icon.X width="30px" height="30px" />
             </Button>
           </Card.Header>
-          <Card.Body>{body}</Card.Body>
+          <Card.Body>
+            <PipelinesResults pipelines={selectedPipelines} />
+          </Card.Body>
         </Card>
       </Col>
     </>
