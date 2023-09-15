@@ -7,9 +7,9 @@ import IconSidebar from "../layout/iconSidebar"
 import Home from "../mainPages/home"
 import Input from "../mainPages/input"
 import Learning from "../mainPages/learning"
-import ExtractionImagePage from "../mainPages/extraction_images";
-import ExtractionTextPage from "../mainPages/extraction_text";
-import ExtractionTSPage from "../mainPages/extraction_ts";
+import ExtractionImagePage from "../mainPages/extraction_images"
+import ExtractionTextPage from "../mainPages/extraction_text"
+import ExtractionTSPage from "../mainPages/extraction_ts"
 import DiscoveryPage from "../mainPages/discovery"
 import ResultsPage from "../mainPages/results"
 import ApplicationPage from "../mainPages/application"
@@ -21,6 +21,7 @@ import MainFlexLayout from "./mainContainerFunctional"
 import InputSidebar from "./sidebarTools/inputSidebar"
 import { ipcRenderer } from "electron"
 import LearningSidebar from "./sidebarTools/learningSidebar"
+import ExtractionTSSidebar from "./sidebarTools/extractionTSSidebar"
 
 const LayoutManager = (props) => {
   const [activeSidebarItem, setActiveSidebarItem] = useState("home") // State to keep track of active nav item
@@ -39,12 +40,12 @@ const LayoutManager = (props) => {
         return <Input />
       case "learning":
         return <Learning pageId="123" />
-	  case "extraction_images":
-		return <ExtractionImagePage pageId='1234'/>;
-	  case "extraction_text":
-		return <ExtractionTextPage/>;
-	  case "extraction_ts":
-	    return <ExtractionTSPage/>;
+      case "extraction_images":
+        return <ExtractionImagePage pageId="1234" />
+      case "extraction_text":
+        return <ExtractionTextPage pageId="12345" />
+      case "extraction_ts":
+        return <ExtractionTSPage />
       case "discovery":
         return <DiscoveryPage />
       case "results":
@@ -71,6 +72,8 @@ const LayoutManager = (props) => {
         return <InputSidebar />
       case "learning":
         return <LearningSidebar />
+      case "extraction_ts":
+        return <ExtractionTSSidebar />
 
       default:
         return (

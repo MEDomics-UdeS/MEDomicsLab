@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react"
-import { loadCSVPath } from "../../utilities/fileManagementUtils"
 //data table
 import { DataTable } from "primereact/datatable"
 import { Column } from "primereact/column"
@@ -20,8 +19,12 @@ const DataTableWrapper = ({ data, tablePropsData, tablePropsColumn }) => {
   useEffect(() => {
     console.log("dataTable data refreshed: ", data)
     if (data != undefined) {
-      setRows(data)
       setHeader(getColumnsFromData(data))
+      // Remove header from data if its an array or arrays to avoid keeping it on rows
+      if (Array.isArray(data[0])) {
+        data.shift()
+      }
+      setRows(data)
     }
   }, [data])
 
@@ -33,11 +36,33 @@ const DataTableWrapper = ({ data, tablePropsData, tablePropsColumn }) => {
     let columns = <></>
     if (data.length > 0) {
       let keys = Object.keys(data[0])
-      columns = keys.map((key) => {
-        return (
-          <Column key={key} field={key} header={key} {...tablePropsColumn} />
-        )
-      })
+
+      // Depending of data type the process is different
+      if (Array.isArray(data[0])) {
+        // Case data is an array of arrays
+        columns = keys.map((key) => {
+          return (
+            <Column
+              key={key}
+              field={key}
+              header={data[0][key]}
+              {...tablePropsColumn}
+            />
+          )
+        })
+      } else {
+        // Case data is an array of dictionaries
+        columns = keys.map((key) => {
+          return (
+            <Column
+              key={key}
+              field={key}
+              header={[key]}
+              {...tablePropsColumn}
+            />
+          )
+        })
+      }
     }
     return columns
   }
