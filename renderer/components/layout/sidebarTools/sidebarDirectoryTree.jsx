@@ -4,7 +4,6 @@ import {
   Tree,
   StaticTreeDataProvider
 } from "react-complex-tree"
-import { WorkspaceContext } from "../../workspace/workspaceContext"
 import { DataContext } from "../../workspace/dataContext"
 import MedDataObject from "../../workspace/medDataObject"
 
@@ -19,7 +18,6 @@ const SidebarDirectoryTree = () => {
   // const environment = useRef()
   // const tree
 
-  const { workspace } = useContext(WorkspaceContext) // We get the workspace from the context to retrieve the directory tree of the workspace, thus retrieving the data files
   const { globalData, setGlobalData } = useContext(DataContext) // We get the global data from the context to retrieve the directory tree of the workspace, thus retrieving the data files
 
   const [dirTree, setDirTree] = useState({}) // We get the directory tree from the workspace
@@ -291,26 +289,6 @@ const SidebarDirectoryTree = () => {
     console.log("TREE TO SEND", treeToSend)
     return treeToSend
   }
-  const [staticTree, setStaticTree] = useState(
-    new StaticTreeDataProvider(dirTree, (item, data) => ({
-      ...item,
-      data
-    }))
-  )
-
-  useEffect(() => {
-    // const dataProvider = new StaticTreeDataProvider(dirTree, (item, data) => ({
-    //   ...item,
-    //   data
-    // }))
-    // dataProvider.onDidChangeTreeData(listener)
-    // setStaticTree(dataProvider)
-    // console.log("DIR TREE", dirTree)
-  }, [dirTree])
-
-  useEffect(() => {
-    console.log("Static TREE", staticTree)
-  }, [staticTree])
 
   useEffect(() => {
     console.log("GLOBAL DATA", globalData)

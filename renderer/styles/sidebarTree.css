@@ -58,7 +58,7 @@
   padding-left: var(--rct-search-text-offset) !important;
   margin: 0 !important;
   border: 1px solid var(--rct-search-border) !important;
-  border-bottom: 2px solid var(--rct-search-border-bottom) !important !important;
+  border-bottom: 2px solid var(--rct-search-border-bottom) !important ;
   border-radius: var(--rct-radius) !important;
   background-color: var(--rct-search-bg) !important;
   color: var(--rct-search-text) !important;
