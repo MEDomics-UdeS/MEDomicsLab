@@ -1,7 +1,4 @@
-import React, { useContext, useRef, useState, useEffect } from "react"
-import { Accordion, Stack } from "react-bootstrap"
-import { Folder } from "react-bootstrap-icons"
-import { SidebarFolder, SidebarFile } from "./components"
+import React, { useContext, useState, useEffect } from "react"
 import {
   UncontrolledTreeEnvironment,
   Tree,
@@ -10,17 +7,7 @@ import {
 import { WorkspaceContext } from "../../workspace/workspaceContext"
 import { DataContext } from "../../workspace/dataContext"
 import MedDataObject from "../../workspace/medDataObject"
-import renderers from "./renderers"
-import { assert } from "console"
-import { toast } from "react-toastify"
-import {
-  showContextMenu,
-  Menu,
-  MenuDivider,
-  MenuItem,
-  hideContextMenu
-} from "@blueprintjs/core"
-import MedContextMenu from "./medContextMenu"
+
 const cx = (...classNames) => classNames.filter((cn) => !!cn).join(" ")
 
 /**
@@ -37,21 +24,23 @@ const SidebarDirectoryTree = () => {
 
   const [dirTree, setDirTree] = useState({}) // We get the directory tree from the workspace
 
-  const [showContextMenu, setShowContextMenu] = useState({"show": false, 'id': ''}) // We get the directory tree from the workspace
+  const [showContextMenu, setShowContextMenu] = useState({
+    show: false,
+    id: ""
+  }) // We get the directory tree from the workspace
   const [contextMenuPosition, setContextMenuPosition] = useState({
     x: 0,
     y: 0
   })
 
   const renderItem = (
-    { item, depth, children, title, context, arrow, info, ...test },
+    { item, depth, children, title, context, arrow },
     additionalParams
   ) => {
     const InteractiveComponent = context.isRenaming ? "div" : "button"
 
     const type = context.isRenaming ? undefined : "button"
 
-    
     // TODO have only root li component create all the classes
     return (
       <>
@@ -95,42 +84,66 @@ const SidebarDirectoryTree = () => {
                 context.isDraggingOver && "rct-tree-item-button-dragging-over",
                 context.isSearchMatching && "rct-tree-item-button-search-match"
               )}
-
               onContextMenu={(e) => {
                 console.log("CONTEXT MENU", e.target)
-                additionalParams.setShowContextMenu({"show": true, "id": e.target})
-                additionalParams.setContextMenuPosition({ x: e.clientX, y: e.clientY })
+                additionalParams.setShowContextMenu({
+                  show: true,
+                  id: e.target
+                })
+                additionalParams.setContextMenuPosition({
+                  x: e.clientX,
+                  y: e.clientY
+                })
                 // e.target.click()
-                e.preventDefault()  
+                e.preventDefault()
                 // console.log("CONTEXT MENU", e.target)
               }}
-
             >
               {additionalParams.showContextMenu["show"] && (
-              <div
-                className="context-menu-overlay"
-                style={{
-                  position: "fixed",
-                  left: additionalParams.contextMenuPosition.x,
-                  top: additionalParams.contextMenuPosition.y
-                }}
-              >
-                <ul className="context-menu" title={title}>
-                  <li onClick={(e)=>{handleContextMenuAction("Open", additionalParams.showContextMenu.id)}}>
-                    Open
-                  </li>
-                  <li onClick={(e)=>{handleContextMenuAction("Rename", additionalParams.showContextMenu.id)}}>
-                    Rename
-                  </li>
-                  <li onClick={(e)=>{handleContextMenuAction("Delete", additionalParams.showContextMenu.id)}}>
-                    Delete 
-                  </li>
-                </ul>
-              </div>
-            )}
+                <div
+                  className="context-menu-overlay"
+                  style={{
+                    position: "fixed",
+                    left: additionalParams.contextMenuPosition.x,
+                    top: additionalParams.contextMenuPosition.y
+                  }}
+                >
+                  <ul className="context-menu" title={title}>
+                    <li
+                      onClick={() => {
+                        handleContextMenuAction(
+                          "Open",
+                          additionalParams.showContextMenu.id
+                        )
+                      }}
+                    >
+                      Open
+                    </li>
+                    <li
+                      onClick={() => {
+                        handleContextMenuAction(
+                          "Rename",
+                          additionalParams.showContextMenu.id
+                        )
+                      }}
+                    >
+                      Rename
+                    </li>
+                    <li
+                      onClick={() => {
+                        handleContextMenuAction(
+                          "Delete",
+                          additionalParams.showContextMenu.id
+                        )
+                      }}
+                    >
+                      Delete
+                    </li>
+                  </ul>
+                </div>
+              )}
               {title}
             </InteractiveComponent>
-            
           </div>
           {children}
         </li>
@@ -138,28 +151,22 @@ const SidebarDirectoryTree = () => {
     )
   }
 
-  
-
-
-  function handleContextMenuAction(action, name)
-   {
-    let nameId = name.dataset['rctItemId']
+  function handleContextMenuAction(action, name) {
+    let nameId = name.dataset["rctItemId"]
     console.log("ACTION", action)
-    console.log("NAME", name.dataset['rctItemId'])
-    
+    console.log("NAME", name.dataset["rctItemId"])
+
     console.log(globalData[nameId])
 
     if (action === "Open") {
       console.log("OPEN")
-    }
-    else if (action === "Rename") {
+    } else if (action === "Rename") {
       console.log("RENAME")
-    }
-    else if (action === "Delete") {
+    } else if (action === "Delete") {
       console.log("DELETE")
       onDelete(nameId)
     }
-    setShowContextMenu({"show": false, "id":""})
+    setShowContextMenu({ show: false, id: "" })
   }
 
   /**
@@ -168,10 +175,10 @@ const SidebarDirectoryTree = () => {
    */
   function handleFocusOut(event) {
     console.log("FOCUS OUT", event)
-      // if (showContextMenu && !event.target.closest(".context-menu-overlay")) {
-      //   setShowContextMenu({"show": false, "id":""})
-      // }
-    
+    // if (showContextMenu && !event.target.closest(".context-menu-overlay")) {
+    //   setShowContextMenu({"show": false, "id":""})
+    // }
+
     // setShowContextMenu({"show": false, "id":""})
   }
 
@@ -181,7 +188,7 @@ const SidebarDirectoryTree = () => {
    */
   function handleKeyDown(event) {
     if (event.key === "Escape") {
-      setShowContextMenu({"show": false, "id":""})
+      setShowContextMenu({ show: false, id: "" })
     }
   }
 
@@ -191,14 +198,14 @@ const SidebarDirectoryTree = () => {
    */
   function handleClickOutside(event) {
     if (showContextMenu && !event.target.closest(".context-menu-overlay")) {
-      setShowContextMenu({"show": false, "id":""})
-    }
-    else if (showContextMenu && event.target.closest(".context-menu-overlay")) {
+      setShowContextMenu({ show: false, id: "" })
+    } else if (
+      showContextMenu &&
+      event.target.closest(".context-menu-overlay")
+    ) {
       // console.log("CLICKED INSIDE")
-
     }
   }
-  
 
   /**
    * Handles the context menu outside event on the sidebar file component to hide the context menu.
@@ -218,51 +225,26 @@ const SidebarDirectoryTree = () => {
     }
   }, [showContextMenu])
 
-  function verifyAuthenticity(medObject, foundObject) {
-    if (medObject.path !== foundObject.path) {
-      toast.error(
-        `The file ${medObject.name} has been moved or deleted outside of the application. The path found is ${foundObject.path} and the one expected was ${medObject.path}.`
-      )
-      return false
-    } else if (medObject.type !== foundObject.type) {
-      toast.error(
-        `The file ${medObject.name} has been modified outside of the application. The type found is ${foundObject.type} and the one expected was ${medObject.type}.`
-      )
-      return false
-    } else if (medObject.name !== foundObject.name) {
-      toast.error(
-        `The file ${medObject.name} has been renamed outside of the application. The name found is ${foundObject.name} and the one expected was ${medObject.name}.`
-      )
-      return false
-    }
-    return true
-  }
-
   function onDelete(uuid) {
-		// Get the UUID of the `MedDataObject` with the current name from the `globalData` object.
-		
+    // Get the UUID of the `MedDataObject` with the current name from the `globalData` object.
+
     if (uuid == "") {
-			console.log("Error: UUID not found")
-			return
-		}
-    else if (uuid == "UUID_ROOT") {
+      console.log("Error: UUID not found")
+      return
+    } else if (uuid == "UUID_ROOT") {
       console.log("Error: Cannot delete root")
       return
-    }
-    else if (globalData[uuid] == undefined) {
+    } else if (globalData[uuid] == undefined) {
       console.log("Error: UUID not found in globalData")
+    } else {
+      // Delete the `MedDataObject` with the current name from the `globalData` object.
+      let globalDataCopy = { ...globalData }
+      MedDataObject.delete(globalDataCopy[uuid])
+      delete globalDataCopy[uuid]
+      setGlobalData(globalDataCopy)
+      MedDataObject.updateWorkspaceDataObject(300)
     }
-
-		else {
-			// Delete the `MedDataObject` with the current name from the `globalData` object.
-			let globalDataCopy = { ...globalData }
-			MedDataObject.delete(globalDataCopy[uuid])
-			delete globalDataCopy[uuid]
-			setGlobalData(globalDataCopy)
-			MedDataObject.updateWorkspaceDataObject(300)
-		}
-	}
-
+  }
 
   function handleNameChange(medObject, newName) {
     // Check if the new name is the same as the current name.
@@ -309,26 +291,13 @@ const SidebarDirectoryTree = () => {
     console.log("TREE TO SEND", treeToSend)
     return treeToSend
   }
-  const [staticTree, setStaticTree] = useState(new StaticTreeDataProvider(dirTree, (item, data) => ({
-    ...item,
-    data
-  })))
+  const [staticTree, setStaticTree] = useState(
+    new StaticTreeDataProvider(dirTree, (item, data) => ({
+      ...item,
+      data
+    }))
+  )
 
-  
-
-  async function listener(changedItemIds) {
-    // const changedItems = changedItemIds.map(dataProvider.getTreeItem)
-    console.log("CHANGED ITEMS", changedItemIds)
-    changedItemIds.forEach((changedItemId) => {
-      staticTree.getTreeItem(changedItemId).then((item) => {
-        console.log("ITEM", item)
-        let medDataObject = globalData[item.UUID]
-        console.log("MED DATA OBJECT", medDataObject)
-      })
-    })
-  }
-
-  
   useEffect(() => {
     // const dataProvider = new StaticTreeDataProvider(dirTree, (item, data) => ({
     //   ...item,
@@ -337,28 +306,20 @@ const SidebarDirectoryTree = () => {
     // dataProvider.onDidChangeTreeData(listener)
     // setStaticTree(dataProvider)
     // console.log("DIR TREE", dirTree)
-
-
   }, [dirTree])
 
   useEffect(() => {
-    
     console.log("Static TREE", staticTree)
-
-
   }, [staticTree])
-
 
   useEffect(() => {
     console.log("GLOBAL DATA", globalData)
     if (globalData) {
-
-      let newTree = fromJSONtoTree({...globalData})
+      let newTree = fromJSONtoTree({ ...globalData })
       console.log("NEW TREE", newTree)
       setDirTree(newTree)
     }
   }, [globalData])
-  
 
   // This component is used to render a directory tree in the sidebar
   // console.log("PROPS", props)
@@ -367,10 +328,12 @@ const SidebarDirectoryTree = () => {
     <>
       <UncontrolledTreeEnvironment
         props={{ "data-testid": "tree-environment" }}
-        dataProvider={new StaticTreeDataProvider({dirTree}, (item, data) => ({
-          ...item,
-          data
-        }))}
+        dataProvider={
+          new StaticTreeDataProvider(dirTree, (item, data) => ({
+            ...item,
+            data
+          }))
+        }
         getItemTitle={(item) => item.data}
         viewState={{}}
         canDropOnFolder={true}
@@ -386,7 +349,9 @@ const SidebarDirectoryTree = () => {
         onPrimaryAction={(item) => {
           console.log("ITEM-PrimaryAction", item)
         }}
-
+        onSearchItem={(searchString) => {
+          console.log("SEARCH STRING", searchString)
+        }}
         renderItem={(json) =>
           renderItem(json, {
             showContextMenu,
@@ -397,7 +362,12 @@ const SidebarDirectoryTree = () => {
           })
         }
       >
-        <Tree treeId="tree-1" rootItem="UUID_ROOT" treeLabel="tree" test={globalData} />
+        <Tree
+          treeId="tree-1"
+          rootItem="UUID_ROOT"
+          treeLabel="tree"
+          // test={globalData}
+        />
       </UncontrolledTreeEnvironment>
     </>
   )

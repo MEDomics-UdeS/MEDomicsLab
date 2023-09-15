@@ -71,7 +71,7 @@
   padding-left: 0.1rem;
   color: #dfdfdf;
   font-size: 0.85rem;
-  box-shadow: 0 0 0 0.1rem rgba(39, 39, 39, 0.544);
+  box-shadow: 0 6px 2px -2px #20202077 !important;
 }
 .accordion-button:focus {
   z-index: 2;
@@ -237,6 +237,8 @@
 
 .accordion-button {
   display: inline-block !important;
+  background-color: #222222;
+  box-shadow: 0 0 0 0.1rem rgba(39, 39, 39, 0.544);
 }
 .accordion-button > div > p {
   padding-left: 1rem;

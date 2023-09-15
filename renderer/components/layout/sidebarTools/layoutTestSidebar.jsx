@@ -4,7 +4,7 @@ import { Folder } from "react-bootstrap-icons"
 import { SidebarFile, SidebarFolder } from "./components"
 import { LayoutModelContext } from "../layoutContext"
 import { useEffect } from "react"
-import { WorkspaceDirectoryTree } from "./workspaceDirectoryTree"
+import { SidebarDirectoryTreeControlled } from "./sidebarDirectoryTreeControlled"
 
 const LayoutTestSidebar = () => {
   /**
@@ -100,7 +100,7 @@ const LayoutTestSidebar = () => {
               </Stack>
             </Accordion.Header>
             <Accordion.Body className="sidebar-acc-body">
-              <WorkspaceDirectoryTree />
+              <SidebarDirectoryTreeControlled />
             </Accordion.Body>
           </Accordion.Item>
         </Accordion>

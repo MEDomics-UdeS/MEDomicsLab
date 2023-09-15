@@ -2,8 +2,7 @@ import React, { useContext } from "react"
 import { Accordion, Button, Stack } from "react-bootstrap"
 import { WorkspaceContext } from "../../workspace/workspaceContext"
 import { ipcRenderer } from "electron"
-import { SidebarDirectoryTree } from "./sidebarDirectoryTree"
-
+import { SidebarDirectoryTreeControlled } from "./sidebarDirectoryTreeControlled"
 const ExplorerSidebar = () => {
   // eslint-disable-next-line no-unused-vars
   const { workspace } = useContext(WorkspaceContext) // We get the workspace from the context to retrieve the directory tree of the workspace, thus retrieving the data files
@@ -30,26 +29,31 @@ const ExplorerSidebar = () => {
         >
           EXPLORER - TO BE IMPLEMENTED
         </p>
-        <Accordion defaultActiveKey={["0"]} alwaysOpen>
+        <Accordion defaultActiveKey={["0", "1"]} alwaysOpen>
           <Accordion.Item eventKey="0">
             <Accordion.Header>
               <Stack direction="horizontal" style={{ flexGrow: "1" }}>
-                <p>OPEN EDITORS</p>
+                <p style={{ marginBottom: "0px", paddingLeft: "1rem" }}>
+                  <strong>WORKSPACE</strong>
+                </p>
+                <div style={{ flexGrow: "10" }} />
+              </Stack>
+            </Accordion.Header>
+            <Accordion.Body>
+              <Button onClick={handleWorkspaceChange}>Change Workspace</Button>
+            </Accordion.Body>
+          </Accordion.Item>
+          <Accordion.Item eventKey="2">
+            <Accordion.Header>
+              <Stack direction="horizontal" style={{ flexGrow: "1" }}>
+                <p>
+                  <strong>OPEN EDITORS</strong>
+                </p>
                 <div style={{ flexGrow: "10" }} />
               </Stack>
             </Accordion.Header>
             <Accordion.Body className="sidebar-acc-body">
-              <SidebarDirectoryTree name="test" />
-            </Accordion.Body>
-          </Accordion.Item>
-          <Accordion.Item eventKey="1">
-            <Accordion.Header>
-              <p style={{ marginBottom: "0px", paddingLeft: "1rem" }}>
-                WORKSPACE
-              </p>
-            </Accordion.Header>
-            <Accordion.Body>
-              <Button onClick={handleWorkspaceChange}>Change Workspace</Button>
+              <SidebarDirectoryTreeControlled name="test" />
             </Accordion.Body>
           </Accordion.Item>
         </Accordion>

@@ -205,7 +205,6 @@ export default class MedDataObject {
    * @returns {string} - The new name for the MED data object.
    */
   static rename(dataObject, newName, globalDataContext) {
-   
     let newNameFound = this.getNewName({
       dataObject: dataObject,
       newName: newName,
@@ -275,10 +274,10 @@ export default class MedDataObject {
     let copyIndex = 1
     let newNameWithoutExtension = newName
     let dataObjectSuffix = ""
-    if ( dataObject.type !== "folder") {
+    if (dataObject.type !== "folder") {
       newNameWithoutExtension = splitStringAtTheLastSeparator(newName, ".")[0]
       dataObjectSuffix = "." + dataObject.extension
-    } 
+    }
 
     console.log("newNameWithoutExtension: " + newNameWithoutExtension)
     if (globalDataContext === undefined) {
@@ -365,7 +364,9 @@ export default class MedDataObject {
    * @param {string} newName - The new name for the `MedDataObject` instance.
    * @returns {MedDataObject} - The modified `MedDataObject` instance.
    */
+
   rename(newName) {
+    // const { process } = require("node")
     let separator = "\\"
     this.name = newName
     let oldPath = this.path
@@ -374,7 +375,7 @@ export default class MedDataObject {
     let cwdSlashTypeInv = cwdSlashType == "/" ? "\\" : "/"
     if (process.platform === "win32") {
       separator = "\\"
-    } else if (process.platform === "linux") {
+    } else if (typeof process !== "undefined" && process.platform === "linux") {
       separator = "/"
     }
     let newPath =
