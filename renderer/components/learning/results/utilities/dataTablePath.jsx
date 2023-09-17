@@ -22,7 +22,8 @@ const DataTablePath = ({ path }) => {
           paginator: true,
           rows: 10,
           scrollable: true,
-          scrollHeight: "400px"
+          scrollHeight: "400px",
+          size: "small"
         }}
         tablePropsColumn={{
           sortable: true

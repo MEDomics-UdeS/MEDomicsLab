@@ -54,20 +54,7 @@ const IconSidebar = ({ onSidebarItemSelect }) => {
 
   return (
     <>
-      <div
-        className="col"
-        style={{
-          display: "flex",
-          position: "relative",
-          height: "100%",
-          width: "55px",
-          maxWidth: "55px",
-          minWidth: "55px",
-          backgroundColor: "#3a3a3a",
-          borderRadius: "0px !important",
-          paddingRight: "0px"
-        }}
-      >
+      <div className="icon-sidebar">
         <Nav
           defaultActiveKey="/home"
           className="flex-column"

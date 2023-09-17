@@ -5,13 +5,8 @@ import { FlowResultsContext } from "../../flow/context/flowResultsContext"
 import { FlowInfosContext } from "../../flow/context/flowInfosContext"
 import Button from "react-bootstrap/Button"
 import * as Icon from "react-bootstrap-icons"
-import { deepCopy } from "../../../utilities/staticFunctions"
-import DataParamResults from "./node/dataParamResults"
-import ModelsResults from "./node/modelsResults"
-import { TabView, TabPanel } from "primereact/tabview"
-import { Menubar } from "primereact/menubar"
 import PipelinesResults from "./pipelinesResults"
-import { Accordion, AccordionTab } from "primereact/accordion"
+import { RadioButton } from "primereact/radiobutton"
 
 /**
  *
@@ -22,33 +17,12 @@ import { Accordion, AccordionTab } from "primereact/accordion"
  *
  */
 const ResultsPane = () => {
-  const { setShowResultsPane, what2show, flowResults } =
-    useContext(FlowResultsContext)
+  const { setShowResultsPane, flowResults } = useContext(FlowResultsContext)
   const { flowContent } = useContext(FlowInfosContext)
   const [selectedPipelines, setSelectedPipelines] = useState([])
-
-  const [body, setBody] = useState(<></>)
-  const [title, setTitle] = useState("")
+  const [selectionMode, setSelectionMode] = useState("Compare Mode")
 
   const handleClose = () => setShowResultsPane(false)
-
-  // callback function to update title and body when what2show changes
-  useEffect(() => {
-    // console.log("results update", what2show, flowResults)
-    // if (what2show == "" || Object.keys(flowResults).length == 0) {
-    //   setTitle("Results")
-    //   setBody(PipelineResult
-    //     <>
-    //       <div style={{ textAlign: "center" }}>
-    //         <h6>Nothing is selected or results are not generated yet </h6>
-    //       </div>
-    //     </>
-    //   )
-    // } else {
-    //   setTitle(createTitle())
-    //   setBody(createBody())
-    // }
-  }, [what2show, flowResults])
 
   useEffect(() => {
     console.log("results update - flowContent", flowContent, flowResults)
@@ -83,10 +57,6 @@ const ResultsPane = () => {
       setSelectedPipelines(selectedPipelines)
     }
   }, [flowContent, flowResults])
-
-  useEffect(() => {
-    console.log("selectedPipelines", selectedPipelines)
-  }, [selectedPipelines])
 
   function findAllPaths(flowContent) {
     let links = flowContent.edges
@@ -139,7 +109,41 @@ const ResultsPane = () => {
       <Col className=" padding-0 results-Panel">
         <Card>
           <Card.Header>
-            <h5>Results</h5>
+            <div className="flex justify-content-center">
+              <div className="gap-3 results-header">
+                <div className="flex align-items-center">
+                  <h5>Results</h5>
+                </div>
+                {selectedPipelines.length > 1 && (
+                  <>
+                    <div className="flex align-items-center">
+                      <RadioButton
+                        inputId="compareMode"
+                        name="selectionModeGroup"
+                        value="Compare Mode"
+                        onChange={(e) => setSelectionMode(e.value)}
+                        checked={selectionMode == "Compare Mode"}
+                      />
+                      <label htmlFor="compareMode" className="ml-2">
+                        Compare Mode
+                      </label>
+                    </div>
+                    <div className="flex align-items-center">
+                      <RadioButton
+                        inputId="singleSelection"
+                        name="pizza"
+                        value="Single Selection"
+                        onChange={(e) => setSelectionMode(e.value)}
+                        checked={selectionMode == "Single Selection"}
+                      />
+                      <label htmlFor="singleSelection" className="ml-2">
+                        Single Selection
+                      </label>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
             <Button
               variant="outline closeBtn closeBtn-resultsPane end-5"
               onClick={handleClose}
@@ -148,7 +152,10 @@ const ResultsPane = () => {
             </Button>
           </Card.Header>
           <Card.Body>
-            <PipelinesResults pipelines={selectedPipelines} />
+            <PipelinesResults
+              pipelines={selectedPipelines}
+              selectionMode={selectionMode}
+            />
           </Card.Body>
         </Card>
       </Col>

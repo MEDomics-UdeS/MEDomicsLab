@@ -11,11 +11,35 @@ import { SelectButton } from "primereact/selectbutton"
 import { FlowInfosContext } from "../../flow/context/flowInfosContext"
 import { FlowResultsContext } from "../../flow/context/flowResultsContext"
 
-const PipelineResult = ({ pipeline, selectedId }) => {
+const PipelineResult = ({ pipeline, selectionMode }) => {
   const [body, setBody] = useState(<></>)
-  const [what2show, setWhat2show] = useState("")
-  const { flowResults } = useContext(FlowResultsContext)
+  const { flowResults, selectedResultsId } = useContext(FlowResultsContext)
   const { flowContent } = useContext(FlowInfosContext)
+  const [selectedId, setSelectedId] = useState(null)
+
+  useEffect(() => {
+    console.log("selectedResultsId", selectedResultsId)
+    // let pipelineId = pipeline.join("-")
+    // if (selectedResultsId) {
+    //   if (selectedResultsId[pipelineId]) {
+    //     setSelectedId(selectedResultsId[pipelineId])
+    //   } else {
+    //     setSelectedId(selectedResultsId)
+    //   }
+    // } else {
+    //   setSelectedId(null)
+    // }
+
+    setSelectedId(
+      !selectedResultsId || selectionMode == "Compare Mode"
+        ? selectedResultsId
+        : selectedResultsId[pipeline.join("-")]
+    )
+  }, [selectedResultsId])
+
+  useEffect(() => {
+    console.log("selectedId", selectedId)
+  }, [selectedId])
 
   useEffect(() => {
     if (pipeline.length == 0) {
@@ -24,7 +48,7 @@ const PipelineResult = ({ pipeline, selectedId }) => {
       console.log("pipeline result update", pipeline)
       setBody(createBody())
     }
-  }, [pipeline])
+  }, [pipeline, selectedId])
 
   // check if object render
   useEffect(() => {
@@ -55,15 +79,18 @@ const PipelineResult = ({ pipeline, selectedId }) => {
       let selectedNode = flowContent.nodes.find((node) => node.id == selectedId)
       console.log("selectedId", selectedId)
       console.log("selectedNode", selectedNode)
-
-      let selectedResults = deepCopy(flowResults)
+      console.log("flowResults", flowResults)
+      let resultsCopy = deepCopy(flowResults)
+      let selectedResults = false
       pipeline.forEach((id) => {
-        selectedResults = checkIfObjectContainsId(selectedResults, id)
-        if (selectedResults) {
+        console.log("id", id)
+        resultsCopy = checkIfObjectContainsId(resultsCopy, id)
+        console.log("resultsCopy", resultsCopy)
+        if (resultsCopy) {
           if (id == selectedId) {
-            selectedResults = selectedResults.results
+            selectedResults = resultsCopy.results
           } else {
-            selectedResults = selectedResults.next_nodes
+            resultsCopy = resultsCopy.next_nodes
           }
         } else {
           console.log("id " + selectedId + " not found in results")
@@ -82,46 +109,114 @@ const PipelineResult = ({ pipeline, selectedId }) => {
     }
 
     return toReturn
-  }, [pipeline, flowResults, selectedId])
+  }, [pipeline, flowResults, selectedId, flowContent])
 
   return <>{body}</>
 }
 
-const PipelinesResults = ({ pipelines }) => {
+const PipelinesResults = ({ pipelines, selectionMode }) => {
   const { flowContent } = useContext(FlowInfosContext)
-  const [selectedId, setSelectedId] = useState(null)
+  // const [selectedId, setSelectedId] = useState(null)
+  const { selectedResultsId, setSelectedResultsId } =
+    useContext(FlowResultsContext)
+  const [accordionActiveIndex, setAccordionActiveIndex] = useState([])
 
-  const createTitleFromPipe = (pipeline) => {
-    const getName = (id) => {
-      let node = flowContent.nodes.find((node) => node.id == id)
-      return node.data.internal.name
-    }
-    let items = []
-    pipeline.forEach((id) => {
-      items.push({ name: getName(id), value: id })
-    })
-    return (
-      <SelectButton
-        value={selectedId}
-        onChange={(e) => setSelectedId(e.value)}
-        optionLabel="name"
-        options={items}
-      />
-    )
-  }
+  useEffect(() => {
+    setSelectedResultsId(null)
+    setAccordionActiveIndex([])
+  }, [selectionMode])
+
+  useEffect(() => {
+    console.log("accordionActiveIndex", accordionActiveIndex)
+  }, [accordionActiveIndex])
+
+  const createTitleFromPipe = useCallback(
+    (pipeline) => {
+      let pipelineId = pipeline.join("-")
+      const getName = (id) => {
+        let node = flowContent.nodes.find((node) => node.id == id)
+        return node.data.internal.name
+      }
+
+      const isChecked = (id) => {
+        let node = flowContent.nodes.find((node) => node.id == id)
+        return node.data.internal.results.checked
+      }
+
+      const buttonTemplate = (option) => {
+        return (
+          <div className="pipeline-results-button">
+            <span className={option.class}>{option.name}</span>
+          </div>
+        )
+      }
+
+      if (selectionMode == "Compare Mode") {
+        return (
+          <SelectButton
+            value={selectedResultsId}
+            onChange={(e) => {
+              e.preventDefault()
+              e.stopPropagation()
+              setSelectedResultsId(e.value)
+            }}
+            optionLabel="name"
+            options={pipeline.map((id) => {
+              return {
+                name: getName(id),
+                value: id,
+                class: isChecked(id) ? "checked" : "unchecked"
+              }
+            })}
+            itemTemplate={buttonTemplate}
+          />
+        )
+      } else {
+        return (
+          <SelectButton
+            value={selectedResultsId && selectedResultsId[pipelineId]}
+            onChange={(e) => {
+              e.preventDefault()
+              e.stopPropagation()
+              let newSelectedIds = { ...selectedResultsId }
+              newSelectedIds[pipelineId] = e.value
+              setSelectedResultsId(newSelectedIds)
+            }}
+            optionLabel="name"
+            options={pipeline.map((id) => {
+              return {
+                name: getName(id),
+                value: id,
+                class: isChecked(id) ? "checked" : "unchecked"
+              }
+            })}
+            itemTemplate={buttonTemplate}
+          />
+        )
+      }
+    },
+    [selectedResultsId, setSelectedResultsId, selectionMode, flowContent]
+  )
 
   return (
-    <Accordion multiple>
+    // <ScrollPanel style={{ width: "100%", height: "60vh" }}>
+    <Accordion
+      multiple
+      activeIndex={accordionActiveIndex}
+      onTabChange={(e) => setAccordionActiveIndex(e.index)}
+      className="pipeline-results-accordion"
+    >
       {pipelines.map((pipeline, index) => (
         <AccordionTab key={index} header={createTitleFromPipe(pipeline)}>
           <PipelineResult
             key={index}
             pipeline={pipeline}
-            selectedId={selectedId}
+            selectionMode={selectionMode}
           />
         </AccordionTab>
       ))}
     </Accordion>
+    // </ScrollPanel>
   )
 }
 

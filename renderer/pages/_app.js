@@ -165,12 +165,12 @@ export default function App() {
   return (
     <>
       <Head>
-        <title>MedomicsLab App</title>
         <meta name="viewport" content="initial-scale=1.0, width=device-width" />
+        <title>MedomicsLab App</title>
         {/* <script src="http://localhost:8097"></script> */}
         {/* Uncomment if you want to use React Dev tools */}
       </Head>
-      <div style={{ height: "100%" }}>
+      <div style={{ height: "100%", width: "100%" }}>
         <WorkspaceProvider
           workspace={workspaceObject}
           setWorkspace={setWorkspaceObject}

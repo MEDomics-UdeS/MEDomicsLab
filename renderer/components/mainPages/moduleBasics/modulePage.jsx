@@ -40,7 +40,7 @@ const ModulePageWithProvider = ({
     })
   }, [pageId, config])
 
-  return <>{children}</>
+  return <div className="module-page">{children}</div>
 }
 
 /**

@@ -60,7 +60,7 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
   const [isProgressUpdating, setIsProgressUpdating] = useState(false) // progress is used to store the progress of the workflow execution
   const { pageInfos } = useContext(PageInfosContext) // used to get the page infos such as id and config path
   const { groupNodeId, changeSubFlow } = useContext(FlowFunctionsContext)
-  const { setShowResultsPane, setWhat2show, updateFlowResults } =
+  const { setShowResultsPane, updateFlowResults } =
     useContext(FlowResultsContext)
   const { port } = useContext(WorkspaceContext)
   const [showError, setShowError] = useState(false)
@@ -791,11 +791,9 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
     if (info.key == treeActiveKey) {
       setTreeActiveKey("null")
       setShowResultsPane(false)
-      setWhat2show("")
     } else {
       setTreeActiveKey(info.key)
       setShowResultsPane(true)
-      setWhat2show(info.key)
     }
   }
 
@@ -856,16 +854,7 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
         ui={
           <>
             {/* top left corner - Tree menu*/}
-            <div className="btn-panel-top-corner-left">
-              <TreeMenu
-                data={treeData}
-                onClickItem={onTreeItemClick}
-                debounceTime={125}
-                hasSearch={false}
-                activeKey={treeActiveKey}
-                focusKey={treeActiveKey}
-              />
-            </div>
+            <div className="btn-panel-top-corner-left"></div>
             {/* top right corner - buttons */}
             <div className="btn-panel-top-corner-right">
               {workflowType == "learning" && (

@@ -69,7 +69,7 @@ const FlowPageBaseWithFlowInfos = ({ children, workflowType }) => {
       <OffCanvasBackdropStyleProvider>
         <PanelGroup
           className="width-100 height-100 "
-          style={{ overflow: "hidden" }}
+          style={{ height: "100%", display: "flex", flexGrow: 1 }}
           direction="horizontal"
         >
           <Panel
@@ -91,8 +91,8 @@ const FlowPageBaseWithFlowInfos = ({ children, workflowType }) => {
           <PanelResizeHandle />
           <Panel minSize={25} order={2}>
             <PanelGroup
-              className="width-100 height-100 panel-group"
-              style={{ overflow: "hidden" }}
+              className="width-100 height-100"
+              style={{ paddingLeft: "0.25rem" }}
               direction="vertical"
             >
               <Panel order={1}>

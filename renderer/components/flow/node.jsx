@@ -166,6 +166,7 @@ const NodeObject = ({ id, data, nodeSpecific, nodeBody, defaultSettings }) => {
           scroll
           backdrop
           container={offcanvasComp}
+          className="margin-0_5rem"
         >
           <Offcanvas.Header closeButton>
             <Offcanvas.Title>

@@ -414,19 +414,21 @@ const WorkflowBase = ({
         <Background /> <MiniMap className="minimapStyle" zoomable pannable />{" "}
         <Controls />
         {ui}
-        <Button variant="outline btn-top-left-menu" onClick={handleShow}>
-          <Icon.List width="30px" height="30px" />
-        </Button>
-        <ToggleButton
-          onLabel="Results mode on"
-          offLabel="See results"
-          onIcon="pi pi-chart-bar"
-          offIcon="pi pi-eye"
-          disabled={!isResults}
-          checked={showResultsPane}
-          onChange={(e) => setShowResultsPane(e.value)}
-          className="btn-bottom-show-results"
-        />
+        <div className="btn-panel-top-corner-left gap-2">
+          <Button variant="outline btn-top-left-menu" onClick={handleShow}>
+            <Icon.List width="30px" height="30px" />
+          </Button>
+          <ToggleButton
+            onLabel="Results mode on"
+            offLabel="See results"
+            onIcon="pi pi-chart-bar"
+            offIcon="pi pi-eye"
+            disabled={!isResults}
+            checked={showResultsPane}
+            onChange={(e) => setShowResultsPane(e.value)}
+            className="btn-bottom-show-results"
+          />
+        </div>
       </ReactFlow>
     </div>
   )

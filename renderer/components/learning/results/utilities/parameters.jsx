@@ -4,6 +4,7 @@ import { Column } from "primereact/column"
 
 const Parameters = ({ params, tableProps, columnNames }) => {
   const [data, setData] = useState([])
+  const [selectedRows, setSelectedRows] = useState([])
   useEffect(() => {
     console.log("params", params)
     if (params) {
@@ -20,7 +21,14 @@ const Parameters = ({ params, tableProps, columnNames }) => {
 
   return (
     <>
-      <DataTable value={data} stripedRows {...tableProps}>
+      <DataTable
+        value={data}
+        stripedRows
+        {...tableProps}
+        selectionMode="multiple"
+        selection={selectedRows}
+        onSelectionChange={(e) => setSelectedRows(e.value)}
+      >
         <Column field="param" header={columnNames[0]} />
         <Column field="Value" header={columnNames[1]} />
       </DataTable>

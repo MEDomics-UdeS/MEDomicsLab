@@ -77,19 +77,21 @@ const LayoutManager = (props) => {
 
   return (
     <>
-      <div className="row" style={{ height: "100%" }}>
+      <div style={{ height: "100%", display: "flex", width: "100%" }}>
         <IconSidebar
           onSidebarItemSelect={handleSidebarItemSelect}
           activeSidebarItem={activeSidebarItem}
         />
         <div
-          className="col"
-          style={{
-            height: "100%",
-            width: "98%",
-            padding: "0px",
-            display: "grid"
-          }}
+          // style={{
+          //   flexGrow: 1,
+          //   width: "100%",
+          //   position: "absolute",
+          //   left: "55px",
+          //   height: "100%",
+          //   paddingRight: "0.5rem",
+          // }}
+          className="main-app-container"
         >
           <PanelGroup autoSaveId="test" direction="horizontal">
             <Panel

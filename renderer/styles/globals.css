@@ -70,6 +70,7 @@
     --callout-border-rgb: 108, 108, 108;
     --card-rgb: 100, 100, 100;
     --card-border-rgb: 200, 200, 200;
+    --sidebar-width: 3rem;
   }
 }
 
@@ -93,6 +94,25 @@ body {
   height: 100vh;
   position: relative;
   z-index: 1000;
+}
+
+.icon-sidebar {
+  display: flex;
+  width: var(--sidebar-width);
+  background-color: #3a3a3a;
+  border-radius: 0 !important;
+  padding-right: 0;
+  min-width: var(--sidebar-width);
+  max-width: var(--sidebar-width);
+}
+
+.main-app-container {
+  flex-grow: 1;
+  width: 100%;
+  position: absolute;
+  left: var(--sidebar-width);
+  height: 100%;
+  padding-right: var(--sidebar-width);
 }
 
 a {
@@ -187,4 +207,17 @@ hr.solid {
 
 body {
   font-family: var(--font-family);
+}
+
+.module-page {
+  padding: 0.5rem;
+  height: 100%;
+}
+
+.padding-0_5rem {
+  padding: 0.5rem;
+}
+
+.margin-0_5rem {
+  margin: 0.5rem;
 }

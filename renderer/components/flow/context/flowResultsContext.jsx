@@ -11,8 +11,8 @@ const FlowResultsContext = createContext()
 function FlowResultsProvider({ children }) {
   const [flowResults, setFlowResults] = useState({}) // Initial style
   const [showResultsPane, setShowResultsPane] = useState(false) // Initial state
-  const [what2show, setWhat2show] = useState("") // Initial state
   const [isResults, setIsResults] = useState(false) // Initial state
+  const [selectedResultsId, setSelectedResultsId] = useState(null) // Initial state
 
   // This function is used to update the flowResults
   const updateFlowResults = (newInfo) => {
@@ -29,10 +29,10 @@ function FlowResultsProvider({ children }) {
         updateFlowResults,
         showResultsPane,
         setShowResultsPane,
-        what2show,
-        setWhat2show,
         isResults,
-        setIsResults
+        setIsResults,
+        selectedResultsId,
+        setSelectedResultsId
       }}
     >
       {children}

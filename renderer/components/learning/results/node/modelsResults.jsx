@@ -84,7 +84,8 @@ const ModelsResults = ({ selectedResults }) => {
           scrollHeight: "65vh",
           rowExpansionTemplate: rowExpansionTemplate,
           onRowToggle: (e) => setExpandedRows(e.data),
-          expandedRows: expandedRows
+          expandedRows: expandedRows,
+          size: "small"
         }}
       />
     </>

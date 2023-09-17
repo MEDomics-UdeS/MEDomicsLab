@@ -135,7 +135,9 @@
   z-index: 2;
   height: 100%;
   min-width: 210px;
-  margin-top: 5px;
+  gap: 0.5rem !important;
+  display: flex;
+  flex-direction: column;
 }
 
 .available-nodes-panel .col {
@@ -155,12 +157,9 @@
 }
 
 .available-nodes-panel2 {
-  width: 100%;
   z-index: 2;
-  min-width: 210px;
-  margin-top: 5px;
   text-align: center;
-  height: -webkit-fill-available;
+  flex-grow: 1;
 }
 
 .available-nodes-panel2 .btn {
@@ -180,10 +179,10 @@
 
 .btn-panel-top-corner-left {
   position: absolute;
-  top: 10px;
-  left: 60px;
-  cursor: pointer;
+  top: 0.75rem;
+  left: 0rem;
   z-index: 10;
+  display: flex;
 }
 
 .btn-panel-top-center {
@@ -202,11 +201,8 @@
 }
 
 .btn-top-left-menu {
-  position: absolute;
-  top: 10px;
-  left: 10px;
   cursor: pointer;
-  z-index: 10;
+  padding: 0.2rem;
 }
 
 .btn-top-left-menu.btn:hover {
@@ -234,12 +230,12 @@
 
 .workflow-settings {
   position: absolute;
-  overflow: hidden;
   height: 100%;
   width: -webkit-fill-available;
   z-index: -1;
   top: 0px;
-  padding: 10px 10px 10px 0px;
+  /* padding: 10px 10px 10px 0px; */
+  padding-left: 0 !important;
   /* animation: move 2s linear; */
   /* transition: z-index 0.75s ease-in-out; */
 }
@@ -253,16 +249,13 @@
   /* adjust the width as needed */
   z-index: 1050;
   /* make sure it's above other elements */
-  margin: 10px 10px 10px 0px;
+  margin-left: 0 !important;
   background-color: #e2e2e2;
   min-width: 300px;
 }
 
 .workflow-settings .offcanvas-backdrop {
   position: relative;
-  top: 0;
-  bottom: 0;
-  left: 0;
   width: 100%;
   height: 100%;
   background-color: #000;
