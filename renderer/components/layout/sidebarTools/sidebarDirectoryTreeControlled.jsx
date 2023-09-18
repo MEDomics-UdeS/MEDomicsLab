@@ -39,10 +39,6 @@ const SidebarDirectoryTreeControlled = () => {
   }
 
   function onOpen(uuid) {
-    // let dataObjectUUID = MedDataObject.checkIfMedDataObjectInContextbyName(
-    //   name,
-    //   globalData
-    // )
     let dataObjectUUID = uuid
     let path = globalData[dataObjectUUID].path
     dispatchLayout({
@@ -147,11 +143,15 @@ const SidebarDirectoryTreeControlled = () => {
     // Reorder the array of folders and files so that the folders are first and the files are last.
     let folders = []
     let files = []
+
     array.forEach((item) => {
-      if (dataContextObject[item].type == "folder") {
-        folders.push(item)
-      } else {
-        files.push(item)
+      console.log("item", dataContextObject[item])
+      if (dataContextObject[item] !== undefined) {
+        if (dataContextObject[item].type == "folder") {
+          folders.push(item)
+        } else {
+          files.push(item)
+        }
       }
     })
     return folders.concat(files)
@@ -179,6 +179,7 @@ const SidebarDirectoryTreeControlled = () => {
         name: medDataItemName,
         type: medDataItem.extension,
         path: medDataItem.path,
+        acceptedFiles: medDataItem.acceptedFileTypes,
         children:
           medDataItem.childrenIDs !== null
             ? reorderArrayOfFoldersAndFiles(

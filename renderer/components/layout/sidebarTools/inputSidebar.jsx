@@ -33,6 +33,7 @@ const InputSidebar = () => {
             <Plus size={"2rem"} />
           </Button>
         </DropzoneComponent>
+
         <Accordion defaultActiveKey={["0"]} alwaysOpen>
           <Accordion.Item eventKey="0">
             <Accordion.Header className="accordionHeader">
@@ -42,11 +43,14 @@ const InputSidebar = () => {
                 </p>
               </Stack>
             </Accordion.Header>
-            <Accordion.Body className="accordion-body-tight">
-              <SidebarDirectoryTreeControlled />
-            </Accordion.Body>
+            <DropzoneComponent noClick={true}>
+              <Accordion.Body className="accordion-body-tight">
+                <SidebarDirectoryTreeControlled />
+              </Accordion.Body>
+            </DropzoneComponent>
           </Accordion.Item>
         </Accordion>
+
         {/* We render the workspace only if it is set, otherwise it throws an error */}
       </Stack>
     </>

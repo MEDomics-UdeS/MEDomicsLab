@@ -24,6 +24,7 @@ import { ipcRenderer } from "electron"
  * @property {Array} dataModificationQueue - The data modification queue of the data object.
  * @property {Number} size - The size of the data object.
  * @property {Object} metadata - The metadata of the data object.
+ * @property {Array} acceptedFileTypes - The accepted file types for the data object.
  */
 export default class MedDataObject {
   /**
@@ -36,6 +37,7 @@ export default class MedDataObject {
    * @param {Array<string>} [options.parentID=[]] - The IDs of the parent objects.
    * @param {string} [options.path=""] - The path of the object.
    * @param {Array<string>} [options.childrenIDs=[]] - The IDs of the child objects.
+   * @param {Array<string>} [options.acceptedFileTypes] - The accepted file types for the data object.
    */
   constructor({
     originalName = "Unnamed",
@@ -80,6 +82,7 @@ export default class MedDataObject {
     this.dataModificationQueue = []
     this.size = 0
     this.metadata = {}
+    this.acceptedFileTypes = []
   }
 
   /**
@@ -93,6 +96,26 @@ export default class MedDataObject {
   }
 
   /**
+   *
+   * @param {MedDataObject} dataObject - The MED data object to check.
+   * @param {Array} acceptedFileTypes - The accepted file types for the MED data object.
+   */
+  static setAcceptedFileTypes(dataObject, acceptedFileTypes) {
+    let acceptedFileTypesToReturn = acceptedFileTypes
+    if (dataObject.name === "DATA") {
+      acceptedFileTypesToReturn = {
+        "text/csv": ".csv",
+        "application/json": ".json",
+        "text/plain": ".txt",
+        "application/pdf": ".pdf",
+        "application/medomics": ".medomics"
+      }
+    }
+    console.warn("acceptedFileTypes: " + acceptedFileTypesToReturn)
+    return acceptedFileTypesToReturn
+  }
+
+  /**
    * Checks if a MED data object with the given name exists in the global data context.
    * @param {string} dataObjectName - The name of the MED data object to search for.
    * @param {Object} globalDataContext - The global data context object to search in.
@@ -100,7 +123,8 @@ export default class MedDataObject {
    */
   static checkIfMedDataObjectInContextbyName(
     dataObjectName,
-    globalDataContext
+    globalDataContext,
+    parentID
   ) {
     let dataObjectDictionary = { ...globalDataContext }
     let globalDataContextArrayUUIDs = Object.keys(dataObjectDictionary)
@@ -108,9 +132,15 @@ export default class MedDataObject {
     let dataObjectUUID = ""
     globalDataContextArrayUUIDs.forEach((key) => {
       let dataObject = dataObjectDictionary[key]
-      if (dataObject.name == dataObjectName) {
-        dataObjectUUID = key
+      if (dataObject.name === dataObjectName) {
         console.log("Data object found in context by name:" + dataObjectUUID)
+        let dataObjectParentID = dataObject.parentID
+        if (dataObjectParentID.length > 0) {
+          if (dataObjectParentID == parentID) {
+            // dataObjectUUID = ""
+            dataObjectUUID = key
+          }
+        }
       }
     })
 
@@ -179,6 +209,51 @@ export default class MedDataObject {
       dataObject.childrenIDs
     )
     copy.parentID = dataObject.getUUID()
+  }
+
+  /**
+   * Checks the operating system and adapts the provided `path` to the OS.
+   * @param {string} path
+   * @returns {string} - The adapted path.
+   */
+  static adaptPathToOS(path) {
+    let cwdSlashType = path.includes("/") ? "/" : "\\"
+    let cwdSlashTypeInv = cwdSlashType == "/" ? "\\" : "/"
+    let newPath = path
+    if (process.platform === "win32" && cwdSlashType === "/") {
+      toast.error("Path not valid for Windows")
+      return ""
+    } else if (
+      typeof process !== "undefined" &&
+      process.platform === "linux" &&
+      cwdSlashType === "\\"
+    ) {
+      toast.error("Path not valid for Linux")
+      return ""
+    } else if (process.platform === "win32") {
+      newPath = path.replaceAll(cwdSlashTypeInv, cwdSlashType)
+    } else if (typeof process !== "undefined" && process.platform === "linux") {
+      newPath = path.replaceAll(cwdSlashTypeInv, cwdSlashType)
+      return newPath
+    }
+    return newPath
+  }
+
+  /**
+   * Create an empty folder in the file system.
+   * @param {string} name
+   * @param {string} path
+   */
+  static createEmptyFolderFS(name, path) {
+    let fs = require("fs")
+    let pathToCreate = path + "\\" + name
+    fs.mkdirSync(pathToCreate, { recursive: true }, (err) => {
+      if (err) {
+        console.log(err)
+      } else {
+        console.log(`Folder created at ${pathToCreate}`)
+      }
+    })
   }
 
   /**
@@ -584,6 +659,14 @@ export default class MedDataObject {
    */
   getChildrenIDs() {
     return this.childrenIDs
+  }
+
+  /**
+   * Sets the accepted file types for the `MedDataObject` instance to the provided `acceptedFileTypes`.
+   * @param {Array<string>} acceptedFileTypes - The new accepted file types for the `MedDataObject` instance.
+   */
+  setAcceptedFileTypes(acceptedFileTypes) {
+    this.acceptedFileTypes = acceptedFileTypes
   }
 }
 

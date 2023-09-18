@@ -167,12 +167,18 @@ export default function App() {
     })
   }, []) // Here, we specify that the hook should only be called at the launch of the app
 
-  function recursivelyRecenseTheDirectory(children, parentID, newGlobalData) {
+  function recursivelyRecenseTheDirectory(
+    children,
+    parentID,
+    newGlobalData,
+    acceptedFileTypes = undefined
+  ) {
     let childrenIDsToReturn = []
     children.forEach((child) => {
       let uuid = MedDataObject.checkIfMedDataObjectInContextbyName(
         child.name,
-        newGlobalData
+        newGlobalData,
+        parentID
       )
       let objectType = "folder"
       let objectUUID = uuid
@@ -181,9 +187,16 @@ export default function App() {
         let dataObject = new MedDataObject({
           originalName: child.name,
           path: child.path,
-          parentID: parentID
+          parentID: parentID,
+          type: objectType
         })
+
         objectUUID = dataObject.getUUID()
+        let acceptedFiles = MedDataObject.setAcceptedFileTypes(
+          dataObject,
+          acceptedFileTypes
+        )
+        dataObject.setAcceptedFileTypes(acceptedFiles)
         if (child.children === undefined) {
           console.log("File:", child)
           objectType = "file"
@@ -195,27 +208,32 @@ export default function App() {
           let answer = recursivelyRecenseTheDirectory(
             child.children,
             objectUUID,
-            newGlobalData
+            newGlobalData,
+            acceptedFiles
           )
           childrenIDs = answer.childrenIDsToReturn
         }
         dataObject.setType(objectType)
+        console.log("dataObject", dataObject)
         dataObject.setChildrenIDs(childrenIDs)
         newGlobalData[objectUUID] = dataObject
         childrenIDsToReturn.push(objectUUID)
       } else {
         console.log("Object is already in globalDataContext", child)
+        let dataObject = newGlobalData[uuid]
+        let acceptedFiles = dataObject.acceptedFileTypes
         if (child.children !== undefined) {
           let answer = recursivelyRecenseTheDirectory(
             child.children,
-            objectUUID,
-            newGlobalData
+            uuid,
+            newGlobalData,
+            acceptedFiles
           )
           childrenIDs = answer.childrenIDsToReturn
           newGlobalData[objectUUID]["childrenIDs"] = childrenIDs
           newGlobalData[objectUUID]["parentID"] = parentID
         }
-        childrenIDsToReturn.push(objectUUID)
+        childrenIDsToReturn.push(uuid)
       }
     })
     return { childrenIDsToReturn: childrenIDsToReturn }
