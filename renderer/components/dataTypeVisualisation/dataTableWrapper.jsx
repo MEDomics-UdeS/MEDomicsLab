@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react"
 //data table
 import { DataTable } from "primereact/datatable"
+import { deepCopy } from "../../utilities/staticFunctions"
 import { Column } from "primereact/column"
 // refer to https://primereact.org/datatable/
 
@@ -19,12 +20,14 @@ const DataTableWrapper = ({ data, tablePropsData, tablePropsColumn }) => {
   useEffect(() => {
     console.log("dataTable data refreshed: ", data)
     if (data != undefined) {
-      setHeader(getColumnsFromData(data))
+      const extractedHeader = getColumnsFromData(data)
+      setHeader(extractedHeader)
       // Remove header from data if its an array or arrays to avoid keeping it on rows
-      if (Array.isArray(data[0])) {
-        data.shift()
+      let rows = deepCopy(data)
+      if (Array.isArray(rows[0])) {
+        rows.shift()
       }
-      setRows(data)
+      setRows(rows)
     }
   }, [data])
 
@@ -63,8 +66,8 @@ const DataTableWrapper = ({ data, tablePropsData, tablePropsColumn }) => {
           )
         })
       }
+      return columns
     }
-    return columns
   }
 
   return (
