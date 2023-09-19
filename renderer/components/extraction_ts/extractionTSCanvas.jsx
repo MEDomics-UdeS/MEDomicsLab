@@ -3,6 +3,7 @@ import DropzoneComponent from "../mainPages/dataComponents/dropzoneComponent2"
 import DataTableWrapper from "../dataTypeVisualisation/dataTableWrapper"
 import { Button } from "react-bootstrap"
 import { Dropdown } from "primereact/dropdown"
+import { readCSV, DataFrame } from "danfojs"
 
 const ExtractionTSCanvas = () => {
   const [displayData, setDisplayData] = useState([])
@@ -13,8 +14,10 @@ const ExtractionTSCanvas = () => {
     measurementValue: ""
   })
 
-  const onUpload = (data) => {
-    setDisplayData(data)
+  const onUpload = (event) => {
+    if (event.target.files) {
+      setDisplayData(readCSV(event.target.files[0]))
+    }
   }
 
   /**
@@ -36,21 +39,22 @@ const ExtractionTSCanvas = () => {
   return (
     <div>
       <h1>Extraction - Time Series</h1>
+      <input type="file" onChange={onUpload} />
 
-      <div>
+      {/* <div>
         <DropzoneComponent whenUploaded={onUpload}>
           <Button style={{ alignItems: "flex-end", marginInline: "2%" }}>
             Import a CSV file
           </Button>
         </DropzoneComponent>
       </div>
-
+ */}
       {/* Display imported data */}
       <h2>Imported data</h2>
-      {displayData.length < 1 && (
+      {displayData.data && displayData.data.length < 1 && (
         <p>Nothing to show, import a CSV file first.</p>
       )}
-      {displayData.length > 0 && (
+      {displayData.data && displayData.data.length > 0 && (
         <div>
           {/* DataTableWrapper is used to display the data */}
           <DataTableWrapper
@@ -67,7 +71,7 @@ const ExtractionTSCanvas = () => {
           />
 
           {/* Add dropdowns for column selection */}
-          <h2>Select columns corresponding to :</h2>
+          {/* <h2>Select columns corresponding to :</h2>
           <div>
             <div>
               Patient Identifier : &nbsp;
@@ -125,7 +129,7 @@ const ExtractionTSCanvas = () => {
                 placeholder="Measurement Value"
               />
             </div>
-          </div>
+          </div>*/}
         </div>
       )}
     </div>
