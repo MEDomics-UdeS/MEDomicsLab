@@ -2,8 +2,27 @@ import React, { useRef } from "react"
 import { Folder } from "react-bootstrap-icons"
 import DropzoneComponent from "../../../mainPages/dataComponents/dropzoneComponent"
 
+/**
+ * @param {string[]} classNames - list of class names
+ * @returns {string} - concatenated class names
+ * @abstract - filters out any falsy values and concatenates the rest
+ */
 const cx = (...classNames) => classNames.filter((cn) => !!cn).join(" ")
 
+/**
+ * @abstract - renders a single item in the tree
+ * @param {Object} props
+ * @param {Object} props.item - the item to render
+ * @param {number} props.depth - the depth of the item in the tree
+ * @param {React.ReactNode} props.children - the children of the item
+ * @param {React.ReactNode} props.title - the title of the item
+ * @param {React.ReactNode} props.arrow - the arrow of the item
+ * @param {React.ReactNode} props.info - the info of the item
+ * @param {Object} props.context - the context object passed by react-contexify
+ * @param {Object} additionalParams - additional parameters passed by the tree
+ * @param {Function} additionalParams.displayMenu - function to display the context menu
+ * @returns {React.ReactNode} - the rendered item
+ */
 const renderItem = (
   { item, depth, children, title, context, arrow, info, ...test },
   additionalParams
@@ -12,9 +31,9 @@ const renderItem = (
 
   const type = context.isRenaming ? undefined : "button"
 
-  // TODO have only root li component create all the classes
   return (
     <>
+      {/* If the item is a folder, we render it as a dropzone */}
       {item.isFolder && (
         <DropzoneComponent item={item} noClick={true}>
           <li

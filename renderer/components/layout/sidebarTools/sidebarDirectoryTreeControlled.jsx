@@ -1,4 +1,4 @@
-import React, { useContext, useRef, useState, useEffect } from "react"
+import React, { useContext, useRef, useState, useEffect, useCallback } from "react"
 import { Trash, BoxArrowUpRight, Eraser } from "react-bootstrap-icons"
 import { ControlledTreeEnvironment, Tree } from "react-complex-tree"
 import { WorkspaceContext } from "../../workspace/workspaceContext"
@@ -31,9 +31,26 @@ const SidebarDirectoryTreeControlled = () => {
 
   const [dirTree, setDirTree] = useState({}) // We get the directory tree from the workspace
 
+  const handleKeyPress = (event) => {
+    if (event.key === "Delete") {
+      if (selectedItems.length > 0) {
+        console.log("DELETE", selectedItems[0])
+        onDelete(selectedItems[0])
+      }
+    }
+  }
+
+  useEffect(() => {
+    // attach the event listener
+    document.addEventListener("keydown", handleKeyPress)
+    // remove the event listener
+    return () => {
+      document.removeEventListener("keydown", handleKeyPress)
+    }
+  }, [handleKeyPress])
+
   function onRename(uuid) {
     setSelectedItems([uuid])
-
     tree.current.startRenamingItem(uuid)
     // let f2 = new KeyboardEvent("keydown", { key: "F2" })
   }
@@ -54,7 +71,7 @@ const SidebarDirectoryTreeControlled = () => {
 
   function onDelete(uuid) {
     // Get the UUID of the `MedDataObject` with the current name from the `globalData` object.
-
+    const namesYouCantDelete = ["UUID_ROOT", "DATA", "EXPERIMENTS", "RESULTS", "MODELS"]
     if (uuid == "") {
       console.log("Error: UUID not found")
       return
@@ -63,6 +80,11 @@ const SidebarDirectoryTreeControlled = () => {
       return
     } else if (globalData[uuid] == undefined) {
       console.log("Error: UUID not found in globalData")
+      return
+    } else if (boolNameInArray(globalData[uuid].name, namesYouCantDelete)) {
+      console.log("Error: This name cannot be deleted")
+      toast.error(`Error: ${globalData[uuid].name} cannot be deleted`)
+      return
     } else {
       // Delete the `MedDataObject` with the current name from the `globalData` object.
       let globalDataCopy = { ...globalData }
@@ -92,13 +114,7 @@ const SidebarDirectoryTreeControlled = () => {
   }
 
   function handleNameChange(medObject, newName) {
-    const namesYouCantRename = [
-      "UUID_ROOT",
-      "DATA",
-      "EXPERIMENTS",
-      "RESULTS",
-      "MODELS"
-    ]
+    const namesYouCantRename = ["UUID_ROOT", "DATA", "EXPERIMENTS", "RESULTS", "MODELS"]
     if (newName == "") {
       toast.error("Error: Name cannot be empty")
       return
@@ -121,11 +137,7 @@ const SidebarDirectoryTreeControlled = () => {
       let dataObject = globalData[medObject.UUID]
       let uuid = medObject.UUID
       // Rename the `MedDataObject` with the new name and update the `globalData` object.
-      let renamedDataObject = MedDataObject.rename(
-        dataObject,
-        newName,
-        globalData
-      )
+      let renamedDataObject = MedDataObject.rename(dataObject, newName, globalData)
       let globalDataCopy = { ...globalData }
       globalDataCopy[uuid] = renamedDataObject
       setGlobalData(globalDataCopy)
@@ -159,13 +171,7 @@ const SidebarDirectoryTreeControlled = () => {
 
   function fromJSONtoTree(medDataContext) {
     const treeToSend = {}
-    const namesYouCantRename = [
-      "UUID_ROOT",
-      "DATA",
-      "EXPERIMENTS",
-      "RESULTS",
-      "MODELS"
-    ]
+    const namesYouCantRename = ["UUID_ROOT", "DATA", "EXPERIMENTS", "RESULTS", "MODELS"]
 
     Object.keys(medDataContext).forEach((key) => {
       let medDataItem = medDataContext[key]
@@ -180,13 +186,7 @@ const SidebarDirectoryTreeControlled = () => {
         type: medDataItem.extension,
         path: medDataItem.path,
         acceptedFiles: medDataItem.acceptedFileTypes,
-        children:
-          medDataItem.childrenIDs !== null
-            ? reorderArrayOfFoldersAndFiles(
-                medDataItem.childrenIDs,
-                medDataContext
-              )
-            : [],
+        children: medDataItem.childrenIDs !== null ? reorderArrayOfFoldersAndFiles(medDataItem.childrenIDs, medDataContext) : [],
         data: medDataItemName,
         canRename: ableToRename
       }
@@ -231,16 +231,8 @@ const SidebarDirectoryTreeControlled = () => {
           }
         }}
         onFocusItem={(item) => setFocusedItem(item.index)}
-        onExpandItem={(item) =>
-          setExpandedItems([...expandedItems, item.index])
-        }
-        onCollapseItem={(item) =>
-          setExpandedItems(
-            expandedItems.filter(
-              (expandedItemIndex) => expandedItemIndex !== item.index
-            )
-          )
-        }
+        onExpandItem={(item) => setExpandedItems([...expandedItems, item.index])}
+        onCollapseItem={(item) => setExpandedItems(expandedItems.filter((expandedItemIndex) => expandedItemIndex !== item.index))}
         onSelectItems={(items) => setSelectedItems(items)}
         canReorderItems={true}
         canDropOnFolder={true}
@@ -248,12 +240,7 @@ const SidebarDirectoryTreeControlled = () => {
         canDragAndDrop={true}
         onRenameItem={handleNameChange}
       >
-        <Tree
-          treeId="tree-2"
-          rootItem="UUID_ROOT"
-          treeLabel="Tree Example"
-          ref={tree}
-        />
+        <Tree treeId="tree-2" rootItem="UUID_ROOT" treeLabel="Tree Example" ref={tree} />
       </ControlledTreeEnvironment>
       <Menu id={MENU_ID}>
         <Submenu

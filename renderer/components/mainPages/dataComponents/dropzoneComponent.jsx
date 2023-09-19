@@ -4,6 +4,8 @@ import { parse } from "csv"
 import fs from "fs"
 import { WorkspaceContext } from "../../workspace/workspaceContext"
 import MedDataObject from "../../workspace/medDataObject"
+import { toast } from "react-toastify"
+import { PlayBtnFill } from "react-bootstrap-icons"
 
 /**
  * @typedef {React.FunctionComponent} DropzoneComponent
@@ -13,11 +15,7 @@ import MedDataObject from "../../workspace/medDataObject"
  *
  * @todo Add the functionality to upload more file types than just CSV files
  */
-export default function DropzoneComponent({
-  children,
-  item = undefined,
-  ...props
-}) {
+export default function DropzoneComponent({ children, item = undefined, ...props }) {
   // eslint-disable-next-line no-unused-vars
   const [uploadedFile, setUploadedFile] = useState(null)
   // eslint-disable-next-line no-unused-vars
@@ -50,18 +48,13 @@ export default function DropzoneComponent({
           parse(reader.result, (err, data) => {
             console.log("Parsed CSV data: ", data)
 
-            fs.writeFile(
-              `${directoryPath}/${file["name"]}`,
-              data.join("\n"),
-              "utf8",
-              (err) => {
-                if (err) {
-                  console.error("Error writing file:", err)
-                } else {
-                  console.log("File written successfully")
-                }
+            fs.writeFile(`${directoryPath}/${file["name"]}`, data.join("\n"), "utf8", (err) => {
+              if (err) {
+                console.error("Error writing file:", err)
+              } else {
+                console.log("File written successfully")
               }
-            )
+            })
           })
         } else if (file.name.includes(".xlsx")) {
           console.log("xlsx file")
@@ -84,12 +77,15 @@ export default function DropzoneComponent({
     }
   }
 
-  const { getRootProps, getInputProps, isFocused, isDragAccept, isDragReject } =
-    useDropzone({
-      onDrop,
-      noClick: props.noClick || false,
-      accept: acceptedFiles
-    })
+  const { getRootProps, getInputProps, isFocused, isDragAccept, isDragReject } = useDropzone({
+    onDrop,
+    onDropRejected: useCallback((fileRejections) => {
+      console.log("fileRejections", fileRejections)
+      toast.error("Error: File type not accepted in this folder")
+    }, []),
+    noClick: props.noClick || false,
+    accept: acceptedFiles ? acceptedFiles : undefined
+  })
 
   /**
    * @description - This function handles the download of the file

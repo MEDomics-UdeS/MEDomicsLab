@@ -12,12 +12,10 @@ import {
   Search,
   BandaidFill
 } from "react-bootstrap-icons"
-import OverlayTrigger from "react-bootstrap/OverlayTrigger"
-import Tooltip from "react-bootstrap/Tooltip"
 import Nav from "react-bootstrap/Nav"
 import { NavDropdown } from "react-bootstrap"
 import { WorkspaceContext } from "../workspace/workspaceContext"
-import { Tooltip as T } from "primereact/tooltip"
+import { Tooltip } from "primereact/tooltip"
 
 /**
  * @description Sidebar component containing icons for each page
@@ -71,72 +69,72 @@ const IconSidebar = ({ onSidebarItemSelect }) => {
           paddingRight: "0px"
         }}
       >
+        {/* ------------------------------------------- Tooltips ----------------------------------------- */}
+        <Tooltip
+          target=".homeNavIcon"
+          {...delayOptions}
+          className="tooltip-icon-sidebar"
+        />
+        <Tooltip
+          target=".explorerNav"
+          {...delayOptions}
+          className="tooltip-icon-sidebar"
+        />
+        <Tooltip
+          target=".searchNav"
+          {...delayOptions}
+          className="tooltip-icon-sidebar"
+        />
+        <Tooltip
+          target=".inputNav"
+          {...delayOptions}
+          className="tooltip-icon-sidebar"
+        />
+        <Tooltip
+          target=".extractionNav"
+          {...delayOptions}
+          className="tooltip-icon-sidebar"
+        />
+        <Tooltip
+          target=".discoveryNav"
+          {...delayOptions}
+          className="tooltip-icon-sidebar"
+        />
+        <Tooltip
+          target=".learningNav"
+          {...delayOptions}
+          className="tooltip-icon-sidebar"
+        />
+        <Tooltip
+          target=".resultsNav"
+          {...delayOptions}
+          className="tooltip-icon-sidebar"
+        />
+        <Tooltip
+          target=".applicationNav"
+          {...delayOptions}
+          className="tooltip-icon-sidebar"
+        />
+        <Tooltip
+          target=".layoutTestNav"
+          {...delayOptions}
+          className="tooltip-icon-sidebar"
+        />
+        <Tooltip
+          target=".settingsNav"
+          {...delayOptions}
+          className="tooltip-icon-sidebar"
+        />
+
+        {/* ------------------------------------------- END Tooltips ----------------------------------------- */}
+
+        {/* ------------------------------------------- ICON NAVBAR ----------------------------------------- */}
+
         <Nav
           defaultActiveKey="/home"
           className="flex-column"
           style={{ width: "100%", maxWidth: "100%", minWidth: "100%" }}
         >
-          {/* <OverlayTrigger
-            placement={"right"}
-            overlay={<Tooltip id={"tooltip-home"}>Home</Tooltip>}
-          > */}
-
-          <T
-            target=".homeNavIcon"
-            {...delayOptions}
-            className="tooltip-icon-sidebar"
-          />
-          <T
-            target=".explorerNav"
-            {...delayOptions}
-            className="tooltip-icon-sidebar"
-          />
-          <T
-            target=".searchNav"
-            {...delayOptions}
-            className="tooltip-icon-sidebar"
-          />
-          <T
-            target=".inputNav"
-            {...delayOptions}
-            className="tooltip-icon-sidebar"
-          />
-          <T
-            target=".extractionNav"
-            {...delayOptions}
-            className="tooltip-icon-sidebar"
-          />
-          <T
-            target=".discoveryNav"
-            {...delayOptions}
-            className="tooltip-icon-sidebar"
-          />
-          <T
-            target=".learningNav"
-            {...delayOptions}
-            className="tooltip-icon-sidebar"
-          />
-          <T
-            target=".resultsNav"
-            {...delayOptions}
-            className="tooltip-icon-sidebar"
-          />
-          <T
-            target=".applicationNav"
-            {...delayOptions}
-            className="tooltip-icon-sidebar"
-          />
-          <T
-            target=".layoutTestNav"
-            {...delayOptions}
-            className="tooltip-icon-sidebar"
-          />
-          <T
-            target=".settingsNav"
-            {...delayOptions}
-            className="tooltip-icon-sidebar"
-          />
-
           <Nav.Link
             data-pr-at="right bottom"
             data-pr-tooltip="Home"
@@ -154,7 +152,6 @@ const IconSidebar = ({ onSidebarItemSelect }) => {
               style={{ scale: "0.65" }}
             />
           </Nav.Link>
-          {/* </OverlayTrigger> */}
 
           <Nav.Link
             className="explorerNav btnSidebar"
@@ -351,6 +348,7 @@ const IconSidebar = ({ onSidebarItemSelect }) => {
             <NavDropdown.Item href="#/action-3">About</NavDropdown.Item>
           </NavDropdown>
         </Nav>
+        {/* ------------------------------------------- END ICON NAVBAR ----------------------------------------- */}
       </div>
     </>
   )
