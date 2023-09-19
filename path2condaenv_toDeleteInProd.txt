@@ -1,1 +1,1 @@
-C:\\Users\\gblai\\anaconda3\\envs\\med\\python.exe
+/home/local/USHERBROOKE/blag1201/anaconda3/envs/medomics_env/bin/python

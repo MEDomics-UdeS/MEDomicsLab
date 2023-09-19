@@ -1,16 +1,26 @@
-from flask import Flask, request, jsonify
-from learning.app_learning_blueprint import app_learning
-from utils.server_utils import get_json_from_request
+import sys
 import json
-import argparse
-parser = argparse.ArgumentParser(description='Script so useful.')
-parser.add_argument("--port", type=int, default=5000, help="port to run the server on")
-args = parser.parse_args()
+from flask import Flask, request, jsonify, Blueprint
+from flask_cors import CORS
+from utils.server_utils import get_json_from_request
 
-# app definition and blueprint registration
+# Temporary solution for accessing the code of different modules
+sys.path.append('submodules/MEDimage')
+
+# Import blueprints
+from extraction.app_extraction_blueprint import app_extraction
+from learning.app_learning_blueprint import app_learning
+
+# Creating main instance of Flask app
 app = Flask(__name__)
-app.register_blueprint(app_learning, url_prefix='/learning')
 
+# Configure Flask-CORS to specify that only requests coming from local port 8888 are allowed 
+# to access the API route 
+CORS(app, resources={r"/*": {"origins": "http://localhost:8888"}})
+
+# Register blueprints
+app.register_blueprint(app_extraction, url_prefix='/extraction')
+app.register_blueprint(app_learning, url_prefix='/learning')
 
 @app.route('/test', methods=['GET', 'POST'])
 def test():

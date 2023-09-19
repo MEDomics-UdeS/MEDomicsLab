@@ -3,9 +3,12 @@ import {
   Files,
   HouseFill,
   Gear,
+  GraphUp,
+  Image,
   Magnet,
   Server,
   Stack,
+  TextLeft,
   FileEarmarkBarGraph,
   RocketTakeoff,
   PatchCheck,
@@ -140,27 +143,48 @@ const IconSidebar = ({ onSidebarItemSelect }) => {
             </Nav.Link>
           </OverlayTrigger>
 
-          <OverlayTrigger
-            placement={"right"}
-            overlay={
-              <Tooltip id={"tooltip-extraction"}>Extraction Module</Tooltip>
+          <NavDropdown
+            className="btnSidebar"
+            data-tooltip-id="tooltip-extraction"
+            title={
+              <OverlayTrigger
+                placement={"right"}
+                overlay={
+                  <Tooltip id={"tooltip-extraction"}>Extraction Module</Tooltip>
+                }
+              >
+                <Magnet
+                  size={"1.25rem"}
+                  width={"100%"}
+                  height={"100%"}
+                  style={{ scale: "0.65" }}
+                />
+              </OverlayTrigger>
             }
+            disabled={disabledIcon}
           >
-            <Nav.Link
+            <NavDropdown.Item
               className="btnSidebar"
-              eventKey="extraction"
-              data-tooltip-id="tooltip-extraction"
-              onClick={(event) => handleClick(event, "extraction")}
-              disabled={disabledIcon}
+              eventKey="extraction_images"
+              onClick={(event) => handleClick(event, "extraction_images")}
             >
-              <Magnet
-                size={"1.25rem"}
-                width={"100%"}
-                height={"100%"}
-                style={{ scale: "0.65" }}
-              />
-            </Nav.Link>
-          </OverlayTrigger>
+              <Image /> Images
+            </NavDropdown.Item>
+            <NavDropdown.Item
+              className="btnSidebar"
+              eventKey="extraction_text"
+              onClick={(event) => handleClick(event, "extraction_text")}
+            >
+              <TextLeft /> Text Notes
+            </NavDropdown.Item>
+            <NavDropdown.Item
+              className="btnSidebar"
+              eventKey="extraction_ts"
+              onClick={(event) => handleClick(event, "extraction_ts")}
+            >
+              <GraphUp /> Time Series
+            </NavDropdown.Item>
+          </NavDropdown>
 
           <OverlayTrigger
             placement={"right"}

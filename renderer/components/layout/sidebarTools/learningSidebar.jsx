@@ -5,7 +5,7 @@ import { WorkspaceDirectoryTree } from "./workspaceDirectoryTree"
 import * as Icon from "react-bootstrap-icons"
 import { Dialog } from "primereact/dialog"
 import { InputText } from "primereact/inputtext"
-import { loadJsonPath, writeJson } from "../../../utilities/fileManagementUtils"
+import { createFolder } from "../../../utilities/fileManagementUtils"
 
 /**
  * @description - This component is the sidebar tools component that will be used in the sidebar component as the learning page

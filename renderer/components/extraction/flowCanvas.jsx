@@ -1,4 +1,4 @@
-import React, { useContext, useState, useCallback, useMemo, useEffect } from "react"
+import React, { useState, useCallback, useMemo, useEffect, useContext } from "react"
 import { toast } from "react-toastify"
 import TreeMenu from "react-simple-tree-menu"
 
@@ -10,7 +10,6 @@ import { axiosPostJson } from "../../utilities/requests"
 import { useNodesState, useEdgesState, useReactFlow } from "reactflow"
 import WorkflowBase from "../flow/workflowBase"
 import { FlowFunctionsContext } from "../flow/context/flowFunctionsContext"
-
 
 // Import node types
 import StandardNode from "./nodesTypes/standardNode"
@@ -52,8 +51,8 @@ const FlowCanvas = ({ workflowType, setWorkflowType }) => {
   const { setViewport } = useReactFlow() // setViewport is used to update the viewport of the workflow
   const [treeData, setTreeData] = useState({}) // treeData is used to set the data of the tree menu
   const [results, setResults] = useState({}) // results is used to store radiomic features results
-  const { groupNodeId, changeSubFlow, updateNode } = useContext(FlowFunctionsContext)
-
+  const { groupNodeId, changeSubFlow, updateNode } =
+    useContext(FlowFunctionsContext)
 
   // Hook executed upon modification of edges to verify the connections between input and segmentation nodes
   useEffect(() => {
@@ -272,9 +271,8 @@ const FlowCanvas = ({ workflowType, setWorkflowType }) => {
         ? featuresNodeDefaultSettings
         : newNode.data.setupParam.possibleSettings.defaultSettings
 
-
     newNode.data.internal.subflowId = !associatedNode
-      ? groupNodeId
+      ? groupNodeId.id
       : associatedNode
 
     // Used to enable the view button of a node (if it exists)
@@ -496,7 +494,7 @@ const FlowCanvas = ({ workflowType, setWorkflowType }) => {
    */
   const runNode = useCallback(
     (id) => {
-      if(id) {
+      if (id) {
         console.log("Running node", id)
 
         // Transform the flow instance to a dictionary compatible with the backend
@@ -704,7 +702,7 @@ const FlowCanvas = ({ workflowType, setWorkflowType }) => {
           Object.values(flow.nodes).forEach((node) => {
             // the line below is important because functions are not serializable
             // set workflow type
-            let subworkflowType = node.data.internal.subflowId
+            let subworkflowType = node.data.internal.subflowId != "MAIN"
               ? "extraction"
               : "features"
             // set node type
@@ -750,13 +748,13 @@ const FlowCanvas = ({ workflowType, setWorkflowType }) => {
     console.log("tree item clicked: ", info)
   }
 
+  // TODO : take out of mandatory in flow/workflowBase.js
   const onNodeDrag = useCallback(
     (event, node) => {
       // TODO
     },
     [nodes]
   )
-
   /**
    * @param {object} params
    * @param {string} params.source
@@ -804,13 +802,14 @@ const FlowCanvas = ({ workflowType, setWorkflowType }) => {
           edges: edges,
           setEdges: setEdges,
           onEdgesChange: onEdgesChange,
+          onNodeDrag: onNodeDrag,
           runNode: runNode,
+          nodeUpdate: nodeUpdate,
+          setNodeUpdate: setNodeUpdate
         }}
         // optional props
         onDeleteNode={deleteNode}
         isGoodConnection={isGoodConnection}
-        onNodeDrag={onNodeDrag}
-
         // represents the visual of the workflow
         ui={
           <>

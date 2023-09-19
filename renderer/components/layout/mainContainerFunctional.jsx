@@ -2,9 +2,9 @@ import React, { useRef, useState, useEffect, useContext } from "react"
 import test from "../../styles/test.module.css"
 import DataTable from "../../components/dataTypeVisualisation/dataTableWrapper"
 import * as Prism from "prismjs"
-
 import { LayoutModelContext } from "./layoutContext"
 import { Actions, CLASSES, Layout, Model, TabNode } from "flexlayout-react"
+
 import { loadCSVPath } from "../../utilities/fileManagementUtils"
 
 var fields = ["Name", "Field1", "Field2", "Field3", "Field4", "Field5"]
@@ -303,7 +303,6 @@ export default function MainFlexLayout() {
         // create data in node extra data first time accessed
         node.getExtraData().data = makeFakeData()
       }
-
       return (
         <SimpleTable
           fields={fields}
@@ -361,12 +360,22 @@ export default function MainFlexLayout() {
     } else if (component === "tabstorage") {
       return <></>
     } else if (component === "dataTable") {
-      const config = node.getConfig()
-      console.log("dataTable config", config)
-      const whenDataLoaded = (data) => {
-        node.getExtraData().data = data
+      if (node.getExtraData().data == null) {
+        const config = node.getConfig()
+        console.log("dataTable config", config)
+        const whenDataLoaded = (data) => {
+          node.getExtraData().data = data
+          console.log("node", node)
+          console.log(
+            "retrieve node in layoutModel",
+            model.getNodeById(node.getId())
+          )
+          model.getNodeById(node.getId())._attributes.config["data"] = data
+          // let layout = layoutModel.layout
+          // layout.tabs[node.getId()].config.data = data
+        }
+        loadCSVPath(config.path, whenDataLoaded)
       }
-      loadCSVPath(config.path, whenDataLoaded)
       return (
         <DataTable
           data={node.getExtraData().data}
@@ -382,7 +391,6 @@ export default function MainFlexLayout() {
         />
       )
     }
-
     return null
   }
 
