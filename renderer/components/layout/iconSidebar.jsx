@@ -17,6 +17,7 @@ import Tooltip from "react-bootstrap/Tooltip"
 import Nav from "react-bootstrap/Nav"
 import { NavDropdown } from "react-bootstrap"
 import { WorkspaceContext } from "../workspace/workspaceContext"
+import { Tooltip as T } from "primereact/tooltip"
 
 /**
  * @description Sidebar component containing icons for each page
@@ -52,6 +53,8 @@ const IconSidebar = ({ onSidebarItemSelect }) => {
     setButtonClass(buttonClass === "" ? "show" : "")
   }
 
+  const delayOptions = { showDelay: 750, hideDelay: 0 }
+
   return (
     <>
       <div
@@ -73,246 +76,277 @@ const IconSidebar = ({ onSidebarItemSelect }) => {
           className="flex-column"
           style={{ width: "100%", maxWidth: "100%", minWidth: "100%" }}
         >
-          <OverlayTrigger
+          {/* <OverlayTrigger
             placement={"right"}
             overlay={<Tooltip id={"tooltip-home"}>Home</Tooltip>}
-          >
-            <Nav.Link
-              className="btnSidebar"
-              href="#home"
-              eventKey="home"
-              data-tooltip-id="tooltip-home"
-              onClick={(event) => handleClick(event, "home")}
-            >
-              <HouseFill
-                size={"1.25rem"}
-                width={"100%"}
-                height={"100%"}
-                style={{ scale: "0.65" }}
-              />
-            </Nav.Link>
-          </OverlayTrigger>
+          > */}
 
-          <OverlayTrigger
-            placement={"right"}
-            overlay={<Tooltip id={"tooltip-explorer"}>Explorer</Tooltip>}
-          >
-            <Nav.Link
-              className="btnSidebar"
-              eventKey="explorer"
-              data-tooltip-id="tooltip-explorer"
-              onClick={(event) => handleClick(event, "explorer")}
-            >
-              <Files
-                size={"1.25rem"}
-                width={"100%"}
-                height={"100%"}
-                style={{ scale: "0.65" }}
-              />
-            </Nav.Link>
-          </OverlayTrigger>
+          <T
+            target=".homeNavIcon"
+            {...delayOptions}
+            className="tooltip-icon-sidebar"
+          />
+          <T
+            target=".explorerNav"
+            {...delayOptions}
+            className="tooltip-icon-sidebar"
+          />
+          <T
+            target=".searchNav"
+            {...delayOptions}
+            className="tooltip-icon-sidebar"
+          />
+          <T
+            target=".inputNav"
+            {...delayOptions}
+            className="tooltip-icon-sidebar"
+          />
+          <T
+            target=".extractionNav"
+            {...delayOptions}
+            className="tooltip-icon-sidebar"
+          />
+          <T
+            target=".discoveryNav"
+            {...delayOptions}
+            className="tooltip-icon-sidebar"
+          />
+          <T
+            target=".learningNav"
+            {...delayOptions}
+            className="tooltip-icon-sidebar"
+          />
+          <T
+            target=".resultsNav"
+            {...delayOptions}
+            className="tooltip-icon-sidebar"
+          />
+          <T
+            target=".applicationNav"
+            {...delayOptions}
+            className="tooltip-icon-sidebar"
+          />
+          <T
+            target=".layoutTestNav"
+            {...delayOptions}
+            className="tooltip-icon-sidebar"
+          />
+          <T
+            target=".settingsNav"
+            {...delayOptions}
+            className="tooltip-icon-sidebar"
+          />
 
-          <OverlayTrigger
-            placement={"right"}
-            overlay={<Tooltip id={"tooltip-search"}>Search</Tooltip>}
+          <Nav.Link
+            data-pr-at="right bottom"
+            data-pr-tooltip="Home"
+            data-pr-my="left bottom"
+            className="homeNavIcon btnSidebar"
+            href="#home"
+            eventKey="home"
+            data-tooltip-id="tooltip-home"
+            onClick={(event) => handleClick(event, "home")}
           >
-            <Nav.Link
-              className="btnSidebar"
-              eventKey="search"
-              data-tooltip-id="tooltip-search"
-              onClick={(event) => handleClick(event, "search")}
-              disabled={disabledIcon}
-            >
-              <Search
-                size={"1.25rem"}
-                width={"100%"}
-                height={"100%"}
-                style={{ scale: "0.65" }}
-              />
-            </Nav.Link>
-          </OverlayTrigger>
+            <HouseFill
+              size={"1.25rem"}
+              width={"100%"}
+              height={"100%"}
+              style={{ scale: "0.65" }}
+            />
+          </Nav.Link>
+          {/* </OverlayTrigger> */}
+
+          <Nav.Link
+            className="explorerNav btnSidebar"
+            data-pr-at="right bottom"
+            data-pr-tooltip="Explorer"
+            data-pr-my="left bottom"
+            eventKey="explorer"
+            data-tooltip-id="tooltip-explorer"
+            onClick={(event) => handleClick(event, "explorer")}
+          >
+            <Files
+              size={"1.25rem"}
+              width={"100%"}
+              height={"100%"}
+              style={{ scale: "0.65" }}
+            />
+          </Nav.Link>
+
+          <Nav.Link
+            className="searchNav btnSidebar"
+            data-pr-at="right bottom"
+            data-pr-tooltip="Search"
+            data-pr-my="left bottom"
+            eventKey="search"
+            data-tooltip-id="tooltip-search"
+            onClick={(event) => handleClick(event, "search")}
+            disabled={disabledIcon}
+          >
+            <Search
+              size={"1.25rem"}
+              width={"100%"}
+              height={"100%"}
+              style={{ scale: "0.65" }}
+            />
+          </Nav.Link>
 
           <NavDropdown.Divider style={{ height: "1rem" }} />
-          <OverlayTrigger
-            placement={"right"}
-            overlay={<Tooltip id={"tooltip-input"}>Input Module</Tooltip>}
-          >
-            <Nav.Link
-              className="btnSidebar"
-              eventKey="input"
-              data-tooltip-id="tooltip-input"
-              onClick={(event) => handleClick(event, "input")}
-              disabled={disabledIcon}
-            >
-              <Server
-                size={"1.25rem"}
-                width={"100%"}
-                height={"100%"}
-                style={{ scale: "0.65" }}
-              />
-            </Nav.Link>
-          </OverlayTrigger>
 
-          <OverlayTrigger
-            placement={"right"}
-            overlay={
-              <Tooltip id={"tooltip-extraction"}>Extraction Module</Tooltip>
-            }
+          <Nav.Link
+            className="inputNav btnSidebar"
+            data-pr-at="right bottom"
+            data-pr-my="left bottom"
+            data-pr-tooltip="Input"
+            eventKey="input"
+            data-tooltip-id="tooltip-input"
+            onClick={(event) => handleClick(event, "input")}
+            disabled={disabledIcon}
           >
-            <Nav.Link
-              className="btnSidebar"
-              eventKey="extraction"
-              data-tooltip-id="tooltip-extraction"
-              onClick={(event) => handleClick(event, "extraction")}
-              disabled={disabledIcon}
-            >
-              <Magnet
-                size={"1.25rem"}
-                width={"100%"}
-                height={"100%"}
-                style={{ scale: "0.65" }}
-              />
-            </Nav.Link>
-          </OverlayTrigger>
+            <Server
+              size={"1.25rem"}
+              width={"100%"}
+              height={"100%"}
+              style={{ scale: "0.65" }}
+            />
+          </Nav.Link>
 
-          <OverlayTrigger
-            placement={"right"}
-            overlay={
-              <Tooltip id={"tooltip-discovery"}>Discovery Module</Tooltip>
-            }
+          <Nav.Link
+            className="extractionNav btnSidebar"
+            data-pr-at="right bottom"
+            data-pr-my="left bottom"
+            data-pr-tooltip="Extraction"
+            eventKey="extraction"
+            data-tooltip-id="tooltip-extraction"
+            onClick={(event) => handleClick(event, "extraction")}
+            disabled={disabledIcon}
           >
-            <Nav.Link
-              className="btnSidebar"
-              eventKey="discovery"
-              data-tooltip-id="tooltip-discovery"
-              onClick={(event) => handleClick(event, "discovery")}
-              disabled={disabledIcon}
-            >
-              <FileEarmarkBarGraph
-                size={"1.25rem"}
-                width={"100%"}
-                height={"100%"}
-                style={{ scale: "0.65" }}
-              />
-            </Nav.Link>
-          </OverlayTrigger>
+            <Magnet
+              size={"1.25rem"}
+              width={"100%"}
+              height={"100%"}
+              style={{ scale: "0.65" }}
+            />
+          </Nav.Link>
 
-          <OverlayTrigger
-            placement={"right"}
-            overlay={<Tooltip id={"tooltip-learning"}>Learning Module</Tooltip>}
+          <Nav.Link
+            className="discoveryNav btnSidebar"
+            data-pr-at="right bottom"
+            data-pr-my="left bottom"
+            data-pr-tooltip="Exploratory"
+            eventKey="discovery"
+            data-tooltip-id="tooltip-discovery"
+            onClick={(event) => handleClick(event, "discovery")}
+            disabled={disabledIcon}
           >
-            <Nav.Link
-              className="btnSidebar"
-              eventKey="Learning"
-              data-tooltip-id="tooltip-learning"
-              onClick={(event) => handleClick(event, "learning")}
-              disabled={disabledIcon}
-            >
-              <Stack
-                size={"1.25rem"}
-                width={"100%"}
-                height={"100%"}
-                style={{ scale: "0.65" }}
-              />
-            </Nav.Link>
-          </OverlayTrigger>
+            <FileEarmarkBarGraph
+              size={"1.25rem"}
+              width={"100%"}
+              height={"100%"}
+              style={{ scale: "0.65" }}
+            />
+          </Nav.Link>
 
-          <OverlayTrigger
-            placement={"right"}
-            overlay={<Tooltip id={"tooltip-results"}>Results Module</Tooltip>}
+          <Nav.Link
+            className="learningNav btnSidebar"
+            data-pr-at="right bottom"
+            data-pr-my="left bottom"
+            data-pr-tooltip="Learning"
+            eventKey="Learning"
+            data-tooltip-id="tooltip-learning"
+            onClick={(event) => handleClick(event, "learning")}
+            disabled={disabledIcon}
           >
-            <Nav.Link
-              className="btnSidebar"
-              eventKey="Results"
-              data-tooltip-id="tooltip-resutls"
-              onClick={(event) => handleClick(event, "results")}
-              disabled={disabledIcon}
-            >
-              <PatchCheck
-                size={"1.25rem"}
-                width={"100%"}
-                height={"100%"}
-                style={{ scale: "0.65" }}
-              />
-            </Nav.Link>
-          </OverlayTrigger>
+            <Stack
+              size={"1.25rem"}
+              width={"100%"}
+              height={"100%"}
+              style={{ scale: "0.65" }}
+            />
+          </Nav.Link>
 
-          <OverlayTrigger
-            placement={"right"}
-            overlay={
-              <Tooltip id={"tooltip-application"}>Application Module</Tooltip>
-            }
+          <Nav.Link
+            className="resultsNav btnSidebar"
+            data-pr-at="right bottom"
+            data-pr-my="left bottom"
+            data-pr-tooltip="Results"
+            eventKey="Results"
+            onClick={(event) => handleClick(event, "results")}
+            disabled={disabledIcon}
           >
-            <Nav.Link
-              className="btnSidebar"
-              eventKey="Application"
-              data-tooltip-id="tooltip-application"
-              onClick={(event) => handleClick(event, "application")}
-              disabled={disabledIcon}
-            >
-              <RocketTakeoff
-                size={"1.25rem"}
-                width={"100%"}
-                height={"100%"}
-                style={{ scale: "0.65" }}
-              />
-            </Nav.Link>
-          </OverlayTrigger>
+            <PatchCheck
+              size={"1.25rem"}
+              width={"100%"}
+              height={"100%"}
+              style={{ scale: "0.65" }}
+            />
+          </Nav.Link>
+
+          <Nav.Link
+            className="applicationNav btnSidebar"
+            data-pr-at="right bottom"
+            data-pr-my="left bottom"
+            data-pr-tooltip="Application"
+            eventKey="Application"
+            data-tooltip-id="tooltip-application"
+            onClick={(event) => handleClick(event, "application")}
+            disabled={disabledIcon}
+          >
+            <RocketTakeoff
+              size={"1.25rem"}
+              width={"100%"}
+              height={"100%"}
+              style={{ scale: "0.65" }}
+            />
+          </Nav.Link>
 
           {/* div that puts the buttons to the bottom of the sidebar*/}
           <div className="d-flex" style={{ flexGrow: "1" }}></div>
 
-          <OverlayTrigger
-            placement={"right"}
-            overlay={<Tooltip id={"tooltip-layoutTest"}>Layout Test</Tooltip>}
+          <Nav.Link
+            className="layoutTestNav btnSidebar"
+            data-pr-at="right bottom"
+            data-pr-my="left bottom"
+            data-pr-tooltip="Layout Test"
+            eventKey="LayoutTest"
+            data-tooltip-id="tooltip-layoutTest"
+            onClick={(event) => handleClick(event, "layoutTest")}
           >
-            <Nav.Link
-              className="btnSidebar"
-              eventKey="LayoutTest"
-              data-tooltip-id="tooltip-layoutTest"
-              onClick={(event) => handleClick(event, "layoutTest")}
-            >
-              <BandaidFill
-                size={"1.25rem"}
-                width={"100%"}
-                height={"100%"}
-                style={{ scale: "0.65" }}
-              />
-            </Nav.Link>
-          </OverlayTrigger>
+            <BandaidFill
+              size={"1.25rem"}
+              width={"100%"}
+              height={"100%"}
+              style={{ scale: "0.65" }}
+            />
+          </Nav.Link>
 
           <div className="d-flex" style={{ flexGrow: "1" }}></div>
 
           <NavDropdown
-            className="btnSidebar"
+            className="settingsNav btnSidebar"
+            data-pr-at="right bottom"
+            data-pr-my="left bottom"
+            data-pr-tooltip="Settings"
             data-tooltip-id="tooltip-settings"
             onClick={handleNavClick}
             title={
-              <OverlayTrigger
-                placement={"right"}
-                overlay={<Tooltip id={"tooltip-settings"}>Settings</Tooltip>}
-              >
-                <Gear
-                  size={"1.25rem"}
-                  width={"100%"}
-                  height={"100%"}
-                  style={{ scale: "0.75" }}
-                />
-              </OverlayTrigger>
+              <Gear
+                size={"1.25rem"}
+                width={"100%"}
+                height={"100%"}
+                style={{ scale: "0.75" }}
+              />
             }
           >
-            <OverlayTrigger
-              placement={"right"}
-              overlay={
-                <Tooltip id={"tooltip-application"}>
-                  Toggle between a dynamic tab layout and a navbar based layout
-                </Tooltip>
-              }
+            <NavDropdown.Item
+              className="developerModeNav"
+              data-pr-at="right bottom"
+              data-pr-my="left bottom"
+              data-pr-tooltip="Developer Mode"
+              href="#/action-1"
             >
-              <NavDropdown.Item href="#/action-1">
-                Toggle developer mode
-              </NavDropdown.Item>
-            </OverlayTrigger>
+              Toggle developer mode
+            </NavDropdown.Item>
             <NavDropdown.Item href="#/action-2">Help</NavDropdown.Item>
             <NavDropdown.Item href="#/action-3">About</NavDropdown.Item>
           </NavDropdown>

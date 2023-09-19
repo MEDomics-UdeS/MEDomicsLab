@@ -112,3 +112,9 @@
 .contexify.contexify_submenu {
   box-shadow: 0 0 0.25rem 0.1rem #0000007c !important;
 }
+
+.tooltip-icon-sidebar > .p-tooltip-text {
+  padding: 0.5rem !important;
+  margin-right: 0.5rem;
+  align-self: center;
+}
