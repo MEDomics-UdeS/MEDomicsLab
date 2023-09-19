@@ -1,6 +1,6 @@
 import { randomUUID } from "crypto"
 import React from "react"
-import fs from "fs"
+import * as fs from "fs-extra"
 import { toast } from "react-toastify"
 import { ipcRenderer } from "electron"
 
@@ -238,7 +238,8 @@ export default class MedDataObject {
     let newNameFound = this.getNewName({
       dataObject: dataObject,
       newName: newName,
-      globalDataContext: globalDataContext
+      globalDataContext: globalDataContext,
+      parentID: dataObject.parentID
     })
     console.log("newNameFound: " + newNameFound)
     console.log("newName: " + newName)
@@ -264,7 +265,155 @@ export default class MedDataObject {
     return dataObject
   }
 
-  static move(dataObject, newPath) {}
+  static getPathSeparator() {
+    if (process.platform === "win32") {
+      return "\\"
+    } else if (typeof process !== "undefined" && process.platform === "linux") {
+      return "/"
+    }
+  }
+
+  // static changeChildrenPaths(newParentPath, children, globalDataContext, setGlobalDataContext) {
+  static getNamesOfFolderAndFilesInPath(path) {
+    let fs = require("fs")
+    let names = fs.readdirSync(path)
+    return names
+  }
+
+  static returnNameNotInList(name, names) {
+    let nameToReturn = name
+    let nameFound = false
+    let index = 0
+    while (!nameFound) {
+      if (names.includes(nameToReturn)) {
+        nameToReturn = name + "_" + index
+        index++
+      } else {
+        nameFound = true
+      }
+    }
+    console.log("nameToReturn: ", { nameToReturn })
+    return nameToReturn
+  }
+
+  static getNewNameForFolder({ name, folderPath }) {
+    let nameToReturn = name
+    let names = this.getNamesOfFolderAndFilesInPath(folderPath)
+    nameToReturn = this.returnNameNotInList(name, names)
+    return nameToReturn
+  }
+
+  static getNewNameForFile({ name, folderPath, extension }) {
+    let nameToReturn = name
+    let names = this.getNamesOfFolderAndFilesInPath(folderPath)
+    let nameWithoutExtension = splitStringAtTheLastSeparator(name, ".")[0]
+    let extensionToReturn = extension
+    if (extension === "") {
+      extensionToReturn = splitStringAtTheLastSeparator(name, ".")[1]
+    }
+    console.log("Names: ", names)
+    nameToReturn = this.returnNameNotInList(name, names) + "." + extensionToReturn
+    return nameToReturn
+  }
+
+  static getTotalPath(newName, parentPath) {
+    let separator = getPathSeparator()
+    let totalPath = parentPath + separator + newName
+    return totalPath
+  }
+
+  static move(dataObject, newParentObject, globalDataContext, setGlobalDataContext) {
+    let newDataObject = dataObject
+    let oldParentID = dataObject.parentID
+    let newParentObjectPath = newParentObject.path
+    let oldPath = dataObject.path
+    console.log("oldPath: " + oldPath)
+    newDataObject.path = newParentObjectPath + this.getPathSeparator() + newDataObject.name
+    let newNameFound = this.getNewName({
+      dataObject: newDataObject,
+      newName: dataObject.name,
+      globalDataContext: globalDataContext,
+      parentID: newParentObject.getUUID()
+    })
+    console.log("newNameFound: " + newNameFound)
+    // console.log("newName: " + dataObject.path)
+
+    if (newNameFound !== "") {
+      if (newNameFound !== dataObject.name) {
+        toast.warning("Data object moved to " + newNameFound + " because a data object with the same name already exists in the context")
+      } else {
+        toast.success("Data object moved to " + newNameFound)
+      }
+      newDataObject.name = newNameFound
+
+      newDataObject.lastModified = Date(Date.now())
+      newDataObject.path = this.adaptPathToOS(newParentObjectPath + "\\" + newDataObject.name)
+
+      console.log("newDataObject.path: ", { newDataObject })
+      newDataObject.name = newNameFound
+      let dataObjectRenamed = newDataObject
+      // Write data to file
+      let newPath = dataObjectRenamed.path
+
+      fs.move(oldPath, newPath, () => {
+        console.log(`Data object moved from ${oldPath} to ${newPath}`)
+      })
+
+      let newGlobalData = { ...globalDataContext }
+      newGlobalData[oldParentID].removeChildID(dataObject.getUUID())
+
+      newGlobalData[newParentObject.getUUID()].addChildID(dataObjectRenamed.getUUID())
+      dataObjectRenamed.parentID = newParentObject.getUUID()
+
+      newGlobalData[dataObject.getUUID()] = dataObjectRenamed
+      setGlobalDataContext(newGlobalData)
+    }
+  }
+
+  /**
+   * Creates a copy of a MED data object.
+   *
+   */
+
+  static copy(dataObject, newParentObject, globalDataContext, setGlobalDataContext) {
+    let newMedDataObject = new MedDataObject({
+      originalName: dataObject.originalName,
+      name: dataObject.name,
+      type: dataObject.type,
+      parentID: newParentObject.getUUID(),
+      childrenIDs: dataObject.childrenIDs ? [] : null
+    })
+
+    let newNameWithExtension = undefined
+    if (dataObject.type !== "folder") {
+      newNameWithExtension = this.getNewNameForFile({ name: dataObject.name, folderPath: newParentObject.path, extension: dataObject.extension })
+    } else {
+      newNameWithExtension = this.getNewNameForFolder({ name: dataObject.name, folderPath: newParentObject.path })
+    }
+
+    newMedDataObject.name = newNameWithExtension
+    newMedDataObject.nameWithoutExtension = splitStringAtTheLastSeparator(newNameWithExtension, ".")[0]
+    newMedDataObject.extension = splitStringAtTheLastSeparator(newNameWithExtension, ".")[1]
+    newMedDataObject.path = this.getTotalPath(newNameWithExtension, newParentObject.path)
+
+    toast.success("Data object copied to " + newMedDataObject.path)
+
+    newMedDataObject.lastModified = Date(Date.now())
+    newMedDataObject.created = Date(Date.now())
+    let newGlobalData = { ...globalDataContext }
+    newGlobalData[newParentObject.getUUID()].addChildID(newMedDataObject.getUUID())
+    newGlobalData[newMedDataObject.getUUID()] = newMedDataObject
+    let oldPath = dataObject.path
+    let newPath = newMedDataObject.path
+    fs.cp(oldPath, newPath, { recursive: true }, (err) => {
+      if (err) {
+        console.log(err)
+      } else {
+        console.log(`Data object copied from ${oldPath} to ${newPath}`)
+      }
+    })
+    setGlobalDataContext(newGlobalData)
+  }
 
   /**
    * Deletes the file associated with the provided `dataObject`.
@@ -294,7 +443,7 @@ export default class MedDataObject {
    *   - `globalDataContext` (optional): The global data context object to search in.
    * @returns {string} - The new name for the `MedDataObject` instance.
    */
-  static getNewName({ dataObject, newName, globalDataContext } = {}) {
+  static getNewName({ dataObject, newName, globalDataContext, parentID } = {}) {
     let answer = ""
     let copyCanBeCreated = false
     let copyIndex = 1
@@ -312,7 +461,8 @@ export default class MedDataObject {
     let copyName = newNameWithoutExtension + dataObjectSuffix
     while (!copyCanBeCreated) {
       // Check if a data object with the same name already exists in the context
-      let dataObjectUUID = MedDataObject.checkIfMedDataObjectInContextbyName(copyName, globalDataContext)
+      let dataObjectUUID = MedDataObject.checkIfMedDataObjectInContextbyName(copyName, globalDataContext, parentID)
+
       if (dataObjectUUID !== "") {
         copyIndex++
         copyName = newNameWithoutExtension + "_" + copyIndex + "." + dataObject.extension
@@ -382,21 +532,11 @@ export default class MedDataObject {
 
   rename(newName) {
     // const { process } = require("node")
-    let separator = "\\"
     this.name = newName
     let oldPath = this.path
-
-    let cwdSlashType = oldPath.includes("/") ? "/" : "\\"
-    let cwdSlashTypeInv = cwdSlashType == "/" ? "\\" : "/"
-    if (process.platform === "win32") {
-      separator = "\\"
-    } else if (typeof process !== "undefined" && process.platform === "linux") {
-      separator = "/"
-    }
+    let separator = getPathSeparator()
+    console.log("separator: ", separator)
     let newPath = splitStringAtTheLastSeparator(this.path, separator)[0] + separator + newName
-    console.log("newPath#1: " + newPath)
-    newPath = newPath.replaceAll(cwdSlashTypeInv, cwdSlashType)
-    console.log("newPath#2: " + newPath)
 
     if (this.type === "folder") {
       this.extension = ""
@@ -655,4 +795,14 @@ function splitStringAtTheLastSeparator(string, separator) {
   let lastElement = splitString.pop()
   let firstElements = splitString.join(separator)
   return [firstElements, lastElement]
+}
+
+function getPathSeparator() {
+  let process = require("process")
+  if (process.platform === "win32") {
+    console.log("Windows")
+    return "\\"
+  } else if (typeof process !== "undefined" && process.platform === "linux") {
+    return "/"
+  }
 }

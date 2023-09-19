@@ -25,6 +25,8 @@ const SidebarDirectoryTreeControlled = () => {
   const [focusedItem, setFocusedItem] = useState()
   const [expandedItems, setExpandedItems] = useState([])
   const [selectedItems, setSelectedItems] = useState([])
+  const [copiedItems, setCopiedItems] = useState([])
+  const [cutItems, setCutItems] = useState([])
 
   const { globalData, setGlobalData } = useContext(DataContext) // We get the global data from the context to retrieve the directory tree of the workspace, thus retrieving the data files
   const { dispatchLayout } = useContext(LayoutModelContext)
@@ -32,10 +34,25 @@ const SidebarDirectoryTreeControlled = () => {
   const [dirTree, setDirTree] = useState({}) // We get the directory tree from the workspace
 
   const handleKeyPress = (event) => {
+    console.log("KEY PRESS", event.code)
     if (event.key === "Delete") {
       if (selectedItems.length > 0) {
         console.log("DELETE", selectedItems[0])
-        onDelete(selectedItems[0])
+        selectedItems.forEach((item) => {
+          onDelete(item)
+        })
+      }
+      // onDelete(selectedItems[0])
+    } else if (event.code === "KeyC" && event.ctrlKey) {
+      setCopiedItems(selectedItems)
+    } else if (event.code === "KeyX" && event.ctrlKey) {
+      setCutItems(selectedItems)
+    } else if (event.code === "KeyV" && event.ctrlKey) {
+      if (copiedItems.length > 0) {
+        console.log("PASTE", copiedItems)
+        copiedItems.forEach((item) => {
+          onPaste(item, selectedItems[0])
+        })
       }
     }
   }
@@ -69,6 +86,26 @@ const SidebarDirectoryTreeControlled = () => {
     })
   }
 
+  function onPaste(uuid, selectedItem) {
+    console.log("PASTE", uuid)
+    let dataObject = globalData[uuid]
+    if (selectedItem == undefined) {
+      console.log("PASTE - selectedItem undefined")
+      return
+    }
+    let selectedItemObject = globalData[selectedItem]
+    if (selectedItemObject.type == "folder") {
+      console.log("PASTE - selectedItem is folder")
+      MedDataObject.copy(dataObject, selectedItemObject, globalData, setGlobalData)
+      MedDataObject.updateWorkspaceDataObject(300)
+    } else {
+      console.log("PASTE - selectedItem is not folder")
+      let parentObject = globalData[selectedItemObject.parentID]
+      MedDataObject.copy(dataObject, parentObject, globalData, setGlobalData)
+      MedDataObject.updateWorkspaceDataObject(300)
+    }
+  }
+
   function onDelete(uuid) {
     // Get the UUID of the `MedDataObject` with the current name from the `globalData` object.
     const namesYouCantDelete = ["UUID_ROOT", "DATA", "EXPERIMENTS", "RESULTS", "MODELS"]
@@ -88,6 +125,12 @@ const SidebarDirectoryTreeControlled = () => {
     } else {
       // Delete the `MedDataObject` with the current name from the `globalData` object.
       let globalDataCopy = { ...globalData }
+      if (globalData[uuid].childrenIDs !== null) {
+        globalData[uuid].childrenIDs.forEach((childID) => {
+          MedDataObject.delete(globalDataCopy[childID])
+          delete globalDataCopy[childID]
+        })
+      }
       MedDataObject.delete(globalDataCopy[uuid])
       delete globalDataCopy[uuid]
       setGlobalData(globalDataCopy)
@@ -111,6 +154,62 @@ const SidebarDirectoryTreeControlled = () => {
 
   function displayMenu(e, data) {
     show({ event: e, props: data })
+  }
+
+  const onDrop = async (items, target) => {
+    console.log(
+      "DROPPRED - item",
+      items.map((item) => item.name)
+    )
+    console.log("DROPPRED - target", target)
+    console.log("TREE", tree.current)
+    console.log("TREE ITEMS", tree.current.treeEnvironmentContext.items)
+    const currentItems = tree.current.treeEnvironmentContext.items
+    for (const item of items) {
+      const parent = Object.values(currentItems).find((potentialParent) => potentialParent.children?.includes(item.index))
+
+      console.log("PARENT", parent)
+
+      if (!parent) {
+        throw Error(`Could not find parent of item "${item.index}"`)
+      }
+
+      if (!parent.children) {
+        throw Error(`Parent "${parent.index}" of item "${item.index}" did not have any children`)
+      }
+
+      if (target.targetType === "item" || target.targetType === "root") {
+        if (target.targetItem === parent.index) {
+          // NOOP
+        } else {
+          console.log("TARGET ITEM", target.targetItem)
+          let dataObject = globalData[item.UUID]
+          console.log("DATA OBJECT", dataObject)
+          if (dataObject.type == "folder") {
+            console.log("FOLDER")
+            MedDataObject.move(dataObject, globalData[target.targetItem], globalData, setGlobalData)
+            MedDataObject.updateWorkspaceDataObject()
+          } else {
+            MedDataObject.move(dataObject, globalData[target.targetItem], globalData, setGlobalData)
+            MedDataObject.updateWorkspaceDataObject()
+          }
+        }
+      } else {
+        console.log("TARGET PARENT ITEM", currentItems[target.parentItem].name)
+        if (target.parentItem === item.index) {
+          // Trying to drop inside itself
+          return
+        }
+        let dataObject = globalData[item.UUID]
+        if (target.parentItem === dataObject.parentID) {
+          console.log("SAME PARENT")
+        } else {
+          console.log("DIFFERENT PARENT")
+          MedDataObject.move(dataObject, globalData[target.parentItem], globalData, setGlobalData)
+          MedDataObject.updateWorkspaceDataObject()
+        }
+      }
+    }
   }
 
   function handleNameChange(medObject, newName) {
@@ -239,6 +338,7 @@ const SidebarDirectoryTreeControlled = () => {
         canRename={true}
         canDragAndDrop={true}
         onRenameItem={handleNameChange}
+        onDrop={onDrop}
       >
         <Tree treeId="tree-2" rootItem="UUID_ROOT" treeLabel="Tree Example" ref={tree} />
       </ControlledTreeEnvironment>
