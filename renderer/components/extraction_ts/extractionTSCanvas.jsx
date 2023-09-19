@@ -1,11 +1,11 @@
 import React, { useState } from "react"
-import DropzoneComponent from "../mainPages/dataComponents/dropzoneComponent2"
 import DataTableWrapper from "../dataTypeVisualisation/dataTableWrapper"
 import { Button } from "react-bootstrap"
 import { Dropdown } from "primereact/dropdown"
 import { readCSV, DataFrame } from "danfojs"
 
 const ExtractionTSCanvas = () => {
+  const [dataframe, setDataframe] = useState([])
   const [displayData, setDisplayData] = useState([])
   const [selectedColumns, setSelectedColumns] = useState({
     patientIdentifier: "",
@@ -16,7 +16,11 @@ const ExtractionTSCanvas = () => {
 
   const onUpload = (event) => {
     if (event.target.files) {
-      setDisplayData(readCSV(event.target.files[0]))
+      readCSV(event.target.files[0]).then((data) => {
+        setDisplayData(Array(data.$columns).concat(data.$data))
+        setDataframe(data)
+        console.log(data)
+      })
     }
   }
 
@@ -28,18 +32,18 @@ const ExtractionTSCanvas = () => {
    * @description
    * Function used to attribute column values from selectors
    */
-  const handleColumnSelect = (column, event) => {
+  /* const handleColumnSelect = (column, event) => {
     const { value } = event.target
     setSelectedColumns({
       ...selectedColumns,
       [column]: value
     })
-  }
+  } */
 
   return (
     <div>
       <h1>Extraction - Time Series</h1>
-      <input type="file" onChange={onUpload} />
+      <input type="file" accept=".csv" onChange={onUpload} />
 
       {/* <div>
         <DropzoneComponent whenUploaded={onUpload}>
@@ -48,13 +52,13 @@ const ExtractionTSCanvas = () => {
           </Button>
         </DropzoneComponent>
       </div>
- */}
+      */}
       {/* Display imported data */}
       <h2>Imported data</h2>
-      {displayData.data && displayData.data.length < 1 && (
+      {displayData.length < 1 && (
         <p>Nothing to show, import a CSV file first.</p>
       )}
-      {displayData.data && displayData.data.length > 0 && (
+      {displayData.length > 0 && (
         <div>
           {/* DataTableWrapper is used to display the data */}
           <DataTableWrapper
@@ -69,7 +73,6 @@ const ExtractionTSCanvas = () => {
               sortable: true
             }}
           />
-
           {/* Add dropdowns for column selection */}
           {/* <h2>Select columns corresponding to :</h2>
           <div>
