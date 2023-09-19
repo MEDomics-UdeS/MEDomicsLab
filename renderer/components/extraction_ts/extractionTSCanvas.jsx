@@ -1,8 +1,7 @@
 import React, { useState } from "react"
 import DataTableWrapper from "../dataTypeVisualisation/dataTableWrapper"
-import { Button } from "react-bootstrap"
 import { Dropdown } from "primereact/dropdown"
-import { readCSV, DataFrame } from "danfojs"
+import { readCSV } from "danfojs"
 
 const ExtractionTSCanvas = () => {
   const [dataframe, setDataframe] = useState([])
@@ -10,7 +9,8 @@ const ExtractionTSCanvas = () => {
   const [selectedColumns, setSelectedColumns] = useState({
     patientIdentifier: "",
     measuredItemIdentifier: "",
-    measurementDatetime: "",
+    measurementDatetimeStart: "",
+    measurementDatetimeEnd: "",
     measurementValue: ""
   })
 
@@ -19,7 +19,6 @@ const ExtractionTSCanvas = () => {
       readCSV(event.target.files[0]).then((data) => {
         setDisplayData(Array(data.$columns).concat(data.$data))
         setDataframe(data)
-        console.log(data)
       })
     }
   }
@@ -32,27 +31,21 @@ const ExtractionTSCanvas = () => {
    * @description
    * Function used to attribute column values from selectors
    */
-  /* const handleColumnSelect = (column, event) => {
+  const handleColumnSelect = (column, event) => {
     const { value } = event.target
     setSelectedColumns({
       ...selectedColumns,
       [column]: value
     })
-  } */
+  }
 
   return (
     <div>
       <h1>Extraction - Time Series</h1>
+
+      {/* Import CSV data */}
       <input type="file" accept=".csv" onChange={onUpload} />
 
-      {/* <div>
-        <DropzoneComponent whenUploaded={onUpload}>
-          <Button style={{ alignItems: "flex-end", marginInline: "2%" }}>
-            Import a CSV file
-          </Button>
-        </DropzoneComponent>
-      </div>
-      */}
       {/* Display imported data */}
       <h2>Imported data</h2>
       {displayData.length < 1 && (
@@ -74,7 +67,7 @@ const ExtractionTSCanvas = () => {
             }}
           />
           {/* Add dropdowns for column selection */}
-          {/* <h2>Select columns corresponding to :</h2>
+          <h2>Select columns corresponding to :</h2>
           <div>
             <div>
               Patient Identifier : &nbsp;
@@ -83,10 +76,11 @@ const ExtractionTSCanvas = () => {
                 onChange={(event) =>
                   handleColumnSelect("patientIdentifier", event)
                 }
-                options={Object.keys(displayData[0]).map((column) => ({
-                  value: displayData[0][column],
-                  label: displayData[0][column]
-                }))}
+                options={dataframe.$columns.filter(
+                  (column, index) =>
+                    dataframe.$dtypes[index] == "int32" ||
+                    dataframe.$dtypes[index] == "string"
+                )}
                 placeholder="Patient Identifier"
               />
             </div>
@@ -97,25 +91,42 @@ const ExtractionTSCanvas = () => {
                 onChange={(event) =>
                   handleColumnSelect("measuredItemIdentifier", event)
                 }
-                options={Object.keys(displayData[0]).map((column) => ({
-                  value: displayData[0][column],
-                  label: displayData[0][column]
-                }))}
+                options={dataframe.$columns.filter(
+                  (column, index) =>
+                    dataframe.$dtypes[index] == "int32" ||
+                    dataframe.$dtypes[index] == "string"
+                )}
                 placeholder="Measured Item Identifier"
               />
             </div>
             <div>
-              Measurement Datetime : &nbsp;
+              Measurement Datetime (Start) : &nbsp;
               <Dropdown
-                value={selectedColumns.measurementDatetime}
+                value={selectedColumns.measurementDatetimeStart}
                 onChange={(event) =>
-                  handleColumnSelect("measurementDatetime", event)
+                  handleColumnSelect("measurementDatetimeStart", event)
                 }
-                options={Object.keys(displayData[0]).map((column) => ({
-                  value: displayData[0][column],
-                  label: displayData[0][column]
-                }))}
-                placeholder="Measurement Datetime"
+                options={dataframe.$columns.filter(
+                  (column, index) =>
+                    dataframe.$dtypes[index] == "string" &&
+                    dataframe[column].dt.$dateObjectArray[0] != "Invalid Date"
+                )}
+                placeholder="Measurement Datetime (Start)"
+              />
+            </div>
+            <div>
+              Measurement Datetime (End) : &nbsp;
+              <Dropdown
+                value={selectedColumns.measurementDatetimeEnd}
+                onChange={(event) =>
+                  handleColumnSelect("measurementDatetimeEnd", event)
+                }
+                options={dataframe.$columns.filter(
+                  (column, index) =>
+                    dataframe.$dtypes[index] == "string" &&
+                    dataframe[column].dt.$dateObjectArray[0] != "Invalid Date"
+                )}
+                placeholder="Measurement Datetime (End)"
               />
             </div>
             <div>
@@ -125,14 +136,15 @@ const ExtractionTSCanvas = () => {
                 onChange={(event) =>
                   handleColumnSelect("measurementValue", event)
                 }
-                options={Object.keys(displayData[0]).map((column) => ({
-                  value: displayData[0][column],
-                  label: displayData[0][column]
-                }))}
+                options={dataframe.$columns.filter(
+                  (column, index) =>
+                    dataframe.$dtypes[index] == "int32" ||
+                    dataframe.$dtypes[index] == "float32"
+                )}
                 placeholder="Measurement Value"
               />
             </div>
-          </div>*/}
+          </div>
         </div>
       )}
     </div>
