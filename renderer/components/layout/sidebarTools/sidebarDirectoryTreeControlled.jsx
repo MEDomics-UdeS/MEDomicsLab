@@ -386,10 +386,8 @@ const SidebarDirectoryTreeControlled = () => {
    * This useEffect hook updates the directory tree when the global data changes.
    */
   useEffect(() => {
-    console.log("GLOBAL DATA", globalData)
     if (globalData) {
       let newTree = fromJSONtoTree({ ...globalData })
-      console.log("NEW TREE", newTree)
       setDirTree(newTree)
     }
   }, [globalData])

@@ -8,30 +8,28 @@ import { DataContext } from "../../workspace/dataContext"
  *  @param {Object} props.keepOnlyFolder - The only parent folder to keep in the dataset selector
  */
 const DatasetSelector = (props) => {
-  const { globalData, setGlobalData } = useContext(DataContext) // We get the global data from the context to retrieve the directory tree of the workspace, thus retrieving the data files
+  const { globalData } = useContext(DataContext) // We get the global data from the context to retrieve the directory tree of the workspace, thus retrieving the data files
   const [datasetList, setDatasetList] = useState([])
   const [selectedDatasets, setSelectedDatasets] = useState("")
 
   function generateDatasetListFromDataContext(dataContext) {
-    let datasetList = []
     let keys = Object.keys(dataContext)
+    let datasetListToShow = []
     keys.forEach((key) => {
       if (dataContext[key].type === "folder") {
-        datasetList.push(dataContext[key].name)
+        datasetListToShow.push(dataContext[key].name)
       }
     })
+  }
 
   useEffect(() => {
     if (globalData !== undefined) {
-      
       generateDatasetListFromDataContext(globalData)
     }
   }, [globalData])
-      
 
   function handleDatasetSelect(event) {
     console.log("Dataset selected", event.target.value)
-    setGlobalData({ ...globalData, dataset: event.target.value })
   }
 
   return (
