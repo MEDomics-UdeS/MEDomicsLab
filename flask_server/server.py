@@ -1,5 +1,6 @@
 import sys
 import json
+import argparse
 from flask import Flask, request, jsonify, Blueprint
 from utils.server_utils import get_json_from_request
 
@@ -13,6 +14,10 @@ app = Flask(__name__)
 # Register blueprints
 app.register_blueprint(app_extraction, url_prefix='/extraction')
 app.register_blueprint(app_learning, url_prefix='/learning')
+
+parser = argparse.ArgumentParser(description='Script so useful.')
+parser.add_argument("--port", type=int, default=5000, help="port to run the server on")
+args = parser.parse_args()
 
 @app.route('/test', methods=['GET', 'POST'])
 def test():
@@ -28,4 +33,4 @@ def test():
 
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    app.run(debug=True, port=args.port, use_reloader=False)
