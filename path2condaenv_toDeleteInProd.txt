@@ -1,1 +1,1 @@
-C:\\Users\\gblai\\anaconda3\\envs\\med\\python.exe
+C:\\Users\\gblai\\anaconda3\\envs\\med_img\\python.exe
