@@ -1,15 +1,22 @@
-import React, { useState, useCallback, useMemo, useEffect, useContext } from "react"
+import React, {
+  useState,
+  useCallback,
+  useMemo,
+  useEffect,
+  useContext
+} from "react"
 import { toast } from "react-toastify"
 import TreeMenu from "react-simple-tree-menu"
 
 // Import utilities
 import { loadJsonSync, downloadJson } from "../../utilities/fileManagementUtils"
-import { axiosPostJson } from "../../utilities/requests"
+import { axiosPostJson, requestJson } from "../../utilities/requests"
 
 // Workflow imports
 import { useNodesState, useEdgesState, useReactFlow } from "reactflow"
 import WorkflowBase from "../flow/workflowBase"
 import { FlowFunctionsContext } from "../flow/context/flowFunctionsContext"
+import { WorkspaceContext } from "../workspace/workspaceContext"
 
 // Import node types
 import StandardNode from "./nodesTypes/standardNode"
@@ -53,6 +60,7 @@ const FlowCanvas = ({ workflowType, setWorkflowType }) => {
   const [results, setResults] = useState({}) // results is used to store radiomic features results
   const { groupNodeId, changeSubFlow, updateNode } =
     useContext(FlowFunctionsContext)
+  const { port } = useContext(WorkspaceContext)
 
   // Hook executed upon modification of edges to verify the connections between input and segmentation nodes
   useEffect(() => {
@@ -515,8 +523,11 @@ const FlowCanvas = ({ workflowType, setWorkflowType }) => {
           json_scene: newFlow
         })
 
-        axiosPostJson(formData, "extraction/run")
-          .then((response) => {
+        requestJson(
+          port,
+          "/extraction/run",
+          formData,
+          (response) => {
             toast.success("Node executed successfully")
             console.log("Response from backend is: ")
             console.log(response)
@@ -566,12 +577,71 @@ const FlowCanvas = ({ workflowType, setWorkflowType }) => {
                 return node
               })
             )
-          })
-          .catch((error) => {
+          },
+          (error) => {
             // Warn the user if the node could not be executed correctly
             console.log(error)
             toast.warn("Could not run the node.")
-          })
+          }
+        )
+
+        // axiosPostJson(formData, "extraction/run")
+        //   .then((response) => {
+        //     toast.success("Node executed successfully")
+        //     console.log("Response from backend is: ")
+        //     console.log(response)
+
+        //     // Get all the nodes in the executed pipeline
+        //     let executedNodes = []
+        //     for (let files in response) {
+        //       for (let pipeline in response[files]) {
+        //         let pipelineNodeIds = pipeline.match(/node_[a-f0-9-]+/g)
+        //         executedNodes = mergeWithoutDuplicates(
+        //           executedNodes,
+        //           pipelineNodeIds
+        //         )
+        //       }
+        //     }
+
+        //     // Update the extractionNode data with the response from the backend
+        //     // And enable the view button of the nodes
+        //     setNodes((prevNodes) =>
+        //       prevNodes.map((node) => {
+        //         if (node.id === id && node.type === "extractionNode") {
+        //           // Get the results that were in the node
+        //           let oldResults = node.data.internal.results
+        //           let newResults = handleExtractionResults(oldResults, response)
+
+        //           return {
+        //             ...node,
+        //             data: {
+        //               ...node.data,
+        //               internal: {
+        //                 ...node.data.internal,
+        //                 results: newResults // Update the results data with the response
+        //               }
+        //             }
+        //           }
+        //         }
+
+        //         if (executedNodes.includes(node.id)) {
+        //           // Enable the view button of the node
+        //           node.data.internal.enableView = true
+        //           updateNode({
+        //             id: node.id,
+        //             updatedData: node.data.internal
+        //           })
+        //         }
+
+        //         return node
+        //       })
+        //     )
+        //   })
+        //   .catch((error) => {
+        //     // Warn the user if the node could not be executed correctly
+        //     console.log(error)
+        //     toast.warn("Could not run the node.")
+        //   })
       }
     },
     [nodes, edges, reactFlowInstance]
@@ -589,9 +659,11 @@ const FlowCanvas = ({ workflowType, setWorkflowType }) => {
     console.log("Flow dictionnary sent to back end is : ")
     console.log(newFlow)
 
-    // Post request to extraction/run-all for current workflow
-    axiosPostJson(newFlow, "extraction/run-all")
-      .then((response) => {
+    requestJson(
+      port,
+      "/extraction/run-all",
+      newFlow,
+      (response) => {
         console.log("Response from the backend : ")
         console.log(response)
         toast.success("Workflow executed successfully")
@@ -629,11 +701,58 @@ const FlowCanvas = ({ workflowType, setWorkflowType }) => {
             return node
           })
         )
-      })
-      .catch((error) => {
+      },
+      (error) => {
         // Warn the user if the workflow could not be executed correctly
         toast.warn("Could not run the workflow.")
-      })
+      }
+    )
+
+    // Post request to extraction/run-all for current workflow
+    // axiosPostJson(newFlow, "extraction/run-all")
+    //   .then((response) => {
+    //     console.log("Response from the backend : ")
+    //     console.log(response)
+    //     toast.success("Workflow executed successfully")
+
+    //     // A response from the backend is only given if there are e
+
+    //     setNodes((prevNodes) =>
+    //       prevNodes.map((node) => {
+    //         // If the type of the node is extractionNode, update the results according
+    //         // to the response from the backend
+    //         if (node.type === "extractionNode") {
+    //           // Get the results that were in the node
+    //           let oldResults = node.data.internal.results
+    //           let newResults = handleExtractionResults(oldResults, response)
+
+    //           return {
+    //             ...node,
+    //             data: {
+    //               ...node.data,
+    //               internal: {
+    //                 ...node.data.internal,
+    //                 results: newResults // Update the results data with the response
+    //               }
+    //             }
+    //           }
+    //         }
+
+    //         // Enable the view button of the node
+    //         node.data.internal.enableView = true
+    //         updateNode({
+    //           id: node.id,
+    //           updatedData: node.data.internal
+    //         })
+
+    //         return node
+    //       })
+    //     )
+    //   })
+    //   .catch((error) => {
+    //     // Warn the user if the workflow could not be executed correctly
+    //     toast.warn("Could not run the workflow.")
+    //   })
   }, [nodes, edges, reactFlowInstance])
 
   /**
@@ -703,9 +822,8 @@ const FlowCanvas = ({ workflowType, setWorkflowType }) => {
           Object.values(flow.nodes).forEach((node) => {
             // the line below is important because functions are not serializable
             // set workflow type
-            let subworkflowType = node.data.internal.subflowId != "MAIN"
-              ? "extraction"
-              : "features"
+            let subworkflowType =
+              node.data.internal.subflowId != "MAIN" ? "extraction" : "features"
             // set node type
             let setupParams = deepCopy(
               staticNodesParams[subworkflowType][

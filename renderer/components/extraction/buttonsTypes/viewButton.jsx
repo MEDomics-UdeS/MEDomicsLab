@@ -1,7 +1,8 @@
-import React from "react"
+import React, { useContext } from "react"
 import Button from "react-bootstrap/Button"
 import { toast } from "react-toastify"
-import { axiosPostJson } from "../../../utilities/requests"
+import { axiosPostJson, requestJson } from "../../../utilities/requests"
+import { WorkspaceContext } from "../../workspace/workspaceContext"
 
 /**
  * @param {string} id id of the node
@@ -14,6 +15,8 @@ import { axiosPostJson } from "../../../utilities/requests"
  * The state of the button is determined by the enableView property of the node.
  */
 const ViewButton = ({ id, data, type }) => {
+  const { port } = useContext(WorkspaceContext)
+
   /**
    * @description
    * This function is used to send a POST request to /extraction/view.
@@ -36,15 +39,28 @@ const ViewButton = ({ id, data, type }) => {
       })
     }
 
-    // POST request to /extraction/view for current node by sending form_data
-    axiosPostJson(formData, "extraction/view")
-      .then((response) => {
+    requestJson(
+      port,
+      "/extraction/view",
+      formData,
+      (response) => {
         console.log(response)
-      })
-      .catch((error) => {
+      },
+      (error) => {
         console.error("Error:", error)
         toast.warn("Could not view image.")
-      })
+      }
+    )
+
+    // POST request to /extraction/view for current node by sending form_data
+    // axiosPostJson(formData, "extraction/view")
+    //   .then((response) => {
+    //     console.log(response)
+    //   })
+    //   .catch((error) => {
+    //     console.error("Error:", error)
+    //     toast.warn("Could not view image.")
+    //   })
   }
 
   return (

@@ -11,14 +11,14 @@ args = parser.parse_args()
 sys.path.append('submodules/MEDimage')
 
 # Import blueprints
-# from extraction.app_extraction_blueprint import app_extraction
+from extraction.app_extraction_blueprint import app_extraction
 from learning.app_learning_blueprint import app_learning
 
 # Creating main instance of Flask app
 app = Flask(__name__)
 
 # Register blueprints
-# app.register_blueprint(app_extraction, url_prefix='/extraction')
+app.register_blueprint(app_extraction, url_prefix='/extraction')
 app.register_blueprint(app_learning, url_prefix='/learning')
 
 @app.route('/test', methods=['GET', 'POST'])
@@ -35,4 +35,4 @@ def test():
 
 
 if __name__ == '__main__':
-    app.run(debug=True, port=args.port, use_reloader=False)
+    app.run(debug=True, port=args.port, use_reloader=True)

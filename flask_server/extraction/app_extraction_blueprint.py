@@ -26,20 +26,28 @@ from utils.server_utils import get_json_from_request
 pp = pprint.PrettyPrinter(indent=4, compact=True, width=40,
                           sort_dicts=False)  # allow pretty print of datatypes in console
 
-# Importation du submodule MEDimage
+## Importation du submodule MEDimage
 import submodules.MEDimage.MEDimage as MEDimage
+# from submodules.MEDimage import MEDimage
+# import submodules.MEDimage as MEDimage
+# from flask_server.submodules.MEDimage import MEDimage
+# import flask_server.submodules.MEDimage.MEDimage as MEDimage
 
+# from submodules.MEDimage.MEDimage import MEDscan
 import extraction.MEDimageApp.utils as utils
 import ray
-
-
 # Global variables
 cwd = os.getcwd()
+isFrontSlash = cwd.find("/")
 current_dir = os.path.dirname(os.path.abspath(__file__))
 pipelines_json_path = os.path.join(current_dir, "MEDimageApp/settings", "accessible_pipelines.json")
 ACCESSIBLE_PIPELINES = json.load(open(pipelines_json_path))
 UPLOAD_FOLDER = os.path.join(current_dir, 'MEDimageApp/tmp')
 JSON_SETTINGS_PATH = os.path.join(current_dir, 'MEDimageApp/settings/settings_frame.json')
+
+if isFrontSlash == -1:
+    UPLOAD_FOLDER = UPLOAD_FOLDER.replace("/", "\\")
+    JSON_SETTINGS_PATH = JSON_SETTINGS_PATH.replace("/", "\\")
 
 MED_IMG_OBJ = {}
 RUNS = {}
@@ -1137,8 +1145,13 @@ def index():
 @app_extraction.route('/upload', methods=['GET', 'POST'])
 def getUpload():  # Code selected from  https://flask.palletsprojects.com/en/2.2.x/patterns/fileuploads/
     up_file_infos = {}
+    data = get_json_from_request(request)
+    print("received data from topic: /upload:")
+    print(json.dumps(data, indent=4, sort_keys=True))
+    print("request:")
+    print(request)
     if request.method == 'POST':
-        data = request.get_json()
+        # data = request.get_json()
         ######################################################################################
         # CHECK IF THE REQUEST GAVE A FILE OR A FOLDER
         # IF THE REQUEST IS A FILE, AND THE FILE IS A NPY FILE, TRY OPENING IT AS A MEDIMAGE
@@ -1196,7 +1209,7 @@ def getUpload():  # Code selected from  https://flask.palletsprojects.com/en/2.2
 
 
 # Run all button to run all drawflow pipelines
-@app_extraction.route("/run-all", methods=["POST"])
+@app_extraction.route("/run-all", methods=["GET","POST"])
 def runAll():
     if not bool(MED_IMG_OBJ):
         print("\n No instance of MEDimage object are loaded. Impossible to run any pipeline.")

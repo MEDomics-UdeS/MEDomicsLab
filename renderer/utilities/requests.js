@@ -35,7 +35,7 @@ export const requestJson = (
         json2send
       },
       method: "POST",
-      url: "http://127.0.0.1:" + port + "/" + topic
+      url: "http://localhost:" + port + "/" + topic
     })
     .then((data) => {
       jsonReceivedCB(data["data"])
