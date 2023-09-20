@@ -184,6 +184,7 @@
   left: 60px;
   cursor: pointer;
   z-index: 10;
+  display: flex;
 }
 
 .btn-panel-top-center {
