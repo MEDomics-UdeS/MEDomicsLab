@@ -29,7 +29,7 @@ import "flexlayout-react/style/light.css"
 import "../styles/workspaceSidebar.css"
 import "../styles/iconSidebar.css"
 import "../styles/learning/sidebar.css"
-import "../styles/learning/results.css"
+import "../styles/flow/results.css"
 import DataContextProvider from "../components/workspace/dataContext"
 import MedDataObject from "../components/workspace/medDataObject"
 

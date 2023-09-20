@@ -9,7 +9,6 @@ import { toast } from "react-toastify"
 import Form from "react-bootstrap/Form"
 import { useNodesState, useEdgesState, useReactFlow, addEdge } from "reactflow"
 import WorkflowBase from "../flow/workflowBase"
-import TreeMenu from "react-simple-tree-menu" // TODO: https://www.npmjs.com/package/react-simple-tree-menu change plus sign to chevron
 import { loadJsonSync, downloadJson } from "../../utilities/fileManagementUtils"
 import { requestJson } from "../../utilities/requests"
 import EditableLabel from "react-simple-editlabel"
@@ -558,12 +557,12 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
             flow,
             (jsonResponse) => {
               console.log("received results:", jsonResponse)
-              if (jsonResponse.error) {
+              if (!jsonResponse.error) {
+                updateFlowResults(jsonResponse)
+              } else {
                 setIsProgressUpdating(false)
                 toast.error("Error detected while running the experiment")
                 setError(jsonResponse.error)
-              } else {
-                updateFlowResults(jsonResponse)
               }
             },
             function (err) {

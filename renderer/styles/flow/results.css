@@ -101,10 +101,25 @@
   border: 3px solid orange; /* creates padding around scroll thumb */
 }
 
-.btn-bottom-show-results {
+.btn-show-results {
   padding: 0.4rem;
   cursor: pointer;
   z-index: 10;
+  /* background-color: #6366f1 !important; */
+  transition: all 0.15s ease-in-out !important;
+  transition:
+    border-color 0.15s 0.15s ease-in-out,
+    background-color 0.15s ease-in-out !important;
+  border-color: #328a00cc !important;
+  background-color: #338a001f !important;
+  /* color: #ffffff !important; */
+  width: 8rem !important;
+}
+
+.p-highlight.btn-show-results {
+  background-color: #6366f1 !important;
+  border-color: #6366f1 !important;
+  width: 11rem !important;
 }
 
 .results-header {

@@ -152,6 +152,10 @@ a {
   margin-bottom: 15px;
 }
 
+.margin-top-15 {
+  margin-top: 15px;
+}
+
 .margin-left-10 {
   margin-left: 10px;
 }
@@ -160,13 +164,9 @@ a {
   text-align: left;
 }
 
-.margin-bottom-25 {
-  margin-bottom: 15px;
-}
-
 hr.solid {
   border-top: 3px solid #bbb;
-  margin: 0 0 0.5rem 0;
+  margin: 0 0 0.25rem 0;
 }
 
 .center {

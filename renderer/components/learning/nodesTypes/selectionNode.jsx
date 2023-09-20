@@ -6,6 +6,7 @@ import ModalSettingsChooser from "../modalSettingsChooser"
 import Form from "react-bootstrap/Form"
 import * as Icon from "react-bootstrap-icons"
 import { FlowFunctionsContext } from "../../flow/context/flowFunctionsContext"
+import { Stack } from "react-bootstrap"
 
 /**
  *
@@ -90,17 +91,26 @@ const SelectionNode = ({ id, data, type }) => {
               Object.entries(
                 data.setupParam.possibleSettings[data.internal.selection]
                   .default
-              ).map(([settingName, setting], i) => {
-                return (
-                  <Input
-                    key={settingName + i}
-                    name={settingName}
-                    settingInfos={setting}
-                    currentValue={data.internal.settings[settingName]}
-                    onInputChange={onInputChange}
-                  />
-                )
-              })}
+              ).length > 0 && (
+                <>
+                  <Stack id="default" direction="vertical" gap={1}>
+                    {Object.entries(
+                      data.setupParam.possibleSettings[data.internal.selection]
+                        .default
+                    ).map(([settingName, setting], i) => {
+                      return (
+                        <Input
+                          key={settingName + i}
+                          name={settingName}
+                          settingInfos={setting}
+                          currentValue={data.internal.settings[settingName]}
+                          onInputChange={onInputChange}
+                        />
+                      )
+                    })}
+                  </Stack>
+                </>
+              )}
           </>
         }
         // the node specific settings are the settings of the selected option (this changes when the selection changes)
@@ -109,7 +119,7 @@ const SelectionNode = ({ id, data, type }) => {
             {/* the button to open the modal (the plus sign)*/}
             <Button
               variant="light"
-              className="width-100 btn-contour margin-bottom-25"
+              className="width-100 btn-contour "
               onClick={() => setModalShow(true)}
             >
               <Icon.Plus width="30px" height="30px" className="img-fluid" />

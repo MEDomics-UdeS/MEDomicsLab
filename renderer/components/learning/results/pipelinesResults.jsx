@@ -1,45 +1,25 @@
 import React, { useEffect, useCallback, useState, useContext } from "react"
-import Parameters from "./utilities/parameters"
-import DataTablePath from "./utilities/dataTablePath"
 import { Accordion, AccordionTab } from "primereact/accordion"
-import { ScrollPanel } from "primereact/scrollpanel"
 import { deepCopy } from "../../../utilities/staticFunctions"
 import DataParamResults from "./node/dataParamResults"
 import ModelsResults from "./node/modelsResults"
 import { SelectButton } from "primereact/selectbutton"
 
-import { FlowInfosContext } from "../../flow/context/flowInfosContext"
 import { FlowResultsContext } from "../../flow/context/flowResultsContext"
 
-const PipelineResult = ({ pipeline, selectionMode }) => {
+const PipelineResult = ({ pipeline, selectionMode, flowContent }) => {
   const [body, setBody] = useState(<></>)
   const { flowResults, selectedResultsId } = useContext(FlowResultsContext)
-  const { flowContent } = useContext(FlowInfosContext)
   const [selectedId, setSelectedId] = useState(null)
 
   useEffect(() => {
     console.log("selectedResultsId", selectedResultsId)
-    // let pipelineId = pipeline.join("-")
-    // if (selectedResultsId) {
-    //   if (selectedResultsId[pipelineId]) {
-    //     setSelectedId(selectedResultsId[pipelineId])
-    //   } else {
-    //     setSelectedId(selectedResultsId)
-    //   }
-    // } else {
-    //   setSelectedId(null)
-    // }
-
     setSelectedId(
       !selectedResultsId || selectionMode == "Compare Mode"
         ? selectedResultsId
         : selectedResultsId[pipeline.join("-")]
     )
   }, [selectedResultsId])
-
-  useEffect(() => {
-    console.log("selectedId", selectedId)
-  }, [selectedId])
 
   useEffect(() => {
     if (pipeline.length == 0) {
@@ -49,11 +29,6 @@ const PipelineResult = ({ pipeline, selectionMode }) => {
       setBody(createBody())
     }
   }, [pipeline, selectedId])
-
-  // check if object render
-  useEffect(() => {
-    console.log("rendered")
-  }, [])
 
   const createBody = useCallback(() => {
     /**
@@ -73,19 +48,12 @@ const PipelineResult = ({ pipeline, selectionMode }) => {
       return res
     }
     let toReturn = <></>
-    console.log("selectedId", selectedId)
     if (selectedId) {
-      // let selectedId = what2show.split("/")[what2show.split("/").length - 1]
       let selectedNode = flowContent.nodes.find((node) => node.id == selectedId)
-      console.log("selectedId", selectedId)
-      console.log("selectedNode", selectedNode)
-      console.log("flowResults", flowResults)
       let resultsCopy = deepCopy(flowResults)
       let selectedResults = false
       pipeline.forEach((id) => {
-        console.log("id", id)
         resultsCopy = checkIfObjectContainsId(resultsCopy, id)
-        console.log("resultsCopy", resultsCopy)
         if (resultsCopy) {
           if (id == selectedId) {
             selectedResults = resultsCopy.results
@@ -94,6 +62,10 @@ const PipelineResult = ({ pipeline, selectionMode }) => {
           }
         } else {
           console.log("id " + selectedId + " not found in results")
+          !selectedNode.data.internal.hasRun &&
+            (toReturn = (
+              <div className="pipe-name-notRun">Has not been run yet !</div>
+            ))
         }
       })
       console.log("selected results", selectedResults, selectedNode)
@@ -114,9 +86,8 @@ const PipelineResult = ({ pipeline, selectionMode }) => {
   return <>{body}</>
 }
 
-const PipelinesResults = ({ pipelines, selectionMode }) => {
-  const { flowContent } = useContext(FlowInfosContext)
-  // const [selectedId, setSelectedId] = useState(null)
+const PipelinesResults = ({ pipelines, selectionMode, flowContent }) => {
+  // const { flowContent } = useContext(FlowInfosContext)
   const { selectedResultsId, setSelectedResultsId } =
     useContext(FlowResultsContext)
   const [accordionActiveIndex, setAccordionActiveIndex] = useState([])
@@ -135,12 +106,17 @@ const PipelinesResults = ({ pipelines, selectionMode }) => {
       let pipelineId = pipeline.join("-")
       const getName = (id) => {
         let node = flowContent.nodes.find((node) => node.id == id)
-        return node.data.internal.name
+        return node && node.data.internal.name
       }
 
       const isChecked = (id) => {
         let node = flowContent.nodes.find((node) => node.id == id)
-        return node.data.internal.results.checked
+        return node && node.data.internal.results.checked
+      }
+
+      const hasRun = (id) => {
+        let node = flowContent.nodes.find((node) => node.id == id)
+        return node && node.data.internal.hasRun
       }
 
       const buttonTemplate = (option) => {
@@ -165,7 +141,9 @@ const PipelinesResults = ({ pipelines, selectionMode }) => {
               return {
                 name: getName(id),
                 value: id,
-                class: isChecked(id) ? "checked" : "unchecked"
+                class: `${isChecked(id) ? "checked" : "unchecked"} ${
+                  !hasRun(id) ? "pipe-name-notRun" : ""
+                }`
               }
             })}
             itemTemplate={buttonTemplate}
@@ -187,7 +165,9 @@ const PipelinesResults = ({ pipelines, selectionMode }) => {
               return {
                 name: getName(id),
                 value: id,
-                class: isChecked(id) ? "checked" : "unchecked"
+                class: `${isChecked(id) ? "checked" : "unchecked"} ${
+                  !hasRun(id) ? "pipe-name-notRun" : ""
+                }`
               }
             })}
             itemTemplate={buttonTemplate}
@@ -199,7 +179,6 @@ const PipelinesResults = ({ pipelines, selectionMode }) => {
   )
 
   return (
-    // <ScrollPanel style={{ width: "100%", height: "60vh" }}>
     <Accordion
       multiple
       activeIndex={accordionActiveIndex}
@@ -212,11 +191,11 @@ const PipelinesResults = ({ pipelines, selectionMode }) => {
             key={index}
             pipeline={pipeline}
             selectionMode={selectionMode}
+            flowContent={flowContent}
           />
         </AccordionTab>
       ))}
     </Accordion>
-    // </ScrollPanel>
   )
 }
 

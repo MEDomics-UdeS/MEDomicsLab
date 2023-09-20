@@ -1,5 +1,4 @@
 import React, { createContext, useState } from "react"
-import { useNodesState, useEdgesState } from "reactflow"
 // This context is used to store the flowInfos (id and type of the workflow)
 const FlowInfosContext = createContext()
 
@@ -12,9 +11,6 @@ function FlowInfosProvider({ children }) {
   const [flowInfos, setFlowInfos] = useState({}) // Initial style
   const [showAvailableNodes, setShowAvailableNodes] = useState(true) // Initial state
   const [flowContent, setFlowContent] = useState({}) // Initial state
-  const [nodes, setNodes, onNodesChange] = useNodesState([]) // nodes array, setNodes is used to update the nodes array, onNodesChange is a callback hook that is executed when the nodes array is changed
-  const [edges, setEdges, onEdgesChange] = useEdgesState([]) // edges array, setEdges is used to update the edges array, onEdgesChange is a callback hook that is executed when the edges array is changed
-  const [reactFlowInstance, setReactFlowInstance] = useState(null) // reactFlowInstance is used to get the reactFlowInstance object important for the reactFlow library
 
   // This function is used to update the flowInfos (id and type of the workflow)
   const updateFlowInfos = (newInfo) => {
@@ -36,15 +32,7 @@ function FlowInfosProvider({ children }) {
         flowContent,
         updateFlowContent,
         showAvailableNodes,
-        setShowAvailableNodes,
-        nodes,
-        setNodes,
-        onNodesChange,
-        edges,
-        setEdges,
-        onEdgesChange,
-        reactFlowInstance,
-        setReactFlowInstance
+        setShowAvailableNodes
       }}
     >
       {children}

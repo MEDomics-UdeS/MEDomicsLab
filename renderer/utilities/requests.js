@@ -1,6 +1,27 @@
 import { ipcRenderer } from "electron"
 import axios from "axios"
 
+/**
+ * 
+ * @param {Integer} port the port to send the request to
+ * @param {String} topic the topic to send the request to
+ * @param {Object} json2send the json to send
+ * @param {Function} jsonReceivedCB extecuted when the json is received
+ * @param {Function} errorCB executed when an error occurs
+ * 
+ * @example
+ * import { requestJson } from '/utilities/requests';
+
+ <Button variant="primary" onClick={
+    () => {
+        requestJson(5000, "test", { test: "test" }, (jsonResponse) => {
+            console.log(jsonResponse);
+        }, function (err) {
+            console.error(err);
+        });
+    }
+}>send test</Button> 
+ */
 export const requestJson = (
   port,
   topic,

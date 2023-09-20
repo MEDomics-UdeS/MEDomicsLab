@@ -12,7 +12,7 @@ const LearningPage = ({
   return (
     <>
       <ModulePage pageId={pageId} configPath={configPath}>
-        <FlowPageBase workflowType={flowType}>
+        <FlowPageBase workflowType={flowType} id={pageId}>
           <Workflow
             id={pageId}
             workflowType={flowType}

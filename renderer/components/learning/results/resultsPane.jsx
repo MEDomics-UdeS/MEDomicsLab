@@ -3,6 +3,7 @@ import Card from "react-bootstrap/Card"
 import { Col } from "react-bootstrap"
 import { FlowResultsContext } from "../../flow/context/flowResultsContext"
 import { FlowInfosContext } from "../../flow/context/flowInfosContext"
+import { FlowFunctionsContext } from "../../flow/context/flowFunctionsContext"
 import Button from "react-bootstrap/Button"
 import * as Icon from "react-bootstrap-icons"
 import PipelinesResults from "./pipelinesResults"
@@ -17,15 +18,50 @@ import { RadioButton } from "primereact/radiobutton"
  *
  */
 const ResultsPane = () => {
-  const { setShowResultsPane, flowResults } = useContext(FlowResultsContext)
+  const { setShowResultsPane } = useContext(FlowResultsContext)
   const { flowContent } = useContext(FlowInfosContext)
+  const { updateNode } = useContext(FlowFunctionsContext)
   const [selectedPipelines, setSelectedPipelines] = useState([])
   const [selectionMode, setSelectionMode] = useState("Compare Mode")
 
   const handleClose = () => setShowResultsPane(false)
 
+  // check if id is in all the pipeline, if yes, update it such as it indicates it is checked by context
   useEffect(() => {
-    console.log("results update - flowContent", flowContent, flowResults)
+    let contextCheckedIds = []
+    let firstPipeline = selectedPipelines[0]
+    if (firstPipeline) {
+      firstPipeline.forEach((id) => {
+        let isEverywhere = true
+        selectedPipelines.forEach((pipeline) => {
+          if (!pipeline.includes(id)) {
+            isEverywhere = false
+          }
+        })
+        isEverywhere && contextCheckedIds.push(id)
+      })
+    }
+
+    if (flowContent.nodes) {
+      flowContent.nodes.forEach((node) => {
+        if (!node.data.internal.results.checked) {
+          if (
+            node.data.internal.results.contextChecked !=
+            contextCheckedIds.includes(node.id)
+          ) {
+            node.data.internal.results.contextChecked =
+              contextCheckedIds.includes(node.id)
+            updateNode({
+              id: node.id,
+              updatedData: node.data.internal
+            })
+          }
+        }
+      })
+    }
+  }, [selectedPipelines, flowContent])
+
+  useEffect(() => {
     if (flowContent.nodes) {
       // find selected ids
       let selectedIds = []
@@ -34,11 +70,9 @@ const ResultsPane = () => {
           selectedIds.push(node.id)
         }
       })
-      console.log("selectedIds", selectedIds)
 
       // find all pipelines
       let pipelines = findAllPaths(flowContent)
-      console.log("pipelines", pipelines)
 
       // find pipelines that includes all the selected ids
       let selectedPipelines = []
@@ -56,7 +90,7 @@ const ResultsPane = () => {
       console.log("selectedPipelines", selectedPipelines)
       setSelectedPipelines(selectedPipelines)
     }
-  }, [flowContent, flowResults])
+  }, [flowContent.nodes])
 
   function findAllPaths(flowContent) {
     let links = flowContent.edges
@@ -73,8 +107,6 @@ const ResultsPane = () => {
 
       graph[source].push(target)
     })
-
-    console.log("graph", graph)
 
     function explore(node, path) {
       if (!graph[node]) {
@@ -155,6 +187,7 @@ const ResultsPane = () => {
             <PipelinesResults
               pipelines={selectedPipelines}
               selectionMode={selectionMode}
+              flowContent={flowContent}
             />
           </Card.Body>
         </Card>
