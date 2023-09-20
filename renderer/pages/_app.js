@@ -27,10 +27,13 @@ import "../styles/extraction/extraction.css"
 import "flexlayout-react/style/light.css"
 import "../styles/workspaceSidebar.css"
 import "../styles/iconSidebar.css"
+import "react-contexify/dist/ReactContexify.css"
 import "../styles/learning/sidebar.css"
+import "react-complex-tree/lib/style-modern.css"
+import "../styles/sidebarTree.css"
+
 import DataContextProvider from "../components/workspace/dataContext"
 import MedDataObject from "../components/workspace/medDataObject"
-
 
 /**
  * This is the main app component. It is the root component of the app.
@@ -93,12 +96,14 @@ export default function App() {
             {
               type: "tab",
               name: "Extraction",
-              component: { "module": "input", "path": "C:\\Users\\nicol\\Downloads\\learning-tests-scene\\learning-tests-scene\\data\\eicu_processed.csv" },
+              component: {
+                module: "input",
+                path: "C:\\Users\\nicol\\Downloads\\learning-tests-scene\\learning-tests-scene\\data\\eicu_processed.csv"
+              },
               config: {
                 path: "C:\\Users\\nicol\\Downloads\\learning-tests-scene\\learning-tests-scene\\data\\eicu_processed.csv"
               }
             }
-
           ]
         }
       ]
@@ -136,7 +141,6 @@ export default function App() {
    * The HasBeenSet property is used to prevent the workspaceObject from being updated before the working directory has been set
    * The HasBeenSet property is set to true when the workingDirectorySet message is received
    */
-
   useEffect(() => {
     // This useEffect hook is called only once and it sets the ipcRenderer to listen for the "workingDirectorySet" message from the main process
     // The working directory tree is stored in the workspaceObject state variable
@@ -148,10 +152,8 @@ export default function App() {
     })
 
     ipcRenderer.on("updateDirectory", (event, data) => {
-
       let workspace = { ...data }
       setWorkspaceObject(workspace)
-      console.log("WorkingDirectory updated:", workspace)
 
       // }
     })
@@ -162,68 +164,106 @@ export default function App() {
     })
   }, []) // Here, we specify that the hook should only be called at the launch of the app
 
+  /**
+   * @param {Object} children - The children of the current directory
+   * @param {String} parentID - The UUID of the parent directory
+   * @param {Object} newGlobalData - The global data object
+   * @param {Array} acceptedFileTypes - The accepted file types for the current directory
+   * @returns {Object} - The children IDs of the current directory
+   * @description This function is used to recursively recense the directory tree and add the files and folders to the global data object
+   * It is called when the working directory is set
+   */
+  function recursivelyRecenseTheDirectory(children, parentID, newGlobalData, acceptedFileTypes = undefined) {
+    let childrenIDsToReturn = []
+
+    children.forEach((child) => {
+      let uuid = MedDataObject.checkIfMedDataObjectInContextbyName(child.name, newGlobalData, parentID)
+      let objectType = "folder"
+      let objectUUID = uuid
+      let childrenIDs = []
+      if (uuid == "") {
+        let dataObject = new MedDataObject({
+          originalName: child.name,
+          path: child.path,
+          parentID: parentID,
+          type: objectType
+        })
+
+        objectUUID = dataObject.getUUID()
+        let acceptedFiles = MedDataObject.setAcceptedFileTypes(dataObject, acceptedFileTypes)
+        dataObject.setAcceptedFileTypes(acceptedFiles)
+        if (child.children === undefined) {
+          console.log("File:", child)
+          objectType = "file"
+          childrenIDs = null
+        } else if (child.children.length == 0) {
+          console.log("Empty folder:", child)
+        } else {
+          console.log("Folder:", child)
+          let answer = recursivelyRecenseTheDirectory(child.children, objectUUID, newGlobalData, acceptedFiles)
+          childrenIDs = answer.childrenIDsToReturn
+        }
+        dataObject.setType(objectType)
+        dataObject.setChildrenIDs(childrenIDs)
+        newGlobalData[objectUUID] = dataObject
+        childrenIDsToReturn.push(objectUUID)
+      } else {
+        let dataObject = newGlobalData[uuid]
+        let acceptedFiles = dataObject.acceptedFileTypes
+        if (child.children !== undefined) {
+          let answer = recursivelyRecenseTheDirectory(child.children, uuid, newGlobalData, acceptedFiles)
+          childrenIDs = answer.childrenIDsToReturn
+          newGlobalData[objectUUID]["childrenIDs"] = childrenIDs
+          newGlobalData[objectUUID]["parentID"] = parentID
+        }
+        childrenIDsToReturn.push(uuid)
+      }
+    })
+    return { childrenIDsToReturn: childrenIDsToReturn }
+  }
 
   // This useEffect hook is called whenever the `workspaceObject` state changes.
   useEffect(() => {
     // Create a copy of the `globalData` state object.
-    let newGlobalData = { ...globalData };
+    let newGlobalData = { ...globalData }
     // Check if the `workingDirectory` property of the `workspaceObject` has been set.
     if (workspaceObject.hasBeenSet === true) {
       // Loop through each child of the `workingDirectory`.
-      workspaceObject.workingDirectory.children.forEach((child) => {
 
-        // Check if a `MedDataObject` with the same name as the child already exists in the `newGlobalData` object.
-        let uuid = MedDataObject.checkIfMedDataObjectInContextbyName(child.name, newGlobalData);
-        let folderType = "folder";
-        let folderUUID = uuid;
-        // If a `MedDataObject` with the same name as the child does not exist in the `newGlobalData` object, create a new `MedDataObject` instance for the child and add it to the `newGlobalData` object.
-        if (uuid == "") {
-          let dataObjectFolder = new MedDataObject({ originalName: child.name, path: child.path, type: folderType });
-          folderUUID = dataObjectFolder.getUUID();
-          newGlobalData[folderUUID] = dataObjectFolder;
+      let rootChildren = workspaceObject.workingDirectory.children
+      let rootParentID = "UUID_ROOT"
+      let rootName = workspaceObject.workingDirectory.name
+      let rootPath = workspaceObject.workingDirectory.path
+      let rootType = "folder"
+      let rootChildrenIDs = recursivelyRecenseTheDirectory(rootChildren, rootParentID, newGlobalData).childrenIDsToReturn
 
-        }
-        else {
-          console.log("Folder is already in globalDataContext", child);
-        }
-
-        // Loop through each child of the current child.
-        child.children.forEach((fileChild) => {
-          // Check if the current child is a file.
-          if (fileChild.children === undefined) {
-            // Check if a `MedDataObject` with the same name as the file already exists in the `newGlobalData` object.
-            let fileUUID = MedDataObject.checkIfMedDataObjectInContextbyName(fileChild.name, newGlobalData);
-            if (fileUUID == "") {
-              // If a `MedDataObject` with the same name as the file does not exist in the `newGlobalData` object, create a new `MedDataObject` instance for the file and add it to the `newGlobalData` object.
-              let type = fileChild.name.split(".")[1];
-              let dataObject = new MedDataObject({ originalName: fileChild.name, path: fileChild.path, type: type });
-              dataObject.parentIDs.push(folderUUID);
-              newGlobalData[dataObject.getUUID()] = dataObject;
-
-              newGlobalData[folderUUID]["childrenIDs"].push(dataObject.getUUID());
-
-            }
-            else {
-              console.log("File is already in globalDataContext", fileChild);
-            }
-          }
-        })
-
-
+      let rootDataObject = new MedDataObject({
+        originalName: rootName,
+        path: rootPath,
+        parentID: rootParentID,
+        type: rootType,
+        childrenIDs: rootChildrenIDs,
+        _UUID: rootParentID
       })
+      newGlobalData[rootParentID] = rootDataObject
     }
     // Update the `globalData` state object with the new `newGlobalData` object.
-    setGlobalData(newGlobalData);
-  }, [workspaceObject]);
+    setGlobalData(newGlobalData)
+  }, [workspaceObject])
+
+  // This useEffect hook is called whenever the `workspaceObject` state changes.
+  useEffect(() => {
+    // console.log("workspaceObject changed", workspaceObject)
+  }, [workspaceObject])
 
   // This useEffect hook is called whenever the `globalData` state changes.
   useEffect(() => {
-    console.log("globalData changed", globalData);
-  }, [globalData]);
+    // console.log("globalData changed", globalData)
+  }, [globalData])
 
   useEffect(() => {
     // Log a message to the console whenever the layoutModel state variable changes
-    console.log("layoutModel changed", layoutModel)
+    // console.log("layoutModel changed", layoutModel)
   }, [layoutModel]) // Here, we specify that the hook should only be called when the layoutModel state variable changes
 
   return (
@@ -235,15 +275,8 @@ export default function App() {
         {/* Uncomment if you want to use React Dev tools */}
       </Head>
       <div style={{ height: "100%" }}>
-        <DataContextProvider
-          globalData={globalData}
-          setGlobalData={setGlobalData}>
-          <WorkspaceProvider
-            workspace={workspaceObject}
-            setWorkspace={setWorkspaceObject}
-            port={port}
-          setPort={setPort}
-        >
+        <DataContextProvider globalData={globalData} setGlobalData={setGlobalData}>
+          <WorkspaceProvider workspace={workspaceObject} setWorkspace={setWorkspaceObject} port={port} setPort={setPort}>
             {" "}
             {/* This is the WorkspaceProvider, which provides the workspace model to all the children components of the LayoutManager */}
             <LayoutContextProvider // This is the LayoutContextProvider, which provides the layout model to all the children components of the LayoutManager
@@ -269,7 +302,7 @@ export default function App() {
           pauseOnHover
           theme="light"
         />
-      </div >
+      </div>
     </>
   )
 }

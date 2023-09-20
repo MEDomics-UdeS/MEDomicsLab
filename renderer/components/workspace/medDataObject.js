@@ -1,21 +1,23 @@
 import { randomUUID } from "crypto"
+// eslint-disable-next-line no-unused-vars
 import React from "react"
-import fs from "fs"
+import * as fs from "fs-extra"
 import { toast } from "react-toastify"
 import { ipcRenderer } from "electron"
+import process from "process"
 
 /**
  * Represents a data object in the workspace.
  * @class
- * @property {String} originalName - The original name of the data object.
- * @property {String} name - The name of the data object.
- * @property {String} nameWithoutExtension - The name of the data object without the extension.
- * @property {String} extension - The extension of the data object.
- * @property {String} type - The type of the data object.
- * @property {String} path - The path of the data object.
+ * @property {string} originalName - The original name of the data object.
+ * @property {string} name - The name of the data object.
+ * @property {string} nameWithoutExtension - The name of the data object without the extension.
+ * @property {string} extension - The extension of the data object.
+ * @property {string} type - The type of the data object.
+ * @property {string} path - The path of the data object.
  * @property {Array} virtualPath - The virtual path of the data object.
- * @property {String} _UUID - The UUID of the data object.
- * @property {Array} parentIDs - The parent IDs of the data object.
+ * @property {string} _UUID - The UUID of the data object.
+ * @property {Array} parentID - The parent IDs of the data object.
  * @property {Array} childrenIDs - The children IDs of the data object.
  * @property {Date} lastModified - The date when the data object was last modified.
  * @property {Date} created - The date when the data object was created.
@@ -24,6 +26,7 @@ import { ipcRenderer } from "electron"
  * @property {Array} dataModificationQueue - The data modification queue of the data object.
  * @property {Number} size - The size of the data object.
  * @property {Object} metadata - The metadata of the data object.
+ * @property {Array} acceptedFileTypes - The accepted file types for the data object.
  */
 export default class MedDataObject {
   /**
@@ -33,32 +36,31 @@ export default class MedDataObject {
    * @param {string} [options.originalName="Unnamed"] - The original name of the object.
    * @param {string} [options.name=undefined] - The name of the object.
    * @param {string} [options.type=""] - The type of the object.
-   * @param {Array<string>} [options.parentIDs=[]] - The IDs of the parent objects.
+   * @param {Array<string>} [options.parentID=[]] - The IDs of the parent objects.
    * @param {string} [options.path=""] - The path of the object.
    * @param {Array<string>} [options.childrenIDs=[]] - The IDs of the child objects.
+   * @param {Array<string>} [options.acceptedFileTypes] - The accepted file types for the data object.
    */
-  constructor({
-    originalName = "Unnamed",
-    name = undefined,
-    type = "",
-    parentIDs = [],
-    path = "",
-    childrenIDs = []
-  } = {}) {
+  constructor({ originalName = "Unnamed", name = undefined, type = "", parentID = [], path = "", childrenIDs = [], _UUID = undefined } = {}) {
     this.originalName = originalName
     if (name === undefined) {
       this.name = originalName
     } else {
       this.name = name
     }
-    this.nameWithoutExtension = splitStringAtTheLastSeparator(this.name, ".")[0]
-    this.extension = splitStringAtTheLastSeparator(this.name, ".")[1]
+    this.nameWithoutExtension = splitStringAtTheLastSeparator(this.name, ".")[0].length > 0 ? splitStringAtTheLastSeparator(this.name, ".")[0] : this.name
+
+    this.extension = splitStringAtTheLastSeparator(this.name, ".")[0].length > 0 ? splitStringAtTheLastSeparator(this.name, ".")[1] : ""
     this.type = type
     this.path = path
     this.virtualPath = []
 
-    this._UUID = randomUUID()
-    this.parentIDs = parentIDs
+    if (_UUID === undefined) {
+      this._UUID = randomUUID()
+    } else {
+      this._UUID = _UUID
+    }
+    this.parentID = parentID
     this.childrenIDs = childrenIDs
 
     this.lastModified = Date(Date.now())
@@ -68,6 +70,7 @@ export default class MedDataObject {
     this.dataModificationQueue = []
     this.size = 0
     this.metadata = {}
+    this.acceptedFileTypes = []
   }
 
   /**
@@ -81,24 +84,45 @@ export default class MedDataObject {
   }
 
   /**
+   *
+   * @param {MedDataObject} dataObject - The MED data object to check.
+   * @param {Array} acceptedFileTypes - The accepted file types for the MED data object.
+   */
+  static setAcceptedFileTypes(dataObject, acceptedFileTypes) {
+    let acceptedFileTypesToReturn = acceptedFileTypes
+    if (dataObject.name === "DATA") {
+      acceptedFileTypesToReturn = {
+        "text/csv": [],
+        "application/json": [],
+        "text/plain": [],
+        "application/pdf": [],
+        "application/medomics": []
+      }
+    }
+    return acceptedFileTypesToReturn
+  }
+
+  /**
    * Checks if a MED data object with the given name exists in the global data context.
    * @param {string} dataObjectName - The name of the MED data object to search for.
    * @param {Object} globalDataContext - The global data context object to search in.
    * @returns {string} - The UUID of the MED data object if found, otherwise an empty string.
    */
-  static checkIfMedDataObjectInContextbyName(
-    dataObjectName,
-    globalDataContext
-  ) {
+  static checkIfMedDataObjectInContextbyName(dataObjectName, globalDataContext, parentID) {
     let dataObjectDictionary = { ...globalDataContext }
     let globalDataContextArrayUUIDs = Object.keys(dataObjectDictionary)
 
     let dataObjectUUID = ""
     globalDataContextArrayUUIDs.forEach((key) => {
       let dataObject = dataObjectDictionary[key]
-      if (dataObject.name == dataObjectName) {
-        dataObjectUUID = key
-        console.log("Data object found in context by name:" + dataObjectUUID)
+      if (dataObject.name === dataObjectName) {
+        let dataObjectParentID = dataObject.parentID
+        if (dataObjectParentID.length > 0) {
+          if (dataObjectParentID == parentID) {
+            console.log("Data object found in context by name with the same parent:" + dataObjectName)
+            dataObjectUUID = key
+          }
+        }
       }
     })
 
@@ -111,10 +135,7 @@ export default class MedDataObject {
    * @param {Object} globalDataContext - The global data context object to search in.
    * @returns {Object|null} - The MED data object if found, otherwise null.
    */
-  static checkIfMedDataObjectInContextbyPath(
-    dataObjectPath,
-    globalDataContext
-  ) {
+  static checkIfMedDataObjectInContextbyPath(dataObjectPath, globalDataContext) {
     let dataObjectList = globalDataContext
     let dataObjectToReturn = null
     for (let dataObject of dataObjectList) {
@@ -138,35 +159,61 @@ export default class MedDataObject {
     if (globalDataContext === undefined) {
       globalDataContext = {}
     }
-    let copyName =
-      dataObject.nameWithoutExtension + "_copy" + "." + dataObject.extension
+    let copyName = dataObject.nameWithoutExtension + "_copy" + "." + dataObject.extension
     while (!copyCanBeCreated) {
       // Check if a data object with the same name already exists in the context
-      let dataObjectUUID = MedDataObject.checkIfMedDataObjectInContextbyName(
-        copyName,
-        globalDataContext
-      )
+      let dataObjectUUID = MedDataObject.checkIfMedDataObjectInContextbyName(copyName, globalDataContext)
       if (dataObjectUUID !== "") {
         copyIndex++
-        copyName =
-          dataObject.nameWithoutExtension +
-          "_copy_" +
-          copyIndex +
-          "." +
-          dataObject.extension
+        copyName = dataObject.nameWithoutExtension + "_copy_" + copyIndex + "." + dataObject.extension
       } else {
         copyCanBeCreated = true
       }
     }
-    let copy = new MedDataObject(
-      dataObject.originalName,
-      copyName,
-      dataObject.type,
-      dataObject.parentIDs,
-      dataObject.path,
-      dataObject.childrenIDs
-    )
-    copy.parentIDs = dataObject.getUUID()
+    let copy = new MedDataObject(dataObject.originalName, copyName, dataObject.type, dataObject.parentID, dataObject.path, dataObject.childrenIDs)
+    copy.parentID = dataObject.getUUID()
+  }
+
+  /**
+   * Checks the operating system and adapts the provided `path` to the OS.
+   * @param {string} path
+   * @returns {string} - The adapted path.
+   */
+  static adaptPathToOS(path) {
+    let cwdSlashType = path.includes("/") ? "/" : "\\"
+    let cwdSlashTypeInv = cwdSlashType == "/" ? "\\" : "/"
+    let newPath = path
+    if (process.platform === "win32" && cwdSlashType === "/") {
+      toast.error("Path not valid for Windows")
+      return ""
+    } else if (typeof process !== "undefined" && process.platform === "linux" && cwdSlashType === "\\") {
+      toast.error("Path not valid for Linux")
+      return ""
+    } else if (process.platform === "win32") {
+      newPath = path.replaceAll(cwdSlashTypeInv, cwdSlashType)
+    } else if (typeof process !== "undefined" && process.platform === "linux") {
+      newPath = path.replaceAll(cwdSlashTypeInv, cwdSlashType)
+      return newPath
+    }
+    return newPath
+  }
+
+  /**
+   * Create an empty folder in the file system.
+   * @param {string} name
+   * @param {string} path
+   */
+  static createEmptyFolderFS(name, path) {
+    // eslint-disable-next-line no-undef
+    let fs = require("fs")
+    let pathToCreate = path + "\\" + name
+    fs.mkdirSync(pathToCreate, { recursive: true }, (err) => {
+      if (err) {
+        console.error(err)
+      } else {
+        console.log(`Folder created at ${pathToCreate}`)
+      }
+    })
   }
 
   /**
@@ -175,11 +222,7 @@ export default class MedDataObject {
    * @param {Object} globalDataContext - The global data context object to update.
    * @param {function} setGlobalDataContext - The function to set the updated global data context.
    */
-  static updateDataObjectInContext(
-    dataObject,
-    globalDataContext,
-    setGlobalDataContext
-  ) {
+  static updateDataObjectInContext(dataObject, globalDataContext, setGlobalDataContext) {
     let newGlobalData = { ...globalDataContext }
     newGlobalData[dataObject.getUUID()] = dataObject
     setGlobalDataContext(newGlobalData)
@@ -196,15 +239,14 @@ export default class MedDataObject {
     let newNameFound = this.getNewName({
       dataObject: dataObject,
       newName: newName,
-      globalDataContext: globalDataContext
+      globalDataContext: globalDataContext,
+      parentID: dataObject.parentID
     })
+    console.log("newNameFound: " + newNameFound)
+    console.log("newName: " + newName)
     if (newNameFound !== "") {
       if (newNameFound !== newName) {
-        toast.warning(
-          "Data object renamed to " +
-            newNameFound +
-            " because a data object with the same name already exists in the context"
-        )
+        toast.warning("Data object renamed to " + newNameFound + " because a data object with the same name already exists in the context")
       } else {
         toast.success("Data object renamed to " + newNameFound)
       }
@@ -224,15 +266,214 @@ export default class MedDataObject {
     return dataObject
   }
 
+  static getPathSeparator() {
+    if (process.platform === "win32") {
+      return "\\"
+    } else if (typeof process !== "undefined" && process.platform === "linux") {
+      return "/"
+    }
+  }
+
+  // static changeChildrenPaths(newParentPath, children, globalDataContext, setGlobalDataContext) {
+  static getNamesOfFolderAndFilesInPath(path) {
+    // eslint-disable-next-line no-undef
+    let fs = require("fs")
+    let names = fs.readdirSync(path)
+    return names
+  }
+
+  static returnNameNotInList(name, names, extension = undefined) {
+    let nameFound = false
+    let index = 0
+    let extensionToReturn = extension ? "." + extension : ""
+    let nameToReturn = name + extensionToReturn
+    while (!nameFound) {
+      if (names.includes(nameToReturn)) {
+        nameToReturn = name + "_" + index + extensionToReturn
+        index++
+      } else {
+        nameFound = true
+      }
+    }
+    console.log("nameToReturn: ", { nameToReturn })
+    return nameToReturn
+  }
+
+  static getNewNameForFolder({ name, folderPath }) {
+    let nameToReturn = name
+    let names = this.getNamesOfFolderAndFilesInPath(folderPath)
+    nameToReturn = this.returnNameNotInList(name, names)
+    return nameToReturn
+  }
+
+  static getNewNameForFile({ name, folderPath, extension }) {
+    let nameToReturn = name
+    let names = this.getNamesOfFolderAndFilesInPath(folderPath)
+    let nameWithoutExtension = splitStringAtTheLastSeparator(name, ".")[0]
+    let extensionToReturn = extension
+    if (extension === "") {
+      extensionToReturn = splitStringAtTheLastSeparator(name, ".")[1]
+    }
+    console.log("Names: ", names)
+    nameToReturn = this.returnNameNotInList(nameWithoutExtension, names, extensionToReturn)
+    return nameToReturn
+  }
+
+  static getTotalPath(newName, parentPath) {
+    let separator = getPathSeparator()
+    let totalPath = parentPath + separator + newName
+    return totalPath
+  }
+
+  static move(dataObject, newParentObject, globalDataContext, setGlobalDataContext) {
+    let newDataObject = dataObject
+    let oldParentID = dataObject.parentID
+    let newParentObjectPath = newParentObject.path
+    let oldPath = dataObject.path
+    console.log("oldPath: " + oldPath)
+    newDataObject.path = newParentObjectPath + this.getPathSeparator() + newDataObject.name
+    let newNameFound = this.getNewName({
+      dataObject: newDataObject,
+      newName: dataObject.name,
+      globalDataContext: globalDataContext,
+      parentID: newParentObject.getUUID()
+    })
+    console.log("newNameFound: " + newNameFound)
+
+    if (newNameFound !== "") {
+      if (newNameFound !== dataObject.name) {
+        toast.warning("Data object moved to " + newNameFound + " because a data object with the same name already exists in the context")
+      } else {
+        toast.success("Data object moved to " + newNameFound)
+      }
+      newDataObject.name = newNameFound
+
+      newDataObject.lastModified = Date(Date.now())
+      newDataObject.path = this.adaptPathToOS(newParentObjectPath + "\\" + newDataObject.name)
+
+      console.log("newDataObject.path: ", { newDataObject })
+      newDataObject.name = newNameFound
+      let dataObjectRenamed = newDataObject
+      // Write data to file
+      let newPath = dataObjectRenamed.path
+
+      fs.move(oldPath, newPath, () => {
+        console.log(`Data object moved from ${oldPath} to ${newPath}`)
+      })
+
+      let newGlobalData = { ...globalDataContext }
+      newGlobalData[oldParentID].removeChildID(dataObject.getUUID())
+
+      newGlobalData[newParentObject.getUUID()].addChildID(dataObjectRenamed.getUUID())
+      dataObjectRenamed.parentID = newParentObject.getUUID()
+
+      newGlobalData[dataObject.getUUID()] = dataObjectRenamed
+      setGlobalDataContext(newGlobalData)
+    }
+  }
+
+  /**
+   * Creates a copy of a MED data object.
+   * @param {MedDataObject} dataObject - The MED data object to copy.
+   * @param {MedDataObject} newParentObject - The MED data object to copy to.
+   * @param {Object} globalDataContext - The global data context object to search in.
+   * @param {function} setGlobalDataContext - The function to set the updated global data context.
+   * @returns {void}
+   */
+  static copy(dataObject, newParentObject, globalDataContext, setGlobalDataContext) {
+    let newMedDataObject = new MedDataObject({
+      originalName: dataObject.originalName,
+      name: dataObject.name,
+      type: dataObject.type,
+      parentID: newParentObject.getUUID(),
+      childrenIDs: dataObject.childrenIDs ? [] : null
+    })
+
+    let newNameWithExtension = undefined
+    if (dataObject.type !== "folder") {
+      newNameWithExtension = this.getNewNameForFile({ name: dataObject.name, folderPath: newParentObject.path, extension: dataObject.extension })
+    } else {
+      if (dataObject.getUUID() === newParentObject.getUUID()) {
+        newNameWithExtension = this.getNewNameForFolder({ name: dataObject.name + "_sub", folderPath: newParentObject.path })
+      } else {
+        newNameWithExtension = this.getNewNameForFolder({ name: dataObject.name, folderPath: newParentObject.path })
+      }
+    }
+
+    newMedDataObject.name = newNameWithExtension
+    newMedDataObject.nameWithoutExtension = splitStringAtTheLastSeparator(newNameWithExtension, ".")[0].length > 0 ? splitStringAtTheLastSeparator(newNameWithExtension, ".")[0] : newNameWithExtension
+    newMedDataObject.extension = splitStringAtTheLastSeparator(newNameWithExtension, ".")[0].length > 0 ? splitStringAtTheLastSeparator(newNameWithExtension, ".")[1] : ""
+    newMedDataObject.path = this.getTotalPath(newNameWithExtension, newParentObject.path)
+
+    newMedDataObject.lastModified = Date(Date.now())
+    newMedDataObject.created = Date(Date.now())
+    let newGlobalData = { ...globalDataContext }
+    newGlobalData[newParentObject.getUUID()].addChildID(newMedDataObject.getUUID())
+    newGlobalData[newMedDataObject.getUUID()] = newMedDataObject
+    let oldPath = dataObject.path
+    let newPath = newMedDataObject.path
+
+    if (dataObject.getUUID() === newParentObject.getUUID()) {
+      fs.mkdirSync(newPath, { recursive: true }, (err) => {
+        if (err) {
+          console.error(err)
+        } else {
+          console.log(`Folder created at ${newPath}`)
+          toast.success("Data object copied to " + newMedDataObject.path)
+        }
+      })
+
+      let childrenItemsID = dataObject.childrenIDs
+      for (let childID of childrenItemsID) {
+        let childObject = globalDataContext[childID]
+        if (childObject !== undefined) {
+          fs.cp(childObject.path, newPath + this.getPathSeparator() + childObject.name, { recursive: true }, (err) => {
+            if (err) {
+              console.error(err)
+            } else {
+              console.log(`Data object copied from ${oldPath} to ${newPath}`)
+              toast.success("Data object copied to " + newMedDataObject.path)
+            }
+          })
+        }
+      }
+    } else {
+      fs.cp(oldPath, newPath, { recursive: true }, (err) => {
+        if (err) {
+          console.error(err)
+        } else {
+          console.log(`Data object copied from ${oldPath} to ${newPath}`)
+          toast.success("Data object copied to " + newMedDataObject.path)
+        }
+      })
+    }
+
+    setGlobalDataContext(newGlobalData)
+  }
+
   /**
    * Deletes the file associated with the provided `dataObject`.
    * @param {MedDataObject} dataObject - The `MedDataObject` instance to delete.
    */
-  static delete(dataObject) {
+  static delete(dataObject, globalDataContext) {
+    // eslint-disable-next-line no-undef
+    let globalData = { ...globalDataContext }
+    let childIDs = dataObject.childrenIDs
+    if (childIDs !== null) {
+      if (childIDs.length > 0) {
+        childIDs.forEach((childID) => {
+          let childObject = globalData[childID]
+          if (childObject !== undefined) {
+            globalData = this.delete(childObject, globalData)
+          }
+        })
+      }
+    }
     // eslint-disable-next-line no-undef
     let fs = require("fs")
     let path = dataObject.path
-    fs.rm(path, { recursive: true }, (err) => {
+    delete globalData[dataObject.getUUID()]
+    fs.rmSync(path, { recursive: true }, (err) => {
       if (err) {
         console.log(err)
       } else {
@@ -240,6 +481,7 @@ export default class MedDataObject {
         toast.success("Data object deleted")
       }
     })
+    return globalData
   }
 
   /**
@@ -250,25 +492,29 @@ export default class MedDataObject {
    *   - `globalDataContext` (optional): The global data context object to search in.
    * @returns {string} - The new name for the `MedDataObject` instance.
    */
-  static getNewName({ dataObject, newName, globalDataContext } = {}) {
+  static getNewName({ dataObject, newName, globalDataContext, parentID } = {}) {
     let answer = ""
     let copyCanBeCreated = false
     let copyIndex = 1
-    let newNameWithoutExtension = splitStringAtTheLastSeparator(newName, ".")[0]
+    let newNameWithoutExtension = newName
+    let dataObjectSuffix = ""
+    if (dataObject.type !== "folder") {
+      newNameWithoutExtension = splitStringAtTheLastSeparator(newName, ".")[0]
+      dataObjectSuffix = "." + dataObject.extension
+    }
+
+    console.log("newNameWithoutExtension: " + newNameWithoutExtension)
     if (globalDataContext === undefined) {
       globalDataContext = {}
     }
-    let copyName = newNameWithoutExtension + "." + dataObject.extension
+    let copyName = newNameWithoutExtension + dataObjectSuffix
     while (!copyCanBeCreated) {
       // Check if a data object with the same name already exists in the context
-      let dataObjectUUID = MedDataObject.checkIfMedDataObjectInContextbyName(
-        copyName,
-        globalDataContext
-      )
+      let dataObjectUUID = MedDataObject.checkIfMedDataObjectInContextbyName(copyName, globalDataContext, parentID)
+
       if (dataObjectUUID !== "") {
         copyIndex++
-        copyName =
-          newNameWithoutExtension + "_" + copyIndex + "." + dataObject.extension
+        copyName = newNameWithoutExtension + "_" + copyIndex + "." + dataObject.extension
       } else {
         copyCanBeCreated = true
       }
@@ -282,14 +528,7 @@ export default class MedDataObject {
    * @returns {MedDataObject} - The new `MedDataObject` instance.
    */
   static fromJSON(json) {
-    let medDataObject = new MedDataObject(
-      json.originalName,
-      json.name,
-      json.type,
-      json.parentIDs,
-      json.path,
-      json.childrenIDs
-    )
+    let medDataObject = new MedDataObject(json.originalName, json.name, json.type, json.parentID, json.path, json.childrenIDs)
     medDataObject.id = json.id
     medDataObject.lastModified = json.lastModified
     medDataObject.created = json.created
@@ -310,25 +549,18 @@ export default class MedDataObject {
     return medDataObjectList
   }
   /**
-   * Modifies the properties of the provided `dataObject` instance with the provided `name`, `type`, `parentIDs`, `path`, and `childrenIDs`. It also updates the `lastModified` property to the current date and time.
+   * Modifies the properties of the provided `dataObject` instance with the provided `name`, `type`, `parentID`, `path`, and `childrenIDs`. It also updates the `lastModified` property to the current date and time.
    * @param {MedDataObject} dataObject - The `MedDataObject` instance to modify.
    * @param {string} name - The new name for the `MedDataObject` instance.
    * @param {string} type - The new type for the `MedDataObject` instance.
-   * @param {Array} parentIDs - The new parent IDs for the `MedDataObject` instance.
+   * @param {Array} parentID - The new parent IDs for the `MedDataObject` instance.
    * @param {string} path - The new path for the `MedDataObject` instance.
    * @param {Array} childrenIDs - The new children IDs for the `MedDataObject` instance.
    */
-  static modifyDataObject(
-    dataObject,
-    name,
-    type,
-    parentIDs,
-    path,
-    childrenIDs
-  ) {
+  static modifyDataObject(dataObject, name, type, parentID, path, childrenIDs) {
     dataObject.name = name
     dataObject.type = type
-    dataObject.parentIDs = parentIDs
+    dataObject.parentID = parentID
     dataObject.path = path
     dataObject.childrenIDs = childrenIDs
     dataObject.lastModified = Date(Date.now())
@@ -346,34 +578,20 @@ export default class MedDataObject {
    * @param {string} newName - The new name for the `MedDataObject` instance.
    * @returns {MedDataObject} - The modified `MedDataObject` instance.
    */
-  rename(newName) {
-    let separator = "\\"
-    this.name = newName
-    let oldPath = this.path
 
-    let cwdSlashType = oldPath.includes("/") ? "/" : "\\"
-    let cwdSlashTypeInv = cwdSlashType == "/" ? "\\" : "/"
-    if (process.platform === "win32") {
-      separator = "\\"
-    } else if (process.platform === "linux") {
-      separator = "/"
-    }
-    let newPath =
-      splitStringAtTheLastSeparator(this.path, separator)[0] +
-      separator +
-      newName
-    newPath = newPath.replaceAll(cwdSlashTypeInv, cwdSlashType)
+  rename(newName) {
+    this.name = newName
+    let separator = getPathSeparator()
+    console.log("separator: ", separator)
+    let newPath = splitStringAtTheLastSeparator(this.path, separator)[0] + separator + newName
+
     if (this.type === "folder") {
       this.extension = ""
       this.nameWithoutExtension = newName
     } else {
-      this.nameWithoutExtension = splitStringAtTheLastSeparator(
-        this.name,
-        "."
-      )[0]
+      this.nameWithoutExtension = splitStringAtTheLastSeparator(this.name, ".")[0]
     }
     this.path = newPath
-
     this.lastModified = Date(Date.now())
     return this
   }
@@ -388,11 +606,11 @@ export default class MedDataObject {
   }
 
   /**
-   * Changes the parent IDs of the `MedDataObject` instance to the provided `parentIDs`.
-   * @param {Array} parentIDs - The new parent IDs for the `MedDataObject` instance.
+   * Changes the parent IDs of the `MedDataObject` instance to the provided `parentID`.
+   * @param {Array} parentID - The new parent IDs for the `MedDataObject` instance.
    */
-  changeParentID(parentIDs) {
-    this.parentIDs = parentIDs
+  changeParentID(parentID) {
+    this.parentID = parentID
     this.lastModified = Date(Date.now())
   }
 
@@ -491,9 +709,7 @@ export default class MedDataObject {
    * @param {Object} modification - The data modification to remove from the queue.
    */
   removeDataModification(modification) {
-    this.dataModificationQueue = this.dataModificationQueue.filter(
-      (m) => m !== modification
-    )
+    this.dataModificationQueue = this.dataModificationQueue.filter((m) => m !== modification)
     this.lastModified = Date(Date.now())
   }
 
@@ -530,6 +746,46 @@ export default class MedDataObject {
    */
   getUUID() {
     return this._UUID
+  }
+
+  /**
+   * Sets the type of the `MedDataObject` instance to the provided `type`.
+   * @param {string} type - The new type for the `MedDataObject` instance.
+   */
+  setType(type) {
+    this.type = type
+  }
+
+  /**
+   * Returns the type of the `MedDataObject` instance.
+   * @returns {string} - The type of the `MedDataObject` instance.
+   */
+  getType() {
+    return this.type
+  }
+
+  /**
+   * Sets the children IDs of the `MedDataObject` instance to the provided `childrenIDs`.
+   * @param {Array<string>} childrenIDs
+   */
+  setChildrenIDs(childrenIDs) {
+    this.childrenIDs = childrenIDs
+  }
+
+  /**
+   * Returns the children IDs of the `MedDataObject` instance.
+   * @returns {Array<string>} - The children IDs of the `MedDataObject` instance.
+   */
+  getChildrenIDs() {
+    return this.childrenIDs
+  }
+
+  /**
+   * Sets the accepted file types for the `MedDataObject` instance to the provided `acceptedFileTypes`.
+   * @param {Array<string>} acceptedFileTypes - The new accepted file types for the `MedDataObject` instance.
+   */
+  setAcceptedFileTypes(acceptedFileTypes) {
+    this.acceptedFileTypes = acceptedFileTypes
   }
 }
 
@@ -586,4 +842,15 @@ function splitStringAtTheLastSeparator(string, separator) {
   let lastElement = splitString.pop()
   let firstElements = splitString.join(separator)
   return [firstElements, lastElement]
+}
+
+function getPathSeparator() {
+  // eslint-disable-next-line no-undef
+  let process = require("process")
+  if (process.platform === "win32") {
+    console.log("Windows")
+    return "\\"
+  } else if (typeof process !== "undefined" && process.platform === "linux") {
+    return "/"
+  }
 }
