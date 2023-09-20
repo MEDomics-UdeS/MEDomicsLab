@@ -123,14 +123,17 @@ const SidebarDirectoryTreeControlled = () => {
       console.warn("PASTE - selectedItem undefined")
       return
     }
+
     let selectedItemObject = globalData[selectedItem]
-    if (selectedItemObject.type == "folder") {
-      MedDataObject.copy(dataObject, selectedItemObject, globalData, setGlobalData)
-      MedDataObject.updateWorkspaceDataObject(300)
-    } else {
-      let parentObject = globalData[selectedItemObject.parentID]
-      MedDataObject.copy(dataObject, parentObject, globalData, setGlobalData)
-      MedDataObject.updateWorkspaceDataObject(300)
+    if (selectedItemObject.type !== undefined) {
+      if (selectedItemObject.type == "folder") {
+        MedDataObject.copy(dataObject, selectedItemObject, globalData, setGlobalData)
+        MedDataObject.updateWorkspaceDataObject(300)
+      } else {
+        let parentObject = globalData[selectedItemObject.parentID]
+        MedDataObject.copy(dataObject, parentObject, globalData, setGlobalData)
+        MedDataObject.updateWorkspaceDataObject(300)
+      }
     }
   }
 
@@ -294,15 +297,19 @@ const SidebarDirectoryTreeControlled = () => {
     let selectedItem = selectedItems[0]
     let selectedItemObject = globalData[selectedItem]
     let parentObject = undefined
-    if (selectedItemObject.type == "folder") {
-      parentObject = selectedItemObject
-    } else {
-      parentObject = globalData[selectedItemObject.parentID]
-    }
+    if (selectedItemObject !== undefined && selectedItemObject.type !== undefined) {
+      if (selectedItemObject.type == "folder") {
+        parentObject = selectedItemObject
+      } else {
+        parentObject = globalData[selectedItemObject.parentID]
+      }
 
-    MedDataObject.createEmptyFolderFS("New Folder", parentObject.path)
-    MedDataObject.updateWorkspaceDataObject()
-    tree.current.expandItem(parentObject.getUUID()) // We expand the parent folder so that we see the new folder
+      MedDataObject.createEmptyFolderFS("New Folder", parentObject.path)
+      MedDataObject.updateWorkspaceDataObject()
+      tree.current.expandItem(parentObject.getUUID()) // We expand the parent folder so that we see the new folder
+    } else {
+      toast.error("Error: Please select a folder")
+    }
   }
 
   /**
@@ -358,8 +365,6 @@ const SidebarDirectoryTreeControlled = () => {
       }
     })
 
-    console.log("TREE TO SEND", treeToSend)
-
     return treeToSend
   }
 
@@ -367,10 +372,8 @@ const SidebarDirectoryTreeControlled = () => {
    * This useEffect hook updates the directory tree when the global data changes.
    */
   useEffect(() => {
-    console.log("GLOBAL DATA", globalData)
     if (globalData) {
       let newTree = fromJSONtoTree({ ...globalData })
-      console.log("NEW TREE", newTree)
       setDirTree(newTree)
     }
   }, [globalData])

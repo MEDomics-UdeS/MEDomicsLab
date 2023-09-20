@@ -141,7 +141,6 @@ export default function App() {
    * The HasBeenSet property is used to prevent the workspaceObject from being updated before the working directory has been set
    * The HasBeenSet property is set to true when the workingDirectorySet message is received
    */
-
   useEffect(() => {
     // This useEffect hook is called only once and it sets the ipcRenderer to listen for the "workingDirectorySet" message from the main process
     // The working directory tree is stored in the workspaceObject state variable
@@ -155,7 +154,6 @@ export default function App() {
     ipcRenderer.on("updateDirectory", (event, data) => {
       let workspace = { ...data }
       setWorkspaceObject(workspace)
-      console.log("WorkingDirectory updated:", workspace)
 
       // }
     })
@@ -210,7 +208,6 @@ export default function App() {
         newGlobalData[objectUUID] = dataObject
         childrenIDsToReturn.push(objectUUID)
       } else {
-        console.log("Object is already in globalDataContext", child)
         let dataObject = newGlobalData[uuid]
         let acceptedFiles = dataObject.acceptedFileTypes
         if (child.children !== undefined) {
@@ -256,17 +253,17 @@ export default function App() {
 
   // This useEffect hook is called whenever the `workspaceObject` state changes.
   useEffect(() => {
-    console.log("workspaceObject changed", workspaceObject)
+    // console.log("workspaceObject changed", workspaceObject)
   }, [workspaceObject])
 
   // This useEffect hook is called whenever the `globalData` state changes.
   useEffect(() => {
-    console.log("globalData changed", globalData)
+    // console.log("globalData changed", globalData)
   }, [globalData])
 
   useEffect(() => {
     // Log a message to the console whenever the layoutModel state variable changes
-    console.log("layoutModel changed", layoutModel)
+    // console.log("layoutModel changed", layoutModel)
   }, [layoutModel]) // Here, we specify that the hook should only be called when the layoutModel state variable changes
 
   return (
