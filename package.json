@@ -11,6 +11,7 @@
     "postinstall": "electron-builder install-app-deps"
   },
   "dependencies": {
+    "@blueprintjs/core": "^5.3.0",
     "@khalidalansi/use-interval": "^1.0.3",
     "@monaco-editor/react": "^4.5.2",
     "@popperjs/core": "^2.11.6",
@@ -37,6 +38,7 @@
     "react-bootstrap-icons": "^1.10.3",
     "react-bootstrap-sidebar-menu": "^2.0.3",
     "react-complex-tree": "^2.2.2",
+    "react-contexify": "^6.0.0",
     "react-dropzone": "^14.2.3",
     "react-native-uuid": "^2.0.1",
     "react-popper": "^2.3.0",

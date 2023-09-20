@@ -1,5 +1,6 @@
 import sys
 import json
+import argparse
 from flask import Flask, request, jsonify, Blueprint
 from utils.server_utils import get_json_from_request
 import argparse
@@ -33,4 +34,4 @@ def test():
 
 
 if __name__ == '__main__':
-    app.run(debug=True, port=args.port, use_reloader=True)
+    app.run(debug=True, port=args.port, use_reloader=False)
