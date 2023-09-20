@@ -197,7 +197,6 @@ export default function App() {
           childrenIDs = answer.childrenIDsToReturn
         }
         dataObject.setType(objectType)
-        console.log("dataObject", dataObject)
         dataObject.setChildrenIDs(childrenIDs)
         newGlobalData[objectUUID] = dataObject
         childrenIDsToReturn.push(objectUUID)

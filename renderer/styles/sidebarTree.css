@@ -30,8 +30,7 @@
   --contexify-menu-padding: 6px;
   --contexify-menu-radius: 4px;
   --contexify-menu-bgColor: #474747 !important;
-  --contexify-menu-shadow: 1px 2px 2px rgba(0, 0, 0, 0.1),
-    2px 4px 4px rgba(0, 0, 0, 0.1), 3px 6px 6px rgba(0, 0, 0, 0.1);
+  --contexify-menu-shadow: 1px 2px 2px rgba(0, 0, 0, 0.1), 2px 4px 4px rgba(0, 0, 0, 0.1), 3px 6px 6px rgba(0, 0, 0, 0.1);
   --contexify-menu-negatePadding: var(--contexify-menu-padding);
   --contexify-separator-color: rgba(0, 0, 0, 0.2);
   --contexify-separator-margin: 5px;
@@ -117,4 +116,17 @@
   padding: 0.5rem !important;
   margin-right: 0.5rem;
   align-self: center;
+}
+
+.rct-tree-item-isNotFolder:hover {
+  padding-top: var(--tree-item-padding-left);
+  box-shadow: inset var(--tree-item-padding-left) 0em #8d0e0e;
+}
+
+.folder-bracket {
+  position: absolute;
+  width: 0.1rem;
+  top: 1.5rem;
+  bottom: 10px;
+  background-color: #868686;
 }

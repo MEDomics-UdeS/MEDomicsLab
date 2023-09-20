@@ -1,7 +1,7 @@
-import React, { useContext, useRef, useState, useEffect, useCallback } from "react"
-import { Trash, BoxArrowUpRight, Eraser } from "react-bootstrap-icons"
+import React, { useContext, useRef, useState, useEffect } from "react"
+import { Trash, BoxArrowUpRight, Eraser, FolderPlus } from "react-bootstrap-icons"
+import { Accordion, Stack } from "react-bootstrap"
 import { ControlledTreeEnvironment, Tree } from "react-complex-tree"
-import { WorkspaceContext } from "../../workspace/workspaceContext"
 import { DataContext } from "../../workspace/dataContext"
 import MedDataObject from "../../workspace/medDataObject"
 import { toast } from "react-toastify"
@@ -15,26 +15,36 @@ import renderItem from "./directoryTree/renderItem"
  * @returns a sidebar item component that can be a file or a folder and that is rendered recursively
  */
 const SidebarDirectoryTreeControlled = () => {
-  const environment = useRef()
-  const tree = useRef()
-  const MENU_ID = "tree-2"
+  const environment = useRef() // This ref is used to get the environment of the directory tree
+  const tree = useRef() // This ref is used to get the directory tree
+  const MENU_ID = "tree-2" // This is the id of the context menu
   const { show } = useContextMenu({
+    // This is the context menu
     id: MENU_ID
   })
 
-  const [focusedItem, setFocusedItem] = useState()
-  const [expandedItems, setExpandedItems] = useState([])
-  const [selectedItems, setSelectedItems] = useState([])
-  const [copiedItems, setCopiedItems] = useState([])
-  const [cutItems, setCutItems] = useState([])
+  const [focusedItem, setFocusedItem] = useState() // This state is used to keep track of the item that is currently focused
+  const [expandedItems, setExpandedItems] = useState([]) // This state is used to keep track of the items that are currently expanded
+  const [selectedItems, setSelectedItems] = useState([]) // This state is used to keep track of the items that are currently selected
+  const [copiedItems, setCopiedItems] = useState([]) // This state is used to keep track of the items that have been copied
+  // eslint-disable-next-line no-unused-vars
+  const [cutItems, setCutItems] = useState([]) // This state is used to keep track of the items that have been cut
+  const [isHovering, setIsHovering] = useState(false) // This state is used to know if the mouse is hovering the directory tree
 
+  const [isAccordionShowing, setIsAccordionShowing] = useState(false) // This state is used to know if the accordion is collapsed or not
   const { globalData, setGlobalData } = useContext(DataContext) // We get the global data from the context to retrieve the directory tree of the workspace, thus retrieving the data files
   const { dispatchLayout } = useContext(LayoutModelContext)
 
   const [dirTree, setDirTree] = useState({}) // We get the directory tree from the workspace
 
+  /**
+   * This function handles the key press event. It is attached to the document.
+   * @param {Object} event - The key press event
+   * @returns {void}
+   * @note - This function is called when the user presses a key.
+   */
   const handleKeyPress = (event) => {
-    console.log("KEY PRESS", event.code)
+    // console.log("KEY PRESS", event.code)
     if (event.key === "Delete") {
       if (selectedItems.length > 0) {
         console.log("DELETE", selectedItems[0])
@@ -57,6 +67,9 @@ const SidebarDirectoryTreeControlled = () => {
     }
   }
 
+  /**
+   * This useEffect hook attaches an event listener to the document to listen for key presses.
+   */
   useEffect(() => {
     // attach the event listener
     document.addEventListener("keydown", handleKeyPress)
@@ -66,12 +79,25 @@ const SidebarDirectoryTreeControlled = () => {
     }
   }, [handleKeyPress])
 
+  /**
+   * This function renames a `MedDataObject` in the workspace.
+   * @param {string} uuid - The UUID of the `MedDataObject` to rename
+   * @returns {void}
+   * @note this function is useful to rename
+   */
   function onRename(uuid) {
     setSelectedItems([uuid])
     tree.current.startRenamingItem(uuid)
-    // let f2 = new KeyboardEvent("keydown", { key: "F2" })
   }
 
+  /**
+   * This function opens a `MedDataObject` in the workspace.
+   * @param {string} uuid - The UUID of the `MedDataObject` to open
+   * @returns {void}
+   * @note - This function is called when the user double-clicks on a file or folder in the directory tree, or when the user right-clicks and selects "Open".
+   * @todo - This function should open the file in the default application.
+   * @README - This function is not implemented yet.
+   */
   function onOpen(uuid) {
     let dataObjectUUID = uuid
     let path = globalData[dataObjectUUID].path
@@ -86,6 +112,13 @@ const SidebarDirectoryTreeControlled = () => {
     })
   }
 
+  /**
+   * This function pastes a `MedDataObject` in the workspace.
+   * @param {string} uuid - The UUID of the `MedDataObject` to paste
+   * @param {string} selectedItem - The UUID of the copied `MedDataObject`
+   * @returns {void}
+   * @note - This function is called when the user pastes a file or folder in the directory tree, either by pressing Ctrl+V or by right-clicking and selecting "Paste".
+   */
   function onPaste(uuid, selectedItem) {
     console.log("PASTE", uuid)
     let dataObject = globalData[uuid]
@@ -106,6 +139,12 @@ const SidebarDirectoryTreeControlled = () => {
     }
   }
 
+  /**
+   * This function deletes a `MedDataObject` in the workspace.
+   * @param {string} uuid - The UUID of the `MedDataObject` to delete
+   * @returns {void}
+   * @note - This function is called when the user deletes a file or folder in the directory tree, either by pressing the delete key or by right-clicking and selecting "Delete".
+   */
   function onDelete(uuid) {
     // Get the UUID of the `MedDataObject` with the current name from the `globalData` object.
     const namesYouCantDelete = ["UUID_ROOT", "DATA", "EXPERIMENTS", "RESULTS", "MODELS"]
@@ -125,19 +164,19 @@ const SidebarDirectoryTreeControlled = () => {
     } else {
       // Delete the `MedDataObject` with the current name from the `globalData` object.
       let globalDataCopy = { ...globalData }
-      if (globalData[uuid].childrenIDs !== null) {
-        globalData[uuid].childrenIDs.forEach((childID) => {
-          MedDataObject.delete(globalDataCopy[childID])
-          delete globalDataCopy[childID]
-        })
-      }
-      MedDataObject.delete(globalDataCopy[uuid])
-      delete globalDataCopy[uuid]
+      globalDataCopy = MedDataObject.delete(globalDataCopy[uuid], globalData)
       setGlobalData(globalDataCopy)
+      toast.success(`Deleted ${globalData[uuid].name}`)
       MedDataObject.updateWorkspaceDataObject(300)
     }
   }
 
+  /**
+   * This function handles the context menu action. It is passed to the render item function to be called when the user clicks on a context menu action.
+   * @param {Object} param0 - The context menu action object
+   *  @param {string} param0.id - The id of the context menu action
+   *  @param {Object} param0.props - The props of the context menu action
+   */
   function handleContextMenuAction({ id, props }) {
     switch (id) {
       case "open":
@@ -156,6 +195,13 @@ const SidebarDirectoryTreeControlled = () => {
     show({ event: e, props: data })
   }
 
+  /**
+   * This function handles the drop of an item in the directory tree.
+   * @param {Array} items - The array of items to drop
+   * @param {Object} target - The target object
+   * @returns {void}
+   * @note - This function is called when the user drops an item in the directory tree.
+   */
   const onDrop = async (items, target) => {
     console.log(
       "DROPPRED - item",
@@ -212,6 +258,13 @@ const SidebarDirectoryTreeControlled = () => {
     }
   }
 
+  /**
+   * This function renames a `MedDataObject` in the workspace.
+   * @param {Object} medObject - The `MedDataObject` to rename
+   * @param {string} newName - The new name of the `MedDataObject`
+   * @returns {void}
+   * @note - This function is called when the user renames a file or folder in the directory tree, either by F2 or by right-clicking and selecting "Rename".
+   */
   function handleNameChange(medObject, newName) {
     const namesYouCantRename = ["UUID_ROOT", "DATA", "EXPERIMENTS", "RESULTS", "MODELS"]
     if (newName == "") {
@@ -250,13 +303,37 @@ const SidebarDirectoryTreeControlled = () => {
     return nameInArray
   }
 
+  /**
+   * This function creates a new folder in the workspace with the name "New Folder" and the parent folder being the selected folder.
+   * The button that triggers this function is only visible if the accordion is not collapsed.
+   * @param {Array} selectedItems - The array of selected items in the directory tree
+   * @returns {void}
+   */
+  function createFolder(selectedItems) {
+    let selectedItem = selectedItems[0]
+    let selectedItemObject = globalData[selectedItem]
+    let parentObject = undefined
+    if (selectedItemObject.type == "folder") {
+      parentObject = selectedItemObject
+    } else {
+      parentObject = globalData[selectedItemObject.parentID]
+    }
+
+    MedDataObject.createEmptyFolderFS("New Folder", parentObject.path)
+    MedDataObject.updateWorkspaceDataObject()
+    tree.current.expandItem(parentObject.getUUID()) // We expand the parent folder so that we see the new folder
+  }
+
+  /**
+   * This function reorders the array of folders and files so that the folders are first and the files are last.
+   * @param {Array} array - The array of folders and files
+   * @param {Object} dataContextObject - The data context object
+   * @returns {Array} - The reordered array of folders and files
+   */
   function reorderArrayOfFoldersAndFiles(array, dataContextObject) {
-    // Reorder the array of folders and files so that the folders are first and the files are last.
     let folders = []
     let files = []
-
     array.forEach((item) => {
-      console.log("item", dataContextObject[item])
       if (dataContextObject[item] !== undefined) {
         if (dataContextObject[item].type == "folder") {
           folders.push(item)
@@ -268,9 +345,14 @@ const SidebarDirectoryTreeControlled = () => {
     return folders.concat(files)
   }
 
+  /**
+   * This function converts the data context object to a tree object that can be used by the directory tree component.
+   * @param {Object} medDataContext - The data context object
+   * @returns {Object} - The tree object
+   */
   function fromJSONtoTree(medDataContext) {
     const treeToSend = {}
-    const namesYouCantRename = ["UUID_ROOT", "DATA", "EXPERIMENTS", "RESULTS", "MODELS"]
+    const namesYouCantRename = ["UUID_ROOT", "DATA", "EXPERIMENTS", "RESULTS", "MODELS"] // These names cannot be renamed
 
     Object.keys(medDataContext).forEach((key) => {
       let medDataItem = medDataContext[key]
@@ -300,6 +382,9 @@ const SidebarDirectoryTreeControlled = () => {
     return treeToSend
   }
 
+  /**
+   * This useEffect hook updates the directory tree when the global data changes.
+   */
   useEffect(() => {
     console.log("GLOBAL DATA", globalData)
     if (globalData) {
@@ -311,37 +396,69 @@ const SidebarDirectoryTreeControlled = () => {
 
   return (
     <>
-      <ControlledTreeEnvironment
-        ref={environment}
-        items={dirTree}
-        renderItem={(json) =>
-          renderItem(json, {
-            show,
-            MENU_ID,
-            displayMenu
-          })
-        }
-        getItemTitle={(item) => item.data}
-        viewState={{
-          ["tree-2"]: {
-            focusedItem,
-            expandedItems,
-            selectedItems
-          }
-        }}
-        onFocusItem={(item) => setFocusedItem(item.index)}
-        onExpandItem={(item) => setExpandedItems([...expandedItems, item.index])}
-        onCollapseItem={(item) => setExpandedItems(expandedItems.filter((expandedItemIndex) => expandedItemIndex !== item.index))}
-        onSelectItems={(items) => setSelectedItems(items)}
-        canReorderItems={true}
-        canDropOnFolder={true}
-        canRename={true}
-        canDragAndDrop={true}
-        onRenameItem={handleNameChange}
-        onDrop={onDrop}
-      >
-        <Tree treeId="tree-2" rootItem="UUID_ROOT" treeLabel="Tree Example" ref={tree} />
-      </ControlledTreeEnvironment>
+      <Accordion.Item eventKey="2">
+        <Accordion.Header>
+          <Stack direction="horizontal" style={{ flexGrow: "1" }}>
+            <p>
+              <strong>OPEN EDITORS</strong>
+            </p>
+            <div style={{ flexGrow: "10" }} />
+
+            {
+              isAccordionShowing && (
+                <>
+                  <a
+                    onClick={(e) => {
+                      e.preventDefault()
+                      e.stopPropagation()
+                      createFolder(selectedItems)
+                    }}
+                  >
+                    <FolderPlus size={"1rem"} className="context-menu-icon" />
+                  </a>
+                </>
+              ) /* We display the add folder icon only if the mouse is hovering the directory tree and if the accordion is not collapsed*/
+            }
+          </Stack>
+        </Accordion.Header>
+        <Accordion.Body className="sidebar-acc-body" onEnter={() => setIsAccordionShowing(true)} onExit={() => setIsAccordionShowing(false)}>
+          <div className="directory-tree" onMouseEnter={() => setIsHovering(true)} onMouseLeave={() => setIsHovering(false)}>
+            <ControlledTreeEnvironment
+              ref={environment}
+              items={dirTree}
+              renderItem={(json) =>
+                renderItem(json, {
+                  show,
+                  MENU_ID,
+                  displayMenu,
+                  isHovering
+                })
+              }
+              getItemTitle={(item) => item.data}
+              viewState={{
+                ["tree-2"]: {
+                  focusedItem,
+                  expandedItems,
+                  selectedItems
+                }
+              }}
+              onFocusItem={(item) => setFocusedItem(item.index)}
+              onExpandItem={(item) => setExpandedItems([...expandedItems, item.index])}
+              onCollapseItem={(item) => setExpandedItems(expandedItems.filter((expandedItemIndex) => expandedItemIndex !== item.index))}
+              onSelectItems={(items) => setSelectedItems(items)}
+              canReorderItems={true}
+              canDropOnFolder={true}
+              canRename={true}
+              canDragAndDrop={true}
+              onRenameItem={handleNameChange}
+              onDrop={onDrop}
+              isHovering={isHovering}
+            >
+              <Tree treeId="tree-2" rootItem="UUID_ROOT" treeLabel="Tree Example" ref={tree} />
+            </ControlledTreeEnvironment>
+          </div>
+        </Accordion.Body>
+      </Accordion.Item>
       <Menu id={MENU_ID}>
         <Submenu
           className="context-submenu"

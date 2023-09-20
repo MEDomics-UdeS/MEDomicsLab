@@ -31,78 +31,30 @@ const LayoutTestSidebar = () => {
             </Accordion.Header>
             <Accordion.Body>
               <Stack direction="vertical" gap={0}>
-                <SidebarFile
-                  name="Test page"
-                  add={addBool}
-                  delete={deleteBool}
-                />
-                <SidebarFile
-                  name="Input page"
-                  add={addBool}
-                  delete={deleteBool}
-                />
-                <SidebarFile
-                  name="Extraction page"
-                  add={addBool}
-                  delete={deleteBool}
-                />
-                <SidebarFile
-                  name="Discovery page"
-                  add={addBool}
-                  delete={deleteBool}
-                />
-                <SidebarFile
-                  name="Learning page"
-                  add={addBool}
-                  delete={deleteBool}
-                />
-                <SidebarFile
-                  name="Results page"
-                  add={addBool}
-                  delete={deleteBool}
-                />
-                <SidebarFile
-                  name="Application page"
-                  add={addBool}
-                  delete={deleteBool}
-                />
+                <SidebarFile name="Test page" add={addBool} delete={deleteBool} />
+                <SidebarFile name="Input page" add={addBool} delete={deleteBool} />
+                <SidebarFile name="Extraction page" add={addBool} delete={deleteBool} />
+                <SidebarFile name="Discovery page" add={addBool} delete={deleteBool} />
+                <SidebarFile name="Learning page" add={addBool} delete={deleteBool} />
+                <SidebarFile name="Results page" add={addBool} delete={deleteBool} />
+                <SidebarFile name="Application page" add={addBool} delete={deleteBool} />
               </Stack>
             </Accordion.Body>
           </Accordion.Item>
           <Accordion.Item eventKey="1">
             <Accordion.Header>
-              <Stack
-                direction="horizontal"
-                gap={1}
-                style={{ padding: "0 0 0 0", alignContent: "center" }}
-              >
+              <Stack direction="horizontal" gap={1} style={{ padding: "0 0 0 0", alignContent: "center" }}>
                 <Folder style={{ marginLeft: "0.2rem" }} />
                 Tabs explorer
               </Stack>
             </Accordion.Header>
             <Accordion.Body className="sidebar-acc-body">
               <Stack direction="vertical" gap={0}>
-                <SidebarFolder name={"Workspace #1"}>
-                  {tabsList.layout.children}
-                </SidebarFolder>
+                <SidebarFolder name={"Workspace #1"}>{tabsList.layout.children}</SidebarFolder>
               </Stack>
             </Accordion.Body>
           </Accordion.Item>
-          <Accordion.Item eventKey="2">
-            <Accordion.Header>
-              <Stack
-                direction="horizontal"
-                gap={1}
-                style={{ padding: "0 0 0 0", alignContent: "center" }}
-              >
-                <Folder style={{ marginLeft: "0.2rem" }} />
-                File Explorer
-              </Stack>
-            </Accordion.Header>
-            <Accordion.Body className="sidebar-acc-body">
-              <SidebarDirectoryTreeControlled />
-            </Accordion.Body>
-          </Accordion.Item>
+          <SidebarDirectoryTreeControlled />
         </Accordion>
       </Stack>
     </>

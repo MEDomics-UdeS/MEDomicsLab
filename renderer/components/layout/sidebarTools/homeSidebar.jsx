@@ -29,29 +29,14 @@ const HomeSidebar = () => {
         >
           Home
         </p>
-        {workspace.hasBeenSet == false && (
-          <h3 style={{ color: "white", paddingInline: "1rem" }}>
-            No workspace
-          </h3>
-        )}
+        {workspace.hasBeenSet == false && <h3 style={{ color: "white", paddingInline: "1rem" }}>No workspace</h3>}
         {workspace.hasBeenSet == false && (
           <Button onClick={handleWorkspaceChange} style={{ margin: "1rem" }}>
             Set Workspace
           </Button>
         )}
         <Accordion defaultActiveKey={["0"]} alwaysOpen>
-          <Accordion.Item eventKey="0">
-            <Accordion.Header className="accordionHeader">
-              <Stack direction="horizontal" style={{ flexGrow: "1" }}>
-                <p style={{ marginInlineStart: "1rem" }}>
-                  <strong>OPEN EDITORS</strong>
-                </p>
-              </Stack>
-            </Accordion.Header>
-            <Accordion.Body className="accordion-body-tight">
-              <SidebarDirectoryTreeControlled />
-            </Accordion.Body>
-          </Accordion.Item>
+          <SidebarDirectoryTreeControlled />
         </Accordion>
       </Stack>
     </>

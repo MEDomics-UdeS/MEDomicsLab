@@ -35,20 +35,7 @@ const InputSidebar = () => {
         </DropzoneComponent>
 
         <Accordion defaultActiveKey={["0"]} alwaysOpen>
-          <Accordion.Item eventKey="0">
-            <Accordion.Header className="accordionHeader">
-              <Stack direction="horizontal" style={{ flexGrow: "1" }}>
-                <p style={{ marginInlineStart: "1rem" }}>
-                  <strong>OPEN EDITORS</strong>
-                </p>
-              </Stack>
-            </Accordion.Header>
-            <DropzoneComponent noClick={true}>
-              <Accordion.Body className="accordion-body-tight">
-                <SidebarDirectoryTreeControlled />
-              </Accordion.Body>
-            </DropzoneComponent>
-          </Accordion.Item>
+          <SidebarDirectoryTreeControlled />
         </Accordion>
 
         {/* We render the workspace only if it is set, otherwise it throws an error */}

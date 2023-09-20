@@ -43,19 +43,7 @@ const ExplorerSidebar = () => {
               <Button onClick={handleWorkspaceChange}>Change Workspace</Button>
             </Accordion.Body>
           </Accordion.Item>
-          <Accordion.Item eventKey="2">
-            <Accordion.Header>
-              <Stack direction="horizontal" style={{ flexGrow: "1" }}>
-                <p>
-                  <strong>OPEN EDITORS</strong>
-                </p>
-                <div style={{ flexGrow: "10" }} />
-              </Stack>
-            </Accordion.Header>
-            <Accordion.Body className="sidebar-acc-body">
-              <SidebarDirectoryTreeControlled name="test" />
-            </Accordion.Body>
-          </Accordion.Item>
+          <SidebarDirectoryTreeControlled />
         </Accordion>
       </Stack>
     </>

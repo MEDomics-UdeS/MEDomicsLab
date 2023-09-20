@@ -97,7 +97,6 @@ export default class MedDataObject {
         "application/medomics": []
       }
     }
-    console.warn("acceptedFileTypes: " + acceptedFileTypesToReturn)
     return acceptedFileTypesToReturn
   }
 
@@ -115,10 +114,10 @@ export default class MedDataObject {
     globalDataContextArrayUUIDs.forEach((key) => {
       let dataObject = dataObjectDictionary[key]
       if (dataObject.name === dataObjectName) {
-        console.log("Data object found in context by name:" + dataObjectUUID)
         let dataObjectParentID = dataObject.parentID
         if (dataObjectParentID.length > 0) {
           if (dataObjectParentID == parentID) {
+            console.log("Data object found in context by name with the same parent:" + dataObjectName)
             // dataObjectUUID = ""
             dataObjectUUID = key
           }
@@ -208,7 +207,7 @@ export default class MedDataObject {
     let pathToCreate = path + "\\" + name
     fs.mkdirSync(pathToCreate, { recursive: true }, (err) => {
       if (err) {
-        console.log(err)
+        console.error(err)
       } else {
         console.log(`Folder created at ${pathToCreate}`)
       }
@@ -280,13 +279,14 @@ export default class MedDataObject {
     return names
   }
 
-  static returnNameNotInList(name, names) {
-    let nameToReturn = name
+  static returnNameNotInList(name, names, extension = undefined) {
     let nameFound = false
     let index = 0
+    let extensionToReturn = extension ? "." + extension : ""
+    let nameToReturn = name + extensionToReturn
     while (!nameFound) {
       if (names.includes(nameToReturn)) {
-        nameToReturn = name + "_" + index
+        nameToReturn = name + "_" + index + extensionToReturn
         index++
       } else {
         nameFound = true
@@ -312,7 +312,7 @@ export default class MedDataObject {
       extensionToReturn = splitStringAtTheLastSeparator(name, ".")[1]
     }
     console.log("Names: ", names)
-    nameToReturn = this.returnNameNotInList(name, names) + "." + extensionToReturn
+    nameToReturn = this.returnNameNotInList(nameWithoutExtension, names, extensionToReturn)
     return nameToReturn
   }
 
@@ -388,15 +388,17 @@ export default class MedDataObject {
     if (dataObject.type !== "folder") {
       newNameWithExtension = this.getNewNameForFile({ name: dataObject.name, folderPath: newParentObject.path, extension: dataObject.extension })
     } else {
-      newNameWithExtension = this.getNewNameForFolder({ name: dataObject.name, folderPath: newParentObject.path })
+      if (dataObject.getUUID() === newParentObject.getUUID()) {
+        newNameWithExtension = this.getNewNameForFolder({ name: dataObject.name + "_sub", folderPath: newParentObject.path })
+      } else {
+        newNameWithExtension = this.getNewNameForFolder({ name: dataObject.name, folderPath: newParentObject.path })
+      }
     }
 
     newMedDataObject.name = newNameWithExtension
-    newMedDataObject.nameWithoutExtension = splitStringAtTheLastSeparator(newNameWithExtension, ".")[0]
-    newMedDataObject.extension = splitStringAtTheLastSeparator(newNameWithExtension, ".")[1]
+    newMedDataObject.nameWithoutExtension = splitStringAtTheLastSeparator(newNameWithExtension, ".")[0].length > 0 ? splitStringAtTheLastSeparator(newNameWithExtension, ".")[0] : newNameWithExtension
+    newMedDataObject.extension = splitStringAtTheLastSeparator(newNameWithExtension, ".")[0].length > 0 ? splitStringAtTheLastSeparator(newNameWithExtension, ".")[1] : ""
     newMedDataObject.path = this.getTotalPath(newNameWithExtension, newParentObject.path)
-
-    toast.success("Data object copied to " + newMedDataObject.path)
 
     newMedDataObject.lastModified = Date(Date.now())
     newMedDataObject.created = Date(Date.now())
@@ -405,13 +407,42 @@ export default class MedDataObject {
     newGlobalData[newMedDataObject.getUUID()] = newMedDataObject
     let oldPath = dataObject.path
     let newPath = newMedDataObject.path
-    fs.cp(oldPath, newPath, { recursive: true }, (err) => {
-      if (err) {
-        console.log(err)
-      } else {
-        console.log(`Data object copied from ${oldPath} to ${newPath}`)
+
+    if (dataObject.getUUID() === newParentObject.getUUID()) {
+      fs.mkdirSync(newPath, { recursive: true }, (err) => {
+        if (err) {
+          console.error(err)
+        } else {
+          console.log(`Folder created at ${newPath}`)
+          toast.success("Data object copied to " + newMedDataObject.path)
+        }
+      })
+
+      let childrenItemsID = dataObject.childrenIDs
+      for (let childID of childrenItemsID) {
+        let childObject = globalDataContext[childID]
+        if (childObject !== undefined) {
+          fs.cp(childObject.path, newPath + this.getPathSeparator() + childObject.name, { recursive: true }, (err) => {
+            if (err) {
+              console.error(err)
+            } else {
+              console.log(`Data object copied from ${oldPath} to ${newPath}`)
+              toast.success("Data object copied to " + newMedDataObject.path)
+            }
+          })
+        }
       }
-    })
+    } else {
+      fs.cp(oldPath, newPath, { recursive: true }, (err) => {
+        if (err) {
+          console.error(err)
+        } else {
+          console.log(`Data object copied from ${oldPath} to ${newPath}`)
+          toast.success("Data object copied to " + newMedDataObject.path)
+        }
+      })
+    }
+
     setGlobalDataContext(newGlobalData)
   }
 
@@ -419,11 +450,24 @@ export default class MedDataObject {
    * Deletes the file associated with the provided `dataObject`.
    * @param {MedDataObject} dataObject - The `MedDataObject` instance to delete.
    */
-  static delete(dataObject) {
+  static delete(dataObject, globalDataContext) {
     // eslint-disable-next-line no-undef
+    let globalData = { ...globalDataContext }
+    let childIDs = dataObject.childrenIDs
+    if (childIDs !== null) {
+      if (childIDs.length > 0) {
+        childIDs.forEach((childID) => {
+          let childObject = globalData[childID]
+          if (childObject !== undefined) {
+            globalData = this.delete(childObject, globalData)
+          }
+        })
+      }
+    }
     let fs = require("fs")
     let path = dataObject.path
-    fs.rm(path, { recursive: true }, (err) => {
+    delete globalData[dataObject.getUUID()]
+    fs.rmSync(path, { recursive: true }, (err) => {
       if (err) {
         console.log(err)
       } else {
@@ -431,8 +475,7 @@ export default class MedDataObject {
         toast.success("Data object deleted")
       }
     })
-    this.updateWorkspaceDataObject()
-    return dataObject
+    return globalData
   }
 
   /**

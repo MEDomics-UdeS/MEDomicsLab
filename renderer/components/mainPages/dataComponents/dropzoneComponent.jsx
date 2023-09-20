@@ -5,14 +5,12 @@ import fs from "fs"
 import { WorkspaceContext } from "../../workspace/workspaceContext"
 import MedDataObject from "../../workspace/medDataObject"
 import { toast } from "react-toastify"
-import { PlayBtnFill } from "react-bootstrap-icons"
 
 /**
  * @typedef {React.FunctionComponent} DropzoneComponent
  * @description This component is the dropzone component that will be used to upload files to the workspace.
  * @params {Object} children - The children of the component
  * @summary This component is used to upload files to the workspace. It is used in the InputSidebar.
- *
  * @todo Add the functionality to upload more file types than just CSV files
  */
 export default function DropzoneComponent({ children, item = undefined, ...props }) {
@@ -77,6 +75,15 @@ export default function DropzoneComponent({ children, item = undefined, ...props
     }
   }
 
+  /**
+   * @description - This is the useDropzone hook that is used to create the dropzone component
+   * @param {Object} onDrop - The function to be executed when a file is dropped in the dropzone
+   * @param {Object} onDropRejected - The function to be executed when a file is dropped in the dropzone but is rejected
+   * @param {Object} noClick - A boolean that indicates if the dropzone should not be clickable
+   * @param {Object} accept - The file types that are accepted by the dropzone
+   * @returns {JSX.Element}
+   * @see SidebarDirectoryTreeControlled - "../../layout/sidebarTools/sidebarDirectoryTreeControlled.jsx" This component is used in the SidebarDirectoryTreeControlled component
+   */
   const { getRootProps, getInputProps, isFocused, isDragAccept, isDragReject } = useDropzone({
     onDrop,
     onDropRejected: useCallback((fileRejections) => {
@@ -87,12 +94,7 @@ export default function DropzoneComponent({ children, item = undefined, ...props
     accept: acceptedFiles ? acceptedFiles : undefined
   })
 
-  /**
-   * @description - This function handles the download of the file
-   * @todo Implement this function
-   */
-  const handleDownload = () => {}
-
+  // The style changes if the dropzone is focused, if the file is accepted or if the file is rejected
   const baseStyle = {
     display: "block",
     position: "relative",
