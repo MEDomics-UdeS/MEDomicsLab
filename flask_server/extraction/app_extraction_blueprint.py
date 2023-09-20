@@ -1150,7 +1150,7 @@ def getUpload():  # Code selected from  https://flask.palletsprojects.com/en/2.2
         up_file_infos = {}
         data = get_json_from_request(request)
         print("received data from topic: /upload:")
-        pprint(data)
+        pp.pprint(data)
         print("request:")
         print(request)
         if request.method == 'POST':

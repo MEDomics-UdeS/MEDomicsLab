@@ -19,8 +19,6 @@ import { FlowFunctionsContext } from "../flow/context/flowFunctionsContext"
 import { FlowResultsContext } from "../flow/context/flowResultsContext"
 import { WorkspaceContext } from "../workspace/workspaceContext"
 import { ErrorRequestContext } from "../flow/context/errorRequestContext"
-import { Button } from "primereact/button"
-import { Dialog } from "primereact/dialog"
 
 // here are the different types of nodes implemented in the workflow
 import StandardNode from "./nodesTypes/standardNode"
@@ -59,8 +57,7 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
   const [isProgressUpdating, setIsProgressUpdating] = useState(false) // progress is used to store the progress of the workflow execution
   const { pageInfos } = useContext(PageInfosContext) // used to get the page infos such as id and config path
   const { groupNodeId, changeSubFlow } = useContext(FlowFunctionsContext)
-  const { setShowResultsPane, updateFlowResults } =
-    useContext(FlowResultsContext)
+  const { updateFlowResults } = useContext(FlowResultsContext)
   const { port } = useContext(WorkspaceContext)
   const { setError } = useContext(ErrorRequestContext)
 

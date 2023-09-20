@@ -29,16 +29,16 @@ const ViewButton = ({ id, data, type }) => {
     // Construction of form data to send to /extraction/view. If the node is input, the name of the file is needed
     let formData
     if (type === "input") {
-      formData = JSON.stringify({
+      formData = {
         id: id,
         name: type,
         file_loaded: data.internal.settings.filepath
-      })
+      }
     } else {
-      formData = JSON.stringify({
+      formData = {
         id: id,
         name: type
-      })
+      }
     }
 
     requestJson(port, "/extraction/view", formData, (response) => {
