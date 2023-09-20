@@ -32,7 +32,6 @@ import "../styles/learning/sidebar.css"
 import "react-complex-tree/lib/style-modern.css"
 import "../styles/sidebarTree.css"
 
-// import "react-complex-tree/lib/style.css"
 import DataContextProvider from "../components/workspace/dataContext"
 import MedDataObject from "../components/workspace/medDataObject"
 
@@ -167,8 +166,18 @@ export default function App() {
     })
   }, []) // Here, we specify that the hook should only be called at the launch of the app
 
+  /**
+   * @param {Object} children - The children of the current directory
+   * @param {String} parentID - The UUID of the parent directory
+   * @param {Object} newGlobalData - The global data object
+   * @param {Array} acceptedFileTypes - The accepted file types for the current directory
+   * @returns {Object} - The children IDs of the current directory
+   * @description This function is used to recursively recense the directory tree and add the files and folders to the global data object
+   * It is called when the working directory is set
+   */
   function recursivelyRecenseTheDirectory(children, parentID, newGlobalData, acceptedFileTypes = undefined) {
     let childrenIDsToReturn = []
+
     children.forEach((child) => {
       let uuid = MedDataObject.checkIfMedDataObjectInContextbyName(child.name, newGlobalData, parentID)
       let objectType = "folder"

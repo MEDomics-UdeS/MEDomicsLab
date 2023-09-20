@@ -120,7 +120,6 @@ export default class MedDataObject {
         if (dataObjectParentID.length > 0) {
           if (dataObjectParentID == parentID) {
             console.log("Data object found in context by name with the same parent:" + dataObjectName)
-            // dataObjectUUID = ""
             dataObjectUUID = key
           }
         }
@@ -340,7 +339,6 @@ export default class MedDataObject {
       parentID: newParentObject.getUUID()
     })
     console.log("newNameFound: " + newNameFound)
-    // console.log("newName: " + dataObject.path)
 
     if (newNameFound !== "") {
       if (newNameFound !== dataObject.name) {
@@ -376,9 +374,12 @@ export default class MedDataObject {
 
   /**
    * Creates a copy of a MED data object.
-   *
+   * @param {MedDataObject} dataObject - The MED data object to copy.
+   * @param {MedDataObject} newParentObject - The MED data object to copy to.
+   * @param {Object} globalDataContext - The global data context object to search in.
+   * @param {function} setGlobalDataContext - The function to set the updated global data context.
+   * @returns {void}
    */
-
   static copy(dataObject, newParentObject, globalDataContext, setGlobalDataContext) {
     let newMedDataObject = new MedDataObject({
       originalName: dataObject.originalName,
@@ -579,7 +580,6 @@ export default class MedDataObject {
    */
 
   rename(newName) {
-    // const { process } = require("node")
     this.name = newName
     let separator = getPathSeparator()
     console.log("separator: ", separator)

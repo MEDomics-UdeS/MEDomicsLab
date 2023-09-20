@@ -6,7 +6,6 @@ import { LayoutModelContext } from "../layoutContext"
 import { DataContext } from "../../workspace/dataContext"
 import MedDataObject from "../../workspace/medDataObject"
 import EditableLabel from "react-simple-editlabel"
-import { ipcRenderer } from "electron"
 /**
  * @description - This component is the sidebar tools component that will be used in the sidebar component
  * @param {Object} props - Props passed from parent component
@@ -53,12 +52,7 @@ const SidebarFolder = (props) => {
     <Accordion defaultActiveKey={props.name}>
       <Accordion.Item eventKey={props.name}>
         <Accordion.Header>
-          <Stack
-            className="sidebar-file-stack"
-            direction="horizontal"
-            gap={1}
-            style={{ padding: "0 0 0 0", alignContent: "center" }}
-          >
+          <Stack className="sidebar-file-stack" direction="horizontal" gap={1} style={{ padding: "0 0 0 0", alignContent: "center" }}>
             <Folder size={"1rem"} style={{ marginLeft: "0.2rem" }} />
             {props.name}
             {props.afterHeader}
@@ -118,18 +112,11 @@ const SidebarFile = (props) => {
       handleRenameCancel()
     } else {
       // Get the UUID of the `MedDataObject` with the current name from the `globalData` object.
-      let uuid = MedDataObject.checkIfMedDataObjectInContextbyName(
-        props.name,
-        globalData
-      )
+      let uuid = MedDataObject.checkIfMedDataObjectInContextbyName(props.name, globalData)
       let dataObject = globalData[uuid]
 
       // Rename the `MedDataObject` with the new name and update the `globalData` object.
-      let renamedDataObject = MedDataObject.rename(
-        dataObject,
-        event,
-        globalData
-      )
+      let renamedDataObject = MedDataObject.rename(dataObject, event, globalData)
       let globalDataCopy = { ...globalData }
       globalDataCopy[uuid] = renamedDataObject
       setGlobalData(globalDataCopy)
@@ -153,10 +140,7 @@ const SidebarFile = (props) => {
 
   // Define functions to handle the open and delete actions from the context menu.
   function onOpen(name) {
-    let dataObjectUUID = MedDataObject.checkIfMedDataObjectInContextbyName(
-      name,
-      globalData
-    )
+    let dataObjectUUID = MedDataObject.checkIfMedDataObjectInContextbyName(name, globalData)
     let path = globalData[dataObjectUUID].path
     dispatchLayout({
       type: "add",
@@ -171,10 +155,7 @@ const SidebarFile = (props) => {
 
   function onDelete() {
     // Get the UUID of the `MedDataObject` with the current name from the `globalData` object.
-    let uuid = MedDataObject.checkIfMedDataObjectInContextbyName(
-      props.name,
-      globalData
-    )
+    let uuid = MedDataObject.checkIfMedDataObjectInContextbyName(props.name, globalData)
     if (uuid == "") {
       console.log("Error: UUID not found")
       return
@@ -283,18 +264,12 @@ const SidebarFile = (props) => {
 
   // Define variables for the add and delete icons.
   let plusIcon = (
-    <button
-      className="sidebar-file-button"
-      onClick={(e) => OnClickAdd(e, props.name)}
-    >
+    <button className="sidebar-file-button" onClick={(e) => OnClickAdd(e, props.name)}>
       <PlusSquare />
     </button>
   )
   let deleteIcon = (
-    <button
-      className="sidebar-file-button"
-      onClick={(e) => OnClickDelete(e, props.name)}
-    >
+    <button className="sidebar-file-button" onClick={(e) => OnClickDelete(e, props.name)}>
       <XSquare />
     </button>
   )
@@ -305,14 +280,7 @@ const SidebarFile = (props) => {
 
   return (
     <>
-      <Stack
-        className="sidebar-file-main-button"
-        onClick={(e) => handleClick(e, props.name)}
-        onContextMenu={(e) => handleContextMenu(e, props.name)}
-        direction="horizontal"
-        gap={1}
-        style={{ padding: "0 0 0 0", alignContent: "center" }}
-      >
+      <Stack className="sidebar-file-main-button" onClick={(e) => handleClick(e, props.name)} onContextMenu={(e) => handleContextMenu(e, props.name)} direction="horizontal" gap={1} style={{ padding: "0 0 0 0", alignContent: "center" }}>
         <FileEarmark style={{ marginLeft: "0.2rem" }} />
 
         {before}
@@ -339,20 +307,11 @@ const SidebarFile = (props) => {
       </Stack>
 
       {showContextMenu && (
-        <div
-          className="context-menu-overlay"
-          style={{ left: contextMenuPosition.x, top: contextMenuPosition.y }}
-        >
+        <div className="context-menu-overlay" style={{ left: contextMenuPosition.x, top: contextMenuPosition.y }}>
           <ul className="context-menu">
-            <li onClick={() => handleContextMenuAction("Open", props.name)}>
-              Open
-            </li>
-            <li onClick={() => handleContextMenuAction("Rename", props.name)}>
-              Rename
-            </li>
-            <li onClick={() => handleContextMenuAction("Delete", props.name)}>
-              Delete
-            </li>
+            <li onClick={() => handleContextMenuAction("Open", props.name)}>Open</li>
+            <li onClick={() => handleContextMenuAction("Rename", props.name)}>Rename</li>
+            <li onClick={() => handleContextMenuAction("Delete", props.name)}>Delete</li>
           </ul>
         </div>
       )}

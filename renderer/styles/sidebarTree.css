@@ -45,11 +45,6 @@
   --contexify-activeArrow-color: #fff;
 }
 
-/* .rct-tree-item-button:focus-visible {
-  outline: none;
-  background: #05629780;
-} */
-
 .rct-tree-search-input {
   width: var(--rct-search-width) !important;
   height: var(--rct-search-height) !important;
