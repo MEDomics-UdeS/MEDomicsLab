@@ -1,8 +1,10 @@
 import { randomUUID } from "crypto"
+// eslint-disable-next-line no-unused-vars
 import React from "react"
 import * as fs from "fs-extra"
 import { toast } from "react-toastify"
 import { ipcRenderer } from "electron"
+import process from "process"
 
 /**
  * Represents a data object in the workspace.
@@ -203,6 +205,7 @@ export default class MedDataObject {
    * @param {string} path
    */
   static createEmptyFolderFS(name, path) {
+    // eslint-disable-next-line no-undef
     let fs = require("fs")
     let pathToCreate = path + "\\" + name
     fs.mkdirSync(pathToCreate, { recursive: true }, (err) => {
@@ -274,6 +277,7 @@ export default class MedDataObject {
 
   // static changeChildrenPaths(newParentPath, children, globalDataContext, setGlobalDataContext) {
   static getNamesOfFolderAndFilesInPath(path) {
+    // eslint-disable-next-line no-undef
     let fs = require("fs")
     let names = fs.readdirSync(path)
     return names
@@ -464,6 +468,7 @@ export default class MedDataObject {
         })
       }
     }
+    // eslint-disable-next-line no-undef
     let fs = require("fs")
     let path = dataObject.path
     delete globalData[dataObject.getUUID()]
@@ -576,7 +581,6 @@ export default class MedDataObject {
   rename(newName) {
     // const { process } = require("node")
     this.name = newName
-    let oldPath = this.path
     let separator = getPathSeparator()
     console.log("separator: ", separator)
     let newPath = splitStringAtTheLastSeparator(this.path, separator)[0] + separator + newName
@@ -841,6 +845,7 @@ function splitStringAtTheLastSeparator(string, separator) {
 }
 
 function getPathSeparator() {
+  // eslint-disable-next-line no-undef
   let process = require("process")
   if (process.platform === "win32") {
     console.log("Windows")

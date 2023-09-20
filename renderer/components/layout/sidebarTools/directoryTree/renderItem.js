@@ -1,5 +1,4 @@
-import React, { useRef } from "react"
-import { Folder } from "react-bootstrap-icons"
+import React from "react"
 import DropzoneComponent from "../../../mainPages/dataComponents/dropzoneComponent"
 
 /**
@@ -23,7 +22,7 @@ const cx = (...classNames) => classNames.filter((cn) => !!cn).join(" ")
  * @param {Function} additionalParams.displayMenu - function to display the context menu
  * @returns {React.ReactNode} - the rendered item
  */
-const renderItem = ({ item, depth, children, title, context, arrow, info, ...test }, additionalParams) => {
+const renderItem = ({ item, depth, children, title, context, arrow }, additionalParams) => {
   const InteractiveComponent = context.isRenaming ? "div" : "button"
 
   const type = context.isRenaming ? undefined : "button"
