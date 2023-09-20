@@ -1,9 +1,22 @@
-import { app, protocol, BrowserWindow, ipcMain, Menu, dialog } from "electron"
+import {
+  app,
+  protocol,
+  BrowserWindow,
+  ipcMain,
+  Menu,
+  dialog,
+  session
+} from "electron"
 import axios from "axios"
 import serve from "electron-serve"
 import { createWindow } from "./helpers"
+import {
+  installExtension,
+  REACT_DEVELOPER_TOOLS
+} from "electron-extension-installer"
 const fs = require("fs")
 var path = require("path")
+const os = require("node:os")
 const dirTree = require("directory-tree")
 var serverProcess = null
 var flaskPort = 5000
@@ -12,13 +25,19 @@ var hasBeenSet = false
 const RUN_SERVER_WITH_APP = true
 
 const isProd = process.env.NODE_ENV === "production"
+
 if (isProd) {
   serve({ directory: "app" })
 } else {
   app.setPath("userData", `${app.getPath("userData")} (development)`)
 }
 
-; (async () => {
+const reactDevToolsPath = path.join(
+  os.homedir(),
+  "\\AppData\\Local\\Google\\Chrome\\User Data\\Default\\Extensions\\fmkadmapgofadopljbjfkapdkoienihi\\4.28.0_0"
+)
+
+;(async () => {
   await app.whenReady()
 
   const mainWindow = createWindow("main", {
@@ -235,6 +254,19 @@ if (isProd) {
     mainWindow.webContents.openDevTools()
   }
 })()
+// .then(async () => {
+//   await session.defaultSession.loadExtension(reactDevToolsPath)
+// })
+
+// .then(async () => {
+//   await session.defaultSession.loadExtension(
+//     path.join(__dirname, "react-devtools"),
+//     // allowFileAccess is required to load the devtools extension on file:// URLs.
+//     { allowFileAccess: true }
+//   )
+//   // Note that in order to use the React DevTools extension, you'll need to
+//   // download and unzip a copy of the extension.
+// })
 
 /**
  * @description Set the working directory
@@ -336,4 +368,12 @@ app.on("window-all-closed", () => {
     serverProcess.kill()
     console.log("serverProcess killed")
   }
+})
+
+app.on("ready", async () => {
+  await installExtension(REACT_DEVELOPER_TOOLS, {
+    loadExtensionOptions: {
+      allowFileAccess: true
+    }
+  })
 })
