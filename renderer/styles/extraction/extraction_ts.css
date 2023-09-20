@@ -1,0 +1,33 @@
+.center_text {
+  text-align: center;
+}
+
+.flex_column_start {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.flex_space_around {
+  display: flex;
+  justify-content: space-around;
+}
+
+.margin_top_30 {
+  margin-top: 30px;
+}
+
+.margin_top_bottom_30 {
+  margin-top: 30px;
+  margin-bottom: 30px;
+}
+
+.overflow_y_auto {
+  overflow-y: auto;
+}
+
+.vertical_divider {
+  width: 2px;
+  margin: 6px 0;
+  background: lightgray;
+}

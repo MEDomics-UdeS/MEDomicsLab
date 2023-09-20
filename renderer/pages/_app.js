@@ -24,13 +24,13 @@ import "../styles/globals.css"
 import "../styles/learning/learning.css"
 import "../styles/learning/learningTree.css"
 import "../styles/extraction/extraction.css"
+import "../styles/extraction/extraction_ts.css"
 import "flexlayout-react/style/light.css"
 import "../styles/workspaceSidebar.css"
 import "../styles/iconSidebar.css"
 import "../styles/learning/sidebar.css"
 import DataContextProvider from "../components/workspace/dataContext"
 import MedDataObject from "../components/workspace/medDataObject"
-
 
 /**
  * This is the main app component. It is the root component of the app.
@@ -93,12 +93,14 @@ export default function App() {
             {
               type: "tab",
               name: "Extraction",
-              component: { "module": "input", "path": "C:\\Users\\nicol\\Downloads\\learning-tests-scene\\learning-tests-scene\\data\\eicu_processed.csv" },
+              component: {
+                module: "input",
+                path: "C:\\Users\\nicol\\Downloads\\learning-tests-scene\\learning-tests-scene\\data\\eicu_processed.csv"
+              },
               config: {
                 path: "C:\\Users\\nicol\\Downloads\\learning-tests-scene\\learning-tests-scene\\data\\eicu_processed.csv"
               }
             }
-
           ]
         }
       ]
@@ -148,7 +150,6 @@ export default function App() {
     })
 
     ipcRenderer.on("updateDirectory", (event, data) => {
-
       let workspace = { ...data }
       setWorkspaceObject(workspace)
       console.log("WorkingDirectory updated:", workspace)
@@ -162,29 +163,32 @@ export default function App() {
     })
   }, []) // Here, we specify that the hook should only be called at the launch of the app
 
-
   // This useEffect hook is called whenever the `workspaceObject` state changes.
   useEffect(() => {
     // Create a copy of the `globalData` state object.
-    let newGlobalData = { ...globalData };
+    let newGlobalData = { ...globalData }
     // Check if the `workingDirectory` property of the `workspaceObject` has been set.
     if (workspaceObject.hasBeenSet === true) {
       // Loop through each child of the `workingDirectory`.
       workspaceObject.workingDirectory.children.forEach((child) => {
-
         // Check if a `MedDataObject` with the same name as the child already exists in the `newGlobalData` object.
-        let uuid = MedDataObject.checkIfMedDataObjectInContextbyName(child.name, newGlobalData);
-        let folderType = "folder";
-        let folderUUID = uuid;
+        let uuid = MedDataObject.checkIfMedDataObjectInContextbyName(
+          child.name,
+          newGlobalData
+        )
+        let folderType = "folder"
+        let folderUUID = uuid
         // If a `MedDataObject` with the same name as the child does not exist in the `newGlobalData` object, create a new `MedDataObject` instance for the child and add it to the `newGlobalData` object.
         if (uuid == "") {
-          let dataObjectFolder = new MedDataObject({ originalName: child.name, path: child.path, type: folderType });
-          folderUUID = dataObjectFolder.getUUID();
-          newGlobalData[folderUUID] = dataObjectFolder;
-
-        }
-        else {
-          console.log("Folder is already in globalDataContext", child);
+          let dataObjectFolder = new MedDataObject({
+            originalName: child.name,
+            path: child.path,
+            type: folderType
+          })
+          folderUUID = dataObjectFolder.getUUID()
+          newGlobalData[folderUUID] = dataObjectFolder
+        } else {
+          console.log("Folder is already in globalDataContext", child)
         }
 
         // Loop through each child of the current child.
@@ -192,34 +196,39 @@ export default function App() {
           // Check if the current child is a file.
           if (fileChild.children === undefined) {
             // Check if a `MedDataObject` with the same name as the file already exists in the `newGlobalData` object.
-            let fileUUID = MedDataObject.checkIfMedDataObjectInContextbyName(fileChild.name, newGlobalData);
+            let fileUUID = MedDataObject.checkIfMedDataObjectInContextbyName(
+              fileChild.name,
+              newGlobalData
+            )
             if (fileUUID == "") {
               // If a `MedDataObject` with the same name as the file does not exist in the `newGlobalData` object, create a new `MedDataObject` instance for the file and add it to the `newGlobalData` object.
-              let type = fileChild.name.split(".")[1];
-              let dataObject = new MedDataObject({ originalName: fileChild.name, path: fileChild.path, type: type });
-              dataObject.parentIDs.push(folderUUID);
-              newGlobalData[dataObject.getUUID()] = dataObject;
+              let type = fileChild.name.split(".")[1]
+              let dataObject = new MedDataObject({
+                originalName: fileChild.name,
+                path: fileChild.path,
+                type: type
+              })
+              dataObject.parentIDs.push(folderUUID)
+              newGlobalData[dataObject.getUUID()] = dataObject
 
-              newGlobalData[folderUUID]["childrenIDs"].push(dataObject.getUUID());
-
-            }
-            else {
-              console.log("File is already in globalDataContext", fileChild);
+              newGlobalData[folderUUID]["childrenIDs"].push(
+                dataObject.getUUID()
+              )
+            } else {
+              console.log("File is already in globalDataContext", fileChild)
             }
           }
         })
-
-
       })
     }
     // Update the `globalData` state object with the new `newGlobalData` object.
-    setGlobalData(newGlobalData);
-  }, [workspaceObject]);
+    setGlobalData(newGlobalData)
+  }, [workspaceObject])
 
   // This useEffect hook is called whenever the `globalData` state changes.
   useEffect(() => {
-    console.log("globalData changed", globalData);
-  }, [globalData]);
+    console.log("globalData changed", globalData)
+  }, [globalData])
 
   useEffect(() => {
     // Log a message to the console whenever the layoutModel state variable changes
@@ -237,13 +246,14 @@ export default function App() {
       <div style={{ height: "100%" }}>
         <DataContextProvider
           globalData={globalData}
-          setGlobalData={setGlobalData}>
+          setGlobalData={setGlobalData}
+        >
           <WorkspaceProvider
             workspace={workspaceObject}
             setWorkspace={setWorkspaceObject}
             port={port}
-          setPort={setPort}
-        >
+            setPort={setPort}
+          >
             {" "}
             {/* This is the WorkspaceProvider, which provides the workspace model to all the children components of the LayoutManager */}
             <LayoutContextProvider // This is the LayoutContextProvider, which provides the layout model to all the children components of the LayoutManager
@@ -269,7 +279,7 @@ export default function App() {
           pauseOnHover
           theme="light"
         />
-      </div >
+      </div>
     </>
   )
 }
