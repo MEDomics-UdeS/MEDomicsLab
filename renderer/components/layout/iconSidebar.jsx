@@ -93,9 +93,17 @@ const IconSidebar = ({ onSidebarItemSelect }) => {
             <Server size={"1.25rem"} width={"100%"} height={"100%"} style={{ scale: "0.65" }} />
           </Nav.Link>
 
-          <Nav.Link className="extractionNav btnSidebar" data-pr-at="right bottom" data-pr-my="left bottom" data-pr-tooltip="Extraction" eventKey="extraction" data-tooltip-id="tooltip-extraction" onClick={(event) => handleClick(event, "extraction")} disabled={disabledIcon}>
-            <Magnet size={"1.25rem"} width={"100%"} height={"100%"} style={{ scale: "0.65" }} />
-          </Nav.Link>
+          <NavDropdown className="extractionNav btnSidebar" data-tooltip-id="tooltip-extraction" data-pr-at="right bottom" data-pr-tooltip="Extraction" data-pr-my="left bottom" title={<Magnet size={"1.25rem"} width={"100%"} height={"100%"} style={{ scale: "0.65" }} />} disabled={disabledIcon}>
+            <NavDropdown.Item className="btnSidebar" eventKey="extraction_images" onClick={(event) => handleClick(event, "extraction_images")}>
+              <Image /> Images
+            </NavDropdown.Item>
+            <NavDropdown.Item className="btnSidebar" eventKey="extraction_text" onClick={(event) => handleClick(event, "extraction_text")}>
+              <TextLeft /> Text Notes
+            </NavDropdown.Item>
+            <NavDropdown.Item className="btnSidebar" eventKey="extraction_ts" onClick={(event) => handleClick(event, "extraction_ts")}>
+              <GraphUp /> Time Series
+            </NavDropdown.Item>
+          </NavDropdown>
 
           <Nav.Link className="discoveryNav btnSidebar" data-pr-at="right bottom" data-pr-my="left bottom" data-pr-tooltip="Exploratory" eventKey="discovery" data-tooltip-id="tooltip-discovery" onClick={(event) => handleClick(event, "discovery")} disabled={disabledIcon}>
             <FileEarmarkBarGraph size={"1.25rem"} width={"100%"} height={"100%"} style={{ scale: "0.65" }} />
