@@ -202,7 +202,8 @@ const FlowCanvas = ({ workflowType, setWorkflowType }) => {
           if (targetNode.type != "extractionNode") {
             let subIdText = ""
             let subflowId = targetNode.data.internal.subflowId
-            if (subflowId) {
+            if (subflowId != "MAIN") {
+              console.log("subflowId", subflowId)
               subIdText =
                 JSON.parse(
                   JSON.stringify(nodes.find((node) => node.id == subflowId))
