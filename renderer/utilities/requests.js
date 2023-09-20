@@ -1,5 +1,6 @@
 import { ipcRenderer } from "electron"
 import axios from "axios"
+import { toast } from "react-toastify"
 
 /**
  * 
@@ -7,7 +8,6 @@ import axios from "axios"
  * @param {String} topic the topic to send the request to
  * @param {Object} json2send the json to send
  * @param {Function} jsonReceivedCB extecuted when the json is received
- * @param {Function} errorCB executed when an error occurs
  * 
  * @example
  * import { requestJson } from '/utilities/requests';
@@ -16,32 +16,32 @@ import axios from "axios"
     () => {
         requestJson(5000, "test", { test: "test" }, (jsonResponse) => {
             console.log(jsonResponse);
-        }, function (err) {
-            console.error(err);
         });
     }
 }>send test</Button> 
  */
-export const requestJson = (
-  port,
-  topic,
-  json2send,
-  jsonReceivedCB,
-  errorCB
-) => {
-  ipcRenderer
-    .invoke("request", {
-      data: {
-        json2send
-      },
-      method: "POST",
-      url: "http://localhost:" + port + "/" + topic
-    })
-    .then((data) => {
-      jsonReceivedCB(data["data"])
-      return true
-    })
-    .catch((resp) => errorCB(resp))
+export const requestJson = (port, topic, json2send, jsonReceivedCB) => {
+  try {
+    ipcRenderer
+      .invoke("request", {
+        data: {
+          json2send
+        },
+        method: "POST",
+        url: "http://localhost:" + port + "/" + topic
+      })
+      .then((data) => {
+        jsonReceivedCB(data["data"])
+        return true
+      })
+      .catch((resp) => {
+        console.error("Error:", resp)
+        toast.error("An error occured while sending the request")
+      })
+  } catch (error) {
+    console.error(error)
+    toast.error("An error occured while sending the request")
+  }
 }
 
 export const axiosPostJson = async (jsonData, pathName) => {

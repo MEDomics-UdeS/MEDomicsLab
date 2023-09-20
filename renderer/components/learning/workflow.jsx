@@ -18,6 +18,7 @@ import { PageInfosContext } from "../mainPages/moduleBasics/pageInfosContext"
 import { FlowFunctionsContext } from "../flow/context/flowFunctionsContext"
 import { FlowResultsContext } from "../flow/context/flowResultsContext"
 import { WorkspaceContext } from "../workspace/workspaceContext"
+import { ErrorRequestContext } from "../flow/context/errorRequestContext"
 import { Button } from "primereact/button"
 import { Dialog } from "primereact/dialog"
 
@@ -53,7 +54,6 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
   const [MLType, setMLType] = useState("classification") // MLType is used to know which machine learning type is selected
   const { setViewport } = useReactFlow() // setViewport is used to update the viewport of the workflow
   const [treeData, setTreeData] = useState({}) // treeData is used to set the data of the tree menu
-  const [treeActiveKey, setTreeActiveKey] = useState(null) // treeActiveKey is used to know which node is selected in the tree menu
   const { getIntersectingNodes } = useReactFlow() // getIntersectingNodes is used to get the intersecting nodes of a node
   const [intersections, setIntersections] = useState([]) // intersections is used to store the intersecting nodes related to optimize nodes start and end
   const [isProgressUpdating, setIsProgressUpdating] = useState(false) // progress is used to store the progress of the workflow execution
@@ -62,8 +62,7 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
   const { setShowResultsPane, updateFlowResults } =
     useContext(FlowResultsContext)
   const { port } = useContext(WorkspaceContext)
-  const [showError, setShowError] = useState(false)
-  const [error, setError] = useState({})
+  const { setError } = useContext(ErrorRequestContext)
 
   // declare node types using useMemo hook to avoid re-creating component types unnecessarily (it memorizes the output) https://www.w3schools.com/react/react_usememo.asp
   const nodeTypes = useMemo(
@@ -75,13 +74,6 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
     }),
     []
   )
-
-  useEffect(() => {
-    console.log("error", error)
-    if (Object.keys(error).length > 0) {
-      setShowError(true)
-    }
-  }, [error])
 
   useEffect(() => {
     console.log("pageInfos", pageInfos)
@@ -530,7 +522,7 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
         onRun(null, id)
       }
     },
-    [reactFlowInstance, MLType, nodes, edges, intersections, treeData]
+    [reactFlowInstance, MLType, nodes, edges, intersections]
   )
 
   /**
@@ -564,11 +556,6 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
                 toast.error("Error detected while running the experiment")
                 setError(jsonResponse.error)
               }
-            },
-            function (err) {
-              console.error(err)
-              toast.error("Error while running the experiment")
-              setIsProgressUpdating(false)
             }
           )
         }
@@ -576,7 +563,7 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
         toast.warn("react flow instance not found")
       }
     },
-    [reactFlowInstance, MLType, nodes, edges, intersections, treeData]
+    [reactFlowInstance, MLType, nodes, edges, intersections]
   )
 
   /**
@@ -781,22 +768,6 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
   }, [])
 
   /**
-   * @param {Object} info info about the node clicked
-   *
-   * This function is called when the user clicks on a tree item
-   *
-   */
-  const onTreeItemClick = (info) => {
-    if (info.key == treeActiveKey) {
-      setTreeActiveKey("null")
-      setShowResultsPane(false)
-    } else {
-      setTreeActiveKey(info.key)
-      setShowResultsPane(true)
-    }
-  }
-
-  /**
    *
    * @param {String} value new value of the node name
    *
@@ -926,26 +897,6 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
           </>
         }
       />
-      {/* this is a dialog to show error when it occur in the running process */}
-      <Dialog
-        header="Error occured during execution"
-        visible={showError}
-        style={{ width: "70vw" }}
-        onHide={() => setShowError(false)}
-        footer={
-          <div>
-            <Button
-              label="Ok"
-              icon=""
-              onClick={() => setShowError(false)}
-              autoFocus
-            />
-          </div>
-        }
-      >
-        <h5>{error.message}</h5>
-        <pre>{error.stack_trace}</pre>
-      </Dialog>
     </>
   )
 }

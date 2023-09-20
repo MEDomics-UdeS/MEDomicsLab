@@ -3,6 +3,7 @@ import { Form, Row, Col, Button, Card } from "react-bootstrap"
 import { toast } from "react-toastify"
 import { axiosPostJson, requestJson } from "../../../../utilities/requests"
 import { WorkspaceContext } from "../../../workspace/workspaceContext"
+import { ErrorRequestContext } from "../../../flow/context/errorRequestContext"
 
 /**
  * @param {Object} nodeForm form associated to the discretization node
@@ -17,6 +18,7 @@ const InputForm = ({ nodeForm, changeNodeForm, enableView }) => {
   // Hook to keep the path of the selected file before upload
   const [selectedFile, setSelectedFile] = useState("")
   const { port } = useContext(WorkspaceContext)
+  const { setError } = useContext(ErrorRequestContext)
 
   /**
    * @param {Event} event event given change of the file in the form
@@ -70,11 +72,11 @@ const InputForm = ({ nodeForm, changeNodeForm, enableView }) => {
         //const formData = new FormData();
         let formData = { file: selectedFile, type: fileType }
 
-        requestJson(
-          port,
-          "/extraction/upload",
-          formData,
-          (response) => {
+        requestJson(port, "/extraction/upload", formData, (response) => {
+          if (response.error) {
+            setError(response.error)
+            enableView(false)
+          } else {
             // The response of the request should be the filename of the uploaded file, and
             // the rois list for the image. Since the nodeForm was already updated with the user
             // we only need to update the rois list
@@ -88,42 +90,8 @@ const InputForm = ({ nodeForm, changeNodeForm, enableView }) => {
 
             // Enable the view button
             enableView(true)
-          },
-          (error) => {
-            // If there is an error, write it in the console and notify the user
-            console.error("Error:", error)
-            toast.warn("Could not load file.")
-
-            // Disable the view button
-            enableView(false)
           }
-        )
-
-        // POST request to /extraction/upload for current node by sending form data of node
-        // axiosPostJson(formData, "extraction/upload")
-        //   .then((response) => {
-        //     // The response of the request should be the filename of the uploaded file, and
-        //     // the rois list for the image. Since the nodeForm was already updated with the user
-        //     // we only need to update the rois list
-        //     // Modify the event object
-        //     changeNodeForm({
-        //       target: { name: "rois", value: response.rois_list }
-        //     })
-        //     changeNodeForm({
-        //       target: { name: "filepath", value: response.name }
-        //     })
-
-        //     // Enable the view button
-        //     enableView(true)
-        //   })
-        //   .catch((error) => {
-        //     // If there is an error, write it in the console and notify the user
-        //     console.error("Error:", error)
-        //     toast.warn("Could not load file.")
-
-        //     // Disable the view button
-        //     enableView(false)
-        //   })
+        })
       }
     },
     [nodeForm, selectedFile, changeNodeForm]

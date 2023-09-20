@@ -2,6 +2,8 @@ import "reactflow/dist/style.css"
 import React, { useContext, useEffect, useState } from "react"
 import { PageInfosProvider, PageInfosContext } from "./pageInfosContext"
 import { loadJsonPath } from "../../../utilities/fileManagementUtils"
+import { ErrorRequestProvider } from "../../flow/context/errorRequestContext"
+import ErrorRequestDialog from "../../flow/errorRequestDialog"
 
 /**
  *
@@ -41,9 +43,12 @@ const ModulePageWithProvider = ({
   }, [pageId, config])
 
   return (
-    <div id={pageId} className="module-page">
-      {children}
-    </div>
+    <>
+      <div id={pageId} className="module-page">
+        {children}
+      </div>
+      <ErrorRequestDialog />
+    </>
   )
 }
 
@@ -55,9 +60,11 @@ const ModulePageWithProvider = ({
  */
 const ModulePage = (props) => {
   return (
-    <PageInfosProvider>
-      <ModulePageWithProvider {...props} />
-    </PageInfosProvider>
+    <ErrorRequestProvider>
+      <PageInfosProvider>
+        <ModulePageWithProvider {...props} />
+      </PageInfosProvider>
+    </ErrorRequestProvider>
   )
 }
 export default ModulePage

@@ -18,10 +18,17 @@ import pickle
 import pprint
 from copy import deepcopy
 import json
+import traceback
 import numpy as np
 from flask import Flask, jsonify, redirect, render_template, request, Blueprint, url_for, make_response, Response
 from werkzeug.utils import secure_filename
-from utils.server_utils import get_json_from_request
+from utils.server_utils import get_json_from_request, get_response_from_error
+
+MODULE_DIR = str(Path(os.path.dirname(os.path.abspath(__file__))).parent / 'submodules' / 'MEDimage')
+sys.path.append(MODULE_DIR)
+
+SUBMODULE_DIR = str(Path(os.path.dirname(os.path.abspath(__file__))).parent.parent)
+sys.path.append(SUBMODULE_DIR)
 
 pp = pprint.PrettyPrinter(indent=4, compact=True, width=40,
                           sort_dicts=False)  # allow pretty print of datatypes in console
@@ -1136,140 +1143,152 @@ def execute_pips(pips, json_scene):
     return pips_res
 
 
-@app_extraction.route('/')
-def index():
-    return render_template('layout.html')
-
-
 # Upload file in Input Object node
 @app_extraction.route('/upload', methods=['GET', 'POST'])
 def getUpload():  # Code selected from  https://flask.palletsprojects.com/en/2.2.x/patterns/fileuploads/
-    up_file_infos = {}
-    data = get_json_from_request(request)
-    print("received data from topic: /upload:")
-    print(json.dumps(data, indent=4, sort_keys=True))
-    print("request:")
-    print(request)
-    if request.method == 'POST':
-        # data = request.get_json()
-        ######################################################################################
-        # CHECK IF THE REQUEST GAVE A FILE OR A FOLDER
-        # IF THE REQUEST IS A FILE, AND THE FILE IS A NPY FILE, TRY OPENING IT AS A MEDIMAGE
-        # PICKLE OBJECT.
-        # IF THE REQUEST IS A FOLDER, TRY OPENING IT AS A DICOM IMAGE USING MEDIMAGE.
-        ######################################################################################
-        
-        # check if the post request has the file part
-        if 'file' not in data:
-            return Response("No file part", status = 400)
-        
-        file = data["file"]
-        file_type = data["type"]
-        
-        if file_type == "folder":
-            # Initialize the DataManager class
-            path_to_dicoms = file
-            dm = MEDimage.wrangling.DataManager(path_to_dicoms=path_to_dicoms, path_save=UPLOAD_FOLDER, save=True)
-            
-            # Process the DICOM scan
-            dm.process_all_dicoms()
-            
-            # Ray doesnt need to be shutdown in MEDimage but needs to be shutdown here to avoid
-            # connection error with the Flask server continues to run
-            ray.shutdown()
-            
-            # Get the path to the file created by MEDimage
-            file = dm.path_to_objects[0]            
-        
-        # Check if the file is a valid pickle object
-        if file and utils.allowed_pickle_object(file):
-            # TODO : For the moment the file is copied in the UPLOAD_FOLDER
-            # but since the app is a local app, it doesn't need to be copied.
-            #filename = secure_filename(file)
-            filename = os.path.basename(file)
-            file_path = os.path.join(UPLOAD_FOLDER, filename)
+    try:
+        up_file_infos = {}
+        data = get_json_from_request(request)
+        print("received data from topic: /upload:")
+        pprint(data)
+        print("request:")
+        print(request)
+        if request.method == 'POST':
+            # data = request.get_json()
+            ######################################################################################
+            # CHECK IF THE REQUEST GAVE A FILE OR A FOLDER
+            # IF THE REQUEST IS A FILE, AND THE FILE IS A NPY FILE, TRY OPENING IT AS A MEDIMAGE
+            # PICKLE OBJECT.
+            # IF THE REQUEST IS A FOLDER, TRY OPENING IT AS A DICOM IMAGE USING MEDIMAGE.
+            ######################################################################################
 
-            if file_type == "file":
-                shutil.copy2(file, file_path)
-                #file.save(file_path)
+            # check if the post request has the file part
+            if 'file' not in data:
+                return {"error": {"toast": "No file part"}}
 
-            # Load and store MEDimage instance from file loaded
-            with open(file_path, 'rb') as f:
-                medscan = pickle.load(f)
-            medscan = MEDimage.MEDscan(medscan)
-            MED_IMG_OBJ[filename] = medscan
+            file = data["file"]
+            file_type = data["type"]
 
-            # Return infos of instance loaded
-            ROIS_list = medscan.data.ROI.roi_names
-            up_file_infos["name"] = filename
-            up_file_infos["rois_list"] = ROIS_list
-            return jsonify(up_file_infos)
-        else: 
-            return Response("The file you tried to upload doesnt have the right format.", status = 400)
+            if file_type == "folder":
+                # Initialize the DataManager class
+                path_to_dicoms = file
+                dm = MEDimage.wrangling.DataManager(path_to_dicoms=path_to_dicoms, path_save=UPLOAD_FOLDER, save=True)
+
+                # Process the DICOM scan
+                dm.process_all_dicoms()
+
+                # Ray doesnt need to be shutdown in MEDimage but needs to be shutdown here to avoid
+                # connection error with the Flask server continues to run
+                ray.shutdown()
+
+                # Get the path to the file created by MEDimage
+                file = dm.path_to_objects[0]
+
+                # Check if the file is a valid pickle object
+            if file and utils.allowed_pickle_object(file):
+                # TODO : For the moment the file is copied in the UPLOAD_FOLDER
+                # but since the app is a local app, it doesn't need to be copied.
+                # filename = secure_filename(file)
+                filename = os.path.basename(file)
+                file_path = os.path.join(UPLOAD_FOLDER, filename)
+
+                if file_type == "file":
+                    shutil.copy2(file, file_path)
+                    # file.save(file_path)
+
+                # Load and store MEDimage instance from file loaded
+                with open(file_path, 'rb') as f:
+                    medscan = pickle.load(f)
+                medscan = MEDimage.MEDscan(medscan)
+                MED_IMG_OBJ[filename] = medscan
+
+                # Return infos of instance loaded
+                ROIS_list = medscan.data.ROI.roi_names
+                up_file_infos["name"] = filename
+                up_file_infos["rois_list"] = ROIS_list
+                return jsonify(up_file_infos)
+            else:
+                return {"error": {"toast": "The file you tried to upload doesnt have the right format."}}
+        else:
+            return {"error": {"toast": "The request method is not POST."}}
+    except BaseException as e:
+        return get_response_from_error(e)
+
 
 
 # Run all button to run all drawflow pipelines
 @app_extraction.route("/run-all", methods=["GET","POST"])
 def runAll():
-    if not bool(MED_IMG_OBJ):
-        print("\n No instance of MEDimage object are loaded. Impossible to run any pipeline.")
-        return {}  # Returns empty dict for the moment. TODO: error message in javascript!
+    try:
+        if not bool(MED_IMG_OBJ):
+            print("\n No instance of MEDimage object are loaded. Impossible to run any pipeline.")
+            # Returns empty dict for the moment. TODO: error message in javascript!
+            return {"error": {"toast": "No instance of MEDimage object are loaded. Impossible to run any pipeline."}}
 
-    print("\nThe current loaded instances of MEDimage objects are :", MED_IMG_OBJ)
 
-    json_scene = request.get_json()
-    drawflow_scene = json_scene['drawflow']
+        print("\nThe current loaded instances of MEDimage objects are :", MED_IMG_OBJ)
 
-    pips = []  # Initialize pipeline list
+        json_scene = get_json_from_request(request)
+        drawflow_scene = json_scene['drawflow']
 
-    for module in drawflow_scene:  # We scan all module in scene
-        for node_id in drawflow_scene[module]['data']:  # We scan all node of each module in scene
-            node_content = drawflow_scene[module]['data'][node_id]  # Getting node content
-            if node_content["name"] == "input":  # If the node name is input, it is the start of a pipeline
-                pip = []
-                pip = generateAllPipelines(str(node_content["id"]), node_content, [], json_scene,
-                                           pips)  # This function modifies pips value
+        pips = []  # Initialize pipeline list
 
-    print("\n The pipelines found in the current drawflow scene are : ", pips)
-    json_res = execute_pips(pips, json_scene)
+        for module in drawflow_scene:  # We scan all module in scene
+            for node_id in drawflow_scene[module]['data']:  # We scan all node of each module in scene
+                node_content = drawflow_scene[module]['data'][node_id]  # Getting node content
+                if node_content["name"] == "input":  # If the node name is input, it is the start of a pipeline
+                    pip = []
+                    pip = generateAllPipelines(str(node_content["id"]), node_content, [], json_scene,
+                                               pips)  # This function modifies pips value
 
-    ### TODO: FIX PIPELINES NAMES ###
-    # Checking if the pipelines are all IBSI compliant
-    executable_pipelines = {}
-    # pipeline_generator = utils.gen_dict_extract('pipeline', ACCESSIBLE_PIPELINES)
-    # for pip in pips:
-    #    if pip not in pipeline_generator:
-    #        print("Will not account for pipeline ", pip, " since it is not IBSI compliant.") #TODO : message d'erreur a l'utilisateur
-    #    else:
-    #        del json_res['pip']
+        print("\n The pipelines found in the current drawflow scene are : ", pips)
+        json_res = execute_pips(pips, json_scene)
 
-    return json_res  # return pipeline results in the form of a dict
+        ### TODO: FIX PIPELINES NAMES ###
+        # Checking if the pipelines are all IBSI compliant
+        executable_pipelines = {}
+        # pipeline_generator = utils.gen_dict_extract('pipeline', ACCESSIBLE_PIPELINES)
+        # for pip in pips:
+        #    if pip not in pipeline_generator:
+        #        print("Will not account for pipeline ", pip, " since it is not IBSI compliant.") #TODO : message d'erreur a l'utilisateur
+        #    else:
+        #        del json_res['pip']
+
+        return json_res  # return pipeline results in the form of a dict
+    except BaseException as e:
+        return get_response_from_error(e)
 
 
 # TODO : Verifier si le node peut bien etre execute
 @app_extraction.route('/run', methods=['GET', 'POST'])
 def run():
-    data = request.get_json()
-    json_scene = data["json_scene"]
+    try:
+        data = get_json_from_request(request)
+        json_scene = data["json_scene"]
 
-    start_id = data["id"]  # id of node where run button was clicked
-    print("The id of the node to run is : ", start_id)
+        start_id = data["id"]  # id of node where run button was clicked
+        print("The id of the node to run is : ", start_id)
 
-    pips = []
-    pip = []
-    pip = generatePipelinesFromNode(str(start_id), utils.get_node_content(start_id, json_scene), pip, json_scene, pips)
+        pips = []
+        pip = []
+        pip = generatePipelinesFromNode(str(start_id), utils.get_node_content(start_id, json_scene), pip, json_scene, pips)
 
-    print("The pipelines found ending with node ", start_id, " are ", pips)
-    json_res = execute_pips(pips, json_scene)
+        print("The pipelines found ending with node ", start_id, " are ", pips)
+        json_res = execute_pips(pips, json_scene)
 
-    return json_res
+        return json_res
+    except BaseException as e:
+        return get_response_from_error(e)
 
 
 # TODO : Verifier si fonctionne aussi pour d'autre types que des images IRM. (TEP devrait etre couleur, IRM et CT noir et blanc).
 @app_extraction.route('/view', methods=['GET', 'POST'])
 def get3DView():
-    data = request.get_json()
-    print("User asked for view of : ", data)
+    try:
+        data = get_json_from_request(request)
+        print("User asked for view of : ", data)
 
-    utils.image_viewer(MED_IMG_OBJ, data, RUNS)
-    return Response("OK", status = 200)
+        utils.image_viewer(MED_IMG_OBJ, data, RUNS)
+        return Response("OK", status = 200)
+    except BaseException as e:
+        return get_response_from_error(e)

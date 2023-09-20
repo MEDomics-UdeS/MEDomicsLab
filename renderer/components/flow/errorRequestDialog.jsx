@@ -24,8 +24,8 @@ const ErrorRequestDialog = () => {
           </div>
         }
       >
-        <h5>{error.message}</h5>
-        <pre>{error.stack_trace}</pre>
+        <h5>{error.message && error.message}</h5>
+        <pre>{error.stack_trace && error.stack_trace}</pre>
       </Dialog>
     </>
   )

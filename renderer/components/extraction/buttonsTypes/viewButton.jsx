@@ -3,6 +3,7 @@ import Button from "react-bootstrap/Button"
 import { toast } from "react-toastify"
 import { axiosPostJson, requestJson } from "../../../utilities/requests"
 import { WorkspaceContext } from "../../workspace/workspaceContext"
+import { ErrorRequestContext } from "../../flow/context/errorRequestContext"
 
 /**
  * @param {string} id id of the node
@@ -16,6 +17,7 @@ import { WorkspaceContext } from "../../workspace/workspaceContext"
  */
 const ViewButton = ({ id, data, type }) => {
   const { port } = useContext(WorkspaceContext)
+  const { setError } = useContext(ErrorRequestContext)
 
   /**
    * @description
@@ -39,28 +41,13 @@ const ViewButton = ({ id, data, type }) => {
       })
     }
 
-    requestJson(
-      port,
-      "/extraction/view",
-      formData,
-      (response) => {
+    requestJson(port, "/extraction/view", formData, (response) => {
+      if (response.error) {
+        setError(response.error)
+      } else {
         console.log(response)
-      },
-      (error) => {
-        console.error("Error:", error)
-        toast.warn("Could not view image.")
       }
-    )
-
-    // POST request to /extraction/view for current node by sending form_data
-    // axiosPostJson(formData, "extraction/view")
-    //   .then((response) => {
-    //     console.log(response)
-    //   })
-    //   .catch((error) => {
-    //     console.error("Error:", error)
-    //     toast.warn("Could not view image.")
-    //   })
+    })
   }
 
   return (

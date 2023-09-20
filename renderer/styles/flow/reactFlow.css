@@ -383,7 +383,7 @@ input.node-editableLabel {
 .node-wrapper-selector {
   width: 2rem;
   height: 2.1rem;
-  border-radius: 30% 30% 0% 0%;
+  border-radius: 27% 27% 0% 0%;
   position: absolute;
   top: -2rem;
   left: 0.1rem;
@@ -396,8 +396,12 @@ input.node-editableLabel {
 }
 
 .node-wrapper-selector.context-checked {
-  background-color: rgba(48, 255, 83, 0.808);
+  background-color: rgba(48, 255, 82, 0.527);
   outline: 0.1rem solid rgba(48, 255, 83, 0.808);
+}
+
+.node-wrapper-selector.context-checked .p-checkbox-box {
+  border-color: rgba(48, 255, 83, 0.808);
 }
 
 .hasRun {
