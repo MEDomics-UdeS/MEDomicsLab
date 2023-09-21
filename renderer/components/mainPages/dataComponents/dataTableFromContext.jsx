@@ -80,9 +80,9 @@ const DataTableFromContext = (MedDataObject, tablePropsData) => {
     <>
       {/* {console.log("dataset", dataset)} */}
       {dataset && (
-        <div className="card">
-          <DataTableWrapper data={dataset} tablePropsData={tablePropsData} />
-        </div>
+        // <div className="card">
+        <DataTableWrapper data={dataset} tablePropsData={tablePropsData} />
+        // </div>
       )}
     </>
   )

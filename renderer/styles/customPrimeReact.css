@@ -37,6 +37,22 @@
   align-self: center;
 }
 
-.p-component {
-  margin-top: 1rem;
+.tab-content {
+  display: block !important;
+  height: 60%;
+  flex-grow: 10 !important;
+  flex-direction: column !important;
+}
+
+.p-scrollpanel {
+  display: flex;
+  flex-grow: 1;
+  flex-direction: column;
+}
+
+.p-datatable {
+  display: flex !important;
+  flex-direction: column !important;
+  flex-grow: 1 !important;
+  height: 100%;
 }

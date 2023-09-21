@@ -66,21 +66,21 @@ const IconSidebar = ({ onSidebarItemSelect }) => {
             <HouseFill size={"1.25rem"} width={"100%"} height={"100%"} style={{ scale: "0.65" }} />
           </Nav.Link>
 
-          <Nav.Link className="explorerNav btnSidebar" data-pr-at="right center" data-pr-tooltip="Explorer" data-pr-my="left bottom" eventKey="explorer" data-tooltip-id="tooltip-explorer" onClick={(event) => handleClick(event, "explorer")}>
+          <Nav.Link className="explorerNav btnSidebar" data-pr-at="right center" data-pr-tooltip="Explorer" data-pr-my="left center" eventKey="explorer" data-tooltip-id="tooltip-explorer" onClick={(event) => handleClick(event, "explorer")}>
             <Files size={"1.25rem"} width={"100%"} height={"100%"} style={{ scale: "0.65" }} />
           </Nav.Link>
 
-          <Nav.Link className="searchNav btnSidebar" data-pr-at="right center" data-pr-tooltip="Search" data-pr-my="left bottom" eventKey="search" data-tooltip-id="tooltip-search" onClick={(event) => handleClick(event, "search")} disabled={disabledIcon}>
+          <Nav.Link className="searchNav btnSidebar" data-pr-at="right center" data-pr-tooltip="Search" data-pr-my="left center" eventKey="search" data-tooltip-id="tooltip-search" onClick={(event) => handleClick(event, "search")} disabled={disabledIcon}>
             <Search size={"1.25rem"} width={"100%"} height={"100%"} style={{ scale: "0.65" }} />
           </Nav.Link>
 
           <NavDropdown.Divider style={{ height: "1rem" }} />
 
-          <Nav.Link className="inputNav btnSidebar" data-pr-at="right center" data-pr-my="left bottom" data-pr-tooltip="Input" eventKey="input" data-tooltip-id="tooltip-input" onClick={(event) => handleClick(event, "input")} disabled={disabledIcon}>
+          <Nav.Link className="inputNav btnSidebar" data-pr-at="right center" data-pr-my="left center" data-pr-tooltip="Input" eventKey="input" data-tooltip-id="tooltip-input" onClick={(event) => handleClick(event, "input")} disabled={disabledIcon}>
             <Server size={"1.25rem"} width={"100%"} height={"100%"} style={{ scale: "0.65" }} />
           </Nav.Link>
 
-          <NavDropdown className="extractionNav btnSidebar" data-tooltip-id="tooltip-extraction" data-pr-at="right center" data-pr-tooltip="Extraction" data-pr-my="left bottom" title={<Magnet size={"1.25rem"} width={"100%"} height={"100%"} style={{ scale: "0.65" }} />} disabled={disabledIcon}>
+          <NavDropdown className="extractionNav btnSidebar" data-tooltip-id="tooltip-extraction" data-pr-at="right center" data-pr-tooltip="Extraction" data-pr-my="left center" title={<Magnet size={"1.25rem"} width={"100%"} height={"100%"} style={{ scale: "0.65" }} />} disabled={disabledIcon}>
             <NavDropdown.Item className="btnSidebar" eventKey="extraction_images" onClick={(event) => handleClick(event, "extraction_images")}>
               <Image /> Images
             </NavDropdown.Item>
@@ -92,33 +92,33 @@ const IconSidebar = ({ onSidebarItemSelect }) => {
             </NavDropdown.Item>
           </NavDropdown>
 
-          <Nav.Link className="discoveryNav btnSidebar" data-pr-at="right center" data-pr-my="left bottom" data-pr-tooltip="Exploratory" eventKey="discovery" data-tooltip-id="tooltip-discovery" onClick={(event) => handleClick(event, "discovery")} disabled={disabledIcon}>
+          <Nav.Link className="discoveryNav btnSidebar" data-pr-at="right center" data-pr-my="left center" data-pr-tooltip="Exploratory" eventKey="discovery" data-tooltip-id="tooltip-discovery" onClick={(event) => handleClick(event, "discovery")} disabled={disabledIcon}>
             <FileEarmarkBarGraph size={"1.25rem"} width={"100%"} height={"100%"} style={{ scale: "0.65" }} />
           </Nav.Link>
 
-          <Nav.Link className="learningNav btnSidebar" data-pr-at="right center" data-pr-my="left bottom" data-pr-tooltip="Learning" eventKey="Learning" data-tooltip-id="tooltip-learning" onClick={(event) => handleClick(event, "learning")} disabled={disabledIcon}>
+          <Nav.Link className="learningNav btnSidebar" data-pr-at="right center" data-pr-my="left center" data-pr-tooltip="Learning" eventKey="Learning" data-tooltip-id="tooltip-learning" onClick={(event) => handleClick(event, "learning")} disabled={disabledIcon}>
             <Stack size={"1.25rem"} width={"100%"} height={"100%"} style={{ scale: "0.65" }} />
           </Nav.Link>
 
-          <Nav.Link className="resultsNav btnSidebar" data-pr-at="right center" data-pr-my="left bottom" data-pr-tooltip="Results" eventKey="Results" onClick={(event) => handleClick(event, "results")} disabled={disabledIcon}>
+          <Nav.Link className="resultsNav btnSidebar" data-pr-at="right center" data-pr-my="left center" data-pr-tooltip="Results" eventKey="Results" onClick={(event) => handleClick(event, "results")} disabled={disabledIcon}>
             <PatchCheck size={"1.25rem"} width={"100%"} height={"100%"} style={{ scale: "0.65" }} />
           </Nav.Link>
 
-          <Nav.Link className="applicationNav btnSidebar" data-pr-at="right center" data-pr-my="left bottom" data-pr-tooltip="Application" eventKey="Application" data-tooltip-id="tooltip-application" onClick={(event) => handleClick(event, "application")} disabled={disabledIcon}>
+          <Nav.Link className="applicationNav btnSidebar" data-pr-at="right center" data-pr-my="left center" data-pr-tooltip="Application" eventKey="Application" data-tooltip-id="tooltip-application" onClick={(event) => handleClick(event, "application")} disabled={disabledIcon}>
             <RocketTakeoff size={"1.25rem"} width={"100%"} height={"100%"} style={{ scale: "0.65" }} />
           </Nav.Link>
 
           {/* div that puts the buttons to the bottom of the sidebar*/}
           <div className="d-flex" style={{ flexGrow: "1" }}></div>
 
-          <Nav.Link className="layoutTestNav btnSidebar" data-pr-at="right center" data-pr-my="left bottom" data-pr-tooltip="Layout Test" eventKey="LayoutTest" data-tooltip-id="tooltip-layoutTest" onClick={(event) => handleClick(event, "layoutTest")}>
+          <Nav.Link className="layoutTestNav btnSidebar" data-pr-at="right center" data-pr-my="left center" data-pr-tooltip="Layout Test" eventKey="LayoutTest" data-tooltip-id="tooltip-layoutTest" onClick={(event) => handleClick(event, "layoutTest")}>
             <BandaidFill size={"1.25rem"} width={"100%"} height={"100%"} style={{ scale: "0.65" }} />
           </Nav.Link>
 
           <div className="d-flex" style={{ flexGrow: "1" }}></div>
 
-          <NavDropdown className="settingsNav btnSidebar" data-pr-at="right center" data-pr-my="left bottom" data-pr-tooltip="Settings" data-tooltip-id="tooltip-settings" onClick={handleNavClick} title={<Gear size={"1.25rem"} width={"100%"} height={"100%"} style={{ scale: "0.75" }} />}>
-            <NavDropdown.Item className="developerModeNav" data-pr-at="right center" data-pr-my="left bottom" data-pr-tooltip="Developer Mode" href="#/action-1">
+          <NavDropdown className="settingsNav btnSidebar" data-pr-at="right center" data-pr-my="left center" data-pr-tooltip="Settings" data-tooltip-id="tooltip-settings" onClick={handleNavClick} title={<Gear size={"1.25rem"} width={"100%"} height={"100%"} style={{ scale: "0.75" }} />}>
+            <NavDropdown.Item className="developerModeNav" data-pr-at="right center" data-pr-my="left center" data-pr-tooltip="Developer Mode" href="#/action-1">
               Toggle developer mode
             </NavDropdown.Item>
             <NavDropdown.Item href="#/action-2">Help</NavDropdown.Item>
