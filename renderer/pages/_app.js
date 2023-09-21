@@ -17,23 +17,23 @@ import "react-simple-tree-menu/dist/main.css"
 // --primereact
 import "primereact/resources/primereact.min.css"
 import "primereact/resources/themes/lara-light-indigo/theme.css"
+import "primeicons/primeicons.css"
 
 // --my styles (priority over bootstrap and other dist styles)
 import "../styles/flow/reactFlow.css"
 import "../styles/globals.css"
 import "../styles/learning/learning.css"
-import "../styles/learning/learningTree.css"
 import "../styles/extraction/extraction.css"
 import "flexlayout-react/style/light.css"
 import "../styles/workspaceSidebar.css"
 import "../styles/iconSidebar.css"
 import "react-contexify/dist/ReactContexify.css"
 import "../styles/learning/sidebar.css"
+import "../styles/flow/results.css"
 import "react-complex-tree/lib/style-modern.css"
 import "../styles/sidebarTree.css"
 import "../styles/customPrimeReact.css"
 
-// import "react-complex-tree/lib/style.css"
 import DataContextProvider from "../components/workspace/dataContext"
 import MedDataObject from "../components/workspace/medDataObject"
 
@@ -74,8 +74,11 @@ export default function App() {
           children: [
             {
               type: "tab",
-              name: "Learning",
-              component: "grid"
+              name: "data table",
+              component: "dataTable",
+              config: {
+                path: "./learning-tests-scene/data/eicu_processed.csv"
+              }
             }
           ]
         },
@@ -143,7 +146,6 @@ export default function App() {
    * The HasBeenSet property is used to prevent the workspaceObject from being updated before the working directory has been set
    * The HasBeenSet property is set to true when the workingDirectorySet message is received
    */
-
   useEffect(() => {
     // This useEffect hook is called only once and it sets the ipcRenderer to listen for the "workingDirectorySet" message from the main process
     // The working directory tree is stored in the workspaceObject state variable
@@ -157,7 +159,6 @@ export default function App() {
     ipcRenderer.on("updateDirectory", (event, data) => {
       let workspace = { ...data }
       setWorkspaceObject(workspace)
-      console.log("WorkingDirectory updated:", workspace)
 
       // }
     })
@@ -168,10 +169,29 @@ export default function App() {
     })
   }, []) // Here, we specify that the hook should only be called at the launch of the app
 
-  function recursivelyRecenseTheDirectory(children, parentID, newGlobalData, acceptedFileTypes = undefined) {
+  /**
+   * @param {Object} children - The children of the current directory
+   * @param {String} parentID - The UUID of the parent directory
+   * @param {Object} newGlobalData - The global data object
+   * @param {Array} acceptedFileTypes - The accepted file types for the current directory
+   * @returns {Object} - The children IDs of the current directory
+   * @description This function is used to recursively recense the directory tree and add the files and folders to the global data object
+   * It is called when the working directory is set
+   */
+  function recursivelyRecenseTheDirectory(
+    children,
+    parentID,
+    newGlobalData,
+    acceptedFileTypes = undefined
+  ) {
     let childrenIDsToReturn = []
+
     children.forEach((child) => {
-      let uuid = MedDataObject.checkIfMedDataObjectInContextbyName(child.name, newGlobalData, parentID)
+      let uuid = MedDataObject.checkIfMedDataObjectInContextbyName(
+        child.name,
+        newGlobalData,
+        parentID
+      )
       let objectType = "folder"
       let objectUUID = uuid
       let childrenIDs = []
@@ -184,7 +204,10 @@ export default function App() {
         })
 
         objectUUID = dataObject.getUUID()
-        let acceptedFiles = MedDataObject.setAcceptedFileTypes(dataObject, acceptedFileTypes)
+        let acceptedFiles = MedDataObject.setAcceptedFileTypes(
+          dataObject,
+          acceptedFileTypes
+        )
         dataObject.setAcceptedFileTypes(acceptedFiles)
         if (child.children === undefined) {
           console.log("File:", child)
@@ -194,7 +217,12 @@ export default function App() {
           console.log("Empty folder:", child)
         } else {
           console.log("Folder:", child)
-          let answer = recursivelyRecenseTheDirectory(child.children, objectUUID, newGlobalData, acceptedFiles)
+          let answer = recursivelyRecenseTheDirectory(
+            child.children,
+            objectUUID,
+            newGlobalData,
+            acceptedFiles
+          )
           childrenIDs = answer.childrenIDsToReturn
         }
         dataObject.setType(objectType)
@@ -202,11 +230,15 @@ export default function App() {
         newGlobalData[objectUUID] = dataObject
         childrenIDsToReturn.push(objectUUID)
       } else {
-        console.log("Object is already in globalDataContext", child)
         let dataObject = newGlobalData[uuid]
         let acceptedFiles = dataObject.acceptedFileTypes
         if (child.children !== undefined) {
-          let answer = recursivelyRecenseTheDirectory(child.children, uuid, newGlobalData, acceptedFiles)
+          let answer = recursivelyRecenseTheDirectory(
+            child.children,
+            uuid,
+            newGlobalData,
+            acceptedFiles
+          )
           childrenIDs = answer.childrenIDsToReturn
           newGlobalData[objectUUID]["childrenIDs"] = childrenIDs
           newGlobalData[objectUUID]["parentID"] = parentID
@@ -230,7 +262,11 @@ export default function App() {
       let rootName = workspaceObject.workingDirectory.name
       let rootPath = workspaceObject.workingDirectory.path
       let rootType = "folder"
-      let rootChildrenIDs = recursivelyRecenseTheDirectory(rootChildren, rootParentID, newGlobalData).childrenIDsToReturn
+      let rootChildrenIDs = recursivelyRecenseTheDirectory(
+        rootChildren,
+        rootParentID,
+        newGlobalData
+      ).childrenIDsToReturn
 
       let rootDataObject = new MedDataObject({
         originalName: rootName,
@@ -248,30 +284,38 @@ export default function App() {
 
   // This useEffect hook is called whenever the `workspaceObject` state changes.
   useEffect(() => {
-    console.log("workspaceObject changed", workspaceObject)
+    // console.log("workspaceObject changed", workspaceObject)
   }, [workspaceObject])
 
   // This useEffect hook is called whenever the `globalData` state changes.
   useEffect(() => {
-    console.log("globalData changed", globalData)
+    // console.log("globalData changed", globalData)
   }, [globalData])
 
   useEffect(() => {
     // Log a message to the console whenever the layoutModel state variable changes
-    console.log("layoutModel changed", layoutModel)
+    // console.log("layoutModel changed", layoutModel)
   }, [layoutModel]) // Here, we specify that the hook should only be called when the layoutModel state variable changes
 
   return (
     <>
       <Head>
-        <title>MedomicsLab App</title>
         <meta name="viewport" content="initial-scale=1.0, width=device-width" />
+        <title>MedomicsLab App</title>
         {/* <script src="http://localhost:8097"></script> */}
         {/* Uncomment if you want to use React Dev tools */}
       </Head>
-      <div style={{ height: "100%" }}>
-        <DataContextProvider globalData={globalData} setGlobalData={setGlobalData}>
-          <WorkspaceProvider workspace={workspaceObject} setWorkspace={setWorkspaceObject} port={port} setPort={setPort}>
+      <div style={{ height: "100%", width: "100%" }}>
+        <DataContextProvider
+          globalData={globalData}
+          setGlobalData={setGlobalData}
+        >
+          <WorkspaceProvider
+            workspace={workspaceObject}
+            setWorkspace={setWorkspaceObject}
+            port={port}
+            setPort={setPort}
+          >
             {" "}
             {/* This is the WorkspaceProvider, which provides the workspace model to all the children components of the LayoutManager */}
             <LayoutContextProvider // This is the LayoutContextProvider, which provides the layout model to all the children components of the LayoutManager

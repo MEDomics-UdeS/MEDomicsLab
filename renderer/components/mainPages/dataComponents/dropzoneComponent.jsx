@@ -29,10 +29,7 @@ export default function DropzoneComponent({ children, item = undefined, ...props
   }
 
   const onDrop = useCallback((acceptedFiles, fileRejections, event) => {
-    // console.log("acceptedFiles", acceptedFiles)
-    // console.log("fileRejections", fileRejections)
     console.log("event", event)
-    // event.preventDefault()
     event.stopPropagation()
     const reader = new FileReader()
 
@@ -71,7 +68,6 @@ export default function DropzoneComponent({ children, item = undefined, ...props
   if (item !== undefined) {
     if (item.acceptedFiles !== undefined) {
       acceptedFiles = item.acceptedFiles
-      //   console.log("acceptedFiles in DZ", acceptedFiles)
     }
   }
 

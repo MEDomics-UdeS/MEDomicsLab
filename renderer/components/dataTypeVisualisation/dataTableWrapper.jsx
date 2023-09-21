@@ -13,7 +13,7 @@ import { Column } from "primereact/column"
  * @returns {JSX.Element} A JSX element containing the data table
  * @description This component is a wrapper for the primereact datatable. It is used to display data in a table.
  */
-const DataTableWrapper = ({ data, tablePropsData, tablePropsColumn }) => {
+const DataTableWrapper = ({ data, tablePropsData, tablePropsColumn, customGetColumnsFromData }) => {
   const [header, setHeader] = useState([])
   const [rows, setRows] = useState([])
 
@@ -21,7 +21,7 @@ const DataTableWrapper = ({ data, tablePropsData, tablePropsColumn }) => {
     console.log("dataTable data refreshed: ", data)
     if (data != undefined) {
       setRows(data)
-      setHeader(getColumnsFromData(data))
+      customGetColumnsFromData ? setHeader(customGetColumnsFromData(data)) : setHeader(getColumnsFromData(data))
     }
   }, [data])
 
@@ -30,14 +30,10 @@ const DataTableWrapper = ({ data, tablePropsData, tablePropsColumn }) => {
    * @returns {JSX.Element} A JSX element containing the columns of the data table according to primereact specifications
    */
   const getColumnsFromData = (data) => {
-    let columns = <></>
     if (data.length > 0) {
-      let keys = Object.keys(data[0])
-      columns = keys.map((key) => {
-        return <Column key={key} field={key} header={key} {...tablePropsColumn} />
-      })
+      return Object.keys(data[0]).map((key) => <Column key={key} field={key} header={key} {...tablePropsColumn} />)
     }
-    return columns
+    return <></>
   }
 
   return (

@@ -5,6 +5,7 @@ import { Button } from "react-bootstrap"
 import ModalSettingsChooser from "../modalSettingsChooser"
 import * as Icon from "react-bootstrap-icons"
 import { FlowFunctionsContext } from "../../flow/context/flowFunctionsContext"
+import { Stack } from "react-bootstrap"
 
 /**
  *
@@ -43,20 +44,25 @@ const StandardNode = ({ id, data, type }) => {
         // default settings are the default settings of the node, so mandatory settings
         defaultSettings={
           <>
-            {"default" in data.setupParam.possibleSettings &&
-              Object.entries(data.setupParam.possibleSettings.default).map(
-                ([settingName, setting]) => {
-                  return (
-                    <Input
-                      key={settingName}
-                      name={settingName}
-                      settingInfos={setting}
-                      currentValue={data.internal.settings[settingName]}
-                      onInputChange={onInputChange}
-                    />
-                  )
-                }
-              )}
+            {"default" in data.setupParam.possibleSettings && (
+              <>
+                <Stack direction="vertical" gap={1}>
+                  {Object.entries(data.setupParam.possibleSettings.default).map(
+                    ([settingName, setting]) => {
+                      return (
+                        <Input
+                          key={settingName}
+                          name={settingName}
+                          settingInfos={setting}
+                          currentValue={data.internal.settings[settingName]}
+                          onInputChange={onInputChange}
+                        />
+                      )
+                    }
+                  )}
+                </Stack>
+              </>
+            )}
           </>
         }
         // node specific is the body of the node, so optional settings
@@ -65,7 +71,7 @@ const StandardNode = ({ id, data, type }) => {
             {/* the button to open the modal (the plus sign)*/}
             <Button
               variant="light"
-              className="width-100 btn-contour margin-bottom-25"
+              className="width-100 btn-contour"
               onClick={() => setModalShow(true)}
             >
               <Icon.Plus width="30px" height="30px" className="img-fluid" />

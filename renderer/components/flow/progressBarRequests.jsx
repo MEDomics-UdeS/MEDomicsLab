@@ -32,8 +32,7 @@ const ProgressBarRequests = ({ isUpdating, setIsUpdating }) => {
               currentName: "Done!"
             })
           }
-        },
-        () => console.log("Error")
+        }
       )
     },
     isUpdating ? 200 : null

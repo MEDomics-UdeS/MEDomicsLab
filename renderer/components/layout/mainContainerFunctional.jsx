@@ -1,24 +1,13 @@
-import React, { useRef, useState, useEffect, useContext } from "react";
-import test from "../../styles/test.module.css";
+import React, { useRef, useState, useEffect, useContext } from "react"
+import test from "../../styles/test.module.css"
+import DataTable from "../../components/dataTypeVisualisation/dataTableWrapper"
+import * as Prism from "prismjs"
+import { LayoutModelContext } from "./layoutContext"
+import { Actions, CLASSES, Layout, Model, TabNode } from "flexlayout-react"
 
-import * as Prism from "prismjs";
-import { LayoutModelContext } from "./layoutContext";
-import {
-  Actions,
-  CLASSES,
-  Layout,
-  Model,
-  TabNode
-} from "flexlayout-react";
+import { loadCSVPath } from "../../utilities/fileManagementUtils"
 
-import DataTable from "../dataTypeVisualisation/dataTableWrapper";
-
-import { loadCSVPath } from "../../utilities/fileManagementUtils";
-
-var fields = ["Name", "Field1", "Field2", "Field3", "Field4", "Field5"];
-
-
-
+var fields = ["Name", "Field1", "Field2", "Field3", "Field4", "Field5"]
 
 /**
  *
@@ -29,19 +18,17 @@ var fields = ["Name", "Field1", "Field2", "Field3", "Field4", "Field5"];
  */
 export default function MainFlexLayout() {
   // let inner_model = layoutmodel;
-  const layoutRef = useRef(null); // Reference to the layout component
-  const [mainState, setMainState] = useState({}); // State to keep track of the main state of the application/this component
-  const [nextGridIndex, setNextGridIndex] = useState(0); // State to keep track of the next grid index
+  const layoutRef = useRef(null) // Reference to the layout component
+  const [mainState, setMainState] = useState({}) // State to keep track of the main state of the application/this component
+  const [nextGridIndex, setNextGridIndex] = useState(0) // State to keep track of the next grid index
   // let contents; // Variable to hold the contents of the main container - Not used for now
 
-  const { layoutModel, flexlayoutInterpreter } = useContext(LayoutModelContext); // Get the layout model and the flexlayout interpreter from the context
+  const { layoutModel, flexlayoutInterpreter } = useContext(LayoutModelContext) // Get the layout model and the flexlayout interpreter from the context
 
-
-  const [myInnerModel, setMyInnerModel] = useState(layoutModel); // State to keep track of the inner model - Used to update the layout model - for debugging purposes mainly
+  const [myInnerModel, setMyInnerModel] = useState(layoutModel) // State to keep track of the inner model - Used to update the layout model - for debugging purposes mainly
   // setMyInnerModel(inner_model);
 
-
-  const [model, setModel] = useState(Model.fromJson(layoutModel)); // State to keep track of the model - Used to update the layout model also
+  const [model, setModel] = useState(Model.fromJson(layoutModel)) // State to keep track of the model - Used to update the layout model also
 
   useEffect(() => {
     // Use effect to update the model when the layout model changes
@@ -218,7 +205,7 @@ export default function MainFlexLayout() {
     return undefined
   }
 
-  function onTableClick() { }
+  function onTableClick() {}
 
   function onAction(action) {
     console.log("action: ", action)
@@ -231,9 +218,9 @@ export default function MainFlexLayout() {
       return {
         titleContent: <div>(Added by titleFactory) {node.getName()}</div>,
         name: "the name for custom tab"
-      };
+      }
     }
-    return;
+    return
   }
 
   function iconFactory(node) {
@@ -310,55 +297,79 @@ export default function MainFlexLayout() {
             <span dangerouslySetInnerHTML={{ __html: mainState.json }} />
           ) : null}
         </pre>
-      );
-    }
-    else if (component === "grid") {
+      )
+    } else if (component === "grid") {
       if (node.getExtraData().data == null) {
         // create data in node extra data first time accessed
-        node.getExtraData().data = makeFakeData();
+        node.getExtraData().data = makeFakeData()
       }
-      return <SimpleTable fields={fields} onClick={onTableClick.bind(node)} data={node.getExtraData().data} />;
-    }
-
-    else if (component === "text") {
+      return (
+        <SimpleTable
+          fields={fields}
+          onClick={onTableClick.bind(node)}
+          data={node.getExtraData().data}
+        />
+      )
+    } else if (component === "text") {
       try {
-        return <div dangerouslySetInnerHTML={{ __html: node.getConfig().text }} />;
+        return (
+          <div dangerouslySetInnerHTML={{ __html: node.getConfig().text }} />
+        )
       } catch (e) {
-        console.log(e);
+        console.log(e)
       }
-    }
-    else if (component === "newfeatures") {
-      return <></>;
-    }
-    else if (component === "multitype") {
+    } else if (component === "newfeatures") {
+      return <></>
+    } else if (component === "multitype") {
       try {
-        const config = node.getConfig();
+        const config = node.getConfig()
         if (config.type === "url") {
-          return <iframe title={node.getId()} src={config.data} style={{ display: "block", border: "none", boxSizing: "border-box" }} width="100%" height="100%" />;
+          return (
+            <iframe
+              title={node.getId()}
+              src={config.data}
+              style={{
+                display: "block",
+                border: "none",
+                boxSizing: "border-box"
+              }}
+              width="100%"
+              height="100%"
+            />
+          )
         } else if (config.type === "html") {
-          return (<div dangerouslySetInnerHTML={{ __html: config.data }} />);
+          return <div dangerouslySetInnerHTML={{ __html: config.data }} />
         } else if (config.type === "text") {
           return (
-            <textarea style={{ position: "absolute", width: "100%", height: "100%", resize: "none", boxSizing: "border-box", border: "none" }}
+            <textarea
+              style={{
+                position: "absolute",
+                width: "100%",
+                height: "100%",
+                resize: "none",
+                boxSizing: "border-box",
+                border: "none"
+              }}
               defaultValue={config.data}
-            />);
+            />
+          )
         }
       } catch (e) {
-        return (<div>{String(e)}</div>);
+        return <div>{String(e)}</div>
       }
-    }
-    else if (component === "tabstorage") {
-      return <></>;
-    }
-    else if (component === "dataTable") {
+    } else if (component === "tabstorage") {
+      return <></>
+    } else if (component === "dataTable") {
       if (node.getExtraData().data == null) {
-
         const config = node.getConfig()
         console.log("dataTable config", config)
         const whenDataLoaded = (data) => {
           node.getExtraData().data = data
           console.log("node", node)
-          console.log("retrieve node in layoutModel", model.getNodeById(node.getId()))
+          console.log(
+            "retrieve node in layoutModel",
+            model.getNodeById(node.getId())
+          )
           model.getNodeById(node.getId())._attributes.config["data"] = data
           // let layout = layoutModel.layout
           // layout.tabs[node.getId()].config.data = data
@@ -380,7 +391,7 @@ export default function MainFlexLayout() {
         />
       )
     }
-    return null;
+    return null
   }
 
   return (

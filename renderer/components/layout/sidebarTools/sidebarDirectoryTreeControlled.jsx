@@ -45,7 +45,6 @@ const SidebarDirectoryTreeControlled = ({ setExternalDBClick }) => {
    * @note - This function is called when the user presses a key.
    */
   const handleKeyPress = (event) => {
-    // console.log("KEY PRESS", event.code)
     if (event.key === "Delete") {
       if (selectedItems.length > 0) {
         console.log("DELETE", selectedItems[0])
@@ -53,7 +52,6 @@ const SidebarDirectoryTreeControlled = ({ setExternalDBClick }) => {
           onDelete(item)
         })
       }
-      // onDelete(selectedItems[0])
     } else if (event.code === "KeyC" && event.ctrlKey) {
       setCopiedItems(selectedItems)
     } else if (event.code === "KeyX" && event.ctrlKey) {
@@ -121,22 +119,22 @@ const SidebarDirectoryTreeControlled = ({ setExternalDBClick }) => {
    * @note - This function is called when the user pastes a file or folder in the directory tree, either by pressing Ctrl+V or by right-clicking and selecting "Paste".
    */
   function onPaste(uuid, selectedItem) {
-    console.log("PASTE", uuid)
     let dataObject = globalData[uuid]
     if (selectedItem == undefined) {
-      console.log("PASTE - selectedItem undefined")
+      console.warn("PASTE - selectedItem undefined")
       return
     }
+
     let selectedItemObject = globalData[selectedItem]
-    if (selectedItemObject.type == "folder") {
-      console.log("PASTE - selectedItem is folder")
-      MedDataObject.copy(dataObject, selectedItemObject, globalData, setGlobalData)
-      MedDataObject.updateWorkspaceDataObject(300)
-    } else {
-      console.log("PASTE - selectedItem is not folder")
-      let parentObject = globalData[selectedItemObject.parentID]
-      MedDataObject.copy(dataObject, parentObject, globalData, setGlobalData)
-      MedDataObject.updateWorkspaceDataObject(300)
+    if (selectedItemObject.type !== undefined) {
+      if (selectedItemObject.type == "folder") {
+        MedDataObject.copy(dataObject, selectedItemObject, globalData, setGlobalData)
+        MedDataObject.updateWorkspaceDataObject(300)
+      } else {
+        let parentObject = globalData[selectedItemObject.parentID]
+        MedDataObject.copy(dataObject, parentObject, globalData, setGlobalData)
+        MedDataObject.updateWorkspaceDataObject(300)
+      }
     }
   }
 
@@ -150,13 +148,13 @@ const SidebarDirectoryTreeControlled = ({ setExternalDBClick }) => {
     // Get the UUID of the `MedDataObject` with the current name from the `globalData` object.
     const namesYouCantDelete = ["UUID_ROOT", "DATA", "EXPERIMENTS", "RESULTS", "MODELS"]
     if (uuid == "") {
-      console.log("Error: UUID not found")
+      toast.warning("Error: UUID not found")
       return
     } else if (uuid == "UUID_ROOT") {
-      console.log("Error: Cannot delete root")
+      toast.warning("Error: Cannot delete root")
       return
     } else if (globalData[uuid] == undefined) {
-      console.log("Error: UUID not found in globalData")
+      toast.warning("Error: UUID not found in globalData")
       return
     } else if (boolNameInArray(globalData[uuid].name, namesYouCantDelete)) {
       console.log("Error: This name cannot be deleted")
@@ -224,18 +222,9 @@ const SidebarDirectoryTreeControlled = ({ setExternalDBClick }) => {
    * @note - This function is called when the user drops an item in the directory tree.
    */
   const onDrop = async (items, target) => {
-    console.log(
-      "DROPPRED - item",
-      items.map((item) => item.name)
-    )
-    console.log("DROPPRED - target", target)
-    console.log("TREE", tree.current)
-    console.log("TREE ITEMS", tree.current.treeEnvironmentContext.items)
     const currentItems = tree.current.treeEnvironmentContext.items
     for (const item of items) {
       const parent = Object.values(currentItems).find((potentialParent) => potentialParent.children?.includes(item.index))
-
-      console.log("PARENT", parent)
 
       if (!parent) {
         throw Error(`Could not find parent of item "${item.index}"`)
@@ -247,13 +236,10 @@ const SidebarDirectoryTreeControlled = ({ setExternalDBClick }) => {
 
       if (target.targetType === "item" || target.targetType === "root") {
         if (target.targetItem === parent.index) {
-          // NOOP
+          // NO Operation
         } else {
-          console.log("TARGET ITEM", target.targetItem)
           let dataObject = globalData[item.UUID]
-          console.log("DATA OBJECT", dataObject)
           if (dataObject.type == "folder") {
-            console.log("FOLDER")
             MedDataObject.move(dataObject, globalData[target.targetItem], globalData, setGlobalData)
             MedDataObject.updateWorkspaceDataObject()
           } else {
@@ -262,16 +248,14 @@ const SidebarDirectoryTreeControlled = ({ setExternalDBClick }) => {
           }
         }
       } else {
-        console.log("TARGET PARENT ITEM", currentItems[target.parentItem].name)
         if (target.parentItem === item.index) {
           // Trying to drop inside itself
           return
         }
         let dataObject = globalData[item.UUID]
         if (target.parentItem === dataObject.parentID) {
-          console.log("SAME PARENT")
+          // NO Operation
         } else {
-          console.log("DIFFERENT PARENT")
           MedDataObject.move(dataObject, globalData[target.parentItem], globalData, setGlobalData)
           MedDataObject.updateWorkspaceDataObject()
         }
@@ -334,15 +318,19 @@ const SidebarDirectoryTreeControlled = ({ setExternalDBClick }) => {
     let selectedItem = selectedItems[0]
     let selectedItemObject = globalData[selectedItem]
     let parentObject = undefined
-    if (selectedItemObject.type == "folder") {
-      parentObject = selectedItemObject
-    } else {
-      parentObject = globalData[selectedItemObject.parentID]
-    }
+    if (selectedItemObject !== undefined && selectedItemObject.type !== undefined) {
+      if (selectedItemObject.type == "folder") {
+        parentObject = selectedItemObject
+      } else {
+        parentObject = globalData[selectedItemObject.parentID]
+      }
 
-    MedDataObject.createEmptyFolderFS("New Folder", parentObject.path)
-    MedDataObject.updateWorkspaceDataObject()
-    tree.current.expandItem(parentObject.getUUID()) // We expand the parent folder so that we see the new folder
+      MedDataObject.createEmptyFolderFS("New Folder", parentObject.path)
+      MedDataObject.updateWorkspaceDataObject()
+      tree.current.expandItem(parentObject.getUUID()) // We expand the parent folder so that we see the new folder
+    } else {
+      toast.error("Error: Please select a folder")
+    }
   }
 
   /**
@@ -397,8 +385,6 @@ const SidebarDirectoryTreeControlled = ({ setExternalDBClick }) => {
         treeToSend.root.children.push(key)
       }
     })
-
-    console.log("TREE TO SEND", treeToSend)
 
     return treeToSend
   }

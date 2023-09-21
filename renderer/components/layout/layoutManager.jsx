@@ -1,9 +1,7 @@
 import React, { useEffect, useState, useCallback, useRef } from "react"
-
 import { PanelGroup, Panel, PanelResizeHandle } from "react-resizable-panels"
 import resizable from "../../styles/resizable.module.css"
 import IconSidebar from "../layout/iconSidebar"
-// import WorkspaceSidebar from '../layout/WorkspaceSidebar';
 import Home from "../mainPages/home"
 import Input from "../mainPages/input"
 import Learning from "../mainPages/learning"
@@ -19,8 +17,8 @@ import SearchSidebar from "./sidebarTools/searchSidebar"
 import LayoutTestSidebar from "./sidebarTools/layoutTestSidebar"
 import MainFlexLayout from "./mainContainerFunctional"
 import InputSidebar from "./sidebarTools/inputSidebar"
-import { ipcRenderer } from "electron"
 import LearningSidebar from "./sidebarTools/learningSidebar"
+import { ipcRenderer } from "electron"
 
 const LayoutManager = (props) => {
   const [activeSidebarItem, setActiveSidebarItem] = useState("home") // State to keep track of active nav item
@@ -103,17 +101,9 @@ const LayoutManager = (props) => {
 
   return (
     <>
-      <div className="row" style={{ height: "100%" }}>
+      <div style={{ height: "100%", display: "flex", width: "100%" }}>
         <IconSidebar onSidebarItemSelect={handleSidebarItemSelect} activeSidebarItem={activeSidebarItem} />
-        <div
-          className="col"
-          style={{
-            height: "100%",
-            width: "98%",
-            padding: "0px",
-            display: "grid"
-          }}
-        >
+        <div className="main-app-container">
           <PanelGroup autoSaveId="test" direction="horizontal">
             <Panel className={resizable.Panel} collapsible={true} minSize={20} maxSize={80} defaultSize={20} order={1} ref={sidebarRef}>
               <div className={resizable.PanelContent} style={{ backgroundColor: "rgb(0 0 0 / 80%)" }}>

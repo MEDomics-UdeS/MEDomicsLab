@@ -33,9 +33,10 @@ const downloadJson = (exportObj, exportName) => {
  * This function takes an object, a path and a name and saves the object as a json file
  */
 const writeJson = (exportObj, path, name) => {
-  const fs = require("fs")
+  const cwd = process.cwd()
+  let cwdSlashType = cwd.includes("/") ? "/" : "\\"
   fs.writeFile(
-    path + name + ".json",
+    path + cwdSlashType + name + ".json",
     JSON.stringify(exportObj, null, 2),
     function (err) {
       if (err) {
