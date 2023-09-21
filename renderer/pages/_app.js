@@ -31,6 +31,7 @@ import "react-contexify/dist/ReactContexify.css"
 import "../styles/learning/sidebar.css"
 import "react-complex-tree/lib/style-modern.css"
 import "../styles/sidebarTree.css"
+import "../styles/customPrimeReact.css"
 
 // import "react-complex-tree/lib/style.css"
 import DataContextProvider from "../components/workspace/dataContext"

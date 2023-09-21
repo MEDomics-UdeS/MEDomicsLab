@@ -1,0 +1,32 @@
+.p-listbox-item {
+  padding: 0.25rem !important;
+  margin-right: 0.5rem;
+  align-self: center;
+}
+
+.p-highlight {
+  color: black !important;
+  background-color: #8ac4ff85 !important;
+  outline: 1px solid var(--bs-blue) !important;
+  border-radius: var(--bs-card-border-radius) !important;
+}
+
+.p-listbox-item:hover {
+  background-color: #8ac4ff31 !important;
+}
+
+.p-listbox {
+  border: none;
+  background-color: transparent;
+  padding: 0.1rem !important;
+}
+
+.p-listbox-item:focus {
+  box-shadow: none;
+}
+
+.p-listbox-list {
+  border: none;
+  background-color: transparent;
+  padding: 0.1rem !important;
+}

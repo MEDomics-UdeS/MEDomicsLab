@@ -1,7 +1,7 @@
 import React from "react"
 import DropzoneComponent from "./dataComponents/dropzoneComponent"
 import { Button } from "react-bootstrap"
-import { DatasetSelector } from "./dataComponents/datasetSelector"
+import DatasetSelector from "./dataComponents/datasetSelector"
 
 /**
  * @description - This component is the input page of the application
@@ -13,6 +13,7 @@ const InputPage = () => {
   return (
     <>
       <h1>INPUT MODULE</h1>
+      <DatasetSelector />
     </>
   )
 }
