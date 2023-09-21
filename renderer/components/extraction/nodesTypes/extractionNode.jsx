@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useContext } from "react"
 import { Offcanvas, Container, Alert } from "react-bootstrap"
 import TreeMenu from "react-simple-tree-menu"
-import { OffCanvasBackdropStyleContext } from "../../flow/context/offCanvasBackdropStyleContext"
 import { FlowInfosContext } from "../../flow/context/flowInfosContext"
 import GroupNode from "../../flow/groupNode"
 
@@ -20,7 +19,6 @@ const extractionNode = ({ id, data }) => {
   const handleOffCanvasShow = () => setShowOffCanvas(true) // used to show the offcanvas
 
   const [offcanvasComp, setOffcanvasComp] = useState(null) // used to store the offcanvas container
-  const { updateBackdropStyle } = useContext(OffCanvasBackdropStyleContext) // used to update the backdrop style
   const { flowInfos } = useContext(FlowInfosContext) // used to get the flow infos
 
   /**
@@ -47,7 +45,6 @@ const extractionNode = ({ id, data }) => {
     } else {
       style = { transition: "z-index 0.5s ease-in", zIndex: "-1" }
     }
-    updateBackdropStyle(style)
   }, [showOffCanvas])
 
   /**

@@ -3,6 +3,7 @@
 ## 1. Install nvm (Node Version Manager)
 
 Ubuntu : https://github.com/nvm-sh/nvm#installing-and-updating
+
 Windows : https://github.com/coreybutler/nvm-windows
 
 ## 2. Install npm and node.js
@@ -14,7 +15,7 @@ nvm use lts
 
 ## 3. Setup server side
 
-[Setup here](./Flask_server/README.md)
+[Setup here](./flask_server/README.md)
 
 ## 4. Run the Electron app in development mode
 

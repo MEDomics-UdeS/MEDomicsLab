@@ -118,7 +118,7 @@ const Input = ({ name, settingInfos, currentValue, onInputChange }) => {
               id={name}
               controlId={name}
               label={name}
-              className="margin-bottom-15 input-hov"
+              className=" input-hov"
             >
               <Form.Control
                 type="text"
@@ -139,11 +139,7 @@ const Input = ({ name, settingInfos, currentValue, onInputChange }) => {
       case "int":
         return (
           <>
-            <FloatingLabel
-              controlId={name}
-              label={name}
-              className="margin-bottom-15 input-hov"
-            >
+            <FloatingLabel controlId={name} label={name} className=" input-hov">
               <Form.Control
                 type="number"
                 defaultValue={currentValue}
@@ -163,11 +159,7 @@ const Input = ({ name, settingInfos, currentValue, onInputChange }) => {
       case "float":
         return (
           <>
-            <FloatingLabel
-              controlId={name}
-              label={name}
-              className="margin-bottom-15 input-hov"
-            >
+            <FloatingLabel controlId={name} label={name} className=" input-hov">
               <Form.Control
                 type="number"
                 defaultValue={currentValue}
@@ -187,11 +179,7 @@ const Input = ({ name, settingInfos, currentValue, onInputChange }) => {
       case "bool":
         return (
           <>
-            <FloatingLabel
-              controlId={name}
-              label={name}
-              className="margin-bottom-15 input-hov"
-            >
+            <FloatingLabel controlId={name} label={name} className=" input-hov">
               <Form.Select
                 defaultValue={currentValue}
                 onChange={(e) =>
@@ -213,11 +201,7 @@ const Input = ({ name, settingInfos, currentValue, onInputChange }) => {
       case "list":
         return (
           <>
-            <FloatingLabel
-              controlId={name}
-              label={name}
-              className="margin-bottom-15 input-hov"
-            >
+            <FloatingLabel controlId={name} label={name} className=" input-hov">
               <Form.Select
                 className=""
                 defaultValue={currentValue}
@@ -280,11 +264,7 @@ const Input = ({ name, settingInfos, currentValue, onInputChange }) => {
       case "range":
         return (
           <>
-            <FloatingLabel
-              controlId={name}
-              label={name}
-              className="margin-bottom-15 input-hov"
-            >
+            <FloatingLabel controlId={name} label={name} className=" input-hov">
               <Form.Control
                 type="range"
                 defaultValue={currentValue}
@@ -304,7 +284,7 @@ const Input = ({ name, settingInfos, currentValue, onInputChange }) => {
       case "custom-list":
         return (
           <>
-            <div id={name}>
+            <div id={name} style={{ height: "56px" }}>
               <label className="custom-lbl">{name}</label>
               <CreatableSelect
                 components={{ DropdownIndicator: null }}
@@ -323,7 +303,7 @@ const Input = ({ name, settingInfos, currentValue, onInputChange }) => {
                 onKeyDown={handleKeyDown}
                 placeholder="Add"
                 value={currentValue}
-                className="margin-bottom-15 input-hov"
+                className="input-hov"
               />
             </div>
             {createTooltip(settingInfos.tooltip, name)}
@@ -333,11 +313,7 @@ const Input = ({ name, settingInfos, currentValue, onInputChange }) => {
       case "pandas.DataFrame":
         return (
           <>
-            <FloatingLabel
-              controlId={name}
-              label={name}
-              className="margin-bottom-15 input-hov"
-            >
+            <FloatingLabel controlId={name} label={name} className=" input-hov">
               <Form.Control
                 type="text"
                 defaultValue={currentValue}
@@ -357,11 +333,7 @@ const Input = ({ name, settingInfos, currentValue, onInputChange }) => {
       default:
         return (
           <>
-            <FloatingLabel
-              controlId={name}
-              label={name}
-              className="margin-bottom-15 input-hov"
-            >
+            <FloatingLabel controlId={name} label={name} className=" input-hov">
               <Form.Control
                 type="text"
                 defaultValue={currentValue}

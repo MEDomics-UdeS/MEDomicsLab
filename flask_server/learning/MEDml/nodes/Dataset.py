@@ -7,7 +7,6 @@ import json
 from learning.MEDml.utils.loading import Loader
 from learning.MEDml.nodes.NodeObj import *
 from typing import Any, Dict, List, Union
-from termcolor import colored
 from colorama import Fore, Back, Style
 from learning.MEDml.nodes.NodeObj import *
 from typing import Union
@@ -119,3 +118,7 @@ class Dataset(Node):
 
     def get_json_dataset(self) -> json:
         return self.df.to_json(orient='records')
+
+    # TODO
+    def get_path_list(self) -> list:
+        return [self.settings['files']]

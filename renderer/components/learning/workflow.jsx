@@ -9,7 +9,6 @@ import { toast } from "react-toastify"
 import Form from "react-bootstrap/Form"
 import { useNodesState, useEdgesState, useReactFlow, addEdge } from "reactflow"
 import WorkflowBase from "../flow/workflowBase"
-import TreeMenu from "react-simple-tree-menu" // TODO: https://www.npmjs.com/package/react-simple-tree-menu change plus sign to chevron
 import { loadJsonSync, downloadJson } from "../../utilities/fileManagementUtils"
 import { requestJson } from "../../utilities/requests"
 import EditableLabel from "react-simple-editlabel"
@@ -19,6 +18,7 @@ import { PageInfosContext } from "../mainPages/moduleBasics/pageInfosContext"
 import { FlowFunctionsContext } from "../flow/context/flowFunctionsContext"
 import { FlowResultsContext } from "../flow/context/flowResultsContext"
 import { WorkspaceContext } from "../workspace/workspaceContext"
+import { ErrorRequestContext } from "../flow/context/errorRequestContext"
 
 // here are the different types of nodes implemented in the workflow
 import StandardNode from "./nodesTypes/standardNode"
@@ -52,15 +52,14 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
   const [MLType, setMLType] = useState("classification") // MLType is used to know which machine learning type is selected
   const { setViewport } = useReactFlow() // setViewport is used to update the viewport of the workflow
   const [treeData, setTreeData] = useState({}) // treeData is used to set the data of the tree menu
-  const [treeActiveKey, setTreeActiveKey] = useState(null) // treeActiveKey is used to know which node is selected in the tree menu
   const { getIntersectingNodes } = useReactFlow() // getIntersectingNodes is used to get the intersecting nodes of a node
   const [intersections, setIntersections] = useState([]) // intersections is used to store the intersecting nodes related to optimize nodes start and end
   const [isProgressUpdating, setIsProgressUpdating] = useState(false) // progress is used to store the progress of the workflow execution
   const { pageInfos } = useContext(PageInfosContext) // used to get the page infos such as id and config path
   const { groupNodeId, changeSubFlow } = useContext(FlowFunctionsContext)
-  const { setShowResultsPane, setWhat2show, updateFlowResults } =
-    useContext(FlowResultsContext)
+  const { updateFlowResults } = useContext(FlowResultsContext)
   const { port } = useContext(WorkspaceContext)
+  const { setError } = useContext(ErrorRequestContext)
 
   // declare node types using useMemo hook to avoid re-creating component types unnecessarily (it memorizes the output) https://www.w3schools.com/react/react_usememo.asp
   const nodeTypes = useMemo(
@@ -126,6 +125,7 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
       setWorkflowType("optimize")
       hideNodesbut(groupNodeId.id)
     }
+    console.log("groupNodeId", groupNodeId)
   }, [groupNodeId])
 
   // executed when intersections array is changed
@@ -519,7 +519,7 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
         onRun(null, id)
       }
     },
-    [reactFlowInstance, MLType, nodes, edges, intersections, treeData]
+    [reactFlowInstance, MLType, nodes, edges, intersections]
   )
 
   /**
@@ -546,20 +546,13 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
             flow,
             (jsonResponse) => {
               console.log("received results:", jsonResponse)
-              if (jsonResponse.error) {
+              if (!jsonResponse.error) {
+                updateFlowResults(jsonResponse)
+              } else {
                 setIsProgressUpdating(false)
                 toast.error("Error detected while running the experiment")
-              } else {
-                let results = {}
-                results.results = jsonResponse
-                results.nodes = nodes
-                updateFlowResults(results)
+                setError(jsonResponse.error)
               }
-            },
-            function (err) {
-              console.error(err)
-              toast.error("Error while running the experiment")
-              setIsProgressUpdating(false)
             }
           )
         }
@@ -567,7 +560,7 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
         toast.warn("react flow instance not found")
       }
     },
-    [reactFlowInstance, MLType, nodes, edges, intersections, treeData]
+    [reactFlowInstance, MLType, nodes, edges, intersections]
   )
 
   /**
@@ -651,6 +644,35 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
               return acc
             }, [])
             hasModels = true
+          }
+
+          // refomat multiple list to backend to understand
+          if (nodeType == "compare_models") {
+            const reformatMultipleList = (list) => {
+              let newList = []
+              list.forEach((item) => {
+                newList.push(item.value)
+              })
+              return newList
+            }
+            let currentNodeCanModify = json.nodes.find(
+              (node) => node.id === key
+            )
+            console.log(currentNodeCanModify)
+            if (currentNode.data.internal.settings.include) {
+              let reformattedList = reformatMultipleList(
+                currentNode.data.internal.settings.include
+              )
+              currentNodeCanModify.data.internal.settings.include =
+                reformattedList
+            }
+            if (currentNode.data.internal.settings.exclude) {
+              let reformattedList = reformatMultipleList(
+                currentNode.data.internal.settings.exclude
+              )
+              currentNodeCanModify.data.internal.settings.exclude =
+                reformattedList
+            }
           }
 
           // check if node has default values
@@ -743,24 +765,6 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
   }, [])
 
   /**
-   * @param {Object} info info about the node clicked
-   *
-   * This function is called when the user clicks on a tree item
-   *
-   */
-  const onTreeItemClick = (info) => {
-    if (info.key == treeActiveKey) {
-      setTreeActiveKey("null")
-      setShowResultsPane(false)
-      setWhat2show("")
-    } else {
-      setTreeActiveKey(info.key)
-      setShowResultsPane(true)
-      setWhat2show(info.key)
-    }
-  }
-
-  /**
    *
    * @param {String} value new value of the node name
    *
@@ -817,16 +821,7 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
         ui={
           <>
             {/* top left corner - Tree menu*/}
-            <div className="btn-panel-top-corner-left">
-              <TreeMenu
-                data={treeData}
-                onClickItem={onTreeItemClick}
-                debounceTime={125}
-                hasSearch={false}
-                activeKey={treeActiveKey}
-                focusKey={treeActiveKey}
-              />
-            </div>
+            <div className="btn-panel-top-corner-left"></div>
             {/* top right corner - buttons */}
             <div className="btn-panel-top-corner-right">
               {workflowType == "learning" && (

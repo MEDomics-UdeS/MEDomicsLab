@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import os
 # from pycaret.survival_analysis.oop import SurvivalAnalysisExperiment
 import json
 from learning.MEDml.nodes.NodeObj import *
@@ -37,4 +38,10 @@ class Clean(Node):
         experiment['dataset_metaData']['dataset'] = ml_obj.get_config('X').join(ml_obj.get_config('y'))
         experiment['dataset_metaData']['X_test'] = ml_obj.get_config('X_test')
         experiment['dataset_metaData']['y_test'] = ml_obj.get_config('y_test')
-        return experiment['dataset_metaData']['dataset'].to_json(orient='records')
+        # save json object to file
+        path = os.path.join("./",self.global_config_json['saving_path'], f"{self.global_config_json['unique_id']}-dataset.json")
+        experiment['dataset_metaData']['dataset'].to_csv(path)
+        return {
+            "table": "dataset",
+            "paths": [path],
+            }
