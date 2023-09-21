@@ -9,6 +9,8 @@ import { OverlayPanel } from "primereact/overlaypanel"
 import { Accordion } from "react-bootstrap"
 import MedDataObject from "../../workspace/medDataObject"
 import { DataContext } from "../../workspace/dataContext"
+import { ActionContext } from "../actionContext"
+import { LayoutContext, LayoutModelContext } from "../layoutContext"
 
 /**
  * @description - This component is the sidebar tools component that will be used in the sidebar component as the learning page
@@ -24,6 +26,8 @@ const LearningSidebar = () => {
   const createSceneRef = useRef(null)
   const [selectedItems, setSelectedItems] = useState([]) // We initialize the selected items state to an empty array
   const { globalData } = useContext(DataContext)
+  const { dispatchAction } = useContext(ActionContext)
+  const { layoutState, dispatchLayout } = useContext(LayoutModelContext)
 
   useEffect(() => {
     console.log(workspace)
@@ -74,6 +78,7 @@ const LearningSidebar = () => {
 
   useEffect(() => {
     console.log(selectedItems)
+    dispatchLayout({ type: "open LEARNING", payload: selectedItems })
   }, [selectedItems])
 
   const handleClickCreateScene = (e) => {
