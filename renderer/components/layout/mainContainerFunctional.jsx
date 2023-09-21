@@ -349,7 +349,7 @@ export default function MainFlexLayout() {
       if (node.getExtraData().data == null) {
         const config = node.getConfig()
         console.log("LearningPage config", config)
-        return <LearningPage pageId={"test"} configPath={config.path} />
+        return <LearningPage pageId={config.uuid} configPath={config.path} />
       }
     }
 

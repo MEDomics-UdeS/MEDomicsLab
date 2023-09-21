@@ -79,7 +79,12 @@ const LearningSidebar = () => {
 
   useEffect(() => {
     console.log(dbSelectedItem)
-    dispatchLayout({ type: "open LEARNING", payload: selectedItems })
+    // if (globalData[dbSelectedItem] !== undefined) {
+    if (dbSelectedItem !== null) {
+      if (dbSelectedItem.name !== undefined) {
+        dispatchLayout({ type: "open LEARNING", payload: dbSelectedItem })
+      }
+    }
   }, [dbSelectedItem])
 
   const handleClickCreateScene = (e) => {

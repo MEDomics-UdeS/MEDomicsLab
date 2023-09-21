@@ -202,7 +202,7 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
    * @returns {void}
    */
   const onDBClickItem = (event, item) => {
-    dispatchAction({ type: "setSelectedItems", payload: [item.UUID] })
+    // dispatchAction({ type: "setSelectedItems", payload: [item.UUID] })
     setDbClickedItem(item)
     console.log("DBCLICKED", event, item)
   }

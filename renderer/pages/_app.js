@@ -75,11 +75,8 @@ export default function App() {
           children: [
             {
               type: "tab",
-              name: "Learning",
-              component: "learningPage",
-              config: {
-                path: "C:\\Users\\nicol\\Downloads\\WS\\EXPERIMENTS\\experiment.json"
-              }
+              name: "JSON",
+              component: "json"
             }
           ]
         }
@@ -240,7 +237,7 @@ export default function App() {
 
   useEffect(() => {
     // Log a message to the console whenever the layoutModel state variable changes
-    // console.log("layoutModel changed", layoutModel)
+    console.log("layoutModel changed", layoutModel)
   }, [layoutModel]) // Here, we specify that the hook should only be called when the layoutModel state variable changes
 
   return (

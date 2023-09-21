@@ -80,15 +80,16 @@ function LayoutContext({ children, layoutModel, setLayoutModel }) {
    */
   const openLearning = (action) => {
     console.log("ACTION", action)
-    let medObject = globalData[action.payload]
+    let medObject = action.payload
     console.log("medObject", medObject)
     let textString = action.payload
+
     const newChild = {
       type: "tab",
-      id: action.payload._UUID,
-      name: action.payload.name,
-      component: "LearningPage",
-      path: action.payload.path
+      name: medObject.name,
+      id: medObject.UUID,
+      component: "learningPage",
+      config: { path: medObject.path, uuid: medObject.UUID }
     }
 
     const nextlayoutModel = { ...layoutModel }
