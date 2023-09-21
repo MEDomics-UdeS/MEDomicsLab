@@ -138,12 +138,14 @@ export default class MedDataObject {
   static checkIfMedDataObjectInContextbyPath(dataObjectPath, globalDataContext) {
     let dataObjectList = globalDataContext
     let dataObjectToReturn = null
-    for (let dataObject of dataObjectList) {
+    let arrayObjectUUIDs = Object.keys(dataObjectList)
+    arrayObjectUUIDs.forEach((key) => {
+      let dataObject = dataObjectList[key]
       if (dataObject.path === dataObjectPath) {
         dataObjectToReturn = dataObject
-        break
       }
-    }
+    })
+
     return dataObjectToReturn
   }
 
@@ -206,14 +208,77 @@ export default class MedDataObject {
   static createEmptyFolderFS(name, path) {
     // eslint-disable-next-line no-undef
     let fs = require("fs")
-    let pathToCreate = path + "\\" + name
+    let newName = "New Folder"
+    if (name !== undefined) {
+      newName = this.getNewNameForFolder({ name: name, folderPath: path })
+    }
+    let pathToCreate = path + getPathSeparator() + newName
     fs.mkdirSync(pathToCreate, { recursive: true }, (err) => {
       if (err) {
         console.error(err)
       } else {
         console.log(`Folder created at ${pathToCreate}`)
+        return pathToCreate
       }
     })
+  }
+
+  /**
+   * Create an empty folder in the file system.
+   * @param {string} name
+   * @param {string} path
+   */
+  static createEmptyFolderFSsync(name, path) {
+    // eslint-disable-next-line no-undef
+    let fs = require("fs")
+    let newName = "New Folder"
+    if (name !== undefined) {
+      newName = this.getNewNameForFolder({ name: name, folderPath: path })
+    }
+    let pathToCreate = path + getPathSeparator() + newName
+    const fsPromises = fs.promises
+    return new Promise((resolve) => {
+      fsPromises
+        .mkdir(pathToCreate, { recursive: true })
+        .then(function () {
+          console.log("directory created at " + pathToCreate)
+          resolve(pathToCreate)
+        })
+        .catch(function () {
+          console.error("failed to create directory")
+        })
+    })
+  }
+
+  /**
+   * This function creates a new folder in the workspace with the name "New Folder" and the parent folder being the selected folder.
+   * The button that triggers this function is only visible if the accordion is not collapsed.
+   * @param {Array} selectedItems - The array of selected items in the directory tree
+   * @returns {void}
+   */
+  static createFolder(UUID, globalData, nameOfTheNewFolder) {
+    if (globalData === undefined) {
+      console.error("You forgot to specify the global data context")
+      return
+    }
+    if (UUID !== undefined && UUID !== null && UUID !== "" && UUID.length > 0) {
+      let parentObject = undefined
+      let selectedItemObject = globalData[UUID[0]]
+      if (selectedItemObject.type == "folder") {
+        parentObject = selectedItemObject
+      } else {
+        parentObject = globalData[selectedItemObject.parentID]
+      }
+      let newName = "New Folder"
+      if (nameOfTheNewFolder !== undefined) {
+        newName = this.getNewNameForFolder({ name: nameOfTheNewFolder, folderPath: parentObject.path })
+      }
+      this.createEmptyFolderFS(newName, parentObject.path)
+      this.updateWorkspaceDataObject()
+      return parentObject.path + getPathSeparator() + newName
+    } else {
+      toast.error("Please select a folder")
+    }
   }
 
   /**

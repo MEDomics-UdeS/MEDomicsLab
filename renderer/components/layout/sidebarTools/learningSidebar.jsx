@@ -1,13 +1,14 @@
 import React, { useContext, useEffect, useState, useRef } from "react"
 import { Button, Stack } from "react-bootstrap"
 import { WorkspaceContext } from "../../workspace/workspaceContext"
-import { WorkspaceDirectoryTree } from "./workspaceDirectoryTree"
 import * as Icon from "react-bootstrap-icons"
 import { InputText } from "primereact/inputtext"
-import { createFolder } from "../../../utilities/fileManagementUtils"
 import { SidebarDirectoryTreeControlled } from "./sidebarDirectoryTreeControlled"
 import { writeJson, loadJsonPath } from "../../../utilities/fileManagementUtils"
 import { OverlayPanel } from "primereact/overlaypanel"
+import { Accordion } from "react-bootstrap"
+import MedDataObject from "../../workspace/medDataObject"
+import { DataContext } from "../../workspace/dataContext"
 
 /**
  * @description - This component is the sidebar tools component that will be used in the sidebar component as the learning page
@@ -21,7 +22,8 @@ const LearningSidebar = () => {
   const [experimentList, setExperimentList] = useState([]) // We initialize the experiment list state to an empty array
   const [showErrorMessage, setShowErrorMessage] = useState(false) // We initialize the create experiment error message state to an empty string
   const createSceneRef = useRef(null)
-
+  const [selectedItems, setSelectedItems] = useState([]) // We initialize the selected items state to an empty array
+  const { globalData } = useContext(DataContext)
 
   useEffect(() => {
     console.log(workspace)
@@ -48,14 +50,35 @@ const LearningSidebar = () => {
   const createExperiment = (e) => {
     console.log("Create Scene")
     console.log(`Scene Name: ${sceneName}`) // We log the experiment name when the create button is clicked
-    // setShowDialog(false)
     createSceneRef.current.toggle(e)
     createEmptyScene(workspace.workingDirectory.children[1].path, sceneName)
   }
 
-  const createEmptyScene = (path, name) => {
+  const createEmptyScene = async (path, name) => {
     const emptyScene = loadJsonPath("./resources/emptyScene.json")
-    writeJson(emptyScene, path, name)
+    if (globalData[selectedItems[0]].parentID == MedDataObject.checkIfMedDataObjectInContextbyPath(path, globalData).getUUID()) {
+      if (globalData[selectedItems[0]].type == "folder") {
+        path = globalData[selectedItems[0]].path
+      } else {
+        path = globalData[globalData[selectedItems[0]].parentID].path
+      }
+      writeJson(emptyScene, path, name)
+      MedDataObject.updateWorkspaceDataObject()
+    } else {
+      MedDataObject.createEmptyFolderFSsync("experiment", path).then((folderPath) => {
+        writeJson(emptyScene, folderPath, name)
+        MedDataObject.updateWorkspaceDataObject()
+      })
+    }
+  }
+
+  useEffect(() => {
+    console.log(selectedItems)
+  }, [selectedItems])
+
+  const handleClickCreateScene = (e) => {
+    console.log("Create Scene")
+    createSceneRef.current.toggle(e)
   }
 
   return (
@@ -72,62 +95,57 @@ const LearningSidebar = () => {
         >
           Learning Module
         </p>
-        <Button
-          className="btn-sidebar-learning"
-          onClick={(e) => createSceneRef.current.toggle(e)}
-        >
-          Create Scene
-          <Icon.Plus />
-        </Button>
-        <WorkspaceDirectoryTree />
-        {/* We render the workspace only if it is set, otherwise it throws an error */}
-      </Stack>
 
+        <Accordion defaultActiveKey={["0", "1"]} alwaysOpen>
+          <Accordion.Item eventKey="0">
+            <Accordion.Header>
+              <Stack direction="horizontal" style={{ flexGrow: "1" }}>
+                <p style={{ marginBottom: "0px", paddingLeft: "1rem" }}>
+                  <strong>WORKSPACE</strong>
+                </p>
+                <div style={{ flexGrow: "10" }} />
+              </Stack>
+            </Accordion.Header>
+            <Accordion.Body style={{ padding: "0.25rem" }}>
+              <Stack direction="vertical" gap={0}>
+                <Button className="btn-sidebar-learning" onClick={handleClickCreateScene}>
+                  Create Scene
+                  <Icon.Plus />
+                </Button>
+              </Stack>
+            </Accordion.Body>
+          </Accordion.Item>
+          <SidebarDirectoryTreeControlled setExternalSelectedItems={setSelectedItems} />
+        </Accordion>
+      </Stack>
 
       <OverlayPanel className="create-scene-overlayPanel" ref={createSceneRef}>
         <Stack direction="vertical" gap={4}>
           <div className="header">
-          <Stack direction="vertical" gap={1}>
-            <h5>Create Scene</h5>
-
-          <hr className="solid" />
-          </Stack>
+            <Stack direction="vertical" gap={1}>
+              <h5>Create Scene</h5>
+              <hr className="solid" />
+            </Stack>
           </div>
           <div className="body">
+            <span className="p-float-label">
+              <InputText id="expName" value={sceneName} onChange={(e) => setSceneName(e.target.value)} aria-describedby="name-msg" className={`${showErrorMessage ? "p-invalid" : ""}`} />
+              <label htmlFor="expName">Enter scene name</label>
+            </span>
+            <small id="name-msg" className="text-red">
+              {showErrorMessage ? "Scene name is empty or already exists" : ""}
+            </small>
 
-          <span className="p-float-label">
-          <InputText
-            id="expName"
-            value={sceneName}
-            onChange={(e) => setSceneName(e.target.value)}
-            aria-describedby="name-msg"
-            className={`${showErrorMessage ? "p-invalid" : ""}`}
-            />
-          <label htmlFor="expName">Enter scene name</label>
-        </span>
-        <small id="name-msg" className="text-red">
-          {showErrorMessage ? "Scene name is empty or already exists" : ""}
-        </small>
-         
-          <hr className="solid" />
-          <Button
-              variant="secondary"
-              onClick={(e) => createSceneRef.current.toggle(e)}
-              style={{ marginRight: "1rem" }}
-            >
+            <hr className="solid" />
+            <Button variant="secondary" onClick={(e) => createSceneRef.current.toggle(e)} style={{ marginRight: "1rem" }}>
               Cancel
             </Button>
-            <Button
-              variant="primary"
-              disabled={!btnCreateSceneState}
-              onClick={createExperiment}
-            >
+            <Button variant="primary" disabled={!btnCreateSceneState} onClick={createExperiment}>
               Create
             </Button>
-         </div>
+          </div>
         </Stack>
       </OverlayPanel>
-
     </>
   )
 }

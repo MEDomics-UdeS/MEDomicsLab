@@ -4,8 +4,12 @@ from flask import jsonify, request, Blueprint
 import sys
 import json
 from utils.server_utils import get_json_from_request, get_response_from_error
+import os
+from pathlib import Path
 
-
+MEDomics = str(Path(os.path.dirname(os.path.abspath(__file__))).parent.parent)
+print(SUBMODULE_DIR)
+sys.path.append(SUBMODULE_DIR)
 
 # blueprint definition
 app_learning = Blueprint('app_learning', __name__, template_folder='templates', static_folder='static')
