@@ -3,7 +3,6 @@ import { Button, Stack } from "react-bootstrap"
 import { WorkspaceContext } from "../../workspace/workspaceContext"
 import { WorkspaceDirectoryTree } from "./workspaceDirectoryTree"
 import * as Icon from "react-bootstrap-icons"
-import { Dialog } from "primereact/dialog"
 import { InputText } from "primereact/inputtext"
 import { createFolder } from "../../../utilities/fileManagementUtils"
 import { SidebarDirectoryTreeControlled } from "./sidebarDirectoryTreeControlled"
@@ -17,8 +16,7 @@ import { OverlayPanel } from "primereact/overlaypanel"
  */
 const LearningSidebar = () => {
   const { workspace } = useContext(WorkspaceContext) // We get the workspace from the context to retrieve the directory tree of the workspace, thus retrieving the data files
-  const [showDialog, setShowDialog] = useState(false)
-  const [btnDialogState, setBtnDialogState] = useState(false)
+  const [btnCreateSceneState, setBtnCreateSceneState] = useState(false)
   const [sceneName, setSceneName] = useState("") // We initialize the experiment name state to an empty string
   const [experimentList, setExperimentList] = useState([]) // We initialize the experiment list state to an empty array
   const [showErrorMessage, setShowErrorMessage] = useState(false) // We initialize the create experiment error message state to an empty string
@@ -39,10 +37,10 @@ const LearningSidebar = () => {
 
   useEffect(() => {
     if (sceneName != "" && !experimentList.includes(sceneName)) {
-      setBtnDialogState(true)
+      setBtnCreateSceneState(true)
       setShowErrorMessage(false)
     } else {
-      setBtnDialogState(false)
+      setBtnCreateSceneState(false)
       setShowErrorMessage(true)
     }
   }, [sceneName]) // We set the button state to true if the experiment name is empty, otherwise we set it to false
@@ -58,10 +56,6 @@ const LearningSidebar = () => {
   const createEmptyScene = (path, name) => {
     const emptyScene = loadJsonPath("./resources/emptyScene.json")
     writeJson(emptyScene, path, name)
-  }
-
-  const importExperiment = () => {
-    console.log("Import Scene")
   }
 
   return (
@@ -85,11 +79,6 @@ const LearningSidebar = () => {
           Create Scene
           <Icon.Plus />
         </Button>
-        <Button className="btn-sidebar-learning" onClick={importExperiment}>
-          Import Scene
-          <Icon.Download />
-        </Button>
-
         <WorkspaceDirectoryTree />
         {/* We render the workspace only if it is set, otherwise it throws an error */}
       </Stack>
@@ -119,8 +108,8 @@ const LearningSidebar = () => {
         <small id="name-msg" className="text-red">
           {showErrorMessage ? "Scene name is empty or already exists" : ""}
         </small>
-            </div>
-          <div className="footer">
+         
+          <hr className="solid" />
           <Button
               variant="secondary"
               onClick={(e) => createSceneRef.current.toggle(e)}
@@ -130,7 +119,7 @@ const LearningSidebar = () => {
             </Button>
             <Button
               variant="primary"
-              disabled={!btnDialogState}
+              disabled={!btnCreateSceneState}
               onClick={createExperiment}
             >
               Create
@@ -139,46 +128,6 @@ const LearningSidebar = () => {
         </Stack>
       </OverlayPanel>
 
-      <Dialog
-        header="Create Scene"
-        visible={showDialog}
-        style={{ width: "50vw" }}
-        onHide={() => setShowDialog(false)}
-        draggable={false}
-        resizable={false}
-        footer={
-          <>
-            <Button
-              variant="secondary"
-              onClick={() => setShowDialog(false)}
-              style={{ marginRight: "1rem" }}
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="primary"
-              disabled={!btnDialogState}
-              onClick={createExperiment}
-            >
-              Create
-            </Button>
-          </>
-        }
-      >
-        <span className="p-float-label">
-          <InputText
-            id="expName"
-            value={sceneName}
-            onChange={(e) => setSceneName(e.target.value)}
-            aria-describedby="name-msg"
-            className={showErrorMessage ? "p-invalid" : ""}
-          />
-          <label htmlFor="expName">Enter scene name</label>
-        </span>
-        <small id="name-msg" className="text-red">
-          {showErrorMessage ? "Scene name is empty or already exists" : ""}
-        </small>
-      </Dialog>
     </>
   )
 }
