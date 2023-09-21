@@ -1,0 +1,42 @@
+.p-listbox-item {
+  padding: 0.25rem !important;
+  margin-right: 0.5rem;
+  align-self: center;
+}
+
+.p-highlight {
+  color: black !important;
+  background-color: #8ac4ff85 !important;
+  outline: 1px solid var(--bs-blue) !important;
+  border-radius: 5px !important;
+}
+
+.p-listbox-item:hover {
+  background-color: #8ac4ff31 !important;
+}
+
+.p-listbox {
+  border: solid 1px #8ac4ffdc;
+  border-radius: 5px;
+  background-color: transparent;
+  padding: 0.1rem !important;
+}
+
+.p-listbox-item:focus {
+  box-shadow: none;
+}
+
+.p-listbox-list {
+  border: none;
+  background-color: transparent;
+  padding: 0.1rem !important;
+}
+
+.p-tabview-nav-link {
+  padding: 1rem !important;
+  align-self: center;
+}
+
+.p-component {
+  margin-top: 1rem;
+}
