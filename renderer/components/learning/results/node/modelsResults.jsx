@@ -3,6 +3,11 @@ import Parameters from "../utilities/parameters"
 import DataTable from "../../../dataTypeVisualisation/dataTableWrapper"
 import { Column } from "primereact/column"
 
+/**
+ * 
+ * @param {Object} selectedResults The selected results 
+ * @returns {JSX.Element} The ModelsResults component
+ */
 const ModelsResults = ({ selectedResults }) => {
   const [models, setModels] = useState([])
   const [allModelsData, setAllModelsData] = useState([])

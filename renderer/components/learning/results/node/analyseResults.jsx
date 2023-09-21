@@ -1,5 +1,10 @@
 import React, { useEffect, useState } from "react"
 
+/**
+ * 
+ * @param {Object} selectedResults The selected results 
+ * @returns {JSX.Element} The AnalyseResults component
+ */
 const AnalyseResults = ({ selectedResults }) => {
   const [nodeSelection, setNodeSelection] = useState(null)
 

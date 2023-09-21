@@ -1,4 +1,4 @@
-import React, { useContext, useState, useEffect, useCallback } from "react"
+import React, { useContext, useState, useEffect } from "react"
 import Card from "react-bootstrap/Card"
 import { Col } from "react-bootstrap"
 import { FlowResultsContext } from "../context/flowResultsContext"

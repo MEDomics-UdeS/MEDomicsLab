@@ -4,7 +4,7 @@ This is the server side of the MEDomicsLab project. It is built using Flask, a P
 
 [Vidéo d'introduction](https://bit.ly/3W66yNO)
 
-## Setup - developemment
+## Setup - development
 
 ### 1. Installation of [Anaconda](https://www.anaconda.com/products/distribution)
 
@@ -22,7 +22,7 @@ pip install -r flask_server/requirements.txt
 
 ```
 
-### 3. Additionnal setup (developement)
+### 3. Additionnal setup (development)
 
 You must replace the content of this file: path2condaenv_toDeleteInProd.txt located at the root of the project.
 You should place the absolute path that explicit wich interpreter to use. Following the precedent step, you have to find where the python.exe of your newly created environnement is located and copy it into the file.

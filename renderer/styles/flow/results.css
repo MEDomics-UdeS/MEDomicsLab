@@ -26,10 +26,6 @@
   opacity: 0;
 }
 
-/* .p-scrollpanel::-webkit-scrollbar {
-  display: none;
-} */
-
 .col-group-text-center div {
   text-align: center;
   justify-content: center;

@@ -3,6 +3,15 @@ import { ErrorRequestContext } from "./context/errorRequestContext"
 import { Dialog } from "primereact/dialog"
 import { Button } from "primereact/button"
 
+/**
+ * 
+ * @returns {JSX.Element} 
+ * This component is used to display the error dialog when an error occurs during the execution of the flow
+ * 
+ * To use: 
+ * 1. Import the ErrorRequestContext in the component
+ * 2. Use the context member setError to set the error
+ */
 const ErrorRequestDialog = () => {
   const { error, showError, setShowError } = useContext(ErrorRequestContext) // used to get the flow infos
 

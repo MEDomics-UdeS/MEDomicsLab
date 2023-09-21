@@ -1,7 +1,6 @@
 import React, { useState, useCallback, useContext } from "react"
 import { Form, Row, Col, Button, Card } from "react-bootstrap"
-import { toast } from "react-toastify"
-import { axiosPostJson, requestJson } from "../../../../utilities/requests"
+import { requestJson } from "../../../../utilities/requests"
 import { WorkspaceContext } from "../../../workspace/workspaceContext"
 import { ErrorRequestContext } from "../../../flow/context/errorRequestContext"
 
@@ -69,9 +68,9 @@ const InputForm = ({ nodeForm, changeNodeForm, enableView }) => {
       // Check if the filename is not empty
       if (selectedFile && selectedFile !== "") {
         // Create a new form with the path to the file to upload
-        //const formData = new FormData();
         let formData = { file: selectedFile, type: fileType }
 
+        // POST request to /extraction/upload for current node by sending form data of node
         requestJson(port, "/extraction/upload", formData, (response) => {
           if (response.error) {
             setError(response.error)

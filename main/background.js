@@ -1,4 +1,4 @@
-import { app, protocol, BrowserWindow, ipcMain, Menu, dialog, session } from "electron"
+import { app, ipcMain, Menu, dialog } from "electron"
 import axios from "axios"
 import serve from "electron-serve"
 import { createWindow } from "./helpers"
