@@ -7,9 +7,12 @@ from utils.server_utils import get_json_from_request, get_response_from_error
 import os
 from pathlib import Path
 
-MEDomics = str(Path(os.path.dirname(os.path.abspath(__file__))).parent.parent)
-print(SUBMODULE_DIR)
-sys.path.append(SUBMODULE_DIR)
+MEDOMICS_WS = str(Path(os.path.dirname(os.path.abspath(__file__))).parent.parent)
+print(MEDOMICS_WS)
+cwd = os.getcwd()
+isFrontSlash = cwd.find("/")
+if os.getcwd().find("/") == -1:
+    MEDOMICS_WS = MEDOMICS_WS.replace("/", "\\")
 
 # blueprint definition
 app_learning = Blueprint('app_learning', __name__, template_folder='templates', static_folder='static')
