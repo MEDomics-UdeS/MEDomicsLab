@@ -199,10 +199,14 @@ const SidebarDirectoryTreeControlled = ({ setExternalDBClick }) => {
   const onDBClickItem = (event, item) => {
     setDbClickedItem(item)
     console.log("DBCLICKED", event, item)
-    if (setExternalDBClick) {
-      setExternalDBClick(item)
-    }
   }
+
+  /**
+   * This useEffect hook sets the external double click item when the double click item changes.
+   */
+  useEffect(() => {
+    if (setExternalDBClick) setExternalDBClick(dbClickedItem)
+  }, [dbClickedItem])
 
   /**
    * This function displays the context menu.
