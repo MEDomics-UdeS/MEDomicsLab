@@ -3,7 +3,7 @@ import { DataContext } from "../../workspace/dataContext"
 import { ListBox } from "primereact/listbox"
 import DataTableFromContext from "./dataTableFromContext"
 import { Tab, Tabs } from "react-bootstrap"
-
+import { ScrollPanel } from "primereact/scrollpanel"
 /**
  * @description - This component is the dataset selector component that will show the datasets available in the workspace
  * @returns the dataset selector component
@@ -76,8 +76,10 @@ const DatasetSelector = ({ multiSelect }) => {
             tabMenuItems.map((item, index) => {
               if (selectedDatasets[index] !== undefined) {
                 return (
-                  <Tab title={selectedDatasets[index].name} key={selectedDatasets[index].getUUID()} eventKey={selectedDatasets[index].getUUID()}>
+                  <Tab style={{ height: "100%" }} title={selectedDatasets[index].name} key={selectedDatasets[index].getUUID()} eventKey={selectedDatasets[index].getUUID()}>
+                    {/* <ScrollPanel className="card"> */}
                     <DataTableFromContext MedDataObject={selectedDatasets[index]} tablePropsData={{ size: "small", scrollable: true }} />
+                    {/* </ScrollPanel> */}
                   </Tab>
                 )
               } else {
