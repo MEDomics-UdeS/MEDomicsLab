@@ -1,11 +1,11 @@
 import React, { useEffect, useCallback, useState, useContext } from "react"
 import { Accordion, AccordionTab } from "primereact/accordion"
 import { deepCopy } from "../../../utilities/staticFunctions"
-import DataParamResults from "./node/dataParamResults"
-import ModelsResults from "./node/modelsResults"
+import DataParamResults from "../../learning/results/node/dataParamResults"
+import ModelsResults from "../../learning/results/node/modelsResults"
 import { SelectButton } from "primereact/selectbutton"
 
-import { FlowResultsContext } from "../../flow/context/flowResultsContext"
+import { FlowResultsContext } from "../context/flowResultsContext"
 
 const PipelineResult = ({ pipeline, selectionMode, flowContent }) => {
   const [body, setBody] = useState(<></>)

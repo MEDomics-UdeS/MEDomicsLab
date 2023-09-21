@@ -9,7 +9,7 @@ import {
 } from "./context/flowResultsContext"
 import { FlowFunctionsProvider } from "./context/flowFunctionsContext"
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels"
-import ResultsPane from "../learning/results/resultsPane"
+import ResultsPane from "./results/resultsPane"
 
 /**
  *
