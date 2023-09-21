@@ -147,8 +147,6 @@ dmypy.json
 /learning-tests-scene
 flask_server/extraction/MEDimageApp/tmp/*
 /flask_server/local_dir/*
-# !flask_server/local_dir/.gitkeep
-/path2condaenv_toDeleteInProd.txt
 path2condaenv_toDeleteInProd.txt
 
 test/extraction/IBSI/data_sets/*
