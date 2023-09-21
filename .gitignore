@@ -155,4 +155,4 @@ test/extraction/IBSI/data_sets/*
 test/extraction/IBSI/dicom/*
 package-lock.json
 
-!*.gitkeep
+!.gitkeep
