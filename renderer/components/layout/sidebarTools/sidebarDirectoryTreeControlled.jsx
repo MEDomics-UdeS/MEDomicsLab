@@ -14,7 +14,7 @@ import renderItem from "./directoryTree/renderItem"
  * @param {Object} props - Props passed from parent component
  * @returns a sidebar item component that can be a file or a folder and that is rendered recursively
  */
-const SidebarDirectoryTreeControlled = () => {
+const SidebarDirectoryTreeControlled = ({ setExternalDBClick }) => {
   const environment = useRef() // This ref is used to get the environment of the directory tree
   const tree = useRef() // This ref is used to get the directory tree
   const MENU_ID = "tree-2" // This is the id of the context menu
@@ -27,6 +27,7 @@ const SidebarDirectoryTreeControlled = () => {
   const [expandedItems, setExpandedItems] = useState([]) // This state is used to keep track of the items that are currently expanded
   const [selectedItems, setSelectedItems] = useState([]) // This state is used to keep track of the items that are currently selected
   const [copiedItems, setCopiedItems] = useState([]) // This state is used to keep track of the items that have been copied
+  const [dbClickedItem, setDbClickedItem] = useState([]) // This state is used to keep track of the items that have been copied
   // eslint-disable-next-line no-unused-vars
   const [cutItems, setCutItems] = useState([]) // This state is used to keep track of the items that have been cut
   const [isHovering, setIsHovering] = useState(false) // This state is used to know if the mouse is hovering the directory tree
@@ -191,6 +192,26 @@ const SidebarDirectoryTreeControlled = () => {
     }
   }
 
+  /**
+   * This function handles the double click on an item in the directory tree.
+   * @param {Object} event - The double click event
+   * @param {Object} item - The item that was double clicked
+   * @returns {void}
+   */
+  const onDBClickItem = (event, item) => {
+    setDbClickedItem(item)
+    console.log("DBCLICKED", event, item)
+    if (setExternalDBClick) {
+      setExternalDBClick(item)
+    }
+  }
+
+  /**
+   * This function displays the context menu.
+   * @param {Object} e - The event
+   * @param {Object} data - The data object
+   * @returns {void}
+   */
   function displayMenu(e, data) {
     show({ event: e, props: data })
   }
@@ -429,7 +450,8 @@ const SidebarDirectoryTreeControlled = () => {
                   show,
                   MENU_ID,
                   displayMenu,
-                  isHovering
+                  isHovering,
+                  onDBClickItem
                 })
               }
               getItemTitle={(item) => item.data}

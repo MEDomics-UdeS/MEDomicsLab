@@ -1,8 +1,8 @@
 import React, { useContext, useState, useEffect } from "react"
 import { DataContext } from "../../workspace/dataContext"
 import { ListBox } from "primereact/listbox"
-import DataTableWrapper from "../../dataTypeVisualisation/dataTableWrapper"
 import DataTableFromContext from "./dataTableFromContext"
+import { Tab, Tabs } from "react-bootstrap"
 
 /**
  * @description - This component is the dataset selector component that will show the datasets available in the workspace
@@ -10,10 +10,12 @@ import DataTableFromContext from "./dataTableFromContext"
  * @param {Object} props - The props object
  *  @param {Object} props.keepOnlyFolder - The only parent folder to keep in the dataset selector
  */
-const DatasetSelector = (props) => {
+const DatasetSelector = ({ multiSelect }) => {
   const { globalData } = useContext(DataContext) // We get the global data from the context to retrieve the directory tree of the workspace, thus retrieving the data files
   const [datasetList, setDatasetList] = useState([])
-  const [selectedDatasets, setSelectedDatasets] = useState(null)
+  const [selectedDatasets, setSelectedDatasets] = useState([])
+  const [activeKey, setActiveKey] = useState("0") // activeKey is the name of the page
+  const [tabMenuItems, setTabMenuItems] = useState([{ label: "Dataset", icon: "pi pi-fw pi-file" }])
 
   function generateDatasetListFromDataContext(dataContext) {
     let keys = Object.keys(dataContext)
@@ -32,26 +34,58 @@ const DatasetSelector = (props) => {
     }
   }, [globalData])
 
-  function handleDatasetSelect(event) {
-    console.log("Dataset selected", event.target.value)
-  }
+  useEffect(() => {
+    let tabMenuJSX = []
+    if (selectedDatasets !== null) {
+      if (selectedDatasets.length > 0) {
+        selectedDatasets.forEach((dataset) => {
+          tabMenuJSX.push({ label: dataset.name, icon: "pi pi-fw pi-file" })
+        })
+      }
+    }
+    setTabMenuItems(tabMenuJSX)
+  }, [selectedDatasets])
 
+  useEffect(() => {
+    console.log("tabMenuItems", tabMenuItems)
+  }, [tabMenuItems])
   return (
     <>
       <h1>Dataset Selector</h1>
-      <DataTableFromContext MedDataObject={selectedDatasets} />
-      <div className="dataset-selector card flex justify-content-center">
+      <>
         <ListBox
+          multiple={multiSelect}
           value={selectedDatasets}
           onChange={(e) => {
             console.log(e.value)
+            if (e.value.includes(activeKey) == false) {
+              if (e.value.length > 0) {
+                setActiveKey(e.value[0].getUUID())
+              } else {
+                setActiveKey("0")
+              }
+            }
             setSelectedDatasets(e.value)
           }}
           options={datasetList}
           optionLabel="name"
           className="listbox-multiple w-full md:w-14rem"
         />
-      </div>
+        <Tabs activeKey={activeKey} defaultActiveKey={"0"} id="dataTable-selector-tabs" className="mb-3" onSelect={(k) => setActiveKey(k)}>
+          {selectedDatasets.length > 0 &&
+            tabMenuItems.map((item, index) => {
+              if (selectedDatasets[index] !== undefined) {
+                return (
+                  <Tab title={selectedDatasets[index].name} key={selectedDatasets[index].getUUID()} eventKey={selectedDatasets[index].getUUID()}>
+                    <DataTableFromContext MedDataObject={selectedDatasets[index]} tablePropsData={{ size: "small", scrollable: true }} />
+                  </Tab>
+                )
+              } else {
+                return <></>
+              }
+            })}
+        </Tabs>
+      </>
     </>
   )
 }

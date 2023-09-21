@@ -1,6 +1,5 @@
-import React, { useContext, useState, useEffect, use } from "react"
+import React, { useContext, useState, useEffect } from "react"
 import { DataContext } from "../../workspace/dataContext"
-import { ListBox } from "primereact/listbox"
 import DataTableWrapper from "../../dataTypeVisualisation/dataTableWrapper"
 import * as dfd from "danfojs"
 import { toast } from "react-toastify"
@@ -13,9 +12,9 @@ import Papa from "papaparse"
  * @param {Object} props - The props object
  *  @param {Object} props.keepOnlyFolder - The only parent folder to keep in the dataset selector
  */
-const DataTableFromContext = (MedDataObject) => {
+const DataTableFromContext = (MedDataObject, tablePropsData) => {
   console.log("MedDataObject", MedDataObject)
-  const { globalData } = useContext(DataContext) // We get the global data from the context to retrieve the directory tree of the workspace, thus retrieving the data files
+  const { globalData, setGlobalData } = useContext(DataContext) // We get the global data from the context to retrieve the directory tree of the workspace, thus retrieving the data files
   let datasetObject = MedDataObject["MedDataObject"]
   const [isLoaded, setIsLoaded] = useState(MedDataObject.isLoaded ? MedDataObject.isLoaded : false)
 
@@ -24,7 +23,7 @@ const DataTableFromContext = (MedDataObject) => {
   useEffect(() => {
     if (datasetObject !== undefined && datasetObject !== null) {
       if (isLoaded) {
-        setDataset(datasetObject.data)
+        console.log("was already loaded")
       } else {
         if (globalData !== undefined) {
           let extension = datasetObject.extension
@@ -36,7 +35,6 @@ const DataTableFromContext = (MedDataObject) => {
                 console.error("Error reading file:", err)
               } else {
                 console.log("File read successfully")
-                console.log("data", data)
                 let array = []
                 Papa.parse(data, {
                   step: function (row) {
@@ -45,7 +43,13 @@ const DataTableFromContext = (MedDataObject) => {
                 })
                 let columns = array.shift()
                 let df = new dfd.DataFrame(array, { columns: columns })
-                setDataset(df)
+                let dfJSON = dfd.toJSON(df)
+                setDataset(dfJSON)
+                let globalDataCopy = { ...globalData }
+                globalDataCopy[datasetObject.getUUID()].data = dfJSON
+                globalDataCopy[datasetObject.getUUID()].isLoaded = true
+                setGlobalData(globalDataCopy)
+                setIsLoaded(true)
               }
             })
           } else if (extension == "xlsx") {
@@ -74,10 +78,10 @@ const DataTableFromContext = (MedDataObject) => {
 
   return (
     <>
-      {console.log("dataset", dataset)}
+      {/* {console.log("dataset", dataset)} */}
       {dataset && (
-        <div className="container">
-          <DataTableWrapper data={dfd.toJSON(dataset)} tablePropsData={{ scrollable: true }} />
+        <div className="card">
+          <DataTableWrapper data={dataset} tablePropsData={tablePropsData} />
         </div>
       )}
     </>

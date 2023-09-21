@@ -34,9 +34,7 @@ const DataTableWrapper = ({ data, tablePropsData, tablePropsColumn }) => {
     if (data.length > 0) {
       let keys = Object.keys(data[0])
       columns = keys.map((key) => {
-        return (
-          <Column key={key} field={key} header={key} {...tablePropsColumn} />
-        )
+        return <Column key={key} field={key} header={key} {...tablePropsColumn} />
       })
     }
     return columns
@@ -44,7 +42,7 @@ const DataTableWrapper = ({ data, tablePropsData, tablePropsColumn }) => {
 
   return (
     <>
-      <DataTable value={rows} {...tablePropsData}>
+      <DataTable value={rows} {...tablePropsData} size="small">
         {header}
       </DataTable>
     </>
