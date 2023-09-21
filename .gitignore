@@ -153,6 +153,6 @@ path2condaenv_toDeleteInProd.txt
 
 test/extraction/IBSI/data_sets/*
 test/extraction/IBSI/dicom/*
+package-lock.json
 
 !*.gitkeep
-package-lock.json

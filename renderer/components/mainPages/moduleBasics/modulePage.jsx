@@ -8,18 +8,13 @@ import ErrorRequestDialog from "../../flow/errorRequestDialog"
 /**
  *
  * @param {String} pageId Id of the page for multi-tabs support
- * @param {String} workflowType type of the workflow (e.g. "learning", "extraction", "optimize") this is used to load the correct sidebar
- * @param {JSX.Element} workflowJSX JSX element of the workflow
+ * @param {String} configPath Path to the config file
+ * @param {ReactNode} children Children of the component
  *
  * @description This component is the base for all the flow pages. It contains the sidebar, the workflow and the backdrop.
  *
  */
-const ModulePageWithProvider = ({
-  children,
-  pageId,
-  configPath = "",
-  tempPath
-}) => {
+const ModulePageWithProvider = ({ children, pageId, configPath = "" }) => {
   // here is the use of the context to update the flowInfos
   const { updatePageInfos } = useContext(PageInfosContext)
   const [config, setConfig] = useState({})
@@ -37,8 +32,7 @@ const ModulePageWithProvider = ({
       id: pageId,
       configPath: configPath,
       config: config,
-      setConfig: setConfig,
-      savingPath: tempPath
+      setConfig: setConfig
     })
   }, [pageId, config])
 
@@ -54,7 +48,10 @@ const ModulePageWithProvider = ({
 
 /**
  *
- * @param {*} props all the props of the FlowPageBaseWithFlowInfos component
+ * @param {String} pageId Id of the page for multi-tabs support
+ * @param {String} configPath Path to the config file
+ * @param {ReactNode} children Children of the component
+ *
  * @description This component is composed of the FlowPageBaseWithFlowInfos component and the FlowInfosProvider component.
  * It is also the default export of this file. see components/learning/learningPage.jsx for an example of use.
  */

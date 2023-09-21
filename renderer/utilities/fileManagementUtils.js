@@ -33,8 +33,8 @@ const downloadJson = (exportObj, exportName) => {
 const writeJson = (exportObj, path, name) => {
   const cwd = process.cwd()
   let cwdSlashType = cwd.includes("/") ? "/" : "\\"
-  console.log("writing json file: " + path + cwdSlashType + name + ".json")
-  fs.writeFile(path + cwdSlashType + name + ".json", JSON.stringify(exportObj, null, 2), function (err) {
+  console.log("writing json file: " + path + cwdSlashType + name + ".mlflow")
+  fs.writeFile(path + cwdSlashType + name + ".mlflow", JSON.stringify(exportObj, null, 2), function (err) {
     if (err) {
       return console.log(err)
     }
