@@ -6,11 +6,10 @@ import React, {
   useContext
 } from "react"
 import { toast } from "react-toastify"
-import TreeMenu from "react-simple-tree-menu"
 
 // Import utilities
 import { loadJsonSync, downloadJson } from "../../utilities/fileManagementUtils"
-import { axiosPostJson, requestJson } from "../../utilities/requests"
+import { requestJson } from "../../utilities/requests"
 
 // Workflow imports
 import { useNodesState, useEdgesState, useReactFlow } from "reactflow"
@@ -30,7 +29,6 @@ import ExtractionNode from "./nodesTypes/extractionNode"
 import nodesParams from "../../public/setupVariables/allNodesParams"
 
 // Import buttons
-import ResultsButton from "./buttonsTypes/resultsButton"
 import BtnDiv from "../flow/btnDiv"
 
 // Static functions used in the workflow
@@ -743,16 +741,6 @@ const FlowCanvas = ({ workflowType, setWorkflowType }) => {
     changeSubFlow("MAIN")
   }, [])
 
-  /**
-   * @param {Object} info info about the node clicked
-   *
-   * @description
-   * This function is called when the user clicks on a tree item
-   */
-  const onTreeItemClick = (info) => {
-    console.log("tree item clicked: ", info)
-  }
-
   // TODO : take out of mandatory in flow/workflowBase.js
   const onNodeDrag = useCallback(
     (event, node) => {
@@ -818,20 +806,6 @@ const FlowCanvas = ({ workflowType, setWorkflowType }) => {
         // represents the visual of the workflow
         ui={
           <>
-            {/* Components in the upper left corner of the workflow */}
-            <div className="btn-panel-top-corner-left">
-              {workflowType == "extraction" && (
-                <>
-                  <TreeMenu
-                    data={treeData}
-                    onClickItem={onTreeItemClick}
-                    debounceTime={125}
-                    hasSearch={false}
-                  />
-                </>
-              )}
-            </div>
-
             {/* Components in the upper right corner of the workflow */}
             <div className="btn-panel-top-corner-right">
               {workflowType == "extraction" ? (
