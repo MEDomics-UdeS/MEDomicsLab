@@ -3,6 +3,11 @@ import Parameters from "../utilities/parameters"
 import DataTablePath from "../utilities/dataTablePath"
 import { Accordion, AccordionTab } from "primereact/accordion"
 
+/**
+ * 
+ * @param {Object} selectedResults The selected results
+ * @returns {JSX.Element} The DataParamResults component
+ */
 const DataParamResults = ({ selectedResults }) => {
   return (
     <>

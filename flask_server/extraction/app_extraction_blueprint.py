@@ -35,14 +35,9 @@ pp = pprint.PrettyPrinter(indent=4, compact=True, width=40,
 
 ## Importation du submodule MEDimage
 import submodules.MEDimage.MEDimage as MEDimage
-# from submodules.MEDimage import MEDimage
-# import submodules.MEDimage as MEDimage
-# from flask_server.submodules.MEDimage import MEDimage
-# import flask_server.submodules.MEDimage.MEDimage as MEDimage
-
-# from submodules.MEDimage.MEDimage import MEDscan
 import extraction.MEDimageApp.utils as utils
 import ray
+
 # Global variables
 cwd = os.getcwd()
 isFrontSlash = cwd.find("/")

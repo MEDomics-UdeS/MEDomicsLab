@@ -1,6 +1,10 @@
 import React from "react"
 import LearningPage from "./learning"
 
+/**
+ * 
+ * @returns {JSX.Element} The ResultsPage component
+ */
 const ResultsPage = () => {
   return (
     <>

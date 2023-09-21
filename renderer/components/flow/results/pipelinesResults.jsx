@@ -7,6 +7,16 @@ import { SelectButton } from "primereact/selectbutton"
 
 import { FlowResultsContext } from "../context/flowResultsContext"
 
+/**
+ * 
+ * @param {Array} pipeline Pipeline to display
+ * @param {string} selectionMode "Compare Mode" or "Normal Mode"
+ * @param {Object} flowContent Content of the flow
+ * @returns {JSX.Element} A PipelineResult component
+ * 
+ * @description
+ * This component takes a pipeline and displays the results related to the selected node.
+ */
 const PipelineResult = ({ pipeline, selectionMode, flowContent }) => {
   const [body, setBody] = useState(<></>)
   const { flowResults, selectedResultsId } = useContext(FlowResultsContext)
@@ -30,6 +40,14 @@ const PipelineResult = ({ pipeline, selectionMode, flowContent }) => {
     }
   }, [pipeline, selectedId])
 
+  /**
+   * @returns {JSX.Element} The body of the accordion tab
+   * 
+   * @description
+   * This function is used to create the body of the accordion tab.
+   * 
+   * it is called when the pipeline, the selectedId, the flowContent or the flowResults change.
+   */
   const createBody = useCallback(() => {
     /**
      *
@@ -86,8 +104,17 @@ const PipelineResult = ({ pipeline, selectionMode, flowContent }) => {
   return <>{body}</>
 }
 
+/**
+ * 
+ * @param {Array[Array]} pipelines Pipelines to display
+ * @param {string} selectionMode "Compare Mode" or "Normal Mode"
+ * @param {Object} flowContent Content of the flow
+ * @returns {JSX.Element} A PipelinesResults component
+ * 
+ * @description
+ * This component takes all the selected pipelines and displays them in an accordion.
+ */
 const PipelinesResults = ({ pipelines, selectionMode, flowContent }) => {
-  // const { flowContent } = useContext(FlowInfosContext)
   const { selectedResultsId, setSelectedResultsId } =
     useContext(FlowResultsContext)
   const [accordionActiveIndex, setAccordionActiveIndex] = useState([])
@@ -101,6 +128,12 @@ const PipelinesResults = ({ pipelines, selectionMode, flowContent }) => {
     console.log("accordionActiveIndex", accordionActiveIndex)
   }, [accordionActiveIndex])
 
+  /**
+   * @returns {JSX.Element} The title of the accordion tab
+   * 
+   * @description
+   * This function is used to create the title of the accordion tab dynamically and with buttons control.
+   */
   const createTitleFromPipe = useCallback(
     (pipeline) => {
       let pipelineId = pipeline.join("-")

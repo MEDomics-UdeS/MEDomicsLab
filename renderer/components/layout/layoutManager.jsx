@@ -1,9 +1,7 @@
 import React, { useEffect, useState, useCallback, useRef } from "react"
-
 import { PanelGroup, Panel, PanelResizeHandle } from "react-resizable-panels"
 import resizable from "../../styles/resizable.module.css"
 import IconSidebar from "../layout/iconSidebar"
-// import WorkspaceSidebar from '../layout/WorkspaceSidebar';
 import Home from "../mainPages/home"
 import Input from "../mainPages/input"
 import Learning from "../mainPages/learning"
@@ -112,17 +110,7 @@ const LayoutManager = (props) => {
           onSidebarItemSelect={handleSidebarItemSelect}
           activeSidebarItem={activeSidebarItem}
         />
-        <div
-          // style={{
-          //   flexGrow: 1,
-          //   width: "100%",
-          //   position: "absolute",
-          //   left: "55px",
-          //   height: "100%",
-          //   paddingRight: "0.5rem",
-          // }}
-          className="main-app-container"
-        >
+        <div className="main-app-container">
           <PanelGroup autoSaveId="test" direction="horizontal">
             <Panel
               className={resizable.Panel}

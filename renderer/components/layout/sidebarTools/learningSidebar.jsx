@@ -4,8 +4,6 @@ import { WorkspaceContext } from "../../workspace/workspaceContext"
 import { WorkspaceDirectoryTree } from "./workspaceDirectoryTree"
 import * as Icon from "react-bootstrap-icons"
 import { InputText } from "primereact/inputtext"
-import { createFolder } from "../../../utilities/fileManagementUtils"
-import { SidebarDirectoryTreeControlled } from "./sidebarDirectoryTreeControlled"
 import { writeJson, loadJsonPath } from "../../../utilities/fileManagementUtils"
 import { OverlayPanel } from "primereact/overlaypanel"
 
@@ -48,7 +46,6 @@ const LearningSidebar = () => {
   const createExperiment = (e) => {
     console.log("Create Scene")
     console.log(`Scene Name: ${sceneName}`) // We log the experiment name when the create button is clicked
-    // setShowDialog(false)
     createSceneRef.current.toggle(e)
     createEmptyScene(workspace.workingDirectory.children[1].path, sceneName)
   }

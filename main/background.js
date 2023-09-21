@@ -1,11 +1,8 @@
 import {
   app,
-  protocol,
-  BrowserWindow,
   ipcMain,
   Menu,
   dialog,
-  session
 } from "electron"
 import axios from "axios"
 import serve from "electron-serve"
@@ -254,19 +251,7 @@ const reactDevToolsPath = path.join(
     mainWindow.webContents.openDevTools()
   }
 })()
-// .then(async () => {
-//   await session.defaultSession.loadExtension(reactDevToolsPath)
-// })
 
-// .then(async () => {
-//   await session.defaultSession.loadExtension(
-//     path.join(__dirname, "react-devtools"),
-//     // allowFileAccess is required to load the devtools extension on file:// URLs.
-//     { allowFileAccess: true }
-//   )
-//   // Note that in order to use the React DevTools extension, you'll need to
-//   // download and unzip a copy of the extension.
-// })
 
 /**
  * @description Set the working directory

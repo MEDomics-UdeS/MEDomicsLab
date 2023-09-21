@@ -1,7 +1,6 @@
 import React, { useContext } from "react"
 import Button from "react-bootstrap/Button"
-import { toast } from "react-toastify"
-import { axiosPostJson, requestJson } from "../../../utilities/requests"
+import { requestJson } from "../../../utilities/requests"
 import { WorkspaceContext } from "../../workspace/workspaceContext"
 import { ErrorRequestContext } from "../../flow/context/errorRequestContext"
 

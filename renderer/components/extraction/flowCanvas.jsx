@@ -595,6 +595,7 @@ const FlowCanvas = ({ workflowType, setWorkflowType }) => {
     console.log("Flow dictionnary sent to back end is : ")
     console.log(newFlow)
 
+    // Post request to extraction/run-all for current workflow
     requestJson(port, "/extraction/run-all", newFlow, (response) => {
       if (response.error) {
         setError(response.error)
