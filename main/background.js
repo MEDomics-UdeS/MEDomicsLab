@@ -5,13 +5,12 @@ import { createWindow } from "./helpers"
 import { installExtension, REACT_DEVELOPER_TOOLS } from "electron-extension-installer"
 const fs = require("fs")
 var path = require("path")
-const os = require("node:os")
 const dirTree = require("directory-tree")
 var serverProcess = null
 var flaskPort = 5000
 var hasBeenSet = false
 
-const RUN_SERVER_WITH_APP = false
+const RUN_SERVER_WITH_APP = true
 
 const isProd = process.env.NODE_ENV === "production"
 
