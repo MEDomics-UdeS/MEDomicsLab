@@ -4,7 +4,7 @@ import { WorkspaceContext } from "../../workspace/workspaceContext"
 import * as Icon from "react-bootstrap-icons"
 import { InputText } from "primereact/inputtext"
 import { SidebarDirectoryTreeControlled } from "./sidebarDirectoryTreeControlled"
-import { writeJson, loadJsonPath } from "../../../utilities/fileManagementUtils"
+import { writeFile, loadJsonPath } from "../../../utilities/fileManagementUtils"
 import { OverlayPanel } from "primereact/overlaypanel"
 import { Accordion } from "react-bootstrap"
 import MedDataObject from "../../workspace/medDataObject"
@@ -23,6 +23,7 @@ const LearningSidebar = () => {
   const [showErrorMessage, setShowErrorMessage] = useState(false) // We initialize the create experiment error message state to an empty string
   const createSceneRef = useRef(null)
   const [selectedItems, setSelectedItems] = useState([]) // We initialize the selected items state to an empty array
+  const [dbSelectedItem, setDbSelectedItem] = useState(null) // We initialize the selected item state to an empty string
   const { globalData } = useContext(DataContext)
 
   useEffect(() => {
@@ -62,19 +63,19 @@ const LearningSidebar = () => {
       } else {
         path = globalData[globalData[selectedItems[0]].parentID].path
       }
-      writeJson(emptyScene, path, name)
+      writeFile(emptyScene, path, name)
       MedDataObject.updateWorkspaceDataObject()
     } else {
       MedDataObject.createEmptyFolderFSsync("experiment", path).then((folderPath) => {
-        writeJson(emptyScene, folderPath, name)
+        writeFile(emptyScene, folderPath, name, "mlflow")
         MedDataObject.updateWorkspaceDataObject()
       })
     }
   }
 
   useEffect(() => {
-    console.log(selectedItems)
-  }, [selectedItems])
+    console.log(dbSelectedItem)
+  }, [dbSelectedItem])
 
   const handleClickCreateScene = (e) => {
     console.log("Create Scene")
@@ -115,7 +116,7 @@ const LearningSidebar = () => {
               </Stack>
             </Accordion.Body>
           </Accordion.Item>
-          <SidebarDirectoryTreeControlled setExternalSelectedItems={setSelectedItems} />
+          <SidebarDirectoryTreeControlled setExternalSelectedItems={setSelectedItems} setExternalDBClick={setDbSelectedItem} />
         </Accordion>
       </Stack>
 

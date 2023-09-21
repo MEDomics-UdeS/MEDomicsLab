@@ -26,15 +26,17 @@ const downloadJson = (exportObj, exportName) => {
  * @param {Object} exportObj object to be exported
  * @param {String} path path to the folder where the file will be saved
  * @param {String} name name of the exported file
+ * @param {String} extension extension of the exported file (json or even custom (e.g. abc)))
  *
  * @description
- * This function takes an object, a path and a name and saves the object as a json file
+ * This function takes an object, a path and a name and saves the object as a json file with a custom extension
  */
-const writeJson = (exportObj, path, name) => {
+const writeFile = (exportObj, path, name, extension) => {
+  extension ? (extension = extension.replace(".", "")).toLowerCase() : (extension = "json")
   const cwd = process.cwd()
   let cwdSlashType = cwd.includes("/") ? "/" : "\\"
-  console.log("writing json file: " + path + cwdSlashType + name + ".mlflow")
-  fs.writeFile(path + cwdSlashType + name + ".mlflow", JSON.stringify(exportObj, null, 2), function (err) {
+  console.log("writing json file: " + path + cwdSlashType + name + "." + extension)
+  fs.writeFile(path + cwdSlashType + name + "." + extension, JSON.stringify(exportObj, null, 2), function (err) {
     if (err) {
       return console.log(err)
     }
@@ -171,4 +173,4 @@ function createFolder(path_, folderName) {
   })
 }
 
-export { downloadJson, writeJson, loadJson, loadJsonSync, loadJsonPath, loadCSVPath, createFolder }
+export { downloadJson, writeFile, loadJson, loadJsonSync, loadJsonPath, loadCSVPath, createFolder }
