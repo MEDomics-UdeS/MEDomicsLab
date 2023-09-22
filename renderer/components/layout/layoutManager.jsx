@@ -5,9 +5,9 @@ import IconSidebar from "../layout/iconSidebar"
 import Home from "../mainPages/home"
 import Input from "../mainPages/input"
 import Learning from "../mainPages/learning"
-import ExtractionImagePage from "../mainPages/extraction_images";
-import ExtractionTextPage from "../mainPages/extraction_text";
-import ExtractionTSPage from "../mainPages/extraction_ts";
+import ExtractionImagePage from "../mainPages/extraction_images"
+import ExtractionTextPage from "../mainPages/extraction_text"
+import ExtractionTSPage from "../mainPages/extraction_ts"
 import DiscoveryPage from "../mainPages/discovery"
 import ResultsPage from "../mainPages/results"
 import ApplicationPage from "../mainPages/application"
@@ -58,15 +58,15 @@ const LayoutManager = (props) => {
       case "home":
         return <Home />
       case "input":
-        return <Input />
+        return <Input pageId="42" />
       case "learning":
         return <Learning pageId="123" />
-	  case "extraction_images":
-		return <ExtractionImagePage pageId='1234'/>;
-	  case "extraction_text":
-		return <ExtractionTextPage/>;
-	  case "extraction_ts":
-	    return <ExtractionTSPage/>;
+      case "extraction_images":
+        return <ExtractionImagePage pageId="1234" />
+      case "extraction_text":
+        return <ExtractionTextPage />
+      case "extraction_ts":
+        return <ExtractionTSPage />
       case "discovery":
         return <DiscoveryPage />
       case "results":
@@ -95,36 +95,18 @@ const LayoutManager = (props) => {
         return <LearningSidebar />
 
       default:
-        return (
-          <h5 style={{ color: "#d3d3d3", marginLeft: "0.5rem" }}>
-            {activeSidebarItem}
-          </h5>
-        )
+        return <h5 style={{ color: "#d3d3d3", marginLeft: "0.5rem" }}>{activeSidebarItem}</h5>
     }
   }
 
   return (
     <>
       <div style={{ height: "100%", display: "flex", width: "100%" }}>
-        <IconSidebar
-          onSidebarItemSelect={handleSidebarItemSelect}
-          activeSidebarItem={activeSidebarItem}
-        />
+        <IconSidebar onSidebarItemSelect={handleSidebarItemSelect} activeSidebarItem={activeSidebarItem} />
         <div className="main-app-container">
           <PanelGroup autoSaveId="test" direction="horizontal">
-            <Panel
-              className={resizable.Panel}
-              collapsible={true}
-              minSize={20}
-              maxSize={80}
-              defaultSize={20}
-              order={1}
-              ref={sidebarRef}
-            >
-              <div
-                className={resizable.PanelContent}
-                style={{ backgroundColor: "rgb(0 0 0 / 80%)" }}
-              >
+            <Panel className={resizable.Panel} collapsible={true} minSize={20} maxSize={80} defaultSize={20} order={1} ref={sidebarRef}>
+              <div className={resizable.PanelContent} style={{ backgroundColor: "rgb(0 0 0 / 80%)" }}>
                 {renderSidebarComponent()}
               </div>
             </Panel>
@@ -132,8 +114,7 @@ const LayoutManager = (props) => {
               <div className={resizable.ResizeHandleInner} />
             </PanelResizeHandle>
             <Panel className={resizable.Panel} collapsible={true} order={2}>
-              {renderContentComponent({ props })}{" "}
-              {/* Render content component based on activeNavItem state */}
+              {renderContentComponent({ props })} {/* Render content component based on activeNavItem state */}
             </Panel>
           </PanelGroup>
         </div>

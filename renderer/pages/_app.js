@@ -32,6 +32,7 @@ import "../styles/learning/sidebar.css"
 import "../styles/flow/results.css"
 import "react-complex-tree/lib/style-modern.css"
 import "../styles/sidebarTree.css"
+import "../styles/customPrimeReact.css"
 
 import DataContextProvider from "../components/workspace/dataContext"
 import MedDataObject from "../components/workspace/medDataObject"

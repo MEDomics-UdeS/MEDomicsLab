@@ -13,12 +13,7 @@ import { Column } from "primereact/column"
  * @returns {JSX.Element} A JSX element containing the data table
  * @description This component is a wrapper for the primereact datatable. It is used to display data in a table.
  */
-const DataTableWrapper = ({
-  data,
-  tablePropsData,
-  tablePropsColumn,
-  customGetColumnsFromData
-}) => {
+const DataTableWrapper = ({ data, tablePropsData, tablePropsColumn, customGetColumnsFromData }) => {
   const [header, setHeader] = useState([])
   const [rows, setRows] = useState([])
 
@@ -26,9 +21,7 @@ const DataTableWrapper = ({
     console.log("dataTable data refreshed: ", data)
     if (data != undefined) {
       setRows(data)
-      customGetColumnsFromData
-        ? setHeader(customGetColumnsFromData(data))
-        : setHeader(getColumnsFromData(data))
+      customGetColumnsFromData ? setHeader(customGetColumnsFromData(data)) : setHeader(getColumnsFromData(data))
     }
   }, [data])
 
@@ -38,16 +31,14 @@ const DataTableWrapper = ({
    */
   const getColumnsFromData = (data) => {
     if (data.length > 0) {
-      return Object.keys(data[0]).map((key) => (
-        <Column key={key} field={key} header={key} {...tablePropsColumn} />
-      ))
+      return Object.keys(data[0]).map((key) => <Column key={key} field={key} header={key} {...tablePropsColumn} />)
     }
     return <></>
   }
 
   return (
     <>
-      <DataTable value={rows} {...tablePropsData}>
+      <DataTable value={rows} {...tablePropsData} size="small" scrollable height={"100%"}>
         {header}
       </DataTable>
     </>

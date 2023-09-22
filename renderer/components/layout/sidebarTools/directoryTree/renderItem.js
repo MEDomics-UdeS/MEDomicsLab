@@ -80,6 +80,10 @@ const renderItem = ({ item, depth, children, title, context, arrow }, additional
                   console.log("onContextMenu", title)
                   additionalParams.displayMenu(e, item)
                 }}
+                onDoubleClick={(e) => {
+                  console.log("onDoubleClick", title)
+                  additionalParams.onDBClickItem(e, item)
+                }}
               >
                 {item.isFolder && !context.isExpanded && <span>📁</span>}
                 {item.isFolder && context.isExpanded && <span>📂</span>}
