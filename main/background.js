@@ -10,7 +10,7 @@ var serverProcess = null
 var flaskPort = 5000
 var hasBeenSet = false
 
-const RUN_SERVER_WITH_APP = false
+const RUN_SERVER_WITH_APP = true
 
 const isProd = process.env.NODE_ENV === "production"
 

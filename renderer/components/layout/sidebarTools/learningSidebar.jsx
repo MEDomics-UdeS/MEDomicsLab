@@ -67,11 +67,11 @@ const LearningSidebar = () => {
       } else {
         path = globalData[globalData[selectedItems[0]].parentID].path
       }
-      writeFile(emptyScene, path, name)
+      writeFile(emptyScene, path, name, "medml")
       MedDataObject.updateWorkspaceDataObject()
     } else {
       MedDataObject.createEmptyFolderFSsync("experiment", path).then((folderPath) => {
-        writeFile(emptyScene, folderPath, name, "mlflow")
+        writeFile(emptyScene, folderPath, name, "medml")
         MedDataObject.updateWorkspaceDataObject()
       })
     }

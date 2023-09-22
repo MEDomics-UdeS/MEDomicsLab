@@ -1,5 +1,21 @@
 import React from "react"
 import DropzoneComponent from "../../../mainPages/dataComponents/dropzoneComponent"
+import myimage from "../../../../../resources/medomics.svg"
+
+const iconExtension = {
+  folder: (isExpanded) => (isExpanded ? <span>📂</span> : <span>📁</span>),
+  csv: <span>🛢️</span>,
+  json: <span>📑</span>,
+  txt: <span>📃</span>,
+  pdf: <span>📕</span>,
+  medomics: (
+    <span>
+      <img src={myimage} style={{ width: "20px", height: "20px" }} />
+    </span>
+  ),
+  medml: <span>⚛️</span>
+  // 📗📙📘📒📑📈📊🧮🎯💊🧬🔬🧰💾📄🗒️💥
+}
 
 /**
  * @param {string[]} classNames - list of class names
@@ -49,14 +65,7 @@ const renderItem = ({ item, depth, children, title, context, arrow }, additional
                     additionalParams.displayMenu(e, item)
                   }}
                 >
-                  {item.isFolder && !context.isExpanded && <span>📁</span>}
-                  {item.isFolder && context.isExpanded && <span>📂</span>}
-                  {!item.isFolder && item.type == "csv" && <span>🛢️</span>}
-                  {!item.isFolder && item.type == "json" && <span>📗</span>}
-                  {!item.isFolder && item.type == "txt" && <span>📃</span>}
-                  {!item.isFolder && item.type == "pdf" && <span>📕</span>}
-                  {!item.isFolder && item.type == "medomics" && <span>⚛️</span>}
-                  {/* 📙📘📒📑📈 */}
+                  {iconExtension.folder(context.isExpanded)}
                   {title}
                 </InteractiveComponent>
               </div>
@@ -65,7 +74,7 @@ const renderItem = ({ item, depth, children, title, context, arrow }, additional
           </DropzoneComponent>
         </>
       )}
-      {item.isFolder == false && (
+      {!item.isFolder && (
         <>
           <li {...context.itemContainerWithChildrenProps} className={cx("rct-tree-item-li", item.isFolder && "rct-tree-item-li-isFolder", context.isSelected && "rct-tree-item-li-selected", context.isExpanded && "rct-tree-item-li-expanded", context.isFocused && "rct-tree-item-li-focused", context.isDraggingOver && "rct-tree-item-li-dragging-over", context.isSearchMatching && "rct-tree-item-li-search-match")}>
             <div {...context.itemContainerWithoutChildrenProps} style={{ paddingLeft: `${(depth + 1) * 8}px` }} className={cx("rct-tree-item-title-container", item.isFolder && "rct-tree-item-title-container-isFolder", context.isSelected && "rct-tree-item-title-container-selected", context.isExpanded && "rct-tree-item-title-container-expanded", context.isFocused && "rct-tree-item-title-container-focused", context.isDraggingOver && "rct-tree-item-title-container-dragging-over", context.isSearchMatching && "rct-tree-item-title-container-search-match")}>
@@ -85,15 +94,7 @@ const renderItem = ({ item, depth, children, title, context, arrow }, additional
                   additionalParams.onDBClickItem(e, item)
                 }}
               >
-                {item.isFolder && !context.isExpanded && <span>📁</span>}
-                {item.isFolder && context.isExpanded && <span>📂</span>}
-                {!item.isFolder && item.type == "csv" && <span>🛢️</span>}
-                {!item.isFolder && item.type == "json" && <span>📗</span>}
-                {!item.isFolder && item.type == "txt" && <span>📃</span>}
-                {!item.isFolder && item.type == "pdf" && <span>📕</span>}
-                {!item.isFolder && item.type == "medomics" && <span>⚛️</span>}
-                {/* 📙📘📒📑📈 */}
-
+                {iconExtension[item.type]}
                 {/* {!item.isFolder && item.type != "csv" && <span>📄</span>} */}
                 {title}
               </InteractiveComponent>

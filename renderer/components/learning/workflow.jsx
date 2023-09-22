@@ -68,10 +68,11 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
 
   useEffect(() => {
     console.log("pageInfos", pageInfos)
-    if (pageInfos.config) {
+    if (pageInfos.config && Object.keys(pageInfos.config).length > 0) {
       updateScene(pageInfos.config)
+      toast.success("Config file has been loaded successfully")
     } else {
-      console.error("no config file found")
+      console.log("No config file found for this page, base workflow will be used")
     }
   }, [pageInfos])
 
