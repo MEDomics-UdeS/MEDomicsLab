@@ -1,64 +1,109 @@
 .btnSidebar {
-    color: #ebebeb;
-    position: relative;
-    background-color: #3a3a3a;
-    align-content: center;
-    align-items: center;
-    align-self: center;
-    min-width: 100%;
-    min-height: 2.5rem;
-    padding: 0.2rem 0.2rem 0.2rem 0.2rem;
-    border-radius: '0.25rem';
-    border: none;
+  color: #ebebeb;
+  position: relative;
+  background-color: #3a3a3a;
+  align-content: center;
+  align-items: center;
+  align-self: center;
+  min-width: 100%;
+  min-height: 48px;
+  padding: 0.2rem 0.2rem 0.2rem 0.2rem;
+  border-radius: "0.25rem";
+  border: none;
 }
 
 .btnSidebar:hover {
-    background-color: #414141;
-    color: #fff;
+  background-color: #414141;
+  color: #fff;
 }
 
 a.btnSidebar.nav-link.active {
-    border-left: 0.15rem solid #d3d3d3;
+  border-left: 0.15rem solid #d3d3d3;
 }
 
 .btnSidebar:checked {
-    background-color: #414141;
-    color: #fff;
-    border-left: 0.2rem solid #d3d3d3;
+  background-color: #414141;
+  color: #fff;
+  border-left: 0.2rem solid #d3d3d3;
 }
 
 .btnSidebar:focus {
-    background-color: #414141;
-    color: #fff;
-    /* border-left: 0.2rem solid #d3d3d3; */
+  background-color: #414141;
+  color: #fff;
+  /* border-left: 0.2rem solid #d3d3d3; */
 }
 
 .btnSidebar::after {
-    content: none !important;
+  content: none !important;
 }
 
 .dropdown-toggle::after {
-    content: none !important;
+  content: none !important;
 }
 
 .dropdown-toggle {
-    color: #fff;
-    padding: unset;
+  color: #fff;
+  padding: unset;
 }
 
 .dropdown-toggle:hover {
-    color: #fff;
-    background-color: #414141;
+  color: #fff;
+  background-color: #414141;
 }
 
 .dropdown-toggle:focus {
-    color: #fff;
-    background-color: #414141;
-    border-left: 0.2rem solid #d3d3d3;
+  color: #fff;
+  background-color: #414141;
+  border-left: 0.2rem solid #d3d3d3;
 }
 
 .dropdown-toggle:active {
-    background-color: #414141;
-    color: #fff;
-    border-left: 0.2rem solid #d3d3d3;
+  background-color: #414141;
+  color: #fff;
+  border-left: 0.2rem solid #d3d3d3;
+}
+
+.medomics-layer {
+  border-bottom: 0.15rem solid #d3d3d396;
+}
+
+.extractionNav {
+  width: 41px;
+  height: 41px;
+}
+
+.extractionNav.disabled {
+  color: var(--bs-nav-link-disabled-color);
+  pointer-events: none;
+  cursor: default;
+}
+
+.extractionNav .p-speeddial {
+  width: calc(48px - 0.4rem);
+  height: calc(48px - 0.4rem);
+  z-index: 10;
+}
+
+.extractionNav .p-speeddial .p-disabled {
+  color: rgb(33, 37, 41);
+  pointer-events: none;
+  cursor: default;
+  opacity: 1;
+}
+
+.extractionNav .p-button {
+  width: 100% !important;
+  height: 100% !important;
+  background: none !important;
+  border: none !important;
+  border-radius: 10% !important;
+}
+
+.extractionNav .p-button span {
+  font-size: 1.5rem;
+}
+
+.extractionNav .p-speeddial-direction-right .p-speeddial-list {
+  --item-diff-x: -3px !important;
+  --item-diff-y: 20px !important;
 }

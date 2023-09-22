@@ -14,7 +14,7 @@ const iconExtension = {
     </span>
   ),
   medml: <span>⚛️</span>
-  // 📗📙📘📒📑📈📊🧮🎯💊🧬🔬🧰💾📄🗒️💥
+  // 📗📙📘📒📑📈📊🧮🎯💊🧬🔬🧰💾📄🗒️💥🎛️⚙️
 }
 
 /**
