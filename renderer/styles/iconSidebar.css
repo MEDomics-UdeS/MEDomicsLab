@@ -81,6 +81,7 @@ a.btnSidebar.nav-link.active {
 .extractionNav .p-speeddial {
   width: calc(48px - 0.4rem);
   height: calc(48px - 0.4rem);
+  z-index: 10;
 }
 
 .extractionNav .p-speeddial .p-disabled {

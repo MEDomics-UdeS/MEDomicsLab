@@ -30,7 +30,8 @@
   --contexify-menu-padding: 6px;
   --contexify-menu-radius: 4px;
   --contexify-menu-bgColor: #474747 !important;
-  --contexify-menu-shadow: 1px 2px 2px rgba(0, 0, 0, 0.1), 2px 4px 4px rgba(0, 0, 0, 0.1), 3px 6px 6px rgba(0, 0, 0, 0.1);
+  --contexify-menu-shadow: 1px 2px 2px rgba(0, 0, 0, 0.1),
+    2px 4px 4px rgba(0, 0, 0, 0.1), 3px 6px 6px rgba(0, 0, 0, 0.1);
   --contexify-menu-negatePadding: var(--contexify-menu-padding);
   --contexify-separator-color: rgba(0, 0, 0, 0.2);
   --contexify-separator-margin: 5px;
@@ -124,4 +125,51 @@
   top: 1.5rem;
   bottom: 10px;
   background-color: #868686;
+}
+
+.medomics-layer {
+  /* border-bottom: 0.15rem solid #d3d3d396; */
+  display: flex;
+  flex-direction: row;
+}
+
+.medomics-layer:hover {
+  /* border-bottom: 0.15rem solid #c20b0b96; */
+}
+
+.medomics-layer-text {
+  color: #ffffff;
+  padding-inline: 1rem;
+  border-radius: 0 10px 10px 0;
+  display: block;
+  position: absolute;
+  left: -10rem;
+  z-index: 1;
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  transition: all;
+  /* border-bottom: 0.15rem solid #d3d3d396; */
+}
+
+.medomics-layer:hover .medomics-layer-text {
+  display: block;
+  left: 3rem;
+  background-color: #224c9b !important;
+
+  /* border-bottom: 0.15rem solid #c20b0b96; */
+}
+
+.icon-sidebar:hover .medomics-layer .medomics-layer-text {
+  display: block;
+  left: 3rem;
+  background-color: #092086;
+  /* border-bottom: 0.15rem solid #c20b0b96; */
+}
+
+.sidebar-icons {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-right: 0rem;
 }

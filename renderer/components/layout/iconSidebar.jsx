@@ -32,7 +32,7 @@ const IconSidebar = ({ onSidebarItemSelect }) => {
       }
     },
     {
-      label: "TS",
+      label: "Time Series",
       icon: "pi pi-chart-line",
       command: (event) => {
         handleClick(event, "extraction_ts")
@@ -88,51 +88,64 @@ const IconSidebar = ({ onSidebarItemSelect }) => {
         {/* ------------------------------------------- ICON NAVBAR ----------------------------------------- */}
 
         <Nav defaultActiveKey="/home" className="flex-column" style={{ width: "100%", maxWidth: "100%", minWidth: "100%" }}>
+          <Nav.Link className="homeNavIcon btnSidebar" data-pr-at="right center" data-pr-tooltip="Home" data-pr-my="left center" href="#home" eventKey="home" data-tooltip-id="tooltip-home" onClick={(event) => handleClick(event, "home")}>
+            <HouseFill size={"1.25rem"} width={"100%"} height={"100%"} style={{ scale: "0.65" }} />
+          </Nav.Link>
+
+          <Nav.Link className="explorerNav btnSidebar" data-pr-at="right center" data-pr-tooltip="Explorer" data-pr-my="left center" eventKey="explorer" data-tooltip-id="tooltip-explorer" onClick={(event) => handleClick(event, "explorer")}>
+            <Files size={"1.25rem"} width={"100%"} height={"100%"} style={{ scale: "0.65" }} />
+          </Nav.Link>
+
+          <Nav.Link className="searchNav btnSidebar" data-pr-at="right center" data-pr-tooltip="Search" data-pr-my="left center" eventKey="search" data-tooltip-id="tooltip-search" onClick={(event) => handleClick(event, "search")} disabled={disabledIcon}>
+            <Search size={"1.25rem"} width={"100%"} height={"100%"} style={{ scale: "0.65" }} />
+          </Nav.Link>
+
+          <NavDropdown.Divider style={{ height: "3rem" }} />
           <div className="medomics-layer">
-            <Nav.Link className="homeNavIcon btnSidebar" data-pr-at="right center" data-pr-tooltip="Home" data-pr-my="left center" href="#home" eventKey="home" data-tooltip-id="tooltip-home" onClick={(event) => handleClick(event, "home")}>
-              <HouseFill size={"1.25rem"} width={"100%"} height={"100%"} style={{ scale: "0.65" }} />
-            </Nav.Link>
+            <div className="sidebar-icons">
+              <Nav.Link className="inputNav btnSidebar" data-pr-at="right center" data-pr-my="left center" data-pr-tooltip="Input" eventKey="input" data-tooltip-id="tooltip-input" onClick={(event) => handleClick(event, "input")} disabled={disabledIcon}>
+                <Server size={"1.25rem"} width={"100%"} height={"100%"} style={{ scale: "0.65" }} />
+              </Nav.Link>
 
-            <Nav.Link className="explorerNav btnSidebar" data-pr-at="right center" data-pr-tooltip="Explorer" data-pr-my="left center" eventKey="explorer" data-tooltip-id="tooltip-explorer" onClick={(event) => handleClick(event, "explorer")}>
-              <Files size={"1.25rem"} width={"100%"} height={"100%"} style={{ scale: "0.65" }} />
-            </Nav.Link>
+              <div className={`extractionNav btnSidebar ${disabledIcon && "disabled"}`} data-pr-at="right center" data-pr-my="left center" data-pr-tooltip="Extraction" data-pr-disabled={!showTooltip} data-tooltip-id="tooltip-extracction">
+                <SpeedDial className="extraction-speeddial" model={extractionItems} type="semi-circle" direction="right" showIcon="pi pi-file-export" hideIcon="pi pi-times" disabled={disabledIcon} onShow={() => setShowTooltip(false)} onHide={() => setShowTooltip(true)} />
+              </div>
 
-            <Nav.Link className="searchNav btnSidebar" data-pr-at="right center" data-pr-tooltip="Search" data-pr-my="left center" eventKey="search" data-tooltip-id="tooltip-search" onClick={(event) => handleClick(event, "search")} disabled={disabledIcon}>
-              <Search size={"1.25rem"} width={"100%"} height={"100%"} style={{ scale: "0.65" }} />
-            </Nav.Link>
-
-            <NavDropdown.Divider style={{ height: "1rem" }} />
-          </div>
-          <div className="medomics-layer">
-            <Nav.Link className="inputNav btnSidebar" data-pr-at="right center" data-pr-my="left center" data-pr-tooltip="Input" eventKey="input" data-tooltip-id="tooltip-input" onClick={(event) => handleClick(event, "input")} disabled={disabledIcon}>
-              <Server size={"1.25rem"} width={"100%"} height={"100%"} style={{ scale: "0.65" }} />
-            </Nav.Link>
-
-            <div className={`extractionNav btnSidebar ${disabledIcon && "disabled"}`} data-pr-at="right center" data-pr-my="left center" data-pr-tooltip="Extraction" data-pr-disabled={!showTooltip} data-tooltip-id="tooltip-extracction">
-              <SpeedDial className="extraction-speeddial" model={extractionItems} type="semi-circle" direction="right" showIcon="pi pi-file-export" hideIcon="pi pi-times" disabled={disabledIcon} onShow={() => setShowTooltip(false)} onHide={() => setShowTooltip(true)} />
+              <Nav.Link className="discoveryNav btnSidebar" data-pr-at="right center" data-pr-my="left center" data-pr-tooltip="Exploratory" eventKey="discovery" data-tooltip-id="tooltip-discovery" onClick={(event) => handleClick(event, "discovery")} disabled={disabledIcon}>
+                <FileEarmarkBarGraph size={"1.25rem"} width={"100%"} height={"100%"} style={{ scale: "0.65" }} />
+              </Nav.Link>
             </div>
-
-            <Nav.Link className="discoveryNav btnSidebar" data-pr-at="right center" data-pr-my="left center" data-pr-tooltip="Exploratory" eventKey="discovery" data-tooltip-id="tooltip-discovery" onClick={(event) => handleClick(event, "discovery")} disabled={disabledIcon}>
-              <FileEarmarkBarGraph size={"1.25rem"} width={"100%"} height={"100%"} style={{ scale: "0.65" }} />
-            </Nav.Link>
+            <div className="medomics-layer-text" style={{ backgroundColor: "#224c9b !important" }}>
+              Design
+            </div>
           </div>
+          <NavDropdown.Divider style={{ height: "3rem" }} />
+
           <div className="medomics-layer">
-            <Nav.Link className="learningNav btnSidebar" data-pr-at="right center" data-pr-my="left center" data-pr-tooltip="Learning" eventKey="Learning" data-tooltip-id="tooltip-learning" onClick={(event) => handleClick(event, "learning")} disabled={disabledIcon}>
-              <Stack size={"1.25rem"} width={"100%"} height={"100%"} style={{ scale: "0.65" }} />
-            </Nav.Link>
+            <div className="sidebar-icons">
+              <Nav.Link className="learningNav btnSidebar" data-pr-at="right center" data-pr-my="left center" data-pr-tooltip="Learning" eventKey="Learning" data-tooltip-id="tooltip-learning" onClick={(event) => handleClick(event, "learning")} disabled={disabledIcon}>
+                <Stack size={"1.25rem"} width={"100%"} height={"100%"} style={{ scale: "0.65" }} />
+              </Nav.Link>
 
-            <Nav.Link className="resultsNav btnSidebar" data-pr-at="right center" data-pr-my="left center" data-pr-tooltip="Results" eventKey="Results" onClick={(event) => handleClick(event, "results")} disabled={disabledIcon}>
-              <PatchCheck size={"1.25rem"} width={"100%"} height={"100%"} style={{ scale: "0.65" }} />
-            </Nav.Link>
+              <Nav.Link className="resultsNav btnSidebar" data-pr-at="right center" data-pr-my="left center" data-pr-tooltip="Results" eventKey="Results" onClick={(event) => handleClick(event, "results")} disabled={disabledIcon}>
+                <PatchCheck size={"1.25rem"} width={"100%"} height={"100%"} style={{ scale: "0.65" }} />
+              </Nav.Link>
 
-            <Nav.Link className="evaluationNav btnSidebar" data-pr-at="right center" data-pr-my="left center" data-pr-tooltip="Evaluation" eventKey="Evaluation" onClick={(event) => handleClick(event, "evaluation")} disabled={disabledIcon}>
-              <PatchCheck size={"1.25rem"} width={"100%"} height={"100%"} style={{ scale: "0.65" }} />
-            </Nav.Link>
+              <Nav.Link className="evaluationNav btnSidebar" data-pr-at="right center" data-pr-my="left center" data-pr-tooltip="Evaluation" eventKey="Evaluation" onClick={(event) => handleClick(event, "evaluation")} disabled={disabledIcon}>
+                <PatchCheck size={"1.25rem"} width={"100%"} height={"100%"} style={{ scale: "0.65" }} />
+              </Nav.Link>
+            </div>
+            <div className="medomics-layer-text">Development</div>
           </div>
+          <NavDropdown.Divider style={{ height: "3rem" }} />
+
           <div className="medomics-layer">
-            <Nav.Link className="applicationNav btnSidebar" data-pr-at="right center" data-pr-my="left center" data-pr-tooltip="Application" eventKey="Application" data-tooltip-id="tooltip-application" onClick={(event) => handleClick(event, "application")} disabled={disabledIcon}>
-              <Send size={"1.25rem"} width={"100%"} height={"100%"} style={{ scale: "0.65" }} />
-            </Nav.Link>
+            <div className="sidebar-icons">
+              <Nav.Link className="applicationNav btnSidebar" data-pr-at="right center" data-pr-my="left center" data-pr-tooltip="Application" eventKey="Application" data-tooltip-id="tooltip-application" onClick={(event) => handleClick(event, "application")} disabled={disabledIcon}>
+                <Send size={"1.25rem"} width={"100%"} height={"100%"} style={{ scale: "0.65" }} />
+              </Nav.Link>
+            </div>
+            <div className="medomics-layer-text">Deployment</div>
           </div>
 
           {/* div that puts the buttons to the bottom of the sidebar*/}
