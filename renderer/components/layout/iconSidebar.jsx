@@ -179,7 +179,7 @@ const IconSidebar = ({ onSidebarItemSelect }) => {
             />
           </Nav.Link>
 
-          <NavDropdown.Divider style={{ height: "1rem" }} />
+          <NavDropdown.Divider style={{ height: "3rem" }} />
           <div className="medomics-layer">
             <div className="sidebar-icons">
               <Nav.Link
@@ -257,8 +257,15 @@ const IconSidebar = ({ onSidebarItemSelect }) => {
                 />
               </Nav.Link>
             </div>
-            <div className="medomics-layer-text">Design</div>
+            <div
+              className="medomics-layer-text"
+              style={{ backgroundColor: "#224c9b !important" }}
+            >
+              Design
+            </div>
           </div>
+          <NavDropdown.Divider style={{ height: "3rem" }} />
+
           <div className="medomics-layer">
             <div className="sidebar-icons">
               <Nav.Link
@@ -315,6 +322,8 @@ const IconSidebar = ({ onSidebarItemSelect }) => {
             </div>
             <div className="medomics-layer-text">Development</div>
           </div>
+          <NavDropdown.Divider style={{ height: "3rem" }} />
+
           <div className="medomics-layer">
             <div className="sidebar-icons">
               <Nav.Link
