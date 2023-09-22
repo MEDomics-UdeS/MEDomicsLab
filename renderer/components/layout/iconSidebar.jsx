@@ -1,5 +1,5 @@
 import React, { useState, useContext, useEffect } from "react"
-import { Files, HouseFill, Gear, GraphUp, Image, Magnet, Server, Stack, TextLeft, FileEarmarkBarGraph, RocketTakeoff, PatchCheck, Search, BandaidFill, Send } from "react-bootstrap-icons"
+import { Files, HouseFill, Gear, GraphUp, Image, Magnet, Server, Stack, TextLeft, FileEarmarkBarGraph, RocketTakeoff, PatchCheck, Search, BandaidFill, Send, Diagram3Fill, Clipboard2Data, ClipboardCheck } from "react-bootstrap-icons"
 import Nav from "react-bootstrap/Nav"
 import { NavDropdown } from "react-bootstrap"
 import { WorkspaceContext } from "../workspace/workspaceContext"
@@ -124,15 +124,15 @@ const IconSidebar = ({ onSidebarItemSelect }) => {
           <div className="medomics-layer">
             <div className="sidebar-icons">
               <Nav.Link className="learningNav btnSidebar" data-pr-at="right center" data-pr-my="left center" data-pr-tooltip="Learning" eventKey="Learning" data-tooltip-id="tooltip-learning" onClick={(event) => handleClick(event, "learning")} disabled={disabledIcon}>
-                <Stack size={"1.25rem"} width={"100%"} height={"100%"} style={{ scale: "0.65" }} />
+                <Diagram3Fill size={"1.25rem"} width={"100%"} height={"100%"} style={{ scale: "0.65" }} />
               </Nav.Link>
 
               <Nav.Link className="resultsNav btnSidebar" data-pr-at="right center" data-pr-my="left center" data-pr-tooltip="Results" eventKey="Results" onClick={(event) => handleClick(event, "results")} disabled={disabledIcon}>
-                <PatchCheck size={"1.25rem"} width={"100%"} height={"100%"} style={{ scale: "0.65" }} />
+                <Clipboard2Data size={"1.25rem"} width={"100%"} height={"100%"} style={{ scale: "0.65" }} />
               </Nav.Link>
 
               <Nav.Link className="evaluationNav btnSidebar" data-pr-at="right center" data-pr-my="left center" data-pr-tooltip="Evaluation" eventKey="Evaluation" onClick={(event) => handleClick(event, "evaluation")} disabled={disabledIcon}>
-                <PatchCheck size={"1.25rem"} width={"100%"} height={"100%"} style={{ scale: "0.65" }} />
+                <ClipboardCheck size={"1.25rem"} width={"100%"} height={"100%"} style={{ scale: "0.65" }} />
               </Nav.Link>
             </div>
             <div className="medomics-layer-text">Development</div>
