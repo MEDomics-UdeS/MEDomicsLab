@@ -68,7 +68,11 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
 
   useEffect(() => {
     console.log("pageInfos", pageInfos)
-    updateScene(pageInfos.config)
+    if (pageInfos.config) {
+      updateScene(pageInfos.config)
+    } else {
+      console.error("no config file found")
+    }
   }, [pageInfos])
 
   // executed when the machine learning type is changed
