@@ -47,7 +47,11 @@ import { ActionContextProvider } from "../components/layout/actionContext"
 export default function App() {
   let initialLayout = {
     // this is the intial layout model for flexlayout model that is passed to the LayoutManager -- See flexlayout-react docs for more info
-    global: { tabEnableClose: true }, // this is a global setting for all tabs in the layout, it enables the close button on all tabs
+    global: {
+      tabEnableClose: true,
+      tabEnableRenderOnDemand: false,
+      tabEnableRename: false
+    }, // this is a global setting for all tabs in the layout, it enables the close button on all tabs
     borders: [
       // this is the border model for the layout, it defines the borders and their children
       {
