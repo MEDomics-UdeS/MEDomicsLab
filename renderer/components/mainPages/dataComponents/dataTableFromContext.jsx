@@ -53,17 +53,9 @@ const DataTableFromContext = (MedDataObject, tablePropsData) => {
               }
             })
           } else if (extension == "xlsx") {
-            dfd.readExcel(datasetObject.path).then((df) => {
-              console.log("XLSX data loaded", df)
-              setDataset(df)
-              setIsLoaded(true)
-            })
+            toast.error("XLSX data not supported yet")
           } else if (extension == "json") {
-            dfd.readJSON(datasetObject.path).then((df) => {
-              console.log("JSON data loaded", df)
-              setDataset(df)
-              setIsLoaded(true)
-            })
+            toast.error("JSON data not supported yet")
           } else {
             toast.error("File type not supported")
           }
@@ -76,16 +68,7 @@ const DataTableFromContext = (MedDataObject, tablePropsData) => {
     console.log("dataset", dataset)
   }, [dataset])
 
-  return (
-    <>
-      {/* {console.log("dataset", dataset)} */}
-      {dataset && (
-        // <div className="card">
-        <DataTableWrapper data={dataset} tablePropsData={tablePropsData} />
-        // </div>
-      )}
-    </>
-  )
+  return <>{dataset && <DataTableWrapper data={dataset} tablePropsData={tablePropsData} />}</>
 }
 
 export default DataTableFromContext
