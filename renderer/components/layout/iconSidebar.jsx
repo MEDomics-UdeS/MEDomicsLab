@@ -76,9 +76,10 @@ const IconSidebar = ({ onSidebarItemSelect }) => {
         <Tooltip target=".inputNav" {...delayOptions} className="tooltip-icon-sidebar" />
         <Tooltip target=".extractionNav" {...delayOptions} className="tooltip-icon-sidebar" data-pr-disabled={!showTooltip} />
         <Tooltip target=".extraction-speeddial .p-speeddial-action" {...delayOptions} className="tooltip-icon-sidebar" />
-        <Tooltip target=".discoveryNav" {...delayOptions} className="tooltip-icon-sidebar" />
+        <Tooltip target=".exploratoryNav" {...delayOptions} className="tooltip-icon-sidebar" />
         <Tooltip target=".learningNav" {...delayOptions} className="tooltip-icon-sidebar" />
         <Tooltip target=".resultsNav" {...delayOptions} className="tooltip-icon-sidebar" />
+        <Tooltip target=".evaluationNav" {...delayOptions} className="tooltip-icon-sidebar" />
         <Tooltip target=".applicationNav" {...delayOptions} className="tooltip-icon-sidebar" />
         <Tooltip target=".layoutTestNav" {...delayOptions} className="tooltip-icon-sidebar" />
         <Tooltip target=".settingsNav" {...delayOptions} className="tooltip-icon-sidebar" />
@@ -111,7 +112,7 @@ const IconSidebar = ({ onSidebarItemSelect }) => {
                 <SpeedDial className="extraction-speeddial" model={extractionItems} type="semi-circle" direction="right" showIcon="pi pi-file-export" hideIcon="pi pi-times" disabled={disabledIcon} onShow={() => setShowTooltip(false)} onHide={() => setShowTooltip(true)} />
               </div>
 
-              <Nav.Link className="discoveryNav btnSidebar" data-pr-at="right center" data-pr-my="left center" data-pr-tooltip="Exploratory" eventKey="discovery" data-tooltip-id="tooltip-discovery" onClick={(event) => handleClick(event, "discovery")} disabled={disabledIcon}>
+              <Nav.Link className="exploratoryNav btnSidebar" data-pr-at="right center" data-pr-my="left center" data-pr-tooltip="Exploratory" eventKey="exploratory" data-tooltip-id="tooltip-exploratory" onClick={(event) => handleClick(event, "exploratory")} disabled={disabledIcon}>
                 <FileEarmarkBarGraph size={"1.25rem"} width={"100%"} height={"100%"} style={{ scale: "0.65" }} />
               </Nav.Link>
             </div>
