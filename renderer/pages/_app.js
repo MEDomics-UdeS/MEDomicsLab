@@ -261,7 +261,7 @@ export default function App() {
 
   // This useEffect hook is called whenever the `globalData` state changes.
   useEffect(() => {
-    // console.log("globalData changed", globalData)
+    console.log("globalData changed", globalData)
   }, [globalData])
 
   useEffect(() => {

@@ -177,6 +177,24 @@ export default class MedDataObject {
   }
 
   /**
+   * Returns the highest parent of a MED data object.
+   * @param {MedDataObject} dataObject - The MED data object to check.
+   * @param {Object} globalDataContext - The global data context object to search in.
+   * @returns {MedDataObject} - The highest parent of the MED data object.
+   *
+   */
+  static getWhoIsTheHighestParent(dataObject, globalDataContext, depth = 0) {
+    let parentID = dataObject.parentID
+    let parentObject = globalDataContext[parentID]
+    if (parentID == "UUID_ROOT") {
+      return dataObject
+    } else {
+      depth++
+      return this.getWhoIsTheHighestParent(parentObject, globalDataContext, depth)
+    }
+  }
+
+  /**
    * Checks the operating system and adapts the provided `path` to the OS.
    * @param {string} path
    * @returns {string} - The adapted path.
