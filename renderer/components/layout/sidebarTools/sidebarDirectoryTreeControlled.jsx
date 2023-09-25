@@ -5,8 +5,8 @@ import { ControlledTreeEnvironment, Tree } from "react-complex-tree"
 import { DataContext } from "../../workspace/dataContext"
 import MedDataObject from "../../workspace/medDataObject"
 import { toast } from "react-toastify"
-// import { LayoutModelContext } from "../layoutContext"
-// import { ActionContext } from "../actionContext"
+import { LayoutModelContext } from "../layoutContext"
+import { ActionContext } from "../actionContext"
 import { useContextMenu, Menu, Item, Submenu } from "react-contexify"
 import renderItem from "./directoryTree/renderItem"
 /**
@@ -31,8 +31,8 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
 
   const [isAccordionShowing, setIsAccordionShowing] = useState(false) // This state is used to know if the accordion is collapsed or not
   const { globalData, setGlobalData } = useContext(DataContext) // We get the global data from the context to retrieve the directory tree of the workspace, thus retrieving the data files
-  // const { dispatchLayout } = useContext(LayoutModelContext)
-  // const { dispatchAction } = useContext(ActionContext) // We get the dispatchAction function from the context to dispatch actions to the action reducer
+  const { dispatchLayout } = useContext(LayoutModelContext)
+  const { dispatchAction } = useContext(ActionContext) // We get the dispatchAction function from the context to dispatch actions to the action reducer
 
   const [dirTree, setDirTree] = useState({}) // We get the directory tree from the workspace
 
@@ -180,6 +180,9 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
    */
   function handleContextMenuAction({ id, props }) {
     switch (id) {
+      case "openLearningModule":
+        dispatchLayout({ type: "openInLearningModule", payload: props })
+        break
       case "open":
         onOpen(props.UUID)
         break
@@ -199,16 +202,34 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
    * @returns {void}
    */
   const onDBClickItem = (event, item) => {
-    // dispatchAction({ type: "setSelectedItems", payload: [item.UUID] })
+    if (item.type == "medml") {
+      dispatchLayout({ type: "openInLearningModule", payload: item })
+    } else if (item.type == "csv" || item.type == "json" || item.type == "tsv" || item.type == "xlsx") {
+      dispatchLayout({ type: "openInDataTable", payload: item })
+    } else if (item.type == "py" || item.type == "ipynb") {
+      dispatchLayout({ type: "openInCodeEditor", payload: item })
+    } else if (item.type == "png" || item.type == "jpg" || item.type == "jpeg" || item.type == "gif" || item.type == "svg") {
+      dispatchLayout({ type: "openInImageViewer", payload: item })
+    } else if (item.type == "pdf") {
+      dispatchLayout({ type: "openInPDFViewer", payload: item })
+    } else if (item.type == "txt") {
+      dispatchLayout({ type: "openInTextEditor", payload: item })
+    } else if (item.type == "pkl") {
+      dispatchLayout({ type: "openInModelViewer", payload: item })
+    } else {
+      console.log("DBCLICKED", event, item)
+    }
     setDbClickedItem(item)
-    console.log("DBCLICKED", event, item)
+    // console.log("DBCLICKED", event, item)
   }
 
   /**
    * This useEffect hook sets the external double click item when the double click item changes.
    */
   useEffect(() => {
-    if (setExternalDBClick) setExternalDBClick(dbClickedItem)
+    if (setExternalDBClick) {
+      setExternalDBClick(dbClickedItem)
+    }
   }, [dbClickedItem])
 
   /**
@@ -562,7 +583,9 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
             </>
           }
         >
-          <Item>Learning module (default)</Item>
+          <Item id="openLearningModule" onClick={handleContextMenuAction}>
+            Learning module (default)
+          </Item>
         </Submenu>
         <Item id="rename" onClick={handleContextMenuAction}>
           <Eraser size={"1rem"} className="context-menu-icon" />

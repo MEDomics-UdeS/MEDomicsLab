@@ -280,12 +280,11 @@ export default function App() {
         <ActionContextProvider>
           <DataContextProvider globalData={globalData} setGlobalData={setGlobalData}>
             <WorkspaceProvider workspace={workspaceObject} setWorkspace={setWorkspaceObject} port={port} setPort={setPort}>
-              {" "}
-              {/* This is the WorkspaceProvider, which provides the workspace model to all the children components of the LayoutManager */}
               <LayoutModelProvider // This is the LayoutContextProvider, which provides the layout model to all the children components of the LayoutManager
                 layoutModel={layoutModel}
                 setLayoutModel={setLayoutModel}
               >
+                {/* This is the WorkspaceProvider, which provides the workspace model to all the children components of the LayoutManager */}
                 {/* This is the LayoutContextProvider, which provides the layout model to all the children components of the LayoutManager */}
                 <LayoutManager layout={initialLayout} />
                 {/** We pass the initialLayout as a parameter */}

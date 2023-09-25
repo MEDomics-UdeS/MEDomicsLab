@@ -23,7 +23,7 @@ export default function MainFlexLayout() {
   const [nextGridIndex, setNextGridIndex] = useState(0) // State to keep track of the next grid index
   // let contents; // Variable to hold the contents of the main container - Not used for now
 
-  const { layoutModel, flexlayoutInterpreter } = useContext(LayoutModelContext) // Get the layout model and the flexlayout interpreter from the context
+  const { layoutModel, flexlayoutInterpreter, layoutMainState, setLayoutMainState } = useContext(LayoutModelContext) // Get the layout model and the flexlayout interpreter from the context
 
   const [myInnerModel, setMyInnerModel] = useState(layoutModel) // State to keep track of the inner model - Used to update the layout model - for debugging purposes mainly
   // setMyInnerModel(inner_model);
@@ -40,8 +40,6 @@ export default function MainFlexLayout() {
     setMyInnerModel(layoutModel)
     setModel(Model.fromJson(layoutModel))
   }, [layoutModel]) // Update the model when the layout model changes
-
-  // console.log("Inner model", inner_model);
 
   function handleNextGridIndex() {
     // Function to handle the next grid index
@@ -62,6 +60,7 @@ export default function MainFlexLayout() {
       const jsonText = JSON.stringify(model && model.toJson(), null, "\t")
       const html = Prism.highlight(jsonText, Prism.languages.javascript, "javascript")
       setMainState({ ...mainState, json: html })
+      setLayoutMainState({ ...model })
       htmlTimer = null
     }, 500)
   }

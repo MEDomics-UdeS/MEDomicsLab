@@ -1,5 +1,6 @@
-import { React, createContext, useContext } from "react"
+import React, { createContext, useContext, useState } from "react"
 import { DataContext } from "../workspace/dataContext"
+import { useEffect } from "react"
 /**
  * @typedef {React.Context} LayoutModelContext
  * @description Context for the layout model
@@ -19,6 +20,7 @@ const LayoutModelContext = createContext(null)
  * @author Nicolas Longchamps @link
  */
 function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
+  const [layoutMainState, setLayoutMainState] = useState(layoutModel)
   const { globalData } = useContext(DataContext)
   /**
    * @param {FlexLayout.Model.Action} action - The actions passed on by the flexlayout-react library
@@ -62,7 +64,7 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
    */
   const dispatchLayout = (action) => {
     switch (action.type) {
-      case "open LEARNING":
+      case "openInLearningModule":
         return openLearning(action)
       case "add":
         return add(action)
@@ -82,23 +84,26 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
     let medObject = action.payload
     console.log("medObject", medObject)
     let textString = action.payload
+    let isAlreadyIn = checkIfIDIsInLayoutModel(medObject.UUID, layoutModel)
 
-    const newChild = {
-      type: "tab",
-      name: medObject.name,
-      id: medObject.UUID,
-      component: "learningPage",
-      config: { path: medObject.path, uuid: medObject.UUID }
+    if (!isAlreadyIn) {
+      const newChild = {
+        type: "tab",
+        name: medObject.name,
+        id: medObject.UUID,
+        component: "learningPage",
+        config: { path: medObject.path, uuid: medObject.UUID }
+      }
+
+      const nextlayoutModel = { ...layoutModel }
+      // To add a new child to the layout model, we need to add it to the children array (layoutModel.layout.children[x].children)
+      // ****IMPORTANT**** For the hook to work, we need to create a new array and not modify the existing one
+      const newChildren = [...layoutModel.layout.children[0].children, newChild]
+      nextlayoutModel.layout.children[0].children = newChildren
+      setLayoutModel(nextlayoutModel)
+      console.log("ADDING LEARNING PAGE", textString)
+      console.dir(layoutModel)
     }
-
-    const nextlayoutModel = { ...layoutModel }
-    // To add a new child to the layout model, we need to add it to the children array (layoutModel.layout.children[x].children)
-    // ****IMPORTANT**** For the hook to work, we need to create a new array and not modify the existing one
-    const newChildren = [...layoutModel.layout.children[0].children, newChild]
-    nextlayoutModel.layout.children[0].children = newChildren
-    setLayoutModel(nextlayoutModel)
-    console.log("ADDING LEARNING PAGE", textString)
-    console.dir(layoutModel)
   }
 
   /**
@@ -141,9 +146,25 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
     setLayoutModel(nextlayoutModel)
   }
 
+  useEffect(() => {
+    console.log("LAYOUT MODEL", layoutMainState)
+  }, [layoutMainState])
+
   // Returns the LayoutModelContext.Provider with the layoutModel, the dispatchLayout function and the flexlayoutInterpreter function as values
   // The children are wrapped by the LayoutModelContext.Provider and will have access to the layoutModel, the dispatchLayout function and the flexlayoutInterpreter function
-  return <LayoutModelContext.Provider value={{ layoutModel, dispatchLayout, flexlayoutInterpreter }}>{children}</LayoutModelContext.Provider>
+  return <LayoutModelContext.Provider value={{ layoutModel, dispatchLayout, flexlayoutInterpreter, layoutMainState, setLayoutMainState }}>{children}</LayoutModelContext.Provider>
+}
+
+function checkIfIDIsInLayoutModel(id, layoutModel) {
+  let isInLayoutModel = false
+  console.log("CHECKING IF ID IS IN LAYOUT MODEL", layoutModel, id)
+  // Object.keys(layoutModel._idMap).map((key) => {
+  //   if (key === id) {
+  //     isInLayoutModel = true
+  //     console.log("GOT IT", layoutModel._idMap[key])
+  //   }
+  // })
+  return isInLayoutModel
 }
 
 export { LayoutModelProvider, LayoutModelContext }

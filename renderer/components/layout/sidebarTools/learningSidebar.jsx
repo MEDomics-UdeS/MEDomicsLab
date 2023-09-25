@@ -82,7 +82,7 @@ const LearningSidebar = () => {
     // if (globalData[dbSelectedItem] !== undefined) {
     if (dbSelectedItem !== null) {
       if (dbSelectedItem.name !== undefined) {
-        dispatchLayout({ type: "open LEARNING", payload: dbSelectedItem })
+        dispatchLayout({ type: "openInLearningModule", payload: dbSelectedItem })
       }
     }
   }, [dbSelectedItem])
