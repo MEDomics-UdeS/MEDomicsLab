@@ -64,7 +64,7 @@ a.btnSidebar.nav-link.active {
 }
 
 .medomics-layer {
-  border-bottom: 0.15rem solid #d3d3d396;
+  border-top: 0.15rem solid;
 }
 
 .extractionNav {

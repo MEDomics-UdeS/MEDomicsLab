@@ -101,7 +101,7 @@ const IconSidebar = ({ onSidebarItemSelect }) => {
           </Nav.Link>
 
           <NavDropdown.Divider className="icon-sidebar-divider" style={{ height: "3rem" }} />
-          <div className="medomics-layer">
+          <div className="medomics-layer design">
             <div className="sidebar-icons">
               <Nav.Link className="inputNav btnSidebar" data-pr-at="right center" data-pr-my="left center" data-pr-tooltip="Input" eventKey="input" data-tooltip-id="tooltip-input" onClick={(event) => handleClick(event, "input")} disabled={disabledIcon}>
                 <Server size={"1.25rem"} width={"100%"} height={"100%"} style={{ scale: "0.65" }} />
@@ -115,13 +115,11 @@ const IconSidebar = ({ onSidebarItemSelect }) => {
                 <FileEarmarkBarGraph size={"1.25rem"} width={"100%"} height={"100%"} style={{ scale: "0.65" }} />
               </Nav.Link>
             </div>
-            <div className="medomics-layer-text" style={{ backgroundColor: "#224c9b !important" }}>
-              Design
-            </div>
+            <div className="medomics-layer-text">Design</div>
           </div>
           <NavDropdown.Divider style={{ height: "3rem" }} />
 
-          <div className="medomics-layer">
+          <div className="medomics-layer development">
             <div className="sidebar-icons">
               <Nav.Link className="learningNav btnSidebar" data-pr-at="right center" data-pr-my="left center" data-pr-tooltip="Learning" eventKey="Learning" data-tooltip-id="tooltip-learning" onClick={(event) => handleClick(event, "learning")} disabled={disabledIcon}>
                 <Stack size={"1.25rem"} width={"100%"} height={"100%"} style={{ scale: "0.65" }} />
@@ -139,7 +137,7 @@ const IconSidebar = ({ onSidebarItemSelect }) => {
           </div>
           <NavDropdown.Divider style={{ height: "3rem" }} />
 
-          <div className="medomics-layer">
+          <div className="medomics-layer deployment">
             <div className="sidebar-icons">
               <Nav.Link className="applicationNav btnSidebar" data-pr-at="right center" data-pr-my="left center" data-pr-tooltip="Application" eventKey="Application" data-tooltip-id="tooltip-application" onClick={(event) => handleClick(event, "application")} disabled={disabledIcon}>
                 <Send size={"1.25rem"} width={"100%"} height={"100%"} style={{ scale: "0.65" }} />

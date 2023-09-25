@@ -1,4 +1,8 @@
 :root {
+  --design-color: #1d3666;
+  --development-color: #076464;
+  --deployment-color: #0b6648;
+
   --rct-search-text-offset: 3rem;
   --rct-color-tree-bg: rgb(53, 53, 53);
   --rct-color-tree-focus-outline: #222222;
@@ -151,10 +155,35 @@
   /* border-bottom: 0.15rem solid #d3d3d396; */
 }
 
+.design.medomics-layer {
+  border-color: var(--design-color);
+}
+
+.design .medomics-layer-text {
+  background-color: var(--design-color);
+}
+
+.development.medomics-layer {
+  border-color: var(--development-color);
+}
+
+.development .medomics-layer-text {
+  background-color: var(--development-color);
+}
+
+.deployment.medomics-layer {
+  border-color: var(--deployment-color);
+}
+
+.deployment .medomics-layer-text {
+  background-color: var(--deployment-color);
+}
+
 .medomics-layer:hover .medomics-layer-text {
   display: block;
   left: 3rem;
-  background-color: #224c9b !important;
+  box-shadow: 0 0 0.25rem 0.1rem #0000007c !important;
+  /* background-color: #224c9b !important; */
 
   /* border-bottom: 0.15rem solid #c20b0b96; */
 }
@@ -162,7 +191,8 @@
 .icon-sidebar:hover .medomics-layer .medomics-layer-text {
   display: block;
   left: 3rem;
-  background-color: #092086;
+
+  /* background-color: #092086; */
 }
 
 .sidebar-icons {
@@ -174,6 +204,6 @@
 }
 
 .icon-sidebar-divider {
-  z-index: 3;
+  z-index: 2;
   background-color: #3a3a3a;
 }
