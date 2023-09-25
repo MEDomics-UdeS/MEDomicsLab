@@ -1,5 +1,4 @@
 import { React, createContext, useContext } from "react"
-import LearningPage from "../mainPages/learning"
 import { DataContext } from "../workspace/dataContext"
 /**
  * @typedef {React.Context} LayoutModelContext
@@ -20,7 +19,6 @@ export const LayoutModelContext = createContext(null)
  * @author Nicolas Longchamps @link
  */
 function LayoutContext({ children, layoutModel, setLayoutModel }) {
-  const { globalData } = useContext(DataContext)
   /**
    * @param {FlexLayout.Model.Action} action - The actions passed on by the flexlayout-react library
    * @param {FlexLayout.Model} model - The model passed on by the flexlayout-react library

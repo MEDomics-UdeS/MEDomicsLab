@@ -1,5 +1,5 @@
 import React, { useState, useContext, useEffect } from "react"
-import { Files, HouseFill, Gear, GraphUp, Image, Magnet, Server, Stack, TextLeft, FileEarmarkBarGraph, RocketTakeoff, PatchCheck, Search, BandaidFill, Send, Diagram3Fill, Clipboard2Data, ClipboardCheck } from "react-bootstrap-icons"
+import { Files, HouseFill, Gear, Server, FileEarmarkBarGraph, Search, BandaidFill, Send, Diagram3Fill, Clipboard2Data, ClipboardCheck } from "react-bootstrap-icons"
 import Nav from "react-bootstrap/Nav"
 import { NavDropdown } from "react-bootstrap"
 import { WorkspaceContext } from "../workspace/workspaceContext"

@@ -10,7 +10,7 @@ import { Accordion } from "react-bootstrap"
 import MedDataObject from "../../workspace/medDataObject"
 import { DataContext } from "../../workspace/dataContext"
 import { ActionContext } from "../actionContext"
-import { LayoutContext, LayoutModelContext } from "../layoutContext"
+import { LayoutModelContext } from "../layoutContext"
 
 /**
  * @description - This component is the sidebar tools component that will be used in the sidebar component as the learning page
@@ -27,9 +27,9 @@ const LearningSidebar = () => {
   const [selectedItems, setSelectedItems] = useState([]) // We initialize the selected items state to an empty array
   const [dbSelectedItem, setDbSelectedItem] = useState(null) // We initialize the selected item state to an empty string
   const { globalData } = useContext(DataContext)
-  const { dispatchAction } = useContext(ActionContext)
-  const { layoutState, dispatchLayout } = useContext(LayoutModelContext)
+  const { dispatchLayout } = useContext(LayoutModelContext)
 
+  // We use the useEffect hook to update the experiment list state when the workspace changes
   useEffect(() => {
     console.log(workspace)
     let experimentList = []
@@ -42,6 +42,7 @@ const LearningSidebar = () => {
     setExperimentList(experimentList)
   }, [workspace]) // We log the workspace when it changes
 
+  // We use the useEffect hook to update the create experiment error message state when the experiment name changes
   useEffect(() => {
     if (sceneName != "" && !experimentList.includes(sceneName)) {
       setBtnCreateSceneState(true)
@@ -52,6 +53,11 @@ const LearningSidebar = () => {
     }
   }, [sceneName]) // We set the button state to true if the experiment name is empty, otherwise we set it to false
 
+  /**
+   * 
+   * @param {Event} e - The event passed on by the create button
+   * @description - This function is used to create an experiment when the create button is clicked 
+   */
   const createExperiment = (e) => {
     console.log("Create Scene")
     console.log(`Scene Name: ${sceneName}`) // We log the experiment name when the create button is clicked
@@ -59,6 +65,12 @@ const LearningSidebar = () => {
     createEmptyScene(workspace.workingDirectory.children[1].path, sceneName)
   }
 
+  /**
+   * 
+   * @param {String} path The path of the folder where the scene will be created
+   * @param {String} name The name of the scene
+   * @description - This function is used to create an empty scene
+   */
   const createEmptyScene = async (path, name) => {
     const emptyScene = loadJsonPath("./resources/emptyScene.json")
     if (globalData[selectedItems[0]].parentID == MedDataObject.checkIfMedDataObjectInContextbyPath(path, globalData).getUUID()) {
@@ -77,6 +89,8 @@ const LearningSidebar = () => {
     }
   }
 
+
+  // We use the useEffect hook to open the learning page when the selected item changes
   useEffect(() => {
     console.log(dbSelectedItem)
     // if (globalData[dbSelectedItem] !== undefined) {
@@ -87,6 +101,11 @@ const LearningSidebar = () => {
     }
   }, [dbSelectedItem])
 
+  /**
+   * 
+   * @param {Event} e - The event passed on by the create scene button
+   * @description - This function is used to open the create scene overlay panel when the create scene button is clicked 
+   */
   const handleClickCreateScene = (e) => {
     console.log("Create Scene")
     createSceneRef.current.toggle(e)

@@ -1,6 +1,4 @@
 import { randomUUID } from "crypto"
-// eslint-disable-next-line no-unused-vars
-import React from "react"
 import * as fs from "fs-extra"
 import { toast } from "react-toastify"
 import { ipcRenderer } from "electron"
@@ -547,36 +545,6 @@ export default class MedDataObject {
       }
     })
     return globalData
-  }
-
-  /**
-   * This function creates a new folder in the workspace with the name "New Folder" and the parent folder being the selected folder.
-   * The button that triggers this function is only visible if the accordion is not collapsed.
-   * @param {Array} selectedItems - The array of selected items in the directory tree
-   * @returns {void}
-   */
-  static createFolder(UUID, globalData, nameOfTheNewFolder) {
-    if (globalData === undefined) {
-      console.error("You forgot to specify the global data context")
-      return
-    }
-    if (UUID !== undefined && UUID !== null && UUID !== "" && UUID.length > 0) {
-      let selectedItemObject = globalData[UUID[0]]
-      let parentObject = undefined
-      if (selectedItemObject.type == "folder") {
-        parentObject = selectedItemObject
-      } else {
-        parentObject = globalData[selectedItemObject.parentID]
-      }
-      let newName = "New Folder"
-      if (nameOfTheNewFolder !== undefined) {
-        newName = this.getNewNameForFolder({ name: nameOfTheNewFolder, folderPath: parentObject.path })
-      }
-      this.createEmptyFolderFS(newName, parentObject.path)
-      this.updateWorkspaceDataObject()
-    } else {
-      toast.error("Please select a folder")
-    }
   }
 
   /**
