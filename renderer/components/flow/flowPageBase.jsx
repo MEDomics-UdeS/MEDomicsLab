@@ -3,10 +3,7 @@ import React, { useContext, useEffect, useRef } from "react"
 import SidebarAvailableNodes from "./sidebarAvailableNodes"
 import { ReactFlowProvider } from "reactflow"
 import { FlowInfosProvider, FlowInfosContext } from "./context/flowInfosContext"
-import {
-  FlowResultsContext,
-  FlowResultsProvider
-} from "./context/flowResultsContext"
+import { FlowResultsContext, FlowResultsProvider } from "./context/flowResultsContext"
 import { FlowFunctionsProvider } from "./context/flowFunctionsContext"
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels"
 import ResultsPane from "./results/resultsPane"
@@ -38,12 +35,10 @@ const FlowPageBaseWithFlowInfos = ({ children, workflowType, id }) => {
   useEffect(() => {
     if (sidebarPanelRef.current) {
       if (showAvailableNodes) {
-        document.getElementById("data-panel-id-sidebar" + id).style.minWidth =
-          "210px"
+        document.getElementById("data-panel-id-sidebar" + id).style.minWidth = "210px"
         sidebarPanelRef.current.expand()
       } else {
-        document.getElementById("data-panel-id-sidebar" + id).style.minWidth =
-          "0px"
+        document.getElementById("data-panel-id-sidebar" + id).style.minWidth = "0px"
         sidebarPanelRef.current.collapse()
       }
     }
@@ -64,38 +59,16 @@ const FlowPageBaseWithFlowInfos = ({ children, workflowType, id }) => {
   return (
     <>
       {/* PanelGroup is used to create the general layout of a flow page */}
-      <PanelGroup
-        className="width-100 height-100"
-        style={{ height: "100%", display: "flex", flexGrow: 1 }}
-        direction="horizontal"
-        id={id}
-      >
+      <PanelGroup className="width-100 height-100" style={{ height: "100%", display: "flex", flexGrow: 1 }} direction="horizontal" id={id}>
         {/* Panel is used to create the sidebar, used to be able to resize it on click */}
-        <Panel
-          ref={sidebarPanelRef}
-          id={"sidebar" + id}
-          minSize={17.5}
-          maxSize={17.5}
-          defaultSize={0}
-          order={1}
-          collapsible={true}
-          collapsibleSize={5}
-          className="smooth-transition"
-        >
-          <SidebarAvailableNodes
-            title="Available Nodes"
-            sidebarType={workflowType}
-          />
+        <Panel ref={sidebarPanelRef} id={"sidebar" + id} minSize={17.5} maxSize={17.5} defaultSize={0} order={1} collapsible={true} collapsibleSize={5} className="smooth-transition">
+          <SidebarAvailableNodes title="Available Nodes" sidebarType={workflowType} />
         </Panel>
         <PanelResizeHandle />
         {/* Panel is used to create the flow, used to be able to resize it on drag */}
         <Panel minSize={25} order={2}>
           {/* in this panel, we use another PanelGroup to create the layout of the flow and the results pane */}
-          <PanelGroup
-            className="width-100 height-100"
-            style={{ paddingLeft: "0.25rem" }}
-            direction="vertical"
-          >
+          <PanelGroup className="width-100 height-100" style={{ paddingLeft: "0.25rem" }} direction="vertical">
             {/* Panel is used to create the flow, used to be able to resize it on drag */}
             <Panel order={1}>
               <ReactFlowProvider>{children}</ReactFlowProvider>
@@ -110,6 +83,7 @@ const FlowPageBaseWithFlowInfos = ({ children, workflowType, id }) => {
             <Panel
               ref={resultsPanelRef}
               id="results"
+              className="smooth-transition"
               maxSize={75}
               minSize={30}
               defaultSize={0}

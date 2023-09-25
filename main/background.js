@@ -2,7 +2,7 @@ import { app, ipcMain, Menu, dialog } from "electron"
 import axios from "axios"
 import serve from "electron-serve"
 import { createWindow } from "./helpers"
-import { installExtension, REACT_DEVELOPER_TOOLS } from "electron-extension-installer"
+// import { installExtension, REACT_DEVELOPER_TOOLS } from "electron-extension-installer"
 const fs = require("fs")
 var path = require("path")
 const dirTree = require("directory-tree")
@@ -62,7 +62,28 @@ if (isProd) {
     },
     {
       label: "Edit",
-      submenu: [{ role: "undo" }, { role: "redo" }, { type: "separator" }, { role: "cut" }, { role: "copy" }, { role: "paste" }]
+      submenu: [
+        { role: "undo" },
+        { role: "redo" },
+        { type: "separator" },
+        { role: "cut" },
+        { role: "copy" },
+        { role: "paste" },
+        { type: "separator" },
+        {
+          role: "preferences",
+          label: "Preferences",
+          click() {
+            console.log("👋")
+          },
+          submenu: [
+            {
+              label: "Toggle dark mode",
+              click: () => app.emit("toggleDarkMode")
+            }
+          ]
+        }
+      ]
     },
     {
       label: "Hello From Electron!",
@@ -212,6 +233,11 @@ if (isProd) {
     }
   })
 
+  app.on("toggleDarkMode", () => {
+    console.log("toggleDarkMode")
+    mainWindow.webContents.send("toggleDarkMode")
+  })
+
   if (isProd) {
     await mainWindow.loadURL("app://./index.html")
   } else {
@@ -320,10 +346,10 @@ app.on("window-all-closed", () => {
   }
 })
 
-app.on("ready", async () => {
-  await installExtension(REACT_DEVELOPER_TOOLS, {
-    loadExtensionOptions: {
-      allowFileAccess: true
-    }
-  })
-})
+// app.on("ready", async () => {
+//   await installExtension(REACT_DEVELOPER_TOOLS, {
+//     loadExtensionOptions: {
+//       allowFileAccess: true
+//     }
+//   })
+// })
