@@ -502,4 +502,4 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
   )
 }
 
-export { SidebarDirectoryTreeControlled }
+export default SidebarDirectoryTreeControlled

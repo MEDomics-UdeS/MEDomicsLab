@@ -2,7 +2,7 @@ import React, { useContext } from "react"
 import { Accordion, Button, Stack } from "react-bootstrap"
 import { WorkspaceContext } from "../../workspace/workspaceContext"
 import { ipcRenderer } from "electron"
-import { SidebarDirectoryTreeControlled } from "./sidebarDirectoryTreeControlled"
+import SidebarDirectoryTreeControlled from "./sidebarDirectoryTreeControlled"
 const HomeSidebar = () => {
   /**
    * @description - This component is the sidebar tools component that will be used in the sidebar component as the home page
@@ -36,7 +36,7 @@ const HomeSidebar = () => {
           </Button>
         )}
         <Accordion defaultActiveKey={["0"]} alwaysOpen>
-          <SidebarDirectoryTreeControlled />
+          {/* <SidebarDirectoryTreeControlled /> */}
         </Accordion>
       </Stack>
     </>
