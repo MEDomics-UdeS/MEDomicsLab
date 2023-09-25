@@ -2,7 +2,7 @@ import { app, ipcMain, Menu, dialog } from "electron"
 import axios from "axios"
 import serve from "electron-serve"
 import { createWindow } from "./helpers"
-// import { installExtension, REACT_DEVELOPER_TOOLS } from "electron-extension-installer"
+import { installExtension, REACT_DEVELOPER_TOOLS } from "electron-extension-installer"
 const fs = require("fs")
 var path = require("path")
 const dirTree = require("directory-tree")
@@ -346,10 +346,10 @@ app.on("window-all-closed", () => {
   }
 })
 
-// app.on("ready", async () => {
-//   await installExtension(REACT_DEVELOPER_TOOLS, {
-//     loadExtensionOptions: {
-//       allowFileAccess: true
-//     }
-//   })
-// })
+app.on("ready", async () => {
+  await installExtension(REACT_DEVELOPER_TOOLS, {
+    loadExtensionOptions: {
+      allowFileAccess: true
+    }
+  })
+})

@@ -1,5 +1,4 @@
 import { React, createContext, useContext } from "react"
-import LearningPage from "../mainPages/learning"
 import { DataContext } from "../workspace/dataContext"
 /**
  * @typedef {React.Context} LayoutModelContext
@@ -8,7 +7,7 @@ import { DataContext } from "../workspace/dataContext"
  * This context is used by the LayoutProvider to provide the layout model to the rest of the application
  * @see {@link https://react.dev/learn/passing-data-deeply-with-context}
  */
-export const LayoutModelContext = createContext(null)
+const LayoutModelContext = createContext(null)
 
 /**
  * @typedef {React.FunctionComponent} LayoutContext
@@ -19,7 +18,7 @@ export const LayoutModelContext = createContext(null)
  * @summary This function enables us to wrap the children of the LayoutContext and make to them the layout model and the functions to interact with it available
  * @author Nicolas Longchamps @link
  */
-function LayoutContext({ children, layoutModel, setLayoutModel }) {
+function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
   const { globalData } = useContext(DataContext)
   /**
    * @param {FlexLayout.Model.Action} action - The actions passed on by the flexlayout-react library
@@ -147,4 +146,4 @@ function LayoutContext({ children, layoutModel, setLayoutModel }) {
   return <LayoutModelContext.Provider value={{ layoutModel, dispatchLayout, flexlayoutInterpreter }}>{children}</LayoutModelContext.Provider>
 }
 
-export default LayoutContext
+export { LayoutModelProvider, LayoutModelContext }

@@ -5,7 +5,7 @@ import { React, createContext, useState } from "react"
  * @description A context object that provides global data and data request state to its children components.
  * @see https://reactjs.org/docs/context.html
  */
-export const DataContext = createContext(null)
+const DataContext = createContext(null)
 
 /**
  * @typedef {React.FunctionComponent} DataContextProvider
@@ -16,11 +16,7 @@ export const DataContext = createContext(null)
  * @param {Function} props.setGlobalData - The function to update the global data object.
  * @returns {JSX.Element} - The DataContextProvider component.
  */
-export default function DataContextProvider({
-  children,
-  globalData,
-  setGlobalData
-}) {
+function DataContextProvider({ children, globalData, setGlobalData }) {
   const [dataRequest, setDataRequest] = useState({})
 
   return (
@@ -38,3 +34,5 @@ export default function DataContextProvider({
     </>
   )
 }
+
+export { DataContextProvider, DataContext }

@@ -2,10 +2,13 @@ import { ToastContainer } from "react-toastify"
 import React, { useState } from "react"
 import Head from "next/head"
 import LayoutManager from "../components/layout/layoutManager"
-import LayoutContextProvider from "../components/layout/layoutContext"
-import WorkspaceProvider from "../components/workspace/workspaceContext"
+import { LayoutModelProvider } from "../components/layout/layoutContext"
+import { WorkspaceProvider } from "../components/workspace/workspaceContext"
 import { useEffect } from "react"
 import { ipcRenderer } from "electron"
+import { DataContextProvider } from "../components/workspace/dataContext"
+import MedDataObject from "../components/workspace/medDataObject"
+import { ActionContextProvider } from "../components/layout/actionContext"
 
 // CSS
 import "bootstrap/dist/css/bootstrap.min.css"
@@ -33,10 +36,6 @@ import "../styles/flow/results.css"
 import "react-complex-tree/lib/style-modern.css"
 import "../styles/sidebarTree.css"
 import "../styles/customPrimeReact.css"
-
-import DataContextProvider from "../components/workspace/dataContext"
-import MedDataObject from "../components/workspace/medDataObject"
-import { ActionContextProvider } from "../components/layout/actionContext"
 
 /**
  * This is the main app component. It is the root component of the app.
@@ -283,14 +282,14 @@ export default function App() {
             <WorkspaceProvider workspace={workspaceObject} setWorkspace={setWorkspaceObject} port={port} setPort={setPort}>
               {" "}
               {/* This is the WorkspaceProvider, which provides the workspace model to all the children components of the LayoutManager */}
-              <LayoutContextProvider // This is the LayoutContextProvider, which provides the layout model to all the children components of the LayoutManager
+              <LayoutModelProvider // This is the LayoutContextProvider, which provides the layout model to all the children components of the LayoutManager
                 layoutModel={layoutModel}
                 setLayoutModel={setLayoutModel}
               >
                 {/* This is the LayoutContextProvider, which provides the layout model to all the children components of the LayoutManager */}
                 <LayoutManager layout={initialLayout} />
                 {/** We pass the initialLayout as a parameter */}
-              </LayoutContextProvider>
+              </LayoutModelProvider>
             </WorkspaceProvider>
           </DataContextProvider>
         </ActionContextProvider>
