@@ -54,7 +54,7 @@ const LayoutTestSidebar = () => {
               </Stack>
             </Accordion.Body>
           </Accordion.Item>
-          {/* <SidebarDirectoryTreeControlled /> */}
+          <SidebarDirectoryTreeControlled />
         </Accordion>
       </Stack>
     </>

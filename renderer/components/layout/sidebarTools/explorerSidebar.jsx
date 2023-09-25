@@ -43,7 +43,7 @@ const ExplorerSidebar = () => {
               <Button onClick={handleWorkspaceChange}>Change Workspace</Button>
             </Accordion.Body>
           </Accordion.Item>
-          {/* <SidebarDirectoryTreeControlled /> */}
+          <SidebarDirectoryTreeControlled />
         </Accordion>
       </Stack>
     </>

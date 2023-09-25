@@ -35,7 +35,7 @@ const InputSidebar = () => {
         </DropzoneComponent>
 
         <Accordion defaultActiveKey={["0"]} alwaysOpen>
-          {/* <SidebarDirectoryTreeControlled /> */}
+          <SidebarDirectoryTreeControlled />
         </Accordion>
 
         {/* We render the workspace only if it is set, otherwise it throws an error */}

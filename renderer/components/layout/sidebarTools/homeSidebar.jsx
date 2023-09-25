@@ -36,7 +36,7 @@ const HomeSidebar = () => {
           </Button>
         )}
         <Accordion defaultActiveKey={["0"]} alwaysOpen>
-          {/* <SidebarDirectoryTreeControlled /> */}
+          <SidebarDirectoryTreeControlled />
         </Accordion>
       </Stack>
     </>

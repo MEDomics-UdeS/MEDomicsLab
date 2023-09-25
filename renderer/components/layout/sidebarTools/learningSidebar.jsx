@@ -126,7 +126,7 @@ const LearningSidebar = () => {
               </Stack>
             </Accordion.Body>
           </Accordion.Item>
-          {/* <SidebarDirectoryTreeControlled setExternalSelectedItems={setSelectedItems} setExternalDBClick={setDbSelectedItem} /> */}
+          <SidebarDirectoryTreeControlled setExternalSelectedItems={setSelectedItems} setExternalDBClick={setDbSelectedItem} />
         </Accordion>
       </Stack>
 
