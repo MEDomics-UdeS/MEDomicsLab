@@ -3,14 +3,14 @@ import { Button, Stack } from "react-bootstrap"
 import { WorkspaceContext } from "../../workspace/workspaceContext"
 import * as Icon from "react-bootstrap-icons"
 import { InputText } from "primereact/inputtext"
-import { SidebarDirectoryTreeControlled } from "./sidebarDirectoryTreeControlled"
+import SidebarDirectoryTreeControlled from "./sidebarDirectoryTreeControlled"
 import { writeFile, loadJsonPath } from "../../../utilities/fileManagementUtils"
 import { OverlayPanel } from "primereact/overlaypanel"
 import { Accordion } from "react-bootstrap"
 import MedDataObject from "../../workspace/medDataObject"
 import { DataContext } from "../../workspace/dataContext"
 import { ActionContext } from "../actionContext"
-import { LayoutContext, LayoutModelContext } from "../layoutContext"
+import { LayoutModelContext } from "../layoutContext"
 
 /**
  * @description - This component is the sidebar tools component that will be used in the sidebar component as the learning page
@@ -126,7 +126,7 @@ const LearningSidebar = () => {
               </Stack>
             </Accordion.Body>
           </Accordion.Item>
-          <SidebarDirectoryTreeControlled setExternalSelectedItems={setSelectedItems} setExternalDBClick={setDbSelectedItem} />
+          {/* <SidebarDirectoryTreeControlled setExternalSelectedItems={setSelectedItems} setExternalDBClick={setDbSelectedItem} /> */}
         </Accordion>
       </Stack>
 
