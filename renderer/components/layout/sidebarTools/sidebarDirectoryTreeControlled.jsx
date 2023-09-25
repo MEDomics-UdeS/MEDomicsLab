@@ -18,10 +18,7 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
   const environment = useRef() // This ref is used to get the environment of the directory tree
   const tree = useRef() // This ref is used to get the directory tree
   const MENU_ID = "tree-2" // This is the id of the context menu
-  const { show } = useContextMenu({
-    // This is the context menu
-    id: MENU_ID
-  })
+  const { show } = useContextMenu() // This is the context menu
 
   const [focusedItem, setFocusedItem] = useState() // This state is used to keep track of the item that is currently focused
   const [expandedItems, setExpandedItems] = useState([]) // This state is used to keep track of the items that are currently expanded
@@ -221,7 +218,62 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
    * @returns {void}
    */
   function displayMenu(e, data) {
-    show({ event: e, props: data })
+    console.log("DISPLAY MENU", e, data)
+    if (data.isFolder) {
+      show({
+        id: "MENU_FOLDER",
+        event: e,
+        props: data
+      })
+    } else if (data.type == "medml") {
+      show({
+        id: "MENU_MEDML",
+        event: e,
+        props: data
+      })
+    } else if (data.type == "csv" || data.type == "json" || data.type == "tsv" || data.type == "xlsx") {
+      show({
+        id: "MENU_DATA",
+        event: e,
+        props: data
+      })
+    } else if (data.type == "py" || data.type == "ipynb") {
+      show({
+        id: "MENU_CODE",
+        event: e,
+        props: data
+      })
+    } else if (data.type == "png" || data.type == "jpg" || data.type == "jpeg" || data.type == "gif" || data.type == "svg") {
+      show({
+        id: "MENU_IMAGE",
+        event: e,
+        props: data
+      })
+    } else if (data.type == "pdf") {
+      show({
+        id: "MENU_PDF",
+        event: e,
+        props: data
+      })
+    } else if (data.type == "txt") {
+      show({
+        id: "MENU_TEXT",
+        event: e,
+        props: data
+      })
+    } else if (data.type == "pkl") {
+      show({
+        id: "MENU_MODEL",
+        event: e,
+        props: data
+      })
+    } else {
+      show({
+        id: "MENU_DEFAULT",
+        event: e,
+        props: data
+      })
+    }
   }
 
   /**
@@ -475,7 +527,8 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
           </div>
         </Accordion.Body>
       </Accordion.Item>
-      <Menu id={MENU_ID}>
+
+      <Menu id={"MENU_DATA"}>
         <Submenu
           className="context-submenu"
           label={
@@ -489,6 +542,168 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
           <Item>D-Tale</Item>
           <Item>PandasProfiling</Item>
         </Submenu>
+        <Item id="rename" onClick={handleContextMenuAction}>
+          <Eraser size={"1rem"} className="context-menu-icon" />
+          Rename
+        </Item>
+        <Item id="delete" onClick={handleContextMenuAction}>
+          <Trash size={"1rem"} className="context-menu-icon" />
+          Delete
+        </Item>
+      </Menu>
+
+      <Menu id={"MENU_MEDML"}>
+        <Submenu
+          className="context-submenu"
+          label={
+            <>
+              <BoxArrowUpRight size={"1rem"} className="context-menu-icon" />
+              Open in...
+            </>
+          }
+        >
+          <Item>Learning module (default)</Item>
+        </Submenu>
+        <Item id="rename" onClick={handleContextMenuAction}>
+          <Eraser size={"1rem"} className="context-menu-icon" />
+          Rename
+        </Item>
+        <Item id="delete" onClick={handleContextMenuAction}>
+          <Trash size={"1rem"} className="context-menu-icon" />
+          Delete
+        </Item>
+      </Menu>
+
+      <Menu id="MENU_FOLDER">
+        <Item id="revealInFileExplorer" onClick={() => require("electron").shell.showItemInFolder(globalData[selectedItems[0]].path)}>
+          {/* <BoxArrowUpRight size={"1rem"} className="context-menu-icon" /> */}
+          Reveal in File Explorer
+        </Item>
+        <Item id="rename" onClick={handleContextMenuAction}>
+          <Eraser size={"1rem"} className="context-menu-icon" />
+          Rename
+        </Item>
+        <Item id="delete" onClick={handleContextMenuAction}>
+          <Trash size={"1rem"} className="context-menu-icon" />
+          Delete
+        </Item>
+      </Menu>
+
+      <Menu id="MENU_CODE">
+        <Submenu
+          className="context-submenu"
+          label={
+            <>
+              <BoxArrowUpRight size={"1rem"} className="context-menu-icon" />
+              Open in...
+            </>
+          }
+        >
+          <Item>Code editor (default)</Item>
+          <Item>Jupyter Notebook</Item>
+        </Submenu>
+        <Item id="rename" onClick={handleContextMenuAction}>
+          <Eraser size={"1rem"} className="context-menu-icon" />
+          Rename
+        </Item>
+        <Item id="delete" onClick={handleContextMenuAction}>
+          <Trash size={"1rem"} className="context-menu-icon" />
+          Delete
+        </Item>
+      </Menu>
+
+      <Menu id="MENU_IMAGE">
+        <Submenu
+          className="context-submenu"
+          label={
+            <>
+              <BoxArrowUpRight size={"1rem"} className="context-menu-icon" />
+              Open in...
+            </>
+          }
+        >
+          <Item>Image viewer (default)</Item>
+          <Item>ImageJ</Item>
+        </Submenu>
+        <Item id="rename" onClick={handleContextMenuAction}>
+          <Eraser size={"1rem"} className="context-menu-icon" />
+          Rename
+        </Item>
+        <Item id="delete" onClick={handleContextMenuAction}>
+          <Trash size={"1rem"} className="context-menu-icon" />
+          Delete
+        </Item>
+      </Menu>
+
+      <Menu id="MENU_PDF">
+        <Submenu
+          className="context-submenu"
+          label={
+            <>
+              <BoxArrowUpRight size={"1rem"} className="context-menu-icon" />
+              Open in...
+            </>
+          }
+        >
+          <Item>PDF viewer (default)</Item>
+        </Submenu>
+        <Item id="rename" onClick={handleContextMenuAction}>
+          <Eraser size={"1rem"} className="context-menu-icon" />
+          Rename
+        </Item>
+        <Item id="delete" onClick={handleContextMenuAction}>
+          <Trash size={"1rem"} className="context-menu-icon" />
+          Delete
+        </Item>
+      </Menu>
+
+      <Menu id="MENU_TEXT">
+        <Submenu
+          className="context-submenu"
+          label={
+            <>
+              <BoxArrowUpRight size={"1rem"} className="context-menu-icon" />
+              Open in...
+            </>
+          }
+        >
+          <Item>Text editor (default)</Item>
+        </Submenu>
+        <Item id="rename" onClick={handleContextMenuAction}>
+          <Eraser size={"1rem"} className="context-menu-icon" />
+          Rename
+        </Item>
+        <Item id="delete" onClick={handleContextMenuAction}>
+          <Trash size={"1rem"} className="context-menu-icon" />
+          Delete
+        </Item>
+      </Menu>
+
+      <Menu id="MENU_MODEL">
+        <Submenu
+          className="context-submenu"
+          label={
+            <>
+              <BoxArrowUpRight size={"1rem"} className="context-menu-icon" />
+              Open in...
+            </>
+          }
+        >
+          <Item>Model viewer (default)</Item>
+          <Item>Evaluation Module</Item>
+          <Item>Application Module</Item>
+        </Submenu>
+        <Item id="rename" onClick={handleContextMenuAction}>
+          <Eraser size={"1rem"} className="context-menu-icon" />
+          Rename
+        </Item>
+        <Item id="delete" onClick={handleContextMenuAction}>
+          <Trash size={"1rem"} className="context-menu-icon" />
+          Delete
+        </Item>
+      </Menu>
+
+      <Menu id="MENU_DEFAULT">
         <Item id="rename" onClick={handleContextMenuAction}>
           <Eraser size={"1rem"} className="context-menu-icon" />
           Rename
