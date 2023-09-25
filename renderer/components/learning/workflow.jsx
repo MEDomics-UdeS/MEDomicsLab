@@ -745,18 +745,71 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
         groupNodeHandlingDefault={groupNodeHandlingDefault}
         onNodeDrag={onNodeDrag}
         // reprensents the visual over the workflow
+        uiTopRight={
+          <>
+            {workflowType == "learning" && (
+              <>
+                <Form.Select className="margin-left-10" aria-label="Default select example" value={MLType} onChange={(e) => setMLType(e.target.value)}>
+                  <option value="classification">Classification</option>
+                  <option value="regression">Regression</option>
+                  {/* <option value="survival-analysis">Survival Analysis</option> */}
+                </Form.Select>
+                <BtnDiv
+                  buttonsList={[
+                    { type: "run", onClick: onRun },
+                    { type: "clear", onClick: onClear },
+                    { type: "save", onClick: onSave },
+                    { type: "load", onClick: onLoad }
+                  ]}
+                />
+              </>
+            )}
+          </>
+        }
+        uiTopCenter={
+          <>
+            {workflowType == "optimize" && (
+              <>
+                <div>
+                  {groupNodeId.id != "MAIN" && (
+                    <div className="subFlow-title">
+                      <EditableLabel
+                        text={nodes.find((node) => node.id === groupNodeId.id).data.internal.name}
+                        labelClassName="node-editableLabel"
+                        inputClassName="node-editableLabel"
+                        inputWidth="20ch"
+                        inputHeight="45px"
+                        labelFontWeight="bold"
+                        inputFontWeight="bold"
+                        onFocusOut={(value) => {
+                          newNameHasBeenWritten(value)
+                        }}
+                      />
+
+                      <BtnDiv
+                        buttonsList={[
+                          {
+                            type: "back",
+                            onClick: onBack
+                          }
+                        ]}
+                      />
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
+          </>
+        }
         ui={
           <>
-            {/* top left corner - Tree menu*/}
-            <div className="btn-panel-top-corner-left"></div>
-            {/* top right corner - buttons */}
+            {/* top right corner - buttons
             <div className="btn-panel-top-corner-right">
               {workflowType == "learning" && (
                 <>
                   <Form.Select className="margin-left-10" aria-label="Default select example" value={MLType} onChange={(e) => setMLType(e.target.value)}>
                     <option value="classification">Classification</option>
                     <option value="regression">Regression</option>
-                    {/* <option value="survival-analysis">Survival Analysis</option> */}
                   </Form.Select>
                   <BtnDiv
                     buttonsList={[
@@ -768,9 +821,9 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
                   />
                 </>
               )}
-            </div>
+            </div> */}
             {/* top center - title when is sub group */}
-            <div className="btn-panel-top-center">
+            {/* <div className="btn-panel-top-center">
               {workflowType == "optimize" && (
                 <>
                   <div>
@@ -802,7 +855,7 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
                   </div>
                 </>
               )}
-            </div>
+            </div> */}
             {/* bottom center - progress bar */}
             <div className="panel-bottom-center">
               <ProgressBarRequests isUpdating={isProgressUpdating} setIsUpdating={setIsProgressUpdating} />

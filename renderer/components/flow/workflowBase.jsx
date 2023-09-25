@@ -9,6 +9,9 @@ import { FlowResultsContext } from "./context/flowResultsContext"
 import { getId, deepCopy } from "../../utilities/staticFunctions"
 import { ipcRenderer } from "electron"
 import { ToggleButton } from "primereact/togglebutton"
+import Container from "react-bootstrap/Container"
+import Row from "react-bootstrap/Row"
+import Col from "react-bootstrap/Col"
 
 /**
  *
@@ -39,7 +42,7 @@ import { ToggleButton } from "primereact/togglebutton"
  * This component is used to display a workflow.
  * It manages base workflow functions such as node creation, node deletion, node connection, etc.
  */
-const WorkflowBase = ({ isGoodConnection, groupNodeHandlingDefault, onDeleteNode, ui, onNodeDrag, mandatoryProps }) => {
+const WorkflowBase = ({ isGoodConnection, groupNodeHandlingDefault, onDeleteNode, onNodeDrag, mandatoryProps, ui, uiTopLeft, uiTopRight, uiTopCenter }) => {
   const { reactFlowInstance, setReactFlowInstance, addSpecificToNode, nodeTypes, nodes, setNodes, onNodesChange, edges, setEdges, onEdgesChange, runNode } = mandatoryProps
 
   const edgeUpdateSuccessful = useRef(true)
@@ -457,15 +460,34 @@ const WorkflowBase = ({ isGoodConnection, groupNodeHandlingDefault, onDeleteNode
       <ReactFlow nodes={nodes} edges={edges} onNodesChange={onNodesChange} onEdgesChange={onEdgesChange} onInit={setReactFlowInstance} nodeTypes={nodeTypes} onNodeDrag={onNodeDrag} onConnect={onConnect} onDrop={onDrop} onDragOver={onDragOver} onEdgeUpdate={onEdgeUpdate} onEdgeUpdateStart={onEdgeUpdateStart} onEdgeUpdateEnd={onEdgeUpdateEnd} fitView>
         <Background /> <MiniMap className="minimapStyle" zoomable pannable /> <Controls />
         {ui}
-        <div className="btn-panel-top-corner-left gap-2">
-          {/* <Button variant="outline btn-top-left-menu" onClick={handleShow}>
-            <Icon.List width="30px" height="30px" />
-          </Button> */}
-
+        {/* <div className="btn-panel-top-corner-left gap-2">
           <ToggleButton onIcon="pi pi-list" offIcon="pi pi-times" onLabel="" offLabel="" checked={!showAvailableNodes} onChange={(e) => setShowAvailableNodes(!e.value)} className="btn-ctl-available-nodes" />
-
           <ToggleButton onLabel="Results mode on" offLabel="See results" onIcon="pi pi-chart-bar" offIcon="pi pi-eye" disabled={!isResults} checked={showResultsPane} onChange={(e) => setShowResultsPane(e.value)} className="btn-show-results" />
-        </div>
+        </div> */}
+        {/* <div className="flow-btn-panel-top">
+          <div className="left">
+            <ToggleButton onIcon="pi pi-list" offIcon="pi pi-times" onLabel="" offLabel="" checked={!showAvailableNodes} onChange={(e) => setShowAvailableNodes(!e.value)} className="btn-ctl-available-nodes" />
+            <ToggleButton onLabel="Results mode on" offLabel="See results" onIcon="pi pi-chart-bar" offIcon="pi pi-eye" disabled={!isResults} checked={showResultsPane} onChange={(e) => setShowResultsPane(e.value)} className="btn-show-results" />
+            {uiTopLeft}
+          </div>
+          <div className="center">{uiTopCenter}</div>
+          <div className="right">{uiTopRight}</div>
+        </div> */}
+        <Container className="flow-btn-panel-top">
+          <Row>
+            <Col sm className="left">
+              <ToggleButton onIcon="pi pi-list" offIcon="pi pi-times" onLabel="" offLabel="" checked={!showAvailableNodes} onChange={(e) => setShowAvailableNodes(!e.value)} className="btn-ctl-available-nodes" />
+              <ToggleButton onLabel="Results mode on" offLabel="See results" onIcon="pi pi-chart-bar" offIcon="pi pi-eye" disabled={!isResults} checked={showResultsPane} onChange={(e) => setShowResultsPane(e.value)} className="btn-show-results" />
+              {uiTopLeft}
+            </Col>
+            <Col md="auto" className="center">
+              {uiTopCenter}
+            </Col>
+            <Col sm className="right">
+              {uiTopRight}
+            </Col>
+          </Row>
+        </Container>
       </ReactFlow>
     </div>
   )

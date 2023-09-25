@@ -6,6 +6,7 @@ import LayoutContextProvider from "../components/layout/layoutContext"
 import WorkspaceProvider from "../components/workspace/workspaceContext"
 import { useEffect } from "react"
 import { ipcRenderer } from "electron"
+import useDarkMode from "use-dark-mode"
 
 // CSS
 import "bootstrap/dist/css/bootstrap.min.css"
@@ -45,6 +46,24 @@ import { ActionContextProvider } from "../components/layout/actionContext"
  * @constructor
  */
 export default function App() {
+  const [isDarkMode, setIsDarkMode] = useState(false)
+  const [theme, setTheme] = useState("light-mode")
+  const darkMode = useDarkMode(false)
+
+  useEffect(() => {
+    console.log("isDarkMode", isDarkMode)
+    if (isDarkMode) {
+      darkMode.enable
+    } else {
+      darkMode.disable
+    }
+  }, [isDarkMode])
+
+  // useEffect(() => {
+  //   document.documentElement.className = theme
+  //   // localStorage.setItem("theme", themeName)
+  // }, [theme])
+
   let initialLayout = {
     // this is the intial layout model for flexlayout model that is passed to the LayoutManager -- See flexlayout-react docs for more info
     global: {
@@ -139,6 +158,11 @@ export default function App() {
     ipcRenderer.on("getFlaskPort", (event, data) => {
       console.log("flask port update from Electron:", data)
       setPort(data.newPort)
+    })
+
+    ipcRenderer.on("toggleDarkMode", () => {
+      console.log("toggleDarkMode")
+      setIsDarkMode(!isDarkMode)
     })
   }, []) // Here, we specify that the hook should only be called at the launch of the app
 
