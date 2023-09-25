@@ -74,7 +74,8 @@ const LayoutManager = (props) => {
       case "application":
         return <ApplicationPage />
       case "layoutTest":
-        return <MainFlexLayout layoutmodel={props.layout} />
+        // return <MainFlexLayout layoutmodel={props.layout} />
+        return <></>
       default:
     }
   }

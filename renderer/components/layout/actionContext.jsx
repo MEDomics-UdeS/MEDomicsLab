@@ -7,7 +7,7 @@ import { React, createContext } from "react"
  * This context is used by the LayoutProvider to provide the action handler to the rest of the application
  * @see {@link https://react.dev/learn/passing-data-deeply-with-context}
  */
-export const ActionContext = createContext(null)
+const ActionContext = createContext(null)
 
 /**
  * @typedef {React.FunctionComponent} ActionContextProvider
@@ -43,4 +43,4 @@ function ActionContextProvider({ children }) {
   return <ActionContext.Provider value={{ dispatchAction }}>{children}</ActionContext.Provider>
 }
 
-export { ActionContextProvider }
+export { ActionContextProvider, ActionContext }
