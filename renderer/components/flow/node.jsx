@@ -121,7 +121,7 @@ const NodeObject = ({ id, data, nodeSpecific, nodeBody, defaultSettings }) => {
           <div className="header">
             <Icon.Pencil width="18px" height="18px" />
             <EditableLabel
-              text={"data.internal.name"}
+              text={data.internal.name}
               labelClassName="node-editableLabel"
               inputClassName="node-editableLabel"
               inputWidth="20ch"

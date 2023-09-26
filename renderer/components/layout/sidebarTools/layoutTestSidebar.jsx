@@ -24,7 +24,7 @@ const LayoutTestSidebar = () => {
   return (
     <>
       <Stack direction="vertical" gap={0}>
-        <Accordion defaultActiveKey={["0"]} alwaysOpen>
+        <Accordion defaultActiveKey={["dirTree", "1"]} alwaysOpen>
           <Accordion.Item eventKey="0">
             <Accordion.Header>
               <p className="title-text">Add page</p>

@@ -43,7 +43,7 @@ const IconSidebar = ({ onSidebarItemSelect }) => {
   const { workspace } = useContext(WorkspaceContext)
 
   useEffect(() => {
-    if (workspace.hasBeenSet == false) {
+    if (!workspace.hasBeenSet) {
       setActiveKey("home")
       setDisabledIcon(true)
     } else {

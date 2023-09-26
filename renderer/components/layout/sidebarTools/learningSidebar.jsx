@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState, useRef } from "react"
 import { Button, Stack } from "react-bootstrap"
-import { WorkspaceContext } from "../../workspace/workspaceContext"
+import { EXPERIMENTS, RESULTS, WorkspaceContext } from "../../workspace/workspaceContext"
 import * as Icon from "react-bootstrap-icons"
 import { InputText } from "primereact/inputtext"
 import SidebarDirectoryTreeControlled from "./sidebarDirectoryTreeControlled"
@@ -9,7 +9,6 @@ import { OverlayPanel } from "primereact/overlaypanel"
 import { Accordion } from "react-bootstrap"
 import MedDataObject from "../../workspace/medDataObject"
 import { DataContext } from "../../workspace/dataContext"
-import { ActionContext } from "../actionContext"
 import { LayoutModelContext } from "../layoutContext"
 
 /**
@@ -18,7 +17,7 @@ import { LayoutModelContext } from "../layoutContext"
  * @returns {JSX.Element} - This component is the sidebar tools component that will be used in the sidebar component as the learning page
  */
 const LearningSidebar = () => {
-  const { workspace } = useContext(WorkspaceContext) // We get the workspace from the context to retrieve the directory tree of the workspace, thus retrieving the data files
+  const { workspace, getBasePath } = useContext(WorkspaceContext) // We get the workspace from the context to retrieve the directory tree of the workspace, thus retrieving the data files
   const [btnCreateSceneState, setBtnCreateSceneState] = useState(false)
   const [sceneName, setSceneName] = useState("") // We initialize the experiment name state to an empty string
   const [experimentList, setExperimentList] = useState([]) // We initialize the experiment list state to an empty array
@@ -27,20 +26,18 @@ const LearningSidebar = () => {
   const [selectedItems, setSelectedItems] = useState([]) // We initialize the selected items state to an empty array
   const [dbSelectedItem, setDbSelectedItem] = useState(null) // We initialize the selected item state to an empty string
   const { globalData } = useContext(DataContext)
-  const { dispatchAction } = useContext(ActionContext)
-  const { layoutState, dispatchLayout } = useContext(LayoutModelContext)
+  const { dispatchLayout } = useContext(LayoutModelContext)
 
   useEffect(() => {
-    console.log(workspace)
     let experimentList = []
-    if (workspace) {
-      workspace.workingDirectory.children[1].children.forEach((child) => {
-        console.log(child.name)
-        experimentList.push(child.name)
+    if (globalData && selectedItems && globalData[selectedItems[0]] && globalData[selectedItems[0]].childrenIDs) {
+      globalData[selectedItems[0]].childrenIDs.forEach((childId) => {
+        experimentList.push(globalData[childId].name)
       })
     }
+
     setExperimentList(experimentList)
-  }, [workspace]) // We log the workspace when it changes
+  }, [workspace, selectedItems, globalData[selectedItems[0]]]) // We log the workspace when it changes
 
   useEffect(() => {
     if (sceneName != "" && !experimentList.includes(sceneName)) {
@@ -50,29 +47,46 @@ const LearningSidebar = () => {
       setBtnCreateSceneState(false)
       setShowErrorMessage(true)
     }
-  }, [sceneName]) // We set the button state to true if the experiment name is empty, otherwise we set it to false
+  }, [sceneName, experimentList]) // We set the button state to true if the experiment name is empty, otherwise we set it to false
 
   const createExperiment = (e) => {
     console.log("Create Scene")
     console.log(`Scene Name: ${sceneName}`) // We log the experiment name when the create button is clicked
     createSceneRef.current.toggle(e)
-    createEmptyScene(workspace.workingDirectory.children[1].path, sceneName)
+    createEmptyScene(getBasePath(EXPERIMENTS), sceneName)
   }
 
   const createEmptyScene = async (path, name) => {
-    const emptyScene = loadJsonPath("./resources/emptyScene.json")
+    const emptyScene = loadJsonPath("./resources/emptyScene.medml")
     if (globalData[selectedItems[0]].parentID == MedDataObject.checkIfMedDataObjectInContextbyPath(path, globalData).getUUID()) {
       if (globalData[selectedItems[0]].type == "folder") {
         path = globalData[selectedItems[0]].path
       } else {
         path = globalData[globalData[selectedItems[0]].parentID].path
       }
-      writeFile(emptyScene, path, name, "medml")
-      MedDataObject.updateWorkspaceDataObject()
+      MedDataObject.createEmptyFolderFSsync(path.split(MedDataObject.getPathSeparator())[path.split(MedDataObject.getPathSeparator()).length - 1], getBasePath(RESULTS), false)
+      // create sccene folder
+      MedDataObject.createEmptyFolderFSsync(sceneName, path).then((sceneFolderPath) => {
+        writeFile(emptyScene, sceneFolderPath, name, "medml")
+        // create folder tmp in the experiment folder
+        MedDataObject.createEmptyFolderFSsync("tmp", sceneFolderPath, false)
+        // create floder notebooks in the experiment folder
+        MedDataObject.createEmptyFolderFSsync("notebooks", sceneFolderPath, false)
+      })
     } else {
       MedDataObject.createEmptyFolderFSsync("experiment", path).then((folderPath) => {
-        writeFile(emptyScene, folderPath, name, "medml")
-        MedDataObject.updateWorkspaceDataObject()
+        console.log("folderPath", folderPath)
+        // write the empty scene in the folder experiment
+        // create the folder in results with the same name as the experiment
+        MedDataObject.createEmptyFolderFSsync(folderPath.split(MedDataObject.getPathSeparator())[folderPath.split(MedDataObject.getPathSeparator()).length - 1], getBasePath(RESULTS), false)
+        // create sccene folder
+        MedDataObject.createEmptyFolderFSsync(sceneName, folderPath).then((sceneFolderPath) => {
+          writeFile(emptyScene, sceneFolderPath, name, "medml")
+          // create folder tmp in the experiment folder
+          MedDataObject.createEmptyFolderFSsync("tmp", sceneFolderPath, false)
+          // create floder notebooks in the experiment folder
+          MedDataObject.createEmptyFolderFSsync("notebooks", sceneFolderPath, false)
+        })
       })
     }
   }
@@ -107,7 +121,7 @@ const LearningSidebar = () => {
           Learning Module
         </p>
 
-        <Accordion defaultActiveKey={["0", "1"]} alwaysOpen>
+        <Accordion defaultActiveKey={["dirTree", "0"]} alwaysOpen>
           <Accordion.Item eventKey="0">
             <Accordion.Header>
               <Stack direction="horizontal" style={{ flexGrow: "1" }}>

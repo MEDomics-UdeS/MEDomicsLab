@@ -411,7 +411,7 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
 
   return (
     <>
-      <Accordion.Item eventKey="2">
+      <Accordion.Item eventKey="dirTree">
         <Accordion.Header>
           <Stack direction="horizontal" style={{ flexGrow: "1" }}>
             <p>

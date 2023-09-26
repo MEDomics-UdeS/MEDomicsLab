@@ -17,10 +17,18 @@ nvm use lts
 
 [Setup here](./flask_server/README.md)
 
-## 4. Run the Electron app in development mode
+## 4. initialize submodules
 
 ```
-cd <.../MEDomicsLab>
+cd <.../MEDomicsLab/>
+git submodule init
+git submodule update
+```
+
+## 5. Run the Electron app in development mode
+
+```
+cd <.../MEDomicsLab/>
 npm install
 npm run dev
 ```

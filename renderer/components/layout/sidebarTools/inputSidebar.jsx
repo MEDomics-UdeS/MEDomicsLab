@@ -34,7 +34,7 @@ const InputSidebar = () => {
           </Button>
         </DropzoneComponent>
 
-        <Accordion defaultActiveKey={["0"]} alwaysOpen>
+        <Accordion defaultActiveKey={["dirTree"]} alwaysOpen>
           <SidebarDirectoryTreeControlled />
         </Accordion>
 

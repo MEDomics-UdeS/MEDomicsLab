@@ -1,10 +1,10 @@
 import { randomUUID } from "crypto"
-// eslint-disable-next-line no-unused-vars
-import React from "react"
 import * as fs from "fs-extra"
 import { toast } from "react-toastify"
 import { ipcRenderer } from "electron"
 import process from "process"
+
+// import { downloadJson, writeFile, loadJson, loadJsonSync, loadJsonPath, loadCSVPath } from "../../utilities/fileManagementUtils"
 
 /**
  * Represents a data object in the workspace.
@@ -73,6 +73,98 @@ export default class MedDataObject {
     this.acceptedFileTypes = []
   }
 
+  static createFolderFromPath(path) {
+    if (!fs.existsSync(path)) {
+      fs.mkdirSync(path, { recursive: true })
+    }
+  }
+
+  /**
+   *
+   * @param {string} path The path to check.
+   * @returns {boolean} - True if the path exists, otherwise false.
+   */
+  static isPathExists(path) {
+    return fs.existsSync(path)
+  }
+
+  /**
+   *
+   * @param {Object} exportObj object to be exported
+   * @param {string} completePath absolute path to the folder where the file will be saved
+   * @returns
+   */
+  static writeFileSyncPath(exportObj, completePath) {
+    let convertedExportObj = typeof exportObj === "string" ? exportObj : JSON.stringify(exportObj, null, 2)
+    const fsPromises = fs.promises
+    this.updateWorkspaceDataObject(1000)
+    return new Promise((resolve) => {
+      fsPromises
+        .writeFile(completePath, convertedExportObj)
+        .then(function () {
+          console.log("file created at " + completePath)
+          resolve(completePath)
+        })
+        .catch(function (e) {
+          console.error("failed to create directory", e)
+        })
+    })
+  }
+
+  /**
+   *
+   * @param {Object} exportObj object to be exported
+   * @param {String} path path to the folder where the file will be saved
+   * @param {String} name name of the exported file
+   * @param {String} extension extension of the exported file (json or even custom (e.g. abc)))
+   *
+   * @description
+   * This function takes an object, a path and a name and saves the object as a json file with a custom extension
+   * @returns {Promise} Promise that resolves to the selected json file
+   */
+  static writeFileSync(exportObj, path, name, extension) {
+    console.log("typeof path: ", path)
+    let newPath = typeof path === "string" ? path : path.join(getPathSeparator())
+    const pathToCreate = `${newPath}${getPathSeparator()}${name}.${extension}`
+    console.log("typeof exportObj: ", typeof exportObj)
+    let convertedExportObj = typeof exportObj === "string" ? exportObj : JSON.stringify(exportObj, null, 2)
+    const fsPromises = fs.promises
+    this.updateWorkspaceDataObject(1000)
+    return new Promise((resolve) => {
+      fsPromises
+        .writeFile(pathToCreate, convertedExportObj)
+        .then(function () {
+          console.log("file created at " + pathToCreate)
+          resolve(pathToCreate)
+        })
+        .catch(function (e) {
+          console.error("failed to create directory", e)
+        })
+    })
+  }
+
+  /**
+   *
+   * @param {Object} exportObj object to be exported
+   * @param {String} path path to the folder where the file will be saved
+   * @param {String} name name of the exported file
+   * @param {String} extension extension of the exported file (json or even custom (e.g. abc)))
+   *
+   * @description
+   * This function takes an object, a path and a name and saves the object as a json file with a custom extension
+   */
+  static writeFile(exportObj, path, name, extension) {
+    const pathToCreate = `${path}${getPathSeparator()}${name}.${extension}`
+    fs.outputFile(pathToCreate, JSON.stringify(exportObj, null, 2), (err) => {
+      if (err) {
+        console.error(err)
+      } else {
+        console.log(`File saved at ${pathToCreate}`)
+        this.updateWorkspaceDataObject()
+      }
+    })
+  }
+
   /**
    * Updates the workspace data object after a specified time interval.
    * @param {number} timer - The time interval in milliseconds before the update is triggered. Default is 200ms.
@@ -119,7 +211,7 @@ export default class MedDataObject {
         let dataObjectParentID = dataObject.parentID
         if (dataObjectParentID.length > 0) {
           if (dataObjectParentID == parentID) {
-            console.log("Data object found in context by name with the same parent:" + dataObjectName)
+            // console.log("Data object found in context by name with the same parent:" + dataObjectName)
             dataObjectUUID = key
           }
         }
@@ -246,15 +338,16 @@ export default class MedDataObject {
    * @param {string} name
    * @param {string} path
    */
-  static createEmptyFolderFSsync(name, path) {
+  static createEmptyFolderFSsync(name, path, newIfExist = true) {
     // eslint-disable-next-line no-undef
     let fs = require("fs")
     let newName = "New Folder"
     if (name !== undefined) {
-      newName = this.getNewNameForFolder({ name: name, folderPath: path })
+      newIfExist ? (newName = this.getNewNameForFolder({ name: name, folderPath: path })) : (newName = name)
     }
     let pathToCreate = path + getPathSeparator() + newName
     const fsPromises = fs.promises
+    this.updateWorkspaceDataObject(1000)
     return new Promise((resolve) => {
       fsPromises
         .mkdir(pathToCreate, { recursive: true })
@@ -961,7 +1054,6 @@ function getPathSeparator() {
   // eslint-disable-next-line no-undef
   let process = require("process")
   if (process.platform === "win32") {
-    console.log("Windows")
     return "\\"
   } else if (typeof process !== "undefined" && process.platform === "linux") {
     return "/"

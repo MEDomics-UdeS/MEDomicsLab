@@ -10,6 +10,8 @@ from typing import Any, Dict, List, Union
 from colorama import Fore, Back, Style
 from learning.MEDml.nodes.NodeObj import *
 from typing import Union
+from learning.MEDml.CodeHandler import convert_dict_to_params
+
 
 DATAFRAME_LIKE = Union[dict, list, tuple, np.ndarray, pd.DataFrame]
 TARGET_LIKE = Union[int, str, list, tuple, np.ndarray, pd.Series]
@@ -26,9 +28,6 @@ class Dataset(Node):
         self.dfs_combinations = None
         self.output_dataset = {}
 
-    def get_final_code(self) -> str:
-        return self._code
-
     def _execute(self, experiment: dict = None, **kwargs) -> json:
         if self.settings['files'] != '':
             self.entry_file_type = FOLDER if os.path.isdir(self.settings['files']) else FILE
@@ -38,6 +37,8 @@ class Dataset(Node):
                                                         self.settings['split_experiment_by_institutions'])
             else:
                 self.df = pd.read_csv(self.settings['files'], sep=',', encoding='utf-8')
+                self.CodeHandler.add_line("code", f"df = pd.read_csv('{str(self.settings['files'])}', sep=',', encoding='utf-8')")
+                self.CodeHandler.add_seperator()
         else:
             self.entry_file_type = INPUT
             self.df = self.global_config_json['dfs_from_input'][self.settings['filesFromInput']]

@@ -207,3 +207,12 @@
   z-index: 2;
   background-color: #3a3a3a;
 }
+
+.rct-tree-item-title-container div {
+  display: flex;
+  align-items: center;
+}
+
+.rct-tree-item-title-container label {
+  cursor: pointer;
+}

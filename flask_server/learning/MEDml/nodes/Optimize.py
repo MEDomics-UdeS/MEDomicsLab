@@ -10,6 +10,7 @@ from colorama import Fore, Back, Style
 from learning.MEDml.nodes.NodeObj import Node
 from typing import Union
 from colorama import Fore
+from learning.MEDml.CodeHandler import convert_dict_to_params
 
 DATAFRAME_LIKE = Union[dict, list, tuple, np.ndarray, pd.DataFrame]
 TARGET_LIKE = Union[int, str, list, tuple, np.ndarray, pd.Series]
@@ -19,9 +20,6 @@ class Optimize(Node):
 
     def __init__(self, id_: int, global_config_json: json) -> None:
         super().__init__(id_, global_config_json)
-
-    def get_final_code(self) -> str:
-        return self._code
 
     def _execute(self, experiment: dict = None, **kwargs) -> json:
         print()

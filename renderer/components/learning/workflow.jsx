@@ -11,8 +11,10 @@ import ProgressBarRequests from "../flow/progressBarRequests"
 import { PageInfosContext } from "../mainPages/moduleBasics/pageInfosContext"
 import { FlowFunctionsContext } from "../flow/context/flowFunctionsContext"
 import { FlowResultsContext } from "../flow/context/flowResultsContext"
-import { WorkspaceContext } from "../workspace/workspaceContext"
+import { WorkspaceContext, EXPERIMENTS } from "../workspace/workspaceContext"
+import { FlowInfosContext } from "../flow/context/flowInfosContext"
 import { ErrorRequestContext } from "../flow/context/errorRequestContext"
+import MedDataObject from "../workspace/medDataObject"
 
 // here are the different types of nodes implemented in the workflow
 import StandardNode from "./nodesTypes/standardNode"
@@ -49,11 +51,12 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
   const { getIntersectingNodes } = useReactFlow() // getIntersectingNodes is used to get the intersecting nodes of a node
   const [intersections, setIntersections] = useState([]) // intersections is used to store the intersecting nodes related to optimize nodes start and end
   const [isProgressUpdating, setIsProgressUpdating] = useState(false) // progress is used to store the progress of the workflow execution
-  const { pageInfos } = useContext(PageInfosContext) // used to get the page infos such as id and config path
+  const { config, pageId, configPath } = useContext(PageInfosContext) // used to get the page infos such as id and config path
   const { groupNodeId, changeSubFlow } = useContext(FlowFunctionsContext)
   const { updateFlowResults } = useContext(FlowResultsContext)
-  const { port } = useContext(WorkspaceContext)
+  const { port, workspace, getBasePath } = useContext(WorkspaceContext)
   const { setError } = useContext(ErrorRequestContext)
+  const { experimentName, sceneName } = useContext(FlowInfosContext)
 
   // declare node types using useMemo hook to avoid re-creating component types unnecessarily (it memorizes the output) https://www.w3schools.com/react/react_usememo.asp
   const nodeTypes = useMemo(
@@ -67,19 +70,31 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
   )
 
   useEffect(() => {
-    console.log("pageInfos", pageInfos)
-    if (pageInfos.config && Object.keys(pageInfos.config).length > 0) {
-      updateScene(pageInfos.config)
+    if (reactFlowInstance && workspace.hasBeenSet) {
+      // const flow = deepCopy(reactFlowInstance.toObject())
+      // flow.MLType = MLType
+      // console.log("flow debug", flow)
+      // flow.nodes.forEach((node) => {
+      //   node.data.setupParam = null
+      // })
+      // flow.intersections = intersections
+      // console.log("workspace", workspace)
+      // MedDataObject.writeFileSync(flow, getBasePath(EXPERIMENTS) + MedDataObject.getPathSeparator() + experimentName, sceneName, "medml")
+    }
+  }, [reactFlowInstance, MLType, intersections])
+
+  useEffect(() => {
+    if (config && Object.keys(config).length > 0) {
+      updateScene(config)
       toast.success("Config file has been loaded successfully")
     } else {
       console.log("No config file found for this page, base workflow will be used")
     }
-  }, [pageInfos])
+  }, [config])
 
   // executed when the machine learning type is changed
   // it updates the possible settings of the nodes
   useEffect(() => {
-    console.log("mltype changed", MLType)
     setNodes((nds) =>
       nds.map((node) => {
         // it's important that you create a new object here in order to notify react flow about the change
@@ -88,9 +103,6 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
         }
         if (!node.id.includes("opt")) {
           let subworkflowType = node.data.internal.subflowId != "MAIN" ? "optimize" : "learning"
-          console.log("subworkflowType", subworkflowType)
-          console.log("staticNodesParams", staticNodesParams)
-          console.log("node.data.internal.type", node.data.internal.type)
           node.data.setupParam.possibleSettings = deepCopy(staticNodesParams[subworkflowType][node.data.internal.type]["possibleSettings"][MLType])
           node.data.internal.settings = {}
           node.data.internal.checkedOptions = []
@@ -117,7 +129,6 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
       setWorkflowType("optimize")
       hideNodesbut(groupNodeId.id)
     }
-    console.log("groupNodeId", groupNodeId)
   }, [groupNodeId])
 
   // executed when intersections array is changed
@@ -337,7 +348,7 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
    * This function updates the workflow with the new scene
    */
   const updateScene = (newScene) => {
-    console.log("newScene", newScene)
+    console.log("Scene updating", newScene)
     if (newScene) {
       if (Object.keys(newScene).length > 0) {
         Object.values(newScene.nodes).forEach((node) => {
@@ -512,7 +523,7 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
         toast.warn("react flow instance not found")
       }
     },
-    [reactFlowInstance, MLType, nodes, edges, intersections]
+    [reactFlowInstance, MLType, nodes, edges, intersections, configPath]
   )
 
   /**
@@ -649,9 +660,13 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
       })
 
       newJson.pipelines = recursivePipelines
-      newJson.pageId = pageInfos.id
+      newJson.pageId = pageId
       // eslint-disable-next-line camelcase
-      newJson.saving_path = pageInfos.savingPath
+      newJson.ws_path = configPath.substring(0, configPath.lastIndexOf(MedDataObject.getPathSeparator()))
+      // eslint-disable-next-line camelcase
+      newJson.tmp_path = newJson.ws_path + MedDataObject.getPathSeparator() + "tmp"
+      // eslint-disable-next-line camelcase
+      newJson.path_seperator = MedDataObject.getPathSeparator()
       newJson.nbNodes2Run = nbNodes2Run
 
       return { newflow: newJson, isValid: isValidDefault }
@@ -671,7 +686,25 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
         node.data.setupParam = null
       })
       flow.intersections = intersections
-      downloadJson(flow, "experiment")
+      MedDataObject.writeFileSyncPath(flow, configPath).then(() => {
+        toast.success("Scene has been saved successfully")
+      })
+    }
+  }, [reactFlowInstance, MLType, intersections])
+
+  /**
+   * save the workflow as a json file
+   */
+  const onDownload = useCallback(() => {
+    if (reactFlowInstance) {
+      const flow = deepCopy(reactFlowInstance.toObject())
+      flow.MLType = MLType
+      console.log("flow debug", flow)
+      flow.nodes.forEach((node) => {
+        node.data.setupParam = null
+      })
+      flow.intersections = intersections
+      downloadJson(flow, "scene")
     }
   }, [reactFlowInstance, MLType, intersections])
 
@@ -759,6 +792,7 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
                     { type: "run", onClick: onRun },
                     { type: "clear", onClick: onClear },
                     { type: "save", onClick: onSave },
+                    { type: "download", onClick: onDownload },
                     { type: "load", onClick: onLoad }
                   ]}
                 />
@@ -803,59 +837,6 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
         }
         ui={
           <>
-            {/* top right corner - buttons
-            <div className="btn-panel-top-corner-right">
-              {workflowType == "learning" && (
-                <>
-                  <Form.Select className="margin-left-10" aria-label="Default select example" value={MLType} onChange={(e) => setMLType(e.target.value)}>
-                    <option value="classification">Classification</option>
-                    <option value="regression">Regression</option>
-                  </Form.Select>
-                  <BtnDiv
-                    buttonsList={[
-                      { type: "run", onClick: onRun },
-                      { type: "clear", onClick: onClear },
-                      { type: "save", onClick: onSave },
-                      { type: "load", onClick: onLoad }
-                    ]}
-                  />
-                </>
-              )}
-            </div> */}
-            {/* top center - title when is sub group */}
-            {/* <div className="btn-panel-top-center">
-              {workflowType == "optimize" && (
-                <>
-                  <div>
-                    {groupNodeId.id != "MAIN" && (
-                      <div className="subFlow-title">
-                        <EditableLabel
-                          text={nodes.find((node) => node.id === groupNodeId.id).data.internal.name}
-                          labelClassName="node-editableLabel"
-                          inputClassName="node-editableLabel"
-                          inputWidth="20ch"
-                          inputHeight="45px"
-                          labelFontWeight="bold"
-                          inputFontWeight="bold"
-                          onFocusOut={(value) => {
-                            newNameHasBeenWritten(value)
-                          }}
-                        />
-
-                        <BtnDiv
-                          buttonsList={[
-                            {
-                              type: "back",
-                              onClick: onBack
-                            }
-                          ]}
-                        />
-                      </div>
-                    )}
-                  </div>
-                </>
-              )}
-            </div> */}
             {/* bottom center - progress bar */}
             <div className="panel-bottom-center">
               <ProgressBarRequests isUpdating={isProgressUpdating} setIsUpdating={setIsProgressUpdating} />
