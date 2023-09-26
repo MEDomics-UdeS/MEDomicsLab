@@ -2,10 +2,16 @@ import React, { createContext, useEffect, useState } from "react"
 import { toast } from "react-toastify"
 
 // This context is used to store the flowResults (id and type of the workflow)
+/**
+ * @typedef {React.Context} ErrorRequestContext
+ * @description
+ * @summary
+ * @see
+ */
 const ErrorRequestContext = createContext()
 
 /**
- *
+ * @typedef {React.FunctionComponent} ErrorRequestProvider
  * @param {*} children components that will use the context
  * @description This component is used to provide the ErrorRequestContext to the components that need it.
  * It is used to display errors that can occur during the execution of the workflow.

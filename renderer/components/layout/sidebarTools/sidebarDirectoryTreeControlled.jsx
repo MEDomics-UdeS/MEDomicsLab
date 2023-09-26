@@ -6,7 +6,6 @@ import { DataContext } from "../../workspace/dataContext"
 import MedDataObject from "../../workspace/medDataObject"
 import { toast } from "react-toastify"
 import { LayoutModelContext } from "../layoutContext"
-
 import { useContextMenu, Menu, Item, Submenu } from "react-contexify"
 import renderItem from "./directoryTree/renderItem"
 /**
@@ -14,7 +13,7 @@ import renderItem from "./directoryTree/renderItem"
  * @param {Object} props - Props passed from parent component
  * @returns a sidebar item component that can be a file or a folder and that is rendered recursively
  */
-const SidebarDirectoryTreeControlled = ({ setExternalDBClick }) => {
+const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalDBClick }) => {
   const environment = useRef() // This ref is used to get the environment of the directory tree
   const tree = useRef() // This ref is used to get the directory tree
   const MENU_ID = "tree-2" // This is the id of the context menu
@@ -37,6 +36,10 @@ const SidebarDirectoryTreeControlled = ({ setExternalDBClick }) => {
   const { dispatchLayout } = useContext(LayoutModelContext)
 
   const [dirTree, setDirTree] = useState({}) // We get the directory tree from the workspace
+
+  useEffect(() => {
+    setExternalSelectedItems && setExternalSelectedItems(selectedItems)
+  }, [selectedItems])
 
   /**
    * This function handles the key press event. It is attached to the document.
@@ -197,6 +200,7 @@ const SidebarDirectoryTreeControlled = ({ setExternalDBClick }) => {
    * @returns {void}
    */
   const onDBClickItem = (event, item) => {
+    // dispatchAction({ type: "setSelectedItems", payload: [item.UUID] })
     setDbClickedItem(item)
     console.log("DBCLICKED", event, item)
   }

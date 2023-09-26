@@ -4,7 +4,7 @@ import DataTable from "../../components/dataTypeVisualisation/dataTableWrapper"
 import * as Prism from "prismjs"
 import { LayoutModelContext } from "./layoutContext"
 import { Actions, CLASSES, Layout, Model, TabNode } from "flexlayout-react"
-
+import LearningPage from "../mainPages/learning"
 import { loadCSVPath } from "../../utilities/fileManagementUtils"
 
 var fields = ["Name", "Field1", "Field2", "Field3", "Field4", "Field5"]
@@ -60,11 +60,7 @@ export default function MainFlexLayout() {
     // console.log("onModelChange", event);
     htmlTimer = setTimeout(() => {
       const jsonText = JSON.stringify(model && model.toJson(), null, "\t")
-      const html = Prism.highlight(
-        jsonText,
-        Prism.languages.javascript,
-        "javascript"
-      )
+      const html = Prism.highlight(jsonText, Prism.languages.javascript, "javascript")
       setMainState({ ...mainState, json: html })
       htmlTimer = null
     }, 500)
@@ -133,11 +129,7 @@ export default function MainFlexLayout() {
   function onExternalDrag(e) {
     // Function to handle the external drag event of the tabs
     const validTypes = ["text/uri-list", "text/html", "text/plain"]
-    if (
-      e.dataTransfer.types.find((t) => validTypes.indexOf(t) !== -1) ===
-      undefined
-    )
-      return
+    if (e.dataTransfer.types.find((t) => validTypes.indexOf(t) !== -1) === undefined) return
     e.dataTransfer.dropEffect = "link"
     return {
       dragText: "Drag To New Tab",
@@ -152,9 +144,7 @@ export default function MainFlexLayout() {
           const dragEvent = event
           if (dragEvent.dataTransfer) {
             if (dragEvent.dataTransfer.types.indexOf("text/uri-list") !== -1) {
-              const data =
-                dragEvent.dataTransfer &&
-                dragEvent.dataTransfer.getData("text/uri-list")
+              const data = dragEvent.dataTransfer && dragEvent.dataTransfer.getData("text/uri-list")
               if (model) {
                 model.doAction(
                   Actions.updateNodeAttributes(node.getId(), {
@@ -163,12 +153,8 @@ export default function MainFlexLayout() {
                   })
                 )
               }
-            } else if (
-              dragEvent.dataTransfer.types.indexOf("text/html") !== -1
-            ) {
-              const data =
-                dragEvent.dataTransfer &&
-                dragEvent.dataTransfer.getData("text/html")
+            } else if (dragEvent.dataTransfer.types.indexOf("text/html") !== -1) {
+              const data = dragEvent.dataTransfer && dragEvent.dataTransfer.getData("text/html")
               if (model) {
                 model.doAction(
                   Actions.updateNodeAttributes(node.getId(), {
@@ -177,12 +163,8 @@ export default function MainFlexLayout() {
                   })
                 )
               }
-            } else if (
-              dragEvent.dataTransfer.types.indexOf("text/plain") !== -1
-            ) {
-              const data =
-                dragEvent.dataTransfer &&
-                dragEvent.dataTransfer.getData("text/plain")
+            } else if (dragEvent.dataTransfer.types.indexOf("text/plain") !== -1) {
+              const data = dragEvent.dataTransfer && dragEvent.dataTransfer.getData("text/plain")
               model &&
                 model.doAction(
                   Actions.updateNodeAttributes(node.getId(), {
@@ -244,17 +226,7 @@ export default function MainFlexLayout() {
 
   function onRenderTabSet(node, renderValues) {
     if (mainState.layoutFile === "default") {
-      renderValues.stickyButtons.push(
-        <img
-          src="images/add.svg"
-          alt="Add"
-          key="Add button"
-          title="Add Tab (using onRenderTabSet callback, see Demo)"
-          style={{ width: "1.1em", height: "1.1em" }}
-          className="flexlayout__tab_toolbar_button"
-          onClick={() => onAddFromTabSetButton(node)}
-        />
-      )
+      renderValues.stickyButtons.push(<img src="images/add.svg" alt="Add" key="Add button" title="Add Tab (using onRenderTabSet callback, see Demo)" style={{ width: "1.1em", height: "1.1em" }} className="flexlayout__tab_toolbar_button" onClick={() => onAddFromTabSetButton(node)} />)
     }
   }
 
@@ -291,30 +263,16 @@ export default function MainFlexLayout() {
     var component = node.getComponent()
 
     if (component === "json") {
-      return (
-        <pre style={{ tabSize: "20px" }}>
-          {mainState.json ? (
-            <span dangerouslySetInnerHTML={{ __html: mainState.json }} />
-          ) : null}
-        </pre>
-      )
+      return <pre style={{ tabSize: "20px" }}>{mainState.json ? <span dangerouslySetInnerHTML={{ __html: mainState.json }} /> : null}</pre>
     } else if (component === "grid") {
       if (node.getExtraData().data == null) {
         // create data in node extra data first time accessed
         node.getExtraData().data = makeFakeData()
       }
-      return (
-        <SimpleTable
-          fields={fields}
-          onClick={onTableClick.bind(node)}
-          data={node.getExtraData().data}
-        />
-      )
+      return <SimpleTable fields={fields} onClick={onTableClick.bind(node)} data={node.getExtraData().data} />
     } else if (component === "text") {
       try {
-        return (
-          <div dangerouslySetInnerHTML={{ __html: node.getConfig().text }} />
-        )
+        return <div dangerouslySetInnerHTML={{ __html: node.getConfig().text }} />
       } catch (e) {
         console.log(e)
       }
@@ -366,10 +324,7 @@ export default function MainFlexLayout() {
         const whenDataLoaded = (data) => {
           node.getExtraData().data = data
           console.log("node", node)
-          console.log(
-            "retrieve node in layoutModel",
-            model.getNodeById(node.getId())
-          )
+          console.log("retrieve node in layoutModel", model.getNodeById(node.getId()))
           model.getNodeById(node.getId())._attributes.config["data"] = data
           // let layout = layoutModel.layout
           // layout.tabs[node.getId()].config.data = data
@@ -390,7 +345,14 @@ export default function MainFlexLayout() {
           }}
         />
       )
+    } else if (component === "learningPage") {
+      if (node.getExtraData().data == null) {
+        const config = node.getConfig()
+        console.log("LearningPage config", config)
+        return <LearningPage pageId={config.uuid} configPath={config.path} />
+      }
     }
+
     return null
   }
 
@@ -410,24 +372,12 @@ export default function MainFlexLayout() {
             onRenderTab={onRenderTab}
             onRenderTabSet={onRenderTabSet}
             onRenderDragRect={onRenderDragRect}
-            onRenderFloatingTabPlaceholder={
-              mainState.layoutFile === "newfeatures"
-                ? onRenderFloatingTabPlaceholder
-                : undefined
-            }
+            onRenderFloatingTabPlaceholder={mainState.layoutFile === "newfeatures" ? onRenderFloatingTabPlaceholder : undefined}
             onExternalDrag={onExternalDrag}
             realtimeResize={mainState.realtimeResize}
-            onTabDrag={
-              mainState.layoutFile === "newfeatures" ? onTabDrag : undefined
-            }
-            onContextMenu={
-              mainState.layoutFile === "newfeatures" ? onContextMenu : undefined
-            }
-            onAuxMouseClick={
-              mainState.layoutFile === "newfeatures"
-                ? onAuxMouseClick
-                : undefined
-            }
+            onTabDrag={mainState.layoutFile === "newfeatures" ? onTabDrag : undefined}
+            onContextMenu={mainState.layoutFile === "newfeatures" ? onContextMenu : undefined}
+            onAuxMouseClick={mainState.layoutFile === "newfeatures" ? onAuxMouseClick : undefined}
             onTabSetPlaceHolder={onTabSetPlaceHolder}
           />
         </div>
@@ -449,9 +399,7 @@ class SimpleTable extends React.Component {
 
     var rows = []
     for (var i = 0; i < this.props.data.length; i++) {
-      var row = this.props.fields.map((field) => (
-        <td key={field}>{this.props.data[i][field]}</td>
-      ))
+      var row = this.props.fields.map((field) => <td key={field}>{this.props.data[i][field]}</td>)
       rows.push(<tr key={i}>{row}</tr>)
     }
 

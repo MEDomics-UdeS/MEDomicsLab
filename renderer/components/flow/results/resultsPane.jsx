@@ -45,12 +45,8 @@ const ResultsPane = () => {
     if (flowContent.nodes) {
       flowContent.nodes.forEach((node) => {
         if (!node.data.internal.results.checked) {
-          if (
-            node.data.internal.results.contextChecked !=
-            contextCheckedIds.includes(node.id)
-          ) {
-            node.data.internal.results.contextChecked =
-              contextCheckedIds.includes(node.id)
+          if (node.data.internal.results.contextChecked != contextCheckedIds.includes(node.id)) {
+            node.data.internal.results.contextChecked = contextCheckedIds.includes(node.id)
             updateNode({
               id: node.id,
               updatedData: node.data.internal
@@ -87,7 +83,7 @@ const ResultsPane = () => {
           selectedPipelines.push(pipeline)
         }
       })
-      console.log("selectedPipelines", selectedPipelines)
+      // console.log("selectedPipelines", selectedPipelines)
       setSelectedPipelines(selectedPipelines)
     }
   }, [flowContent.nodes])
@@ -149,25 +145,13 @@ const ResultsPane = () => {
                 {selectedPipelines.length > 1 && (
                   <>
                     <div className="flex align-items-center">
-                      <RadioButton
-                        inputId="compareMode"
-                        name="selectionModeGroup"
-                        value="Compare Mode"
-                        onChange={(e) => setSelectionMode(e.value)}
-                        checked={selectionMode == "Compare Mode"}
-                      />
+                      <RadioButton inputId="compareMode" name="selectionModeGroup" value="Compare Mode" onChange={(e) => setSelectionMode(e.value)} checked={selectionMode == "Compare Mode"} />
                       <label htmlFor="compareMode" className="ml-2">
                         Compare Mode
                       </label>
                     </div>
                     <div className="flex align-items-center">
-                      <RadioButton
-                        inputId="singleSelection"
-                        name="pizza"
-                        value="Single Selection"
-                        onChange={(e) => setSelectionMode(e.value)}
-                        checked={selectionMode == "Single Selection"}
-                      />
+                      <RadioButton inputId="singleSelection" name="pizza" value="Single Selection" onChange={(e) => setSelectionMode(e.value)} checked={selectionMode == "Single Selection"} />
                       <label htmlFor="singleSelection" className="ml-2">
                         Single Selection
                       </label>
@@ -176,19 +160,12 @@ const ResultsPane = () => {
                 )}
               </div>
             </div>
-            <Button
-              variant="outline closeBtn closeBtn-resultsPane end-5"
-              onClick={handleClose}
-            >
+            <Button variant="outline closeBtn closeBtn-resultsPane end-5" onClick={handleClose}>
               <Icon.X width="30px" height="30px" />
             </Button>
           </Card.Header>
           <Card.Body>
-            <PipelinesResults
-              pipelines={selectedPipelines}
-              selectionMode={selectionMode}
-              flowContent={flowContent}
-            />
+            <PipelinesResults pipelines={selectedPipelines} selectionMode={selectionMode} flowContent={flowContent} />
           </Card.Body>
         </Card>
       </Col>

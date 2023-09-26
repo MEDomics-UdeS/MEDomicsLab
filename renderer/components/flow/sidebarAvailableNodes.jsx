@@ -1,10 +1,15 @@
-import React, {  } from "react"
+import React, { useContext } from "react"
 import Card from "react-bootstrap/Card"
 import nodesParams from "../../public/setupVariables/allNodesParams"
 import { Col, Row } from "react-bootstrap"
 import Button from "react-bootstrap/Button"
 import * as Icon from "react-bootstrap-icons"
 import { Stack } from "react-bootstrap"
+import { requestJson } from "../../utilities/requests"
+import { ErrorRequestContext } from "./context/errorRequestContext"
+import { WorkspaceContext } from "../workspace/workspaceContext"
+import { FlowInfosContext } from "./context/flowInfosContext"
+import { toast } from "react-toastify"
 
 /**
  *
@@ -34,6 +39,14 @@ const onDragStart = (event, node) => {
  *
  */
 const SidebarAvailableNodes = ({ title, sidebarType }) => {
+  const { setError } = useContext(ErrorRequestContext)
+  const { port } = useContext(WorkspaceContext)
+  const { flowContent } = useContext(FlowInfosContext)
+
+  const handleCodeGeneration = (jsonResponse) => {
+    console.log("handleCodeGeneration", jsonResponse)
+  }
+
   return (
     <>
       <Col className=" padding-0 available-nodes-panel">
@@ -66,11 +79,7 @@ const SidebarAvailableNodes = ({ title, sidebarType }) => {
                     <Card key={node.title} className="text-left">
                       <Card.Header className="draggable-side-node">
                         {node.title}
-                        <img
-                          src={`/icon/${sidebarType}/${node.img}`}
-                          alt={node.title}
-                          className="icon-nodes"
-                        />
+                        <img src={`/icon/${sidebarType}/${node.img}`} alt={node.title} className="icon-nodes" />
                       </Card.Header>
                     </Card>
                   </div>
@@ -87,15 +96,19 @@ const SidebarAvailableNodes = ({ title, sidebarType }) => {
             <p>Generate the code for the current workflow.</p>
             <Button
               onClick={() => {
-                console.log("generate code")
+                requestJson(port, "/learning/code_generation", flowContent, (jsonResponse) => {
+                  console.log("received results:", jsonResponse)
+                  if (!jsonResponse.error) {
+                    handleCodeGeneration(jsonResponse)
+                  } else {
+                    toast.error("Error detected while running the experiment")
+                    setError(jsonResponse.error)
+                  }
+                })
               }}
             >
               <label>Generate</label>
-              <Icon.CodeSlash
-                width="30px"
-                height="30px"
-                style={{ marginLeft: "10px" }}
-              />
+              <Icon.CodeSlash width="30px" height="30px" style={{ marginLeft: "10px" }} />
             </Button>
           </Card.Body>
         </Card>

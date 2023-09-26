@@ -9,7 +9,7 @@ const FlowInfosContext = createContext()
  */
 function FlowInfosProvider({ children }) {
   const [flowInfos, setFlowInfos] = useState({}) // Initial style
-  const [showAvailableNodes, setShowAvailableNodes] = useState(true) // Initial state
+  const [showAvailableNodes, setShowAvailableNodes] = useState(false) // Initial state
   const [flowContent, setFlowContent] = useState({}) // Initial state
 
   // This function is used to update the flowInfos (id and type of the workflow)

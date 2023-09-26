@@ -106,7 +106,7 @@ const LayoutManager = (props) => {
         <div className="main-app-container">
           <PanelGroup autoSaveId="test" direction="horizontal">
             <Panel className={resizable.Panel} collapsible={true} minSize={20} maxSize={80} defaultSize={20} order={1} ref={sidebarRef}>
-              <div className={resizable.PanelContent} style={{ backgroundColor: "rgb(0 0 0 / 80%)" }}>
+              <div className={resizable.PanelContent} style={{ backgroundColor: "#353535" }}>
                 {renderSidebarComponent()}
               </div>
             </Panel>

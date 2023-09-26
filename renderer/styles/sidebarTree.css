@@ -1,4 +1,8 @@
 :root {
+  --design-color: #1d3666;
+  --development-color: #076464;
+  --deployment-color: #0b6648;
+
   --rct-search-text-offset: 3rem;
   --rct-color-tree-bg: rgb(53, 53, 53);
   --rct-color-tree-focus-outline: #222222;
@@ -124,4 +128,73 @@
   top: 1.5rem;
   bottom: 10px;
   background-color: #868686;
+}
+
+.medomics-layer {
+  display: flex;
+  flex-direction: row;
+  z-index: 2;
+}
+
+
+
+.medomics-layer-text {
+  color: #ffffff;
+  padding-inline: 1rem;
+  border-radius: 0 10px 10px 0;
+  display: block;
+  position: absolute;
+  left: -10rem;
+  z-index: -1;
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  transition: all 0.5s ease-in-out;
+}
+
+.design.medomics-layer {
+  border-color: var(--design-color);
+}
+
+.design .medomics-layer-text {
+  background-color: var(--design-color);
+}
+
+.development.medomics-layer {
+  border-color: var(--development-color);
+}
+
+.development .medomics-layer-text {
+  background-color: var(--development-color);
+}
+
+.deployment.medomics-layer {
+  border-color: var(--deployment-color);
+}
+
+.deployment .medomics-layer-text {
+  background-color: var(--deployment-color);
+}
+
+.medomics-layer:hover .medomics-layer-text {
+  display: block;
+  left: 3rem;
+  box-shadow: 0 0 0.25rem 0.1rem #0000007c !important;
+}
+
+.icon-sidebar:hover .medomics-layer .medomics-layer-text {
+  display: block;
+  left: 3rem;
+}
+
+.sidebar-icons {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-right: 0rem;
+}
+
+.icon-sidebar-divider {
+  z-index: 2;
+  background-color: #3a3a3a;
 }

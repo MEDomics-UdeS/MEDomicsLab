@@ -1,19 +1,10 @@
-import {
-  app,
-  ipcMain,
-  Menu,
-  dialog,
-} from "electron"
+import { app, ipcMain, Menu, dialog } from "electron"
 import axios from "axios"
 import serve from "electron-serve"
 import { createWindow } from "./helpers"
-import {
-  installExtension,
-  REACT_DEVELOPER_TOOLS
-} from "electron-extension-installer"
+// import { installExtension, REACT_DEVELOPER_TOOLS } from "electron-extension-installer"
 const fs = require("fs")
 var path = require("path")
-const os = require("node:os")
 const dirTree = require("directory-tree")
 var serverProcess = null
 var flaskPort = 5000
@@ -28,11 +19,6 @@ if (isProd) {
 } else {
   app.setPath("userData", `${app.getPath("userData")} (development)`)
 }
-
-const reactDevToolsPath = path.join(
-  os.homedir(),
-  "\\AppData\\Local\\Google\\Chrome\\User Data\\Default\\Extensions\\fmkadmapgofadopljbjfkapdkoienihi\\4.28.0_0"
-)
 
 ;(async () => {
   await app.whenReady()
@@ -82,7 +68,21 @@ const reactDevToolsPath = path.join(
         { type: "separator" },
         { role: "cut" },
         { role: "copy" },
-        { role: "paste" }
+        { role: "paste" },
+        { type: "separator" },
+        {
+          role: "preferences",
+          label: "Preferences",
+          click() {
+            console.log("👋")
+          },
+          submenu: [
+            {
+              label: "Toggle dark mode",
+              click: () => app.emit("toggleDarkMode")
+            }
+          ]
+        }
       ]
     },
     {
@@ -108,19 +108,13 @@ const reactDevToolsPath = path.join(
   ]
 
   // link: https://medium.com/red-buffer/integrating-python-flask-backend-with-electron-nodejs-frontend-8ac621d13f72
-  console.log(
-    RUN_SERVER_WITH_APP
-      ? "Server will start automatically here (in background of the application)"
-      : "Server must be started manually"
-  )
+  console.log(RUN_SERVER_WITH_APP ? "Server will start automatically here (in background of the application)" : "Server must be started manually")
   if (RUN_SERVER_WITH_APP) {
     if (!isProd) {
       //**** DEVELOPMENT ****//
       // IMPORTANT: Select python interpreter (related to your virtual environment)
-      var path2conda = fs.readFileSync(
-        "./path2condaenv_toDeleteInProd.txt",
-        "utf8"
-      )
+      var path2conda = fs.readFileSync("./path2condaenv_toDeleteInProd.txt", "utf8").replace(/\s/g, "");
+      console.log(`path2conda: "${path2conda}"`)
 
       const net = require("net")
 
@@ -159,10 +153,7 @@ const reactDevToolsPath = path.join(
       findAvailablePort(5000, 8000)
         .then((port) => {
           console.log(`Available port: ${port}`)
-          serverProcess = require("child_process").spawn(path2conda, [
-            "./flask_server/server.py",
-            "--port=" + port
-          ])
+          serverProcess = require("child_process").spawn(path2conda, ["./flask_server/server.py", "--port=" + port])
           flaskPort = port
           serverProcess.stdout.on("data", function (data) {
             console.log("data: ", data.toString("utf8"))
@@ -243,6 +234,11 @@ const reactDevToolsPath = path.join(
     }
   })
 
+  app.on("toggleDarkMode", () => {
+    console.log("toggleDarkMode")
+    mainWindow.webContents.send("toggleDarkMode")
+  })
+
   if (isProd) {
     await mainWindow.loadURL("app://./index.html")
   } else {
@@ -251,7 +247,6 @@ const reactDevToolsPath = path.join(
     mainWindow.webContents.openDevTools()
   }
 })()
-
 
 /**
  * @description Set the working directory
@@ -277,10 +272,7 @@ function setWorkingDirectory(event, mainWindow) {
         if (file === app.getPath("sessionData")) {
           // If the working directory is already set to the selected folder
           console.log("Working directory is already set to " + file)
-          event.reply(
-            "messageFromElectron",
-            "Working directory is already set to " + file
-          )
+          event.reply("messageFromElectron", "Working directory is already set to " + file)
           event.reply("workingDirectorySet", {
             workingDirectory: dirTree(file),
             hasBeenSet: hasBeenSet
@@ -349,16 +341,16 @@ ipcMain.handle("request", async (_, axios_request) => {
 app.on("window-all-closed", () => {
   app.quit()
   console.log("app quit")
-  if (!isProd) {
+  if (!isProd && RUN_SERVER_WITH_APP) {
     serverProcess.kill()
     console.log("serverProcess killed")
   }
 })
 
-app.on("ready", async () => {
-  await installExtension(REACT_DEVELOPER_TOOLS, {
-    loadExtensionOptions: {
-      allowFileAccess: true
-    }
-  })
-})
+// app.on("ready", async () => {
+//   await installExtension(REACT_DEVELOPER_TOOLS, {
+//     loadExtensionOptions: {
+//       allowFileAccess: true
+//     }
+//   })
+// })
