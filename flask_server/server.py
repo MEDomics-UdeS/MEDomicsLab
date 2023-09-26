@@ -1,5 +1,6 @@
 from flask import Flask, request, jsonify
 from learning.app_learning_blueprint import app_learning
+from extraction_ts.app_extraction_ts_blueprint import app_extraction_ts
 from utils.server_utils import get_json_from_request
 import json
 import argparse
@@ -10,6 +11,7 @@ args = parser.parse_args()
 # app definition and blueprint registration
 app = Flask(__name__)
 app.register_blueprint(app_learning, url_prefix='/learning')
+app.register_blueprint(app_extraction_ts, url_prefix='/extraction_ts')
 
 
 @app.route('/test', methods=['GET', 'POST'])

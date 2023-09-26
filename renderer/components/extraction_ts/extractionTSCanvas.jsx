@@ -1,20 +1,27 @@
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, useContext } from "react"
 import DataTableWrapper from "../dataTypeVisualisation/dataTableWrapper"
 import { Dropdown } from "primereact/dropdown"
 import { readCSV } from "danfojs"
 import Button from "react-bootstrap/Button"
+import { requestJson } from "../../utilities/requests"
+import { WorkspaceContext } from "../workspace/workspaceContext"
+import { require } from "ace-builds"
 
 const ExtractionTSCanvas = () => {
+  const [csvPath, setCsvPath] = useState("")
   const [dataframe, setDataframe] = useState([])
+  const [extractedFeatures, setExtractedFeatures] = useState([])
+  const [extractedFeaturesCsvPath, setExtractedFeaturesCsvPath] = useState("")
   const [displayData, setDisplayData] = useState([])
+  const [mayProceed, setMayProceed] = useState(false)
   const [selectedColumns, setSelectedColumns] = useState({
     patientIdentifier: "",
     measuredItemIdentifier: "",
     measurementDatetimeStart: "",
-    measurementDatetimeEnd: "",
     measurementValue: ""
   })
-  const [allColumnsSelected, setAllColumnsSelected] = useState(false)
+  const { port } = useContext(WorkspaceContext)
+  const fs = require("fs").promises
 
   /**
    *
@@ -28,20 +35,13 @@ const ExtractionTSCanvas = () => {
    */
   const onUpload = (event) => {
     if (event.target.files) {
+      setCsvPath(event.target.files[0].path)
       readCSV(event.target.files[0]).then((data) => {
         setDisplayData(Array(data.$columns).concat(data.$data))
         setDataframe(data)
       })
     }
   }
-
-  useEffect(() => {
-    // Check if all the necessary attributes from selected columns have a value
-    const isAllSelected = Object.values(selectedColumns).every(
-      (value) => value !== ""
-    )
-    setAllColumnsSelected(isAllSelected)
-  }, [selectedColumns])
 
   /**
    *
@@ -59,12 +59,52 @@ const ExtractionTSCanvas = () => {
     })
   }
 
+  const runTSFreshExtraction = () => {
+    console.log(csvPath)
+    requestJson(
+      port,
+      "/extraction_ts/TSFresh_extraction",
+      {
+        selectedColumns: selectedColumns,
+        csvPath: csvPath
+      },
+      (jsonResponse) => {
+        console.log("received results:", jsonResponse)
+        setExtractedFeaturesCsvPath(jsonResponse["csv_result_path"])
+        fs.readFile(
+          jsonResponse["csv_result_path"],
+          "utf8",
+          function (err, data) {
+            // Display the file content
+            console.log(data)
+            console.log(err)
+          }
+        )
+      },
+      function (err) {
+        console.error(err)
+      }
+    )
+  }
+
+  /**
+   * @description
+   * This function checks if all the necessary attributes from
+   * selected columns have a value and update allColumnsSelected.
+   */
+  useEffect(() => {
+    const isAllSelected = Object.values(selectedColumns).every(
+      (value) => value !== ""
+    )
+    setMayProceed(isAllSelected)
+  }, [selectedColumns])
+
   return (
     <div className="overflow_y_auto">
       <h1 className="center_text">Extraction - Time Series</h1>
 
       <hr></hr>
-      <div className="margin_top_30">
+      <div className="margin_top_bottom_15">
         <div className="center_text">
           {/* Import CSV data */}
           <h2>Import CSV data</h2>
@@ -82,7 +122,7 @@ const ExtractionTSCanvas = () => {
       </div>
 
       <hr></hr>
-      <div className="margin_top_30">
+      <div className="margin_top_bottom_15">
         {/* Display imported data */}
         <div className="center_text">
           <h2>Imported data</h2>
@@ -97,9 +137,7 @@ const ExtractionTSCanvas = () => {
               data={displayData}
               tablePropsData={{
                 paginator: true,
-                rows: 10,
-                scrollable: true,
-                scrollHeight: "400px"
+                rows: 5
               }}
               tablePropsColumn={{
                 sortable: true
@@ -111,7 +149,7 @@ const ExtractionTSCanvas = () => {
 
       <hr></hr>
       <div className="flex_space_around">
-        <div className="margin_top_30">
+        <div className="margin_top_bottom_15">
           <div className="flex_column_start">
             {/* Add dropdowns for column selection */}
             <h2>Select columns corresponding to :</h2>
@@ -173,25 +211,6 @@ const ExtractionTSCanvas = () => {
               )}
             </div>
             <div>
-              Measurement Datetime (End) : &nbsp;
-              {displayData.length > 0 ? (
-                <Dropdown
-                  value={selectedColumns.measurementDatetimeEnd}
-                  onChange={(event) =>
-                    handleColumnSelect("measurementDatetimeEnd", event)
-                  }
-                  options={dataframe.$columns.filter(
-                    (column, index) =>
-                      dataframe.$dtypes[index] == "string" &&
-                      dataframe[column].dt.$dateObjectArray[0] != "Invalid Date"
-                  )}
-                  placeholder="Measurement Datetime (End)"
-                />
-              ) : (
-                <Dropdown placeholder="Measurement Datetime (End)" disabled />
-              )}
-            </div>
-            <div>
               Measurement value : &nbsp;
               {displayData.length > 0 ? (
                 <Dropdown
@@ -214,14 +233,42 @@ const ExtractionTSCanvas = () => {
         </div>
 
         <div className="vertical_divider"></div>
-        <div className="margin_top_bottom_30">
+        <div className="margin_top_bottom_15">
           <div className="flex_column_start">
             {/* Time Series Extraction */}
             <h2>Extract time series</h2>
             {/* Button activated only if all necessary columns have been selected */}
-            <Button disabled={!allColumnsSelected}>Extract Data</Button>
+            <Button disabled={!mayProceed} onClick={runTSFreshExtraction}>
+              Extract Data
+            </Button>
           </div>
         </div>
+      </div>
+
+      <hr></hr>
+      <div className="margin_top_bottom_15">
+        {/* Display extracted data */}
+        <div className="center_text">
+          <h2>Extracted data</h2>
+          {extractedFeatures.length < 1 && (
+            <p>Nothing to show, proceed to extraction first.</p>
+          )}
+        </div>
+        {extractedFeatures.length > 0 && (
+          <div>
+            {/* DataTableWrapper is used to display the data */}
+            <DataTableWrapper
+              data={extractedFeatures}
+              tablePropsData={{
+                paginator: true,
+                rows: 5
+              }}
+              tablePropsColumn={{
+                sortable: true
+              }}
+            />
+          </div>
+        )}
       </div>
     </div>
   )

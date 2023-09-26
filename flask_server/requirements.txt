@@ -57,6 +57,7 @@ dash-core-components==2.0.0
 dash-daq==0.5.0
 dash-html-components==2.0.0
 dash-table==5.0.0
+dask==2023.5.0
 databricks-cli==0.17.4
 debugpy==1.6.5
 decorator==5.1.1
@@ -200,6 +201,7 @@ tomli==2.0.1
 tornado==6.2
 tqdm==4.64.1
 traitlets==5.8.1
+tsfresh==0.20.1
 typeguard==2.13.3
 typing-extensions==4.4.0
 ua-parser==0.16.1
