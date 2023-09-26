@@ -1,5 +1,4 @@
-import { React, createContext, useContext } from "react"
-import { DataContext } from "../workspace/dataContext"
+import { React, createContext } from "react"
 /**
  * @typedef {React.Context} LayoutModelContext
  * @description Context for the layout model

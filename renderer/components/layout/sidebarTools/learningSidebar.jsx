@@ -9,7 +9,6 @@ import { OverlayPanel } from "primereact/overlaypanel"
 import { Accordion } from "react-bootstrap"
 import MedDataObject from "../../workspace/medDataObject"
 import { DataContext } from "../../workspace/dataContext"
-import { ActionContext } from "../actionContext"
 import { LayoutModelContext } from "../layoutContext"
 
 /**
