@@ -138,7 +138,7 @@ dmypy.json
 .pyre/
 
 # submodules
-/flask_server/submodules/*
+/flask_server/submodules/MEDimage/*
 
 
 # custom gitignore
