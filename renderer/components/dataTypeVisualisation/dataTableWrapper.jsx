@@ -13,7 +13,7 @@ import { Column } from "primereact/column"
  * @returns {JSX.Element} A JSX element containing the data table
  * @description This component is a wrapper for the primereact datatable. It is used to display data in a table.
  */
-const DataTableWrapper = ({ data, tablePropsData, tablePropsColumn }) => {
+const DataTableWrapper = ({ data, tablePropsData, tablePropsColumn, customGetColumnsFromData }) => {
   const [header, setHeader] = useState([])
   const [rows, setRows] = useState([])
 
@@ -28,6 +28,7 @@ const DataTableWrapper = ({ data, tablePropsData, tablePropsColumn }) => {
         rows.shift()
       }
       setRows(rows)
+      customGetColumnsFromData ? setHeader(customGetColumnsFromData(data)) : setHeader(getColumnsFromData(data))
     }
   }, [data])
 
@@ -36,14 +37,12 @@ const DataTableWrapper = ({ data, tablePropsData, tablePropsColumn }) => {
    * @returns {JSX.Element} A JSX element containing the columns of the data table according to primereact specifications
    */
   const getColumnsFromData = (data) => {
-    let columns = <></>
     if (data.length > 0) {
-      let keys = Object.keys(data[0])
-
       // Depending of data type the process is different
       if (Array.isArray(data[0])) {
         // Case data is an array of arrays
-        columns = keys.map((key) => {
+        let keys = Object.keys(data[0])
+        return keys.map((key) => {
           return (
             <Column
               key={key}
@@ -55,24 +54,16 @@ const DataTableWrapper = ({ data, tablePropsData, tablePropsColumn }) => {
         })
       } else {
         // Case data is an array of dictionaries
-        columns = keys.map((key) => {
-          return (
-            <Column
-              key={key}
-              field={key}
-              header={[key]}
-              {...tablePropsColumn}
-            />
-          )
-        })
+        return Object.keys(data[0]).map((key) => <Column key={key} field={key} header={key} {...tablePropsColumn} />)
       }
-      return columns
     }
+      
+    return <></>
   }
 
   return (
     <>
-      <DataTable value={rows} {...tablePropsData}>
+      <DataTable value={rows} {...tablePropsData} size="small" scrollable height={"100%"}>
         {header}
       </DataTable>
     </>

@@ -1,11 +1,13 @@
+:root {
+  --not-run-color: rgb(255 151 0 / 69%);
+}
+
 .minimapStyle {
   height: 120;
 }
 
 .draggable-side-node {
   cursor: grab;
-  min-width: 200px;
-  /* border: 1px solid rgba(0, 0, 0, 0.0); */
 }
 
 .draggable-side-node:hover {
@@ -75,7 +77,6 @@
 .react-flow {
   height: 100%;
   width: 100%;
-  margin: 0px 5px;
 }
 
 .react-flow__container {
@@ -135,12 +136,22 @@
   z-index: 2;
   height: 100%;
   min-width: 210px;
-  margin-top: 5px;
+  gap: 0.5rem !important;
+  display: flex;
+  flex-direction: column;
 }
 
 .available-nodes-panel .col {
   text-align: left;
   padding: 0px;
+}
+
+.available-nodes-panel .card-body {
+  padding: 0.5rem;
+}
+
+.closeBtn.btn:hover {
+  background-color: #80808057;
 }
 
 .closeBtn-availableNodes.btn {
@@ -150,27 +161,54 @@
   padding: 0px;
 }
 
-.closeBtn-availableNodes.btn:hover {
-  background-color: #80808057;
-}
-
-.available-nodes-panel2 {
-  width: 100%;
+.code-generation-panel {
   z-index: 2;
-  min-width: 210px;
-  margin-top: 5px;
   text-align: center;
-  height: -webkit-fill-available;
+  flex-grow: 1;
 }
 
-.available-nodes-panel2 .btn {
+.code-generation-panel .btn {
   width: 100%;
 }
 
-.available-nodes-panel2 .card-body label {
+.code-generation-panel .card-body label {
   font-size: 1.1rem;
   font-weight: 500;
   cursor: pointer;
+}
+
+/* flow top ui -------------------------------------------------------- */
+
+.flow-btn-panel-top {
+  position: absolute;
+  top: 0.5rem;
+  /* left: 0rem; */
+  z-index: 10;
+  height: 2.2rem;
+}
+
+.flow-btn-panel-top button:hover {
+  background-color: #80808057;
+}
+
+.flow-btn-panel-top select {
+  width: 10rem;
+  display: inline;
+}
+
+.flow-btn-panel-top .right {
+  text-align: right;
+}
+
+.flow-btn-panel-top .left {
+  margin-left: 5px;
+  gap: 0.5rem !important;
+  display: flex;
+  height: 2.5rem;
+}
+
+.flow-btn-panel-top .col {
+  display: flex;
 }
 
 .btn-panel-top-corner-right .form-select {
@@ -180,10 +218,15 @@
 
 .btn-panel-top-corner-left {
   position: absolute;
-  top: 10px;
-  left: 60px;
-  cursor: pointer;
+  top: 0.5rem;
+  left: 0rem;
   z-index: 10;
+  height: 2.2rem;
+  display: flex;
+}
+
+.btn-panel-top-corner-left .p-button {
+  margin-left: 0.3rem;
 }
 
 .btn-panel-top-center {
@@ -201,17 +244,44 @@
   margin-left: 5px;
 }
 
-.btn-top-left-menu {
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  cursor: pointer;
-  z-index: 10;
+.btn-ctl-available-nodes.p-button {
+  width: 2.2rem !important;
+  border-radius: 15% 50% 50% 15%;
+  background: #ef4444 !important;
+  border-color: #dc2626 !important;
+  /* smooth color transition */
+  transition:
+    background-color 0.35s ease-in-out,
+    box-shadow 0.35s ease-in-out,
+    border-radius 0.6s ease-in-out !important;
+}
+.btn-ctl-available-nodes span {
+  color: #ffffff !important;
 }
 
-.btn-top-left-menu.btn:hover {
-  text-decoration: solid;
-  background-color: #80808057;
+.btn-ctl-available-nodes:hover {
+  background: #dc2626 !important;
+  border-color: #dc2626 !important;
+}
+
+.p-highlight.btn-ctl-available-nodes.p-button {
+  background-color: #6366f1 !important;
+  border-color: #6366f1 !important;
+  border-radius: 50%;
+}
+
+.btn-ctl-available-nodes.p-button:focus {
+  box-shadow:
+    0 0 0 2px #ffffff,
+    0 0 0 4px #dc262677,
+    0 1px 2px 0 rgb(0 0 0);
+}
+
+.p-highlight.btn-ctl-available-nodes.p-button:focus {
+  box-shadow:
+    0 0 0 2px #ffffff,
+    0 0 0 4px #6365f177,
+    0 1px 2px 0 rgb(0 0 0);
 }
 
 .panel-bottom-center {
@@ -226,49 +296,46 @@
 }
 
 .node-editableLabel {
-  position: absolute;
-  top: 18px;
-  left: 40px;
   cursor: text;
+  border-color: #00000000;
+  box-shadow: none;
+  transition: all 0.15s ease-in-out !important;
+  width: 20ch;
 }
 
-.workflow-settings {
-  position: absolute;
-  overflow: hidden;
+input.node-editableLabel {
+  border-color: #00000044;
+  border-radius: 0.25rem;
+  box-shadow: inset 0 0 0.2rem #6365f1a2;
+}
+
+.options-pane {
   height: 100%;
-  width: -webkit-fill-available;
-  z-index: -1;
-  top: 0px;
-  padding: 10px 10px 10px 0px;
-  /* animation: move 2s linear; */
-  /* transition: z-index 0.75s ease-in-out; */
+  margin: 0.2rem;
 }
 
-.workflow-settings .offcanvas {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  right: 0;
-  width: fit-content;
-  /* adjust the width as needed */
-  z-index: 1050;
-  /* make sure it's above other elements */
-  margin: 10px 10px 10px 0px;
-  background-color: #e2e2e2;
-  min-width: 300px;
-}
-
-.workflow-settings .offcanvas-backdrop {
-  position: relative;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  width: 100%;
+.options-pane .card {
   height: 100%;
-  background-color: #000;
-  opacity: 0.5;
-  z-index: 1040;
-  border-radius: 5px;
+  border-radius: 0px;
+}
+
+.options-overlayPanel {
+  min-width: 10rem;
+}
+
+.options-overlayPanel .header {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  gap: 0.3rem;
+  padding: 0.2rem;
+  min-height: 1rem;
+}
+
+.p-overlaypanel .p-overlaypanel-content {
+  padding: 0.5rem;
 }
 
 .optimize-io {
@@ -340,21 +407,11 @@
   padding-bottom: 0px;
 }
 
-.results-Panel {
-  height: -webkit-fill-available;
-}
-
-.results-Panel .card {
-  height: 100%;
-  margin: 0px 5px;
-}
-
 .resize-handle-results {
   height: 0.25rem;
   width: 100%;
   background-color: #a1a1a1;
   cursor: row-resize !important;
-  margin: 0px 5px;
 }
 
 .resize-handle-results:hover {
@@ -363,4 +420,58 @@
 
 .smooth-transition {
   transition: all cubic-bezier(0.2, 0, 0, 1) 0.75s;
+}
+
+.node-wrapper {
+  border-color: #000;
+  border-width: 10px;
+}
+
+.node-wrapper-selector {
+  width: 2rem;
+  height: 2.1rem;
+  border-radius: 27% 27% 0% 0%;
+  position: absolute;
+  top: -2rem;
+  left: 0.1rem;
+  transition: all cubic-bezier(0.64, 0.29, 0, 1) 0.5s;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  outline: 0.1rem solid lightblue;
+  background-color: rgba(173, 216, 230, 0.5);
+}
+
+.node-wrapper-selector.context-checked {
+  background-color: rgba(48, 255, 82, 0.527);
+  outline: 0.1rem solid rgba(48, 255, 83, 0.808);
+}
+
+.node-wrapper-selector.context-checked .p-checkbox-box {
+  border-color: rgba(48, 255, 83, 0.808);
+}
+
+.hasRun {
+  box-shadow: 0 0 0.3rem #000000;
+}
+
+.notRun {
+  border: 0.15rem solid var(--not-run-color);
+}
+
+path {
+  transition: stroke 0.25s ease-in-out;
+}
+
+.stroke-notRun path {
+  stroke: var(--not-run-color);
+}
+
+.stroke-hasRun path {
+  stroke: #000000e1;
+}
+
+.pipe-name-notRun {
+  color: var(--not-run-color);
+  font-weight: 450 !important;
 }

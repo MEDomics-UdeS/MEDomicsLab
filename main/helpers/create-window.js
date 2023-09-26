@@ -3,6 +3,7 @@ import {
 	BrowserWindow,
 } from "electron";
 import Store from "electron-store";
+import path from "path";
 
 export default function createWindow(windowName, options) {
 	const key = "window-state";
@@ -67,7 +68,7 @@ export default function createWindow(windowName, options) {
 	state = ensureVisibleOnSomeDisplay(restore());
 
 	win = new BrowserWindow({
-		icon: "resources/icon.ico",
+		icon: path.join(__dirname, '../resources/medomics.png'),
 		...state,
 		...options,
 		webPreferences: {

@@ -1,5 +1,4 @@
 import React, { createContext, useState } from "react"
-
 // This context is used to store the flowInfos (id and type of the workflow)
 const FlowInfosContext = createContext()
 
@@ -10,11 +9,17 @@ const FlowInfosContext = createContext()
  */
 function FlowInfosProvider({ children }) {
   const [flowInfos, setFlowInfos] = useState({}) // Initial style
-  const [showAvailableNodes, setShowAvailableNodes] = useState(true) // Initial state
+  const [showAvailableNodes, setShowAvailableNodes] = useState(false) // Initial state
+  const [flowContent, setFlowContent] = useState({}) // Initial state
 
-  // This function is used to update the flowInfos
+  // This function is used to update the flowInfos (id and type of the workflow)
   const updateFlowInfos = (newInfo) => {
-    setFlowInfos(newInfo)
+    setFlowInfos({ ...newInfo })
+  }
+
+  // This function is used to update the flowContent (all the pipelines informations )
+  const updateFlowContent = (newInfo) => {
+    setFlowContent({ ...newInfo })
   }
 
   return (
@@ -24,6 +29,8 @@ function FlowInfosProvider({ children }) {
       value={{
         flowInfos,
         updateFlowInfos,
+        flowContent,
+        updateFlowContent,
         showAvailableNodes,
         setShowAvailableNodes
       }}

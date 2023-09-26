@@ -1,0 +1,200 @@
+:root {
+  --design-color: #1d3666;
+  --development-color: #076464;
+  --deployment-color: #0b6648;
+
+  --rct-search-text-offset: 3rem;
+  --rct-color-tree-bg: rgb(53, 53, 53);
+  --rct-color-tree-focus-outline: #222222;
+  --rct-color-focustree-item-selected-bg: #6e6e6e88;
+  --rct-color-focustree-item-hover-bg: #61616188;
+  --rtc-color-focustree-item-active-bg: #1d3666;
+  --rct-color-focustree-item-focused-border: #292929;
+  --rct-color-focustree-item-draggingover-bg: #2b2b2b;
+  --rct-color-focustree-item-draggingover-color: inherit;
+  --rct-color-search-highlight-bg: #b2b41c81;
+  --rct-color-drag-between-line-bg: #cf03d6;
+  --rct-color-arrow: #c2c2c2;
+  --rct-item-height: 1.5rem;
+  --rct-arrow-size: 0.75rem;
+  --rct-arrow-container-size: 1rem;
+  --rct-arrow-padding: 0.1rem;
+
+  --rct-search-width: 10rem;
+  --rct-search-height: 1.25rem;
+  --rct-search-padding: 8px;
+  --rct-search-border: #b4b7bd;
+  --rct-search-border-bottom: #0366d6;
+  --rct-search-bg: #f8f9fa;
+  --rct-search-text: #000000;
+  --rct-search-text-offset: calc(var(--rct-search-padding) * 2 - 1rem);
+
+  --contexify-zIndex: 666;
+  --contexify-menu-minWidth: 200px;
+  --contexify-menu-padding: 6px;
+  --contexify-menu-radius: 4px;
+  --contexify-menu-bgColor: #474747 !important;
+  --contexify-menu-shadow: 1px 2px 2px rgba(0, 0, 0, 0.1), 2px 4px 4px rgba(0, 0, 0, 0.1), 3px 6px 6px rgba(0, 0, 0, 0.1);
+  --contexify-menu-negatePadding: var(--contexify-menu-padding);
+  --contexify-separator-color: rgba(0, 0, 0, 0.2);
+  --contexify-separator-margin: 5px;
+  --contexify-itemContent-padding: 4px;
+  --contexify-activeItem-radius: 4px;
+  --contexify-item-color: #e2e2e2 !important;
+  --contexify-activeItem-color: #fff;
+  --contexify-activeItem-bgColor: #3498db;
+  --contexify-rightSlot-color: #6f6e77;
+  --contexify-activeRightSlot-color: #fff;
+  --contexify-arrow-color: #6f6e77;
+  --contexify-activeArrow-color: #fff;
+}
+
+.rct-tree-search-input {
+  width: var(--rct-search-width) !important;
+  height: var(--rct-search-height) !important;
+  padding: var(--rct-search-padding) !important;
+  padding-left: var(--rct-search-text-offset) !important;
+  margin: 0 !important;
+  border: 1px solid var(--rct-search-border) !important;
+  border-bottom: 2px solid var(--rct-search-border-bottom) !important ;
+  border-radius: var(--rct-radius) !important;
+  background-color: var(--rct-search-bg) !important;
+  color: var(--rct-search-text) !important;
+  padding-left: 1.25rem !important;
+}
+
+.directory-tree-dropzone {
+  display: block;
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-style: solid;
+}
+
+.rct-tree-input-icon {
+  content: url(data:image/svg+xml,%3Csvg%20stroke%3D%22currentColor%22%20fill%3D%22currentColor%22%20stroke-width%3D%220%22%20viewBox%3D%220%200%2016%2016%22%20height%3D%221em%22%20width%3D%221em%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath%20d%3D%22M11.742%2010.344a6.5%206.5%200%201%200-1.397%201.398h-.001c.03.04.062.078.098.115l3.85%203.85a1%201%200%200%200%201.415-1.414l-3.85-3.85a1.007%201.007%200%200%200-.115-.1zM12%206.5a5.5%205.5%200%201%201-11%200%205.5%205.5%200%200%201%2011%200z%22%3E%3C%2Fpath%3E%3C%2Fsvg%3E) !important;
+  position: relative !important;
+  padding: 1px 0 !important;
+  left: 1.15rem !important;
+  transform: none !important;
+  z-index: 1 !important;
+}
+
+.rct-tree-search-input-container {
+  position: absolute;
+  top: -1.72rem;
+  right: 0.5rem;
+  width: 197px;
+}
+
+.context-menu-icon {
+  margin-right: 0.5rem;
+  align-self: center;
+}
+
+.contexify_menu > .contexify_item > .contexify_itemContent {
+  padding-top: 0.15rem !important;
+  padding-bottom: 0.15rem !important;
+}
+
+.context-submenu > .contexify_item > .contexify_itemContent {
+  z-index: 999 !important;
+  outline: #fa2727 !important;
+  outline-width: 1rem !important;
+  border-color: #000000 !important;
+  border-width: 1rem !important;
+  border-style: solid !important;
+  background-color: #000000 !important;
+}
+
+.contexify.contexify_submenu {
+  box-shadow: 0 0 0.25rem 0.1rem #0000007c !important;
+}
+
+.tooltip-icon-sidebar > .p-tooltip-text {
+  padding: 0.5rem !important;
+  margin-right: 0.5rem;
+  align-self: center;
+}
+
+.rct-tree-item-isNotFolder:hover {
+  padding-top: var(--tree-item-padding-left);
+  box-shadow: inset var(--tree-item-padding-left) 0em #8d0e0e;
+}
+
+.folder-bracket {
+  position: absolute;
+  width: 0.1rem;
+  top: 1.5rem;
+  bottom: 10px;
+  background-color: #868686;
+}
+
+.medomics-layer {
+  display: flex;
+  flex-direction: row;
+  z-index: 2;
+}
+
+
+
+.medomics-layer-text {
+  color: #ffffff;
+  padding-inline: 1rem;
+  border-radius: 0 10px 10px 0;
+  display: block;
+  position: absolute;
+  left: -10rem;
+  z-index: -1;
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  transition: all 0.5s ease-in-out;
+}
+
+.design.medomics-layer {
+  border-color: var(--design-color);
+}
+
+.design .medomics-layer-text {
+  background-color: var(--design-color);
+}
+
+.development.medomics-layer {
+  border-color: var(--development-color);
+}
+
+.development .medomics-layer-text {
+  background-color: var(--development-color);
+}
+
+.deployment.medomics-layer {
+  border-color: var(--deployment-color);
+}
+
+.deployment .medomics-layer-text {
+  background-color: var(--deployment-color);
+}
+
+.medomics-layer:hover .medomics-layer-text {
+  display: block;
+  left: 3rem;
+  box-shadow: 0 0 0.25rem 0.1rem #0000007c !important;
+}
+
+.icon-sidebar:hover .medomics-layer .medomics-layer-text {
+  display: block;
+  left: 3rem;
+}
+
+.sidebar-icons {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-right: 0rem;
+}
+
+.icon-sidebar-divider {
+  z-index: 2;
+  background-color: #3a3a3a;
+}

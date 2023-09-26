@@ -1,87 +1,112 @@
+import extractionDefaultSettings from "./possibleSettings/extraction/extractionDefaultSettings"
+
 // Node parameters for Home module of extraction tab
 const nodesParams = {
   input: {
-    type: "inputNode",
-    classes: "object input upload run",
+    type: "standardNode",
+    classes: "object input upload",
+    nbInput: 0,
+    nbOutput: 1,
     input: [],
-    output: ["segmentation"],
-    img: "inputs.svg.png",
+    output: ["input_data"],
+    img: "input.svg",
     title: "Input",
-    possibleSettings: {},
+    possibleSettings: {
+      defaultSettings: extractionDefaultSettings.input
+    }
   },
   segmentation: {
-    type: "standardNode",
+    type: "segmentationNode",
     classes: "object segmentation view run",
-    input: ["input"],
-    output: ["interpolation, filter"],
-    img: "segmentation.png",
+    nbInput: 1,
+    nbOutput: 1,
+    input: ["input_data"],
+    output: ["segmentation_data"],
+    img: "segmentation.svg",
     title: "Segmentation",
-    possibleSettings: {},
+    possibleSettings: {
+      defaultSettings: extractionDefaultSettings.segmentation
+    }
   },
   interpolation: {
     type: "standardNode",
     classes: "object interpolation view run",
-    input: ["segmentation"],
-    output: ["re_segmentation"],
-    img: "interpolation.png",
+    nbInput: 1,
+    nbOutput: 1,
+    input: ["segmentation_data"],
+    output: ["interpolation_data"],
+    img: "interpolation.svg",
     title: "Interpolation",
-    possibleSettings: {},
+    possibleSettings: {
+      defaultSettings: extractionDefaultSettings.interpolation
+    }
   },
   filter: {
-    type: "standardNode",
+    type: "filterNode",
     classes: "object filter view run",
-    input: ["segmentation, re_segmentation"],
-    output: ["roi_extraction, extraction"],
-    img: "filter.png",
+    nbInput: 1,
+    nbOutput: 1,
+    input: ["segmentation_data", "re_segmentation_data"],
+    output: ["filter_data"],
+    img: "filter.svg",
     title: "Filter",
-    possibleSettings: {},
+    possibleSettings: {
+      defaultSettings: extractionDefaultSettings.filter
+    }
   },
   re_segmentation: {
     type: "standardNode",
     classes: "object re_segmentation view run",
-    input: ["interpolation"],
-    output: ["roi_extraction, filter, extraction"],
-    img: "segmentation.png",
-    title: "Segmentation",
-    possibleSettings: {},
+    nbInput: 1,
+    nbOutput: 1,
+    input: ["interpolation_data"],
+    output: ["re_segmentation_data"],
+    img: "segmentation.svg",
+    title: "Re-Segmentation",
+    possibleSettings: {
+      defaultSettings: extractionDefaultSettings.re_segmentation
+    }
   },
-
   roi_extraction: {
     type: "standardNode",
     classes: "object roi_extraction view run",
-    input: ["re_segmentation, filter"],
-    output: ["discretization, extraction"],
-    img: "roi_extraction.png",
+    nbInput: 1,
+    nbOutput: 1,
+    input: ["re_segmentation_data", "filter_data"],
+    output: ["roi_extraction_data"],
+    img: "roi_extraction.svg",
     title: "ROI extraction",
-    possibleSettings: {},
+    possibleSettings: {}
   },
   discretization: {
     type: "standardNode",
     classes: "object discretization view run",
-    input: ["roi_extraction"],
-    output: ["extraction"],
+    nbInput: 1,
+    nbOutput: 1,
+    input: ["roi_extraction_data"],
+    output: ["discretization_data"],
     img: "discretization.svg",
     title: "Discretization",
-    possibleSettings: {},
-  },
-  re_segmentation: {
-    type: "standardNode",
-    classes: "object resegmentation view run",
-    input: ["interpolation"],
-    output: ["roi_extraction, filter, extraction"],
-    img: "segmentation.png",
-    title: "Re-segmentation",
-    possibleSettings: {},
+    possibleSettings: {
+      defaultSettings: extractionDefaultSettings.discretization
+    }
   },
   extraction: {
-    type: "standardNode",
-    classes: "object extraction",
-    input: ["re_segmentation, filter, roi_extraction, discretization"],
+    type: "extractionNode",
+    classes: "object extraction run",
+    nbInput: 1,
+    nbOutput: 0,
+    input: [
+      "re_segmentation_data",
+      "filter_data",
+      "roi_extraction_data",
+      "discretization_data"
+    ],
     output: [],
-    img: "extraction.png",
+    img: "extraction.svg",
     title: "Extraction",
-    possibleSettings: {},
-  },
-};
+    possibleSettings: {}
+  }
+}
 
-export default nodesParams;
+export default nodesParams

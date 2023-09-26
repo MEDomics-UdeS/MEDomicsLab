@@ -1,20 +1,17 @@
 /* eslint-disable react/prop-types */
-import React, { useRef, useCallback, useEffect, useContext } from "react"
+import React, { useRef, useCallback, useEffect, useContext, useState } from "react"
 import { toast } from "react-toastify"
-import ReactFlow, {
-  Controls,
-  Background,
-  MiniMap,
-  updateEdge,
-  addEdge
-} from "reactflow"
+import ReactFlow, { Controls, Background, MiniMap, addEdge } from "reactflow"
 import { FlowFunctionsContext } from "./context/flowFunctionsContext"
 import { PageInfosContext } from "../mainPages/moduleBasics/pageInfosContext"
 import { FlowInfosContext } from "./context/flowInfosContext"
+import { FlowResultsContext } from "./context/flowResultsContext"
 import { getId, deepCopy } from "../../utilities/staticFunctions"
-import { Button } from "react-bootstrap"
-import * as Icon from "react-bootstrap-icons"
 import { ipcRenderer } from "electron"
+import { ToggleButton } from "primereact/togglebutton"
+import Container from "react-bootstrap/Container"
+import Row from "react-bootstrap/Row"
+import Col from "react-bootstrap/Col"
 
 /**
  *
@@ -45,36 +42,17 @@ import { ipcRenderer } from "electron"
  * This component is used to display a workflow.
  * It manages base workflow functions such as node creation, node deletion, node connection, etc.
  */
-const WorkflowBase = ({
-  isGoodConnection,
-  groupNodeHandlingDefault,
-  onDeleteNode,
-  ui,
-  onNodeDrag,
-  mandatoryProps
-}) => {
-  const {
-    reactFlowInstance,
-    setReactFlowInstance,
-    addSpecificToNode,
-    nodeTypes,
-    nodes,
-    setNodes,
-    onNodesChange,
-    edges,
-    setEdges,
-    onEdgesChange,
-    runNode
-  } = mandatoryProps
+const WorkflowBase = ({ isGoodConnection, groupNodeHandlingDefault, onDeleteNode, onNodeDrag, mandatoryProps, ui, uiTopLeft, uiTopRight, uiTopCenter }) => {
+  const { reactFlowInstance, setReactFlowInstance, addSpecificToNode, nodeTypes, nodes, setNodes, onNodesChange, edges, setEdges, onEdgesChange, runNode } = mandatoryProps
 
   const edgeUpdateSuccessful = useRef(true)
-  const { pageInfos } = useContext(PageInfosContext) // used to get the flow infos
-  const { nodeUpdate, node2Delete, node2Run } = useContext(FlowFunctionsContext) // used to get the function to update the node
-  const { setShowAvailableNodes } = useContext(FlowInfosContext) // used to update the flow infos
-  const handleShow = () => setShowAvailableNodes(true)
+  const { pageInfos } = useContext(PageInfosContext) // used to get the page infos
+  const { updateNode, nodeUpdate, updateEdge, edgeUpdate, node2Delete, node2Run } = useContext(FlowFunctionsContext) // used to get the function to update the node
+  const { showAvailableNodes, setShowAvailableNodes, updateFlowContent } = useContext(FlowInfosContext) // used to update the flow infos
+  const { showResultsPane, setShowResultsPane, isResults, flowResults } = useContext(FlowResultsContext) // used to update the flow infos
+  const [newConnection, setNewConnection] = useState(false)
 
-  // execute this when a variable change or a function is called related to the callback hook in []
-  // setNodeUpdate function is passed to the node component to update the internal data of the node
+  // this useEffect is used to update the nodes when the nodeUpdate object changes
   useEffect(() => {
     // if the nodeUpdate object is not empty, update the node
     if (nodeUpdate.id) {
@@ -94,18 +72,131 @@ const WorkflowBase = ({
     }
   }, [nodeUpdate, setNodes])
 
+  // this useEffect is used to update the edges when the edgeUpdate object changes
+  useEffect(() => {
+    // if the edgeUpdate object is not empty, update the edge
+    if (edgeUpdate.id) {
+      setEdges((eds) =>
+        eds.map((edge) => {
+          if (edge.id == edgeUpdate.id) {
+            // it's important that you create a new object here in order to notify react flow about the change
+            edge = {
+              ...edge
+            }
+            // update the internal data of the edge
+            edge.data = edgeUpdate.updatedData
+          }
+          return edge
+        })
+      )
+    }
+  }, [edgeUpdate, setEdges])
+
+  // this useEffect is used to update the flow content when the nodes or edges change
+  useEffect(() => {
+    // console.log("update of nodes and edges (flowContent)")
+    updateFlowContent({
+      nodes: nodes,
+      edges: edges
+    })
+  }, [nodes, edges])
+
+  // this useEffect is used to get the flask port from the main process
   useEffect(() => {
     console.log("send update flask port")
     ipcRenderer.send("messageFromNext", "getFlaskPort")
   }, [])
 
+  // this useEffect is used to select the correct function to delete a node, either the default one or the one passed as props
   useEffect(() => {
     onDeleteNode ? onDeleteNode(node2Delete) : deleteNode(node2Delete)
   }, [node2Delete])
 
+  // this useEffect is used to run a node when the node2Run object changes
   useEffect(() => {
     runNode(node2Run)
   }, [node2Run])
+
+  // this useEffect is used to update the nodes when the flowResults object changes
+  useEffect(() => {
+    console.log("updating nodes from ", flowResults)
+
+    /**
+     * Recursively set the hasRun state of the nodes
+     */
+    const setNodesHasRunState = () => {
+      const setHasRun = (id) => {
+        let ids = id.split("*")
+        ids.forEach((id) => {
+          let node = nodes.find((node) => node.id == id)
+          if (node) {
+            node.data.internal.hasRun = true
+            updateNode({
+              id: node.id,
+              updatedData: node.data.internal
+            })
+          }
+        })
+      }
+
+      const setHasRunRec = (obj) => {
+        Object.keys(obj).forEach((id) => {
+          setHasRun(id)
+          setHasRunRec(obj[id].next_nodes)
+        })
+      }
+
+      Object.keys(flowResults).forEach((id) => {
+        setHasRun(id)
+        setHasRunRec(flowResults[id].next_nodes)
+      })
+    }
+
+    /**
+     * Recursively set the hasRun state of the edges
+     */
+    const setEdgesHasRunState = () => {
+      // making a list of edges that have run
+      let edgesHasRun = []
+      const setHasRun = (sourceId, targetId) => {
+        if (sourceId.split("*").length > 1) {
+          let ids = sourceId.split("*")
+          setHasRun(ids[1], ids[0])
+        }
+        sourceId = sourceId.split("*")[0]
+        targetId = targetId.split("*")[0]
+        let edge = edges.find((edge) => edge.source == sourceId && edge.target == targetId)
+        edge && edgesHasRun.push(edge.id)
+      }
+
+      const setHasRunRec = (obj) => {
+        Object.keys(obj).forEach((id) => {
+          Object.keys(obj[id].next_nodes).forEach((nextId) => {
+            setHasRun(id, nextId)
+          })
+          setHasRunRec(obj[id].next_nodes)
+        })
+      }
+
+      Object.keys(flowResults).forEach((id) => {
+        Object.keys(flowResults[id].next_nodes).forEach((nextId) => {
+          setHasRun(id, nextId)
+        })
+        setHasRunRec(flowResults[id].next_nodes)
+      })
+      edges.forEach((edge) => {
+        edge.data = { hasRun: edgesHasRun.includes(edge.id) }
+        edge.className = edgesHasRun.includes(edge.id) && showResultsPane ? "stroke-hasRun" : showResultsPane ? "stroke-notRun" : ""
+        updateEdge({
+          id: edge.id,
+          updatedData: edge.data
+        })
+      })
+    }
+
+    setNodesHasRunState()
+    setEdgesHasRunState()
+  }, [flowResults, showResultsPane, newConnection])
 
   /**
    * @param {object} params
@@ -146,12 +237,11 @@ const WorkflowBase = ({
       })
 
       // if isGoodConnection is defined, check if the connection is valid again with the isGoodConnection function
-      isGoodConnection &&
-        (isValidConnection = isValidConnection && isGoodConnection(params))
+      isGoodConnection && (isValidConnection = isValidConnection && isGoodConnection(params))
 
       // check if the connection creates an infinite loop
       let isLoop = verificationForLoopHoles(params)
-
+      setNewConnection(!newConnection)
       if (!alreadyExists && isValidConnection && !isLoop) {
         setEdges((eds) => addEdge(params, eds))
       } else {
@@ -188,9 +278,7 @@ const WorkflowBase = ({
     const verificationForLoopHolesRec = (node, isLoop) => {
       edges.forEach((edge) => {
         if (edge.source == node.id) {
-          let targetNode = deepCopy(
-            nodes.find((node) => node.id === edge.target)
-          )
+          let targetNode = deepCopy(nodes.find((node) => node.id === edge.target))
           if (targetNode.id == params.source) {
             isLoop = true
           } else if (targetNode.type != "groupNode") {
@@ -234,15 +322,11 @@ const WorkflowBase = ({
     (event) => {
       event.preventDefault()
       // get the node type from the dataTransfer set by the onDragStart function at sidebarAvailableNodes.jsx
-      const node = JSON.parse(
-        event.dataTransfer.getData("application/reactflow")
-      )
+      const node = JSON.parse(event.dataTransfer.getData("application/reactflow"))
       const { nodeType } = node
 
       if (nodeType in nodeTypes) {
-        let flowWindow = document
-          .getElementById(pageInfos.id)
-          .getBoundingClientRect()
+        let flowWindow = document.getElementById(pageInfos.id).getBoundingClientRect()
         const position = reactFlowInstance.project({
           x: event.clientX - flowWindow.x - 300,
           y: event.clientY - flowWindow.y - 25
@@ -290,7 +374,8 @@ const WorkflowBase = ({
         internal: {
           name: name,
           img: image,
-          type: name.toLowerCase().replaceAll(" ", "_")
+          type: name.toLowerCase().replaceAll(" ", "_"),
+          results: { checked: false, contextChecked: false }
         },
         tooltipBy: "node" // this is a default value that can be changed in addSpecificToNode function see workflow.jsx for example
       }
@@ -305,9 +390,7 @@ const WorkflowBase = ({
    */
   const deleteNode = (nodeId) => {
     setNodes((nds) => nds.filter((node) => node.id !== nodeId))
-    setEdges((eds) =>
-      eds.filter((edge) => edge.source !== nodeId && edge.target !== nodeId)
-    )
+    setEdges((eds) => eds.filter((edge) => edge.source !== nodeId && edge.target !== nodeId))
   }
 
   /**
@@ -334,10 +417,7 @@ const WorkflowBase = ({
     edgeUpdateSuccessful.current = true
     let alreadyExists = false
     edges.forEach((edge) => {
-      if (
-        edge.source === newConnection.source &&
-        edge.target === newConnection.target
-      ) {
+      if (edge.source === newConnection.source && edge.target === newConnection.target) {
         alreadyExists = true
       }
     })
@@ -377,28 +457,37 @@ const WorkflowBase = ({
   return (
     <div className="height-100">
       {/* here is the reactflow component which handles a lot of features listed below */}
-      <ReactFlow
-        nodes={nodes}
-        edges={edges}
-        onNodesChange={onNodesChange}
-        onEdgesChange={onEdgesChange}
-        onInit={setReactFlowInstance}
-        nodeTypes={nodeTypes}
-        onNodeDrag={onNodeDrag}
-        onConnect={onConnect}
-        onDrop={onDrop}
-        onDragOver={onDragOver}
-        onEdgeUpdate={onEdgeUpdate}
-        onEdgeUpdateStart={onEdgeUpdateStart}
-        onEdgeUpdateEnd={onEdgeUpdateEnd}
-        fitView
-      >
-        <Background /> <MiniMap className="minimapStyle" zoomable pannable />{" "}
-        <Controls />
+      <ReactFlow nodes={nodes} edges={edges} onNodesChange={onNodesChange} onEdgesChange={onEdgesChange} onInit={setReactFlowInstance} nodeTypes={nodeTypes} onNodeDrag={onNodeDrag} onConnect={onConnect} onDrop={onDrop} onDragOver={onDragOver} onEdgeUpdate={onEdgeUpdate} onEdgeUpdateStart={onEdgeUpdateStart} onEdgeUpdateEnd={onEdgeUpdateEnd} fitView>
+        <Background /> <MiniMap className="minimapStyle" zoomable pannable /> <Controls />
         {ui}
-        <Button variant="outline btn-top-left-menu" onClick={handleShow}>
-          <Icon.List width="30px" height="30px" />
-        </Button>
+        {/* <div className="btn-panel-top-corner-left gap-2">
+          <ToggleButton onIcon="pi pi-list" offIcon="pi pi-times" onLabel="" offLabel="" checked={!showAvailableNodes} onChange={(e) => setShowAvailableNodes(!e.value)} className="btn-ctl-available-nodes" />
+          <ToggleButton onLabel="Results mode on" offLabel="See results" onIcon="pi pi-chart-bar" offIcon="pi pi-eye" disabled={!isResults} checked={showResultsPane} onChange={(e) => setShowResultsPane(e.value)} className="btn-show-results" />
+        </div> */}
+        {/* <div className="flow-btn-panel-top">
+          <div className="left">
+            <ToggleButton onIcon="pi pi-list" offIcon="pi pi-times" onLabel="" offLabel="" checked={!showAvailableNodes} onChange={(e) => setShowAvailableNodes(!e.value)} className="btn-ctl-available-nodes" />
+            <ToggleButton onLabel="Results mode on" offLabel="See results" onIcon="pi pi-chart-bar" offIcon="pi pi-eye" disabled={!isResults} checked={showResultsPane} onChange={(e) => setShowResultsPane(e.value)} className="btn-show-results" />
+            {uiTopLeft}
+          </div>
+          <div className="center">{uiTopCenter}</div>
+          <div className="right">{uiTopRight}</div>
+        </div> */}
+        <Container className="flow-btn-panel-top">
+          <Row>
+            <Col sm className="left">
+              <ToggleButton onIcon="pi pi-list" offIcon="pi pi-times" onLabel="" offLabel="" checked={!showAvailableNodes} onChange={(e) => setShowAvailableNodes(!e.value)} className="btn-ctl-available-nodes" />
+              <ToggleButton onLabel="Results mode on" offLabel="See results" onIcon="pi pi-chart-bar" offIcon="pi pi-eye" disabled={!isResults} checked={showResultsPane} onChange={(e) => setShowResultsPane(e.value)} className="btn-show-results" />
+              {uiTopLeft}
+            </Col>
+            <Col md="auto" className="center">
+              {uiTopCenter}
+            </Col>
+            <Col sm className="right">
+              {uiTopRight}
+            </Col>
+          </Row>
+        </Container>
       </ReactFlow>
     </div>
   )

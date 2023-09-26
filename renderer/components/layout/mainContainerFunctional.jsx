@@ -1,24 +1,13 @@
-import React, { useRef, useState, useEffect, useContext } from "react";
-import test from "../../styles/test.module.css";
+import React, { useRef, useState, useEffect, useContext } from "react"
+import test from "../../styles/test.module.css"
+import DataTable from "../../components/dataTypeVisualisation/dataTableWrapper"
+import * as Prism from "prismjs"
+import { LayoutModelContext } from "./layoutContext"
+import { Actions, CLASSES, Layout, Model, TabNode } from "flexlayout-react"
+import LearningPage from "../mainPages/learning"
+import { loadCSVPath } from "../../utilities/fileManagementUtils"
 
-import * as Prism from "prismjs";
-import { LayoutModelContext } from "./layoutContext";
-import {
-  Actions,
-  CLASSES,
-  Layout,
-  Model,
-  TabNode
-} from "flexlayout-react";
-
-import DataTable from "../dataTypeVisualisation/dataTableWrapper";
-
-import { loadCSVPath } from "../../utilities/fileManagementUtils";
-
-var fields = ["Name", "Field1", "Field2", "Field3", "Field4", "Field5"];
-
-
-
+var fields = ["Name", "Field1", "Field2", "Field3", "Field4", "Field5"]
 
 /**
  *
@@ -29,19 +18,17 @@ var fields = ["Name", "Field1", "Field2", "Field3", "Field4", "Field5"];
  */
 export default function MainFlexLayout() {
   // let inner_model = layoutmodel;
-  const layoutRef = useRef(null); // Reference to the layout component
-  const [mainState, setMainState] = useState({}); // State to keep track of the main state of the application/this component
-  const [nextGridIndex, setNextGridIndex] = useState(0); // State to keep track of the next grid index
+  const layoutRef = useRef(null) // Reference to the layout component
+  const [mainState, setMainState] = useState({}) // State to keep track of the main state of the application/this component
+  const [nextGridIndex, setNextGridIndex] = useState(0) // State to keep track of the next grid index
   // let contents; // Variable to hold the contents of the main container - Not used for now
 
-  const { layoutModel, flexlayoutInterpreter } = useContext(LayoutModelContext); // Get the layout model and the flexlayout interpreter from the context
+  const { layoutModel, flexlayoutInterpreter } = useContext(LayoutModelContext) // Get the layout model and the flexlayout interpreter from the context
 
-
-  const [myInnerModel, setMyInnerModel] = useState(layoutModel); // State to keep track of the inner model - Used to update the layout model - for debugging purposes mainly
+  const [myInnerModel, setMyInnerModel] = useState(layoutModel) // State to keep track of the inner model - Used to update the layout model - for debugging purposes mainly
   // setMyInnerModel(inner_model);
 
-
-  const [model, setModel] = useState(Model.fromJson(layoutModel)); // State to keep track of the model - Used to update the layout model also
+  const [model, setModel] = useState(Model.fromJson(layoutModel)) // State to keep track of the model - Used to update the layout model also
 
   useEffect(() => {
     // Use effect to update the model when the layout model changes
@@ -73,11 +60,7 @@ export default function MainFlexLayout() {
     // console.log("onModelChange", event);
     htmlTimer = setTimeout(() => {
       const jsonText = JSON.stringify(model && model.toJson(), null, "\t")
-      const html = Prism.highlight(
-        jsonText,
-        Prism.languages.javascript,
-        "javascript"
-      )
+      const html = Prism.highlight(jsonText, Prism.languages.javascript, "javascript")
       setMainState({ ...mainState, json: html })
       htmlTimer = null
     }, 500)
@@ -146,11 +129,7 @@ export default function MainFlexLayout() {
   function onExternalDrag(e) {
     // Function to handle the external drag event of the tabs
     const validTypes = ["text/uri-list", "text/html", "text/plain"]
-    if (
-      e.dataTransfer.types.find((t) => validTypes.indexOf(t) !== -1) ===
-      undefined
-    )
-      return
+    if (e.dataTransfer.types.find((t) => validTypes.indexOf(t) !== -1) === undefined) return
     e.dataTransfer.dropEffect = "link"
     return {
       dragText: "Drag To New Tab",
@@ -165,9 +144,7 @@ export default function MainFlexLayout() {
           const dragEvent = event
           if (dragEvent.dataTransfer) {
             if (dragEvent.dataTransfer.types.indexOf("text/uri-list") !== -1) {
-              const data =
-                dragEvent.dataTransfer &&
-                dragEvent.dataTransfer.getData("text/uri-list")
+              const data = dragEvent.dataTransfer && dragEvent.dataTransfer.getData("text/uri-list")
               if (model) {
                 model.doAction(
                   Actions.updateNodeAttributes(node.getId(), {
@@ -176,12 +153,8 @@ export default function MainFlexLayout() {
                   })
                 )
               }
-            } else if (
-              dragEvent.dataTransfer.types.indexOf("text/html") !== -1
-            ) {
-              const data =
-                dragEvent.dataTransfer &&
-                dragEvent.dataTransfer.getData("text/html")
+            } else if (dragEvent.dataTransfer.types.indexOf("text/html") !== -1) {
+              const data = dragEvent.dataTransfer && dragEvent.dataTransfer.getData("text/html")
               if (model) {
                 model.doAction(
                   Actions.updateNodeAttributes(node.getId(), {
@@ -190,12 +163,8 @@ export default function MainFlexLayout() {
                   })
                 )
               }
-            } else if (
-              dragEvent.dataTransfer.types.indexOf("text/plain") !== -1
-            ) {
-              const data =
-                dragEvent.dataTransfer &&
-                dragEvent.dataTransfer.getData("text/plain")
+            } else if (dragEvent.dataTransfer.types.indexOf("text/plain") !== -1) {
+              const data = dragEvent.dataTransfer && dragEvent.dataTransfer.getData("text/plain")
               model &&
                 model.doAction(
                   Actions.updateNodeAttributes(node.getId(), {
@@ -218,7 +187,7 @@ export default function MainFlexLayout() {
     return undefined
   }
 
-  function onTableClick() { }
+  function onTableClick() {}
 
   function onAction(action) {
     console.log("action: ", action)
@@ -231,9 +200,9 @@ export default function MainFlexLayout() {
       return {
         titleContent: <div>(Added by titleFactory) {node.getName()}</div>,
         name: "the name for custom tab"
-      };
+      }
     }
-    return;
+    return
   }
 
   function iconFactory(node) {
@@ -257,17 +226,7 @@ export default function MainFlexLayout() {
 
   function onRenderTabSet(node, renderValues) {
     if (mainState.layoutFile === "default") {
-      renderValues.stickyButtons.push(
-        <img
-          src="images/add.svg"
-          alt="Add"
-          key="Add button"
-          title="Add Tab (using onRenderTabSet callback, see Demo)"
-          style={{ width: "1.1em", height: "1.1em" }}
-          className="flexlayout__tab_toolbar_button"
-          onClick={() => onAddFromTabSetButton(node)}
-        />
-      )
+      renderValues.stickyButtons.push(<img src="images/add.svg" alt="Add" key="Add button" title="Add Tab (using onRenderTabSet callback, see Demo)" style={{ width: "1.1em", height: "1.1em" }} className="flexlayout__tab_toolbar_button" onClick={() => onAddFromTabSetButton(node)} />)
     }
   }
 
@@ -304,55 +263,62 @@ export default function MainFlexLayout() {
     var component = node.getComponent()
 
     if (component === "json") {
-      return (
-        <pre style={{ tabSize: "20px" }}>
-          {mainState.json ? (
-            <span dangerouslySetInnerHTML={{ __html: mainState.json }} />
-          ) : null}
-        </pre>
-      );
-    }
-    else if (component === "grid") {
+      return <pre style={{ tabSize: "20px" }}>{mainState.json ? <span dangerouslySetInnerHTML={{ __html: mainState.json }} /> : null}</pre>
+    } else if (component === "grid") {
       if (node.getExtraData().data == null) {
         // create data in node extra data first time accessed
-        node.getExtraData().data = makeFakeData();
+        node.getExtraData().data = makeFakeData()
       }
-      return <SimpleTable fields={fields} onClick={onTableClick.bind(node)} data={node.getExtraData().data} />;
-    }
-
-    else if (component === "text") {
+      return <SimpleTable fields={fields} onClick={onTableClick.bind(node)} data={node.getExtraData().data} />
+    } else if (component === "text") {
       try {
-        return <div dangerouslySetInnerHTML={{ __html: node.getConfig().text }} />;
+        return <div dangerouslySetInnerHTML={{ __html: node.getConfig().text }} />
       } catch (e) {
-        console.log(e);
+        console.log(e)
       }
-    }
-    else if (component === "newfeatures") {
-      return <></>;
-    }
-    else if (component === "multitype") {
+    } else if (component === "newfeatures") {
+      return <></>
+    } else if (component === "multitype") {
       try {
-        const config = node.getConfig();
+        const config = node.getConfig()
         if (config.type === "url") {
-          return <iframe title={node.getId()} src={config.data} style={{ display: "block", border: "none", boxSizing: "border-box" }} width="100%" height="100%" />;
+          return (
+            <iframe
+              title={node.getId()}
+              src={config.data}
+              style={{
+                display: "block",
+                border: "none",
+                boxSizing: "border-box"
+              }}
+              width="100%"
+              height="100%"
+            />
+          )
         } else if (config.type === "html") {
-          return (<div dangerouslySetInnerHTML={{ __html: config.data }} />);
+          return <div dangerouslySetInnerHTML={{ __html: config.data }} />
         } else if (config.type === "text") {
           return (
-            <textarea style={{ position: "absolute", width: "100%", height: "100%", resize: "none", boxSizing: "border-box", border: "none" }}
+            <textarea
+              style={{
+                position: "absolute",
+                width: "100%",
+                height: "100%",
+                resize: "none",
+                boxSizing: "border-box",
+                border: "none"
+              }}
               defaultValue={config.data}
-            />);
+            />
+          )
         }
       } catch (e) {
-        return (<div>{String(e)}</div>);
+        return <div>{String(e)}</div>
       }
-    }
-    else if (component === "tabstorage") {
-      return <></>;
-    }
-    else if (component === "dataTable") {
+    } else if (component === "tabstorage") {
+      return <></>
+    } else if (component === "dataTable") {
       if (node.getExtraData().data == null) {
-
         const config = node.getConfig()
         console.log("dataTable config", config)
         const whenDataLoaded = (data) => {
@@ -379,8 +345,15 @@ export default function MainFlexLayout() {
           }}
         />
       )
+    } else if (component === "learningPage") {
+      if (node.getExtraData().data == null) {
+        const config = node.getConfig()
+        console.log("LearningPage config", config)
+        return <LearningPage pageId={config.uuid} configPath={config.path} />
+      }
     }
-    return null;
+
+    return null
   }
 
   return (
@@ -399,24 +372,12 @@ export default function MainFlexLayout() {
             onRenderTab={onRenderTab}
             onRenderTabSet={onRenderTabSet}
             onRenderDragRect={onRenderDragRect}
-            onRenderFloatingTabPlaceholder={
-              mainState.layoutFile === "newfeatures"
-                ? onRenderFloatingTabPlaceholder
-                : undefined
-            }
+            onRenderFloatingTabPlaceholder={mainState.layoutFile === "newfeatures" ? onRenderFloatingTabPlaceholder : undefined}
             onExternalDrag={onExternalDrag}
             realtimeResize={mainState.realtimeResize}
-            onTabDrag={
-              mainState.layoutFile === "newfeatures" ? onTabDrag : undefined
-            }
-            onContextMenu={
-              mainState.layoutFile === "newfeatures" ? onContextMenu : undefined
-            }
-            onAuxMouseClick={
-              mainState.layoutFile === "newfeatures"
-                ? onAuxMouseClick
-                : undefined
-            }
+            onTabDrag={mainState.layoutFile === "newfeatures" ? onTabDrag : undefined}
+            onContextMenu={mainState.layoutFile === "newfeatures" ? onContextMenu : undefined}
+            onAuxMouseClick={mainState.layoutFile === "newfeatures" ? onAuxMouseClick : undefined}
             onTabSetPlaceHolder={onTabSetPlaceHolder}
           />
         </div>
@@ -438,9 +399,7 @@ class SimpleTable extends React.Component {
 
     var rows = []
     for (var i = 0; i < this.props.data.length; i++) {
-      var row = this.props.fields.map((field) => (
-        <td key={field}>{this.props.data[i][field]}</td>
-      ))
+      var row = this.props.fields.map((field) => <td key={field}>{this.props.data[i][field]}</td>)
       rows.push(<tr key={i}>{row}</tr>)
     }
 

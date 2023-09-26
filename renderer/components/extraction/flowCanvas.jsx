@@ -1,16 +1,22 @@
-import React, { useContext, useState, useCallback, useMemo, useEffect } from "react"
+import React, {
+  useState,
+  useCallback,
+  useMemo,
+  useEffect,
+  useContext
+} from "react"
 import { toast } from "react-toastify"
-import TreeMenu from "react-simple-tree-menu"
 
 // Import utilities
 import { loadJsonSync, downloadJson } from "../../utilities/fileManagementUtils"
-import { axiosPostJson } from "../../utilities/requests"
+import { requestJson } from "../../utilities/requests"
 
 // Workflow imports
 import { useNodesState, useEdgesState, useReactFlow } from "reactflow"
 import WorkflowBase from "../flow/workflowBase"
 import { FlowFunctionsContext } from "../flow/context/flowFunctionsContext"
-
+import { WorkspaceContext } from "../workspace/workspaceContext"
+import { ErrorRequestContext } from "../flow/context/errorRequestContext"
 
 // Import node types
 import StandardNode from "./nodesTypes/standardNode"
@@ -23,7 +29,6 @@ import ExtractionNode from "./nodesTypes/extractionNode"
 import nodesParams from "../../public/setupVariables/allNodesParams"
 
 // Import buttons
-import ResultsButton from "./buttonsTypes/resultsButton"
 import BtnDiv from "../flow/btnDiv"
 
 // Static functions used in the workflow
@@ -52,8 +57,10 @@ const FlowCanvas = ({ workflowType, setWorkflowType }) => {
   const { setViewport } = useReactFlow() // setViewport is used to update the viewport of the workflow
   const [treeData, setTreeData] = useState({}) // treeData is used to set the data of the tree menu
   const [results, setResults] = useState({}) // results is used to store radiomic features results
-  const { groupNodeId, changeSubFlow, updateNode } = useContext(FlowFunctionsContext)
-
+  const { groupNodeId, changeSubFlow, updateNode } =
+    useContext(FlowFunctionsContext)
+  const { port } = useContext(WorkspaceContext)
+  const { setError } = useContext(ErrorRequestContext)
 
   // Hook executed upon modification of edges to verify the connections between input and segmentation nodes
   useEffect(() => {
@@ -203,7 +210,8 @@ const FlowCanvas = ({ workflowType, setWorkflowType }) => {
           if (targetNode.type != "extractionNode") {
             let subIdText = ""
             let subflowId = targetNode.data.internal.subflowId
-            if (subflowId) {
+            if (subflowId != "MAIN") {
+              console.log("subflowId", subflowId)
               subIdText =
                 JSON.parse(
                   JSON.stringify(nodes.find((node) => node.id == subflowId))
@@ -272,9 +280,8 @@ const FlowCanvas = ({ workflowType, setWorkflowType }) => {
         ? featuresNodeDefaultSettings
         : newNode.data.setupParam.possibleSettings.defaultSettings
 
-
     newNode.data.internal.subflowId = !associatedNode
-      ? groupNodeId
+      ? groupNodeId.id
       : associatedNode
 
     // Used to enable the view button of a node (if it exists)
@@ -496,7 +503,7 @@ const FlowCanvas = ({ workflowType, setWorkflowType }) => {
    */
   const runNode = useCallback(
     (id) => {
-      if(id) {
+      if (id) {
         console.log("Running node", id)
 
         // Transform the flow instance to a dictionary compatible with the backend
@@ -516,8 +523,10 @@ const FlowCanvas = ({ workflowType, setWorkflowType }) => {
           json_scene: newFlow
         })
 
-        axiosPostJson(formData, "extraction/run")
-          .then((response) => {
+        requestJson(port, "/extraction/run", formData, (response) => {
+          if (response.error) {
+            setError(response.error)
+          } else {
             toast.success("Node executed successfully")
             console.log("Response from backend is: ")
             console.log(response)
@@ -567,12 +576,8 @@ const FlowCanvas = ({ workflowType, setWorkflowType }) => {
                 return node
               })
             )
-          })
-          .catch((error) => {
-            // Warn the user if the node could not be executed correctly
-            console.log(error)
-            toast.warn("Could not run the node.")
-          })
+          }
+        })
       }
     },
     [nodes, edges, reactFlowInstance]
@@ -591,10 +596,11 @@ const FlowCanvas = ({ workflowType, setWorkflowType }) => {
     console.log(newFlow)
 
     // Post request to extraction/run-all for current workflow
-    axiosPostJson(newFlow, "extraction/run-all")
-      .then((response) => {
-        console.log("Response from the backend : ")
-        console.log(response)
+    requestJson(port, "/extraction/run-all", newFlow, (response) => {
+      if (response.error) {
+        setError(response.error)
+      } else {
+        console.log("Response from the backend :", response)
         toast.success("Workflow executed successfully")
 
         // A response from the backend is only given if there are e
@@ -630,11 +636,8 @@ const FlowCanvas = ({ workflowType, setWorkflowType }) => {
             return node
           })
         )
-      })
-      .catch((error) => {
-        // Warn the user if the workflow could not be executed correctly
-        toast.warn("Could not run the workflow.")
-      })
+      }
+    })
   }, [nodes, edges, reactFlowInstance])
 
   /**
@@ -704,9 +707,8 @@ const FlowCanvas = ({ workflowType, setWorkflowType }) => {
           Object.values(flow.nodes).forEach((node) => {
             // the line below is important because functions are not serializable
             // set workflow type
-            let subworkflowType = node.data.internal.subflowId
-              ? "extraction"
-              : "features"
+            let subworkflowType =
+              node.data.internal.subflowId != "MAIN" ? "extraction" : "features"
             // set node type
             let setupParams = deepCopy(
               staticNodesParams[subworkflowType][
@@ -740,23 +742,13 @@ const FlowCanvas = ({ workflowType, setWorkflowType }) => {
     changeSubFlow("MAIN")
   }, [])
 
-  /**
-   * @param {Object} info info about the node clicked
-   *
-   * @description
-   * This function is called when the user clicks on a tree item
-   */
-  const onTreeItemClick = (info) => {
-    console.log("tree item clicked: ", info)
-  }
-
+  // TODO : take out of mandatory in flow/workflowBase.js
   const onNodeDrag = useCallback(
     (event, node) => {
       // TODO
     },
     [nodes]
   )
-
   /**
    * @param {object} params
    * @param {string} params.source
@@ -804,30 +796,17 @@ const FlowCanvas = ({ workflowType, setWorkflowType }) => {
           edges: edges,
           setEdges: setEdges,
           onEdgesChange: onEdgesChange,
+          onNodeDrag: onNodeDrag,
           runNode: runNode,
+          nodeUpdate: nodeUpdate,
+          setNodeUpdate: setNodeUpdate
         }}
         // optional props
         onDeleteNode={deleteNode}
         isGoodConnection={isGoodConnection}
-        onNodeDrag={onNodeDrag}
-
         // represents the visual of the workflow
         ui={
           <>
-            {/* Components in the upper left corner of the workflow */}
-            <div className="btn-panel-top-corner-left">
-              {workflowType == "extraction" && (
-                <>
-                  <TreeMenu
-                    data={treeData}
-                    onClickItem={onTreeItemClick}
-                    debounceTime={125}
-                    hasSearch={false}
-                  />
-                </>
-              )}
-            </div>
-
             {/* Components in the upper right corner of the workflow */}
             <div className="btn-panel-top-corner-right">
               {workflowType == "extraction" ? (

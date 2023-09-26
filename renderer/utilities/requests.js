@@ -1,25 +1,77 @@
 import { ipcRenderer } from "electron"
+import axios from "axios"
+import { toast } from "react-toastify"
 
-export const requestJson = (
-  port,
-  topic,
-  json2send,
-  jsonReceivedCB,
-  errorCB
-) => {
-  ipcRenderer
-    .invoke("request", {
-      data: {
-        json2send
-      },
-      method: "POST",
-      url: "http://127.0.0.1:" + port + "/" + topic
-    })
-    .then((data) => {
-      jsonReceivedCB(data["data"])
-      return true
-    })
-    .catch((resp) => errorCB(resp))
+/**
+ * 
+ * @param {Integer} port the port to send the request to
+ * @param {String} topic the topic to send the request to
+ * @param {Object} json2send the json to send
+ * @param {Function} jsonReceivedCB extecuted when the json is received
+ * 
+ * @example
+ * import { requestJson } from '/utilities/requests';
+
+ <Button variant="primary" onClick={
+    () => {
+        requestJson(5000, "test", { test: "test" }, (jsonResponse) => {
+            console.log(jsonResponse);
+        });
+    }
+}>send test</Button> 
+ */
+export const requestJson = (port, topic, json2send, jsonReceivedCB) => {
+  try {
+    ipcRenderer
+      .invoke("request", {
+        data: {
+          json2send
+        },
+        method: "POST",
+        url: "http://localhost:" + port + "/" + topic
+      })
+      .then((data) => {
+        jsonReceivedCB(data["data"])
+        return true
+      })
+      .catch((resp) => {
+        console.error("Error:", resp)
+        toast.error("An error occured while sending the request")
+      })
+  } catch (error) {
+    console.error(error)
+    toast.error("An error occured while sending the request")
+  }
+}
+
+export const axiosPostJson = async (jsonData, pathName) => {
+  try {
+    const response = await axios.post(
+      "http://localhost:5000/" + pathName,
+      jsonData,
+      { headers: { "Content-Type": "application/json" } }
+    )
+
+    return response.data
+  } catch (error) {
+    console.error("ICIIIIIIIIIIIIIIIIII")
+    console.error(error)
+    if (error.response) {
+      // The request was made and the server responded with a status code
+      // that falls out of the range of 2xx
+      console.error("Server Error:", error.response.data)
+      console.error("Status Code:", error.response.status)
+      console.error("Headers:", error.response.headers)
+    } else if (error.request) {
+      // The request was made but no response was received
+      // `error.request` is an instance of XMLHttpRequest in the browser
+      console.error("Request Error:", error.request)
+    } else {
+      // Something happened in setting up the request that triggered an Error
+      console.error("Error:", error.message)
+    }
+    throw error
+  }
 }
 
 // example of use:

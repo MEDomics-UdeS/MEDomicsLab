@@ -1,4 +1,4 @@
-import { React, createContext, useState } from "react"
+import { React, createContext } from "react"
 
 /**
  * @typedef {React.Context} WorkspaceContext
@@ -16,20 +16,10 @@ export const WorkspaceContext = createContext(null)
  * @summary The workspace object is the object that contains the workspace information. It is an object that contains the following properties:'hasBeenSet' and 'workspaceObject'.
  *          The 'hasBeenSet' property is a boolean that indicates if the workspace has been set. The 'workspaceObject' property is the workspace containing information about all the files and folders in the workspace.
  */
-export default function WorkspaceProvider({
-  workspace,
-  setWorkspace,
-  port,
-  setPort,
-  children
-}) {
+export default function WorkspaceProvider({ workspace, setWorkspace, port, setPort, children }) {
   return (
     <>
-      <WorkspaceContext.Provider
-        value={{ workspace, setWorkspace, port, setPort }}
-      >
-        {children}
-      </WorkspaceContext.Provider>
+      <WorkspaceContext.Provider value={{ workspace, setWorkspace, port, setPort }}>{children}</WorkspaceContext.Provider>
     </>
   )
 }

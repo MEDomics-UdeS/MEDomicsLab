@@ -1,7 +1,8 @@
-import { app, protocol, BrowserWindow, ipcMain, Menu, dialog } from "electron"
+import { app, ipcMain, Menu, dialog } from "electron"
 import axios from "axios"
 import serve from "electron-serve"
 import { createWindow } from "./helpers"
+// import { installExtension, REACT_DEVELOPER_TOOLS } from "electron-extension-installer"
 const fs = require("fs")
 var path = require("path")
 const dirTree = require("directory-tree")
@@ -9,14 +10,17 @@ var serverProcess = null
 var flaskPort = 5000
 var hasBeenSet = false
 
+const RUN_SERVER_WITH_APP = true
+
 const isProd = process.env.NODE_ENV === "production"
+
 if (isProd) {
   serve({ directory: "app" })
 } else {
   app.setPath("userData", `${app.getPath("userData")} (development)`)
 }
 
-; (async () => {
+;(async () => {
   await app.whenReady()
 
   const mainWindow = createWindow("main", {
@@ -64,7 +68,21 @@ if (isProd) {
         { type: "separator" },
         { role: "cut" },
         { role: "copy" },
-        { role: "paste" }
+        { role: "paste" },
+        { type: "separator" },
+        {
+          role: "preferences",
+          label: "Preferences",
+          click() {
+            console.log("👋")
+          },
+          submenu: [
+            {
+              label: "Toggle dark mode",
+              click: () => app.emit("toggleDarkMode")
+            }
+          ]
+        }
       ]
     },
     {
@@ -90,100 +108,98 @@ if (isProd) {
   ]
 
   // link: https://medium.com/red-buffer/integrating-python-flask-backend-with-electron-nodejs-frontend-8ac621d13f72
-  if (!isProd) {
-    //**** DEVELOPMENT ****//
-    // IMPORTANT: Select python interpreter (related to your virtual environment)
-    var path2conda = fs.readFileSync(
-      "./path2condaenv_toDeleteInProd.txt",
-      "utf8"
-    )
+  console.log(RUN_SERVER_WITH_APP ? "Server will start automatically here (in background of the application)" : "Server must be started manually")
+  if (RUN_SERVER_WITH_APP) {
+    if (!isProd) {
+      //**** DEVELOPMENT ****//
+      // IMPORTANT: Select python interpreter (related to your virtual environment)
+      var path2conda = fs.readFileSync("./path2condaenv_toDeleteInProd.txt", "utf8").replace(/\s/g, "");
+      console.log(`path2conda: "${path2conda}"`)
 
-    const net = require("net")
+      const net = require("net")
 
-    function findAvailablePort(startPort, endPort) {
-      return new Promise((resolve, reject) => {
-        const net = require("net")
-        let port = startPort
+      function findAvailablePort(startPort, endPort) {
+        return new Promise((resolve, reject) => {
+          const net = require("net")
+          let port = startPort
 
-        function tryPort() {
-          const server = net.createServer()
-          server.once("error", (err) => {
-            if (err.code === "EADDRINUSE") {
-              port++
-              if (port <= endPort) {
-                tryPort()
+          function tryPort() {
+            const server = net.createServer()
+            server.once("error", (err) => {
+              if (err.code === "EADDRINUSE") {
+                port++
+                if (port <= endPort) {
+                  tryPort()
+                } else {
+                  reject(new Error("No available ports found"))
+                }
               } else {
-                reject(new Error("No available ports found"))
+                reject(err)
               }
-            } else {
-              reject(err)
-            }
+            })
+            server.once("listening", () => {
+              server.close()
+              resolve(port)
+            })
+            server.listen(port, "127.0.0.1", () => {
+              server.close()
+            })
+          }
+
+          tryPort()
+        })
+      }
+
+      findAvailablePort(5000, 8000)
+        .then((port) => {
+          console.log(`Available port: ${port}`)
+          serverProcess = require("child_process").spawn(path2conda, ["./flask_server/server.py", "--port=" + port])
+          flaskPort = port
+          serverProcess.stdout.on("data", function (data) {
+            console.log("data: ", data.toString("utf8"))
           })
-          server.once("listening", () => {
-            server.close()
-            resolve(port)
+          serverProcess.stderr.on("data", (data) => {
+            console.log(`stderr: ${data}`) // when error
           })
-          server.listen(port, "127.0.0.1", () => {
-            server.close()
+          serverProcess.on("close", (code) => {
+            console.log(`child process close all stdio with code ${code}`)
           })
+        })
+        .catch((err) => {
+          console.error(err)
+        })
+    } else {
+      //**** PRODUCTION ****//
+      let backend
+      backend = path.join(process.cwd(), "resources/backend/dist/app.exe")
+      var execfile = require("child_process").execFile
+      execfile(
+        backend,
+        {
+          windowsHide: true
+        },
+        (err, stdout, stderr) => {
+          if (err) {
+            console.log(err)
+          }
+          if (stdout) {
+            console.log(stdout)
+          }
+          if (stderr) {
+            console.log(stderr)
+          }
         }
-
-        tryPort()
-      })
-    }
-
-    findAvailablePort(5000, 8000)
-      .then((port) => {
-        console.log(`Available port: ${port}`)
-        serverProcess = require("child_process").spawn(path2conda, [
-          "./flask_server/server.py",
-          "--port=" + port
-        ])
-        flaskPort = port
-        serverProcess.stdout.on("data", function (data) {
-          console.log("data: ", data.toString("utf8"))
-        })
-        serverProcess.stderr.on("data", (data) => {
-          console.log(`stderr: ${data}`) // when error
-        })
-        serverProcess.on("close", (code) => {
-          console.log(`child process close all stdio with code ${code}`)
-        })
-      })
-      .catch((err) => {
-        console.error(err)
-      })
-  } else {
-    //**** PRODUCTION ****//
-    let backend
-    backend = path.join(process.cwd(), "resources/backend/dist/app.exe")
-    var execfile = require("child_process").execFile
-    execfile(
-      backend,
-      {
-        windowsHide: true
-      },
-      (err, stdout, stderr) => {
+      )
+      const { exec } = require("child_process")
+      exec("taskkill /f /t /im app.exe", (err, stdout, stderr) => {
         if (err) {
           console.log(err)
+          return
         }
-        if (stdout) {
-          console.log(stdout)
-        }
-        if (stderr) {
-          console.log(stderr)
-        }
-      }
-    )
-    const { exec } = require("child_process")
-    exec("taskkill /f /t /im app.exe", (err, stdout, stderr) => {
-      if (err) {
-        console.log(err)
-        return
-      }
-      console.log(`stdout: ${stdout}`)
-      console.log(`stderr: ${stderr}`)
-    })
+        console.log(`stdout: ${stdout}`)
+        console.log(`stderr: ${stderr}`)
+      })
+    }
   }
   const menu = Menu.buildFromTemplate(template)
   Menu.setApplicationMenu(menu)
@@ -216,6 +232,11 @@ if (isProd) {
     } else if (data === "requestAppExit") {
       app.exit()
     }
+  })
+
+  app.on("toggleDarkMode", () => {
+    console.log("toggleDarkMode")
+    mainWindow.webContents.send("toggleDarkMode")
   })
 
   if (isProd) {
@@ -251,10 +272,7 @@ function setWorkingDirectory(event, mainWindow) {
         if (file === app.getPath("sessionData")) {
           // If the working directory is already set to the selected folder
           console.log("Working directory is already set to " + file)
-          event.reply(
-            "messageFromElectron",
-            "Working directory is already set to " + file
-          )
+          event.reply("messageFromElectron", "Working directory is already set to " + file)
           event.reply("workingDirectorySet", {
             workingDirectory: dirTree(file),
             hasBeenSet: hasBeenSet
@@ -323,8 +341,16 @@ ipcMain.handle("request", async (_, axios_request) => {
 app.on("window-all-closed", () => {
   app.quit()
   console.log("app quit")
-  if (!isProd) {
+  if (!isProd && RUN_SERVER_WITH_APP) {
     serverProcess.kill()
     console.log("serverProcess killed")
   }
 })
+
+// app.on("ready", async () => {
+//   await installExtension(REACT_DEVELOPER_TOOLS, {
+//     loadExtensionOptions: {
+//       allowFileAccess: true
+//     }
+//   })
+// })

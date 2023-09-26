@@ -6,34 +6,81 @@ const FlowFunctionsContext = createContext()
 /**
  *
  * @param {*} children components that will use the context
- * @description This component is used to provide the updateNode context to all the components that need it.
- * nodeUpdate should have this structure:
- * {
- * 	   id: id of the node to update,
- * 	   updatedData: data to update (will replace old data at data.internal)
- * }
+ * @description This component is used to provide the context to the children
+ * it contains a set of useful functions to update flow related components
  */
 function FlowFunctionsProvider({ children }) {
   const [nodeUpdate, setNodeUpdate] = useState({})
+  const [edgeUpdate, setEdgeUpdate] = useState({})
   const [groupNodeId, setGroupNodeId] = useState({ id: "MAIN" })
   const [node2Run, setNode2Run] = useState(null)
   const [node2Delete, setNode2Delete] = useState(null)
 
+  /**
+   *
+   * @param {Object} nodeUpdateInfos update infos
+   *
+   * @description
+   * This function is used to update the nodeUpdate state.
+   * nodeUpdate should have this structure:
+   * {
+   * 	   id: id of the node to update,
+   * 	   updatedData: data to update (will replace old data at data.internal)
+   * }
+   */
   const updateNode = (nodeUpdateInfos) => {
     console.log("updateNode - context", nodeUpdateInfos)
     setNodeUpdate({ ...nodeUpdateInfos })
   }
 
+  /**
+   *
+   * @param {Object} edgeUpdateInfos update infos
+   *
+   * @description
+   * This function is used to update the edgeUpdate state.
+   * edgeUpdate should have this structure:
+   * {
+   *      id: id of the edge to update,
+   *     updatedData: data to update (will replace old data at data.internal)
+   * }
+   */
+  const updateEdge = (edgeUpdateInfos) => {
+    console.log("updateEdge - context", edgeUpdateInfos)
+    setEdgeUpdate({ ...edgeUpdateInfos })
+  }
+
+  /**
+   *
+   * @param {String} newGroupNodeId id of the new group node
+   *
+   * @description
+   * This function is used to change the subflow displayed in the flow.
+   * It is called when the user clicks on a group node.
+   * It updates the groupNodeId state.
+   * groupNodeId should have this structure:
+   * {
+   *      id: id of the group node to display
+   * }
+   */
   const changeSubFlow = (newGroupNodeId) => {
     console.log("changeSubFlow - context", newGroupNodeId)
     setGroupNodeId({ id: newGroupNodeId })
   }
 
+  /**
+   *
+   * @param {String} nodeId id of the node to delete
+   */
   const onDeleteNode = (nodeId) => {
     console.log("onDeleteNode - context", nodeId)
     setNode2Delete(nodeId)
   }
 
+  /**
+   *
+   * @param {String} nodeId id of the node to run
+   */
   const runNode = (nodeId) => {
     console.log("runNode - context", nodeId)
     setNode2Run(nodeId)
@@ -45,6 +92,8 @@ function FlowFunctionsProvider({ children }) {
       value={{
         nodeUpdate,
         updateNode,
+        edgeUpdate,
+        updateEdge,
         groupNodeId,
         changeSubFlow,
         node2Run,

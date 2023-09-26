@@ -2,15 +2,9 @@ import "reactflow/dist/style.css"
 import React, { useContext, useEffect, useRef } from "react"
 import SidebarAvailableNodes from "./sidebarAvailableNodes"
 import { ReactFlowProvider } from "reactflow"
-import { OffCanvasBackdropStyleProvider } from "./context/offCanvasBackdropStyleContext"
-import Backdrop from "./backdrop"
 import { FlowInfosProvider, FlowInfosContext } from "./context/flowInfosContext"
-import {
-  FlowResultsContext,
-  FlowResultsProvider
-} from "./context/flowResultsContext"
+import { FlowResultsContext, FlowResultsProvider } from "./context/flowResultsContext"
 import { FlowFunctionsProvider } from "./context/flowFunctionsContext"
-import { PageInfosContext } from "../mainPages/moduleBasics/pageInfosContext"
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels"
 import ResultsPane from "./results/resultsPane"
 
@@ -20,14 +14,13 @@ import ResultsPane from "./results/resultsPane"
  * @param {String} workflowType type of the workflow (e.g. "learning", "extraction", "optimize") this is used to load the correct sidebar
  * @param {JSX.Element} workflowJSX JSX element of the workflow
  *
- * @description This component is the base for all the flow pages. It contains the sidebar, the workflow and the backdrop.
+ * @description This component is the base for all the flow pages. It contains the sidebar, the flow and the results pane.
  *
  */
-const FlowPageBaseWithFlowInfos = ({ children, workflowType }) => {
+const FlowPageBaseWithFlowInfos = ({ children, workflowType, id }) => {
   // here is the use of the context to update the flowInfos
   const { updateFlowInfos, showAvailableNodes } = useContext(FlowInfosContext)
   const { showResultsPane, setShowResultsPane } = useContext(FlowResultsContext)
-  const { pageInfos } = useContext(PageInfosContext)
   const sidebarPanelRef = useRef(null)
   const resultsPanelRef = useRef(null)
 
@@ -42,18 +35,18 @@ const FlowPageBaseWithFlowInfos = ({ children, workflowType }) => {
   useEffect(() => {
     if (sidebarPanelRef.current) {
       if (showAvailableNodes) {
-        document.getElementById("data-panel-id-sidebar").style.minWidth =
-          "210px"
+        document.getElementById("data-panel-id-sidebar" + id).style.minWidth = "210px"
         sidebarPanelRef.current.expand()
       } else {
-        document.getElementById("data-panel-id-sidebar").style.minWidth = "0px"
+        document.getElementById("data-panel-id-sidebar" + id).style.minWidth = "0px"
         sidebarPanelRef.current.collapse()
       }
     }
   }, [showAvailableNodes])
 
+  // useeffect to collapse the results pane when showResultsPane is false and expand it when it is true
+  // showResultsPane is controlled by the flowResultsContext
   useEffect(() => {
-    console.log("showResultsPane", showResultsPane)
     if (resultsPanelRef.current) {
       if (showResultsPane) {
         resultsPanelRef.current.expand()
@@ -65,66 +58,47 @@ const FlowPageBaseWithFlowInfos = ({ children, workflowType }) => {
 
   return (
     <>
-      {/* here we use the context to provide the style for the backdrop */}
-      <OffCanvasBackdropStyleProvider>
-        <PanelGroup
-          className="width-100 height-100 "
-          style={{ overflow: "hidden" }}
-          direction="horizontal"
-        >
-          <Panel
-            ref={sidebarPanelRef}
-            id="sidebar"
-            minSize={17.5}
-            maxSize={17.5}
-            defaultSize={17.5}
-            order={1}
-            collapsible={true}
-            collapsibleSize={5}
-            className="smooth-transition"
-          >
-            <SidebarAvailableNodes
-              title="Available Nodes"
-              sidebarType={workflowType}
+      {/* PanelGroup is used to create the general layout of a flow page */}
+      <PanelGroup className="width-100 height-100" style={{ height: "100%", display: "flex", flexGrow: 1 }} direction="horizontal" id={id}>
+        {/* Panel is used to create the sidebar, used to be able to resize it on click */}
+        <Panel ref={sidebarPanelRef} id={"sidebar" + id} minSize={17.5} maxSize={17.5} defaultSize={0} order={1} collapsible={true} collapsibleSize={5} className="smooth-transition">
+          <SidebarAvailableNodes title="Available Nodes" sidebarType={workflowType} />
+        </Panel>
+        <PanelResizeHandle />
+        {/* Panel is used to create the flow, used to be able to resize it on drag */}
+        <Panel minSize={25} order={2}>
+          {/* in this panel, we use another PanelGroup to create the layout of the flow and the results pane */}
+          <PanelGroup className="width-100 height-100" style={{ paddingLeft: "0.25rem" }} direction="vertical">
+            {/* Panel is used to create the flow, used to be able to resize it on drag */}
+            <Panel order={1}>
+              <ReactFlowProvider>{children}</ReactFlowProvider>
+            </Panel>
+            <PanelResizeHandle
+              className="resize-handle-results"
+              onFocusOut={() => {
+                console.log("onFocusOut")
+              }}
             />
-          </Panel>
-          <PanelResizeHandle />
-          <Panel minSize={25} order={2}>
-            <PanelGroup
-              className="width-100 height-100 "
-              style={{ overflow: "hidden" }}
-              direction="vertical"
+            {/* Panel is used to create the results pane, used to be able to resize it on drag */}
+            <Panel
+              ref={resultsPanelRef}
+              id="results"
+              className="smooth-transition"
+              maxSize={75}
+              minSize={30}
+              defaultSize={0}
+              order={2}
+              collapsible={true}
+              collapsibleSize={50}
+              onResize={(size) => {
+                size > 5 ? setShowResultsPane(true) : setShowResultsPane(false)
+              }}
             >
-              <Panel order={1}>
-                <ReactFlowProvider>{children}</ReactFlowProvider>
-              </Panel>
-              <PanelResizeHandle
-                className="resize-handle-results"
-                onFocusOut={() => {
-                  console.log("onFocusOut")
-                }}
-              />
-              <Panel
-                ref={resultsPanelRef}
-                id="results"
-                maxSize={75}
-                defaultSize={0}
-                order={2}
-                collapsible={true}
-                collapsibleSize={25}
-                onResize={(size) => {
-                  size > 5
-                    ? setShowResultsPane(true)
-                    : setShowResultsPane(false)
-                }}
-              >
-                <ResultsPane />
-              </Panel>
-            </PanelGroup>
-          </Panel>
-          <Backdrop pageId={pageInfos.id} />
-        </PanelGroup>
-      </OffCanvasBackdropStyleProvider>
+              <ResultsPane />
+            </Panel>
+          </PanelGroup>
+        </Panel>
+      </PanelGroup>
     </>
   )
 }
@@ -134,16 +108,17 @@ const FlowPageBaseWithFlowInfos = ({ children, workflowType }) => {
  * @param {*} props all the props of the FlowPageBaseWithFlowInfos component
  * @description This component is composed of the FlowPageBaseWithFlowInfos component and the FlowInfosProvider component.
  * It is also the default export of this file. see components/learning/learningPage.jsx for an example of use.
+ * It is used to create all the context providers for the flow page.
  */
 const FlowPageBase = (props) => {
   return (
-    <FlowResultsProvider>
-      <FlowInfosProvider>
+    <FlowInfosProvider>
+      <FlowResultsProvider>
         <FlowFunctionsProvider>
           <FlowPageBaseWithFlowInfos {...props} />
         </FlowFunctionsProvider>
-      </FlowInfosProvider>
-    </FlowResultsProvider>
+      </FlowResultsProvider>
+    </FlowInfosProvider>
   )
 }
 export default FlowPageBase

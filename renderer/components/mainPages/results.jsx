@@ -1,11 +1,31 @@
-import React from "react";
+import React from "react"
+import LearningPage from "./learning"
 
+/**
+ * 
+ * @returns {JSX.Element} The ResultsPage component
+ */
 const ResultsPage = () => {
-	return (
-		<>
-			<h1>Results Page - TO BE IMPLEMENTED</h1>
-		</>
-	);
+  return (
+    <>
+      <div style={{ display: "flex", flexWrap: "wrap" }}>
+        <div style={{ width: "50%" }}>
+          <LearningPage pageId="1" />
+        </div>
+        <div style={{ width: "50%" }}>
+          {" "}
+          <LearningPage pageId="2" />
+        </div>
+        <div style={{ width: "50%" }}>
+          <LearningPage pageId="3" />
+        </div>
+        <div style={{ width: "50%" }}>
+          {" "}
+          <LearningPage pageId="4" />
+        </div>
+      </div>
+    </>
+  )
 }
 
-export default ResultsPage;
+export default ResultsPage

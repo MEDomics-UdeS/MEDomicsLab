@@ -12,9 +12,7 @@ const { parse } = require("csv-parse")
  * It create a temporary anchor element to ask the user where to download the file
  */
 const downloadJson = (exportObj, exportName) => {
-  var dataStr =
-    "data:text/json;charset=utf-8," +
-    encodeURIComponent(JSON.stringify(exportObj, null, 2))
+  var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportObj, null, 2))
   var downloadAnchorNode = document.createElement("a")
   downloadAnchorNode.setAttribute("href", dataStr)
   downloadAnchorNode.setAttribute("download", exportName + ".json")
@@ -28,22 +26,22 @@ const downloadJson = (exportObj, exportName) => {
  * @param {Object} exportObj object to be exported
  * @param {String} path path to the folder where the file will be saved
  * @param {String} name name of the exported file
+ * @param {String} extension extension of the exported file (json or even custom (e.g. abc)))
  *
  * @description
- * This function takes an object, a path and a name and saves the object as a json file
+ * This function takes an object, a path and a name and saves the object as a json file with a custom extension
  */
-const writeJson = (exportObj, path, name) => {
-  const fs = require("fs")
-  fs.writeFile(
-    path + name + ".json",
-    JSON.stringify(exportObj, null, 2),
-    function (err) {
-      if (err) {
-        return console.log(err)
-      }
-      console.log("The file was saved!")
+const writeFile = (exportObj, path, name, extension) => {
+  extension ? (extension = extension.replace(".", "")).toLowerCase() : (extension = "json")
+  const cwd = process.cwd()
+  let cwdSlashType = cwd.includes("/") ? "/" : "\\"
+  console.log("writing json file: " + path + cwdSlashType + name + "." + extension)
+  fs.writeFile(path + cwdSlashType + name + "." + extension, JSON.stringify(exportObj, null, 2), function (err) {
+    if (err) {
+      return console.log(err)
     }
-  )
+    console.log("The file was saved!")
+  })
 }
 
 /**
@@ -111,8 +109,7 @@ const loadJsonPath = (path) => {
     const cwd = process.cwd()
     let cwdSlashType = cwd.includes("/") ? "/" : "\\"
     let cwdSlashTypeInv = cwdSlashType == "/" ? "\\" : "/"
-    path.charAt(0) == "." &&
-      (path = cwd + path.substring(1).replaceAll(cwdSlashTypeInv, cwdSlashType))
+    path.charAt(0) == "." && (path = cwd + path.substring(1).replaceAll(cwdSlashTypeInv, cwdSlashType))
     console.log("reading json file: " + path)
     const data = fs.readFileSync(path)
     const jsonData = JSON.parse(data)
@@ -137,8 +134,7 @@ const loadCSVPath = (path, whenLoaded) => {
   const cwd = process.cwd()
   let cwdSlashType = cwd.includes("/") ? "/" : "\\"
   let cwdSlashTypeInv = cwdSlashType == "/" ? "\\" : "/"
-  path.charAt(0) == "." &&
-    (path = cwd + path.substring(1).replaceAll(cwdSlashTypeInv, cwdSlashType))
+  path.charAt(0) == "." && (path = cwd + path.substring(1).replaceAll(cwdSlashTypeInv, cwdSlashType))
   console.log("reading csv file: " + path)
   fs.createReadStream(path)
     .pipe(
@@ -177,12 +173,4 @@ function createFolder(path_, folderName) {
   })
 }
 
-export {
-  downloadJson,
-  writeJson,
-  loadJson,
-  loadJsonSync,
-  loadJsonPath,
-  loadCSVPath,
-  createFolder
-}
+export { downloadJson, writeFile, loadJson, loadJsonSync, loadJsonPath, loadCSVPath, createFolder }
