@@ -1,20 +1,21 @@
 import React, { useState, useEffect, useContext } from "react"
 import { DataContext } from "../workspace/dataContext"
 import DataTableFromContext from "../mainPages/dataComponents/dataTableFromContext"
-import DataTableWrapper from "../dataTypeVisualisation/dataTableWrapper"
 import { Dropdown } from "primereact/dropdown"
 import { DataFrame } from "danfojs"
 import Button from "react-bootstrap/Button"
 import { requestJson } from "../../utilities/requests"
 import { WorkspaceContext } from "../workspace/workspaceContext"
+import MedDataObject from "../workspace/medDataObject"
 
 const ExtractionTSCanvas = () => {
+  const [isDatasetLoaded, setIsDatasetLoaded] = useState(false)
   const [csvPath, setCsvPath] = useState("")
   const [csvResultPath, setCsvResultPath] = useState("")
   const [dataframe, setDataframe] = useState([])
   const [datasetList, setDatasetList] = useState([])
-  const [extractedFeatures, setExtractedFeatures] = useState([])
   const [mayProceed, setMayProceed] = useState(false)
+  const [resultDataset, setResultDataset] = useState(null)
   const [selectedColumns, setSelectedColumns] = useState({
     patientIdentifier: "",
     measuredItemIdentifier: "",
@@ -37,35 +38,11 @@ const ExtractionTSCanvas = () => {
     setDatasetList(datasetListToShow)
   }
 
-  useEffect(() => {
-    if (globalData !== undefined) {
-      getDatasetListFromDataContext(globalData)
-      console.log("DATA UPDATED")
-    }
-  }, [globalData])
-
-  useEffect(() => {
-    if (globalData !== undefined) {
-      let keys = Object.keys(globalData)
-      keys.some((key) => {
-        if (globalData[key].path == csvResultPath) {
-          console.log("HEREEEEEEE", globalData[key])
-          //setExtractedFeatures(new DataFrame(globalData[key].data))
-        }
-      })
-      console.log("Extacted features", extractedFeatures)
-    }
-  }, [csvResultPath])
-
   const datasetSelected = (dataset) => {
-    setSelectedDataset(dataset)
-    if (dataset.data && dataset.path) {
-      setCsvPath(dataset.path)
-      setDataframe(new DataFrame(dataset.data))
-    }
+    setSelectedDataset(dataset)    
   }
 
-  /**
+    /**
    *
    * @param {string} column
    * @param {event} event
@@ -80,9 +57,8 @@ const ExtractionTSCanvas = () => {
       [column]: value
     })
   }
-
+  
   const runTSFreshExtraction = () => {
-    console.log(csvPath)
     requestJson(
       port,
       "/extraction_ts/TSFresh_extraction",
@@ -92,13 +68,31 @@ const ExtractionTSCanvas = () => {
       },
       (jsonResponse) => {
         console.log("received results:", jsonResponse)
-        setCsvResultPath(jsonResponse['csv_result_path'])
+        setCsvResultPath(jsonResponse['csv_result_path'][0])
+        MedDataObject.updateWorkspaceDataObject()
       },
       function (err) {
         console.error(err)
       }
     )
   }
+
+  useEffect(() => {
+    if (datasetList.length > 0) {
+      datasetList.forEach((dataset) => {
+        if (dataset.path == csvResultPath) {
+          setResultDataset(dataset)
+        }
+      })
+    }
+  }, [csvResultPath])
+
+  useEffect(() => {
+    if (globalData !== undefined) {
+      getDatasetListFromDataContext(globalData)
+    }
+  }, [globalData])
+
 
   /**
    * @description
@@ -112,6 +106,14 @@ const ExtractionTSCanvas = () => {
     setMayProceed(isAllSelected)
   }, [selectedColumns])
 
+  useEffect(() => {
+    if (selectedDataset && selectedDataset.data && selectedDataset.path) {
+      setCsvPath(selectedDataset.path)
+      setDataframe(new DataFrame(selectedDataset.data))
+    }
+  }, [isDatasetLoaded])
+
+  
   return (
     <div className="overflow_y_auto">
       <h1 className="center_text">Extraction - Time Series</h1>
@@ -157,6 +159,7 @@ const ExtractionTSCanvas = () => {
               tablePropsColumn={{
                 sortable: true
               }}
+              setIsDatasetLoaded = {setIsDatasetLoaded}
             />
           </div>
         )}
@@ -265,22 +268,15 @@ const ExtractionTSCanvas = () => {
         {/* Display extracted data */}
         <div className="center_text">
           <h2>Extracted data</h2>
-          {extractedFeatures.length < 1 && (
+          {!resultDataset && (
             <p>Nothing to show, proceed to extraction first.</p>
           )}
         </div>
-        {extractedFeatures.length > 0 && (
+        {resultDataset && (
           <div>
-            {/* DataTableWrapper is used to display the data */}
-            <DataTableWrapper
-              data={extractedFeatures}
-              tablePropsData={{
-                paginator: true,
-                rows: 5
-              }}
-              tablePropsColumn={{
-                sortable: true
-              }}
+            <DataTableFromContext
+              MedDataObject={resultDataset}
+              tablePropsData={{ size: "small", paginator:true, rows: 5 }}
             />
           </div>
         )}

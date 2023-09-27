@@ -12,7 +12,7 @@ import Papa from "papaparse"
  * @param {Object} props - The props object
  *  @param {Object} props.keepOnlyFolder - The only parent folder to keep in the dataset selector
  */
-const DataTableFromContext = ({MedDataObject, tablePropsData, tablePropsColumn}) => {
+const DataTableFromContext = ({MedDataObject, tablePropsData, tablePropsColumn, setIsDatasetLoaded=false}) => {
   const { globalData, setGlobalData } = useContext(DataContext) // We get the global data from the context to retrieve the directory tree of the workspace, thus retrieving the data files
   let datasetObject = MedDataObject
   const [isLoaded, setIsLoaded] = useState(MedDataObject.isLoaded ? MedDataObject.isLoaded : false)
@@ -27,14 +27,12 @@ const DataTableFromContext = ({MedDataObject, tablePropsData, tablePropsColumn})
       } else {
         if (globalData !== undefined) {
           let extension = datasetObject.extension
-          console.log("extension", extension)
           if (extension == "csv") {
             let csvPath = datasetObject.path
             fs.readFile(csvPath, "utf8", (err, data) => {
               if (err) {
                 console.error("Error reading file:", err)
               } else {
-                console.log("File read successfully")
                 let array = []
                 Papa.parse(data, {
                   step: function (row) {
@@ -50,6 +48,10 @@ const DataTableFromContext = ({MedDataObject, tablePropsData, tablePropsColumn})
                 globalDataCopy[datasetObject.getUUID()].isLoaded = true
                 setGlobalData(globalDataCopy)
                 setIsLoaded(true)
+                if (setIsDatasetLoaded) {
+                  setIsDatasetLoaded(true)
+                }
+                
               }
             })
           } else if (extension == "xlsx") {
@@ -63,10 +65,6 @@ const DataTableFromContext = ({MedDataObject, tablePropsData, tablePropsColumn})
       }
     }
   }, [isLoaded, datasetObject])
-
-  useEffect(() => {
-    console.log("dataset", dataset)
-  }, [dataset])
 
   return <>{dataset && <DataTableWrapper data={dataset} tablePropsData={tablePropsData} tablePropsColumn={tablePropsColumn} />}</>
 }

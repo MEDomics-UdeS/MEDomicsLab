@@ -117,7 +117,7 @@ export default class MedDataObject {
         let dataObjectParentID = dataObject.parentID
         if (dataObjectParentID.length > 0) {
           if (dataObjectParentID == parentID) {
-            console.log("Data object found in context by name with the same parent:" + dataObjectName)
+            //console.log("Data object found in context by name with the same parent:" + dataObjectName)
             dataObjectUUID = key
           }
         }
