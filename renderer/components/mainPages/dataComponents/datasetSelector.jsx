@@ -18,7 +18,7 @@ const DatasetSelector = ({ multiSelect }) => {
   const [tabMenuItems, setTabMenuItems] = useState([{ label: "Dataset", icon: "pi pi-fw pi-file" }])
 
   /**
-   *
+   * @description - This function will generate the dataset list to show in the dataset selector
    */
   function generateDatasetListFromDataContext(dataContext) {
     let keys = Object.keys(dataContext)
@@ -31,12 +31,14 @@ const DatasetSelector = ({ multiSelect }) => {
     setDatasetList(datasetListToShow)
   }
 
+  // We generate the dataset list from the global data
   useEffect(() => {
     if (globalData !== undefined) {
       generateDatasetListFromDataContext(globalData)
     }
   }, [globalData])
 
+  // We generate the tab menu items from the selected datasets
   useEffect(() => {
     let tabMenuJSX = []
     if (selectedDatasets !== null) {
@@ -49,6 +51,7 @@ const DatasetSelector = ({ multiSelect }) => {
     setTabMenuItems(tabMenuJSX)
   }, [selectedDatasets])
 
+  // We log the tab menu items
   useEffect(() => {
     console.log("tabMenuItems", tabMenuItems)
   }, [tabMenuItems])

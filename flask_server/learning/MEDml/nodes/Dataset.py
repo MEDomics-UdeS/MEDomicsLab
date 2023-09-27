@@ -14,8 +14,16 @@ FOLDER, FILE, INPUT = 1, 2, 3
 
 
 class Dataset(Node):
+    """
+    This class represents the Dataset node.
+    """
 
     def __init__(self, id_: int, global_config_json: json) -> None:
+        """
+        Args:
+            id_ (int): The id of the node.
+            global_config_json (json): The global config json.
+        """
         super().__init__(id_, global_config_json)
         self.df = None
         self._dfs = {}
@@ -24,6 +32,9 @@ class Dataset(Node):
         self.output_dataset = {}
 
     def _execute(self, experiment: dict = None, **kwargs) -> json:
+        """
+        This function is used to execute the node.
+        """
         if self.settings['files'] != '':
             self.entry_file_type = FOLDER if os.path.isdir(
                 self.settings['files']) else FILE
@@ -44,6 +55,9 @@ class Dataset(Node):
         return {}
 
     def load_csv_in_folder(self, folder_name: str) -> None:
+        """
+        This function is used to load all csv files in a folder.
+        """
         loader = Loader("Loading all csv...", "Finished!").start()
         for file_name in os.listdir(folder_name):
             f = os.path.join(folder_name, file_name)
@@ -61,6 +75,9 @@ class Dataset(Node):
         loader.stop()
 
     def _merge_dfs(self, timePoint: str, split_by_institutions: bool) -> dict:
+        """
+        This function is used to merge all csv files in a folder.
+        """
         loader = Loader("Merging multi-omics combinations...",
                         "Finished!").start()
         timePoint_int = int(timePoint.replace('time', ''))
@@ -110,6 +127,9 @@ class Dataset(Node):
             return combinations_dict
 
     def _get_combinations(self, items):
+        """
+        This function is used to get all combinations of a list.
+        """
         l_items = list(items)
         raw_list = list(chain.from_iterable(combinations(l_items, r)
                         for r in range(len(l_items) + 1)))[1:]
@@ -122,8 +142,20 @@ class Dataset(Node):
         return clean_list
 
     def get_json_dataset(self) -> json:
+        """
+        This function is used to get the dataset in json format.
+
+        Returns:
+            The dataset in json format.
+        """
         return self.df.to_json(orient='records')
 
     # TODO
     def get_path_list(self) -> list:
+        """
+        This function is used to get the path list.
+
+        Returns:
+            The path list.
+        """
         return [self.settings['files']]

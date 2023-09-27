@@ -21,6 +21,9 @@ FOLDER, FILE, INPUT = 1, 2, 3
 
 
 def create_pycaret_exp(ml_type: str) -> json:
+    """
+    Creates a pycaret experiment object depending on the ml_type.
+    """
     if ml_type == "classification":
         return ClassificationExperiment()
     elif ml_type == "regression":
@@ -32,6 +35,9 @@ def create_pycaret_exp(ml_type: str) -> json:
 
 
 def is_primitive(obj):
+    """
+    Checks if the object is a primitive type.
+    """
     primitive_types = (int, float, bool, str, bytes, type(
         None), dict, list, tuple, np.ndarray, pd.DataFrame, pd.Series)
     # print(type(obj).__name__, isinstance(obj, primitive_types))
@@ -435,50 +441,3 @@ class MEDexperiment:
                 # y_test = pd.DataFrame(data=pipe_dict['y_test'].data)
                 # y_test["target"] = pipe_dict['y_test'].target
         return models, X_test, y_test
-
-    def generate_code(self) -> str:
-        """Generates the code of the last pipeline.\n
-        This function is used to generate the code of the last pipeline to be used in the analyse node.
-
-        Returns:
-            str: The code of the last pipeline.
-        """
-        if self.pipelines is not None:
-            # it starts the recursive with a dataset node
-            for current_node_id, next_nodes_id_json in self.pipelines_to_execute.items():
-                node_info = self.pipelines_objects[current_node_id]
-                node = node_info['obj']
-                self._progress['cur_node'] = node.username
-                # has_been_run = node.has_run()
-                # if not has_been_run:
-                #     node_info['results'] = {
-                #         'prev_node_id': None,
-                #         'data': node.execute()
-                #     }
-                #
-                #     experiment = self.setup_dataset(node)
-                #     node_info['experiment'] = experiment
-                # else:
-                #     print(
-                #         f"already run {node.username} -----------------------------------------------------------------------------")
-                #     experiment = node_info['experiment']
-
-                self._nb_nodes_done += 1.0
-                self._progress['progress'] = round(
-                    self._nb_nodes_done / self._nb_nodes * 100.0, 2)
-                if not has_been_run:
-                    node_info['results']['logs'] = experiment['medml_logger'].get_results()
-                self._results_pipeline[current_node_id] = {
-                    'next_nodes': copy.deepcopy(next_nodes_id_json),
-                    'results': copy.deepcopy(node_info['results'])
-                }
-                print()
-                self.execute_next_nodes(
-                    prev_node=node,
-                    next_nodes_to_execute=next_nodes_id_json,
-                    next_nodes=node_info['next_nodes'],
-                    results=self._results_pipeline[current_node_id]['next_nodes'],
-                    experiment=copy.deepcopy(experiment)
-                )
-
-            print('finished')

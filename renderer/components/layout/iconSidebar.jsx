@@ -12,7 +12,6 @@ import { LayoutModelContext } from "./layoutContext"
  * @param {function} onSidebarItemSelect - function to handle sidebar item selection
  * @returns Returns the sidebar component with icons for each page
  */
-
 const IconSidebar = ({ onSidebarItemSelect }) => {
   // eslint-disable-next-line no-unused-vars
   const { layoutState, dispatchLayout, developerMode, setDeveloperMode } = useContext(LayoutModelContext)
@@ -20,10 +19,12 @@ const IconSidebar = ({ onSidebarItemSelect }) => {
   const [disabledIcon, setDisabledIcon] = useState("disabled") // disabled is the state of the page
   const [developerModeNav, setDeveloperModeNav] = useState(false)
 
+  // default action to set developer mode to true
   useEffect(() => {
     handleToggleDeveloperMode()
   }, [])
 
+  // items for the extraction speed dial
   const extractionItems = [
     {
       label: "Image",
@@ -48,19 +49,31 @@ const IconSidebar = ({ onSidebarItemSelect }) => {
     }
   ]
 
+  /**
+   * @description Toggles the developer mode
+   */
   function handleToggleDeveloperMode() {
     console.log("handleToggleDeveloperMode")
     setDeveloperMode(!developerMode)
     setDeveloperModeNav(!developerModeNav)
   }
 
+  /**
+   * 
+   * @param {Event} event 
+   * @param {string} name 
+   */
   function handleRightClick(event, name) {
     console.log(`right clicked ${name}`, event)
     dispatchLayout({ type: `open${name}Module`, payload: { pageId: name } })
   }
 
+
   const { workspace } = useContext(WorkspaceContext)
 
+  /**
+   * @description Sets the active key and disabled state of the sidebar icons
+   */
   useEffect(() => {
     if (!workspace.hasBeenSet) {
       setActiveKey("home")
@@ -70,6 +83,11 @@ const IconSidebar = ({ onSidebarItemSelect }) => {
     }
   }, [workspace])
 
+  /**
+   * 
+   * @param {Event} event The event that triggered the click
+   * @param {string} name The name of the page 
+   */
   function handleClick(event, name) {
     onSidebarItemSelect(name)
     console.log(`clicked ${name}`, event)
@@ -78,6 +96,9 @@ const IconSidebar = ({ onSidebarItemSelect }) => {
 
   const [buttonClass, setButtonClass] = useState("")
 
+  /**
+   * @description Handles the click on the settings button
+   */
   const handleNavClick = () => {
     setButtonClass(buttonClass === "" ? "show" : "")
   }

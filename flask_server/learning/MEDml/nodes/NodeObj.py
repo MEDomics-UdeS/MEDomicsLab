@@ -10,10 +10,26 @@ TARGET_LIKE = Union[int, str, list, tuple, np.ndarray, pd.Series]
 
 
 def str2bool(v: str) -> bool:
+    """
+    Converts a string to a boolean
+    Args:
+        v: string to convert
+
+    Returns:
+        True if the string is "True", False otherwise
+    """
     return v.lower() == "true"
 
 
 def is_float(element: Any) -> bool:
+    """
+    Checks if an element is a float
+    Args:
+        element: element to check
+
+    Returns:
+        True if the element is a float, False otherwise
+    """
     try:
         float(element)
         return True
@@ -123,8 +139,16 @@ class Node(ABC):
 
 
 class NodeCodeHandler:
+    """
+    Class used to handle the code of a node
+    """
 
     def __init__(self, base_code: List[dict] = []) -> None:
+        """
+        Constructor for NodeCodeHandler class
+        Args:
+            base_code: base code of the node
+        """
         self.code = base_code
         self.imports = []
 
@@ -195,7 +219,17 @@ class NodeCodeHandler:
         self.code = []
 
     def get_code(self):
+        """
+        Returns the code
+        Returns:
+            the code
+        """
         return self.code
 
     def get_imports(self):
+        """
+        Returns the imports
+        Returns:
+            the imports
+        """
         return self.imports

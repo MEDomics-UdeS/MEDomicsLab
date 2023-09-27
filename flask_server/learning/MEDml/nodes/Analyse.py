@@ -5,9 +5,7 @@ import os
 import numpy as np
 import json
 from learning.MEDml.nodes.NodeObj import Node
-from typing import Any, Dict, List, Union
-from termcolor import colored
-from learning.MEDml.nodes.NodeObj import Node
+from typing import Union
 from colorama import Fore
 from learning.MEDml.CodeHandler import convert_dict_to_params
 
@@ -17,11 +15,22 @@ TARGET_LIKE = Union[int, str, list, tuple, np.ndarray, pd.Series]
 
 
 class Analyse(Node):
+    """
+    This class represents the Analyse node.
+    """
 
     def __init__(self, id_: int, global_config_json: json) -> None:
+        """
+        Args:
+            id_ (int): The id of the node.
+            global_config_json (json): The global config json.
+        """
         super().__init__(id_, global_config_json)
 
     def _execute(self,  experiment: dict = None, **kwargs) -> json:
+        """
+        This function is used to execute the node.
+        """
         selection = self.config_json['data']['internal']['selection']
         print()
         print(Fore.BLUE + "=== Analysing === " +

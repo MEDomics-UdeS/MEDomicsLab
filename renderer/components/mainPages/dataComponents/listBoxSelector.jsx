@@ -15,6 +15,10 @@ const ListBoxSelector = ({ setSelectedDatasets, selectedDatasets, multiSelect = 
   const [activeKey, setActiveKey] = useState("0") // activeKey is the name of the page
   const [tabMenuItems, setTabMenuItems] = useState([{ label: "Dataset", icon: "pi pi-fw pi-file" }])
 
+  /**
+   * 
+   * @param {Object} dataContext The data context to generate the dataset list from
+   */
   function generateDatasetListFromDataContext(dataContext) {
     let keys = Object.keys(dataContext)
     let datasetListToShow = []
@@ -26,12 +30,14 @@ const ListBoxSelector = ({ setSelectedDatasets, selectedDatasets, multiSelect = 
     setDatasetList(datasetListToShow)
   }
 
+  // We generate the dataset list from the global data
   useEffect(() => {
     if (globalData !== undefined) {
       generateDatasetListFromDataContext(globalData)
     }
   }, [globalData])
 
+  // We generate the tab menu items from the selected datasets
   useEffect(() => {
     let tabMenuJSX = []
     if (selectedDatasets !== null) {
@@ -44,9 +50,11 @@ const ListBoxSelector = ({ setSelectedDatasets, selectedDatasets, multiSelect = 
     setTabMenuItems(tabMenuJSX)
   }, [selectedDatasets])
 
+  // We log the tab menu items
   useEffect(() => {
     console.log("tabMenuItems", tabMenuItems)
   }, [tabMenuItems])
+  
   return (
     <>
       <ListBox

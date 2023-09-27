@@ -1,4 +1,3 @@
-
 import pandas as pd
 import copy
 import numpy as np
@@ -13,11 +12,22 @@ TARGET_LIKE = Union[int, str, list, tuple, np.ndarray, pd.Series]
 
 
 class Optimize(Node):
+    """
+    This class represents the Optimize node.
+    """
 
     def __init__(self, id_: int, global_config_json: json) -> None:
+        """
+        Args:
+            id_ (int): The id of the node.
+            global_config_json (json): The global config json.
+        """
         super().__init__(id_, global_config_json)
 
     def _execute(self, experiment: dict = None, **kwargs) -> json:
+        """
+        This function is used to execute the node.
+        """
         print()
         print(Fore.BLUE + "=== optimizing === " +
               Fore.YELLOW + f"({self.username})" + Fore.RESET)
