@@ -11,6 +11,9 @@ function FlowInfosProvider({ children }) {
   const [flowInfos, setFlowInfos] = useState({}) // Initial style
   const [showAvailableNodes, setShowAvailableNodes] = useState(false) // Initial state
   const [flowContent, setFlowContent] = useState({}) // Initial state
+  const [flowContentExportable, setFlowContentExportable] = useState({}) // Initial state
+  const [experimentName, setExperimentName] = useState(null) // Initial state
+  const [sceneName, setSceneName] = useState(null) // Initial state
 
   // This function is used to update the flowInfos (id and type of the workflow)
   const updateFlowInfos = (newInfo) => {
@@ -32,7 +35,13 @@ function FlowInfosProvider({ children }) {
         flowContent,
         updateFlowContent,
         showAvailableNodes,
-        setShowAvailableNodes
+        setShowAvailableNodes,
+        experimentName,
+        setExperimentName,
+        sceneName,
+        setSceneName,
+        flowContentExportable,
+        setFlowContentExportable
       }}
     >
       {children}

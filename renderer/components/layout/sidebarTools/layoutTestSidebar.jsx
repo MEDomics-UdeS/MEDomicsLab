@@ -1,7 +1,7 @@
 import React, { useContext, useState } from "react"
 import { Accordion, Stack, Button } from "react-bootstrap"
-import { ArrowCounterclockwise, Folder, Plus } from "react-bootstrap-icons"
-import { SidebarFile, SidebarFolder } from "./components"
+import { ArrowCounterclockwise, Folder } from "react-bootstrap-icons"
+import { SidebarFolder } from "./components"
 import { LayoutModelContext } from "../layoutContext"
 import { useEffect } from "react"
 import SidebarDirectoryTreeControlled from "./sidebarDirectoryTreeControlled"
@@ -13,8 +13,6 @@ const LayoutTestSidebar = () => {
    */
 
   const { layoutModel } = useContext(LayoutModelContext) // Here we retrieve the layoutModel from the LayoutContext
-  const deleteBool = true // This is a boolean that will be passed to the SidebarFile component to enable the delete button, for development purposes
-  const addBool = true // This is a boolean that will be passed to the SidebarFile component to enable the add button, for development purposes
   const [tabsList, setTabsList] = useState(layoutModel) // This is the list of tabs that will be displayed in the sidebar
   useEffect(() => {
     console.log("TABS LIST", tabsList)
@@ -45,7 +43,7 @@ const LayoutTestSidebar = () => {
           Reset Layout
           <ArrowCounterclockwise />
         </Button>
-        <Accordion defaultActiveKey={["0"]} alwaysOpen>
+        <Accordion defaultActiveKey={["dirTree", "1"]} alwaysOpen>
           <Accordion.Item eventKey="1">
             <Accordion.Header>
               <Stack direction="horizontal" gap={1} style={{ padding: "0 0 0 0", alignContent: "center" }}>

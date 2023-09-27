@@ -89,11 +89,8 @@
 .subFlow-title {
   font-size: 30px;
   font-weight: 400;
-  /* top: 0px; */
-  /* left: 0px; */
   z-index: 10;
   color: rgb(0 0 0 / 70%);
-  /* width: 100%; */
 }
 
 .p-dialog .p-dialog-footer {
@@ -113,11 +110,8 @@
 }
 
 .create-scene-overlayPanel .p-overlaypanel-content .vstack .header h5 {
-  /* font-size: 1rem; */
-  /* font-weight: 400; */
   margin: 0px;
   padding: 0px;
-  /* color: #1a1a1a; */
 }
 
 .create-scene-overlayPanel .p-overlaypanel-content .vstack .p-inputtext {

@@ -46,7 +46,7 @@ const WorkflowBase = ({ isGoodConnection, groupNodeHandlingDefault, onDeleteNode
   const { reactFlowInstance, setReactFlowInstance, addSpecificToNode, nodeTypes, nodes, setNodes, onNodesChange, edges, setEdges, onEdgesChange, runNode } = mandatoryProps
 
   const edgeUpdateSuccessful = useRef(true)
-  const { pageInfos } = useContext(PageInfosContext) // used to get the page infos
+  const { pageId } = useContext(PageInfosContext) // used to get the page infos
   const { updateNode, nodeUpdate, updateEdge, edgeUpdate, node2Delete, node2Run } = useContext(FlowFunctionsContext) // used to get the function to update the node
   const { showAvailableNodes, setShowAvailableNodes, updateFlowContent } = useContext(FlowInfosContext) // used to update the flow infos
   const { showResultsPane, setShowResultsPane, isResults, flowResults } = useContext(FlowResultsContext) // used to update the flow infos
@@ -322,30 +322,40 @@ const WorkflowBase = ({ isGoodConnection, groupNodeHandlingDefault, onDeleteNode
     (event) => {
       event.preventDefault()
       // get the node type from the dataTransfer set by the onDragStart function at sidebarAvailableNodes.jsx
-      const node = JSON.parse(event.dataTransfer.getData("application/reactflow"))
-      const { nodeType } = node
+      let node = null
+      try {
+        node = JSON.parse(event.dataTransfer.getData("application/reactflow"))
+      } catch (error) {
+        console.log("error", error)
+        toast.error("You cannot drop this element here")
+      }
+      console.log("node", node)
+      if (node) {
+        const { nodeType } = node
 
-      if (nodeType in nodeTypes) {
-        let flowWindow = document.getElementById(pageInfos.id).getBoundingClientRect()
-        const position = reactFlowInstance.project({
-          x: event.clientX - flowWindow.x - 300,
-          y: event.clientY - flowWindow.y - 25
-        })
-        // create a new random id for the node
-        let newId = getId()
-        // if the node is a group node, call the groupNodeHandlingDefault function if it is defined
-        if (nodeType === "groupNode" && groupNodeHandlingDefault) {
-          groupNodeHandlingDefault(createBaseNode, newId)
+        if (nodeType in nodeTypes) {
+          console.log(pageId)
+          let flowWindow = document.getElementById(pageId).getBoundingClientRect()
+          const position = reactFlowInstance.project({
+            x: event.clientX - flowWindow.x - 300,
+            y: event.clientY - flowWindow.y - 25
+          })
+          // create a new random id for the node
+          let newId = getId()
+          // if the node is a group node, call the groupNodeHandlingDefault function if it is defined
+          if (nodeType === "groupNode" && groupNodeHandlingDefault) {
+            groupNodeHandlingDefault(createBaseNode, newId)
+          }
+          // create a base node with common properties
+          let newNode = createBaseNode(position, node, newId)
+          // add specific properties to the node
+          newNode = addSpecificToNode(newNode)
+          // add the new node to the nodes array
+          setNodes((nds) => nds.concat(newNode))
+          console.log("new node created: ", node)
+        } else {
+          console.log("node type not found: ", nodeType)
         }
-        // create a base node with common properties
-        let newNode = createBaseNode(position, node, newId)
-        // add specific properties to the node
-        newNode = addSpecificToNode(newNode)
-        // add the new node to the nodes array
-        setNodes((nds) => nds.concat(newNode))
-        console.log("new node created: ", node)
-      } else {
-        console.log("node type not found: ", nodeType)
       }
     },
     [reactFlowInstance, addSpecificToNode]

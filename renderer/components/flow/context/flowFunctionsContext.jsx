@@ -29,7 +29,6 @@ function FlowFunctionsProvider({ children }) {
    * }
    */
   const updateNode = (nodeUpdateInfos) => {
-    console.log("updateNode - context", nodeUpdateInfos)
     setNodeUpdate({ ...nodeUpdateInfos })
   }
 
@@ -46,7 +45,6 @@ function FlowFunctionsProvider({ children }) {
    * }
    */
   const updateEdge = (edgeUpdateInfos) => {
-    console.log("updateEdge - context", edgeUpdateInfos)
     setEdgeUpdate({ ...edgeUpdateInfos })
   }
 
@@ -64,7 +62,6 @@ function FlowFunctionsProvider({ children }) {
    * }
    */
   const changeSubFlow = (newGroupNodeId) => {
-    console.log("changeSubFlow - context", newGroupNodeId)
     setGroupNodeId({ id: newGroupNodeId })
   }
 
@@ -73,7 +70,6 @@ function FlowFunctionsProvider({ children }) {
    * @param {String} nodeId id of the node to delete
    */
   const onDeleteNode = (nodeId) => {
-    console.log("onDeleteNode - context", nodeId)
     setNode2Delete(nodeId)
   }
 
@@ -82,7 +78,6 @@ function FlowFunctionsProvider({ children }) {
    * @param {String} nodeId id of the node to run
    */
   const runNode = (nodeId) => {
-    console.log("runNode - context", nodeId)
     setNode2Run(nodeId)
   }
 

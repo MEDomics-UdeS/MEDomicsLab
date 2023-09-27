@@ -16,7 +16,7 @@ import ErrorRequestDialog from "../../flow/errorRequestDialog"
  */
 const ModulePageWithProvider = ({ children, pageId, configPath = "" }) => {
   // here is the use of the context to update the flowInfos
-  const { updatePageInfos } = useContext(PageInfosContext)
+  const { setupPageInfos } = useContext(PageInfosContext)
   const [config, setConfig] = useState({})
 
   useEffect(() => {
@@ -28,7 +28,7 @@ const ModulePageWithProvider = ({ children, pageId, configPath = "" }) => {
 
   // this useEffect is used to update the flowInfos when the pageId or the workflowType changes
   useEffect(() => {
-    updatePageInfos({
+    setupPageInfos({
       id: pageId,
       configPath: configPath,
       config: config,

@@ -10,17 +10,30 @@ const PageInfosContext = createContext()
  *  It is used to store the pageInfos (id and config of the workflow)
  */
 function PageInfosProvider({ children }) {
-  const [pageInfos, setPageInfos] = useState({}) // Initial style
+  const [config, setConfig] = useState({}) // Initial style
+  const [configPath, setConfigPath] = useState("") // Initial style
+  const [pageId, setPageId] = useState("") // Initial style
 
-  // This function is used to update the pageInfos
-  const updatePageInfos = (newInfo) => {
-    setPageInfos(newInfo)
+  const setupPageInfos = (pageInfos) => {
+    setConfig(pageInfos.config)
+    setConfigPath(pageInfos.configPath)
+    setPageId(pageInfos.id)
   }
 
   return (
     // in the value attribute we pass the pageInfos and the function to update it.
     // These will be available to all the components that use this context
-    <PageInfosContext.Provider value={{ pageInfos, updatePageInfos }}>
+    <PageInfosContext.Provider
+      value={{
+        config,
+        setConfig,
+        configPath,
+        setConfigPath,
+        pageId,
+        setPageId,
+        setupPageInfos
+      }}
+    >
       {children}
     </PageInfosContext.Provider>
   )

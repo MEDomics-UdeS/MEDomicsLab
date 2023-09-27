@@ -2,16 +2,18 @@ import copy
 import pandas as pd
 import os
 import numpy as np
-from pycaret.classification import ClassificationExperiment
-from pycaret.regression import RegressionExperiment
+from pycaret.classification import *
+from pycaret.regression import *
 from learning.MEDml.logger.MEDml_logger import MEDml_logger
 import json
-
 from learning.MEDml.nodes.NodeObj import *
 from learning.MEDml.nodes import *
 from typing import Any, Dict, List, Union
-from termcolor import colored
 from typing import Union
+from pathlib import Path
+from utils.server_utils import get_repo_path
+
+from learning.MEDml.CodeHandler import convert_dict_to_params
 
 DATAFRAME_LIKE = Union[dict, list, tuple, np.ndarray, pd.DataFrame]
 TARGET_LIKE = Union[int, str, list, tuple, np.ndarray, pd.Series]
@@ -19,19 +21,20 @@ FOLDER, FILE, INPUT = 1, 2, 3
 
 
 def create_pycaret_exp(ml_type: str) -> json:
-        if ml_type == "classification":
-            return ClassificationExperiment()
-        elif ml_type == "regression":
-            return RegressionExperiment()
-        # elif ml_type == "survival_analysis":
-        #     return SurvivalAnalysisExperiment()
-        else:
-            raise ValueError("ML type is not valid")
+    if ml_type == "classification":
+        return ClassificationExperiment()
+    elif ml_type == "regression":
+        return RegressionExperiment()
+    # elif ml_type == "survival_analysis":
+    #     return SurvivalAnalysisExperiment()
+    else:
+        raise ValueError("ML type is not valid")
 
 
 def is_primitive(obj):
-    primitive_types = (int, float, bool, str, bytes, type(None), dict, list, tuple, np.ndarray, pd.DataFrame, pd.Series)
-    print(type(obj).__name__, isinstance(obj, primitive_types))
+    primitive_types = (int, float, bool, str, bytes, type(
+        None), dict, list, tuple, np.ndarray, pd.DataFrame, pd.Series)
+    # print(type(obj).__name__, isinstance(obj, primitive_types))
     if isinstance(obj, primitive_types):
         # Check if the object is one of the primitive types
         return True
@@ -67,12 +70,19 @@ class MEDexperiment:
         self._nb_nodes = global_json_config['nbNodes2Run']
         self._nb_nodes_done: float = 0.0
         self.global_json_config['unique_id'] = 0
-        self.pipelines_objects = self.create_next_nodes(self.pipelines, copy.deepcopy(self.pipelines_objects))
-        self.global_json_config['saving_path'] = "flask_server/local_dir"
-        tmp_dir = global_json_config['saving_path']
-        for f in os.listdir(tmp_dir):
+        self.pipelines_objects = self.create_next_nodes(
+            self.pipelines, copy.deepcopy(self.pipelines_objects))
+        if self.global_json_config['ws_path'][0] == '.':
+            self.global_json_config['ws_path'] = get_repo_path(
+            ) + self.global_json_config['ws_path'][1:]
+            self.global_json_config['tmp_path'] = get_repo_path(
+            ) + self.global_json_config['tmp_path'][1:]
+        os.chdir(str(Path(os.path.dirname(os.path.abspath(__file__))).parent.parent))
+        print("current working directory: ", os.getcwd())
+
+        for f in os.listdir(self.global_json_config['tmp_path']):
             if f != '.gitkeep':
-                os.remove(os.path.join(tmp_dir, f))
+                os.remove(os.path.join(self.global_json_config['tmp_path'], f))
 
     def update(self, global_json_config: json = None):
         """Updates the experiment with the pipelines and the global configuration.
@@ -90,8 +100,8 @@ class MEDexperiment:
         self._nb_nodes = global_json_config['nbNodes2Run']
         self._nb_nodes_done: float = 0.0
         self._progress = {'cur_node': '', 'progress': 0.0}
-        self.pipelines_objects = self.create_next_nodes(self.pipelines, copy.deepcopy(self.pipelines_objects))
-        self.global_json_config['saving_path'] = "flask_server/local_dir"
+        self.pipelines_objects = self.create_next_nodes(
+            self.pipelines, copy.deepcopy(self.pipelines_objects))
 
     def create_next_nodes(self, next_nodes: json, pipelines_objects: dict) -> dict:
         """Recursive function that creates the next nodes of the experiment.
@@ -112,18 +122,21 @@ class MEDexperiment:
                 tmp_subid_list = current_node_id.split('*')
                 if len(tmp_subid_list) > 1:
                     self.global_json_config['nodes'][current_node_id] = \
-                        copy.deepcopy(self.global_json_config['nodes'][tmp_subid_list[0]])
+                        copy.deepcopy(
+                            self.global_json_config['nodes'][tmp_subid_list[0]])
                     self.global_json_config['nodes'][current_node_id]['associated_model_id'] = \
                         tmp_subid_list[1]
                     self.global_json_config['nodes'][current_node_id]['id'] = current_node_id
                 # then, we create the node normally
-                node = self.create_Node(self.global_json_config['nodes'][current_node_id])
-                nodes[current_node_id] = self.handle_Node_creation(node, pipelines_objects)
+                node = self.create_Node(
+                    self.global_json_config['nodes'][current_node_id])
+                nodes[current_node_id] = self.handle_Node_creation(
+                    node, pipelines_objects)
                 nodes[current_node_id]['obj'].just_run = False
                 if current_node_id in pipelines_objects:
                     nodes[current_node_id]['next_nodes'] = \
                         self.create_next_nodes(next_nodes_id_json,
-                                                pipelines_objects[current_node_id]['next_nodes'])
+                                               pipelines_objects[current_node_id]['next_nodes'])
                 else:
                     nodes[current_node_id]['next_nodes'] = \
                         self.create_next_nodes(next_nodes_id_json, {})
@@ -158,22 +171,27 @@ class MEDexperiment:
             # it starts the recursive with a dataset node
             for current_node_id, next_nodes_id_json in self.pipelines_to_execute.items():
                 node_info = self.pipelines_objects[current_node_id]
-                node = node_info['obj']
+                node: Node = node_info['obj']
                 self._progress['cur_node'] = node.username
                 has_been_run = node.has_run()
                 if not has_been_run:
-                    node_info['results'] = { 
+                    node_info['results'] = {
                         'prev_node_id': None,
                         'data': node.execute()
                     }
 
                     experiment = self.setup_dataset(node)
+                    node_info['results']['code'] = {'content': node.CodeHandler.get_code(),
+                                                    'imports': node.CodeHandler.get_imports()}
                     node_info['experiment'] = experiment
                 else:
-                    print(f"already run {node.username} -----------------------------------------------------------------------------")
+                    print(
+                        f"already run {node.username} -----------------------------------------------------------------------------")
                     experiment = node_info['experiment']
+
                 self._nb_nodes_done += 1.0
-                self._progress['progress'] = round(self._nb_nodes_done / self._nb_nodes * 100.0, 2)
+                self._progress['progress'] = round(
+                    self._nb_nodes_done / self._nb_nodes * 100.0, 2)
                 if not has_been_run:
                     node_info['results']['logs'] = experiment['medml_logger'].get_results()
                 self._results_pipeline[current_node_id] = {
@@ -212,13 +230,17 @@ class MEDexperiment:
                         'data': node.execute(experiment, **prev_node.get_info_for_next_node()),
                         'logs': experiment['medml_logger'].get_results()
                     }
+                    node_info['results']['code'] = {'content': node.CodeHandler.get_code(),
+                                                    'imports': node.CodeHandler.get_imports()}
                     node_info['experiment'] = experiment
                 else:
-                    print(f"already run {node.username} -----------------------------------------------------------------------------")
+                    print(
+                        f"already run {node.username} -----------------------------------------------------------------------------")
                     experiment = node_info['experiment']
 
                 self._nb_nodes_done += 1
-                self._progress['progress'] = round(self._nb_nodes_done / self._nb_nodes * 100, 2)
+                self._progress['progress'] = round(
+                    self._nb_nodes_done / self._nb_nodes * 100, 2)
                 results[current_node_id] = {
                     'next_nodes': copy.deepcopy(next_nodes_id_json),
                     'results': copy.deepcopy(node_info['results'])
@@ -295,13 +317,41 @@ class MEDexperiment:
             del kwargs['filesFromInput']
         if 'data' in kwargs:
             del kwargs['data']
-        pycaret_exp = create_pycaret_exp(ml_type=self.global_json_config['MLType'])
+
+        # add the imports
+        node.CodeHandler.add_import("import numpy as np")
+        node.CodeHandler.add_import("import pandas as pd")
+        node.CodeHandler.add_import(
+            f"from pycaret.{self.global_json_config['MLType']} import *")
+
+        # create the experiment
+        pycaret_exp = create_pycaret_exp(
+            ml_type=self.global_json_config['MLType'])
+        node.CodeHandler.add_line(
+            "code", f"pycaret_exp = {self.global_json_config['MLType'].capitalize()}Experiment()")
+
+        # clean the dataset
+        # df[kwargs['target']].notna() --> keep only the rows where the target is not null
+        # df[df[kwargs['target']].notna()] --> keep only the rows where the target is not null
         temp_df = df[df[kwargs['target']].notna()]
+        node.CodeHandler.add_line(
+            "code", f"temp_df = df[df['{kwargs['target']}'].notna()]")
         nan_value = float("NaN")
+        node.CodeHandler.add_line("code", f"nan_value = float('NaN')")
         temp_df.replace("", nan_value, inplace=True)
+        node.CodeHandler.add_line(
+            "code", f"temp_df.replace('', nan_value, inplace=True)")
         temp_df.dropna(how='all', axis=1, inplace=True)
+        node.CodeHandler.add_line(
+            "code", f"temp_df.dropna(how='all', axis=1, inplace=True)")
         medml_logger = MEDml_logger()
+
+        # setup the experiment
         pycaret_exp.setup(data=temp_df, log_experiment=medml_logger, **kwargs)
+        node.CodeHandler.add_line(
+            "code", f"pycaret_exp.setup(data=temp_df, {convert_dict_to_params(kwargs)})")
+        node.CodeHandler.add_line(
+            "code", f"dataset = pycaret_exp.get_config('X').join(pycaret_exp.get_config('y'))")
         dataset_metaData = {
             'dataset': pycaret_exp.get_config('X').join(pycaret_exp.get_config('y')),
             'X_test': pycaret_exp.get_config('X_test'),
@@ -310,8 +360,7 @@ class MEDexperiment:
         self.pipelines_objects[node.id]['results']['data'] = {
             "table": dataset_metaData['dataset'].to_json(orient='records'),
             "paths": node.get_path_list(),
-            }
-        
+        }
 
         return {'pycaret_exp': pycaret_exp,
                 'medml_logger': medml_logger,
@@ -349,7 +398,8 @@ class MEDexperiment:
                 if isinstance(value, dict):
                     return_dict[key] = self.add_only_object(value)
                 else:
-                    return_dict[key] = value
+                    if key != "estimators_":
+                        return_dict[key] = value
         return return_dict
 
     def get_progress(self) -> dict:
@@ -385,3 +435,50 @@ class MEDexperiment:
                 # y_test = pd.DataFrame(data=pipe_dict['y_test'].data)
                 # y_test["target"] = pipe_dict['y_test'].target
         return models, X_test, y_test
+
+    def generate_code(self) -> str:
+        """Generates the code of the last pipeline.\n
+        This function is used to generate the code of the last pipeline to be used in the analyse node.
+
+        Returns:
+            str: The code of the last pipeline.
+        """
+        if self.pipelines is not None:
+            # it starts the recursive with a dataset node
+            for current_node_id, next_nodes_id_json in self.pipelines_to_execute.items():
+                node_info = self.pipelines_objects[current_node_id]
+                node = node_info['obj']
+                self._progress['cur_node'] = node.username
+                # has_been_run = node.has_run()
+                # if not has_been_run:
+                #     node_info['results'] = {
+                #         'prev_node_id': None,
+                #         'data': node.execute()
+                #     }
+                #
+                #     experiment = self.setup_dataset(node)
+                #     node_info['experiment'] = experiment
+                # else:
+                #     print(
+                #         f"already run {node.username} -----------------------------------------------------------------------------")
+                #     experiment = node_info['experiment']
+
+                self._nb_nodes_done += 1.0
+                self._progress['progress'] = round(
+                    self._nb_nodes_done / self._nb_nodes * 100.0, 2)
+                if not has_been_run:
+                    node_info['results']['logs'] = experiment['medml_logger'].get_results()
+                self._results_pipeline[current_node_id] = {
+                    'next_nodes': copy.deepcopy(next_nodes_id_json),
+                    'results': copy.deepcopy(node_info['results'])
+                }
+                print()
+                self.execute_next_nodes(
+                    prev_node=node,
+                    next_nodes_to_execute=next_nodes_id_json,
+                    next_nodes=node_info['next_nodes'],
+                    results=self._results_pipeline[current_node_id]['next_nodes'],
+                    experiment=copy.deepcopy(experiment)
+                )
+
+            print('finished')

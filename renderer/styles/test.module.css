@@ -6,8 +6,6 @@
   width: 98%;
   position: absolute;
   overflow: auto;
-  /* font-size: 10px; */
-  /* font-family: Arial, sans-serif; */
 }
 .Panel {
   height: 100%;
@@ -16,8 +14,6 @@
   min-height: 25vh;
   justify-content: center;
   align-items: center;
-  /* position: relative; */
-  /* top: 10rem; */
   background-color: rgba(0, 0, 0, 0.281);
   border: 1px solid #555;
   box-sizing: border-box;

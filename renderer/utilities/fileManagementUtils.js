@@ -115,7 +115,7 @@ const loadJsonPath = (path) => {
     const jsonData = JSON.parse(data)
     return jsonData
   } catch (error) {
-    console.error(error)
+    console.error("error reading json file: " + path + "\n" + error + "\n")
     return null
   }
 }

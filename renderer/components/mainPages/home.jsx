@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from "react"
 import Image from "next/image"
 import MedDataObject from "../workspace/medDataObject"
-import myimage from "../../../resources/medomics.png"
+import myimage from "../../../resources/medomics_transparent_bg.png"
 import { Button, Stack } from "react-bootstrap"
 import { WorkspaceContext } from "../workspace/workspaceContext"
 import { ipcRenderer } from "electron"

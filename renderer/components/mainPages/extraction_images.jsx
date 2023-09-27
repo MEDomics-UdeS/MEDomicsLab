@@ -12,12 +12,8 @@ const ExtractionImagePage = ({ pageId, configPath = "" }) => {
   return (
     <>
       <ModulePage pageId={pageId} configPath={configPath}>
-        <FlowPageBase workflowType={flowType}>
-          <FlowCanvas
-            id={pageId}
-            workflowType={flowType}
-            setWorkflowType={setFlowType}
-          />
+        <FlowPageBase workflowType={flowType} id={pageId}>
+          <FlowCanvas id={pageId} workflowType={flowType} setWorkflowType={setFlowType} />
         </FlowPageBase>
       </ModulePage>
     </>

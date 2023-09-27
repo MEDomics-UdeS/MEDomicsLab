@@ -131,15 +131,12 @@
 }
 
 .medomics-layer {
-  /* border-bottom: 0.15rem solid #d3d3d396; */
   display: flex;
   flex-direction: row;
   z-index: 2;
 }
 
-.medomics-layer:hover {
-  /* border-bottom: 0.15rem solid #c20b0b96; */
-}
+
 
 .medomics-layer-text {
   color: #ffffff;
@@ -152,7 +149,6 @@
   writing-mode: vertical-rl;
   text-orientation: mixed;
   transition: all 0.5s ease-in-out;
-  /* border-bottom: 0.15rem solid #d3d3d396; */
 }
 
 .design.medomics-layer {
@@ -183,16 +179,11 @@
   display: block;
   left: 3rem;
   box-shadow: 0 0 0.25rem 0.1rem #0000007c !important;
-  /* background-color: #224c9b !important; */
-
-  /* border-bottom: 0.15rem solid #c20b0b96; */
 }
 
 .icon-sidebar:hover .medomics-layer .medomics-layer-text {
   display: block;
   left: 3rem;
-
-  /* background-color: #092086; */
 }
 
 .sidebar-icons {
@@ -206,4 +197,13 @@
 .icon-sidebar-divider {
   z-index: 2;
   background-color: #3a3a3a;
+}
+
+.rct-tree-item-title-container div {
+  display: flex;
+  align-items: center;
+}
+
+.rct-tree-item-title-container label {
+  cursor: pointer;
 }

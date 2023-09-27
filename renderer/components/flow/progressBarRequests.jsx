@@ -7,7 +7,7 @@ import { PageInfosContext } from "../mainPages/moduleBasics/pageInfosContext"
 
 const ProgressBarRequests = ({ isUpdating, setIsUpdating }) => {
   // const [isUpdating, setIsUpdating] = useState(true);
-  const { pageInfos } = useContext(PageInfosContext) // used to get the flow infos
+  const { pageId } = useContext(PageInfosContext) // used to get the flow infos
   const [progress, setProgress] = useState({
     now: 0,
     currentName: ""
@@ -16,24 +16,19 @@ const ProgressBarRequests = ({ isUpdating, setIsUpdating }) => {
 
   useInterval(
     () => {
-      requestJson(
-        port,
-        "/learning/progress",
-        { experimentId: pageInfos.id },
-        (data) => {
+      requestJson(port, "/learning/progress", { experimentId: pageId }, (data) => {
+        setProgress({
+          now: data.progress,
+          currentName: data.cur_node
+        })
+        if (data.progress === 100) {
+          setIsUpdating(false)
           setProgress({
             now: data.progress,
-            currentName: data.cur_node
+            currentName: "Done!"
           })
-          if (data.progress === 100) {
-            setIsUpdating(false)
-            setProgress({
-              now: data.progress,
-              currentName: "Done!"
-            })
-          }
         }
-      )
+      })
     },
     isUpdating ? 200 : null
   )
@@ -41,12 +36,7 @@ const ProgressBarRequests = ({ isUpdating, setIsUpdating }) => {
   return (
     <>
       <label>{progress.currentName || ""}</label>
-      <ProgressBar
-        variant="success"
-        animated
-        now={progress.now}
-        label={`${progress.now}%`}
-      />
+      <ProgressBar variant="success" animated now={progress.now} label={`${progress.now}%`} />
     </>
   )
 }

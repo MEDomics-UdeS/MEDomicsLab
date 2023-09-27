@@ -35,7 +35,7 @@ const HomeSidebar = () => {
             Set Workspace
           </Button>
         )}
-        <Accordion defaultActiveKey={["0"]} alwaysOpen>
+        <Accordion defaultActiveKey={["dirTree"]} alwaysOpen>
           <SidebarDirectoryTreeControlled />
         </Accordion>
       </Stack>

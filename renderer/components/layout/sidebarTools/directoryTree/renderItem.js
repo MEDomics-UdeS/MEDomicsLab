@@ -1,19 +1,56 @@
 import React from "react"
 import DropzoneComponent from "../../../mainPages/dataComponents/dropzoneComponent"
-import myimage from "../../../../../resources/medomics.svg"
+import medomicsImg from "../../../../../resources/medomics.svg"
+import * as Icon from "react-bootstrap-icons"
+import Image from "next/image"
 
 const iconExtension = {
-  folder: (isExpanded) => (isExpanded ? <span>📂</span> : <span>📁</span>),
-  csv: <span>🛢️</span>,
-  json: <span>📑</span>,
-  txt: <span>📃</span>,
-  pdf: <span>📕</span>,
-  medomics: (
+  folder: (isExpanded) => (isExpanded ? <span style={{ paddingBottom: "0.15rem" }}>📂</span> : <span style={{ paddingBottom: "0.15rem" }}>📁</span>),
+  csv: <span className="emoji">🛢️</span>,
+  json: (
     <span>
-      <img src={myimage} style={{ width: "20px", height: "20px" }} />
+      <Icon.Braces style={{ marginRight: "0.15rem", color: "yellow" }} />
     </span>
   ),
-  medml: <span>⚛️</span>
+  txt: (
+    <span>
+      <Icon.TextLeft style={{ marginRight: "0.15rem" }} />
+    </span>
+  ),
+  pdf: <span className="emoji">📕</span>,
+  medomics: (
+    <span>
+      <Image src={medomicsImg} width={12} height={12} alt="Picture of the author" style={{ marginRight: "0.15rem" }} />
+    </span>
+  ),
+  medml: <span>🎯</span>,
+  medmlres: <span>📊</span>,
+  ipynb: (
+    <span>
+      <Icon.JournalCode style={{ marginRight: "0.15rem", color: "#5b95ff" }} />
+    </span>
+  ),
+  png: (
+    <span>
+      <Icon.Image style={{ marginRight: "0.15rem", color: "#5b95ff" }} />
+    </span>
+  ),
+  jpg: (
+    <span>
+      <Icon.Image style={{ marginRight: "0.15rem", color: "#5b95ff" }} />
+    </span>
+  ),
+  jpeg: (
+    <span>
+      <Icon.Image style={{ marginRight: "0.15rem", color: "#5b95ff" }} />
+    </span>
+  ),
+  svg: (
+    <span>
+      <Icon.Image style={{ marginRight: "0.15rem", color: "#5b95ff" }} />
+    </span>
+  )
+
   // 📗📙📘📒📑📈📊🧮🎯💊🧬🔬🧰💾📄🗒️💥🎛️⚙️
 }
 
@@ -65,8 +102,10 @@ const renderItem = ({ item, depth, children, title, context, arrow }, additional
                     additionalParams.displayMenu(e, item)
                   }}
                 >
-                  {iconExtension.folder(context.isExpanded)}
-                  {title}
+                  <div>
+                    {iconExtension.folder(context.isExpanded)}
+                    <label>{title}</label>
+                  </div>
                 </InteractiveComponent>
               </div>
               {children}
@@ -94,9 +133,10 @@ const renderItem = ({ item, depth, children, title, context, arrow }, additional
                   additionalParams.onDBClickItem(e, item)
                 }}
               >
-                {iconExtension[item.type]}
-                {/* {!item.isFolder && item.type != "csv" && <span>📄</span>} */}
-                {title}
+                <div>
+                  {iconExtension[item.type]}
+                  <label>{title}</label>
+                </div>
               </InteractiveComponent>
             </div>
             {children}
