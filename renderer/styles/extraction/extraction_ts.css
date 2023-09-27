@@ -22,10 +22,6 @@
   margin-bottom: 15px;
 }
 
-.overflow_y_auto {
-  overflow-y: auto;
-}
-
 .vertical_divider {
   width: 2px;
   margin: 6px 0;

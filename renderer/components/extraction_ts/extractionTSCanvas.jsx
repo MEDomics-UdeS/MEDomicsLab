@@ -1,18 +1,19 @@
 import React, { useState, useEffect, useContext } from "react"
+import { DataContext } from "../workspace/dataContext"
+import DataTableFromContext from "../mainPages/dataComponents/dataTableFromContext"
 import DataTableWrapper from "../dataTypeVisualisation/dataTableWrapper"
 import { Dropdown } from "primereact/dropdown"
-import { readCSV } from "danfojs"
+import { DataFrame } from "danfojs"
 import Button from "react-bootstrap/Button"
 import { requestJson } from "../../utilities/requests"
 import { WorkspaceContext } from "../workspace/workspaceContext"
-import { require } from "ace-builds"
 
 const ExtractionTSCanvas = () => {
   const [csvPath, setCsvPath] = useState("")
+  const [csvResultPath, setCsvResultPath] = useState("")
   const [dataframe, setDataframe] = useState([])
+  const [datasetList, setDatasetList] = useState([])
   const [extractedFeatures, setExtractedFeatures] = useState([])
-  const [extractedFeaturesCsvPath, setExtractedFeaturesCsvPath] = useState("")
-  const [displayData, setDisplayData] = useState([])
   const [mayProceed, setMayProceed] = useState(false)
   const [selectedColumns, setSelectedColumns] = useState({
     patientIdentifier: "",
@@ -20,26 +21,47 @@ const ExtractionTSCanvas = () => {
     measurementDatetimeStart: "",
     measurementValue: ""
   })
+  const [selectedDataset, setSelectedDataset] = useState(null)
+  const { globalData } = useContext(DataContext) // We get the global data from the context to retrieve the directory tree of the workspace, thus retrieving the data files
   const { port } = useContext(WorkspaceContext)
-  const fs = require("fs").promises
 
-  /**
-   *
-   * @param {event} event
-   *
-   * @description
-   * Function called when a csv file is upload.
-   * Read CSV with Djanfo.js library and set the Djanfo dataframe
-   * in the dataframe variable. Sets the displayData according to
-   * DataTableWrapper input.
-   */
-  const onUpload = (event) => {
-    if (event.target.files) {
-      setCsvPath(event.target.files[0].path)
-      readCSV(event.target.files[0]).then((data) => {
-        setDisplayData(Array(data.$columns).concat(data.$data))
-        setDataframe(data)
+
+  function getDatasetListFromDataContext(dataContext) {
+    let keys = Object.keys(dataContext)
+    let datasetListToShow = []
+    keys.forEach((key) => {
+      if (dataContext[key].type !== "folder") {
+        datasetListToShow.push(dataContext[key])
+      }
+    })
+    setDatasetList(datasetListToShow)
+  }
+
+  useEffect(() => {
+    if (globalData !== undefined) {
+      getDatasetListFromDataContext(globalData)
+      console.log("DATA UPDATED")
+    }
+  }, [globalData])
+
+  useEffect(() => {
+    if (globalData !== undefined) {
+      let keys = Object.keys(globalData)
+      keys.some((key) => {
+        if (globalData[key].path == csvResultPath) {
+          console.log("HEREEEEEEE", globalData[key])
+          //setExtractedFeatures(new DataFrame(globalData[key].data))
+        }
       })
+      console.log("Extacted features", extractedFeatures)
+    }
+  }, [csvResultPath])
+
+  const datasetSelected = (dataset) => {
+    setSelectedDataset(dataset)
+    if (dataset.data && dataset.path) {
+      setCsvPath(dataset.path)
+      setDataframe(new DataFrame(dataset.data))
     }
   }
 
@@ -70,16 +92,7 @@ const ExtractionTSCanvas = () => {
       },
       (jsonResponse) => {
         console.log("received results:", jsonResponse)
-        setExtractedFeaturesCsvPath(jsonResponse["csv_result_path"])
-        fs.readFile(
-          jsonResponse["csv_result_path"],
-          "utf8",
-          function (err, data) {
-            // Display the file content
-            console.log(data)
-            console.log(err)
-          }
-        )
+        setCsvResultPath(jsonResponse['csv_result_path'])
       },
       function (err) {
         console.error(err)
@@ -106,39 +119,41 @@ const ExtractionTSCanvas = () => {
       <hr></hr>
       <div className="margin_top_bottom_15">
         <div className="center_text">
-          {/* Import CSV data */}
-          <h2>Import CSV data</h2>
-          <Button as="label" htmlFor="fileInput">
-            Import a CSV file
-          </Button>
-          <input
-            type="file"
-            id="fileInput"
-            style={{ display: "none" }}
-            accept=".csv"
-            onChange={onUpload}
-          />
+          {/* Select CSV data */}
+          <h2>Select CSV data</h2>
+          {datasetList.length > 0 ? (
+                <Dropdown
+                  value={selectedDataset}
+                  options={datasetList.filter(
+                    (value) =>
+                      value.extension == "csv"
+                  )}
+                  optionLabel="name"
+                  onChange={(event) =>
+                    datasetSelected(event.value)
+                  }
+                  placeholder="Select a dataset"
+                />
+              ) : (
+                <Dropdown placeholder="No dataset to show" disabled />
+              )}
         </div>
       </div>
 
       <hr></hr>
       <div className="margin_top_bottom_15">
-        {/* Display imported data */}
+        {/* Display selected data */}
         <div className="center_text">
-          <h2>Imported data</h2>
-          {displayData.length < 1 && (
-            <p>Nothing to show, import a CSV file first.</p>
+          <h2>Selected data</h2>
+          {!selectedDataset && (
+            <p>Nothing to show, select a CSV file first.</p>
           )}
         </div>
-        {displayData.length > 0 && (
+        {selectedDataset && (
           <div>
-            {/* DataTableWrapper is used to display the data */}
-            <DataTableWrapper
-              data={displayData}
-              tablePropsData={{
-                paginator: true,
-                rows: 5
-              }}
+            <DataTableFromContext
+              MedDataObject={selectedDataset}
+              tablePropsData={{ size: "small", paginator:true, rows: 5 }}
               tablePropsColumn={{
                 sortable: true
               }}
@@ -155,7 +170,7 @@ const ExtractionTSCanvas = () => {
             <h2>Select columns corresponding to :</h2>
             <div>
               Patient Identifier : &nbsp;
-              {displayData.length > 0 ? (
+              {dataframe.$data ? (
                 <Dropdown
                   value={selectedColumns.patientIdentifier}
                   onChange={(event) =>
@@ -174,7 +189,7 @@ const ExtractionTSCanvas = () => {
             </div>
             <div>
               Measured Item Identifier : &nbsp;
-              {displayData.length > 0 ? (
+              {dataframe.$data ? (
                 <Dropdown
                   value={selectedColumns.measuredItemIdentifier}
                   onChange={(event) =>
@@ -193,7 +208,7 @@ const ExtractionTSCanvas = () => {
             </div>
             <div>
               Measurement Datetime (Start) : &nbsp;
-              {displayData.length > 0 ? (
+              {dataframe.$data ? (
                 <Dropdown
                   value={selectedColumns.measurementDatetimeStart}
                   onChange={(event) =>
@@ -212,7 +227,7 @@ const ExtractionTSCanvas = () => {
             </div>
             <div>
               Measurement value : &nbsp;
-              {displayData.length > 0 ? (
+              {dataframe.$data ? (
                 <Dropdown
                   value={selectedColumns.measurementValue}
                   onChange={(event) =>

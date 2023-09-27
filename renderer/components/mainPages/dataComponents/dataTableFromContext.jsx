@@ -12,18 +12,18 @@ import Papa from "papaparse"
  * @param {Object} props - The props object
  *  @param {Object} props.keepOnlyFolder - The only parent folder to keep in the dataset selector
  */
-const DataTableFromContext = (MedDataObject, tablePropsData) => {
-  console.log("MedDataObject", MedDataObject)
+const DataTableFromContext = ({MedDataObject, tablePropsData, tablePropsColumn}) => {
   const { globalData, setGlobalData } = useContext(DataContext) // We get the global data from the context to retrieve the directory tree of the workspace, thus retrieving the data files
-  let datasetObject = MedDataObject["MedDataObject"]
+  let datasetObject = MedDataObject
   const [isLoaded, setIsLoaded] = useState(MedDataObject.isLoaded ? MedDataObject.isLoaded : false)
 
   const [dataset, setDataset] = useState(null)
 
   useEffect(() => {
     if (datasetObject !== undefined && datasetObject !== null) {
-      if (isLoaded) {
+      if (isLoaded && datasetObject.data) {
         console.log("was already loaded")
+        setDataset(datasetObject.data)
       } else {
         if (globalData !== undefined) {
           let extension = datasetObject.extension
@@ -68,7 +68,7 @@ const DataTableFromContext = (MedDataObject, tablePropsData) => {
     console.log("dataset", dataset)
   }, [dataset])
 
-  return <>{dataset && <DataTableWrapper data={dataset} tablePropsData={tablePropsData} />}</>
+  return <>{dataset && <DataTableWrapper data={dataset} tablePropsData={tablePropsData} tablePropsColumn={tablePropsColumn} />}</>
 }
 
 export default DataTableFromContext

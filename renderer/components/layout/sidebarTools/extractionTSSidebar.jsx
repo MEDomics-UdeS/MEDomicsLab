@@ -1,9 +1,9 @@
 import React, { useContext, useEffect } from "react"
-import { Button, Stack } from "react-bootstrap"
+import { Button, Stack, Accordion } from "react-bootstrap"
 import { Plus } from "react-bootstrap-icons"
 import DropzoneComponent from "../../mainPages/dataComponents/dropzoneComponent"
 import { WorkspaceContext } from "../../workspace/workspaceContext"
-import { WorkspaceDirectoryTree } from "./workspaceDirectoryTree"
+import { SidebarDirectoryTreeControlled } from "./sidebarDirectoryTreeControlled"
 
 /**
  * @description - This component is the sidebar tools component that will be used in the sidebar component as the extraction Time Series page
@@ -37,9 +37,9 @@ const ExtractionTSSidebar = () => {
           </Button>
         </DropzoneComponent>
 
-        <WorkspaceDirectoryTree
-          keepOnlyFolder={["DATA"]}
-        ></WorkspaceDirectoryTree>
+        <Accordion defaultActiveKey={["0"]} alwaysOpen>
+          <SidebarDirectoryTreeControlled />
+        </Accordion>
         {/* We render the workspace only if it is set, otherwise it throws an error */}
       </Stack>
     </>
