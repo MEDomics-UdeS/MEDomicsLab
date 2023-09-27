@@ -701,7 +701,7 @@ export default class MedDataObject {
     let fs = require("fs")
     let path = dataObject.path
     delete globalData[dataObject.getUUID()]
-    fs.rmSync(path, { recursive: true }, (err) => {
+    fs.rmSync(path, { recursive: false }, (err) => {
       if (err) {
         console.log(err)
       } else {

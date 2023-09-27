@@ -670,6 +670,10 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
           <Item id="openInJupyter" onClick={handleContextMenuAction}>
             Jupyter Notebook
           </Item>
+          <Item id="openInVSCode" onClick={() => require("electron").shell.openPath(globalData[selectedItems[0]].path)}>
+            {/* <BoxArrowUpRight size={"1rem"} className="context-menu-icon" /> */}
+            VSCode
+          </Item>
         </Submenu>
         <Item id="revealInFileExplorer" onClick={() => require("electron").shell.showItemInFolder(globalData[selectedItems[0]].path)}>
           {/* <BoxArrowUpRight size={"1rem"} className="context-menu-icon" /> */}
