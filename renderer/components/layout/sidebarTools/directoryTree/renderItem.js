@@ -9,12 +9,12 @@ const iconExtension = {
   csv: <span className="emoji">🛢️</span>,
   json: (
     <span>
-      <Icon.Braces style={{ marginRight: "0.15rem", color: "yellow" }} />
+      <Icon.Braces className="icon-offset" style={{ color: "yellow" }} />
     </span>
   ),
   txt: (
     <span>
-      <Icon.TextLeft style={{ marginRight: "0.15rem" }} />
+      <Icon.TextLeft className="icon-offset" />
     </span>
   ),
   pdf: <span className="emoji">📕</span>,
@@ -23,31 +23,31 @@ const iconExtension = {
       <Image src={medomicsImg} width={12} height={12} alt="Picture of the author" style={{ marginRight: "0.15rem" }} />
     </span>
   ),
-  medml: <span>🎯</span>,
-  medmlres: <span>📊</span>,
+  medml: <span className="emoji">🎯</span>,
+  medmlres: <span className="emoji">📊</span>,
   ipynb: (
     <span>
-      <Icon.JournalCode style={{ marginRight: "0.15rem", color: "#5b95ff" }} />
+      <Icon.JournalCode className="icon-offset" style={{ color: "#5b95ff" }} />
     </span>
   ),
   png: (
     <span>
-      <Icon.Image style={{ marginRight: "0.15rem", color: "#5b95ff" }} />
+      <Icon.Image className="icon-offset" style={{ color: "#5b95ff" }} />
     </span>
   ),
   jpg: (
     <span>
-      <Icon.Image style={{ marginRight: "0.15rem", color: "#5b95ff" }} />
+      <Icon.Image className="icon-offset" style={{ color: "#5b95ff" }} />
     </span>
   ),
   jpeg: (
     <span>
-      <Icon.Image style={{ marginRight: "0.15rem", color: "#5b95ff" }} />
+      <Icon.Image className="icon-offset" style={{ color: "#5b95ff" }} />
     </span>
   ),
   svg: (
     <span>
-      <Icon.Image style={{ marginRight: "0.15rem", color: "#5b95ff" }} />
+      <Icon.Image className="icon-offset" style={{ color: "#5b95ff" }} />
     </span>
   )
 
@@ -116,7 +116,7 @@ const renderItem = ({ item, depth, children, title, context, arrow }, additional
       {!item.isFolder && (
         <>
           <li {...context.itemContainerWithChildrenProps} className={cx("rct-tree-item-li", item.isFolder && "rct-tree-item-li-isFolder", context.isSelected && "rct-tree-item-li-selected", context.isExpanded && "rct-tree-item-li-expanded", context.isFocused && "rct-tree-item-li-focused", context.isDraggingOver && "rct-tree-item-li-dragging-over", context.isSearchMatching && "rct-tree-item-li-search-match")}>
-            <div {...context.itemContainerWithoutChildrenProps} style={{ paddingLeft: `${(depth + 1) * 8}px` }} className={cx("rct-tree-item-title-container", item.isFolder && "rct-tree-item-title-container-isFolder", context.isSelected && "rct-tree-item-title-container-selected", context.isExpanded && "rct-tree-item-title-container-expanded", context.isFocused && "rct-tree-item-title-container-focused", context.isDraggingOver && "rct-tree-item-title-container-dragging-over", context.isSearchMatching && "rct-tree-item-title-container-search-match")}>
+            <div {...context.itemContainerWithoutChildrenProps} style={{ paddingLeft: `${(depth + 1) * 10}px` }} className={cx("rct-tree-item-title-container", item.isFolder && "rct-tree-item-title-container-isFolder", context.isSelected && "rct-tree-item-title-container-selected", context.isExpanded && "rct-tree-item-title-container-expanded", context.isFocused && "rct-tree-item-title-container-focused", context.isDraggingOver && "rct-tree-item-title-container-dragging-over", context.isSearchMatching && "rct-tree-item-title-container-search-match")}>
               {/* {arrow} */}
 
               <InteractiveComponent
