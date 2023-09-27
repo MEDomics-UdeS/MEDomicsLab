@@ -580,6 +580,18 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
           return <ExploratoryPage pageId={"ExploratoryPage"} />
         }
       }
+    } else if (component === "imageViewer") {
+      if (node.getExtraData().data == null) {
+        const config = node.getConfig()
+        if (config.path !== null) {
+          console.log("config.path", config.path)
+          const nativeImage = require("electron").nativeImage
+          const image = nativeImage.createFromPath(config.path)
+          return <img src={image.toDataURL()} style={{ display: "block", border: "none", boxSizing: "border-box" }} />
+        } else {
+          return <></>
+        }
+      }
     } else if (component === "evaluationPage") {
       if (node.getExtraData().data == null) {
         const config = node.getConfig()
@@ -923,4 +935,19 @@ class SimpleTable extends React.Component<{ fields: any; data: any; onClick: any
 // }
 
 // const root = createRoot(document.getElementById("container")!)
+
+function getBox(width, height) {
+  return {
+    string: "+",
+    style: "font-size: 1px; padding: " + Math.floor(height / 2) + "px " + Math.floor(width / 2) + "px; line-height: " + height + "px;"
+  }
+}
+
+function showImage(url, scale) {
+  scale = scale || 1
+  var img = new Image()
+
+  img.src = url
+}
+
 export { MainContainer }
