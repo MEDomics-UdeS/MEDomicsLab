@@ -794,7 +794,7 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
   addTab = (tabParams: any) => {
     // Your code to add a tab with custom parameters
     console.log("addTab", tabParams)
-    let tabExists = this.checkIfTabIDExists(tabParams?.id)
+    let tabExists = this.checkIfTabIDExists(tabParams.id)
     if (tabExists) {
       console.log("tab already exists")
       // We select the tab that already exists and set it to active

@@ -20,6 +20,10 @@ const IconSidebar = ({ onSidebarItemSelect }) => {
   const [disabledIcon, setDisabledIcon] = useState("disabled") // disabled is the state of the page
   const [developerModeNav, setDeveloperModeNav] = useState(false)
 
+  useEffect(() => {
+    handleToggleDeveloperMode()
+  }, [])
+
   const extractionItems = [
     {
       label: "Image",
