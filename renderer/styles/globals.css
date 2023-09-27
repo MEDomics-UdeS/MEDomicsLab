@@ -189,3 +189,22 @@ body {
 .margin-0_5rem {
   margin: 0.5rem;
 }
+
+.flexlayout-app {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 20;
+}
+
+.flexlayout-contents {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 20;
+}
+
+.flexlayout__layout {
+  display: flex !important;
+  flex-direction: column !important;
+  flex-grow: inherit !important;
+  position: relative !important;
+}

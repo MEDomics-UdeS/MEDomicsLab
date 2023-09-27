@@ -5,12 +5,12 @@ import ModulePage from "./moduleBasics/modulePage"
  * @description - This component is the input page of the application
  * @returns the input page component
  */
-const InputPage = ({ pageId = "42" }) => {
+const InputPage = ({ pageId = "42", configPath = null }) => {
   // eslint-disable-next-line no-unused-vars
   const [data, setData] = React.useState([])
   return (
     <>
-      <ModulePage pageId={pageId}>
+      <ModulePage pageId={pageId} configPath={configPath}>
         <h1>INPUT MODULE</h1>
         <DatasetSelector multiSelect={true} />
       </ModulePage>

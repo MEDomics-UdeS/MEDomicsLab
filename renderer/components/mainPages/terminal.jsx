@@ -1,13 +1,14 @@
 import React from "react"
 import ModulePage from "./moduleBasics/modulePage"
-const ExtractionTextPage = ({ pageId = "extraction-text-456", configPath = null }) => {
+
+const TerminalPage = ({ pageId = "terminal", configPath = null }) => {
   return (
     <>
       <ModulePage pageId={pageId} configPath={configPath}>
-        <h1>Extraction Text Page - TO BE IMPLEMENTED</h1>
+        <text>Future terminal will be here</text>
       </ModulePage>
     </>
   )
 }
 
-export default ExtractionTextPage
+export default TerminalPage

@@ -23,23 +23,63 @@ export default function MainFlexLayout() {
   const [nextGridIndex, setNextGridIndex] = useState(0) // State to keep track of the next grid index
   // let contents; // Variable to hold the contents of the main container - Not used for now
 
-  const { layoutModel, flexlayoutInterpreter, layoutMainState, setLayoutMainState } = useContext(LayoutModelContext) // Get the layout model and the flexlayout interpreter from the context
+  const { layoutModel, flexlayoutInterpreter, layoutMainState, setLayoutMainState, layoutRequestQueue, setLayoutRequestQueue, setLayoutModel } = useContext(LayoutModelContext) // Get the layout model and the flexlayout interpreter from the context
 
   const [myInnerModel, setMyInnerModel] = useState(layoutModel) // State to keep track of the inner model - Used to update the layout model - for debugging purposes mainly
   // setMyInnerModel(inner_model);
 
   const [model, setModel] = useState(Model.fromJson(layoutModel)) // State to keep track of the model - Used to update the layout model also
 
-  useEffect(() => {
-    // Use effect to update the model when the layout model changes
-    if (myInnerModel !== layoutModel) {
-      // If the inner model is not the same as the layout model, update the inner model
-      setMyInnerModel(layoutModel)
+  const addCustomTabToActiveTabSet = ({ component, name, config, extraData }) => {
+    // Function to add a custom tab to the active tab set
+    console.log("addCustomTabToActiveTabSet", component, name, config, extraData)
+    console.log("addCustomTabToActiveTabSet", layoutRef.current.updateNodeAttributes)
+
+    if (layoutRef.current !== null) {
+      layoutRef.current.addTabToActiveTabSet({
+        component: component,
+        name: name
+      })
+      // layoutRef.current.updater.enqueueForceUpdate()
     }
-    console.log("MainFlexLayout useEffect", layoutModel)
-    setMyInnerModel(layoutModel)
-    setModel(Model.fromJson(layoutModel))
-  }, [layoutModel]) // Update the model when the layout model changes
+  }
+
+  useEffect(() => {
+    let layoutFromLocalStorage = localStorage.getItem("layout")
+    if (layoutFromLocalStorage) {
+      setLayoutModel(layoutFromLocalStorage)
+    }
+  }, [])
+  useEffect(() => {
+    console.log("MainFlexLayout Model Ref", layoutRef.current)
+    // Use effect to update the model when the layout model changes
+    if (layoutRequestQueue.length > 0) {
+      // If the layout request queue is not empty
+      const request = layoutRequestQueue[0] // Get the first request
+      console.log("MainFlexLayout useEffect", request)
+      switch (request.type) {
+        // Switch case to handle the different types of requests
+        case "addCustomTabToActiveTabSet":
+          // If the request is to add a custom tab to the active tab set
+          addCustomTabToActiveTabSet(request.payload) // Call the function to add a custom tab to the active tab set
+          break
+        default:
+          break
+      }
+      setLayoutRequestQueue(layoutRequestQueue.slice(1)) // Remove the first request from the queue
+    }
+  }, [layoutRequestQueue]) // Update the model when the layout model changes
+
+  // useEffect(() => {
+  //   // Use effect to update the model when the layout model changes
+  //   if (myInnerModel !== layoutModel) {
+  //     // If the inner model is not the same as the layout model, update the inner model
+  //     setMyInnerModel(layoutModel)
+  //   }
+  //   console.log("MainFlexLayout useEffect", layoutModel)
+  //   setMyInnerModel(layoutModel)
+  //   setModel(Model.fromJson(layoutModel))
+  // }, [layoutModel]) // Update the model when the layout model changes
 
   function handleNextGridIndex() {
     // Function to handle the next grid index
@@ -60,7 +100,8 @@ export default function MainFlexLayout() {
       const jsonText = JSON.stringify(model && model.toJson(), null, "\t")
       const html = Prism.highlight(jsonText, Prism.languages.javascript, "javascript")
       setMainState({ ...mainState, json: html })
-      setLayoutMainState({ ...model })
+      // setLayoutMainState({ ...model })
+      localStorage.setItem("layout", jsonText)
       htmlTimer = null
     }, 500)
   }
@@ -373,7 +414,7 @@ export default function MainFlexLayout() {
             onRenderDragRect={onRenderDragRect}
             onRenderFloatingTabPlaceholder={mainState.layoutFile === "newfeatures" ? onRenderFloatingTabPlaceholder : undefined}
             onExternalDrag={onExternalDrag}
-            realtimeResize={mainState.realtimeResize}
+            realtimeResize={true}
             onTabDrag={mainState.layoutFile === "newfeatures" ? onTabDrag : undefined}
             onContextMenu={mainState.layoutFile === "newfeatures" ? onContextMenu : undefined}
             onAuxMouseClick={mainState.layoutFile === "newfeatures" ? onAuxMouseClick : undefined}

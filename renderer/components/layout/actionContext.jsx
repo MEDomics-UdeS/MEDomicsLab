@@ -1,5 +1,4 @@
 import { React, createContext } from "react"
-
 /**
  * @typedef {React.Context} ActionContext
  * @description Context for the action handler

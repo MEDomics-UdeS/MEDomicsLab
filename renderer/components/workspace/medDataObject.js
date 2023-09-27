@@ -181,7 +181,6 @@ export default class MedDataObject {
    * @param {MedDataObject} dataObject - The MED data object to check.
    * @param {Object} globalDataContext - The global data context object to search in.
    * @returns {MedDataObject} - The highest parent of the MED data object.
-   *
    */
   static getWhoIsTheHighestParent(dataObject, globalDataContext, depth = 0) {
     let parentID = dataObject.parentID
@@ -319,6 +318,7 @@ export default class MedDataObject {
    * @returns {string} - The new name for the MED data object.
    */
   static rename(dataObject, newName, globalDataContext) {
+    console.log("dataObject: ", dataObject)
     let newNameFound = this.getNewName({
       dataObject: dataObject,
       newName: newName,
@@ -363,6 +363,58 @@ export default class MedDataObject {
     let fs = require("fs")
     let names = fs.readdirSync(path)
     return names
+  }
+
+  /**
+   * This function renames a `MedDataObject` in the workspace.
+   * @param {Object} medObject - The `MedDataObject` to rename
+   * @param {string} newName - The new name of the `MedDataObject`
+   * @returns {void}
+   * @note - This function is called when the user renames a file or folder in the directory tree, either by F2 or by right-clicking and selecting "Rename".
+   */
+  static handleNameChange(medObject, newName, dataContext, setDataContext) {
+    if (this.validateNewName(medObject, newName, dataContext)) {
+      // Check if the new name is the same as the current name.
+      // Get the UUID of the `MedDataObject` with the current name from the `globalData` object.
+      let dataObject = dataContext[medObject._UUID]
+      let uuid = medObject._UUID
+      // Rename the `MedDataObject` with the new name and update the `globalData` object.
+      let renamedDataObject = this.rename(dataObject, newName, dataContext)
+      let globalDataCopy = { ...dataContext }
+      globalDataCopy[uuid] = renamedDataObject
+      setDataContext(globalDataCopy)
+      this.updateWorkspaceDataObject()
+    }
+  }
+
+  /**
+   * This function evaluates if a name is valid for a `MedDataObject`.
+   * @param {Object} medObject - The `MedDataObject` to rename
+   * @param {string} newName - The new name of the `MedDataObject`
+   * @param {Object} dataContext - The global data context object to search in.
+   * @returns {Boolean} - `true` if the name is valid, `false` otherwise.
+   */
+  static validateNewName(medObject, newName, dataContext) {
+    const namesYouCantRename = ["UUID_ROOT", "DATA", "EXPERIMENTS", "RESULTS", "MODELS"]
+    if (newName == "") {
+      toast.error("Error: Name cannot be empty")
+      return false
+    } else if (medObject.name == newName) {
+      toast.error("Error: You really wanted to rename to the same name?")
+      return false
+    } else if (boolNameInArray(newName, namesYouCantRename)) {
+      toast.error("Error: This name is reserved and cannot be used")
+      return false
+    } else if (boolNameInArray(medObject.name, namesYouCantRename)) {
+      console
+      toast.error("Error: This name cannot be changed")
+      return false
+    } else if (boolNameInArray(newName, Object.keys(dataContext))) {
+      toast.error("Error: This name is already used")
+      return false
+    } else {
+      return true
+    }
   }
 
   static returnNameNotInList(name, names, extension = undefined) {
@@ -966,4 +1018,10 @@ function getPathSeparator() {
   } else if (typeof process !== "undefined" && process.platform === "linux") {
     return "/"
   }
+}
+
+function boolNameInArray(name, array) {
+  let nameInArray = false
+  array.includes(name) ? (nameInArray = true) : (nameInArray = false)
+  return nameInArray
 }

@@ -21,6 +21,9 @@ const LayoutModelContext = createContext(null)
  */
 function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
   const [layoutMainState, setLayoutMainState] = useState(layoutModel)
+  const [layoutRequestQueue, setLayoutRequestQueue] = useState([])
+  const [developerMode, setDeveloperMode] = useState(false)
+
   const { globalData } = useContext(DataContext)
   /**
    * @param {FlexLayout.Model.Action} action - The actions passed on by the flexlayout-react library
@@ -64,14 +67,266 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
    */
   const dispatchLayout = (action) => {
     switch (action.type) {
+      /*********** OPEN IN *************/
+      case "openInInputModule":
+        return openInInput(action)
+      case "openInDtale":
+        return openInDtale(action)
+      case "openInExploratoryModule":
+        return openInExploratory(action)
       case "openInLearningModule":
         return openLearning(action)
+      case "openInResultsModule":
+        return openInResults(action)
+      case "openInIFrame":
+        return openIFrame(action)
+      case "openInDataTable":
+        return openDataTable(action)
+      case "openInCodeEditor":
+        return openCodeEditor(action)
+      case "openInImageViewer":
+        return openImageViewer(action)
+      case "openInPDFViewer":
+        return openPDFViewer(action)
+      case "openInTextEditor":
+        return openTextEditor(action)
+      case "openInModelViewer":
+        return openModelViewer(action)
+      /*********** OPEN *****************/
+      case "openInputModule":
+        return openInput(action)
+      case "openResultsModule":
+        return openResults(action)
+      case "openApplicationModule":
+        return openApplication(action)
+      case "openEvaluationModule":
+        return openEvaluation(action)
+      case "openExploratoryModule":
+        return openExploratory(action)
+      case "openExtractionTSModule":
+        return openExtractionTS(action)
+      case "openExtractionImageModule":
+        return openExtractionImage(action)
+      case "openExtractionTextModule":
+        return openExtractionText(action)
       case "add":
         return add(action)
       case "remove":
         return remove(action)
       default:
         throw new Error(`Unhandled action type: ${action.type}`)
+    }
+  }
+
+  /**
+   * @summary Generic function that adds a tab with a medDataObject to the layout model
+   * @params {Object} action - The action passed on by the dispatchLayout function
+   * @params {String} component - The component to be used in the tab
+   */
+  function openInDotDotDot(action, component) {
+    let medObject = action.payload
+    let isAlreadyIn = checkIfIDIsInLayoutModel(medObject.UUID, layoutModel)
+    if (!isAlreadyIn) {
+      const newChild = {
+        type: "tab",
+        name: medObject.name,
+        id: medObject.UUID,
+        component: component,
+        config: { path: medObject.path, uuid: medObject.UUID, extension: medObject.type }
+      }
+      let layoutRequestQueueCopy = [...layoutRequestQueue]
+      layoutRequestQueueCopy.push({ type: "ADD_TAB", payload: newChild })
+      setLayoutRequestQueue(layoutRequestQueueCopy)
+    }
+  }
+
+  /**
+   * @summary Generic function that adds a tab without a medDataObject to the layout model
+   * @params {Object} action - The action passed on by the dispatchLayout function
+   */
+  function openGeneric(action, type, component = undefined) {
+    if (component == undefined) {
+      component = type
+    }
+
+    let id = type
+    let isAlreadyIn = checkIfIDIsInLayoutModel(id, layoutModel)
+    if (!isAlreadyIn) {
+      const newChild = {
+        type: "tab",
+        name: type,
+        id: component,
+        component: component,
+        config: { path: null, uuid: id, extension: type }
+      }
+      let layoutRequestQueueCopy = [...layoutRequestQueue]
+      layoutRequestQueueCopy.push({ type: "ADD_TAB", payload: newChild })
+      setLayoutRequestQueue(layoutRequestQueueCopy)
+    }
+  }
+
+  /**
+   * @summary Function that adds a tab of the Results Module to the layout model
+   * @params {Object} action - The action passed on by the dispatchLayout function
+   */
+  const openResults = (action) => {
+    openGeneric(action, "Results", "resultsPage")
+  }
+
+  /**
+   * @summary Function that adds a tab of the Application Module to the layout model
+   * @params {Object} action - The action passed on by the dispatchLayout function
+   */
+  const openApplication = (action) => {
+    openGeneric(action, "Application", "applicationPage")
+  }
+
+  /**
+   * @summary Function that adds a tab of the Evaluation Module to the layout model
+   * @params {Object} action - The action passed on by the dispatchLayout function
+   */
+  const openEvaluation = (action) => {
+    openGeneric(action, "Evaluation", "evaluationPage")
+  }
+
+  /**
+   * @summary Function that adds a tab of the Exploratory Module to the layout model
+   * @params {Object} action - The action passed on by the dispatchLayout function
+   */
+  const openExploratory = (action) => {
+    openGeneric(action, "Exploratory", "exploratoryPage")
+  }
+
+  /**
+   * @summary Function that adds a tab of the Extraction Time Series Module to the layout model
+   * @params {Object} action - The action passed on by the dispatchLayout function
+   */
+  const openExtractionTS = (action) => {
+    openGeneric(action, "Extraction Time Series", "extractionTSPage")
+  }
+
+  /**
+   * @summary Function that adds a tab of the Extraction Image Module to the layout model
+   * @params {Object} action - The action passed on by the dispatchLayout function
+   */
+  const openExtractionImage = (action) => {
+    openGeneric(action, "Extraction Image", "extractionImagePage")
+  }
+
+  /**
+   * @summary Function that adds a tab of the Extraction Text Module to the layout model
+   * @params {Object} action - The action passed on by the dispatchLayout function
+   */
+  const openExtractionText = (action) => {
+    openGeneric(action, "Extraction Text", "extractionTextPage")
+  }
+
+  /**
+   * @summary Function that adds a tab of Dtale to the layout model
+   * @params {Object} action - The action passed on by the dispatchLayout function
+   */
+  const openInDtale = (action) => {
+    openInDotDotDot(action, "dtale")
+  }
+
+  /**
+   * @summary Function that adds a tab with a PDF viewer to the layout model
+   * @params {Object} action - The action passed on by the dispatchLayout function
+   */
+  const openPDFViewer = (action) => {
+    openInDotDotDot(action, "pdfViewer")
+  }
+
+  /**
+   * @summary Function that adds a tab with a text editor to the layout model
+   * @params {Object} action - The action passed on by the dispatchLayout function
+   */
+  const openTextEditor = (action) => {
+    openInDotDotDot(action, "textEditor")
+  }
+
+  /**
+   * @summary Function that adds a tab with an image viewer to the layout model
+   * @params {Object} action - The action passed on by the dispatchLayout function
+   */
+  const openImageViewer = (action) => {
+    openInDotDotDot(action, "imageViewer")
+  }
+
+  /**
+   * @summary Function that adds a tab with a model viewer to the layout model
+   * @params {Object} action - The action passed on by the dispatchLayout function
+   */
+  const openModelViewer = (action) => {
+    openInDotDotDot(action, "modelViewer")
+  }
+
+  /**
+   * @summary Function that adds a tab with a data table to the layout model
+   * @params {Object} action - The action passed on by the dispatchLayout function, it uses the payload in the action as a JSON object to add a tab containing a data table to the layout model
+   */
+  const openDataTable = (action) => {
+    openInDotDotDot(action, "dataTable")
+  }
+
+  /**
+   * @summary Function that adds a tab with a code editor to the layout model
+   * @params {Object} action - The action passed on by the dispatchLayout function
+   */
+  const openCodeEditor = (action) => {
+    openInDotDotDot(action, "codeEditor")
+  }
+
+  /**
+   * @summary Function that adds an input page with a medDataObject to the layout model
+   * @params {Object} action - The action passed on by the dispatchLayout function, it uses the payload in the action as a JSON object to add a new child to the layout model
+   */
+  const openInInput = (action) => {
+    openInDotDotDot(action, "inputPage")
+  }
+
+  /**
+   * @summary Function that adds an input page without a medDataObject to the layout model
+   * @params {Object} action - The action passed on by the dispatchLayout function
+   */
+  const openInput = (action) => {
+    openGeneric(action, "Input Module", "inputPage")
+  }
+
+  /**
+   * @summary Function that adds an exploratory page with a medDataObject to the layout model
+   * @params {Object} action - The action passed on by the dispatchLayout function
+   */
+  const openInExploratory = (action) => {
+    openInDotDotDot(action, "exploratoryPage")
+  }
+
+  /**
+   * @summary Function that adds a Results page with a medDataObject to the layout model
+   * @params {Object} action - The action passed on by the dispatchLayout function, it uses the payload in the action as a JSON object to add a new child to the layout model
+   */
+  const openInResults = (action) => {
+    openInDotDotDot(action, "resultsPage")
+  }
+
+  /**
+   * @summary Function that adds a tab with an iframe to the layout model
+   * @params {Object} action - The action passed on by the dispatchLayout function, it uses the payload in the action as a JSON object to add a new child to the layout model
+   */
+  const openIFrame = (action) => {
+    let URL = action.payload.url
+    let isAlreadyIn = checkIfIDIsInLayoutModel(URL, layoutModel)
+    if (!isAlreadyIn) {
+      const newChild = {
+        type: "tab",
+        name: action.payload.iframe_name ? action.payload.iframe_name : URL,
+        id: URL,
+        component: "iFramePage",
+        config: { path: URL, uuid: URL, extension: URL }
+      }
+      let layoutRequestQueueCopy = [...layoutRequestQueue]
+      layoutRequestQueueCopy.push({ type: "ADD_TAB", payload: newChild })
+      setLayoutRequestQueue(layoutRequestQueueCopy)
     }
   }
 
@@ -92,15 +347,18 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
         name: medObject.name,
         id: medObject.UUID,
         component: "learningPage",
-        config: { path: medObject.path, uuid: medObject.UUID }
+        config: { path: medObject.path, uuid: medObject.UUID, extension: medObject.type }
       }
+      let layoutRequestQueueCopy = [...layoutRequestQueue]
+      layoutRequestQueueCopy.push({ type: "ADD_TAB", payload: newChild })
+      setLayoutRequestQueue(layoutRequestQueueCopy)
 
       const nextlayoutModel = { ...layoutModel }
       // To add a new child to the layout model, we need to add it to the children array (layoutModel.layout.children[x].children)
       // ****IMPORTANT**** For the hook to work, we need to create a new array and not modify the existing one
       const newChildren = [...layoutModel.layout.children[0].children, newChild]
       nextlayoutModel.layout.children[0].children = newChildren
-      setLayoutModel(nextlayoutModel)
+      // setLayoutModel(nextlayoutModel)
       console.log("ADDING LEARNING PAGE", textString)
       console.dir(layoutModel)
     }
@@ -118,7 +376,7 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
     // ****IMPORTANT**** For the hook to work, we need to create a new array and not modify the existing one
     const newChildren = [...layoutModel.layout.children[0].children, action.payload]
     nextlayoutModel.layout.children[0].children = newChildren
-    setLayoutModel(nextlayoutModel)
+    // setLayoutModel(nextlayoutModel)
     console.log("ADD TEST", textString)
     console.dir(layoutModel)
   }
@@ -150,9 +408,12 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
     console.log("LAYOUT MODEL", layoutMainState)
   }, [layoutMainState])
 
+  useEffect(() => {
+    console.log("LAYOUT REQUEST QUEUE", layoutRequestQueue)
+  }, [layoutRequestQueue])
   // Returns the LayoutModelContext.Provider with the layoutModel, the dispatchLayout function and the flexlayoutInterpreter function as values
   // The children are wrapped by the LayoutModelContext.Provider and will have access to the layoutModel, the dispatchLayout function and the flexlayoutInterpreter function
-  return <LayoutModelContext.Provider value={{ layoutModel, dispatchLayout, flexlayoutInterpreter, layoutMainState, setLayoutMainState }}>{children}</LayoutModelContext.Provider>
+  return <LayoutModelContext.Provider value={{ layoutModel, setLayoutModel, dispatchLayout, flexlayoutInterpreter, layoutMainState, setLayoutMainState, layoutRequestQueue, setLayoutRequestQueue, developerMode, setDeveloperMode }}>{children}</LayoutModelContext.Provider>
 }
 
 function checkIfIDIsInLayoutModel(id, layoutModel) {

@@ -69,7 +69,8 @@ export default function App() {
     global: {
       tabEnableClose: true,
       tabEnableRenderOnDemand: false,
-      tabEnableRename: false
+      tabEnableRename: false,
+      autoSelectTab: true
     }, // this is a global setting for all tabs in the layout, it enables the close button on all tabs
     borders: [
       // this is the border model for the layout, it defines the borders and their children
@@ -255,7 +256,7 @@ export default function App() {
 
   // This useEffect hook is called whenever the `workspaceObject` state changes.
   useEffect(() => {
-    // console.log("workspaceObject changed", workspaceObject)
+    console.log("workspaceObject changed", workspaceObject)
   }, [workspaceObject])
 
   // This useEffect hook is called whenever the `globalData` state changes.
