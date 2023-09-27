@@ -136,8 +136,6 @@
   z-index: 2;
 }
 
-
-
 .medomics-layer-text {
   color: #ffffff;
   padding-inline: 1rem;
@@ -206,4 +204,9 @@
 
 .rct-tree-item-title-container label {
   cursor: pointer;
+}
+
+.rct-tree-item-title-container .icon-offset {
+  margin-right: 0.15rem;
+  margin-bottom: 0.2rem;
 }
