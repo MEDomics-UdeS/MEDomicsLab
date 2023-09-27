@@ -5,8 +5,7 @@ import { ControlledTreeEnvironment, Tree } from "react-complex-tree"
 import { DataContext } from "../../workspace/dataContext"
 import MedDataObject from "../../workspace/medDataObject"
 import { toast } from "react-toastify"
-// import { LayoutModelContext } from "../layoutContext"
-// import { ActionContext } from "../actionContext"
+import { LayoutModelContext } from "../layoutContext"
 import { useContextMenu, Menu, Item, Submenu } from "react-contexify"
 import renderItem from "./directoryTree/renderItem"
 /**
@@ -34,8 +33,7 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
 
   const [isAccordionShowing, setIsAccordionShowing] = useState(false) // This state is used to know if the accordion is collapsed or not
   const { globalData, setGlobalData } = useContext(DataContext) // We get the global data from the context to retrieve the directory tree of the workspace, thus retrieving the data files
-  // const { dispatchLayout } = useContext(LayoutModelContext)
-  // const { dispatchAction } = useContext(ActionContext) // We get the dispatchAction function from the context to dispatch actions to the action reducer
+  const { dispatchLayout } = useContext(LayoutModelContext)
 
   const [dirTree, setDirTree] = useState({}) // We get the directory tree from the workspace
 

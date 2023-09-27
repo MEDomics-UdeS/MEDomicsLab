@@ -28,6 +28,7 @@ const LearningSidebar = () => {
   const { globalData } = useContext(DataContext)
   const { dispatchLayout } = useContext(LayoutModelContext)
 
+  // We use the useEffect hook to update the experiment list state when the workspace changes
   useEffect(() => {
     let experimentList = []
     if (globalData && selectedItems && globalData[selectedItems[0]] && globalData[selectedItems[0]].childrenIDs) {
@@ -39,6 +40,7 @@ const LearningSidebar = () => {
     setExperimentList(experimentList)
   }, [workspace, selectedItems, globalData[selectedItems[0]]]) // We log the workspace when it changes
 
+  // We use the useEffect hook to update the create experiment error message state when the experiment name changes
   useEffect(() => {
     if (sceneName != "" && !experimentList.includes(sceneName)) {
       setBtnCreateSceneState(true)
@@ -49,6 +51,11 @@ const LearningSidebar = () => {
     }
   }, [sceneName, experimentList]) // We set the button state to true if the experiment name is empty, otherwise we set it to false
 
+  /**
+   * 
+   * @param {Event} e - The event passed on by the create button
+   * @description - This function is used to create an experiment when the create button is clicked 
+   */
   const createExperiment = (e) => {
     console.log("Create Scene")
     console.log(`Scene Name: ${sceneName}`) // We log the experiment name when the create button is clicked
@@ -56,6 +63,12 @@ const LearningSidebar = () => {
     createEmptyScene(getBasePath(EXPERIMENTS), sceneName)
   }
 
+  /**
+   * 
+   * @param {String} path The path of the folder where the scene will be created
+   * @param {String} name The name of the scene
+   * @description - This function is used to create an empty scene
+   */
   const createEmptyScene = async (path, name) => {
     const emptyScene = loadJsonPath("./resources/emptyScene.medml")
     if (globalData[selectedItems[0]].parentID == MedDataObject.checkIfMedDataObjectInContextbyPath(path, globalData).getUUID()) {
@@ -91,6 +104,8 @@ const LearningSidebar = () => {
     }
   }
 
+
+  // We use the useEffect hook to open the learning page when the selected item changes
   useEffect(() => {
     console.log(dbSelectedItem)
     // if (globalData[dbSelectedItem] !== undefined) {
@@ -101,6 +116,11 @@ const LearningSidebar = () => {
     }
   }, [dbSelectedItem])
 
+  /**
+   * 
+   * @param {Event} e - The event passed on by the create scene button
+   * @description - This function is used to open the create scene overlay panel when the create scene button is clicked 
+   */
   const handleClickCreateScene = (e) => {
     console.log("Create Scene")
     createSceneRef.current.toggle(e)

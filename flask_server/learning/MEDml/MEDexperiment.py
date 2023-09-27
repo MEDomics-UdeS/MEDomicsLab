@@ -13,7 +13,6 @@ from typing import Union
 from pathlib import Path
 from utils.server_utils import get_repo_path
 
-
 from learning.MEDml.CodeHandler import convert_dict_to_params
 
 DATAFRAME_LIKE = Union[dict, list, tuple, np.ndarray, pd.DataFrame]
@@ -73,7 +72,6 @@ class MEDexperiment:
         self.global_json_config['unique_id'] = 0
         self.pipelines_objects = self.create_next_nodes(
             self.pipelines, copy.deepcopy(self.pipelines_objects))
-        # self.global_json_config['saving_path'] = str(Path(os.path.dirname(os.path.abspath(__file__))).parent.parent / 'local_dir')
         if self.global_json_config['ws_path'][0] == '.':
             self.global_json_config['ws_path'] = get_repo_path(
             ) + self.global_json_config['ws_path'][1:]
