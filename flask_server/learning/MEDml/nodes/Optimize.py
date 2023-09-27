@@ -4,10 +4,6 @@ import copy
 import numpy as np
 import json
 from learning.MEDml.nodes.NodeObj import Node
-from typing import Any, Dict, List, Union
-from termcolor import colored
-from colorama import Fore, Back, Style
-from learning.MEDml.nodes.NodeObj import Node
 from typing import Union
 from colorama import Fore
 from learning.MEDml.CodeHandler import convert_dict_to_params
@@ -23,13 +19,25 @@ class Optimize(Node):
 
     def _execute(self, experiment: dict = None, **kwargs) -> json:
         print()
-        print(Fore.BLUE + "=== optimizing === " + Fore.YELLOW + f"({self.username})" + Fore.RESET)
+        print(Fore.BLUE + "=== optimizing === " +
+              Fore.YELLOW + f"({self.username})" + Fore.RESET)
         settings = copy.deepcopy(self.settings)
         trained_models = []
         trained_models_json = {}
+        self.CodeHandler.add_line("code", f"trained_models_optimized = []")
+        self.CodeHandler.add_line("code", f"for model in trained_models:")
         for model in kwargs['models']:
-            print(Fore.CYAN + f"optimizing: {model.__class__.__name__}" + Fore.RESET)
-            trained_models.append(getattr(experiment['pycaret_exp'], self.type)(model, **settings))
+            print(Fore.CYAN +
+                  f"optimizing: {model.__class__.__name__}" + Fore.RESET)
+            trained_models.append(
+                getattr(experiment['pycaret_exp'], self.type)(model, **settings))
+            self.CodeHandler.add_line(
+                "code", f"optimized_model = pycaret_exp.{self.type}(model, {convert_dict_to_params(settings)})", 1)
+            self.CodeHandler.add_line(
+                "code", f"trained_models_optimized.append(optimized_model)", 1)
+
+        self.CodeHandler.add_line(
+            "code", f"trained_models = trained_models_optimized")
         trained_models_copy = trained_models.copy()
         self._info_for_next_node = {'models': trained_models}
         for model in trained_models_copy:
@@ -37,5 +45,6 @@ class Optimize(Node):
             trained_models_json[model_copy.__class__.__name__] = model_copy.__dict__
             for key, value in model_copy.__dict__.items():
                 if isinstance(value, np.ndarray):
-                    trained_models_json[model_copy.__class__.__name__][key] = value.tolist()
+                    trained_models_json[model_copy.__class__.__name__][key] = value.tolist(
+                    )
         return trained_models_json

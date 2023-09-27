@@ -1,3 +1,5 @@
+from termcolor import colored
+from colorama import Fore, Back, Style
 import pandas as pd
 from abc import ABC, abstractmethod
 import numpy as np
@@ -5,9 +7,6 @@ import json
 from typing import Any, Dict, List, Union
 DATAFRAME_LIKE = Union[dict, list, tuple, np.ndarray, pd.DataFrame]
 TARGET_LIKE = Union[int, str, list, tuple, np.ndarray, pd.Series]
-from colorama import Fore, Back, Style
-from termcolor import colored
-import copy
 
 
 def str2bool(v: str) -> bool:
@@ -89,6 +88,7 @@ class Node(ABC):
         Returns:
             result of the execution of the node
         """
+        self.CodeHandler.reset()
         self.CodeHandler.add_line("md", f"### This is {self.username}")
         self.just_run = True
         self._has_run = True
@@ -107,9 +107,6 @@ class Node(ABC):
         """
         return self.id == other.id and self.config_json == other.config_json
 
-    def get_code(self) -> str:
-        return self.CodeHandler.get_code()
-
     @abstractmethod
     def _execute(self, experiment: dict = None, **kwargs) -> json:
         """
@@ -123,9 +120,6 @@ class Node(ABC):
             result of the execution of the node
         """
         pass
-
-    def get_imports(self):
-        return self.CodeHandler.get_imports()
 
 
 class NodeCodeHandler:
@@ -143,7 +137,8 @@ class NodeCodeHandler:
         Returns:
             None
         """
-        self.imports.append({"type": "code", "content": import_name, "indent": 0})
+        self.imports.append(
+            {"type": "code", "content": import_name, "indent": 0})
 
     def add_line(self, line_type: str, line: str, indent: int = 0):
         """
@@ -157,7 +152,8 @@ class NodeCodeHandler:
             None
         """
         indent_str = "    " * indent
-        self.code.append({"type": line_type, "content": indent_str+line, "indent": indent})
+        self.code.append(
+            {"type": line_type, "content": indent_str+line, "indent": indent})
 
     def add_function(self, func_name, func_params, func_body):
         """

@@ -2,15 +2,10 @@ import pandas as pd
 from itertools import chain, combinations
 import os
 import numpy as np
-# from pycaret.survival_analysis.oop import SurvivalAnalysisExperiment
 import json
 from learning.MEDml.utils.loading import Loader
 from learning.MEDml.nodes.NodeObj import *
-from typing import Any, Dict, List, Union
-from colorama import Fore, Back, Style
-from learning.MEDml.nodes.NodeObj import *
 from typing import Union
-from learning.MEDml.CodeHandler import convert_dict_to_params
 
 
 DATAFRAME_LIKE = Union[dict, list, tuple, np.ndarray, pd.DataFrame]
@@ -30,14 +25,17 @@ class Dataset(Node):
 
     def _execute(self, experiment: dict = None, **kwargs) -> json:
         if self.settings['files'] != '':
-            self.entry_file_type = FOLDER if os.path.isdir(self.settings['files']) else FILE
+            self.entry_file_type = FOLDER if os.path.isdir(
+                self.settings['files']) else FILE
             if self.entry_file_type == FOLDER:
                 self.load_csv_in_folder(self.settings['files'])
                 self.dfs_combinations = self._merge_dfs(self.settings['time-point'],
                                                         self.settings['split_experiment_by_institutions'])
             else:
-                self.df = pd.read_csv(self.settings['files'], sep=',', encoding='utf-8')
-                self.CodeHandler.add_line("code", f"df = pd.read_csv('{str(self.settings['files'])}', sep=',', encoding='utf-8')")
+                self.df = pd.read_csv(
+                    self.settings['files'], sep=',', encoding='utf-8')
+                self.CodeHandler.add_line(
+                    "code", f"df = pd.read_csv({json.dumps(self.settings['files'])}, sep=',', encoding='utf-8')")
                 self.CodeHandler.add_seperator()
         else:
             self.entry_file_type = INPUT
@@ -57,12 +55,14 @@ class Dataset(Node):
                     self._dfs[csv_type] = {}
                 if not self._dfs[csv_type].keys().__contains__(timepoint):
                     self._dfs[csv_type][timepoint] = []
-                self._dfs[csv_type][timepoint].append({name_info_list[3]: pd.read_csv(f, sep=',', encoding='utf-8')})
+                self._dfs[csv_type][timepoint].append(
+                    {name_info_list[3]: pd.read_csv(f, sep=',', encoding='utf-8')})
                 # +"pd.read_csv(f, sep=',', encoding='utf-8')"
         loader.stop()
 
     def _merge_dfs(self, timePoint: str, split_by_institutions: bool) -> dict:
-        loader = Loader("Merging multi-omics combinations...", "Finished!").start()
+        loader = Loader("Merging multi-omics combinations...",
+                        "Finished!").start()
         timePoint_int = int(timePoint.replace('time', ''))
         (k, df_outcome_col), = self._dfs['outcome'][timePoint_int][0].items()
         combinations_element = []
@@ -84,7 +84,8 @@ class Dataset(Node):
                     (k, v), = elem.items()
                     comb_name = comb_name + "-" + k
                     df_temp = df_temp.merge(v, how='inner', on='ID')
-            combinations_dict[comb_name] = df_temp.merge(df_outcome_col, how='inner', on='ID')
+            combinations_dict[comb_name] = df_temp.merge(
+                df_outcome_col, how='inner', on='ID')
         if split_by_institutions:
             combinations_dict_institutions = {}
             for exp_name, df in combinations_dict.items():
@@ -95,11 +96,13 @@ class Dataset(Node):
                     if not institutions_list.__contains__(inst):
                         institutions_list.append(inst)
                         # combinations_dict_institutions[exp_name][inst] = pd.DataFrame()
-                        combinations_dict_institutions[exp_name][inst] = (df.loc[df['ID'] == id])
+                        combinations_dict_institutions[exp_name][inst] = (
+                            df.loc[df['ID'] == id])
                     else:
                         new_row = df.loc[df['ID'] == id]
                         # combinations_dict_institutions[exp_name][inst].append(pd.DataFrame(new_row, columns=df.columns))
-                        combinations_dict_institutions[exp_name][inst] = pd.concat([new_row, combinations_dict_institutions[exp_name][inst].loc[:]]).reset_index(drop=True)
+                        combinations_dict_institutions[exp_name][inst] = pd.concat(
+                            [new_row, combinations_dict_institutions[exp_name][inst].loc[:]]).reset_index(drop=True)
             loader.stop()
             return combinations_dict_institutions
         else:
@@ -108,7 +111,8 @@ class Dataset(Node):
 
     def _get_combinations(self, items):
         l_items = list(items)
-        raw_list = list(chain.from_iterable(combinations(l_items, r) for r in range(len(l_items) + 1)))[1:]
+        raw_list = list(chain.from_iterable(combinations(l_items, r)
+                        for r in range(len(l_items) + 1)))[1:]
         clean_list = []
         for elem_list in raw_list:
             temp1 = []

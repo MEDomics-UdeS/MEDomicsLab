@@ -145,16 +145,19 @@ const PipelinesResults = ({ pipelines, selectionMode, flowContent }) => {
         return node && node.data.internal.name
       }
 
+      // check if the node is checked
       const isChecked = (id) => {
         let node = flowContent.nodes.find((node) => node.id == id)
         return node && node.data.internal.results.checked
       }
 
+      // check if the node has run
       const hasRun = (id) => {
         let node = flowContent.nodes.find((node) => node.id == id)
         return node && node.data.internal.hasRun
       }
 
+      // template for the button displayed in the select button
       const buttonTemplate = (option) => {
         return (
           <div className="pipeline-results-button">
@@ -163,6 +166,15 @@ const PipelinesResults = ({ pipelines, selectionMode, flowContent }) => {
         )
       }
 
+      /**
+       *
+       * @param {Event} e click event
+       * @returns {void}
+       *
+       * @description
+       * This function is used to generate the notebook corresponding to the pipeline.
+       * It first gets the code and the imports of each node in the pipeline and then call the createNoteBookDoc function.
+       */
       const codeGeneration = (e) => {
         e.preventDefault()
         e.stopPropagation()
@@ -174,7 +186,7 @@ const PipelinesResults = ({ pipelines, selectionMode, flowContent }) => {
         pipeline.forEach((id) => {
           let nodeResults = checkIfObjectContainsId(resultsCopy, id)
           if (nodeResults) {
-            finalCode = nodeResults.results.code.content
+            finalCode = [...finalCode, ...nodeResults.results.code.content]
             console.log("imports", nodeResults.results.code.imports)
             finalImports = [...finalImports, ...nodeResults.results.code.imports]
             resultsCopy = nodeResults.next_nodes
@@ -188,14 +200,22 @@ const PipelinesResults = ({ pipelines, selectionMode, flowContent }) => {
         createNoteBookDoc(finalCode, finalImports)
       }
 
+      /**
+       *
+       * @param {List} code List of code lines
+       * @param {List} imports List of imports
+       * @returns {void}
+       *
+       * @description
+       * This function is used to create the notebook document corresponding to the pipeline's code and imports.
+       * It first loads the existing notebook or get an empty one and then fills it with the code and the imports.
+       */
       const createNoteBookDoc = (code, imports) => {
         let notebook = loadJsonPath([getBasePath(EXPERIMENTS), experimentName, sceneName, "notebooks", pipeline.map((id) => getName(id)).join("-")].join(MedDataObject.getPathSeparator()) + ".ipynb")
-        // (notebook) ? (notebook = deepCopy(notebook)) : (notebook = deepCopy(loadJsonPath("./resources/emptyNotebook.ipynb")))
         notebook = notebook ? deepCopy(notebook) : deepCopy(loadJsonPath("./resources/emptyNotebook.ipynb"))
         notebook.cells = []
-
-        console.log("baseNb", notebook)
         let lastType = "md"
+        // This function is used to add a code cell to the notebook
         const addCode = (code) => {
           let cell = {
             // eslint-disable-next-line camelcase
@@ -209,6 +229,7 @@ const PipelinesResults = ({ pipelines, selectionMode, flowContent }) => {
           notebook.cells.push(cell)
         }
 
+        // This function is used to add a markdown cell to the notebook
         const addMarkdown = (markdown) => {
           let cell = {
             // eslint-disable-next-line camelcase
@@ -219,6 +240,7 @@ const PipelinesResults = ({ pipelines, selectionMode, flowContent }) => {
           notebook.cells.push(cell)
         }
 
+        // This function is used to compile the lines of the same type
         const compileLines = (lines) => {
           if (lastType == "code") {
             addCode(lines)
@@ -227,14 +249,12 @@ const PipelinesResults = ({ pipelines, selectionMode, flowContent }) => {
           }
         }
         // HEADER
-        addMarkdown(["## Notebook automatically generated\n\n", "**Experiment:** " + experimentName + "\n\n", "**Scene:** " + sceneName + "\n\n", "**Pipeline:** " + pipeline.map((id) => getName(id)).join(" -> ") + "\n\n", "**Date:** " + new Date().toLocaleString() + "\n\n"])
+        addMarkdown(["## Notebook automatically generated\n\n", "**Experiment:** " + experimentName + "\n\n", "**Scene:** " + sceneName + "\n\n", "**Pipeline:** " + pipeline.map((id) => getName(id)).join(" ➡️ ") + "\n\n", "**Date:** " + new Date().toLocaleString() + "\n\n"])
         // IMPORTS
-
         addCode(imports.map((imp) => imp.content))
         // CODE
         let linesOfSameType = []
         code.forEach((line) => {
-          console.log("lastType", lastType)
           if (line.type == lastType) {
             linesOfSameType.push(line.content)
           } else {
@@ -245,9 +265,7 @@ const PipelinesResults = ({ pipelines, selectionMode, flowContent }) => {
         })
         compileLines(linesOfSameType)
 
-        console.log("notebook", notebook)
-        MedDataObject.writeFileSync(notebook, [getBasePath(EXPERIMENTS), experimentName, sceneName, "notebooks"], pipeline.map((id) => getName(id)).join("-"), "ipynb").then((res) => {
-          console.log("res", res)
+        MedDataObject.writeFileSync(notebook, [getBasePath(EXPERIMENTS), experimentName, sceneName, "notebooks"], pipeline.map((id) => getName(id)).join("-"), "ipynb").then(() => {
           toast.success("Notebook generated !")
         })
       }
@@ -285,6 +303,14 @@ const PipelinesResults = ({ pipelines, selectionMode, flowContent }) => {
     [selectedResultsId, setSelectedResultsId, selectionMode, flowContent]
   )
 
+  /**
+   *
+   * @param {Function} onClick
+   * @returns {JSX.Element} A CodeGenBtn component
+   *
+   * @description
+   * This component is used to display a button to generate the notebook corresponding to the pipeline.
+   */
   const CodeGenBtn = ({ onClick }) => {
     return (
       <Button className="code-generation-button" onClick={onClick}>

@@ -1,13 +1,12 @@
-import traceback
 from learning.MEDml.MEDexperiment import MEDexperiment
-from flask import jsonify, request, Blueprint
-import sys
+from flask import request, Blueprint
 import json
 from utils.server_utils import get_json_from_request, get_response_from_error
 import os
 from pathlib import Path
 
-MEDOMICS_WS = str(Path(os.path.dirname(os.path.abspath(__file__))).parent.parent)
+MEDOMICS_WS = str(Path(os.path.dirname(
+    os.path.abspath(__file__))).parent.parent)
 print(MEDOMICS_WS)
 cwd = os.getcwd()
 isFrontSlash = cwd.find("/")
@@ -15,7 +14,8 @@ if os.getcwd().find("/") == -1:
     MEDOMICS_WS = MEDOMICS_WS.replace("/", "\\")
 
 # blueprint definition
-app_learning = Blueprint('app_learning', __name__, template_folder='templates', static_folder='static')
+app_learning = Blueprint('app_learning', __name__,
+                         template_folder='templates', static_folder='static')
 
 # global variables
 experiment = None
@@ -24,7 +24,7 @@ files_uploaded = []
 df = []
 
 
-@app_learning.route("/run_experiment", methods=["POST"]) 
+@app_learning.route("/run_experiment", methods=["POST"])
 def run_experiment():
     """
     triggered by the button play in the dashboard, it starts the execution of the pipeline
@@ -65,6 +65,7 @@ def progress():
     else:
         return {'cur_node': '', 'progress': 0}
 
+
 @app_learning.route('/code_generation', methods=['POST'])
 def code_generation():
     """
@@ -86,5 +87,3 @@ def code_generation():
 
     except BaseException as e:
         return get_response_from_error(e)
-
-
