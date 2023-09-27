@@ -1,11 +1,11 @@
 import React from "react"
 import ModulePage from "./moduleBasics/modulePage"
 
-const TerminalPage = ({ pageId = "terminal", configPath = null }) => {
+const TerminalPage = ({ pageId = "terminal", configPath }) => {
   return (
     <>
       <ModulePage pageId={pageId} configPath={configPath}>
-        <text>Future terminal will be here</text>
+        <p>Future terminal will be here</p>
       </ModulePage>
     </>
   )

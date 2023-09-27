@@ -1,11 +1,11 @@
 import React from "react"
 import ModulePage from "./moduleBasics/modulePage"
 
-const OutputPage = ({ pageId = "output", configPath = null }) => {
+const OutputPage = ({ pageId = "output", configPath }) => {
   return (
     <>
       <ModulePage pageId={pageId} configPath={configPath}>
-        <text>Future output will be here</text>
+        <p>Future output will be here</p>
       </ModulePage>
     </>
   )

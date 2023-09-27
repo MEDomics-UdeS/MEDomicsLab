@@ -3,7 +3,7 @@ import { DataContext } from "../../workspace/dataContext"
 import { ListBox } from "primereact/listbox"
 import DataTableFromContext from "./dataTableFromContext"
 import { Tab, Tabs } from "react-bootstrap"
-import { ScrollPanel } from "primereact/scrollpanel"
+
 /**
  * @description - This component is the dataset selector component that will show the datasets available in the workspace
  * @returns the dataset selector component
@@ -15,10 +15,11 @@ const DatasetSelector = ({ multiSelect }) => {
   const [datasetList, setDatasetList] = useState([])
   const [selectedDatasets, setSelectedDatasets] = useState([])
   const [activeKey, setActiveKey] = useState("0") // activeKey is the name of the page
-  const [tabMenuItems, setTabMenuItems] = useState([
-    { label: "Dataset", icon: "pi pi-fw pi-file" }
-  ])
+  const [tabMenuItems, setTabMenuItems] = useState([{ label: "Dataset", icon: "pi pi-fw pi-file" }])
 
+  /**
+   *
+   */
   function generateDatasetListFromDataContext(dataContext) {
     let keys = Object.keys(dataContext)
     let datasetListToShow = []
@@ -73,27 +74,13 @@ const DatasetSelector = ({ multiSelect }) => {
           optionLabel="name"
           className="listbox-multiple w-full md:w-14rem"
         />
-        <Tabs
-          activeKey={activeKey}
-          defaultActiveKey={"0"}
-          id="dataTable-selector-tabs"
-          className="mb-3"
-          onSelect={(k) => setActiveKey(k)}
-        >
+        <Tabs activeKey={activeKey} defaultActiveKey={"0"} id="dataTable-selector-tabs" className="mb-3" onSelect={(k) => setActiveKey(k)}>
           {selectedDatasets.length > 0 &&
             tabMenuItems.map((item, index) => {
               if (selectedDatasets[index] !== undefined) {
                 return (
-                  <Tab
-                    style={{ height: "100%" }}
-                    title={selectedDatasets[index].name}
-                    key={selectedDatasets[index].getUUID()}
-                    eventKey={selectedDatasets[index].getUUID()}
-                  >
-                    <DataTableFromContext
-                      MedDataObject={selectedDatasets[index]}
-                      tablePropsData={{ size: "small", scrollable: true }}
-                    />
+                  <Tab style={{ height: "100%" }} title={selectedDatasets[index].name} key={selectedDatasets[index].getUUID()} eventKey={selectedDatasets[index].getUUID()}>
+                    <DataTableFromContext MedDataObject={selectedDatasets[index]} tablePropsData={{ size: "small", scrollable: true }} />
                   </Tab>
                 )
               } else {

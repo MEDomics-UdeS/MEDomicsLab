@@ -563,6 +563,10 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
           <Item>D-Tale</Item>
           <Item>PandasProfiling</Item>
         </Submenu>
+        <Item id="revealInFileExplorer" onClick={() => require("electron").shell.showItemInFolder(globalData[selectedItems[0]].path)}>
+          {/* <BoxArrowUpRight size={"1rem"} className="context-menu-icon" /> */}
+          Reveal in File Explorer
+        </Item>
         <Item id="rename" onClick={handleContextMenuAction}>
           <Eraser size={"1rem"} className="context-menu-icon" />
           Rename
@@ -587,6 +591,10 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
             Learning module (default)
           </Item>
         </Submenu>
+        <Item id="revealInFileExplorer" onClick={() => require("electron").shell.showItemInFolder(globalData[selectedItems[0]].path)}>
+          {/* <BoxArrowUpRight size={"1rem"} className="context-menu-icon" /> */}
+          Reveal in File Explorer
+        </Item>
         <Item id="rename" onClick={handleContextMenuAction}>
           <Eraser size={"1rem"} className="context-menu-icon" />
           Rename
@@ -625,6 +633,10 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
           <Item>Code editor (default)</Item>
           <Item>Jupyter Notebook</Item>
         </Submenu>
+        <Item id="revealInFileExplorer" onClick={() => require("electron").shell.showItemInFolder(globalData[selectedItems[0]].path)}>
+          {/* <BoxArrowUpRight size={"1rem"} className="context-menu-icon" /> */}
+          Reveal in File Explorer
+        </Item>
         <Item id="rename" onClick={handleContextMenuAction}>
           <Eraser size={"1rem"} className="context-menu-icon" />
           Rename
@@ -648,6 +660,10 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
           <Item>Image viewer (default)</Item>
           <Item>ImageJ</Item>
         </Submenu>
+        <Item id="revealInFileExplorer" onClick={() => require("electron").shell.showItemInFolder(globalData[selectedItems[0]].path)}>
+          {/* <BoxArrowUpRight size={"1rem"} className="context-menu-icon" /> */}
+          Reveal in File Explorer
+        </Item>
         <Item id="rename" onClick={handleContextMenuAction}>
           <Eraser size={"1rem"} className="context-menu-icon" />
           Rename
@@ -670,6 +686,10 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
         >
           <Item>PDF viewer (default)</Item>
         </Submenu>
+        <Item id="revealInFileExplorer" onClick={() => require("electron").shell.showItemInFolder(globalData[selectedItems[0]].path)}>
+          {/* <BoxArrowUpRight size={"1rem"} className="context-menu-icon" /> */}
+          Reveal in File Explorer
+        </Item>
         <Item id="rename" onClick={handleContextMenuAction}>
           <Eraser size={"1rem"} className="context-menu-icon" />
           Rename
@@ -692,6 +712,10 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
         >
           <Item>Text editor (default)</Item>
         </Submenu>
+        <Item id="revealInFileExplorer" onClick={() => require("electron").shell.showItemInFolder(globalData[selectedItems[0]].path)}>
+          {/* <BoxArrowUpRight size={"1rem"} className="context-menu-icon" /> */}
+          Reveal in File Explorer
+        </Item>
         <Item id="rename" onClick={handleContextMenuAction}>
           <Eraser size={"1rem"} className="context-menu-icon" />
           Rename
@@ -716,6 +740,10 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
           <Item>Evaluation Module</Item>
           <Item>Application Module</Item>
         </Submenu>
+        <Item id="revealInFileExplorer" onClick={() => require("electron").shell.showItemInFolder(globalData[selectedItems[0]].path)}>
+          {/* <BoxArrowUpRight size={"1rem"} className="context-menu-icon" /> */}
+          Reveal in File Explorer
+        </Item>
         <Item id="rename" onClick={handleContextMenuAction}>
           <Eraser size={"1rem"} className="context-menu-icon" />
           Rename
@@ -727,6 +755,10 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
       </Menu>
 
       <Menu id="MENU_DEFAULT">
+        <Item id="revealInFileExplorer" onClick={() => require("electron").shell.showItemInFolder(globalData[selectedItems[0]].path)}>
+          {/* <BoxArrowUpRight size={"1rem"} className="context-menu-icon" /> */}
+          Reveal in File Explorer
+        </Item>
         <Item id="rename" onClick={handleContextMenuAction}>
           <Eraser size={"1rem"} className="context-menu-icon" />
           Rename

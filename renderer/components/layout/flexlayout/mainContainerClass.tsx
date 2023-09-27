@@ -2,7 +2,6 @@ import * as React from "react"
 import * as Prism from "prismjs"
 import { createRoot } from "react-dom/client"
 import { Action, Actions, BorderNode, CLASSES, DockLocation, DragDrop, DropInfo, IJsonTabNode, ILayoutProps, ITabRenderValues, ITabSetRenderValues, Layout, Model, Node, TabNode, TabSetNode } from "flexlayout-react"
-import { NewFeatures } from "./newFeatures"
 import { showPopup } from "./popupMenu"
 import { TabStorage } from "./tabStorage"
 import { Utils } from "./utils"
@@ -23,6 +22,8 @@ import ExtractionTSPage from "../../mainPages/extraction_ts"
 import HomePage from "../../mainPages/home"
 import TerminalPage from "../../mainPages/terminal"
 import OutputPage from "../../mainPages/output"
+import ApplicationPage from "../../mainPages/application"
+import * as Icons from "react-bootstrap-icons"
 
 var fields = ["Name", "Field1", "Field2", "Field3", "Field4", "Field5"]
 
@@ -52,6 +53,10 @@ const MainContainer = (props) => {
   return <MainInnerContainer layoutRequestQueue={layoutRequestQueue} setLayoutRequestQueue={setLayoutRequestQueue} globalData={globalData} setGlobalData={setGlobalData} />
 }
 
+/**
+ * Main container for the flexlayout
+ * @summary This is the main container for the flexlayout. It contains the layout model and the layout itself.
+ */
 class MainInnerContainer extends React.Component<any, { layoutFile: string | null; model: Model | null; json?: string; adding: boolean; fontSize: string; realtimeResize: boolean }> {
   loadingLayoutName?: string
   nextGridIndex: number = 1
@@ -73,13 +78,17 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
   }
 
   // Rest of your component code
-
   preventIOSScrollingWhenDragging(e: Event) {
     if (DragDrop.instance.isActive()) {
       e.preventDefault()
     }
   }
 
+  /**
+   * Callback when the component is mounted
+   * @returns nothing
+   * @summary We load the default layout from local storage
+   */
   componentDidMount() {
     this.loadLayout("default", false)
     document.body.addEventListener("touchmove", this.preventIOSScrollingWhenDragging, { passive: false })
@@ -92,10 +101,13 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
       })
       setLayoutRequestQueue([])
     }
-    // use to generate json typescript interfaces
-    // Model.toTypescriptInterfaces();
   }
 
+  /**
+   * Callback when the model is changed
+   * @returns nothing
+   * @summary Using a timer to prevent too many updates, we update the json state and save the layout to local storage
+   */
   onModelChange = () => {
     console.log("onModelChange")
     if (this.htmlTimer) {
@@ -110,11 +122,21 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
     }, 500)
   }
 
+  /**
+   * Save the layout json to local storage
+   * @returns nothing
+   */
   save() {
     var jsonStr = JSON.stringify(this.state.model!.toJson(), null, "\t")
     localStorage.setItem(this.state.layoutFile!, jsonStr)
   }
 
+  /**
+   * Loads the layout json from local storage
+   * @param layoutName the name of the layout
+   * @param reload if true, force a reload from local storage
+   * @returns nothing
+   */
   loadLayout(layoutName: string, reload?: boolean) {
     console.log("loadLayout: ", layoutName, this.state.layoutFile)
     if (this.state.layoutFile !== null) {
@@ -136,6 +158,11 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
     }
   }
 
+  /**
+   * Loads the layout json into the flexlayout model
+   * @param jsonText the layout json
+   * @returns nothing
+   */
   load = (jsonText: string) => {
     let json = JSON.parse(jsonText)
     let model = Model.fromJson(json)
@@ -144,6 +171,12 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
     this.setState({ layoutFile: this.loadingLayoutName!, model: model, json: html })
   }
 
+  /**
+   * Sets if the tab can be dropped on the tabset
+   * @param dragNode the tab that is being dragged
+   * @param dropInfo the info on where the drag is over
+   * @returns true if the tab can be dropped on the tabset
+   */
   allowDrop = (dragNode: TabNode | TabSetNode, dropInfo: DropInfo) => {
     let dropNode = dropInfo.node
 
@@ -156,10 +189,21 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
     return true
   }
 
+  /**
+   * Callback for when an error occurs loading the json config file
+   * @param reason the reason for the error
+   * @returns nothing
+   */
   error = (reason: string) => {
     alert("Error loading json config file: " + this.loadingLayoutName + "\n" + reason)
   }
 
+  /**
+   * Callback for adding a tab with drag and drop
+   * @param event the mouse event
+   * @returns nothing
+   * @summary We add a tab with drag and drop
+   */
   onAddDragMouseDown = (event: React.MouseEvent | React.TouchEvent<HTMLButtonElement>) => {
     event.stopPropagation()
     event.preventDefault()
@@ -175,6 +219,12 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
     // this.setState({ adding: true });
   }
 
+  /**
+   * Callback for a direct click on the add button
+   * @param event the mouse event
+   * @returns nothing
+   * @summary When the add button is clicked, we add a tab to the active tabset
+   */
   onAddActiveClick = (event: React.MouseEvent) => {
     this.layoutRef!.current!.addTabToActiveTabSet({
       component: "grid",
@@ -183,6 +233,11 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
     })
   }
 
+  /**
+   * Callback for the add button in the tabset toolbar
+   * @param node the node that was clicked
+   * @returns nothing
+   */
   onAddFromTabSetButton = (node: TabSetNode | BorderNode) => {
     this.layoutRef!.current!.addTabToTabSet(node.getId(), {
       component: "grid",
@@ -190,6 +245,12 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
     })
   }
 
+  /**
+   * Callback for an indirect click on the add button
+   * @param event the mouse event
+   * @returns nothing
+   * @summary When the add button is clicked, we add a tab with drag and drop
+   */
   onAddIndirectClick = (event: React.MouseEvent) => {
     this.layoutRef!.current!.addTabWithDragAndDropIndirect(
       "Add grid\n(Drag to location)",
@@ -202,30 +263,44 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
     this.setState({ adding: true })
   }
 
+  /**
+   * Sets the realtimeResize state
+   * @param event the change event
+   * @returns nothing
+   * @summary When realtimeResize is true, the layout will resize in real time as the user drags the splitter. When realtimeResize is false, the layout will only resize when the user releases the splitter.
+   */
   onRealtimeResize = (event: React.ChangeEvent<HTMLInputElement>) => {
     this.setState({
       realtimeResize: event.target.checked
     })
   }
 
+  /**
+   * Callback when a tab is dragged over a tabset
+   * @param dragNode the tab that is being dragged
+   * @param dropInfo the info on where the drag is over
+   * @returns custom renderer for drag rect
+   * @summary When a tab is dragged over a tabset, we render a custom drag rect that says "DROP ME!!!"
+   */
   onRenderDragRect = (content: React.ReactElement | undefined, node?: Node, json?: IJsonTabNode) => {
-    if (this.state.layoutFile === "newfeatures") {
-      return (
-        <>
-          {content}
-          <div style={{ whiteSpace: "pre" }}>
-            <br />
-            This is a customized
-            <br />
-            drag rectangle
-          </div>
-        </>
-      )
-    } else {
-      return undefined // use default rendering
-    }
+    return (
+      <>
+        {content}
+        <div style={{ whiteSpace: "pre" }}>
+          <br />
+          DROP ME!!!
+          <br />
+        </div>
+      </>
+    )
   }
 
+  /**
+   * Callback when a tab is right clicked
+   * @param node the node that was clicked
+   * @param event the mouse event
+   * @returns nothing
+   */
   onContextMenu = (node: TabNode | TabSetNode | BorderNode, event: React.MouseEvent<HTMLElement, MouseEvent>) => {
     if (!this.showingPopupMenu) {
       event.preventDefault()
@@ -239,10 +314,22 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
     }
   }
 
+  /**
+   * Callback when an aux mouse button is clicked on a tab
+   * @param node the node that was clicked
+   * @param event the mouse event
+   * @returns nothing
+   */
   onAuxMouseClick = (node: TabNode | TabSetNode | BorderNode, event: React.MouseEvent<HTMLElement, MouseEvent>) => {
     console.log(node, event)
   }
 
+  /**
+   * Callback when a tab is dragged out of the main layout
+   * @param dockPopout callback to dock the tab
+   * @param showPopout callback to show the tab
+   * @returns custom renderer for floating tab placeholder
+   */
   onRenderFloatingTabPlaceholder = (dockPopout: () => void, showPopout: () => void) => {
     return (
       <div className={CLASSES.FLEXLAYOUT__TAB_FLOATING_INNER}>
@@ -261,8 +348,14 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
     )
   }
 
+  /**
+   * Callback when an external tab is dragged onto the main layout
+   * @param e the drag event
+   * @returns dragText, json and onDrop callback
+   * @summary It is not being used at the moment
+   */
   onExternalDrag = (e: React.DragEvent) => {
-    // console.log("onExternaldrag ", e.dataTransfer.types);
+    console.log("onExternaldrag ", e.dataTransfer.types)
     // Check for supported content type
     const validTypes = ["text/uri-list", "text/html", "text/plain"]
     if (e.dataTransfer.types.find((t) => validTypes.indexOf(t) !== -1) === undefined) return
@@ -276,7 +369,6 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
       },
       onDrop: (node?: Node, event?: Event) => {
         if (!node || !event) return // aborted drag
-
         if (node instanceof TabNode && event instanceof DragEvent) {
           const dragEvent = event as DragEvent
           if (dragEvent.dataTransfer) {
@@ -296,6 +388,16 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
     }
   }
 
+  /**
+   * Callback when a tab is dragged onto a tabset
+   * @param dragging the tab that is being dragged
+   * @param over the tab that is dragged over
+   * @param x the x location of the mouse
+   * @param y the y location of the mouse
+   * @param location the relative location of the mouse compared to the over node
+   * @param refresh callback when the drag is complete
+   * @returns tabStorageImpl if defined
+   */
   onTabDrag = (dragging: TabNode | IJsonTabNode, over: TabNode, x: number, y: number, location: DockLocation, refresh: () => void) => {
     const tabStorageImpl = over.getExtraData().tabStorage_onTabDrag as ILayoutProps["onTabDrag"]
     if (tabStorageImpl) {
@@ -304,22 +406,36 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
     return undefined
   }
 
+  /**
+   * Callback when the show layout button is clicked
+   * @param event the click event
+   */
   onShowLayoutClick = (event: React.MouseEvent) => {
     console.log(JSON.stringify(this.state.model!.toJson(), null, "\t"))
   }
 
+  /**
+   * Callback when a new tab is added
+   */
   onAdded = () => {
     this.setState({ adding: false })
   }
 
+  /**
+   * Callback when a table cell is clicked
+   * @param node the node that was clicked
+   * @param event the mouse event
+   */
   onTableClick = (node: Node, event: Event) => {
-    // console.log("tab: \n" + node._toAttributeString());
-    // console.log("tabset: \n" + node.getParent()!._toAttributeString());
-    // const n = this.state.model?.getNodeById("#750f823f-8eda-44b7-a887-f8b287ace2c8");
-    // (this.refs.layout as Layout).moveTabWithDragAndDrop(n as TabSetNode, "move tabset");
-    // (this.refs.layout as Layout).moveTabWithDragAndDrop(node as TabNode);
+    console.log("onTableClick", node, event)
   }
 
+  /**
+   * Callback when an action is dispatched by flexlayout.
+   * @param action action that was dispatched
+   * @returns optionally return a Action to replace the action or null to not dispatch action
+   * @description here we catch RENAME_TAB actions and update the medDataObject name
+   */
   onAction = (action: Action) => {
     console.log("MainContainer action: ", action)
     if (action.type === Actions.RENAME_TAB) {
@@ -330,20 +446,25 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
       if (medObject) {
         MedDataObject.handleNameChange(medObject, newName, globalData, setGlobalData)
       }
-
-      // newGlobalData[action.data.node].name = action.data.text
     }
     return action
   }
 
+  /**
+   * The most important function of the class
+   * It is called for each node and must return a react component to display
+   * @param node the node to display
+   * @param node.component the type of the node -> Used to differentiate the node type
+   * @param node.getExtraData() the extra data that was added to the node
+   * @param node.getConfig() the config that was added to the node
+   * @returns the react component to display
+   */
   factory = (node: TabNode) => {
-    // log lifecycle events
-    //node.setEventListener("resize", function(p){console.log("resize", node);});
-    //node.setEventListener("visibility", function(p){console.log("visibility", node);});
-    //node.setEventListener("close", function(p){console.log("close", node);});
-
     var component = node.getComponent()
 
+    /**
+     * We use the component name to differentiate the node type
+     */
     if (component === "json") {
       return <pre style={{ tabSize: "20px" }} dangerouslySetInnerHTML={{ __html: this.state.json! }} />
     } else if (component === "grid") {
@@ -351,7 +472,6 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
         // create data in node extra data first time accessed
         node.getExtraData().data = this.makeFakeData()
       }
-
       return <SimpleTable fields={fields} onClick={this.onTableClick.bind(this, node)} data={node.getExtraData().data} />
     } else if (component === "sub") {
       var model = node.getExtraData().model
@@ -372,8 +492,6 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
       } catch (e) {
         console.log(e)
       }
-    } else if (component === "newfeatures") {
-      return <NewFeatures />
     } else if (component === "multitype") {
       try {
         const config = node.getConfig()
@@ -482,6 +600,15 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
 
         return <ExtractionTSPage pageId={config.uuid} configPath={config.path} />
       }
+    } else if (component === "applicationPage") {
+      if (node.getExtraData().data == null) {
+        const config = node.getConfig()
+        if (config.path !== null) {
+          return <ApplicationPage pageId={config.uuid} configPath={config.path} />
+        } else {
+          return <ApplicationPage pageId={"EvaluationPage"} />
+        }
+      }
     } else if (component === "terminal") {
       if (node.getExtraData().data == null) {
         const config = node.getConfig()
@@ -515,6 +642,11 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
     return
   }
 
+  /**
+   * Function that sets the icon for the tab
+   * @param node the node to display
+   * @returns the react component icon to display
+   */
   iconFactory = (node: TabNode) => {
     if (node.getId() === "custom-tab") {
       return (
@@ -523,14 +655,78 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
         </>
       )
     }
-    if (node.getComponent() === "inputPage") {
-      return (
-        <>
-          <span style={{ marginRight: 3 }}>🛢️</span>
-        </>
-      )
+    return this.returnIconFromComponent(node.getComponent() as string, node.getConfig())
+  }
+
+  returnIconFromComponent(component: string, config?: any) {
+    if (config !== undefined && config !== null && config !== "" && config?.path !== undefined && config?.path !== null && config?.path !== "") {
+      console.log("config", config)
+      // if (config.path !== null && config.path !== undefined && config.path !== "") {
+      let extension = config.path.split(".").pop()
+      let iconToReturn = null
+      switch (extension) {
+        case "csv":
+          return <Icons.FiletypeCsv />
+        case "json":
+          return <Icons.FiletypeJson />
+        case "txt":
+          return <Icons.FiletypeTxt />
+        case "pdf":
+          return <Icons.FiletypePdf />
+        case "png":
+          return <Icons.FiletypePng />
+        case "jpg":
+          return <Icons.FiletypeJpg />
+        case "jpeg":
+          return <Icons.FiletypeJpg />
+        case "py":
+          return <Icons.FiletypePy />
+        case "ipynb":
+          return <Icons.FiletypePy />
+        case "html":
+          return <Icons.FiletypeHtml />
+        case "xlsx":
+          return <Icons.FiletypeXlsx />
+        case "xls":
+          return <Icons.FiletypeXls />
+      }
+      let icon = <span style={{ marginRight: 3 }}>{iconToReturn}</span>
+      return icon
+    } else {
+      if (component === "inputPage") {
+        return <span style={{ marginRight: 3 }}>🛢️</span>
+      }
+      if (component === "exploratoryPage") {
+        return <span style={{ marginRight: 3 }}>🔎</span>
+      }
+      if (component === "evaluationPage") {
+        return <span style={{ marginRight: 3 }}>✅</span>
+      }
+      if (component === "resultsPage") {
+        return <span style={{ marginRight: 3 }}>📊</span>
+      }
+      if (component === "learningPage") {
+        return <span style={{ marginRight: 3 }}>📖</span>
+      }
+      if (component === "extractionTextPage") {
+        return <span style={{ marginRight: 3 }}>📄</span>
+      }
+      if (component === "extractionImagePage") {
+        return <span style={{ marginRight: 3 }}>📷</span>
+      }
+      if (component === "extractionTSPage") {
+        return <span style={{ marginRight: 3 }}>📈</span>
+      }
+      if (component === "terminal") {
+        return <span style={{ marginRight: 3 }}>🖥️</span>
+      }
+      if (component === "output") {
+        return <span style={{ marginRight: 3 }}>🏁</span>
+      }
+      if (component === "applicationPage") {
+        return <span style={{ marginRight: 3 }}>📦</span>
+      }
     }
-    return
   }
 
   onSelectLayout = (event: React.FormEvent) => {
@@ -568,12 +764,13 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
 
   onRenderTabSet = (node: TabSetNode | BorderNode, renderValues: ITabSetRenderValues) => {
     if (this.state.layoutFile === "default") {
-      //renderValues.headerContent = "-- " + renderValues.headerContent + " --";
-      //renderValues.buttons.push(<img key="folder" style={{width:"1em", height:"1em"}} src="images/folder.svg"/>);
       if (node instanceof TabSetNode) {
+        /**
+         * Add a button to the tabset header
+         * Not being used at the moment
+         */
         // don't show + button on border tabsets
-        renderValues.stickyButtons.push(<img src="images/add.svg" alt="Add" key="Add button" title="Add Tab (using onRenderTabSet callback, see Demo)" style={{ width: "1.1em", height: "1.1em" }} className="flexlayout__tab_toolbar_button" onClick={() => this.onAddFromTabSetButton(node)} />)
-
+        // renderValues.stickyButtons.push(<img src="images/add.svg" alt="Add" key="Add button" title="Add Tab (using onRenderTabSet callback, see Demo)" style={{ width: "1.1em", height: "1.1em" }} className="flexlayout__tab_toolbar_button" onClick={() => this.onAddFromTabSetButton(node)} />)
         // put overflow button before + button (default is after)
         // renderValues.overflowPosition=0
       }
@@ -647,93 +844,18 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
           onRenderTabSet={this.onRenderTabSet}
           onRenderDragRect={this.onRenderDragRect}
           onRenderFloatingTabPlaceholder={this.onRenderFloatingTabPlaceholder}
-          onExternalDrag={this.onExternalDrag}
+          onExternalDrag={null} //this.onExternalDrag}
           realtimeResize={this.state.realtimeResize}
           onTabDrag={this.onTabDrag}
           onContextMenu={this.onContextMenu}
           onAuxMouseClick={this.onAuxMouseClick}
-          // icons={{
-          //     more: (node: (TabSetNode | BorderNode), hiddenTabs: { node: TabNode; index: number }[]) => {
-          //         return (<div style={{fontSize:".7em"}}>{hiddenTabs.length}</div>);
-          //     }
-          // }}
           onTabSetPlaceHolder={this.onTabSetPlaceHolder}
-
-          // classNameMapper={
-          //     className => {
-          //         console.log(className);
-          //         if (className === "flexlayout__tab_button--selected") {
-          //             className = "override__tab_button--selected";
-          //         }
-          //         return className;
-          //     }
-          // }
-          // i18nMapper = {
-          //     (id, param?) => {
-          //         if (id === I18nLabel.Move_Tab) {
-          //             return `move this tab: ${param}`;
-          //         } else if (id === I18nLabel.Move_Tabset) {
-          //             return `move this tabset`
-          //         }
-          //         return undefined;
-          //     }
-          // }
         />
       )
     }
 
     return (
       <div className="flexlayout-app">
-        {/* <div className="toolbar" dir="ltr">
-              <select className="toolbar_control" onChange={this.onSelectLayout}>
-                <option value="default">Default</option>
-                <option value="newfeatures">New Features</option>
-                <option value="simple">Simple</option>
-                <option value="sub">SubLayout</option>
-                <option value="complex">Complex</option>
-                <option value="headers">Headers</option>
-              </select>
-              <button className="toolbar_control" onClick={this.onReloadFromFile} style={{ marginLeft: 5 }}>
-                Reload
-              </button>
-              <div style={{ flexGrow: 1 }}></div>
-              <span style={{ fontSize: "14px" }}>Realtime resize</span>
-              <input name="realtimeResize" type="checkbox" checked={this.state.realtimeResize} onChange={this.onRealtimeResize} />
-              <select className="toolbar_control" style={{ marginLeft: 5 }} onChange={this.onSizeChange} defaultValue="medium">
-                <option value="xx-small">Size xx-small</option>
-                <option value="x-small">Size x-small</option>
-                <option value="small">Size small</option>
-                <option value="medium">Size medium</option>
-                <option value="large">Size large</option>
-                <option value="8px">Size 8px</option>
-                <option value="10px">Size 10px</option>
-                <option value="12px">Size 12px</option>
-                <option value="14px">Size 14px</option>
-                <option value="16px">Size 16px</option>
-                <option value="18px">Size 18px</option>
-                <option value="20px">Size 20px</option>
-                <option value="25px">Size 25px</option>
-                <option value="30px">Size 30px</option>
-              </select>
-              <select className="toolbar_control" style={{ marginLeft: 5 }} defaultValue="light" onChange={this.onThemeChange}>
-                <option value="underline">Underline</option>
-                <option value="light">Light</option>
-                <option value="gray">Gray</option>
-                <option value="dark">Dark</option>
-              </select>
-              <button className="toolbar_control" style={{ marginLeft: 5 }} onClick={this.onShowLayoutClick}>
-                Show Layout JSON in Console
-              </button>
-              <button className="toolbar_control drag-from" disabled={this.state.adding} style={{ height: "30px", marginLeft: 5, border: "none", outline: "none" }} title="Add using Layout.addTabWithDragAndDrop" onMouseDown={this.onAddDragMouseDown} onTouchStart={this.onAddDragMouseDown}>
-                Add Drag
-              </button>
-              <button className="toolbar_control" disabled={this.state.adding} style={{ marginLeft: 5 }} title="Add using Layout.addTabToActiveTabSet" onClick={this.onAddActiveClick}>
-                Add Active
-              </button>
-              <button className="toolbar_control" disabled={this.state.adding} style={{ marginLeft: 5 }} title="Add using Layout.addTabWithDragAndDropIndirect" onClick={this.onAddIndirectClick}>
-                Add Indirect
-              </button>
-            </div> */}
         <div className="flexlayout-contents">{contents}</div>
       </div>
     )

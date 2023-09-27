@@ -124,7 +124,20 @@ const IconSidebar = ({ onSidebarItemSelect }) => {
               </Nav.Link>
 
               <div className={`extractionNav btnSidebar ${disabledIcon && "disabled"}`} data-pr-at="right center" data-pr-my="left center" data-pr-tooltip="Extraction" data-pr-disabled={!showTooltip} data-tooltip-id="tooltip-extracction">
-                <SpeedDial className="extraction-speeddial" model={extractionItems} type="semi-circle" direction="right" showIcon="pi pi-file-export" hideIcon="pi pi-times" disabled={disabledIcon} onShow={() => setShowTooltip(false)} onHide={() => setShowTooltip(true)} />
+                <SpeedDial
+                  className="extraction-speeddial"
+                  model={extractionItems}
+                  type="semi-circle"
+                  direction="right"
+                  showIcon="pi pi-file-export"
+                  hideIcon="pi pi-times"
+                  disabled={disabledIcon}
+                  onShow={() => {
+                    setShowTooltip(false)
+                    // console.log("show", document.getElementsByClassName(".pi-align-left"))
+                  }}
+                  onHide={() => setShowTooltip(true)}
+                />
               </div>
 
               <Nav.Link className="exploratoryNav btnSidebar" data-pr-at="right center" data-pr-my="left center" data-pr-tooltip="Exploratory" eventKey="exploratory" data-tooltip-id="tooltip-exploratory" onAuxClick={(event) => handleRightClick(event, "Exploratory")} onClick={(event) => handleClick(event, "exploratory")} disabled={disabledIcon}>

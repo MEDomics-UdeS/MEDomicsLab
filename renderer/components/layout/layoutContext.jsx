@@ -129,6 +129,7 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
     if (!isAlreadyIn) {
       const newChild = {
         type: "tab",
+        helpText: medObject.path,
         name: medObject.name,
         id: medObject.UUID,
         component: component,
@@ -344,6 +345,7 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
     if (!isAlreadyIn) {
       const newChild = {
         type: "tab",
+        helpText: medObject.path,
         name: medObject.name,
         id: medObject.UUID,
         component: "learningPage",
