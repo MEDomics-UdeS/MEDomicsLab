@@ -510,12 +510,8 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
     } else if (component === "dataTable") {
       if (node.getExtraData().data == null) {
         const config = node.getConfig()
-        console.log("dataTable config", config)
         const whenDataLoaded = (data) => {
           node.getExtraData().data = data
-          console.log("node", node)
-          console.log("retrieve node in layoutModel", model.getNodeById(node.getId()))
-          model.getNodeById(node.getId())._attributes.config["data"] = data
         }
         loadCSVPath(config.path, whenDataLoaded)
       }
@@ -624,7 +620,7 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
     } else if (component !== "") {
       if (node.getExtraData().data == null) {
         const config = node.getConfig()
-        return <h4>{component.toUpperCase()} - Not Implemented Yet</h4>
+        return <h4>{component?.toUpperCase()} - Not Implemented Yet</h4>
       }
     }
 
@@ -798,7 +794,7 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
   addTab = (tabParams: any) => {
     // Your code to add a tab with custom parameters
     console.log("addTab", tabParams)
-    let tabExists = this.checkIfTabIDExists(tabParams.id)
+    let tabExists = this.checkIfTabIDExists(tabParams?.id)
     if (tabExists) {
       console.log("tab already exists")
       // We select the tab that already exists and set it to active
@@ -844,7 +840,7 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
           onRenderTabSet={this.onRenderTabSet}
           onRenderDragRect={this.onRenderDragRect}
           onRenderFloatingTabPlaceholder={this.onRenderFloatingTabPlaceholder}
-          onExternalDrag={null} //this.onExternalDrag}
+          onExternalDrag={undefined} //this.onExternalDrag}
           realtimeResize={this.state.realtimeResize}
           onTabDrag={this.onTabDrag}
           onContextMenu={this.onContextMenu}

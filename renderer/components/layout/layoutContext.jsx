@@ -92,6 +92,8 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
         return openTextEditor(action)
       case "openInModelViewer":
         return openModelViewer(action)
+      case "openPandasProfiling":
+        return openInPandasProfiling(action)
       /*********** OPEN *****************/
       case "openInputModule":
         return openInput(action)
@@ -109,12 +111,13 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
         return openExtractionImage(action)
       case "openExtractionTextModule":
         return openExtractionText(action)
+
       case "add":
         return add(action)
       case "remove":
         return remove(action)
       default:
-        throw new Error(`Unhandled action type: ${action.type}`)
+        toast.Error(`Unhandled action type: ${action.type}`)
     }
   }
 
@@ -228,6 +231,14 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
    */
   const openInDtale = (action) => {
     openInDotDotDot(action, "dtale")
+  }
+
+  /**
+   * @summary Function that adds a tab of pandasProfiling to the layout model
+   * @params {Object} action - The action passed on by the dispatchLayout function
+   */
+  const openInPandasProfiling = (action) => {
+    openInDotDotDot(action, "pandasProfiling")
   }
 
   /**

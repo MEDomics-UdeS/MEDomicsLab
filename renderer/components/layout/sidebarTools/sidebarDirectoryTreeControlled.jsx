@@ -178,6 +178,36 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
    */
   function handleContextMenuAction({ id, props }) {
     switch (id) {
+      case "openInDataTableViewer":
+        dispatchLayout({ type: "openInDataTable", payload: props })
+        break
+      case "openInCodeEditor":
+        dispatchLayout({ type: "openInCodeEditor", payload: props })
+        break
+      case "openInImageViewer":
+        dispatchLayout({ type: "openInImageViewer", payload: props })
+        break
+      case "openInPDFViewer":
+        dispatchLayout({ type: "openInPDFViewer", payload: props })
+        break
+      case "openInTextEditor":
+        dispatchLayout({ type: "openInTextEditor", payload: props })
+        break
+      case "openInModelViewer":
+        dispatchLayout({ type: "openInModelViewer", payload: props })
+        break
+      case "openInLearningModule":
+        dispatchLayout({ type: "openInLearningModule", payload: props })
+        break
+      case "openInEvaluationModule":
+        dispatchLayout({ type: "openInEvaluationModule", payload: props })
+        break
+      case "openInApplicationModule":
+        dispatchLayout({ type: "openInApplicationModule", payload: props })
+        break
+      case "openInPandasProfiling":
+        dispatchLayout({ type: "openPandasProfiling", payload: props })
+        break
       case "openLearningModule":
         dispatchLayout({ type: "openInLearningModule", payload: props })
         break
@@ -557,9 +587,15 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
             </>
           }
         >
-          <Item>DataTable Viewer (default)</Item>
-          <Item>D-Tale</Item>
-          <Item>PandasProfiling</Item>
+          <Item id="openInDataTableViewer" onClick={handleContextMenuAction}>
+            DataTable Viewer (default)
+          </Item>
+          <Item id="openInDtale" onClick={handleContextMenuAction}>
+            D-Tale
+          </Item>
+          <Item id="openInPandasProfiling" onClick={handleContextMenuAction}>
+            PandasProfiling
+          </Item>
         </Submenu>
         <Item id="revealInFileExplorer" onClick={() => require("electron").shell.showItemInFolder(globalData[selectedItems[0]].path)}>
           {/* <BoxArrowUpRight size={"1rem"} className="context-menu-icon" /> */}
@@ -628,8 +664,12 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
             </>
           }
         >
-          <Item>Code editor (default)</Item>
-          <Item>Jupyter Notebook</Item>
+          <Item id="openInCodeEditor" onClick={handleContextMenuAction}>
+            Code editor (default)
+          </Item>
+          <Item id="openInJupyter" onClick={handleContextMenuAction}>
+            Jupyter Notebook
+          </Item>
         </Submenu>
         <Item id="revealInFileExplorer" onClick={() => require("electron").shell.showItemInFolder(globalData[selectedItems[0]].path)}>
           {/* <BoxArrowUpRight size={"1rem"} className="context-menu-icon" /> */}
@@ -655,8 +695,9 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
             </>
           }
         >
-          <Item>Image viewer (default)</Item>
-          <Item>ImageJ</Item>
+          <Item id="openInImageViewer" onClick={handleContextMenuAction}>
+            Image viewer (default)
+          </Item>
         </Submenu>
         <Item id="revealInFileExplorer" onClick={() => require("electron").shell.showItemInFolder(globalData[selectedItems[0]].path)}>
           {/* <BoxArrowUpRight size={"1rem"} className="context-menu-icon" /> */}
@@ -682,7 +723,9 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
             </>
           }
         >
-          <Item>PDF viewer (default)</Item>
+          <Item id="openInPDFViewer" onClick={handleContextMenuAction}>
+            PDF viewer (default)
+          </Item>
         </Submenu>
         <Item id="revealInFileExplorer" onClick={() => require("electron").shell.showItemInFolder(globalData[selectedItems[0]].path)}>
           {/* <BoxArrowUpRight size={"1rem"} className="context-menu-icon" /> */}
@@ -734,9 +777,15 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
             </>
           }
         >
-          <Item>Model viewer (default)</Item>
-          <Item>Evaluation Module</Item>
-          <Item>Application Module</Item>
+          <Item id="openInModelViewer" onClick={handleContextMenuAction}>
+            Model viewer (default)
+          </Item>
+          <Item id="openInEvaluationModule" onClick={handleContextMenuAction}>
+            Evaluation Module
+          </Item>
+          <Item id="openInApplicationModule" onClick={handleContextMenuAction}>
+            Application Module
+          </Item>
         </Submenu>
         <Item id="revealInFileExplorer" onClick={() => require("electron").shell.showItemInFolder(globalData[selectedItems[0]].path)}>
           {/* <BoxArrowUpRight size={"1rem"} className="context-menu-icon" /> */}
