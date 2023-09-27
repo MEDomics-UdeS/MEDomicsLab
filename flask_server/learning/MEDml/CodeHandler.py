@@ -1,5 +1,3 @@
-from typing import dict
-
 
 def convert_dict_to_params(dictionary: dict) -> str:
     params = ""
