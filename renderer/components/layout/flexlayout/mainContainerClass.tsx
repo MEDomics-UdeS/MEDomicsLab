@@ -26,6 +26,9 @@ import ApplicationPage from "../../mainPages/application"
 import * as Icons from "react-bootstrap-icons"
 import DataTableFromContext from "../../mainPages/dataComponents/dataTableFromContext"
 import { config } from "process"
+// import { Image } from "primereact/image"
+import Image from "next/image"
+import ZoomPanPinchComponent from "./zoomPanPinchComponent"
 
 var fields = ["Name", "Field1", "Field2", "Field3", "Field4", "Field5"]
 
@@ -587,9 +590,20 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
           console.log("config.path", config.path)
           const nativeImage = require("electron").nativeImage
           const image = nativeImage.createFromPath(config.path)
-          return <img src={image.toDataURL()} style={{ display: "block", border: "none", boxSizing: "border-box" }} />
-        } else {
-          return <></>
+          console.log("image", image)
+
+          let height = image.getSize().height / 3
+          let width = image.getSize().width / 3
+
+          // node.getExtraData().data = image
+          return <ZoomPanPinchComponent imagePath={config.path} image={image.toDataURL()} width={width} height={height} />
+
+          // return (
+          //   <div style={{ position: "relative", display: "block" }}>
+          //     <ZoomPanPinchComponent imagePath={config.path} image={image} />
+          //     {/* <Image alt={"Image"} src={node.getExtraData().data.toDataURL()} style={{ display: "block", border: "none", boxSizing: "border-box" }} height={node.getExtraData().data.getSize().height / 4} width={node.getExtraData().data.getSize().width / 4} quality={50} /> */}
+          //   </div>
+          // )
         }
       }
     } else if (component === "evaluationPage") {

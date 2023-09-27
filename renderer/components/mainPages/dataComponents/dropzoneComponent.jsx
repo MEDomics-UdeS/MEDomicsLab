@@ -53,6 +53,14 @@ export default function DropzoneComponent({ children, item = undefined, ...props
           })
         } else if (file.name.includes(".xlsx")) {
           console.log("xlsx file")
+        } else {
+          fs.copyFile(file.path, `${directoryPath}/${file["name"]}`, (err) => {
+            if (err) {
+              console.error("Error copying file:", err)
+            } else {
+              console.log("File copied successfully")
+            }
+          })
         }
       })
     }
