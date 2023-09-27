@@ -211,6 +211,9 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
       case "openLearningModule":
         dispatchLayout({ type: "openInLearningModule", payload: props })
         break
+      case "openInJSONViewer":
+        dispatchLayout({ type: "openInJSONViewer", payload: props })
+        break
       case "open":
         onOpen(props.UUID)
         break
@@ -232,8 +235,10 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
   const onDBClickItem = (event, item) => {
     if (item.type == "medml") {
       dispatchLayout({ type: "openInLearningModule", payload: item })
-    } else if (item.type == "csv" || item.type == "json" || item.type == "tsv" || item.type == "xlsx") {
+    } else if (item.type == "csv" || item.type == "tsv" || item.type == "xlsx") {
       dispatchLayout({ type: "openInDataTable", payload: item })
+    } else if (item.type == "json") {
+      dispatchLayout({ type: "openInJSONViewer", payload: item })
     } else if (item.type == "py" || item.type == "ipynb") {
       dispatchLayout({ type: "openInCodeEditor", payload: item })
     } else if (item.type == "png" || item.type == "jpg" || item.type == "jpeg" || item.type == "gif" || item.type == "svg") {
@@ -280,9 +285,15 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
         event: e,
         props: data
       })
-    } else if (data.type == "csv" || data.type == "json" || data.type == "tsv" || data.type == "xlsx") {
+    } else if (data.type == "csv" || data.type == "tsv" || data.type == "xlsx") {
       show({
         id: "MENU_DATA",
+        event: e,
+        props: data
+      })
+    } else if (data.type == "json") {
+      show({
+        id: "MENU_JSON",
         event: e,
         props: data
       })
@@ -577,6 +588,42 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
         </Accordion.Body>
       </Accordion.Item>
 
+      <Menu id={"MENU_JSON"}>
+        <Submenu
+          className="context-submenu"
+          label={
+            <>
+              <BoxArrowUpRight size={"1rem"} className="context-menu-icon" />
+              Open in...
+            </>
+          }
+        >
+          <Item id="openInJSONViewer" onClick={handleContextMenuAction}>
+            JSON Viewer (default)
+          </Item>
+          <Item id="openInDataTableViewer" onClick={handleContextMenuAction}>
+            DataTable Viewer
+          </Item>
+          <Item id="openInDtale" onClick={handleContextMenuAction}>
+            D-Tale
+          </Item>
+          <Item id="openInPandasProfiling" onClick={handleContextMenuAction}>
+            PandasProfiling
+          </Item>
+        </Submenu>
+        <Item id="revealInFileExplorer" onClick={() => require("electron").shell.showItemInFolder(globalData[selectedItems[0]].path)}>
+          {/* <BoxArrowUpRight size={"1rem"} className="context-menu-icon" /> */}
+          Reveal in File Explorer
+        </Item>
+        <Item id="rename" onClick={handleContextMenuAction}>
+          <Eraser size={"1rem"} className="context-menu-icon" />
+          Rename
+        </Item>
+        <Item id="delete" onClick={handleContextMenuAction}>
+          <Trash size={"1rem"} className="context-menu-icon" />
+          Delete
+        </Item>
+      </Menu>
       <Menu id={"MENU_DATA"}>
         <Submenu
           className="context-submenu"

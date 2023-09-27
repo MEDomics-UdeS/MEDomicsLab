@@ -8,7 +8,7 @@ import { Utils } from "./utils"
 import "prismjs/themes/prism-coy.css"
 import LearningPage from "../../mainPages/learning"
 import DataTable from "../../../components/dataTypeVisualisation/dataTableWrapper"
-import { loadCSVPath } from "../../../utilities/fileManagementUtils"
+import { loadCSVFromPath, loadCSVPath, loadJsonPath } from "../../../utilities/fileManagementUtils"
 import { LayoutModelContext } from "../layoutContext"
 import { DataContext } from "../../workspace/dataContext"
 import MedDataObject from "../../workspace/medDataObject"
@@ -24,6 +24,8 @@ import TerminalPage from "../../mainPages/terminal"
 import OutputPage from "../../mainPages/output"
 import ApplicationPage from "../../mainPages/application"
 import * as Icons from "react-bootstrap-icons"
+import DataTableFromContext from "../../mainPages/dataComponents/dataTableFromContext"
+import { config } from "process"
 
 var fields = ["Name", "Field1", "Field2", "Field3", "Field4", "Field5"]
 
@@ -507,13 +509,21 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
       }
     } else if (component === "tabstorage") {
       return <TabStorage tab={node} layout={this.layoutRef!.current!} />
-    } else if (component === "dataTable") {
+    } else if (component === "jsonViewer") {
+      const config = node.getConfig()
       if (node.getExtraData().data == null) {
-        const config = node.getConfig()
+        node.getExtraData().data = loadJsonPath(config.path)
+      }
+      const jsonText = JSON.stringify(node.getExtraData().data, null, "\t")
+      const html = Prism.highlight(jsonText, Prism.languages.javascript, "javascript")
+      return <pre style={{ tabSize: "20px" }} dangerouslySetInnerHTML={{ __html: html }} />
+    } else if (component === "dataTable") {
+      const config = node.getConfig()
+      if (node.getExtraData().data == null) {
         const whenDataLoaded = (data) => {
           node.getExtraData().data = data
         }
-        loadCSVPath(config.path, whenDataLoaded)
+        loadCSVFromPath(config.path, whenDataLoaded)
       }
       return (
         <DataTable
@@ -656,8 +666,6 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
 
   returnIconFromComponent(component: string, config?: any) {
     if (config !== undefined && config !== null && config !== "" && config?.path !== undefined && config?.path !== null && config?.path !== "") {
-      console.log("config", config)
-      // if (config.path !== null && config.path !== undefined && config.path !== "") {
       let extension = config.path.split(".").pop()
       let iconToReturn = null
       switch (extension) {

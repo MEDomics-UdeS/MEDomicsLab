@@ -92,6 +92,8 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
         return openTextEditor(action)
       case "openInModelViewer":
         return openModelViewer(action)
+      case "openInJSONViewer":
+        return openInJSONViewer(action)
       case "openPandasProfiling":
         return openInPandasProfiling(action)
       /*********** OPEN *****************/
@@ -167,6 +169,15 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
       layoutRequestQueueCopy.push({ type: "ADD_TAB", payload: newChild })
       setLayoutRequestQueue(layoutRequestQueueCopy)
     }
+  }
+
+  /**
+   * @summary Function that adds a tab of the JSON Viewer Module to the layout model
+   * @params {Object} action - The action passed on by the dispatchLayout function
+   */
+  const openInJSONViewer = (action) => {
+    console.log("OPEN IN JSON VIEWER", action)
+    openInDotDotDot(action, "jsonViewer")
   }
 
   /**
