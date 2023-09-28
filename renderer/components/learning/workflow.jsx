@@ -69,20 +69,7 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
     []
   )
 
-  useEffect(() => {
-    if (reactFlowInstance && workspace.hasBeenSet) {
-      // const flow = deepCopy(reactFlowInstance.toObject())
-      // flow.MLType = MLType
-      // console.log("flow debug", flow)
-      // flow.nodes.forEach((node) => {
-      //   node.data.setupParam = null
-      // })
-      // flow.intersections = intersections
-      // console.log("workspace", workspace)
-      // MedDataObject.writeFileSync(flow, getBasePath(EXPERIMENTS) + MedDataObject.getPathSeparator() + experimentName, sceneName, "medml")
-    }
-  }, [reactFlowInstance, MLType, intersections])
-
+  // When config is changed, we update the workflow
   useEffect(() => {
     if (config && Object.keys(config).length > 0) {
       updateScene(config)

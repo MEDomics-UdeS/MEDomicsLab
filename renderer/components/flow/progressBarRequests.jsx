@@ -5,8 +5,13 @@ import { requestJson } from "../../utilities/requests"
 import { WorkspaceContext } from "../workspace/workspaceContext"
 import { PageInfosContext } from "../mainPages/moduleBasics/pageInfosContext"
 
+/**
+ * 
+ * @param {boolean} isUpdating is the progress bar updating
+ * @param {function} setIsUpdating set the updating state 
+ * @returns a progress bar that shows the progress of the current flow
+ */
 const ProgressBarRequests = ({ isUpdating, setIsUpdating }) => {
-  // const [isUpdating, setIsUpdating] = useState(true);
   const { pageId } = useContext(PageInfosContext) // used to get the flow infos
   const [progress, setProgress] = useState({
     now: 0,

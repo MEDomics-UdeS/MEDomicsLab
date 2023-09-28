@@ -100,15 +100,7 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
   function onOpen(uuid) {
     let dataObjectUUID = uuid
     let path = globalData[dataObjectUUID].path
-    // dispatchLayout({
-    //   type: "add",
-    //   payload: {
-    //     type: "tab",
-    //     name: name,
-    //     component: "dataTable",
-    //     config: { path: path }
-    //   }
-    // })
+    // NOOP
   }
 
   /**

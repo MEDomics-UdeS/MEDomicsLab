@@ -5,6 +5,10 @@ import { Button, Stack } from "react-bootstrap"
 import { WorkspaceContext } from "../workspace/workspaceContext"
 import { ipcRenderer } from "electron"
 
+/**
+ * 
+ * @returns the home page component
+ */
 const HomePage = () => {
   const { workspace } = useContext(WorkspaceContext)
   const [hasBeenSet, setHasBeenSet] = useState(workspace.hasBeenSet)
@@ -13,6 +17,7 @@ const HomePage = () => {
     ipcRenderer.send("messageFromNext", "requestDialogFolder")
   }
 
+  // We set the workspace hasBeenSet state
   useEffect(() => {
     if (workspace.hasBeenSet == false) {
       setHasBeenSet(true)

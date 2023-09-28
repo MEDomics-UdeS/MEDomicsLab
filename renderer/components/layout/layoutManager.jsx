@@ -95,7 +95,6 @@ const LayoutManager = (props) => {
           return <ApplicationPage />
         case "layoutTest":
           return <MainContainer />
-        // return <MainFlexLayout layoutmodel={props.layout} />
         default:
       }
     }

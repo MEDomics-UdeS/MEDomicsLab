@@ -2,8 +2,7 @@ import pandas as pd
 import numpy as np
 import os
 import json
-from learning.MEDml.nodes.NodeObj import *
-from typing import Any, Dict, List, Union
+from typing import Union
 from learning.MEDml.nodes.NodeObj import *
 from typing import Union
 from colorama import Fore
@@ -15,12 +14,23 @@ TARGET_LIKE = Union[int, str, list, tuple, np.ndarray, pd.Series]
 
 
 class Clean(Node):
+    """
+    This class represents the Clean node.
+    """
 
     def __init__(self, id_: int, global_config_json: json) -> None:
+        """
+        Args:
+            id_ (int): The id of the node.
+            global_config_json (json): The global config json. 
+        """
         super().__init__(id_, global_config_json)
         self.df = None
 
     def _execute(self, experiment: dict = None, **options) -> json:
+        """
+        This function is used to execute the node.
+        """
         print()
         print(Fore.BLUE + "=== cleaning === " +
               Fore.YELLOW + f"({self.username})" + Fore.RESET)

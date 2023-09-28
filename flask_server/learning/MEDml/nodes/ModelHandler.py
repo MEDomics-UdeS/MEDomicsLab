@@ -13,8 +13,16 @@ TARGET_LIKE = Union[int, str, list, tuple, np.ndarray, pd.Series]
 
 
 class ModelHandler(Node):
+    """
+    This class represents the ModelHandler node.
+    """
 
     def __init__(self, id_: int, global_config_json: json) -> None:
+        """
+        Args:
+            id_ (int): The id of the node.
+            global_config_json (json): The global config json.
+        """
         super().__init__(id_, global_config_json)
         if self.type == 'create_model':
             self.model_id = self.config_json['associated_model_id']
@@ -25,6 +33,9 @@ class ModelHandler(Node):
             }
 
     def _execute(self, experiment: dict = None, **kwargs) -> json:
+        """
+        This function is used to execute the node.
+        """
         print()
         print(Fore.BLUE + "=== fit === " + Fore.YELLOW +
               f"({self.username})" + Fore.RESET)
