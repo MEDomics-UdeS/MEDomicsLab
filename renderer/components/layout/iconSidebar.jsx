@@ -6,6 +6,9 @@ import { WorkspaceContext } from "../workspace/workspaceContext"
 import { Tooltip } from "primereact/tooltip"
 import { SpeedDial } from "primereact/speeddial"
 import { LayoutModelContext } from "./layoutContext"
+import { PiFlaskFill } from "react-icons/pi"
+import { VscGraph } from "react-icons/vsc"
+import { FaMagnifyingGlassChart } from "react-icons/fa6"
 
 /**
  * @description Sidebar component containing icons for each page
@@ -143,9 +146,9 @@ const IconSidebar = ({ onSidebarItemSelect }) => {
                 />
               </div>
 
-              <Nav.Link className="exploratoryNav btnSidebar" data-pr-at="right center" data-pr-my="left center" data-pr-tooltip="Exploratory" eventKey="exploratory" data-tooltip-id="tooltip-exploratory" onAuxClick={(event) => handleRightClick(event, "Exploratory")} onClick={(event) => handleClick(event, "exploratory")} disabled={disabledIcon}>
+              <Nav.Link className="exploratoryNav btnSidebar align-center" data-pr-at="right center" data-pr-my="left center" data-pr-tooltip="Exploratory" eventKey="exploratory" data-tooltip-id="tooltip-exploratory" onAuxClick={(event) => handleRightClick(event, "Exploratory")} onClick={(event) => handleClick(event, "exploratory")} disabled={disabledIcon}>
                 {" "}
-                <FileEarmarkBarGraph size={"1.25rem"} width={"100%"} height={"100%"} style={{ scale: "0.65" }} />
+                <FaMagnifyingGlassChart style={{ height: "1.7rem", width: "auto" }} />
               </Nav.Link>
             </div>
             <div className="medomics-layer-text">Design</div>
@@ -158,12 +161,12 @@ const IconSidebar = ({ onSidebarItemSelect }) => {
                 <Diagram3Fill size={"1.25rem"} width={"100%"} height={"100%"} style={{ scale: "0.65" }} />
               </Nav.Link>
 
-              <Nav.Link className="resultsNav btnSidebar" data-pr-at="right center" data-pr-my="left center" data-pr-tooltip="Results" eventKey="Results" onClick={(event) => handleClick(event, "results")} disabled={disabledIcon} onAuxClick={(event) => handleRightClick(event, "Results")}>
-                <Clipboard2Data size={"1.25rem"} width={"100%"} height={"100%"} style={{ scale: "0.65" }} />
+              <Nav.Link className="resultsNav btnSidebar align-center" data-pr-at="right center" data-pr-my="left center" data-pr-tooltip="Results" eventKey="Results" onClick={(event) => handleClick(event, "results")} disabled={disabledIcon} onAuxClick={(event) => handleRightClick(event, "Results")}>
+                <VscGraph style={{ height: "1.7rem", width: "auto" }} />
               </Nav.Link>
 
-              <Nav.Link className="evaluationNav btnSidebar" data-pr-at="right center" data-pr-my="left center" data-pr-tooltip="Evaluation" eventKey="Evaluation" onClick={(event) => handleClick(event, "evaluation")} disabled={disabledIcon} onAuxClick={(event) => handleRightClick(event, "Evaluation")}>
-                <ClipboardCheck size={"1.25rem"} width={"100%"} height={"100%"} style={{ scale: "0.65" }} />
+              <Nav.Link className="evaluationNav btnSidebar align-center" data-pr-at="right center" data-pr-my="left center" data-pr-tooltip="Evaluation" eventKey="Evaluation" onClick={(event) => handleClick(event, "evaluation")} disabled={disabledIcon} onAuxClick={(event) => handleRightClick(event, "Evaluation")}>
+                <PiFlaskFill style={{ height: "2.2rem", width: "auto" }} />
               </Nav.Link>
             </div>
             <div className="medomics-layer-text">Development</div>

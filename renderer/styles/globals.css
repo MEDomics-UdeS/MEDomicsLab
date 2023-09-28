@@ -206,3 +206,9 @@ body {
   flex-grow: inherit !important;
   position: relative !important;
 }
+
+.align-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

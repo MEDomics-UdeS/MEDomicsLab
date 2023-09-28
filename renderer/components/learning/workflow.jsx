@@ -792,7 +792,6 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
                     { type: "run", onClick: onRun },
                     { type: "clear", onClick: onClear },
                     { type: "save", onClick: onSave },
-                    { type: "download", onClick: onDownload },
                     { type: "load", onClick: onLoad }
                   ]}
                 />
