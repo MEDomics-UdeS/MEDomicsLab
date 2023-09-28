@@ -36,6 +36,7 @@ import "../styles/flow/results.css"
 import "react-complex-tree/lib/style-modern.css"
 import "../styles/sidebarTree.css"
 import "../styles/customPrimeReact.css"
+import "../styles/imageContainer.css"
 
 /**
  * This is the main app component. It is the root component of the app.

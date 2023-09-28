@@ -209,7 +209,3 @@ body {
   position: relative !important;
 }
 
-.react-transform-component {
-  border: gray 1px solid;
-  z-index: -1;
-}

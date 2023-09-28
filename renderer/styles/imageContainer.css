@@ -1,0 +1,42 @@
+.react-transform-component {
+    border: gray 1px solid;
+    z-index: -1;
+  }
+
+.react-transform-wrapper {
+background-color: #949494;
+margin: auto !important;
+width: 100% !important;
+height: 100% !important;
+}
+
+@media (prefers-color-scheme: dark) {
+    .react-transform-wrapper {
+    background-color: #161616;
+    margin: auto !important;
+    width: 100% !important;
+    height: 100% !important;
+  }
+}
+
+.tools {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 100;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+  }
+
+.tools > button {
+    margin-top: 0.5rem;
+    margin-inline: 0.5rem;
+}
+
+.tools > button > svg {
+    height: 1.5rem;
+    width: 1.5rem;
+}
