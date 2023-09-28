@@ -2,10 +2,7 @@ import { app, ipcMain, Menu, dialog } from "electron"
 import axios from "axios"
 import serve from "electron-serve"
 import { createWindow } from "./helpers"
-import {
-  installExtension,
-  REACT_DEVELOPER_TOOLS
-} from "electron-extension-installer"
+import { installExtension, REACT_DEVELOPER_TOOLS } from "electron-extension-installer"
 const fs = require("fs")
 var path = require("path")
 const dirTree = require("directory-tree")
@@ -14,6 +11,7 @@ var flaskPort = 5000
 var hasBeenSet = false
 
 const RUN_SERVER_WITH_APP = true
+const USE_REACT_DEV_TOOLS = false
 
 const isProd = process.env.NODE_ENV === "production"
 
@@ -28,21 +26,8 @@ if (isProd) {
 
   const mainWindow = createWindow("main", {
     width: 1500,
-    height: 1000,
-    webPreferences: {
-      preload: path.join(__dirname, "preload.js")
-    }
+    height: 1000
   })
-  // var splash = new BrowserWindow({
-  //   width: 500,
-  //   height: 300,
-  //   transparent: true,
-  //   frame: false,
-  //   alwaysOnTop: true
-  // })
-  // // and load the index.html of the app.
-  // mainWindow.loadFile('index.html')
-  // mainWindow.center();  // Open the DevTools.
 
   const template = [
     {
@@ -125,18 +110,12 @@ if (isProd) {
   ]
 
   // link: https://medium.com/red-buffer/integrating-python-flask-backend-with-electron-nodejs-frontend-8ac621d13f72
-  console.log(
-    RUN_SERVER_WITH_APP
-      ? "Server will start automatically here (in background of the application)"
-      : "Server must be started manually"
-  )
+  console.log(RUN_SERVER_WITH_APP ? "Server will start automatically here (in background of the application)" : "Server must be started manually")
   if (RUN_SERVER_WITH_APP) {
     if (!isProd) {
       //**** DEVELOPMENT ****//
       // IMPORTANT: Select python interpreter (related to your virtual environment)
-      var path2conda = fs
-        .readFileSync("./path2condaenv_toDeleteInProd.txt", "utf8")
-        .replace(/\s/g, "")
+      var path2conda = fs.readFileSync("./path2condaenv_toDeleteInProd.txt", "utf8").replace(/\s/g, "")
       console.log(`path2conda: "${path2conda}"`)
 
       const net = require("net")
@@ -176,10 +155,7 @@ if (isProd) {
       findAvailablePort(5000, 8000)
         .then((port) => {
           console.log(`Available port: ${port}`)
-          serverProcess = require("child_process").spawn(path2conda, [
-            "./flask_server/server.py",
-            "--port=" + port
-          ])
+          serverProcess = require("child_process").spawn(path2conda, ["./flask_server/server.py", "--port=" + port])
           flaskPort = port
           serverProcess.stdout.on("data", function (data) {
             console.log("data: ", data.toString("utf8"))
@@ -306,10 +282,7 @@ function setWorkingDirectory(event, mainWindow) {
         if (file === app.getPath("sessionData")) {
           // If the working directory is already set to the selected folder
           console.log("Working directory is already set to " + file)
-          event.reply(
-            "messageFromElectron",
-            "Working directory is already set to " + file
-          )
+          event.reply("messageFromElectron", "Working directory is already set to " + file)
           event.reply("workingDirectorySet", {
             workingDirectory: dirTree(file),
             hasBeenSet: hasBeenSet
@@ -384,10 +357,12 @@ app.on("window-all-closed", () => {
   }
 })
 
-app.on("ready", async () => {
-  await installExtension(REACT_DEVELOPER_TOOLS, {
-    loadExtensionOptions: {
-      allowFileAccess: true
-    }
+if (USE_REACT_DEV_TOOLS) {
+  app.on("ready", async () => {
+    await installExtension(REACT_DEVELOPER_TOOLS, {
+      loadExtensionOptions: {
+        allowFileAccess: true
+      }
+    })
   })
-})
+}
