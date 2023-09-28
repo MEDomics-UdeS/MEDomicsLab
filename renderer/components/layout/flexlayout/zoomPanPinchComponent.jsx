@@ -14,16 +14,7 @@ const Controls = ({ zoomIn, zoomOut, resetTransform }) => (
 )
 
 const ZoomPanPinchComponent = ({ imagePath, options = undefined, image, height, width }) => {
-  //   const transformComponentRef = (useRef < ReactZoomPanPinchRef) | (null > null)
-
-  //   const zoomToImage = () => {
-  //     if (transformComponentRef.current) {
-  //       const { zoomToElement } = transformComponentRef.current
-  //       zoomToElement(imagePath)
-  //     }
-
   return (
-    // <div className="ImageContainer">
     <TransformWrapper initialScale={1} initialPositionX={200} initialPositionY={100}>
       {({ zoomIn, zoomOut, resetTransform, ...rest }) => (
         <React.Fragment>
@@ -44,7 +35,6 @@ const ZoomPanPinchComponent = ({ imagePath, options = undefined, image, height, 
         </React.Fragment>
       )}
     </TransformWrapper>
-    // </div>
   )
 }
 
