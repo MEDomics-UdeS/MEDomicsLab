@@ -174,7 +174,7 @@ class MEDexperiment:
                 node: Node = node_info['obj']
                 self._progress['cur_node'] = node.username
                 has_been_run = node.has_run()
-                if not has_been_run:
+                if not has_been_run or 'experiment' not in node_info:
                     node_info['results'] = {
                         'prev_node_id': None,
                         'data': node.execute()

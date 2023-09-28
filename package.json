@@ -25,6 +25,7 @@
     "danfojs": "^1.1.2",
     "directory-tree": "^3.5.1",
     "electron-extension-installer": "^1.2.0",
+    "electron-loading": "^0.3.0",
     "electron-serve": "^1.1.0",
     "electron-store": "^8.1.0",
     "eslint-config-next": "^13.5.3",

@@ -20,7 +20,16 @@ import { toast } from "react-toastify"
     }
 }>send test</Button> 
  */
-export const requestJson = (port, topic, json2send, jsonReceivedCB) => {
+export const requestJson = (
+  port,
+  topic,
+  json2send,
+  jsonReceivedCB,
+  onError = (error) => {
+    console.error("Error:", error)
+    toast.error("An error occured while sending the request")
+  }
+) => {
   try {
     ipcRenderer
       .invoke("request", {
@@ -35,8 +44,7 @@ export const requestJson = (port, topic, json2send, jsonReceivedCB) => {
         return true
       })
       .catch((resp) => {
-        console.error("Error:", resp)
-        toast.error("An error occured while sending the request")
+        onError(resp)
       })
   } catch (error) {
     console.error(error)

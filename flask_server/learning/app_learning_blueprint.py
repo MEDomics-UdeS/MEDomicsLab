@@ -4,6 +4,7 @@ import json
 from utils.server_utils import get_json_from_request, get_response_from_error
 import os
 from pathlib import Path
+import copy
 
 MEDOMICS_WS = str(Path(os.path.dirname(
     os.path.abspath(__file__))).parent.parent)
@@ -18,7 +19,7 @@ app_learning = Blueprint('app_learning', __name__,
                          template_folder='templates', static_folder='static')
 
 # global variables
-experiment = None
+experiments = {}
 cur_dashboard = None
 files_uploaded = []
 df = []
@@ -34,15 +35,17 @@ def run_experiment():
     json_config = get_json_from_request(request)
     print("received data from topic: /run_experiment:")
     print(json.dumps(json_config, indent=4, sort_keys=True))
-
-    global experiment
+    scene_id = json_config['scene_id']
+    global experiments
+    experiment = copy.deepcopy(
+        experiments[scene_id]) if scene_id in experiments else None
     try:
         if experiment is None:
             experiment = MEDexperiment(json_config)
         else:
-            experiment.update(json_config)
-        experiment.start()
-        results_pipeline = experiment.get_results()
+            experiments[scene_id].update(json_config)
+        experiments[scene_id].start()
+        results_pipeline = experiments[scene_id].get_results()
         json.dumps(results_pipeline)
     except BaseException as e:
         return get_response_from_error(e)
@@ -59,9 +62,11 @@ def progress():
 
     """
 
-    global experiment
-    if experiment is not None:
-        return experiment.get_progress()
+    global experiments
+    json_config = get_json_from_request(request)
+
+    if json_config['scene_id'] in experiments:
+        return experiments[json_config['scene_id']].get_progress()
     else:
         return {'cur_node': '', 'progress': 0}
 

@@ -2,7 +2,10 @@ import { app, ipcMain, Menu, dialog } from "electron"
 import axios from "axios"
 import serve from "electron-serve"
 import { createWindow } from "./helpers"
-import { installExtension, REACT_DEVELOPER_TOOLS } from "electron-extension-installer"
+import {
+  installExtension,
+  REACT_DEVELOPER_TOOLS
+} from "electron-extension-installer"
 const fs = require("fs")
 var path = require("path")
 const dirTree = require("directory-tree")
@@ -25,8 +28,22 @@ if (isProd) {
 
   const mainWindow = createWindow("main", {
     width: 1500,
-    height: 1000
+    height: 1000,
+    webPreferences: {
+      preload: path.join(__dirname, "preload.js")
+    }
   })
+  // var splash = new BrowserWindow({
+  //   width: 500,
+  //   height: 300,
+  //   transparent: true,
+  //   frame: false,
+  //   alwaysOnTop: true
+  // })
+  // // and load the index.html of the app.
+  // mainWindow.loadFile('index.html')
+  // mainWindow.center();  // Open the DevTools.
+
   const template = [
     {
       label: "File",
@@ -108,12 +125,18 @@ if (isProd) {
   ]
 
   // link: https://medium.com/red-buffer/integrating-python-flask-backend-with-electron-nodejs-frontend-8ac621d13f72
-  console.log(RUN_SERVER_WITH_APP ? "Server will start automatically here (in background of the application)" : "Server must be started manually")
+  console.log(
+    RUN_SERVER_WITH_APP
+      ? "Server will start automatically here (in background of the application)"
+      : "Server must be started manually"
+  )
   if (RUN_SERVER_WITH_APP) {
     if (!isProd) {
       //**** DEVELOPMENT ****//
       // IMPORTANT: Select python interpreter (related to your virtual environment)
-      var path2conda = fs.readFileSync("./path2condaenv_toDeleteInProd.txt", "utf8").replace(/\s/g, "")
+      var path2conda = fs
+        .readFileSync("./path2condaenv_toDeleteInProd.txt", "utf8")
+        .replace(/\s/g, "")
       console.log(`path2conda: "${path2conda}"`)
 
       const net = require("net")
@@ -153,7 +176,10 @@ if (isProd) {
       findAvailablePort(5000, 8000)
         .then((port) => {
           console.log(`Available port: ${port}`)
-          serverProcess = require("child_process").spawn(path2conda, ["./flask_server/server.py", "--port=" + port])
+          serverProcess = require("child_process").spawn(path2conda, [
+            "./flask_server/server.py",
+            "--port=" + port
+          ])
           flaskPort = port
           serverProcess.stdout.on("data", function (data) {
             console.log("data: ", data.toString("utf8"))
@@ -243,7 +269,8 @@ if (isProd) {
     console.log("toggleDarkMode")
     mainWindow.webContents.send("toggleDarkMode")
   })
-
+  // splash.loadFile('splash.html');
+  // splash.center();
   if (isProd) {
     await mainWindow.loadURL("app://./index.html")
   } else {
@@ -251,6 +278,8 @@ if (isProd) {
     await mainWindow.loadURL(`http://localhost:${port}/`)
     mainWindow.webContents.openDevTools()
   }
+  mainWindow.show()
+  // splash.close();
 })()
 
 /**
@@ -277,7 +306,10 @@ function setWorkingDirectory(event, mainWindow) {
         if (file === app.getPath("sessionData")) {
           // If the working directory is already set to the selected folder
           console.log("Working directory is already set to " + file)
-          event.reply("messageFromElectron", "Working directory is already set to " + file)
+          event.reply(
+            "messageFromElectron",
+            "Working directory is already set to " + file
+          )
           event.reply("workingDirectorySet", {
             workingDirectory: dirTree(file),
             hasBeenSet: hasBeenSet
