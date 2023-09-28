@@ -1,5 +1,19 @@
 export class Utils {
-
+    /**
+     * Downloads a file from a url in an async manner
+     * @param downloadUrl the url to download from
+     * @param onSuccess the callback when the download is successful
+     * @param onError the callback when the download fails
+     * @category Static
+     * @example
+     * ```tsx
+     * Utils.downloadFile("https://www.google.com", (text) => {
+     *      console.log(text)
+     *    }, (error) => {
+     *      console.log(error)
+     *  })
+     * ```
+     */
     static downloadFile(downloadUrl: any, onSuccess: any, onError: any) {
         console.log("DownloadFile: " + downloadUrl);
         if (downloadUrl) {
@@ -21,6 +35,15 @@ export class Utils {
         }
     }
 
+    /**
+     * Gets the query parameters from the current url
+     * @returns A string of the current url's query parameters
+     * @category Static
+     * @example
+     * ```tsx
+     * Utils.getQueryParams()
+     * ```
+     */
     static getQueryParams() {
         var a = window.location.search.substr(1);
         if (a == "") return {};

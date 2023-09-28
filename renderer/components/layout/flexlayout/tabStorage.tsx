@@ -3,14 +3,22 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import { Actions, IJsonTabNode, ILayoutProps, Layout, TabNode } from "flexlayout-react"
 import { randomUUID } from "crypto"
 
+/**
+ * A component that allows you to store tabs in a list.
+ * @param tab The tab node to render the component for.
+ * @param layout The layout that the tab is in.
+ * @returns A React component.
+ * @category Component
+ */
 export function TabStorage({ tab, layout }: { tab: TabNode; layout: Layout }) {
-  const [storedTabs, setStoredTabs] = useState<IJsonTabNode[]>(tab.getConfig()?.storedTabs ?? [])
+  const [storedTabs, setStoredTabs] = useState<IJsonTabNode[]>(tab.getConfig()?.storedTabs ?? []) 
 
+  // Update tabs when storedTabs changes
   useEffect(() => {
     tab.getModel().doAction(Actions.updateNodeAttributes(tab.getId(), { config: { ...(tab.getConfig() ?? {}), storedTabs } }))
   }, [storedTabs])
 
-  const [contents, setContents] = useState<HTMLDivElement | null>(null)
+  const [contents, setContents] = useState<HTMLDivElement | null>(null) 
   const [list, setList] = useState<HTMLDivElement | null>(null)
   const refs = useRef<Map<string, HTMLDivElement | undefined>>(new Map()).current
   const [emptyElem, setEmptyElem] = useState<HTMLDivElement | null>(null)
@@ -47,6 +55,9 @@ export function TabStorage({ tab, layout }: { tab: TabNode; layout: Layout }) {
     return
   }, [scrollDown])
 
+  /**
+   * Kickstart the drag and drop process by adding the tab to the list.
+   */
   const kickstartingCallback = useCallback(
     (dragging: TabNode | IJsonTabNode) => {
       const json = dragging instanceof TabNode ? (dragging.toJson() as IJsonTabNode) : dragging
@@ -63,7 +74,9 @@ export function TabStorage({ tab, layout }: { tab: TabNode; layout: Layout }) {
     },
     [tab]
   )
-
+  /**
+   * Calculate the index to insert the tab at.
+   */
   const calculateInsertion = useCallback(
     (absoluteY: number) => {
       const rects = storedTabs.map((json) => refs.get(json.id!)!.getBoundingClientRect())
@@ -91,7 +104,9 @@ export function TabStorage({ tab, layout }: { tab: TabNode; layout: Layout }) {
     },
     [storedTabs]
   )
-
+  /**
+   * Handle the insertion of a tab into the list.
+   */
   const insertionCallback = useCallback(
     (dragging: TabNode | IJsonTabNode, _: any, __: any, y: number) => {
       const absoluteY = y + tab.getRect().y + layout.getDomRect().top
@@ -101,7 +116,7 @@ export function TabStorage({ tab, layout }: { tab: TabNode; layout: Layout }) {
       if (json.id === undefined) {
         json.id = `#${randomUUID()}`
       }
-
+      
       setStoredTabs((tabs) => {
         const newTabs = [...tabs]
         const foundAt = newTabs.indexOf(json)
@@ -124,7 +139,10 @@ export function TabStorage({ tab, layout }: { tab: TabNode; layout: Layout }) {
     },
     [calculateInsertion, tab, layout]
   )
-
+  
+  /**
+   * Handle the drag of a tab over the list.
+   */
   tab.getExtraData().tabStorage_onTabDrag = useCallback(
     ((dragging, over, x, y, _, refresh) => {
       if (contents && list) {

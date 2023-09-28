@@ -47,6 +47,12 @@ interface MyComponentState {
   // add state here
 }
 
+/**
+ * The main container shell for the flexlayout
+ * @summary This is a shell to easily pass variables from multiple contexts to the flexlayout 
+ * @param props the props
+ * @returns the main container
+ */
 const MainContainer = (props) => {
   const { layoutRequestQueue, setLayoutRequestQueue } = React.useContext(LayoutModelContext) as unknown as LayoutContextType
   const { globalData, setGlobalData } = React.useContext(DataContext) as unknown as DataContextType
@@ -64,7 +70,6 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
   htmlTimer?: any = null
   layoutRef?: React.RefObject<Layout>
   static contextType = LayoutModelContext
-  // static dataContextType = DataContext
 
   constructor(props: any) {
     super(props)
@@ -629,7 +634,6 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
 
   titleFactory = (node: TabNode) => {
     if (node.getId() === "custom-tab") {
-      // return "(Added by titleFactory) " + node.getName();
       return {
         titleContent: <div>(Added by titleFactory) {node.getName()}</div>,
         name: "the name for custom tab"
@@ -654,10 +658,15 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
     return this.returnIconFromComponent(node.getComponent() as string, node.getConfig())
   }
 
+  /**
+   * Function that returns the icon for the tab
+   * @param component the component name
+   * @param config the config for the component
+   * @returns the react component icon to display
+   */
   returnIconFromComponent(component: string, config?: any) {
     if (config !== undefined && config !== null && config !== "" && config?.path !== undefined && config?.path !== null && config?.path !== "") {
       console.log("config", config)
-      // if (config.path !== null && config.path !== undefined && config.path !== "") {
       let extension = config.path.split(".").pop()
       let iconToReturn = null
       switch (extension) {
@@ -725,15 +734,30 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
     }
   }
 
+  /**
+   * Callback when the layout is changed
+   * @param event the change event
+   * @returns nothing 
+   */
   onSelectLayout = (event: React.FormEvent) => {
     var target = event.target as HTMLSelectElement
     this.loadLayout(target.value)
   }
 
+  /**
+   * Callback when the reload button is clicked
+   * @param event the click event
+   * @returns nothing
+   */
   onReloadFromFile = (event: React.MouseEvent) => {
     this.loadLayout(this.state.layoutFile!, true)
   }
 
+  /**
+   * Callback when the theme is changed
+   * @param event the change event
+   * @returns nothing
+   */
   onThemeChange = (event: React.FormEvent) => {
     var target = event.target as HTMLSelectElement
     let flexlayout_stylesheet: any = window.document.getElementById("flexlayout-stylesheet")
@@ -745,17 +769,24 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
     this.forceUpdate()
   }
 
+  /**
+   * Callback when the font size is changed
+   * @param event the change event
+   * @returns nothing
+   */
   onSizeChange = (event: React.FormEvent) => {
     var target = event.target as HTMLSelectElement
     this.setState({ fontSize: target.value })
   }
 
+  /**
+   * Callback when a tab is rendered
+   * @param node the node that was rendered
+   * @param renderValues the render values
+   * @returns nothing
+   */
   onRenderTab = (node: TabNode, renderValues: ITabRenderValues) => {
-    // renderValues.content = (<InnerComponent/>);
-    // renderValues.content += " *";
-    // renderValues.leading = <img style={{width:"1em", height:"1em"}}src="images/folder.svg"/>;
-    // renderValues.name = "tab " + node.getId(); // name used in overflow menu
-    // renderValues.buttons.push(<img style={{width:"1em", height:"1em"}} src="images/folder.svg"/>);
+
   }
 
   onRenderTabSet = (node: TabSetNode | BorderNode, renderValues: ITabSetRenderValues) => {
@@ -765,21 +796,31 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
          * Add a button to the tabset header
          * Not being used at the moment
          */
-        // don't show + button on border tabsets
-        // renderValues.stickyButtons.push(<img src="images/add.svg" alt="Add" key="Add button" title="Add Tab (using onRenderTabSet callback, see Demo)" style={{ width: "1.1em", height: "1.1em" }} className="flexlayout__tab_toolbar_button" onClick={() => this.onAddFromTabSetButton(node)} />)
-        // put overflow button before + button (default is after)
-        // renderValues.overflowPosition=0
       }
     }
   }
 
+  /**
+   * Callback when a tabset placeholder is rendered
+   * @summary We render the HomePage component when a tabset is empty
+   * @param node the node that was rendered
+   * @param renderValues the render values
+   * @returns React.Component (HomePage)
+   */
   onTabSetPlaceHolder(node: TabSetNode) {
-    // return <div>Drag tabs to this area</div>
     return <HomePage />
   }
 
+  /**
+   * Callback when the component is updated
+   * @param prevProps the previous props
+   * @param prevState the previous state
+   * @param prevContext the previous context
+   * @returns nothing
+   * @summary We handle the layoutRequestQueue here
+   * @description The layoutRequestQueue is used to add tabs from the context
+   */
   componentDidUpdate(prevProps: MyComponentProps, prevState: MyComponentState, prevContext: LayoutContextType) {
-    // const { layoutRequestQueue, setLayoutRequestQueue } = this.context as LayoutContextType
     const { layoutRequestQueue, setLayoutRequestQueue } = this.props as LayoutContextType
     const prevLayoutRequestQueue = prevContext ? prevContext.layoutRequestQueue : []
     if (layoutRequestQueue.length > 0 && prevLayoutRequestQueue !== layoutRequestQueue) {
@@ -791,6 +832,11 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
     }
   }
 
+  /**
+   * Function to add a tab from the context
+   * @param tabParams the parameters of the tab
+   * @returns nothing
+   */
   addTab = (tabParams: any) => {
     // Your code to add a tab with custom parameters
     console.log("addTab", tabParams)
@@ -805,6 +851,9 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
     }
   }
 
+  /**
+   * Function to handle the actions from the context
+   */
   handleContextAction = (action: any) => {
     switch (action.type) {
       case "ADD_TAB":
@@ -816,12 +865,20 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
     this.save()
   }
 
+  /**
+   * Function to check if the tab exists
+   * @param tabID the id of the tab
+   * @returns boolean, true if the tab exists
+   */
   checkIfTabIDExists = (tabID: string) => {
     let tabExists = false
     this.state.model!.getNodeById(tabID) ? (tabExists = true) : (tabExists = false)
     return tabExists
   }
 
+  /**
+   * Renders the component
+   */
   render() {
     let contents: React.ReactNode = "loading ..."
 
@@ -857,6 +914,9 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
     )
   }
 
+  /**
+   * Functions that returns fake data
+   */
   makeFakeData() {
     var data = []
     var r = Math.random() * 50
@@ -871,6 +931,12 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
     return data
   }
 
+  /**
+   * Function that returns a random string
+   * @param len the length of the string
+   * @param chars the characters to use
+   * @returns a random string
+   */
   randomString(len: number, chars: string) {
     var a = []
     for (var i = 0; i < len; i++) {
@@ -881,13 +947,19 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
   }
 }
 
+/**
+ * Component that renders a simple table
+ * @param fields the fields of the table
+ * @param data the data of the table
+ * @param onClick the callback when a cell is clicked
+ * @returns the react component to display
+ */
 class SimpleTable extends React.Component<{ fields: any; data: any; onClick: any }, any> {
   shouldComponentUpdate() {
     return true
   }
 
   render() {
-    // if (Math.random()>0.8) throw Error("oppps I crashed");
     var headercells = this.props.fields.map(function (field: any) {
       return <th key={field}>{field}</th>
     })
@@ -909,10 +981,4 @@ class SimpleTable extends React.Component<{ fields: any; data: any; onClick: any
   }
 }
 
-// function InnerComponent() {
-//     const value = React.useContext(ContextExample);
-//     return <span>{value}</span>;
-// }
-
-// const root = createRoot(document.getElementById("container")!)
 export { MainContainer }

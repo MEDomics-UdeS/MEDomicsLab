@@ -1,8 +1,7 @@
 import React, { useContext, useState, useEffect } from "react"
 import { DataContext } from "../../workspace/dataContext"
 import { ListBox } from "primereact/listbox"
-import DataTableFromContext from "./dataTableFromContext"
-import { Tab, Tabs } from "react-bootstrap"
+
 /**
  * @description - This component is the dataset selector component that will show the datasets available in the workspace
  * @returns the dataset selector component
@@ -16,7 +15,7 @@ const ListBoxSelector = ({ setSelectedDatasets, selectedDatasets, multiSelect = 
   const [tabMenuItems, setTabMenuItems] = useState([{ label: "Dataset", icon: "pi pi-fw pi-file" }])
 
   /**
-   * 
+   * Function to generate the dataset list from the data context
    * @param {Object} dataContext The data context to generate the dataset list from
    */
   function generateDatasetListFromDataContext(dataContext) {
