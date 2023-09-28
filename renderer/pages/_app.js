@@ -153,8 +153,6 @@ export default function App() {
     ipcRenderer.on("updateDirectory", (event, data) => {
       let workspace = { ...data }
       setWorkspaceObject(workspace)
-
-      // }
     })
 
     ipcRenderer.on("getFlaskPort", (event, data) => {

@@ -36,24 +36,8 @@ export default function DropzoneComponent({ children, item = undefined, ...props
     reader.onabort = () => console.log("file reading was aborted")
     reader.onerror = () => console.log("file reading failed")
     reader.onload = () => {
-      // Parse CSV file
       acceptedFiles.forEach((file) => {
         console.log("file", file)
-        if (file.name.includes(".csv")) {
-          parse(reader.result, (err, data) => {
-            console.log("Parsed CSV data: ", data)
-
-            fs.writeFile(`${directoryPath}/${file["name"]}`, data.join("\n"), "utf8", (err) => {
-              if (err) {
-                console.error("Error writing file:", err)
-              } else {
-                console.log("File written successfully")
-              }
-            })
-          })
-        } else if (file.name.includes(".xlsx")) {
-          console.log("xlsx file")
-        } else {
           fs.copyFile(file.path, `${directoryPath}/${file["name"]}`, (err) => {
             if (err) {
               console.error("Error copying file:", err)
@@ -61,7 +45,6 @@ export default function DropzoneComponent({ children, item = undefined, ...props
               console.log("File copied successfully")
             }
           })
-        }
       })
     }
 

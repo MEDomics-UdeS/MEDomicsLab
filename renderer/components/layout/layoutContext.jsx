@@ -118,10 +118,24 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
         return add(action)
       case "remove":
         return remove(action)
+      case "DELETE_DATA_OBJECT":
+        return removeMedObject(action)
       default:
         toast.Error(`Unhandled action type: ${action.type}`)
     }
   }
+
+  /**
+   * @summary Function that is called when a medDataObject is deleted to remove all the tabs that are associated with it
+   * @params {Object} action - The action passed on by the dispatchLayout function
+   */
+  function removeMedObject(action) {
+    console.log("DELETE_DATA_OBJECT", action)
+    let layoutRequestQueueCopy = [...layoutRequestQueue]
+    layoutRequestQueueCopy.push(action)
+    setLayoutRequestQueue(layoutRequestQueueCopy)
+  }
+
 
   /**
    * @summary Generic function that adds a tab with a medDataObject to the layout model
@@ -138,7 +152,7 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
         name: medObject.name,
         id: medObject.UUID,
         component: component,
-        config: { path: medObject.path, uuid: medObject.UUID, extension: medObject.type }
+        config: { path: medObject.path, uuid: medObject.UUID, extension: medObject.type },
       }
       let layoutRequestQueueCopy = [...layoutRequestQueue]
       layoutRequestQueueCopy.push({ type: "ADD_TAB", payload: newChild })

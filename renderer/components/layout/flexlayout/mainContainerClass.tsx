@@ -107,10 +107,38 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
       layoutRequestQueue.forEach((action) => {
         if (action.type === "ADD_TAB") {
           this.addTab(action.tabParams)
+        } else if (action.type === "DELETE_DATA_OBJECT"){
+          this.deleteDataObject(action.dataObject)
         }
       })
       setLayoutRequestQueue([])
     }
+  }
+
+  /**
+   * Function to delete the tabs related to a data object
+   */
+  deleteDataObject = (dataObject: any) =>{
+    // Print the model and the idMap to the console
+    console.log("model", this.state.model)
+    console.log("idMap", this.state.model!._idMap)
+    let idMap = this.state.model!._idMap as any
+    let tabsToDelete = []
+    let keys = Object.keys(idMap)
+    // Get the tabs related to the data object
+    keys.forEach((key) => {
+      let uuidToCheck = idMap[key]._attributes.config?.uuid
+      // let dataObject = uuidToCheck?.uuid
+      console.log("dataObject", dataObject)
+      if (uuidToCheck !== undefined && uuidToCheck === dataObject._UUID) {
+        tabsToDelete.push(idMap[key])
+      }
+    })
+    // Delete the tabs
+    tabsToDelete.forEach((tab) => {
+      this.state.model!.doAction(Actions.deleteTab(tab.getId()))
+    })
+
   }
 
   /**
@@ -601,14 +629,7 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
           let width = image.getSize().width / 3
 
           // node.getExtraData().data = image
-          return <ZoomPanPinchComponent imagePath={config.path} image={image.toDataURL()} width={width} height={height} />
-
-          // return (
-          //   <div style={{ position: "relative", display: "block" }}>
-          //     <ZoomPanPinchComponent imagePath={config.path} image={image} />
-          //     {/* <Image alt={"Image"} src={node.getExtraData().data.toDataURL()} style={{ display: "block", border: "none", boxSizing: "border-box" }} height={node.getExtraData().data.getSize().height / 4} width={node.getExtraData().data.getSize().width / 4} quality={50} /> */}
-          //   </div>
-          // )
+          return <ZoomPanPinchComponent imagePath={config.path} image={image.toDataURL()} width={width} height={height} options={""}/>
         }
       }
     } else if (component === "evaluationPage") {
@@ -893,6 +914,9 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
     switch (action.type) {
       case "ADD_TAB":
         this.addTab(action.payload)
+        break
+      case "DELETE_DATA_OBJECT":
+        this.deleteDataObject(action.payload)
         break
       default:
         break

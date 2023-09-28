@@ -155,7 +155,7 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
     } else {
       // Delete the `MedDataObject` with the current name from the `globalData` object.
       let globalDataCopy = { ...globalData }
-      globalDataCopy = MedDataObject.delete(globalDataCopy[uuid], globalData)
+      globalDataCopy = MedDataObject.delete(globalDataCopy[uuid], globalData, dispatchLayout)
       setGlobalData(globalDataCopy)
       toast.success(`Deleted ${globalData[uuid].name}`)
       MedDataObject.updateWorkspaceDataObject(300)
