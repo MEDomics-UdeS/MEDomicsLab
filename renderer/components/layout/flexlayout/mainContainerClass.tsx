@@ -656,8 +656,6 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
 
   returnIconFromComponent(component: string, config?: any) {
     if (config !== undefined && config !== null && config !== "" && config?.path !== undefined && config?.path !== null && config?.path !== "") {
-      console.log("config", config)
-      // if (config.path !== null && config.path !== undefined && config.path !== "") {
       let extension = config.path.split(".").pop()
       let iconToReturn = null
       switch (extension) {

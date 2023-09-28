@@ -3,6 +3,7 @@ import { Accordion, AccordionTab } from "primereact/accordion"
 import { deepCopy } from "../../../utilities/staticFunctions"
 import DataParamResults from "../../learning/results/node/dataParamResults"
 import ModelsResults from "../../learning/results/node/modelsResults"
+import AnalyseResults from "../../learning/results/node/analyseResults"
 import { SelectButton } from "primereact/selectbutton"
 import MedDataObject from "../../workspace/medDataObject"
 import { FlowResultsContext } from "../context/flowResultsContext"
@@ -95,6 +96,8 @@ const PipelineResult = ({ pipeline, selectionMode, flowContent }) => {
         } else if (type == "create_model" || type == "compare_models") {
           console.log("create model / compare models")
           toReturn = <ModelsResults selectedResults={selectedResults} />
+        } else if (type == "analyse") {
+          toReturn = <AnalyseResults selectedResults={selectedResults} />
         }
       }
     }
@@ -266,7 +269,7 @@ const PipelinesResults = ({ pipelines, selectionMode, flowContent }) => {
         compileLines(linesOfSameType)
 
         MedDataObject.writeFileSync(notebook, [getBasePath(EXPERIMENTS), experimentName, sceneName, "notebooks"], pipeline.map((id) => getName(id)).join("-"), "ipynb").then(() => {
-          toast.success("Notebook generated !")
+          toast.success("Notebook generated and saved !")
         })
       }
 

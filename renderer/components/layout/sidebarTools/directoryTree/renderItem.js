@@ -20,7 +20,7 @@ const iconExtension = {
   pdf: <span className="emoji">📕</span>,
   medomics: (
     <span>
-      <Image src={medomicsImg} width={12} height={12} alt="Picture of the author" style={{ marginRight: "0.15rem" }} />
+      <Image src={medomicsImg} width={12} height={12} alt="medomics.svg" style={{ marginRight: "0.15rem" }} />
     </span>
   ),
   medml: <span className="emoji">🎯</span>,

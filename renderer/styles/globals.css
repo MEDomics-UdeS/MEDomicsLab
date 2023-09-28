@@ -77,10 +77,7 @@ body {
 .main-app-container {
   flex-grow: 1;
   width: 100%;
-  position: absolute;
-  left: var(--sidebar-width);
   height: 100%;
-  padding-right: var(--sidebar-width);
 }
 
 a {
@@ -194,6 +191,7 @@ body {
   display: flex;
   flex-direction: column;
   flex-grow: 20;
+  padding: 0.25rem;
 }
 
 .flexlayout-contents {

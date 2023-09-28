@@ -22,6 +22,7 @@ class Dataset(Node):
         self.entry_file_type = None
         self.dfs_combinations = None
         self.output_dataset = {}
+        self.settings['files'] = self.settings['files']['path']
 
     def _execute(self, experiment: dict = None, **kwargs) -> json:
         if self.settings['files'] != '':

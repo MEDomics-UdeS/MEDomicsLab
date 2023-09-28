@@ -101,13 +101,12 @@ const IconSidebar = ({ onSidebarItemSelect }) => {
         <Tooltip target=".evaluationNav" {...delayOptions} className="tooltip-icon-sidebar" />
         <Tooltip target=".applicationNav" {...delayOptions} className="tooltip-icon-sidebar" />
         <Tooltip target=".layoutTestNav" {...delayOptions} className="tooltip-icon-sidebar" />
-        <Tooltip target=".settingsNav" {...delayOptions} className="tooltip-icon-sidebar" />
 
         {/* ------------------------------------------- END Tooltips ----------------------------------------- */}
 
         {/* ------------------------------------------- ICON NAVBAR ----------------------------------------- */}
 
-        <Nav defaultActiveKey="/home" className="flex-column" style={{ width: "100%", maxWidth: "100%", minWidth: "100%" }}>
+        <Nav defaultActiveKey="/home" className="flex-column" style={{ width: "100%", height: "100%" }}>
           <Nav.Link className="homeNavIcon btnSidebar" data-pr-at="right center" data-pr-tooltip="Home" data-pr-my="left center" href="#home" eventKey="home" data-tooltip-id="tooltip-home" onClick={(event) => handleClick(event, "home")} onAuxClick={(event) => handleRightClick(event, "Home")}>
             <HouseFill size={"1.25rem"} width={"100%"} height={"100%"} style={{ scale: "0.65" }} />
           </Nav.Link>
@@ -189,7 +188,7 @@ const IconSidebar = ({ onSidebarItemSelect }) => {
 
           <div className="d-flex icon-sidebar-divider" style={{ flexGrow: "1" }}></div>
 
-          <NavDropdown className="settingsNav btnSidebar" data-pr-at="right center" data-pr-my="left center" data-pr-tooltip="Settings" data-tooltip-id="tooltip-settings" onClick={handleNavClick} title={<Gear size={"1.25rem"} width={"100%"} height={"100%"} style={{ scale: "0.75" }} />}>
+          <NavDropdown className="settingsNav btnSidebar" onClick={handleNavClick} title={<Gear size={"1.25rem"} width={"100%"} height={"100%"} style={{ scale: "0.75" }} />}>
             <NavDropdown.Item className="developerModeNav" data-pr-at="right center" data-pr-my="left center" data-pr-tooltip="Developer Mode" href="#/action-1" onClick={(event) => handleToggleDeveloperMode(event)}>
               Toggle developer mode
             </NavDropdown.Item>

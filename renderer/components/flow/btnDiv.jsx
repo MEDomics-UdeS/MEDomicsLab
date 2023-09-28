@@ -1,6 +1,7 @@
 import React from "react"
 import { Button } from "react-bootstrap"
 import * as Icon from "react-bootstrap-icons"
+import { TfiSave } from "react-icons/tfi"
 
 /**
  *
@@ -34,7 +35,7 @@ const buttonType = {
   save: (onSave) => {
     return (
       <Button key="save" variant="outline margin-left-10 padding-5" onClick={onSave}>
-        <Icon.Save width="30px" height="30px" />
+        <TfiSave width="30px" height="30px" />
       </Button>
     )
   },

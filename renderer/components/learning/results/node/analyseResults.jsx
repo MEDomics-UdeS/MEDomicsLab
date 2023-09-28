@@ -1,23 +1,29 @@
-import React, { useEffect, useState } from "react"
+import React from "react"
+import { Image } from "primereact/image"
+// import Image from "next/image"
+
+const getLocalImage = (src) => {
+  const nativeImage = require("electron").nativeImage
+  const image = nativeImage.createFromPath(src)
+  console.log(image)
+  return image.toDataURL()
+}
 
 /**
- * 
- * @param {Object} selectedResults The selected results 
+ *
+ * @param {Object} selectedResults The selected results
  * @returns {JSX.Element} The AnalyseResults component
  */
 const AnalyseResults = ({ selectedResults }) => {
-  const [nodeSelection, setNodeSelection] = useState(null)
-
-  useEffect(() => {
-    console.log("selectedResults", selectedResults)
-    if (selectedResults) {
-      setNodeSelection(selectedResults)
-    }
-  }, [selectedResults])
-
   return (
-    <div>
-      <h1>Analyse Results</h1>
+    <div className="height-100 width-100 flex-grid-gap-1rem">
+      {Object.entries(selectedResults.data).map(([modelName, path]) => {
+        return (
+          <div key={modelName}>
+            <Image src={getLocalImage(path)} alt="Image" height="250" indicatorIcon={<h5>{modelName}</h5>} preview downloadable />
+          </div>
+        )
+      })}
     </div>
   )
 }

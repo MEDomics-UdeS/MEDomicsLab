@@ -42,7 +42,7 @@ const LearningSidebar = () => {
 
   // We use the useEffect hook to update the create experiment error message state when the experiment name changes
   useEffect(() => {
-    if (sceneName != "" && !experimentList.includes(sceneName)) {
+    if (sceneName != "" && !experimentList.includes(sceneName) && !sceneName.includes(" ")) {
       setBtnCreateSceneState(true)
       setShowErrorMessage(false)
     } else {
@@ -52,9 +52,9 @@ const LearningSidebar = () => {
   }, [sceneName, experimentList]) // We set the button state to true if the experiment name is empty, otherwise we set it to false
 
   /**
-   * 
+   *
    * @param {Event} e - The event passed on by the create button
-   * @description - This function is used to create an experiment when the create button is clicked 
+   * @description - This function is used to create an experiment when the create button is clicked
    */
   const createExperiment = (e) => {
     console.log("Create Scene")
@@ -64,7 +64,7 @@ const LearningSidebar = () => {
   }
 
   /**
-   * 
+   *
    * @param {String} path The path of the folder where the scene will be created
    * @param {String} name The name of the scene
    * @description - This function is used to create an empty scene
@@ -104,7 +104,6 @@ const LearningSidebar = () => {
     }
   }
 
-
   // We use the useEffect hook to open the learning page when the selected item changes
   useEffect(() => {
     console.log(dbSelectedItem)
@@ -117,9 +116,9 @@ const LearningSidebar = () => {
   }, [dbSelectedItem])
 
   /**
-   * 
+   *
    * @param {Event} e - The event passed on by the create scene button
-   * @description - This function is used to open the create scene overlay panel when the create scene button is clicked 
+   * @description - This function is used to open the create scene overlay panel when the create scene button is clicked
    */
   const handleClickCreateScene = (e) => {
     console.log("Create Scene")
@@ -140,26 +139,12 @@ const LearningSidebar = () => {
         >
           Learning Module
         </p>
+        <Button className="btn-sidebar-learning" onClick={handleClickCreateScene}>
+          Create Scene
+          <Icon.Plus />
+        </Button>
 
-        <Accordion defaultActiveKey={["dirTree", "0"]} alwaysOpen>
-          <Accordion.Item eventKey="0">
-            <Accordion.Header>
-              <Stack direction="horizontal" style={{ flexGrow: "1" }}>
-                <p style={{ marginBottom: "0px", paddingLeft: "1rem" }}>
-                  <strong>WORKSPACE</strong>
-                </p>
-                <div style={{ flexGrow: "10" }} />
-              </Stack>
-            </Accordion.Header>
-            <Accordion.Body style={{ padding: "0.25rem" }}>
-              <Stack direction="vertical" gap={0}>
-                <Button className="btn-sidebar-learning" onClick={handleClickCreateScene}>
-                  Create Scene
-                  <Icon.Plus />
-                </Button>
-              </Stack>
-            </Accordion.Body>
-          </Accordion.Item>
+        <Accordion defaultActiveKey={["dirTree"]} alwaysOpen>
           <SidebarDirectoryTreeControlled setExternalSelectedItems={setSelectedItems} setExternalDBClick={setDbSelectedItem} />
         </Accordion>
       </Stack>
@@ -178,7 +163,7 @@ const LearningSidebar = () => {
               <label htmlFor="expName">Enter scene name</label>
             </span>
             <small id="name-msg" className="text-red">
-              {showErrorMessage ? "Scene name is empty or already exists" : ""}
+              {showErrorMessage ? "Scene name is empty, contains spaces or already exists" : ""}
             </small>
 
             <hr className="solid" />

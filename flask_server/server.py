@@ -1,3 +1,5 @@
+from learning.app_learning_blueprint import app_learning
+from extraction.app_extraction_blueprint import app_extraction
 import sys
 import json
 import argparse
@@ -5,12 +7,11 @@ from flask import Flask, request, jsonify, Blueprint
 from utils.server_utils import get_json_from_request
 import argparse
 parser = argparse.ArgumentParser(description='Script so useful.')
-parser.add_argument("--port", type=int, default=5000, help="port to run the server on")
+parser.add_argument("--port", type=int, default=5000,
+                    help="port to run the server on")
 args = parser.parse_args()
 
 # Import blueprints
-from extraction.app_extraction_blueprint import app_extraction
-from learning.app_learning_blueprint import app_learning
 
 # Creating main instance of Flask app
 app = Flask(__name__)
@@ -34,4 +35,4 @@ def test():
 
 
 if __name__ == '__main__':
-    app.run(debug=True, port=args.port, use_reloader=True)
+    app.run(debug=True, port=args.port, use_reloader=False)
