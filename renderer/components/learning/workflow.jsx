@@ -493,16 +493,28 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
           console.log("sended flow", flow)
           console.log("port", port)
           setIsProgressUpdating(true)
-          requestJson(port, "/learning/run_experiment", flow, (jsonResponse) => {
-            console.log("received results:", jsonResponse)
-            if (!jsonResponse.error) {
-              updateFlowResults(jsonResponse)
-            } else {
+          requestJson(
+            port,
+            "/learning/run_experiment/" + pageId,
+            flow,
+            (jsonResponse) => {
+              console.log("received results:", jsonResponse)
+              if (!jsonResponse.error) {
+                updateFlowResults(jsonResponse)
+              } else {
+                setIsProgressUpdating(false)
+                toast.error("Error detected while running the experiment")
+                console.log("error", jsonResponse.error)
+                setError(jsonResponse.error)
+              }
+            },
+            (error) => {
               setIsProgressUpdating(false)
               toast.error("Error detected while running the experiment")
-              setError(jsonResponse.error)
+              console.log("error", error)
+              setError(error)
             }
-          })
+          )
         } else {
           toast.warn("Workflow is not valid, maybe some default values are not set")
         }
@@ -654,6 +666,8 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
       newJson.tmp_path = newJson.ws_path + MedDataObject.getPathSeparator() + "tmp"
       // eslint-disable-next-line camelcase
       newJson.path_seperator = MedDataObject.getPathSeparator()
+      // eslint-disable-next-line camelcase
+      newJson.scene_id = pageId // TODO: change this to scene uuid
       newJson.nbNodes2Run = nbNodes2Run
 
       return { newflow: newJson, isValid: isValidDefault }
@@ -706,6 +720,16 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
       setIntersections([])
     }
   }, [])
+
+  /**
+   *
+   * @param {Event} e event object
+   *
+   * This function is called when the user changes the machine learning type
+   */
+  const handleMlTypeChanged = (e) => {
+    confirm("This action resets all node's setting.\nBe sure to save if you want to keep your changes") && setMLType(e.target.value)
+  }
 
   /**
    * Set the subflow id to null to go back to the main workflow
@@ -769,7 +793,7 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
           <>
             {workflowType == "learning" && (
               <>
-                <Form.Select className="margin-left-10" aria-label="Default select example" value={MLType} onChange={(e) => setMLType(e.target.value)}>
+                <Form.Select className="margin-left-10" aria-label="Default select example" value={MLType} onChange={handleMlTypeChanged}>
                   <option value="classification">Classification</option>
                   <option value="regression">Regression</option>
                   {/* <option value="survival-analysis">Survival Analysis</option> */}
@@ -779,7 +803,6 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
                     { type: "run", onClick: onRun },
                     { type: "clear", onClick: onClear },
                     { type: "save", onClick: onSave },
-                    { type: "download", onClick: onDownload },
                     { type: "load", onClick: onLoad }
                   ]}
                 />

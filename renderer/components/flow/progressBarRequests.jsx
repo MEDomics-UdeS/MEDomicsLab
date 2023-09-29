@@ -21,21 +21,31 @@ const ProgressBarRequests = ({ isUpdating, setIsUpdating }) => {
 
   useInterval(
     () => {
-      requestJson(port, "/learning/progress", { experimentId: pageId }, (data) => {
-        setProgress({
-          now: data.progress,
-          currentName: data.cur_node
-        })
-        if (data.progress === 100) {
-          setIsUpdating(false)
+      requestJson(
+        port,
+        "/learning/progress/" + pageId,
+        // eslint-disable-next-line camelcase
+        { scene_id: pageId },
+        (data) => {
           setProgress({
             now: data.progress,
-            currentName: "Done!"
+            currentName: data.cur_node
           })
+          if (data.progress === 100) {
+            setIsUpdating(false)
+            setProgress({
+              now: data.progress,
+              currentName: "Done!"
+            })
+          }
+        },
+        (error) => {
+          console.error(error)
+          setIsUpdating(false)
         }
-      })
+      )
     },
-    isUpdating ? 200 : null
+    isUpdating ? 400 : null
   )
 
   return (

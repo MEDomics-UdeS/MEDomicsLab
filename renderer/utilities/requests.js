@@ -20,7 +20,16 @@ import { toast } from "react-toastify"
     }
 }>send test</Button> 
  */
-export const requestJson = (port, topic, json2send, jsonReceivedCB) => {
+export const requestJson = (
+  port,
+  topic,
+  json2send,
+  jsonReceivedCB,
+  onError = (error) => {
+    console.error("Error:", error)
+    toast.error("An error occured while sending the request")
+  }
+) => {
   try {
     ipcRenderer
       .invoke("request", {
@@ -32,25 +41,20 @@ export const requestJson = (port, topic, json2send, jsonReceivedCB) => {
       })
       .then((data) => {
         jsonReceivedCB(data["data"])
-        return true
       })
       .catch((resp) => {
-        console.error("Error:", resp)
-        toast.error("An error occured while sending the request")
+        console.log(resp)
+        onError(resp)
       })
   } catch (error) {
     console.error(error)
-    toast.error("An error occured while sending the request")
+    toast.error("An error occured while using ipcRenderer.invoke")
   }
 }
 
 export const axiosPostJson = async (jsonData, pathName) => {
   try {
-    const response = await axios.post(
-      "http://localhost:5000/" + pathName,
-      jsonData,
-      { headers: { "Content-Type": "application/json" } }
-    )
+    const response = await axios.post("http://localhost:5000/" + pathName, jsonData, { headers: { "Content-Type": "application/json" } })
 
     return response.data
   } catch (error) {

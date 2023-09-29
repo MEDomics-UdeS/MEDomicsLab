@@ -1,7 +1,7 @@
 import React, { createContext, useState, useContext } from "react"
 import { FlowInfosContext } from "./flowInfosContext"
 import MedDataObject from "../../workspace/medDataObject"
-import { WorkspaceContext, RESULTS } from "../../workspace/workspaceContext"
+import { WorkspaceContext, RESULTS, EXPERIMENTS } from "../../workspace/workspaceContext"
 import { toast } from "react-toastify"
 
 // This context is used to store the flowResults (id and type of the workflow)
@@ -27,7 +27,7 @@ function FlowResultsProvider({ children }) {
     setIsResults(true)
     console.log("workspace", workspace)
     if (workspace.hasBeenSet && experimentName && sceneName) {
-      MedDataObject.writeFileSync(newResults, [getBasePath(RESULTS), experimentName], sceneName, "medmlres").then((res) => {
+      MedDataObject.writeFileSync(newResults, [getBasePath(EXPERIMENTS), experimentName, sceneName], sceneName, "medmlres").then((res) => {
         console.log("res", res)
         toast.success("Results generated and saved !")
         MedDataObject.updateWorkspaceDataObject()

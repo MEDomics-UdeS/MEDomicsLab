@@ -7,7 +7,7 @@ import { FlowResultsContext, FlowResultsProvider } from "./context/flowResultsCo
 import { FlowFunctionsProvider } from "./context/flowFunctionsContext"
 import { PageInfosContext } from "../mainPages/moduleBasics/pageInfosContext"
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels"
-import { WorkspaceContext, RESULTS } from "../workspace/workspaceContext"
+import { WorkspaceContext, RESULTS, EXPERIMENTS } from "../workspace/workspaceContext"
 import ResultsPane from "./results/resultsPane"
 import MedDataObject from "../workspace/medDataObject"
 import { loadJsonPath } from "../../utilities/fileManagementUtils"
@@ -42,9 +42,11 @@ const FlowPageBaseWithFlowInfos = ({ children, workflowType, id }) => {
     if (configPath) {
       let pathList = configPath.split(MedDataObject.getPathSeparator())
       let length = pathList.length
-      setSceneName(pathList[length - 1].split(".")[0])
-      setExperimentName(pathList[length - 3])
-      let path = [getBasePath(RESULTS), pathList[length - 3], pathList[length - 1].split(".")[0]].join(MedDataObject.getPathSeparator()) + ".medmlres"
+      let sceneName = pathList[length - 1].split(".")[0]
+      let experimentName = pathList[length - 3]
+      setSceneName(sceneName)
+      setExperimentName(experimentName)
+      let path = [getBasePath(EXPERIMENTS), experimentName, sceneName, sceneName].join(MedDataObject.getPathSeparator()) + ".medmlres"
       if (MedDataObject.isPathExists(path)) {
         let flowResults = loadJsonPath(path)
         updateFlowResults(flowResults)

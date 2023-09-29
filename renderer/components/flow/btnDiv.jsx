@@ -1,6 +1,10 @@
 import React from "react"
 import { Button } from "react-bootstrap"
 import * as Icon from "react-bootstrap-icons"
+import { TfiSave } from "react-icons/tfi"
+import { PiDownload } from "react-icons/pi"
+import { TbFileImport } from "react-icons/tb"
+import { AiOutlineImport } from "react-icons/ai"
 
 /**
  *
@@ -34,21 +38,21 @@ const buttonType = {
   save: (onSave) => {
     return (
       <Button key="save" variant="outline margin-left-10 padding-5" onClick={onSave}>
-        <Icon.Save width="30px" height="30px" />
+        <TfiSave style={{ width: "30px", height: "auto", padding: "2px" }} />
       </Button>
     )
   },
   download: (onDownload) => {
     return (
       <Button key="download" variant="outline margin-left-10 padding-5" onClick={onDownload}>
-        <Icon.Upload width="30px" height="30px" />
+        <PiDownload style={{ width: "30px", height: "auto" }} />
       </Button>
     )
   },
   load: (onLoad) => {
     return (
       <Button key="load" variant="outline margin-left-10 padding-5" onClick={onLoad}>
-        <Icon.Download width="30px" height="30px" />
+        <AiOutlineImport style={{ width: "30px", height: "auto" }} />
       </Button>
     )
   },

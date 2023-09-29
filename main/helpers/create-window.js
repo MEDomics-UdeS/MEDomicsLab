@@ -27,7 +27,12 @@ export default function createWindow(windowName, options) {
   }
 
   const windowWithinBounds = (windowState, bounds) => {
-    return windowState.x >= bounds.x && windowState.y >= bounds.y && windowState.x + windowState.width <= bounds.x + bounds.width && windowState.y + windowState.height <= bounds.y + bounds.height
+    return (
+      windowState.x >= bounds.x &&
+      windowState.y >= bounds.y &&
+      windowState.x + windowState.width <= bounds.x + bounds.width &&
+      windowState.y + windowState.height <= bounds.y + bounds.height
+    )
   }
 
   const resetToDefaults = () => {

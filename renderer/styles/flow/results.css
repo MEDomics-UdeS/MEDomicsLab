@@ -146,3 +146,10 @@
 .results-select-button {
   flex-grow: 1;
 }
+
+.flex-grid-gap-1rem {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 1rem;
+}

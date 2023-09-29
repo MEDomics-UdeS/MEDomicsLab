@@ -62,5 +62,6 @@ class Analyse(Node):
                     os.remove(new_path)
                 os.rename(path, new_path)
 
+
                 plot_paths[model.__class__.__name__] = new_path
         return plot_paths

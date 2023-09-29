@@ -28,7 +28,7 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
   const [cutItems, setCutItems] = useState([]) // This state is used to keep track of the items that have been cut
   const [isHovering, setIsHovering] = useState(false) // This state is used to know if the mouse is hovering the directory tree
 
-  const [isAccordionShowing, setIsAccordionShowing] = useState(false) // This state is used to know if the accordion is collapsed or not
+  const [isAccordionShowing, setIsAccordionShowing] = useState(true) // This state is used to know if the accordion is collapsed or not
   const { globalData, setGlobalData } = useContext(DataContext) // We get the global data from the context to retrieve the directory tree of the workspace, thus retrieving the data files
   const { dispatchLayout } = useContext(LayoutModelContext)
 

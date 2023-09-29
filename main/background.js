@@ -11,6 +11,7 @@ var flaskPort = 5000
 var hasBeenSet = false
 
 const RUN_SERVER_WITH_APP = true
+const USE_REACT_DEV_TOOLS = false
 
 const isProd = process.env.NODE_ENV === "production"
 
@@ -27,6 +28,7 @@ if (isProd) {
     width: 1500,
     height: 1000
   })
+
   const template = [
     {
       label: "File",
@@ -113,7 +115,7 @@ if (isProd) {
     if (!isProd) {
       //**** DEVELOPMENT ****//
       // IMPORTANT: Select python interpreter (related to your virtual environment)
-      var path2conda = fs.readFileSync("./path2condaenv_toDeleteInProd.txt", "utf8").replace(/\s/g, "");
+      var path2conda = fs.readFileSync("./path2condaenv_toDeleteInProd.txt", "utf8").replace(/\s/g, "")
       console.log(`path2conda: "${path2conda}"`)
 
       const net = require("net")
@@ -234,11 +236,17 @@ if (isProd) {
     }
   })
 
+  // protocol.registerFileProtocol("atom", (request, callback) => {
+  //   const filePath = url.fileURLToPath("file://" + request.url.slice("atom://".length))
+  //   callback(filePath)
+  // })
+
   app.on("toggleDarkMode", () => {
     console.log("toggleDarkMode")
     mainWindow.webContents.send("toggleDarkMode")
   })
-
+  // splash.loadFile('splash.html');
+  // splash.center();
   if (isProd) {
     await mainWindow.loadURL("app://./index.html")
   } else {
@@ -246,6 +254,8 @@ if (isProd) {
     await mainWindow.loadURL(`http://localhost:${port}/`)
     mainWindow.webContents.openDevTools()
   }
+  mainWindow.show()
+  // splash.close();
 })()
 
 /**
@@ -347,10 +357,12 @@ app.on("window-all-closed", () => {
   }
 })
 
-app.on("ready", async () => {
-  await installExtension(REACT_DEVELOPER_TOOLS, {
-    loadExtensionOptions: {
-      allowFileAccess: true
-    }
+if (USE_REACT_DEV_TOOLS) {
+  app.on("ready", async () => {
+    await installExtension(REACT_DEVELOPER_TOOLS, {
+      loadExtensionOptions: {
+        allowFileAccess: true
+      }
+    })
   })
-})
+}
