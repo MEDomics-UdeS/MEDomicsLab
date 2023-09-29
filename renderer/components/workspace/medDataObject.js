@@ -126,21 +126,39 @@ export default class MedDataObject {
     console.log("typeof path: ", path)
     let newPath = typeof path === "string" ? path : path.join(getPathSeparator())
     const pathToCreate = `${newPath}${getPathSeparator()}${name}.${extension}`
-    console.log("typeof exportObj: ", typeof exportObj)
-    let convertedExportObj = typeof exportObj === "string" ? exportObj : JSON.stringify(exportObj, null, 2)
-    const fsPromises = fs.promises
-    this.updateWorkspaceDataObject(1000)
-    return new Promise((resolve) => {
-      fsPromises
-        .writeFile(pathToCreate, convertedExportObj)
-        .then(function () {
-          console.log("file created at " + pathToCreate)
-          resolve(pathToCreate)
+    if (!fs.existsSync(newPath)) {
+      this.createFolderFSsync(newPath).then((newPath) => {
+        let convertedExportObj = typeof exportObj === "string" ? exportObj : JSON.stringify(exportObj, null, 2)
+        const fsPromises = fs.promises
+        this.updateWorkspaceDataObject(1000)
+        return new Promise((resolve) => {
+          fsPromises
+            .writeFile(pathToCreate, convertedExportObj)
+            .then(function () {
+              console.log("file created at " + pathToCreate)
+              resolve(pathToCreate)
+            })
+            .catch(function (e) {
+              console.error("failed to create directory", e)
+            })
         })
-        .catch(function (e) {
-          console.error("failed to create directory", e)
-        })
-    })
+      })
+    } else {
+      let convertedExportObj = typeof exportObj === "string" ? exportObj : JSON.stringify(exportObj, null, 2)
+      const fsPromises = fs.promises
+      this.updateWorkspaceDataObject(1000)
+      return new Promise((resolve) => {
+        fsPromises
+          .writeFile(pathToCreate, convertedExportObj)
+          .then(function () {
+            console.log("file created at " + pathToCreate)
+            resolve(pathToCreate)
+          })
+          .catch(function (e) {
+            console.error("failed to create directory", e)
+          })
+      })
+    }
   }
 
   /**
@@ -353,6 +371,29 @@ export default class MedDataObject {
         .then(function () {
           console.log("directory created at " + pathToCreate)
           resolve(pathToCreate)
+        })
+        .catch(function () {
+          console.error("failed to create directory")
+        })
+    })
+  }
+
+  /**
+   * Create an empty folder in the file system.
+   * @param {string} name
+   * @param {string} path
+   */
+  static createFolderFSsync(path) {
+    // eslint-disable-next-line no-undef
+    let fs = require("fs")
+    const fsPromises = fs.promises
+    this.updateWorkspaceDataObject(1000)
+    return new Promise((resolve) => {
+      fsPromises
+        .mkdir(path, { recursive: true })
+        .then(function () {
+          console.log("directory created at " + path)
+          resolve(path)
         })
         .catch(function () {
           console.error("failed to create directory")

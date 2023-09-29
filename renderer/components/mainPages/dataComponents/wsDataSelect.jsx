@@ -6,7 +6,6 @@ import { Form } from "react-bootstrap"
 const WsDataSelect = ({ selectedPath, onChange, name = "Select data" }) => {
   const { globalData } = useContext(DataContext) // We get the global data from the context to retrieve the directory tree of the workspace, thus retrieving the data files
   const [datasetList, setDatasetList] = useState([])
-  const [selectedValue, setSelectedValue] = useState(null)
 
   function generateDatasetListFromDataContext(dataContext) {
     let uuids = Object.keys(dataContext)
@@ -26,18 +25,8 @@ const WsDataSelect = ({ selectedPath, onChange, name = "Select data" }) => {
     }
   }, [globalData])
 
-  useEffect(() => {
-    console.log("selectedPath", selectedPath)
-    if (selectedPath) {
-      let foundData = datasetList.find((dataset) => dataset.path == selectedPath)
-      if (foundData) {
-        setSelectedValue(foundData.name)
-      }
-    }
-  }, [selectedPath])
-
   return (
-    <Form.Select className="" value={selectedPath.name} onChange={(e) => onChange(e, datasetList.find((dataset) => dataset.name == e.target.value).path)}>
+    <Form.Select value={selectedPath && selectedPath.name} onChange={(e) => onChange(e, datasetList.find((dataset) => dataset.name == e.target.value).path)}>
       {datasetList.map((dataset) => {
         return (
           <option key={dataset.name} value={dataset.name}>

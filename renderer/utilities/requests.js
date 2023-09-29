@@ -41,24 +41,20 @@ export const requestJson = (
       })
       .then((data) => {
         jsonReceivedCB(data["data"])
-        return true
       })
       .catch((resp) => {
+        console.log(resp)
         onError(resp)
       })
   } catch (error) {
     console.error(error)
-    toast.error("An error occured while sending the request")
+    toast.error("An error occured while using ipcRenderer.invoke")
   }
 }
 
 export const axiosPostJson = async (jsonData, pathName) => {
   try {
-    const response = await axios.post(
-      "http://localhost:5000/" + pathName,
-      jsonData,
-      { headers: { "Content-Type": "application/json" } }
-    )
+    const response = await axios.post("http://localhost:5000/" + pathName, jsonData, { headers: { "Content-Type": "application/json" } })
 
     return response.data
   } catch (error) {

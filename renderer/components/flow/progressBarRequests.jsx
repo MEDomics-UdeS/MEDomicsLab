@@ -18,7 +18,7 @@ const ProgressBarRequests = ({ isUpdating, setIsUpdating }) => {
     () => {
       requestJson(
         port,
-        "/learning/progress",
+        "/learning/progress/" + pageId,
         // eslint-disable-next-line camelcase
         { scene_id: pageId },
         (data) => {
@@ -35,22 +35,18 @@ const ProgressBarRequests = ({ isUpdating, setIsUpdating }) => {
           }
         },
         (error) => {
+          console.error(error)
           setIsUpdating(false)
         }
       )
     },
-    isUpdating ? 200 : null
+    isUpdating ? 400 : null
   )
 
   return (
     <>
       <label>{progress.currentName || ""}</label>
-      <ProgressBar
-        variant="success"
-        animated
-        now={progress.now}
-        label={`${progress.now}%`}
-      />
+      <ProgressBar variant="success" animated now={progress.now} label={`${progress.now}%`} />
     </>
   )
 }
