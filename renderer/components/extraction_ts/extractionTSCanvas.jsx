@@ -7,6 +7,7 @@ import Button from "react-bootstrap/Button"
 import { requestJson } from "../../utilities/requests"
 import { WorkspaceContext } from "../workspace/workspaceContext"
 import MedDataObject from "../workspace/medDataObject"
+import { InputText } from "primereact/inputtext";
 
 const ExtractionTSCanvas = () => {
   const [isDatasetLoaded, setIsDatasetLoaded] = useState(false)
@@ -14,6 +15,7 @@ const ExtractionTSCanvas = () => {
   const [csvResultPath, setCsvResultPath] = useState("")
   const [dataframe, setDataframe] = useState([])
   const [datasetList, setDatasetList] = useState([])
+  const [filename, setFilename] = useState("tmp_extracted_features.csv")
   const [mayProceed, setMayProceed] = useState(false)
   const [resultDataset, setResultDataset] = useState(null)
   const [selectedColumns, setSelectedColumns] = useState({
@@ -57,6 +59,12 @@ const ExtractionTSCanvas = () => {
       [column]: value
     })
   }
+
+  const handleFilenameChange = (name) => {
+    if (name.match("\\w+.csv") != null) {
+      setFilename(name)
+    }     
+  }
   
   const runTSFreshExtraction = () => {
     requestJson(
@@ -64,11 +72,12 @@ const ExtractionTSCanvas = () => {
       "/extraction_ts/TSFresh_extraction",
       {
         selectedColumns: selectedColumns,
-        csvPath: csvPath
+        csvPath: csvPath,
+        filename: filename
       },
       (jsonResponse) => {
         console.log("received results:", jsonResponse)
-        setCsvResultPath(jsonResponse['csv_result_path'][0])
+        setCsvResultPath(jsonResponse['csv_result_path'])
         MedDataObject.updateWorkspaceDataObject()
       },
       function (err) {
@@ -85,7 +94,7 @@ const ExtractionTSCanvas = () => {
         }
       })
     }
-  }, [csvResultPath])
+  }, [datasetList])
 
   useEffect(() => {
     if (globalData !== undefined) {
@@ -110,6 +119,7 @@ const ExtractionTSCanvas = () => {
     if (selectedDataset && selectedDataset.data && selectedDataset.path) {
       setCsvPath(selectedDataset.path)
       setDataframe(new DataFrame(selectedDataset.data))
+      console.log(dataframe)
     }
   }, [isDatasetLoaded])
 
@@ -210,7 +220,7 @@ const ExtractionTSCanvas = () => {
               )}
             </div>
             <div>
-              Measurement Datetime (Start) : &nbsp;
+              Measurement Datetime or Weight : &nbsp;
               {dataframe.$data ? (
                 <Dropdown
                   value={selectedColumns.measurementDatetimeStart}
@@ -219,13 +229,15 @@ const ExtractionTSCanvas = () => {
                   }
                   options={dataframe.$columns.filter(
                     (column, index) =>
-                      dataframe.$dtypes[index] == "string" &&
-                      dataframe[column].dt.$dateObjectArray[0] != "Invalid Date"
+                      dataframe.$dtypes[index] == "int32" ||
+                      dataframe.$dtypes[index] == "float32" ||
+                      (dataframe.$dtypes[index] == "string" &&
+                      dataframe[column].dt.$dateObjectArray[0] != "Invalid Date")
                   )}
-                  placeholder="Measurement Datetime (Start)"
+                  placeholder="Measurement Datetime or Weight"
                 />
               ) : (
-                <Dropdown placeholder="Measurement Datetime (Start)" disabled />
+                <Dropdown placeholder="Measurement Datetime or Weight" disabled />
               )}
             </div>
             <div>
@@ -239,6 +251,7 @@ const ExtractionTSCanvas = () => {
                   options={dataframe.$columns.filter(
                     (column, index) =>
                       dataframe.$dtypes[index] == "int32" ||
+                      dataframe.$dtypes[index] == "float32" ||
                       dataframe.$dtypes[index] == "float32"
                   )}
                   placeholder="Measurement Value"
@@ -255,6 +268,10 @@ const ExtractionTSCanvas = () => {
           <div className="flex_column_start">
             {/* Time Series Extraction */}
             <h2>Extract time series</h2>
+            <div>
+            Save extracted features as : &nbsp;
+            <InputText value={filename} onChange={(e) => handleFilenameChange(e.target.value)} />
+            </div>
             {/* Button activated only if all necessary columns have been selected */}
             <Button disabled={!mayProceed} onClick={runTSFreshExtraction}>
               Extract Data
