@@ -236,17 +236,10 @@ if (isProd) {
     }
   })
 
-  // protocol.registerFileProtocol("atom", (request, callback) => {
-  //   const filePath = url.fileURLToPath("file://" + request.url.slice("atom://".length))
-  //   callback(filePath)
-  // })
-
   app.on("toggleDarkMode", () => {
     console.log("toggleDarkMode")
     mainWindow.webContents.send("toggleDarkMode")
   })
-  // splash.loadFile('splash.html');
-  // splash.center();
   if (isProd) {
     await mainWindow.loadURL("app://./index.html")
   } else {
@@ -255,7 +248,6 @@ if (isProd) {
     mainWindow.webContents.openDevTools()
   }
   mainWindow.show()
-  // splash.close();
 })()
 
 /**

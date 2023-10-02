@@ -1,15 +1,8 @@
-import React, { useContext } from "react"
+import React from "react"
 import Card from "react-bootstrap/Card"
 import nodesParams from "../../public/setupVariables/allNodesParams"
 import { Col, Row } from "react-bootstrap"
-import Button from "react-bootstrap/Button"
-import * as Icon from "react-bootstrap-icons"
 import { Stack } from "react-bootstrap"
-import { requestJson } from "../../utilities/requests"
-import { ErrorRequestContext } from "./context/errorRequestContext"
-import { WorkspaceContext } from "../workspace/workspaceContext"
-import { FlowInfosContext } from "./context/flowInfosContext"
-import { toast } from "react-toastify"
 
 /**
  *

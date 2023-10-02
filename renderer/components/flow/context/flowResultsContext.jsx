@@ -1,7 +1,7 @@
 import React, { createContext, useState, useContext } from "react"
 import { FlowInfosContext } from "./flowInfosContext"
 import MedDataObject from "../../workspace/medDataObject"
-import { WorkspaceContext, RESULTS, EXPERIMENTS } from "../../workspace/workspaceContext"
+import { WorkspaceContext, EXPERIMENTS } from "../../workspace/workspaceContext"
 import { toast } from "react-toastify"
 
 // This context is used to store the flowResults (id and type of the workflow)

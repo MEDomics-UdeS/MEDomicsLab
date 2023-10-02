@@ -1,18 +1,4 @@
-/* .caret {
-    position: absolute;
-    right: 0;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 8px;
-    height: 8px;
-    border-top: 1px solid #fff;
-    border-right: 1px solid #fff;
-    transform: rotate(90deg);
-    transition: ease-in-out 0.2s ease;
-} */
-
 .accordion-item > h2 > text {
-  /* line-height: 1; */
   font-size: 1px;
 }
 
@@ -172,7 +158,6 @@
 
 .sidebar-file-main-button:focus-visible {
   /* Change the border color and width */
-  /* border: 0 0 0 0.1rem solid #9dd3f7 !important; */
   outline-color: rgba(0, 0, 0, 0);
   border-color: rgba(0, 0, 0, 0);
   box-shadow: 0 0 0 0.1rem rgba(68, 143, 255, 0.5);
@@ -186,7 +171,6 @@
   border-radius: 0px;
   color: #dfdfdf;
   font-size: 0.85rem;
-  /* box-shadow: 0 0 0 0.1rem rgba(39, 39, 39, 0.544); */
 }
 
 .sidebar-file-stack {

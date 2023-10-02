@@ -1,6 +1,5 @@
 import React from "react"
 import { Image } from "primereact/image"
-// import Image from "next/image"
 
 const getLocalImage = (src) => {
   const nativeImage = require("electron").nativeImage

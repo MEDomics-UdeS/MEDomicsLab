@@ -3,10 +3,6 @@ import * as fs from "fs-extra"
 import { toast } from "react-toastify"
 import { ipcRenderer } from "electron"
 import process from "process"
-// import { LayoutModelContext } from "../layout/layoutContext"
-// import React, {useContext} from "react"
-
-// const { dispatchLayout } = useContext(LayoutModelContext)
 
 /**
  * Represents a data object in the workspace.
@@ -726,7 +722,7 @@ export default class MedDataObject {
    * Deletes the file associated with the provided `dataObject`.
    * @param {MedDataObject} dataObject - The `MedDataObject` instance to delete.
    */
-  static delete(dataObject, globalDataContext, dispatchLayout=undefined) {
+  static delete(dataObject, globalDataContext, dispatchLayout = undefined) {
     // eslint-disable-next-line no-undef
     let globalData = { ...globalDataContext }
     let childIDs = dataObject.childrenIDs
@@ -745,10 +741,10 @@ export default class MedDataObject {
     let path = dataObject.path
     let medObjectType = dataObject.type
     if (dispatchLayout !== undefined) {
-      dispatchLayout({ type: "DELETE_DATA_OBJECT", payload: dataObject})
+      dispatchLayout({ type: "DELETE_DATA_OBJECT", payload: dataObject })
     }
     delete globalData[dataObject.getUUID()]
-    fs.rmSync(path, { recursive: medObjectType=="folder"}, (err) => {
+    fs.rmSync(path, { recursive: medObjectType == "folder" }, (err) => {
       if (err) {
         console.log(err)
       } else {

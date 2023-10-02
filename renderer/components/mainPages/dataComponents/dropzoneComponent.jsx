@@ -1,6 +1,5 @@
 import React, { useCallback, useState, useContext, useMemo } from "react"
 import { useDropzone } from "react-dropzone"
-import { parse } from "csv"
 import fs from "fs"
 import { WorkspaceContext } from "../../workspace/workspaceContext"
 import MedDataObject from "../../workspace/medDataObject"
@@ -38,13 +37,13 @@ export default function DropzoneComponent({ children, item = undefined, ...props
     reader.onload = () => {
       acceptedFiles.forEach((file) => {
         console.log("file", file)
-          fs.copyFile(file.path, `${directoryPath}/${file["name"]}`, (err) => {
-            if (err) {
-              console.error("Error copying file:", err)
-            } else {
-              console.log("File copied successfully")
-            }
-          })
+        fs.copyFile(file.path, `${directoryPath}/${file["name"]}`, (err) => {
+          if (err) {
+            console.error("Error copying file:", err)
+          } else {
+            console.log("File copied successfully")
+          }
+        })
       })
     }
 

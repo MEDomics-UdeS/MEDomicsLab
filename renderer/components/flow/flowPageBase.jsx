@@ -7,7 +7,7 @@ import { FlowResultsContext, FlowResultsProvider } from "./context/flowResultsCo
 import { FlowFunctionsProvider } from "./context/flowFunctionsContext"
 import { PageInfosContext } from "../mainPages/moduleBasics/pageInfosContext"
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels"
-import { WorkspaceContext, RESULTS, EXPERIMENTS } from "../workspace/workspaceContext"
+import { WorkspaceContext, EXPERIMENTS } from "../workspace/workspaceContext"
 import ResultsPane from "./results/resultsPane"
 import MedDataObject from "../workspace/medDataObject"
 import { loadJsonPath } from "../../utilities/fileManagementUtils"

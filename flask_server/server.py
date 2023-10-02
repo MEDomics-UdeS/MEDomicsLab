@@ -1,9 +1,8 @@
 from learning.app_learning_blueprint import app_learning
 from extraction.app_extraction_blueprint import app_extraction
-import sys
 import json
 import argparse
-from flask import Flask, request, jsonify, Blueprint
+from flask import Flask, request, jsonify
 from utils.server_utils import get_json_from_request
 import argparse
 parser = argparse.ArgumentParser(description='Script so useful.')

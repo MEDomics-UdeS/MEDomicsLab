@@ -4,7 +4,6 @@ import json
 from utils.server_utils import get_json_from_request, get_response_from_error
 import os
 from pathlib import Path
-import copy
 
 MEDOMICS_WS = str(Path(os.path.dirname(
     os.path.abspath(__file__))).parent.parent)
@@ -61,9 +60,6 @@ def progress(id_):
     """
 
     global experiments
-    # json_config = get_json_from_request(request)
-    # print("received data from topic: /progress:")
-    # print(json.dumps(json_config, indent=4, sort_keys=True))
     if id_ in experiments:
         return experiments[id_].get_progress()
     else:

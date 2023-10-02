@@ -1,6 +1,5 @@
 import * as React from "react"
 import * as Prism from "prismjs"
-import { createRoot } from "react-dom/client"
 import { Action, Actions, BorderNode, CLASSES, DockLocation, DragDrop, DropInfo, IJsonTabNode, ILayoutProps, ITabRenderValues, ITabSetRenderValues, Layout, Model, Node, TabNode, TabSetNode } from "flexlayout-react"
 import { showPopup } from "./popupMenu"
 import { TabStorage } from "./tabStorage"
@@ -8,7 +7,7 @@ import { Utils } from "./utils"
 import "prismjs/themes/prism-coy.css"
 import LearningPage from "../../mainPages/learning"
 import DataTable from "../../../components/dataTypeVisualisation/dataTableWrapper"
-import { loadCSVFromPath, loadCSVPath, loadJsonPath } from "../../../utilities/fileManagementUtils"
+import { loadCSVFromPath, loadJsonPath } from "../../../utilities/fileManagementUtils"
 import { LayoutModelContext } from "../layoutContext"
 import { DataContext } from "../../workspace/dataContext"
 import MedDataObject from "../../workspace/medDataObject"
@@ -24,9 +23,6 @@ import TerminalPage from "../../mainPages/terminal"
 import OutputPage from "../../mainPages/output"
 import ApplicationPage from "../../mainPages/application"
 import * as Icons from "react-bootstrap-icons"
-import DataTableFromContext from "../../mainPages/dataComponents/dataTableFromContext"
-import { config } from "process"
-// import { Image } from "primereact/image"
 import Image from "next/image"
 import ZoomPanPinchComponent from "./zoomPanPinchComponent"
 
@@ -54,7 +50,7 @@ interface MyComponentState {
 
 /**
  * The main container shell for the flexlayout
- * @summary This is a shell to easily pass variables from multiple contexts to the flexlayout 
+ * @summary This is a shell to easily pass variables from multiple contexts to the flexlayout
  * @param props the props
  * @returns the main container
  */
@@ -107,7 +103,7 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
       layoutRequestQueue.forEach((action) => {
         if (action.type === "ADD_TAB") {
           this.addTab(action.tabParams)
-        } else if (action.type === "DELETE_DATA_OBJECT"){
+        } else if (action.type === "DELETE_DATA_OBJECT") {
           this.deleteDataObject(action.dataObject)
         }
       })
@@ -118,7 +114,7 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
   /**
    * Function to delete the tabs related to a data object
    */
-  deleteDataObject = (dataObject: any) =>{
+  deleteDataObject = (dataObject: any) => {
     // Print the model and the idMap to the console
     console.log("model", this.state.model)
     console.log("idMap", this.state.model!._idMap)
@@ -138,7 +134,6 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
     tabsToDelete.forEach((tab) => {
       this.state.model!.doAction(Actions.deleteTab(tab.getId()))
     })
-
   }
 
   /**
@@ -629,7 +624,7 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
           let width = image.getSize().width / 3
 
           // node.getExtraData().data = image
-          return <ZoomPanPinchComponent imagePath={config.path} image={image.toDataURL()} width={width} height={height} options={""}/>
+          return <ZoomPanPinchComponent imagePath={config.path} image={image.toDataURL()} width={width} height={height} options={""} />
         }
       }
     } else if (component === "evaluationPage") {
@@ -793,7 +788,7 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
   /**
    * Callback when the layout is changed
    * @param event the change event
-   * @returns nothing 
+   * @returns nothing
    */
   onSelectLayout = (event: React.FormEvent) => {
     var target = event.target as HTMLSelectElement
@@ -841,9 +836,7 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
    * @param renderValues the render values
    * @returns nothing
    */
-  onRenderTab = (node: TabNode, renderValues: ITabRenderValues) => {
-
-  }
+  onRenderTab = (node: TabNode, renderValues: ITabRenderValues) => {}
 
   onRenderTabSet = (node: TabSetNode | BorderNode, renderValues: ITabSetRenderValues) => {
     if (this.state.layoutFile === "default") {
@@ -1040,7 +1033,12 @@ class SimpleTable extends React.Component<{ fields: any; data: any; onClick: any
   }
 }
 
-
+/**
+ * Returns the box to display the image in the console
+ * @param width the width of the box
+ * @param height the height of the box
+ * @returns the box to display the image in the console
+ */
 function getBox(width, height) {
   return {
     string: "+",
@@ -1048,6 +1046,13 @@ function getBox(width, height) {
   }
 }
 
+/**
+ * Function that shows the image in the console
+ * @param url the url of the image
+ * @param scale the scale of the image
+ * @returns nothing
+ * @todo not being used at the moment, not finished yet
+ */
 function showImage(url, scale) {
   scale = scale || 1
   var img = new Image()
