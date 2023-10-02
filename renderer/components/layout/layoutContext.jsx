@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState } from "react"
 import { DataContext } from "../workspace/dataContext"
 import { useEffect } from "react"
+import { toast } from "react-toastify"
 /**
  * @typedef {React.Context} LayoutModelContext
  * @description Context for the layout model
@@ -66,62 +67,66 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
    * @description This function is used to dispatch the actions passed on by the components that use/modify the layout model - [Switch case] It dispaches the actions according to their type
    */
   const dispatchLayout = (action) => {
-    switch (action.type) {
-      /*********** OPEN IN *************/
-      case "openInInputModule":
-        return openInInput(action)
-      case "openInDtale":
-        return openInDtale(action)
-      case "openInExploratoryModule":
-        return openInExploratory(action)
-      case "openInLearningModule":
-        return openLearning(action)
-      case "openInResultsModule":
-        return openInResults(action)
-      case "openInIFrame":
-        return openIFrame(action)
-      case "openInDataTable":
-        return openDataTable(action)
-      case "openInCodeEditor":
-        return openCodeEditor(action)
-      case "openInImageViewer":
-        return openImageViewer(action)
-      case "openInPDFViewer":
-        return openPDFViewer(action)
-      case "openInTextEditor":
-        return openTextEditor(action)
-      case "openInModelViewer":
-        return openModelViewer(action)
-      case "openInJSONViewer":
-        return openInJSONViewer(action)
-      case "openPandasProfiling":
-        return openInPandasProfiling(action)
-      /*********** OPEN *****************/
-      case "openInputModule":
-        return openInput(action)
-      case "openResultsModule":
-        return openResults(action)
-      case "openApplicationModule":
-        return openApplication(action)
-      case "openEvaluationModule":
-        return openEvaluation(action)
-      case "openExploratoryModule":
-        return openExploratory(action)
-      case "openExtractionTSModule":
-        return openExtractionTS(action)
-      case "openExtractionImageModule":
-        return openExtractionImage(action)
-      case "openExtractionTextModule":
-        return openExtractionText(action)
+    if (developerMode) {
+      switch (action.type) {
+        /*********** OPEN IN *************/
+        case "openInInputModule":
+          return openInInput(action)
+        case "openInDtale":
+          return openInDtale(action)
+        case "openInExploratoryModule":
+          return openInExploratory(action)
+        case "openInLearningModule":
+          return openLearning(action)
+        case "openInResultsModule":
+          return openInResults(action)
+        case "openInIFrame":
+          return openIFrame(action)
+        case "openInDataTable":
+          return openDataTable(action)
+        case "openInCodeEditor":
+          return openCodeEditor(action)
+        case "openInImageViewer":
+          return openImageViewer(action)
+        case "openInPDFViewer":
+          return openPDFViewer(action)
+        case "openInTextEditor":
+          return openTextEditor(action)
+        case "openInModelViewer":
+          return openModelViewer(action)
+        case "openInJSONViewer":
+          return openInJSONViewer(action)
+        case "openPandasProfiling":
+          return openInPandasProfiling(action)
+        /*********** OPEN *****************/
+        case "openInputModule":
+          return openInput(action)
+        case "openResultsModule":
+          return openResults(action)
+        case "openApplicationModule":
+          return openApplication(action)
+        case "openEvaluationModule":
+          return openEvaluation(action)
+        case "openExploratoryModule":
+          return openExploratory(action)
+        case "openExtractionTSModule":
+          return openExtractionTS(action)
+        case "openExtractionImageModule":
+          return openExtractionImage(action)
+        case "openExtractionTextModule":
+          return openExtractionText(action)
 
-      case "add":
-        return add(action)
-      case "remove":
-        return remove(action)
-      case "DELETE_DATA_OBJECT":
-        return removeMedObject(action)
-      default:
-        toast.Error(`Unhandled action type: ${action.type}`)
+        case "add":
+          return add(action)
+        case "remove":
+          return remove(action)
+        case "DELETE_DATA_OBJECT":
+          return removeMedObject(action)
+        default:
+          toast.error(`Unhandled action type: ${action.type}`)
+      }
+    } else {
+      toast.error("Developer mode is ON, please turn it OFF to use the application")
     }
   }
 
@@ -135,7 +140,6 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
     layoutRequestQueueCopy.push(action)
     setLayoutRequestQueue(layoutRequestQueueCopy)
   }
-
 
   /**
    * @summary Generic function that adds a tab with a medDataObject to the layout model
@@ -152,7 +156,7 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
         name: medObject.name,
         id: medObject.UUID,
         component: component,
-        config: { path: medObject.path, uuid: medObject.UUID, extension: medObject.type },
+        config: { path: medObject.path, uuid: medObject.UUID, extension: medObject.type }
       }
       let layoutRequestQueueCopy = [...layoutRequestQueue]
       layoutRequestQueueCopy.push({ type: "ADD_TAB", payload: newChild })

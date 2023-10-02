@@ -30,7 +30,7 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
 
   const [isAccordionShowing, setIsAccordionShowing] = useState(true) // This state is used to know if the accordion is collapsed or not
   const { globalData, setGlobalData } = useContext(DataContext) // We get the global data from the context to retrieve the directory tree of the workspace, thus retrieving the data files
-  const { dispatchLayout } = useContext(LayoutModelContext)
+  const { dispatchLayout, developerMode } = useContext(LayoutModelContext)
 
   const [dirTree, setDirTree] = useState({}) // We get the directory tree from the workspace
 
@@ -169,52 +169,56 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
    *  @param {Object} param0.props - The props of the context menu action
    */
   function handleContextMenuAction({ id, props }) {
-    switch (id) {
-      case "openInDataTableViewer":
-        dispatchLayout({ type: "openInDataTable", payload: props })
-        break
-      case "openInCodeEditor":
-        dispatchLayout({ type: "openInCodeEditor", payload: props })
-        break
-      case "openInImageViewer":
-        dispatchLayout({ type: "openInImageViewer", payload: props })
-        break
-      case "openInPDFViewer":
-        dispatchLayout({ type: "openInPDFViewer", payload: props })
-        break
-      case "openInTextEditor":
-        dispatchLayout({ type: "openInTextEditor", payload: props })
-        break
-      case "openInModelViewer":
-        dispatchLayout({ type: "openInModelViewer", payload: props })
-        break
-      case "openInLearningModule":
-        dispatchLayout({ type: "openInLearningModule", payload: props })
-        break
-      case "openInEvaluationModule":
-        dispatchLayout({ type: "openInEvaluationModule", payload: props })
-        break
-      case "openInApplicationModule":
-        dispatchLayout({ type: "openInApplicationModule", payload: props })
-        break
-      case "openInPandasProfiling":
-        dispatchLayout({ type: "openPandasProfiling", payload: props })
-        break
-      case "openLearningModule":
-        dispatchLayout({ type: "openInLearningModule", payload: props })
-        break
-      case "openInJSONViewer":
-        dispatchLayout({ type: "openInJSONViewer", payload: props })
-        break
-      case "open":
-        onOpen(props.UUID)
-        break
-      case "rename":
-        onRename(props.UUID)
-        break
-      case "delete":
-        onDelete(props.UUID)
-        break
+    if (developerMode) {
+      switch (id) {
+        case "openInDataTableViewer":
+          dispatchLayout({ type: "openInDataTable", payload: props })
+          break
+        case "openInCodeEditor":
+          dispatchLayout({ type: "openInCodeEditor", payload: props })
+          break
+        case "openInImageViewer":
+          dispatchLayout({ type: "openInImageViewer", payload: props })
+          break
+        case "openInPDFViewer":
+          dispatchLayout({ type: "openInPDFViewer", payload: props })
+          break
+        case "openInTextEditor":
+          dispatchLayout({ type: "openInTextEditor", payload: props })
+          break
+        case "openInModelViewer":
+          dispatchLayout({ type: "openInModelViewer", payload: props })
+          break
+        case "openInLearningModule":
+          dispatchLayout({ type: "openInLearningModule", payload: props })
+          break
+        case "openInEvaluationModule":
+          dispatchLayout({ type: "openInEvaluationModule", payload: props })
+          break
+        case "openInApplicationModule":
+          dispatchLayout({ type: "openInApplicationModule", payload: props })
+          break
+        case "openInPandasProfiling":
+          dispatchLayout({ type: "openPandasProfiling", payload: props })
+          break
+        case "openLearningModule":
+          dispatchLayout({ type: "openInLearningModule", payload: props })
+          break
+        case "openInJSONViewer":
+          dispatchLayout({ type: "openInJSONViewer", payload: props })
+          break
+        case "open":
+          onOpen(props.UUID)
+          break
+        case "rename":
+          onRename(props.UUID)
+          break
+        case "delete":
+          onDelete(props.UUID)
+          break
+      }
+    } else {
+      toast.error("Error: Developer mode is enabled")
     }
   }
 
@@ -225,27 +229,31 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
    * @returns {void}
    */
   const onDBClickItem = (event, item) => {
-    if (item.type == "medml") {
-      dispatchLayout({ type: "openInLearningModule", payload: item })
-    } else if (item.type == "csv" || item.type == "tsv" || item.type == "xlsx") {
-      dispatchLayout({ type: "openInDataTable", payload: item })
-    } else if (item.type == "json") {
-      dispatchLayout({ type: "openInJSONViewer", payload: item })
-    } else if (item.type == "py" || item.type == "ipynb") {
-      dispatchLayout({ type: "openInCodeEditor", payload: item })
-    } else if (item.type == "png" || item.type == "jpg" || item.type == "jpeg" || item.type == "gif" || item.type == "svg") {
-      dispatchLayout({ type: "openInImageViewer", payload: item })
-    } else if (item.type == "pdf") {
-      dispatchLayout({ type: "openInPDFViewer", payload: item })
-    } else if (item.type == "txt") {
-      dispatchLayout({ type: "openInTextEditor", payload: item })
-    } else if (item.type == "pkl") {
-      dispatchLayout({ type: "openInModelViewer", payload: item })
+    if (developerMode) {
+      if (item.type == "medml") {
+        dispatchLayout({ type: "openInLearningModule", payload: item })
+      } else if (item.type == "csv" || item.type == "tsv" || item.type == "xlsx") {
+        dispatchLayout({ type: "openInDataTable", payload: item })
+      } else if (item.type == "json") {
+        dispatchLayout({ type: "openInJSONViewer", payload: item })
+      } else if (item.type == "py" || item.type == "ipynb") {
+        dispatchLayout({ type: "openInCodeEditor", payload: item })
+      } else if (item.type == "png" || item.type == "jpg" || item.type == "jpeg" || item.type == "gif" || item.type == "svg") {
+        dispatchLayout({ type: "openInImageViewer", payload: item })
+      } else if (item.type == "pdf") {
+        dispatchLayout({ type: "openInPDFViewer", payload: item })
+      } else if (item.type == "txt") {
+        dispatchLayout({ type: "openInTextEditor", payload: item })
+      } else if (item.type == "pkl") {
+        dispatchLayout({ type: "openInModelViewer", payload: item })
+      } else {
+        console.log("DBCLICKED", event, item)
+      }
+      setDbClickedItem(item)
+      // console.log("DBCLICKED", event, item)
     } else {
-      console.log("DBCLICKED", event, item)
+      toast.error("Error: Developer mode is enabled")
     }
-    setDbClickedItem(item)
-    // console.log("DBCLICKED", event, item)
   }
 
   /**

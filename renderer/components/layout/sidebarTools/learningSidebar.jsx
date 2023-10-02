@@ -10,6 +10,7 @@ import { Accordion } from "react-bootstrap"
 import MedDataObject from "../../workspace/medDataObject"
 import { DataContext } from "../../workspace/dataContext"
 import { LayoutModelContext } from "../layoutContext"
+import { toast } from "react-toastify"
 
 /**
  * @description - This component is the sidebar tools component that will be used in the sidebar component as the learning page
@@ -64,43 +65,54 @@ const LearningSidebar = () => {
   }
 
   /**
-   *
    * @param {String} path The path of the folder where the scene will be created
    * @param {String} name The name of the scene
    * @description - This function is used to create an empty scene
    */
   const createEmptyScene = async (path, name) => {
     const emptyScene = loadJsonPath("./resources/emptyScene.medml")
-    if (globalData[selectedItems[0]].parentID == MedDataObject.checkIfMedDataObjectInContextbyPath(path, globalData).getUUID()) {
-      if (globalData[selectedItems[0]].type == "folder") {
-        path = globalData[selectedItems[0]].path
-      } else {
-        path = globalData[globalData[selectedItems[0]].parentID].path
-      }
-      MedDataObject.createEmptyFolderFSsync(path.split(MedDataObject.getPathSeparator())[path.split(MedDataObject.getPathSeparator()).length - 1], getBasePath(RESULTS), false)
-      // create sccene folder
-      MedDataObject.createEmptyFolderFSsync(sceneName, path).then((sceneFolderPath) => {
-        writeFile(emptyScene, sceneFolderPath, name, "medml")
-        // create folder tmp in the experiment folder
-        MedDataObject.createEmptyFolderFSsync("tmp", sceneFolderPath, false)
-        // create floder notebooks in the experiment folder
-        MedDataObject.createEmptyFolderFSsync("notebooks", sceneFolderPath, false)
-      })
+    if (selectedItems.length == 0 || selectedItems[0] == undefined) {
+      toast.error("Please select the EXPERIMENT folder to create the scene in")
     } else {
-      MedDataObject.createEmptyFolderFSsync("experiment", path).then((folderPath) => {
-        console.log("folderPath", folderPath)
-        // write the empty scene in the folder experiment
-        // create the folder in results with the same name as the experiment
-        MedDataObject.createEmptyFolderFSsync(folderPath.split(MedDataObject.getPathSeparator())[folderPath.split(MedDataObject.getPathSeparator()).length - 1], getBasePath(RESULTS), false)
-        // create sccene folder
-        MedDataObject.createEmptyFolderFSsync(sceneName, folderPath).then((sceneFolderPath) => {
-          writeFile(emptyScene, sceneFolderPath, name, "medml")
-          // create folder tmp in the experiment folder
-          MedDataObject.createEmptyFolderFSsync("tmp", sceneFolderPath, false)
-          // create floder notebooks in the experiment folder
-          MedDataObject.createEmptyFolderFSsync("notebooks", sceneFolderPath, false)
-        })
-      })
+      if (globalData[selectedItems[0]] == undefined) {
+        toast.error("The selected folder does not exist")
+        return
+      } else if (globalData[selectedItems[0]].parentID == undefined) {
+        toast.error("The selected folder does not have a parent")
+        return
+      } else {
+        if (globalData[selectedItems[0]].parentID == MedDataObject.checkIfMedDataObjectInContextbyPath(path, globalData).getUUID()) {
+          if (globalData[selectedItems[0]].type == "folder") {
+            path = globalData[selectedItems[0]].path
+          } else {
+            path = globalData[globalData[selectedItems[0]].parentID].path
+          }
+          MedDataObject.createEmptyFolderFSsync(path.split(MedDataObject.getPathSeparator())[path.split(MedDataObject.getPathSeparator()).length - 1], getBasePath(RESULTS), false)
+          // create sccene folder
+          MedDataObject.createEmptyFolderFSsync(sceneName, path).then((sceneFolderPath) => {
+            writeFile(emptyScene, sceneFolderPath, name, "medml")
+            // create folder tmp in the experiment folder
+            MedDataObject.createEmptyFolderFSsync("tmp", sceneFolderPath, false)
+            // create floder notebooks in the experiment folder
+            MedDataObject.createEmptyFolderFSsync("notebooks", sceneFolderPath, false)
+          })
+        } else {
+          MedDataObject.createEmptyFolderFSsync("experiment", path).then((folderPath) => {
+            console.log("folderPath", folderPath)
+            // write the empty scene in the folder experiment
+            // create the folder in results with the same name as the experiment
+            MedDataObject.createEmptyFolderFSsync(folderPath.split(MedDataObject.getPathSeparator())[folderPath.split(MedDataObject.getPathSeparator()).length - 1], getBasePath(RESULTS), false)
+            // create sccene folder
+            MedDataObject.createEmptyFolderFSsync(sceneName, folderPath).then((sceneFolderPath) => {
+              writeFile(emptyScene, sceneFolderPath, name, "medml")
+              // create folder tmp in the experiment folder
+              MedDataObject.createEmptyFolderFSsync("tmp", sceneFolderPath, false)
+              // create floder notebooks in the experiment folder
+              MedDataObject.createEmptyFolderFSsync("notebooks", sceneFolderPath, false)
+            })
+          })
+        }
+      }
     }
   }
 
