@@ -1,5 +1,5 @@
 import "reactflow/dist/style.css"
-import React, { useContext, useEffect, useRef } from "react"
+import React, { useContext, useEffect, useRef, useState } from "react"
 import SidebarAvailableNodes from "./sidebarAvailableNodes"
 import { ReactFlowProvider } from "reactflow"
 import { FlowInfosProvider, FlowInfosContext } from "./context/flowInfosContext"
@@ -23,6 +23,7 @@ import { loadJsonPath } from "../../utilities/fileManagementUtils"
  */
 const FlowPageBaseWithFlowInfos = ({ children, workflowType, id }) => {
   // here is the use of the context to update the flowInfos
+  const [isDragging, setIsDragging] = useState(false)
   const { updateFlowInfos, showAvailableNodes, setExperimentName, setSceneName } = useContext(FlowInfosContext)
   const { showResultsPane, setShowResultsPane, updateFlowResults } = useContext(FlowResultsContext)
   const { configPath } = useContext(PageInfosContext)
@@ -100,15 +101,15 @@ const FlowPageBaseWithFlowInfos = ({ children, workflowType, id }) => {
             </Panel>
             <PanelResizeHandle
               className="resize-handle-results"
-              onFocusOut={() => {
-                console.log("onFocusOut")
+              onDragging={(event) => {
+                setIsDragging(!event)
               }}
             />
             {/* Panel is used to create the results pane, used to be able to resize it on drag */}
             <Panel
               ref={resultsPanelRef}
               id="results"
-              className="smooth-transition"
+              className={`${isDragging ? "smooth-transition" : ""}`}
               maxSize={75}
               minSize={30}
               defaultSize={0}
