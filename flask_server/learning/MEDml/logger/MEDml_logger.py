@@ -1,12 +1,6 @@
 import copy
-from typing import TYPE_CHECKING, Any, Dict, List
-
-import numpy as np
-import pandas as pd
 from typing import TYPE_CHECKING
 import json
-
-from termcolor import colored
 from colorama import Fore
 from pycaret.loggers.base_logger import BaseLogger
 if TYPE_CHECKING:
@@ -16,6 +10,12 @@ if TYPE_CHECKING:
 
 
 class MEDml_logger(BaseLogger):
+    """
+    This is the class for the MEDml logger.
+    It is used to log the results of the experiments.
+    It extends the BaseLogger class from pycaret to be able to use the pycaret logging functions therefore it can be used by pycaret.
+    """
+
     def __init__(self) -> None:
         self.current_experiment = None
         self.results = {}
@@ -38,13 +38,15 @@ class MEDml_logger(BaseLogger):
         print(Fore.GREEN + f"log params: {params}, {model_name}" + Fore.RESET)
 
         if self.current_experiment is not None:
-            self.results['models'][self.current_experiment]['params'].append(params)
+            self.results['models'][self.current_experiment]['params'].append(
+                params)
         else:
             self.results['setup'] = params
 
     def init_experiment(self, exp_name_log, full_name=None, **kwargs):
         print()
-        print(Fore.GREEN + f"init experiment: {exp_name_log}, {full_name}" + Fore.RESET)
+        print(Fore.GREEN +
+              f"init experiment: {exp_name_log}, {full_name}" + Fore.RESET)
 
         count = self.counter
         if full_name is not None:
@@ -72,10 +74,12 @@ class MEDml_logger(BaseLogger):
         pass
 
     def log_sklearn_pipeline(self, experiment, prep_pipe, model, path=None):
-        print(Fore.GREEN + f"log sklearn pipeline: {experiment}, {prep_pipe}, {model}, {path}" + Fore.RESET)
+        print(
+            Fore.GREEN + f"log sklearn pipeline: {experiment}, {prep_pipe}, {model}, {path}" + Fore.RESET)
 
     def log_model_comparison(self, model_result, source):
-        print(Fore.GREEN + f"log model comparison: {model_result.__class__}, {source}" + Fore.RESET)
+        print(
+            Fore.GREEN + f"log model comparison: {model_result.__class__}, {source}" + Fore.RESET)
 
         # if self.current_experiment is not None:
         #     if 'models' not in self.results:
@@ -89,13 +93,15 @@ class MEDml_logger(BaseLogger):
         print(Fore.GREEN + f"log metrics: {metrics}, {source}" + Fore.RESET)
 
         result_type = 'models' if self.current_experiment is not None else 'setup'
-        self.results[result_type][self.current_experiment]['metrics'].append(metrics)
+        self.results[result_type][self.current_experiment]['metrics'].append(
+            metrics)
 
     def log_plot(self, plot, title):
         print(Fore.GREEN + f"log plot: {plot}, {title}" + Fore.RESET)
 
     def log_hpram_grid(self, html_file, title="hpram_grid"):
-        print(Fore.GREEN + f"log hpram grid: {html_file}, {title}" + Fore.RESET)
+        print(Fore.GREEN +
+              f"log hpram grid: {html_file}, {title}" + Fore.RESET)
 
     def log_artifact(self, file, type="artifact"):
         # print(colored(f"log artifact: {file}, {type}", 'green'))

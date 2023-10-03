@@ -1,5 +1,6 @@
 :root {
-  --not-run-color: rgb(255 151 0 / 69%);
+  --not-run-color: #ff9700b0;
+  --size-top-panel: 2.5rem;
 }
 
 .minimapStyle {
@@ -204,7 +205,7 @@
   margin-left: 5px;
   gap: 0.5rem !important;
   display: flex;
-  height: 2.5rem;
+  height: var(--size-top-panel);
 }
 
 .flow-btn-panel-top .col {
@@ -245,7 +246,8 @@
 }
 
 .btn-ctl-available-nodes.p-button {
-  width: 2.2rem !important;
+  width: var(--size-top-panel) !important;
+  padding: 0;
   border-radius: 15% 50% 50% 15%;
   background: #ef4444 !important;
   border-color: #dc2626 !important;
@@ -293,6 +295,19 @@
   z-index: 5;
   text-align: center;
   width: 50%;
+}
+
+.panel-bottom-center label {
+  position: absolute;
+  bottom: 1rem;
+  left: 50%;
+  transform: translate(-50%, 0);
+  cursor: progress;
+  background-color: #00000040;
+  color: #5050509c;
+  padding: 0rem 0.25rem 0rem 0.25rem;
+  font-weight: 700;
+  border-radius: 0.75rem 0.75rem 0rem 0rem;
 }
 
 .node-editableLabel {

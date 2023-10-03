@@ -71,6 +71,116 @@ export default class MedDataObject {
     this.acceptedFileTypes = []
   }
 
+  static createFolderFromPath(path) {
+    if (!fs.existsSync(path)) {
+      fs.mkdirSync(path, { recursive: true })
+    }
+  }
+
+  /**
+   *
+   * @param {string} path The path to check.
+   * @returns {boolean} - True if the path exists, otherwise false.
+   */
+  static isPathExists(path) {
+    return fs.existsSync(path)
+  }
+
+  /**
+   *
+   * @param {Object} exportObj object to be exported
+   * @param {string} completePath absolute path to the folder where the file will be saved
+   * @returns
+   */
+  static writeFileSyncPath(exportObj, completePath) {
+    let convertedExportObj = typeof exportObj === "string" ? exportObj : JSON.stringify(exportObj, null, 2)
+    const fsPromises = fs.promises
+    this.updateWorkspaceDataObject(1000)
+    return new Promise((resolve) => {
+      fsPromises
+        .writeFile(completePath, convertedExportObj)
+        .then(function () {
+          console.log("file created at " + completePath)
+          resolve(completePath)
+        })
+        .catch(function (e) {
+          console.error("failed to create directory", e)
+        })
+    })
+  }
+
+  /**
+   *
+   * @param {Object} exportObj object to be exported
+   * @param {String} path path to the folder where the file will be saved
+   * @param {String} name name of the exported file
+   * @param {String} extension extension of the exported file (json or even custom (e.g. abc)))
+   *
+   * @description
+   * This function takes an object, a path and a name and saves the object as a json file with a custom extension
+   * @returns {Promise} Promise that resolves to the selected json file
+   */
+  static writeFileSync(exportObj, path, name, extension) {
+    console.log("typeof path: ", path)
+    let newPath = typeof path === "string" ? path : path.join(getPathSeparator())
+    const pathToCreate = `${newPath}${getPathSeparator()}${name}.${extension}`
+    if (!fs.existsSync(newPath)) {
+      this.createFolderFSsync(newPath).then((newPath) => {
+        let convertedExportObj = typeof exportObj === "string" ? exportObj : JSON.stringify(exportObj, null, 2)
+        const fsPromises = fs.promises
+        this.updateWorkspaceDataObject(1000)
+        return new Promise((resolve) => {
+          fsPromises
+            .writeFile(pathToCreate, convertedExportObj)
+            .then(function () {
+              console.log("file created at " + pathToCreate)
+              resolve(pathToCreate)
+            })
+            .catch(function (e) {
+              console.error("failed to create directory", e)
+            })
+        })
+      })
+    } else {
+      let convertedExportObj = typeof exportObj === "string" ? exportObj : JSON.stringify(exportObj, null, 2)
+      const fsPromises = fs.promises
+      this.updateWorkspaceDataObject(1000)
+      return new Promise((resolve) => {
+        fsPromises
+          .writeFile(pathToCreate, convertedExportObj)
+          .then(function () {
+            console.log("file created at " + pathToCreate)
+            resolve(pathToCreate)
+          })
+          .catch(function (e) {
+            console.error("failed to create directory", e)
+          })
+      })
+    }
+  }
+
+  /**
+   *
+   * @param {Object} exportObj object to be exported
+   * @param {String} path path to the folder where the file will be saved
+   * @param {String} name name of the exported file
+   * @param {String} extension extension of the exported file (json or even custom (e.g. abc)))
+   *
+   * @description
+   * This function takes an object, a path and a name and saves the object as a json file with a custom extension
+   */
+  static writeFile(exportObj, path, name, extension) {
+    const pathToCreate = `${path}${getPathSeparator()}${name}.${extension}`
+    fs.outputFile(pathToCreate, JSON.stringify(exportObj, null, 2), (err) => {
+      if (err) {
+        console.error(err)
+      } else {
+        console.log(`File saved at ${pathToCreate}`)
+        this.updateWorkspaceDataObject()
+      }
+    })
+  }
+
   /**
    * Updates the workspace data object after a specified time interval.
    * @param {number} timer - The time interval in milliseconds before the update is triggered. Default is 200ms.
@@ -117,7 +227,7 @@ export default class MedDataObject {
         let dataObjectParentID = dataObject.parentID
         if (dataObjectParentID.length > 0) {
           if (dataObjectParentID == parentID) {
-            console.log("Data object found in context by name with the same parent:" + dataObjectName)
+            // console.log("Data object found in context by name with the same parent:" + dataObjectName)
             dataObjectUUID = key
           }
         }
@@ -175,6 +285,23 @@ export default class MedDataObject {
   }
 
   /**
+   * Returns the highest parent of a MED data object.
+   * @param {MedDataObject} dataObject - The MED data object to check.
+   * @param {Object} globalDataContext - The global data context object to search in.
+   * @returns {MedDataObject} - The highest parent of the MED data object.
+   */
+  static getWhoIsTheHighestParent(dataObject, globalDataContext, depth = 0) {
+    let parentID = dataObject.parentID
+    let parentObject = globalDataContext[parentID]
+    if (parentID == "UUID_ROOT") {
+      return dataObject
+    } else {
+      depth++
+      return this.getWhoIsTheHighestParent(parentObject, globalDataContext, depth)
+    }
+  }
+
+  /**
    * Checks the operating system and adapts the provided `path` to the OS.
    * @param {string} path
    * @returns {string} - The adapted path.
@@ -226,21 +353,45 @@ export default class MedDataObject {
    * @param {string} name
    * @param {string} path
    */
-  static createEmptyFolderFSsync(name, path) {
+  static createEmptyFolderFSsync(name, path, newIfExist = true) {
     // eslint-disable-next-line no-undef
     let fs = require("fs")
     let newName = "New Folder"
     if (name !== undefined) {
-      newName = this.getNewNameForFolder({ name: name, folderPath: path })
+      newIfExist ? (newName = this.getNewNameForFolder({ name: name, folderPath: path })) : (newName = name)
     }
     let pathToCreate = path + getPathSeparator() + newName
     const fsPromises = fs.promises
+    this.updateWorkspaceDataObject(1000)
     return new Promise((resolve) => {
       fsPromises
         .mkdir(pathToCreate, { recursive: true })
         .then(function () {
           console.log("directory created at " + pathToCreate)
           resolve(pathToCreate)
+        })
+        .catch(function () {
+          console.error("failed to create directory")
+        })
+    })
+  }
+
+  /**
+   * Create an empty folder in the file system.
+   * @param {string} name
+   * @param {string} path
+   */
+  static createFolderFSsync(path) {
+    // eslint-disable-next-line no-undef
+    let fs = require("fs")
+    const fsPromises = fs.promises
+    this.updateWorkspaceDataObject(1000)
+    return new Promise((resolve) => {
+      fsPromises
+        .mkdir(path, { recursive: true })
+        .then(function () {
+          console.log("directory created at " + path)
+          resolve(path)
         })
         .catch(function () {
           console.error("failed to create directory")
@@ -299,6 +450,7 @@ export default class MedDataObject {
    * @returns {string} - The new name for the MED data object.
    */
   static rename(dataObject, newName, globalDataContext) {
+    console.log("dataObject: ", dataObject)
     let newNameFound = this.getNewName({
       dataObject: dataObject,
       newName: newName,
@@ -343,6 +495,58 @@ export default class MedDataObject {
     let fs = require("fs")
     let names = fs.readdirSync(path)
     return names
+  }
+
+  /**
+   * This function renames a `MedDataObject` in the workspace.
+   * @param {Object} medObject - The `MedDataObject` to rename
+   * @param {string} newName - The new name of the `MedDataObject`
+   * @returns {void}
+   * @note - This function is called when the user renames a file or folder in the directory tree, either by F2 or by right-clicking and selecting "Rename".
+   */
+  static handleNameChange(medObject, newName, dataContext, setDataContext) {
+    if (this.validateNewName(medObject, newName, dataContext)) {
+      // Check if the new name is the same as the current name.
+      // Get the UUID of the `MedDataObject` with the current name from the `globalData` object.
+      let dataObject = dataContext[medObject._UUID]
+      let uuid = medObject._UUID
+      // Rename the `MedDataObject` with the new name and update the `globalData` object.
+      let renamedDataObject = this.rename(dataObject, newName, dataContext)
+      let globalDataCopy = { ...dataContext }
+      globalDataCopy[uuid] = renamedDataObject
+      setDataContext(globalDataCopy)
+      this.updateWorkspaceDataObject()
+    }
+  }
+
+  /**
+   * This function evaluates if a name is valid for a `MedDataObject`.
+   * @param {Object} medObject - The `MedDataObject` to rename
+   * @param {string} newName - The new name of the `MedDataObject`
+   * @param {Object} dataContext - The global data context object to search in.
+   * @returns {Boolean} - `true` if the name is valid, `false` otherwise.
+   */
+  static validateNewName(medObject, newName, dataContext) {
+    const namesYouCantRename = ["UUID_ROOT", "DATA", "EXPERIMENTS", "RESULTS", "MODELS"]
+    if (newName == "") {
+      toast.error("Error: Name cannot be empty")
+      return false
+    } else if (medObject.name == newName) {
+      toast.error("Error: You really wanted to rename to the same name?")
+      return false
+    } else if (boolNameInArray(newName, namesYouCantRename)) {
+      toast.error("Error: This name is reserved and cannot be used")
+      return false
+    } else if (boolNameInArray(medObject.name, namesYouCantRename)) {
+      console
+      toast.error("Error: This name cannot be changed")
+      return false
+    } else if (boolNameInArray(newName, Object.keys(dataContext))) {
+      toast.error("Error: This name is already used")
+      return false
+    } else {
+      return true
+    }
   }
 
   static returnNameNotInList(name, names, extension = undefined) {
@@ -518,7 +722,7 @@ export default class MedDataObject {
    * Deletes the file associated with the provided `dataObject`.
    * @param {MedDataObject} dataObject - The `MedDataObject` instance to delete.
    */
-  static delete(dataObject, globalDataContext) {
+  static delete(dataObject, globalDataContext, dispatchLayout = undefined) {
     // eslint-disable-next-line no-undef
     let globalData = { ...globalDataContext }
     let childIDs = dataObject.childrenIDs
@@ -535,8 +739,12 @@ export default class MedDataObject {
     // eslint-disable-next-line no-undef
     let fs = require("fs")
     let path = dataObject.path
+    let medObjectType = dataObject.type
+    if (dispatchLayout !== undefined) {
+      dispatchLayout({ type: "DELETE_DATA_OBJECT", payload: dataObject })
+    }
     delete globalData[dataObject.getUUID()]
-    fs.rmSync(path, { recursive: true }, (err) => {
+    fs.rmSync(path, { recursive: medObjectType == "folder" }, (err) => {
       if (err) {
         console.log(err)
       } else {
@@ -911,9 +1119,14 @@ function getPathSeparator() {
   // eslint-disable-next-line no-undef
   let process = require("process")
   if (process.platform === "win32") {
-    console.log("Windows")
     return "\\"
   } else if (typeof process !== "undefined" && process.platform === "linux") {
     return "/"
   }
+}
+
+function boolNameInArray(name, array) {
+  let nameInArray = false
+  array.includes(name) ? (nameInArray = true) : (nameInArray = false)
+  return nameInArray
 }

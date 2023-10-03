@@ -5,9 +5,14 @@ import { requestJson } from "../../utilities/requests"
 import { WorkspaceContext } from "../workspace/workspaceContext"
 import { PageInfosContext } from "../mainPages/moduleBasics/pageInfosContext"
 
+/**
+ * 
+ * @param {boolean} isUpdating is the progress bar updating
+ * @param {function} setIsUpdating set the updating state 
+ * @returns a progress bar that shows the progress of the current flow
+ */
 const ProgressBarRequests = ({ isUpdating, setIsUpdating }) => {
-  // const [isUpdating, setIsUpdating] = useState(true);
-  const { pageInfos } = useContext(PageInfosContext) // used to get the flow infos
+  const { pageId } = useContext(PageInfosContext) // used to get the flow infos
   const [progress, setProgress] = useState({
     now: 0,
     currentName: ""
@@ -18,8 +23,9 @@ const ProgressBarRequests = ({ isUpdating, setIsUpdating }) => {
     () => {
       requestJson(
         port,
-        "/learning/progress",
-        { experimentId: pageInfos.id },
+        "/learning/progress/" + pageId,
+        // eslint-disable-next-line camelcase
+        { scene_id: pageId },
         (data) => {
           setProgress({
             now: data.progress,
@@ -32,21 +38,20 @@ const ProgressBarRequests = ({ isUpdating, setIsUpdating }) => {
               currentName: "Done!"
             })
           }
+        },
+        (error) => {
+          console.error(error)
+          setIsUpdating(false)
         }
       )
     },
-    isUpdating ? 200 : null
+    isUpdating ? 400 : null
   )
 
   return (
     <>
       <label>{progress.currentName || ""}</label>
-      <ProgressBar
-        variant="success"
-        animated
-        now={progress.now}
-        label={`${progress.now}%`}
-      />
+      <ProgressBar variant="success" animated now={progress.now} label={`${progress.now}%`} />
     </>
   )
 }

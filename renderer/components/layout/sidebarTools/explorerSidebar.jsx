@@ -2,7 +2,7 @@ import React, { useContext } from "react"
 import { Accordion, Button, Stack } from "react-bootstrap"
 import { WorkspaceContext } from "../../workspace/workspaceContext"
 import { ipcRenderer } from "electron"
-import { SidebarDirectoryTreeControlled } from "./sidebarDirectoryTreeControlled"
+import SidebarDirectoryTreeControlled from "./sidebarDirectoryTreeControlled"
 const ExplorerSidebar = () => {
   // eslint-disable-next-line no-unused-vars
   const { workspace } = useContext(WorkspaceContext) // We get the workspace from the context to retrieve the directory tree of the workspace, thus retrieving the data files

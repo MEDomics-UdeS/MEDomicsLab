@@ -1,19 +1,56 @@
 import React from "react"
 import DropzoneComponent from "../../../mainPages/dataComponents/dropzoneComponent"
-import myimage from "../../../../../resources/medomics.svg"
+import medomicsImg from "../../../../../resources/medomics.svg"
+import * as Icon from "react-bootstrap-icons"
+import Image from "next/image"
 
 const iconExtension = {
-  folder: (isExpanded) => (isExpanded ? <span>📂</span> : <span>📁</span>),
-  csv: <span>🛢️</span>,
-  json: <span>📑</span>,
-  txt: <span>📃</span>,
-  pdf: <span>📕</span>,
-  medomics: (
+  folder: (isExpanded) => (isExpanded ? <span style={{ paddingBottom: "0.15rem" }}>📂</span> : <span style={{ paddingBottom: "0.15rem" }}>📁</span>),
+  csv: <span className="emoji">🛢️</span>,
+  json: (
     <span>
-      <img src={myimage} style={{ width: "20px", height: "20px" }} />
+      <Icon.Braces className="icon-offset" style={{ color: "yellow" }} />
     </span>
   ),
-  medml: <span>⚛️</span>
+  txt: (
+    <span>
+      <Icon.TextLeft className="icon-offset" />
+    </span>
+  ),
+  pdf: <span className="emoji">📕</span>,
+  medomics: (
+    <span>
+      <Image src={medomicsImg} width={12} height={12} alt="medomics.svg" style={{ marginRight: "0.15rem" }} />
+    </span>
+  ),
+  medml: <span className="emoji">🎯</span>,
+  medmlres: <span className="emoji">📊</span>,
+  ipynb: (
+    <span>
+      <Icon.JournalCode className="icon-offset" style={{ color: "#5b95ff" }} />
+    </span>
+  ),
+  png: (
+    <span>
+      <Icon.Image className="icon-offset" style={{ color: "#5b95ff" }} />
+    </span>
+  ),
+  jpg: (
+    <span>
+      <Icon.Image className="icon-offset" style={{ color: "#5b95ff" }} />
+    </span>
+  ),
+  jpeg: (
+    <span>
+      <Icon.Image className="icon-offset" style={{ color: "#5b95ff" }} />
+    </span>
+  ),
+  svg: (
+    <span>
+      <Icon.Image className="icon-offset" style={{ color: "#5b95ff" }} />
+    </span>
+  )
+
   // 📗📙📘📒📑📈📊🧮🎯💊🧬🔬🧰💾📄🗒️💥🎛️⚙️
 }
 
@@ -65,8 +102,10 @@ const renderItem = ({ item, depth, children, title, context, arrow }, additional
                     additionalParams.displayMenu(e, item)
                   }}
                 >
-                  {iconExtension.folder(context.isExpanded)}
-                  {title}
+                  <div>
+                    {iconExtension.folder(context.isExpanded)}
+                    <label>{title}</label>
+                  </div>
                 </InteractiveComponent>
               </div>
               {children}
@@ -77,7 +116,7 @@ const renderItem = ({ item, depth, children, title, context, arrow }, additional
       {!item.isFolder && (
         <>
           <li {...context.itemContainerWithChildrenProps} className={cx("rct-tree-item-li", item.isFolder && "rct-tree-item-li-isFolder", context.isSelected && "rct-tree-item-li-selected", context.isExpanded && "rct-tree-item-li-expanded", context.isFocused && "rct-tree-item-li-focused", context.isDraggingOver && "rct-tree-item-li-dragging-over", context.isSearchMatching && "rct-tree-item-li-search-match")}>
-            <div {...context.itemContainerWithoutChildrenProps} style={{ paddingLeft: `${(depth + 1) * 8}px` }} className={cx("rct-tree-item-title-container", item.isFolder && "rct-tree-item-title-container-isFolder", context.isSelected && "rct-tree-item-title-container-selected", context.isExpanded && "rct-tree-item-title-container-expanded", context.isFocused && "rct-tree-item-title-container-focused", context.isDraggingOver && "rct-tree-item-title-container-dragging-over", context.isSearchMatching && "rct-tree-item-title-container-search-match")}>
+            <div {...context.itemContainerWithoutChildrenProps} style={{ paddingLeft: `${(depth + 1) * 10}px` }} className={cx("rct-tree-item-title-container", item.isFolder && "rct-tree-item-title-container-isFolder", context.isSelected && "rct-tree-item-title-container-selected", context.isExpanded && "rct-tree-item-title-container-expanded", context.isFocused && "rct-tree-item-title-container-focused", context.isDraggingOver && "rct-tree-item-title-container-dragging-over", context.isSearchMatching && "rct-tree-item-title-container-search-match")}>
               {/* {arrow} */}
 
               <InteractiveComponent
@@ -94,9 +133,10 @@ const renderItem = ({ item, depth, children, title, context, arrow }, additional
                   additionalParams.onDBClickItem(e, item)
                 }}
               >
-                {iconExtension[item.type]}
-                {/* {!item.isFolder && item.type != "csv" && <span>📄</span>} */}
-                {title}
+                <div>
+                  {iconExtension[item.type]}
+                  <label>{title}</label>
+                </div>
               </InteractiveComponent>
             </div>
             {children}

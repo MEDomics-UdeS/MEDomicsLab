@@ -5,8 +5,12 @@ import { ReactFlowProvider } from "reactflow"
 import { FlowInfosProvider, FlowInfosContext } from "./context/flowInfosContext"
 import { FlowResultsContext, FlowResultsProvider } from "./context/flowResultsContext"
 import { FlowFunctionsProvider } from "./context/flowFunctionsContext"
+import { PageInfosContext } from "../mainPages/moduleBasics/pageInfosContext"
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels"
+import { WorkspaceContext, EXPERIMENTS } from "../workspace/workspaceContext"
 import ResultsPane from "./results/resultsPane"
+import MedDataObject from "../workspace/medDataObject"
+import { loadJsonPath } from "../../utilities/fileManagementUtils"
 
 /**
  *
@@ -19,8 +23,10 @@ import ResultsPane from "./results/resultsPane"
  */
 const FlowPageBaseWithFlowInfos = ({ children, workflowType, id }) => {
   // here is the use of the context to update the flowInfos
-  const { updateFlowInfos, showAvailableNodes } = useContext(FlowInfosContext)
-  const { showResultsPane, setShowResultsPane } = useContext(FlowResultsContext)
+  const { updateFlowInfos, showAvailableNodes, setExperimentName, setSceneName } = useContext(FlowInfosContext)
+  const { showResultsPane, setShowResultsPane, updateFlowResults } = useContext(FlowResultsContext)
+  const { configPath } = useContext(PageInfosContext)
+  const { getBasePath } = useContext(WorkspaceContext)
   const sidebarPanelRef = useRef(null)
   const resultsPanelRef = useRef(null)
 
@@ -30,6 +36,25 @@ const FlowPageBaseWithFlowInfos = ({ children, workflowType, id }) => {
       type: workflowType
     })
   }, [workflowType])
+
+  // this useEffect is used to get the experiment name
+  useEffect(() => {
+    if (configPath) {
+      let pathList = configPath.split(MedDataObject.getPathSeparator())
+      let length = pathList.length
+      let sceneName = pathList[length - 1].split(".")[0]
+      let experimentName = pathList[length - 3]
+      setSceneName(sceneName)
+      setExperimentName(experimentName)
+      let path = [getBasePath(EXPERIMENTS), experimentName, sceneName, sceneName].join(MedDataObject.getPathSeparator()) + ".medmlres"
+      if (MedDataObject.isPathExists(path)) {
+        let flowResults = loadJsonPath(path)
+        updateFlowResults(flowResults)
+      } else {
+        console.log("No results")
+      }
+    }
+  }, [configPath])
 
   // useeffect to collapse the sidebar when showAvailableNodes is false and expand it when it is true
   useEffect(() => {

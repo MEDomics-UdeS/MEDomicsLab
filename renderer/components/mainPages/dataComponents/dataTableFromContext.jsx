@@ -18,7 +18,7 @@ const DataTableFromContext = (MedDataObject, tablePropsData) => {
   let datasetObject = MedDataObject["MedDataObject"]
   const [isLoaded, setIsLoaded] = useState(MedDataObject.isLoaded ? MedDataObject.isLoaded : false)
 
-  const [dataset, setDataset] = useState(null)
+  const [dataset, setDataset] = useState(MedDataObject.isLoaded ? MedDataObject.isLoaded : false)
 
   useEffect(() => {
     if (datasetObject !== undefined && datasetObject !== null) {

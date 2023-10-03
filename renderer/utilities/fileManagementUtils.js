@@ -1,7 +1,8 @@
 const fs = require("fs")
 const path = require("path")
 const { parse } = require("csv-parse")
-
+const dfd = require("danfojs")
+var Papa = require("papaparse")
 /**
  *
  * @param {Object} exportObj object to be exported
@@ -92,10 +93,8 @@ const loadJsonSync = () => {
 }
 
 /**
- *
  * @param {String} path
  * @returns {Object} json object
- *
  * @description
  * This function takes a path and returns the json object
  */
@@ -115,7 +114,7 @@ const loadJsonPath = (path) => {
     const jsonData = JSON.parse(data)
     return jsonData
   } catch (error) {
-    console.error(error)
+    console.error("error reading json file: " + path + "\n" + error + "\n")
     return null
   }
 }
@@ -124,7 +123,6 @@ const loadJsonPath = (path) => {
  *
  * @param {String} path
  * @returns {Object} json object
- *
  * @description
  * This function takes a path and returns the json object
  */
@@ -136,27 +134,52 @@ const loadCSVPath = (path, whenLoaded) => {
   let cwdSlashTypeInv = cwdSlashType == "/" ? "\\" : "/"
   path.charAt(0) == "." && (path = cwd + path.substring(1).replaceAll(cwdSlashTypeInv, cwdSlashType))
   console.log("reading csv file: " + path)
-  fs.createReadStream(path)
-    .pipe(
-      parse({
-        delimiter: ",",
-        columns: true,
-        ltrim: true
+  try {
+    fs.createReadStream(path)
+      .pipe(
+        parse({
+          delimiter: ",",
+          columns: true,
+          ltrim: true
+        })
+      )
+      .on("data", function (row) {
+        // This will push the object row into the array
+        data.push(row)
       })
-    )
-    .on("data", function (row) {
-      // This will push the object row into the array
-      data.push(row)
-    })
-    .on("error", function (error) {
-      console.log(error.message)
-    })
-    .on("end", function () {
-      // Here log the result array
-      console.log("parsed csv data:")
-      console.log(data)
-      whenLoaded(data)
-    })
+      .on("error", function (error) {
+        console.log(error.message)
+      })
+      .on("end", function () {
+        // Here log the result array
+        console.log("parsed csv data:")
+        console.log(data)
+        whenLoaded(data)
+      })
+  } catch (error) {
+    toast.warn("Having trouble reading the CSV file, trying another method...")
+  }
+}
+
+const loadCSVFromPath = (path, whenLoaded) => {
+  let csvPath = path
+  fs.readFile(csvPath, "utf8", (err, data) => {
+    if (err) {
+      console.error("Error reading file:", err)
+    } else {
+      console.log("File read successfully")
+      let array = []
+      Papa.parse(data, {
+        step: function (row) {
+          array.push(row.data)
+        }
+      })
+      let columns = array.shift()
+      let df = new dfd.DataFrame(array, { columns: columns })
+      let dfJSON = dfd.toJSON(df)
+      whenLoaded(dfJSON)
+    }
+  })
 }
 
 function createFolder(path_, folderName) {
@@ -173,4 +196,4 @@ function createFolder(path_, folderName) {
   })
 }
 
-export { downloadJson, writeFile, loadJson, loadJsonSync, loadJsonPath, loadCSVPath, createFolder }
+export { downloadJson, writeFile, loadJson, loadJsonSync, loadJsonPath, loadCSVPath, loadCSVFromPath, createFolder }

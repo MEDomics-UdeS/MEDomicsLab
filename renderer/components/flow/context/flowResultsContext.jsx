@@ -1,4 +1,8 @@
-import React, { createContext, useState } from "react"
+import React, { createContext, useState, useContext } from "react"
+import { FlowInfosContext } from "./flowInfosContext"
+import MedDataObject from "../../workspace/medDataObject"
+import { WorkspaceContext, EXPERIMENTS } from "../../workspace/workspaceContext"
+import { toast } from "react-toastify"
 
 // This context is used to store the flowResults (id and type of the workflow)
 const FlowResultsContext = createContext()
@@ -13,11 +17,22 @@ function FlowResultsProvider({ children }) {
   const [showResultsPane, setShowResultsPane] = useState(false) // Initial state
   const [isResults, setIsResults] = useState(false) // Initial state
   const [selectedResultsId, setSelectedResultsId] = useState(null) // Initial state
+  const { sceneName, experimentName } = useContext(FlowInfosContext)
+  const { getBasePath, workspace } = useContext(WorkspaceContext)
 
   // This function is used to update the flowResults
-  const updateFlowResults = (newInfo) => {
-    setFlowResults({ ...newInfo })
+  const updateFlowResults = (newResults) => {
+    if (!newResults) return
+    setFlowResults({ ...newResults })
     setIsResults(true)
+    console.log("workspace", workspace)
+    if (workspace.hasBeenSet && experimentName && sceneName) {
+      MedDataObject.writeFileSync(newResults, [getBasePath(EXPERIMENTS), experimentName, sceneName], sceneName, "medmlres").then((res) => {
+        console.log("res", res)
+        toast.success("Results generated and saved !")
+        MedDataObject.updateWorkspaceDataObject()
+      })
+    }
   }
 
   return (

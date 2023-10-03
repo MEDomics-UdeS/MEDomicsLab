@@ -2,10 +2,13 @@ import { ToastContainer } from "react-toastify"
 import React, { useState } from "react"
 import Head from "next/head"
 import LayoutManager from "../components/layout/layoutManager"
-import LayoutContextProvider from "../components/layout/layoutContext"
-import WorkspaceProvider from "../components/workspace/workspaceContext"
+import { LayoutModelProvider } from "../components/layout/layoutContext"
+import { WorkspaceProvider } from "../components/workspace/workspaceContext"
 import { useEffect } from "react"
 import { ipcRenderer } from "electron"
+import { DataContextProvider } from "../components/workspace/dataContext"
+import MedDataObject from "../components/workspace/medDataObject"
+import { ActionContextProvider } from "../components/layout/actionContext"
 
 // CSS
 import "bootstrap/dist/css/bootstrap.min.css"
@@ -33,10 +36,7 @@ import "../styles/flow/results.css"
 import "react-complex-tree/lib/style-modern.css"
 import "../styles/sidebarTree.css"
 import "../styles/customPrimeReact.css"
-
-import DataContextProvider from "../components/workspace/dataContext"
-import MedDataObject from "../components/workspace/medDataObject"
-import { ActionContextProvider } from "../components/layout/actionContext"
+import "../styles/imageContainer.css"
 
 /**
  * This is the main app component. It is the root component of the app.
@@ -44,7 +44,7 @@ import { ActionContextProvider } from "../components/layout/actionContext"
  * It is the parent of the LayoutContextProvider, which provides the layout model to all components.
  * @constructor
  */
-export default function App() {
+function App() {
   /* TODO: Add a dark mode toggle button  
   const [isDarkMode, setIsDarkMode] = useState(false)
   const [theme, setTheme] = useState("light-mode")
@@ -70,7 +70,8 @@ export default function App() {
     global: {
       tabEnableClose: true,
       tabEnableRenderOnDemand: false,
-      tabEnableRename: false
+      tabEnableRename: false,
+      autoSelectTab: true
     }, // this is a global setting for all tabs in the layout, it enables the close button on all tabs
     borders: [
       // this is the border model for the layout, it defines the borders and their children
@@ -152,8 +153,6 @@ export default function App() {
     ipcRenderer.on("updateDirectory", (event, data) => {
       let workspace = { ...data }
       setWorkspaceObject(workspace)
-
-      // }
     })
 
     ipcRenderer.on("getFlaskPort", (event, data) => {
@@ -176,11 +175,20 @@ export default function App() {
    * @description This function is used to recursively recense the directory tree and add the files and folders to the global data object
    * It is called when the working directory is set
    */
-  function recursivelyRecenseTheDirectory(children, parentID, newGlobalData, acceptedFileTypes = undefined) {
+  function recursivelyRecenseTheDirectory(
+    children,
+    parentID,
+    newGlobalData,
+    acceptedFileTypes = undefined
+  ) {
     let childrenIDsToReturn = []
 
     children.forEach((child) => {
-      let uuid = MedDataObject.checkIfMedDataObjectInContextbyName(child.name, newGlobalData, parentID)
+      let uuid = MedDataObject.checkIfMedDataObjectInContextbyName(
+        child.name,
+        newGlobalData,
+        parentID
+      )
       let objectType = "folder"
       let objectUUID = uuid
       let childrenIDs = []
@@ -193,7 +201,10 @@ export default function App() {
         })
 
         objectUUID = dataObject.getUUID()
-        let acceptedFiles = MedDataObject.setAcceptedFileTypes(dataObject, acceptedFileTypes)
+        let acceptedFiles = MedDataObject.setAcceptedFileTypes(
+          dataObject,
+          acceptedFileTypes
+        )
         dataObject.setAcceptedFileTypes(acceptedFiles)
         if (child.children === undefined) {
           console.log("File:", child)
@@ -203,7 +214,12 @@ export default function App() {
           console.log("Empty folder:", child)
         } else {
           console.log("Folder:", child)
-          let answer = recursivelyRecenseTheDirectory(child.children, objectUUID, newGlobalData, acceptedFiles)
+          let answer = recursivelyRecenseTheDirectory(
+            child.children,
+            objectUUID,
+            newGlobalData,
+            acceptedFiles
+          )
           childrenIDs = answer.childrenIDsToReturn
         }
         dataObject.setType(objectType)
@@ -214,7 +230,12 @@ export default function App() {
         let dataObject = newGlobalData[uuid]
         let acceptedFiles = dataObject.acceptedFileTypes
         if (child.children !== undefined) {
-          let answer = recursivelyRecenseTheDirectory(child.children, uuid, newGlobalData, acceptedFiles)
+          let answer = recursivelyRecenseTheDirectory(
+            child.children,
+            uuid,
+            newGlobalData,
+            acceptedFiles
+          )
           childrenIDs = answer.childrenIDsToReturn
           newGlobalData[objectUUID]["childrenIDs"] = childrenIDs
           newGlobalData[objectUUID]["parentID"] = parentID
@@ -238,7 +259,11 @@ export default function App() {
       let rootName = workspaceObject.workingDirectory.name
       let rootPath = workspaceObject.workingDirectory.path
       let rootType = "folder"
-      let rootChildrenIDs = recursivelyRecenseTheDirectory(rootChildren, rootParentID, newGlobalData).childrenIDsToReturn
+      let rootChildrenIDs = recursivelyRecenseTheDirectory(
+        rootChildren,
+        rootParentID,
+        newGlobalData
+      ).childrenIDsToReturn
 
       let rootDataObject = new MedDataObject({
         originalName: rootName,
@@ -256,12 +281,12 @@ export default function App() {
 
   // This useEffect hook is called whenever the `workspaceObject` state changes.
   useEffect(() => {
-    // console.log("workspaceObject changed", workspaceObject)
+    console.log("workspaceObject changed", workspaceObject)
   }, [workspaceObject])
 
   // This useEffect hook is called whenever the `globalData` state changes.
   useEffect(() => {
-    // console.log("globalData changed", globalData)
+    console.log("globalData changed", globalData)
   }, [globalData])
 
   useEffect(() => {
@@ -279,18 +304,25 @@ export default function App() {
       </Head>
       <div style={{ height: "100%", width: "100%" }}>
         <ActionContextProvider>
-          <DataContextProvider globalData={globalData} setGlobalData={setGlobalData}>
-            <WorkspaceProvider workspace={workspaceObject} setWorkspace={setWorkspaceObject} port={port} setPort={setPort}>
-              {" "}
-              {/* This is the WorkspaceProvider, which provides the workspace model to all the children components of the LayoutManager */}
-              <LayoutContextProvider // This is the LayoutContextProvider, which provides the layout model to all the children components of the LayoutManager
+          <DataContextProvider
+            globalData={globalData}
+            setGlobalData={setGlobalData}
+          >
+            <WorkspaceProvider
+              workspace={workspaceObject}
+              setWorkspace={setWorkspaceObject}
+              port={port}
+              setPort={setPort}
+            >
+              <LayoutModelProvider // This is the LayoutContextProvider, which provides the layout model to all the children components of the LayoutManager
                 layoutModel={layoutModel}
                 setLayoutModel={setLayoutModel}
               >
+                {/* This is the WorkspaceProvider, which provides the workspace model to all the children components of the LayoutManager */}
                 {/* This is the LayoutContextProvider, which provides the layout model to all the children components of the LayoutManager */}
                 <LayoutManager layout={initialLayout} />
                 {/** We pass the initialLayout as a parameter */}
-              </LayoutContextProvider>
+              </LayoutModelProvider>
             </WorkspaceProvider>
           </DataContextProvider>
         </ActionContextProvider>
@@ -311,3 +343,5 @@ export default function App() {
     </>
   )
 }
+
+export default App

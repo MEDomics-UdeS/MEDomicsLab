@@ -6,6 +6,7 @@ import Form from "react-bootstrap/Form"
 import { toast } from "react-toastify" // https://www.npmjs.com/package/react-toastify
 import { Tooltip } from "react-tooltip"
 import { Markup } from "interweave"
+import WsDataSelect from "../mainPages/dataComponents/wsDataSelect"
 
 /**
  *
@@ -62,12 +63,7 @@ const Input = ({ name, settingInfos, currentValue, onInputChange }) => {
 
   const createTooltip = (tooltip, tooltipId) => {
     return (
-      <Tooltip
-        className="tooltip"
-        anchorSelect={`#${tooltipId}`}
-        delayShow={1000}
-        place="left"
-      >
+      <Tooltip className="tooltip" anchorSelect={`#${tooltipId}`} delayShow={1000} place="left">
         <Markup content={tooltip} />
       </Tooltip>
     )
@@ -114,12 +110,7 @@ const Input = ({ name, settingInfos, currentValue, onInputChange }) => {
       case "string":
         return (
           <>
-            <FloatingLabel
-              id={name}
-              controlId={name}
-              label={name}
-              className=" input-hov"
-            >
+            <FloatingLabel id={name} controlId={name} label={name} className=" input-hov">
               <Form.Control
                 type="text"
                 defaultValue={currentValue}
@@ -213,15 +204,13 @@ const Input = ({ name, settingInfos, currentValue, onInputChange }) => {
                   })
                 }
               >
-                {Object.entries(settingInfos.choices).map(
-                  ([option, tooltip]) => {
-                    return (
-                      <option key={option} value={option}>
-                        {option}
-                      </option>
-                    )
-                  }
-                )}
+                {Object.entries(settingInfos.choices).map(([option, tooltip]) => {
+                  return (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  )
+                })}
               </Form.Select>
             </FloatingLabel>
             {createTooltip(settingInfos.tooltip, name)}
@@ -234,15 +223,12 @@ const Input = ({ name, settingInfos, currentValue, onInputChange }) => {
             <div id={name}>
               <label className="custom-lbl">{name}</label>
               <Select
-                options={Object.entries(settingInfos.choices).map(
-                  ([option, tooltip]) => {
-                    currentValue == undefined && (currentValue = [])
-                    console.log("option", option)
-                    console.log("currentValue", currentValue)
-                    if (!currentValue.includes(option))
-                      return createOption(option)
-                  }
-                )}
+                options={Object.entries(settingInfos.choices).map(([option, tooltip]) => {
+                  currentValue == undefined && (currentValue = [])
+                  console.log("option", option)
+                  console.log("currentValue", currentValue)
+                  if (!currentValue.includes(option)) return createOption(option)
+                })}
                 value={currentValue}
                 onChange={(newValue) =>
                   setInputUpdate({
@@ -324,6 +310,26 @@ const Input = ({ name, settingInfos, currentValue, onInputChange }) => {
                     type: settingInfos.type
                   })
                 }
+              />
+            </FloatingLabel>
+            {createTooltip(settingInfos.tooltip, name)}
+          </>
+        )
+
+      case "data-input":
+        return (
+          <>
+            <FloatingLabel id={name} controlId={name} label={name} className=" input-hov">
+              <WsDataSelect
+                selectedPath={currentValue}
+                onChange={(e, path) => {
+                  console.log("e", e, path)
+                  setInputUpdate({
+                    name: name,
+                    value: { name: e.target.value, path: path },
+                    type: settingInfos.type
+                  })
+                }}
               />
             </FloatingLabel>
             {createTooltip(settingInfos.tooltip, name)}

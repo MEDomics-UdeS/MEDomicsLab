@@ -1,11 +1,14 @@
-import React from "react";
+import React from "react"
+import ModulePage from "./moduleBasics/modulePage"
 
-const ApplicationPage = () => {
-	return (
-		<>
-			<h1>Application Page - TO BE IMPLEMENTED</h1>
-		</>
-	);
+const ApplicationPage = ({ pageId = "application-456", configPath = null }) => {
+  return (
+    <>
+      <ModulePage pageId={pageId} configPath={configPath}>
+        <h1>Application Page - TO BE IMPLEMENTED</h1>
+      </ModulePage>
+    </>
+  )
 }
 
-export default ApplicationPage;
+export default ApplicationPage

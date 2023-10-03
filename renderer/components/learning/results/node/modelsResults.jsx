@@ -4,14 +4,15 @@ import DataTable from "../../../dataTypeVisualisation/dataTableWrapper"
 import { Column } from "primereact/column"
 
 /**
- * 
- * @param {Object} selectedResults The selected results 
+ *
+ * @param {Object} selectedResults The selected results
  * @returns {JSX.Element} The ModelsResults component
  */
 const ModelsResults = ({ selectedResults }) => {
   const [models, setModels] = useState([])
   const [allModelsData, setAllModelsData] = useState([])
   const [expandedRows, setExpandedRows] = useState([])
+  const [selectedRows, setSelectedRows] = useState([])
 
   useEffect(() => {
     let models = []
@@ -63,15 +64,11 @@ const ModelsResults = ({ selectedResults }) => {
    */
   const getColumnsFromData = (data) => {
     if (data.length > 0) {
-      let toReturn = [
-        <Column key="first key" expander={true} style={{ width: "5rem" }} />
-      ]
+      let toReturn = [<Column key="first key" expander={true} style={{ width: "5rem" }} />]
       Object.keys(data[0]).map((key) => {
         if (key != "Parameters") {
           let sortableOpt = key != "Name" ? { sortable: true } : {}
-          toReturn.push(
-            <Column key={key} field={key} header={key} {...sortableOpt} />
-          )
+          toReturn.push(<Column key={key} field={key} header={key} {...sortableOpt} />)
         }
       })
       return toReturn
@@ -90,7 +87,10 @@ const ModelsResults = ({ selectedResults }) => {
           rowExpansionTemplate: rowExpansionTemplate,
           onRowToggle: (e) => setExpandedRows(e.data),
           expandedRows: expandedRows,
-          size: "small"
+          size: "small",
+          selectionMode: "multiple",
+          selection: selectedRows,
+          onSelectionChange: (e) => setSelectedRows(e.value)
         }}
       />
     </>

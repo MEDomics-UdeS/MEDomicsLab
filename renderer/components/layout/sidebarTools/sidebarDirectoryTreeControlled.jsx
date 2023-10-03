@@ -17,10 +17,7 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
   const environment = useRef() // This ref is used to get the environment of the directory tree
   const tree = useRef() // This ref is used to get the directory tree
   const MENU_ID = "tree-2" // This is the id of the context menu
-  const { show } = useContextMenu({
-    // This is the context menu
-    id: MENU_ID
-  })
+  const { show } = useContextMenu() // This is the context menu
 
   const [focusedItem, setFocusedItem] = useState() // This state is used to keep track of the item that is currently focused
   const [expandedItems, setExpandedItems] = useState([]) // This state is used to keep track of the items that are currently expanded
@@ -31,9 +28,9 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
   const [cutItems, setCutItems] = useState([]) // This state is used to keep track of the items that have been cut
   const [isHovering, setIsHovering] = useState(false) // This state is used to know if the mouse is hovering the directory tree
 
-  const [isAccordionShowing, setIsAccordionShowing] = useState(false) // This state is used to know if the accordion is collapsed or not
+  const [isAccordionShowing, setIsAccordionShowing] = useState(true) // This state is used to know if the accordion is collapsed or not
   const { globalData, setGlobalData } = useContext(DataContext) // We get the global data from the context to retrieve the directory tree of the workspace, thus retrieving the data files
-  const { dispatchLayout } = useContext(LayoutModelContext)
+  const { dispatchLayout, developerMode } = useContext(LayoutModelContext)
 
   const [dirTree, setDirTree] = useState({}) // We get the directory tree from the workspace
 
@@ -103,15 +100,7 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
   function onOpen(uuid) {
     let dataObjectUUID = uuid
     let path = globalData[dataObjectUUID].path
-    dispatchLayout({
-      type: "add",
-      payload: {
-        type: "tab",
-        name: name,
-        component: "dataTable",
-        config: { path: path }
-      }
-    })
+    // NOOP
   }
 
   /**
@@ -166,7 +155,7 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
     } else {
       // Delete the `MedDataObject` with the current name from the `globalData` object.
       let globalDataCopy = { ...globalData }
-      globalDataCopy = MedDataObject.delete(globalDataCopy[uuid], globalData)
+      globalDataCopy = MedDataObject.delete(globalDataCopy[uuid], globalData, dispatchLayout)
       setGlobalData(globalDataCopy)
       toast.success(`Deleted ${globalData[uuid].name}`)
       MedDataObject.updateWorkspaceDataObject(300)
@@ -180,16 +169,56 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
    *  @param {Object} param0.props - The props of the context menu action
    */
   function handleContextMenuAction({ id, props }) {
-    switch (id) {
-      case "open":
-        onOpen(props.UUID)
-        break
-      case "rename":
-        onRename(props.UUID)
-        break
-      case "delete":
-        onDelete(props.UUID)
-        break
+    if (developerMode) {
+      switch (id) {
+        case "openInDataTableViewer":
+          dispatchLayout({ type: "openInDataTable", payload: props })
+          break
+        case "openInCodeEditor":
+          dispatchLayout({ type: "openInCodeEditor", payload: props })
+          break
+        case "openInImageViewer":
+          dispatchLayout({ type: "openInImageViewer", payload: props })
+          break
+        case "openInPDFViewer":
+          dispatchLayout({ type: "openInPDFViewer", payload: props })
+          break
+        case "openInTextEditor":
+          dispatchLayout({ type: "openInTextEditor", payload: props })
+          break
+        case "openInModelViewer":
+          dispatchLayout({ type: "openInModelViewer", payload: props })
+          break
+        case "openInLearningModule":
+          dispatchLayout({ type: "openInLearningModule", payload: props })
+          break
+        case "openInEvaluationModule":
+          dispatchLayout({ type: "openInEvaluationModule", payload: props })
+          break
+        case "openInApplicationModule":
+          dispatchLayout({ type: "openInApplicationModule", payload: props })
+          break
+        case "openInPandasProfiling":
+          dispatchLayout({ type: "openPandasProfiling", payload: props })
+          break
+        case "openLearningModule":
+          dispatchLayout({ type: "openInLearningModule", payload: props })
+          break
+        case "openInJSONViewer":
+          dispatchLayout({ type: "openInJSONViewer", payload: props })
+          break
+        case "open":
+          onOpen(props.UUID)
+          break
+        case "rename":
+          onRename(props.UUID)
+          break
+        case "delete":
+          onDelete(props.UUID)
+          break
+      }
+    } else {
+      toast.error("Error: Developer mode is enabled")
     }
   }
 
@@ -200,16 +229,40 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
    * @returns {void}
    */
   const onDBClickItem = (event, item) => {
-    // dispatchAction({ type: "setSelectedItems", payload: [item.UUID] })
-    setDbClickedItem(item)
-    console.log("DBCLICKED", event, item)
+    if (developerMode) {
+      if (item.type == "medml") {
+        dispatchLayout({ type: "openInLearningModule", payload: item })
+      } else if (item.type == "csv" || item.type == "tsv" || item.type == "xlsx") {
+        dispatchLayout({ type: "openInDataTable", payload: item })
+      } else if (item.type == "json") {
+        dispatchLayout({ type: "openInJSONViewer", payload: item })
+      } else if (item.type == "py" || item.type == "ipynb") {
+        dispatchLayout({ type: "openInCodeEditor", payload: item })
+      } else if (item.type == "png" || item.type == "jpg" || item.type == "jpeg" || item.type == "gif" || item.type == "svg") {
+        dispatchLayout({ type: "openInImageViewer", payload: item })
+      } else if (item.type == "pdf") {
+        dispatchLayout({ type: "openInPDFViewer", payload: item })
+      } else if (item.type == "txt") {
+        dispatchLayout({ type: "openInTextEditor", payload: item })
+      } else if (item.type == "pkl") {
+        dispatchLayout({ type: "openInModelViewer", payload: item })
+      } else {
+        console.log("DBCLICKED", event, item)
+      }
+      setDbClickedItem(item)
+      // console.log("DBCLICKED", event, item)
+    } else {
+      toast.error("Error: Developer mode is enabled")
+    }
   }
 
   /**
    * This useEffect hook sets the external double click item when the double click item changes.
    */
   useEffect(() => {
-    if (setExternalDBClick) setExternalDBClick(dbClickedItem)
+    if (setExternalDBClick) {
+      setExternalDBClick(dbClickedItem)
+    }
   }, [dbClickedItem])
 
   /**
@@ -219,7 +272,68 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
    * @returns {void}
    */
   function displayMenu(e, data) {
-    show({ event: e, props: data })
+    console.log("DISPLAY MENU", e, data)
+    if (data.isFolder) {
+      show({
+        id: "MENU_FOLDER",
+        event: e,
+        props: data
+      })
+    } else if (data.type == "medml") {
+      show({
+        id: "MENU_MEDML",
+        event: e,
+        props: data
+      })
+    } else if (data.type == "csv" || data.type == "tsv" || data.type == "xlsx") {
+      show({
+        id: "MENU_DATA",
+        event: e,
+        props: data
+      })
+    } else if (data.type == "json") {
+      show({
+        id: "MENU_JSON",
+        event: e,
+        props: data
+      })
+    } else if (data.type == "py" || data.type == "ipynb") {
+      show({
+        id: "MENU_CODE",
+        event: e,
+        props: data
+      })
+    } else if (data.type == "png" || data.type == "jpg" || data.type == "jpeg" || data.type == "gif" || data.type == "svg") {
+      show({
+        id: "MENU_IMAGE",
+        event: e,
+        props: data
+      })
+    } else if (data.type == "pdf") {
+      show({
+        id: "MENU_PDF",
+        event: e,
+        props: data
+      })
+    } else if (data.type == "txt") {
+      show({
+        id: "MENU_TEXT",
+        event: e,
+        props: data
+      })
+    } else if (data.type == "pkl") {
+      show({
+        id: "MENU_MODEL",
+        event: e,
+        props: data
+      })
+    } else {
+      show({
+        id: "MENU_DEFAULT",
+        event: e,
+        props: data
+      })
+    }
   }
 
   /**
@@ -409,7 +523,7 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
 
   return (
     <>
-      <Accordion.Item eventKey="2">
+      <Accordion.Item eventKey="dirTree">
         <Accordion.Header>
           <Stack direction="horizontal" style={{ flexGrow: "1" }}>
             <p>
@@ -473,7 +587,8 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
           </div>
         </Accordion.Body>
       </Accordion.Item>
-      <Menu id={MENU_ID}>
+
+      <Menu id={"MENU_JSON"}>
         <Submenu
           className="context-submenu"
           label={
@@ -483,10 +598,265 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
             </>
           }
         >
-          <Item>DataTable Viewer (default)</Item>
-          <Item>D-Tale</Item>
-          <Item>PandasProfiling</Item>
+          <Item id="openInJSONViewer" onClick={handleContextMenuAction}>
+            JSON Viewer (default)
+          </Item>
+          <Item id="openInDataTableViewer" onClick={handleContextMenuAction}>
+            DataTable Viewer
+          </Item>
+          <Item id="openInDtale" onClick={handleContextMenuAction}>
+            D-Tale
+          </Item>
+          <Item id="openInPandasProfiling" onClick={handleContextMenuAction}>
+            PandasProfiling
+          </Item>
         </Submenu>
+        <Item id="revealInFileExplorer" onClick={() => require("electron").shell.showItemInFolder(globalData[selectedItems[0]].path)}>
+          {/* <BoxArrowUpRight size={"1rem"} className="context-menu-icon" /> */}
+          Reveal in File Explorer
+        </Item>
+        <Item id="rename" onClick={handleContextMenuAction}>
+          <Eraser size={"1rem"} className="context-menu-icon" />
+          Rename
+        </Item>
+        <Item id="delete" onClick={handleContextMenuAction}>
+          <Trash size={"1rem"} className="context-menu-icon" />
+          Delete
+        </Item>
+      </Menu>
+      <Menu id={"MENU_DATA"}>
+        <Submenu
+          className="context-submenu"
+          label={
+            <>
+              <BoxArrowUpRight size={"1rem"} className="context-menu-icon" />
+              Open in...
+            </>
+          }
+        >
+          <Item id="openInDataTableViewer" onClick={handleContextMenuAction}>
+            DataTable Viewer (default)
+          </Item>
+          <Item id="openInDtale" onClick={handleContextMenuAction}>
+            D-Tale
+          </Item>
+          <Item id="openInPandasProfiling" onClick={handleContextMenuAction}>
+            PandasProfiling
+          </Item>
+        </Submenu>
+        <Item id="revealInFileExplorer" onClick={() => require("electron").shell.showItemInFolder(globalData[selectedItems[0]].path)}>
+          {/* <BoxArrowUpRight size={"1rem"} className="context-menu-icon" /> */}
+          Reveal in File Explorer
+        </Item>
+        <Item id="rename" onClick={handleContextMenuAction}>
+          <Eraser size={"1rem"} className="context-menu-icon" />
+          Rename
+        </Item>
+        <Item id="delete" onClick={handleContextMenuAction}>
+          <Trash size={"1rem"} className="context-menu-icon" />
+          Delete
+        </Item>
+      </Menu>
+
+      <Menu id={"MENU_MEDML"}>
+        <Submenu
+          className="context-submenu"
+          label={
+            <>
+              <BoxArrowUpRight size={"1rem"} className="context-menu-icon" />
+              Open in...
+            </>
+          }
+        >
+          <Item id="openLearningModule" onClick={handleContextMenuAction}>
+            Learning module (default)
+          </Item>
+        </Submenu>
+        <Item id="revealInFileExplorer" onClick={() => require("electron").shell.showItemInFolder(globalData[selectedItems[0]].path)}>
+          {/* <BoxArrowUpRight size={"1rem"} className="context-menu-icon" /> */}
+          Reveal in File Explorer
+        </Item>
+        <Item id="rename" onClick={handleContextMenuAction}>
+          <Eraser size={"1rem"} className="context-menu-icon" />
+          Rename
+        </Item>
+        <Item id="delete" onClick={handleContextMenuAction}>
+          <Trash size={"1rem"} className="context-menu-icon" />
+          Delete
+        </Item>
+      </Menu>
+
+      <Menu id="MENU_FOLDER">
+        <Item id="revealInFileExplorer" onClick={() => require("electron").shell.showItemInFolder(globalData[selectedItems[0]].path)}>
+          {/* <BoxArrowUpRight size={"1rem"} className="context-menu-icon" /> */}
+          Reveal in File Explorer
+        </Item>
+        <Item id="rename" onClick={handleContextMenuAction}>
+          <Eraser size={"1rem"} className="context-menu-icon" />
+          Rename
+        </Item>
+        <Item id="delete" onClick={handleContextMenuAction}>
+          <Trash size={"1rem"} className="context-menu-icon" />
+          Delete
+        </Item>
+      </Menu>
+
+      <Menu id="MENU_CODE">
+        <Submenu
+          className="context-submenu"
+          label={
+            <>
+              <BoxArrowUpRight size={"1rem"} className="context-menu-icon" />
+              Open in...
+            </>
+          }
+        >
+          <Item id="openInCodeEditor" onClick={handleContextMenuAction}>
+            Code editor (default)
+          </Item>
+          <Item id="openInJupyter" onClick={handleContextMenuAction}>
+            Jupyter Notebook
+          </Item>
+          <Item id="openInVSCode" onClick={() => require("electron").shell.openPath(globalData[selectedItems[0]].path)}>
+            {/* <BoxArrowUpRight size={"1rem"} className="context-menu-icon" /> */}
+            VSCode
+          </Item>
+        </Submenu>
+        <Item id="revealInFileExplorer" onClick={() => require("electron").shell.showItemInFolder(globalData[selectedItems[0]].path)}>
+          {/* <BoxArrowUpRight size={"1rem"} className="context-menu-icon" /> */}
+          Reveal in File Explorer
+        </Item>
+        <Item id="rename" onClick={handleContextMenuAction}>
+          <Eraser size={"1rem"} className="context-menu-icon" />
+          Rename
+        </Item>
+        <Item id="delete" onClick={handleContextMenuAction}>
+          <Trash size={"1rem"} className="context-menu-icon" />
+          Delete
+        </Item>
+      </Menu>
+
+      <Menu id="MENU_IMAGE">
+        <Submenu
+          className="context-submenu"
+          label={
+            <>
+              <BoxArrowUpRight size={"1rem"} className="context-menu-icon" />
+              Open in...
+            </>
+          }
+        >
+          <Item id="openInImageViewer" onClick={handleContextMenuAction}>
+            Image viewer (default)
+          </Item>
+        </Submenu>
+        <Item id="revealInFileExplorer" onClick={() => require("electron").shell.showItemInFolder(globalData[selectedItems[0]].path)}>
+          {/* <BoxArrowUpRight size={"1rem"} className="context-menu-icon" /> */}
+          Reveal in File Explorer
+        </Item>
+        <Item id="rename" onClick={handleContextMenuAction}>
+          <Eraser size={"1rem"} className="context-menu-icon" />
+          Rename
+        </Item>
+        <Item id="delete" onClick={handleContextMenuAction}>
+          <Trash size={"1rem"} className="context-menu-icon" />
+          Delete
+        </Item>
+      </Menu>
+
+      <Menu id="MENU_PDF">
+        <Submenu
+          className="context-submenu"
+          label={
+            <>
+              <BoxArrowUpRight size={"1rem"} className="context-menu-icon" />
+              Open in...
+            </>
+          }
+        >
+          <Item id="openInPDFViewer" onClick={handleContextMenuAction}>
+            PDF viewer (default)
+          </Item>
+        </Submenu>
+        <Item id="revealInFileExplorer" onClick={() => require("electron").shell.showItemInFolder(globalData[selectedItems[0]].path)}>
+          {/* <BoxArrowUpRight size={"1rem"} className="context-menu-icon" /> */}
+          Reveal in File Explorer
+        </Item>
+        <Item id="rename" onClick={handleContextMenuAction}>
+          <Eraser size={"1rem"} className="context-menu-icon" />
+          Rename
+        </Item>
+        <Item id="delete" onClick={handleContextMenuAction}>
+          <Trash size={"1rem"} className="context-menu-icon" />
+          Delete
+        </Item>
+      </Menu>
+
+      <Menu id="MENU_TEXT">
+        <Submenu
+          className="context-submenu"
+          label={
+            <>
+              <BoxArrowUpRight size={"1rem"} className="context-menu-icon" />
+              Open in...
+            </>
+          }
+        >
+          <Item>Text editor (default)</Item>
+        </Submenu>
+        <Item id="revealInFileExplorer" onClick={() => require("electron").shell.showItemInFolder(globalData[selectedItems[0]].path)}>
+          {/* <BoxArrowUpRight size={"1rem"} className="context-menu-icon" /> */}
+          Reveal in File Explorer
+        </Item>
+        <Item id="rename" onClick={handleContextMenuAction}>
+          <Eraser size={"1rem"} className="context-menu-icon" />
+          Rename
+        </Item>
+        <Item id="delete" onClick={handleContextMenuAction}>
+          <Trash size={"1rem"} className="context-menu-icon" />
+          Delete
+        </Item>
+      </Menu>
+
+      <Menu id="MENU_MODEL">
+        <Submenu
+          className="context-submenu"
+          label={
+            <>
+              <BoxArrowUpRight size={"1rem"} className="context-menu-icon" />
+              Open in...
+            </>
+          }
+        >
+          <Item id="openInModelViewer" onClick={handleContextMenuAction}>
+            Model viewer (default)
+          </Item>
+          <Item id="openInEvaluationModule" onClick={handleContextMenuAction}>
+            Evaluation Module
+          </Item>
+          <Item id="openInApplicationModule" onClick={handleContextMenuAction}>
+            Application Module
+          </Item>
+        </Submenu>
+        <Item id="revealInFileExplorer" onClick={() => require("electron").shell.showItemInFolder(globalData[selectedItems[0]].path)}>
+          {/* <BoxArrowUpRight size={"1rem"} className="context-menu-icon" /> */}
+          Reveal in File Explorer
+        </Item>
+        <Item id="rename" onClick={handleContextMenuAction}>
+          <Eraser size={"1rem"} className="context-menu-icon" />
+          Rename
+        </Item>
+        <Item id="delete" onClick={handleContextMenuAction}>
+          <Trash size={"1rem"} className="context-menu-icon" />
+          Delete
+        </Item>
+      </Menu>
+
+      <Menu id="MENU_DEFAULT">
+        <Item id="revealInFileExplorer" onClick={() => require("electron").shell.showItemInFolder(globalData[selectedItems[0]].path)}>
+          {/* <BoxArrowUpRight size={"1rem"} className="context-menu-icon" /> */}
+          Reveal in File Explorer
+        </Item>
         <Item id="rename" onClick={handleContextMenuAction}>
           <Eraser size={"1rem"} className="context-menu-icon" />
           Rename
@@ -500,4 +870,4 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
   )
 }
 
-export { SidebarDirectoryTreeControlled }
+export default SidebarDirectoryTreeControlled
