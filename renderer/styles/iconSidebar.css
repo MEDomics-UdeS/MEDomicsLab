@@ -105,34 +105,3 @@ a.btnSidebar.nav-link.active {
 .extractionNav .btn-group-ext .p-button:hover {
   box-shadow: 0rem 0rem 0.5rem 1px #000000e0;
 }
-
-/* 
-.extractionNav .p-speeddial {
-  width: calc(48px - 0.4rem);
-  height: calc(48px - 0.4rem);
-  z-index: 10;
-}
-
-.extractionNav .p-speeddial .p-disabled {
-  color: rgb(33, 37, 41);
-  pointer-events: none;
-  cursor: default;
-  opacity: 1;
-}
-
-.extractionNav .p-button {
-  width: 100% !important;
-  height: 100% !important;
-  background: none !important;
-  border: none !important;
-  border-radius: 10% !important;
-}
-
-.extractionNav .p-button span {
-  font-size: 1.5rem;
-}
-
-.extractionNav .p-speeddial-direction-right .p-speeddial-list {
-  --item-diff-x: -3px !important;
-  --item-diff-y: 20px !important;
-} */
