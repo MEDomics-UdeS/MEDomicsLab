@@ -8,6 +8,7 @@ import { requestJson } from "../../utilities/requests"
 import { WorkspaceContext } from "../workspace/workspaceContext"
 import MedDataObject from "../workspace/medDataObject"
 import { InputText } from "primereact/inputtext";
+import { ProgressBar } from 'primereact/progressbar';
 
 const ExtractionTSCanvas = () => {
   const [isDatasetLoaded, setIsDatasetLoaded] = useState(false)
@@ -15,6 +16,8 @@ const ExtractionTSCanvas = () => {
   const [csvResultPath, setCsvResultPath] = useState("")
   const [dataframe, setDataframe] = useState([])
   const [datasetList, setDatasetList] = useState([])
+  const [extractionProgress, setExtractionProgress] = useState(0)
+  const [extractionStep, setExtractionStep] = useState("")
   const [filename, setFilename] = useState("tmp_extracted_features.csv")
   const [mayProceed, setMayProceed] = useState(false)
   const [resultDataset, setResultDataset] = useState(null)
@@ -67,6 +70,25 @@ const ExtractionTSCanvas = () => {
   }
   
   const runTSFreshExtraction = () => {
+    const progressInterval = setInterval(() => {
+      requestJson(
+        port,
+        "/extraction_ts/progress",
+        {},
+        (jsonResponse) => {
+          if (jsonResponse["progress"] >= 100) {
+            clearInterval(progressInterval)
+          } else {
+            setExtractionProgress(jsonResponse["progress"])
+            setExtractionStep(jsonResponse["step"])
+          }
+        },
+        function (err) {
+          console.error(err)
+          clearInterval(progressInterval)
+        }
+      )
+    }, 1000)
     requestJson(
       port,
       "/extraction_ts/TSFresh_extraction",
@@ -78,6 +100,9 @@ const ExtractionTSCanvas = () => {
       (jsonResponse) => {
         console.log("received results:", jsonResponse)
         setCsvResultPath(jsonResponse['csv_result_path'])
+        clearInterval(progressInterval)
+        setExtractionProgress(100)
+        setExtractionStep("Extracted Features Saved")
         MedDataObject.updateWorkspaceDataObject()
       },
       function (err) {
@@ -125,12 +150,12 @@ const ExtractionTSCanvas = () => {
 
   
   return (
-    <div className="overflow_y_auto">
-      <h1 className="center_text">Extraction - Time Series</h1>
+    <div className="overflow-y-auto">
+      <h1 className="center">Extraction - Time Series</h1>
 
       <hr></hr>
-      <div className="margin_top_bottom_15">
-        <div className="center_text">
+      <div className="margin-top-bottom-15">
+        <div className="center">
           {/* Select CSV data */}
           <h2>Select CSV data</h2>
           {datasetList.length > 0 ? (
@@ -153,9 +178,9 @@ const ExtractionTSCanvas = () => {
       </div>
 
       <hr></hr>
-      <div className="margin_top_bottom_15">
+      <div className="margin-top-bottom-15">
         {/* Display selected data */}
-        <div className="center_text">
+        <div className="center">
           <h2>Selected data</h2>
           {!selectedDataset && (
             <p>Nothing to show, select a CSV file first.</p>
@@ -176,9 +201,9 @@ const ExtractionTSCanvas = () => {
       </div>
 
       <hr></hr>
-      <div className="flex_space_around">
-        <div className="margin_top_bottom_15">
-          <div className="flex_column_start">
+      <div className="flex-space-around">
+        <div className="margin-top-bottom-15">
+          <div className="flex-column-start">
             {/* Add dropdowns for column selection */}
             <h2>Select columns corresponding to :</h2>
             <div>
@@ -263,27 +288,34 @@ const ExtractionTSCanvas = () => {
           </div>
         </div>
 
-        <div className="vertical_divider"></div>
-        <div className="margin_top_bottom_15">
-          <div className="flex_column_start">
+        <div className="vertical-divider"></div>
+        <div className="margin-top-bottom-15">
+          <div className="flex-column-start">
             {/* Time Series Extraction */}
             <h2>Extract time series</h2>
             <div>
-            Save extracted features as : &nbsp;
-            <InputText value={filename} onChange={(e) => handleFilenameChange(e.target.value)} />
+              Save extracted features as : &nbsp;
+              <InputText value={filename} onChange={(e) => handleFilenameChange(e.target.value)} />
             </div>
-            {/* Button activated only if all necessary columns have been selected */}
+          </div>
+          {/* Button activated only if all necessary columns have been selected */}
+          <div className="flex-column-end-margin-top-30">
             <Button disabled={!mayProceed} onClick={runTSFreshExtraction}>
               Extract Data
             </Button>
           </div>
+          <div className="margin-top-30-text-center-width-100">
+            {extractionStep}
+            <ProgressBar value={extractionProgress}/>
+          </div>
+          
         </div>
       </div>
 
       <hr></hr>
-      <div className="margin_top_bottom_15">
+      <div className="margin-top-bottom-15">
         {/* Display extracted data */}
-        <div className="center_text">
+        <div className="center">
           <h2>Extracted data</h2>
           {!resultDataset && (
             <p>Nothing to show, proceed to extraction first.</p>

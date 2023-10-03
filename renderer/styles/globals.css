@@ -100,7 +100,7 @@ a {
   width: 100%;
 }
 
-.overflow_y_auto {
+.overflow-y-auto {
   overflow-y: scroll;
   height: 100%;
 }
