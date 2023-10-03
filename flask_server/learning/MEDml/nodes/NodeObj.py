@@ -57,7 +57,6 @@ class Node(ABC):
         self.settings = self.config_json['data']['internal']['settings']
         self.type = self.config_json['data']['internal']['type']
         self.username = self.config_json['data']['internal']['name']
-        self._class = self.config_json['className']
         self.id = id_
         self._has_run = False
         self.just_run = False

@@ -1,5 +1,5 @@
 from learning.app_learning_blueprint import app_learning
-from extraction.app_extraction_blueprint import app_extraction
+# from extraction.app_extraction_blueprint import app_extraction
 import json
 import argparse
 from flask import Flask, request, jsonify
@@ -16,7 +16,7 @@ args = parser.parse_args()
 app = Flask(__name__)
 
 # Register blueprints
-app.register_blueprint(app_extraction, url_prefix='/extraction')
+# app.register_blueprint(app_extraction, url_prefix='/extraction')
 app.register_blueprint(app_learning, url_prefix='/learning')
 
 
