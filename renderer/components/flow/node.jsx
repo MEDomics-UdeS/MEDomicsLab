@@ -12,6 +12,7 @@ import * as Icon from "react-bootstrap-icons"
 import NodeWrapperResults from "./nodeWrapperResults"
 import { OverlayPanel } from "primereact/overlaypanel"
 import { Stack } from "react-bootstrap"
+import { IoClose } from "react-icons/io5"
 // keep this import for the code editor (to be implemented)
 // import dynamic from "next/dynamic"
 // const CodeEditor = dynamic(() => import("./codeEditor"), {
@@ -84,7 +85,7 @@ const NodeObject = ({ id, data, nodeSpecific, nodeBody, defaultSettings }) => {
 
   return (
     <>
-      <div>
+      <div className="node">
         {/* here are the handlers (connection points)*/}
         <Handlers id={id} setupParam={data.setupParam} tooltipBy={data.tooltipBy} />
         {/* here is the node (the Card element)*/}
@@ -97,19 +98,24 @@ const NodeObject = ({ id, data, nodeSpecific, nodeBody, defaultSettings }) => {
         >
           {/* header of the node (name of the node)*/}
           <Card.Header onClick={(e) => op.current.toggle(e)}>
-            <img src={`/icon/${flowInfos.type}/` + `${data.internal.img.replaceAll(" ", "_")}`} alt={data.internal.img} className="icon-nodes" />
-            {/* here are the buttons to delete and run the node*/}
-            <CloseButton onClick={() => onDeleteNode(id)} disabled={showResultsPane} />
+            <div className="align-center">
+              <img src={`/icon/${flowInfos.type}/` + `${data.internal.img.replaceAll(" ", "_")}`} alt={data.internal.img} className="icon-nodes" />
+              {data.internal.name}
+            </div>
 
-            {/* if the node is a run node (by checking setupParam classes), a button to run the node is displayed*/}
-            {data.setupParam.classes.split(" ").includes("run") && (
-              <>
-                <Button variant="success" className="btn-runNode" onClick={() => runNode(id)} disabled={showResultsPane}>
-                  <img src={"/icon/run.svg"} alt="run" className="img-fluid" />
-                </Button>
-              </>
-            )}
-            {data.internal.name}
+            <div className="btn-node-div">
+              {/* here are the buttons to delete and run the node*/}
+              <IoClose className="btn-close-node" onClick={() => onDeleteNode(id)} disabled={showResultsPane} />
+
+              {/* if the node is a run node (by checking setupParam classes), a button to run the node is displayed*/}
+              {data.setupParam.classes.split(" ").includes("run") && (
+                <>
+                  <Button variant="success" className="btn-runNode" onClick={() => runNode(id)} disabled={showResultsPane}>
+                    <img src={"/icon/run.svg"} alt="run" className="img-fluid" />
+                  </Button>
+                </>
+              )}
+            </div>
           </Card.Header>
           {/* body of the node*/}
           {nodeBody != undefined && <Card.Body>{nodeBody}</Card.Body>}

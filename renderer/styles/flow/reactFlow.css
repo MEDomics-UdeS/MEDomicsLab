@@ -15,6 +15,12 @@
   box-shadow: 0 0 0.3rem #000000;
   z-index: 999;
 }
+.node .card-header {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.2rem 0.2rem 0.2rem 0.5rem;
+  min-height: 3rem;
+}
 
 .header {
   display: flex;
@@ -25,39 +31,37 @@
   min-height: 30px;
 }
 
-.btn-close {
-  position: absolute;
-  top: 5px;
-  right: 5px;
-  width: 15px;
-  height: 15px;
+.btn-node-div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.btn-close-node {
+  width: 1.2rem;
+  height: 1.2rem;
   cursor: pointer;
   padding: 0px;
+  opacity: 0.75;
+}
+
+.btn-close-node:hover {
+  border-radius: 25%;
+  background-color: #80808057;
 }
 
 .btn-runNode {
-  position: absolute;
-  top: 23px;
-  right: 5px;
-  width: 15px;
-  height: 15px;
+  width: 1.2rem;
+  height: 1.2rem;
   cursor: pointer;
   padding: 0px;
-  border-radius: 3px;
+  border-radius: 25%;
 }
 
 .btn-runNode img {
   cursor: pointer;
   vertical-align: baseline;
   margin: 0px 0px 5px 1px;
-}
-
-.btn-close:hover {
-  fill: rgba(0, 0, 0, 0.5);
-}
-
-.btn-close:focus {
-  outline: 0;
 }
 
 .node {

@@ -72,7 +72,7 @@
 }
 
 .pipeline-results-accordion .p-accordion-header .p-accordion-header-link {
-  padding: 0.2rem 0.5rem;
+  padding: 0.3rem 0.3rem;
 }
 
 .pipeline-results-accordion .p-accordion-header .p-accordion-header-link .p-accordion-toggle-icon {
@@ -88,7 +88,7 @@
 .results-Panel .card-body {
   padding: 0;
   padding-top: 0.2rem;
-  overflow-y: scroll;
+  overflow-y: auto;
 }
 
 .results-Panel::-webkit-scrollbar {

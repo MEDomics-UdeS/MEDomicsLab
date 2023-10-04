@@ -207,6 +207,14 @@ body {
   position: relative !important;
 }
 
+.flexlayout__tab_button {
+  border-radius: 0.5rem 0.5rem 0rem 0rem;
+}
+
+.flexlayout__tabset_tabbar_outer {
+  border-radius: 0.5rem 0.5rem 0rem 0rem;
+}
+
 .align-center {
   display: flex;
   align-items: center;
@@ -240,4 +248,9 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.space-between {
+  display: flex;
+  justify-content: space-between;
 }

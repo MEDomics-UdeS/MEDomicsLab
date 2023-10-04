@@ -18,7 +18,6 @@ const DataTableWrapper = ({ data, tablePropsData, tablePropsColumn, customGetCol
   const [rows, setRows] = useState([])
 
   useEffect(() => {
-    console.log("dataTable data refreshed: ", data)
     if (data != undefined) {
       setRows(data)
       customGetColumnsFromData ? setHeader(customGetColumnsFromData(data)) : setHeader(getColumnsFromData(data))

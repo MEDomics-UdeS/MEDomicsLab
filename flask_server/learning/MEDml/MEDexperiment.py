@@ -4,7 +4,7 @@ import os
 import numpy as np
 from pycaret.classification.oop import ClassificationExperiment
 from pycaret.regression.oop import RegressionExperiment
-from learning.MEDml.logger.MEDml_logger import MEDml_logger
+from learning.MEDml.logger.MEDml_logger_pycaret import MEDml_logger
 import json
 from learning.MEDml.nodes.NodeObj import *
 from learning.MEDml.nodes import *
@@ -225,11 +225,7 @@ class MEDexperiment:
             Object: The copied experiment object (pycaret).
         """
         temp_df = copy.deepcopy(exp['pycaret_exp'].data)
-        copied_exp = {
-            'pycaret_exp': copy.deepcopy(exp['pycaret_exp']),
-            'medml_logger': copy.deepcopy(exp['medml_logger']),
-            'dataset_metaData': copy.deepcopy(exp['dataset_metaData'])
-        }
+        copied_exp = copy.deepcopy(exp)
         copied_exp['pycaret_exp'].data = temp_df
         return copied_exp
 

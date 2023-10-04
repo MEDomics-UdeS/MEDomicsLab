@@ -69,9 +69,9 @@ class MEDml_logger(BaseLogger):
                 self.results['setup'] = []
             self.current_experiment = None
 
-    # def set_tags(self, source, experiment_custom_tags, runtime):
-    #     # print(colored(f"set tags: {source}, {experiment_custom_tags}, {runtime}", 'green'))
-    #     pass
+    def set_tags(self, source, experiment_custom_tags, runtime, USI):
+        print(Fore.GREEN + f"set tags: {source}, {experiment_custom_tags}, {runtime}, {USI}" + Fore.RESET)
+        pass
 
     def log_sklearn_pipeline(self, experiment, prep_pipe, model, path=None):
         print(
