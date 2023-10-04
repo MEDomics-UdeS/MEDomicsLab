@@ -7,6 +7,7 @@ import { Utils } from "./utils"
 import "prismjs/themes/prism-coy.css"
 import LearningPage from "../../mainPages/learning"
 import DataTable from "../../../components/dataTypeVisualisation/dataTableWrapper"
+import DataTableBP from "../../../components/dataTypeVisualisation/dataTableWrapperBP"
 import { loadCSVFromPath, loadJsonPath } from "../../../utilities/fileManagementUtils"
 import { LayoutModelContext } from "../layoutContext"
 import { DataContext } from "../../workspace/dataContext"
@@ -557,7 +558,7 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
         loadCSVFromPath(config.path, whenDataLoaded)
       }
       return (
-        <DataTable
+        <DataTableBP
           data={node.getExtraData().data}
           tablePropsData={{
             paginator: true,
@@ -569,6 +570,18 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
             sortable: true
           }}
         />
+        // <DataTable
+        //   data={node.getExtraData().data}
+        //   tablePropsData={{
+        //     paginator: true,
+        //     rows: 10,
+        //     scrollable: true,
+        //     scrollHeight: "400px"
+        //   }}
+        //   tablePropsColumn={{
+        //     sortable: true
+        //   }}
+        // />
       )
     } else if (component === "learningPage") {
       if (node.getExtraData().data == null) {
