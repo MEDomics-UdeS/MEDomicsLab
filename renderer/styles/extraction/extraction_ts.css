@@ -1,25 +1,3 @@
-.flex-column-start {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-}
-
-.flex-column-end-margin-top-30 {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  margin-top: 30px;
-}
-
-.flex-space-around {
-  display: flex;
-  justify-content: space-around;
-}
-
-.margin-top-30 {
-  margin-top: 30px;
-}
-
 .margin-top-bottom_15 {
   margin-top: 15px;
   margin-bottom: 15px;
@@ -31,8 +9,7 @@
   background: lightgray;
 }
 
-.margin-top-30-text-center-width-100 {
+.margin-top-30-text-center {
   margin-top: 30px;
   text-align: center;
-  width: 100%;
 }

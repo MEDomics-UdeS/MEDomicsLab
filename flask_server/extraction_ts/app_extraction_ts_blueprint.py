@@ -15,29 +15,29 @@ progress = 0
 step = "initialization"
 
 
-@app_extraction_ts.route("/TSFresh_extraction", methods=["GET", "POST"]) 
+@app_extraction_ts.route("/TSfresh_extraction", methods=["GET", "POST"]) 
 def TSFresh_extraction():
     global progress
     global step
     json_config = get_json_from_request(request)
-    columnKeys = [key for key in json_config["selectedColumns"]]
-    columnValues = [json_config["selectedColumns"][key] for key in columnKeys]
+    columnKeys = [key for key in json_config["relativeToExtractionType"]["selectedColumns"]]
+    columnValues = [json_config["relativeToExtractionType"]["selectedColumns"][key] for key in columnKeys]
     progress = 10
     step = "Read Data"
     df_ts = dd.read_csv(json_config["csvPath"])
     df_ts = df_ts[columnValues]
     progress = 20
     step = "Pre-processing data"
-    df_ts = df_ts.dropna(subset=[json_config["selectedColumns"]["patientIdentifier"], 
-                                 json_config["selectedColumns"]["measurementDatetimeStart"], 
-                                 json_config["selectedColumns"]["measuredItemIdentifier"], 
-                                 json_config["selectedColumns"]["measurementValue"]])
+    df_ts = df_ts.dropna(subset=[json_config["relativeToExtractionType"]["selectedColumns"]["patientIdentifier"], 
+                                 json_config["relativeToExtractionType"]["selectedColumns"]["measurementWeight"], 
+                                 json_config["relativeToExtractionType"]["selectedColumns"]["measuredItemIdentifier"], 
+                                 json_config["relativeToExtractionType"]["selectedColumns"]["measurementValue"]])
     progress = 30
     step = "Feature Extraction"
-    df_extracted_features = extract_features(df_ts, column_id=json_config["selectedColumns"]["patientIdentifier"], 
-                                                    column_sort=json_config["selectedColumns"]["measurementDatetimeStart"], 
-                                                    column_kind=json_config["selectedColumns"]["measuredItemIdentifier"], 
-                                                    column_value=json_config["selectedColumns"]["measurementValue"]).compute()
+    df_extracted_features = extract_features(df_ts, column_id=json_config["relativeToExtractionType"]["selectedColumns"]["patientIdentifier"], 
+                                                    column_sort=json_config["relativeToExtractionType"]["selectedColumns"]["measurementWeight"], 
+                                                    column_kind=json_config["relativeToExtractionType"]["selectedColumns"]["measuredItemIdentifier"], 
+                                                    column_value=json_config["relativeToExtractionType"]["selectedColumns"]["measurementValue"]).compute()
     progress = 80
     step = "Impute extracted features"
     impute(df_extracted_features)
