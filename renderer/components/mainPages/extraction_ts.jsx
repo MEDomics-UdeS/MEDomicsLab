@@ -6,7 +6,7 @@ const ExtractionTSPage = ({ pageId, configPath = "" }) => {
   return (
     <>
       <ModulePage pageId={pageId} configPath={configPath}>
-        <ExtractionTabularData />
+        <ExtractionTabularData extractionTypeList={["TSfresh"]} />
       </ModulePage>
     </>
   )

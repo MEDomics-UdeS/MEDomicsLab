@@ -1,7 +1,18 @@
 import { Dropdown } from "primereact/dropdown"
 import React,  { useEffect, useState } from "react"
 
-
+/**
+ * 
+ * @param {Djanfojs Dataframe} dataframe data to extract
+ * @param {Function} setExtractionJsonData function setting data to send to the extraction_ts server
+ * @param {Function} setMayProceed function setting the boolean variable mayProceed, telling if the process can be executed
+ * @returns {JSX.Element} sub-component of the ExtractionTabularData component
+ * 
+ * @description 
+ * This component is displayed in the ExtractionTabularData component when the user choose "TSfresh"
+ * extraction type. It is used to prepare time series extraction using TSfresh library.
+ * 
+ */
 const ExtractionTSfresh = ({dataframe, setExtractionJsonData, setMayProceed}) => {
 
   const [selectedColumns, setSelectedColumns] = useState({
@@ -18,6 +29,7 @@ const ExtractionTSfresh = ({dataframe, setExtractionJsonData, setMayProceed}) =>
    *
    * @description
    * Function used to attribute column values from selectors
+   * 
    */
   const handleColumnSelect = (column, event) => {
     const { value } = event.target
@@ -28,9 +40,11 @@ const ExtractionTSfresh = ({dataframe, setExtractionJsonData, setMayProceed}) =>
   }
 
   /**
+   * 
    * @description
    * This function checks if all the necessary attributes from
    * selected columns have a value and update allColumnsSelected.
+   * 
    */
    useEffect(() => {
     const isAllSelected = Object.values(selectedColumns).every(
@@ -40,9 +54,10 @@ const ExtractionTSfresh = ({dataframe, setExtractionJsonData, setMayProceed}) =>
     setExtractionJsonData({selectedColumns: selectedColumns})
   }, [selectedColumns])
 
+
   return (
     <>
-      {/* Add dropdowns for column selection */}
+      {/* Dropdowns for column selection */}
       <h3>Select columns corresponding to :</h3>
       <div>
         Patient Identifier : &nbsp;

@@ -1,36 +1,53 @@
-import React, { useState, useEffect, useContext } from "react"
+import Button from "react-bootstrap/Button"
 import { DataContext } from "../workspace/dataContext"
+import { DataFrame } from "danfojs"
 import DataTableFromContext from "../mainPages/dataComponents/dataTableFromContext"
 import { Dropdown } from "primereact/dropdown"
-import { DataFrame } from "danfojs"
-import Button from "react-bootstrap/Button"
-import { InputText } from "primereact/inputtext";
-import { ProgressBar } from 'primereact/progressbar';
 import ExtractionTSfresh from "./extractionTypes/extractionTSfresh"
-import { WorkspaceContext } from "../workspace/workspaceContext"
-import { requestJson } from "../../utilities/requests"
+import { InputText } from "primereact/inputtext";
 import MedDataObject from "../workspace/medDataObject"
+import { ProgressBar } from 'primereact/progressbar';
+import React, { useState, useEffect, useContext } from "react"
+import { requestJson } from "../../utilities/requests"
+import { WorkspaceContext } from "../workspace/workspaceContext"
 
-const ExtractionTabularData = () => {
-  const [isDatasetLoaded, setIsDatasetLoaded] = useState(false)
-  const [csvPath, setCsvPath] = useState("")
-  const [csvResultPath, setCsvResultPath] = useState("")
-  const [dataframe, setDataframe] = useState([])
-  const [datasetList, setDatasetList] = useState([])
-  const [extractionFunction, setExtractionFunction] = useState("TSfresh_extraction")
-  const [extractionProgress, setExtractionProgress] = useState(0)
-  const [extractionStep, setExtractionStep] = useState("")
-  const [extractionJsonData, setExtractionJsonData] = useState({})
-  const [extractionType, setExtractionType] = useState("TSfresh")
-  const [extractionTypeList] = useState(["TSfresh"])
-  const [filename, setFilename] = useState("tmp_extracted_features.csv")
-  const [mayProceed, setMayProceed] = useState(false)
-  const [resultDataset, setResultDataset] = useState(null)
-  const [selectedDataset, setSelectedDataset] = useState(null)
+/**
+ * 
+ * @param {List} extractionTypeList list containing possible types of extraction 
+ * @returns {JSX.Element} a page
+ * 
+ * @description
+ * This component is a general page used for tabular data extraction (time series and text notes).
+ * Its composition depend on the type of extraction choosen.
+ * 
+ */
+const ExtractionTabularData = ({extractionTypeList}) => {
+  const [csvPath, setCsvPath] = useState("") // csv path of data to extract
+  const [csvResultPath, setCsvResultPath] = useState("") // csv path of extracted data
+  const [dataframe, setDataframe] = useState([]) // djanfo dataframe of data to extract
+  const [datasetList, setDatasetList] = useState([]) // list of available datasets in DATA folder
+  const [extractionFunction, setExtractionFunction] = useState("TSfresh_extraction") // name of the function to use for extraction
+  const [extractionProgress, setExtractionProgress] = useState(0) // advancement state in the extraction function
+  const [extractionStep, setExtractionStep] = useState("") // current step in the extraction function
+  const [extractionJsonData, setExtractionJsonData] = useState({}) // json data depending on extractionType
+  const [extractionType, setExtractionType] = useState("TSfresh") // extraction type
+  const [filename, setFilename] = useState("tmp_extracted_features.csv") // name of the csv file containing extracted data
+  const [isDatasetLoaded, setIsDatasetLoaded] = useState(false) // boolean set to false every time we reload a dataset for data to extract
+  const [mayProceed, setMayProceed] = useState(false) // boolean set to true if all informations about the extraction (depending on extractionType) have been completed
+  const [resultDataset, setResultDataset] = useState(null) // dataset of extracted data used to be display
+  const [selectedDataset, setSelectedDataset] = useState(null) // dataset of data to extract used to be display
 
-  const { globalData } = useContext(DataContext) // We get the global data from the context to retrieve the directory tree of the workspace, thus retrieving the data files
-  const { port } = useContext(WorkspaceContext)
+  const { globalData } = useContext(DataContext) // we get the global data from the context to retrieve the directory tree of the workspace, thus retrieving the data files
+  const { port } = useContext(WorkspaceContext) // we get the port for server connexion
 
+  /**
+   * 
+   * @param {DataContext} dataContext 
+   * 
+   * @description
+   * This functions get all files from the DataContext and update datasetList.
+   * 
+   */
   function getDatasetListFromDataContext(dataContext) {
     let keys = Object.keys(dataContext)
     let datasetListToShow = []
@@ -42,24 +59,56 @@ const ExtractionTabularData = () => {
     setDatasetList(datasetListToShow)
   }
 
+  /**
+   * 
+   * @param {CSV File} dataset 
+   * 
+   * @description
+   * Called when the user select a dataset.
+   * 
+   */
   const datasetSelected = (dataset) => {
     setSelectedDataset(dataset)
     setIsDatasetLoaded(false)    
   }
 
+  /**
+   * 
+   * @param {String} name 
+   * 
+   * @description
+   * Called when the user change the name under which the extracted data
+   * file will be saved.
+   * 
+   */
   const handleFilenameChange = (name) => {
     if (name.match("\\w+.csv") != null) {
       setFilename(name)
     }     
   }
 
+  /**
+   * 
+   * @param {String} value 
+   * 
+   * @description
+   * Called when the user select an extraction type.
+   * 
+   */
   const onChangeExtractionType = (value) => {
     setExtractionType(value)
     setExtractionFunction(value + "_extraction")
   }
   
-  
+  /**
+   * 
+   * @description
+   * Run extraction depending on the choosen extraction type, on the extraction_ts server.
+   * Update the progress bar depending on the extraction execution.
+   * 
+   */
   const runExtraction = () => {
+    // Progress bar update
     const progressInterval = setInterval(() => {
       requestJson(
         port,
@@ -79,6 +128,7 @@ const ExtractionTabularData = () => {
         }
       )
     }, 1000)
+    // Run extraction process
     requestJson(
       port,
       "/extraction_ts/" + extractionFunction,
@@ -101,6 +151,7 @@ const ExtractionTabularData = () => {
     )
   }
 
+  // Called when the datasetList is updated, in order to get the extracted data
   useEffect(() => {
     if (datasetList.length > 0) {
       datasetList.forEach((dataset) => {
@@ -111,12 +162,14 @@ const ExtractionTabularData = () => {
     }
   }, [datasetList])
 
+  // Called when data in DataContext is updated, in order to updated datasetList
   useEffect(() => {
     if (globalData !== undefined) {
       getDatasetListFromDataContext(globalData)
     }
   }, [globalData])
 
+  // Called when isDatasetLoaded change, in order to update csvPath and dataframe.
   useEffect(() => {
     if (selectedDataset && selectedDataset.data && selectedDataset.path) {
       setCsvPath(selectedDataset.path)
