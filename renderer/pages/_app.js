@@ -39,6 +39,7 @@ import "../styles/customPrimeReact.css"
 import "../styles/imageContainer.css"
 import "@blueprintjs/core/lib/css/blueprint.css"
 import "@blueprintjs/table/lib/css/table.css"
+import "../styles/datatableWrapper.css"
 import { HotkeysProvider } from "@blueprintjs/core"
 
 /**

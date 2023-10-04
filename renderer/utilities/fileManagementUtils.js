@@ -182,6 +182,23 @@ const loadCSVFromPath = (path, whenLoaded) => {
   })
 }
 
+const loadJSONFromPath = (path, whenLoaded) => {
+  let jsonPath = path
+  fs.readFile(jsonPath, "utf8", (err, data) => {
+    if (err) {
+      console.error("Error reading file:", err)
+    } else {
+      console.log("File read successfully")
+      let result = JSON.parse(data)
+
+      let df = new dfd.DataFrame(result)
+      let dfJSON = dfd.toJSON(df)
+      console.log("DFJSON", dfJSON)
+      whenLoaded(dfJSON)
+    }
+  })
+}
+
 function createFolder(path_, folderName) {
   // Creates a folder in the working directory
   const folderPath = path.join(path_, folderName)
@@ -196,4 +213,14 @@ function createFolder(path_, folderName) {
   })
 }
 
-export { downloadJson, writeFile, loadJson, loadJsonSync, loadJsonPath, loadCSVPath, loadCSVFromPath, createFolder }
+export {
+  downloadJson,
+  writeFile,
+  loadJson,
+  loadJsonSync,
+  loadJsonPath,
+  loadCSVPath,
+  loadCSVFromPath,
+  createFolder,
+  loadJSONFromPath
+}

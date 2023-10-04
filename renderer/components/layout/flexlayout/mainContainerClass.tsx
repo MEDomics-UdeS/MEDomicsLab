@@ -25,7 +25,7 @@ import "prismjs/themes/prism-coy.css"
 import LearningPage from "../../mainPages/learning"
 import DataTable from "../../../components/dataTypeVisualisation/dataTableWrapper"
 import DataTableBP from "../../../components/dataTypeVisualisation/dataTableWrapperBP"
-import { loadCSVFromPath, loadJsonPath } from "../../../utilities/fileManagementUtils"
+import { loadCSVFromPath, loadJsonPath, loadJSONFromPath } from "../../../utilities/fileManagementUtils"
 import { LayoutModelContext } from "../layoutContext"
 import { DataContext } from "../../workspace/dataContext"
 import MedDataObject from "../../workspace/medDataObject"
@@ -623,11 +623,20 @@ class MainInnerContainer extends React.Component<
       return <pre style={{ tabSize: "20px" }} dangerouslySetInnerHTML={{ __html: html }} />
     } else if (component === "dataTable") {
       const config = node.getConfig()
+      // console.log("config", config)
       if (node.getExtraData().data == null) {
         const whenDataLoaded = (data) => {
           node.getExtraData().data = data
         }
-        loadCSVFromPath(config.path, whenDataLoaded)
+        let extension = config.extension
+        if (extension === undefined) {
+          extension = config.path.split(".").pop()
+        }
+        config.name = node.getName()
+        if (extension === "csv") loadCSVFromPath(config.path, whenDataLoaded)
+        else if (extension === "json") loadJSONFromPath(config.path, whenDataLoaded)
+
+        // loadCSVFromPath(config.path, whenDataLoaded)
       }
       return (
         <DataTableWrapperBPClass
@@ -641,6 +650,7 @@ class MainInnerContainer extends React.Component<
           tablePropsColumn={{
             sortable: true
           }}
+          config={...config}
         />
         // <DataTable
         //   data={node.getExtraData().data}
@@ -1052,7 +1062,7 @@ class MainInnerContainer extends React.Component<
           onRenderDragRect={this.onRenderDragRect}
           onRenderFloatingTabPlaceholder={this.onRenderFloatingTabPlaceholder}
           onExternalDrag={undefined} //this.onExternalDrag}
-          realtimeResize={this.state.realtimeResize}
+          realtimeResize={false} //this.state.realtimeResize}
           onTabDrag={this.onTabDrag}
           onContextMenu={this.onContextMenu}
           onAuxMouseClick={this.onAuxMouseClick}

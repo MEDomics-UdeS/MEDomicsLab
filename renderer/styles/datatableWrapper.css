@@ -1,0 +1,20 @@
+.bp-datatable-wrapper {
+  /* overflow-x: scroll !important;
+  height: 100%; */
+}
+
+.bp-datatable-wrapper-options-icon {
+  transition: all 0.1s ease-in-out;
+  display: flex;
+  padding: 0.1rem;
+  color: #3d3d3d;
+  border: none;
+  size: 1rem;
+  height: 1rem;
+  width: 1rem;
+  line-height: 1rem;
+}
+
+.rotate-90-cw {
+  rotate: 90deg;
+}
