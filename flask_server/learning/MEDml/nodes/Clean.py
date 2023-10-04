@@ -43,7 +43,7 @@ class Clean(Node):
             **self.settings
         )
         self.CodeHandler.add_line(
-            "code", f"ml_obj = pycaret_exp.setup(data=dataset, target='{options['target']}', {convert_dict_to_params(self.settings)})")
+            "code", f"ml_obj = pycaret_exp.setup(data=dataset, target='{options['target']}', {self.CodeHandler.convert_dict_to_params(self.settings)})")
         self.CodeHandler.add_line(
             "code", f"dataset = ml_obj.get_config('X').join(ml_obj.get_config('y'))")
         experiment['dataset_metaData']['dataset'] = ml_obj.get_config(

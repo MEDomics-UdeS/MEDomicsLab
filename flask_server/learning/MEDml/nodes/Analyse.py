@@ -48,20 +48,21 @@ class Analyse(Node):
         if 'save' in print_settings:
             del print_settings['save']
         self.CodeHandler.add_line(
-            "code", f"pycaret_exp.{selection}(model, {convert_dict_to_params(print_settings)})", 1)
+            "code", f"pycaret_exp.{selection}(model, {self.CodeHandler.convert_dict_to_params(print_settings)})", 1)
         for model in kwargs['models']:
             return_value = getattr(
                 experiment['pycaret_exp'], selection)(model, **settings)
+
+            print(json.dumps(settings, indent=4))
+            print("return_value ", return_value)
             if 'save' in settings and settings['save'] and return_value is not None:
                 path = return_value
-                print(path)
                 new_path = os.path.join(
                     self.global_config_json["tmp_path"], f'{self.global_config_json["unique_id"]}-{model.__class__.__name__}.png')
                 self.global_config_json["unique_id"] += 1
                 if os.path.isfile(new_path):
                     os.remove(new_path)
                 os.rename(path, new_path)
-
 
                 plot_paths[model.__class__.__name__] = new_path
         return plot_paths

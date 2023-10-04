@@ -53,7 +53,7 @@ class Deploy(Node):
             deploy_res = getattr(experiment['pycaret_exp'], selection)(
                 model, **settings)
             self.CodeHandler.add_line(
-                "code", f"pycaret_exp.{selection}(model, {convert_dict_to_params(settings)})", 1)
+                "code", f"pycaret_exp.{selection}(model, {self.CodeHandler.convert_dict_to_params(settings)})", 1)
             if selection == 'save_model':
                 path = deploy_res[1]
                 new_path = os.path.join(

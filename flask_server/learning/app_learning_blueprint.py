@@ -45,6 +45,7 @@ def run_experiment(id_):
         results_pipeline = experiments[scene_id].get_results()
         json.dumps(results_pipeline)
     except BaseException as e:
+        del experiments[scene_id]
         return get_response_from_error(e)
 
     return results_pipeline

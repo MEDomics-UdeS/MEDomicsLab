@@ -2,8 +2,8 @@ import copy
 import pandas as pd
 import os
 import numpy as np
-from pycaret.classification import *
-from pycaret.regression import *
+from pycaret.classification.oop import ClassificationExperiment
+from pycaret.regression.oop import RegressionExperiment
 from learning.MEDml.logger.MEDml_logger import MEDml_logger
 import json
 from learning.MEDml.nodes.NodeObj import *
@@ -210,10 +210,28 @@ class MEDexperiment:
                     next_nodes_to_execute=next_nodes_id_json,
                     next_nodes=node_info['next_nodes'],
                     results=self._results_pipeline[current_node_id]['next_nodes'],
-                    experiment=copy.deepcopy(experiment)
+                    experiment=self.exp_copy(experiment)
                 )
 
             print('finished')
+
+    def exp_copy(self, exp: dict):
+        """Copies the experiment object (pycaret) to be used in the recursive function.
+
+        Args:
+            exp (Object): The experiment object (pycaret).
+
+        Returns:
+            Object: The copied experiment object (pycaret).
+        """
+        temp_df = copy.deepcopy(exp['pycaret_exp'].data)
+        copied_exp = {
+            'pycaret_exp': copy.deepcopy(exp['pycaret_exp']),
+            'medml_logger': copy.deepcopy(exp['medml_logger']),
+            'dataset_metaData': copy.deepcopy(exp['dataset_metaData'])
+        }
+        copied_exp['pycaret_exp'].data = temp_df
+        return copied_exp
 
     def execute_next_nodes(self, prev_node: Node, next_nodes_to_execute: json, next_nodes: json, results: json, experiment: json):
         """Recursive function that executes the next nodes of the experiment pipeline.
@@ -256,22 +274,8 @@ class MEDexperiment:
                     next_nodes_to_execute=next_nodes_id_json,
                     next_nodes=node_info['next_nodes'],
                     results=results[current_node_id]['next_nodes'],
-                    experiment=copy.deepcopy(experiment)
+                    experiment=self.exp_copy(experiment)
                 )
-
-    def join_codes(self, pipeline: list[Node]) -> str:
-        """Joins the codes of each nodes of the pipeline.
-
-        Args:
-            pipeline (list[Node]): The pipeline to join.
-
-        Returns:
-            str: The joined codes.
-        """
-        codes = []
-        for node in pipeline:
-            codes.append(node.get_final_code())
-        return "".join(codes)
 
     def create_Node(self, node_config: json) -> Node:
         """Creates a node from a json config composed of the node settings and other metadata.
@@ -353,9 +357,9 @@ class MEDexperiment:
         medml_logger = MEDml_logger()
 
         # setup the experiment
-        pycaret_exp.setup(data=temp_df, log_experiment=medml_logger, **kwargs)
+        pycaret_exp.setup(temp_df, log_experiment=medml_logger, **kwargs)
         node.CodeHandler.add_line(
-            "code", f"pycaret_exp.setup(data=temp_df, {convert_dict_to_params(kwargs)})")
+            "code", f"pycaret_exp.setup(temp_df, {node.CodeHandler.convert_dict_to_params(kwargs)})")
         node.CodeHandler.add_line(
             "code", f"dataset = pycaret_exp.get_config('X').join(pycaret_exp.get_config('y'))")
         dataset_metaData = {
@@ -382,13 +386,17 @@ class MEDexperiment:
         return_dict = {}
         for key, value in self._results_pipeline.items():
             if is_primitive(value):
-                if isinstance(value, dict):
+                if isinstance(value, dict) or isinstance(value, list):
                     return_dict[key] = self.add_only_object(value)
                 else:
-                    return_dict[key] = value
+                    try:
+                        json.dumps(value)
+                        return_dict[key] = value
+                    except TypeError:
+                        pass
         return return_dict
 
-    def add_only_object(self, next: json) -> dict:
+    def add_only_object(self, next: Union[dict, list]) -> dict:
         """Recursively adding only primitive objects.
 
         Args:
@@ -398,14 +406,23 @@ class MEDexperiment:
             dict: The cleaned json.
         """
         return_dict = {}
-        for key, value in next.items():
-            # print(key, value, is_primitive(value))
+        if isinstance(next, dict):
+            to_iterate = next.items()
+        elif isinstance(next, list):
+            to_iterate = enumerate(next)
+
+        for key, value in to_iterate:
             if is_primitive(value):
-                if isinstance(value, dict):
+                if isinstance(value, dict) or isinstance(value, list):
                     return_dict[key] = self.add_only_object(value)
                 else:
-                    if key != "estimators_":
+                    # if key != "estimators_":
+                    try:
+                        json.dumps(value)
                         return_dict[key] = value
+                    except TypeError:
+                        pass
+
         return return_dict
 
     def get_progress(self) -> dict:

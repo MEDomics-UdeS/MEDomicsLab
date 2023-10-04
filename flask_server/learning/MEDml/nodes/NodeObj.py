@@ -141,6 +141,18 @@ class NodeCodeHandler:
     """
     Class used to handle the code of a node
     """
+    @staticmethod
+    def convert_dict_to_params(dictionary: dict) -> str:
+        """
+        Converts a dictionary to a string of parameters
+        """
+        params = ""
+        for key, value in dictionary.items():
+            if isinstance(value, str):
+                params += f"{key}='{value}', "
+            else:
+                params += f"{key}={value}, "
+        return params[:-2]
 
     def __init__(self, base_code: List[dict] = []) -> None:
         """

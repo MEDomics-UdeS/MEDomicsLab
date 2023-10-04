@@ -47,7 +47,7 @@ class ModelHandler(Node):
             models = experiment['pycaret_exp'].compare_models(**settings)
             print(models)
             self.CodeHandler.add_line(
-                "code", f"trained_models = pycaret_exp.compare_models({convert_dict_to_params(settings)})")
+                "code", f"trained_models = pycaret_exp.compare_models({self.CodeHandler.convert_dict_to_params(settings)})")
             if isinstance(models, list):
                 trained_models = models
             else:
@@ -64,7 +64,7 @@ class ModelHandler(Node):
             trained_models = [
                 experiment['pycaret_exp'].create_model(**settings)]
             self.CodeHandler.add_line(
-                "code", f"trained_models = [pycaret_exp.create_model({convert_dict_to_params(settings)})]")
+                "code", f"trained_models = [pycaret_exp.create_model({self.CodeHandler.convert_dict_to_params(settings)})]")
         trained_models_copy = trained_models.copy()
         self._info_for_next_node = {'models': trained_models}
         for model in trained_models_copy:

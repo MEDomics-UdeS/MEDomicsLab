@@ -101,7 +101,7 @@
   display: flex;
   justify-content: center;
   text-align: center;
-  min-width: 16rem;
+  width: 15rem;
 }
 
 .create-scene-overlayPanel .p-overlaypanel-content .vstack .header {
@@ -119,5 +119,5 @@
 }
 
 .create-scene-overlayPanel .p-overlaypanel-content .vstack .p-float-label label {
-  left: 2.75rem;
+  left: 2rem;
 }

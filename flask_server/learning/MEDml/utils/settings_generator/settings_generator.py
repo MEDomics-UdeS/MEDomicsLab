@@ -1,22 +1,37 @@
+"""
+File: settings_generator.py
+Author: Guillaume Blain
+Date: 2023-10-04
+
+Description: This script generate automatically the selected machine learning type settings file for the MEDml app.
+"""
+import pandas as pd
 from selenium import webdriver
 from selenium.webdriver.common.by import By
-from webdriver_manager.chrome import ChromeDriverManager
 import json
 import dpath.util as dp
-from collections import MutableMapping
+from collections.abc import MutableMapping
 
-# options = Options()
-# options.headless = True
-ml_type = "regression"
-# ml_type = "classification"
-# ml_type = "survival_analysis"
-browser = webdriver.Chrome(ChromeDriverManager().install())
+# python script arguments
+import argparse
+parser = argparse.ArgumentParser(description='Script so useful.')
+parser.add_argument("--mlType", type=str, default="regression",
+                    help="machine learning type to generate settings for (classification or regression)")
+parser.add_argument("--path", type=str, default=".",
+                    help="path to save the settings file to")
+args = parser.parse_args()
+
+# SETUP VARIABLES
+ml_type = args.mlType
+
+browser = webdriver.Chrome()
 browser.get(f"https://pycaret.readthedocs.io/en/latest/api/{ml_type}.html")
 classification = {}
-ml_type_container = browser.find_elements(By.XPATH, value=f"//section[@id='{ml_type}']")
-py_functions = ml_type_container[0].find_elements(By.XPATH, value="./dl[@class='py class']")[0].find_elements(By.XPATH, value="./dd")[0].find_elements(By.XPATH, value="./dl[@class='py method']")
+ml_type_container = browser.find_elements(
+    By.XPATH, value=f"//section[@id='{ml_type}']")
 
-estimators_names = ['estimator', 'meta_model', 'model', 'api_name', 'include']
+estimators_names = ['estimator', 'meta_model',
+                    'model', 'api_name', 'include', 'estimator_list']
 
 types_conversion = {
     'str': 'string',
@@ -33,6 +48,19 @@ types_conversion = {
     'scikit-learn compatible object': 'list',
     'dictionary': 'dict',
     'integer': 'int',
+    'dataframe-like = None': 'dataframe',
+    'dataframe-like or None': 'dataframe',
+    'str or sklearn estimator': 'string',
+    'float or None': 'float',
+    'dict or None': 'dict',
+    'str or imblearn estimator': 'string',
+    'str or array-like': 'string',
+    'bool or str or object': 'string',
+    'bool or in': 'int',
+    'integer or scikit-learn compatible CV generator': 'int',
+    'int or scikit-learn compatible CV generator': 'int',
+    'pd.DataFrame': 'dataframe',
+    'pandas.DataFrame': 'dataframe',
 }
 
 nodes_options = {
@@ -46,29 +74,29 @@ def split_data(Dataset, node_settings):
     },
     'clean': {
         "info": ["imputation_type",
-              "normalize",
-              "normalize_method",
-              "iterative_imputation_iters",
-              "categorical_imputation",
-              "categorical_iterative_imputer",
-              "numeric_imputation",
-              "numeric_iterative_imputer",
-              "transformation",
-              "transformation_method",
-              "pca",
-              "pca_method",
-              "pca_components",
-              "remove_outliers",
-              "outliers_threshold",
-              "remove_multicollinearity",
-              "multicollinearity_threshold",
-              "polynomial_features",
-              "polynomial_degree",
-              "feature_selection",
-              "feature_selection_estimator",
-              "feature_selection_method",
-              # "fix_imbalance",
-              # "fix_imbalance_method",
+                 "normalize",
+                 "normalize_method",
+                 "iterative_imputation_iters",
+                 "categorical_imputation",
+                 "categorical_iterative_imputer",
+                 "numeric_imputation",
+                 "numeric_iterative_imputer",
+                 "transformation",
+                 "transformation_method",
+                 "pca",
+                 "pca_method",
+                 "pca_components",
+                 "remove_outliers",
+                 "outliers_threshold",
+                 "remove_multicollinearity",
+                 "multicollinearity_threshold",
+                 "polynomial_features",
+                 "polynomial_degree",
+                 "feature_selection",
+                 "feature_selection_estimator",
+                 "feature_selection_method",
+                 # "fix_imbalance",
+                 # "fix_imbalance_method",
                  ],
         "code": """
 def clean_data(Dataset, node_settings):
@@ -90,11 +118,7 @@ def clean_data(Dataset, node_settings):
             ('stack_models', 'classification regression'),
             ('calibrate_model', 'classification')
         ],
-        "code": """
-def optimise_model(model, node_settings):
-    # do yo things here
-    return model_optimised
-        """
+        "code": """optimise_model(model, node_settings):"""
     },
     'compare_models': {
         "info": ['compare_models'],
@@ -129,6 +153,9 @@ create_model(node_settings)
 
 }
 
+"""
+This structure is used when a type is either a list or a list-multiple
+"""
 options_choices = {
     'use_gpu': {
         "False": "tooltip False",
@@ -136,6 +163,11 @@ options_choices = {
         "force": "tooltip force",
     },
     'estimators': {},
+    'imputation_type': {
+        "simple": "tooltip simple",
+        "iterative": "tooltip iterative",
+        "None": "tooltip None",
+    },
 }
 
 
@@ -143,9 +175,15 @@ def get_type_list(dict: dict) -> list:
     type_list = []
     for value in dict.values():
         if value != {}:
-            for opt_name, option_value in value['options'].items():
-                if option_value['type'] not in [a_tuple[0] for a_tuple in type_list]:
-                    type_list.append((option_value['type'], opt_name))
+            if 'options' in value.keys():
+                for opt_name, option_value in value['options'].items():
+                    if option_value['type'] not in [a_tuple[0] for a_tuple in type_list]:
+                        type_list.append((option_value['type'], opt_name))
+            else:
+                for subNode, subNode_value in value.items():
+                    for opt_name, option_value in subNode_value['options'].items():
+                        if option_value['type'] not in [a_tuple[0] for a_tuple in type_list]:
+                            type_list.append((option_value['type'], opt_name))
     return type_list
 
 
@@ -169,7 +207,8 @@ def convert_to_medomics_standards(settings: dict, types_conv: dict, nodes_includ
         standard_settings['clean']['options'][clean_option] = settings['setup']['options'][clean_option]
 
     # DATASET SETTINGS
-    not_these_keys = list(standard_settings['split']['options'].keys()) + list(standard_settings['clean']['options'].keys())
+    not_these_keys = list(standard_settings['split']['options'].keys(
+    )) + list(standard_settings['clean']['options'].keys())
     standard_settings['dataset']['options'] = {}
     standard_settings['dataset']['code'] = nodes_include['dataset']['code']
     for node in settings['setup']['options'].keys():
@@ -178,8 +217,10 @@ def convert_to_medomics_standards(settings: dict, types_conv: dict, nodes_includ
 
     # OPTIMIZE SETTINGS
     optimize_options = nodes_include['optimize']['info']
-    optimize_option_names = [opt_option[0] for opt_option in optimize_options if ml_type in opt_option[1].split(' ')]
-    optimize_option_ml_types = [opt_option[1] for opt_option in optimize_options if ml_type in opt_option[1].split(' ')]
+    optimize_option_names = [
+        opt_option[0] for opt_option in optimize_options if ml_type in opt_option[1].split(' ')]
+    optimize_option_ml_types = [
+        opt_option[1] for opt_option in optimize_options if ml_type in opt_option[1].split(' ')]
     standard_settings['optimize']['subNodes'] = optimize_option_names
     standard_settings['optimize']['options'] = {}
     standard_settings['optimize']['code'] = nodes_include['optimize']['code']
@@ -198,7 +239,8 @@ def convert_to_medomics_standards(settings: dict, types_conv: dict, nodes_includ
 
     # MODELS SETTINGS
     for model_option in options_choices['estimators'].keys():
-        standard_settings['model'][model_option] = {"options": {}, "code": f"{model_option}"}
+        standard_settings['model'][model_option] = {
+            "options": {}, "code": f"{model_option}"}
 
     # ANALYSE SETTINGS
     analyse_options = nodes_include['analyse']['info']
@@ -223,7 +265,6 @@ def convert_to_medomics_standards(settings: dict, types_conv: dict, nodes_includ
                             standard_settings[node]['options'][option]['choices'] = options_choices['estimators']
                         else:
                             standard_settings[node]['options'][option]['choices'] = options_choices[option]
-                        print(option)
         else:
             for subnode, subnode_info in node_info.items():
                 for option, option_info in subnode_info['options'].items():
@@ -234,7 +275,6 @@ def convert_to_medomics_standards(settings: dict, types_conv: dict, nodes_includ
                                 standard_settings[node][subnode]['options'][option]['choices'] = options_choices['estimators']
                             else:
                                 standard_settings[node][subnode]['options'][option]['choices'] = options_choices[option]
-                            print(option)
 
     return standard_settings
 
@@ -251,8 +291,8 @@ def specific_case(dict_settings: dict) -> dict:
         "tooltip": "<p>Set this to true for analysis by institutions</p>"
     }
     dict_settings['dataset']['options']['files'] = {
-        "type": "string",
-        "tooltip": "<p>Specify path to csv file or to medomics folder.</p>"
+        "type": "data-input",
+        "tooltip": "<p>Specify path to csv file or to medomics folder -.</p>"
     }
     dict_settings['deploy']['save_model']['options']['folder_path'] = {
         "type": "string",
@@ -261,18 +301,26 @@ def specific_case(dict_settings: dict) -> dict:
     if ml_type == "classification":
         del dict_settings['dataset']['options']['data']
 
-    dict_settings['dataset']['options']['engines']['default_val'] = ""
-    dict_settings['compare_models']['options']['engines']['default_val'] = ""
-    dict_settings['create_model']['options']['engine']['default_val'] = ""
     dict_settings['dataset']['options']['data_func']['default_val'] = ""
     dict_settings['dataset']['options']['target']['type'] = "string"
+    dict_settings['dataset']['options']['engine']['default_val'] = ""
+    dict_settings['compare_models']['options']['engine']['default_val'] = ""
+    dict_settings['create_model']['options']['engine']['default_val'] = ""
+    dict_settings['tune_model']['options']['tuner_verbose']['default_val'] = 0
+
     del dict_settings['dataset']['options']['target']['default_val']
-    print("pause")
+    del dict_settings['dataset']['options']['log_experiment']
+    del dict_settings['dataset']['options']['system_log']
+    del dict_settings['compare_models']['options']['parallel']
+    del dict_settings['analyse']['plot_model']['options']['save']
+    del dict_settings['analyse']['interpret_model']['options']['save']
+
     return dict_settings
 
 
 def delete_keys_from_dict(dictionary, keys):
-    keys_set = set(keys)  # Just an optimization for the "if key in keys" lookup.
+    # Just an optimization for the "if key in keys" lookup.
+    keys_set = set(keys)
 
     modified_dict = {}
     for key, value in dictionary.items():
@@ -280,7 +328,8 @@ def delete_keys_from_dict(dictionary, keys):
             if isinstance(value, MutableMapping):
                 modified_dict[key] = delete_keys_from_dict(value, keys_set)
             else:
-                modified_dict[key] = value  # or copy.deepcopy(value) if a copy is desired for non-dicts.
+                # or copy.deepcopy(value) if a copy is desired for non-dicts.
+                modified_dict[key] = value
 
     return modified_dict
 
@@ -289,7 +338,8 @@ def get_child_text(new_text, child) -> str:
     children = child.find_elements(By.XPATH, value="./*")
     for child in children:
         if child.tag_name == "code" or child.tag_name == "a":
-            new_text = new_text.replace(child.get_attribute('outerHTML'), child.text)
+            new_text = new_text.replace(
+                child.get_attribute('outerHTML'), child.text)
         else:
             new_text = get_child_text(new_text, child)
     return new_text.replace('class="simple"', '')
@@ -298,7 +348,7 @@ def get_child_text(new_text, child) -> str:
 def clean_tooltip(raw_tooltip):
     new_text = raw_tooltip.get_attribute('innerHTML')
     new_text = get_child_text(new_text, raw_tooltip)
-    return "<p>"+new_text+"</p>"
+    return new_text
 
 
 def add_default(dict_settings: dict) -> dict:
@@ -313,36 +363,31 @@ def add_default(dict_settings: dict) -> dict:
                             new_dict_settings[node]['default'] = {}
                         new_dict_settings[node]['default'][option] = option_info
                         to_delete.append((option, f'{node}/options/{option}'))
-                        # del new_dict_settings[node]['options'][option]
             else:
                 for subnode, subnode_info in node_info.items():
-                    print(node, subnode)
                     for option, option_info in subnode_info['options'].items():
                         if 'default_val' not in option_info.keys():
                             if 'default' not in new_dict_settings[node][subnode].keys():
-                                new_dict_settings[node][subnode]['default'] = {}
+                                new_dict_settings[node][subnode]['default'] = {
+                                }
                             new_dict_settings[node][subnode]['default'][option] = option_info
-                            to_delete.append((option, f'{node}/{subnode}/options/{option}'))
-                            # del new_dict_settings[node][subnode]['options'][option]
+                            to_delete.append(
+                                (option, f'{node}/{subnode}/options/{option}'))
     for elem in to_delete:
         dp.delete(new_dict_settings, elem[1])
     return new_dict_settings
 
 
-def get_models_params():
-    # if ml_type == "classification":
-    #     exp = ClassificationExperiment()
-    #     df = pd.read_csv(self.settings['files'], sep=',', encoding='utf-8')
-    #     exp = exp.setup(data=)
-    pass
-
-
+py_functions = ml_type_container[0].find_elements(By.XPATH, value="./dl[@class='py class']")[
+    0].find_elements(By.XPATH, value="./dd")[0].find_elements(By.XPATH, value="./dl[@class='py method']")
 for func in py_functions:
-    func_name = func.find_elements(By.XPATH, value="./dt")[0].find_elements(By.XPATH, value="./span[@class='sig-name descname']/span")[0].text
+    func_name = func.find_elements(By.XPATH, value="./dt")[0].find_elements(
+        By.XPATH, value="./span[@class='sig-name descname']/span")[0].text
     print(func_name)
     classification[func_name] = {}
     classification[func_name]['options'] = {}
-    func_methods = func.find_elements(By.XPATH, value="./dd/dl[@class='simple']")
+    func_methods = func.find_elements(
+        By.XPATH, value="./dd/dl[@class='simple']")
     if len(func_methods) == 0:
         func_methods = func.find_elements(By.XPATH, value="./dd/dl")[0]
     else:
@@ -351,49 +396,59 @@ for func in py_functions:
     func_methods_name = func_methods.find_elements(By.XPATH, value="./dt")
     func_methods_desc = func_methods.find_elements(By.XPATH, value="./dd")
     for declaration, description in zip(func_methods_name, func_methods_desc):
-        if declaration.text != '**kwargs:' and declaration.text.__contains__(':'):
+        new_declaration = declaration.text
+        if len(declaration.find_elements(By.XPATH, value="./span")) > 0:
+            span = declaration.find_elements(By.XPATH, value="./span")[0].text
+            new_declaration = declaration.text.replace(span, ': '+span)
+        if new_declaration != '**kwargs:' and new_declaration.__contains__(':'):
             try:
-                name_text = declaration.text.split(':')
+                name_text = new_declaration.split(':')
                 name = name_text[0]
                 type = name_text[1].split(',')[0][1:]
 
                 classification[func_name]['options'][name] = {}
                 classification[func_name]['options'][name]['type'] = type
-                classification[func_name]['options'][name]['tooltip'] = clean_tooltip(description)
+                classification[func_name]['options'][name]['tooltip'] = clean_tooltip(
+                    description)
 
-                default_val_index = declaration.text.find('default')
+                default_val_index = new_declaration.find('default')
                 if default_val_index != -1:
-                    default_val = declaration.text[declaration.text.find('=', default_val_index)+2:]
-                    classification[func_name]['options'][name]['default_val'] = default_val.replace('’', '').replace('‘', '')
+                    default_val = new_declaration[new_declaration.find(
+                        '=', default_val_index)+2:]
+                    classification[func_name]['options'][name]['default_val'] = default_val.replace(
+                        '’', '').replace('‘', '')
 
                 if func_name == "create_model" and name == "estimator":
-                    estimators_list = description.find_elements(By.XPATH, value="./ul[@class='simple']")[0].find_elements(By.XPATH, value="./li")
+                    estimators_list = description.find_elements(
+                        By.XPATH, value="./ul[@class='simple']")[0].find_elements(By.XPATH, value="./li")
                     for model in estimators_list:
-                        model = model.find_elements(By.XPATH, value="./p")[0].text
-                        options_choices['estimators'][model.split('’ - ')[0][1:]] = model.split('’ - ')[1]
+                        model = model.find_elements(
+                            By.XPATH, value="./p")[0].text
+                        options_choices['estimators'][model.split(
+                            '’ - ')[0][1:]] = model.split('’ - ')[1]
             except Exception as e:
                 print(e)
-                print(declaration.text, default_val_index, declaration.text.find('=', default_val_index))
+                print(new_declaration, default_val_index,
+                      new_declaration.find('=', default_val_index))
 
 print()
 type_list = get_type_list(classification)
 
-possible_settings = convert_to_medomics_standards(classification, types_conversion, nodes_options)
+possible_settings = convert_to_medomics_standards(
+    classification, types_conversion, nodes_options)
 
 possible_settings = specific_case(possible_settings)
 
 possible_settings = add_default(possible_settings)
 
-possible_settings = delete_keys_from_dict(possible_settings, ['estimator', 'model'])
-
-# possible_settings['model'] = {}
-# for model_option in options_choices['estimators'].keys():
-#     possible_settings['model'][model_option] = {"options": {}, "code": f"{model_option}"}
+possible_settings = delete_keys_from_dict(
+    possible_settings, ['estimator', 'model', 'estimator_list'])
+type_list = get_type_list(possible_settings)
 
 
-# print(json.dumps(possible_settings, indent=4))
-# ml_type = "survival_analysis"
-with open(f"C:\\Users\\gblai\\OneDrive\\Documents\\ECOLE\\Stage\\GRIIS_Medomics\\MEDml\\flaskProject\\static\\possible_settings\\{ml_type}_settings.js", 'w') as f:
-    f.write(f"var {ml_type}_settings = {json.dumps(possible_settings, indent=4)};")
+with open(f"{args.path}/{ml_type}Settings.js", 'w') as f:
+    f.write("/* eslint-disable */\n")
+    f.write(
+        f"const {ml_type}Settings = {json.dumps(possible_settings, indent=4)}; \n export default {ml_type}Settings;")
 
 print("finished", ml_type)
