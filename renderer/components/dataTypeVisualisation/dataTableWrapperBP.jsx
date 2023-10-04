@@ -39,6 +39,8 @@ const DataTableWrapperBP = ({ data, tablePropsData, tablePropsColumn, customGetC
   const [innerData, setInnerData] = useState([])
   const [sortedIndexMap, setSortedIndexMap] = useState([])
   const [rerender, setRerender] = useState(false)
+  const [hasBeenLoaded, setHasBeenLoaded] = useState(false)
+
   const renderBodyContextMenu = (context) => {
     const { onCopy, onPaste } = context
     return (
@@ -56,8 +58,10 @@ const DataTableWrapperBP = ({ data, tablePropsData, tablePropsColumn, customGetC
     if (sortedRowIndex != null) {
       // console.log("getCellData: ", sortedRowIndex, columnIndex)
       rowIndex = sortedRowIndex
+      return data[sortedRowIndex][columnIndex]
+    } else {
+      return data[rowIndex][columnIndex]
     }
-    return data[rowIndex][columnIndex]
   }
 
   const getColumnsNameANdTypeFromData = (data) => {
@@ -73,13 +77,24 @@ const DataTableWrapperBP = ({ data, tablePropsData, tablePropsColumn, customGetC
     return {}
   }
 
+  const getCell = (rowIndex, columnName) => {
+    if (sortedIndexMap != null) {
+      let style = {}
+      if (sortedIndexMap[rowIndex] != rowIndex) {
+        // console.log("getCell: ", rowIndex, sortedIndexMap)
+        style = { backgroundColor: "lightgrey" }
+      }
+      return <Cell style={style}>{getCellData(rowIndex, columnName)}</Cell>
+    }
+  }
+
   const getCellRenderer = (columnName) => {
     const cellRenderer = (rowIndex) => {
       // if (sortedIndexMap != null) {
       //   rowIndex = sortedIndexMap[rowIndex]
       // }
       // return <Cell>{innerData[rowIndex][columnName]}</Cell>
-      return <Cell>{getCellData(rowIndex, columnName)}</Cell>
+      return getCell(rowIndex, columnName)
     }
     cellRenderer.displayName = `CellRenderer(${columnName})`
     return cellRenderer
@@ -113,20 +128,16 @@ const DataTableWrapperBP = ({ data, tablePropsData, tablePropsColumn, customGetC
 
   useEffect(() => {
     console.log("dataTable data refreshed: ", data)
-    if (data != undefined) {
+    if (data != undefined && hasBeenLoaded == false) {
       setInnerData(data)
-      setSortedIndexMap(Utils.times(data.length, (i) => i))
+      // setSortedIndexMap(Utils.times(data.length, (i) => i))
       let columnsNamesAndTypes = getColumnsNameANdTypeFromData(data)
       console.log("Columns Names and Types: ", columnsNamesAndTypes)
       let columns = setColumnsAccordingToType(columnsNamesAndTypes)
       setColumnNames(Object.keys(columnsNamesAndTypes))
       setColumns(columns)
       setNumRows(data.length)
-      // let newSortedIndexMap = []/
-      // data.forEach((row, index) => {
-      // newSortedIndexMap.push(index)
-      // setSortedIndexMap(sortedIndexMap)
-      // })
+      setHasBeenLoaded(true)
     }
   }, [data])
 
@@ -148,7 +159,7 @@ const DataTableWrapperBP = ({ data, tablePropsData, tablePropsColumn, customGetC
     console.log("handleRowsReordered: ", newSortedIndexMap)
     ;[newSortedIndexMap[oldIndex], newSortedIndexMap[newIndex]] = [newSortedIndexMap[newIndex], newSortedIndexMap[oldIndex]]
     console.log("handleRowsReordered: ", newSortedIndexMap)
-    setSortedIndexMap(newSortedIndexMap)
+    // setSortedIndexMap(newSortedIndexMap)
     // setSortedIndexMap()
   }
 
@@ -166,7 +177,7 @@ const DataTableWrapperBP = ({ data, tablePropsData, tablePropsColumn, customGetC
       }, 0)
     })
     newSortedIndex.then((sortedIndex) => {
-      // console.log("sortedIndex: ", sortedIndex)
+      console.log("sortedIndex: ", sortedIndex)
       setSortedIndexMap(newSortedIndex)
     })
   }
@@ -194,6 +205,7 @@ const DataTableWrapperBP = ({ data, tablePropsData, tablePropsColumn, customGetC
 
   useEffect(() => {
     // console.log("HEY: ", sortedIndexMap)
+
     let rerenderCopy = !rerender
     setRerender(rerenderCopy)
   }, [sortedIndexMap])

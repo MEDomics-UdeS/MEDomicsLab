@@ -39,6 +39,7 @@ import "../styles/customPrimeReact.css"
 import "../styles/imageContainer.css"
 import "@blueprintjs/core/lib/css/blueprint.css"
 import "@blueprintjs/table/lib/css/table.css"
+import { HotkeysProvider } from "@blueprintjs/core"
 
 /**
  * This is the main app component. It is the root component of the app.
@@ -279,21 +280,23 @@ function App() {
         {/* Uncomment if you want to use React Dev tools */}
       </Head>
       <div style={{ height: "100%", width: "100%" }}>
-        <ActionContextProvider>
-          <DataContextProvider globalData={globalData} setGlobalData={setGlobalData}>
-            <WorkspaceProvider workspace={workspaceObject} setWorkspace={setWorkspaceObject} port={port} setPort={setPort}>
-              <LayoutModelProvider // This is the LayoutContextProvider, which provides the layout model to all the children components of the LayoutManager
-                layoutModel={layoutModel}
-                setLayoutModel={setLayoutModel}
-              >
-                {/* This is the WorkspaceProvider, which provides the workspace model to all the children components of the LayoutManager */}
-                {/* This is the LayoutContextProvider, which provides the layout model to all the children components of the LayoutManager */}
-                <LayoutManager layout={initialLayout} />
-                {/** We pass the initialLayout as a parameter */}
-              </LayoutModelProvider>
-            </WorkspaceProvider>
-          </DataContextProvider>
-        </ActionContextProvider>
+        <HotkeysProvider>
+          <ActionContextProvider>
+            <DataContextProvider globalData={globalData} setGlobalData={setGlobalData}>
+              <WorkspaceProvider workspace={workspaceObject} setWorkspace={setWorkspaceObject} port={port} setPort={setPort}>
+                <LayoutModelProvider // This is the LayoutContextProvider, which provides the layout model to all the children components of the LayoutManager
+                  layoutModel={layoutModel}
+                  setLayoutModel={setLayoutModel}
+                >
+                  {/* This is the WorkspaceProvider, which provides the workspace model to all the children components of the LayoutManager */}
+                  {/* This is the LayoutContextProvider, which provides the layout model to all the children components of the LayoutManager */}
+                  <LayoutManager layout={initialLayout} />
+                  {/** We pass the initialLayout as a parameter */}
+                </LayoutModelProvider>
+              </WorkspaceProvider>
+            </DataContextProvider>
+          </ActionContextProvider>
+        </HotkeysProvider>
         <ToastContainer // This is the ToastContainer, which is used to display toast notifications
           position="bottom-right"
           autoClose={2000}
