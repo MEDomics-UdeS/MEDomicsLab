@@ -17,39 +17,63 @@ step = "initialization"
 
 @app_extraction_ts.route("/TSfresh_extraction", methods=["GET", "POST"]) 
 def TSFresh_extraction():
+    """
+    Run time series extraction using TSfresh library.
+
+    Returns: json_config : dict containing data relative to extraction.
+
+    """
+    # global variables
     global progress
     global step
+
+    # Set local variables
     json_config = get_json_from_request(request)
-    columnKeys = [key for key in json_config["relativeToExtractionType"]["selectedColumns"]]
-    columnValues = [json_config["relativeToExtractionType"]["selectedColumns"][key] for key in columnKeys]
+    selected_columns = json_config["relativeToExtractionType"]["selectedColumns"]
+    columnKeys = [key for key in selected_columns]
+    columnValues = [selected_columns[key] for key in columnKeys]
+
+    # Read extraction data
     progress = 10
-    step = "Read Data"
+    step = "Read Data"  
     df_ts = dd.read_csv(json_config["csvPath"])
     df_ts = df_ts[columnValues]
+
+    # Pre-processing on data
     progress = 20
     step = "Pre-processing data"
-    df_ts = df_ts.dropna(subset=[json_config["relativeToExtractionType"]["selectedColumns"]["patientIdentifier"], 
-                                 json_config["relativeToExtractionType"]["selectedColumns"]["measurementWeight"], 
-                                 json_config["relativeToExtractionType"]["selectedColumns"]["measuredItemIdentifier"], 
-                                 json_config["relativeToExtractionType"]["selectedColumns"]["measurementValue"]])
+    df_ts = df_ts.dropna(subset=columnValues)
+
+    # Feature extraction
     progress = 30
     step = "Feature Extraction"
-    df_extracted_features = extract_features(df_ts, column_id=json_config["relativeToExtractionType"]["selectedColumns"]["patientIdentifier"], 
-                                                    column_sort=json_config["relativeToExtractionType"]["selectedColumns"]["measurementWeight"], 
-                                                    column_kind=json_config["relativeToExtractionType"]["selectedColumns"]["measuredItemIdentifier"], 
-                                                    column_value=json_config["relativeToExtractionType"]["selectedColumns"]["measurementValue"]).compute()
+    df_extracted_features = extract_features(df_ts, column_id=selected_columns["patientIdentifier"], 
+                                                    column_sort=selected_columns["measurementWeight"], 
+                                                    column_kind=selected_columns["measuredItemIdentifier"], 
+                                                    column_value=selected_columns["measurementValue"]).compute()
+
+    # Imute Nan values
     progress = 80
     step = "Impute extracted features"
     impute(df_extracted_features)
+
+    # Save extracted features
     progress = 90
     step = "Save extracted features"
     csv_result_path = os.path.join(str(Path(json_config["csvPath"]).parent.absolute()), json_config['filename'])
     df_extracted_features.to_csv(csv_result_path)
     json_config["csv_result_path"] = csv_result_path
     return json_config 
+    
 
 @app_extraction_ts.route("/progress", methods=["POST"])
 def extraction_progress():
+    """
+    Triggered each x millisecond by the dashboard, it returns the progress of the extraction execution.
+
+    Returns: the progress of the extraction execution
+
+    """
     global progress
     global step
     return {"progress": progress, "step": step}
