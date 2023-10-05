@@ -3,7 +3,8 @@ import { DataContext } from "../../workspace/dataContext"
 import { ListBox } from "primereact/listbox"
 import DataTableFromContext from "./dataTableFromContext"
 import { Tab, Tabs } from "react-bootstrap"
-
+import DataTableWrapperBPClass from "../../dataTypeVisualisation/dataTableWrapperBPClass"
+import DataTableFromContextBP from "./dataTableFromContextBP"
 /**
  * @description - This component is the dataset selector component that will show the datasets available in the workspace
  * @returns the dataset selector component
@@ -23,9 +24,12 @@ const DatasetSelector = ({ multiSelect }) => {
   function generateDatasetListFromDataContext(dataContext) {
     let keys = Object.keys(dataContext)
     let datasetListToShow = []
+    const dataExtensions = ["csv", "json", "txt", "tsv", "xls", "xlsx"]
     keys.forEach((key) => {
       if (dataContext[key].type !== "folder") {
-        datasetListToShow.push(dataContext[key])
+        if (dataExtensions.includes(dataContext[key].extension)) {
+          datasetListToShow.push(dataContext[key])
+        }
       }
     })
     setDatasetList(datasetListToShow)
@@ -57,7 +61,7 @@ const DatasetSelector = ({ multiSelect }) => {
   }, [tabMenuItems])
   return (
     <>
-      <h1>Dataset Selector</h1>
+      {/* <h5>Dataset Selector</h5> */}
       <>
         <ListBox
           multiple={multiSelect}
@@ -77,13 +81,35 @@ const DatasetSelector = ({ multiSelect }) => {
           optionLabel="name"
           className="listbox-multiple w-full md:w-14rem"
         />
-        <Tabs activeKey={activeKey} defaultActiveKey={"0"} id="dataTable-selector-tabs" className="mb-3" onSelect={(k) => setActiveKey(k)}>
+        <Tabs
+          activeKey={activeKey}
+          defaultActiveKey={"0"}
+          id="dataTable-selector-tabs"
+          className="mb-3"
+          onSelect={(k) => setActiveKey(k)}
+        >
           {selectedDatasets.length > 0 &&
             tabMenuItems.map((item, index) => {
               if (selectedDatasets[index] !== undefined) {
                 return (
-                  <Tab style={{ height: "100%" }} title={selectedDatasets[index].name} key={selectedDatasets[index].getUUID()} eventKey={selectedDatasets[index].getUUID()}>
-                    <DataTableFromContext MedDataObject={selectedDatasets[index]} tablePropsData={{ size: "small", scrollable: true }} />
+                  <Tab
+                    style={{ height: "100%" }}
+                    title={selectedDatasets[index].name}
+                    key={selectedDatasets[index].getUUID()}
+                    eventKey={selectedDatasets[index].getUUID()}
+                  >
+                    {/* <DataTableFromContext
+                      MedDataObject={selectedDatasets[index]}
+                      tablePropsData={{ size: "small", scrollable: true }}
+                    /> */}
+                    {/* <DataTableWrapperBPClass
+                      MedDataObject={selectedDatasets[index]}
+                      tablePropsData={{ size: "small", scrollable: true }}
+                    /> */}
+                    <DataTableFromContextBP
+                      MedDataObject={selectedDatasets[index]}
+                      tablePropsData={{ size: "small", scrollable: true }}
+                    />
                   </Tab>
                 )
               } else {

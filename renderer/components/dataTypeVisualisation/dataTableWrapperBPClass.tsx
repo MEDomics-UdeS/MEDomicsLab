@@ -236,6 +236,7 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
     link.setAttribute("download", "my_data.csv")
     document.body.appendChild(link) // Required for FF
     link.click()
+    link.remove()
   }
 
   /**
@@ -310,6 +311,7 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
     link.setAttribute("download", "my_data.json")
     document.body.appendChild(link) // Required for FF
     link.click()
+    link.remove()
   }
 
   /**
