@@ -83,7 +83,6 @@ const ResultsPane = () => {
           selectedPipelines.push(pipeline)
         }
       })
-      // console.log("selectedPipelines", selectedPipelines)
       setSelectedPipelines(selectedPipelines)
     }
   }, [flowContent.nodes])

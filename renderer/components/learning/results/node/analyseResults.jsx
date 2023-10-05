@@ -4,7 +4,6 @@ import { Image } from "primereact/image"
 const getLocalImage = (src) => {
   const nativeImage = require("electron").nativeImage
   const image = nativeImage.createFromPath(src)
-  console.log(image)
   return image.toDataURL()
 }
 

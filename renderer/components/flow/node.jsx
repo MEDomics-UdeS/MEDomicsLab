@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useContext, useRef } from "react"
 import { Button } from "react-bootstrap"
-import CloseButton from "react-bootstrap/CloseButton"
 import Card from "react-bootstrap/Card"
 import { toast } from "react-toastify" // https://www.npmjs.com/package/react-toastify
 import EditableLabel from "react-simple-editlabel"

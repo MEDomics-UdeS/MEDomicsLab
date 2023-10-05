@@ -155,7 +155,7 @@ if (isProd) {
       findAvailablePort(5000, 8000)
         .then((port) => {
           console.log(`Available port: ${port}`)
-          serverProcess = require("child_process").spawn(path2conda, ["./flask_server/server.py", "--port=" + port])
+          serverProcess = require("child_process").spawn(path2conda, ["./flask_server/server.py", "--port=" + port], { shell: true })
           flaskPort = port
           serverProcess.stdout.on("data", function (data) {
             console.log("data: ", data.toString("utf8"))

@@ -6,9 +6,9 @@ import { WorkspaceContext } from "../workspace/workspaceContext"
 import { PageInfosContext } from "../mainPages/moduleBasics/pageInfosContext"
 
 /**
- * 
+ *
  * @param {boolean} isUpdating is the progress bar updating
- * @param {function} setIsUpdating set the updating state 
+ * @param {function} setIsUpdating set the updating state
  * @returns a progress bar that shows the progress of the current flow
  */
 const ProgressBarRequests = ({ isUpdating, setIsUpdating }) => {
@@ -31,7 +31,7 @@ const ProgressBarRequests = ({ isUpdating, setIsUpdating }) => {
             now: data.progress,
             currentName: data.cur_node
           })
-          if (data.progress === 100) {
+          if (data.progress == 100) {
             setIsUpdating(false)
             setProgress({
               now: data.progress,

@@ -38,10 +38,11 @@ class Analyse(Node):
         print(Fore.CYAN + f"Using {selection}" + Fore.RESET)
         settings = copy.deepcopy(self.settings)
         plot_paths = {}
-        if selection == 'plot_model' or selection == 'interpret_model':
+        if selection == 'plot_model':
             settings.update({'save': True})
-            if selection == 'plot_model':
-                settings.update({"plot_kwargs": {}})
+            settings.update({"plot_kwargs": {}})
+        if selection == 'interpret_model':
+            settings.update({'save': self.global_config_json["tmp_path"]})
 
         self.CodeHandler.add_line("code", f"for model in trained_models:")
         print_settings = copy.deepcopy(settings)
@@ -50,6 +51,7 @@ class Analyse(Node):
         self.CodeHandler.add_line(
             "code", f"pycaret_exp.{selection}(model, {self.CodeHandler.convert_dict_to_params(print_settings)})", 1)
         for model in kwargs['models']:
+            print('model', model)
             return_value = getattr(
                 experiment['pycaret_exp'], selection)(model, **settings)
 

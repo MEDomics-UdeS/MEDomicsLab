@@ -153,3 +153,7 @@
   flex-wrap: wrap;
   gap: 1rem;
 }
+
+.results-Panel .p-image-preview-indicator {
+  border-radius: 0.5rem;
+}
