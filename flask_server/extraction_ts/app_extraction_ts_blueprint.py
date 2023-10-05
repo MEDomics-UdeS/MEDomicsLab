@@ -4,6 +4,7 @@ import os
 from flask import request, Blueprint
 from pathlib import Path
 from tsfresh import extract_features
+from tsfresh.feature_extraction import ComprehensiveFCParameters, EfficientFCParameters, MinimalFCParameters
 from tsfresh.utilities.dataframe_functions import impute
 from utils.server_utils import get_json_from_request
 
@@ -47,10 +48,17 @@ def TSFresh_extraction():
     # Feature extraction
     progress = 30
     step = "Feature Extraction"
+    if json_config["relativeToExtractionType"]["featuresOption"] == "Efficient":
+        settings = EfficientFCParameters()
+    elif json_config["relativeToExtractionType"]["featuresOption"] == "Minimal":
+        settings = MinimalFCParameters()
+    else:
+        settings = ComprehensiveFCParameters()
     df_extracted_features = extract_features(df_ts, column_id=selected_columns["patientIdentifier"], 
                                                     column_sort=selected_columns["measurementWeight"], 
                                                     column_kind=selected_columns["measuredItemIdentifier"], 
-                                                    column_value=selected_columns["measurementValue"]).compute()
+                                                    column_value=selected_columns["measurementValue"],
+                                                    default_fc_parameters=settings).compute()
 
     # Imute Nan values
     progress = 80

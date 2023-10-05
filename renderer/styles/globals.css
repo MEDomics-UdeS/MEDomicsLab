@@ -56,6 +56,12 @@ body {
   height: 100vh;
 }
 
+.flex-container {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+}
+
 .html-body {
   display: flex;
   flex-direction: column;

@@ -12,23 +12,28 @@ import Papa from "papaparse"
  * @param {Object} props - The props object
  *  @param {Object} props.keepOnlyFolder - The only parent folder to keep in the dataset selector
  */
-const DataTableFromContext = ({MedDataObject, tablePropsData, tablePropsColumn, setIsDatasetLoaded=false}) => {
+            console.log("HasBeenRefreshed FALSE")
+const DataTableFromContext = ({MedDataObject, tablePropsData, tablePropsColumn, isDatasetLoaded, setIsDatasetLoaded=false, hasBeenRefreshed=false}) => {
   const { globalData, setGlobalData } = useContext(DataContext) // We get the global data from the context to retrieve the directory tree of the workspace, thus retrieving the data files
-  let datasetObject = MedDataObject
   const [isLoaded, setIsLoaded] = useState(MedDataObject.isLoaded ? MedDataObject.isLoaded : false)
 
   const [dataset, setDataset] = useState(null)
 
   useEffect(() => {
-    if (datasetObject !== undefined && datasetObject !== null) {
-      if (isLoaded && datasetObject.data) {
+    console.log("isLoaded", isLoaded)
+    console.log("datasetObject.data", MedDataObject.data)
+    console.log("isDatasetLoaded", isDatasetLoaded)
+    console.log("isDatasetLoaded==true", isDatasetLoaded==true)
+    console.log("!(isDatasetLoaded && isDatasetLoaded==true)", !(isDatasetLoaded && isDatasetLoaded==true))
+    if (MedDataObject !== undefined && MedDataObject !== null) {
+      if (isLoaded && MedDataObject.data && !(isDatasetLoaded && isDatasetLoaded==true)) {
         console.log("was already loaded")
-        setDataset(datasetObject.data)
       } else {
+        console.log("in ELSE")
         if (globalData !== undefined) {
-          let extension = datasetObject.extension
+          let extension = MedDataObject.extension
           if (extension == "csv") {
-            let csvPath = datasetObject.path
+            let csvPath = MedDataObject.path
             fs.readFile(csvPath, "utf8", (err, data) => {
               if (err) {
                 console.error("Error reading file:", err)
@@ -44,11 +49,12 @@ const DataTableFromContext = ({MedDataObject, tablePropsData, tablePropsColumn, 
                 let dfJSON = dfd.toJSON(df)
                 setDataset(dfJSON)
                 let globalDataCopy = { ...globalData }
-                globalDataCopy[datasetObject.getUUID()].data = dfJSON
-                globalDataCopy[datasetObject.getUUID()].isLoaded = true
+                globalDataCopy[MedDataObject.getUUID()].data = dfJSON
+                globalDataCopy[MedDataObject.getUUID()].isLoaded = true
                 setGlobalData(globalDataCopy)
                 setIsLoaded(true)
                 if (setIsDatasetLoaded) {
+                  console.log("in datasetloaded")
                   setIsDatasetLoaded(true)
                 }
                 
@@ -64,7 +70,14 @@ const DataTableFromContext = ({MedDataObject, tablePropsData, tablePropsColumn, 
         }
       }
     }
-  }, [isLoaded, datasetObject])
+  }, [isLoaded, MedDataObject, isDatasetLoaded])
+
+  useEffect(()=>{
+    if (hasBeenRefreshed){
+      console.log("HERE")
+      setIsLoaded(false)
+    }
+  },[hasBeenRefreshed])
 
   return <>{dataset && <DataTableWrapper data={dataset} tablePropsData={tablePropsData} tablePropsColumn={tablePropsColumn} />}</>
 }

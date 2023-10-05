@@ -33,10 +33,12 @@ const ExtractionTabularData = ({extractionTypeList}) => {
   const [extractionType, setExtractionType] = useState("TSfresh") // extraction type
   const [filename, setFilename] = useState("tmp_extracted_features.csv") // name of the csv file containing extracted data
   const [isDatasetLoaded, setIsDatasetLoaded] = useState(false) // boolean set to false every time we reload a dataset for data to extract
+  const [isResultDatasetLoaded, setIsResultDatasetLoaded] = useState(false) // boolean set to false every time we reload an extracted data dataset
   const [mayProceed, setMayProceed] = useState(false) // boolean set to true if all informations about the extraction (depending on extractionType) have been completed
   const [resultDataset, setResultDataset] = useState(null) // dataset of extracted data used to be display
   const [selectedDataset, setSelectedDataset] = useState(null) // dataset of data to extract used to be display
-
+  const [showProgressBar, setShowProgressBar] = useState(false) // wether to show or not the extraction progressbar
+  const [hasBeenRefreshed, setHasBeenRefreshed] = useState(false) // If it was refreshed 
   const { globalData } = useContext(DataContext) // we get the global data from the context to retrieve the directory tree of the workspace, thus retrieving the data files
   const { port } = useContext(WorkspaceContext) // we get the port for server connexion
 
@@ -108,6 +110,9 @@ const ExtractionTabularData = ({extractionTypeList}) => {
    * 
    */
   const runExtraction = () => {
+    setMayProceed(false)
+    setIsResultDatasetLoaded(false)
+    setShowProgressBar(true)
     // Progress bar update
     const progressInterval = setInterval(() => {
       requestJson(
@@ -144,6 +149,7 @@ const ExtractionTabularData = ({extractionTypeList}) => {
         setExtractionProgress(100)
         setExtractionStep("Extracted Features Saved")
         MedDataObject.updateWorkspaceDataObject()
+        setMayProceed(true)
       },
       function (err) {
         console.error(err)
@@ -153,10 +159,22 @@ const ExtractionTabularData = ({extractionTypeList}) => {
 
   // Called when the datasetList is updated, in order to get the extracted data
   useEffect(() => {
-    if (datasetList.length > 0) {
+    if (datasetList.length > 0 && !hasBeenRefreshed) {
       datasetList.forEach((dataset) => {
         if (dataset.path == csvResultPath) {
-          setResultDataset(dataset)
+          setTimeout(()=>{
+            setResultDataset(null)
+            setResultDataset(dataset)
+          },1000)
+          console.log("CHANGED")
+          setTimeout(()=>{
+            console.log("HasBeenRefreshed TRUE")
+            setHasBeenRefreshed(true)
+          },1000)
+          setTimeout(()=>{
+            console.log("HasBeenRefreshed FALSE")
+            setHasBeenRefreshed(false)
+          },2000)
         }
       })
     }
@@ -169,6 +187,10 @@ const ExtractionTabularData = ({extractionTypeList}) => {
     }
   }, [globalData])
 
+  useEffect(() => {
+    console.log("result dataset changed")
+  }, [resultDataset])
+
   // Called when isDatasetLoaded change, in order to update csvPath and dataframe.
   useEffect(() => {
     if (selectedDataset && selectedDataset.data && selectedDataset.path) {
@@ -176,6 +198,15 @@ const ExtractionTabularData = ({extractionTypeList}) => {
       setDataframe(new DataFrame(selectedDataset.data))
     }
   }, [isDatasetLoaded])
+
+  // Called when isDatasetLoaded change, in order to update csvPath and dataframe.
+  useEffect(() => {
+    if (isResultDatasetLoaded) {
+      setShowProgressBar(false)
+      setExtractionProgress(0)
+      setExtractionStep("")
+    }
+  }, [isResultDatasetLoaded])
 
   
   return (
@@ -257,18 +288,24 @@ const ExtractionTabularData = ({extractionTypeList}) => {
           {/* Time Series Extraction */}
           <h2>Extract time series</h2>
           <div className="margin-top-30">
-            Save extracted features as : &nbsp;
-            <InputText value={filename} onChange={(e) => handleFilenameChange(e.target.value)} />
-          </div>
-          {/* Button activated only if all necessary columns have been selected */}
-          <div className="margin-top-15">
-            <Button disabled={!mayProceed} onClick={runExtraction}>
-              Extract Data
-            </Button>
+            <div className="flex-container">
+              <div>
+                Save extracted features as : &nbsp;
+                <InputText value={filename} onChange={(e) => handleFilenameChange(e.target.value)} />
+              </div>
+              <div>
+                {/* Button activated only if all necessary columns have been selected */}
+                <Button disabled={!mayProceed} onClick={runExtraction}>
+                  Extract Data
+                </Button>
+              </div>
+            </div>
           </div>
           <div className="margin-top-30">
             {extractionStep}
-            <ProgressBar value={extractionProgress}/>
+            {showProgressBar && (
+              <ProgressBar value={extractionProgress}/>
+            )}
           </div>
         </div>
       </div>
@@ -288,6 +325,9 @@ const ExtractionTabularData = ({extractionTypeList}) => {
             <DataTableFromContext
               MedDataObject={resultDataset}
               tablePropsData={{ size: "small", paginator:true, rows: 5 }}
+              isDatasetLoaded={isResultDatasetLoaded}
+              setIsDatasetLoaded={setIsResultDatasetLoaded}
+              hasBeenRefreshed={hasBeenRefreshed}
             />
           </div>
         )}
