@@ -24,9 +24,9 @@ import {
   FiletypeJson,
   FiletypeXlsx
 } from "react-bootstrap-icons"
+import { PiFloppyDisk } from "react-icons/pi"
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-// const sumo: any[] = require("./sumo.json")
 
 export type CellLookup = (rowIndex: number, columnIndex: number) => any
 export type SortCallback = (columnIndex: number, comparator: (a: any, b: any) => number) => void
@@ -319,7 +319,7 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
    * @param event - event
    * @param data - data to be exported
    */
-  public exportToExcel(event: React.MouseEvent<HTMLButtonElement, MouseEvent>, data: any) {
+  public exportToExcel(event: React.MouseEvent<HTMLButtonElement, MouseEvent>, data: any, filePath?: string) {
     // let data = this.state.data
     data = this.getModifiedData(data)
     console.log("exportToExcel", data)
@@ -337,7 +337,32 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
     const ws = xlxs.utils.aoa_to_sheet(excelData)
     const wb = xlxs.utils.book_new()
     xlxs.utils.book_append_sheet(wb, ws, "SheetJS")
+    if (filePath) {
+      const path = require("path")
+      const finalPath = path.join(filePath, "my_data.xlsx")
+      // xlxs.writeFile(wb, finalPath)
+      console.log("finalPath", finalPath)
+    }
     xlxs.writeFile(wb, "my_data.xlsx")
+  }
+
+  /**
+   * This function saves the modified data in the format specified in the config and at the location specified in the config
+   * @param event - event
+   * @param data - data to be saved
+   * @returns void
+   */
+  public saveData(event: React.MouseEvent<HTMLButtonElement, MouseEvent>, data: any) {
+    // let data = this.state.data
+    data = this.getModifiedData(data)
+    console.log("saveData", data)
+    if (this.state.config.extension === "csv") {
+      this.exportToCSV(event, data)
+    } else if (this.state.config.extension === "json") {
+      this.exportToJSON(event, data)
+    } else if (this.state.config.extension === "excel") {
+      this.exportToExcel(event, data, this.state.config.extension)
+    }
   }
 
   public render() {
@@ -365,6 +390,16 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
 
         <Collapse isOpen={this.state.options.isOpen}>
           <Stack direction="horizontal" gap={3} style={{ position: "relative", top: "-5px", right: "0px" }}>
+          <Button
+              onClick={(e) => {
+                this.exportToCSV(e, data)
+              }}
+              icon={<PiFloppyDisk size={"1.5rem"} />}
+              rounded
+              className="p-button-secondary ms-auto"
+              style={{ marginTop: "5px", marginBottom: "5px", padding: "0rem", height: "2.5rem", width: "2.5rem" }}
+              disabled={!this.state.options.isEditable}
+            />
             <Button
               onClick={(e) => {
                 this.exportToCSV(e, data)
