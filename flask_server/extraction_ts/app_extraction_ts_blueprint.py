@@ -27,6 +27,8 @@ def TSFresh_extraction():
     # global variables
     global progress
     global step
+    progress = 0
+    step = "initialization"
 
     # Set local variables
     json_config = get_json_from_request(request)
