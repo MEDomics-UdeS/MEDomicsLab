@@ -24,6 +24,7 @@
     "bootstrap-icons": "^1.11.1",
     "csv": "^6.3.3",
     "danfojs": "^1.1.2",
+    "danfojs-node": "^1.1.2",
     "directory-tree": "^3.5.1",
     "electron-extension-installer": "^1.2.0",
     "electron-loading": "^0.3.0",

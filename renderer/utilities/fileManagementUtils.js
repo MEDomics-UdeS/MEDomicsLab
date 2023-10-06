@@ -2,6 +2,7 @@ const fs = require("fs")
 const path = require("path")
 const { parse } = require("csv-parse")
 const dfd = require("danfojs")
+const dfdNode = require("danfojs-node")
 var Papa = require("papaparse")
 /**
  *
@@ -199,6 +200,26 @@ const loadJSONFromPath = (path, whenLoaded) => {
   })
 }
 
+const loadXLSXFromPath = async (filePath, whenLoaded) => {
+  let jsonPath = filePath
+  const path = require("path")
+  let finalPath = path.join(jsonPath)
+  console.log("path", finalPath)
+  let df = await dfdNode.readExcel(jsonPath)
+  console.log("File read successfully")
+  let dfJSON = dfd.toJSON(df)
+  whenLoaded(dfJSON)
+  // fs.readFile(jsonPath, "utf8", (err, data) => {
+  //   if (err) {
+  //     console.error("Error reading file:", err)
+  //   } else {
+  //     console.log("File read successfully")
+  //     let result = dfd.
+  //   }
+  // })
+  // whenLoaded(dfJSON)
+}
+
 function createFolder(path_, folderName) {
   // Creates a folder in the working directory
   const folderPath = path.join(path_, folderName)
@@ -222,5 +243,6 @@ export {
   loadCSVPath,
   loadCSVFromPath,
   createFolder,
-  loadJSONFromPath
+  loadJSONFromPath,
+  loadXLSXFromPath
 }

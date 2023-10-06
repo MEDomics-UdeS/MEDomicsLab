@@ -98,18 +98,18 @@ const DatasetSelector = ({ multiSelect }) => {
                     key={selectedDatasets[index].getUUID()}
                     eventKey={selectedDatasets[index].getUUID()}
                   >
-                    {/* <DataTableFromContext
+                    <DataTableFromContext
                       MedDataObject={selectedDatasets[index]}
                       tablePropsData={{ size: "small", scrollable: true }}
-                    /> */}
+                    />
                     {/* <DataTableWrapperBPClass
                       MedDataObject={selectedDatasets[index]}
                       tablePropsData={{ size: "small", scrollable: true }}
                     /> */}
-                    <DataTableFromContextBP
+                    {/* <DataTableFromContextBP
                       MedDataObject={selectedDatasets[index]}
                       tablePropsData={{ size: "small", scrollable: true }}
-                    />
+                    /> */}
                   </Tab>
                 )
               } else {

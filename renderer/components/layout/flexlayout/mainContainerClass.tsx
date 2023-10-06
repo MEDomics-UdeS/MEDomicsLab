@@ -25,7 +25,7 @@ import "prismjs/themes/prism-coy.css"
 import LearningPage from "../../mainPages/learning"
 import DataTable from "../../../components/dataTypeVisualisation/dataTableWrapper"
 import DataTableBP from "../../../components/dataTypeVisualisation/dataTableWrapperBP"
-import { loadCSVFromPath, loadJsonPath, loadJSONFromPath } from "../../../utilities/fileManagementUtils"
+import { loadCSVFromPath, loadJsonPath, loadJSONFromPath, loadXLSXFromPath } from "../../../utilities/fileManagementUtils"
 import { LayoutModelContext } from "../layoutContext"
 import { DataContext } from "../../workspace/dataContext"
 import MedDataObject from "../../workspace/medDataObject"
@@ -521,7 +521,7 @@ class MainInnerContainer extends React.Component<
    * @description here we catch RENAME_TAB actions and update the medDataObject name
    */
   onAction = (action: Action) => {
-    console.log("MainContainer action: ", action)
+    console.log("MainContainer action: ", action, this.layoutRef, this.state.model )
     if (action.type === Actions.RENAME_TAB) {
       const { globalData, setGlobalData } = this.props as DataContextType
       let newName = action.data.text
@@ -635,6 +635,7 @@ class MainInnerContainer extends React.Component<
         config.name = node.getName()
         if (extension === "csv") loadCSVFromPath(config.path, whenDataLoaded)
         else if (extension === "json") loadJSONFromPath(config.path, whenDataLoaded)
+        else if (extension === "xlsx") loadXLSXFromPath(config.path, whenDataLoaded)
 
         // loadCSVFromPath(config.path, whenDataLoaded)
       }

@@ -1,6 +1,6 @@
 import * as React from "react"
 import { Button } from "primereact/button"
-import { Menu, MenuItem, Intent, HotkeysTarget2, HotkeysDialog2, Checkbox, Divider, Collapse } from "@blueprintjs/core"
+import { Menu, MenuItem, Intent, HotkeysTarget2, HotkeysDialog2, Checkbox, Divider, Collapse, Icon } from "@blueprintjs/core"
 import xlxs from "xlsx"
 // import { Example, ExampleProps } from "@blueprintjs/docs-theme"
 import {
@@ -15,7 +15,7 @@ import {
   EditableCell2
 } from "@blueprintjs/table"
 import { waitUntilSymbol } from "next/dist/server/web/spec-extension/fetch-event"
-import { Accordion, Stack } from "react-bootstrap"
+import { Accordion, Form, Stack } from "react-bootstrap"
 import {
   ChevronBarRight,
   ChevronCompactRight,
@@ -25,7 +25,10 @@ import {
   FiletypeXlsx
 } from "react-bootstrap-icons"
 import { PiFloppyDisk } from "react-icons/pi"
-
+import { toast } from "react-toastify"
+const dfd = require("danfojs-node")
+import { DataFrame, Utils as danfoUtils } from "danfojs-node"
+const dfUtils = new danfoUtils()
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 
 export type CellLookup = (rowIndex: number, columnIndex: number) => any
@@ -38,13 +41,19 @@ export interface SortableColumn {
 abstract class AbstractSortableColumn implements SortableColumn {
   constructor(
     protected name: string,
-    protected index: number
+    protected index: number,
+    protected category?: string
   ) {}
 
   public getColumn(getCellRenderer: CellLookup, getCellData: CellLookup, sortColumn: SortCallback) {
     // const cellRenderer = (rowIndex: number, columnIndex: number) => <Cell>{getCellData(rowIndex, columnIndex)}</Cell>
     const menuRenderer = this.renderMenu.bind(this, sortColumn)
-    const columnHeaderCellRenderer = () => <ColumnHeaderCell name={this.name} menuRenderer={menuRenderer} />
+    // const columnHeaderRender = th
+    const columnHeaderCellRenderer = () => (
+      <ColumnHeaderCell name={this.name} menuRenderer={menuRenderer}>
+        {this.category}
+      </ColumnHeaderCell>
+    )
     return (
       <Column
         cellRenderer={getCellRenderer}
@@ -84,6 +93,13 @@ class NumericalSortableColumn extends AbstractSortableColumn {
         <Menu>
           <MenuItem icon="sort-asc" onClick={sortAsc} text="Sort Asc" />
           <MenuItem icon="sort-desc" onClick={sortDesc} text="Sort Desc" />
+          <Divider />
+          <MenuItem icon="filter" text="Type">
+            <MenuItem icon="array-floating-point" text="Numerical" />
+            <MenuItem icon="array-numeric" text="Categorical" />
+            <MenuItem icon="array-timestamp" text="Time" />
+            <MenuItem icon="array-string" text="String" />
+          </MenuItem>
         </Menu>
       </>
     )
@@ -120,7 +136,8 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
       exportToExcel: true,
       exportToPDF: true,
       fileName: this.props.options ? this.props.options.fileName : "data",
-      isOpen: false
+      isOpen: false,
+      hasBeenModified: false
     },
     config: { ...this.props.config }
   }
@@ -135,6 +152,34 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
     return columnsNames
   }
 
+  public getColumnsTypes(data: any) {
+    let columnsNames = Object.keys(data[0])
+    let columnsTypes = []
+    let firstRows = data.slice(0, 10)
+    columnsNames.forEach((columnName) => {
+      let arr = firstRows.map((row: { [x: string]: any }) => row[columnName] === "NaN" ? 0 : row[columnName] )
+      let columnType = dfUtils.inferDtype(arr)
+      columnsTypes.push(columnType)
+    })
+    return columnsTypes
+  }
+
+
+  public getDataFrame() {
+    let df = new dfd.DataFrame(this.state.data)
+    return df
+  }
+
+
+  public getNumberOfUniqueValues(dataframe: DataFrame , columnName: string) {
+    let uniqueValues = dataframe.unique(columnName)
+    return uniqueValues.length
+  }
+
+
+
+
+
   public componentDidMount() {
     if (!this.props.data) {
       return
@@ -142,8 +187,9 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
     let columnsNames = Object.keys(this.props.data[0])
     let newColumns = []
     let newColumnIndexMap = []
+    let newColumnTypes = this.getColumnsTypes(this.props.data)
     columnsNames.forEach((columnName, index) => {
-      newColumns.push(new NumericalSortableColumn(columnName, index))
+      newColumns.push(new NumericalSortableColumn(columnName, index, newColumnTypes[index]))
       newColumnIndexMap.push(index)
     })
     this.state.columnsNames = columnsNames
@@ -154,18 +200,22 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
   }
 
   public componentDidUpdate(prevProps: any, prevState: any) {
+    if (!this.props.data) {
+      return
+    }
     if (prevProps !== this.props) {
-      //   if (!this.props.data) {
+      // if (!this.props.data) {
       this.setState({ data: this.props.data })
       let columnsNames = Object.keys(this.props.data[0])
       let newColumns = []
       let newColumnIndexMap = []
+      let newColumnTypes = this.getColumnsTypes(this.props.data)
       columnsNames.forEach((columnName, index) => {
-        newColumns.push(new NumericalSortableColumn(columnName, index))
+        newColumns.push(new NumericalSortableColumn(columnName, index, newColumnTypes[index]))
         newColumnIndexMap.push(index)
       })
       this.setState({ columnsNames: columnsNames, columns: newColumns, columnIndexMap: newColumnIndexMap })
-      //
+      // }
     }
     if (prevState !== this.state) {
       if (prevState.data !== this.state.data) {
@@ -352,16 +402,41 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
    * @param data - data to be saved
    * @returns void
    */
-  public saveData(event: React.MouseEvent<HTMLButtonElement, MouseEvent>, data: any) {
+  public async saveData(event: React.MouseEvent<HTMLButtonElement, MouseEvent>, data: any) {
     // let data = this.state.data
     data = this.getModifiedData(data)
+    let df = new dfd.DataFrame(data)
+    // data = new dfd.DataFrame(data)
     console.log("saveData", data)
+    console.log("saveData", this.state.config)
+    let modificationSuccess = false
     if (this.state.config.extension === "csv") {
-      this.exportToCSV(event, data)
+      try {
+        dfd.toCSV(df, { filePath: this.state.config.path })
+      } catch (e) {
+        console.log(e)
+      } finally {
+        toast.success("Data saved successfully")
+      }
+
+      // toast.success("Data saved successfully")
     } else if (this.state.config.extension === "json") {
-      this.exportToJSON(event, data)
-    } else if (this.state.config.extension === "excel") {
-      this.exportToExcel(event, data, this.state.config.extension)
+      try {
+        dfd.toJSON(df, { filePath: this.state.config.path })
+      } catch (e) {
+        console.log(e)
+      } finally {
+        toast.success("Data saved successfully")
+      }
+      // this.exportToJSON(event, data)
+    } else if (this.state.config.extension === "xlsx") {
+      try {
+        dfd.toExcel(df, { filePath: this.state.config.path })
+      } catch (e) {
+        console.log(e)
+      } finally {
+        toast.success("Data saved successfully")
+      }
     }
   }
 
@@ -370,7 +445,7 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
     if (!data) {
       return <div>Loading...</div>
     }
-    console.log("title", this.state.config)
+    // console.log("title", this.state.config)
     const numRows = this.state.data.length
     const columns = this.state.columns.map((col) => col.getColumn(this.getCellRenderer, this.getCellData, this.sortColumn))
     return (
@@ -390,9 +465,9 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
 
         <Collapse isOpen={this.state.options.isOpen}>
           <Stack direction="horizontal" gap={3} style={{ position: "relative", top: "-5px", right: "0px" }}>
-          <Button
+            <Button
               onClick={(e) => {
-                this.exportToCSV(e, data)
+                this.saveData(e, data)
               }}
               icon={<PiFloppyDisk size={"1.5rem"} />}
               rounded
