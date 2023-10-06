@@ -56,6 +56,12 @@ body {
   height: 100vh;
 }
 
+.flex-container {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+}
+
 .html-body {
   display: flex;
   flex-direction: column;
@@ -97,6 +103,11 @@ a {
   width: 100%;
 }
 
+.overflow-y-auto {
+  overflow-y: scroll;
+  height: 100%;
+}
+
 .padding-10 {
   padding: 10px 10px 10px 20px;
 }
@@ -119,6 +130,10 @@ a {
 
 .margin-top-15 {
   margin-top: 15px;
+}
+
+.margin-top-30 {
+  margin-top: 30px;
 }
 
 .margin-left-10 {

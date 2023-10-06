@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react"
-import { loadCSVPath } from "../../utilities/fileManagementUtils"
 //data table
 import { DataTable } from "primereact/datatable"
+import { deepCopy } from "../../utilities/staticFunctions"
 import { Column } from "primereact/column"
 // refer to https://primereact.org/datatable/
 
@@ -20,7 +20,14 @@ const DataTableWrapper = ({ data, tablePropsData, tablePropsColumn, customGetCol
   useEffect(() => {
     console.log("dataTable data refreshed: ", data)
     if (data != undefined) {
-      setRows(data)
+      const extractedHeader = getColumnsFromData(data)
+      setHeader(extractedHeader)
+      // Remove header from data if its an array or arrays to avoid keeping it on rows
+      let rows = deepCopy(data)
+      if (Array.isArray(rows[0])) {
+        rows.shift()
+      }
+      setRows(rows)
       customGetColumnsFromData ? setHeader(customGetColumnsFromData(data)) : setHeader(getColumnsFromData(data))
     }
   }, [data])
@@ -31,8 +38,26 @@ const DataTableWrapper = ({ data, tablePropsData, tablePropsColumn, customGetCol
    */
   const getColumnsFromData = (data) => {
     if (data.length > 0) {
-      return Object.keys(data[0]).map((key) => <Column key={key} field={key} header={key} {...tablePropsColumn} />)
+      // Depending of data type the process is different
+      if (Array.isArray(data[0])) {
+        // Case data is an array of arrays
+        let keys = Object.keys(data[0])
+        return keys.map((key) => {
+          return (
+            <Column
+              key={key}
+              field={key}
+              header={data[0][key]}
+              {...tablePropsColumn}
+            />
+          )
+        })
+      } else {
+        // Case data is an array of dictionaries
+        return Object.keys(data[0]).map((key) => <Column key={key} field={key} header={key} {...tablePropsColumn} />)
+      }
     }
+      
     return <></>
   }
 
