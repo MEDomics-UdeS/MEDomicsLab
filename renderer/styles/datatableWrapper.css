@@ -1,20 +1,57 @@
-.bp-datatable-wrapper {
-  /* overflow-x: scroll !important;
-  height: 100%; */
+.bp-datatable-wrapper-title {
+  /* We set it to appear on top without affecting the other components when somebody hovers over */
+  z-index: 999;
+  position: fixed;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 1rem;
+  background-color: #f5f5f507;
+  border-bottom: 1px solid #e0e0e000;
+  border-top-left-radius: 0.25rem;
+  border-top-right-radius: 0.25rem;
+  height: 2.25rem;
+  margin-top: 1rem;
 }
 
 .bp-datatable-wrapper-options-icon {
-  transition: all 0.1s ease-in-out;
-  display: flex;
+  transition: rotate 0.2s ease-in-out;
+  /* transition: all 0.1s ease-in-out; */
+  translate: 0.25rem 0.25rem;
+  position: fixed;
+  display: block;
   padding: 0.1rem;
-  color: #3d3d3d;
+  color: #1a1818c2;
   border: none;
-  size: 1rem;
-  height: 1rem;
-  width: 1rem;
+  size: 1.5rem;
+  height: 1.5rem;
+  width: 1.5rem;
   line-height: 1rem;
+  z-index: 999;
 }
 
 .rotate-90-cw {
   rotate: 90deg;
+}
+
+.bp5-input-group.bp5-small > .bp5-input-left-container > .bp5-icon,
+.bp5-input-group.bp5-small > .bp5-icon,
+.bp5-input-group.bp5-small .bp5-input-action > .bp5-spinner {
+  margin: 9px;
+}
+.bp5-input-group .bp5-input-action:first-child,
+.bp5-input-group > .bp5-input-left-container:first-child,
+.bp5-input-group > .bp5-button:first-child,
+.bp5-input-group > .bp5-icon:first-child {
+  left: -3px;
+}
+
+.bp-datatable-wrapper {
+  height: inherit;
+}
+
+.bp5-button-text {
+  /* display: contents !important; */
+  flex: unset !important;
 }

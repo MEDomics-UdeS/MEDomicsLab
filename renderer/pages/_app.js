@@ -1,5 +1,5 @@
 import { ToastContainer } from "react-toastify"
-import React, { useState } from "react"
+import React, { use, useState } from "react"
 import Head from "next/head"
 import LayoutManager from "../components/layout/layoutManager"
 import { LayoutModelProvider } from "../components/layout/layoutContext"
@@ -272,6 +272,9 @@ function App() {
     console.log("layoutModel changed", layoutModel)
   }, [layoutModel]) // Here, we specify that the hook should only be called when the layoutModel state variable changes
 
+  useEffect(() => {
+    localStorage.clear()
+  }, [])
   return (
     <>
       <Head>

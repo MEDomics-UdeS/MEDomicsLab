@@ -209,15 +209,6 @@ const loadXLSXFromPath = async (filePath, whenLoaded) => {
   console.log("File read successfully")
   let dfJSON = dfd.toJSON(df)
   whenLoaded(dfJSON)
-  // fs.readFile(jsonPath, "utf8", (err, data) => {
-  //   if (err) {
-  //     console.error("Error reading file:", err)
-  //   } else {
-  //     console.log("File read successfully")
-  //     let result = dfd.
-  //   }
-  // })
-  // whenLoaded(dfJSON)
 }
 
 function createFolder(path_, folderName) {

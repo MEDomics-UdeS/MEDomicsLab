@@ -28,6 +28,8 @@ import { PiFloppyDisk } from "react-icons/pi"
 import { toast } from "react-toastify"
 const dfd = require("danfojs-node")
 import { DataFrame, Utils as danfoUtils } from "danfojs-node"
+import { DataTablePopoverBP } from "./dataTablePopoverBPClass"
+import { DataTableHeaderCell } from "./dataTableHeaderCell"
 const dfUtils = new danfoUtils()
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 
@@ -42,7 +44,8 @@ abstract class AbstractSortableColumn implements SortableColumn {
   constructor(
     protected name: string,
     protected index: number,
-    protected category?: string
+    protected category?: string,
+    protected config: { [key: string]: any } = {}
   ) {}
 
   public getColumn(getCellRenderer: CellLookup, getCellData: CellLookup, sortColumn: SortCallback) {
@@ -50,10 +53,13 @@ abstract class AbstractSortableColumn implements SortableColumn {
     const menuRenderer = this.renderMenu.bind(this, sortColumn)
     // const columnHeaderRender = th
     const columnHeaderCellRenderer = () => (
+      // <DataTableHeaderCell name={this.name} menuRenderer={menuRenderer} config={this.config} category={this.category} />
+
       <ColumnHeaderCell name={this.name} menuRenderer={menuRenderer}>
-        {this.category}
+        <DataTablePopoverBP config={this.config} category={this.category} columnName={this.name} />
       </ColumnHeaderCell>
     )
+
     return (
       <Column
         cellRenderer={getCellRenderer}
@@ -157,28 +163,22 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
     let columnsTypes = []
     let firstRows = data.slice(0, 10)
     columnsNames.forEach((columnName) => {
-      let arr = firstRows.map((row: { [x: string]: any }) => row[columnName] === "NaN" ? 0 : row[columnName] )
+      let arr = firstRows.map((row: { [x: string]: any }) => (row[columnName] === "NaN" ? 0 : row[columnName]))
       let columnType = dfUtils.inferDtype(arr)
       columnsTypes.push(columnType)
     })
     return columnsTypes
   }
 
-
   public getDataFrame() {
     let df = new dfd.DataFrame(this.state.data)
     return df
   }
 
-
-  public getNumberOfUniqueValues(dataframe: DataFrame , columnName: string) {
+  public getNumberOfUniqueValues(dataframe: DataFrame, columnName: string) {
     let uniqueValues = dataframe.unique(columnName)
     return uniqueValues.length
   }
-
-
-
-
 
   public componentDidMount() {
     if (!this.props.data) {
@@ -211,9 +211,10 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
       let newColumnIndexMap = []
       let newColumnTypes = this.getColumnsTypes(this.props.data)
       columnsNames.forEach((columnName, index) => {
-        newColumns.push(new NumericalSortableColumn(columnName, index, newColumnTypes[index]))
+        newColumns.push(new NumericalSortableColumn(columnName, index, newColumnTypes[index], this.state.config))
         newColumnIndexMap.push(index)
       })
+      this.describeColumns(this.props.data)
       this.setState({ columnsNames: columnsNames, columns: newColumns, columnIndexMap: newColumnIndexMap })
       // }
     }
@@ -337,6 +338,31 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
     return formattedJSON
   }
 
+  public describeColumns() {
+    if (this.state.data) {
+      let df = new dfd.DataFrame(this.state.data)
+
+      console.log("describeColumns", df)
+      let columnsNames = Object.keys(this.props.data[0])
+
+      columnsNames.forEach((columnName) => {
+        // let columnsDescription = df.describe()
+        let column = df.$getColumnData(columnName)
+        try {
+          console.log(column.asType(dfUtils.unique).dropNa().describe().print())
+          let uniqueValues = dfUtils.unique(column)
+          console.log("uniqueValues", uniqueValues)
+        } catch (e) {
+          console.log(e)
+        }
+      })
+    }
+    //   // let arr = data.map((row: { [x: string]: any }) => (row[columnName] === "NaN" ? 0 : row[columnName]))
+    //   // let columnType = dfUtils.inferDtype(arr)
+    //   // columnsTypes.push(columnType)
+    // })
+  }
+
   /**
    * @description This function exports the data to JSON
    * @param event - event
@@ -390,7 +416,6 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
     if (filePath) {
       const path = require("path")
       const finalPath = path.join(filePath, "my_data.xlsx")
-      // xlxs.writeFile(wb, finalPath)
       console.log("finalPath", finalPath)
     }
     xlxs.writeFile(wb, "my_data.xlsx")
@@ -445,68 +470,73 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
     if (!data) {
       return <div>Loading...</div>
     }
+    // console.log(this.getDataFrame())
     // console.log("title", this.state.config)
     const numRows = this.state.data.length
     const columns = this.state.columns.map((col) => col.getColumn(this.getCellRenderer, this.getCellData, this.sortColumn))
+    // this.props.setGlobalData(this.getDataFrame())
     return (
       <div className="bp-datatable-wrapper">
-        <div className="bp-datatable-wrapper-title" style={{ display: "flex", flexDirection: "horizontal" }}>
-          {this.state.config.name}
-          <ChevronRight
-            className={`bp-datatable-wrapper-options-icon ${
-              this.state.options.isOpen
-                ? "bp-datatable-wrapper-options-icon-open rotate-90-cw"
-                : "bp-datatable-wrapper-options-icon-closed rotate--90-cw"
-            }`}
-            style={{ display: "flex", padding: "0.1rem", color: "#3f3f3f3", border: "none" }}
-            onClick={() => this.setState({ options: { ...this.state.options, isOpen: !this.state.options.isOpen } })}
-          />
-        </div>
+        <ChevronRight
+          className={`bp-datatable-wrapper-options-icon ${
+            this.state.options.isOpen
+              ? "bp-datatable-wrapper-options-icon-open rotate-90-cw"
+              : "bp-datatable-wrapper-options-icon-closed rotate--90-cw"
+          }`}
 
-        <Collapse isOpen={this.state.options.isOpen}>
-          <Stack direction="horizontal" gap={3} style={{ position: "relative", top: "-5px", right: "0px" }}>
-            <Button
-              onClick={(e) => {
-                this.saveData(e, data)
-              }}
-              icon={<PiFloppyDisk size={"1.5rem"} />}
-              rounded
-              className="p-button-secondary ms-auto"
-              style={{ marginTop: "5px", marginBottom: "5px", padding: "0rem", height: "2.5rem", width: "2.5rem" }}
-              disabled={!this.state.options.isEditable}
-            />
-            <Button
-              onClick={(e) => {
-                this.exportToCSV(e, data)
-              }}
-              icon={<FiletypeCsv size={"1.5rem"} />}
-              rounded
-              className="p-button-secondary ms-auto"
-              style={{ marginTop: "5px", marginBottom: "5px", padding: "0rem", height: "2.5rem", width: "2.5rem" }}
-              disabled={!this.state.options.isEditable}
-            />
-            <Button
-              onClick={(e) => {
-                this.exportToJSON(e, data)
-              }}
-              icon={<FiletypeJson size={"1.5rem"} />}
-              rounded
-              className="p-button-info"
-              style={{ marginTop: "5px", marginBottom: "5px", padding: "0rem", height: "2.5rem", width: "2.5rem" }}
-              disabled={!this.state.options.isEditable}
-            />
-            <Button
-              onClick={(e) => {
-                this.exportToExcel(e, data)
-              }}
-              icon={<FiletypeXlsx size={"1.5rem"} />}
-              rounded
-              className="p-button-success"
-              style={{ marginTop: "5px", marginBottom: "5px", padding: "0rem", height: "2.5rem", width: "2.5rem" }}
-              disabled={!this.state.options.isEditable}
-            />
-          </Stack>
-        </Collapse>
+          // style={{ display: "block", padding: "0.25rem", margin: "1rem", color: "#3f3f3f3", border: "none", zIndex: 1000 }}
+        />
+        <div
+          className="bp-datatable-wrapper-title"
+          style={{ display: "flex", flexDirection: "horizontal" }}
+          onMouseEnter={() => this.setState({ options: { ...this.state.options, isOpen: true } })}
+          onMouseLeave={() => this.setState({ options: { ...this.state.options, isOpen: false } })}
+        >
+          <Collapse isOpen={this.state.options.isOpen}>
+            <Stack direction="horizontal" gap={3} style={{ position: "relative", top: "-5px", right: "0px" }}>
+              <Button
+                onClick={(e) => {
+                  this.saveData(e, data)
+                }}
+                icon={<PiFloppyDisk size={"1.5rem"} />}
+                rounded
+                className="p-button-secondary ms-auto"
+                style={{ marginTop: "5px", marginBottom: "5px", padding: "0rem", height: "2.5rem", width: "2.5rem" }}
+                disabled={!this.state.options.isEditable}
+              />
+              <Button
+                onClick={(e) => {
+                  this.exportToCSV(e, data)
+                }}
+                icon={<FiletypeCsv size={"1.5rem"} />}
+                rounded
+                className="p-button-secondary ms-auto"
+                style={{ marginTop: "5px", marginBottom: "5px", padding: "0rem", height: "2.5rem", width: "2.5rem" }}
+                disabled={!this.state.options.isEditable}
+              />
+              <Button
+                onClick={(e) => {
+                  this.exportToJSON(e, data)
+                }}
+                icon={<FiletypeJson size={"1.5rem"} />}
+                rounded
+                className="p-button-info"
+                style={{ marginTop: "5px", marginBottom: "5px", padding: "0rem", height: "2.5rem", width: "2.5rem" }}
+                disabled={!this.state.options.isEditable}
+              />
+              <Button
+                onClick={(e) => {
+                  this.exportToExcel(e, data)
+                }}
+                icon={<FiletypeXlsx size={"1.5rem"} />}
+                rounded
+                className="p-button-success"
+                style={{ marginTop: "5px", marginBottom: "5px", padding: "0rem", height: "2.5rem", width: "2.5rem" }}
+                disabled={!this.state.options.isEditable}
+              />
+            </Stack>
+          </Collapse>
+        </div>
 
         <HotkeysTarget2
           hotkeys={

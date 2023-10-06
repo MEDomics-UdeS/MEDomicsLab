@@ -521,7 +521,7 @@ class MainInnerContainer extends React.Component<
    * @description here we catch RENAME_TAB actions and update the medDataObject name
    */
   onAction = (action: Action) => {
-    console.log("MainContainer action: ", action, this.layoutRef, this.state.model )
+    console.log("MainContainer action: ", action, this.layoutRef, this.state.model)
     if (action.type === Actions.RENAME_TAB) {
       const { globalData, setGlobalData } = this.props as DataContextType
       let newName = action.data.text
@@ -625,7 +625,14 @@ class MainInnerContainer extends React.Component<
       const config = node.getConfig()
       // console.log("config", config)
       if (node.getExtraData().data == null) {
+        const dfd = require("danfojs-node")
         const whenDataLoaded = (data) => {
+          const { globalData, setGlobalData } = this.props as DataContextType
+          let globalDataCopy = globalData
+          if (globalDataCopy[config.uuid] !== undefined) {
+            globalDataCopy[config.uuid].data = new dfd.DataFrame(data)
+            setGlobalData(globalDataCopy)
+          }
           node.getExtraData().data = data
         }
         let extension = config.extension
@@ -653,18 +660,6 @@ class MainInnerContainer extends React.Component<
           }}
           config={...config}
         />
-        // <DataTable
-        //   data={node.getExtraData().data}
-        //   tablePropsData={{
-        //     paginator: true,
-        //     rows: 10,
-        //     scrollable: true,
-        //     scrollHeight: "400px"
-        //   }}
-        //   tablePropsColumn={{
-        //     sortable: true
-        //   }}
-        // />
       )
     } else if (component === "learningPage") {
       if (node.getExtraData().data == null) {
