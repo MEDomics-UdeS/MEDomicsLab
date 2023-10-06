@@ -2,7 +2,6 @@ import copy
 import json
 from colorama import Fore
 from pycaret.loggers.base_logger import BaseLogger
-import pandas as pd
 
 
 class MEDml_logger(BaseLogger):
@@ -38,12 +37,14 @@ class MEDml_logger(BaseLogger):
         if full_name.__contains__('Session'):
             full_name = 'setup'
         print()
-        print(Fore.GREEN + f"init experiment: {exp_name_log}, {full_name}" + Fore.RESET)
+        print(Fore.GREEN +
+              f"init experiment: {exp_name_log}, {full_name}" + Fore.RESET)
         self.current_logging_step = full_name
         self.results[self.current_logging_step] = {}
 
     def set_tags(self, source, experiment_custom_tags, runtime, USI=None):
-        print(Fore.GREEN + f"set tags: {source}, {experiment_custom_tags}, {runtime}, {USI}" + Fore.RESET)
+        print(
+            Fore.GREEN + f"set tags: {source}, {experiment_custom_tags}, {runtime}, {USI}" + Fore.RESET)
 
     def log_sklearn_pipeline(self, experiment, prep_pipe, model, path=None):
         # print(Fore.GREEN + f"log sklearn pipeline: {experiment}, {prep_pipe}, {model}, {path}" + Fore.RESET)
@@ -51,7 +52,8 @@ class MEDml_logger(BaseLogger):
 
     def log_model_comparison(self, model_result, source):
         print()
-        print(Fore.GREEN + f"log model comparison: {model_result}, {source}" + Fore.RESET)
+        print(Fore.GREEN +
+              f"log model comparison: {model_result}, {source}" + Fore.RESET)
         # self.results[self.current_logging_step]['model_results_comp'] = model_result.to_json()
 
     def log_metrics(self, metrics, source=None):
@@ -63,7 +65,8 @@ class MEDml_logger(BaseLogger):
         print(Fore.GREEN + f"log plot: {plot}, {title}" + Fore.RESET)
 
     def log_hpram_grid(self, html_file, title="hpram_grid"):
-        print(Fore.GREEN + f"log hpram grid: {html_file}, {title}" + Fore.RESET)
+        print(Fore.GREEN +
+              f"log hpram grid: {html_file}, {title}" + Fore.RESET)
 
     def log_artifact(self, file, type="artifact"):
         # print(Fore.GREEN + f"log artifact: {file}, {type}" + Fore.RESET)

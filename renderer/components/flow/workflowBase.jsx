@@ -198,6 +198,20 @@ const WorkflowBase = ({ isGoodConnection, groupNodeHandlingDefault, onDeleteNode
     setEdgesHasRunState()
   }, [flowResults, showResultsPane, newConnection])
 
+  // when showResultsPane changes, update the nodes draggable property
+  useEffect(() => {
+    setNodes((nds) =>
+      nds.map((node) => {
+        // it's important that you create a new object here in order to notify react flow about the change
+        node.data = {
+          ...node.data
+        }
+        node.draggable = !showResultsPane
+        return node
+      })
+    )
+  }, [showResultsPane])
+
   /**
    * @param {object} params
    * @param {string} params.source
@@ -470,19 +484,6 @@ const WorkflowBase = ({ isGoodConnection, groupNodeHandlingDefault, onDeleteNode
       <ReactFlow nodes={nodes} edges={edges} onNodesChange={onNodesChange} onEdgesChange={onEdgesChange} onInit={setReactFlowInstance} nodeTypes={nodeTypes} onNodeDrag={onNodeDrag} onConnect={onConnect} onDrop={onDrop} onDragOver={onDragOver} onEdgeUpdate={onEdgeUpdate} onEdgeUpdateStart={onEdgeUpdateStart} onEdgeUpdateEnd={onEdgeUpdateEnd} fitView>
         <Background /> <MiniMap className="minimapStyle" zoomable pannable /> <Controls />
         {ui}
-        {/* <div className="btn-panel-top-corner-left gap-2">
-          <ToggleButton onIcon="pi pi-list" offIcon="pi pi-times" onLabel="" offLabel="" checked={!showAvailableNodes} onChange={(e) => setShowAvailableNodes(!e.value)} className="btn-ctl-available-nodes" />
-          <ToggleButton onLabel="Results mode on" offLabel="See results" onIcon="pi pi-chart-bar" offIcon="pi pi-eye" disabled={!isResults} checked={showResultsPane} onChange={(e) => setShowResultsPane(e.value)} className="btn-show-results" />
-        </div> */}
-        {/* <div className="flow-btn-panel-top">
-          <div className="left">
-            <ToggleButton onIcon="pi pi-list" offIcon="pi pi-times" onLabel="" offLabel="" checked={!showAvailableNodes} onChange={(e) => setShowAvailableNodes(!e.value)} className="btn-ctl-available-nodes" />
-            <ToggleButton onLabel="Results mode on" offLabel="See results" onIcon="pi pi-chart-bar" offIcon="pi pi-eye" disabled={!isResults} checked={showResultsPane} onChange={(e) => setShowResultsPane(e.value)} className="btn-show-results" />
-            {uiTopLeft}
-          </div>
-          <div className="center">{uiTopCenter}</div>
-          <div className="right">{uiTopRight}</div>
-        </div> */}
         <Container className="flow-btn-panel-top">
           <Row>
             <Col sm className="left">

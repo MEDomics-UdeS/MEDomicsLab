@@ -13,6 +13,7 @@ import { toast } from "react-toastify"
 import * as Icon from "react-bootstrap-icons"
 import { WorkspaceContext, EXPERIMENTS } from "../../workspace/workspaceContext"
 import { loadJsonPath } from "../../../utilities/fileManagementUtils"
+import process from "process"
 
 /**
  *
@@ -43,8 +44,6 @@ const checkIfObjectContainsId = (obj, id) => {
  */
 const PipelineResult = ({ pipeline, selectionMode, flowContent }) => {
   const { flowResults, selectedResultsId } = useContext(FlowResultsContext)
-  const [lastPipeline, setLastPipeline] = useState([])
-
   const [body, setBody] = useState(<></>)
   const [selectedId, setSelectedId] = useState(null)
 
@@ -116,16 +115,29 @@ const PipelineResult = ({ pipeline, selectionMode, flowContent }) => {
  * This component takes all the selected pipelines and displays them in an accordion.
  */
 const PipelinesResults = ({ pipelines, selectionMode, flowContent }) => {
-  const { selectedResultsId, setSelectedResultsId, flowResults } = useContext(FlowResultsContext)
+  const { selectedResultsId, setSelectedResultsId, flowResults, showResultsPane } = useContext(FlowResultsContext)
   const { getBasePath } = useContext(WorkspaceContext)
   const { sceneName, experimentName } = useContext(FlowInfosContext)
 
+  const [accordionActiveIndexStore, setAccordionActiveIndexStore] = useState([])
   const [accordionActiveIndex, setAccordionActiveIndex] = useState([])
 
+  //when the selectionMode change, reset the selectedResultsId and the accordionActiveIndex
   useEffect(() => {
     setSelectedResultsId(null)
     setAccordionActiveIndex([])
   }, [selectionMode])
+
+  // When the showResultsPane change, save the state of accordionActiveIndex and set it to [] if showResultsPane is false for performance purpose
+  useEffect(() => {
+    console.log("showResultsPane", showResultsPane)
+    if (!showResultsPane) {
+      setAccordionActiveIndexStore(accordionActiveIndex)
+      setAccordionActiveIndex([])
+    } else {
+      setAccordionActiveIndex(accordionActiveIndexStore)
+    }
+  }, [showResultsPane])
 
   /**
    * @returns {JSX.Element} The title of the accordion tab

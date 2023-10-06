@@ -379,6 +379,7 @@ class MEDexperiment:
         Returns:
             dict: The results of the pipeline execution.
         """
+        self._progress['cur_node'] = 'Generating results'
         return_dict = {}
         for key, value in self._results_pipeline.items():
             if is_primitive(value):

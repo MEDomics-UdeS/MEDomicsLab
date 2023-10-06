@@ -51,9 +51,14 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
   const { getIntersectingNodes } = useReactFlow() // getIntersectingNodes is used to get the intersecting nodes of a node
   const [intersections, setIntersections] = useState([]) // intersections is used to store the intersecting nodes related to optimize nodes start and end
   const [isProgressUpdating, setIsProgressUpdating] = useState(false) // progress is used to store the progress of the workflow execution
+  const [progress, setProgress] = useState({
+    now: 0,
+    currentName: ""
+  })
+
   const { config, pageId, configPath } = useContext(PageInfosContext) // used to get the page infos such as id and config path
   const { groupNodeId, changeSubFlow } = useContext(FlowFunctionsContext)
-  const { updateFlowResults } = useContext(FlowResultsContext)
+  const { updateFlowResults, isResults } = useContext(FlowResultsContext)
   const { port, workspace, getBasePath } = useContext(WorkspaceContext)
   const { setError } = useContext(ErrorRequestContext)
   const { experimentName, sceneName } = useContext(FlowInfosContext)
@@ -78,6 +83,16 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
       console.log("No config file found for this page, base workflow will be used")
     }
   }, [config])
+
+  // when isResults is changed, we set the progressBar to completed state
+  useEffect(() => {
+    if (isResults) {
+      setProgress({
+        now: 100,
+        currentName: "Done!"
+      })
+    }
+  }, [isResults])
 
   // executed when the machine learning type is changed
   // it updates the possible settings of the nodes
@@ -668,7 +683,7 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
       newJson.path_seperator = MedDataObject.getPathSeparator()
       // eslint-disable-next-line camelcase
       newJson.scene_id = pageId // TODO: change this to scene uuid
-      newJson.nbNodes2Run = nbNodes2Run
+      newJson.nbNodes2Run = nbNodes2Run + 1 // +1 because the results generation is a time consuming task
 
       return { newflow: newJson, isValid: isValidDefault }
     },
@@ -849,7 +864,7 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
           <>
             {/* bottom center - progress bar */}
             <div className="panel-bottom-center">
-              <ProgressBarRequests isUpdating={isProgressUpdating} setIsUpdating={setIsProgressUpdating} />
+              <ProgressBarRequests isUpdating={isProgressUpdating} setIsUpdating={setIsProgressUpdating} progress={progress} setProgress={setProgress} />
             </div>
           </>
         }

@@ -7,34 +7,54 @@
   height: 120;
 }
 
-.draggable-side-node {
+.draggable-component {
   cursor: grab;
+  padding: 0.3rem;
 }
 
-.draggable-side-node:hover {
-  box-shadow: 0 0 0.3rem #000000;
-  z-index: 999;
-}
-.node .card-header {
+.draggable-side-node {
+  height: 3rem;
+  cursor: grab;
   display: flex;
-  justify-content: space-between;
-  padding: 0.2rem 0.2rem 0.2rem 0.5rem;
-  min-height: 3rem;
 }
 
-.header {
+.draggable-side-node .icon-nodes {
+  width: 1.8rem;
+  height: 1.8rem;
+}
+
+.draggable-side-node .header {
   display: flex;
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
-  padding: 8px;
-  min-height: 30px;
+  padding: 0.75rem;
+  width: 100%;
+}
+
+.draggable-side-node.p-card {
+  background: #f3f3f3;
+  color: #495057;
+  box-shadow:
+    2px 2px 3px -1px rgb(0 0 0 / 20%),
+    0 1px 1px 0 rgb(0 0 0 / 14%),
+    0px 0px 3px 2px rgb(0 0 0 / 12%);
+  border-radius: 6px;
+  outline: 0.1rem solid #00000015;
+}
+
+.draggable-side-node.p-card:hover {
+  box-shadow:
+    3px 3px 5px -1px rgb(0 0 0 / 40%),
+    0 1px 1px 0 rgb(0 0 0 / 14%),
+    0px 0px 3px 2px rgb(0 0 0 / 24%);
 }
 
 .btn-node-div {
   display: flex;
   flex-direction: column;
   gap: 0.1rem;
+  justify-content: space-between;
 }
 
 .btn-close-node {
@@ -47,36 +67,82 @@
 
 .btn-close-node:hover {
   border-radius: 25%;
-  background-color: #80808057;
+  background-color: rgba(255, 0, 0, 0.25);
+  color: red;
 }
 
-.btn-runNode {
+.btn-run-node {
   width: 1.2rem;
   height: 1.2rem;
   cursor: pointer;
   padding: 0px;
-  border-radius: 25%;
+  opacity: 0.75;
 }
 
-.btn-runNode img {
+.btn-run-node:hover {
+  border-radius: 25%;
+  background-color: rgba(0, 128, 0, 0.25);
+  color: green;
+}
+
+.btn-info-node {
+  width: 1.3rem;
+  height: 1.3rem;
   cursor: pointer;
-  vertical-align: baseline;
-  margin: 0px 0px 5px 1px;
+  padding: 0px;
+  opacity: 0.75;
+}
+
+.btn-info-node:hover {
+  background-color: #00000000;
+  color: blue;
 }
 
 .node {
   background: #f5f5f6;
   color: #222;
-  box-shadow:
-    0 4px 6px -1px rgb(0 0 0 / 15%),
-    0 2px 4px -1px rgb(0 0 0 / 8%);
   border-radius: 2px;
   min-width: 200px;
+}
+
+.node .p-card-header {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.2rem 0.2rem 0.2rem 0.5rem;
+  min-height: 3rem;
+}
+
+.node .p-card {
+  background: #f3f3f3;
+  color: #495057;
+  box-shadow:
+    5px 5px 6px -1px rgb(0 0 0 / 20%),
+    0 1px 1px 0 rgb(0 0 0 / 14%),
+    0px 0px 3px 2px rgb(0 0 0 / 12%);
+  border-radius: 6px;
+  outline: 0.1rem solid #00000015;
+}
+
+.react-flow__node:hover .node .p-card {
+  box-shadow:
+    5px 5px 6px -1px rgb(0 0 0 / 40%),
+    0 1px 1px 0 rgb(0 0 0 / 14%),
+    0px 0px 3px 2px rgb(0 0 0 / 24%);
+}
+
+.node .p-card-body {
+  padding: 0.2rem;
+}
+
+.node .p-card-content {
+  padding: 0.2rem;
 }
 
 .node .icon-nodes {
   margin-right: 10px;
   float: left;
+  width: 1.8rem;
+  height: 1.8rem;
 }
 
 .react-flow {
@@ -98,6 +164,7 @@
   height: 10px;
   background-color: #262626;
   margin: 0px -3px;
+  z-index: -1;
 }
 
 .react-flow__handle-valid {
@@ -106,6 +173,7 @@
 
 .react-flow__node {
   height: fit-content;
+  cursor: grab;
 }
 
 .cursor-grab {
@@ -136,23 +204,25 @@
   top: 42px;
 }
 
-.available-nodes-panel {
+.available-nodes-panel-container {
   width: 100%;
   z-index: 2;
   height: 100%;
-  min-width: 210px;
   gap: 0.5rem !important;
   display: flex;
   flex-direction: column;
+  padding: 5px;
+  overflow-y: auto;
+  min-width: 230px;
 }
 
-.available-nodes-panel .col {
-  text-align: left;
-  padding: 0px;
+.available-nodes-panel {
+  box-shadow: 2px 2px 5px -1px rgb(0 0 0 / 40%);
 }
 
-.available-nodes-panel .card-body {
+.available-nodes-panel .p-card-body {
   padding: 0.5rem;
+  background-color: #0000000d;
 }
 
 .closeBtn.btn:hover {
@@ -401,10 +471,6 @@ input.node-editableLabel {
   z-index: 0;
 }
 
-.card-body {
-  padding: 0.2rem;
-}
-
 #data-panel-id-sidebar {
   max-width: 210px;
 }
@@ -459,6 +525,7 @@ input.node-editableLabel {
   align-items: center;
   outline: 0.1rem solid lightblue;
   background-color: rgba(173, 216, 230, 0.5);
+  z-index: -1;
 }
 
 .node-wrapper-selector.context-checked {

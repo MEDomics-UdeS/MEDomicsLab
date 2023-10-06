@@ -11,12 +11,9 @@ import { PageInfosContext } from "../mainPages/moduleBasics/pageInfosContext"
  * @param {function} setIsUpdating set the updating state
  * @returns a progress bar that shows the progress of the current flow
  */
-const ProgressBarRequests = ({ isUpdating, setIsUpdating }) => {
+const ProgressBarRequests = ({ isUpdating, setIsUpdating, progress, setProgress }) => {
   const { pageId } = useContext(PageInfosContext) // used to get the flow infos
-  const [progress, setProgress] = useState({
-    now: 0,
-    currentName: ""
-  })
+
   const { port } = useContext(WorkspaceContext) // used to get the port
 
   useInterval(
@@ -25,7 +22,7 @@ const ProgressBarRequests = ({ isUpdating, setIsUpdating }) => {
         port,
         "/learning/progress/" + pageId,
         // eslint-disable-next-line camelcase
-        { scene_id: pageId },
+        {},
         (data) => {
           setProgress({
             now: data.progress,

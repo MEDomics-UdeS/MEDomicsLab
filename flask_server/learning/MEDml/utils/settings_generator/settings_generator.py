@@ -64,14 +64,14 @@ types_conversion = {
 }
 
 nodes_options = {
-    'split': {
-        "info": ["train_size", "data_split_stratify", "data_split_shuffle"],
-        "code": """
-def split_data(Dataset, node_settings):
-    # do yo things here
-    return Dataset1, Dataset2
-"""
-    },
+    #     'split': {
+    #         "info": ["train_size", "data_split_stratify", "data_split_shuffle"],
+    #         "code": """
+    # def split_data(Dataset, node_settings):
+    #     # do yo things here
+    #     return Dataset1, Dataset2
+    # """
+    #     },
     'clean': {
         "info": ["imputation_type",
                  "normalize",
@@ -134,21 +134,23 @@ create_model(node_settings)
     },
     'model': {
         "info": [],
-        "code": """
-        
-        """
+        "code": """"""
     },
     'analyse': {
         "info": ['plot_model', 'interpret_model', 'dashboard'],
-        "code": """
-        
-        """
+        "code": """"""
     },
-    'deploy': {
-        "info": ['predict_model', 'finalize_model', 'save_model', 'deploy_model'],
-        "code": """
-        
-        """
+    'finalize': {
+        "info": ['finalize_model'],
+        "code": """"""
+    },
+    'save_model': {
+        "info": ['save_model'],
+        "code": """"""
+    },
+    'load_model': {
+        "info": ['load_model'],
+        "code": """"""
     },
 
 }
@@ -193,11 +195,11 @@ def convert_to_medomics_standards(settings: dict, types_conv: dict, nodes_includ
     for node in nodes_include.keys():
         standard_settings[node] = {}
     # SPLIT SETTINGS
-    split_options = nodes_include['split']['info']
-    standard_settings['split']['options'] = {}
-    standard_settings['split']['code'] = nodes_include['split']['code']
-    for split_option in split_options:
-        standard_settings['split']['options'][split_option] = settings['setup']['options'][split_option]
+    # split_options = nodes_include['split']['info']
+    # standard_settings['split']['options'] = {}
+    # standard_settings['split']['code'] = nodes_include['split']['code']
+    # for split_option in split_options:
+    #     standard_settings['split']['options'][split_option] = settings['setup']['options'][split_option]
 
     # CLEAN SETTINGS
     clean_options = nodes_include['clean']['info']
@@ -207,8 +209,7 @@ def convert_to_medomics_standards(settings: dict, types_conv: dict, nodes_includ
         standard_settings['clean']['options'][clean_option] = settings['setup']['options'][clean_option]
 
     # DATASET SETTINGS
-    not_these_keys = list(standard_settings['split']['options'].keys(
-    )) + list(standard_settings['clean']['options'].keys())
+    not_these_keys = list(standard_settings['clean']['options'].keys())
     standard_settings['dataset']['options'] = {}
     standard_settings['dataset']['code'] = nodes_include['dataset']['code']
     for node in settings['setup']['options'].keys():
@@ -248,11 +249,17 @@ def convert_to_medomics_standards(settings: dict, types_conv: dict, nodes_includ
         standard_settings['analyse'][analyse_option] = settings[analyse_option]
         standard_settings['analyse'][analyse_option]["code"] = f"{analyse_option}()"
 
-    # DEPLOY SETTINGS
-    deploy_options = nodes_include['deploy']['info']
-    for deploy_option in deploy_options:
-        standard_settings['deploy'][deploy_option] = settings[deploy_option]
-        standard_settings['deploy'][deploy_option]["code"] = f"{deploy_option}()"
+    # LOAD_MODEL SETTINGS
+    standard_settings['load_model']['options'] = settings['load_model']['options']
+    standard_settings['load_model']['code'] = nodes_include['load_model']['code']
+
+    # FINALIZE SETTINGS
+    standard_settings['finalize']['options'] = settings['finalize_model']['options']
+    standard_settings['finalize']['code'] = nodes_include['finalize']['code']
+
+    # SAVE_MODEL SETTINGS
+    standard_settings['save_model']['options'] = settings['save_model']['options']
+    standard_settings['save_model']['code'] = nodes_include['save_model']['code']
 
     # SETTINGS types CONVERSION
     for node, node_info in standard_settings.items():
@@ -294,7 +301,7 @@ def specific_case(dict_settings: dict) -> dict:
         "type": "data-input",
         "tooltip": "<p>Specify path to csv file or to medomics folder -.</p>"
     }
-    dict_settings['deploy']['save_model']['options']['folder_path'] = {
+    dict_settings['save_model']['options']['folder_path'] = {
         "type": "string",
         "tooltip": "<p>Specify path to folder where to save the pickle object.</p>"
     }

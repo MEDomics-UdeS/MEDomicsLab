@@ -109,6 +109,18 @@ a {
   padding: 0px 0px 0px 0px;
 }
 
+.padding-0-important {
+  padding: 0px 0px 0px 0px !important;
+}
+
+.padding-0_2rem {
+  padding: 0.2rem;
+}
+
+.padding-0_2rem-important {
+  padding: 0.2rem !important;
+}
+
 .margin-vertical-10 {
   margin: 10px 0px 10px 0px;
 }
@@ -177,6 +189,7 @@ body {
 .module-page {
   padding: 0.5rem;
   height: 100%;
+  width: 100%;
 }
 
 .padding-0_5rem {
@@ -240,6 +253,13 @@ body {
 
 .error-dialog-header .p-button.p-button-icon-only.p-button-rounded .pi {
   font-size: 1.2rem;
+}
+.error-dialog-header .p-button.p-button-icon-only.p-button-rounded:hover .pi {
+  color: dodgerblue;
+}
+
+.error-dialog-header .p-button.p-button-icon-only.p-button-rounded:hover {
+  background-color: #00000000;
 }
 
 .error-dialog-header.row {
