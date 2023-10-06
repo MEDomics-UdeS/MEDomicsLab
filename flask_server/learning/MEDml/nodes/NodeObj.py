@@ -1,3 +1,5 @@
+from termcolor import colored
+from colorama import Fore, Back, Style
 import pandas as pd
 from abc import ABC, abstractmethod
 import numpy as np
@@ -5,15 +7,29 @@ import json
 from typing import Any, Dict, List, Union
 DATAFRAME_LIKE = Union[dict, list, tuple, np.ndarray, pd.DataFrame]
 TARGET_LIKE = Union[int, str, list, tuple, np.ndarray, pd.Series]
-from colorama import Fore, Back, Style
-from termcolor import colored
 
 
 def str2bool(v: str) -> bool:
+    """
+    Converts a string to a boolean
+    Args:
+        v: string to convert
+
+    Returns:
+        True if the string is "True", False otherwise
+    """
     return v.lower() == "true"
 
 
 def is_float(element: Any) -> bool:
+    """
+    Checks if an element is a float
+    Args:
+        element: element to check
+
+    Returns:
+        True if the element is a float, False otherwise
+    """
     try:
         float(element)
         return True
@@ -37,10 +53,10 @@ class Node(ABC):
         self.global_config_json = global_config_json
         self.config_json = global_config_json['nodes'][str(id_)]
         self._code = self.config_json['data']['internal']['code']
+        self.CodeHandler = NodeCodeHandler()
         self.settings = self.config_json['data']['internal']['settings']
         self.type = self.config_json['data']['internal']['type']
         self.username = self.config_json['data']['internal']['name']
-        self._class = self.config_json['className']
         self.id = id_
         self._has_run = False
         self.just_run = False
@@ -87,6 +103,8 @@ class Node(ABC):
         Returns:
             result of the execution of the node
         """
+        self.CodeHandler.reset()
+        self.CodeHandler.add_line("md", f"### This is {self.username}")
         self.just_run = True
         self._has_run = True
 
@@ -105,16 +123,6 @@ class Node(ABC):
         return self.id == other.id and self.config_json == other.config_json
 
     @abstractmethod
-    def get_final_code(self) -> str:
-        """
-        not implemented yet
-        Returns:
-            string
-        """
-        # todo
-        pass
-
-    @abstractmethod
     def _execute(self, experiment: dict = None, **kwargs) -> json:
         """
         Abstract method that has to be implemented by the child classes. \n
@@ -128,3 +136,99 @@ class Node(ABC):
         """
         pass
 
+
+class NodeCodeHandler:
+    """
+    Class used to handle the code of a node
+    """
+
+    def __init__(self, base_code: List[dict] = []) -> None:
+        """
+        Constructor for NodeCodeHandler class
+        Args:
+            base_code: base code of the node
+        """
+        self.code = base_code
+        self.imports = []
+
+    def add_import(self, import_name: str):
+        """
+        Adds an import to the code
+        Args:
+            import_name: name of the import
+
+        Returns:
+            None
+        """
+        self.imports.append(
+            {"type": "code", "content": import_name, "indent": 0})
+
+    def add_line(self, line_type: str, line: str, indent: int = 0):
+        """
+        Adds a line to the code
+        Args:
+            line_type: type of the line (e.g. "code" or "md")
+            line: content of the line
+            indent: indentation of the line
+
+        Returns:
+            None
+        """
+        indent_str = "    " * indent
+        self.code.append(
+            {"type": line_type, "content": indent_str+line, "indent": indent})
+
+    def add_function(self, func_name, func_params, func_body):
+        """
+        Adds a function to the code
+        Args:
+            func_name: name of the function
+            func_params: parameters of the function
+            func_body: body of the function
+
+        Returns:
+            None
+        """
+        self.add_line("code", f"def {func_name}({func_params}):", 0)
+        for line in func_body:
+            self.add_line("code", line, 1)
+
+    def newLine(self):
+        """
+        Adds a new line to the code
+        Returns:
+            None
+        """
+        self.add_line("code", "\n", 0)
+
+    def add_seperator(self):
+        """
+        Adds a seperator to the code
+        Returns:
+            None
+        """
+        self.add_line("seperator", "---------------------", 0)
+
+    def reset(self):
+        """
+        Resets the code
+        Returns:
+            None
+        """
+        self.code = []
+
+    def get_code(self):
+        """
+        Returns the code
+        Returns:
+            the code
+        """
+        return self.code
+
+    def get_imports(self):
+        """
+        Returns the imports
+        Returns:
+            the imports
+        """
+        return self.imports

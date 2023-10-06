@@ -28,7 +28,7 @@ git submodule update
 ## 5. Run the Electron app in development mode
 
 ```
-cd <.../MEDomicsLab>
+cd <.../MEDomicsLab/>
 npm install
 npm run dev
 ```

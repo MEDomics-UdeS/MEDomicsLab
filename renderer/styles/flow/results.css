@@ -59,15 +59,23 @@
 .pipeline-results-accordion {
   padding: 0.25rem;
 }
+.pipeline-results-accordion .p-accordion-header-text .p-button {
+  max-width: fit-content;
+  min-width: fit-content;
+}
+
+.pipeline-results-accordion .p-accordion-header .p-accordion-header-link .p-accordion-header-text {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
 
 .pipeline-results-accordion .p-accordion-header .p-accordion-header-link {
   padding: 0.2rem 0.5rem;
 }
 
-.pipeline-results-accordion
-  .p-accordion-header
-  .p-accordion-header-link
-  .p-accordion-toggle-icon {
+.pipeline-results-accordion .p-accordion-header .p-accordion-header-link .p-accordion-toggle-icon {
   margin-left: 0.5rem;
   margin-right: 1rem;
 }
@@ -133,4 +141,15 @@
 
 .pipeline-results-button .unchecked {
   font-weight: 400;
+}
+
+.results-select-button {
+  flex-grow: 1;
+}
+
+.flex-grid-gap-1rem {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 1rem;
 }

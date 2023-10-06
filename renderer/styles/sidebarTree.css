@@ -133,10 +133,12 @@
 .medomics-layer {
   display: flex;
   flex-direction: row;
-  z-index: 2;
+  z-index: 3;
+  justify-content: center;
+  border-top: 0.15rem solid;
+
+  width: 100%;
 }
-
-
 
 .medomics-layer-text {
   color: #ffffff;
@@ -195,6 +197,20 @@
 }
 
 .icon-sidebar-divider {
-  z-index: 2;
+  z-index: 3;
   background-color: #3a3a3a;
+}
+
+.rct-tree-item-title-container div {
+  display: flex;
+  align-items: center;
+}
+
+.rct-tree-item-title-container label {
+  cursor: pointer;
+}
+
+.rct-tree-item-title-container .icon-offset {
+  margin-right: 0.15rem;
+  margin-bottom: 0.2rem;
 }

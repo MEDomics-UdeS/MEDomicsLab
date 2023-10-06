@@ -1,29 +1,31 @@
 import React from "react"
 import LearningPage from "./learning"
-
+import ModulePage from "./moduleBasics/modulePage"
 /**
- * 
+ *
  * @returns {JSX.Element} The ResultsPage component
  */
-const ResultsPage = () => {
+const ResultsPage = ({ pageId = "results123", configPath = null }) => {
   return (
     <>
-      <div style={{ display: "flex", flexWrap: "wrap" }}>
-        <div style={{ width: "50%" }}>
-          <LearningPage pageId="1" />
+      <ModulePage pageId={pageId} configPath={configPath}>
+        <div style={{ display: "flex", flexWrap: "wrap" }}>
+          <div style={{ width: "50%" }}>
+            <LearningPage pageId="1" />
+          </div>
+          <div style={{ width: "50%" }}>
+            {" "}
+            <LearningPage pageId="2" />
+          </div>
+          <div style={{ width: "50%" }}>
+            <LearningPage pageId="3" />
+          </div>
+          <div style={{ width: "50%" }}>
+            {" "}
+            <LearningPage pageId="4" />
+          </div>
         </div>
-        <div style={{ width: "50%" }}>
-          {" "}
-          <LearningPage pageId="2" />
-        </div>
-        <div style={{ width: "50%" }}>
-          <LearningPage pageId="3" />
-        </div>
-        <div style={{ width: "50%" }}>
-          {" "}
-          <LearningPage pageId="4" />
-        </div>
-      </div>
+      </ModulePage>
     </>
   )
 }

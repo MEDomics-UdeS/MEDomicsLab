@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, useRef } from "react"
+import React, { useEffect, useState, useCallback, useRef, useContext } from "react"
 import { PanelGroup, Panel, PanelResizeHandle } from "react-resizable-panels"
 import resizable from "../../styles/resizable.module.css"
 import IconSidebar from "../layout/iconSidebar"
@@ -8,23 +8,38 @@ import Learning from "../mainPages/learning"
 import ExtractionImagePage from "../mainPages/extraction_images"
 import ExtractionTextPage from "../mainPages/extraction_text"
 import ExtractionTSPage from "../mainPages/extraction_ts"
-import DiscoveryPage from "../mainPages/discovery"
+import ExploratoryPage from "../mainPages/exploratory"
 import ResultsPage from "../mainPages/results"
 import ApplicationPage from "../mainPages/application"
 import HomeSidebar from "./sidebarTools/homeSidebar"
 import ExplorerSidebar from "./sidebarTools/explorerSidebar"
 import SearchSidebar from "./sidebarTools/searchSidebar"
 import LayoutTestSidebar from "./sidebarTools/layoutTestSidebar"
-import MainFlexLayout from "./mainContainerFunctional"
 import InputSidebar from "./sidebarTools/inputSidebar"
 import LearningSidebar from "./sidebarTools/learningSidebar"
 import ExtractionTSSidebar from "./sidebarTools/extractionTSSidebar"
 import { ipcRenderer } from "electron"
+import { MainContainer } from "./flexlayout/mainContainerClass"
+import EvaluationPage from "../mainPages/evaluation"
+import SidebarDirectoryTreeControlled from "./sidebarTools/sidebarDirectoryTreeControlled"
+import { Accordion, Stack } from "react-bootstrap"
+import { LayoutModelContext } from "./layoutContext"
+import { WorkspaceContext } from "../workspace/workspaceContext"
 
 const LayoutManager = (props) => {
   const [activeSidebarItem, setActiveSidebarItem] = useState("home") // State to keep track of active nav item
-
+  const [workspaceIsSet, setWorkspaceIsSet] = useState(true) // State to keep track of active nav item
   const sidebarRef = useRef(null) // Reference to the sidebar object
+
+  const { layoutState, dispatchLayout, developerMode, setDeveloperMode } = useContext(LayoutModelContext)
+  const { workspace } = useContext(WorkspaceContext)
+  useEffect(() => {
+    if (workspace.hasBeenSet == false) {
+      setWorkspaceIsSet(false)
+    } else {
+      setWorkspaceIsSet(true)
+    }
+  }, [workspace])
 
   // This is a callback that will be called when the user presses a key
   // It will check if the user pressed ctrl+b and if so, it will collapse or expand the sidebar
@@ -55,28 +70,34 @@ const LayoutManager = (props) => {
 
   // Render content component based on activeNavItem state
   const renderContentComponent = ({ props }) => {
-    switch (activeSidebarItem) {
-      case "home":
-        return <Home />
-      case "input":
-        return <Input pageId="42" />
-      case "learning":
-        return <Learning pageId="123" />
-      case "extraction_images":
-        return <ExtractionImagePage pageId="1234" />
-      case "extraction_text":
-        return <ExtractionTextPage pageId="12345" />
-      case "extraction_ts":
-        return <ExtractionTSPage pageId="456"/>
-      case "discovery":
-        return <DiscoveryPage />
-      case "results":
-        return <ResultsPage />
-      case "application":
-        return <ApplicationPage />
-      case "layoutTest":
-        return <MainFlexLayout layoutmodel={props.layout} />
-      default:
+    if (developerMode && workspaceIsSet) {
+      return <MainContainer />
+    } else {
+      switch (activeSidebarItem) {
+        case "home":
+          return <Home />
+        case "input":
+          return <Input pageId="42" />
+        case "learning":
+          return <Learning pageId="123" />
+        case "extraction_images":
+          return <ExtractionImagePage pageId="1234" />
+        case "extraction_text":
+          return <ExtractionTextPage />
+        case "extraction_ts":
+          return <ExtractionTSPage pageId="456" />
+        case "exploratory":
+          return <ExploratoryPage />
+        case "results":
+          return <ResultsPage />
+        case "evaluation":
+          return <EvaluationPage />
+        case "application":
+          return <ApplicationPage />
+        case "layoutTest":
+          return <MainContainer />
+        default:
+      }
     }
   }
 
@@ -98,7 +119,16 @@ const LayoutManager = (props) => {
         return <ExtractionTSSidebar />
 
       default:
-        return <h5 style={{ color: "#d3d3d3", marginLeft: "0.5rem" }}>{activeSidebarItem}</h5>
+        return (
+          <>
+            <Stack direction="vertical" gap={3} style={{ marginLeft: "0.5rem" }}>
+              <h5 style={{ color: "#d3d3d3", marginLeft: "0.5rem" }}>{activeSidebarItem}</h5>
+              <Accordion defaultActiveKey={["0"]} alwaysOpen>
+                <SidebarDirectoryTreeControlled />
+              </Accordion>
+            </Stack>
+          </>
+        )
     }
   }
 
@@ -109,7 +139,7 @@ const LayoutManager = (props) => {
         <div className="main-app-container">
           <PanelGroup autoSaveId="test" direction="horizontal">
             <Panel className={resizable.Panel} collapsible={true} minSize={20} maxSize={80} defaultSize={20} order={1} ref={sidebarRef}>
-              <div className={resizable.PanelContent} style={{ backgroundColor: "#353535" }}>
+              <div className={`${resizable.PanelContent} sidebar-content`} style={{ backgroundColor: "#353535" }}>
                 {renderSidebarComponent()}
               </div>
             </Panel>

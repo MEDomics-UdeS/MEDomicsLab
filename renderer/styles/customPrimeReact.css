@@ -4,7 +4,7 @@
   align-self: center;
 }
 
-.p-highlight {
+.p-listbox-item.p-highlight {
   color: black !important;
   background-color: #8ac4ff85 !important;
   outline: 1px solid var(--bs-blue) !important;

@@ -2,7 +2,7 @@ import { app, ipcMain, Menu, dialog } from "electron"
 import axios from "axios"
 import serve from "electron-serve"
 import { createWindow } from "./helpers"
-// import { installExtension, REACT_DEVELOPER_TOOLS } from "electron-extension-installer"
+import { installExtension, REACT_DEVELOPER_TOOLS } from "electron-extension-installer"
 const fs = require("fs")
 var path = require("path")
 const dirTree = require("directory-tree")
@@ -11,6 +11,7 @@ var flaskPort = 5000
 var hasBeenSet = false
 
 const RUN_SERVER_WITH_APP = true
+const USE_REACT_DEV_TOOLS = false
 
 const isProd = process.env.NODE_ENV === "production"
 
@@ -27,6 +28,7 @@ if (isProd) {
     width: 1500,
     height: 1000
   })
+
   const template = [
     {
       label: "File",
@@ -113,7 +115,7 @@ if (isProd) {
     if (!isProd) {
       //**** DEVELOPMENT ****//
       // IMPORTANT: Select python interpreter (related to your virtual environment)
-      var path2conda = fs.readFileSync("./path2condaenv_toDeleteInProd.txt", "utf8").replace(/\s/g, "");
+      var path2conda = fs.readFileSync("./path2condaenv_toDeleteInProd.txt", "utf8").replace(/\s/g, "")
       console.log(`path2conda: "${path2conda}"`)
 
       const net = require("net")
@@ -238,7 +240,6 @@ if (isProd) {
     console.log("toggleDarkMode")
     mainWindow.webContents.send("toggleDarkMode")
   })
-
   if (isProd) {
     await mainWindow.loadURL("app://./index.html")
   } else {
@@ -246,6 +247,7 @@ if (isProd) {
     await mainWindow.loadURL(`http://localhost:${port}/`)
     mainWindow.webContents.openDevTools()
   }
+  mainWindow.show()
 })()
 
 /**
@@ -347,10 +349,12 @@ app.on("window-all-closed", () => {
   }
 })
 
-// app.on("ready", async () => {
-//   await installExtension(REACT_DEVELOPER_TOOLS, {
-//     loadExtensionOptions: {
-//       allowFileAccess: true
-//     }
-//   })
-// })
+if (USE_REACT_DEV_TOOLS) {
+  app.on("ready", async () => {
+    await installExtension(REACT_DEVELOPER_TOOLS, {
+      loadExtensionOptions: {
+        allowFileAccess: true
+      }
+    })
+  })
+}

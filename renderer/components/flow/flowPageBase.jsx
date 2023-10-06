@@ -1,12 +1,16 @@
 import "reactflow/dist/style.css"
-import React, { useContext, useEffect, useRef } from "react"
+import React, { useContext, useEffect, useRef, useState } from "react"
 import SidebarAvailableNodes from "./sidebarAvailableNodes"
 import { ReactFlowProvider } from "reactflow"
 import { FlowInfosProvider, FlowInfosContext } from "./context/flowInfosContext"
 import { FlowResultsContext, FlowResultsProvider } from "./context/flowResultsContext"
 import { FlowFunctionsProvider } from "./context/flowFunctionsContext"
+import { PageInfosContext } from "../mainPages/moduleBasics/pageInfosContext"
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels"
+import { WorkspaceContext, EXPERIMENTS } from "../workspace/workspaceContext"
 import ResultsPane from "./results/resultsPane"
+import MedDataObject from "../workspace/medDataObject"
+import { loadJsonPath } from "../../utilities/fileManagementUtils"
 
 /**
  *
@@ -19,8 +23,11 @@ import ResultsPane from "./results/resultsPane"
  */
 const FlowPageBaseWithFlowInfos = ({ children, workflowType, id }) => {
   // here is the use of the context to update the flowInfos
-  const { updateFlowInfos, showAvailableNodes } = useContext(FlowInfosContext)
-  const { showResultsPane, setShowResultsPane } = useContext(FlowResultsContext)
+  const [isDragging, setIsDragging] = useState(false)
+  const { updateFlowInfos, showAvailableNodes, setExperimentName, setSceneName } = useContext(FlowInfosContext)
+  const { showResultsPane, setShowResultsPane, updateFlowResults } = useContext(FlowResultsContext)
+  const { configPath } = useContext(PageInfosContext)
+  const { getBasePath } = useContext(WorkspaceContext)
   const sidebarPanelRef = useRef(null)
   const resultsPanelRef = useRef(null)
 
@@ -30,6 +37,25 @@ const FlowPageBaseWithFlowInfos = ({ children, workflowType, id }) => {
       type: workflowType
     })
   }, [workflowType])
+
+  // this useEffect is used to get the experiment name
+  useEffect(() => {
+    if (configPath) {
+      let pathList = configPath.split(MedDataObject.getPathSeparator())
+      let length = pathList.length
+      let sceneName = pathList[length - 1].split(".")[0]
+      let experimentName = pathList[length - 3]
+      setSceneName(sceneName)
+      setExperimentName(experimentName)
+      let path = [getBasePath(EXPERIMENTS), experimentName, sceneName, sceneName].join(MedDataObject.getPathSeparator()) + ".medmlres"
+      if (MedDataObject.isPathExists(path)) {
+        let flowResults = loadJsonPath(path)
+        updateFlowResults(flowResults)
+      } else {
+        console.log("No results")
+      }
+    }
+  }, [configPath])
 
   // useeffect to collapse the sidebar when showAvailableNodes is false and expand it when it is true
   useEffect(() => {
@@ -75,15 +101,15 @@ const FlowPageBaseWithFlowInfos = ({ children, workflowType, id }) => {
             </Panel>
             <PanelResizeHandle
               className="resize-handle-results"
-              onFocusOut={() => {
-                console.log("onFocusOut")
+              onDragging={(event) => {
+                setIsDragging(!event)
               }}
             />
             {/* Panel is used to create the results pane, used to be able to resize it on drag */}
             <Panel
               ref={resultsPanelRef}
               id="results"
-              className="smooth-transition"
+              className={`${isDragging ? "smooth-transition" : ""}`}
               maxSize={75}
               minSize={30}
               defaultSize={0}
