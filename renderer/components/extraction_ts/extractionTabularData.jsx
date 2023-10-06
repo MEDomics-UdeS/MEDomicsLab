@@ -194,7 +194,7 @@ const ExtractionTabularData = ({extractionTypeList}) => {
 
   
   return (
-    <div className="overflow-y-auto">
+    <div className="overflow-y-auto width-100">
       <h1 className="center">Extraction - Time Series</h1>
 
       <hr></hr>

@@ -3,7 +3,7 @@ import { Button, Stack, Accordion } from "react-bootstrap"
 import { Plus } from "react-bootstrap-icons"
 import DropzoneComponent from "../../mainPages/dataComponents/dropzoneComponent"
 import { WorkspaceContext } from "../../workspace/workspaceContext"
-import { SidebarDirectoryTreeControlled } from "./sidebarDirectoryTreeControlled"
+import SidebarDirectoryTreeControlled from "./sidebarDirectoryTreeControlled"
 
 /**
  * @description - This component is the sidebar tools component that will be used in the sidebar component as the extraction Time Series page
