@@ -1,4 +1,5 @@
 from learning.app_learning_blueprint import app_learning
+from extraction_text.app_extraction_text_blueprint import app_extraction_text
 from extraction_ts.app_extraction_ts_blueprint import app_extraction_ts
 from extraction.app_extraction_blueprint import app_extraction
 import json
@@ -19,6 +20,7 @@ app = Flask(__name__)
 # Register blueprints
 app.register_blueprint(app_extraction, url_prefix='/extraction')
 app.register_blueprint(app_learning, url_prefix='/learning')
+app.register_blueprint(app_extraction_text, url_prefix='/extraction_text')
 app.register_blueprint(app_extraction_ts, url_prefix='/extraction_ts')
 
 

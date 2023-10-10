@@ -10,7 +10,7 @@ import SidebarDirectoryTreeControlled from "./sidebarDirectoryTreeControlled"
  * @summary - It contains the dropzone component and the workspace directory tree filtered to only show the data folder
  * @returns {JSX.Element} - This component is the sidebar tools component that will be used in the sidebar component as the extraction Time Series page
  */
-const ExtractionTSSidebar = () => {
+const ExtractionSidebar = () => {
   const { workspace } = useContext(WorkspaceContext) // We get the workspace from the context to retrieve the directory tree of the workspace, thus retrieving the data files
 
   useEffect(() => {
@@ -46,4 +46,4 @@ const ExtractionTSSidebar = () => {
   )
 }
 
-export default ExtractionTSSidebar
+export default ExtractionSidebar

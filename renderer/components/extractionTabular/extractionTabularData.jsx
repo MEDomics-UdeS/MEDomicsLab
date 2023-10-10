@@ -3,6 +3,7 @@ import { DataContext } from "../workspace/dataContext"
 import { DataFrame } from "danfojs"
 import DataTableFromContext from "../mainPages/dataComponents/dataTableFromContext"
 import { Dropdown } from "primereact/dropdown"
+import ExtractionBioBERT from "./extractionTypes/extractionBioBERT"
 import ExtractionTSfresh from "./extractionTypes/extractionTSfresh"
 import { InputText } from "primereact/inputtext";
 import MedDataObject from "../workspace/medDataObject"
@@ -21,16 +22,16 @@ import { WorkspaceContext } from "../workspace/workspaceContext"
  * Its composition depend on the type of extraction choosen.
  * 
  */
-const ExtractionTabularData = ({extractionTypeList}) => {
+const ExtractionTabularData = ({extractionTypeList, serverUrl}) => {
   const [csvPath, setCsvPath] = useState("") // csv path of data to extract
   const [csvResultPath, setCsvResultPath] = useState("") // csv path of extracted data
   const [dataframe, setDataframe] = useState([]) // djanfo dataframe of data to extract
   const [datasetList, setDatasetList] = useState([]) // list of available datasets in DATA folder
-  const [extractionFunction, setExtractionFunction] = useState("TSfresh_extraction") // name of the function to use for extraction
+  const [extractionFunction, setExtractionFunction] = useState(extractionTypeList[0] + "_extraction") // name of the function to use for extraction
   const [extractionProgress, setExtractionProgress] = useState(0) // advancement state in the extraction function
   const [extractionStep, setExtractionStep] = useState("") // current step in the extraction function
   const [extractionJsonData, setExtractionJsonData] = useState({}) // json data depending on extractionType
-  const [extractionType, setExtractionType] = useState("TSfresh") // extraction type
+  const [extractionType, setExtractionType] = useState(extractionTypeList[0]) // extraction type
   const [filename, setFilename] = useState("tmp_extracted_features.csv") // name of the csv file containing extracted data
   const [isDatasetLoaded, setIsDatasetLoaded] = useState(false) // boolean set to false every time we reload a dataset for data to extract
   const [isResultDatasetLoaded, setIsResultDatasetLoaded] = useState(false) // boolean set to false every time we reload an extracted data dataset
@@ -116,7 +117,7 @@ const ExtractionTabularData = ({extractionTypeList}) => {
     let progressInterval = setInterval(() => {
       requestJson(
         port,
-        "/extraction_ts/progress",
+        serverUrl + "progress",
         {},
         (jsonResponse) => {
           if (jsonResponse["progress"] >= 100) {
@@ -135,7 +136,7 @@ const ExtractionTabularData = ({extractionTypeList}) => {
     // Run extraction process
     requestJson(
       port,
-      "/extraction_ts/" + extractionFunction,
+      serverUrl + extractionFunction,
       {
         relativeToExtractionType: extractionJsonData,
         csvPath: csvPath,
@@ -195,8 +196,6 @@ const ExtractionTabularData = ({extractionTypeList}) => {
   
   return (
     <div className="overflow-y-auto width-100">
-      <h1 className="center">Extraction - Time Series</h1>
-
       <hr></hr>
       <div className="margin-top-bottom-15">
         <div className="center">
@@ -259,6 +258,9 @@ const ExtractionTabularData = ({extractionTypeList}) => {
           />
           </div>
           <div className="margin-top-15">
+          {extractionType == "BioBERT" && (
+              <ExtractionBioBERT setMayProceed={setMayProceed}/>
+            )}
             {extractionType == "TSfresh" && (
               <ExtractionTSfresh dataframe={dataframe} setExtractionJsonData={setExtractionJsonData} setMayProceed={setMayProceed}/>
             )}
