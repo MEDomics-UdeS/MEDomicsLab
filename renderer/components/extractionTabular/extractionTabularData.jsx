@@ -5,24 +5,24 @@ import DataTableFromContext from "../mainPages/dataComponents/dataTableFromConte
 import { Dropdown } from "primereact/dropdown"
 import ExtractionBioBERT from "./extractionTypes/extractionBioBERT"
 import ExtractionTSfresh from "./extractionTypes/extractionTSfresh"
-import { InputText } from "primereact/inputtext";
+import { InputText } from "primereact/inputtext"
 import MedDataObject from "../workspace/medDataObject"
-import { ProgressBar } from 'primereact/progressbar';
+import { ProgressBar } from "primereact/progressbar"
 import React, { useState, useEffect, useContext } from "react"
 import { requestJson } from "../../utilities/requests"
 import { WorkspaceContext } from "../workspace/workspaceContext"
 
 /**
- * 
- * @param {List} extractionTypeList list containing possible types of extraction 
+ *
+ * @param {List} extractionTypeList list containing possible types of extraction
  * @returns {JSX.Element} a page
- * 
+ *
  * @description
  * This component is a general page used for tabular data extraction (time series and text notes).
  * Its composition depend on the type of extraction choosen.
- * 
+ *
  */
-const ExtractionTabularData = ({extractionTypeList, serverUrl}) => {
+const ExtractionTabularData = ({ extractionTypeList, serverUrl }) => {
   const [csvPath, setCsvPath] = useState("") // csv path of data to extract
   const [csvResultPath, setCsvResultPath] = useState("") // csv path of extracted data
   const [dataframe, setDataframe] = useState([]) // djanfo dataframe of data to extract
@@ -44,12 +44,12 @@ const ExtractionTabularData = ({extractionTypeList, serverUrl}) => {
   const { port } = useContext(WorkspaceContext) // we get the port for server connexion
 
   /**
-   * 
-   * @param {DataContext} dataContext 
-   * 
+   *
+   * @param {DataContext} dataContext
+   *
    * @description
    * This functions get all files from the DataContext and update datasetList.
-   * 
+   *
    */
   function getDatasetListFromDataContext(dataContext) {
     let keys = Object.keys(dataContext)
@@ -63,52 +63,52 @@ const ExtractionTabularData = ({extractionTypeList, serverUrl}) => {
   }
 
   /**
-   * 
-   * @param {CSV File} dataset 
-   * 
+   *
+   * @param {CSV File} dataset
+   *
    * @description
    * Called when the user select a dataset.
-   * 
+   *
    */
   const datasetSelected = (dataset) => {
     setSelectedDataset(dataset)
-    setIsDatasetLoaded(false)    
+    setIsDatasetLoaded(false)
   }
 
   /**
-   * 
-   * @param {String} name 
-   * 
+   *
+   * @param {String} name
+   *
    * @description
    * Called when the user change the name under which the extracted data
    * file will be saved.
-   * 
+   *
    */
   const handleFilenameChange = (name) => {
     if (name.match("^[a-zA-Z0-9_]+.csv$") != null) {
       setFilename(name)
-    }     
+    }
   }
 
   /**
-   * 
-   * @param {String} value 
-   * 
+   *
+   * @param {String} value
+   *
    * @description
    * Called when the user select an extraction type.
-   * 
+   *
    */
   const onChangeExtractionType = (value) => {
     setExtractionType(value)
     setExtractionFunction(value + "_extraction")
   }
-  
+
   /**
-   * 
+   *
    * @description
    * Run extraction depending on the choosen extraction type, on the extraction_ts server.
    * Update the progress bar depending on the extraction execution.
-   * 
+   *
    */
   const runExtraction = () => {
     setMayProceed(false)
@@ -144,7 +144,7 @@ const ExtractionTabularData = ({extractionTypeList, serverUrl}) => {
       },
       (jsonResponse) => {
         console.log("received results:", jsonResponse)
-        setCsvResultPath(jsonResponse['csv_result_path'])
+        setCsvResultPath(jsonResponse["csv_result_path"])
         clearInterval(progressInterval)
         setExtractionStep("Extracted Features Saved")
         MedDataObject.updateWorkspaceDataObject()
@@ -193,7 +193,6 @@ const ExtractionTabularData = ({extractionTypeList, serverUrl}) => {
     }
   }, [isResultDatasetLoaded])
 
-  
   return (
     <div className="overflow-y-auto width-100">
       <hr></hr>
@@ -201,22 +200,7 @@ const ExtractionTabularData = ({extractionTypeList, serverUrl}) => {
         <div className="center">
           {/* Select CSV data */}
           <h2>Select CSV data</h2>
-          {datasetList.length > 0 ? (
-              <Dropdown
-                value={selectedDataset}
-                options={datasetList.filter(
-                (value) =>
-                  value.extension == "csv"
-                )}
-                optionLabel="name"
-                onChange={(event) =>
-                  datasetSelected(event.value)
-                }
-                placeholder="Select a dataset"
-              />
-            ) : (
-              <Dropdown placeholder="No dataset to show" disabled />
-          )}
+          {datasetList.length > 0 ? <Dropdown value={selectedDataset} options={datasetList.filter((value) => value.extension == "csv")} optionLabel="name" onChange={(event) => datasetSelected(event.value)} placeholder="Select a dataset" /> : <Dropdown placeholder="No dataset to show" disabled />}
         </div>
       </div>
 
@@ -225,19 +209,17 @@ const ExtractionTabularData = ({extractionTypeList, serverUrl}) => {
         {/* Display selected data */}
         <div className="center">
           <h2>Selected data</h2>
-          {!selectedDataset && (
-            <p>Nothing to show, select a CSV file first.</p>
-          )}
+          {!selectedDataset && <p>Nothing to show, select a CSV file first.</p>}
         </div>
         {selectedDataset && (
           <div>
             <DataTableFromContext
               MedDataObject={selectedDataset}
-              tablePropsData={{ size: "small", paginator:true, rows: 5 }}
+              tablePropsData={{ size: "small", paginator: true, rows: 5 }}
               tablePropsColumn={{
                 sortable: true
               }}
-              setIsDatasetLoaded = {setIsDatasetLoaded}
+              setIsDatasetLoaded={setIsDatasetLoaded}
             />
           </div>
         )}
@@ -249,21 +231,11 @@ const ExtractionTabularData = ({extractionTypeList, serverUrl}) => {
           {/* Extraction Type Selection */}
           <h2>Select an extraction type</h2>
           <div className="margin-top-15">
-          <Dropdown
-            value={extractionType}
-            options={extractionTypeList}
-            onChange={(event) =>
-              onChangeExtractionType(event.value)
-            }
-          />
+            <Dropdown value={extractionType} options={extractionTypeList} onChange={(event) => onChangeExtractionType(event.value)} />
           </div>
           <div className="margin-top-15">
-          {extractionType == "BioBERT" && (
-              <ExtractionBioBERT setMayProceed={setMayProceed}/>
-            )}
-            {extractionType == "TSfresh" && (
-              <ExtractionTSfresh dataframe={dataframe} setExtractionJsonData={setExtractionJsonData} setMayProceed={setMayProceed}/>
-            )}
+            {extractionType == "BioBERT" && <ExtractionBioBERT dataframe={dataframe} setExtractionJsonData={setExtractionJsonData} setMayProceed={setMayProceed} />}
+            {extractionType == "TSfresh" && <ExtractionTSfresh dataframe={dataframe} setExtractionJsonData={setExtractionJsonData} setMayProceed={setMayProceed} />}
           </div>
         </div>
       </div>
@@ -289,31 +261,21 @@ const ExtractionTabularData = ({extractionTypeList, serverUrl}) => {
           </div>
           <div className="margin-top-30">
             {extractionStep}
-            {showProgressBar && (
-              <ProgressBar value={extractionProgress}/>
-            )}
+            {showProgressBar && <ProgressBar value={extractionProgress} />}
           </div>
         </div>
       </div>
-
 
       <hr></hr>
       <div className="margin-top-bottom-15">
         {/* Display extracted data */}
         <div className="center">
           <h2>Extracted data</h2>
-          {!resultDataset && (
-            <p>Nothing to show, proceed to extraction first.</p>
-          )}
+          {!resultDataset && <p>Nothing to show, proceed to extraction first.</p>}
         </div>
         {resultDataset && (
           <div>
-            <DataTableFromContext
-              MedDataObject={resultDataset}
-              tablePropsData={{ size: "small", paginator:true, rows: 5 }}
-              isDatasetLoaded={isResultDatasetLoaded}
-              setIsDatasetLoaded={setIsResultDatasetLoaded}
-            />
+            <DataTableFromContext MedDataObject={resultDataset} tablePropsData={{ size: "small", paginator: true, rows: 5 }} isDatasetLoaded={isResultDatasetLoaded} setIsDatasetLoaded={setIsResultDatasetLoaded} />
           </div>
         )}
       </div>
