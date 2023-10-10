@@ -567,7 +567,6 @@ class MainInnerContainer extends React.Component<
           this.state.model!.doAction(
             Actions.updateNodeAttributes(node.getId(), { config: { model: node.getExtraData().model.toJson() } })
           )
-          //  node.getConfig().model = node.getExtraData().model.toJson();
         })
       }
 
@@ -623,7 +622,6 @@ class MainInnerContainer extends React.Component<
       return <pre style={{ tabSize: "20px" }} dangerouslySetInnerHTML={{ __html: html }} />
     } else if (component === "dataTable") {
       const config = node.getConfig()
-      // console.log("config", config)
       if (node.getExtraData().data == null) {
         const dfd = require("danfojs-node")
         const whenDataLoaded = (data) => {
@@ -643,8 +641,6 @@ class MainInnerContainer extends React.Component<
         if (extension === "csv") loadCSVFromPath(config.path, whenDataLoaded)
         else if (extension === "json") loadJSONFromPath(config.path, whenDataLoaded)
         else if (extension === "xlsx") loadXLSXFromPath(config.path, whenDataLoaded)
-
-        // loadCSVFromPath(config.path, whenDataLoaded)
       }
       return (
         <DataTableWrapperBPClass
