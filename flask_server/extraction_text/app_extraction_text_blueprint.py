@@ -1,4 +1,5 @@
 import dask.dataframe as dd
+import datetime
 import numpy as np
 import os
 import pandas as pd
@@ -119,15 +120,17 @@ def get_biobert_embeddings_from_event_list(event_list, event_weights):
     return aggregated_embedding
 
 
-def generate_biobert_notes_embeddings(dataframe, column_id, column_weight, column_text, column_prefix):
+def generate_biobert_notes_embeddings(dataframe, frequency, column_id, column_weight, column_text, column_prefix, column_admission=""):
     """
     Function generated notes embeddings from BioBERT pre-trained model.
 
     :param dataframe: Pandas dataframe containing necessary data to proceed.
+    :param frequency: May be "Patient" "Admission" or a timedelta range, depending on the desired type of extraction.
     :param column_id: Column name in the dataframe containing patient identifiers.
     :param column_weight: Column name in the dataframe containing weights of the text notes.
     :param column_text: Column name in the dataframe containing the text notes.
     :param column_prefix: Prefix to set to column in the returning dataframe.
+    :param column_admission: Column name in the dataframe containing admission identifiers, may be null if frequency is not "Admission".
 
     :return: df_notes_embeddings: Pandas Dataframe of generated notes embeddings from BioBERT.
 
@@ -137,19 +140,39 @@ def generate_biobert_notes_embeddings(dataframe, column_id, column_weight, colum
     # Create dataframe
     df_notes_embeddings = pd.DataFrame()
 
-    # Iterate over patients
-    for patient_id in set(dataframe[column_id]):
-        df_patient = dataframe.loc[dataframe[column_id] == patient_id]
-        df_patient_embeddings = pd.DataFrame(
-            [get_biobert_embeddings_from_event_list(df_patient[column_text], df_patient[column_weight])])
-        # Insert patient_id in the dataframe
-        df_patient_embeddings.insert(0, column_id, patient_id)
-        df_notes_embeddings = pd.concat([df_notes_embeddings, df_patient_embeddings], ignore_index=True)
-        progress += 1/len(set(dataframe[column_id]))*60
+    if frequency == "Patient":
+        # Iterate over patients
+        for patient_id in set(dataframe[column_id]):
+            df_patient = dataframe.loc[dataframe[column_id] == patient_id]
+            df_patient_embeddings = pd.DataFrame(
+                [get_biobert_embeddings_from_event_list(df_patient[column_text], df_patient[column_weight])])
+            # Insert patient_id in the dataframe
+            df_patient_embeddings.insert(0, column_id, patient_id)
+            df_notes_embeddings = pd.concat([df_notes_embeddings, df_patient_embeddings], ignore_index=True)
+            progress += 1/len(set(dataframe[column_id]))*60
+        # Rename columns
+        col_number = len(df_notes_embeddings.columns) - 1
+        df_notes_embeddings.columns = [column_id] + [column_prefix + str(i) for i in range(col_number)]
 
-    # Rename columns
-    col_number = len(df_notes_embeddings.columns) - 1
-    df_notes_embeddings.columns = [column_id] + [column_prefix + str(i) for i in range(col_number)]
+    elif frequency == "Admission":
+        # Iterate over patients
+        for patient_id in set(dataframe[column_id]):
+            df_patient = pd.DataFrame(dataframe.loc[dataframe[column_id] == patient_id])
+            # Iterate over admissions
+            for admission_id in set(df_patient[column_admission]):
+                df_admission = df_patient.loc[df_patient[column_admission] == admission_id]
+                df_admission_embeddings = pd.DataFrame(
+                    [get_biobert_embeddings_from_event_list(df_admission[column_text], df_admission[column_weight])])
+                # Insert admission_id in the dataframe
+                df_admission_embeddings.insert(0, column_admission, admission_id)
+                # Insert patient_id in the dataframe
+                df_admission_embeddings.insert(0, column_id, patient_id)
+                df_notes_embeddings = pd.concat([df_notes_embeddings, df_admission_embeddings], ignore_index=True)
+            progress += 1/len(set(dataframe[column_id]))*60
+        # Rename columns
+        col_number = len(df_notes_embeddings.columns) - 2
+        df_notes_embeddings.columns = [column_id, column_admission] + [column_prefix + str(i) for i in range(col_number)]
+
 
     return df_notes_embeddings
 
@@ -178,6 +201,9 @@ def BioBERT_extraction():
     column_prefix = json_config["relativeToExtractionType"]["columnPrefix"]
     columnKeys = [key for key in selected_columns]
     columnValues = [selected_columns[key] for key in columnKeys]
+    frequency = json_config["relativeToExtractionType"]["frequency"]
+    if frequency == "HourRange":
+        frequency = datetime.timedelta(hours=json_config["relativeToExtractionType"]["hourRange"])
 
     # Set biobert parameters
     BIOBERT_PATH =  os.path.join(str(Path(json_config["csvPath"]).parent.absolute()), 'pretrained_bert_tf/biobert_pretrain_output_all_notes_150000/')
@@ -198,9 +224,12 @@ def BioBERT_extraction():
     # Feature extraction
     progress = 30
     step = "Feature Extraction"
-    df_extracted_features = generate_biobert_notes_embeddings(df_notes, selected_columns["patientIdentifier"], 
-                                                              selected_columns["notesWeight"], selected_columns["notes"],
-                                                              column_prefix)
+    df_extracted_features = generate_biobert_notes_embeddings(df_notes, frequency, 
+                                                              selected_columns["patientIdentifier"], 
+                                                              selected_columns["notesWeight"], 
+                                                              selected_columns["notes"],
+                                                              column_prefix,
+                                                              selected_columns["admissionIdentifier"])
 
      # Save extracted features
     progress = 90

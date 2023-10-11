@@ -1,5 +1,7 @@
 import { Dropdown } from "primereact/dropdown"
+import { InputNumber } from "primereact/inputnumber"
 import { InputText } from "primereact/inputtext"
+import { Message } from "primereact/message"
 import { RadioButton } from "primereact/radiobutton"
 import React, { useEffect, useState } from "react"
 
@@ -18,8 +20,10 @@ import React, { useEffect, useState } from "react"
 const ExtractionBioBERT = ({ dataframe, setExtractionJsonData, setMayProceed }) => {
   const [columnPrefix, setColumnPrefix] = useState("notes_")
   const [frequency, setFrequency] = useState("Patient")
+  const [hourRange, setHourRange] = useState(24)
   const [selectedColumns, setSelectedColumns] = useState({
     patientIdentifier: "",
+    admissionIdentifier: "",
     notesWeight: "",
     notes: ""
   })
@@ -63,10 +67,14 @@ const ExtractionBioBERT = ({ dataframe, setExtractionJsonData, setMayProceed }) 
    *
    */
   useEffect(() => {
-    const isAllSelected = Object.values(selectedColumns).every((value) => value !== "")
-    setMayProceed(isAllSelected)
-    setExtractionJsonData({ selectedColumns: selectedColumns, columnPrefix: columnPrefix })
-  }, [selectedColumns])
+    if (frequency == "Admission") {
+      setMayProceed(Object.values(selectedColumns).every((value) => value !== ""))
+      setExtractionJsonData({ selectedColumns: selectedColumns, columnPrefix: columnPrefix, frequency: frequency, hourRange: hourRange })
+    } else {
+      setMayProceed(selectedColumns.patientIdentifier !== "" && selectedColumns.notesWeight !== "" && selectedColumns.notes !== "")
+      setExtractionJsonData({ selectedColumns: selectedColumns, columnPrefix: columnPrefix, frequency: frequency })
+    }
+  }, [selectedColumns, frequency])
 
   return (
     <>
@@ -81,11 +89,20 @@ const ExtractionBioBERT = ({ dataframe, setExtractionJsonData, setMayProceed }) 
                 Patient Identifier : &nbsp;
                 {dataframe && dataframe.$data ? <Dropdown value={selectedColumns.patientIdentifier} onChange={(event) => handleColumnSelect("patientIdentifier", event)} options={dataframe.$columns.filter((column, index) => dataframe.$dtypes[index] == "int32" || dataframe.$dtypes[index] == "string")} placeholder="Patient Identifier" /> : <Dropdown placeholder="Patient Identifier" disabled />}
               </div>
-              <div>
+              <div className="margin-top-15">
+                Admission Identifier : &nbsp;
+                {dataframe && dataframe.$data ? <Dropdown value={selectedColumns.admissionIdentifier} onChange={(event) => handleColumnSelect("admissionIdentifier", event)} options={dataframe.$columns.filter((column, index) => dataframe.$dtypes[index] == "int32" || dataframe.$dtypes[index] == "string")} placeholder="Admission Identifier" /> : <Dropdown placeholder="Admission Identifier" disabled />}
+                {selectedColumns.admissionIdentifier == "" && (
+                  <div>
+                    <Message severity="info" text="Field necessary if Admission is selected." />
+                  </div>
+                )}
+              </div>
+              <div className="margin-top-15">
                 Notes Weight : &nbsp;
                 {dataframe.$data ? <Dropdown value={selectedColumns.notesWeight} onChange={(event) => handleColumnSelect("notesWeight", event)} options={dataframe.$columns.filter((column, index) => dataframe.$dtypes[index] == "int32" || dataframe.$dtypes[index] == "float32" || (dataframe.$dtypes[index] == "string" && dataframe[column].dt.$dateObjectArray[0] != "Invalid Date"))} placeholder="Notes Weight" /> : <Dropdown placeholder="Notes Weight" disabled />}
               </div>
-              <div>
+              <div className="margin-top-15">
                 Measurement value : &nbsp;
                 {dataframe.$data ? <Dropdown value={selectedColumns.notes} onChange={(event) => handleColumnSelect("notes", event)} options={dataframe.$columns.filter((column, index) => dataframe.$dtypes[index] == "string" && dataframe[column].dt.$dateObjectArray[0] == "Invalid Date")} placeholder="Notes" /> : <Dropdown placeholder="Notes" disabled />}
               </div>
@@ -106,7 +123,8 @@ const ExtractionBioBERT = ({ dataframe, setExtractionJsonData, setMayProceed }) 
               </div>
               <div className="margin-top-15">
                 <RadioButton inputId="hourRange" name="frequency" value="HourRange" onChange={(e) => setFrequency(e.value)} checked={frequency === "HourRange"} />
-                <label htmlFor="hourRange">Hour Range</label>
+                <label htmlFor="hourRange">Hour Range &nbsp;</label>
+                {frequency == "HourRange" && <InputNumber value={hourRange} onValueChange={(e) => setHourRange(e.value)} size={1} showButtons min={1} />}
               </div>
             </div>
           </div>
