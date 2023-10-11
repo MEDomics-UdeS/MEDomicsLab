@@ -1,24 +1,7 @@
 import React, { useEffect, useState } from "react"
-import { loadCSVPath } from "../../utilities/fileManagementUtils"
-//data table
-import { DataTable } from "primereact/datatable"
-import { Column as PrimeColumn } from "primereact/column"
-// refer to https://primereact.org/datatable/
-import {
-  Cell,
-  Column,
-  Table2,
-  MenuContext,
-  CopyCellsMenuItem,
-  SelectionModes,
-  Utils,
-  ColumnHeaderCell,
-  RenderMode,
-  RegionCardinality
-} from "@blueprintjs/table"
+import { Cell, Column, Table2, CopyCellsMenuItem, Utils, ColumnHeaderCell, RegionCardinality } from "@blueprintjs/table"
 import { Menu, MenuItem } from "@blueprintjs/core"
 import { Utils as danfoUtils } from "danfojs"
-import { resolve } from "path"
 
 const utils = new danfoUtils()
 
@@ -30,7 +13,7 @@ const utils = new danfoUtils()
  * @returns {JSX.Element} A JSX element containing the data table
  * @description This component is a wrapper for the primereact datatable. It is used to display data in a table.
  */
-const DataTableWrapperBP = ({ data, tablePropsData, tablePropsColumn, customGetColumnsFromData }) => {
+const DataTableWrapperBP = ({ data }) => {
   // UseRef to get the table instance and then call the refresh method
   const tableRef = React.useRef(null)
   const [numRows, setNumRows] = useState(0)
@@ -180,10 +163,6 @@ const DataTableWrapperBP = ({ data, tablePropsData, tablePropsColumn, customGetC
       console.log("sortedIndex: ", sortedIndex)
       setSortedIndexMap(newSortedIndex)
     })
-  }
-
-  const compare = (a, b) => {
-    return a.toString().localeCompare(b.toString())
   }
 
   const compareNum = (a, b) => {

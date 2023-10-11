@@ -1,36 +1,16 @@
 import * as React from "react"
 import { Button } from "primereact/button"
-import { Menu, MenuItem, Intent, HotkeysTarget2, HotkeysDialog2, Checkbox, Divider, Collapse, Icon } from "@blueprintjs/core"
+import { Menu, MenuItem, Intent, HotkeysTarget2, Divider, Collapse } from "@blueprintjs/core"
 import xlxs from "xlsx"
 // import { Example, ExampleProps } from "@blueprintjs/docs-theme"
-import {
-  Cell,
-  Column,
-  ColumnHeaderCell,
-  CopyCellsMenuItem,
-  MenuContext,
-  SelectionModes,
-  Table2,
-  Utils,
-  EditableCell2
-} from "@blueprintjs/table"
-import { waitUntilSymbol } from "next/dist/server/web/spec-extension/fetch-event"
-import { Accordion, Form, Stack } from "react-bootstrap"
-import {
-  ChevronBarRight,
-  ChevronCompactRight,
-  ChevronRight,
-  FiletypeCsv,
-  FiletypeJson,
-  FiletypeXlsx
-} from "react-bootstrap-icons"
+import { Column, ColumnHeaderCell, CopyCellsMenuItem, MenuContext, Table2, Utils, EditableCell2 } from "@blueprintjs/table"
+import { Stack } from "react-bootstrap"
+import { ChevronRight, FiletypeCsv, FiletypeJson, FiletypeXlsx } from "react-bootstrap-icons"
 import { PiFloppyDisk } from "react-icons/pi"
 import { toast } from "react-toastify"
 const dfd = require("danfojs-node")
 import { DataFrame, Utils as danfoUtils } from "danfojs-node"
 import { DataTablePopoverBP } from "./dataTablePopoverBPClass"
-import { DataTableHeaderCell } from "./dataTableHeaderCell"
-import { is } from "@react-three/fiber/dist/declarations/src/core/utils"
 const dfUtils = new danfoUtils()
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 
