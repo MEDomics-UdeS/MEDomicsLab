@@ -280,7 +280,6 @@ class MainInnerContainer extends React.Component<
       },
       this.onAdded
     )
-    // this.setState({ adding: true });
   }
 
   /**
@@ -718,7 +717,6 @@ class MainInnerContainer extends React.Component<
           let height = image.getSize().height / 3
           let width = image.getSize().width / 3
 
-          // node.getExtraData().data = image
           return (
             <ZoomPanPinchComponent imagePath={config.path} image={image.toDataURL()} width={width} height={height} options={""} />
           )
