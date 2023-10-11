@@ -119,7 +119,7 @@ def get_biobert_embeddings_from_event_list(event_list, event_weights):
     return aggregated_embedding
 
 
-def generate_biobert_notes_embeddings(dataframe, column_id, column_weight, column_text):
+def generate_biobert_notes_embeddings(dataframe, column_id, column_weight, column_text, column_prefix):
     """
     Function generated notes embeddings from BioBERT pre-trained model.
 
@@ -127,10 +127,13 @@ def generate_biobert_notes_embeddings(dataframe, column_id, column_weight, colum
     :param column_id: Column name in the dataframe containing patient identifiers.
     :param column_weight: Column name in the dataframe containing weights of the text notes.
     :param column_text: Column name in the dataframe containing the text notes.
+    :param column_prefix: Prefix to set to column in the returning dataframe.
 
-    :return: df_notes_embeddings: Generated notes embeddings from BioBERT.
+    :return: df_notes_embeddings: Pandas Dataframe of generated notes embeddings from BioBERT.
 
     """
+    global progress
+
     # Create dataframe
     df_notes_embeddings = pd.DataFrame()
 
@@ -142,6 +145,11 @@ def generate_biobert_notes_embeddings(dataframe, column_id, column_weight, colum
         # Insert patient_id in the dataframe
         df_patient_embeddings.insert(0, column_id, patient_id)
         df_notes_embeddings = pd.concat([df_notes_embeddings, df_patient_embeddings], ignore_index=True)
+        progress += 1/len(set(dataframe[column_id]))*60
+
+    # Rename columns
+    col_number = len(df_notes_embeddings.columns) - 1
+    df_notes_embeddings.columns = [column_id] + [column_prefix + str(i) for i in range(col_number)]
 
     return df_notes_embeddings
 
@@ -167,6 +175,7 @@ def BioBERT_extraction():
     # Set local variables
     json_config = get_json_from_request(request)
     selected_columns = json_config["relativeToExtractionType"]["selectedColumns"]
+    column_prefix = json_config["relativeToExtractionType"]["columnPrefix"]
     columnKeys = [key for key in selected_columns]
     columnValues = [selected_columns[key] for key in columnKeys]
 
@@ -190,7 +199,8 @@ def BioBERT_extraction():
     progress = 30
     step = "Feature Extraction"
     df_extracted_features = generate_biobert_notes_embeddings(df_notes, selected_columns["patientIdentifier"], 
-                                                              selected_columns["notesWeight"], selected_columns["notes"])
+                                                              selected_columns["notesWeight"], selected_columns["notes"],
+                                                              column_prefix)
 
      # Save extracted features
     progress = 90
@@ -212,4 +222,4 @@ def extraction_progress():
     """
     global progress
     global step
-    return {"progress": progress, "step": step}
+    return {"progress": round(progress, 2), "step": step}

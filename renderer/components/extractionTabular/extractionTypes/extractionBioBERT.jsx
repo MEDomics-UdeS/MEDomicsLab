@@ -1,4 +1,6 @@
 import { Dropdown } from "primereact/dropdown"
+import { InputText } from "primereact/inputtext"
+import { RadioButton } from "primereact/radiobutton"
 import React, { useEffect, useState } from "react"
 
 /**
@@ -14,11 +16,27 @@ import React, { useEffect, useState } from "react"
  *
  */
 const ExtractionBioBERT = ({ dataframe, setExtractionJsonData, setMayProceed }) => {
+  const [columnPrefix, setColumnPrefix] = useState("notes_")
+  const [frequency, setFrequency] = useState("Patient")
   const [selectedColumns, setSelectedColumns] = useState({
     patientIdentifier: "",
     notesWeight: "",
     notes: ""
   })
+
+  /**
+   *
+   * @param {String} name
+   *
+   * @description
+   * Called when the user change the column prefix.
+   *
+   */
+  const handleColumnPrefixChange = (name) => {
+    if (name.match("^[a-zA-Z0-9_]+$") != null) {
+      setColumnPrefix(name)
+    }
+  }
 
   /**
    *
@@ -47,26 +65,55 @@ const ExtractionBioBERT = ({ dataframe, setExtractionJsonData, setMayProceed }) 
   useEffect(() => {
     const isAllSelected = Object.values(selectedColumns).every((value) => value !== "")
     setMayProceed(isAllSelected)
-    setExtractionJsonData({ selectedColumns: selectedColumns })
+    setExtractionJsonData({ selectedColumns: selectedColumns, columnPrefix: columnPrefix })
   }, [selectedColumns])
 
   return (
     <>
       <div>
-        {/* Dropdowns for column selection */}
-        <b>Select columns corresponding to :</b>
-        <hr></hr>
+        <div className="text-left">
+          <div className="flex-container">
+            <div>
+              {/* Dropdowns for column selection */}
+              <b>Select columns corresponding to :</b>
+              <hr></hr>
+              <div className="margin-top-15">
+                Patient Identifier : &nbsp;
+                {dataframe && dataframe.$data ? <Dropdown value={selectedColumns.patientIdentifier} onChange={(event) => handleColumnSelect("patientIdentifier", event)} options={dataframe.$columns.filter((column, index) => dataframe.$dtypes[index] == "int32" || dataframe.$dtypes[index] == "string")} placeholder="Patient Identifier" /> : <Dropdown placeholder="Patient Identifier" disabled />}
+              </div>
+              <div>
+                Notes Weight : &nbsp;
+                {dataframe.$data ? <Dropdown value={selectedColumns.notesWeight} onChange={(event) => handleColumnSelect("notesWeight", event)} options={dataframe.$columns.filter((column, index) => dataframe.$dtypes[index] == "int32" || dataframe.$dtypes[index] == "float32" || (dataframe.$dtypes[index] == "string" && dataframe[column].dt.$dateObjectArray[0] != "Invalid Date"))} placeholder="Notes Weight" /> : <Dropdown placeholder="Notes Weight" disabled />}
+              </div>
+              <div>
+                Measurement value : &nbsp;
+                {dataframe.$data ? <Dropdown value={selectedColumns.notes} onChange={(event) => handleColumnSelect("notes", event)} options={dataframe.$columns.filter((column, index) => dataframe.$dtypes[index] == "string" && dataframe[column].dt.$dateObjectArray[0] == "Invalid Date")} placeholder="Notes" /> : <Dropdown placeholder="Notes" disabled />}
+              </div>
+            </div>
+            <div className="vertical-divider"></div>
+            {/* Text input for column names */}
+            <div>
+              {/* Time interval for generation of extracted features */}
+              <b>Compute Features by : &nbsp;</b>
+              <hr></hr>
+              <div className="margin-top-15">
+                <RadioButton inputId="patient" name="frequency" value="Patient" onChange={(e) => setFrequency(e.value)} checked={frequency === "Patient"} />
+                <label htmlFor="patient">Patient</label>
+              </div>
+              <div className="margin-top-15">
+                <RadioButton inputId="admission" name="frequency" value="Admission" onChange={(e) => setFrequency(e.value)} checked={frequency === "Admission"} />
+                <label htmlFor="admission">Admission</label>
+              </div>
+              <div className="margin-top-15">
+                <RadioButton inputId="hourRange" name="frequency" value="HourRange" onChange={(e) => setFrequency(e.value)} checked={frequency === "HourRange"} />
+                <label htmlFor="hourRange">Hour Range</label>
+              </div>
+            </div>
+          </div>
+        </div>
         <div className="margin-top-15">
-          Patient Identifier : &nbsp;
-          {dataframe && dataframe.$data ? <Dropdown value={selectedColumns.patientIdentifier} onChange={(event) => handleColumnSelect("patientIdentifier", event)} options={dataframe.$columns.filter((column, index) => dataframe.$dtypes[index] == "int32" || dataframe.$dtypes[index] == "string")} placeholder="Patient Identifier" /> : <Dropdown placeholder="Patient Identifier" disabled />}
-        </div>
-        <div>
-          Notes Weight : &nbsp;
-          {dataframe.$data ? <Dropdown value={selectedColumns.notesWeight} onChange={(event) => handleColumnSelect("notesWeight", event)} options={dataframe.$columns.filter((column, index) => dataframe.$dtypes[index] == "int32" || dataframe.$dtypes[index] == "float32" || (dataframe.$dtypes[index] == "string" && dataframe[column].dt.$dateObjectArray[0] != "Invalid Date"))} placeholder="Notes Weight" /> : <Dropdown placeholder="Notes Weight" disabled />}
-        </div>
-        <div>
-          Measurement value : &nbsp;
-          {dataframe.$data ? <Dropdown value={selectedColumns.notes} onChange={(event) => handleColumnSelect("notes", event)} options={dataframe.$columns.filter((column, index) => dataframe.$dtypes[index] == "string" && dataframe[column].dt.$dateObjectArray[0] == "Invalid Date")} placeholder="Notes" /> : <Dropdown placeholder="Notes" disabled />}
+          <b>Column name prefix : &nbsp;</b>
+          <InputText value={columnPrefix} onChange={(e) => handleColumnPrefixChange(e.target.value)} />
         </div>
       </div>
     </>
