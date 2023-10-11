@@ -27,12 +27,7 @@ export default function createWindow(windowName, options) {
   }
 
   const windowWithinBounds = (windowState, bounds) => {
-    return (
-      windowState.x >= bounds.x &&
-      windowState.y >= bounds.y &&
-      windowState.x + windowState.width <= bounds.x + bounds.width &&
-      windowState.y + windowState.height <= bounds.y + bounds.height
-    )
+    return windowState.x >= bounds.x && windowState.y >= bounds.y && windowState.x + windowState.width <= bounds.x + bounds.width && windowState.y + windowState.height <= bounds.y + bounds.height
   }
 
   const resetToDefaults = () => {
@@ -65,7 +60,7 @@ export default function createWindow(windowName, options) {
   state = ensureVisibleOnSomeDisplay(restore())
 
   win = new BrowserWindow({
-    icon: path.join(__dirname, "../resources/medomics_transparent_bg.png"),
+    icon: path.join(__dirname, "../resources/MEDomicsLabWithShadowNoText100.png"),
     ...state,
     ...options,
     webPreferences: {
@@ -76,8 +71,8 @@ export default function createWindow(windowName, options) {
     show: false
   })
 
-  win.maximize()
-  win.show()
+  // win.maximize()
+  // win.show()
 
   win.on("close", saveState)
 
