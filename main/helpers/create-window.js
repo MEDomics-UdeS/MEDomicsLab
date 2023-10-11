@@ -71,9 +71,6 @@ export default function createWindow(windowName, options) {
     show: false
   })
 
-  // win.maximize()
-  // win.show()
-
   win.on("close", saveState)
 
   return win
