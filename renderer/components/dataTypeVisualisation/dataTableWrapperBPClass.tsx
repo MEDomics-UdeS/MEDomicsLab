@@ -673,7 +673,7 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
             enableRowReordering={true}
             onRowsReordered={this.handleRowsReordered}
             onColumnsReordered={this.handleColumnsReordered}
-            enableColumnReordering={true}
+            enableColumnReordering={false} // TODO: Figure out the bug with column reordering while filtering
           >
             {columns}
           </Table2>
