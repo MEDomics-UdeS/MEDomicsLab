@@ -19,12 +19,7 @@ export type FilterCallback = (columnIndex: number, filterValue: string) => void 
 
 export interface SortableColumn {
   // interface for the sortable column
-  getColumn(
-    getCellRenderer: CellLookup,
-    getCellData: CellLookup,
-    sortColumn: SortCallback,
-    filterColumn: FilterCallback
-  ): JSX.Element
+  getColumn(getCellRenderer: CellLookup, getCellData: CellLookup, sortColumn: SortCallback, filterColumn: FilterCallback): JSX.Element
 }
 
 /**
@@ -345,10 +340,11 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
    * @param event - event
    * @param data - data to be exported
    */
-  public exportToCSV(event: React.MouseEvent<HTMLButtonElement, MouseEvent>, data: any) {
+  public async exportToCSV(event: React.MouseEvent<HTMLButtonElement, MouseEvent>, data: any, filePath?: string) {
     data = this.getModifiedData(data) // get the modified data
     console.log("exportToCSV", data)
-    let csvContent = "data:text/csv;charset=utf-8,"
+    let csvContentHeader = "data:text/csv;charset=utf-8,"
+    let csvContent = ""
     let headers = Object.keys(data[0])
     let firstRow = headers.join(",")
     csvContent += firstRow + "\r\n"
@@ -367,13 +363,30 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
       })
       csvContent += rowToPush
     })
-    var encodedUri = encodeURI(csvContent)
-    var link = document.createElement("a")
-    link.setAttribute("href", encodedUri)
-    link.setAttribute("download", "my_data.csv")
-    document.body.appendChild(link) // Required for FF
-    link.click()
-    link.remove()
+    console.log("csvContent", csvContent)
+    if (filePath) {
+      const path = require("path")
+      const finalPath = path.join(filePath, this.state.config.name)
+      console.log("finalPath", finalPath)
+      const fs = require("fs")
+
+      fs.writeFile(filePath, csvContent, function (err: any) {
+        if (err) {
+          return console.error(err)
+        }
+        console.log("HEY!")
+      })
+    } else {
+      let filename = this.getSuggestedFileName("csv")
+      csvContent = csvContentHeader + csvContent
+      var encodedUri = encodeURI(csvContent)
+      var link = document.createElement("a")
+      link.setAttribute("href", encodedUri)
+      link.setAttribute("download", filename)
+      document.body.appendChild(link) // Required for FF
+      link.click()
+      link.remove()
+    }
   }
 
   /**
@@ -454,7 +467,7 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
    * @param event - event
    * @param data - data to be exported
    */
-  public exportToJSON(event: React.MouseEvent<HTMLButtonElement, MouseEvent>, data: any) {
+  public exportToJSON(event: React.MouseEvent<HTMLButtonElement, MouseEvent>, data: any, filePath?: string) {
     data = this.getModifiedData(data)
     console.log("exportToJSON", data)
     let jsonContent = "data:text/json;charset=utf-8, \r\n[\r\n\t"
@@ -467,10 +480,11 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
       }
     })
     jsonContent += "\r\n] \r\n"
+
     var encodedUri = encodeURI(this.formatJSON(jsonContent))
     var link = document.createElement("a")
     link.setAttribute("href", encodedUri)
-    link.setAttribute("download", "my_data.json")
+    link.setAttribute("download", this.getSuggestedFileName("json"))
     document.body.appendChild(link) // Required for FF
     link.click()
     link.remove()
@@ -533,7 +547,8 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
     console.log("saveData", this.state.config)
     if (this.state.config.extension === "csv") {
       try {
-        dfd.toCSV(df, { filePath: this.state.config.path })
+        // dfd.toCSV(df, { filePath: this.state.config.path })
+        await this.exportToCSV(event, data, this.state.config.path)
       } catch (e) {
         // No operation
       } finally {
@@ -576,19 +591,8 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
     )
     return (
       <div className="bp-datatable-wrapper">
-        <ChevronRight
-          className={`bp-datatable-wrapper-options-icon ${
-            this.state.options.isOpen
-              ? "bp-datatable-wrapper-options-icon-open rotate-90-cw"
-              : "bp-datatable-wrapper-options-icon-closed rotate--90-cw"
-          }`}
-        />
-        <div
-          className="bp-datatable-wrapper-title"
-          style={{ display: "flex", flexDirection: "horizontal" }}
-          onMouseEnter={() => this.setState({ options: { ...this.state.options, isOpen: true } })}
-          onMouseLeave={() => this.setState({ options: { ...this.state.options, isOpen: false } })}
-        >
+        <ChevronRight className={`bp-datatable-wrapper-options-icon ${this.state.options.isOpen ? "bp-datatable-wrapper-options-icon-open rotate-90-cw" : "bp-datatable-wrapper-options-icon-closed rotate--90-cw"}`} />
+        <div className="bp-datatable-wrapper-title" style={{ display: "flex", flexDirection: "horizontal" }} onMouseEnter={() => this.setState({ options: { ...this.state.options, isOpen: true } })} onMouseLeave={() => this.setState({ options: { ...this.state.options, isOpen: false } })}>
           <Collapse isOpen={this.state.options.isOpen}>
             <Stack direction="horizontal" gap={3} style={{ position: "relative", top: "-5px", right: "0px" }}>
               <Button
@@ -642,12 +646,7 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
             bodyContextMenuRenderer={this.renderBodyContextMenu}
             numRows={numRows}
             getCellClipboardData={this.getCellData}
-            cellRendererDependencies={[
-              this.state.sortedIndexMap,
-              this.state.columnIndexMap,
-              this.state.filteredIndexMap,
-              this.state.sparseCellIntent
-            ]}
+            cellRendererDependencies={[this.state.sortedIndexMap, this.state.columnIndexMap, this.state.filteredIndexMap, this.state.sparseCellIntent]}
             enableMultipleSelection={true}
             enableRowReordering={true}
             onRowsReordered={this.handleRowsReordered}
@@ -728,15 +727,7 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
       rowIndex = sortedRowIndex // if the sorted row index is not null, set the row index to the sorted row index
     }
 
-    return (
-      <EditableCell2
-        intent={this.state.sparseCellIntent[`${rowIndex}-${this.state.columnsNames[this.state.columnIndexMap[columnIndex]]}`]}
-        value={this.getCellData(rowIndex, columnIndex)}
-        onCancel={this.cellValidator(rowIndex, columnIndex)}
-        onChange={this.cellValidator(rowIndex, columnIndex)}
-        onConfirm={this.cellSetter(rowIndex, columnIndex)}
-      ></EditableCell2>
-    )
+    return <EditableCell2 intent={this.state.sparseCellIntent[`${rowIndex}-${this.state.columnsNames[this.state.columnIndexMap[columnIndex]]}`]} value={this.getCellData(rowIndex, columnIndex)} onCancel={this.cellValidator(rowIndex, columnIndex)} onChange={this.cellValidator(rowIndex, columnIndex)} onConfirm={this.cellSetter(rowIndex, columnIndex)}></EditableCell2>
   }
 
   /**
@@ -813,10 +804,7 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
         rowIndex = sortedRowIndex
       }
       try {
-        return data[rowIndex][columnsNames[columnIndexMap[columnIndex]]]
-          .toString()
-          .toLowerCase()
-          .includes(filterValue.toLowerCase()) // Filter the rows based on the filter value (Everything is converted to lowercase strings)
+        return data[rowIndex][columnsNames[columnIndexMap[columnIndex]]].toString().toLowerCase().includes(filterValue.toLowerCase()) // Filter the rows based on the filter value (Everything is converted to lowercase strings)
       } catch (e) {
         // No operation
       }
