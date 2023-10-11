@@ -3,6 +3,7 @@ const path = require("path")
 const { parse } = require("csv-parse")
 const dfd = require("danfojs")
 var Papa = require("papaparse")
+
 /**
  *
  * @param {Object} exportObj object to be exported
@@ -12,14 +13,36 @@ var Papa = require("papaparse")
  * This function takes an object and a name and downloads the object as a json file
  * It create a temporary anchor element to ask the user where to download the file
  */
-const downloadJson = (exportObj, exportName) => {
+const downloadFile = (exportObj, exportName) => {
   var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportObj, null, 2))
   var downloadAnchorNode = document.createElement("a")
   downloadAnchorNode.setAttribute("href", dataStr)
-  downloadAnchorNode.setAttribute("download", exportName + ".json")
+  downloadAnchorNode.setAttribute("download", exportName)
   document.body.appendChild(downloadAnchorNode) // required for firefox
   downloadAnchorNode.click()
   downloadAnchorNode.remove()
+}
+
+/**
+ *
+ * @param {Object} exportObj object to be exported
+ * @param {String} exportName name of the exported file
+ *
+ * @description
+ * This function takes an object and a name and downloads the object as a json file
+ * It create a temporary anchor element to ask the user where to download the file
+ */
+const downloadPath = (path) => {
+  // var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportObj, null, 2))
+  loadFileFromPathSync(path).then((data) => {
+    var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data, null, 2))
+    var downloadAnchorNode = document.createElement("a")
+    downloadAnchorNode.setAttribute("href", dataStr)
+    downloadAnchorNode.setAttribute("download", path.split("/").pop().split("\\").pop())
+    document.body.appendChild(downloadAnchorNode) // required for firefox
+    downloadAnchorNode.click()
+    downloadAnchorNode.remove()
+  })
 }
 
 /**
@@ -89,6 +112,16 @@ const loadJsonSync = () => {
       reader.readAsText(event.target.files[0])
     }
     input.click()
+  })
+}
+
+const loadFileSyncFromPath = (path) => {
+  const fs = require("fs")
+  return new Promise((resolve) => {
+    const data = fs.readFileSync(path).then((data) => {
+      const jsonData = JSON.parse(data)
+      resolve(jsonData)
+    })
   })
 }
 
@@ -182,6 +215,20 @@ const loadCSVFromPath = (path, whenLoaded) => {
   })
 }
 
+const loadFileFromPathSync = (path) => {
+  return new Promise((resolve) => {
+    fs.readFile(path, "utf8", (err, data) => {
+      if (err) {
+        console.error("Error reading file:", err)
+      } else {
+        console.log("File read successfully", data)
+        let parseFile = JSON.parse(data)
+        resolve(parseFile)
+      }
+    })
+  })
+}
+
 function createFolder(path_, folderName) {
   // Creates a folder in the working directory
   const folderPath = path.join(path_, folderName)
@@ -196,4 +243,4 @@ function createFolder(path_, folderName) {
   })
 }
 
-export { downloadJson, writeFile, loadJson, loadJsonSync, loadJsonPath, loadCSVPath, loadCSVFromPath, createFolder }
+export { downloadFile, downloadPath, writeFile, loadJson, loadJsonSync, loadJsonPath, loadCSVPath, loadCSVFromPath, createFolder }

@@ -95,9 +95,9 @@ const FlowPageBaseWithFlowInfos = ({ children, workflowType, id }) => {
         </Panel>
         <PanelResizeHandle />
         {/* Panel is used to create the flow, used to be able to resize it on drag */}
-        <Panel minSize={25} order={2}>
+        <Panel minSize={25} order={2} className="main-scene-panel">
           {/* in this panel, we use another PanelGroup to create the layout of the flow and the results pane */}
-          <PanelGroup className="width-100 height-100" style={{ paddingLeft: "0.25rem" }} direction="vertical">
+          <PanelGroup className="width-100 height-100" style={{ padding: "0" }} direction="vertical">
             {/* Panel is used to create the flow, used to be able to resize it on drag */}
             <Panel order={1}>
               <ReactFlowProvider>{children}</ReactFlowProvider>

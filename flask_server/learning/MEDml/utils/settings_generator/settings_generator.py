@@ -136,7 +136,7 @@ create_model(node_settings)
         "info": [],
         "code": """"""
     },
-    'analyse': {
+    'analyze': {
         "info": ['plot_model', 'interpret_model', 'dashboard'],
         "code": """"""
     },
@@ -244,10 +244,10 @@ def convert_to_medomics_standards(settings: dict, types_conv: dict, nodes_includ
             "options": {}, "code": f"{model_option}"}
 
     # ANALYSE SETTINGS
-    analyse_options = nodes_include['analyse']['info']
+    analyse_options = nodes_include['analyze']['info']
     for analyse_option in analyse_options:
-        standard_settings['analyse'][analyse_option] = settings[analyse_option]
-        standard_settings['analyse'][analyse_option]["code"] = f"{analyse_option}()"
+        standard_settings['analyze'][analyse_option] = settings[analyse_option]
+        standard_settings['analyze'][analyse_option]["code"] = f"{analyse_option}()"
 
     # LOAD_MODEL SETTINGS
     standard_settings['load_model']['options'] = settings['load_model']['options']
@@ -299,12 +299,14 @@ def specific_case(dict_settings: dict) -> dict:
     }
     dict_settings['dataset']['options']['files'] = {
         "type": "data-input",
-        "tooltip": "<p>Specify path to csv file or to medomics folder -.</p>"
+        "tooltip": "<p>Specify path to csv file or to medomics folder</p>"
     }
-    dict_settings['save_model']['options']['folder_path'] = {
-        "type": "string",
-        "tooltip": "<p>Specify path to folder where to save the pickle object.</p>"
+
+    dict_settings['load_model']['options']['model_to_load'] = {
+        "type": "models-input",
+        "tooltip": "<p>Choose a model from the MODELS folder</p>"
     }
+
     if ml_type == "classification":
         del dict_settings['dataset']['options']['data']
 
@@ -314,13 +316,15 @@ def specific_case(dict_settings: dict) -> dict:
     dict_settings['compare_models']['options']['engine']['default_val'] = ""
     dict_settings['create_model']['options']['engine']['default_val'] = ""
     dict_settings['tune_model']['options']['tuner_verbose']['default_val'] = 0
+    dict_settings['save_model']['options']['model_name']['default_val'] = "model"
 
     del dict_settings['dataset']['options']['target']['default_val']
     del dict_settings['dataset']['options']['log_experiment']
     del dict_settings['dataset']['options']['system_log']
     del dict_settings['compare_models']['options']['parallel']
-    del dict_settings['analyse']['plot_model']['options']['save']
-    del dict_settings['analyse']['interpret_model']['options']['save']
+    del dict_settings['analyze']['plot_model']['options']['save']
+    del dict_settings['analyze']['interpret_model']['options']['save']
+    del dict_settings['load_model']['options']['model_name']
 
     return dict_settings
 

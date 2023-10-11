@@ -52,7 +52,7 @@ class Clean(Node):
         experiment['dataset_metaData']['y_test'] = ml_obj.get_config('y_test')
         # save json object to file
         path = os.path.join(
-            "./", self.global_config_json['tmp_path'], f"{self.global_config_json['unique_id']}-dataset.json")
+            "./", self.global_config_json['paths']['tmp'], f"{self.global_config_json['unique_id']}-dataset.json")
         experiment['dataset_metaData']['dataset'].to_csv(path)
         return {
             "table": "dataset",

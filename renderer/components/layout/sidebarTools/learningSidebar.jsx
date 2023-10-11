@@ -109,6 +109,8 @@ const LearningSidebar = () => {
               MedDataObject.createEmptyFolderFSsync("tmp", sceneFolderPath, false)
               // create floder notebooks in the experiment folder
               MedDataObject.createEmptyFolderFSsync("notebooks", sceneFolderPath, false)
+              // create folder models in the experiment folder
+              MedDataObject.createEmptyFolderFSsync("models", sceneFolderPath, false)
             })
           })
         }

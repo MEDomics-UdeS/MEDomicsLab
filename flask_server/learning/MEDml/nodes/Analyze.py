@@ -14,9 +14,9 @@ DATAFRAME_LIKE = Union[dict, list, tuple, np.ndarray, pd.DataFrame]
 TARGET_LIKE = Union[int, str, list, tuple, np.ndarray, pd.Series]
 
 
-class Analyse(Node):
+class Analyze(Node):
     """
-    This class represents the Analyse node.
+    This class represents the Analyze node.
     """
 
     def __init__(self, id_: int, global_config_json: json) -> None:
@@ -51,16 +51,14 @@ class Analyse(Node):
         self.CodeHandler.add_line(
             "code", f"pycaret_exp.{selection}(model, {self.CodeHandler.convert_dict_to_params(print_settings)})", 1)
         for model in kwargs['models']:
-            print('model', model)
+            print('model:', model)
             return_value = getattr(
                 experiment['pycaret_exp'], selection)(model, **settings)
 
-            print(json.dumps(settings, indent=4))
-            print("return_value ", return_value)
             if 'save' in settings and settings['save'] and return_value is not None:
                 path = return_value
                 new_path = os.path.join(
-                    self.global_config_json["tmp_path"], f'{self.global_config_json["unique_id"]}-{model.__class__.__name__}.png')
+                    self.global_config_json['paths']['tmp'], f'{self.global_config_json["unique_id"]}-{model.__class__.__name__}.png')
                 self.global_config_json["unique_id"] += 1
                 if os.path.isfile(new_path):
                     os.remove(new_path)

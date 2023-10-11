@@ -3,6 +3,7 @@ import DropzoneComponent from "../../../mainPages/dataComponents/dropzoneCompone
 import medomicsImg from "../../../../../resources/medomics.svg"
 import * as Icon from "react-bootstrap-icons"
 import Image from "next/image"
+import { PiGraph } from "react-icons/pi"
 
 const iconExtension = {
   folder: (isExpanded) => (isExpanded ? <span style={{ paddingBottom: "0.15rem" }}>📂</span> : <span style={{ paddingBottom: "0.15rem" }}>📁</span>),
@@ -25,6 +26,16 @@ const iconExtension = {
   ),
   medml: <span className="emoji">🎯</span>,
   medmlres: <span className="emoji">📊</span>,
+  medmodel: (
+    <span>
+      <PiGraph className="icon-offset" style={{ color: "#97edfb" }} />
+    </span>
+  ),
+  pkl: (
+    <span>
+      <PiGraph className="icon-offset" style={{ color: "#5b95ff" }} />
+    </span>
+  ),
   ipynb: (
     <span>
       <Icon.JournalCode className="icon-offset" style={{ color: "#5b95ff" }} />
@@ -104,7 +115,7 @@ const renderItem = ({ item, depth, children, title, context, arrow }, additional
                 >
                   <div>
                     {iconExtension.folder(context.isExpanded)}
-                    <label>{title}</label>
+                    <span>{title}</span>
                   </div>
                 </InteractiveComponent>
               </div>
@@ -135,7 +146,7 @@ const renderItem = ({ item, depth, children, title, context, arrow }, additional
               >
                 <div>
                   {iconExtension[item.type]}
-                  <label>{title}</label>
+                  <span>{title}</span>
                 </div>
               </InteractiveComponent>
             </div>

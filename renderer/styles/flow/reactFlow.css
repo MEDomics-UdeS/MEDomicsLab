@@ -211,18 +211,26 @@
   gap: 0.5rem !important;
   display: flex;
   flex-direction: column;
-  padding: 5px;
+  padding: 0.25rem;
   overflow-y: auto;
   min-width: 230px;
 }
 
 .available-nodes-panel {
-  box-shadow: 2px 2px 5px -1px rgb(0 0 0 / 40%);
+  box-shadow:
+    2px 2px 3px -1px rgb(0 0 0 / 20%),
+    0 1px 1px 0 rgb(0 0 0 / 14%),
+    0px 0px 3px 2px rgb(0 0 0 / 12%);
+  border-radius: 0.5rem;
 }
 
 .available-nodes-panel .p-card-body {
   padding: 0.5rem;
   background-color: #0000000d;
+}
+
+.available-nodes-panel .p-card-body .p-card-content {
+  padding: 0;
 }
 
 .closeBtn.btn:hover {
@@ -257,9 +265,9 @@
 .flow-btn-panel-top {
   position: absolute;
   top: 0.5rem;
-  /* left: 0rem; */
   z-index: 10;
   height: 2.2rem;
+  width: 100%;
 }
 
 .flow-btn-panel-top button:hover {
@@ -276,7 +284,7 @@
 }
 
 .flow-btn-panel-top .left {
-  margin-left: 5px;
+  margin-left: -5px;
   gap: 0.5rem !important;
   display: flex;
   height: var(--size-top-panel);
@@ -317,6 +325,21 @@
 
 .btn-panel-top-corner button {
   margin-left: 5px;
+}
+
+.flow-btn-panel-left-vertical {
+  position: absolute;
+  left: 1.75rem;
+  bottom: 8.5rem;
+  cursor: pointer;
+  z-index: 10;
+  translate: -50% 0;
+}
+
+.flow-btn-panel-left-vertical .p-button {
+  background-color: #ff000073;
+  width: 2rem;
+  height: 2rem !important;
 }
 
 .btn-ctl-available-nodes.p-button {
@@ -381,7 +404,7 @@
   color: #5050509c;
   padding: 0rem 0.25rem 0rem 0.25rem;
   font-weight: 700;
-  border-radius: 0.75rem 0.75rem 0rem 0rem;
+  border-radius: 0.6rem 0.6rem 0rem 0rem;
 }
 
 .node-editableLabel {
@@ -409,18 +432,27 @@ input.node-editableLabel {
 }
 
 .options-overlayPanel {
-  min-width: 10rem;
+  min-width: 30ch;
+  max-width: 40ch;
 }
 
 .options-overlayPanel .header {
   display: flex;
-  justify-content: flex-start;
+  justify-content: space-between;
   align-items: center;
   flex-direction: row;
   flex-wrap: nowrap;
   gap: 0.3rem;
   padding: 0.2rem;
   min-height: 1rem;
+}
+
+.options-overlayPanel .header .editable-node-name {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  flex-direction: row;
+  gap: 0.3rem;
 }
 
 .p-overlaypanel .p-overlaypanel-content {
@@ -560,4 +592,16 @@ path {
 .pipe-name-notRun {
   color: var(--not-run-color);
   font-weight: 450 !important;
+}
+
+.main-scene-panel {
+  padding: 0.25rem;
+}
+
+.main-scene-panel > div {
+  box-shadow:
+    2px 2px 3px -1px rgb(0 0 0 / 20%),
+    0 1px 1px 0 rgb(0 0 0 / 14%),
+    0px 0px 3px 2px rgb(0 0 0 / 12%);
+  border-radius: 0.5rem;
 }

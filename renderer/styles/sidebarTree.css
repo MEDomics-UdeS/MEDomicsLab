@@ -202,12 +202,14 @@
 }
 
 .rct-tree-item-title-container div {
-  display: flex;
+  /* display: flex; */
   align-items: center;
+  overflow-x: hidden;
 }
 
 .rct-tree-item-title-container label {
   cursor: pointer;
+  text-overflow: ellipsis;
 }
 
 .rct-tree-item-title-container .icon-offset {

@@ -9,9 +9,10 @@ import { FlowResultsContext } from "./context/flowResultsContext"
 import { getId, deepCopy } from "../../utilities/staticFunctions"
 import { ipcRenderer } from "electron"
 import { ToggleButton } from "primereact/togglebutton"
-import Container from "react-bootstrap/Container"
 import Row from "react-bootstrap/Row"
 import Col from "react-bootstrap/Col"
+import { Button } from "primereact/button"
+import { ErrorRequestContext } from "./context/errorRequestContext"
 
 /**
  *
@@ -19,6 +20,10 @@ import Col from "react-bootstrap/Col"
  * @param { function } onDeleteNode function to delete a node
  * @param { function } groupNodeHandlingDefault function to handle a group node default actions such as creation of start and end nodes
  * @param { JSX.Element } ui jsx element to display on the workflow
+ * @param { JSX.Element } uiTopLeft jsx element to display on the top left of the workflow
+ * @param { JSX.Element } uiTopRight jsx element to display on the top right of the workflow
+ * @param { JSX.Element } uiTopCenter jsx element to display on the top center of the workflow
+ * @param { function } customOnConnect function to call when a connection is created
  *
  * @param { object } 	mandatoryProps.reactFlowInstance instance of the reactFlow
  * @param { function } 	mandatoryProps.setReactFlowInstance function to set the reactFlowInstance
@@ -42,7 +47,7 @@ import Col from "react-bootstrap/Col"
  * This component is used to display a workflow.
  * It manages base workflow functions such as node creation, node deletion, node connection, etc.
  */
-const WorkflowBase = ({ isGoodConnection, groupNodeHandlingDefault, onDeleteNode, onNodeDrag, mandatoryProps, ui, uiTopLeft, uiTopRight, uiTopCenter }) => {
+const WorkflowBase = ({ isGoodConnection, groupNodeHandlingDefault, onDeleteNode, onNodeDrag, mandatoryProps, ui, uiTopLeft, uiTopRight, uiTopCenter, customOnConnect }) => {
   const { reactFlowInstance, setReactFlowInstance, addSpecificToNode, nodeTypes, nodes, setNodes, onNodesChange, edges, setEdges, onEdgesChange, runNode } = mandatoryProps
 
   const edgeUpdateSuccessful = useRef(true)
@@ -51,6 +56,14 @@ const WorkflowBase = ({ isGoodConnection, groupNodeHandlingDefault, onDeleteNode
   const { showAvailableNodes, setShowAvailableNodes, updateFlowContent } = useContext(FlowInfosContext) // used to update the flow infos
   const { showResultsPane, setShowResultsPane, isResults, flowResults } = useContext(FlowResultsContext) // used to update the flow infos
   const [newConnection, setNewConnection] = useState(false)
+  const { showError, setShowError } = useContext(ErrorRequestContext) // used to get the flow infos
+  const [hasBeenAnError, setHasBeenAnError] = useState(false) // used to get the flow infos
+
+  useEffect(() => {
+    if (showError) {
+      setHasBeenAnError(true)
+    }
+  }, [showError])
 
   // this useEffect is used to update the nodes when the nodeUpdate object changes
   useEffect(() => {
@@ -99,6 +112,7 @@ const WorkflowBase = ({ isGoodConnection, groupNodeHandlingDefault, onDeleteNode
       nodes: nodes,
       edges: edges
     })
+    console.log("flow", nodes, edges)
   }, [nodes, edges])
 
   // this useEffect is used to get the flask port from the main process
@@ -242,6 +256,7 @@ const WorkflowBase = ({ isGoodConnection, groupNodeHandlingDefault, onDeleteNode
       // get the source and target nodes
       let sourceNode = deepCopy(nodes.find((node) => node.id === params.source))
       let targetNode = deepCopy(nodes.find((node) => node.id === params.target))
+
       // check if sourceNode's outputs is compatible with targetNode's inputs
       let isValidConnection = false
       sourceNode.data.setupParam.output.map((output) => {
@@ -255,9 +270,10 @@ const WorkflowBase = ({ isGoodConnection, groupNodeHandlingDefault, onDeleteNode
 
       // check if the connection creates an infinite loop
       let isLoop = verificationForLoopHoles(params)
-      setNewConnection(!newConnection)
+      setNewConnection(!newConnection) // this is used to update the workflow when a connection is created
       if (!alreadyExists && isValidConnection && !isLoop) {
         setEdges((eds) => addEdge(params, eds))
+        // customOnConnect(params)
       } else {
         let message = "Not a valid connection"
         if (alreadyExists) {
@@ -363,6 +379,7 @@ const WorkflowBase = ({ isGoodConnection, groupNodeHandlingDefault, onDeleteNode
           // create a base node with common properties
           let newNode = createBaseNode(position, node, newId)
           // add specific properties to the node
+          newNode.draggable = !showResultsPane
           newNode = addSpecificToNode(newNode)
           // add the new node to the nodes array
           setNodes((nds) => nds.concat(newNode))
@@ -372,7 +389,7 @@ const WorkflowBase = ({ isGoodConnection, groupNodeHandlingDefault, onDeleteNode
         }
       }
     },
-    [reactFlowInstance, addSpecificToNode]
+    [reactFlowInstance, addSpecificToNode, showResultsPane]
   )
 
   /**
@@ -388,6 +405,8 @@ const WorkflowBase = ({ isGoodConnection, groupNodeHandlingDefault, onDeleteNode
    */
   const createBaseNode = (position, node, id) => {
     const { nodeType, name, image } = node
+    // console.log("createBaseNode", nodeType, name, image)
+    console.log("node", node)
     let newNode = {
       id: id,
       type: nodeType,
@@ -479,14 +498,16 @@ const WorkflowBase = ({ isGoodConnection, groupNodeHandlingDefault, onDeleteNode
   }, [])
 
   return (
-    <div className="height-100">
+    <div className="height-100 width-100">
       {/* here is the reactflow component which handles a lot of features listed below */}
       <ReactFlow nodes={nodes} edges={edges} onNodesChange={onNodesChange} onEdgesChange={onEdgesChange} onInit={setReactFlowInstance} nodeTypes={nodeTypes} onNodeDrag={onNodeDrag} onConnect={onConnect} onDrop={onDrop} onDragOver={onDragOver} onEdgeUpdate={onEdgeUpdate} onEdgeUpdateStart={onEdgeUpdateStart} onEdgeUpdateEnd={onEdgeUpdateEnd} fitView>
-        <Background /> <MiniMap className="minimapStyle" zoomable pannable /> <Controls />
+        <Background />
+        <MiniMap className="minimapStyle" zoomable pannable />
+        <Controls />
         {ui}
-        <Container className="flow-btn-panel-top">
-          <Row>
-            <Col sm className="left">
+        <div className="flow-btn-panel-top">
+          <Row className="margin-0" style={{ justifyContent: "space-between" }}>
+            <Col md="auto" className="left">
               <ToggleButton onIcon="pi pi-list" offIcon="pi pi-times" onLabel="" offLabel="" checked={!showAvailableNodes} onChange={(e) => setShowAvailableNodes(!e.value)} className="btn-ctl-available-nodes" />
               <ToggleButton onLabel="Results mode on" offLabel="See results" onIcon="pi pi-chart-bar" offIcon="pi pi-eye" disabled={!isResults} checked={showResultsPane} onChange={(e) => setShowResultsPane(e.value)} className="btn-show-results" />
               {uiTopLeft}
@@ -494,11 +515,15 @@ const WorkflowBase = ({ isGoodConnection, groupNodeHandlingDefault, onDeleteNode
             <Col md="auto" className="center">
               {uiTopCenter}
             </Col>
-            <Col sm className="right">
+            <Col md="auto" className="right">
               {uiTopRight}
             </Col>
           </Row>
-        </Container>
+        </div>
+        <div className="flow-btn-panel-left-vertical">
+          {/* <Button label="! Error" severity="danger" raised /> */}
+          {hasBeenAnError && <Button icon="pi pi-exclamation-circle" rounded severity="danger" aria-label="Cancel" tooltip="See last error" onClick={() => setShowError(true)} />}
+        </div>
       </ReactFlow>
     </div>
   )

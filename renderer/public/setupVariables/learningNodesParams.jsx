@@ -7,7 +7,7 @@ import regressionModelsSettings from "./possibleSettings/learning/regressionMode
 const nodesParams = {
   dataset: {
     type: "standardNode",
-    classes: "object dataset run",
+    classes: "object dataset run startNode",
     nbInput: 0,
     nbOutput: 1,
     input: [],
@@ -74,23 +74,23 @@ const nodesParams = {
     title: "Optimize",
     possibleSettings: { classification: classificationSettings["optimize"], regression: regressionSettings["optimize"] }
   },
-  analyse: {
+  analyze: {
     type: "selectionNode",
-    classes: "action analyse run",
+    classes: "action analyze run endNode",
     nbInput: 1,
     nbOutput: 0,
     input: ["model"],
     output: [],
-    img: "analyse.png",
-    title: "Analyse",
-    possibleSettings: { classification: classificationSettings["analyse"], regression: regressionSettings["analyse"] }
+    img: "analyze.png",
+    title: "Analyze",
+    possibleSettings: { classification: classificationSettings["analyze"], regression: regressionSettings["analyze"] }
   },
   load_model: {
     type: "standardNode",
     classes: "action load_model run",
-    nbInput: 0,
+    nbInput: 1,
     nbOutput: 1,
-    input: [],
+    input: ["dataset"],
     output: ["model"],
     img: "load_model.png",
     title: "Load model",
@@ -98,7 +98,7 @@ const nodesParams = {
   },
   save_model: {
     type: "standardNode",
-    classes: "action save_model run",
+    classes: "action save_model run endNode",
     nbInput: 1,
     nbOutput: 0,
     input: ["model"],

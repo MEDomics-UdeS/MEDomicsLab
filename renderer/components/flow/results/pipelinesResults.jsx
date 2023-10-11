@@ -4,6 +4,7 @@ import { deepCopy } from "../../../utilities/staticFunctions"
 import DataParamResults from "../../learning/results/node/dataParamResults"
 import ModelsResults from "../../learning/results/node/modelsResults"
 import AnalyseResults from "../../learning/results/node/analyseResults"
+import SaveModelResults from "../../learning/results/node/saveModelResults"
 import { SelectButton } from "primereact/selectbutton"
 import MedDataObject from "../../workspace/medDataObject"
 import { FlowResultsContext } from "../context/flowResultsContext"
@@ -90,10 +91,14 @@ const PipelineResult = ({ pipeline, selectionMode, flowContent }) => {
         let type = selectedNode.data.internal.type
         if (type == "dataset" || type == "clean") {
           toReturn = <DataParamResults selectedResults={selectedResults} />
-        } else if (type == "create_model" || type == "compare_models") {
+        } else if (type == "train_model" || type == "compare_models") {
           toReturn = <ModelsResults selectedResults={selectedResults} />
-        } else if (type == "analyse") {
+        } else if (type == "analyze") {
           toReturn = <AnalyseResults selectedResults={selectedResults} />
+        } else if (type == "save_model") {
+          toReturn = <SaveModelResults selectedResults={selectedResults} />
+        } else {
+          toReturn = <div>Results not available for this node type</div>
         }
       }
     }
@@ -130,7 +135,6 @@ const PipelinesResults = ({ pipelines, selectionMode, flowContent }) => {
 
   // When the showResultsPane change, save the state of accordionActiveIndex and set it to [] if showResultsPane is false for performance purpose
   useEffect(() => {
-    console.log("showResultsPane", showResultsPane)
     if (!showResultsPane) {
       setAccordionActiveIndexStore(accordionActiveIndex)
       setAccordionActiveIndex([])
@@ -194,9 +198,9 @@ const PipelinesResults = ({ pipelines, selectionMode, flowContent }) => {
         pipeline.forEach((id) => {
           let nodeResults = checkIfObjectContainsId(resultsCopy, id)
           if (nodeResults) {
-            finalCode = [...finalCode, ...nodeResults.results.code.content]
-            console.log("imports", nodeResults.results.code.imports)
-            finalImports = [...finalImports, ...nodeResults.results.code.imports]
+            finalCode = [...finalCode, ...Object.values(nodeResults.results.code.content)]
+            console.log("imports", Object.values(nodeResults.results.code.imports))
+            finalImports = [...finalImports, ...Object.values(nodeResults.results.code.imports)]
             resultsCopy = nodeResults.next_nodes
           } else {
             console.log("id " + id + " not found in results")

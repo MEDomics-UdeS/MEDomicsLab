@@ -24,7 +24,7 @@ class ModelHandler(Node):
             global_config_json (json): The global config json.
         """
         super().__init__(id_, global_config_json)
-        if self.type == 'create_model':
+        if self.type == 'train_model':
             self.model_id = self.config_json['associated_model_id']
             model_obj = self.global_config_json['nodes'][self.model_id]
             self.config_json['data']['estimator'] = {
@@ -57,7 +57,7 @@ class ModelHandler(Node):
                 self.CodeHandler.add_line(
                     "code", f"trained_models = [trained_models]")
 
-        elif self.type == 'create_model':
+        elif self.type == 'train_model':
             settings.update(self.config_json['data']['estimator']['settings'])
             settings.update(
                 {'estimator': self.config_json['data']['estimator']['type']})

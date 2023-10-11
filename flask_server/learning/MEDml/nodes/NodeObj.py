@@ -49,7 +49,7 @@ class Node(ABC):
             id_: the corresponding id of the node
             global_config_json: specifies the configuration of the node (e.g. settings, inputs, outputs)
         """
-        print(colored(f"Node {id_} created", "green"))
+        print(Fore.BLUE + f"Node {id_} created : {global_config_json['nodes'][str(id_)]['data']['internal']['type']}" + Fore.RESET)
         self.global_config_json = global_config_json
         self.config_json = global_config_json['nodes'][str(id_)]
         self._code = self.config_json['data']['internal']['code']

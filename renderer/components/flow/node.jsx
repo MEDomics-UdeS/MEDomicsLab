@@ -147,19 +147,21 @@ const NodeObject = ({ id, data, nodeSpecific, nodeBody, defaultSettings, onClick
           <OverlayPanel className="options-overlayPanel" ref={op}>
             <Stack direction="vertical" gap={1}>
               <div className="header">
-                <Icon.Pencil width="18px" height="18px" />
-                <EditableLabel
-                  text={data.internal.name}
-                  labelClassName="node-editableLabel"
-                  inputClassName="node-editableLabel"
-                  inputWidth="20ch"
-                  inputHeight="1.5rem"
-                  labelFontWeight="bold"
-                  inputFontWeight="bold"
-                  onFocusOut={(value) => {
-                    newNameHasBeenWritten(value)
-                  }}
-                />
+                <div className="editable-node-name">
+                  <Icon.Pencil width="18px" height="18px" />
+                  <EditableLabel
+                    text={data.internal.name}
+                    labelClassName="node-editableLabel"
+                    inputClassName="node-editableLabel"
+                    inputWidth="20ch"
+                    inputHeight="1.5rem"
+                    labelFontWeight="bold"
+                    inputFontWeight="bold"
+                    onFocusOut={(value) => {
+                      newNameHasBeenWritten(value)
+                    }}
+                  />
+                </div>
                 <AiOutlineInfoCircle
                   className="btn-info-node"
                   onClick={() => {

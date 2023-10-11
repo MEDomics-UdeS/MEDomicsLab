@@ -121,6 +121,10 @@ a {
   padding: 0.2rem !important;
 }
 
+.margin-0 {
+  margin: 0px 0px 0px 0px;
+}
+
 .margin-vertical-10 {
   margin: 10px 0px 10px 0px;
 }
@@ -187,9 +191,14 @@ body {
 }
 
 .module-page {
-  padding: 0.5rem;
+  padding: 0.1rem;
   height: 100%;
   width: 100%;
+}
+
+.module-page > div {
+  border-radius: 0.5rem;
+  padding: 0.2rem;
 }
 
 .padding-0_5rem {
