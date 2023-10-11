@@ -3,8 +3,7 @@ import { DataContext } from "../../workspace/dataContext"
 import { ListBox } from "primereact/listbox"
 import DataTableFromContext from "./dataTableFromContext"
 import { Tab, Tabs } from "react-bootstrap"
-import DataTableWrapperBPClass from "../../dataTypeVisualisation/dataTableWrapperBPClass"
-import DataTableFromContextBP from "./dataTableFromContextBP"
+
 /**
  * @description - This component is the dataset selector component that will show the datasets available in the workspace
  * @returns the dataset selector component

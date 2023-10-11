@@ -268,11 +268,13 @@ function App() {
     console.log("globalData changed", globalData)
   }, [globalData])
 
+  // This useEffect hook is called whenever the `layoutModel` state changes.
   useEffect(() => {
     // Log a message to the console whenever the layoutModel state variable changes
     console.log("layoutModel changed", layoutModel)
   }, [layoutModel]) // Here, we specify that the hook should only be called when the layoutModel state variable changes
 
+  // This useEffect hook is called at the beginning of the app to clear the localStorage
   useEffect(() => {
     localStorage.clear()
   }, [])

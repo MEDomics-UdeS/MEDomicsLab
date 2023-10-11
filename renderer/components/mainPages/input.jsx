@@ -20,12 +20,6 @@ const InputPage = ({ pageId = "42", configPath = null }) => {
           </AccordionTab>
           <AccordionTab header="Merge Tool">
             <h1>Merge Tool</h1>
-            <label class="bp5-label ">
-              <div class="bp5-html-select ">
-                <select></select>
-                <span class="bp5-icon bp5-icon-double-caret-vertical"></span>
-              </div>
-            </label>
           </AccordionTab>
         </Accordion>
       </ModulePage>

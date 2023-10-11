@@ -121,7 +121,6 @@ const loadJsonPath = (path) => {
 }
 
 /**
- *
  * @param {String} path
  * @returns {Object} json object
  * @description
@@ -162,6 +161,12 @@ const loadCSVPath = (path, whenLoaded) => {
   }
 }
 
+/**
+ * @description This function loads a CSV file from a given path
+ * @param {String} path Path to the CSV file
+ * @param {Function} whenLoaded Callback function that will be called when the CSV file is loaded
+ * @returns {void}
+ */
 const loadCSVFromPath = (path, whenLoaded) => {
   let csvPath = path
   fs.readFile(csvPath, "utf8", (err, data) => {
@@ -183,6 +188,12 @@ const loadCSVFromPath = (path, whenLoaded) => {
   })
 }
 
+/**
+ * @description This function loads a JSON file from a given path
+ * @param {String} path Path to the JSON file
+ * @param {Function} whenLoaded Callback function that will be called when the JSON file is loaded
+ * @returns {void}
+ */
 const loadJSONFromPath = (path, whenLoaded) => {
   let jsonPath = path
   fs.readFile(jsonPath, "utf8", (err, data) => {
@@ -191,7 +202,6 @@ const loadJSONFromPath = (path, whenLoaded) => {
     } else {
       console.log("File read successfully")
       let result = JSON.parse(data)
-
       let df = new dfd.DataFrame(result)
       let dfJSON = dfd.toJSON(df)
       console.log("DFJSON", dfJSON)
@@ -200,6 +210,12 @@ const loadJSONFromPath = (path, whenLoaded) => {
   })
 }
 
+/**
+ * @description This function loads a XLSX file from a given path
+ * @param {String} path Path to the XLSX file
+ * @param {Function} whenLoaded Callback function that will be called when the XLSX file is loaded
+ * @returns {void}
+ */
 const loadXLSXFromPath = async (filePath, whenLoaded) => {
   let jsonPath = filePath
   const path = require("path")
@@ -211,6 +227,12 @@ const loadXLSXFromPath = async (filePath, whenLoaded) => {
   whenLoaded(dfJSON)
 }
 
+/**
+ * @description This function creates a folder in the working directory
+ * @param {String} path_ Path to the folder
+ * @param {String} folderName Name of the folder
+ * @returns {void}
+ */
 function createFolder(path_, folderName) {
   // Creates a folder in the working directory
   const folderPath = path.join(path_, folderName)
@@ -225,15 +247,4 @@ function createFolder(path_, folderName) {
   })
 }
 
-export {
-  downloadJson,
-  writeFile,
-  loadJson,
-  loadJsonSync,
-  loadJsonPath,
-  loadCSVPath,
-  loadCSVFromPath,
-  createFolder,
-  loadJSONFromPath,
-  loadXLSXFromPath
-}
+export { downloadJson, writeFile, loadJson, loadJsonSync, loadJsonPath, loadCSVPath, loadCSVFromPath, createFolder, loadJSONFromPath, loadXLSXFromPath }
