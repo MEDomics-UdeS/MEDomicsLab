@@ -153,6 +153,9 @@ const DataTablePopoverBP = (props) => {
     setFilterValue("")
   }, [selectedType])
 
+  useEffect(() => {
+    console.log("Rerender", filterValue)
+  }, [])
   return (
     <>
       <Stack direction="horizontal" gap={1} style={{ marginInline: "5px", paddingBottom: "3px" }}>
@@ -198,9 +201,6 @@ const DataTablePopoverBP = (props) => {
                 setFilterValue(item)
               }}
               popoverProps={{
-                boundary: document.querySelector(`${props.config.uuid}-tableBP`),
-                rootBoundary: document.querySelector(`${props.config.uuid}-tableBP`),
-                scrollParent: document.querySelector(`${props.config.uuid}-tableBP`),
                 usePortal: true
               }}
               popoverContentProps={{

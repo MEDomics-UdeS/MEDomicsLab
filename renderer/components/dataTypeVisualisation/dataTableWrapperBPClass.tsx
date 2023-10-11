@@ -232,7 +232,7 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
    */
   public getColumnsTypes(data: any) {
     let columnsNames = Object.keys(data[0])
-    let columnsTypes = []
+    let columnsTypes: any[] = []
     let firstRows = data.slice(0, 10)
     columnsNames.forEach((columnName) => {
       let arr = firstRows.map((row: { [x: string]: any }) => (row[columnName] === "NaN" ? 0 : row[columnName]))
@@ -272,8 +272,8 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
       return
     }
     let columnsNames = Object.keys(this.props.data[0]) // get the column names
-    let newColumns = [] // new columns
-    let newColumnIndexMap = [] // new column index map
+    let newColumns: any[] = [] // new columns
+    let newColumnIndexMap: any[] = [] // new column index map
     let newColumnTypes = this.getColumnsTypes(this.props.data) // get the column types
     columnsNames.forEach((columnName, index) => {
       // for each column name, create a new NumericalSortableColumn
@@ -302,8 +302,8 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
       // if the previous props are not the same as the current props
       this.setState({ data: this.props.data }) // set the data
       let columnsNames = Object.keys(this.props.data[0]) // get the column names
-      let newColumns = []
-      let newColumnIndexMap = []
+      let newColumns: any[] = []
+      let newColumnIndexMap: any[] = []
       let newColumnTypes = this.getColumnsTypes(this.props.data) // get the column types
       columnsNames.forEach((columnName, index) => {
         newColumns.push(new NumericalSortableColumn(columnName, index, newColumnTypes[index], this.state.config)) // create a new NumericalSortableColumn for each column name, we pass the column type and config
@@ -330,8 +330,12 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
         // if the previous filtered index map is not the same as the current filtered index map
         this.setState({ filteredIndexMap: this.state.filteredIndexMap }) // set the filtered index map
       }
+      if (prevState.columnIndexMap !== this.state.columnIndexMap) {
+        // if the previous column index map is not the same as the current column index map
+        this.setState({ columnIndexMap: this.state.columnIndexMap }) // set the column index map
+      }
     }
-    console.log("componentDidUpdate", this.state.data, this.state.filteredIndexMap) // log the data and sorted index map
+    // console.log("componentDidUpdate", this.state.data, this.state.filteredIndexMap) // log the data and sorted index map
   }
 
   /**
@@ -517,10 +521,10 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
     let fileName = this.getSuggestedFileName("xlsx")
     data = this.getModifiedData(data)
     let headers = Object.keys(data[0])
-    let excelData = []
+    let excelData: any[] = []
     excelData.push(headers)
     data.forEach((row: { [x: string]: string }, index: number) => {
-      let rowToPush = []
+      let rowToPush: any[] = []
       headers.forEach((header) => {
         rowToPush.push(row[header])
       })
@@ -724,14 +728,11 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
   private getCellData = (rowIndex: number, columnIndex: number) => {
     const sortedRowIndex = this.state.sortedIndexMap[rowIndex]
 
-    if (sortedRowIndex != null) {
-      rowIndex = sortedRowIndex // if the sorted row index is not null, set the row index to the sorted row index
-    }
-    if (this.state.sparseCellData[`${rowIndex}-${this.state.columnsNames[columnIndex]}`]) {
+    if (this.state.sparseCellData[`${rowIndex}-${this.state.columnsNames[this.state.columnIndexMap[columnIndex]]}`]) {
       // if the cell data is not null in the sparse cell data
-      return this.state.sparseCellData[`${rowIndex}-${this.state.columnsNames[columnIndex]}`] // return the cell data modified in the sparse cell data
+      return this.state.sparseCellData[`${rowIndex}-${this.state.columnsNames[this.state.columnIndexMap[columnIndex]]}`] // return the cell data modified in the sparse cell data
     }
-
+    ;[this.state.columnIndexMap[columnIndex]]
     return this.state.data[rowIndex][this.state.columnsNames[this.state.columnIndexMap[columnIndex]]]
   }
 
@@ -742,9 +743,15 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
    * @returns cellRenderer - cell renderer
    */
   private getCellRenderer = (rowIndex: number, columnIndex: number) => {
+    const sortedRowIndex = this.state.sortedIndexMap[rowIndex]
+
+    if (sortedRowIndex != null) {
+      rowIndex = sortedRowIndex // if the sorted row index is not null, set the row index to the sorted row index
+    }
+
     return (
       <EditableCell2
-        intent={this.state.sparseCellIntent[`${rowIndex}-${this.state.columnsNames[columnIndex]}`]}
+        intent={this.state.sparseCellIntent[`${rowIndex}-${this.state.columnsNames[this.state.columnIndexMap[columnIndex]]}`]}
         value={this.getCellData(rowIndex, columnIndex)}
         onCancel={this.cellValidator(rowIndex, columnIndex)}
         onChange={this.cellValidator(rowIndex, columnIndex)}
@@ -815,10 +822,10 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
    * @returns void
    */
   private filterColumn = (columnIndex: number, filterValue: string) => {
-    const { data, columnsNames, columnsFilter } = this.state
+    const { data, columnsNames, columnsFilter, columnIndexMap } = this.state
     const newFilterValue = filterValue
     const newFilterValueDict = columnsFilter
-    newFilterValueDict[columnsNames[columnIndex]] = { filterValue: newFilterValue }
+    newFilterValueDict[columnsNames[columnIndexMap[columnIndex]]] = { filterValue: newFilterValue }
     this.setState({ columnsFilter: newFilterValueDict })
     const newFilteredIndexMap = Utils.times(data.length, (i: number) => i).filter((rowIndex: number) => {
       // Create an index range from 0 to the number of rows and then filter the rows
@@ -827,7 +834,10 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
         rowIndex = sortedRowIndex
       }
       try {
-        return data[rowIndex][columnsNames[columnIndex]].toString().toLowerCase().includes(filterValue.toLowerCase()) // Filter the rows based on the filter value (Everything is converted to lowercase strings)
+        return data[rowIndex][columnsNames[columnIndexMap[columnIndex]]]
+          .toString()
+          .toLowerCase()
+          .includes(filterValue.toLowerCase()) // Filter the rows based on the filter value (Everything is converted to lowercase strings)
       } catch (e) {
         // No operation
       }
@@ -848,7 +858,7 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
    * @returns void
    */
   private updateIntent = (filterValue, columnName, logicalOperation) => {
-    const { columnsNames, sparseCellIntent, filteredIndexMap, columnsFilter } = this.state
+    const { columnsNames, sparseCellIntent, filteredIndexMap, columnsFilter, sortedIndexMap } = this.state
     // Adds the intent to the cells that are present in the filteredIndexMap
     // and removes the intent from the cells that are not present in the filteredIndexMap
     let newSparseCellIntent = {}
@@ -877,6 +887,7 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
         if (columnsFilter[key].filterValue !== "") {
           // If the filter value is not empty
           columnsNamesFiltered.push(key) // Add the column name to the columnsNamesFiltered array
+
           filteredIndexMap[key].forEach((rowIndex: number) => {
             // For each row index in the filtered index map
             rowIntent[rowIndex] = rowIntent[rowIndex] ? rowIntent[rowIndex] + 1 : 1 // Increment the row intent
