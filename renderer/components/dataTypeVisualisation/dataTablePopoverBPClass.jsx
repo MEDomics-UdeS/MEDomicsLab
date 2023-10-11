@@ -116,9 +116,7 @@ const DataTablePopoverBP = (props) => {
             if (Object.keys(selectedIcon).includes(type)) {
               setSelectedType(medObject.metadata.columns[props.columnName].dataType)
             } else {
-              globalDataCopy[props.config.uuid].metadata.columns[props.columnName].dataType = getTypeFromInferedDtype(
-                props.category[0]
-              )
+              globalDataCopy[props.config.uuid].metadata.columns[props.columnName].dataType = getTypeFromInferedDtype(props.category[0])
               setSelectedType(getTypeFromInferedDtype(props.category[0]))
               setGlobalData(globalDataCopy)
             }
@@ -162,12 +160,7 @@ const DataTablePopoverBP = (props) => {
         <Popover
           content={
             <Menu>
-              <MenuItem
-                icon="array-floating-point"
-                text="Numerical"
-                {...menuItemOptions}
-                selected={selectedType == "Numerical"}
-              />
+              <MenuItem icon="array-floating-point" text="Numerical" {...menuItemOptions} selected={selectedType == "Numerical"} />
               <MenuItem icon="array-numeric" text="Categorical" {...menuItemOptions} selected={selectedType == "Categorical"} />
               <MenuItem icon="array-timestamp" text="Time" {...menuItemOptions} selected={selectedType == "Time"} />
               <MenuItem icon="array-string" text="String" {...menuItemOptions} selected={selectedType == "String"} />
@@ -175,27 +168,14 @@ const DataTablePopoverBP = (props) => {
           }
           placement="bottom-end"
         >
-          <Button
-            active={false}
-            icon={selectedIcon[selectedType]}
-            style={{ padding: "0.25rem", boxSizing: "content-box", minWidth: "1rem", minHeight: "1rem" }}
-          />
+          <Button active={false} icon={selectedIcon[selectedType]} style={{ padding: "0.25rem", boxSizing: "content-box", minWidth: "1rem", minHeight: "1rem" }} />
         </Popover>
         {selectedType == "Categorical" && ( // If the data type is categorical, then show the select component
           <>
             <Select
               items={getUniqueValues()}
               itemRenderer={(item, { handleClick, modifiers }) => {
-                return (
-                  <MenuItem
-                    active={modifiers.active}
-                    disabled={modifiers.disabled}
-                    key={item}
-                    onClick={handleClick}
-                    text={item}
-                    roleStructure="listoption"
-                  />
-                )
+                return <MenuItem active={modifiers.active} disabled={modifiers.disabled} key={item} onClick={handleClick} text={item} roleStructure="listoption" />
               }}
               onItemSelect={(item) => {
                 setFilterValue(item)
@@ -208,13 +188,7 @@ const DataTablePopoverBP = (props) => {
               }}
               filterable={false}
             >
-              <Button
-                rightIcon="caret-down"
-                placeholder="Select value"
-                text={filterValue !== "" ? filterValue : "Select value"}
-                style={{ width: "auto", height: "1.5rem" }}
-                small={true}
-              />
+              <Button rightIcon="caret-down" placeholder="Select value" text={filterValue !== "" ? filterValue : "Select value"} style={{ width: "auto", height: "1.5rem" }} small={true} />
             </Select>
           </>
         )}{" "}

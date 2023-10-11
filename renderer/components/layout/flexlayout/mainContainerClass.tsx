@@ -1,23 +1,6 @@
 import * as React from "react"
 import * as Prism from "prismjs"
-import {
-  Action,
-  Actions,
-  BorderNode,
-  CLASSES,
-  DockLocation,
-  DragDrop,
-  DropInfo,
-  IJsonTabNode,
-  ILayoutProps,
-  ITabRenderValues,
-  ITabSetRenderValues,
-  Layout,
-  Model,
-  Node,
-  TabNode,
-  TabSetNode
-} from "flexlayout-react"
+import { Action, Actions, BorderNode, CLASSES, DockLocation, DragDrop, DropInfo, IJsonTabNode, ILayoutProps, ITabRenderValues, ITabSetRenderValues, Layout, Model, Node, TabNode, TabSetNode } from "flexlayout-react"
 import { showPopup } from "./popupMenu"
 import { TabStorage } from "./tabStorage"
 import { Utils } from "./utils"
@@ -76,24 +59,14 @@ interface MyComponentState {
 const MainContainer = (props) => {
   const { layoutRequestQueue, setLayoutRequestQueue } = React.useContext(LayoutModelContext) as unknown as LayoutContextType
   const { globalData, setGlobalData } = React.useContext(DataContext) as unknown as DataContextType
-  return (
-    <MainInnerContainer
-      layoutRequestQueue={layoutRequestQueue}
-      setLayoutRequestQueue={setLayoutRequestQueue}
-      globalData={globalData}
-      setGlobalData={setGlobalData}
-    />
-  )
+  return <MainInnerContainer layoutRequestQueue={layoutRequestQueue} setLayoutRequestQueue={setLayoutRequestQueue} globalData={globalData} setGlobalData={setGlobalData} />
 }
 
 /**
  * Main container for the flexlayout
  * @summary This is the main container for the flexlayout. It contains the layout model and the layout itself.
  */
-class MainInnerContainer extends React.Component<
-  any,
-  { layoutFile: string | null; model: Model | null; json?: string; adding: boolean; fontSize: string; realtimeResize: boolean }
-> {
+class MainInnerContainer extends React.Component<any, { layoutFile: string | null; model: Model | null; json?: string; adding: boolean; fontSize: string; realtimeResize: boolean }> {
   loadingLayoutName?: string
   nextGridIndex: number = 1
   showingPopupMenu: boolean = false
@@ -243,12 +216,10 @@ class MainInnerContainer extends React.Component<
     let dropNode = dropInfo.node
 
     // prevent non-border tabs dropping into borders
-    if (dropNode.getType() === "border" && (dragNode.getParent() == null || dragNode.getParent()!.getType() != "border"))
-      return false
+    if (dropNode.getType() === "border" && (dragNode.getParent() == null || dragNode.getParent()!.getType() != "border")) return false
 
     // prevent border tabs dropping into main layout
-    if (dropNode.getType() !== "border" && dragNode.getParent() != null && dragNode.getParent()!.getType() == "border")
-      return false
+    if (dropNode.getType() !== "border" && dragNode.getParent() != null && dragNode.getParent()!.getType() == "border") return false
 
     return true
   }
@@ -369,17 +340,10 @@ class MainInnerContainer extends React.Component<
       event.preventDefault()
       event.stopPropagation()
       console.log(node, event)
-      showPopup(
-        node instanceof TabNode ? "Tab: " + node.getName() : "Type: " + node.getType(),
-        this.layoutRef!.current!.getRootDiv(),
-        event.clientX,
-        event.clientY,
-        ["Option 1", "Option 2"],
-        (item: string | undefined) => {
-          console.log("selected: " + item)
-          this.showingPopupMenu = false
-        }
-      )
+      showPopup(node instanceof TabNode ? "Tab: " + node.getName() : "Type: " + node.getType(), this.layoutRef!.current!.getRootDiv(), event.clientX, event.clientY, ["Option 1", "Option 2"], (item: string | undefined) => {
+        console.log("selected: " + item)
+        this.showingPopupMenu = false
+      })
       this.showingPopupMenu = true
     }
   }
@@ -444,19 +408,13 @@ class MainInnerContainer extends React.Component<
           if (dragEvent.dataTransfer) {
             if (dragEvent.dataTransfer.types.indexOf("text/uri-list") !== -1) {
               const data = dragEvent.dataTransfer!.getData("text/uri-list")
-              this.state.model!.doAction(
-                Actions.updateNodeAttributes(node.getId(), { name: "Url", config: { data, type: "url" } })
-              )
+              this.state.model!.doAction(Actions.updateNodeAttributes(node.getId(), { name: "Url", config: { data, type: "url" } }))
             } else if (dragEvent.dataTransfer.types.indexOf("text/html") !== -1) {
               const data = dragEvent.dataTransfer!.getData("text/html")
-              this.state.model!.doAction(
-                Actions.updateNodeAttributes(node.getId(), { name: "Html", config: { data, type: "html" } })
-              )
+              this.state.model!.doAction(Actions.updateNodeAttributes(node.getId(), { name: "Html", config: { data, type: "html" } }))
             } else if (dragEvent.dataTransfer.types.indexOf("text/plain") !== -1) {
               const data = dragEvent.dataTransfer!.getData("text/plain")
-              this.state.model!.doAction(
-                Actions.updateNodeAttributes(node.getId(), { name: "Text", config: { data, type: "text" } })
-              )
+              this.state.model!.doAction(Actions.updateNodeAttributes(node.getId(), { name: "Text", config: { data, type: "text" } }))
             }
           }
         }
@@ -474,14 +432,7 @@ class MainInnerContainer extends React.Component<
    * @param refresh callback when the drag is complete
    * @returns tabStorageImpl if defined
    */
-  onTabDrag = (
-    dragging: TabNode | IJsonTabNode,
-    over: TabNode,
-    x: number,
-    y: number,
-    location: DockLocation,
-    refresh: () => void
-  ) => {
+  onTabDrag = (dragging: TabNode | IJsonTabNode, over: TabNode, x: number, y: number, location: DockLocation, refresh: () => void) => {
     const tabStorageImpl = over.getExtraData().tabStorage_onTabDrag as ILayoutProps["onTabDrag"]
     if (tabStorageImpl) {
       return tabStorageImpl(dragging, over, x, y, location, refresh)
@@ -563,9 +514,7 @@ class MainInnerContainer extends React.Component<
         model = node.getExtraData().model
         // save submodel on save event
         node.setEventListener("save", (p: any) => {
-          this.state.model!.doAction(
-            Actions.updateNodeAttributes(node.getId(), { config: { model: node.getExtraData().model.toJson() } })
-          )
+          this.state.model!.doAction(Actions.updateNodeAttributes(node.getId(), { config: { model: node.getExtraData().model.toJson() } }))
         })
       }
 
@@ -580,15 +529,7 @@ class MainInnerContainer extends React.Component<
       try {
         const config = node.getConfig()
         if (config.type === "url") {
-          return (
-            <iframe
-              title={node.getId()}
-              src={config.data}
-              style={{ display: "block", border: "none", boxSizing: "border-box" }}
-              width="100%"
-              height="100%"
-            />
-          )
+          return <iframe title={node.getId()} src={config.data} style={{ display: "block", border: "none", boxSizing: "border-box" }} width="100%" height="100%" />
         } else if (config.type === "html") {
           return <div dangerouslySetInnerHTML={{ __html: config.data }} />
         } else if (config.type === "text") {
@@ -686,15 +627,7 @@ class MainInnerContainer extends React.Component<
       if (node.getExtraData().data == null) {
         const config = node.getConfig()
 
-        return (
-          <iframe
-            title={node.getId()}
-            src={config.path}
-            style={{ display: "block", border: "none", boxSizing: "border-box" }}
-            width="100%"
-            height="100%"
-          />
-        )
+        return <iframe title={node.getId()} src={config.path} style={{ display: "block", border: "none", boxSizing: "border-box" }} width="100%" height="100%" />
       }
     } else if (component === "exploratoryPage") {
       if (node.getExtraData().data == null) {
@@ -717,9 +650,7 @@ class MainInnerContainer extends React.Component<
           let height = image.getSize().height / 3
           let width = image.getSize().width / 3
 
-          return (
-            <ZoomPanPinchComponent imagePath={config.path} image={image.toDataURL()} width={width} height={height} options={""} />
-          )
+          return <ZoomPanPinchComponent imagePath={config.path} image={image.toDataURL()} width={width} height={height} options={""} />
         }
       }
     } else if (component === "evaluationPage") {
@@ -822,14 +753,7 @@ class MainInnerContainer extends React.Component<
    * @returns the react component icon to display
    */
   returnIconFromComponent(component: string, config?: any) {
-    if (
-      config !== undefined &&
-      config !== null &&
-      config !== "" &&
-      config?.path !== undefined &&
-      config?.path !== null &&
-      config?.path !== ""
-    ) {
+    if (config !== undefined && config !== null && config !== "" && config?.path !== undefined && config?.path !== null && config?.path !== "") {
       let extension = config.path.split(".").pop()
       let iconToReturn = null
       switch (extension) {
@@ -1154,8 +1078,7 @@ class SimpleTable extends React.Component<{ fields: any; data: any; onClick: any
 function getBox(width, height) {
   return {
     string: "+",
-    style:
-      "font-size: 1px; padding: " + Math.floor(height / 2) + "px " + Math.floor(width / 2) + "px; line-height: " + height + "px;"
+    style: "font-size: 1px; padding: " + Math.floor(height / 2) + "px " + Math.floor(width / 2) + "px; line-height: " + height + "px;"
   }
 }
 

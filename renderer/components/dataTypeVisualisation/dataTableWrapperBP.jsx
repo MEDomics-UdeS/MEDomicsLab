@@ -96,14 +96,7 @@ const DataTableWrapperBP = ({ data }) => {
     let columnKeys = Object.keys(columnsNamesAndTypes)
     columnKeys.forEach((columnName, index) => {
       console.log("columnName: ", columnName)
-      let newColumn = (
-        <Column
-          key={index}
-          name={columnName}
-          cellRenderer={getCellRenderer(columnName)}
-          columnHeaderCellRenderer={() => <ColumnHeaderCell name={columnName} menuRenderer={getMenuRenderer(index)} />}
-        />
-      )
+      let newColumn = <Column key={index} name={columnName} cellRenderer={getCellRenderer(columnName)} columnHeaderCellRenderer={() => <ColumnHeaderCell name={columnName} menuRenderer={getMenuRenderer(index)} />} />
       columns.push(newColumn)
     })
     return columns

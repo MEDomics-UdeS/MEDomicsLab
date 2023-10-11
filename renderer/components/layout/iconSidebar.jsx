@@ -96,12 +96,7 @@ const IconSidebar = ({ onSidebarItemSelect }) => {
         <Tooltip target=".explorerNav" {...delayOptions} className="tooltip-icon-sidebar" />
         <Tooltip target=".searchNav" {...delayOptions} className="tooltip-icon-sidebar" />
         <Tooltip target=".inputNav" {...delayOptions} className="tooltip-icon-sidebar" />
-        <Tooltip
-          target=".extractionNav"
-          {...delayOptions}
-          className="tooltip-icon-sidebar"
-          data-pr-disabled={extractionBtnstate}
-        />
+        <Tooltip target=".extractionNav" {...delayOptions} className="tooltip-icon-sidebar" data-pr-disabled={extractionBtnstate} />
         <Tooltip target=".exploratoryNav" {...delayOptions} className="tooltip-icon-sidebar" />
         <Tooltip target=".learningNav" {...delayOptions} className="tooltip-icon-sidebar" />
         <Tooltip target=".resultsNav" {...delayOptions} className="tooltip-icon-sidebar" />
@@ -117,59 +112,22 @@ const IconSidebar = ({ onSidebarItemSelect }) => {
         {/* ------------------------------------------- ICON NAVBAR ----------------------------------------- */}
 
         <Nav defaultActiveKey="/home" className="flex-column" style={{ width: "100%", height: "100%" }}>
-          <Nav.Link
-            className="homeNavIcon btnSidebar"
-            data-pr-at="right center"
-            data-pr-tooltip="Home"
-            data-pr-my="left center"
-            href="#home"
-            eventKey="home"
-            data-tooltip-id="tooltip-home"
-            onClick={(event) => handleClick(event, "home")}
-            onAuxClick={(event) => handleRightClick(event, "Home")}
-          >
+          <Nav.Link className="homeNavIcon btnSidebar" data-pr-at="right center" data-pr-tooltip="Home" data-pr-my="left center" href="#home" eventKey="home" data-tooltip-id="tooltip-home" onClick={(event) => handleClick(event, "home")} onAuxClick={(event) => handleRightClick(event, "Home")}>
             <HouseFill size={"1.25rem"} width={"100%"} height={"100%"} style={{ scale: "0.65" }} />
           </Nav.Link>
 
-          <Nav.Link
-            className="explorerNav btnSidebar"
-            data-pr-at="right center"
-            data-pr-tooltip="Explorer"
-            data-pr-my="left center"
-            eventKey="explorer"
-            data-tooltip-id="tooltip-explorer"
-            onClick={(event) => handleClick(event, "explorer")}
-          >
+          <Nav.Link className="explorerNav btnSidebar" data-pr-at="right center" data-pr-tooltip="Explorer" data-pr-my="left center" eventKey="explorer" data-tooltip-id="tooltip-explorer" onClick={(event) => handleClick(event, "explorer")}>
             <Files size={"1.25rem"} width={"100%"} height={"100%"} style={{ scale: "0.65" }} />
           </Nav.Link>
 
-          <Nav.Link
-            className="searchNav btnSidebar"
-            data-pr-at="right center"
-            data-pr-tooltip="Search"
-            data-pr-my="left center"
-            eventKey="search"
-            data-tooltip-id="tooltip-search"
-            onClick={(event) => handleClick(event, "search")}
-            disabled={disabledIcon}
-          >
+          <Nav.Link className="searchNav btnSidebar" data-pr-at="right center" data-pr-tooltip="Search" data-pr-my="left center" eventKey="search" data-tooltip-id="tooltip-search" onClick={(event) => handleClick(event, "search")} disabled={disabledIcon}>
             <Search size={"1.25rem"} width={"100%"} height={"100%"} style={{ scale: "0.65" }} />
           </Nav.Link>
 
           <NavDropdown.Divider className="icon-sidebar-divider" style={{ height: "3rem" }} />
           <div className="medomics-layer design">
             <div className="sidebar-icons">
-              <Nav.Link
-                className="inputNav btnSidebar"
-                data-pr-at="right center"
-                data-pr-my="left center"
-                data-pr-tooltip="Input"
-                eventKey="input"
-                data-tooltip-id="tooltip-input"
-                onAuxClick={(event) => handleRightClick(event, "Input")}
-                onClick={(event) => handleClick(event, "input")}
-                disabled={disabledIcon}
-              >
+              <Nav.Link className="inputNav btnSidebar" data-pr-at="right center" data-pr-my="left center" data-pr-tooltip="Input" eventKey="input" data-tooltip-id="tooltip-input" onAuxClick={(event) => handleRightClick(event, "Input")} onClick={(event) => handleClick(event, "input")} disabled={disabledIcon}>
                 <Server size={"1.25rem"} width={"100%"} height={"100%"} style={{ scale: "0.65" }} />
               </Nav.Link>
 
@@ -197,11 +155,7 @@ const IconSidebar = ({ onSidebarItemSelect }) => {
                   blurAccepeted && setExtractionBtnstate(false)
                 }}
               >
-                {extractionBtnstate ? (
-                  <VscChromeClose style={{ height: "1.7rem", width: "auto" }} />
-                ) : (
-                  <TbFileExport style={{ height: "1.7rem", width: "auto" }} />
-                )}
+                {extractionBtnstate ? <VscChromeClose style={{ height: "1.7rem", width: "auto" }} /> : <TbFileExport style={{ height: "1.7rem", width: "auto" }} />}
                 <div className={`btn-group-ext ${extractionBtnstate ? "clicked" : ""}`}>
                   <Button
                     className="ext-img-btn"
@@ -254,17 +208,7 @@ const IconSidebar = ({ onSidebarItemSelect }) => {
                 </div>
               </Nav.Link>
 
-              <Nav.Link
-                className="exploratoryNav btnSidebar align-center"
-                data-pr-at="right center"
-                data-pr-my="left center"
-                data-pr-tooltip="Exploratory"
-                eventKey="exploratory"
-                data-tooltip-id="tooltip-exploratory"
-                onAuxClick={(event) => handleRightClick(event, "Exploratory")}
-                onClick={(event) => handleClick(event, "exploratory")}
-                disabled={disabledIcon}
-              >
+              <Nav.Link className="exploratoryNav btnSidebar align-center" data-pr-at="right center" data-pr-my="left center" data-pr-tooltip="Exploratory" eventKey="exploratory" data-tooltip-id="tooltip-exploratory" onAuxClick={(event) => handleRightClick(event, "Exploratory")} onClick={(event) => handleClick(event, "exploratory")} disabled={disabledIcon}>
                 {" "}
                 <FaMagnifyingGlassChart style={{ height: "1.7rem", width: "auto" }} />
               </Nav.Link>
@@ -275,42 +219,15 @@ const IconSidebar = ({ onSidebarItemSelect }) => {
 
           <div className="medomics-layer development ">
             <div className="sidebar-icons">
-              <Nav.Link
-                className="learningNav btnSidebar align-center"
-                data-pr-at="right center"
-                data-pr-my="left center"
-                data-pr-tooltip="Learning"
-                eventKey="Learning"
-                data-tooltip-id="tooltip-learning"
-                onClick={(event) => handleClick(event, "learning")}
-                disabled={disabledIcon}
-              >
+              <Nav.Link className="learningNav btnSidebar align-center" data-pr-at="right center" data-pr-my="left center" data-pr-tooltip="Learning" eventKey="Learning" data-tooltip-id="tooltip-learning" onClick={(event) => handleClick(event, "learning")} disabled={disabledIcon}>
                 <LuNetwork style={{ height: "1.7rem", width: "auto", rotate: "-90deg" }} />
               </Nav.Link>
 
-              <Nav.Link
-                className="resultsNav btnSidebar align-center"
-                data-pr-at="right center"
-                data-pr-my="left center"
-                data-pr-tooltip="Results"
-                eventKey="Results"
-                onClick={(event) => handleClick(event, "results")}
-                disabled={disabledIcon}
-                onAuxClick={(event) => handleRightClick(event, "Results")}
-              >
+              <Nav.Link className="resultsNav btnSidebar align-center" data-pr-at="right center" data-pr-my="left center" data-pr-tooltip="Results" eventKey="Results" onClick={(event) => handleClick(event, "results")} disabled={disabledIcon} onAuxClick={(event) => handleRightClick(event, "Results")}>
                 <VscGraph style={{ height: "1.7rem", width: "auto" }} />
               </Nav.Link>
 
-              <Nav.Link
-                className="evaluationNav btnSidebar align-center"
-                data-pr-at="right center"
-                data-pr-my="left center"
-                data-pr-tooltip="Evaluation"
-                eventKey="Evaluation"
-                onClick={(event) => handleClick(event, "evaluation")}
-                disabled={disabledIcon}
-                onAuxClick={(event) => handleRightClick(event, "Evaluation")}
-              >
+              <Nav.Link className="evaluationNav btnSidebar align-center" data-pr-at="right center" data-pr-my="left center" data-pr-tooltip="Evaluation" eventKey="Evaluation" onClick={(event) => handleClick(event, "evaluation")} disabled={disabledIcon} onAuxClick={(event) => handleRightClick(event, "Evaluation")}>
                 <PiFlaskFill style={{ height: "2.2rem", width: "auto" }} />
               </Nav.Link>
             </div>
@@ -320,17 +237,7 @@ const IconSidebar = ({ onSidebarItemSelect }) => {
 
           <div className="medomics-layer deployment">
             <div className="sidebar-icons">
-              <Nav.Link
-                className="applicationNav btnSidebar"
-                data-pr-at="right center"
-                data-pr-my="left center"
-                data-pr-tooltip="Application"
-                eventKey="Application"
-                data-tooltip-id="tooltip-application"
-                onClick={(event) => handleClick(event, "application")}
-                disabled={disabledIcon}
-                onAuxClick={(event) => handleRightClick(event, "Application")}
-              >
+              <Nav.Link className="applicationNav btnSidebar" data-pr-at="right center" data-pr-my="left center" data-pr-tooltip="Application" eventKey="Application" data-tooltip-id="tooltip-application" onClick={(event) => handleClick(event, "application")} disabled={disabledIcon} onAuxClick={(event) => handleRightClick(event, "Application")}>
                 <Send size={"1.25rem"} width={"100%"} height={"100%"} style={{ scale: "0.65" }} />
               </Nav.Link>
             </div>
@@ -340,33 +247,14 @@ const IconSidebar = ({ onSidebarItemSelect }) => {
           {/* div that puts the buttons to the bottom of the sidebar*/}
           <div className="d-flex icon-sidebar-divider" style={{ flexGrow: "1" }}></div>
 
-          <Nav.Link
-            className="layoutTestNav btnSidebar"
-            data-pr-at="right center"
-            data-pr-my="left center"
-            data-pr-tooltip="Layout Test"
-            eventKey="LayoutTest"
-            data-tooltip-id="tooltip-layoutTest"
-            onClick={(event) => handleClick(event, "layoutTest")}
-          >
+          <Nav.Link className="layoutTestNav btnSidebar" data-pr-at="right center" data-pr-my="left center" data-pr-tooltip="Layout Test" eventKey="LayoutTest" data-tooltip-id="tooltip-layoutTest" onClick={(event) => handleClick(event, "layoutTest")}>
             <BandaidFill size={"1.25rem"} width={"100%"} height={"100%"} style={{ scale: "0.65" }} />
           </Nav.Link>
 
           <div className="d-flex icon-sidebar-divider" style={{ flexGrow: "1" }}></div>
 
-          <NavDropdown
-            className="settingsNav btnSidebar"
-            onClick={handleNavClick}
-            title={<Gear size={"1.25rem"} width={"100%"} height={"100%"} style={{ scale: "0.75" }} />}
-          >
-            <NavDropdown.Item
-              className="developerModeNav"
-              data-pr-at="right center"
-              data-pr-my="left center"
-              data-pr-tooltip="Developer Mode"
-              href="#/action-1"
-              onClick={(event) => handleToggleDeveloperMode(event)}
-            >
+          <NavDropdown className="settingsNav btnSidebar" onClick={handleNavClick} title={<Gear size={"1.25rem"} width={"100%"} height={"100%"} style={{ scale: "0.75" }} />}>
+            <NavDropdown.Item className="developerModeNav" data-pr-at="right center" data-pr-my="left center" data-pr-tooltip="Developer Mode" href="#/action-1" onClick={(event) => handleToggleDeveloperMode(event)}>
               Toggle developer mode
             </NavDropdown.Item>
             <NavDropdown.Item href="#/action-2">Help</NavDropdown.Item>
