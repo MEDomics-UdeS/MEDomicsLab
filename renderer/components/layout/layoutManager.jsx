@@ -17,6 +17,7 @@ import SearchSidebar from "./sidebarTools/searchSidebar"
 import LayoutTestSidebar from "./sidebarTools/layoutTestSidebar"
 import InputSidebar from "./sidebarTools/inputSidebar"
 import LearningSidebar from "./sidebarTools/learningSidebar"
+import ExtractionTSSidebar from "./sidebarTools/extractionTSSidebar"
 import { ipcRenderer } from "electron"
 import { MainContainer } from "./flexlayout/mainContainerClass"
 import EvaluationPage from "../mainPages/evaluation"
@@ -84,7 +85,7 @@ const LayoutManager = (props) => {
         case "extraction_text":
           return <ExtractionTextPage />
         case "extraction_ts":
-          return <ExtractionTSPage />
+          return <ExtractionTSPage pageId="456" />
         case "exploratory":
           return <ExploratoryPage />
         case "results":
@@ -114,6 +115,8 @@ const LayoutManager = (props) => {
         return <InputSidebar />
       case "learning":
         return <LearningSidebar />
+      case "extraction_ts":
+        return <ExtractionTSSidebar />
 
       default:
         return (

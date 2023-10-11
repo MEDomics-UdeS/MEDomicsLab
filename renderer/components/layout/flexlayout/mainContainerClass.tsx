@@ -736,19 +736,29 @@ class MainInnerContainer extends React.Component<
     } else if (component === "extractionTextPage") {
       if (node.getExtraData().data == null) {
         const config = node.getConfig()
-        return <ExtractionTextPage pageId={config.uuid} configPath={config.path} />
+        if (config.path !== null) {
+          return <ExtractionTextPage pageId={config.uuid} configPath={config.path} />
+        } else {
+          return <ExtractionTextPage pageId={"ExtractionTextPage"} />
+        }
       }
     } else if (component === "extractionImagePage") {
       if (node.getExtraData().data == null) {
         const config = node.getConfig()
-
-        return <ExtractionImagePage pageId={config.uuid} configPath={config.path} />
+        if (config.path !== null) {
+          return <ExtractionImagePage pageId={config.uuid} configPath={config.path} />
+        } else {
+          return <ExtractionImagePage pageId={"ExtractionImagePage"} />
+        }
       }
     } else if (component === "extractionTSPage") {
       if (node.getExtraData().data == null) {
         const config = node.getConfig()
-
-        return <ExtractionTSPage pageId={config.uuid} configPath={config.path} />
+        if (config.path !== null) {
+          return <ExtractionTSPage pageId={config.uuid} configPath={config.path} />
+        } else {
+          return <ExtractionTSPage pageId={"ExtractionTSPage"} />
+        }
       }
     } else if (component === "applicationPage") {
       if (node.getExtraData().data == null) {

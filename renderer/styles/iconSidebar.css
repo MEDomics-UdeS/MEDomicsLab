@@ -74,32 +74,34 @@ a.btnSidebar.nav-link.active {
   cursor: default;
 }
 
-.extractionNav .p-speeddial {
-  width: calc(48px - 0.4rem);
-  height: calc(48px - 0.4rem);
-  z-index: 10;
+.extractionNav .btn-group-ext {
+  position: absolute;
+  left: 0rem;
+  transition: all 0.3s ease-in-out;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  z-index: -1;
+  opacity: 0;
 }
 
-.extractionNav .p-speeddial .p-disabled {
-  color: rgb(33, 37, 41);
-  pointer-events: none;
-  cursor: default;
+.extractionNav .btn-group-ext.clicked {
+  left: 3.4rem;
   opacity: 1;
+  z-index: 4;
 }
 
-.extractionNav .p-button {
-  width: 100% !important;
-  height: 100% !important;
-  background: none !important;
-  border: none !important;
-  border-radius: 10% !important;
+.extractionNav .btn-group-ext .p-button {
+  width: auto;
+  height: auto;
+  padding: 0.5rem;
+  background-color: #313131;
+  border-color: var(--gray-800);
+}
+.extractionNav .btn-group-ext .p-button .p-button-icon {
+  font-size: 1.25rem;
 }
 
-.extractionNav .p-button span {
-  font-size: 1.5rem;
-}
-
-.extractionNav .p-speeddial-direction-right .p-speeddial-list {
-  --item-diff-x: -3px !important;
-  --item-diff-y: 20px !important;
+.extractionNav .btn-group-ext .p-button:hover {
+  box-shadow: 0rem 0rem 0.5rem 1px #000000e0;
 }
