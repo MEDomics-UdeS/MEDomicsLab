@@ -61,7 +61,6 @@ const DatasetSelector = ({ multiSelect }) => {
   }, [tabMenuItems])
   return (
     <>
-      {/* <h5>Dataset Selector</h5> */}
       <>
         <ListBox
           multiple={multiSelect}
@@ -81,35 +80,13 @@ const DatasetSelector = ({ multiSelect }) => {
           optionLabel="name"
           className="listbox-multiple w-full md:w-14rem"
         />
-        <Tabs
-          activeKey={activeKey}
-          defaultActiveKey={"0"}
-          id="dataTable-selector-tabs"
-          className="mb-3"
-          onSelect={(k) => setActiveKey(k)}
-        >
+        <Tabs activeKey={activeKey} defaultActiveKey={"0"} id="dataTable-selector-tabs" className="mb-3" onSelect={(k) => setActiveKey(k)}>
           {selectedDatasets.length > 0 &&
             tabMenuItems.map((item, index) => {
               if (selectedDatasets[index] !== undefined) {
                 return (
-                  <Tab
-                    style={{ height: "100%" }}
-                    title={selectedDatasets[index].name}
-                    key={selectedDatasets[index].getUUID()}
-                    eventKey={selectedDatasets[index].getUUID()}
-                  >
-                    <DataTableFromContext
-                      MedDataObject={selectedDatasets[index]}
-                      tablePropsData={{ size: "small", scrollable: true }}
-                    />
-                    {/* <DataTableWrapperBPClass
-                      MedDataObject={selectedDatasets[index]}
-                      tablePropsData={{ size: "small", scrollable: true }}
-                    /> */}
-                    {/* <DataTableFromContextBP
-                      MedDataObject={selectedDatasets[index]}
-                      tablePropsData={{ size: "small", scrollable: true }}
-                    /> */}
+                  <Tab style={{ height: "100%" }} title={selectedDatasets[index].name} key={selectedDatasets[index].getUUID()} eventKey={selectedDatasets[index].getUUID()}>
+                    <DataTableFromContext MedDataObject={selectedDatasets[index]} tablePropsData={{ size: "small", scrollable: true }} />
                   </Tab>
                 )
               } else {
