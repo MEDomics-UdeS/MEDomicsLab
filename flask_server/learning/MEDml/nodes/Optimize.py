@@ -34,17 +34,24 @@ class Optimize(Node):
         settings = copy.deepcopy(self.settings)
         trained_models = []
         trained_models_json = {}
-        self.CodeHandler.add_line("code", f"trained_models_optimized = []")
-        self.CodeHandler.add_line("code", f"for model in trained_models:")
-        for model in kwargs['models']:
-            print(Fore.CYAN +
-                  f"optimizing: {model.__class__.__name__}" + Fore.RESET)
-            trained_models.append(
-                getattr(experiment['pycaret_exp'], self.type)(model, **settings))
+        if "models" in self.type:
             self.CodeHandler.add_line(
-                "code", f"optimized_model = pycaret_exp.{self.type}(model, {self.CodeHandler.convert_dict_to_params(settings)})", 1)
-            self.CodeHandler.add_line(
-                "code", f"trained_models_optimized.append(optimized_model)", 1)
+                "code",
+                f"optimized_model = pycaret_exp.{self.type}(trained_models, {self.CodeHandler.convert_dict_to_params(settings)})",
+                1)
+            trained_models.append(getattr(experiment['pycaret_exp'], self.type)(kwargs['models'], **settings))
+        else:
+            self.CodeHandler.add_line("code", f"trained_models_optimized = []")
+            self.CodeHandler.add_line("code", f"for model in trained_models:")
+            for model in kwargs['models']:
+                print(Fore.CYAN +
+                      f"optimizing: {model.__class__.__name__}" + Fore.RESET)
+                trained_models.append(
+                    getattr(experiment['pycaret_exp'], self.type)(model, **settings))
+                self.CodeHandler.add_line(
+                    "code", f"optimized_model = pycaret_exp.{self.type}(model, {self.CodeHandler.convert_dict_to_params(settings)})", 1)
+                self.CodeHandler.add_line(
+                    "code", f"trained_models_optimized.append(optimized_model)", 1)
 
         self.CodeHandler.add_line(
             "code", f"trained_models = trained_models_optimized")
