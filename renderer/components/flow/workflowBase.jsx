@@ -52,10 +52,9 @@ const WorkflowBase = ({ isGoodConnection, groupNodeHandlingDefault, onDeleteNode
 
   const edgeUpdateSuccessful = useRef(true)
   const { pageId } = useContext(PageInfosContext) // used to get the page infos
-  const { updateNode, nodeUpdate, updateEdge, edgeUpdate, node2Delete, node2Run } = useContext(FlowFunctionsContext) // used to get the function to update the node
+  const { updateNode, nodeUpdate, updateEdge, edgeUpdate, node2Delete, node2Run, newConnectionCreated, hasNewConnection } = useContext(FlowFunctionsContext) // used to get the function to update the node
   const { showAvailableNodes, setShowAvailableNodes, updateFlowContent } = useContext(FlowInfosContext) // used to update the flow infos
   const { showResultsPane, setShowResultsPane, isResults, flowResults } = useContext(FlowResultsContext) // used to update the flow infos
-  const [newConnection, setNewConnection] = useState(false)
   const { showError, setShowError } = useContext(ErrorRequestContext) // used to get the flow infos
   const [hasBeenAnError, setHasBeenAnError] = useState(false) // used to get the flow infos
   const [miniMapState, setMiniMapState] = useState(true) // used to get the flow infos
@@ -113,7 +112,6 @@ const WorkflowBase = ({ isGoodConnection, groupNodeHandlingDefault, onDeleteNode
       nodes: nodes,
       edges: edges
     })
-    console.log("flow", nodes, edges)
   }, [nodes, edges])
 
   // this useEffect is used to get the flask port from the main process
@@ -160,10 +158,48 @@ const WorkflowBase = ({ isGoodConnection, groupNodeHandlingDefault, onDeleteNode
           setHasRunRec(obj[id].next_nodes)
         })
       }
+      if (Object.keys(flowResults).length > 0) {
+        Object.keys(flowResults).forEach((id) => {
+          setHasRun(id)
+          setHasRunRec(flowResults[id].next_nodes)
+        })
+      } else {
+        nodes.forEach((node) => {
+          node.data.internal.hasRun = false
+          updateNode({
+            id: node.id,
+            updatedData: node.data.internal
+          })
+        })
+      }
+    }
 
-      Object.keys(flowResults).forEach((id) => {
-        setHasRun(id)
-        setHasRunRec(flowResults[id].next_nodes)
+    const setHasRunGroupNode = () => {
+      const setHasRun = (id, hasRun = true) => {
+        let node = nodes.find((node) => node.id == id)
+        if (node) {
+          node.data.internal.hasRun = hasRun
+          updateNode({
+            id: node.id,
+            updatedData: node.data.internal
+          })
+        }
+      }
+
+      let groupNodes = nodes.filter((node) => node.type == "groupNode")
+      console.log("groupNodes", groupNodes)
+      groupNodes.forEach((groupNode) => {
+        let hasRun = true
+        let groupNodeSubNodes = nodes.filter((node) => node.data.internal.subflowId == groupNode.id && node.type != "optimizeIO")
+        console.log(groupNode.id, groupNodeSubNodes)
+
+        groupNodeSubNodes.forEach((subNode) => {
+          console.log(subNode.id, subNode.data.internal.hasRun)
+          if (!subNode.data.internal.hasRun) {
+            hasRun = false
+          }
+        })
+        setHasRun(groupNode.id, hasRun)
       })
     }
 
@@ -174,14 +210,36 @@ const WorkflowBase = ({ isGoodConnection, groupNodeHandlingDefault, onDeleteNode
       // making a list of edges that have run
       let edgesHasRun = []
       const setHasRun = (sourceId, targetId) => {
+        // in case of a train model node, we need to manually add the model node because it is a backward relation
         if (sourceId.split("*").length > 1) {
           let ids = sourceId.split("*")
           setHasRun(ids[1], ids[0])
         }
         sourceId = sourceId.split("*")[0]
         targetId = targetId.split("*")[0]
+
         let edge = edges.find((edge) => edge.source == sourceId && edge.target == targetId)
         edge && edgesHasRun.push(edge.id)
+
+        // in case of a groupNode, another connection has to be added wich is the connection between the groupNode is the target node
+        let targetNode = nodes.find((node) => node.id == targetId)
+        if (targetNode) {
+          let targetIdSubflowId = targetNode.data.internal.subflowId
+          if (targetIdSubflowId != "MAIN") {
+            let edge = edges.find((edge) => edge.source == sourceId && edge.target == targetIdSubflowId)
+            edge && edgesHasRun.push(edge.id)
+          }
+        }
+
+        // in case of a groupNode, another connection has to be added wich is the connection between the groupNode is the source node
+        let sourceNode = nodes.find((node) => node.id == sourceId)
+        if (sourceNode) {
+          let sourceIdSubflowId = sourceNode.data.internal.subflowId
+          if (sourceIdSubflowId != "MAIN") {
+            let edge = edges.find((edge) => edge.source == sourceIdSubflowId && edge.target == targetId)
+            edge && edgesHasRun.push(edge.id)
+          }
+        }
       }
 
       const setHasRunRec = (obj) => {
@@ -200,7 +258,7 @@ const WorkflowBase = ({ isGoodConnection, groupNodeHandlingDefault, onDeleteNode
         setHasRunRec(flowResults[id].next_nodes)
       })
       edges.forEach((edge) => {
-        edge.data = { hasRun: edgesHasRun.includes(edge.id) }
+        edge.data ? (edge.data.hasRun = edgesHasRun.includes(edge.id)) : (edge.data = { hasRun: edgesHasRun.includes(edge.id) })
         edge.className = edgesHasRun.includes(edge.id) && showResultsPane ? "stroke-hasRun" : showResultsPane ? "stroke-notRun" : ""
         updateEdge({
           id: edge.id,
@@ -210,8 +268,9 @@ const WorkflowBase = ({ isGoodConnection, groupNodeHandlingDefault, onDeleteNode
     }
 
     setNodesHasRunState()
+    setHasRunGroupNode()
     setEdgesHasRunState()
-  }, [flowResults, showResultsPane, newConnection])
+  }, [flowResults, showResultsPane, hasNewConnection])
 
   // when showResultsPane changes, update the nodes draggable property
   useEffect(() => {
@@ -271,7 +330,8 @@ const WorkflowBase = ({ isGoodConnection, groupNodeHandlingDefault, onDeleteNode
 
       // check if the connection creates an infinite loop
       let isLoop = verificationForLoopHoles(params)
-      setNewConnection(!newConnection) // this is used to update the workflow when a connection is created
+      newConnectionCreated() // this is used to update the workflow when a connection is created
+
       if (!alreadyExists && isValidConnection && !isLoop) {
         setEdges((eds) => addEdge(params, eds))
         customOnConnect && customOnConnect(params)
@@ -419,7 +479,8 @@ const WorkflowBase = ({ isGoodConnection, groupNodeHandlingDefault, onDeleteNode
           name: name,
           img: image,
           type: name.toLowerCase().replaceAll(" ", "_"),
-          results: { checked: false, contextChecked: false }
+          results: { checked: false, contextChecked: false },
+          hasRun: false
         },
         tooltipBy: "node" // this is a default value that can be changed in addSpecificToNode function see workflow.jsx for example
       }
@@ -465,6 +526,7 @@ const WorkflowBase = ({ isGoodConnection, groupNodeHandlingDefault, onDeleteNode
         alreadyExists = true
       }
     })
+    newConnectionCreated() // this is used to update the workflow when a connection is created
     if (!alreadyExists) {
       console.log("connection changed")
       setEdges((els) => updateEdge(oldEdge, newConnection, els))
@@ -494,6 +556,7 @@ const WorkflowBase = ({ isGoodConnection, groupNodeHandlingDefault, onDeleteNode
   const onEdgeUpdateEnd = useCallback((_, edge) => {
     if (!edgeUpdateSuccessful.current) {
       setEdges((eds) => eds.filter((e) => e.id !== edge.id))
+      newConnectionCreated() // this is used to update the workflow when a connection is created
     }
     edgeUpdateSuccessful.current = true
   }, [])

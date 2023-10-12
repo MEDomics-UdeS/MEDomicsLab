@@ -56,7 +56,7 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
   })
 
   const { config, pageId, configPath } = useContext(PageInfosContext) // used to get the page infos such as id and config path
-  const { groupNodeId, changeSubFlow } = useContext(FlowFunctionsContext)
+  const { groupNodeId, changeSubFlow, hasNewConnection } = useContext(FlowFunctionsContext)
   const { updateFlowResults, isResults } = useContext(FlowResultsContext)
   const { port } = useContext(WorkspaceContext)
   const { setError } = useContext(ErrorRequestContext)
@@ -157,9 +157,7 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
     intersections.forEach((intersect, index) => {
       if (intersect.targetId.includes("start")) {
         let groupNodeId = intersect.targetId.split(".")[1]
-        console.log("groupNodeId", groupNodeId)
         let groupNodeIdConnections = edges.filter((eds) => eds.target == groupNodeId)
-        console.log("groupNodeIdConnections", groupNodeIdConnections)
         groupNodeIdConnections.forEach((groupNodeIdConnection, index2) => {
           let edgeSource = groupNodeIdConnection.source
           let edgeTarget = intersect.sourceId
@@ -199,7 +197,7 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
         })
       }
     })
-  }, [intersections])
+  }, [intersections, hasNewConnection])
 
   /**
    *

@@ -86,12 +86,13 @@ const PipelineResult = ({ pipeline, selectionMode, flowContent }) => {
           !selectedNode.data.internal.hasRun && (toReturn = <div className="pipe-name-notRun">Has not been run yet !</div>)
         }
       })
-
+      console.log("selectedResults", selectedResults)
       if (selectedResults) {
         let type = selectedNode.data.internal.type
+        console.log("type", type)
         if (type == "dataset" || type == "clean") {
           toReturn = <DataParamResults selectedResults={selectedResults} />
-        } else if (type == "train_model" || type == "compare_models") {
+        } else if (["train_model", "compare_models", "stack_models", "ensemble_model", "tune_model", "blend_models", "calibrate_model"].includes(type)) {
           toReturn = <ModelsResults selectedResults={selectedResults} />
         } else if (type == "analyze") {
           toReturn = <AnalyseResults selectedResults={selectedResults} />
@@ -120,7 +121,7 @@ const PipelineResult = ({ pipeline, selectionMode, flowContent }) => {
  * This component takes all the selected pipelines and displays them in an accordion.
  */
 const PipelinesResults = ({ pipelines, selectionMode, flowContent }) => {
-  const { selectedResultsId, setSelectedResultsId, flowResults, showResultsPane } = useContext(FlowResultsContext)
+  const { selectedResultsId, setSelectedResultsId, flowResults, showResultsPane, isResults } = useContext(FlowResultsContext)
   const { getBasePath } = useContext(WorkspaceContext)
   const { sceneName, experimentName } = useContext(FlowInfosContext)
 
@@ -264,7 +265,7 @@ const PipelinesResults = ({ pipelines, selectionMode, flowContent }) => {
         // HEADER
         addMarkdown(["## Notebook automatically generated\n\n", "**Experiment:** " + experimentName + "\n\n", "**Scene:** " + sceneName + "\n\n", "**Pipeline:** " + pipeline.map((id) => getName(id)).join(" ➡️ ") + "\n\n", "**Date:** " + new Date().toLocaleString() + "\n\n"])
         // IMPORTS
-        addCode(imports.map((imp) => imp.content))
+        addCode(imports.map((imp) => imp.content + newLineChar))
         // CODE
         let linesOfSameType = []
         code.forEach((line) => {
@@ -272,7 +273,7 @@ const PipelinesResults = ({ pipelines, selectionMode, flowContent }) => {
             linesOfSameType.push(line.content + newLineChar)
           } else {
             compileLines(linesOfSameType)
-            linesOfSameType = [line.content]
+            linesOfSameType = [line.content + newLineChar]
             lastType = line.type
           }
         })
@@ -338,7 +339,7 @@ const PipelinesResults = ({ pipelines, selectionMode, flowContent }) => {
   return (
     <Accordion multiple activeIndex={accordionActiveIndex} onTabChange={(e) => setAccordionActiveIndex(e.index)} className="pipeline-results-accordion">
       {pipelines.map((pipeline, index) => (
-        <AccordionTab key={index} header={createTitleFromPipe(pipeline)}>
+        <AccordionTab disabled={!isResults} key={index} header={createTitleFromPipe(pipeline)}>
           <PipelineResult key={index} pipeline={pipeline} selectionMode={selectionMode} flowContent={flowContent} />
         </AccordionTab>
       ))}
