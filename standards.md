@@ -151,9 +151,9 @@ components
 │           offCanvasBackdropStyleContext.jsx
 │
 ├───layout
-│   │   IconSidebar.jsx
-│   │   LayoutContext.jsx
-│   │   LayoutManager.jsx
+│   │   iconSidebar.jsx
+│   │   layoutContext.jsx
+│   │   layoutManager.jsx
 │   │   mainContainerFunctional.jsx
 │   │   WorkspaceSidebar.jsx
 │   │
@@ -214,12 +214,14 @@ eslint-plugin-prettier eslint-config-prettier`
 - Add these lines
 
 ```javascript
-"eslint.options": {
-	"overrideConfigFile": ".eslintrc.js"
-},
-"editor.formatOnSave": true,
-"eslint.validate": ["javascript"],
-"editor.defaultFormatter": "esbenp.prettier-vscode"
+{
+  "eslint.options": {
+    "overrideConfigFile": ".eslintrc.js"
+  },
+  "editor.formatOnSave": true,
+  "eslint.validate": ["javascript"],
+  "editor.defaultFormatter": "esbenp.prettier-vscode"
+}
 ```
 
 ### Usage

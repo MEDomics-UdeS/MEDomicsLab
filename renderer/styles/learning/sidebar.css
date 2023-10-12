@@ -1,0 +1,18 @@
+.btn-sidebar-learning {
+  margin: 0.25rem;
+}
+
+.btn-sidebar-learning svg {
+  width: 1.4rem;
+  height: 1.4rem;
+  margin-left: 1rem;
+  margin-right: 1rem;
+}
+
+.p-dialog .p-dialog-content {
+  padding: 1.2rem 1.5rem 0.5rem 1.5rem;
+}
+
+.text-red {
+  color: #ff0000;
+}

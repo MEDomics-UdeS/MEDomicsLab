@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useCallback } from "react"
+import React, { useState, useEffect, useCallback, useContext } from "react"
 import Node from "../../flow/node"
 import ViewButton from "../buttonsTypes/viewButton"
 import { Container, Row, Col, Table, Alert } from "react-bootstrap"
 import { toast } from "react-toastify"
+import { FlowFunctionsContext } from "../../flow/context/flowFunctionsContext"
 
 /**
  * @param {string} id id of the node
@@ -17,6 +18,7 @@ import { toast } from "react-toastify"
 const SegmentationNode = ({ id, data, type }) => {
   const [selectedRois, setSelectedRois] = useState(data.internal.settings.rois) // Hook to keep track of the selected ROIs
   const [shouldUpdateRois, setShouldUpdateRois] = useState(false) // Hook to keep track of whether the ROIs should be updated or not
+  const { updateNode } = useContext(FlowFunctionsContext)
 
   // Hook called when the rois data of the node is changed, updates the selectedRois
   useEffect(() => {
@@ -112,11 +114,11 @@ const SegmentationNode = ({ id, data, type }) => {
     // Add the ROI list to the node's data
     data.internal.settings["rois_data"] = roisString
     // And set changeView to true to update the view
-    data.parentFct.updateNode({
+    updateNode({
       id: id,
       updatedData: data.internal
     })
-  }, [selectedRois, id, data.internal, data.parentFct])
+  }, [selectedRois, id, data.internal, updateNode])
 
   return (
     <>

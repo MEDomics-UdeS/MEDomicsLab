@@ -1,70 +1,150 @@
-import { Row, Col } from "react-bootstrap"
-import "reactflow/dist/style.css";
-import React, {useContext, useEffect} from "react";
-import SidebarAvailableNodes from "./sidebarAvailableNodes";
+import "reactflow/dist/style.css"
+import React, { useContext, useEffect, useRef, useState } from "react"
+import SidebarAvailableNodes from "./sidebarAvailableNodes"
 import { ReactFlowProvider } from "reactflow"
-import {OffCanvasBackdropStyleProvider} from "./context/offCanvasBackdropStyleContext"
-import Backdrop from "./backdrop";
-import { FlowInfosProvider , FlowInfosContext} from "./context/flowInfosContext";
+import { FlowInfosProvider, FlowInfosContext } from "./context/flowInfosContext"
+import { FlowResultsContext, FlowResultsProvider } from "./context/flowResultsContext"
+import { FlowFunctionsProvider } from "./context/flowFunctionsContext"
+import { PageInfosContext } from "../mainPages/moduleBasics/pageInfosContext"
+import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels"
+import { WorkspaceContext, EXPERIMENTS } from "../workspace/workspaceContext"
+import ResultsPane from "./results/resultsPane"
+import MedDataObject from "../workspace/medDataObject"
+import { loadJsonPath } from "../../utilities/fileManagementUtils"
 
 /**
- * 
+ *
  * @param {String} pageId Id of the page for multi-tabs support
  * @param {String} workflowType type of the workflow (e.g. "learning", "extraction", "optimize") this is used to load the correct sidebar
  * @param {JSX.Element} workflowJSX JSX element of the workflow
- * 
- * @description This component is the base for all the flow pages. It contains the sidebar, the workflow and the backdrop.
- * 
+ *
+ * @description This component is the base for all the flow pages. It contains the sidebar, the flow and the results pane.
+ *
  */
-const FlowPageBaseWithFlowInfos = ({ children, pageId, workflowType, savingPath="", ExtraPages=null, reload, setReload }) => {
-	// here is the use of the context to update the flowInfos
-	const { updateFlowInfos } = useContext(FlowInfosContext); 
+const FlowPageBaseWithFlowInfos = ({ children, workflowType, id, ExtraPages=null, reload, setReload }) => {
+  // here is the use of the context to update the flowInfos
+  const [isDragging, setIsDragging] = useState(false)
+  const { updateFlowInfos, showAvailableNodes, setExperimentName, setSceneName } = useContext(FlowInfosContext)
+  const { showResultsPane, setShowResultsPane, updateFlowResults } = useContext(FlowResultsContext)
+  const { configPath } = useContext(PageInfosContext)
+  const { getBasePath } = useContext(WorkspaceContext)
+  const sidebarPanelRef = useRef(null)
+  const resultsPanelRef = useRef(null)
 
-	// this useEffect is used to update the flowInfos when the pageId or the workflowType changes
-	useEffect(() => {
-		updateFlowInfos({
-			id: pageId,
-			type: workflowType,
-			savingPath: savingPath,
-		});
-	}, [pageId, workflowType]);
+  // this useEffect is used to update the flowInfos when the pageId or the workflowType changes
+  useEffect(() => {
+    updateFlowInfos({
+      type: workflowType
+    })
+  }, [workflowType])
 
-	return (
-		<>
-			{/* here we use the context to provide the style for the backdrop */}
-			<OffCanvasBackdropStyleProvider>
-				<div className='learning-div height-100 width-100 padding-10'>
-					<Row className="width-100 height-100 " style={{ overflow: "hidden" }} >
-						{/* here is the Sidebar on the left with all available nodes */}
-						<SidebarAvailableNodes title="Available Nodes" sidebarType={workflowType} ExtraPages={ExtraPages} reload={reload} setReload={setReload} />
-						<Col md >
-							<div className="height-100" >
-								<ReactFlowProvider>
-									{children}
-								</ReactFlowProvider>
-							</div>
-						</Col>
-						{/* here is the backdrop (darker screen when a node is clicked) */}
-						<Backdrop pageId={pageId}/>
-					</Row>
-				</div>
-			</OffCanvasBackdropStyleProvider>
-		</>
-	)
+  // this useEffect is used to get the experiment name
+  useEffect(() => {
+    if (configPath) {
+      let pathList = configPath.split(MedDataObject.getPathSeparator())
+      let length = pathList.length
+      let sceneName = pathList[length - 1].split(".")[0]
+      let experimentName = pathList[length - 3]
+      setSceneName(sceneName)
+      setExperimentName(experimentName)
+      let path = [getBasePath(EXPERIMENTS), experimentName, sceneName, sceneName].join(MedDataObject.getPathSeparator()) + ".medmlres"
+      if (MedDataObject.isPathExists(path)) {
+        let flowResults = loadJsonPath(path)
+        updateFlowResults(flowResults)
+      } else {
+        console.log("No results")
+      }
+    }
+  }, [configPath])
+
+  // useeffect to collapse the sidebar when showAvailableNodes is false and expand it when it is true
+  useEffect(() => {
+    if (sidebarPanelRef.current) {
+      if (showAvailableNodes) {
+        document.getElementById("data-panel-id-sidebar" + id).style.minWidth = "210px"
+        sidebarPanelRef.current.expand()
+      } else {
+        document.getElementById("data-panel-id-sidebar" + id).style.minWidth = "0px"
+        sidebarPanelRef.current.collapse()
+      }
+    }
+  }, [showAvailableNodes])
+
+  // useeffect to collapse the results pane when showResultsPane is false and expand it when it is true
+  // showResultsPane is controlled by the flowResultsContext
+  useEffect(() => {
+    if (resultsPanelRef.current) {
+      if (showResultsPane) {
+        resultsPanelRef.current.expand()
+      } else {
+        resultsPanelRef.current.collapse()
+      }
+    }
+  }, [showResultsPane])
+
+  return (
+    <>
+      {/* PanelGroup is used to create the general layout of a flow page */}
+      <PanelGroup className="width-100 height-100" style={{ height: "100%", display: "flex", flexGrow: 1 }} direction="horizontal" id={id}>
+        {/* Panel is used to create the sidebar, used to be able to resize it on click */}
+        <Panel ref={sidebarPanelRef} id={"sidebar" + id} minSize={17.5} maxSize={17.5} defaultSize={0} order={1} collapsible={true} collapsibleSize={5} className="smooth-transition">
+          <SidebarAvailableNodes title="Available Nodes" sidebarType={workflowType} ExtraPages={ExtraPages} reload={reload} setReload={setReload} />
+        </Panel>
+        <PanelResizeHandle />
+        {/* Panel is used to create the flow, used to be able to resize it on drag */}
+        <Panel minSize={25} order={2}>
+          {/* in this panel, we use another PanelGroup to create the layout of the flow and the results pane */}
+          <PanelGroup className="width-100 height-100" style={{ paddingLeft: "0.25rem" }} direction="vertical">
+            {/* Panel is used to create the flow, used to be able to resize it on drag */}
+            <Panel order={1}>
+              <ReactFlowProvider>{children}</ReactFlowProvider>
+            </Panel>
+            <PanelResizeHandle
+              className="resize-handle-results"
+              onDragging={(event) => {
+                setIsDragging(!event)
+              }}
+            />
+            {/* Panel is used to create the results pane, used to be able to resize it on drag */}
+            <Panel
+              ref={resultsPanelRef}
+              id="results"
+              className={`${isDragging ? "smooth-transition" : ""}`}
+              maxSize={75}
+              minSize={30}
+              defaultSize={0}
+              order={2}
+              collapsible={true}
+              collapsibleSize={50}
+              onResize={(size) => {
+                size > 5 ? setShowResultsPane(true) : setShowResultsPane(false)
+              }}
+            >
+              <ResultsPane />
+            </Panel>
+          </PanelGroup>
+        </Panel>
+      </PanelGroup>
+    </>
+  )
 }
 
 /**
- * 
+ *
  * @param {*} props all the props of the FlowPageBaseWithFlowInfos component
  * @description This component is composed of the FlowPageBaseWithFlowInfos component and the FlowInfosProvider component.
  * It is also the default export of this file. see components/learning/learningPage.jsx for an example of use.
+ * It is used to create all the context providers for the flow page.
  */
 const FlowPageBase = (props) => {
-	return (
-		<FlowInfosProvider>
-			<FlowPageBaseWithFlowInfos {...props}/>
-		</FlowInfosProvider>
-	)
+  return (
+    <FlowInfosProvider>
+      <FlowResultsProvider>
+        <FlowFunctionsProvider>
+          <FlowPageBaseWithFlowInfos {...props} />
+        </FlowFunctionsProvider>
+      </FlowResultsProvider>
+    </FlowInfosProvider>
+  )
 }
-export default FlowPageBase;
-
+export default FlowPageBase

@@ -1,7 +1,8 @@
 import React from "react"
 import Card from "react-bootstrap/Card"
 import nodesParams from "../../public/setupVariables/allNodesParams"
-import { Col } from "react-bootstrap"
+import { Col, Row } from "react-bootstrap"
+import { Stack } from "react-bootstrap"
 
 /**
  *
@@ -21,7 +22,7 @@ const onDragStart = (event, node) => {
 }
 
 /**
- *
+ * @param {string} title The title of the sidebar
  * @param {string} sidebarType Corresponding to a key in nodesParams
  *
  * @returns {JSX.Element} A Card for each node in nodesParams[sidebarType]
@@ -40,49 +41,43 @@ const SidebarAvailableNodes = ({ title, sidebarType, ExtraPages, reload, setRelo
  
   return (
     <>
-      <Col className=" padding-0 available-nodes-panel" sm={2}>
-        <Card className={classNameAN}>
+      <Col className=" padding-0 available-nodes-panel">
+        <Card className="text-center height-100">
           <Card.Header>
-            <h4>{title}</h4>
+            <Row>
+              <h5>{title}</h5>
+            </Row>
           </Card.Header>
-          <Card.Body>
-            {/* Available nodes depend on current selected module */}
-
-            {Object.keys(nodesParams[sidebarType]).map((nodeName) => {
-              // this code is executed for each node in nodesParams[sidebarType] and returns a Card for each node
-              // it also attaches the onDragStart function to each Card so that the node can be dragged from the sidebar and dropped in the flow
-              // the data that is being dragged is set in the onDragStart function and passed to the onDrop function in the flow
-              let node = nodesParams[sidebarType][nodeName]
-              return (
-                <div
-                  key={nodeName}
-                  className="cursor-grab"
-                  onDragStart={(event) =>
-                    onDragStart(event, {
-                      nodeType: `${node.type}`,
-                      name: `${node.title}`,
-                      image: `${node.img}`
-                    })
-                  }
-                  draggable
-                >
-                  {/* here we create the Card for each node */}
-                  <Card
-                    key={node.title}
-                    className="text-left margin-vertical-10"
+          <Card.Body className="overflow-auto">
+            <Stack direction="vertical" gap={2}>
+              {Object.keys(nodesParams[sidebarType]).map((nodeName) => {
+                // this code is executed for each node in nodesParams[sidebarType] and returns a Card for each node
+                // it also attaches the onDragStart function to each Card so that the node can be dragged from the sidebar and dropped in the flow
+                // the data that is being dragged is set in the onDragStart function and passed to the onDrop function in the flow
+                let node = nodesParams[sidebarType][nodeName]
+                return (
+                  <div
+                    key={nodeName}
+                    className="cursor-grab"
+                    onDragStart={(event) =>
+                      onDragStart(event, {
+                        nodeType: `${node.type}`,
+                        name: `${node.title}`,
+                        image: `${node.img}`
+                      })
+                    }
+                    draggable
                   >
-                    <Card.Header className="draggable-side-node">
-                      {node.title}
-                      <img
-                        src={`/icon/${sidebarType}/${node.img}`}
-                        alt={node.title}
-                        className="icon-nodes"
-                      />
-                    </Card.Header>
-                  </Card>
-                </div>
-              )
-            })}
+                    <Card key={node.title} className="text-left">
+                      <Card.Header className="draggable-side-node">
+                        {node.title}
+                        <img src={`/icon/${sidebarType}/${node.img}`} alt={node.title} className="icon-nodes" />
+                      </Card.Header>
+                    </Card>
+                  </div>
+                )
+              })}
+            </Stack>
           </Card.Body>
         </Card>
       <br/>

@@ -13,7 +13,7 @@ module.exports = {
     camelcase: ["error"],
     "quote-props": ["error", "consistent"],
     "react/prop-types": ["off"],
-    "no-mixed-spaces-and-tabs": ["error", "smart-tabs"],
-    "prettier/prettier": "error"
+    "no-mixed-spaces-and-tabs": ["error", "smart-tabs"]
+    // "prettier/prettier": "error"
   }
 }

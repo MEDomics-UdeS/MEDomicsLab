@@ -1,7 +1,8 @@
-import React, { useState, useCallback } from "react"
+import React, { useState, useCallback, useContext } from "react"
 import Node from "../../flow/node"
 import { Form, Row, Col } from "react-bootstrap"
 import ViewButton from "../buttonsTypes/viewButton"
+import { FlowFunctionsContext } from "../../flow/context/flowFunctionsContext"
 
 // Importing the different forms for the filter types
 import MeanFilter from "./filterTypes/meanFilter"
@@ -27,6 +28,8 @@ const FilterNode = ({ id, data, type }) => {
   const [selectedFilter, setSelectedFilter] = useState(
     data.internal.settings.filter_type
   )
+  const { updateNode } = useContext(FlowFunctionsContext)
+
 
   /**
    * @param {Event} event event given upon changing filter type in the form
@@ -41,7 +44,7 @@ const FilterNode = ({ id, data, type }) => {
 
     // Change the filter_type in node data
     data.internal.settings.filter_type = selectedFilter
-    data.parentFct.updateNode({
+    updateNode({
       id: id,
       updatedData: data.internal
     })
@@ -56,7 +59,7 @@ const FilterNode = ({ id, data, type }) => {
    */
   const changeFilterForm = useCallback((name, value) => {
     data.internal.settings[selectedFilter][name] = value
-    data.parentFct.updateNode({
+    updateNode({
       id: id,
       updatedData: data.internal
     })

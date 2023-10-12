@@ -1,35 +1,60 @@
 import { ipcRenderer } from "electron"
 import axios from "axios"
+import { toast } from "react-toastify"
 
+/**
+ * 
+ * @param {Integer} port the port to send the request to
+ * @param {String} topic the topic to send the request to
+ * @param {Object} json2send the json to send
+ * @param {Function} jsonReceivedCB extecuted when the json is received
+ * 
+ * @example
+ * import { requestJson } from '/utilities/requests';
+
+ <Button variant="primary" onClick={
+    () => {
+        requestJson(5000, "test", { test: "test" }, (jsonResponse) => {
+            console.log(jsonResponse);
+        });
+    }
+}>send test</Button> 
+ */
 export const requestJson = (
   port,
   topic,
   json2send,
   jsonReceivedCB,
-  errorCB
+  onError = (error) => {
+    console.error("Error:", error)
+    toast.error("An error occured while sending the request")
+  }
 ) => {
-  ipcRenderer
-    .invoke("request", {
-      data: {
-        json2send
-      },
-      method: "POST",
-      url: "http://127.0.0.1:" + port + "/" + topic
-    })
-    .then((data) => {
-      jsonReceivedCB(data["data"])
-      return true
-    })
-    .catch((resp) => errorCB(resp))
+  try {
+    ipcRenderer
+      .invoke("request", {
+        data: {
+          json2send
+        },
+        method: "POST",
+        url: "http://localhost:" + port + "/" + topic
+      })
+      .then((data) => {
+        jsonReceivedCB(data["data"])
+      })
+      .catch((resp) => {
+        console.log(resp)
+        onError(resp)
+      })
+  } catch (error) {
+    console.error(error)
+    toast.error("An error occured while using ipcRenderer.invoke")
+  }
 }
 
 export const axiosPostJson = async (jsonData, pathName) => {
   try {
-    const response = await axios.post(
-      "http://localhost:5000/" + pathName,
-      jsonData,
-      { headers: { "Content-Type": "application/json" } }
-    )
+    const response = await axios.post("http://localhost:5000/" + pathName, jsonData, { headers: { "Content-Type": "application/json" } })
 
     return response.data
   } catch (error) {

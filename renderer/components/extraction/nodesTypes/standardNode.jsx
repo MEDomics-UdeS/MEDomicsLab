@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react"
+import React, { useState, useEffect, useCallback, useContext } from "react"
 import Node from "../../flow/node"
 import ViewButton from "../buttonsTypes/viewButton"
 // Importing the different forms for each node type
@@ -6,6 +6,7 @@ import InterpolationForm from "./standardNodeForms/interpolationForm.jsx"
 import ReSegmentationForm from "./standardNodeForms/reSegmentationForm.jsx"
 import DiscretizationForm from "./standardNodeForms/discretizationForm.jsx"
 import InputForm from "./standardNodeForms/inputForm"
+import { FlowFunctionsContext } from "../../flow/context/flowFunctionsContext"
 
 // Creating a dictionary of the different node names and their corresponding form
 const nodeTypes = {
@@ -26,11 +27,12 @@ const nodeTypes = {
  */
 const StandardNode = ({ id, data }) => {
   const [nodeForm, setNodeForm] = useState(data.internal.settings) // Hook to keep track of the form of the node
+  const { updateNode } = useContext(FlowFunctionsContext)
 
   // Hook called when the nodeForm is changed, updates the node data
   useEffect(() => {
     data.internal.settings = nodeForm
-    data.parentFct.updateNode({
+    updateNode({
       id: id,
       updatedData: data.internal
     })
@@ -62,7 +64,7 @@ const StandardNode = ({ id, data }) => {
   const enableView = useCallback(() => {
     // Enable view button
     data.internal.enableView = true
-    data.parentFct.updateNode({
+    updateNode({
       id: id,
       updatedData: data.internal
     })

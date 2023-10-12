@@ -1,0 +1,61 @@
+{
+  "patients": [
+    {
+      "id": 1,
+      "name": "John Smith",
+      "age": 35,
+      "gender": "male",
+      "diagnosis": "diabetes",
+      "medications": [
+        {
+          "name": "Metformin",
+          "dosage": "500mg",
+          "frequency": "twice daily"
+        },
+        {
+          "name": "Insulin",
+          "dosage": "10 units",
+          "frequency": "once daily"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "name": "Jane Doe",
+      "age": 45,
+      "gender": "female",
+      "diagnosis": "hypertension",
+      "medications": [
+        {
+          "name": "Lisinopril",
+          "dosage": "10mg",
+          "frequency": "once daily"
+        },
+        {
+          "name": "Hydrochlorothiazide",
+          "dosage": "25mg",
+          "frequency": "once daily"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "name": "Bob Johnson",
+      "age": 50,
+      "gender": "male",
+      "diagnosis": "asthma",
+      "medications": [
+        {
+          "name": "Albuterol",
+          "dosage": "90mcg",
+          "frequency": "as needed"
+        },
+        {
+          "name": "Advair",
+          "dosage": "250/50",
+          "frequency": "twice daily"
+        }
+      ]
+    }
+  ]
+}

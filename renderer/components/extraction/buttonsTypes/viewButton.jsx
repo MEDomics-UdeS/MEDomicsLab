@@ -1,7 +1,8 @@
-import React from "react"
+import React, { useContext } from "react"
 import Button from "react-bootstrap/Button"
-import { toast } from "react-toastify"
-import { axiosPostJson } from "../../../utilities/requests"
+import { requestJson } from "../../../utilities/requests"
+import { WorkspaceContext } from "../../workspace/workspaceContext"
+import { ErrorRequestContext } from "../../flow/context/errorRequestContext"
 
 /**
  * @param {string} id id of the node
@@ -14,6 +15,9 @@ import { axiosPostJson } from "../../../utilities/requests"
  * The state of the button is determined by the enableView property of the node.
  */
 const ViewButton = ({ id, data, type }) => {
+  const { port } = useContext(WorkspaceContext)
+  const { setError } = useContext(ErrorRequestContext)
+
   /**
    * @description
    * This function is used to send a POST request to /extraction/view.
@@ -24,27 +28,25 @@ const ViewButton = ({ id, data, type }) => {
     // Construction of form data to send to /extraction/view. If the node is input, the name of the file is needed
     let formData
     if (type === "input") {
-      formData = JSON.stringify({
+      formData = {
         id: id,
         name: type,
         file_loaded: data.internal.settings.filepath
-      })
+      }
     } else {
-      formData = JSON.stringify({
+      formData = {
         id: id,
         name: type
-      })
+      }
     }
 
-    // POST request to /extraction/view for current node by sending form_data
-    axiosPostJson(formData, "extraction/view")
-      .then((response) => {
+    requestJson(port, "/extraction/view", formData, (response) => {
+      if (response.error) {
+        setError(response.error)
+      } else {
         console.log(response)
-      })
-      .catch((error) => {
-        console.error("Error:", error)
-        toast.warn("Could not view image.")
-      })
+      }
+    })
   }
 
   return (

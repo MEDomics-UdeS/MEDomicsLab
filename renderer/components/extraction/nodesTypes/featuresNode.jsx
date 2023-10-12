@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useCallback, useMemo } from "react"
+import React, { useState, useEffect, useCallback, useMemo, useContext } from "react"
 import Node from "../../flow/node"
 import { Form } from "react-bootstrap"
+import { FlowFunctionsContext } from "../../flow/context/flowFunctionsContext"
 
 /**
  * @param {string} id id of the node
@@ -24,6 +25,8 @@ const FeaturesNode = ({ id, data, type }) => {
       ),
     []
   )
+  const { updateNode } = useContext(FlowFunctionsContext)
+
 
   // Hook to keep the selected features
   const [selectedFeatures, setSelectedFeatures] = useState(
@@ -39,7 +42,7 @@ const FeaturesNode = ({ id, data, type }) => {
     // Update the node data
     data.internal.settings.features = selectedFeatures
 
-    data.parentFct.updateNode({
+    updateNode({
       id: id,
       updatedData: data.internal
     })
@@ -96,7 +99,7 @@ const FeaturesNode = ({ id, data, type }) => {
     data.internal.settings.associatedFeatures = {
       associatedFeatures: selectedFeatures
     }
-    data.parentFct.updateNode({
+    updateNode({
       id: id,
       updatedData: data.internal
     })
@@ -114,7 +117,7 @@ const FeaturesNode = ({ id, data, type }) => {
       const value = event.target.value
 
       data.internal.settings[name] = value
-      data.parentFct.updateNode({
+      updateNode({
         id: id,
         updatedData: data.internal
       })
