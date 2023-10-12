@@ -16,7 +16,7 @@ import { FlowInfosProvider , FlowInfosContext} from "./context/flowInfosContext"
  * @description This component is the base for all the flow pages. It contains the sidebar, the workflow and the backdrop.
  * 
  */
-const FlowPageBaseWithFlowInfos = ({ children, pageId, workflowType, savingPath="" }) => {
+const FlowPageBaseWithFlowInfos = ({ children, pageId, workflowType, savingPath="", ExtraPages=null, reload, setReload }) => {
 	// here is the use of the context to update the flowInfos
 	const { updateFlowInfos } = useContext(FlowInfosContext); 
 
@@ -36,7 +36,7 @@ const FlowPageBaseWithFlowInfos = ({ children, pageId, workflowType, savingPath=
 				<div className='learning-div height-100 width-100 padding-10'>
 					<Row className="width-100 height-100 " style={{ overflow: "hidden" }} >
 						{/* here is the Sidebar on the left with all available nodes */}
-						<SidebarAvailableNodes title="Available Nodes" sidebarType={workflowType} />
+						<SidebarAvailableNodes title="Available Nodes" sidebarType={workflowType} ExtraPages={ExtraPages} reload={reload} setReload={setReload} />
 						<Col md >
 							<div className="height-100" >
 								<ReactFlowProvider>

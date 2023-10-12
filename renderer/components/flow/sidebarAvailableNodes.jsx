@@ -30,11 +30,18 @@ const onDragStart = (event, node) => {
  * This component is used to display the nodes available in the sidebar.
  *
  */
-const SidebarAvailableNodes = ({ title, sidebarType }) => {
+const SidebarAvailableNodes = ({ title, sidebarType, ExtraPages, reload, setReload }) => {
+  if (ExtraPages != null){
+    var classNameAN = "text-center height-200"
+  }
+  else{
+    var classNameAN = "text-center height-100"
+  }
+ 
   return (
     <>
       <Col className=" padding-0 available-nodes-panel" sm={2}>
-        <Card className="text-center height-100">
+        <Card className={classNameAN}>
           <Card.Header>
             <h4>{title}</h4>
           </Card.Header>
@@ -78,6 +85,24 @@ const SidebarAvailableNodes = ({ title, sidebarType }) => {
             })}
           </Card.Body>
         </Card>
+      <br/>
+      {/* Available pages */}
+      {ExtraPages != null && (
+        <Card className="text-center height-200">
+          <Card.Header>
+            <h4>Available Pages</h4>
+          </Card.Header>
+          <Card.Body>
+            {ExtraPages.map((Page, index) => {
+              return (
+                <Page key={index} reload={reload[index]} setReload={setReload[index]}/>
+              )
+            }
+            )}
+            </Card.Body>
+        </Card>
+      )}
+      
       </Col>
     </>
   )

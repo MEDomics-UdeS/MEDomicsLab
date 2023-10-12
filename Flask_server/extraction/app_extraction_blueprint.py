@@ -10,29 +10,34 @@ Uses the "Plotly" library for 3D volume visualization: https://plotly.com/python
 @Date: 09/09/2022
 """
 import copy
-import shutil
+import json
 import os
-import sys
-from pathlib import Path
 import pickle
 import pprint
+import shutil
+import sys
 from copy import deepcopy
-import json
-import numpy as np
-from flask import Flask, jsonify, redirect, render_template, request, Blueprint, url_for, make_response, Response
-from werkzeug.utils import secure_filename
-from utils.server_utils import get_json_from_request
+from pathlib import Path
 
-pp = pprint.PrettyPrinter(indent=4, compact=True, width=40,
-                          sort_dicts=False)  # allow pretty print of datatypes in console
+import numpy as np
+from flask import (Blueprint, Flask, Response, jsonify, make_response,
+                   redirect, render_template, request, url_for)
+import pandas as pd
+from werkzeug.utils import secure_filename
+
+MODULE_DIR = str(Path(os.path.dirname(os.path.abspath(__file__))).parent / 'submodules' / 'MEDimage')
+sys.path.append(MODULE_DIR)
+
+SUBMODULE_DIR = str(Path(os.path.dirname(os.path.abspath(__file__))).parent.parent)
+sys.path.append(SUBMODULE_DIR)
+
+pp = pprint.PrettyPrinter(indent=4, compact=True, width=40, sort_dicts=False)  # allow pretty print of datatypes in console
+from .MEDimageApp import utils
+import ray
 
 # Importation du submodule MEDimage
 #import Flask_server.submodules.MEDimage.MEDimage as MEDimage
-import submodules.MEDimage.MEDimage as MEDimage
-
-import extraction.MEDimageApp.utils as utils
-import ray
-
+from Flask_server.submodules.MEDimage import MEDimage
 
 # Global variables
 cwd = os.getcwd()
@@ -321,7 +326,8 @@ def execute_pips(pips, json_scene):
             # Update results dict for result response (xxx_res)
             pip_name_res += "/" + node
             nodes_needing_last_output = ["filter", "interpolation", "re_segmentation", "roi_extraction",
-                                         "filter_processing", "discretization", "extraction"]
+                                         "filter_processing", "discretization", "extraction", "datamanager",
+                                         "batchextractor"]
 
             # ------------------------------ GET LAST VOL and ROI computed ------------------------------------------
             if (content["name"] in nodes_needing_last_output):
@@ -337,8 +343,88 @@ def execute_pips(pips, json_scene):
                                                                  )
 
             # ------------------------------------------ HOME ------------------------------------------
+            # DATA MANAGER
+            if (content["name"] == "datamanager"):
+                print("\n********DATAMANAGER execution********")
+
+                # Retrieve data from json request
+                if "path_dicoms" in content["data"].keys() and content["data"]["path_dicoms"] != "":
+                    path_to_dicoms = Path(content["data"]["path_dicoms"])
+                else:
+                    path_to_dicoms = None
+                if "path_niftis" in content["data"].keys() and content["data"]["path_niftis"] != "":
+                    path_to_niftis = Path(content["data"]["path_niftis"])
+                else:
+                    path_to_niftis = None
+                if "path_save" in content["data"].keys() and content["data"]["path_save"] != "":
+                    path_save = Path(content["data"]["path_save"])
+                if "path_csv" in content["data"].keys() and content["data"]["path_csv"] != "":
+                    path_csv = Path(content["data"]["path_csv"])
+                if "save" in content["data"].keys():
+                    save = content["data"]["save"]
+                if "n_batch" in content["data"].keys():
+                    n_batch = content["data"]["n_batch"]
+
+                # Check if at least one path to data is given
+                if not ("path_dicoms" in content["data"].keys() and content["data"]["path_dicoms"] != "") and not (
+                        "path_niftis" in content["data"].keys() and content["data"]["path_niftis"] != ""):
+                    print("No path to data given")
+                    return Response("No path to data given! At least DICOM or NIFTI path must be given.", status=400)
+
+                # Init DataManager instance
+                dm = MEDimage.wrangling.DataManager(
+                    path_to_dicoms=path_to_dicoms,
+                    path_to_niftis=path_to_niftis,
+                    path_save=path_save,
+                    path_csv=path_csv,
+                    save=save, 
+                    n_batch=n_batch)
+                
+                # Run the DataManager
+                if path_to_dicoms is not None and path_to_niftis is None:
+                    dm.process_all_dicoms()
+                elif path_to_dicoms is None and path_to_niftis is not None:
+                    dm.process_all_niftis()
+                else:
+                    dm.process_all()
+            
+            # Batch Extractor
+            elif (content["name"] == "batchextractor"):
+                print("\n********BATCHEXTRACTOR execution********")
+
+                # Retrieve data from json request
+                if "path_read" in content["data"].keys() and content["data"]["path_read"] != "":
+                    path_read = Path(content["data"]["path_read"])
+                else:
+                    return Response("Path to npy objects is not given!", status=400)
+                if "path_params" in content["data"].keys() and content["data"]["path_params"] != "":
+                    path_params = Path(content["data"]["path_params"])
+                else:
+                    return Response("Path to parameters is not given!", status=400)
+                if "path_save" in content["data"].keys() and content["data"]["path_save"] != "":
+                    path_save = Path(content["data"]["path_save"])
+                else:
+                    return Response("Path to save is not given!", status=400)
+                if "path_csv" in content["data"].keys() and content["data"]["path_csv"] != "":
+                    path_csv = Path(content["data"]["path_csv"])
+                else:
+                    return Response("Path to csv is not given!", status=400)
+                if "n_batch" in content["data"].keys():
+                    n_batch = content["data"]["n_batch"]
+
+                # Init BatchExtractor instance
+                batch_extractor = MEDimage.biomarkers.BatchExtractor(
+                                    path_read=path_read,
+                                    path_csv=path_csv,
+                                    path_params=path_params,
+                                    path_save=path_save,
+                                    n_batch=n_batch)
+                
+                # Run the BatchExtractor
+                batch_extractor.compute_radiomics()
+
             # INPUT
-            if (content["name"] == "input"):
+            elif (content["name"] == "input"):
                 print("\n********INPUT execution********")
                 print("filename_loaded : ", filename_loaded)
                 print("content data : ", content["data"]["filepath"])
@@ -1133,7 +1219,6 @@ def execute_pips(pips, json_scene):
 def index():
     return render_template('layout.html')
 
-
 # Upload file in Input Object node
 @app_extraction.route('/upload', methods=['GET', 'POST'])
 def getUpload():  # Code selected from  https://flask.palletsprojects.com/en/2.2.x/patterns/fileuploads/
@@ -1195,6 +1280,243 @@ def getUpload():  # Code selected from  https://flask.palletsprojects.com/en/2.2
         else: 
             return Response("The file you tried to upload doesnt have the right format.", status = 400)
 
+# Run DataManager
+@app_extraction.route('/run/dm', methods=['GET', 'POST'])
+def RunDM():
+    if request.method == 'POST':
+        data = request.get_json()
+
+    # Retrieve data from json request
+    if "path_dicoms" in data.keys() and data["path_dicoms"] != "":
+        path_to_dicoms = Path(data["path_dicoms"])
+    else:
+        path_to_dicoms = None
+    if "path_niftis" in data.keys() and data["path_niftis"] != "":
+        path_to_niftis = Path(data["path_niftis"])
+    else:
+        path_to_niftis = None
+    if "path_save" in data.keys() and data["path_save"] != "":
+        path_save = Path(data["path_save"])
+    if "path_csv" in data.keys() and data["path_csv"] != "":
+        path_csv = Path(data["path_csv"])
+    else:
+        path_csv = None
+    if "save" in data.keys():
+        save = data["save"]
+    if "n_batch" in data.keys():
+        n_batch = data["n_batch"]
+
+    # Check if at least one path to data is given
+    if not ("path_dicoms" in data.keys() and data["path_dicoms"] != "") and not (
+            "path_niftis" in data.keys() and data["path_niftis"] != ""):
+        print("No path to data given")
+        return Response("No path to data given! At least DICOM or NIFTI path must be given.", status=400)
+    
+     # Init DataManager instance
+    dm = MEDimage.wrangling.DataManager(
+        path_to_dicoms=path_to_dicoms,
+        path_to_niftis=path_to_niftis,
+        path_save=path_save,
+        path_csv=path_csv,
+        save=save, 
+        n_batch=n_batch)
+
+    # Run the DataManager
+    if path_to_dicoms is not None and path_to_niftis is None:
+        dm.process_all_dicoms()
+    elif path_to_dicoms is None and path_to_niftis is not None:
+        dm.process_all_niftis()
+    else:
+        dm.process_all()
+    
+    # Return success message
+    summary = dm.summarize(return_summary=True).to_dict()
+    
+    # Get the number of rows
+    num_rows = len(summary["count"])
+
+    # Create a list of objects in the desired format
+    result = []
+    for i in range(num_rows):
+        obj = {
+            "count": summary["count"][i],
+            "institution": summary["institution"][i],
+            "roi_type": summary["roi_type"][i],
+            "scan_type": summary["scan_type"][i],
+            "study": summary["study"][i]
+        }
+        result.append(obj)
+
+    return jsonify(result)
+
+# Run Radiomics pre-checks
+@app_extraction.route('/run/dm/prechecks', methods=['GET', 'POST'])
+def RunPreChecks():
+    if request.method == 'POST':
+        data = request.get_json()
+
+    # Retrieve data from json request
+    if "path_dicoms" in data.keys() and data["path_dicoms"] != "":
+        path_to_dicoms = Path(data["path_dicoms"])
+    else:
+        path_to_dicoms = None
+    if "path_niftis" in data.keys() and data["path_niftis"] != "":
+        path_to_niftis = Path(data["path_niftis"])
+    else:
+        path_to_niftis = None
+    if "path_save" in data.keys() and data["path_save"] != "":
+        path_save = Path(data["path_save"])
+    if "path_csv" in data.keys() and data["path_csv"] != "":
+        path_csv = Path(data["path_csv"])
+    else:
+        path_csv = None
+    if "save" in data.keys():
+        save = data["save"]
+    if "n_batch" in data.keys():
+        n_batch = data["n_batch"]
+    if "wildcards_dimensions" in data.keys():
+        wildcards_dimensions = [data["wildcards_dimensions"]]
+    else:
+        wildcards_dimensions = None
+    if "wildcards_window" in data.keys():
+        wildcards_window = [data["wildcards_window"]]
+    else:
+        wildcards_window = None
+
+    # Check if at least one path to data is given
+    if not ("path_dicoms" in data.keys() and data["path_dicoms"] != "") and not (
+            "path_niftis" in data.keys() and data["path_niftis"] != ""):
+        print("No path to data given")
+        return Response("No path to data given! At least DICOM or NIFTI path must be given.", status=400)
+    
+    # Check if wildcards are given
+    if not wildcards_dimensions and not wildcards_window:
+        return Response("No wildcards given! both wildcard for dimensions and for window must be given.", status=400)
+    
+    # Init DataManager instance
+    dm = MEDimage.wrangling.DataManager(
+        path_to_dicoms=path_to_dicoms,
+        path_to_niftis=path_to_niftis,
+        path_save=path_save,
+        path_csv=path_csv,
+        save=save, 
+        n_batch=n_batch)
+
+    # Run the DataManager
+    dm.pre_radiomics_checks(
+        path_data=path_save,
+        wildcards_dimensions=wildcards_dimensions, 
+        wildcards_window=wildcards_window, 
+        path_csv=path_csv)
+    
+    # Return success message
+    return Response("DataManager run successfully!", status=200)
+
+# Run BatchExtractor
+@app_extraction.route('/count/be', methods=['GET', 'POST'])
+def RunBECount():
+    if request.method == 'POST':
+        data = request.get_json()
+
+    # Retrieve data from json request
+    if "path_read" in data.keys() and data["path_read"] != "":
+        path_read = Path(data["path_read"])
+    else:
+        return Response("No path to data given!", status=400)
+    if "path_csv" in data.keys() and data["path_csv"] != "":
+        path_csv = Path(data["path_csv"])
+    else:
+        return Response("No path to csv given!", status=400)
+    if "path_params" in data.keys() and data["path_params"] != "":
+        path_params = Path(data["path_params"])
+    else:
+        return Response("No path to params given!", status=400)
+    if "path_save" in data.keys() and data["path_save"] != "":
+        path_save = Path(data["path_save"])
+    else:
+        path_save = None
+
+    # CSV file path process
+    if 'csv' in path_csv.name:
+        path_csv = path_csv.parent
+    
+    # Load params
+    with open(path_params, 'r') as f:
+        params = json.load(f)
+    
+    # Load csv and count scans
+    tabel_roi = pd.read_csv(path_csv / ('roiNames_' + params["roi_type_labels"][0] + '.csv'))
+    tabel_roi['under'] = '_'
+    tabel_roi['dot'] = '.'
+    tabel_roi['npy'] = '.npy'
+    name_patients = (pd.Series(
+        tabel_roi[['PatientID', 'under', 'under',
+                'ImagingScanName',
+                'dot',
+                'ImagingModality',
+                'npy']].fillna('').values.tolist()).str.join('')).tolist()
+    
+    
+    # Count scans in path read
+    list_scans = [scan.name for scan in list(path_read.glob('*.npy'))]
+    list_scans_unique = [name_patient for name_patient in name_patients if name_patient in list_scans]
+    n_scans = len(list_scans_unique)
+
+    if type(params["roi_types"]) is list:
+        roi_label = params["roi_types"][0]
+    else:
+        roi_label = params["roi_types"]
+    folder_save_path = path_save / f'features({roi_label})'
+    
+    return jsonify({"n_scans": n_scans, "folder_save_path": str(folder_save_path)})
+
+# Run BatchExtractor
+@app_extraction.route('/run/be', methods=['GET', 'POST'])
+def RunBE():
+    if request.method == 'POST':
+        data = request.get_json()
+
+    # Retrieve data from json request
+    if "path_read" in data.keys() and data["path_read"] != "":
+        path_read = Path(data["path_read"])
+    else:
+        path_read = None
+    if "path_save" in data.keys() and data["path_save"] != "":
+        path_save = Path(data["path_save"])
+    if "path_csv" in data.keys() and data["path_csv"] != "":
+        path_csv = Path(data["path_csv"])
+    else:
+        path_csv = None
+    if "path_params" in data.keys() and data["path_params"] != "":
+        path_params = Path(data["path_params"])
+    else:
+        path_params = None
+    if "n_batch" in data.keys():
+        n_batch = data["n_batch"]
+
+    # CSV file path process
+    if 'csv' in path_csv.name:
+        path_csv = path_csv.parent
+    
+    # Check if at least one path to data is given
+    if not ("path_read" in data.keys() and data["path_read"] != "") and not (
+            "path_params" in data.keys() and data["path_params"] != "") and not (
+            "path_csv" in data.keys() and data["path_csv"] != ""):
+        print("Multiple arguments missing")
+        return Response("Path read, settings, csv and save must be given.", status=400)
+    
+     # Init BatchExtractor instance
+    be = MEDimage.biomarkers.BatchExtractor(
+        path_read=path_read,
+        path_csv=path_csv,
+        path_params=path_params,
+        path_save=path_save,
+        n_batch=n_batch)
+
+    # Run the BatchExtractor
+    be.compute_radiomics()
+    
+    return Response("Successfuly extracted features from batch", status=200)
 
 # Run all button to run all drawflow pipelines
 @app_extraction.route("/run-all", methods=["POST"])
