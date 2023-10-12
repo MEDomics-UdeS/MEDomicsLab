@@ -134,7 +134,6 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
   // executed when intersections array is changed
   // it updates nodes and eges array
   useEffect(() => {
-    console.log("intersections", intersections)
     // first, we add 'intersect' class to the nodes that are intersecting with OptimizeIO nodes
     setNodes((nds) =>
       nds.map((node) => {
@@ -201,59 +200,6 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
       }
     })
   }, [intersections])
-
-  const customOnConnect = useCallback(
-    (params) => {
-      // get the source and target nodes
-      let sourceNode = deepCopy(nodes.find((node) => node.id === params.source))
-      let targetNode = deepCopy(nodes.find((node) => node.id === params.target))
-
-      let endIntersects = deepCopy(intersections).filter((int) => int.targetId.includes("end"))
-      let startIntersects = deepCopy(intersections).filter((int) => int.targetId.includes("start"))
-
-      console.log(endIntersects, startIntersects)
-      if (sourceNode.type == "groupNode" || targetNode.type == "groupNode") {
-        if (sourceNode.type == "groupNode") {
-          endIntersects.forEach((endIntersect, index) => {
-            let edgeSource = endIntersect.sourceId
-            let edgeTarget = params.target
-            setEdges((eds) =>
-              addEdge(
-                {
-                  source: edgeSource,
-                  sourceHandle: "0_" + edgeSource, // we add 0_ because the sourceHandle always starts with 0_. Handles are created by a for loop so it represents an index
-                  target: edgeTarget,
-                  targetHandle: "0_" + edgeTarget,
-                  id: index + edgeSource + "_" + edgeTarget,
-                  hidden: true
-                },
-                eds
-              )
-            )
-          })
-        } else if (targetNode.type == "groupNode") {
-          startIntersects.forEach((startIntersect, index) => {
-            let edgeSource = params.source
-            let edgeTarget = startIntersect.sourceId
-            setEdges((eds) =>
-              addEdge(
-                {
-                  source: edgeSource,
-                  sourceHandle: "0_" + edgeSource, // we add 0_ because the sourceHandle always starts with 0_. Handles are created by a for loop so it represents an index
-                  target: edgeTarget,
-                  targetHandle: "0_" + edgeTarget,
-                  id: index + startIntersect.sourceId,
-                  hidden: false
-                },
-                eds
-              )
-            )
-          })
-        }
-      }
-    },
-    [nodes, edges, setEdges, intersections]
-  )
 
   /**
    *
@@ -848,7 +794,6 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
         onDeleteNode={onDeleteNode}
         groupNodeHandlingDefault={groupNodeHandlingDefault}
         onNodeDrag={onNodeDrag}
-        customOnConnect={customOnConnect}
         // reprensents the visual over the workflow
         uiTopRight={
           <>

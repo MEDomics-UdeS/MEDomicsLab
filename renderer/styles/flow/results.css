@@ -114,17 +114,49 @@
   transition: all 0.15s ease-in-out !important;
   transition:
     border-color 0.15s 0.15s ease-in-out,
-    background-color 0.15s ease-in-out !important;
-  border-color: #328a00cc !important;
-  background-color: #338a001f !important;
+    background-color 0.15s ease-in-out,
+    box-shadow 0.5s ease-in-out !important;
+  border-color: #338a0088 !important;
+  background-color: #338a0052 !important;
   /* color: #ffffff !important; */
   width: 8rem !important;
+  box-shadow: inset 0px 0 5px 1px #00000033;
+}
+
+.btn-show-results:hover {
+  color: white !important;
+  border-color: #338a00e7 !important;
+  background-color: #338a00b2 !important;
+  box-shadow: none;
+}
+
+.btn-show-results:focus {
+  box-shadow:
+    0 0 0 2px #ffffff,
+    0 0 0 4px #bff8b1,
+    0 1px 2px 0 rgb(0 0 0);
+}
+
+.btn-show-results span {
+  color: white !important;
 }
 
 .p-highlight.btn-show-results {
-  background-color: #6366f1 !important;
-  border-color: #6366f1 !important;
+  background-color: rgba(99, 101, 241, 0.3) !important;
+  border-color: rgba(99, 101, 241, 0.5) !important;
   width: 11rem !important;
+}
+
+.p-highlight.btn-show-results:focus {
+  box-shadow:
+    0 0 0 2px #ffffff,
+    0 0 0 4px #c7d2fe,
+    0 1px 2px 0 rgb(0 0 0);
+}
+
+.p-highlight.btn-show-results:hover {
+  background-color: rgba(99, 102, 241, 1) !important;
+  border-color: rgba(99, 102, 241, 1) !important;
 }
 
 .results-header {

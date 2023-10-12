@@ -1,6 +1,7 @@
 :root {
   --not-run-color: #ff9700b0;
   --size-top-panel: 2.5rem;
+  --num-controls-btn: 6;
 }
 
 .minimapStyle {
@@ -330,7 +331,7 @@
 .flow-btn-panel-left-vertical {
   position: absolute;
   left: 1.75rem;
-  bottom: 8.5rem;
+  bottom: calc(1rem + calc(var(--num-controls-btn)+2) * 1.5rem);
   cursor: pointer;
   z-index: 10;
   translate: -50% 0;
@@ -346,13 +347,15 @@
   width: var(--size-top-panel) !important;
   padding: 0;
   border-radius: 15% 50% 50% 15%;
-  background: #ef4444 !important;
+  /* background: #ef4444 !important; */
   border-color: #dc2626 !important;
+  background-color: #ff000073;
   /* smooth color transition */
   transition:
     background-color 0.35s ease-in-out,
     box-shadow 0.35s ease-in-out,
     border-radius 0.6s ease-in-out !important;
+  box-shadow: inset 0px 0 5px 1px #00000033 !important;
 }
 .btn-ctl-available-nodes span {
   color: #ffffff !important;
@@ -361,12 +364,19 @@
 .btn-ctl-available-nodes:hover {
   background: #dc2626 !important;
   border-color: #dc2626 !important;
+  box-shadow: none !important;
 }
 
 .p-highlight.btn-ctl-available-nodes.p-button {
+  background-color: rgba(99, 102, 241, 0.3) !important;
+  border-color: rgba(99, 102, 241, 0.5) !important;
+  border-radius: 50%;
+}
+
+.p-highlight.btn-ctl-available-nodes.p-button:hover {
   background-color: #6366f1 !important;
   border-color: #6366f1 !important;
-  border-radius: 50%;
+  color: white;
 }
 
 .btn-ctl-available-nodes.p-button:focus {

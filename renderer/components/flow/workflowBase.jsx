@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 import React, { useRef, useCallback, useEffect, useContext, useState } from "react"
 import { toast } from "react-toastify"
-import ReactFlow, { Controls, Background, MiniMap, addEdge } from "reactflow"
+import ReactFlow, { Controls, ControlButton, Background, MiniMap, addEdge } from "reactflow"
 import { FlowFunctionsContext } from "./context/flowFunctionsContext"
 import { PageInfosContext } from "../mainPages/moduleBasics/pageInfosContext"
 import { FlowInfosContext } from "./context/flowInfosContext"
@@ -58,6 +58,7 @@ const WorkflowBase = ({ isGoodConnection, groupNodeHandlingDefault, onDeleteNode
   const [newConnection, setNewConnection] = useState(false)
   const { showError, setShowError } = useContext(ErrorRequestContext) // used to get the flow infos
   const [hasBeenAnError, setHasBeenAnError] = useState(false) // used to get the flow infos
+  const [miniMapState, setMiniMapState] = useState(true) // used to get the flow infos
 
   useEffect(() => {
     if (showError) {
@@ -273,7 +274,7 @@ const WorkflowBase = ({ isGoodConnection, groupNodeHandlingDefault, onDeleteNode
       setNewConnection(!newConnection) // this is used to update the workflow when a connection is created
       if (!alreadyExists && isValidConnection && !isLoop) {
         setEdges((eds) => addEdge(params, eds))
-        // customOnConnect(params)
+        customOnConnect && customOnConnect(params)
       } else {
         let message = "Not a valid connection"
         if (alreadyExists) {
@@ -502,14 +503,20 @@ const WorkflowBase = ({ isGoodConnection, groupNodeHandlingDefault, onDeleteNode
       {/* here is the reactflow component which handles a lot of features listed below */}
       <ReactFlow nodes={nodes} edges={edges} onNodesChange={onNodesChange} onEdgesChange={onEdgesChange} onInit={setReactFlowInstance} nodeTypes={nodeTypes} onNodeDrag={onNodeDrag} onConnect={onConnect} onDrop={onDrop} onDragOver={onDragOver} onEdgeUpdate={onEdgeUpdate} onEdgeUpdateStart={onEdgeUpdateStart} onEdgeUpdateEnd={onEdgeUpdateEnd} fitView>
         <Background />
-        <MiniMap className="minimapStyle" zoomable pannable />
-        <Controls />
+        {miniMapState && <MiniMap className="minimapStyle" zoomable pannable />}
+        <Controls>
+          <ControlButton onClick={() => setMiniMapState(!miniMapState)} title="Toggle Minimap">
+            <div>
+              <i className="pi pi-map"></i>
+            </div>
+          </ControlButton>
+        </Controls>
         {ui}
         <div className="flow-btn-panel-top">
           <Row className="margin-0" style={{ justifyContent: "space-between" }}>
             <Col md="auto" className="left">
               <ToggleButton onIcon="pi pi-list" offIcon="pi pi-times" onLabel="" offLabel="" checked={!showAvailableNodes} onChange={(e) => setShowAvailableNodes(!e.value)} className="btn-ctl-available-nodes" />
-              <ToggleButton onLabel="Results mode on" offLabel="See results" onIcon="pi pi-chart-bar" offIcon="pi pi-eye" disabled={!isResults} checked={showResultsPane} onChange={(e) => setShowResultsPane(e.value)} className="btn-show-results" />
+              <ToggleButton onLabel="Results mode on" offLabel="See results" onIcon="pi pi-chart-bar" offIcon="pi pi-eye" disabled={!isResults} checked={showResultsPane} onChange={(e) => setShowResultsPane(e.value)} severity="success" className="btn-show-results" />
               {uiTopLeft}
             </Col>
             <Col md="auto" className="center">

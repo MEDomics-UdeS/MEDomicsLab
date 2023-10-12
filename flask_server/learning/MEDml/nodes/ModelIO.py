@@ -62,7 +62,7 @@ class ModelIO(Node):
         elif self.type == 'load_model':
             original_path = settings['model_to_load']['path']
             print('original_path:', original_path)
-            
+
             def load_model_from_zip(path):
                 models_path = os.path.join(path, "model")
                 settings['model_name'] = models_path
