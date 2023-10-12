@@ -39,6 +39,38 @@ class CustomZipFile:
         # delete the temporary folder
         shutil.rmtree(path)
 
+    def add_content_to_zip(self, path: str, custom_actions):
+        """
+        Adds content to a zip file already existing
+        Args:
+            path: path of the zip file to unzip
+            custom_actions: custom actions to do on the unzipped folder before deleting it
+
+        """
+
+        # get the file extension from the path
+        extracted_path = self.handle_input_path(path)
+        self._cwd = extracted_path
+        # create an empty folder (temporary)
+        os.makedirs(extracted_path, exist_ok=True)
+
+        # unzip the folder
+        Archive(path).extractall(extracted_path)
+
+        # do custom actions on the unzipped folder
+        custom_actions(extracted_path)
+
+        # zip the folder
+        shutil.make_archive(extracted_path, 'zip', extracted_path)
+
+        # rename the zip file to have the custom extension
+        if os.path.exists(extracted_path + self.file_extension):
+            os.remove(extracted_path + self.file_extension)
+        os.rename(extracted_path + ".zip", extracted_path + self.file_extension)
+
+        # delete the temporary folder
+        shutil.rmtree(extracted_path)
+
     def unzip_actions(self, path: str, custom_actions) -> None:
         """
         Unzips a zip file to a folder
