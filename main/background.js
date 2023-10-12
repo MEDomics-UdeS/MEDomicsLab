@@ -32,8 +32,19 @@ if (isProd) {
     transparent: true,
     frame: false,
     alwaysOnTop: true,
-    center: true
+    center: true,
+    show: true
   })
+
+  // const splashScreen = createWindow("splash", {
+  //   width: 700,
+  //   height: 700,
+  //   transparent: false,
+  //   frame: true,
+  //   alwaysOnTop: true,
+  //   center: true,
+  //   show: false
+  // })
 
   const mainWindow = createWindow("main", {
     width: 1500,
@@ -41,8 +52,15 @@ if (isProd) {
     show: false
   })
 
-  splashScreen.loadURL(path.join(__dirname, "../main/splash.html"))
-  splashScreen.show()
+  splashScreen.loadFile(path.join(__dirname, "../main/splash.html"))
+  splashScreen.once("ready-to-show", () => {
+    splashScreen.show()
+    splashScreen.focus()
+    splashScreen.setAlwaysOnTop(true)
+    
+  }
+  )
+
 
   const template = [
     {
@@ -323,8 +341,6 @@ function createWorkingDirectory() {
   // See the workspace template in the repository
   createFolder("DATA")
   createFolder("EXPERIMENTS")
-  createFolder("MODELS")
-  createFolder("RESULTS")
 }
 
 function createFolder(folderString) {

@@ -960,16 +960,40 @@ export default class MedDataObject {
     const path = require("path")
     let filePath = path.join(this.path)
     if (extension === "xlsx") {
-      data = await dfd.read_excel(filePath)
+      data = await dfd.readExcel(filePath)
     } else if (extension === "csv") {
-      data = await dfd.read_csv(filePath)
+      data = await dfd.readCSV(filePath)
     } else if (extension === "json") {
-      data = await dfd.read_json(filePath)
+      data = await dfd.readJSON(filePath)
     }
     this.data = data
     this.dataLoaded = true
     this.lastModified = Date(Date.now())
+    return data
   }
+
+
+  /**
+   * GetsTheColumnsOfTheDataObjectIfItIsATable
+   * @returns {Array} - The columns of the data object if it is a table.
+   */
+  async getColumnsOfTheDataObjectIfItIsATable() {
+    let columns = []
+    if (this.dataLoaded) {
+      if (this.data.$columns) {
+        columns = this.data.columns
+      }
+    }
+    else {
+      const data = await this.loadDataFromDisk()
+      if (this.data.$columns) {
+        columns = this.data.$columns
+      }
+    } 
+    this.metadata.columns = columns
+    return columns
+  }
+
 
   /**
    * Unloads the data from the `MedDataObject` instance.

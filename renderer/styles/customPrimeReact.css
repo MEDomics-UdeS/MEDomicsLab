@@ -56,3 +56,37 @@
   flex-grow: 1 !important;
   height: 100%;
 }
+
+.padding8px > .p-dropdown-label{
+  padding: 8px !important;
+}
+
+.padding8px .p-multiselect-label-container{
+  padding: 8px !important;
+}
+
+.padding8px .p-multiselect-label{
+  padding: 0px !important;
+}
+
+.p-dropdown-item {
+  padding: 0.25rem 0.5rem !important;
+  
+}
+
+.p-dropdown-items {
+  padding: 0.25rem 0.5rem !important;
+}
+
+.p-dropdown-header {
+  padding: 0rem !important;
+}
+
+.p-dropdown-filter-container {
+  padding: 0.5rem 0.5rem !important;
+}
+
+.p-dropdown-filter {
+  padding: 0.25rem 0.25rem !important;
+}
+
