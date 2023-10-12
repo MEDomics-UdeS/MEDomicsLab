@@ -3,6 +3,7 @@ import * as fs from "fs-extra"
 import { toast } from "react-toastify"
 import { ipcRenderer } from "electron"
 import process from "process"
+import { loadJSONFromPath } from "../../utilities/fileManagementUtils"
 
 /**
  * Represents a data object in the workspace.
@@ -951,8 +952,21 @@ export default class MedDataObject {
   /**
    * Loads the data from the file associated with the `MedDataObject` instance.
    */
-  loadDataFromDisk() {
-    this.data = fs.readFileSync(this.path)
+  async loadDataFromDisk() {
+    let extension = this.extension
+    // let path = this.path
+    let data = undefined
+    const dfd = require("danfojs-node")
+    const path = require("path")
+    let filePath = path.join(this.path)
+    if (extension === "xlsx") {
+      data = await dfd.read_excel(filePath)
+    } else if (extension === "csv") {
+      data = await dfd.read_csv(filePath)
+    } else if (extension === "json") {
+      data = await dfd.read_json(filePath)
+    }
+    this.data = data
     this.dataLoaded = true
     this.lastModified = Date(Date.now())
   }
