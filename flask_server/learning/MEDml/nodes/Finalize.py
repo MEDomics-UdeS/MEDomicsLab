@@ -36,15 +36,15 @@ class Finalize(Node):
         trained_models_json = {}
         self.CodeHandler.add_line("code", f"trained_models_optimized = []")
         self.CodeHandler.add_line("code", f"for model in trained_models:")
+        self.CodeHandler.add_line(
+            "code",
+            f"optimized_model = pycaret_exp.finalize_model(model, {self.CodeHandler.convert_dict_to_params(settings)})",
+            1)
         for model in kwargs['models']:
             print(Fore.CYAN +
                   f"optimizing: {model.__class__.__name__}" + Fore.RESET)
             trained_models.append(
-                getattr(experiment['pycaret_exp'], self.type)(model, **settings))
-            self.CodeHandler.add_line(
-                "code", f"optimized_model = pycaret_exp.{self.type}(model, {self.CodeHandler.convert_dict_to_params(settings)})", 1)
-            self.CodeHandler.add_line(
-                "code", f"trained_models_optimized.append(optimized_model)", 1)
+                experiment['pycaret_exp'].finalize_model(model, **settings))
 
         self.CodeHandler.add_line(
             "code", f"trained_models = trained_models_optimized")
@@ -55,6 +55,5 @@ class Finalize(Node):
             trained_models_json[model_copy.__class__.__name__] = model_copy.__dict__
             for key, value in model_copy.__dict__.items():
                 if isinstance(value, np.ndarray):
-                    trained_models_json[model_copy.__class__.__name__][key] = value.tolist(
-                    )
+                    trained_models_json[model_copy.__class__.__name__][key] = value.tolist()
         return trained_models_json

@@ -101,6 +101,8 @@ const PipelineResult = ({ pipeline, selectionMode, flowContent }) => {
         } else {
           toReturn = <div>Results not available for this node type</div>
         }
+      } else {
+        toReturn = <div className="pipe-name-notRun">Has not been run yet !</div>
       }
     }
 

@@ -28,7 +28,7 @@ import nodesParams from "../../public/setupVariables/allNodesParams"
 // here are static functions used in the workflow
 import { removeDuplicates, deepCopy } from "../../utilities/staticFunctions"
 import { defaultValueFromType } from "../../utilities/learning/inputTypesUtils.js"
-// import CustomZipFile from "../../utilities/customZipFile"
+import { createZipFileSync, modifyZipFileSync } from "../../utilities/customZipFile"
 
 const staticNodesParams = nodesParams // represents static nodes parameters
 
@@ -799,14 +799,6 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
           <>
             {workflowType == "learning" && (
               <>
-                <Button
-                  onClick={() => {
-                    // let zipFile = CustomZipFile(".medmltest")
-                    // zipFile.createZip(configPath, () => {})
-                  }}
-                >
-                  test
-                </Button>
                 <Form.Select className="margin-left-10" aria-label="Default select example" value={MLType} onChange={handleMlTypeChanged}>
                   <option value="classification">Classification</option>
                   <option value="regression">Regression</option>

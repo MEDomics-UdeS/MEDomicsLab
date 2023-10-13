@@ -147,7 +147,7 @@ const loadJsonPath = (path) => {
     const jsonData = JSON.parse(data)
     return jsonData
   } catch (error) {
-    console.error("error reading json file: " + path + "\n" + error + "\n")
+    console.log("error reading json file: " + path + "\n" + error + "\n")
     return null
   }
 }
@@ -243,4 +243,19 @@ function createFolder(path_, folderName) {
   })
 }
 
-export { downloadFile, downloadPath, writeFile, loadJson, loadJsonSync, loadJsonPath, loadCSVPath, loadCSVFromPath, createFolder }
+const createFolderSync = (pathToCreate) => {
+  const fsPromises = require("fs").promises
+  return new Promise((resolve) => {
+    fsPromises
+      .mkdir(pathToCreate, { recursive: true })
+      .then(function () {
+        console.log("directory created successfully")
+        resolve(pathToCreate)
+      })
+      .catch(function () {
+        console.error("failed to create directory")
+      })
+  })
+}
+
+export { downloadFile, downloadPath, writeFile, loadJson, loadJsonSync, loadJsonPath, loadCSVPath, loadCSVFromPath, createFolder, createFolderSync }

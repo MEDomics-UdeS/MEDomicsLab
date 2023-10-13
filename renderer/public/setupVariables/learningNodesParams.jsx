@@ -19,6 +19,17 @@ const nodesParams = {
       regression: regressionSettings["dataset"]
     }
   },
+  clean: {
+    type: "standardNode",
+    classes: "action clean run",
+    nbInput: 1,
+    nbOutput: 1,
+    input: ["dataset"],
+    output: ["dataset"],
+    img: "clean.png",
+    title: "Clean",
+    possibleSettings: { classification: classificationSettings["clean"], regression: regressionSettings["clean"] }
+  },
   model: {
     type: "selectionNode",
     classes: "object model",
@@ -30,16 +41,16 @@ const nodesParams = {
     title: "Model",
     possibleSettings: { classification: classificationModelsSettings, regression: regressionModelsSettings }
   },
-  clean: {
+  train_model: {
     type: "standardNode",
-    classes: "action clean run",
-    nbInput: 1,
+    classes: "action create_model run",
+    nbInput: 2,
     nbOutput: 1,
-    input: ["dataset"],
-    output: ["dataset"],
-    img: "clean.png",
-    title: "Clean",
-    possibleSettings: { classification: classificationSettings["clean"], regression: regressionSettings["clean"] }
+    input: ["dataset", "model_config"],
+    output: ["model"],
+    img: "create_model.png",
+    title: "Train model",
+    possibleSettings: { classification: classificationSettings["create_model"], regression: regressionSettings["create_model"] }
   },
   compare_models: {
     type: "standardNode",
@@ -52,16 +63,16 @@ const nodesParams = {
     title: "Compare models",
     possibleSettings: { classification: classificationSettings["compare_models"], regression: regressionSettings["compare_models"] }
   },
-  train_model: {
+  load_model: {
     type: "standardNode",
-    classes: "action create_model run",
-    nbInput: 2,
+    classes: "action load_model run",
+    nbInput: 1,
     nbOutput: 1,
-    input: ["dataset", "model_config"],
+    input: ["dataset"],
     output: ["model"],
-    img: "create_model.png",
-    title: "Train model",
-    possibleSettings: { classification: classificationSettings["create_model"], regression: regressionSettings["create_model"] }
+    img: "load_model.png",
+    title: "Load model",
+    possibleSettings: { classification: classificationSettings["load_model"], regression: regressionSettings["load_model"] }
   },
   optimize: {
     type: "groupNode",
@@ -85,16 +96,16 @@ const nodesParams = {
     title: "Analyze",
     possibleSettings: { classification: classificationSettings["analyze"], regression: regressionSettings["analyze"] }
   },
-  load_model: {
+  finalize: {
     type: "standardNode",
-    classes: "action load_model run",
+    classes: "action finalize run",
     nbInput: 1,
     nbOutput: 1,
-    input: ["dataset"],
+    input: ["model"],
     output: ["model"],
-    img: "load_model.png",
-    title: "Load model",
-    possibleSettings: { classification: classificationSettings["load_model"], regression: regressionSettings["load_model"] }
+    img: "finalize.png",
+    title: "Finalize",
+    possibleSettings: { classification: classificationSettings["finalize"], regression: regressionSettings["finalize"] }
   },
   save_model: {
     type: "standardNode",
@@ -106,17 +117,6 @@ const nodesParams = {
     img: "save_model.png",
     title: "Save model",
     possibleSettings: { classification: classificationSettings["save_model"], regression: regressionSettings["save_model"] }
-  },
-  finalize: {
-    type: "standardNode",
-    classes: "action finalize run",
-    nbInput: 1,
-    nbOutput: 1,
-    input: ["model"],
-    output: ["model"],
-    img: "finalize.png",
-    title: "Finalize",
-    possibleSettings: { classification: classificationSettings["finalize"], regression: regressionSettings["finalize"] }
   }
 }
 
