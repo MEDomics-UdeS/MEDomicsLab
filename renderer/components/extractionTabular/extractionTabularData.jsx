@@ -10,6 +10,7 @@ import MedDataObject from "../workspace/medDataObject"
 import { ProgressBar } from "primereact/progressbar"
 import React, { useState, useEffect, useContext } from "react"
 import { requestJson } from "../../utilities/requests"
+import { toast } from "react-toastify"
 import { WorkspaceContext } from "../workspace/workspaceContext"
 
 /**
@@ -144,16 +145,27 @@ const ExtractionTabularData = ({ extractionTypeList, serverUrl }) => {
       },
       (jsonResponse) => {
         console.log("received results:", jsonResponse)
-        setCsvResultPath(jsonResponse["csv_result_path"])
+        if (!jsonResponse.error) {
+          setCsvResultPath(jsonResponse["csv_result_path"])
+          setExtractionStep("Extracted Features Saved")
+          MedDataObject.updateWorkspaceDataObject()
+          setExtractionProgress(100)
+          setIsResultDatasetLoaded(false)
+        } else {
+          toast.error(`Extraction failed: ${jsonResponse.error.message}`)
+          setExtractionStep("")
+          setShowProgressBar(false)
+        }
         clearInterval(progressInterval)
-        setExtractionStep("Extracted Features Saved")
-        MedDataObject.updateWorkspaceDataObject()
         setMayProceed(true)
-        setExtractionProgress(100)
-        setIsResultDatasetLoaded(false)
       },
       function (err) {
         console.error(err)
+        toast.error(`Extraction failed: ${err}`)
+        clearInterval(progressInterval)
+        setExtractionStep("")
+        setMayProceed(true)
+        setShowProgressBar(false)
       }
     )
   }
@@ -195,91 +207,89 @@ const ExtractionTabularData = ({ extractionTypeList, serverUrl }) => {
 
   return (
     <div className="overflow-y-auto width-100">
-      <div>
-        <hr></hr>
-        <div className="margin-top-bottom-15">
-          <div className="center">
-            {/* Select CSV data */}
-            <h2>Select CSV data</h2>
-            {datasetList.length > 0 ? <Dropdown value={selectedDataset} options={datasetList.filter((value) => value.extension == "csv")} optionLabel="name" onChange={(event) => datasetSelected(event.value)} placeholder="Select a dataset" /> : <Dropdown placeholder="No dataset to show" disabled />}
+      <hr></hr>
+      <div className="margin-top-bottom-15">
+        <div className="center">
+          {/* Select CSV data */}
+          <h2>Select CSV data</h2>
+          {datasetList.length > 0 ? <Dropdown value={selectedDataset} options={datasetList.filter((value) => value.extension == "csv")} optionLabel="name" onChange={(event) => datasetSelected(event.value)} placeholder="Select a dataset" /> : <Dropdown placeholder="No dataset to show" disabled />}
+        </div>
+      </div>
+
+      <hr></hr>
+      <div className="margin-top-bottom-15">
+        {/* Display selected data */}
+        <div className="center">
+          <h2>Selected data</h2>
+          {!selectedDataset && <p>Nothing to show, select a CSV file first.</p>}
+        </div>
+        {selectedDataset && (
+          <div>
+            <DataTableFromContext
+              MedDataObject={selectedDataset}
+              tablePropsData={{ size: "small", paginator: true, rows: 5 }}
+              tablePropsColumn={{
+                sortable: true
+              }}
+              setIsDatasetLoaded={setIsDatasetLoaded}
+            />
+          </div>
+        )}
+      </div>
+
+      <hr></hr>
+      <div className="margin-top-bottom-15">
+        <div className="center">
+          {/* Extraction Type Selection */}
+          <h2>Select an extraction type</h2>
+          <div className="margin-top-15">
+            <Dropdown value={extractionType} options={extractionTypeList} onChange={(event) => onChangeExtractionType(event.value)} />
+          </div>
+          <div className="margin-top-15">
+            {extractionType == "BioBERT" && <ExtractionBioBERT dataframe={dataframe} setExtractionJsonData={setExtractionJsonData} setMayProceed={setMayProceed} />}
+            {extractionType == "TSfresh" && <ExtractionTSfresh dataframe={dataframe} setExtractionJsonData={setExtractionJsonData} setMayProceed={setMayProceed} />}
           </div>
         </div>
+      </div>
 
-        <hr></hr>
-        <div className="margin-top-bottom-15">
-          {/* Display selected data */}
-          <div className="center">
-            <h2>Selected data</h2>
-            {!selectedDataset && <p>Nothing to show, select a CSV file first.</p>}
-          </div>
-          {selectedDataset && (
-            <div>
-              <DataTableFromContext
-                MedDataObject={selectedDataset}
-                tablePropsData={{ size: "small", paginator: true, rows: 5 }}
-                tablePropsColumn={{
-                  sortable: true
-                }}
-                setIsDatasetLoaded={setIsDatasetLoaded}
-              />
-            </div>
-          )}
-        </div>
-
-        <hr></hr>
-        <div className="margin-top-bottom-15">
-          <div className="center">
-            {/* Extraction Type Selection */}
-            <h2>Select an extraction type</h2>
-            <div className="margin-top-15">
-              <Dropdown value={extractionType} options={extractionTypeList} onChange={(event) => onChangeExtractionType(event.value)} />
-            </div>
-            <div className="margin-top-15">
-              {extractionType == "BioBERT" && <ExtractionBioBERT dataframe={dataframe} setExtractionJsonData={setExtractionJsonData} setMayProceed={setMayProceed} />}
-              {extractionType == "TSfresh" && <ExtractionTSfresh dataframe={dataframe} setExtractionJsonData={setExtractionJsonData} setMayProceed={setMayProceed} />}
-            </div>
-          </div>
-        </div>
-
-        <hr></hr>
-        <div className="margin-top-bottom-15">
-          <div className="center">
-            {/* Time Series Extraction */}
-            <h2>Extract time series</h2>
-            <div className="margin-top-30">
-              <div className="flex-container">
-                <div>
-                  Save extracted features as : &nbsp;
-                  <InputText value={filename} onChange={(e) => handleFilenameChange(e.target.value)} />
-                </div>
-                <div>
-                  {/* Button activated only if all necessary columns have been selected */}
-                  <Button disabled={!mayProceed} onClick={runExtraction}>
-                    Extract Data
-                  </Button>
-                </div>
+      <hr></hr>
+      <div className="margin-top-bottom-15">
+        <div className="center">
+          {/* Time Series Extraction */}
+          <h2>Extract time series</h2>
+          <div className="margin-top-30">
+            <div className="flex-container">
+              <div>
+                Save extracted features as : &nbsp;
+                <InputText value={filename} onChange={(e) => handleFilenameChange(e.target.value)} />
+              </div>
+              <div>
+                {/* Button activated only if all necessary columns have been selected */}
+                <Button disabled={!mayProceed} onClick={runExtraction}>
+                  Extract Data
+                </Button>
               </div>
             </div>
-            <div className="margin-top-30">
-              {extractionStep}
-              {showProgressBar && <ProgressBar value={extractionProgress} />}
-            </div>
+          </div>
+          <div className="margin-top-30">
+            {extractionStep}
+            {showProgressBar && <ProgressBar value={extractionProgress} />}
           </div>
         </div>
+      </div>
 
-        <hr></hr>
-        <div className="margin-top-bottom-15">
-          {/* Display extracted data */}
-          <div className="center">
-            <h2>Extracted data</h2>
-            {!resultDataset && <p>Nothing to show, proceed to extraction first.</p>}
-          </div>
-          {resultDataset && (
-            <div>
-              <DataTableFromContext MedDataObject={resultDataset} tablePropsData={{ size: "small", paginator: true, rows: 5 }} isDatasetLoaded={isResultDatasetLoaded} setIsDatasetLoaded={setIsResultDatasetLoaded} />
-            </div>
-          )}
+      <hr></hr>
+      <div className="margin-top-bottom-15">
+        {/* Display extracted data */}
+        <div className="center">
+          <h2>Extracted data</h2>
+          {!resultDataset && <p>Nothing to show, proceed to extraction first.</p>}
         </div>
+        {resultDataset && (
+          <div>
+            <DataTableFromContext MedDataObject={resultDataset} tablePropsData={{ size: "small", paginator: true, rows: 5 }} isDatasetLoaded={isResultDatasetLoaded} setIsDatasetLoaded={setIsResultDatasetLoaded} />
+          </div>
+        )}
       </div>
     </div>
   )
