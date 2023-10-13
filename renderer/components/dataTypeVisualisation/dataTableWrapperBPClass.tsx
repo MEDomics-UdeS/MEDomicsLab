@@ -800,9 +800,9 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
     const newFilteredIndexMap = Utils.times(data.length, (i: number) => i).filter((rowIndex: number) => {
       // Create an index range from 0 to the number of rows and then filter the rows
       const sortedRowIndex = this.state.sortedIndexMap[rowIndex]
-      if (sortedRowIndex != null) {
-        rowIndex = sortedRowIndex
-      }
+      // if (sortedRowIndex != null) {
+      //   rowIndex = sortedRowIndex
+      // }
       try {
         return data[rowIndex][columnsNames[columnIndexMap[columnIndex]]].toString().toLowerCase().includes(filterValue.toLowerCase()) // Filter the rows based on the filter value (Everything is converted to lowercase strings)
       } catch (e) {

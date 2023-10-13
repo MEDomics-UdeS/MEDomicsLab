@@ -233,8 +233,8 @@ const InputPage = ({ pageId = "42", configPath = null }) => {
                   }}
                 />
               </Col>
-              <Col md={6} style={{ display: "flex", flexDirection: "row", flexGrow: "1", alignItems: "center", justifyContent: "center" }}>
-                <h6 style={{ padding: ".25rem", margin: "0rem" }}>Column to merge on :</h6>
+              <Col md={6} style={{ display: "flex", flexDirection: "row", flexGrow: "1", alignItems: "center", justifyContent: "center"}}>
+                <h6 style={{ padding: ".25rem", margin: "0rem", marginLeft:"1rem" }}>Column to merge on :</h6>
                 <Dropdown
                   filter
                   className="w-full md:w-14rem padding8px"
