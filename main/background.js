@@ -1,4 +1,4 @@
-import { app, ipcMain, Menu, dialog } from "electron"
+import { app, ipcMain, Menu, dialog, BrowserWindow } from "electron"
 import axios from "axios"
 import serve from "electron-serve"
 import { createWindow } from "./helpers"
@@ -15,6 +15,8 @@ const USE_REACT_DEV_TOOLS = false
 
 const isProd = process.env.NODE_ENV === "production"
 
+let splashScreen // The splash screen is the window that is displayed while the application is loading
+
 if (isProd) {
   serve({ directory: "app" })
 } else {
@@ -23,11 +25,24 @@ if (isProd) {
 
 ;(async () => {
   await app.whenReady()
+  splashScreen = new BrowserWindow({
+    icon: path.join(__dirname, "../resources/MEDomicsLabWithShadowNoText100.png"),
+    width: 700,
+    height: 700,
+    transparent: true,
+    frame: false,
+    alwaysOnTop: true,
+    center: true
+  })
 
   const mainWindow = createWindow("main", {
     width: 1500,
-    height: 1000
+    height: 1000,
+    show: false
   })
+
+  splashScreen.loadURL(path.join(__dirname, "../main/splash.html"))
+  splashScreen.show()
 
   const template = [
     {
@@ -236,6 +251,9 @@ if (isProd) {
     await mainWindow.loadURL(`http://localhost:${port}/`)
     mainWindow.webContents.openDevTools()
   }
+
+  splashScreen.destroy()
+  mainWindow.maximize()
   mainWindow.show()
 })()
 

@@ -115,7 +115,7 @@ const renderItem = ({ item, depth, children, title, context, arrow }, additional
                 >
                   <div>
                     {iconExtension.folder(context.isExpanded)}
-                    <span>{title}</span>
+                    <span className="label">{title}</span>
                   </div>
                 </InteractiveComponent>
               </div>
@@ -146,7 +146,7 @@ const renderItem = ({ item, depth, children, title, context, arrow }, additional
               >
                 <div>
                   {iconExtension[item.type]}
-                  <span>{title}</span>
+                  <span className="label">{title}</span>
                 </div>
               </InteractiveComponent>
             </div>

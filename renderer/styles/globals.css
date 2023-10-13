@@ -48,12 +48,26 @@
   margin: 0;
 }
 
+:focus {
+  outline: none;
+}
+
+a:hover {
+  text-decoration: none;
+}
+
 html,
 body {
   max-width: 100vw;
   overflow-x: hidden;
   /* min-height: 100vh !important; */
   height: 100vh;
+}
+
+.flex-container {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
 }
 
 .html-body {
@@ -97,6 +111,11 @@ a {
   width: 100%;
 }
 
+.overflow-y-auto {
+  overflow-y: scroll;
+  height: 100%;
+}
+
 .padding-10 {
   padding: 10px 10px 10px 20px;
 }
@@ -135,6 +154,10 @@ a {
 
 .margin-top-15 {
   margin-top: 15px;
+}
+
+.margin-top-30 {
+  margin-top: 30px;
 }
 
 .margin-left-10 {

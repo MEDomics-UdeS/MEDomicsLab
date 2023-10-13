@@ -6,8 +6,7 @@ import { TabStorage } from "./tabStorage"
 import { Utils } from "./utils"
 import "prismjs/themes/prism-coy.css"
 import LearningPage from "../../mainPages/learning"
-import DataTable from "../../../components/dataTypeVisualisation/dataTableWrapper"
-import { loadCSVFromPath, loadJsonPath } from "../../../utilities/fileManagementUtils"
+import { loadCSVFromPath, loadJsonPath, loadJSONFromPath, loadXLSXFromPath } from "../../../utilities/fileManagementUtils"
 import { LayoutModelContext } from "../layoutContext"
 import { DataContext } from "../../workspace/dataContext"
 import MedDataObject from "../../workspace/medDataObject"
@@ -25,6 +24,7 @@ import ApplicationPage from "../../mainPages/application"
 import * as Icons from "react-bootstrap-icons"
 import Image from "next/image"
 import ZoomPanPinchComponent from "./zoomPanPinchComponent"
+import DataTableWrapperBPClass from "../../dataTypeVisualisation/dataTableWrapperBPClass"
 
 var fields = ["Name", "Field1", "Field2", "Field3", "Field4", "Field5"]
 
@@ -249,7 +249,6 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
       },
       this.onAdded
     )
-    // this.setState({ adding: true });
   }
 
   /**
@@ -470,7 +469,7 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
    * @description here we catch RENAME_TAB actions and update the medDataObject name
    */
   onAction = (action: Action) => {
-    console.log("MainContainer action: ", action)
+    console.log("MainContainer action: ", action, this.layoutRef, this.state.model)
     if (action.type === Actions.RENAME_TAB) {
       const { globalData, setGlobalData } = this.props as DataContextType
       let newName = action.data.text
@@ -514,7 +513,6 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
         // save submodel on save event
         node.setEventListener("save", (p: any) => {
           this.state.model!.doAction(Actions.updateNodeAttributes(node.getId(), { config: { model: node.getExtraData().model.toJson() } }))
-          //  node.getConfig().model = node.getExtraData().model.toJson();
         })
       }
 
@@ -533,7 +531,19 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
         } else if (config.type === "html") {
           return <div dangerouslySetInnerHTML={{ __html: config.data }} />
         } else if (config.type === "text") {
-          return <textarea style={{ position: "absolute", width: "100%", height: "100%", resize: "none", boxSizing: "border-box", border: "none" }} defaultValue={config.data} />
+          return (
+            <textarea
+              style={{
+                position: "absolute",
+                width: "100%",
+                height: "100%",
+                resize: "none",
+                boxSizing: "border-box",
+                border: "none"
+              }}
+              defaultValue={config.data}
+            />
+          )
         }
       } catch (e) {
         return <div>{String(e)}</div>
@@ -551,13 +561,27 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
     } else if (component === "dataTable") {
       const config = node.getConfig()
       if (node.getExtraData().data == null) {
+        const dfd = require("danfojs-node")
         const whenDataLoaded = (data) => {
+          const { globalData, setGlobalData } = this.props as DataContextType
+          let globalDataCopy = globalData
+          if (globalDataCopy[config.uuid] !== undefined) {
+            globalDataCopy[config.uuid].data = new dfd.DataFrame(data)
+            setGlobalData(globalDataCopy)
+          }
           node.getExtraData().data = data
         }
-        loadCSVFromPath(config.path, whenDataLoaded)
+        let extension = config.extension
+        if (extension === undefined) {
+          extension = config.path.split(".").pop()
+        }
+        config.name = node.getName()
+        if (extension === "csv") loadCSVFromPath(config.path, whenDataLoaded)
+        else if (extension === "json") loadJSONFromPath(config.path, whenDataLoaded)
+        else if (extension === "xlsx") loadXLSXFromPath(config.path, whenDataLoaded)
       }
       return (
-        <DataTable
+        <DataTableWrapperBPClass
           data={node.getExtraData().data}
           tablePropsData={{
             paginator: true,
@@ -568,6 +592,7 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
           tablePropsColumn={{
             sortable: true
           }}
+          config={...config}
         />
       )
     } else if (component === "learningPage") {
@@ -623,7 +648,6 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
           let height = image.getSize().height / 3
           let width = image.getSize().width / 3
 
-          // node.getExtraData().data = image
           return <ZoomPanPinchComponent imagePath={config.path} image={image.toDataURL()} width={width} height={height} options={""} />
         }
       }
@@ -639,19 +663,29 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
     } else if (component === "extractionTextPage") {
       if (node.getExtraData().data == null) {
         const config = node.getConfig()
-        return <ExtractionTextPage pageId={config.uuid} configPath={config.path} />
+        if (config.path !== null) {
+          return <ExtractionTextPage pageId={config.uuid} configPath={config.path} />
+        } else {
+          return <ExtractionTextPage pageId={"ExtractionTextPage"} />
+        }
       }
     } else if (component === "extractionImagePage") {
       if (node.getExtraData().data == null) {
         const config = node.getConfig()
-
-        return <ExtractionImagePage pageId={config.uuid} configPath={config.path} />
+        if (config.path !== null) {
+          return <ExtractionImagePage pageId={config.uuid} configPath={config.path} />
+        } else {
+          return <ExtractionImagePage pageId={"ExtractionImagePage"} />
+        }
       }
     } else if (component === "extractionTSPage") {
       if (node.getExtraData().data == null) {
         const config = node.getConfig()
-
-        return <ExtractionTSPage pageId={config.uuid} configPath={config.path} />
+        if (config.path !== null) {
+          return <ExtractionTSPage pageId={config.uuid} configPath={config.path} />
+        } else {
+          return <ExtractionTSPage pageId={"ExtractionTSPage"} />
+        }
       }
     } else if (component === "applicationPage") {
       if (node.getExtraData().data == null) {
@@ -950,7 +984,7 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
           onRenderDragRect={this.onRenderDragRect}
           onRenderFloatingTabPlaceholder={this.onRenderFloatingTabPlaceholder}
           onExternalDrag={undefined} //this.onExternalDrag}
-          realtimeResize={this.state.realtimeResize}
+          realtimeResize={false} //this.state.realtimeResize}
           onTabDrag={this.onTabDrag}
           onContextMenu={this.onContextMenu}
           onAuxMouseClick={this.onAuxMouseClick}

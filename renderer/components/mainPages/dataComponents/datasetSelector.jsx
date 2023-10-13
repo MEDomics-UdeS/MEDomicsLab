@@ -23,9 +23,12 @@ const DatasetSelector = ({ multiSelect }) => {
   function generateDatasetListFromDataContext(dataContext) {
     let keys = Object.keys(dataContext)
     let datasetListToShow = []
+    const dataExtensions = ["csv", "json", "txt", "tsv", "xls", "xlsx"]
     keys.forEach((key) => {
       if (dataContext[key].type !== "folder") {
-        datasetListToShow.push(dataContext[key])
+        if (dataExtensions.includes(dataContext[key].extension)) {
+          datasetListToShow.push(dataContext[key])
+        }
       }
     })
     setDatasetList(datasetListToShow)
@@ -57,7 +60,6 @@ const DatasetSelector = ({ multiSelect }) => {
   }, [tabMenuItems])
   return (
     <>
-      <h1>Dataset Selector</h1>
       <>
         <ListBox
           multiple={multiSelect}

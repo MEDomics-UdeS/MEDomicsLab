@@ -2,6 +2,7 @@ const fs = require("fs")
 const path = require("path")
 const { parse } = require("csv-parse")
 const dfd = require("danfojs")
+const dfdNode = require("danfojs-node")
 var Papa = require("papaparse")
 
 /**
@@ -153,7 +154,6 @@ const loadJsonPath = (path) => {
 }
 
 /**
- *
  * @param {String} path
  * @returns {Object} json object
  * @description
@@ -194,6 +194,12 @@ const loadCSVPath = (path, whenLoaded) => {
   }
 }
 
+/**
+ * @description This function loads a CSV file from a given path
+ * @param {String} path Path to the CSV file
+ * @param {Function} whenLoaded Callback function that will be called when the CSV file is loaded
+ * @returns {void}
+ */
 const loadCSVFromPath = (path, whenLoaded) => {
   let csvPath = path
   fs.readFile(csvPath, "utf8", (err, data) => {
@@ -229,6 +235,11 @@ const loadFileFromPathSync = (path) => {
   })
 }
 
+/**
+ *
+ * @param {string} path_ path to the file
+ * @param {string} folderName name of the folder to create
+ */
 function createFolder(path_, folderName) {
   // Creates a folder in the working directory
   const folderPath = path.join(path_, folderName)
@@ -243,6 +254,11 @@ function createFolder(path_, folderName) {
   })
 }
 
+/**
+ *
+ * @param {string} pathToCreate string path to create
+ * @returns {Promise} Promise that resolves to the path created
+ */
 const createFolderSync = (pathToCreate) => {
   const fsPromises = require("fs").promises
   return new Promise((resolve) => {
@@ -258,4 +274,43 @@ const createFolderSync = (pathToCreate) => {
   })
 }
 
-export { downloadFile, downloadPath, writeFile, loadJson, loadJsonSync, loadJsonPath, loadCSVPath, loadCSVFromPath, createFolder, createFolderSync }
+/**
+ * @description This function loads a JSON file from a given path
+ * @param {String} path Path to the JSON file
+ * @param {Function} whenLoaded Callback function that will be called when the JSON file is loaded
+ * @returns {void}
+ */
+const loadJSONFromPath = (path, whenLoaded) => {
+  let jsonPath = path
+  fs.readFile(jsonPath, "utf8", (err, data) => {
+    if (err) {
+      console.error("Error reading file:", err)
+    } else {
+      console.log("File read successfully")
+      let result = JSON.parse(data)
+      let df = new dfd.DataFrame(result)
+      let dfJSON = dfd.toJSON(df)
+      console.log("DFJSON", dfJSON)
+      whenLoaded(dfJSON)
+    }
+  })
+}
+
+/**
+ * @description This function loads a XLSX file from a given path
+ * @param {String} path Path to the XLSX file
+ * @param {Function} whenLoaded Callback function that will be called when the XLSX file is loaded
+ * @returns {void}
+ */
+const loadXLSXFromPath = async (filePath, whenLoaded) => {
+  let jsonPath = filePath
+  const path = require("path")
+  let finalPath = path.join(jsonPath)
+  console.log("path", finalPath)
+  let df = await dfdNode.readExcel(jsonPath)
+  console.log("File read successfully")
+  let dfJSON = dfd.toJSON(df)
+  whenLoaded(dfJSON)
+}
+
+export { downloadFile, downloadPath, writeFile, loadJson, loadJsonSync, loadJsonPath, loadCSVPath, loadCSVFromPath, createFolder, createFolderSync, loadJSONFromPath, loadXLSXFromPath }
