@@ -282,7 +282,8 @@ const MergeTool = ({ pageId = "42", configPath = null }) => {
                   style={{ width: "100%" }}
                   onChange={(e) => {
                     const newDictOfDatasets = { ...dictOfDatasets }
-                    newDictOfDatasets[key] = { data: e.target.value, columns: globalData[e.target.value].getColumnsOfTheDataObjectIfItIsATable(), selectedColumns: null, mergeType: null }
+                    newDictOfDatasets[key] = { data: e.target.value, columns: globalData[e.target.value].getColumnsOfTheDataObjectIfItIsATable(), selectedColumns: null, mergeType: null, isValid: false }
+
                     setDictOfDatasets(newDictOfDatasets)
                     console.log(e)
                   }}
