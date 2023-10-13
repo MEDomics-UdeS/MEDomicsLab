@@ -516,14 +516,14 @@ const FlowCanvas = ({ workflowType, setWorkflowType }) => {
           ? newFlow.drawflow.Home.data[id].name
           : "extraction"
 
-        // POST request to /extraction/run for the current node by sending form_data
+        // POST request to /extraction_img/run for the current node by sending form_data
         var formData = JSON.stringify({
           id: id,
           name: nodeName,
           json_scene: newFlow
         })
 
-        requestJson(port, "/extraction/run", formData, (response) => {
+        requestJson(port, "/extraction_img/run", formData, (response) => {
           if (response.error) {
             setError(response.error)
           } else {
@@ -596,7 +596,7 @@ const FlowCanvas = ({ workflowType, setWorkflowType }) => {
     console.log(newFlow)
 
     // Post request to extraction/run-all for current workflow
-    requestJson(port, "/extraction/run-all", newFlow, (response) => {
+    requestJson(port, "/extraction_img/run-all", newFlow, (response) => {
       if (response.error) {
         setError(response.error)
       } else {

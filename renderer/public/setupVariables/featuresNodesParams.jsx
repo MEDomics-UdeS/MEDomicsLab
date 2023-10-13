@@ -1,4 +1,4 @@
-import extractionFeatures from "./possibleSettings/extraction/extractionFeatures.js"
+import extractionFeatures from "./possibleSettings/extraction_img/extractionFeatures.js"
 
 // Node parameters for Extraction module of extraction tab
 const nodesParams = {

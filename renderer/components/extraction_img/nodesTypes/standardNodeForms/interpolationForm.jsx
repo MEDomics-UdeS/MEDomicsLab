@@ -69,7 +69,7 @@ const InterpolationForm = ({ nodeForm, changeNodeForm, data }) => {
           "https://medimage.readthedocs.io/en/latest/configuration_file.html#interp"
         }
         name={"Interpolation documentation"}
-        image={"../icon/extraction/exclamation.svg"}
+        image={"../icon/extraction_img/exclamation.svg"}
       />
 
       <Form.Group controlId="scale_non_text" style={{ paddingTop: "10px" }}>

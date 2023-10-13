@@ -64,7 +64,7 @@ const DiscretizationForm = ({ nodeForm, changeNodeForm, data }) => {
           "https://medimage.readthedocs.io/en/latest/configuration_file.html#discretisation"
         }
         name={"Discretisation documentation"}
-        image={"../icon/extraction/exclamation.svg"}
+        image={"../icon/extraction_img/exclamation.svg"}
       />
 
       <Form.Group style={{ paddingTop: "10px" }}>

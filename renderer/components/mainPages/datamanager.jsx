@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {Row, Col, Card, Form, Button, Offcanvas, Container, Alert} from 'react-bootstrap';
+import {Row, Col, Card, Form, Offcanvas, Container, Alert} from 'react-bootstrap';
 import { toast } from 'react-toastify';
 import { axiosPostJson } from "../../utilities/requests"
 import { ProgressBar } from 'react-bootstrap';
@@ -7,6 +7,9 @@ import Image from 'react-bootstrap/Image';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import Tooltip from 'react-bootstrap/Tooltip';
 import Table from 'react-bootstrap/Table';
+import ModulePage from './moduleBasics/modulePage';
+import {Button} from 'primereact/button';
+
 
 /**
  * @param {Object} nodeForm form associated to the discretization node
@@ -59,6 +62,7 @@ const DataManager = ({ reload, setReload }) => {
       setSelectedDcmFolder(event.target.files.path)
     }
   };
+
 
   const handleNiftiFolderChange = (event) => {
     var fileList = event.target.files
@@ -137,7 +141,7 @@ const DataManager = ({ reload, setReload }) => {
   
         if (isDirectory) {
           if (fullPath.split('/').at(-1).split('-').length > 1) {
-
+            
           }
           else {
           folderCount++; // Increment the count for the immediate subfolder
@@ -282,9 +286,9 @@ const DataManager = ({ reload, setReload }) => {
     const DisplayData = [JsonData].map(
         info=>{
             return(
-              info.map(infos=>{
+              info.map((infos, index)=>{
                 return(
-                <tr>
+                <tr key={index}>
                     <td>{infos.study}</td>
                     <td>{infos.institution}</td>
                     <td>{infos.scan_type}</td>
@@ -345,28 +349,11 @@ const DataManager = ({ reload, setReload }) => {
 
   return (
     <>
+    <ModulePage pageId="dataManager-id">
+
     <div>
     <div data-bs-theme="blue" className='bg-blue p-2'>
-      <OverlayTrigger
-        placement="bottom"
-        overlay={<Tooltip id="button-tooltip-2">Go back to extraction menu</Tooltip>}
-      >
-        {({ ref, ...triggerHandler }) => (
-          <Button
-            variant="danger"
-            {...triggerHandler}
-            className="d-inline-flex align-items-center"
-            onClick={handleGoBackClick}
-          >
-            <Image
-              width="30"
-              ref={ref}
-              roundedCircle
-              src="../icon/extraction/arrow-narrow-left.svg"
-            />
-          </Button>
-        )}
-      </OverlayTrigger>
+      <Button icon="pi pi-chevron-left" className="d-inline-flex align-items-center" onClick={handleGoBackClick}  outlined severity="danger" aria-label="Cancel" tooltip="Go back to extraction menu" tooltipOptions={{ position: 'right' }} />
     </div>
     <Card>
       <Card.Body>
@@ -592,6 +579,7 @@ const DataManager = ({ reload, setReload }) => {
     </Card>
 
   </div>
+  </ModulePage>
   </>
   );
 }

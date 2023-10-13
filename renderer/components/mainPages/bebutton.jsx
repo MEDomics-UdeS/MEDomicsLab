@@ -10,16 +10,11 @@ const BatchExtractorButton = ({ reload, setReload }) => {
 
   return (
     <>
-        <div>
-        {/*BatchExtractor*/}
-        <Card className="box-button-card">
-          <Card.Body>
+        
             <Button className="box-button" onClick={handleClick}>
             BatchExtractor
             </Button>
-          </Card.Body>
-        </Card>
-        </div>
+         
     </>
   )
 }

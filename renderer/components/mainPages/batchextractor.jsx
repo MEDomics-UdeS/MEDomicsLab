@@ -7,6 +7,7 @@ import Image from 'react-bootstrap/Image';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import Tooltip from 'react-bootstrap/Tooltip';
 import Table from 'react-bootstrap/Table';
+import ModulePage from './moduleBasics/modulePage';
 /**
  * @param {Object} nodeForm form associated to the discretization node
  * @param {object} data data of the node
@@ -191,6 +192,7 @@ const BatchExtractor = ({ reload, setReload }) => {
     var newData = Math.round((totalFiles / nscans) * 100);
     if (totalFiles === 0) {
       setProgress(0);
+      // setProgress({now: number, currentLabel: string})
     }
     else {
       setProgress(newData);
@@ -276,11 +278,13 @@ const BatchExtractor = ({ reload, setReload }) => {
 
   return (
     <>
+    <ModulePage pageId="batchExtractor_id">
+
     <div>
     <div data-bs-theme="blue" className='bg-blue p-2'>
       <OverlayTrigger
         placement="bottom"
-        overlay={<Tooltip id="button-tooltip-2">Go back to extraction menu</Tooltip>}
+        overlay={<Tooltip id="button-tooltip-2" data-pr-showdelay={500}>Go back to extraction menu</Tooltip>}
       >
         {({ ref, ...triggerHandler }) => (
           <Button
@@ -293,7 +297,7 @@ const BatchExtractor = ({ reload, setReload }) => {
               width="30"
               ref={ref}
               roundedCircle
-              src="../icon/extraction/arrow-narrow-left.svg"
+              src="../icon/extraction_img/arrow-narrow-left.svg"
             />
           </Button>
         )}
@@ -451,15 +455,21 @@ const BatchExtractor = ({ reload, setReload }) => {
     {(progress === 0) && (refreshEnabled) &&(<Card>
         <Card.Body>
           <ProgressBar animated striped variant="success" now={100} label={'Preparing data...'} />
+          {/* <ProgressBarRequests progress={progress} setProgress={setProgress} variant="success" /> */}
+
         </Card.Body>
       </Card>)}
     {progress !== 0 &&(<Card>
         <Card.Body>
           <ProgressBar animated striped variant="info" now={progress} label={`${progress}%`} />
+          {/* <ProgressBarRequests progress={progress} setProgress={setProgress} variant="success" /> */}
+
         </Card.Body>
       </Card>)}
 
   </div>
+  </ModulePage>
+
   </>
   );
 }

@@ -19,7 +19,7 @@ const MeanFilter = ({ changeFilterForm, data }) => {
           "https://medimage.readthedocs.io/en/latest/configuration_file.html#mean"
         }
         name={"Mean filter documentation"}
-        image={"../icon/extraction/exclamation.svg"}
+        image={"../icon/extraction_img/exclamation.svg"}
       />
 
       <Form.Group as={Row} controlId="ndims">

@@ -1,4 +1,4 @@
-import React from "react"
+import React, { useEffect } from "react"
 import Card from "react-bootstrap/Card"
 import nodesParams from "../../public/setupVariables/allNodesParams"
 import { Col, Row } from "react-bootstrap"
@@ -32,12 +32,10 @@ const onDragStart = (event, node) => {
  *
  */
 const SidebarAvailableNodes = ({ title, sidebarType, ExtraPages, reload, setReload }) => {
-  if (ExtraPages != null){
-    var classNameAN = "text-center height-200"
-  }
-  else{
-    var classNameAN = "text-center height-100"
-  }
+
+  useEffect(() => {
+    console.log("nodesParams", nodesParams)
+  }, [])
  
   return (
     <>
@@ -71,7 +69,7 @@ const SidebarAvailableNodes = ({ title, sidebarType, ExtraPages, reload, setRelo
                     <Card key={node.title} className="text-left">
                       <Card.Header className="draggable-side-node">
                         {node.title}
-                        <img src={`/icon/${sidebarType}/${node.img}`} alt={node.title} className="icon-nodes" />
+                        <img src={`/icon/${sidebarType == "extraction" ? "extraction_img": sidebarType}/${node.img}`} alt={node.title} className="icon-nodes" />
                       </Card.Header>
                     </Card>
                   </div>
@@ -82,18 +80,20 @@ const SidebarAvailableNodes = ({ title, sidebarType, ExtraPages, reload, setRelo
         </Card>
       <br/>
       {/* Available pages */}
-      {ExtraPages != null && (
-        <Card className="text-center height-200">
+      {ExtraPages && (
+        <Card className="text-center">
           <Card.Header>
             <h4>Available Pages</h4>
           </Card.Header>
           <Card.Body>
-            {ExtraPages.map((Page, index) => {
+            <Stack direction="vertical" gap={2}>
+            {ExtraPages.map((BtnPage, index) => {
               return (
-                <Page key={index} reload={reload[index]} setReload={setReload[index]}/>
+                <BtnPage key={index} reload={reload[index]} setReload={setReload[index]}/>
               )
             }
             )}
+            </Stack>
             </Card.Body>
         </Card>
       )}

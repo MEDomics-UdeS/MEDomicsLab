@@ -41,7 +41,7 @@ npm run dev
 
 | /app | Electron files |
 
-| /Flask_server | All server side, python/[flask](https://flask.palletsprojects.com/) related, files |
+| /flask_server | All server side, python/[flask](https://flask.palletsprojects.com/) related, files |
 
 | /main | Electron related contents |
 

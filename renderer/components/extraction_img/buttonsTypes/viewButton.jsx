@@ -20,12 +20,12 @@ const ViewButton = ({ id, data, type }) => {
 
   /**
    * @description
-   * This function is used to send a POST request to /extraction/view.
+   * This function is used to send a POST request to /extraction_img/view.
    */
   const viewImage = () => {
     console.log("Viewing image for node " + id)
 
-    // Construction of form data to send to /extraction/view. If the node is input, the name of the file is needed
+    // Construction of form data to send to /extraction_img/view. If the node is input, the name of the file is needed
     let formData
     if (type === "input") {
       formData = {
@@ -40,7 +40,7 @@ const ViewButton = ({ id, data, type }) => {
       }
     }
 
-    requestJson(port, "/extraction/view", formData, (response) => {
+    requestJson(port, "/extraction_img/view", formData, (response) => {
       if (response.error) {
         setError(response.error)
       } else {
@@ -58,7 +58,7 @@ const ViewButton = ({ id, data, type }) => {
         disabled={!data.internal.enableView}
       >
         <img
-          src="../icon/extraction/eye.svg"
+          src="../icon/extraction_img/eye.svg"
           className="viewImage"
           alt="View button"
         />

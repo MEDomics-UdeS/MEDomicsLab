@@ -145,12 +145,12 @@ dmypy.json
 /flaskProject/static/tmp
 *.idea
 /learning-tests-scene
-flask_server/extraction/MEDimageApp/tmp/*
+flask_server/extraction_img/MEDimageApp/tmp/*
 /flask_server/local_dir/*
 path2condaenv_toDeleteInProd.txt
 
-test/extraction/IBSI/data_sets/*
-test/extraction/IBSI/dicom/*
+test/extraction_img/IBSI/data_sets/*
+test/extraction_img/IBSI/dicom/*
 package-lock.json
 
 !*.gitkeep

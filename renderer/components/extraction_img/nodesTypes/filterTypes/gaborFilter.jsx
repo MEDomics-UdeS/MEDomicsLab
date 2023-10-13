@@ -19,7 +19,7 @@ const GaborFilter = ({ changeFilterForm, data }) => {
           "https://medimage.readthedocs.io/en/latest/configuration_file.html#gabor"
         }
         name={"Gabor filter documentation"}
-        image={"../icon/extraction/exclamation.svg"}
+        image={"../icon/extraction_img/exclamation.svg"}
       />
       <Form.Group as={Row} controlId="sigma">
         <Form.Label column>Sigma:</Form.Label>

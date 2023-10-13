@@ -40,7 +40,7 @@ const WaveletFilter = ({ changeFilterForm, data }) => {
           "https://medimage.readthedocs.io/en/latest/configuration_file.html#wavelet"
         }
         name={"Wavelet filter documentation"}
-        image={"../icon/extraction/exclamation.svg"}
+        image={"../icon/extraction_img/exclamation.svg"}
       />
       <Form.Group as={Row} controlId="ndims">
         <Form.Label column>Dimension:</Form.Label>

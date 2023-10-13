@@ -1,4 +1,4 @@
-import extractionDefaultSettings from "./possibleSettings/extraction/extractionDefaultSettings"
+import extractionDefaultSettings from "./possibleSettings/extraction_img/extractionDefaultSettings"
 
 // Node parameters for Home module of extraction tab
 const nodesParams = {

@@ -36,8 +36,7 @@ from .MEDimageApp import utils
 import ray
 
 # Importation du submodule MEDimage
-#import Flask_server.submodules.MEDimage.MEDimage as MEDimage
-from Flask_server.submodules.MEDimage import MEDimage
+from flask_server.submodules.MEDimage import MEDimage
 
 # Global variables
 cwd = os.getcwd()

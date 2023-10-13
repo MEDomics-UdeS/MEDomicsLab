@@ -10,16 +10,16 @@ const DataManagerButton = ({ reload, setReload }) => {
 
   return (
     <>
-        <div>
+        {/* <div>
         {/*DataManager*/}
-        <Card className="box-button-card">
-          <Card.Body>
+        {/* <Card className="box-button-card"> */}
+          {/* <Card.Body> */} 
             <Button className="box-button" onClick={handleClick}>
             DataManager
             </Button>
-          </Card.Body>
+          {/* </Card.Body>
         </Card>
-        </div>
+        </div> */}
     </>
   )
 }

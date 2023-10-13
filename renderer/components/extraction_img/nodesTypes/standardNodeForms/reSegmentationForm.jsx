@@ -57,7 +57,7 @@ const ReSegmentationForm = ({ nodeForm, changeNodeForm, data }) => {
           "https://medimage.readthedocs.io/en/latest/configuration_file.html#reseg"
         }
         name={"Re-segmentation documentation"}
-        image={"../icon/extraction/exclamation.svg"}
+        image={"../icon/extraction_img/exclamation.svg"}
       />
 
       <Form.Group>

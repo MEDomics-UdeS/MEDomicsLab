@@ -18,7 +18,7 @@ args = parser.parse_args()
 app = Flask(__name__)
 
 # Register blueprints
-app.register_blueprint(app_extraction, url_prefix='/extraction')
+app.register_blueprint(app_extraction, url_prefix='/extraction_img')
 app.register_blueprint(app_learning, url_prefix='/learning')
 app.register_blueprint(app_extraction_ts, url_prefix='/extraction_ts')
 app.register_blueprint(app_input, url_prefix='/input')
