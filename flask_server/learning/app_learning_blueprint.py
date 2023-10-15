@@ -1,4 +1,4 @@
-from learning.MEDml.MEDexperiment import MEDexperiment
+from learning.MEDml.MEDexperiment_old import MEDexperiment
 from flask import request, Blueprint
 import json
 from utils.server_utils import get_json_from_request, get_response_from_error
