@@ -133,6 +133,12 @@
   /* min-height: 2.5rem;
   max-height: 2.5rem;
   align-items: center; */
+  align-content: center;
+  /* padding: 8px; */
+  align-items: center;
+  display: flex;
+  flex-direction: row;
+  justify-content: left;
 }
 
 .mergeToolMultiSelect .p-multiselect-label {
@@ -152,5 +158,80 @@
 }
 
 .mergeToolMultiSelect .divider {
-  margin: 0.15rem 0rem;
+  margin: 0.5rem 0rem;
+}
+
+.mergeToolMultiSelect .p-component {
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.mergeToolMultiSelect h6 {
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-align: end !important;
+}
+
+.mergeToolMultiSelect .p-dropdown {
+  width: 100%;
+}
+
+.mergeToolMultiSelect .p-float-label > label {
+  width: 100%;
+  /* top: -0.25rem !important; */
+}
+
+.mergeToolMultiSelect .p-float-label input:focus ~ label,
+.p-float-label input:-webkit-autofill ~ label,
+.p-float-label input.p-filled ~ label,
+.p-float-label textarea:focus ~ label,
+.p-float-label textarea.p-filled ~ label,
+.p-float-label .p-inputwrapper-focus ~ label,
+.p-float-label .p-inputwrapper-filled ~ label,
+.p-float-label .p-tooltip-target-wrapper ~ label {
+  top: -0.45rem;
+  font-size: 16px;
+}
+
+.mergeToolMultiSelect .p-input-group.dataset-name .p-inputtext {
+  padding: 0.5rem !important;
+  border-radius: 6px 0px 0px 6px !important;
+}
+
+.mergeToolMultiSelect .p-input-group.dataset-name .p-dropdown-label {
+  padding: 0rem !important;
+}
+
+.mergeToolMultiSelect .p-input-group.dataset-name .p-inputgroup-addon {
+  padding: 0rem !important;
+}
+
+.mergeToolMultiSelect .p-input-group.dataset-name .p-dropdown-label {
+  padding: 0rem !important;
+}
+
+.mergeToolMultiSelect .p-input-group.dataset-name .p-dropdown {
+  height: 100% !important;
+  align-items: center !important;
+  align-content: center !important;
+  background-color: transparent !important;
+  border-color: transparent !important;
+}
+
+.dataset-name .p-dropdown-item {
+  padding-top: 0.25rem !important;
+  padding-bottom: 0.25rem !important;
+  margin: 0.1rem !important;
+}
+.dataset-name .p-dropdown-items {
+  padding-top: 0.1rem !important;
+  padding-bottom: 0.1rem !important;
+}
+
+.mergeToolMultiSelect .dataset-name .p-input-group .p-dropdown-item {
+  /* height: 100% !important;
+  align-items: center !important;
+  align-content: center !important; */
 }

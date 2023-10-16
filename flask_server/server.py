@@ -23,7 +23,7 @@ app.register_blueprint(app_learning, url_prefix='/learning')
 app.register_blueprint(app_extraction_ts, url_prefix='/extraction_ts')
 app.register_blueprint(app_input, url_prefix='/input')
 
-            
+
 @app.route('/test', methods=['GET', 'POST'])
 def test():
     """
@@ -38,4 +38,4 @@ def test():
 
 
 if __name__ == '__main__':
-    app.run(debug=True, port=args.port, use_reloader=False, threaded=True)
+    app.run(debug=True, port=args.port, use_reloader=True, threaded=True)

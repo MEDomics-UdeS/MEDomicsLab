@@ -276,8 +276,9 @@ function App() {
 
   // This useEffect hook is called at the beginning of the app to clear the localStorage
   useEffect(() => {
-    localStorage.clear()
+    localStorage.clear() // TODO : Add useState to enable or not the clearing of the localStorage
   }, [])
+
   return (
     <>
       <Head>

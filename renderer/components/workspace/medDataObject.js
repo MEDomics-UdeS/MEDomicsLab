@@ -27,6 +27,9 @@ import { resolve } from "path"
  * @property {Number} size - The size of the data object.
  * @property {Object} metadata - The metadata of the data object.
  * @property {Array} acceptedFileTypes - The accepted file types for the data object.
+ * @property {string} objectType - The object type of the data object.
+ * @property {Array} virtualTransformations - The virtual transformations of the data object.
+ * @property {Array} relatedInformation - The related information of the data object.
  */
 export default class MedDataObject {
   /**
@@ -71,6 +74,9 @@ export default class MedDataObject {
     this.size = 0
     this.metadata = {}
     this.acceptedFileTypes = []
+    this.objectType = ""
+    this.virtualTransformations = []
+    this.relatedInformation = []
   }
 
   static createFolderFromPath(path) {
