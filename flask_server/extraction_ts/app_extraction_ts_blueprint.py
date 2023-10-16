@@ -1,5 +1,7 @@
 import dask.dataframe as dd
+import datetime
 import os
+import pandas as pd
 
 from flask import request, Blueprint
 from pathlib import Path
@@ -16,6 +18,76 @@ progress = 0
 step = "initialization"
 
 
+def generate_TSfresh_embeddings(dataframe, frequency, column_id, column_weight, column_kind, column_value, default_fc_parameters, column_admission="", column_admission_time="", column_time=""):
+    global progress
+
+    # Create dataframe
+    df_ts_embeddings = pd.DataFrame()
+
+    if frequency == "Patient":
+        # Iterate over patients
+        for patient_id in set(dataframe[column_id]):
+            df_patient = dataframe.loc[dataframe[column_id] == patient_id]
+            df_patient_embeddings = extract_features(df_patient, column_id=column_id, 
+                                                     column_sort=column_weight, 
+                                                     column_kind=column_kind, 
+                                                     column_value=column_value,
+                                                     default_fc_parameters=default_fc_parameters)
+            # Insert patient_id in the dataframe
+            df_patient_embeddings.insert(0, column_id, patient_id)
+            df_ts_embeddings = pd.concat([df_ts_embeddings, df_patient_embeddings], ignore_index=True)
+            progress += 1/len(set(dataframe[column_id]))*60
+
+    elif frequency == "Admission":
+        # Iterate over patients
+        for patient_id in set(dataframe[column_id]):
+            df_patient = dataframe.loc[dataframe[column_id] == patient_id]
+            # Iterate over admissions
+            for admission_id in set(df_patient[column_admission]):
+                df_admission = df_patient.loc[df_patient[column_admission] == admission_id]
+                df_admission_embeddings = extract_features(df_admission, column_id=column_id, 
+                                                           column_sort=column_weight, 
+                                                           column_kind=column_kind, 
+                                                           column_value=column_value,
+                                                           default_fc_parameters=default_fc_parameters)
+                # Insert admission_time in the dataframe
+                df_admission_embeddings.insert(0, column_admission_time, df_admission[column_admission_time].iloc[0])
+                # Insert admission_id in the dataframe
+                df_admission_embeddings.insert(0, column_admission, admission_id)
+                # Insert patient_id in the dataframe
+                df_admission_embeddings.insert(0, column_id, patient_id)
+                df_ts_embeddings = pd.concat([df_ts_embeddings, df_admission_embeddings], ignore_index=True)
+            progress += 1/len(set(dataframe[column_id]))*60
+       
+    elif column_time != "":
+        # Iterate over patients
+        for patient_id in set(dataframe[column_id]):
+            df_patient = dataframe.loc[dataframe[column_id] == patient_id].sort_values(by=[column_time])
+            # Iterate over time
+            start_date = df_patient[column_time].iloc[0]
+            end_date = start_date + frequency
+            last_date = df_patient[column_time].iloc[-1]
+            while start_date <= last_date:
+                df_time = pd.DataFrame(df_patient[(df_patient[column_time] >= start_date) & (df_patient[column_time] < end_date)])
+                if len(df_time) > 0:
+                    df_time_embeddings = extract_features(df_admission, column_id=column_id, 
+                                                          column_sort=column_weight, 
+                                                          column_kind=column_kind, 
+                                                          column_value=column_value,
+                                                          default_fc_parameters=default_fc_parameters)
+                    # Insert time in the dataframe
+                    df_time_embeddings.insert(0, "end_date", end_date)
+                    df_time_embeddings.insert(0, "start_date", start_date)
+                    # Insert patient_id in the dataframe
+                    df_time_embeddings.insert(0, column_id, patient_id)
+                start_date += frequency
+                end_date += frequency
+            progress += 1/len(set(dataframe[column_id]))*60
+
+    return df_ts_embeddings
+
+
+
 @app_extraction_ts.route("/TSfresh_extraction", methods=["GET", "POST"]) 
 def TSFresh_extraction():
     """
@@ -30,53 +102,67 @@ def TSFresh_extraction():
     progress = 0
     step = "initialization"
 
-    try:
-        # Set local variables
-        json_config = get_json_from_request(request)
-        selected_columns = json_config["relativeToExtractionType"]["selectedColumns"]
-        columnKeys = [key for key in selected_columns]
-        columnValues = [selected_columns[key] for key in columnKeys]
+    #try:
+    # Set local variables
+    json_config = get_json_from_request(request)
+    selected_columns = json_config["relativeToExtractionType"]["selectedColumns"]
+    columnKeys = [key for key in selected_columns]
+    columnValues = []
+    for key in columnKeys:
+        if selected_columns[key] != "":
+            columnValues.append(selected_columns[key])
+    frequency = json_config["relativeToExtractionType"]["frequency"]
+    if frequency == "HourRange":
+        frequency = datetime.timedelta(hours=json_config["relativeToExtractionType"]["hourRange"])
 
-        # Read extraction data
-        progress = 10
-        step = "Read Data"  
-        df_ts = dd.read_csv(json_config["csvPath"])
-        df_ts = df_ts[columnValues]
+    # Read extraction data
+    progress = 10
+    step = "Read Data"  
+    df_ts = dd.read_csv(json_config["csvPath"], dtype={selected_columns["measurementValue"]: 'float64'})
+    df_ts = df_ts[columnValues]
 
-        # Pre-processing on data
-        progress = 20
-        step = "Pre-processing data"
-        df_ts = df_ts.dropna(subset=columnValues)
+    # Pre-processing on data
+    progress = 20
+    step = "Pre-processing data"
+    df_ts = df_ts.dropna(subset=columnValues).compute()
 
-        # Feature extraction
-        progress = 30
-        step = "Feature Extraction"
-        if json_config["relativeToExtractionType"]["featuresOption"] == "Efficient":
-            settings = EfficientFCParameters()
-        elif json_config["relativeToExtractionType"]["featuresOption"] == "Minimal":
-            settings = MinimalFCParameters()
-        else:
-            settings = ComprehensiveFCParameters()
-        df_extracted_features = extract_features(df_ts, column_id=selected_columns["patientIdentifier"], 
-                                                        column_sort=selected_columns["measurementWeight"], 
-                                                        column_kind=selected_columns["measuredItemIdentifier"], 
-                                                        column_value=selected_columns["measurementValue"],
-                                                        default_fc_parameters=settings).compute()
+    # Feature extraction
+    progress = 30
+    step = "Feature Extraction"
+    if json_config["relativeToExtractionType"]["featuresOption"] == "Efficient":
+        settings = EfficientFCParameters()
+    elif json_config["relativeToExtractionType"]["featuresOption"] == "Minimal":
+        settings = MinimalFCParameters()
+    else:
+        settings = ComprehensiveFCParameters()
 
-        # Imute Nan values
-        progress = 80
-        step = "Impute extracted features"
-        impute(df_extracted_features)
+    df_extracted_features = generate_TSfresh_embeddings(df_ts, frequency, selected_columns["patientIdentifier"], 
+                                                        selected_columns["measurementWeight"], 
+                                                        selected_columns["measuredItemIdentifier"], 
+                                                        selected_columns["measurementValue"], settings, 
+                                                        selected_columns["admissionIdentifier"],
+                                                        selected_columns["admissionTime"],
+                                                        selected_columns["time"])
+    """df_extracted_features = extract_features(df_ts, column_id=selected_columns["patientIdentifier"], 
+                                                    column_sort=selected_columns["measurementWeight"], 
+                                                    column_kind=selected_columns["measuredItemIdentifier"], 
+                                                    column_value=selected_columns["measurementValue"],
+                                                    default_fc_parameters=settings).compute()
 
-        # Save extracted features
-        progress = 90
-        step = "Save extracted features"
-        csv_result_path = os.path.join(str(Path(json_config["csvPath"]).parent.absolute()), json_config['filename'])
-        df_extracted_features.to_csv(csv_result_path)
-        json_config["csv_result_path"] = csv_result_path
+    # Imute Nan values
+    progress = 80
+    step = "Impute extracted features"
+    impute(df_extracted_features)"""
 
-    except BaseException as e:
-        return get_response_from_error(e)
+    # Save extracted features
+    progress = 90
+    step = "Save extracted features"
+    csv_result_path = os.path.join(str(Path(json_config["csvPath"]).parent.absolute()), json_config['filename'])
+    df_extracted_features.to_csv(csv_result_path)
+    json_config["csv_result_path"] = csv_result_path
+
+    #except BaseException as e:
+        #return get_response_from_error(e)
 
     return json_config 
     
@@ -91,4 +177,4 @@ def extraction_progress():
     """
     global progress
     global step
-    return {"progress": progress, "step": step}
+    return {"progress": round(progress, 2), "step": step}
