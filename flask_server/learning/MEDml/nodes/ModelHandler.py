@@ -25,7 +25,7 @@ class ModelHandler(Node):
         """
         super().__init__(id_, global_config_json)
         if self.type == 'train_model':
-            self.model_id = self.config_json['associated_model_id']
+            self.model_id = self.config_json['associated_id']
             model_obj = self.global_config_json['nodes'][self.model_id]
             self.config_json['data']['estimator'] = {
                 "type": model_obj['data']['internal']['selection'],

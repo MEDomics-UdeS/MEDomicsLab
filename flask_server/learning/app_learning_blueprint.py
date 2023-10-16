@@ -1,4 +1,4 @@
-from learning.MEDml.MEDexperiment_old import MEDexperiment
+from learning.MEDml.MEDexperiment_learning import MEDexperimentLearning
 from flask import request, Blueprint
 import json
 from utils.server_utils import get_json_from_request, get_response_from_error
@@ -38,7 +38,7 @@ def run_experiment(id_):
     global experiments
     try:
         if scene_id not in experiments:
-            experiments[scene_id] = MEDexperiment(json_config)
+            experiments[scene_id] = MEDexperimentLearning(json_config)
         else:
             experiments[scene_id].update(json_config)
         experiments[scene_id].start()
