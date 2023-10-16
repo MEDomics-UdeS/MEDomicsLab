@@ -1,14 +1,8 @@
-import React, {
-  useState,
-  useCallback,
-  useMemo,
-  useEffect,
-  useContext
-} from "react"
+import React, { useState, useCallback, useMemo, useEffect, useContext } from "react"
 import { toast } from "react-toastify"
 
 // Import utilities
-import { loadJsonSync, downloadJson } from "../../utilities/fileManagementUtils"
+import { loadJsonSync, downloadFile } from "../../utilities/fileManagementUtils"
 import { requestJson } from "../../utilities/requests"
 
 // Workflow imports
@@ -32,10 +26,7 @@ import nodesParams from "../../public/setupVariables/allNodesParams"
 import BtnDiv from "../flow/btnDiv"
 
 // Static functions used in the workflow
-import {
-  mergeWithoutDuplicates,
-  deepCopy
-} from "../../utilities/staticFunctions"
+import { mergeWithoutDuplicates, deepCopy } from "../../utilities/staticFunctions"
 
 // Static nodes parameters
 const staticNodesParams = nodesParams
@@ -57,37 +48,22 @@ const FlowCanvas = ({ workflowType, setWorkflowType }) => {
   const { setViewport } = useReactFlow() // setViewport is used to update the viewport of the workflow
   const [treeData, setTreeData] = useState({}) // treeData is used to set the data of the tree menu
   const [results, setResults] = useState({}) // results is used to store radiomic features results
-  const { groupNodeId, changeSubFlow, updateNode } =
-    useContext(FlowFunctionsContext)
+  const { groupNodeId, changeSubFlow, updateNode } = useContext(FlowFunctionsContext)
   const { port } = useContext(WorkspaceContext)
   const { setError } = useContext(ErrorRequestContext)
 
   // Hook executed upon modification of edges to verify the connections between input and segmentation nodes
   useEffect(() => {
     // Check if there are any connections between an input and segmentation node
-    const inputSegmentationConnections = edges.filter(
-      (edge) =>
-        (nodes.find((node) => node.id === edge.source).data.internal.type ===
-          "input" &&
-          nodes.find((node) => node.id === edge.target).data.internal.type ===
-            "segmentation") ||
-        (nodes.find((node) => node.id === edge.source).data.internal.type ===
-          "segmentation" &&
-          nodes.find((node) => node.id === edge.target).data.internal.type ===
-            "inputNode")
-    )
+    const inputSegmentationConnections = edges.filter((edge) => (nodes.find((node) => node.id === edge.source).data.internal.type === "input" && nodes.find((node) => node.id === edge.target).data.internal.type === "segmentation") || (nodes.find((node) => node.id === edge.source).data.internal.type === "segmentation" && nodes.find((node) => node.id === edge.target).data.internal.type === "inputNode"))
 
     // Update the segmentation node's data with the ROIs from the input node
     inputSegmentationConnections.forEach((connection) => {
       const inputNodeId = nodes.find((node) => node.id === connection.source).id
-      const segmentationNodeId = nodes.find(
-        (node) => node.id === connection.target
-      ).id
+      const segmentationNodeId = nodes.find((node) => node.id === connection.target).id
 
       const inputNode = nodes.find((node) => node.id === inputNodeId)
-      const segmentationNode = nodes.find(
-        (node) => node.id === segmentationNodeId
-      )
+      const segmentationNode = nodes.find((node) => node.id === segmentationNodeId)
 
       const inputROIs = inputNode.data.internal.settings.rois
       segmentationNode.data.internal.settings.rois = inputROIs
@@ -105,12 +81,7 @@ const FlowCanvas = ({ workflowType, setWorkflowType }) => {
 
     // Remove ROIs from segmentation nodes that are not connected to an input node
     nodes.forEach((node) => {
-      if (
-        node.data.internal.type === "segmentation" &&
-        !inputSegmentationConnections.some(
-          (connection) => connection.target === node.id
-        )
-      ) {
+      if (node.data.internal.type === "segmentation" && !inputSegmentationConnections.some((connection) => connection.target === node.id)) {
         node.data.internal.settings.rois = {}
         setNodes((prevNodes) =>
           prevNodes.map((n) => {
@@ -181,11 +152,7 @@ const FlowCanvas = ({ workflowType, setWorkflowType }) => {
         edge = {
           ...edge
         }
-        edge.hidden =
-          nodes.find((node) => node.id === edge.source).data.internal
-            .subflowId != activeNodeId ||
-          nodes.find((node) => node.id === edge.target).data.internal
-            .subflowId != activeNodeId
+        edge.hidden = nodes.find((node) => node.id === edge.source).data.internal.subflowId != activeNodeId || nodes.find((node) => node.id === edge.target).data.internal.subflowId != activeNodeId
         return edge
       })
     )
@@ -204,18 +171,13 @@ const FlowCanvas = ({ workflowType, setWorkflowType }) => {
       let children = {}
       edges.forEach((edge) => {
         if (edge.source == node.id) {
-          let targetNode = JSON.parse(
-            JSON.stringify(nodes.find((node) => node.id === edge.target))
-          )
+          let targetNode = JSON.parse(JSON.stringify(nodes.find((node) => node.id === edge.target)))
           if (targetNode.type != "extractionNode") {
             let subIdText = ""
             let subflowId = targetNode.data.internal.subflowId
             if (subflowId != "MAIN") {
               console.log("subflowId", subflowId)
-              subIdText =
-                JSON.parse(
-                  JSON.stringify(nodes.find((node) => node.id == subflowId))
-                ).data.internal.name + "."
+              subIdText = JSON.parse(JSON.stringify(nodes.find((node) => node.id == subflowId))).data.internal.name + "."
             }
             children[targetNode.id] = {
               label: subIdText + targetNode.data.internal.name,
@@ -230,9 +192,7 @@ const FlowCanvas = ({ workflowType, setWorkflowType }) => {
     // Create the tree data
     let treeMenuData = {}
     edges.forEach((edge) => {
-      let sourceNode = JSON.parse(
-        JSON.stringify(nodes.find((node) => node.id === edge.source))
-      )
+      let sourceNode = JSON.parse(JSON.stringify(nodes.find((node) => node.id === edge.source)))
 
       // If the node is an input node, add its tree to the treeMenuData (input node is always a root of a tree)
       if (sourceNode.data.internal.type === "input") {
@@ -259,15 +219,11 @@ const FlowCanvas = ({ workflowType, setWorkflowType }) => {
     newNode.id = `${newNode.id}${associatedNode ? `.${associatedNode}` : ""}`
 
     // Add defaut parameters of node to possibleSettings
-    let type = newNode.data.internal.type
-      .replaceAll(/ |-/g, "_")
-      .replace(/[^a-z_]/g, "")
+    let type = newNode.data.internal.type.replaceAll(/ |-/g, "_").replace(/[^a-z_]/g, "")
 
     let setupParams = {}
     if (staticNodesParams[workflowType][type]) {
-      setupParams = JSON.parse(
-        JSON.stringify(staticNodesParams[workflowType][type])
-      )
+      setupParams = JSON.parse(JSON.stringify(staticNodesParams[workflowType][type]))
     }
 
     // Add default parameters to node data
@@ -275,14 +231,9 @@ const FlowCanvas = ({ workflowType, setWorkflowType }) => {
 
     // Initialize settings in node data to put the parameters selected by the user
     let featuresNodeDefaultSettings = { features: ["extract_all"] }
-    newNode.data.internal.settings =
-      newNode.type === "featuresNode"
-        ? featuresNodeDefaultSettings
-        : newNode.data.setupParam.possibleSettings.defaultSettings
+    newNode.data.internal.settings = newNode.type === "featuresNode" ? featuresNodeDefaultSettings : newNode.data.setupParam.possibleSettings.defaultSettings
 
-    newNode.data.internal.subflowId = !associatedNode
-      ? groupNodeId.id
-      : associatedNode
+    newNode.data.internal.subflowId = !associatedNode ? groupNodeId.id : associatedNode
 
     // Used to enable the view button of a node (if it exists)
     newNode.data.internal.enableView = false
@@ -314,9 +265,7 @@ const FlowCanvas = ({ workflowType, setWorkflowType }) => {
           }
 
           if (n.type == "extractionNode") {
-            let childrenNodes = nds.filter(
-              (node) => node.data.internal.subflowId == id
-            )
+            let childrenNodes = nds.filter((node) => node.data.internal.subflowId == id)
             childrenNodes.forEach((node) => {
               deleteNode(node.id)
             })
@@ -371,8 +320,7 @@ const FlowCanvas = ({ workflowType, setWorkflowType }) => {
           // Add the node data to the subFlowId structure
           modifiedFlow.drawflow[moduleName].data[nodeID] = {
             id: nodeID,
-            name: node.data.setupParam.possibleSettings.defaultSettings
-              .MEDimageName,
+            name: node.data.setupParam.possibleSettings.defaultSettings.MEDimageName,
             data: node.data.internal.settings,
             class: node.className,
             inputs: {},
@@ -382,9 +330,7 @@ const FlowCanvas = ({ workflowType, setWorkflowType }) => {
           modifiedFlow.drawflow.Home.data[nodeID] = {
             id: nodeID,
             name: node.data.internal.type.replaceAll(/ |-/g, "_"),
-            data: node.data.internal.settings
-              ? node.data.internal.settings
-              : {},
+            data: node.data.internal.settings ? node.data.internal.settings : {},
             class: node.className,
             inputs: {},
             outputs: {}
@@ -409,9 +355,7 @@ const FlowCanvas = ({ workflowType, setWorkflowType }) => {
             connections: [{ node: targetNodeID, input: inputKey }]
           }
         } else {
-          modifiedFlow.drawflow.Home.data[sourceNodeID].outputs[
-            outputKey
-          ].connections.push({ node: targetNodeID, input: inputKey })
+          modifiedFlow.drawflow.Home.data[sourceNodeID].outputs[outputKey].connections.push({ node: targetNodeID, input: inputKey })
         }
 
         if (!modifiedFlow.drawflow.Home.data[targetNodeID].inputs[inputKey]) {
@@ -419,9 +363,7 @@ const FlowCanvas = ({ workflowType, setWorkflowType }) => {
             connections: [{ node: sourceNodeID, output: outputKey }]
           }
         } else {
-          modifiedFlow.drawflow.Home.data[targetNodeID].inputs[
-            inputKey
-          ].connections.push({ node: sourceNodeID, output: outputKey })
+          modifiedFlow.drawflow.Home.data[targetNodeID].inputs[inputKey].connections.push({ node: sourceNodeID, output: outputKey })
         }
       })
 
@@ -453,9 +395,7 @@ const FlowCanvas = ({ workflowType, setWorkflowType }) => {
         for (let pip in response[file]) {
           let newPipelineName = "pipeline " + pipelineNumber
           newResults[file]["RUN_1"][newPipelineName] = response[file][pip]
-          newResults[file]["RUN_1"][newPipelineName]["settings"][
-            "fullPipelineName"
-          ] = { pip }
+          newResults[file]["RUN_1"][newPipelineName]["settings"]["fullPipelineName"] = { pip }
           pipelineNumber++
         }
       }
@@ -469,11 +409,8 @@ const FlowCanvas = ({ workflowType, setWorkflowType }) => {
           let pipelineNumber = 1
           for (let pip in response[file]) {
             let newPipelineName = "pipeline " + pipelineNumber
-            newResults[file]["RUN_" + runNumber][newPipelineName] =
-              response[file][pip]
-            newResults[file]["RUN_" + runNumber][newPipelineName]["settings"][
-              "fullPipelineName"
-            ] = { pip }
+            newResults[file]["RUN_" + runNumber][newPipelineName] = response[file][pip]
+            newResults[file]["RUN_" + runNumber][newPipelineName]["settings"]["fullPipelineName"] = { pip }
             pipelineNumber++
           }
         } else {
@@ -483,9 +420,7 @@ const FlowCanvas = ({ workflowType, setWorkflowType }) => {
           for (let pip in response[file]) {
             let newPipelineName = "pipeline " + pipelineNumber
             newResults[file]["RUN_1"][newPipelineName] = response[file][pip]
-            newResults[file]["RUN_1"][newPipelineName]["settings"][
-              "fullPipelineName"
-            ] = { pip }
+            newResults[file]["RUN_1"][newPipelineName]["settings"]["fullPipelineName"] = { pip }
             pipelineNumber++
           }
         }
@@ -512,9 +447,7 @@ const FlowCanvas = ({ workflowType, setWorkflowType }) => {
         console.log(newFlow)
 
         // Get the node from id
-        let nodeName = newFlow.drawflow.Home.data[id]
-          ? newFlow.drawflow.Home.data[id].name
-          : "extraction"
+        let nodeName = newFlow.drawflow.Home.data[id] ? newFlow.drawflow.Home.data[id].name : "extraction"
 
         // POST request to /extraction/run for the current node by sending form_data
         var formData = JSON.stringify({
@@ -536,10 +469,7 @@ const FlowCanvas = ({ workflowType, setWorkflowType }) => {
             for (let files in response) {
               for (let pipeline in response[files]) {
                 let pipelineNodeIds = pipeline.match(/node_[a-f0-9-]+/g)
-                executedNodes = mergeWithoutDuplicates(
-                  executedNodes,
-                  pipelineNodeIds
-                )
+                executedNodes = mergeWithoutDuplicates(executedNodes, pipelineNodeIds)
               }
             }
 
@@ -647,9 +577,7 @@ const FlowCanvas = ({ workflowType, setWorkflowType }) => {
   const onClear = useCallback(() => {
     console.log(reactFlowInstance.toObject())
     if (reactFlowInstance & (nodes.length > 0)) {
-      let confirmation = confirm(
-        "Are you sure you want to clear the canvas?\nEvery data will be lost."
-      )
+      let confirmation = confirm("Are you sure you want to clear the canvas?\nEvery data will be lost.")
       if (confirmation) {
         setNodes([])
         setEdges([])
@@ -674,7 +602,7 @@ const FlowCanvas = ({ workflowType, setWorkflowType }) => {
         node.data.enableView = false
       })
       console.log("flow", flow)
-      downloadJson(flow, "experiment")
+      downloadFile(flow, "experiment.json")
     } else {
       // Warn the user if there is no workflow to save
       toast.warn("No workflow to save!")
@@ -690,9 +618,7 @@ const FlowCanvas = ({ workflowType, setWorkflowType }) => {
     // since the workflow will be replaced
     let confirmation = true
     if (nodes.length > 0) {
-      confirmation = confirm(
-        "Are you sure you want to import a new experiment?\nEvery data will be lost."
-      )
+      confirmation = confirm("Are you sure you want to import a new experiment?\nEvery data will be lost.")
     }
     if (confirmation) {
       // If the user confirms, load the json file
@@ -707,14 +633,9 @@ const FlowCanvas = ({ workflowType, setWorkflowType }) => {
           Object.values(flow.nodes).forEach((node) => {
             // the line below is important because functions are not serializable
             // set workflow type
-            let subworkflowType =
-              node.data.internal.subflowId != "MAIN" ? "extraction" : "features"
+            let subworkflowType = node.data.internal.subflowId != "MAIN" ? "extraction" : "features"
             // set node type
-            let setupParams = deepCopy(
-              staticNodesParams[subworkflowType][
-                node.name.toLowerCase().replaceAll(" ", "_")
-              ]
-            )
+            let setupParams = deepCopy(staticNodesParams[subworkflowType][node.name.toLowerCase().replaceAll(" ", "_")])
             node.data.setupParam = setupParams
           })
 
@@ -768,10 +689,7 @@ const FlowCanvas = ({ workflowType, setWorkflowType }) => {
     let targetNodeType = targetNode.data.internal.type
 
     // If the connection is between an input and a segmentation node
-    if (
-      (sourceNodeType == "input" && targetNodeType == "segmentation") ||
-      (sourceNodeType == "segmentation" && targetNodeType == "input")
-    ) {
+    if ((sourceNodeType == "input" && targetNodeType == "segmentation") || (sourceNodeType == "segmentation" && targetNodeType == "input")) {
       // If the segmentation node already has an input, a connection to a new input is not allowed
       if (edges.find((edge) => edge.target == targetNode.id)) {
         return false

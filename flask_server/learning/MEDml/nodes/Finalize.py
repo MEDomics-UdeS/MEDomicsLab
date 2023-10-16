@@ -11,9 +11,9 @@ DATAFRAME_LIKE = Union[dict, list, tuple, np.ndarray, pd.DataFrame]
 TARGET_LIKE = Union[int, str, list, tuple, np.ndarray, pd.Series]
 
 
-class Optimize(Node):
+class Finalize(Node):
     """
-    This class represents the Optimize node.
+    This class represents the Finalize node.
     """
 
     def __init__(self, id_: int, global_config_json: json) -> None:
@@ -29,32 +29,22 @@ class Optimize(Node):
         This function is used to execute the node.
         """
         print()
-        print(Fore.BLUE + "=== optimizing === " +
+        print(Fore.BLUE + "=== Finalize === " +
               Fore.YELLOW + f"({self.username})" + Fore.RESET)
         settings = copy.deepcopy(self.settings)
         trained_models = []
         trained_models_json = {}
-        if "models" in self.type:
-            self.CodeHandler.add_line(
-                "code",
-                f"optimized_model = pycaret_exp.{self.type}(trained_models, {self.CodeHandler.convert_dict_to_params(settings)})",
-                1)
-            trained_models.append(getattr(experiment['pycaret_exp'], self.type)(kwargs['models'], **settings))
-        else:
-            self.CodeHandler.add_line("code", f"trained_models_optimized = []")
-            self.CodeHandler.add_line("code", f"for model in trained_models:")
-            self.CodeHandler.add_line(
-                "code",
-                f"optimized_model = pycaret_exp.{self.type}(model, {self.CodeHandler.convert_dict_to_params(settings)})",
-                1)
-            self.CodeHandler.add_line(
-                "code", f"trained_models_optimized.append(optimized_model)", 1)
-            for model in kwargs['models']:
-                print(Fore.CYAN +
-                      f"optimizing: {model.__class__.__name__}" + Fore.RESET)
-                trained_models.append(
-                    getattr(experiment['pycaret_exp'], self.type)(model, **settings))
-
+        self.CodeHandler.add_line("code", f"trained_models_optimized = []")
+        self.CodeHandler.add_line("code", f"for model in trained_models:")
+        self.CodeHandler.add_line(
+            "code",
+            f"optimized_model = pycaret_exp.finalize_model(model, {self.CodeHandler.convert_dict_to_params(settings)})",
+            1)
+        for model in kwargs['models']:
+            print(Fore.CYAN +
+                  f"optimizing: {model.__class__.__name__}" + Fore.RESET)
+            trained_models.append(
+                experiment['pycaret_exp'].finalize_model(model, **settings))
 
         self.CodeHandler.add_line(
             "code", f"trained_models = trained_models_optimized")
@@ -65,6 +55,5 @@ class Optimize(Node):
             trained_models_json[model_copy.__class__.__name__] = model_copy.__dict__
             for key, value in model_copy.__dict__.items():
                 if isinstance(value, np.ndarray):
-                    trained_models_json[model_copy.__class__.__name__][key] = value.tolist(
-                    )
+                    trained_models_json[model_copy.__class__.__name__][key] = value.tolist()
         return trained_models_json

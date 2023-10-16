@@ -14,32 +14,32 @@ const ModelsResults = ({ selectedResults }) => {
   const [expandedRows, setExpandedRows] = useState([])
   const [selectedRows, setSelectedRows] = useState([])
 
+  // When the selected results change, update the models
   useEffect(() => {
     let models = []
-    if (selectedResults.logs.models) {
-      Object.keys(selectedResults.logs.models).forEach((key) => {
-        models.push(
-          Object.assign(selectedResults.logs.models[key], {
-            name: key.substring(key.indexOf("-") + 1)
-          })
-        )
+    if (selectedResults.logs) {
+      Object.keys(selectedResults.logs).forEach((modelName) => {
+        models.push({
+          name: modelName,
+          metrics: selectedResults.logs[modelName].metrics,
+          params: selectedResults.logs[modelName].params
+        })
       })
     }
-    console.log("models", models)
     setModels(models)
   }, [selectedResults])
 
+  // when the models change, update the data to display in the table
   useEffect(() => {
     let allModelsData = []
     if (models.length > 0) {
       models.forEach((model) => {
-        let modifiedRow = model.metrics[0]
-        modifiedRow["Parameters"] = model.params[0]
+        let modifiedRow = model.metrics
+        modifiedRow["Parameters"] = model.params
         modifiedRow = Object.assign({ Name: model.name }, modifiedRow)
         allModelsData.push(modifiedRow)
       })
     }
-    console.log("allModelsData", allModelsData)
     setAllModelsData(allModelsData)
   }, [models])
 

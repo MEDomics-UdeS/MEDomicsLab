@@ -43,14 +43,17 @@ def run_experiment(id_):
             experiments[scene_id].update(json_config)
         experiments[scene_id].start()
         results_pipeline = experiments[scene_id].get_results()
+        experiments[scene_id]._progress['now'] = 100
         json.dumps(results_pipeline)
     except BaseException as e:
+        if scene_id in experiments:
+            del experiments[scene_id]
         return get_response_from_error(e)
 
     return results_pipeline
 
 
-@app_learning.route('/progress//<id_>', methods=['POST'])
+@app_learning.route('/progress/<id_>', methods=['POST'])
 def progress(id_):
     """
     triggered each x millisecond by the dashboard, it returns the progress of the pipeline execution
@@ -63,4 +66,4 @@ def progress(id_):
     if id_ in experiments:
         return experiments[id_].get_progress()
     else:
-        return {'cur_node': '', 'progress': 0}
+        return {'now': 0, 'currentLabel': ''}

@@ -227,9 +227,12 @@
 .rct-tree-item-title-container div {
   display: flex;
   align-items: center;
+  text-overflow: ellipsis;
+  width: max-content;
+  overflow-x: hidden;
 }
 
-.rct-tree-item-title-container label {
+.rct-tree-item-title-container .label {
   cursor: pointer;
 }
 

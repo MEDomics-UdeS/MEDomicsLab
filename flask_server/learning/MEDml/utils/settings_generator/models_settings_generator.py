@@ -1,10 +1,23 @@
+"""
+File: models_settings_generator.py
+Author: Guillaume Blain
+Date: 2023-10-04
+
+Description: This script generate automatically models settings accordingly to the selected machine learning for the MEDml app.
+"""
 
 from pycaret.datasets import get_data
 import inspect
 import json
 
-# ml_type = "regression"
-ml_type = "classification"
+# python script arguments
+import argparse
+parser = argparse.ArgumentParser(description='Script so useful.')
+parser.add_argument("--mlType", type=str, default="regression", help="machine learning type to generate settings for (classification or regression)")
+parser.add_argument("--path", type=str, default=".", help="path to save the settings file to")
+args = parser.parse_args()
+
+ml_type = args.mlType
 data = None
 target = None
 if ml_type == "classification":
@@ -46,12 +59,9 @@ for model, id in model_trained_list:
                     models_options[id]['options'][key] = {'type': getattr(model, key).__class__.__name__ if getattr(model, key).__class__.__name__ != 'str' else 'string',
                                                           'default_val': str(dict[key]),
                                                           'tooltip': 'tooltip not implemented'}
-                    # print('('+getattr(model, key).__class__.__name__+') ' + key + ' = ' + str(dict[key]))
-# models_options
-# print(json.dumps(models_options, indent=4))
 
-# ml_type = "survival_analysis"
-with open(f"C:\\Users\\gblai\\OneDrive\\Documents\\ECOLE\\Stage\\GRIIS_Medomics\\MEDml\\flaskProject\\static\\possible_settings\\{ml_type}_models_settings.js", 'w') as f:
-    f.write(f"var {ml_type}_models_settings = {json.dumps(models_options, indent=4)};")
+with open(f"{args.path}/{ml_type}ModelSettings.js", 'w') as f:
+    f.write("/* eslint-disable */\n")
+    f.write(f"const {ml_type}ModelSettings = {json.dumps(models_options, indent=4)};\n export default {ml_type}ModelSettings;")
 
 print("finished", ml_type)
