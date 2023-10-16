@@ -11,6 +11,7 @@ import { requestJson } from "../../utilities/requests"
 import { WorkspaceContext } from "../workspace/workspaceContext"
 import MedDataObject from "../workspace/medDataObject"
 import { InputText } from "primereact/inputtext"
+import ProgressBarRequests from "../flow/progressBarRequests"
 
 const MergeTool = ({ pageId = "42", configPath = null }) => {
   const { port } = useContext(WorkspaceContext) // we get the port for server connexion
@@ -24,6 +25,8 @@ const MergeTool = ({ pageId = "42", configPath = null }) => {
   const firstMultiselect = useRef(null)
   const [newDatasetName, setNewDatasetName] = useState("")
   const [newDatasetExtension, setNewDatasetExtension] = useState(".csv")
+  const [progress, setProgress] = useState({ now: 0, currentLabel: "" })
+  const [isProgressUpdating, setIsProgressUpdating] = useState(false)
 
   const mergeOptions = [
     { label: "Left", value: "left" },
@@ -592,6 +595,7 @@ const MergeTool = ({ pageId = "42", configPath = null }) => {
                 Object.keys(dictOfDatasets).forEach((key) => {
                   if (dictOfDatasets[key]) {
                     JSONToSend.payload[key] = {
+                      name: globalData[dictOfDatasets[key].data].name,
                       path: globalData[dictOfDatasets[key].data].path,
                       extension: globalData[dictOfDatasets[key].data].extension,
                       mergeType: dictOfDatasets[key].mergeType,
@@ -608,12 +612,17 @@ const MergeTool = ({ pageId = "42", configPath = null }) => {
                   "/input/merge_datasets",
                   JSONToSend,
                   (jsonResponse) => {
+                    setIsProgressUpdating(false)
                     console.log("jsonResponse", jsonResponse)
+                    setProgress({ now: 100, currentLabel: "Merged complete ✅ : " + jsonResponse["finalDatasetPath"] })
                   },
                   function (error) {
+                    setIsProgressUpdating(false)
                     console.log("error", error)
                   }
                 )
+
+                setIsProgressUpdating(true)
               }}
             />
           </Col>
@@ -643,6 +652,7 @@ const MergeTool = ({ pageId = "42", configPath = null }) => {
               </span>
             </div>
           </Col>
+          <div className="progressBar-merge">{<ProgressBarRequests isUpdating={isProgressUpdating} setIsUpdating={setIsProgressUpdating} progress={progress} setProgress={setProgress} requestTopic={"input/progress/" + pageId} delayMS={50} />}</div>
         </Row>
       </div>
     </>

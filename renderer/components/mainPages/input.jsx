@@ -34,7 +34,7 @@ const InputPage = ({ pageId = "42", configPath = null }) => {
               <DatasetSelector multiSelect={true} />
             </AccordionTab>
             <AccordionTab header="Merge Tool">
-              <MergeTool />
+              <MergeTool pageId={pageId} />
             </AccordionTab>
           </Accordion>
         </div>

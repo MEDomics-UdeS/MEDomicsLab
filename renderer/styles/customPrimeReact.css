@@ -230,8 +230,33 @@
   padding-bottom: 0.1rem !important;
 }
 
-.mergeToolMultiSelect .dataset-name .p-input-group .p-dropdown-item {
-  /* height: 100% !important;
-  align-items: center !important;
-  align-content: center !important; */
+.dataset-name .p-dropdown-trigger {
+  width: 1.5rem;
+}
+
+.progressBar-merge {
+  margin-top: 1rem;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  align-content: center;
+  justify-content: center;
+}
+
+.progressBar-merge .progress {
+  width: 100%;
+
+  align-items: center;
+  align-content: center;
+  justify-content: center;
+}
+
+.progressBar-merge label {
+  cursor: progress;
+  background-color: #00000040;
+  color: #5050509c;
+  padding: 0rem 0.25rem 0rem 0.25rem;
+  font-weight: 700;
+  border-radius: 0.4rem 0.4rem 0rem 0rem;
 }
