@@ -13,7 +13,7 @@ TARGET_LIKE = Union[int, str, list, tuple, np.ndarray, pd.Series]
 
 class Finalize(Node):
     """
-    This class represents the Optimize node.
+    This class represents the Finalize node.
     """
 
     def __init__(self, id_: int, global_config_json: json) -> None:

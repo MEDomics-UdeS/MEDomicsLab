@@ -17,7 +17,7 @@ TARGET_LIKE = Union[int, str, list, tuple, np.ndarray, pd.Series]
 
 class ModelIO(Node):
     """
-    This class represents the Deploy node.
+    This class represents the ModelIO node.
     """
 
     def __init__(self, id_: int, global_config_json: json) -> None:

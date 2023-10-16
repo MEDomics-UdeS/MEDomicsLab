@@ -47,6 +47,25 @@ const downloadPath = (path) => {
 }
 
 /**
+ * 
+ * @param {string} path path to the file 
+ * @returns {Promise} Promise that resolves to the file content
+ */
+const loadFileFromPathSync = (path) => {
+  return new Promise((resolve) => {
+    fs.readFile(path, "utf8", (err, data) => {
+      if (err) {
+        console.error("Error reading file:", err)
+      } else {
+        console.log("File read successfully", data)
+        let parseFile = JSON.parse(data)
+        resolve(parseFile)
+      }
+    })
+  })
+}
+
+/**
  *
  * @param {Object} exportObj object to be exported
  * @param {String} path path to the folder where the file will be saved
@@ -116,15 +135,7 @@ const loadJsonSync = () => {
   })
 }
 
-const loadFileSyncFromPath = (path) => {
-  const fs = require("fs")
-  return new Promise((resolve) => {
-    const data = fs.readFileSync(path).then((data) => {
-      const jsonData = JSON.parse(data)
-      resolve(jsonData)
-    })
-  })
-}
+
 
 /**
  * @param {String} path
@@ -221,19 +232,7 @@ const loadCSVFromPath = (path, whenLoaded) => {
   })
 }
 
-const loadFileFromPathSync = (path) => {
-  return new Promise((resolve) => {
-    fs.readFile(path, "utf8", (err, data) => {
-      if (err) {
-        console.error("Error reading file:", err)
-      } else {
-        console.log("File read successfully", data)
-        let parseFile = JSON.parse(data)
-        resolve(parseFile)
-      }
-    })
-  })
-}
+
 
 /**
  *
@@ -313,4 +312,4 @@ const loadXLSXFromPath = async (filePath, whenLoaded) => {
   whenLoaded(dfJSON)
 }
 
-export { downloadFile, downloadPath, writeFile, loadJson, loadJsonSync, loadJsonPath, loadCSVPath, loadCSVFromPath, createFolder, createFolderSync, loadJSONFromPath, loadXLSXFromPath }
+export { downloadFile, downloadPath, loadFileFromPathSync, writeFile, loadJson, loadJsonSync, loadJsonPath, loadCSVPath, loadCSVFromPath, createFolder, createFolderSync, loadJSONFromPath, loadXLSXFromPath }

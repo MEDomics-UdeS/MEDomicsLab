@@ -14,7 +14,6 @@ import { FlowResultsContext } from "../flow/context/flowResultsContext"
 import { WorkspaceContext } from "../workspace/workspaceContext"
 import { ErrorRequestContext } from "../flow/context/errorRequestContext"
 import MedDataObject from "../workspace/medDataObject"
-import { Button } from "primereact/button"
 
 // here are the different types of nodes implemented in the workflow
 import StandardNode from "./nodesTypes/standardNode"
@@ -28,7 +27,6 @@ import nodesParams from "../../public/setupVariables/allNodesParams"
 // here are static functions used in the workflow
 import { removeDuplicates, deepCopy } from "../../utilities/staticFunctions"
 import { defaultValueFromType } from "../../utilities/learning/inputTypesUtils.js"
-import { createZipFileSync, modifyZipFileSync } from "../../utilities/customZipFile"
 
 const staticNodesParams = nodesParams // represents static nodes parameters
 
