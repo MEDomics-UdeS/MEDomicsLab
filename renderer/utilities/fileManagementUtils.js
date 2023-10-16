@@ -48,6 +48,25 @@ const downloadPath = (path) => {
 
 /**
  *
+ * @param {string} path path to the file
+ * @returns {Promise} Promise that resolves to the file content
+ */
+const loadFileFromPathSync = (path) => {
+  return new Promise((resolve) => {
+    fs.readFile(path, "utf8", (err, data) => {
+      if (err) {
+        console.error("Error reading file:", err)
+      } else {
+        console.log("File read successfully", data)
+        let parseFile = JSON.parse(data)
+        resolve(parseFile)
+      }
+    })
+  })
+}
+
+/**
+ *
  * @param {Object} exportObj object to be exported
  * @param {String} path path to the folder where the file will be saved
  * @param {String} name name of the exported file
@@ -113,16 +132,6 @@ const loadJsonSync = () => {
       reader.readAsText(event.target.files[0])
     }
     input.click()
-  })
-}
-
-const loadFileSyncFromPath = (path) => {
-  const fs = require("fs")
-  return new Promise((resolve) => {
-    const data = fs.readFileSync(path).then((data) => {
-      const jsonData = JSON.parse(data)
-      resolve(jsonData)
-    })
   })
 }
 
@@ -221,20 +230,6 @@ const loadCSVFromPath = (path, whenLoaded) => {
   })
 }
 
-const loadFileFromPathSync = (path) => {
-  return new Promise((resolve) => {
-    fs.readFile(path, "utf8", (err, data) => {
-      if (err) {
-        console.error("Error reading file:", err)
-      } else {
-        console.log("File read successfully", data)
-        let parseFile = JSON.parse(data)
-        resolve(parseFile)
-      }
-    })
-  })
-}
-
 /**
  *
  * @param {string} path_ path to the file
@@ -313,4 +308,4 @@ const loadXLSXFromPath = async (filePath, whenLoaded) => {
   whenLoaded(dfJSON)
 }
 
-export { downloadFile, downloadPath, writeFile, loadJson, loadJsonSync, loadJsonPath, loadCSVPath, loadCSVFromPath, createFolder, createFolderSync, loadJSONFromPath, loadXLSXFromPath }
+export { downloadFile, downloadPath, loadFileFromPathSync, writeFile, loadJson, loadJsonSync, loadJsonPath, loadCSVPath, loadCSVFromPath, createFolder, createFolderSync, loadJSONFromPath, loadXLSXFromPath }

@@ -5,6 +5,9 @@ import numpy as np
 from pycaret.classification.oop import ClassificationExperiment
 from pycaret.regression.oop import RegressionExperiment
 from learning.MEDml.logger.MEDml_logger_pycaret import MEDml_logger
+from pycaret.classification.oop import ClassificationExperiment
+from pycaret.regression.oop import RegressionExperiment
+from learning.MEDml.logger.MEDml_logger_pycaret import MEDml_logger
 import json
 from learning.MEDml.nodes.NodeObj import *
 from learning.MEDml.nodes import *
@@ -65,6 +68,7 @@ class MEDexperiment(ABC):
         self.global_json_config = global_json_config
         self._results_pipeline = {}
         self._progress = {'currentLabel': '', 'now': 0.0}
+        self._progress = {'currentLabel': '', 'now': 0.0}
         self._nb_nodes = global_json_config['nbNodes2Run']
         self._nb_nodes_done: float = 0.0
         self.global_json_config['unique_id'] = 0
@@ -76,7 +80,9 @@ class MEDexperiment(ABC):
         print("current working directory: ", os.getcwd())
 
         for f in os.listdir(self.global_json_config['paths']['tmp']):
+        for f in os.listdir(self.global_json_config['paths']['tmp']):
             if f != '.gitkeep':
+                os.remove(os.path.join(self.global_json_config['paths']['tmp'], f))
                 os.remove(os.path.join(self.global_json_config['paths']['tmp'], f))
 
     def update(self, global_json_config: json = None):
@@ -96,6 +102,9 @@ class MEDexperiment(ABC):
         self._progress = {'currentLabel': 'Updating pipeline\'s informations', 'now': 0.0}
         print("Experiment already exists. Updating experiment...")
         self.pipelines_objects = self.create_next_nodes(self.pipelines, self.pipelines_objects)
+        self._progress = {'currentLabel': 'Updating pipeline\'s informations', 'now': 0.0}
+        print("Experiment already exists. Updating experiment...")
+        self.pipelines_objects = self.create_next_nodes(self.pipelines, self.pipelines_objects)
 
     def create_next_nodes(self, next_nodes: json, pipelines_objects: dict) -> dict:
         """Recursive function that creates the next nodes of the experiment.
@@ -110,6 +119,7 @@ class MEDexperiment(ABC):
         nodes = {}
         if next_nodes != {}:
             for current_node_id, next_nodes_id_json in next_nodes.items():
+                # if it is a create_model node, we need to point to the model node
                 # if it is a create_model node, we need to point to the model node
                 # To be consistent with the rest of the nodes,
                 # we create a new node with the same parameters but with the model id
@@ -143,10 +153,14 @@ class MEDexperiment(ABC):
             dict: The node information containing the node and the next nodes.
         """
         # if the node already exists in the pipelines objects
+        # if the node already exists in the pipelines objects
         if node.id in pipelines_objects:
+            # if the node is not the same object as the one in the pipelines objects
             # if the node is not the same object as the one in the pipelines objects
             if node != pipelines_objects[node.id]['obj']:
                 return {'obj': node, 'next_nodes': {}}
+
+            # else, we return the node in the pipelines objects
 
             # else, we return the node in the pipelines objects
             else:
@@ -156,7 +170,14 @@ class MEDexperiment(ABC):
                     'results': pipelines_objects[node.id]['results'],
                     'experiment': pipelines_objects[node.id]['experiment']
                 }
+                tmp = {
+                    'obj': pipelines_objects[node.id]['obj'],
+                    'next_nodes': {},
+                    'results': pipelines_objects[node.id]['results'],
+                    'experiment': pipelines_objects[node.id]['experiment']
+                }
                 return tmp
+        # else, we create the node
         # else, we create the node
         else:
             return {'obj': node, 'next_nodes': {}}
@@ -171,6 +192,7 @@ class MEDexperiment(ABC):
             for current_node_id, next_nodes_id_json in self.pipelines_to_execute.items():
                 node_info = self.pipelines_objects[current_node_id]
                 node: Node = node_info['obj']
+                self._progress['currentLabel'] = node.username
                 self._progress['currentLabel'] = node.username
                 has_been_run = node.has_run()
                 if not has_been_run or 'experiment' not in node_info:
@@ -248,6 +270,8 @@ class MEDexperiment(ABC):
                 node = node_info['obj']
                 self._progress['currentLabel'] = node.username
 
+                self._progress['currentLabel'] = node.username
+
                 if not node.has_run() or prev_node.has_changed():
                     node_info['results'] = {
                         'prev_node_id': prev_node.id,
@@ -263,9 +287,11 @@ class MEDexperiment(ABC):
 
                 self._nb_nodes_done += 1
                 self._progress['now'] = round(
+                self._progress['now'] = round(
                     self._nb_nodes_done / self._nb_nodes * 100, 2)
                 results[current_node_id] = {
                     'next_nodes': copy.deepcopy(next_nodes_id_json),
+                    'results': node_info['results']
                     'results': node_info['results']
                 }
                 self.execute_next_nodes(
@@ -307,12 +333,19 @@ class MEDexperiment(ABC):
             dict: The results of the pipeline execution.
         """
         self._progress['currentLabel'] = 'Generating results'
+        self._progress['currentLabel'] = 'Generating results'
         return_dict = {}
         for key, value in self._results_pipeline.items():
             if is_primitive(value):
                 if isinstance(value, dict) or isinstance(value, list):
+                if isinstance(value, dict) or isinstance(value, list):
                     return_dict[key] = self.add_only_object(value)
                 else:
+                    try:
+                        json.dumps(value)
+                        return_dict[key] = value
+                    except TypeError:
+                        pass
                     try:
                         json.dumps(value)
                         return_dict[key] = value
@@ -339,11 +372,15 @@ class MEDexperiment(ABC):
         for key, value in to_iterate:
             if is_primitive(value):
                 if isinstance(value, dict) or isinstance(value, list):
+                if isinstance(value, dict) or isinstance(value, list):
                     return_dict[key] = self.add_only_object(value)
                 else:
                     try:
                         json.dumps(value)
                         return_dict[key] = value
+                    except TypeError:
+                        pass
+
                     except TypeError:
                         pass
 

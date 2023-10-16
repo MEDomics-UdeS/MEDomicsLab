@@ -1,9 +1,4 @@
 import React, { useContext } from "react"
-import { Button } from "react-bootstrap"
-import Card from "react-bootstrap/Card"
-import CloseButton from "react-bootstrap/CloseButton"
-import Handlers from "./handlers"
-import { FlowInfosContext } from "./context/flowInfosContext"
 import { FlowFunctionsContext } from "./context/flowFunctionsContext"
 import Node from "./node"
 

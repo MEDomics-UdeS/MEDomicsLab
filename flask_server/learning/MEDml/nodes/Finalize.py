@@ -55,5 +55,6 @@ class Finalize(Node):
             trained_models_json[model_copy.__class__.__name__] = model_copy.__dict__
             for key, value in model_copy.__dict__.items():
                 if isinstance(value, np.ndarray):
-                    trained_models_json[model_copy.__class__.__name__][key] = value.tolist()
+                    trained_models_json[model_copy.__class__.__name__][key] = value.tolist(
+                    )
         return trained_models_json

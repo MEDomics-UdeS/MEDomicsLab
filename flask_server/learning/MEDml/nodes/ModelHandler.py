@@ -48,6 +48,7 @@ class ModelHandler(Node):
             print(models)
             self.CodeHandler.add_line(
                 "code", f"trained_models = pycaret_exp.compare_models({self.CodeHandler.convert_dict_to_params(settings)})")
+                "code", f"trained_models = pycaret_exp.compare_models({self.CodeHandler.convert_dict_to_params(settings)})")
             if isinstance(models, list):
                 trained_models = models
             else:
@@ -58,12 +59,14 @@ class ModelHandler(Node):
                     "code", f"trained_models = [trained_models]")
 
         elif self.type == 'train_model':
+        elif self.type == 'train_model':
             settings.update(self.config_json['data']['estimator']['settings'])
             settings.update(
                 {'estimator': self.config_json['data']['estimator']['type']})
             trained_models = [
                 experiment['pycaret_exp'].create_model(**settings)]
             self.CodeHandler.add_line(
+                "code", f"trained_models = [pycaret_exp.create_model({self.CodeHandler.convert_dict_to_params(settings)})]")
                 "code", f"trained_models = [pycaret_exp.create_model({self.CodeHandler.convert_dict_to_params(settings)})]")
         trained_models_copy = trained_models.copy()
         self._info_for_next_node = {'models': trained_models}

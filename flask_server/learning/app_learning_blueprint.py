@@ -49,14 +49,16 @@ def run_experiment(id_):
             current_experiments[scene_id] = MEDexperimentLearning(json_config)
         else:
             if storing_mode == USE_SAVE_FOR_EXPERIMENTS_STORING:
-                exp_progress[scene_id] = {'now': 0, 'currentLabel': 'Loading the experiment'}
+                exp_progress[scene_id] = {
+                    'now': 0, 'currentLabel': 'Loading the experiment'}
                 current_experiments[scene_id] = load_experiment(scene_id)
             elif storing_mode == USE_RAM_FOR_EXPERIMENTS_STORING:
                 current_experiments[scene_id].update(json_config)
         current_experiments[scene_id].start()
         results_pipeline = current_experiments[scene_id].get_results()
         if storing_mode == USE_SAVE_FOR_EXPERIMENTS_STORING:
-            current_experiments[scene_id].set_progress(label='Saving the experiment')
+            current_experiments[scene_id].set_progress(
+                label='Saving the experiment')
             save_experiment(current_experiments[scene_id])
             del current_experiments[scene_id]
             print("experiment saved and deleted from memory")

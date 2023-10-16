@@ -64,14 +64,6 @@ types_conversion = {
 }
 
 nodes_options = {
-    #     'split': {
-    #         "info": ["train_size", "data_split_stratify", "data_split_shuffle"],
-    #         "code": """
-    # def split_data(Dataset, node_settings):
-    #     # do yo things here
-    #     return Dataset1, Dataset2
-    # """
-    #     },
     'clean': {
         "info": ["imputation_type",
                  "normalize",
@@ -174,6 +166,9 @@ options_choices = {
 
 
 def get_type_list(dict: dict) -> list:
+    """
+    This function return a list of all the types used in the settings dict
+    """
     type_list = []
     for value in dict.values():
         if value != {}:
@@ -190,16 +185,13 @@ def get_type_list(dict: dict) -> list:
 
 
 def convert_to_medomics_standards(settings: dict, types_conv: dict, nodes_include: dict) -> dict:
+    """
+    This function convert the settings from the pycaret format to the medomics format
+    """
     standard_settings = {}
     # init standard_settings
     for node in nodes_include.keys():
         standard_settings[node] = {}
-    # SPLIT SETTINGS
-    # split_options = nodes_include['split']['info']
-    # standard_settings['split']['options'] = {}
-    # standard_settings['split']['code'] = nodes_include['split']['code']
-    # for split_option in split_options:
-    #     standard_settings['split']['options'][split_option] = settings['setup']['options'][split_option]
 
     # CLEAN SETTINGS
     clean_options = nodes_include['clean']['info']
@@ -287,6 +279,9 @@ def convert_to_medomics_standards(settings: dict, types_conv: dict, nodes_includ
 
 
 def specific_case(dict_settings: dict) -> dict:
+    """
+    This function is used to add specific settings to the settings file
+    """
     dict_settings['dataset']['options']['time-point'] = {
         "type": "string",
         "default_val": "",
@@ -330,6 +325,9 @@ def specific_case(dict_settings: dict) -> dict:
 
 
 def delete_keys_from_dict(dictionary, keys):
+    """
+    This function delete the keys from the dictionary
+    """
     # Just an optimization for the "if key in keys" lookup.
     keys_set = set(keys)
 
@@ -346,6 +344,9 @@ def delete_keys_from_dict(dictionary, keys):
 
 
 def get_child_text(new_text, child) -> str:
+    """
+    This function is used to get the text from the child of a node
+    """
     children = child.find_elements(By.XPATH, value="./*")
     for child in children:
         if child.tag_name == "code" or child.tag_name == "a":
@@ -357,12 +358,18 @@ def get_child_text(new_text, child) -> str:
 
 
 def clean_tooltip(raw_tooltip):
+    """
+    This function is used to clean the tooltip from the html tags
+    """
     new_text = raw_tooltip.get_attribute('innerHTML')
     new_text = get_child_text(new_text, raw_tooltip)
     return new_text
 
 
 def add_default(dict_settings: dict) -> dict:
+    """
+    This function add the default values to the settings file
+    """
     new_dict_settings = dict_settings.copy()
     to_delete = []
     for node, node_info in dict_settings.items():
