@@ -1,3 +1,4 @@
+/* TODO : Add custom class before @NicoLongfield */
 .p-listbox-item {
   padding: 0.25rem !important;
   margin-right: 0.5rem;
@@ -57,36 +58,99 @@
   height: 100%;
 }
 
-.padding8px > .p-dropdown-label{
-  padding: 8px !important;
+.mergeToolMultiSelect .padding8px > .p-dropdown-label {
+  padding: 8px;
 }
 
-.padding8px .p-multiselect-label-container{
-  padding: 8px !important;
+.mergeToolMultiSelect .padding8px .p-multiselect-label-container {
+  padding: 8px;
 }
 
-.padding8px .p-multiselect-label{
-  padding: 0px !important;
+/* MULTISELECT GLOBAL */
+.p-multiselect-label {
+  display: flex;
+  align-items: center;
+  align-content: center;
 }
 
-.p-dropdown-item {
-  padding: 0.25rem 0.5rem !important;
-  
+.mergeToolMultiSelect .p-dropdown-item {
+  padding: 0.25rem 0.5rem;
 }
 
-.p-dropdown-items {
-  padding: 0.25rem 0.5rem !important;
+.mergeToolMultiSelect .p-dropdown-items {
+  padding: 0.25rem 0.5rem;
 }
 
-.p-dropdown-header {
-  padding: 0rem !important;
+.mergeToolMultiSelect .p-dropdown-header {
+  padding: 0rem;
 }
 
-.p-dropdown-filter-container {
-  padding: 0.5rem 0.5rem !important;
+.mergeToolMultiSelect .p-dropdown-filter-container {
+  padding: 0.5rem 0.5rem;
 }
 
-.p-dropdown-filter {
-  padding: 0.25rem 0.25rem !important;
+.mergeToolMultiSelect .p-dropdown-filter {
+  padding: 0.25rem 0.25rem;
 }
 
+.mergeToolMultiSelect .p-multiselect-item {
+  padding: 0rem 0rem;
+}
+
+.mergeToolMultiSelect .p-multiselect-items {
+  padding: 0.25rem 0.1rem;
+}
+
+.mergeToolMultiSelect .p-multiselect-header {
+  padding: 0rem 0.5rem 0rem 0rem;
+  padding-left: 0.5rem;
+}
+
+.mergeToolMultiSelect .p-multiselect-filter-container {
+  padding: 0.5rem 0.5rem;
+  margin-left: 0rem;
+}
+
+.mergeToolMultiSelect .p-multiselect-filter {
+  padding: 0.25rem 0.25rem;
+}
+
+.mergeToolMultiSelect .p-multiselect-token {
+  padding: 0.15rem 0.25rem !important;
+}
+
+.mergeToolMultiSelect .p-multiselect-token-icon {
+  margin-left: 0.15rem !important;
+}
+
+.mergeToolMultiSelect .p-multiselect-token-label {
+  /*  margin-left: 0.15rem; */
+
+  font-size: smaller;
+}
+
+.mergeToolMultiSelect .p-multiselect-label-container {
+  /* min-height: 2.5rem;
+  max-height: 2.5rem;
+  align-items: center; */
+}
+
+.mergeToolMultiSelect .p-multiselect-label {
+  padding: 0.375rem 0.75rem;
+  /* height:; */
+  /* align-self: center; */
+}
+
+.mergeToolMultiSelect .p-placeholder {
+  padding: 0.375rem 0.75rem;
+  /* height:; */
+  /* align-self: center; */
+}
+
+.mergeToolMultiSelect .p-multiselect {
+  height: 2.5rem;
+}
+
+.mergeToolMultiSelect .divider {
+  margin: 0.15rem 0rem;
+}

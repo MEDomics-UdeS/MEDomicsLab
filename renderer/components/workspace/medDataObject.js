@@ -4,6 +4,7 @@ import { toast } from "react-toastify"
 import { ipcRenderer } from "electron"
 import process from "process"
 import { loadJSONFromPath } from "../../utilities/fileManagementUtils"
+import { resolve } from "path"
 
 /**
  * Represents a data object in the workspace.
@@ -972,28 +973,27 @@ export default class MedDataObject {
     return data
   }
 
-
   /**
    * GetsTheColumnsOfTheDataObjectIfItIsATable
    * @returns {Array} - The columns of the data object if it is a table.
    */
   async getColumnsOfTheDataObjectIfItIsATable() {
-    let columns = []
+    let newColumns = []
     if (this.dataLoaded) {
       if (this.data.$columns) {
-        columns = this.data.columns
+        newColumns = this.data.columns
+      }
+    } else {
+      const data = await this.loadDataFromDisk()
+      console.log("data: ", data)
+      if (data.$columns) {
+        newColumns = data.$columns
+        // this.metadata.columns = newColumns
+        // return data.$columns
       }
     }
-    else {
-      const data = await this.loadDataFromDisk()
-      if (this.data.$columns) {
-        columns = this.data.$columns
-      }
-    } 
-    this.metadata.columns = columns
-    return columns
+    return newColumns
   }
-
 
   /**
    * Unloads the data from the `MedDataObject` instance.
