@@ -12,13 +12,13 @@ from typing import Any, Dict, List, Union
 from typing import Union
 from pathlib import Path
 from utils.server_utils import get_repo_path
+from abc import ABC, abstractmethod
 
 from learning.MEDml.CodeHandler import convert_dict_to_params
 
 DATAFRAME_LIKE = Union[dict, list, tuple, np.ndarray, pd.DataFrame]
 TARGET_LIKE = Union[int, str, list, tuple, np.ndarray, pd.Series]
 FOLDER, FILE, INPUT = 1, 2, 3
-
 
 
 def is_primitive(obj):
@@ -35,9 +35,17 @@ def is_primitive(obj):
     return False
 
 
-class MEDexperiment:
-    """Class that represents an experiment. It contains all the information about the experiment, the pipelines, the nodes, the dataframes, etc.
+class MEDexperiment(ABC):
+    """Class that represents an experiment. It contains all the information about the experiment, the pipelines, the nodes, etc.
     It also contains the methods to execute the experiment.
+
+    This object takes one parameter in the constructor: the global configuration of the experiment.
+    this dict should contain the following keys:
+    - pageId: the id of the experiment
+    - nbNodes2Run: the number of nodes in the experiment
+    - nodes: a list of dict where each key is the node's id and the value is the node's information
+    - pipelines: a dict where the keys are the nodes ids and the values are the next nodes ids, it represents the pipelines of the experiment
+    - paths: a dict containing paths for handling save/load file. should at least, contains a 'ws' key representing the root path of the experiment
 
     """
 
@@ -49,14 +57,12 @@ class MEDexperiment:
             global_json_config (json, optional): The global configuration of the experiment. Defaults to None.
             nb_nodes (float, optional): The number of nodes in the experiment. Defaults to 0.
         """
-        self.dfs = {}
-        self.dfs_combinations = {}
+        self.id = global_json_config['pageId']
         self.experiment_name = "Default experiment name"
         self.experiment = {}
         self.pipelines = global_json_config['pipelines']
         self.pipelines_to_execute = self.pipelines
         self.global_json_config = global_json_config
-        self.global_variables = {}
         self._results_pipeline = {}
         self._progress = {'currentLabel': '', 'now': 0.0}
         self._nb_nodes = global_json_config['nbNodes2Run']
@@ -64,9 +70,8 @@ class MEDexperiment:
         self.global_json_config['unique_id'] = 0
         self.pipelines_objects = self.create_next_nodes(self.pipelines, {})
         if self.global_json_config['paths']['ws'][0] == '.':
-            self.global_json_config['paths']['ws'] = get_repo_path() + self.global_json_config['paths']['ws'][1:]
-            self.global_json_config['paths']['tmp'] = get_repo_path() + self.global_json_config['paths']['tmp'][1:]
-            self.global_json_config['paths']['models'] = get_repo_path() + self.global_json_config['paths']['models'][1:]
+            for key, value in self.global_json_config['paths'].items():
+                self.global_json_config['paths'][key] = get_repo_path() + value[1:]
         os.chdir(str(Path(os.path.dirname(os.path.abspath(__file__))).parent.parent))
         print("current working directory: ", os.getcwd())
 
@@ -85,7 +90,6 @@ class MEDexperiment:
         self.pipelines = global_json_config['pipelines']
         self.pipelines_to_execute = self.pipelines
         self.global_json_config = global_json_config
-        self.global_variables = {}
         self.global_json_config['unique_id'] = 0
         self._nb_nodes = global_json_config['nbNodes2Run']
         self._nb_nodes_done: float = 0.0
@@ -117,7 +121,7 @@ class MEDexperiment:
                     self.global_json_config['nodes'][current_node_id]['id'] = current_node_id
                 # then, we create the node normally
                 node = self.create_Node(self.global_json_config['nodes'][current_node_id])
-                nodes[current_node_id] = self.handle_Node_creation(node, pipelines_objects)
+                nodes[current_node_id] = self.handle_node_creation(node, pipelines_objects)
                 nodes[current_node_id]['obj'].just_run = False
                 if current_node_id in pipelines_objects:
                     nodes[current_node_id]['next_nodes'] = \
@@ -128,7 +132,7 @@ class MEDexperiment:
                         self.create_next_nodes(next_nodes_id_json, {})
         return nodes
 
-    def handle_Node_creation(self, node: Node, pipelines_objects: dict) -> dict:
+    def handle_node_creation(self, node: Node, pipelines_objects: dict) -> dict:
         """Handles the creation of a node by checking if it already exists in the pipelines objects.
 
         Args:
@@ -210,10 +214,8 @@ class MEDexperiment:
         Returns:
             Object: The copied experiment object (pycaret).
         """
-        temp_df = copy.deepcopy(exp['pycaret_exp'].data)
-        copied_exp = copy.deepcopy(exp)
-        copied_exp['pycaret_exp'].data = temp_df
-        return copied_exp
+        return copy.deepcopy(exp)
+
     @abstractmethod
     def experiment_setup(self, node_info: dict, node: Node):
         """Sets up the experiment object
@@ -226,7 +228,9 @@ class MEDexperiment:
             Object: The experiment object (pycaret).
         """
         pass
-    def execute_next_nodes(self, prev_node: Node, next_nodes_to_execute: json, next_nodes: json, results: json, experiment: json):
+
+    def execute_next_nodes(self, prev_node: Node, next_nodes_to_execute: json, next_nodes: json, results: json,
+                           experiment: json):
         """Recursive function that executes the next nodes of the experiment pipeline.
 
         Args:
@@ -238,7 +242,9 @@ class MEDexperiment:
         """
         if next_nodes_to_execute != {}:
             for current_node_id, next_nodes_id_json in next_nodes_to_execute.items():
+
                 node_info = next_nodes[current_node_id]
+                experiment = self.copy_experiment(experiment)
                 node = node_info['obj']
                 self._progress['currentLabel'] = node.username
 
@@ -267,7 +273,7 @@ class MEDexperiment:
                     next_nodes_to_execute=next_nodes_id_json,
                     next_nodes=node_info['next_nodes'],
                     results=results[current_node_id]['next_nodes'],
-                    experiment=self.copy_experiment(experiment)
+                    experiment=experiment
                 )
                 print(f'flag-{node.username}')
 
@@ -278,6 +284,7 @@ class MEDexperiment:
         Args:
             node_info (dict): The node information.
             node (Node): The node.
+            experiment (dict): The experiment object (pycaret).
         """
         pass
 
@@ -313,27 +320,27 @@ class MEDexperiment:
                         pass
         return return_dict
 
-    def add_only_object(self, next: Union[dict, list]) -> dict:
+    def add_only_object(self, next_item: Union[dict, list]) -> dict:
         """Recursively adding only primitive objects.
 
         Args:
-            next (json): The json to check.
+            next_item (json): The json to check.
 
         Returns:
             dict: The cleaned json.
         """
+        to_iterate = []
         return_dict = {}
-        if isinstance(next, dict):
-            to_iterate = next.items()
-        elif isinstance(next, list):
-            to_iterate = enumerate(next)
+        if isinstance(next_item, dict):
+            to_iterate = next_item.items()
+        elif isinstance(next_item, list):
+            to_iterate = enumerate(next_item)
 
         for key, value in to_iterate:
             if is_primitive(value):
                 if isinstance(value, dict) or isinstance(value, list):
                     return_dict[key] = self.add_only_object(value)
                 else:
-                    # if key != "estimators_":
                     try:
                         json.dumps(value)
                         return_dict[key] = value
@@ -352,3 +359,40 @@ class MEDexperiment:
         """
         return self._progress
 
+    def set_progress(self, now: int = -1, label: str = "same") -> None:
+        """Sets the progress of the pipeline execution.
+
+        Args:
+            now (int, optional): The current progress. Defaults to 0.
+            label (str, optional): The current node in execution. Defaults to "".
+        """
+        if now == -1:
+            now = self._progress['now']
+        if label == "same":
+            label = self._progress['currentLabel']
+        self._progress = {'currentLabel': label, 'now': now}
+
+    def make_save_ready(self):
+        """Makes the experiment ready to be saved.
+        """
+        self._make_save_ready_rec(self.pipelines_objects)
+
+    @abstractmethod
+    def _make_save_ready_rec(self, next_nodes: dict):
+        """
+        Recursive function that makes the experiment ready to be saved.
+        """
+        pass
+
+    def init_obj(self):
+        """
+        Initializes the experiment object (pycaret) from a path.
+        """
+        self._init_obj_rec(self.pipelines_objects)
+
+    @abstractmethod
+    def _init_obj_rec(self, next_nodes: dict):
+        """
+        Recursive function that initializes the experiment object (pycaret) from a path.
+        """
+        pass

@@ -278,9 +278,9 @@ function App() {
   }, [layoutModel]) // Here, we specify that the hook should only be called when the layoutModel state variable changes
 
   // This useEffect hook is called at the beginning of the app to clear the localStorage
-  useEffect(() => {
-    localStorage.clear()
-  }, [])
+  // useEffect(() => {
+  //   localStorage.clear()
+  // }, [])
   return (
     <>
       <Head>

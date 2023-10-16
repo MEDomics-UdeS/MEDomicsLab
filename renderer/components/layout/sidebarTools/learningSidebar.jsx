@@ -97,6 +97,8 @@ const LearningSidebar = () => {
             MedDataObject.createEmptyFolderFSsync("notebooks", sceneFolderPath, false)
             // create folder models in the experiment folder
             MedDataObject.createEmptyFolderFSsync("models", sceneFolderPath, false)
+            // create folder exp in the experiment folder
+            MedDataObject.createEmptyFolderFSsync("exp", sceneFolderPath, false)
           })
         } else {
           MedDataObject.createEmptyFolderFSsync("experiment", path).then((folderPath) => {
@@ -113,6 +115,8 @@ const LearningSidebar = () => {
               MedDataObject.createEmptyFolderFSsync("notebooks", sceneFolderPath, false)
               // create folder models in the experiment folder
               MedDataObject.createEmptyFolderFSsync("models", sceneFolderPath, false)
+              // create folder exp in the experiment folder
+              MedDataObject.createEmptyFolderFSsync("exp", sceneFolderPath, false)
             })
           })
         }

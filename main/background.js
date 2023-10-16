@@ -6,6 +6,7 @@ import { installExtension, REACT_DEVELOPER_TOOLS } from "electron-extension-inst
 const fs = require("fs")
 var path = require("path")
 const dirTree = require("directory-tree")
+const { spawn, exec } = require("child_process")
 var serverProcess = null
 var flaskPort = 5000
 var hasBeenSet = false
@@ -138,7 +139,21 @@ if (isProd) {
       findAvailablePort(5000, 8000)
         .then((port) => {
           console.log(`Available port: ${port}`)
-          serverProcess = require("child_process").spawn(path2conda, ["./flask_server/server.py", "--port=" + port])
+          // open and modify .flaskenv file
+          let content = []
+          content.push("FLASK_APP=flask_server/server.py")
+          content.push("FLASK_RUN_PORT=" + port)
+          content.push("FLASK_ENV=development")
+          content.push("FLASK_DEBUG=0")
+          fs.writeFile("flask_server/.flaskenv", content.join("\n"), function (err) {
+            if (err) {
+              return console.log(err)
+            }
+            console.log(".flaskenv modified successfully!")
+          })
+
+          serverProcess = spawn(path2conda, ["-m", "flask", "-e", "flask_server/.flaskenv", "run"])
+          // serverProcess = spawn("set", ["FLASK_APP=flask_server/server.py && set FLASK_RUN_PORT=" + port, "&&", path2conda, "-m", "flask", "run"])
           flaskPort = port
           serverProcess.stdout.on("data", function (data) {
             console.log("data: ", data.toString("utf8"))

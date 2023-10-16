@@ -32,17 +32,14 @@ def create_pycaret_exp(ml_type: str) -> json:
 class MEDexperimentLearning(MEDexperiment):
 
     def __init__(self, global_config_json: json) -> None:
-        """
-        Args:
-
-        """
         super().__init__(global_config_json)
+        self.dfs = {}
+        self.dfs_combinations = {}
 
     def copy_experiment(self, exp: dict):
         temp_df = copy.deepcopy(exp['pycaret_exp'].data)
         copied_exp = copy.deepcopy(exp)
         copied_exp['pycaret_exp'].data = temp_df
-
         return copied_exp
 
     def modify_node_info(self, node_info: dict, node: Node, experiment: dict):
@@ -150,3 +147,24 @@ class MEDexperimentLearning(MEDexperiment):
             'medml_logger': medml_logger,
             'dataset_metaData': dataset_metaData
         }
+
+    def _make_save_ready_rec(self, next_nodes: dict):
+        for node_id, node_content in next_nodes.items():
+            saved_path = os.path.join(self.global_json_config['paths']['exp'], f"exp_{node_id.replace('*', '--')}")
+            if 'exp_path' in node_content['experiment']:
+                saved_path = node_content['experiment']['exp_path']
+
+            data = node_content['experiment']['pycaret_exp'].data
+            node_content['experiment']['pycaret_exp'].save_experiment(saved_path)
+            node_content['experiment']['exp_path'] = saved_path
+            node_content['experiment']['dataset'] = data
+            node_content['experiment']['pycaret_exp'] = None
+            self._make_save_ready_rec(node_content['next_nodes'])
+
+    def _init_obj_rec(self, next_nodes: dict):
+        for node_id, node_content in next_nodes.items():
+            data = node_content['experiment']['dataset']
+            node_content['experiment']['pycaret_exp'] = create_pycaret_exp(
+                ml_type=self.global_json_config['MLType'])
+            node_content['experiment']['pycaret_exp'] = node_content['experiment']['pycaret_exp'].load_experiment(node_content['experiment']['exp_path'], data=data)
+            self._init_obj_rec(node_content['next_nodes'])

@@ -19,7 +19,6 @@ import { toast } from "react-toastify"
  */
 const ProgressBarRequests = ({ isUpdating, setIsUpdating, progress, setProgress, requestTopic, variant = "success", withLabel = true, delayMS = 400 }) => {
   const { port } = useContext(WorkspaceContext) // used to get the port
-
   useInterval(
     () => {
       requestJson(
@@ -60,8 +59,10 @@ const ProgressBarRequests = ({ isUpdating, setIsUpdating, progress, setProgress,
 
   return (
     <>
-      {withLabel && <label>{progress.currentLabel || ""}</label>}
-      <ProgressBar variant={variant} animated now={progress.now} label={`${progress.now}%`} />
+      <div className="progress-bar-requests">
+        {withLabel && <label>{progress.currentLabel || ""}</label>}
+        <ProgressBar variant={variant} animated now={progress.now} label={`${progress.now}%`} />
+      </div>
     </>
   )
 }

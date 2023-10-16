@@ -521,8 +521,17 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
               console.log("received results:", jsonResponse)
               if (!jsonResponse.error) {
                 updateFlowResults(jsonResponse)
+                setIsProgressUpdating(false)
+                setProgress({
+                  now: 100,
+                  currentLabel: "Done!"
+                })
               } else {
                 setIsProgressUpdating(false)
+                setProgress({
+                  now: 0,
+                  currentLabel: ""
+                })
                 toast.error("Error detected while running the experiment")
                 console.log("error", jsonResponse.error)
                 setError(jsonResponse.error)
@@ -530,6 +539,10 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
             },
             (error) => {
               setIsProgressUpdating(false)
+              setProgress({
+                now: 0,
+                currentLabel: ""
+              })
               toast.error("Error detected while running the experiment")
               console.log("error", error)
               setError(error)
@@ -682,14 +695,14 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
       newJson.pageId = pageId
       // eslint-disable-next-line camelcase
       newJson.path_seperator = MedDataObject.getPathSeparator()
-      let workspacePath = configPath.substring(0, configPath.lastIndexOf(newJson.path_seperator))
+      let scenePath = configPath.substring(0, configPath.lastIndexOf(newJson.path_seperator))
       newJson.paths = {
-        ws: workspacePath,
-        tmp: workspacePath + newJson.path_seperator + "tmp",
-        models: workspacePath + newJson.path_seperator + "models"
+        ws: scenePath,
+        tmp: scenePath + newJson.path_seperator + "tmp",
+        models: scenePath + newJson.path_seperator + "models",
+        exp: scenePath + newJson.path_seperator + "exp"
       }
       // eslint-disable-next-line camelcase
-      newJson.scene_id = pageId // TODO: change this to scene uuid
       newJson.nbNodes2Run = nbNodes2Run + 1 // +1 because the results generation is a time consuming task
 
       return { newflow: newJson, isValid: isValidDefault }
