@@ -9,13 +9,8 @@ import psutil
 from memory_profiler import profile
 import gc
 
-MEDOMICS_WS = str(Path(os.path.dirname(
-    os.path.abspath(__file__))).parent.parent)
-print(MEDOMICS_WS)
-cwd = os.getcwd()
-isFrontSlash = cwd.find("/")
-if os.getcwd().find("/") == -1:
-    MEDOMICS_WS = MEDOMICS_WS.replace("/", "\\")
+USE_RAM_FOR_EXPERIMENTS_STORING = 1
+USE_SAVE_FOR_EXPERIMENTS_STORING = 0
 
 # blueprint definition
 app_learning = Blueprint('app_learning', __name__,
@@ -24,6 +19,7 @@ app_learning = Blueprint('app_learning', __name__,
 # global variables
 current_experiments = {}
 exp_progress = {}
+storing_mode = USE_RAM_FOR_EXPERIMENTS_STORING
 
 
 @app_learning.route("/run_experiment/<id_>", methods=["POST"])
@@ -34,31 +30,37 @@ def run_experiment(id_):
     Returns: the results of the pipeline execution
     """
     json_config = get_json_from_request(request)
-    return handle_run_experiment(id_, json_config)
-
-
-@profile
-def handle_run_experiment(id_, json_config):
     print("received data from topic: /run_experiment:")
     print(json.dumps(json_config, indent=4, sort_keys=True))
     scene_id = id_
     global current_experiments
     global exp_progress
+    global storing_mode
     try:
-        if not is_experiment_exist(scene_id):
+        # check if experiment already exists
+        exp_already_exists = False
+        if storing_mode == USE_RAM_FOR_EXPERIMENTS_STORING:
+            exp_already_exists = scene_id in current_experiments
+        elif storing_mode == USE_SAVE_FOR_EXPERIMENTS_STORING:
+            exp_already_exists = is_experiment_exist(scene_id)
+
+        # create experiment or load it
+        if not exp_already_exists:
             current_experiments[scene_id] = MEDexperimentLearning(json_config)
         else:
-            exp_progress[scene_id] = {'now': 0, 'currentLabel': 'Loading the experiment'}
-            current_experiments[scene_id] = load_experiment(scene_id)
-            current_experiments[scene_id].update(json_config)
+            if storing_mode == USE_SAVE_FOR_EXPERIMENTS_STORING:
+                exp_progress[scene_id] = {'now': 0, 'currentLabel': 'Loading the experiment'}
+                current_experiments[scene_id] = load_experiment(scene_id)
+            elif storing_mode == USE_RAM_FOR_EXPERIMENTS_STORING:
+                current_experiments[scene_id].update(json_config)
         current_experiments[scene_id].start()
         results_pipeline = current_experiments[scene_id].get_results()
-        current_experiments[scene_id].set_progress(label='Saving the experiment')
-        save_experiment(current_experiments[scene_id])
-        del current_experiments[scene_id]
-        gc.collect()
+        if storing_mode == USE_SAVE_FOR_EXPERIMENTS_STORING:
+            current_experiments[scene_id].set_progress(label='Saving the experiment')
+            save_experiment(current_experiments[scene_id])
+            del current_experiments[scene_id]
+            print("experiment saved and deleted from memory")
         exp_progress[scene_id] = {'now': 100, 'currentLabel': 'Done!'}
-        print("experiment saved and deleted from memory")
     except BaseException as e:
         del exp_progress[scene_id]
         if scene_id in current_experiments:
