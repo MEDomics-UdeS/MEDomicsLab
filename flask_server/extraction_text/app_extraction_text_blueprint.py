@@ -255,7 +255,7 @@ def BioBERT_extraction():
             frequency = datetime.timedelta(hours=json_config["relativeToExtractionType"]["hourRange"])
 
         # Set biobert parameters
-        BIOBERT_PATH =  os.path.join(str(Path(json_config["csvPath"]).parent.absolute()), 'pretrained_bert_tf/biobert_pretrain_output_all_notes_150000/')
+        BIOBERT_PATH =  os.path.join(str(Path(json_config["csvPath"]).parent.absolute()), "pretrained_bert_tf", "biobert_pretrain_output_all_notes_150000")
         BIOBERT_TOKENIZER = AutoTokenizer.from_pretrained(BIOBERT_PATH)
         BIOBERT_MODEL = AutoModel.from_pretrained(BIOBERT_PATH)
 

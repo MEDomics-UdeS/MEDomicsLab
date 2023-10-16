@@ -1,8 +1,12 @@
+import { Card } from "primereact/card"
+import { DataContext } from "../../workspace/dataContext"
 import { Dropdown } from "primereact/dropdown"
 import { InputNumber } from "primereact/inputnumber"
 import { InputText } from "primereact/inputtext"
+import MedDataObject from "../../workspace/medDataObject"
+import { Message } from "primereact/message"
 import { RadioButton } from "primereact/radiobutton"
-import React, { useEffect, useState } from "react"
+import React, { useContext, useEffect, useState } from "react"
 
 /**
  *
@@ -18,8 +22,9 @@ import React, { useEffect, useState } from "react"
  */
 const ExtractionBioBERT = ({ dataframe, setExtractionJsonData, setMayProceed }) => {
   const [columnPrefix, setColumnPrefix] = useState("notes_")
-  const [frequency, setFrequency] = useState("Patient")
+  const [frequency, setFrequency] = useState("Note")
   const [hourRange, setHourRange] = useState(24)
+  const [isModelAvailable, setIsModelAvailable] = useState(false)
   const [selectedColumns, setSelectedColumns] = useState({
     patientIdentifier: "",
     admissionIdentifier: "",
@@ -28,6 +33,8 @@ const ExtractionBioBERT = ({ dataframe, setExtractionJsonData, setMayProceed }) 
     notes: "",
     time: ""
   })
+
+  const { globalData } = useContext(DataContext)
 
   /**
    *
@@ -62,6 +69,23 @@ const ExtractionBioBERT = ({ dataframe, setExtractionJsonData, setMayProceed }) 
 
   /**
    *
+   * @param {DataContext} dataContext
+   *
+   * @description
+   * This functions is used to check if the model is contained in the DATA folder
+   *
+   */
+  function isBioBERTAvailable(dataContext) {
+    let keys = Object.keys(dataContext)
+    keys.forEach((key) => {
+      if (dataContext[key].name !== "config.json" && dataContext[key].path.includes("DATA") && dataContext[key].path.includes("pretrained_bert_tf") && dataContext[key].path.includes("biobert_pretrain_output_all_notes_150000")) {
+        setIsModelAvailable(true)
+      }
+    })
+  }
+
+  /**
+   *
    * @description
    * This function checks if all the necessary attributes from
    * selected columns have a value and update allColumnsSelected.
@@ -69,45 +93,68 @@ const ExtractionBioBERT = ({ dataframe, setExtractionJsonData, setMayProceed }) 
    */
   useEffect(() => {
     if (frequency == "Patient") {
-      setMayProceed(selectedColumns.patientIdentifier !== "" && selectedColumns.notesWeight !== "" && selectedColumns.notes !== "")
+      setMayProceed(isModelAvailable == true && selectedColumns.patientIdentifier !== "" && selectedColumns.notesWeight !== "" && selectedColumns.notes !== "")
       setExtractionJsonData({ selectedColumns: selectedColumns, columnPrefix: columnPrefix, frequency: frequency })
     } else if (frequency == "Admission") {
-      setMayProceed(selectedColumns.patientIdentifier !== "" && selectedColumns.notesWeight !== "" && selectedColumns.notes !== "" && selectedColumns.admissionIdentifier !== "" && selectedColumns.admissionTime !== "")
+      setMayProceed(isModelAvailable == true && selectedColumns.patientIdentifier !== "" && selectedColumns.notesWeight !== "" && selectedColumns.notes !== "" && selectedColumns.admissionIdentifier !== "" && selectedColumns.admissionTime !== "")
       setExtractionJsonData({ selectedColumns: selectedColumns, columnPrefix: columnPrefix, frequency: frequency })
     } else if (frequency == "HourRange") {
-      setMayProceed(selectedColumns.patientIdentifier !== "" && selectedColumns.notesWeight !== "" && selectedColumns.notes !== "" && selectedColumns.time !== "")
+      setMayProceed(isModelAvailable == true && selectedColumns.patientIdentifier !== "" && selectedColumns.notesWeight !== "" && selectedColumns.notes !== "" && selectedColumns.time !== "")
       setExtractionJsonData({ selectedColumns: selectedColumns, columnPrefix: columnPrefix, frequency: frequency, hourRange: hourRange })
     } else if (frequency == "Note") {
-      setMayProceed(selectedColumns.patientIdentifier !== "" && selectedColumns.notesWeight !== "" && selectedColumns.notes !== "" && selectedColumns.time !== "")
+      setMayProceed(isModelAvailable == true && selectedColumns.patientIdentifier !== "" && selectedColumns.notes !== "" && selectedColumns.time !== "")
       setExtractionJsonData({ selectedColumns: selectedColumns, columnPrefix: columnPrefix, frequency: frequency })
     }
   }, [selectedColumns, frequency, hourRange])
 
+  // Called when data in DataContext is updated, in order to updated datasetList
+  useEffect(() => {
+    if (globalData !== undefined) {
+      isBioBERTAvailable(globalData)
+    }
+  }, [globalData])
+
+  /**
+   *
+   * @description
+   * This function update the workspace data object while we load
+   * the extractionBioBERT page.
+   *
+   */
+  useEffect(() => {
+    MedDataObject.updateWorkspaceDataObject()
+  }, [])
+
   return (
     <>
       <div>
-        <div className="text-left">
+        <div>{isModelAvailable == false && <Message severity="warn" text="You must have download the pretrained_bert_tf folder in workspace DATA to proceed" />}</div>
+        <div className="text-left margin-top-15">
           <div className="flex-container">
             <div>
               {/* Time interval for generation of extracted features */}
               <b>Compute Features by : &nbsp;</b>
               <hr></hr>
               <div className="margin-top-15">
-                <RadioButton inputId="patient" name="frequency" value="Patient" onChange={(e) => setFrequency(e.value)} checked={frequency === "Patient"} />
-                <label htmlFor="patient">&nbsp; Patient</label>
-              </div>
-              <div className="margin-top-15">
-                <RadioButton inputId="admission" name="frequency" value="Admission" onChange={(e) => setFrequency(e.value)} checked={frequency === "Admission"} />
-                <label htmlFor="admission">&nbsp; Admission</label>
-              </div>
-              <div className="margin-top-15">
                 <RadioButton inputId="note" name="frequency" value="Note" onChange={(e) => setFrequency(e.value)} checked={frequency === "Note"} />
                 <label htmlFor="note">&nbsp; Notes</label>
               </div>
               <div className="margin-top-15">
-                <RadioButton inputId="hourRange" name="frequency" value="HourRange" onChange={(e) => setFrequency(e.value)} checked={frequency === "HourRange"} />
-                <label htmlFor="hourRange">&nbsp; Hour Range &nbsp;</label>
-                {frequency == "HourRange" && <InputNumber value={hourRange} onValueChange={(e) => setHourRange(e.value)} size={1} showButtons min={1} />}
+                <Card subTitle="MIMIC-HAIM specific">
+                  <div>
+                    <RadioButton inputId="patient" name="frequency" value="Patient" onChange={(e) => setFrequency(e.value)} checked={frequency === "Patient"} />
+                    <label htmlFor="patient">&nbsp; Patient</label>
+                  </div>
+                  <div className="margin-top-15">
+                    <RadioButton inputId="admission" name="frequency" value="Admission" onChange={(e) => setFrequency(e.value)} checked={frequency === "Admission"} />
+                    <label htmlFor="admission">&nbsp; Admission</label>
+                  </div>
+                  <div className="margin-top-15">
+                    <RadioButton inputId="hourRange" name="frequency" value="HourRange" onChange={(e) => setFrequency(e.value)} checked={frequency === "HourRange"} />
+                    <label htmlFor="hourRange">&nbsp; Hour Range &nbsp;</label>
+                    {frequency == "HourRange" && <InputNumber value={hourRange} onValueChange={(e) => setHourRange(e.value)} size={1} showButtons min={1} />}
+                  </div>
+                </Card>
               </div>
             </div>
             <div className="vertical-divider"></div>
@@ -131,10 +178,12 @@ const ExtractionBioBERT = ({ dataframe, setExtractionJsonData, setMayProceed }) 
                   </div>
                 </div>
               )}
-              <div className="margin-top-15">
-                Notes Weight : &nbsp;
-                {dataframe.$data ? <Dropdown value={selectedColumns.notesWeight} onChange={(event) => handleColumnSelect("notesWeight", event)} options={dataframe.$columns.filter((column, index) => dataframe.$dtypes[index] == "int32" || dataframe.$dtypes[index] == "float32" || (dataframe.$dtypes[index] == "string" && dataframe[column].dt.$dateObjectArray[0] != "Invalid Date"))} placeholder="Notes Weight" /> : <Dropdown placeholder="Notes Weight" disabled />}
-              </div>
+              {frequency != "Note" && (
+                <div className="margin-top-15">
+                  Notes Weight : &nbsp;
+                  {dataframe.$data ? <Dropdown value={selectedColumns.notesWeight} onChange={(event) => handleColumnSelect("notesWeight", event)} options={dataframe.$columns.filter((column, index) => dataframe.$dtypes[index] == "int32" || dataframe.$dtypes[index] == "float32" || (dataframe.$dtypes[index] == "string" && dataframe[column].dt.$dateObjectArray[0] != "Invalid Date"))} placeholder="Notes Weight" /> : <Dropdown placeholder="Notes Weight" disabled />}
+                </div>
+              )}
               {(frequency == "HourRange" || frequency == "Note") && (
                 <div className="margin-top-15">
                   Time : &nbsp;
