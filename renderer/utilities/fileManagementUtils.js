@@ -4,6 +4,7 @@ const { parse } = require("csv-parse")
 const dfd = require("danfojs")
 const dfdNode = require("danfojs-node")
 var Papa = require("papaparse")
+
 /**
  *
  * @param {Object} exportObj object to be exported
@@ -13,14 +14,55 @@ var Papa = require("papaparse")
  * This function takes an object and a name and downloads the object as a json file
  * It create a temporary anchor element to ask the user where to download the file
  */
-const downloadJson = (exportObj, exportName) => {
+const downloadFile = (exportObj, exportName) => {
   var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportObj, null, 2))
   var downloadAnchorNode = document.createElement("a")
   downloadAnchorNode.setAttribute("href", dataStr)
-  downloadAnchorNode.setAttribute("download", exportName + ".json")
+  downloadAnchorNode.setAttribute("download", exportName)
   document.body.appendChild(downloadAnchorNode) // required for firefox
   downloadAnchorNode.click()
   downloadAnchorNode.remove()
+}
+
+/**
+ *
+ * @param {Object} exportObj object to be exported
+ * @param {String} exportName name of the exported file
+ *
+ * @description
+ * This function takes an object and a name and downloads the object as a json file
+ * It create a temporary anchor element to ask the user where to download the file
+ */
+const downloadPath = (path) => {
+  // var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportObj, null, 2))
+  loadFileFromPathSync(path).then((data) => {
+    var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data, null, 2))
+    var downloadAnchorNode = document.createElement("a")
+    downloadAnchorNode.setAttribute("href", dataStr)
+    downloadAnchorNode.setAttribute("download", path.split("/").pop().split("\\").pop())
+    document.body.appendChild(downloadAnchorNode) // required for firefox
+    downloadAnchorNode.click()
+    downloadAnchorNode.remove()
+  })
+}
+
+/**
+ * 
+ * @param {string} path path to the file 
+ * @returns {Promise} Promise that resolves to the file content
+ */
+const loadFileFromPathSync = (path) => {
+  return new Promise((resolve) => {
+    fs.readFile(path, "utf8", (err, data) => {
+      if (err) {
+        console.error("Error reading file:", err)
+      } else {
+        console.log("File read successfully", data)
+        let parseFile = JSON.parse(data)
+        resolve(parseFile)
+      }
+    })
+  })
 }
 
 /**
@@ -93,6 +135,8 @@ const loadJsonSync = () => {
   })
 }
 
+
+
 /**
  * @param {String} path
  * @returns {Object} json object
@@ -115,7 +159,7 @@ const loadJsonPath = (path) => {
     const jsonData = JSON.parse(data)
     return jsonData
   } catch (error) {
-    console.error("error reading json file: " + path + "\n" + error + "\n")
+    console.log("error reading json file: " + path + "\n" + error + "\n")
     return null
   }
 }
@@ -188,6 +232,47 @@ const loadCSVFromPath = (path, whenLoaded) => {
   })
 }
 
+
+
+/**
+ *
+ * @param {string} path_ path to the file
+ * @param {string} folderName name of the folder to create
+ */
+function createFolder(path_, folderName) {
+  // Creates a folder in the working directory
+  const folderPath = path.join(path_, folderName)
+
+  fs.mkdir(folderPath, { recursive: true }, (err) => {
+    if (err) {
+      console.error(err)
+      return
+    }
+
+    console.log("Folder created successfully!")
+  })
+}
+
+/**
+ *
+ * @param {string} pathToCreate string path to create
+ * @returns {Promise} Promise that resolves to the path created
+ */
+const createFolderSync = (pathToCreate) => {
+  const fsPromises = require("fs").promises
+  return new Promise((resolve) => {
+    fsPromises
+      .mkdir(pathToCreate, { recursive: true })
+      .then(function () {
+        console.log("directory created successfully")
+        resolve(pathToCreate)
+      })
+      .catch(function () {
+        console.error("failed to create directory")
+      })
+  })
+}
+
 /**
  * @description This function loads a JSON file from a given path
  * @param {String} path Path to the JSON file
@@ -227,24 +312,4 @@ const loadXLSXFromPath = async (filePath, whenLoaded) => {
   whenLoaded(dfJSON)
 }
 
-/**
- * @description This function creates a folder in the working directory
- * @param {String} path_ Path to the folder
- * @param {String} folderName Name of the folder
- * @returns {void}
- */
-function createFolder(path_, folderName) {
-  // Creates a folder in the working directory
-  const folderPath = path.join(path_, folderName)
-
-  fs.mkdir(folderPath, { recursive: true }, (err) => {
-    if (err) {
-      console.error(err)
-      return
-    }
-
-    console.log("Folder created successfully!")
-  })
-}
-
-export { downloadJson, writeFile, loadJson, loadJsonSync, loadJsonPath, loadCSVPath, loadCSVFromPath, createFolder, loadJSONFromPath, loadXLSXFromPath }
+export { downloadFile, downloadPath, loadFileFromPathSync, writeFile, loadJson, loadJsonSync, loadJsonPath, loadCSVPath, loadCSVFromPath, createFolder, createFolderSync, loadJSONFromPath, loadXLSXFromPath }

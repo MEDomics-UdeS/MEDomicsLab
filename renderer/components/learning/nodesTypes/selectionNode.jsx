@@ -38,6 +38,8 @@ const SelectionNode = ({ id, data, type }) => {
   const onSelectionChange = (e) => {
     data.internal.settings = {}
     data.internal.checkedOptions = []
+    e.stopPropagation()
+    e.preventDefault()
     console.log("onselectionchange", e.target.value)
     setSelection(e.target.value)
   }
@@ -62,93 +64,53 @@ const SelectionNode = ({ id, data, type }) => {
         // the body of the node is a form select (particular to this node)
         nodeBody={
           <>
-            <Form.Select
-              aria-label="machine learning model"
-              onChange={onSelectionChange}
-              defaultValue={data.internal.selection}
-            >
-              {Object.entries(data.setupParam.possibleSettings).map(
-                ([optionName]) => {
-                  return (
-                    <option
-                      key={optionName}
-                      value={optionName}
-                      // selected={optionName === selection}
-                    >
-                      {optionName}
-                    </option>
-                  )
-                }
-              )}
+            <Form.Select aria-label="machine learning model" onChange={onSelectionChange} defaultValue={data.internal.selection}>
+              {Object.entries(data.setupParam.possibleSettings).map(([optionName]) => {
+                return (
+                  <option
+                    key={optionName}
+                    value={optionName}
+                    // selected={optionName === selection}
+                  >
+                    {optionName}
+                  </option>
+                )
+              })}
             </Form.Select>
           </>
         }
         // the default settings are the settings of the selected option (this changes when the selection changes)
         defaultSettings={
           <>
-            {"default" in
-              data.setupParam.possibleSettings[data.internal.selection] &&
-              Object.entries(
-                data.setupParam.possibleSettings[data.internal.selection]
-                  .default
-              ).length > 0 && (
-                <>
-                  <Stack id="default" direction="vertical" gap={1}>
-                    {Object.entries(
-                      data.setupParam.possibleSettings[data.internal.selection]
-                        .default
-                    ).map(([settingName, setting], i) => {
-                      return (
-                        <Input
-                          key={settingName + i}
-                          name={settingName}
-                          settingInfos={setting}
-                          currentValue={data.internal.settings[settingName]}
-                          onInputChange={onInputChange}
-                        />
-                      )
-                    })}
-                  </Stack>
-                </>
-              )}
+            {"default" in data.setupParam.possibleSettings[data.internal.selection] && Object.entries(data.setupParam.possibleSettings[data.internal.selection].default).length > 0 && (
+              <>
+                <Stack id="default" direction="vertical" gap={1}>
+                  {Object.entries(data.setupParam.possibleSettings[data.internal.selection].default).map(([settingName, setting], i) => {
+                    return <Input key={settingName + i} name={settingName} settingInfos={setting} currentValue={data.internal.settings[settingName]} onInputChange={onInputChange} />
+                  })}
+                </Stack>
+              </>
+            )}
           </>
         }
         // the node specific settings are the settings of the selected option (this changes when the selection changes)
         nodeSpecific={
           <>
             {/* the button to open the modal (the plus sign)*/}
-            <Button
-              variant="light"
-              className="width-100 btn-contour "
-              onClick={() => setModalShow(true)}
-            >
+            <Button variant="light" className="width-100 btn-contour " onClick={() => setModalShow(true)}>
               <Icon.Plus width="30px" height="30px" className="img-fluid" />
             </Button>
             {/* the modal component*/}
             <ModalSettingsChooser
               show={modalShow}
               onHide={() => setModalShow(false)}
-              options={
-                data.setupParam.possibleSettings[data.internal.selection]
-                  .options
-              } // the options are the options of the selected option (this changes when the selection changes)
+              options={data.setupParam.possibleSettings[data.internal.selection].options} // the options are the options of the selected option (this changes when the selection changes)
               data={data}
               id={id}
             />
             {/* the inputs of the selected options (this reset when the selection changes)*/}
             {data.internal.checkedOptions.map((optionName) => {
-              return (
-                <Input
-                  key={optionName}
-                  name={optionName}
-                  settingInfos={
-                    data.setupParam.possibleSettings[data.internal.selection]
-                      .options[optionName]
-                  }
-                  currentValue={data.internal.settings[optionName]}
-                  onInputChange={onInputChange}
-                />
-              )
+              return <Input key={optionName} name={optionName} settingInfos={data.setupParam.possibleSettings[data.internal.selection].options[optionName]} currentValue={data.internal.settings[optionName]} onInputChange={onInputChange} />
             })}
           </>
         }

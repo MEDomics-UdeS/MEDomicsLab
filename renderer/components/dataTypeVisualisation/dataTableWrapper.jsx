@@ -18,7 +18,6 @@ const DataTableWrapper = ({ data, tablePropsData, tablePropsColumn, customGetCol
   const [rows, setRows] = useState([])
 
   useEffect(() => {
-    console.log("dataTable data refreshed: ", data)
     if (data != undefined) {
       const extractedHeader = getColumnsFromData(data)
       setHeader(extractedHeader)
@@ -63,7 +62,7 @@ const DataTableWrapper = ({ data, tablePropsData, tablePropsColumn, customGetCol
 
   return (
     <>
-      <DataTable value={rows} {...tablePropsData} size="small" scrollable height={"100%"}>
+      <DataTable value={rows} {...tablePropsData} size="small" scrollable height={"100%"} width={"100%"}>
         {header}
       </DataTable>
     </>

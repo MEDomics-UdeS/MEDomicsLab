@@ -83,10 +83,9 @@ const ResultsPane = () => {
           selectedPipelines.push(pipeline)
         }
       })
-      // console.log("selectedPipelines", selectedPipelines)
       setSelectedPipelines(selectedPipelines)
     }
-  }, [flowContent.nodes])
+  }, [flowContent])
 
   function findAllPaths(flowContent) {
     let links = flowContent.edges
@@ -107,7 +106,20 @@ const ResultsPane = () => {
     function explore(node, path) {
       if (!graph[node]) {
         // If there are no outgoing links from this node, add the path to the result
-        result.push(path)
+        let isValid = true
+        path.forEach((id) => {
+          let node = flowContent.nodes.find((node) => node.id == id)
+          if (node.type == "groupNode") {
+            isValid = false
+          }
+        })
+        isValid =
+          isValid &&
+          flowContent.nodes
+            .find((node) => node.id == path[path.length - 1])
+            .data.setupParam.classes.split(" ")
+            .includes("endNode")
+        isValid && result.push(path)
         return
       }
 
@@ -121,10 +133,9 @@ const ResultsPane = () => {
 
     const result = []
 
-    // Start exploring from all nodes that start with "0"
     Object.keys(graph).forEach((id) => {
       let sourceNode = flowContent.nodes.find((node) => node.id == id)
-      if (sourceNode.data.internal.type == "dataset") {
+      if (sourceNode.data.setupParam.classes.split(" ").includes("startNode")) {
         explore(id, [id])
       }
     })

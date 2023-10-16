@@ -25,7 +25,6 @@ function FlowResultsProvider({ children }) {
     if (!newResults) return
     setFlowResults({ ...newResults })
     setIsResults(true)
-    console.log("workspace", workspace)
     if (workspace.hasBeenSet && experimentName && sceneName) {
       MedDataObject.writeFileSync(newResults, [getBasePath(EXPERIMENTS), experimentName, sceneName], sceneName, "medmlres").then((res) => {
         console.log("res", res)

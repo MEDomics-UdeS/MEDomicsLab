@@ -6,7 +6,7 @@ import Form from "react-bootstrap/Form"
 import { toast } from "react-toastify" // https://www.npmjs.com/package/react-toastify
 import { Tooltip } from "react-tooltip"
 import { Markup } from "interweave"
-import WsDataSelect from "../mainPages/dataComponents/wsDataSelect"
+import WsSelect from "../mainPages/dataComponents/wsSelect"
 
 /**
  *
@@ -320,8 +320,11 @@ const Input = ({ name, settingInfos, currentValue, onInputChange }) => {
         return (
           <>
             <FloatingLabel id={name} controlId={name} label={name} className=" input-hov">
-              <WsDataSelect
+              <WsSelect
                 selectedPath={currentValue}
+                rootDir="DATA"
+                acceptedExtensions={["csv", "xlsx"]}
+                acceptFolder
                 onChange={(e, path) => {
                   console.log("e", e, path)
                   setInputUpdate({
@@ -335,6 +338,28 @@ const Input = ({ name, settingInfos, currentValue, onInputChange }) => {
             {createTooltip(settingInfos.tooltip, name)}
           </>
         )
+
+      case "models-input":
+        return (
+          <>
+            <FloatingLabel id={name} controlId={name} label={name} className="input-hov">
+              <WsSelect
+                selectedPath={currentValue}
+                acceptedExtensions={["medmodel"]}
+                onChange={(e, path) => {
+                  console.log("e", e, path)
+                  setInputUpdate({
+                    name: name,
+                    value: { name: e.target.value, path: path },
+                    type: settingInfos.type
+                  })
+                }}
+              />
+            </FloatingLabel>
+            {createTooltip(settingInfos.tooltip, name)}
+          </>
+        )
+
       // for all the other types of input (basically a string input for now)
       default:
         return (
