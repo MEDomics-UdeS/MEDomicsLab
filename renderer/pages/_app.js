@@ -10,6 +10,7 @@ import { DataContextProvider } from "../components/workspace/dataContext"
 import MedDataObject from "../components/workspace/medDataObject"
 import { ActionContextProvider } from "../components/layout/actionContext"
 import { HotkeysProvider } from "@blueprintjs/core"
+import { ConfirmPopup } from "primereact/confirmpopup"
 
 // CSS
 import "bootstrap/dist/css/bootstrap.min.css"
@@ -308,6 +309,7 @@ function App() {
             </DataContextProvider>
           </ActionContextProvider>
         </HotkeysProvider>
+        <ConfirmPopup />
         <ToastContainer // This is the ToastContainer, which is used to display toast notifications
           position="bottom-right"
           autoClose={2000}

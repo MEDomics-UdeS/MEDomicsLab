@@ -15,6 +15,7 @@ import { MultiSelect } from "primereact/multiselect"
 import MedDataObject from "../workspace/medDataObject"
 import { Button } from "primereact/button"
 import MergeTool from "../input/mergeTool"
+import GroupingTool from "../input/groupingTool"
 
 /**
  * @description - This component is the input page of the application
@@ -35,6 +36,9 @@ const InputPage = ({ pageId = "42", configPath = null }) => {
             </AccordionTab>
             <AccordionTab header="Merge Tool">
               <MergeTool pageId={pageId} />
+            </AccordionTab>
+            <AccordionTab header="Grouping Tool">
+              <GroupingTool pageId={pageId} />
             </AccordionTab>
           </Accordion>
         </div>
