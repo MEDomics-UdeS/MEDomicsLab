@@ -4,7 +4,6 @@ import Form from "react-bootstrap/Form"
 import { useNodesState, useEdgesState, useReactFlow, addEdge } from "reactflow"
 import WorkflowBase from "../flow/workflowBase"
 import { loadJsonSync } from "../../utilities/fileManagementUtils"
-import { loadJsonSync } from "../../utilities/fileManagementUtils"
 import { requestJson } from "../../utilities/requests"
 import EditableLabel from "react-simple-editlabel"
 import BtnDiv from "../flow/btnDiv"
@@ -15,7 +14,6 @@ import { FlowResultsContext } from "../flow/context/flowResultsContext"
 import { WorkspaceContext } from "../workspace/workspaceContext"
 import { ErrorRequestContext } from "../flow/context/errorRequestContext"
 import MedDataObject from "../workspace/medDataObject"
-import { Button } from "primereact/button"
 
 // here are the different types of nodes implemented in the workflow
 import StandardNode from "./nodesTypes/standardNode"
@@ -29,7 +27,6 @@ import nodesParams from "../../public/setupVariables/allNodesParams"
 // here are static functions used in the workflow
 import { removeDuplicates, deepCopy } from "../../utilities/staticFunctions"
 import { defaultValueFromType } from "../../utilities/learning/inputTypesUtils.js"
-import { createZipFileSync, modifyZipFileSync } from "../../utilities/customZipFile"
 
 const staticNodesParams = nodesParams // represents static nodes parameters
 
@@ -57,17 +54,8 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
     now: 0,
     currentLabel: ""
   })
-
-  const [progress, setProgress] = useState({
-    now: 0,
-    currentLabel: ""
-  })
-
+  const { groupNodeId, changeSubFlow, hasNewConnection } = useContext(FlowFunctionsContext)
   const { config, pageId, configPath } = useContext(PageInfosContext) // used to get the page infos such as id and config path
-  const { groupNodeId, changeSubFlow, hasNewConnection } = useContext(FlowFunctionsContext)
-  const { updateFlowResults, isResults } = useContext(FlowResultsContext)
-  const { port } = useContext(WorkspaceContext)
-  const { groupNodeId, changeSubFlow, hasNewConnection } = useContext(FlowFunctionsContext)
   const { updateFlowResults, isResults } = useContext(FlowResultsContext)
   const { port } = useContext(WorkspaceContext)
   const { setError } = useContext(ErrorRequestContext)
@@ -92,16 +80,6 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
       console.log("No config file found for this page, base workflow will be used")
     }
   }, [config])
-
-  // when isResults is changed, we set the progressBar to completed state
-  useEffect(() => {
-    if (isResults) {
-      setProgress({
-        now: 100,
-        currentLabel: "Done!"
-      })
-    }
-  }, [isResults])
 
   // when isResults is changed, we set the progressBar to completed state
   useEffect(() => {
@@ -196,48 +174,7 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
             )
           )
         })
-        let groupNodeId = intersect.targetId.split(".")[1]
-        let groupNodeIdConnections = edges.filter((eds) => eds.target == groupNodeId)
-        groupNodeIdConnections.forEach((groupNodeIdConnection, index2) => {
-          let edgeSource = groupNodeIdConnection.source
-          let edgeTarget = intersect.sourceId
-          setEdges((eds) =>
-            addEdge(
-              {
-                source: edgeSource,
-                sourceHandle: 0 + "_" + edgeSource, // we add 0_ because the sourceHandle always starts with 0_. Handles are created by a for loop so it represents an index
-                target: edgeTarget,
-                targetHandle: 0 + "_" + edgeTarget,
-                id: index + "_" + index2 + edgeSource + "_" + edgeTarget + "_opt",
-                hidden: true
-              },
-              eds
-            )
-          )
-        })
       } else if (intersect.targetId.includes("end")) {
-        let groupNodeId = intersect.targetId.split(".")[1]
-        let groupNodeIdConnections = edges.filter((eds) => eds.source == groupNodeId)
-        groupNodeIdConnections.forEach((groupNodeIdConnection, index2) => {
-          let edgeSource = intersect.sourceId
-          let edgeTarget = groupNodeIdConnection.target
-          setEdges((eds) =>
-            addEdge(
-              {
-                source: edgeSource,
-                sourceHandle: 0 + "_" + edgeSource, // we add 0_ because the sourceHandle always starts with 0_. Handles are created by a for loop so it represents an index
-                target: edgeTarget,
-                targetHandle: 0 + "_" + edgeTarget,
-                id: index + "_" + index2 + edgeSource + "_" + edgeTarget + "_opt",
-                hidden: true
-              },
-              eds
-            )
-          )
-        })
-      }
-    })
-  }, [intersections, hasNewConnection])
         let groupNodeId = intersect.targetId.split(".")[1]
         let groupNodeIdConnections = edges.filter((eds) => eds.source == groupNodeId)
         groupNodeIdConnections.forEach((groupNodeIdConnection, index2) => {
@@ -324,8 +261,6 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
 
     let treeMenuData = {}
     edges.forEach((edge) => {
-      let sourceNode = deepCopy(nodes.find((node) => node.id === edge.source))
-      if (sourceNode.data.setupParam.classes.split(" ").includes("startNode")) {
       let sourceNode = deepCopy(nodes.find((node) => node.id === edge.source))
       if (sourceNode.data.setupParam.classes.split(" ").includes("startNode")) {
         treeMenuData[sourceNode.id] = {
@@ -490,7 +425,6 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
     newNode.data.tooltipBy = "type"
     newNode.data.setupParam = setupParams
     newNode.data.internal.code = ""
-    newNode.className = setupParams.classes
     newNode.className = setupParams.classes
 
     let tempDefaultSettings = {}
@@ -678,7 +612,6 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
           let currentNode = nodes.find((node) => node.id === key)
           let nodeType = currentNode.data.internal.type
           let edgesCopy = deepCopy(edges)
-          if (nodeType == "train_model") {
           if (nodeType == "train_model") {
             edgesCopy = edgesCopy.filter((edge) => edge.target == currentNode.id)
             edgesCopy = edgesCopy.reduce((acc, edge) => {
@@ -932,7 +865,6 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
           <>
             {/* bottom center - progress bar */}
             <div className="panel-bottom-center">
-              <ProgressBarRequests isUpdating={isProgressUpdating} setIsUpdating={setIsProgressUpdating} progress={progress} setProgress={setProgress} requestTopic={"learning/progress/" + pageId} />
               <ProgressBarRequests isUpdating={isProgressUpdating} setIsUpdating={setIsProgressUpdating} progress={progress} setProgress={setProgress} requestTopic={"learning/progress/" + pageId} />
             </div>
           </>
