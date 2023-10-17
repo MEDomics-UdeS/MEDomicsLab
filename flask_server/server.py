@@ -18,3 +18,4 @@ def create_app():
     app.register_blueprint(app_extraction_ts, url_prefix='/extraction_ts')
     app.register_blueprint(app_input, url_prefix='/input')
     return app
+

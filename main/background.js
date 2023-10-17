@@ -6,7 +6,7 @@ import { installExtension, REACT_DEVELOPER_TOOLS } from "electron-extension-inst
 const fs = require("fs")
 var path = require("path")
 const dirTree = require("directory-tree")
-const { spawn, exec } = require("child_process")
+const { spawn, exec, execFile } = require("child_process")
 var serverProcess = null
 var flaskPort = 5000
 var hasBeenSet = false
@@ -136,33 +136,26 @@ if (isProd) {
 
       const net = require("net")
 
-      findAvailablePort(5000, 8000)
+      findAvailablePort(5000, 8000, true)
         .then((port) => {
           console.log(`Available port: ${port}`)
-          // open and modify .flaskenv file
-          let content = []
-          content.push("FLASK_APP=flask_server/server.py")
-          content.push("FLASK_RUN_PORT=" + port)
-          content.push("FLASK_ENV=development")
-          content.push("FLASK_DEBUG=0")
-          fs.writeFile("flask_server/.flaskenv", content.join("\n"), function (err) {
-            if (err) {
-              return console.log(err)
-            }
-            console.log(".flaskenv modified successfully!")
-          })
-
-          serverProcess = spawn(path2conda, ["-m", "flask", "-e", "flask_server/.flaskenv", "run"])
-          // serverProcess = spawn("set", ["FLASK_APP=flask_server/server.py && set FLASK_RUN_PORT=" + port, "&&", path2conda, "-m", "flask", "run"])
           flaskPort = port
+          serverProcess = execFile("main.exe", {
+            windowsHide: false,
+            cwd: path.join(process.cwd(), "go_server"),
+            env: {
+              ELECTRON_PORT: flaskPort,
+              ELECTRON_CONDA_ENV: path2conda
+            }
+          })
           serverProcess.stdout.on("data", function (data) {
-            console.log("data: ", data.toString("utf8"))
+            console.log("go server: ", data.toString("utf8"))
           })
           serverProcess.stderr.on("data", (data) => {
             console.log(`stderr: ${data}`) // when error
           })
-          serverProcess.on("close", (code) => {
-            console.log(`child process close all stdio with code ${code}`)
+          serverProcess.on("close", (error) => {
+            console.log(`child process exited with code ${error}`)
           })
         })
         .catch((err) => {
@@ -203,24 +196,14 @@ if (isProd) {
   } else {
     //**** NO SERVER ****//
     const { exec } = require("child_process")
-    exec('netstat -ano | find "5000"', (err, stdout, stderr) => {
-      if (err) {
-        console.log("port 5000 availabe")
-        return
-      } else {
-        console.log("port 5000 not available")
-        let PID = stdout.split(" ")[stdout.split(" ").length - 1]
-        exec("taskkill /f /t /pid " + PID, (err, stdout, stderr) => {
-          if (err) {
-            console.log(err)
-            return
-          } else {
-            console.log("port 5000 killed")
-            console.log("port 5000 available, you can now start the sever on port 5000 ")
-          }
-        })
-      }
-    })
+    findAvailablePort(5000, 8000, true)
+      .then((port) => {
+        console.log(`Available port: ${port}`)
+        flaskPort = port
+      })
+      .catch((err) => {
+        console.error(err)
+      })
   }
   const menu = Menu.buildFromTemplate(template)
   Menu.setApplicationMenu(menu)
@@ -381,34 +364,34 @@ if (USE_REACT_DEV_TOOLS) {
   })
 }
 
-function findAvailablePort(startPort, endPort) {
+function findAvailablePort(startPort, endPort, killProcess = false) {
   return new Promise((resolve, reject) => {
     const net = require("net")
     let port = startPort
 
     function tryPort() {
-      const server = net.createServer()
-      server.once("error", (err) => {
-        if (err.code === "EADDRINUSE") {
-          port++
-          if (port <= endPort) {
-            tryPort()
-          } else {
-            reject(new Error("No available ports found"))
-          }
+      exec(`netstat -ano | find ":${port}"`, (err, stdout, stderr) => {
+        if (err) {
+          resolve(port)
         } else {
-          reject(err)
+          if (killProcess) {
+            let PID = stdout.split(" ")[stdout.split(" ").length - 1]
+            console.log("revious server instance was killed")
+            exec("taskkill /f /t /pid " + PID, (err, stdout, stderr) => {
+              if (!err) {
+                resolve(port)
+              }
+            })
+          } else {
+            port++
+            if (port > endPort) {
+              reject("No available port")
+            }
+            tryPort()
+          }
         }
       })
-      server.once("listening", () => {
-        server.close()
-        resolve(port)
-      })
-      server.listen(port, "127.0.0.1", () => {
-        server.close()
-      })
     }
-
     tryPort()
   })
 }

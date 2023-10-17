@@ -4,7 +4,7 @@ import Form from "react-bootstrap/Form"
 import { useNodesState, useEdgesState, useReactFlow, addEdge } from "reactflow"
 import WorkflowBase from "../flow/workflowBase"
 import { loadJsonSync } from "../../utilities/fileManagementUtils"
-import { requestJson } from "../../utilities/requests"
+import { requestJson, requestJsonGo, axiosPostJsonGo, fetchGo } from "../../utilities/requests"
 import EditableLabel from "react-simple-editlabel"
 import BtnDiv from "../flow/btnDiv"
 import ProgressBarRequests from "../flow/progressBarRequests"
@@ -27,6 +27,7 @@ import nodesParams from "../../public/setupVariables/allNodesParams"
 // here are static functions used in the workflow
 import { removeDuplicates, deepCopy } from "../../utilities/staticFunctions"
 import { defaultValueFromType } from "../../utilities/learning/inputTypesUtils.js"
+import { Button } from "primereact/button"
 
 const staticNodesParams = nodesParams // represents static nodes parameters
 
@@ -509,10 +510,10 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
         if (isValid) {
           console.log("sended flow", flow)
           console.log("port", port)
-          setIsProgressUpdating(true)
-          requestJson(
+          // setIsProgressUpdating(true)
+          axiosPostJsonGo(
             port,
-            "/learning/run_experiment/" + pageId,
+            "/learning/run_experiment",
             flow,
             (jsonResponse) => {
               console.log("received results:", jsonResponse)
@@ -809,6 +810,50 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
           <>
             {workflowType == "learning" && (
               <>
+                <Button
+                  variant="outline-primary"
+                  label="test"
+                  onClick={() => {
+                    let json2Send = { path: "path/to/config.json" }
+                    // requestJsonGo
+                    // axiosPostJsonGo
+                    // fetchGo
+
+                    axiosPostJsonGo(
+                      8080,
+                      "/learning/test",
+                      JSON.stringify(json2Send),
+                      (jsonResponse) => {
+                        console.log("received results:", jsonResponse)
+                      },
+                      (error) => {
+                        console.log("error", error)
+                      }
+                    )
+                  }}
+                />
+                <Button
+                  variant="outline-primary"
+                  label="test2"
+                  onClick={() => {
+                    let json2Send = { path: "path/to/config2.json", MLType: "classification" }
+                    // requestJsonGo
+                    // axiosPostJsonGo
+                    // fetchGo
+
+                    axiosPostJsonGo(
+                      8080,
+                      "/learning/test",
+                      JSON.stringify(json2Send),
+                      (jsonResponse) => {
+                        console.log("received results:", jsonResponse)
+                      },
+                      (error) => {
+                        console.log("error", error)
+                      }
+                    )
+                  }}
+                />
                 <Form.Select className="margin-left-10" aria-label="Default select example" value={MLType} onChange={handleMlTypeChanged}>
                   <option value="classification">Classification</option>
                   <option value="regression">Regression</option>
