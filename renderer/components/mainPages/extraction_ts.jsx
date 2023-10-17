@@ -2,7 +2,7 @@ import ExtractionTabularData from "../extractionTabular/extractionTabularData"
 import React from "react"
 import ModulePage from "./moduleBasics/modulePage"
 
-const ExtractionTSPage = ({ pageId, configPath = "" }) => {
+const ExtractionTSPage = ({ pageId = "456", configPath = null }) => {
   return (
     <>
       <ModulePage pageId={pageId} configPath={configPath}>

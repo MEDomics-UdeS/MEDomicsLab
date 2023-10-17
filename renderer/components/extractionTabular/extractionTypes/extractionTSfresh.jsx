@@ -15,7 +15,7 @@ import React, { useEffect, useState } from "react"
  * extraction type. It is used to prepare time series extraction using TSfresh library.
  *
  */
-const ExtractionTSfresh = ({ dataframe, setExtractionJsonData, setMayProceed }) => {
+const ExtractionTSfresh = ({ dataframe, setExtractionJsonData, setMayProceed, setAreResultsLarge }) => {
   const [featuresOption, setFeaturesOption] = useState("Minimal")
   const [frequency, setFrequency] = useState("Admission")
   const [hourRange, setHourRange] = useState(24)
@@ -45,6 +45,19 @@ const ExtractionTSfresh = ({ dataframe, setExtractionJsonData, setMayProceed }) 
       [column]: value
     })
   }
+
+  /**
+   * 
+   * @param {event} event
+   * 
+   * @descrition 
+   * Function used to tell if the results are too large to be
+   * displayed, depending on the features options selected.
+   * 
+   */
+  useEffect(() => {
+    setAreResultsLarge(featuresOption !== "Minimal")
+  }, [featuresOption])
 
   /**
    *

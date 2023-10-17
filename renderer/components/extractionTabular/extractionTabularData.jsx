@@ -24,10 +24,12 @@ import { WorkspaceContext } from "../workspace/workspaceContext"
  *
  */
 const ExtractionTabularData = ({ extractionTypeList, serverUrl }) => {
+  const [areResultsLarge, setAreResultsLarge] = useState(false) // if the results are too large we don't display them
   const [csvPath, setCsvPath] = useState("") // csv path of data to extract
   const [csvResultPath, setCsvResultPath] = useState("") // csv path of extracted data
   const [dataframe, setDataframe] = useState([]) // djanfo dataframe of data to extract
   const [datasetList, setDatasetList] = useState([]) // list of available datasets in DATA folder
+  const [displayResults, setDisplayResults] = useState(true) // say if the result data may be displayed
   const [extractionFunction, setExtractionFunction] = useState(extractionTypeList[0] + "_extraction") // name of the function to use for extraction
   const [extractionProgress, setExtractionProgress] = useState(0) // advancement state in the extraction function
   const [extractionStep, setExtractionStep] = useState("") // current step in the extraction function
@@ -151,6 +153,7 @@ const ExtractionTabularData = ({ extractionTypeList, serverUrl }) => {
           MedDataObject.updateWorkspaceDataObject()
           setExtractionProgress(100)
           setIsResultDatasetLoaded(false)
+          setDisplayResults(areResultsLarge == false)
         } else {
           toast.error(`Extraction failed: ${jsonResponse.error.message}`)
           setExtractionStep("")
@@ -247,7 +250,7 @@ const ExtractionTabularData = ({ extractionTypeList, serverUrl }) => {
           </div>
           <div className="margin-top-15">
             {extractionType == "BioBERT" && <ExtractionBioBERT dataframe={dataframe} setExtractionJsonData={setExtractionJsonData} setMayProceed={setMayProceed} />}
-            {extractionType == "TSfresh" && <ExtractionTSfresh dataframe={dataframe} setExtractionJsonData={setExtractionJsonData} setMayProceed={setMayProceed} />}
+            {extractionType == "TSfresh" && <ExtractionTSfresh dataframe={dataframe} setExtractionJsonData={setExtractionJsonData} setMayProceed={setMayProceed} setAreResultsLarge={setAreResultsLarge} />}
           </div>
         </div>
       </div>
@@ -285,10 +288,14 @@ const ExtractionTabularData = ({ extractionTypeList, serverUrl }) => {
           <h2>Extracted data</h2>
           {!resultDataset && <p>Nothing to show, proceed to extraction first.</p>}
         </div>
-        {resultDataset && (
+        {}
+        {resultDataset && displayResults == true && (
           <div>
             <DataTableFromContext MedDataObject={resultDataset} tablePropsData={{ size: "small", paginator: true, rows: 5 }} isDatasetLoaded={isResultDatasetLoaded} setIsDatasetLoaded={setIsResultDatasetLoaded} />
           </div>
+        )}
+        {resultDataset && displayResults == false && (
+          <p>Features saved under ${filename}. The result dataset is too large to be display here. </p>
         )}
       </div>
     </div>
