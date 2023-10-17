@@ -23,7 +23,7 @@ import { WorkspaceContext } from "../workspace/workspaceContext"
  * Its composition depend on the type of extraction choosen.
  *
  */
-const ExtractionTabularData = ({ extractionTypeList, serverUrl }) => {
+const ExtractionTabularData = ({ extractionTypeList, serverUrl, defaultFilename }) => {
   const [areResultsLarge, setAreResultsLarge] = useState(false) // if the results are too large we don't display them
   const [csvPath, setCsvPath] = useState("") // csv path of data to extract
   const [csvResultPath, setCsvResultPath] = useState("") // csv path of extracted data
@@ -35,7 +35,7 @@ const ExtractionTabularData = ({ extractionTypeList, serverUrl }) => {
   const [extractionStep, setExtractionStep] = useState("") // current step in the extraction function
   const [extractionJsonData, setExtractionJsonData] = useState({}) // json data depending on extractionType
   const [extractionType, setExtractionType] = useState(extractionTypeList[0]) // extraction type
-  const [filename, setFilename] = useState("tmp_extracted_features.csv") // name of the csv file containing extracted data
+  const [filename, setFilename] = useState(defaultFilename) // name of the csv file containing extracted data
   const [isDatasetLoaded, setIsDatasetLoaded] = useState(false) // boolean set to false every time we reload a dataset for data to extract
   const [isResultDatasetLoaded, setIsResultDatasetLoaded] = useState(false) // boolean set to false every time we reload an extracted data dataset
   const [mayProceed, setMayProceed] = useState(false) // boolean set to true if all informations about the extraction (depending on extractionType) have been completed
