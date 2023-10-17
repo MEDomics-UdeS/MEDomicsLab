@@ -8,13 +8,10 @@ from learning.MEDml.logger.MEDml_logger_pycaret import MEDml_logger
 import json
 from learning.MEDml.nodes.NodeObj import *
 from learning.MEDml.nodes import *
-from typing import Any, Dict, List, Union
 from typing import Union
 from pathlib import Path
 from utils.server_utils import get_repo_path
 from abc import ABC, abstractmethod
-
-from learning.MEDml.CodeHandler import convert_dict_to_params
 
 DATAFRAME_LIKE = Union[dict, list, tuple, np.ndarray, pd.DataFrame]
 TARGET_LIKE = Union[int, str, list, tuple, np.ndarray, pd.Series]
@@ -27,7 +24,6 @@ def is_primitive(obj):
     """
     primitive_types = (int, float, bool, str, bytes, type(
         None), dict, list, tuple, np.ndarray, pd.DataFrame, pd.Series)
-    # print(type(obj).__name__, isinstance(obj, primitive_types))
     if isinstance(obj, primitive_types):
         # Check if the object is one of the primitive types
         return True
@@ -95,11 +91,6 @@ class MEDexperiment(ABC):
         self.global_json_config['unique_id'] = 0
         self._nb_nodes = global_json_config['nbNodes2Run']
         self._nb_nodes_done: float = 0.0
-        self._progress = {
-            'currentLabel': 'Updating pipeline\'s informations', 'now': 0.0}
-        print("Experiment already exists. Updating experiment...")
-        self.pipelines_objects = self.create_next_nodes(
-            self.pipelines, self.pipelines_objects)
         self._progress = {
             'currentLabel': 'Updating pipeline\'s informations', 'now': 0.0}
         print("Experiment already exists. Updating experiment...")
@@ -260,9 +251,6 @@ class MEDexperiment(ABC):
                 experiment = self.copy_experiment(experiment)
                 node = node_info['obj']
                 self._progress['currentLabel'] = node.username
-
-                self._progress['currentLabel'] = node.username
-
                 if not node.has_run() or prev_node.has_changed():
                     node_info['results'] = {
                         'prev_node_id': prev_node.id,
