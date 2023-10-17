@@ -1,5 +1,5 @@
 import React, { useContext, useRef, useState, useEffect } from "react"
-import { Trash, BoxArrowUpRight, Eraser, FolderPlus } from "react-bootstrap-icons"
+import { Trash, BoxArrowUpRight, Eraser, FolderPlus, ArrowClockwise } from "react-bootstrap-icons"
 import { Accordion, Stack } from "react-bootstrap"
 import { ControlledTreeEnvironment, Tree } from "react-complex-tree"
 import { DataContext } from "../../workspace/dataContext"
@@ -8,6 +8,8 @@ import { toast } from "react-toastify"
 import { LayoutModelContext } from "../layoutContext"
 import { useContextMenu, Menu, Item, Submenu } from "react-contexify"
 import renderItem from "./directoryTree/renderItem"
+import { Tooltip } from "primereact/tooltip"
+
 /**
  * @description - This component is the sidebar tools component that will be used in the sidebar component
  * @param {Object} props - Props passed from parent component
@@ -521,10 +523,15 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
     }
   }, [globalData])
 
+  const delayOptions = { showDelay: 750, hideDelay: 0 }
+
   return (
     <>
+      <Tooltip className="tooltip-small" target=".add-folder-icon" {...delayOptions} />
+      <Tooltip className="tooltip-small" target=".refresh-icon" {...delayOptions} />
+
       <Accordion.Item eventKey="dirTree">
-        <Accordion.Header>
+        <Accordion.Header onClick={() => MedDataObject.updateWorkspaceDataObject()}>
           <Stack direction="horizontal" style={{ flexGrow: "1" }}>
             <p>
               <strong>OPEN EDITORS</strong>
@@ -541,7 +548,16 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
                       createFolder(selectedItems)
                     }}
                   >
-                    <FolderPlus size={"1rem"} className="context-menu-icon" />
+                    <FolderPlus size={"1rem"} className="context-menu-icon add-folder-icon" data-pr-at="right bottom" data-pr-tooltip="New Folder" data-pr-my="left top" />
+                  </a>
+                  <a
+                    onClick={(e) => {
+                      e.preventDefault()
+                      e.stopPropagation()
+                      MedDataObject.updateWorkspaceDataObject()
+                    }}
+                  >
+                    <ArrowClockwise size={"1rem"} className="context-menu-icon refresh-icon" data-pr-at="right bottom" data-pr-tooltip="Refresh" data-pr-my="left top" />
                   </a>
                 </>
               ) /* We display the add folder icon only if the mouse is hovering the directory tree and if the accordion is not collapsed*/

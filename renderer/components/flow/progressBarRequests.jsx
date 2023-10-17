@@ -1,42 +1,52 @@
-import React, { useState, useContext } from "react"
+import React, { useContext } from "react"
 import ProgressBar from "react-bootstrap/ProgressBar"
 import useInterval from "@khalidalansi/use-interval"
 import { requestJson } from "../../utilities/requests"
 import { WorkspaceContext } from "../workspace/workspaceContext"
-import { PageInfosContext } from "../mainPages/moduleBasics/pageInfosContext"
+import { toast } from "react-toastify"
 
 /**
- * 
- * @param {boolean} isUpdating is the progress bar updating
- * @param {function} setIsUpdating set the updating state 
+ *
+ * @param {boolean} isUpdating is the progress bar updating *set to true to start requesting the progress
+ * @param {function} setIsUpdating set the updating state
+ * @param {object} progress the progress object : {now: number, currentName: string} *currentName can be ignored when withLabel is false
+ * @param {function} setProgress set the progress object
+ * @param {string} requestTopic the topic to request the progress from
+ * @param {string} variant the variant of the progress bar
+ * @param {boolean} withLabel should the progress bar have a label to follow the progress
+ * @param {number} delayMS the delay in ms between each request
  * @returns a progress bar that shows the progress of the current flow
  */
-const ProgressBarRequests = ({ isUpdating, setIsUpdating }) => {
-  const { pageId } = useContext(PageInfosContext) // used to get the flow infos
-  const [progress, setProgress] = useState({
-    now: 0,
-    currentName: ""
-  })
+const ProgressBarRequests = ({ isUpdating, setIsUpdating, progress, setProgress, requestTopic, variant = "success", withLabel = true, delayMS = 400 }) => {
   const { port } = useContext(WorkspaceContext) // used to get the port
 
   useInterval(
     () => {
       requestJson(
         port,
-        "/learning/progress/" + pageId,
+        requestTopic,
         // eslint-disable-next-line camelcase
-        { scene_id: pageId },
+        {},
         (data) => {
-          setProgress({
-            now: data.progress,
-            currentName: data.cur_node
-          })
-          if (data.progress === 100) {
-            setIsUpdating(false)
+          if ("now" in data) {
             setProgress({
-              now: data.progress,
-              currentName: "Done!"
+              now: data.now,
+              currentLabel: data.currentLabel && data.currentLabel
             })
+            if (data.now == 100) {
+              setIsUpdating(false)
+              setProgress({
+                now: data.now,
+                currentLabel: "Done!"
+              })
+            }
+          } else {
+            toast.error("No 'now' key in the response")
+            setProgress({
+              now: 0,
+              currentLabel: ""
+            })
+            setIsUpdating(false)
           }
         },
         (error) => {
@@ -45,13 +55,13 @@ const ProgressBarRequests = ({ isUpdating, setIsUpdating }) => {
         }
       )
     },
-    isUpdating ? 400 : null
+    isUpdating ? delayMS : null
   )
 
   return (
     <>
-      <label>{progress.currentName || ""}</label>
-      <ProgressBar variant="success" animated now={progress.now} label={`${progress.now}%`} />
+      {withLabel && <label>{progress.currentLabel || ""}</label>}
+      <ProgressBar variant={variant} animated now={progress.now} label={`${progress.now}%`} />
     </>
   )
 }

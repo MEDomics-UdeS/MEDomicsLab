@@ -1,78 +1,149 @@
 :root {
   --not-run-color: #ff9700b0;
   --size-top-panel: 2.5rem;
+  --num-controls-btn: 6;
 }
 
 .minimapStyle {
   height: 120;
 }
 
-.draggable-side-node {
+.draggable-component {
   cursor: grab;
+  padding: 0.3rem;
 }
 
-.draggable-side-node:hover {
-  box-shadow: 0 0 0.3rem #000000;
-  z-index: 999;
+.draggable-side-node {
+  height: 3rem;
+  cursor: grab;
+  display: flex;
 }
 
-.header {
+.draggable-side-node .icon-nodes {
+  width: 1.8rem;
+  height: 1.8rem;
+}
+
+.draggable-side-node .header {
   display: flex;
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
-  padding: 8px;
-  min-height: 30px;
+  padding: 0.75rem;
+  width: 100%;
 }
 
-.btn-close {
-  position: absolute;
-  top: 5px;
-  right: 5px;
-  width: 15px;
-  height: 15px;
+.draggable-side-node.p-card {
+  background: #f3f3f3;
+  color: #495057;
+  box-shadow:
+    2px 2px 3px -1px rgb(0 0 0 / 20%),
+    0 1px 1px 0 rgb(0 0 0 / 14%),
+    0px 0px 3px 2px rgb(0 0 0 / 12%);
+  border-radius: 6px;
+  outline: 0.1rem solid #00000015;
+}
+
+.draggable-side-node.p-card:hover {
+  box-shadow:
+    3px 3px 5px -1px rgb(0 0 0 / 40%),
+    0 1px 1px 0 rgb(0 0 0 / 14%),
+    0px 0px 3px 2px rgb(0 0 0 / 24%);
+}
+
+.btn-node-div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  justify-content: space-between;
+}
+
+.btn-close-node {
+  width: 1.2rem;
+  height: 1.2rem;
   cursor: pointer;
   padding: 0px;
+  opacity: 0.75;
 }
 
-.btn-runNode {
-  position: absolute;
-  top: 23px;
-  right: 5px;
-  width: 15px;
-  height: 15px;
+.btn-close-node:hover {
+  border-radius: 25%;
+  background-color: rgba(255, 0, 0, 0.25);
+  color: red;
+}
+
+.btn-run-node {
+  width: 1.2rem;
+  height: 1.2rem;
   cursor: pointer;
   padding: 0px;
-  border-radius: 3px;
+  opacity: 0.75;
 }
 
-.btn-runNode img {
+.btn-run-node:hover {
+  border-radius: 25%;
+  background-color: rgba(0, 128, 0, 0.25);
+  color: green;
+}
+
+.btn-info-node {
+  width: 1.3rem;
+  height: 1.3rem;
   cursor: pointer;
-  vertical-align: baseline;
-  margin: 0px 0px 5px 1px;
+  padding: 0px;
+  opacity: 0.75;
 }
 
-.btn-close:hover {
-  fill: rgba(0, 0, 0, 0.5);
-}
-
-.btn-close:focus {
-  outline: 0;
+.btn-info-node:hover {
+  background-color: #00000000;
+  color: blue;
 }
 
 .node {
   background: #f5f5f6;
   color: #222;
-  box-shadow:
-    0 4px 6px -1px rgb(0 0 0 / 15%),
-    0 2px 4px -1px rgb(0 0 0 / 8%);
   border-radius: 2px;
   min-width: 200px;
+}
+
+.node .p-card-header {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.2rem 0.2rem 0.2rem 0.5rem;
+  min-height: 3rem;
+}
+
+.node .p-card {
+  background: #f3f3f3;
+  color: #495057;
+  box-shadow:
+    5px 5px 6px -1px rgb(0 0 0 / 20%),
+    0 1px 1px 0 rgb(0 0 0 / 14%),
+    0px 0px 3px 2px rgb(0 0 0 / 12%);
+  border-radius: 6px;
+  outline: 0.1rem solid #00000015;
+}
+
+.react-flow__node:hover .node .p-card {
+  box-shadow:
+    5px 5px 6px -1px rgb(0 0 0 / 40%),
+    0 1px 1px 0 rgb(0 0 0 / 14%),
+    0px 0px 3px 2px rgb(0 0 0 / 24%);
+}
+
+.node .p-card-body {
+  padding: 0.2rem;
+}
+
+.node .p-card-content {
+  padding: 0.2rem;
 }
 
 .node .icon-nodes {
   margin-right: 10px;
   float: left;
+  width: 1.8rem;
+  height: 1.8rem;
 }
 
 .react-flow {
@@ -94,6 +165,7 @@
   height: 10px;
   background-color: #262626;
   margin: 0px -3px;
+  z-index: -1;
 }
 
 .react-flow__handle-valid {
@@ -102,6 +174,7 @@
 
 .react-flow__node {
   height: fit-content;
+  cursor: grab;
 }
 
 .cursor-grab {
@@ -132,23 +205,33 @@
   top: 42px;
 }
 
-.available-nodes-panel {
+.available-nodes-panel-container {
   width: 100%;
   z-index: 2;
   height: 100%;
-  min-width: 210px;
   gap: 0.5rem !important;
   display: flex;
   flex-direction: column;
+  padding: 0.25rem;
+  overflow-y: auto;
+  min-width: 230px;
 }
 
-.available-nodes-panel .col {
-  text-align: left;
-  padding: 0px;
+.available-nodes-panel {
+  box-shadow:
+    2px 2px 3px -1px rgb(0 0 0 / 20%),
+    0 1px 1px 0 rgb(0 0 0 / 14%),
+    0px 0px 3px 2px rgb(0 0 0 / 12%);
+  border-radius: 0.5rem;
 }
 
-.available-nodes-panel .card-body {
+.available-nodes-panel .p-card-body {
   padding: 0.5rem;
+  background-color: #0000000d;
+}
+
+.available-nodes-panel .p-card-body .p-card-content {
+  padding: 0;
 }
 
 .closeBtn.btn:hover {
@@ -183,9 +266,9 @@
 .flow-btn-panel-top {
   position: absolute;
   top: 0.5rem;
-  /* left: 0rem; */
   z-index: 10;
   height: 2.2rem;
+  width: 100%;
 }
 
 .flow-btn-panel-top button:hover {
@@ -202,7 +285,7 @@
 }
 
 .flow-btn-panel-top .left {
-  margin-left: 5px;
+  margin-left: -5px;
   gap: 0.5rem !important;
   display: flex;
   height: var(--size-top-panel);
@@ -245,17 +328,34 @@
   margin-left: 5px;
 }
 
+.flow-btn-panel-left-vertical {
+  position: absolute;
+  left: 1.75rem;
+  bottom: calc(1rem + calc(var(--num-controls-btn)+2) * 1.5rem);
+  cursor: pointer;
+  z-index: 10;
+  translate: -50% 0;
+}
+
+.flow-btn-panel-left-vertical .p-button {
+  background-color: #ff000073;
+  width: 2rem;
+  height: 2rem !important;
+}
+
 .btn-ctl-available-nodes.p-button {
   width: var(--size-top-panel) !important;
   padding: 0;
   border-radius: 15% 50% 50% 15%;
-  background: #ef4444 !important;
+  /* background: #ef4444 !important; */
   border-color: #dc2626 !important;
+  background-color: #ff000073;
   /* smooth color transition */
   transition:
     background-color 0.35s ease-in-out,
     box-shadow 0.35s ease-in-out,
     border-radius 0.6s ease-in-out !important;
+  box-shadow: inset 0px 0 5px 1px #00000033 !important;
 }
 .btn-ctl-available-nodes span {
   color: #ffffff !important;
@@ -264,12 +364,19 @@
 .btn-ctl-available-nodes:hover {
   background: #dc2626 !important;
   border-color: #dc2626 !important;
+  box-shadow: none !important;
 }
 
 .p-highlight.btn-ctl-available-nodes.p-button {
+  background-color: rgba(99, 102, 241, 0.3) !important;
+  border-color: rgba(99, 102, 241, 0.5) !important;
+  border-radius: 50%;
+}
+
+.p-highlight.btn-ctl-available-nodes.p-button:hover {
   background-color: #6366f1 !important;
   border-color: #6366f1 !important;
-  border-radius: 50%;
+  color: white;
 }
 
 .btn-ctl-available-nodes.p-button:focus {
@@ -307,7 +414,7 @@
   color: #5050509c;
   padding: 0rem 0.25rem 0rem 0.25rem;
   font-weight: 700;
-  border-radius: 0.75rem 0.75rem 0rem 0rem;
+  border-radius: 0.4rem 0.4rem 0rem 0rem;
 }
 
 .node-editableLabel {
@@ -335,18 +442,27 @@ input.node-editableLabel {
 }
 
 .options-overlayPanel {
-  min-width: 10rem;
+  min-width: 30ch;
+  max-width: 40ch;
 }
 
 .options-overlayPanel .header {
   display: flex;
-  justify-content: flex-start;
+  justify-content: space-between;
   align-items: center;
   flex-direction: row;
   flex-wrap: nowrap;
   gap: 0.3rem;
   padding: 0.2rem;
   min-height: 1rem;
+}
+
+.options-overlayPanel .header .editable-node-name {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  flex-direction: row;
+  gap: 0.3rem;
 }
 
 .p-overlaypanel .p-overlaypanel-content {
@@ -395,10 +511,6 @@ input.node-editableLabel {
   height: 10px;
   translate: -4px -4px;
   z-index: 0;
-}
-
-.card-body {
-  padding: 0.2rem;
 }
 
 #data-panel-id-sidebar {
@@ -455,6 +567,7 @@ input.node-editableLabel {
   align-items: center;
   outline: 0.1rem solid lightblue;
   background-color: rgba(173, 216, 230, 0.5);
+  z-index: -1;
 }
 
 .node-wrapper-selector.context-checked {
@@ -489,4 +602,16 @@ path {
 .pipe-name-notRun {
   color: var(--not-run-color);
   font-weight: 450 !important;
+}
+
+.main-scene-panel {
+  padding: 0.25rem;
+}
+
+.main-scene-panel > div {
+  box-shadow:
+    2px 2px 3px -1px rgb(0 0 0 / 20%),
+    0 1px 1px 0 rgb(0 0 0 / 14%),
+    0px 0px 3px 2px rgb(0 0 0 / 12%);
+  border-radius: 0.5rem;
 }

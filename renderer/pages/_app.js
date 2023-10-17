@@ -9,6 +9,7 @@ import { ipcRenderer } from "electron"
 import { DataContextProvider } from "../components/workspace/dataContext"
 import MedDataObject from "../components/workspace/medDataObject"
 import { ActionContextProvider } from "../components/layout/actionContext"
+import { HotkeysProvider } from "@blueprintjs/core"
 
 // CSS
 import "bootstrap/dist/css/bootstrap.min.css"
@@ -22,22 +23,28 @@ import "primereact/resources/primereact.min.css"
 import "primereact/resources/themes/lara-light-indigo/theme.css"
 import "primeicons/primeicons.css"
 
+// blueprintjs
+import "@blueprintjs/core/lib/css/blueprint.css"
+import "@blueprintjs/table/lib/css/table.css"
+
+import "react-complex-tree/lib/style-modern.css"
+import "react-contexify/dist/ReactContexify.css"
+import "flexlayout-react/style/light.css"
+
 // --my styles (priority over bootstrap and other dist styles)
 import "../styles/flow/reactFlow.css"
 import "../styles/globals.css"
 import "../styles/learning/learning.css"
 import "../styles/extraction/extraction.css"
 import "../styles/extraction/extraction_ts.css"
-import "flexlayout-react/style/light.css"
 import "../styles/workspaceSidebar.css"
 import "../styles/iconSidebar.css"
-import "react-contexify/dist/ReactContexify.css"
 import "../styles/learning/sidebar.css"
 import "../styles/flow/results.css"
-import "react-complex-tree/lib/style-modern.css"
 import "../styles/sidebarTree.css"
 import "../styles/customPrimeReact.css"
 import "../styles/imageContainer.css"
+import "../styles/datatableWrapper.css"
 
 /**
  * This is the main app component. It is the root component of the app.
@@ -176,20 +183,11 @@ function App() {
    * @description This function is used to recursively recense the directory tree and add the files and folders to the global data object
    * It is called when the working directory is set
    */
-  function recursivelyRecenseTheDirectory(
-    children,
-    parentID,
-    newGlobalData,
-    acceptedFileTypes = undefined
-  ) {
+  function recursivelyRecenseTheDirectory(children, parentID, newGlobalData, acceptedFileTypes = undefined) {
     let childrenIDsToReturn = []
 
     children.forEach((child) => {
-      let uuid = MedDataObject.checkIfMedDataObjectInContextbyName(
-        child.name,
-        newGlobalData,
-        parentID
-      )
+      let uuid = MedDataObject.checkIfMedDataObjectInContextbyName(child.name, newGlobalData, parentID)
       let objectType = "folder"
       let objectUUID = uuid
       let childrenIDs = []
@@ -202,10 +200,7 @@ function App() {
         })
 
         objectUUID = dataObject.getUUID()
-        let acceptedFiles = MedDataObject.setAcceptedFileTypes(
-          dataObject,
-          acceptedFileTypes
-        )
+        let acceptedFiles = MedDataObject.setAcceptedFileTypes(dataObject, acceptedFileTypes)
         dataObject.setAcceptedFileTypes(acceptedFiles)
         if (child.children === undefined) {
           console.log("File:", child)
@@ -215,12 +210,7 @@ function App() {
           console.log("Empty folder:", child)
         } else {
           console.log("Folder:", child)
-          let answer = recursivelyRecenseTheDirectory(
-            child.children,
-            objectUUID,
-            newGlobalData,
-            acceptedFiles
-          )
+          let answer = recursivelyRecenseTheDirectory(child.children, objectUUID, newGlobalData, acceptedFiles)
           childrenIDs = answer.childrenIDsToReturn
         }
         dataObject.setType(objectType)
@@ -231,12 +221,7 @@ function App() {
         let dataObject = newGlobalData[uuid]
         let acceptedFiles = dataObject.acceptedFileTypes
         if (child.children !== undefined) {
-          let answer = recursivelyRecenseTheDirectory(
-            child.children,
-            uuid,
-            newGlobalData,
-            acceptedFiles
-          )
+          let answer = recursivelyRecenseTheDirectory(child.children, uuid, newGlobalData, acceptedFiles)
           childrenIDs = answer.childrenIDsToReturn
           newGlobalData[objectUUID]["childrenIDs"] = childrenIDs
           newGlobalData[objectUUID]["parentID"] = parentID
@@ -260,11 +245,7 @@ function App() {
       let rootName = workspaceObject.workingDirectory.name
       let rootPath = workspaceObject.workingDirectory.path
       let rootType = "folder"
-      let rootChildrenIDs = recursivelyRecenseTheDirectory(
-        rootChildren,
-        rootParentID,
-        newGlobalData
-      ).childrenIDsToReturn
+      let rootChildrenIDs = recursivelyRecenseTheDirectory(rootChildren, rootParentID, newGlobalData).childrenIDsToReturn
 
       let rootDataObject = new MedDataObject({
         originalName: rootName,
@@ -290,11 +271,16 @@ function App() {
     console.log("globalData changed", globalData)
   }, [globalData])
 
+  // This useEffect hook is called whenever the `layoutModel` state changes.
   useEffect(() => {
     // Log a message to the console whenever the layoutModel state variable changes
     console.log("layoutModel changed", layoutModel)
   }, [layoutModel]) // Here, we specify that the hook should only be called when the layoutModel state variable changes
 
+  // This useEffect hook is called at the beginning of the app to clear the localStorage
+  useEffect(() => {
+    localStorage.clear()
+  }, [])
   return (
     <>
       <Head>
@@ -304,29 +290,23 @@ function App() {
         {/* Uncomment if you want to use React Dev tools */}
       </Head>
       <div style={{ height: "100%", width: "100%" }}>
-        <ActionContextProvider>
-          <DataContextProvider
-            globalData={globalData}
-            setGlobalData={setGlobalData}
-          >
-            <WorkspaceProvider
-              workspace={workspaceObject}
-              setWorkspace={setWorkspaceObject}
-              port={port}
-              setPort={setPort}
-            >
-              <LayoutModelProvider // This is the LayoutContextProvider, which provides the layout model to all the children components of the LayoutManager
-                layoutModel={layoutModel}
-                setLayoutModel={setLayoutModel}
-              >
-                {/* This is the WorkspaceProvider, which provides the workspace model to all the children components of the LayoutManager */}
-                {/* This is the LayoutContextProvider, which provides the layout model to all the children components of the LayoutManager */}
-                <LayoutManager layout={initialLayout} />
-                {/** We pass the initialLayout as a parameter */}
-              </LayoutModelProvider>
-            </WorkspaceProvider>
-          </DataContextProvider>
-        </ActionContextProvider>
+        <HotkeysProvider>
+          <ActionContextProvider>
+            <DataContextProvider globalData={globalData} setGlobalData={setGlobalData}>
+              <WorkspaceProvider workspace={workspaceObject} setWorkspace={setWorkspaceObject} port={port} setPort={setPort}>
+                <LayoutModelProvider // This is the LayoutContextProvider, which provides the layout model to all the children components of the LayoutManager
+                  layoutModel={layoutModel}
+                  setLayoutModel={setLayoutModel}
+                >
+                  {/* This is the WorkspaceProvider, which provides the workspace model to all the children components of the LayoutManager */}
+                  {/* This is the LayoutContextProvider, which provides the layout model to all the children components of the LayoutManager */}
+                  <LayoutManager layout={initialLayout} />
+                  {/** We pass the initialLayout as a parameter */}
+                </LayoutModelProvider>
+              </WorkspaceProvider>
+            </DataContextProvider>
+          </ActionContextProvider>
+        </HotkeysProvider>
         <ToastContainer // This is the ToastContainer, which is used to display toast notifications
           position="bottom-right"
           autoClose={2000}

@@ -23,7 +23,7 @@ const IconSidebar = ({ onSidebarItemSelect }) => {
   const { dispatchLayout, developerMode, setDeveloperMode } = useContext(LayoutModelContext)
   const [activeKey, setActiveKey] = useState("home") // activeKey is the name of the page
   const [disabledIcon, setDisabledIcon] = useState("disabled") // disabled is the state of the page
-  const [developerModeNav, setDeveloperModeNav] = useState(false)
+  const [developerModeNav, setDeveloperModeNav] = useState(true)
   const [extractionBtnstate, setExtractionBtnstate] = useState(false)
   const [buttonClass, setButtonClass] = useState("")
 
@@ -49,7 +49,8 @@ const IconSidebar = ({ onSidebarItemSelect }) => {
    * @param {string} name
    */
   function handleRightClick(event, name) {
-    console.log(`right clicked ${name}`, event)
+    event.stopPropagation()
+    console.log(`right clicked ${name}`, event, `open${name}Module`)
     dispatchLayout({ type: `open${name}Module`, payload: { pageId: name } })
   }
 
@@ -170,7 +171,7 @@ const IconSidebar = ({ onSidebarItemSelect }) => {
                       handleClick(event, "extraction_images")
                       setExtractionBtnstate(!extractionBtnstate)
                     }}
-                    onAuxClick={(event) => handleRightClick(event, "extraction_images")}
+                    onAuxClick={(event) => handleRightClick(event, "ExtractionImage")}
                   />
                   <Button
                     className="ext-text-btn"
@@ -186,7 +187,7 @@ const IconSidebar = ({ onSidebarItemSelect }) => {
                       handleClick(event, "extraction_text")
                       setExtractionBtnstate(!extractionBtnstate)
                     }}
-                    onAuxClick={(event) => handleRightClick(event, "extraction_text")}
+                    onAuxClick={(event) => handleRightClick(event, "ExtractionText")}
                   />
                   <Button
                     className="ext-ts-btn"
@@ -202,7 +203,7 @@ const IconSidebar = ({ onSidebarItemSelect }) => {
                       handleClick(event, "extraction_ts")
                       setExtractionBtnstate(!extractionBtnstate)
                     }}
-                    onAuxClick={(event) => handleRightClick(event, "extraction_ts")}
+                    onAuxClick={(event) => handleRightClick(event, "ExtractionTS")}
                   />
                 </div>
               </Nav.Link>

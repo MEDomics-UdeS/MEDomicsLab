@@ -1,4 +1,4 @@
-import { app, ipcMain, Menu, dialog } from "electron"
+import { app, ipcMain, Menu, dialog, BrowserWindow } from "electron"
 import axios from "axios"
 import serve from "electron-serve"
 import { createWindow } from "./helpers"
@@ -15,6 +15,8 @@ const USE_REACT_DEV_TOOLS = false
 
 const isProd = process.env.NODE_ENV === "production"
 
+let splashScreen // The splash screen is the window that is displayed while the application is loading
+
 if (isProd) {
   serve({ directory: "app" })
 } else {
@@ -23,11 +25,24 @@ if (isProd) {
 
 ;(async () => {
   await app.whenReady()
+  splashScreen = new BrowserWindow({
+    icon: path.join(__dirname, "../resources/MEDomicsLabWithShadowNoText100.png"),
+    width: 700,
+    height: 700,
+    transparent: true,
+    frame: false,
+    alwaysOnTop: true,
+    center: true
+  })
 
   const mainWindow = createWindow("main", {
     width: 1500,
-    height: 1000
+    height: 1000,
+    show: false
   })
+
+  splashScreen.loadURL(path.join(__dirname, "../main/splash.html"))
+  splashScreen.show()
 
   const template = [
     {
@@ -120,38 +135,6 @@ if (isProd) {
 
       const net = require("net")
 
-      function findAvailablePort(startPort, endPort) {
-        return new Promise((resolve, reject) => {
-          const net = require("net")
-          let port = startPort
-
-          function tryPort() {
-            const server = net.createServer()
-            server.once("error", (err) => {
-              if (err.code === "EADDRINUSE") {
-                port++
-                if (port <= endPort) {
-                  tryPort()
-                } else {
-                  reject(new Error("No available ports found"))
-                }
-              } else {
-                reject(err)
-              }
-            })
-            server.once("listening", () => {
-              server.close()
-              resolve(port)
-            })
-            server.listen(port, "127.0.0.1", () => {
-              server.close()
-            })
-          }
-
-          tryPort()
-        })
-      }
-
       findAvailablePort(5000, 8000)
         .then((port) => {
           console.log(`Available port: ${port}`)
@@ -202,6 +185,27 @@ if (isProd) {
         console.log(`stderr: ${stderr}`)
       })
     }
+  } else {
+    //**** NO SERVER ****//
+    const { exec } = require("child_process")
+    exec('netstat -ano | find "5000"', (err, stdout, stderr) => {
+      if (err) {
+        console.log("port 5000 availabe")
+        return
+      } else {
+        console.log("port 5000 not available")
+        let PID = stdout.split(" ")[stdout.split(" ").length - 1]
+        exec("taskkill /f /t /pid " + PID, (err, stdout, stderr) => {
+          if (err) {
+            console.log(err)
+            return
+          } else {
+            console.log("port 5000 killed")
+            console.log("port 5000 available, you can now start the sever on port 5000 ")
+          }
+        })
+      }
+    })
   }
   const menu = Menu.buildFromTemplate(template)
   Menu.setApplicationMenu(menu)
@@ -247,6 +251,9 @@ if (isProd) {
     await mainWindow.loadURL(`http://localhost:${port}/`)
     mainWindow.webContents.openDevTools()
   }
+
+  splashScreen.destroy()
+  mainWindow.maximize()
   mainWindow.show()
 })()
 
@@ -356,5 +363,37 @@ if (USE_REACT_DEV_TOOLS) {
         allowFileAccess: true
       }
     })
+  })
+}
+
+function findAvailablePort(startPort, endPort) {
+  return new Promise((resolve, reject) => {
+    const net = require("net")
+    let port = startPort
+
+    function tryPort() {
+      const server = net.createServer()
+      server.once("error", (err) => {
+        if (err.code === "EADDRINUSE") {
+          port++
+          if (port <= endPort) {
+            tryPort()
+          } else {
+            reject(new Error("No available ports found"))
+          }
+        } else {
+          reject(err)
+        }
+      })
+      server.once("listening", () => {
+        server.close()
+        resolve(port)
+      })
+      server.listen(port, "127.0.0.1", () => {
+        server.close()
+      })
+    }
+
+    tryPort()
   })
 }

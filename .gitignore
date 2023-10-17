@@ -144,8 +144,8 @@ dmypy.json
 
 # custom gitignore
 /flaskProject/static/tmp
-/flask_server/.idea
-/learning-tests-scene
+*.idea
+/learning-tests-scene*
 flask_server/extraction/MEDimageApp/tmp/*
 /flask_server/local_dir/*
 path2condaenv_toDeleteInProd.txt

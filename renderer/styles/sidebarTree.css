@@ -92,6 +92,29 @@
   align-self: center;
 }
 
+.context-menu-icon:hover {
+  box-shadow: 0 0 0.25rem 0.1rem #0000007c !important;
+}
+
+.context-menu-icon:active {
+  background-color: #0000007c !important;
+}
+
+.tooltip-small > .p-tooltip-text {
+  padding: 0.25rem !important;
+  margin-right: 0rem;
+  align-self: center;
+  font-size: smaller;
+  background-color: #222222;
+  border-radius: 3px;
+}
+
+.tooltip-small > .p-tooltip-arrow {
+  /* border: 0.25rem solid #f20b0b !important; */
+  background-color: #222222 !important;
+  border-right-color: #222222 !important;
+}
+
 .contexify_menu > .contexify_item > .contexify_itemContent {
   padding-top: 0.15rem !important;
   padding-bottom: 0.15rem !important;
@@ -204,9 +227,12 @@
 .rct-tree-item-title-container div {
   display: flex;
   align-items: center;
+  text-overflow: ellipsis;
+  width: max-content;
+  overflow-x: hidden;
 }
 
-.rct-tree-item-title-container label {
+.rct-tree-item-title-container .label {
   cursor: pointer;
 }
 
