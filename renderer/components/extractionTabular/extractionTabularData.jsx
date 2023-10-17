@@ -201,12 +201,12 @@ const ExtractionTabularData = ({ extractionTypeList, serverUrl }) => {
 
   // Called when isDatasetLoaded change, in order to update csvPath and dataframe.
   useEffect(() => {
-    if (isResultDatasetLoaded == true) {
+    if (isResultDatasetLoaded == true || displayResults == false) {
       setShowProgressBar(false)
       setExtractionProgress(0)
       setExtractionStep("")
     }
-  }, [isResultDatasetLoaded])
+  }, [isResultDatasetLoaded, displayResults])
 
   return (
     <div className="overflow-y-auto width-100">
@@ -288,14 +288,13 @@ const ExtractionTabularData = ({ extractionTypeList, serverUrl }) => {
           <h2>Extracted data</h2>
           {!resultDataset && <p>Nothing to show, proceed to extraction first.</p>}
         </div>
-        {}
         {resultDataset && displayResults == true && (
           <div>
             <DataTableFromContext MedDataObject={resultDataset} tablePropsData={{ size: "small", paginator: true, rows: 5 }} isDatasetLoaded={isResultDatasetLoaded} setIsDatasetLoaded={setIsResultDatasetLoaded} />
           </div>
         )}
         {resultDataset && displayResults == false && (
-          <p>Features saved under ${filename}. The result dataset is too large to be display here. </p>
+          <p>Features saved under {filename}. The result dataset is too large to be display here. </p>
         )}
       </div>
     </div>

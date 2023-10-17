@@ -122,7 +122,7 @@ def get_biobert_embeddings_from_event_list(event_list, event_weights):
 
 def generate_biobert_notes_embeddings(dataframe, frequency, column_id, column_weight, column_text, column_prefix, column_admission="", column_admission_time="", column_time=""):
     """
-    Function generated notes embeddings from BioBERT pre-trained model.
+    Function generating notes embeddings from BioBERT pre-trained model.
 
     :param dataframe: Pandas dataframe containing necessary data to proceed.
     :param frequency: May be "Patient" "Admission" or a timedelta range, depending on the desired type of extraction.

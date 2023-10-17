@@ -19,6 +19,24 @@ step = "initialization"
 
 
 def generate_TSfresh_embeddings(dataframe, frequency, column_id, column_weight, column_kind, column_value, default_fc_parameters, column_admission="", column_admission_time="", column_time=""):
+    """
+    Function generating TSfresh embeddings for time series.
+
+    :param dataframe: Pandas dataframe containing necessary data to proceed.
+    :param frequency: May be "Patient" "Admission" or a timedelta range, depending on the desired type of extraction.
+    :param column_id: Column name in the dataframe containing patient identifiers.
+    :param column_weight: Column name in the dataframe containing weights of the time series.
+    :param column_kind: Column name in the dataframe identifying kind of time series.
+    :param column_value: Column name in the dataframe containing the time series values.
+    :param default_fc_parameters: TSfresh feature generation option.
+    :param column_admission: Column name in the dataframe containing admission identifiers, may be null if frequency is not "Admission".
+    :param column_admission_time: Column name in the dataframe containing admission time, may be null if frequency is not "Admission".
+    :param column_time: Time column in the dataframe, may be null if frequency is not a hour range.
+
+    :return: df_notes_embeddings: Pandas Dataframe of generated notes embeddings from BioBERT.
+
+    """
+
     global progress
 
     # Create dataframe
@@ -155,7 +173,7 @@ def TSfresh_extraction():
         json_config["csv_result_path"] = csv_result_path
 
     except BaseException as e:
-        return get_response_from_error(e)
+        return get_response_from_error(e) 
 
     return json_config 
     
