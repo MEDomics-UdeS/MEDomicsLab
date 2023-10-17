@@ -209,7 +209,7 @@ const ExtractionTabularData = ({ extractionTypeList, serverUrl }) => {
   }, [isResultDatasetLoaded, displayResults])
 
   return (
-    <div className="overflow-y-auto width-100">
+    <div>
       <hr></hr>
       <div className="margin-top-bottom-15">
         <div className="center">
