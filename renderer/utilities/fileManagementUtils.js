@@ -47,8 +47,8 @@ const downloadPath = (path) => {
 }
 
 /**
- * 
- * @param {string} path path to the file 
+ *
+ * @param {string} path path to the file
  * @returns {Promise} Promise that resolves to the file content
  */
 const loadFileFromPathSync = (path) => {
@@ -134,8 +134,6 @@ const loadJsonSync = () => {
     input.click()
   })
 }
-
-
 
 /**
  * @param {String} path
@@ -231,8 +229,6 @@ const loadCSVFromPath = (path, whenLoaded) => {
     }
   })
 }
-
-
 
 /**
  *

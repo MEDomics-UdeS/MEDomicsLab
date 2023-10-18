@@ -192,7 +192,7 @@ def convert_to_medomics_standards(settings: dict, types_conv: dict, nodes_includ
     # init standard_settings
     for node in nodes_include.keys():
         standard_settings[node] = {}
-  
+
     # CLEAN SETTINGS
     clean_options = nodes_include['clean']['info']
     standard_settings['clean']['options'] = {}
