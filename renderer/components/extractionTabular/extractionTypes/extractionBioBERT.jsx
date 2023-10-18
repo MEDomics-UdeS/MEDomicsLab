@@ -11,7 +11,7 @@ import React, { useContext, useEffect, useState } from "react"
 /**
  *
  * @param {Djanfojs Dataframe} dataframe data to extract
- * @param {Function} setExtractionJsonData function setting data to send to the extraction_text server
+ * @param {Function} setExtractionJsonData function setting data to send to the extraction_ts server
  * @param {Function} setMayProceed function setting the boolean variable mayProceed, telling if the process can be executed
  * @returns {JSX.Element} sub-component of the ExtractionTabularData component
  *

@@ -7,11 +7,11 @@ import ExtractionBioBERT from "./extractionTypes/extractionBioBERT"
 import ExtractionTSfresh from "./extractionTypes/extractionTSfresh"
 import { InputText } from "primereact/inputtext"
 import MedDataObject from "../workspace/medDataObject"
-import { ProgressBar } from "primereact/progressbar"
 import React, { useState, useEffect, useContext } from "react"
 import { requestJson } from "../../utilities/requests"
 import { toast } from "react-toastify"
 import { WorkspaceContext } from "../workspace/workspaceContext"
+import ProgressBarRequests from "../generalPurpose/progressBarRequests"
 
 /**
  *
@@ -33,6 +33,7 @@ const ExtractionTabularData = ({ extractionTypeList, serverUrl, defaultFilename 
   const [extractionFunction, setExtractionFunction] = useState(extractionTypeList[0] + "_extraction") // name of the function to use for extraction
   const [extractionProgress, setExtractionProgress] = useState(0) // advancement state in the extraction function
   const [extractionStep, setExtractionStep] = useState("") // current step in the extraction function
+  const [progress, setProgress] = useState({ now: 0, currentLabel: "" }) // progress bar state [now, currentLabel]
   const [extractionJsonData, setExtractionJsonData] = useState({}) // json data depending on extractionType
   const [extractionType, setExtractionType] = useState(extractionTypeList[0]) // extraction type
   const [filename, setFilename] = useState(defaultFilename) // name of the csv file containing extracted data
@@ -42,7 +43,6 @@ const ExtractionTabularData = ({ extractionTypeList, serverUrl, defaultFilename 
   const [resultDataset, setResultDataset] = useState(null) // dataset of extracted data used to be display
   const [selectedDataset, setSelectedDataset] = useState(null) // dataset of data to extract used to be display
   const [showProgressBar, setShowProgressBar] = useState(false) // wether to show or not the extraction progressbar
-
   const { globalData } = useContext(DataContext) // we get the global data from the context to retrieve the directory tree of the workspace, thus retrieving the data files
   const { port } = useContext(WorkspaceContext) // we get the port for server connexion
 
@@ -116,26 +116,6 @@ const ExtractionTabularData = ({ extractionTypeList, serverUrl, defaultFilename 
   const runExtraction = () => {
     setMayProceed(false)
     setShowProgressBar(true)
-    // Progress bar update
-    let progressInterval = setInterval(() => {
-      requestJson(
-        port,
-        serverUrl + "progress",
-        {},
-        (jsonResponse) => {
-          if (jsonResponse["progress"] >= 100) {
-            clearInterval(progressInterval)
-          } else {
-            setExtractionProgress(jsonResponse["progress"])
-            setExtractionStep(jsonResponse["step"])
-          }
-        },
-        function (err) {
-          console.error(err)
-          clearInterval(progressInterval)
-        }
-      )
-    }, 1000)
     // Run extraction process
     requestJson(
       port,
@@ -159,19 +139,25 @@ const ExtractionTabularData = ({ extractionTypeList, serverUrl, defaultFilename 
           setExtractionStep("")
           setShowProgressBar(false)
         }
-        clearInterval(progressInterval)
+        setShowProgressBar(false)
         setMayProceed(true)
       },
       function (err) {
         console.error(err)
         toast.error(`Extraction failed: ${err}`)
-        clearInterval(progressInterval)
         setExtractionStep("")
         setMayProceed(true)
         setShowProgressBar(false)
       }
     )
   }
+
+  useEffect(() => {
+    setProgress({
+      now: extractionProgress,
+      currentLabel: extractionStep
+    })
+  }, [extractionStep, extractionProgress])
 
   // Called when the datasetList is updated, in order to get the extracted data
   useEffect(() => {
@@ -274,9 +260,15 @@ const ExtractionTabularData = ({ extractionTypeList, serverUrl, defaultFilename 
               </div>
             </div>
           </div>
-          <div className="margin-top-30">
-            {extractionStep}
-            {showProgressBar && <ProgressBar value={extractionProgress} />}
+          <div className="margin-top-30 extraction-progress">
+            {showProgressBar && <ProgressBarRequests
+              progressBarProps={{}} 
+              isUpdating={showProgressBar}
+              setIsUpdating={setShowProgressBar}
+              progress={progress}
+              setProgress={setProgress}
+              requestTopic={serverUrl + "progress"}
+            />}
           </div>
         </div>
       </div>

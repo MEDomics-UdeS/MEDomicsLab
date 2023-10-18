@@ -148,3 +148,8 @@
 .tree-menu-container {
   max-width: 500px;
 }
+              
+.extraction-progress label {
+  background-color: transparent;
+  color: rgba(0, 0, 0, 0.74);
+} 
