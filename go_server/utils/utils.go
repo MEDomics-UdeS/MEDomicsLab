@@ -202,7 +202,7 @@ func ReadFile(filename string) string {
 }
 
 func GetDotEnvVariable(key string) string {
-	err := godotenv.Load(".env")
+	err := godotenv.Load(".env.local")
 	if err != nil {
 		return ""
 	}
