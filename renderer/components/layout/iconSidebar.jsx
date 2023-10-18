@@ -162,7 +162,7 @@ const IconSidebar = ({ onSidebarItemSelect }) => {
                     icon="pi pi-image"
                     data-pr-at="right center"
                     data-pr-my="left center"
-                    data-pr-tooltip="Image"
+                    data-pr-tooltip="MEDimage"
                     data-is-ext-btn
                     onClick={(event) => {
                       console.log("clicked extraction image", event)
@@ -171,7 +171,7 @@ const IconSidebar = ({ onSidebarItemSelect }) => {
                       handleClick(event, "extraction_images")
                       setExtractionBtnstate(!extractionBtnstate)
                     }}
-                    onAuxClick={(event) => handleRightClick(event, "ExtractionImage")}
+                    onAuxClick={(event) => handleRightClick(event, "ExtractionMEDimage")}
                   />
                   <Button
                     className="ext-text-btn"

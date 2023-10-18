@@ -59,7 +59,7 @@ const InputForm = ({ nodeForm, changeNodeForm, enableView }) => {
    * @param {String} fileType type of the file to upload (file or folder)
    *
    * @description
-   * This function is used to send a POST request to /extraction/upload when the user
+   * This function is used to send a POST request to /extraction_MEDimage/upload when the user
    * clicks on the upload button.
    */
   const handleUpload = useCallback(
@@ -70,8 +70,8 @@ const InputForm = ({ nodeForm, changeNodeForm, enableView }) => {
         // Create a new form with the path to the file to upload
         let formData = { file: selectedFile, type: fileType }
 
-        // POST request to /extraction/upload for current node by sending form data of node
-        requestJson(port, "/extraction/upload", formData, (response) => {
+        // POST request to /extraction_MEDimage/upload for current node by sending form data of node
+        requestJson(port, "/extraction_MEDimage/upload", formData, (response) => {
           if (response.error) {
             setError(response.error)
             enableView(false)

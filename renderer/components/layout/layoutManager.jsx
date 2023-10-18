@@ -5,7 +5,7 @@ import IconSidebar from "../layout/iconSidebar"
 import Home from "../mainPages/home"
 import Input from "../mainPages/input"
 import Learning from "../mainPages/learning"
-import ExtractionImagePage from "../mainPages/extraction_images"
+import ExtractionMEDimagePage from "../mainPages/extractionMEDimage"
 import ExtractionTextPage from "../mainPages/extraction_text"
 import ExtractionTSPage from "../mainPages/extraction_ts"
 import ExploratoryPage from "../mainPages/exploratory"
@@ -80,8 +80,8 @@ const LayoutManager = (props) => {
           return <Input pageId="42" />
         case "learning":
           return <Learning pageId="123" />
-        case "extraction_images":
-          return <ExtractionImagePage pageId="1234" />
+        case "extractionMEDimage":
+          return <ExtractionMEDimagePage pageId="1234" />
         case "extraction_text":
           return <ExtractionTextPage pageId="4567"/>
         case "extraction_ts":
