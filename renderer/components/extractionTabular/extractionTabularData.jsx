@@ -3,13 +3,16 @@ import { DataContext } from "../workspace/dataContext"
 import { DataFrame } from "danfojs"
 import DataTableFromContext from "../mainPages/dataComponents/dataTableFromContext"
 import { Dropdown } from "primereact/dropdown"
+import ExtractionBioBERT from "./extractionTypes/extractionBioBERT"
 import ExtractionTSfresh from "./extractionTypes/extractionTSfresh"
 import { InputText } from "primereact/inputtext"
 import MedDataObject from "../workspace/medDataObject"
 import { ProgressBar } from "primereact/progressbar"
 import React, { useState, useEffect, useContext } from "react"
-import { requestBackend } from "../../utilities/requests"
+import { requestJson } from "../../utilities/requests"
+import { toast } from "react-toastify"
 import { WorkspaceContext } from "../workspace/workspaceContext"
+import ProgressBarRequests from "../generalPurpose/progressBarRequests"
 
 /**
  *
@@ -21,24 +24,26 @@ import { WorkspaceContext } from "../workspace/workspaceContext"
  * Its composition depend on the type of extraction choosen.
  *
  */
-const ExtractionTabularData = ({ extractionTypeList }) => {
+const ExtractionTabularData = ({ extractionTypeList, serverUrl, defaultFilename }) => {
+  const [areResultsLarge, setAreResultsLarge] = useState(false) // if the results are too large we don't display them
   const [csvPath, setCsvPath] = useState("") // csv path of data to extract
   const [csvResultPath, setCsvResultPath] = useState("") // csv path of extracted data
   const [dataframe, setDataframe] = useState([]) // djanfo dataframe of data to extract
   const [datasetList, setDatasetList] = useState([]) // list of available datasets in DATA folder
-  const [extractionFunction, setExtractionFunction] = useState("TSfresh_extraction") // name of the function to use for extraction
+  const [displayResults, setDisplayResults] = useState(true) // say if the result data may be displayed
+  const [extractionFunction, setExtractionFunction] = useState(extractionTypeList[0] + "_extraction") // name of the function to use for extraction
   const [extractionProgress, setExtractionProgress] = useState(0) // advancement state in the extraction function
   const [extractionStep, setExtractionStep] = useState("") // current step in the extraction function
+  const [progress, setProgress] = useState({ now: 0, currentLabel: "" }) // progress bar state [now, currentLabel]
   const [extractionJsonData, setExtractionJsonData] = useState({}) // json data depending on extractionType
-  const [extractionType, setExtractionType] = useState("TSfresh") // extraction type
-  const [filename, setFilename] = useState("tmp_extracted_features.csv") // name of the csv file containing extracted data
+  const [extractionType, setExtractionType] = useState(extractionTypeList[0]) // extraction type
+  const [filename, setFilename] = useState(defaultFilename) // name of the csv file containing extracted data
   const [isDatasetLoaded, setIsDatasetLoaded] = useState(false) // boolean set to false every time we reload a dataset for data to extract
   const [isResultDatasetLoaded, setIsResultDatasetLoaded] = useState(false) // boolean set to false every time we reload an extracted data dataset
   const [mayProceed, setMayProceed] = useState(false) // boolean set to true if all informations about the extraction (depending on extractionType) have been completed
   const [resultDataset, setResultDataset] = useState(null) // dataset of extracted data used to be display
   const [selectedDataset, setSelectedDataset] = useState(null) // dataset of data to extract used to be display
   const [showProgressBar, setShowProgressBar] = useState(false) // wether to show or not the extraction progressbar
-
   const { globalData } = useContext(DataContext) // we get the global data from the context to retrieve the directory tree of the workspace, thus retrieving the data files
   const { port } = useContext(WorkspaceContext) // we get the port for server connexion
 
@@ -112,30 +117,10 @@ const ExtractionTabularData = ({ extractionTypeList }) => {
   const runExtraction = () => {
     setMayProceed(false)
     setShowProgressBar(true)
-    // Progress bar update
-    let progressInterval = setInterval(() => {
-      requestBackend(
-        port,
-        "/extraction_ts/progress",
-        {},
-        (jsonResponse) => {
-          if (jsonResponse["progress"] >= 100) {
-            clearInterval(progressInterval)
-          } else {
-            setExtractionProgress(jsonResponse["progress"])
-            setExtractionStep(jsonResponse["step"])
-          }
-        },
-        function (err) {
-          console.error(err)
-          clearInterval(progressInterval)
-        }
-      )
-    }, 1000)
     // Run extraction process
-    requestBackend(
+    requestJson(
       port,
-      "/extraction_ts/" + extractionFunction,
+      serverUrl + extractionFunction,
       {
         relativeToExtractionType: extractionJsonData,
         csvPath: csvPath,
@@ -143,19 +128,37 @@ const ExtractionTabularData = ({ extractionTypeList }) => {
       },
       (jsonResponse) => {
         console.log("received results:", jsonResponse)
-        setCsvResultPath(jsonResponse["csv_result_path"])
-        clearInterval(progressInterval)
-        setExtractionStep("Extracted Features Saved")
-        MedDataObject.updateWorkspaceDataObject()
+        if (!jsonResponse.error) {
+          setCsvResultPath(jsonResponse["csv_result_path"])
+          setExtractionStep("Extracted Features Saved")
+          MedDataObject.updateWorkspaceDataObject()
+          setExtractionProgress(100)
+          setIsResultDatasetLoaded(false)
+          setDisplayResults(areResultsLarge == false)
+        } else {
+          toast.error(`Extraction failed: ${jsonResponse.error.message}`)
+          setExtractionStep("")
+          setShowProgressBar(false)
+        }
+        setShowProgressBar(false)
         setMayProceed(true)
-        setExtractionProgress(100)
-        setIsResultDatasetLoaded(false)
       },
       function (err) {
         console.error(err)
+        toast.error(`Extraction failed: ${err}`)
+        setExtractionStep("")
+        setMayProceed(true)
+        setShowProgressBar(false)
       }
     )
   }
+
+  useEffect(() => {
+    setProgress({
+      now: extractionProgress,
+      currentLabel: extractionStep
+    })
+  }, [extractionStep, extractionProgress])
 
   // Called when the datasetList is updated, in order to get the extracted data
   useEffect(() => {
@@ -185,17 +188,15 @@ const ExtractionTabularData = ({ extractionTypeList }) => {
 
   // Called when isDatasetLoaded change, in order to update csvPath and dataframe.
   useEffect(() => {
-    if (isResultDatasetLoaded == true) {
+    if (isResultDatasetLoaded == true || displayResults == false) {
       setShowProgressBar(false)
       setExtractionProgress(0)
       setExtractionStep("")
     }
-  }, [isResultDatasetLoaded])
+  }, [isResultDatasetLoaded, displayResults])
 
   return (
-    <div className="overflow-y-auto width-100">
-      <h1 className="center">Extraction - Time Series</h1>
-
+    <div>
       <hr></hr>
       <div className="margin-top-bottom-15">
         <div className="center">
@@ -234,7 +235,10 @@ const ExtractionTabularData = ({ extractionTypeList }) => {
           <div className="margin-top-15">
             <Dropdown value={extractionType} options={extractionTypeList} onChange={(event) => onChangeExtractionType(event.value)} />
           </div>
-          <div className="margin-top-15">{extractionType == "TSfresh" && <ExtractionTSfresh dataframe={dataframe} setExtractionJsonData={setExtractionJsonData} setMayProceed={setMayProceed} />}</div>
+          <div className="margin-top-15">
+            {extractionType == "BioBERT" && <ExtractionBioBERT dataframe={dataframe} setExtractionJsonData={setExtractionJsonData} setMayProceed={setMayProceed} />}
+            {extractionType == "TSfresh" && <ExtractionTSfresh dataframe={dataframe} setExtractionJsonData={setExtractionJsonData} setMayProceed={setMayProceed} setAreResultsLarge={setAreResultsLarge} />}
+          </div>
         </div>
       </div>
 
@@ -257,10 +261,7 @@ const ExtractionTabularData = ({ extractionTypeList }) => {
               </div>
             </div>
           </div>
-          <div className="margin-top-30">
-            {extractionStep}
-            {showProgressBar && <ProgressBar value={extractionProgress} />}
-          </div>
+          <div className="margin-top-30 extraction-progress">{showProgressBar && <ProgressBarRequests progressBarProps={{}} isUpdating={showProgressBar} setIsUpdating={setShowProgressBar} progress={progress} setProgress={setProgress} requestTopic={serverUrl + "progress"} />}</div>
         </div>
       </div>
 
@@ -271,11 +272,12 @@ const ExtractionTabularData = ({ extractionTypeList }) => {
           <h2>Extracted data</h2>
           {!resultDataset && <p>Nothing to show, proceed to extraction first.</p>}
         </div>
-        {resultDataset && (
+        {resultDataset && displayResults == true && (
           <div>
             <DataTableFromContext MedDataObject={resultDataset} tablePropsData={{ size: "small", paginator: true, rows: 5 }} isDatasetLoaded={isResultDatasetLoaded} setIsDatasetLoaded={setIsResultDatasetLoaded} />
           </div>
         )}
+        {resultDataset && displayResults == false && <p>Features saved under {filename}. The result dataset is too large to be display here. </p>}
       </div>
     </div>
   )
