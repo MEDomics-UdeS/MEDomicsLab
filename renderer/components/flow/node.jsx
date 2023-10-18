@@ -13,6 +13,7 @@ import { Stack } from "react-bootstrap"
 import { IoClose } from "react-icons/io5"
 import { BsPlay } from "react-icons/bs"
 import { AiOutlineInfoCircle } from "react-icons/ai"
+import { shell } from "electron"
 // keep this import for the code editor (to be implemented)
 // import dynamic from "next/dynamic"
 // const CodeEditor = dynamic(() => import("./codeEditor"), {
@@ -162,7 +163,7 @@ const NodeObject = ({ id, data, nodeSpecific, nodeBody, defaultSettings, onClick
                 <AiOutlineInfoCircle
                   className="btn-info-node"
                   onClick={() => {
-                    require("electron").shell.openExternal("http://google.com")
+                    shell.openExternal("http://google.com")
                   }}
                 />
               </div>

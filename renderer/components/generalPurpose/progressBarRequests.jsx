@@ -15,11 +15,11 @@ import { toast } from "react-toastify"
  * @param {string} variant the variant of the progress bar
  * @param {boolean} withLabel should the progress bar have a label to follow the progress
  * @param {number} delayMS the delay in ms between each request
+
  * @returns a progress bar that shows the progress of the current flow
  */
 const ProgressBarRequests = ({ isUpdating, setIsUpdating, progress, setProgress, requestTopic, variant = "success", withLabel = true, delayMS = 400 }) => {
   const { port } = useContext(WorkspaceContext) // used to get the port
-
   useInterval(
     () => {
       requestJson(
@@ -60,8 +60,10 @@ const ProgressBarRequests = ({ isUpdating, setIsUpdating, progress, setProgress,
 
   return (
     <>
-      {withLabel && <label>{progress.currentLabel || ""}</label>}
-      <ProgressBar variant={variant} animated now={progress.now} label={`${progress.now}%`} />
+      <div className="progress-bar-requests">
+        {withLabel && <label>{progress.currentLabel || ""}</label>}
+        <ProgressBar variant={variant} animated now={progress.now} label={`${progress.now}%`} />
+      </div>
     </>
   )
 }
