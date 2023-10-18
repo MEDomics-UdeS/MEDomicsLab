@@ -16,7 +16,7 @@ import ExplorerSidebar from "./sidebarTools/explorerSidebar"
 import SearchSidebar from "./sidebarTools/searchSidebar"
 import LayoutTestSidebar from "./sidebarTools/layoutTestSidebar"
 import InputSidebar from "./sidebarTools/inputSidebar"
-import LearningSidebar from "./sidebarTools/learningSidebar"
+import FlowSceneSidebar from "./sidebarTools/flowSceneSidebar"
 import ExtractionSidebar from "./sidebarTools/extractionSidebar"
 import { ipcRenderer } from "electron"
 import { MainContainer } from "./flexlayout/mainContainerClass"
@@ -83,7 +83,7 @@ const LayoutManager = (props) => {
         case "extraction_images":
           return <ExtractionImagePage pageId="1234" />
         case "extraction_text":
-          return <ExtractionTextPage pageId="4567"/>
+          return <ExtractionTextPage pageId="4567" />
         case "extraction_ts":
           return <ExtractionTSPage pageId="456" />
         case "exploratory":
@@ -114,11 +114,13 @@ const LayoutManager = (props) => {
       case "input":
         return <InputSidebar />
       case "learning":
-        return <LearningSidebar />
+        return <FlowSceneSidebar type="learning" />
       case "extraction_text":
         return <ExtractionSidebar />
       case "extraction_ts":
         return <ExtractionSidebar />
+      case "extraction_images":
+        return <FlowSceneSidebar type="extractionImage" />
 
       default:
         return (

@@ -194,6 +194,7 @@ func copyOutput(r io.Reader, response *string) {
 
 func ReadFile(filename string) string {
 	absPath, _ := filepath.Abs(filename)
+	fmt.Println("Reading file: " + absPath)
 	data, err := os.ReadFile(absPath)
 	if err != nil {
 		log.Panicf("failed reading data from file: %s", err)
@@ -210,6 +211,9 @@ func GetDotEnvVariable(key string) string {
 	if os.Getenv(electronKey) != "" {
 		return os.Getenv(electronKey)
 	} else {
+		if key == "CONDA_ENV" {
+			return ReadFile(os.Getenv(key))
+		}
 		return os.Getenv(key)
 	}
 }

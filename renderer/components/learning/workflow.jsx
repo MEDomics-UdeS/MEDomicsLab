@@ -14,7 +14,7 @@ import { FlowResultsContext } from "../flow/context/flowResultsContext"
 import { WorkspaceContext } from "../workspace/workspaceContext"
 import { ErrorRequestContext } from "../flow/context/errorRequestContext"
 import MedDataObject from "../workspace/medDataObject"
-import MEDconfig, { SERVER_CHOICE } from "../../../medomics.dev.js"
+import { modifyZipFileSync } from "../../utilities/customZipFile.js"
 
 // here are the different types of nodes implemented in the workflow
 import StandardNode from "./nodesTypes/standardNode"
@@ -28,7 +28,6 @@ import nodesParams from "../../public/setupVariables/allNodesParams"
 // here are static functions used in the workflow
 import { removeDuplicates, deepCopy } from "../../utilities/staticFunctions"
 import { defaultValueFromType } from "../../utilities/learning/inputTypesUtils.js"
-import { Button } from "primereact/button"
 
 const staticNodesParams = nodesParams // represents static nodes parameters
 
@@ -722,7 +721,9 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
         node.data.setupParam = null
       })
       flow.intersections = intersections
-      MedDataObject.writeFileSyncPath(flow, configPath).then(() => {
+      modifyZipFileSync(configPath, async (path) => {
+        // do custom actions in the folder while it is unzipped
+        await MedDataObject.writeFileSync(flow, path, "metadata", "json")
         toast.success("Scene has been saved successfully")
       })
     }
@@ -868,7 +869,7 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
           <>
             {/* bottom center - progress bar */}
             <div className="panel-bottom-center">
-              <ProgressBarRequests progressBarProps={{animated:true, variant:"success"}} isUpdating={isProgressUpdating} setIsUpdating={setIsProgressUpdating} progress={progress} setProgress={setProgress} requestTopic={"learning/progress/" + pageId} />
+              <ProgressBarRequests progressBarProps={{ animated: true, variant: "success" }} isUpdating={isProgressUpdating} setIsUpdating={setIsProgressUpdating} progress={progress} setProgress={setProgress} requestTopic={"learning/progress/" + pageId} />
             </div>
           </>
         }

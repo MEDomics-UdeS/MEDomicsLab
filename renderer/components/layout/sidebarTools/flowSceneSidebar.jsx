@@ -1,23 +1,40 @@
 import React, { useContext, useEffect, useState, useRef } from "react"
 import { Button, Stack } from "react-bootstrap"
-import { EXPERIMENTS, RESULTS, WorkspaceContext } from "../../workspace/workspaceContext"
+import { EXPERIMENTS, WorkspaceContext } from "../../workspace/workspaceContext"
 import * as Icon from "react-bootstrap-icons"
 import { InputText } from "primereact/inputtext"
 import SidebarDirectoryTreeControlled from "./sidebarDirectoryTreeControlled"
-import { writeFile, loadJsonPath } from "../../../utilities/fileManagementUtils"
+import { loadJsonPath } from "../../../utilities/fileManagementUtils"
 import { OverlayPanel } from "primereact/overlaypanel"
 import { Accordion } from "react-bootstrap"
 import MedDataObject from "../../workspace/medDataObject"
 import { DataContext } from "../../workspace/dataContext"
 import { LayoutModelContext } from "../layoutContext"
 import { toast } from "react-toastify"
+import { createZipFileSync } from "../../../utilities/customZipFile"
+import Path from "path"
+
+const typeInfo = {
+  learning: {
+    title: "Learning",
+    extension: "medml",
+    extrenalFolders: ["models"],
+    internalFolders: ["tmp", "notebooks", "exp"]
+  },
+  extractionImage: {
+    title: "Extraction Image",
+    extension: "medimg",
+    extrenalFolders: [],
+    internalFolders: ["tmp", "exp"]
+  }
+}
 
 /**
  * @description - This component is the sidebar tools component that will be used in the sidebar component as the learning page
  * @summary - It contains the dropzone component and the workspace directory tree filtered to only show the models and experiment folder and the model files
  * @returns {JSX.Element} - This component is the sidebar tools component that will be used in the sidebar component as the learning page
  */
-const LearningSidebar = () => {
+const FlowSceneSidebar = ({ type }) => {
   const { workspace, getBasePath } = useContext(WorkspaceContext) // We get the workspace from the context to retrieve the directory tree of the workspace, thus retrieving the data files
   const [btnCreateSceneState, setBtnCreateSceneState] = useState(false)
   const [sceneName, setSceneName] = useState("") // We initialize the experiment name state to an empty string
@@ -70,7 +87,6 @@ const LearningSidebar = () => {
    * @description - This function is used to create an empty scene
    */
   const createEmptyScene = async (path, name) => {
-    const emptyScene = loadJsonPath("./resources/emptyScene.medml")
     if (selectedItems.length == 0 || selectedItems[0] == undefined) {
       toast.error("Please select the EXPERIMENT folder to create the scene in")
     } else {
@@ -81,59 +97,54 @@ const LearningSidebar = () => {
         toast.error("The selected folder does not have a parent")
         return
       } else {
+        // if the selected folder is the EXPERIMENT folder
         if (globalData[selectedItems[0]].parentID == MedDataObject.checkIfMedDataObjectInContextbyPath(path, globalData).getUUID()) {
           if (globalData[selectedItems[0]].type == "folder") {
             path = globalData[selectedItems[0]].path
           } else {
             path = globalData[globalData[selectedItems[0]].parentID].path
           }
-          MedDataObject.createEmptyFolderFSsync(path.split(MedDataObject.getPathSeparator())[path.split(MedDataObject.getPathSeparator()).length - 1], getBasePath(RESULTS), false)
-          // create sccene folder
-          MedDataObject.createEmptyFolderFSsync(sceneName, path).then((sceneFolderPath) => {
-            writeFile(emptyScene, sceneFolderPath, name, "medml")
-            // create folder tmp in the experiment folder
-            MedDataObject.createEmptyFolderFSsync("tmp", sceneFolderPath, false)
-            // create floder notebooks in the experiment folder
-            MedDataObject.createEmptyFolderFSsync("notebooks", sceneFolderPath, false)
-            // create folder models in the experiment folder
-            MedDataObject.createEmptyFolderFSsync("models", sceneFolderPath, false)
-            // create folder exp in the experiment folder
-            MedDataObject.createEmptyFolderFSsync("exp", sceneFolderPath, false)
-          })
+          createSceneContent(path, name, typeInfo[type].extension)
         } else {
           MedDataObject.createEmptyFolderFSsync("experiment", path).then((folderPath) => {
             console.log("folderPath", folderPath)
-            // write the empty scene in the folder experiment
-            // create the folder in results with the same name as the experiment
-            MedDataObject.createEmptyFolderFSsync(folderPath.split(MedDataObject.getPathSeparator())[folderPath.split(MedDataObject.getPathSeparator()).length - 1], getBasePath(RESULTS), false)
-            // create sccene folder
-            MedDataObject.createEmptyFolderFSsync(sceneName, folderPath).then((sceneFolderPath) => {
-              writeFile(emptyScene, sceneFolderPath, name, "medml")
-              // create folder tmp in the experiment folder
-              MedDataObject.createEmptyFolderFSsync("tmp", sceneFolderPath, false)
-              // create floder notebooks in the experiment folder
-              MedDataObject.createEmptyFolderFSsync("notebooks", sceneFolderPath, false)
-              // create folder models in the experiment folder
-              MedDataObject.createEmptyFolderFSsync("models", sceneFolderPath, false)
-              // create folder exp in the experiment folder
-              MedDataObject.createEmptyFolderFSsync("exp", sceneFolderPath, false)
-            })
+            createSceneContent(folderPath, name, typeInfo[type].extension)
           })
         }
       }
     }
   }
 
+  const createSceneContent = (path, sceneName, extension) => {
+    const emptyScene = loadJsonPath("./resources/emptyScene.json")
+    MedDataObject.createEmptyFolderFSsync(sceneName, path).then(async (sceneFolderPath) => {
+      // create folder models in the experiment folder
+      typeInfo[type].extrenalFolders.forEach(async (folder) => {
+        await MedDataObject.createEmptyFolderFSsync(folder, sceneFolderPath, false)
+      })
+      // create custom zip file
+      console.log("zipFilePath", Path.join(sceneFolderPath, sceneName + "." + extension))
+      await createZipFileSync(Path.join(sceneFolderPath, sceneName + "." + extension), async (path) => {
+        // do custom actions in the folder while it is unzipped
+        await MedDataObject.writeFileSync(emptyScene, path, "metadata", "json")
+
+        typeInfo[type].internalFolders.forEach(async (folder) => {
+          await MedDataObject.createEmptyFolderFSsync(folder, path, false)
+        })
+      })
+    })
+  }
+
   // We use the useEffect hook to open the learning page when the selected item changes
-  useEffect(() => {
-    console.log(dbSelectedItem)
-    // if (globalData[dbSelectedItem] !== undefined) {
-    if (dbSelectedItem !== null) {
-      if (dbSelectedItem.name !== undefined) {
-        dispatchLayout({ type: "openInLearningModule", payload: dbSelectedItem })
-      }
-    }
-  }, [dbSelectedItem])
+  // useEffect(() => {
+  //   console.log(dbSelectedItem)
+  //   // if (globalData[dbSelectedItem] !== undefined) {
+  //   if (dbSelectedItem !== null) {
+  //     if (dbSelectedItem.name !== undefined) {
+  //       dispatchLayout({ type: "openInLearningModule", payload: dbSelectedItem })
+  //     }
+  //   }
+  // }, [dbSelectedItem])
 
   /**
    *
@@ -157,9 +168,9 @@ const LearningSidebar = () => {
             margin: "0 0 0 0"
           }}
         >
-          Learning Module
+          {typeInfo[type].title} Module
         </p>
-        <Button className="btn-sidebar-learning" onClick={handleClickCreateScene}>
+        <Button className={`btn-sidebar`} onClick={handleClickCreateScene}>
           Create Scene
           <Icon.Plus />
         </Button>
@@ -200,4 +211,4 @@ const LearningSidebar = () => {
   )
 }
 
-export default LearningSidebar
+export default FlowSceneSidebar
