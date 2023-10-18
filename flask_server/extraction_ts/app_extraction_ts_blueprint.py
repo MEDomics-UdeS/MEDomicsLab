@@ -188,4 +188,4 @@ def extraction_progress():
     """
     global progress
     global step
-    return {"progress": round(progress, 2), "step": step}
+    return {"now": round(progress, 2), "currentLabel": step}
