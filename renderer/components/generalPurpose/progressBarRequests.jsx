@@ -29,7 +29,7 @@ const ProgressBarRequests = ({ isUpdating, setIsUpdating, progress, setProgress,
         now: 0,
         currentLabel: ""
       })
-      toast.error("Progress is only available with the Flask server (for now))")
+      toast.warn("Progress is only available with the Flask server (for now))")
     }
   }, [isUpdating])
 

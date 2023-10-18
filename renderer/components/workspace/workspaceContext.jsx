@@ -2,8 +2,6 @@ import { React, createContext } from "react"
 
 const DATA = "DATA"
 const EXPERIMENTS = "EXPERIMENTS"
-const MODELS = "MODELS"
-const RESULTS = "RESULTS"
 
 /**
  * @typedef {React.Context} WorkspaceContext
@@ -44,4 +42,4 @@ function WorkspaceProvider({ workspace, setWorkspace, port, setPort, children })
   )
 }
 
-export { WorkspaceContext, WorkspaceProvider, DATA, EXPERIMENTS, MODELS, RESULTS }
+export { WorkspaceContext, WorkspaceProvider, DATA, EXPERIMENTS}

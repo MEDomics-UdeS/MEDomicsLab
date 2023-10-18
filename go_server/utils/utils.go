@@ -225,6 +225,9 @@ func GetDotEnvVariable(key string) string {
 	if os.Getenv(electronKey) != "" {
 		return os.Getenv(electronKey)
 	} else {
+		if key == "CONDA_ENV" {
+			return ReadFile(os.Getenv(key))
+		}
 		return os.Getenv(key)
 	}
 }

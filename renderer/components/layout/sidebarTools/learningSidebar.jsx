@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState, useRef } from "react"
 import { Button, Stack } from "react-bootstrap"
-import { EXPERIMENTS, RESULTS, WorkspaceContext } from "../../workspace/workspaceContext"
+import { EXPERIMENTS, WorkspaceContext } from "../../workspace/workspaceContext"
 import * as Icon from "react-bootstrap-icons"
 import { InputText } from "primereact/inputtext"
 import SidebarDirectoryTreeControlled from "./sidebarDirectoryTreeControlled"
@@ -87,7 +87,6 @@ const LearningSidebar = () => {
           } else {
             path = globalData[globalData[selectedItems[0]].parentID].path
           }
-          MedDataObject.createEmptyFolderFSsync(path.split(MedDataObject.getPathSeparator())[path.split(MedDataObject.getPathSeparator()).length - 1], getBasePath(RESULTS), false)
           // create sccene folder
           MedDataObject.createEmptyFolderFSsync(sceneName, path).then((sceneFolderPath) => {
             writeFile(emptyScene, sceneFolderPath, name, "medml")
@@ -104,8 +103,6 @@ const LearningSidebar = () => {
           MedDataObject.createEmptyFolderFSsync("experiment", path).then((folderPath) => {
             console.log("folderPath", folderPath)
             // write the empty scene in the folder experiment
-            // create the folder in results with the same name as the experiment
-            MedDataObject.createEmptyFolderFSsync(folderPath.split(MedDataObject.getPathSeparator())[folderPath.split(MedDataObject.getPathSeparator()).length - 1], getBasePath(RESULTS), false)
             // create sccene folder
             MedDataObject.createEmptyFolderFSsync(sceneName, folderPath).then((sceneFolderPath) => {
               writeFile(emptyScene, sceneFolderPath, name, "medml")
