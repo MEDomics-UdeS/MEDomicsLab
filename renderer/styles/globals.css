@@ -314,6 +314,7 @@ body {
 }
 .progress-bar-requests .progress {
   width: 100%;
+  height: 1.25rem;
 }
 
 .progress-bar-requests label {

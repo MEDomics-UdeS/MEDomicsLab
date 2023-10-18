@@ -16,7 +16,7 @@ const DataTableFromContext = ({MedDataObject, tablePropsData, tablePropsColumn, 
   const { globalData, setGlobalData } = useContext(DataContext) // We get the global data from the context to retrieve the directory tree of the workspace, thus retrieving the data files
   const [isLoaded, setIsLoaded] = useState(MedDataObject.isLoaded ? MedDataObject.isLoaded : false)
 
-  const [dataset, setDataset] = useState(MedDataObject.isLoaded ? MedDataObject.isLoaded : false)
+  const [dataset, setDataset] = useState(MedDataObject.isLoaded ? MedDataObject.data: false)
 
   useEffect(() => {
     if (MedDataObject !== undefined && MedDataObject !== null) {

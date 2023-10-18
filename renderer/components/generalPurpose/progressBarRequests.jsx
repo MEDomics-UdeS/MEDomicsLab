@@ -18,7 +18,7 @@ import { toast } from "react-toastify"
 
  * @returns a progress bar that shows the progress of the current flow
  */
-const ProgressBarRequests = ({ isUpdating, setIsUpdating, progress, setProgress, requestTopic, variant = "success", withLabel = true, delayMS = 400 }) => {
+const ProgressBarRequests = ({ isUpdating, setIsUpdating, progress, setProgress, requestTopic, withLabel = true, delayMS = 400, progressBarProps={animated:true, variant: "success"} }) => {
   const { port } = useContext(WorkspaceContext) // used to get the port
   useInterval(
     () => {
@@ -33,7 +33,7 @@ const ProgressBarRequests = ({ isUpdating, setIsUpdating, progress, setProgress,
               now: data.now,
               currentLabel: data.currentLabel && data.currentLabel
             })
-            if (data.now == 100) {
+            if (data.now >= 100) {
               setIsUpdating(false)
               setProgress({
                 now: data.now,
@@ -62,7 +62,7 @@ const ProgressBarRequests = ({ isUpdating, setIsUpdating, progress, setProgress,
     <>
       <div className="progress-bar-requests">
         {withLabel && <label>{progress.currentLabel || ""}</label>}
-        <ProgressBar variant={variant} animated now={progress.now} label={`${progress.now}%`} />
+        <ProgressBar {...progressBarProps} now={progress.now} label={`${progress.now}%`} />
       </div>
     </>
   )
