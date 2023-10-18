@@ -7,7 +7,6 @@ import ExtractionBioBERT from "./extractionTypes/extractionBioBERT"
 import ExtractionTSfresh from "./extractionTypes/extractionTSfresh"
 import { InputText } from "primereact/inputtext"
 import MedDataObject from "../workspace/medDataObject"
-import { ProgressBar } from "primereact/progressbar"
 import React, { useState, useEffect, useContext } from "react"
 import { requestJson } from "../../utilities/requests"
 import { toast } from "react-toastify"
@@ -261,7 +260,16 @@ const ExtractionTabularData = ({ extractionTypeList, serverUrl, defaultFilename 
               </div>
             </div>
           </div>
-          <div className="margin-top-30 extraction-progress">{showProgressBar && <ProgressBarRequests progressBarProps={{}} isUpdating={showProgressBar} setIsUpdating={setShowProgressBar} progress={progress} setProgress={setProgress} requestTopic={serverUrl + "progress"} />}</div>
+          <div className="margin-top-30 extraction-progress">
+            {showProgressBar && <ProgressBarRequests
+              progressBarProps={{}} 
+              isUpdating={showProgressBar}
+              setIsUpdating={setShowProgressBar}
+              progress={progress}
+              setProgress={setProgress}
+              requestTopic={serverUrl + "progress"}
+            />}
+          </div>
         </div>
       </div>
 
@@ -277,7 +285,9 @@ const ExtractionTabularData = ({ extractionTypeList, serverUrl, defaultFilename 
             <DataTableFromContext MedDataObject={resultDataset} tablePropsData={{ size: "small", paginator: true, rows: 5 }} isDatasetLoaded={isResultDatasetLoaded} setIsDatasetLoaded={setIsResultDatasetLoaded} />
           </div>
         )}
-        {resultDataset && displayResults == false && <p>Features saved under {filename}. The result dataset is too large to be display here. </p>}
+        {resultDataset && displayResults == false && (
+          <p>Features saved under {filename}. The result dataset is too large to be display here. </p>
+        )}
       </div>
     </div>
   )
