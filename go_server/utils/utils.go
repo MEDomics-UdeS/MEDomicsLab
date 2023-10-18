@@ -5,7 +5,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/joho/godotenv"
 	"io"
 	"log"
 	"net/http"
@@ -14,17 +13,23 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+
+	"github.com/joho/godotenv"
 )
 
+// RequestData is the data sent in the request
 type RequestData struct {
 	Message string `json:"message"`
 }
 
+// ResponseData is the data sent in the response
 type ResponseData struct {
 	Response string `json:"response_message"`
 	Type     string `json:"type"`
 }
 
+// CreateResponse creates the response data sent to the client side
+// It returns the response data
 func CreateResponse(requestData map[string]interface{}) ResponseData {
 	var toParse string = ""
 	if requestData["message"] != nil && strings.Contains(requestData["message"].(string), "{") {
@@ -39,6 +44,7 @@ func CreateResponse(requestData map[string]interface{}) ResponseData {
 	return response
 }
 
+// JsonStr2map converts a json string to a map
 func JsonStr2map(jsonStr string) (map[string]interface{}, error) {
 	var result map[string]interface{}
 	err := json.Unmarshal([]byte(jsonStr), &result)
@@ -48,6 +54,7 @@ func JsonStr2map(jsonStr string) (map[string]interface{}, error) {
 	return result, nil
 }
 
+// Map2jsonStr converts a map to a json string
 func Map2jsonStr(data map[string]interface{}) (string, error) {
 	jsonData, err := json.Marshal(data)
 	if err != nil {
@@ -56,6 +63,7 @@ func Map2jsonStr(data map[string]interface{}) (string, error) {
 	return string(jsonData), nil
 }
 
+// GetConfigFromMessage gets the config json from the message in input
 func GetConfigFromMessage(w http.ResponseWriter, request []byte) (string, error) {
 	data, err := JsonStr2map(string(request))
 	if err != nil {
@@ -65,6 +73,7 @@ func GetConfigFromMessage(w http.ResponseWriter, request []byte) (string, error)
 	return data["message"].(string), nil
 }
 
+// CreateHandleFunc creates the handle function for the server
 func CreateHandleFunc(topic string, processRequest func(jsonConfig string) (string, error), isThreaded bool) {
 	fmt.Println("Adding handle func for topic: " + topic)
 	http.HandleFunc("/"+topic, func(w http.ResponseWriter, r *http.Request) {
@@ -127,6 +136,9 @@ func CreateHandleFunc(topic string, processRequest func(jsonConfig string) (stri
 	})
 }
 
+// StartPythonScript starts a python script
+// It takes the json param and the filename of the script in input
+// It returns the response from the script
 func StartPythonScript(jsonParam string, filename string) (string, error) {
 	fmt.Println("Starting python script: " + filename)
 	condaEnv := GetDotEnvVariable("CONDA_ENV")
@@ -164,6 +176,7 @@ func StartPythonScript(jsonParam string, filename string) (string, error) {
 	return response, nil
 }
 
+// It is used to transfer stdout and stderr to the terminal
 func copyOutput(r io.Reader, response *string) {
 	scanner := bufio.NewScanner(r)
 	for scanner.Scan() {
@@ -192,6 +205,7 @@ func copyOutput(r io.Reader, response *string) {
 	}
 }
 
+// ReadFile reads a file and returns its content as a string
 func ReadFile(filename string) string {
 	absPath, _ := filepath.Abs(filename)
 	fmt.Println("Reading file: " + absPath)
@@ -202,6 +216,7 @@ func ReadFile(filename string) string {
 	return string(data)
 }
 
+// GetDotEnvVariable gets the variable from the .env.local file or from env variables set by client side
 func GetDotEnvVariable(key string) string {
 	err := godotenv.Load(".env.local")
 	if err != nil {

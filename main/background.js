@@ -144,7 +144,7 @@ if (isProd) {
               }
             })
           } else if (MEDconfig.serverChoice === SERVER_CHOICE.GO) {
-            serverProcess = execFile("main.exe", {
+            serverProcess = execFile(`${process.platform == "win32" ? "main.exe" : "./main"}`, {
               windowsHide: false,
               cwd: path.join(process.cwd(), "go_server"),
               env: {
@@ -161,7 +161,7 @@ if (isProd) {
               console.log(`stderr: ${data}`)
             })
             serverProcess.on("close", (code) => {
-              console.log(`child process close all stdio with code ${code}`)
+              console.log(`server child process close all stdio with code ${code}`)
             })
           } else {
             throw new Error("You must choose a valid server in medomics.dev.js")
@@ -172,6 +172,7 @@ if (isProd) {
         })
     } else {
       //**** PRODUCTION ****//
+
       let backend
       backend = path.join(process.cwd(), "resources/backend/dist/app.exe")
       var execfile = require("child_process").execFile
@@ -204,7 +205,6 @@ if (isProd) {
     }
   } else {
     //**** NO SERVER ****//
-    const { exec } = require("child_process")
     findAvailablePort(MEDconfig.defaultPort)
       .then((port) => {
         flaskPort = port
@@ -318,8 +318,6 @@ function createWorkingDirectory() {
   // See the workspace template in the repository
   createFolder("DATA")
   createFolder("EXPERIMENTS")
-  createFolder("MODELS")
-  createFolder("RESULTS")
 }
 
 function createFolder(folderString) {
@@ -384,9 +382,9 @@ function findAvailablePort(startPort, endPort = 8000) {
           resolve(port)
         } else {
           if (killProcess) {
-            let PID = stdout.split(" ")[stdout.split(" ").length - 1]
+            let PID = stdout.trim().split(/\s+/)[stdout.trim().split(/\s+/).length -1].split("/")[0]
             exec(`${platform == "win32" ? "taskkill /f /t /pid" : "kill"} ${PID}`, (err, stdout, stderr) => {
-              if (!err) {
+              if(!err){
                 console.log("Previous server instance was killed successfully")
                 console.log(`Port ${port} is now available !`)
                 resolve(port)

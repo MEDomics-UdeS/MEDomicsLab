@@ -140,7 +140,7 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
    */
   function onDelete(uuid) {
     // Get the UUID of the `MedDataObject` with the current name from the `globalData` object.
-    const namesYouCantDelete = ["UUID_ROOT", "DATA", "EXPERIMENTS", "RESULTS", "MODELS"]
+    const namesYouCantDelete = ["UUID_ROOT", "DATA", "EXPERIMENTS"]
     if (uuid == "") {
       toast.warning("Error: UUID not found")
       return
@@ -397,7 +397,7 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
    * @note - This function is called when the user renames a file or folder in the directory tree, either by F2 or by right-clicking and selecting "Rename".
    */
   function handleNameChange(medObject, newName) {
-    const namesYouCantRename = ["UUID_ROOT", "DATA", "EXPERIMENTS", "RESULTS", "MODELS"]
+    const namesYouCantRename = ["UUID_ROOT", "DATA", "EXPERIMENTS"]
     if (newName == "") {
       toast.error("Error: Name cannot be empty")
       return
@@ -487,7 +487,7 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
    */
   function fromJSONtoTree(medDataContext) {
     const treeToSend = {}
-    const namesYouCantRename = ["UUID_ROOT", "DATA", "EXPERIMENTS", "RESULTS", "MODELS"] // These names cannot be renamed
+    const namesYouCantRename = ["UUID_ROOT", "DATA", "EXPERIMENTS"] // These names cannot be renamed
 
     Object.keys(medDataContext).forEach((key) => {
       let medDataItem = medDataContext[key]

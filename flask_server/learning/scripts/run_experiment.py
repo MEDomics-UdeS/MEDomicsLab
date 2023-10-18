@@ -1,6 +1,3 @@
-
-
-
 import argparse
 import pickle
 import os
@@ -24,6 +21,9 @@ json_param_str = args.json_param
 
 
 class GoExecScriptRunExperiment(GoExecutionScript):
+    """
+        This class is used to run the pipeline execution of pycaret
+    """
     def __init__(self, json_params: str, process_fn: callable = None, isProgress: bool = False):
         super().__init__(json_params, process_fn, isProgress)
         self.storing_mode = USE_SAVE_FOR_EXPERIMENTS_STORING
@@ -42,8 +42,7 @@ class GoExecScriptRunExperiment(GoExecutionScript):
             self.current_experiment.update(json_config)
         self.current_experiment.start()
         results_pipeline = self.current_experiment.get_results()
-        self.current_experiment.set_progress(
-            label='Saving the experiment')
+        self.current_experiment.set_progress(label='Saving the experiment')
         save_experiment(self.current_experiment)
         return results_pipeline
 

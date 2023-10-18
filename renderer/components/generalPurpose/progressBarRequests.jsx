@@ -20,7 +20,7 @@ const isFlask = MEDconfig.serverChoice == SERVER_CHOICE.FLASK
 
  * @returns a progress bar that shows the progress of the current flow
  */
-const ProgressBarRequests = ({ isUpdating, setIsUpdating, progress, setProgress, requestTopic, withLabel = true, delayMS = 400, progressBarProps = { animated: true, variant: "success" } }) => {
+const ProgressBarRequests = ({ isUpdating, setIsUpdating, progress, setProgress, requestTopic, withLabel = true, delayMS = 400, progressBarProps={animated:true, variant: "success"} }) => {
   const { port } = useContext(WorkspaceContext) // used to get the port
   useEffect(() => {
     if (isUpdating && !isFlask) {
@@ -29,7 +29,7 @@ const ProgressBarRequests = ({ isUpdating, setIsUpdating, progress, setProgress,
         now: 0,
         currentLabel: ""
       })
-      toast.error("Progress is only available with the Flask server (for now))")
+      toast.warn("Progress is only available with the Flask server (for now))")
     }
   }, [isUpdating])
 
