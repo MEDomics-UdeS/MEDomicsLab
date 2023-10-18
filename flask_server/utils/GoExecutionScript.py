@@ -8,6 +8,10 @@ from abc import ABC, abstractmethod
 def get_response_from_error(e=None, toast=None):
     """
     Gets the response from an error
+
+    Args:
+        e: The error
+        toast: The toast message to send to the client, ignored if e is not None
     """
     if e is not None:
         print(e)
@@ -28,7 +32,11 @@ def get_response_from_error(e=None, toast=None):
 
 def send_response(response: dict):
     """
-    Sends the response to the client
+    handle sending the response to the Go server
+
+    Args:
+        response: The response to send
+
     """
     to_send = json.dumps(response)
     file_path = os.path.join(os.getcwd(), "temp_requests.txt")
@@ -43,6 +51,9 @@ def send_response(response: dict):
 
 
 class GoExecutionScript(ABC):
+    """
+    This class is used to execute a process in Go
+    """
     def __init__(self, json_params: str, process_fn: callable = None, isProgress: bool = False):
         self._json_params = json.loads(json_params)
         self._process_fn = process_fn
@@ -50,6 +61,9 @@ class GoExecutionScript(ABC):
         self._progress = {"now": 0, "currentLabel": ""} if isProgress else None
 
     def start(self):
+        """
+        Starts the process
+        """
         try:
             if self._process_fn is not None:
                 results = self._process_fn(self._json_params)
@@ -62,9 +76,29 @@ class GoExecutionScript(ABC):
             send_response(get_response_from_error(e))
 
     def _set_error_handler(self, error_handler: callable):
+        """
+        Sets the error handler function, so what to do when an error occurs in the process
+
+        Args:
+            error_handler: The error handler function
+
+        """
         self._error_handler = error_handler
 
     def _set_progress(self, progress: dict = None, label: str = None, now: int = None):
+        """
+        Sets the progress of the process
+
+        Args:
+            progress: The progress dictionary
+            label: The current label
+            now: The current progress
+
+        Description:
+            If progress is not None, it will set the progress to the given progress
+            If label is not None, it will set the current label to the given label
+            If now is not None, it will set the current progress to the given progress
+        """
         if progress is not None:
             self._progress = progress
         else:
@@ -81,5 +115,8 @@ class GoExecutionScript(ABC):
     def _custom_process(self, json_params: dict) -> dict:
         """
         Override this method to implement a custom process
+
+        Args:
+            json_params: The json params that were sent from the client side
         """
         return get_response_from_error(toast="No process function was provided")
