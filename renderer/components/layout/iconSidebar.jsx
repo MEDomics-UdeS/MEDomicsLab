@@ -184,7 +184,7 @@ const IconSidebar = ({ onSidebarItemSelect }) => {
                       console.log("clicked extraction text", event)
                       event.stopPropagation()
                       event.preventDefault()
-                      handleClick(event, "extraction_text")
+                      handleClick(event, "extractionText")
                       setExtractionBtnstate(!extractionBtnstate)
                     }}
                     onAuxClick={(event) => handleRightClick(event, "ExtractionText")}
@@ -200,7 +200,7 @@ const IconSidebar = ({ onSidebarItemSelect }) => {
                       console.log("clicked extraction ts", event)
                       event.stopPropagation()
                       event.preventDefault()
-                      handleClick(event, "extraction_ts")
+                      handleClick(event, "extractionTS")
                       setExtractionBtnstate(!extractionBtnstate)
                     }}
                     onAuxClick={(event) => handleRightClick(event, "ExtractionTS")}
