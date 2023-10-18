@@ -6,6 +6,7 @@ import Home from "../mainPages/home"
 import Input from "../mainPages/input"
 import Learning from "../mainPages/learning"
 import ExtractionMEDimagePage from "../mainPages/extractionMEDimage"
+import ExtractionImagePage from "../mainPages/extractionImage"
 import ExtractionTextPage from "../mainPages/extractionText"
 import ExtractionTSPage from "../mainPages/extractionTS"
 import ExploratoryPage from "../mainPages/exploratory"
@@ -86,6 +87,8 @@ const LayoutManager = (props) => {
           return <ExtractionTextPage pageId="4567"/>
         case "extractionTS":
           return <ExtractionTSPage pageId="456" />
+        case "extractionImage":
+          return <ExtractionImagePage pageId="678" />
         case "exploratory":
           return <ExploratoryPage />
         case "results":
@@ -118,6 +121,8 @@ const LayoutManager = (props) => {
       case "extractionText":
         return <ExtractionSidebar />
       case "extractionTS":
+        return <ExtractionSidebar />
+      case "extractionImage":
         return <ExtractionSidebar />
 
       default:

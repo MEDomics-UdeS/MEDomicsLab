@@ -15,6 +15,7 @@ import ResultsPage from "../../mainPages/results"
 import ExploratoryPage from "../../mainPages/exploratory"
 import EvaluationPage from "../../mainPages/evaluation"
 import ExtractionTextPage from "../../mainPages/extractionText"
+import ExtractionImagePage from "../../mainPages/extractionImage"
 import ExtractionMEDimagePage from "../../mainPages/extractionMEDimage"
 import ExtractionTSPage from "../../mainPages/extractionTS"
 import HomePage from "../../mainPages/home"
@@ -669,6 +670,15 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
           return <ExtractionTextPage pageId={"ExtractionTextPage"} />
         }
       }
+    } else if (component === "extractionImagePage") {
+      if (node.getExtraData().data == null) {
+        const config = node.getConfig()
+        if (config.path !== null) {
+          return <ExtractionImagePage pageId={config.uuid} configPath={config.path} />
+        } else {
+          return <ExtractionImagePage pageId={"ExtractionImagePage"} />
+        }
+      }
     } else if (component === "extractionMEDimagePage") {
       if (node.getExtraData().data == null) {
         const config = node.getConfig()
@@ -799,6 +809,9 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
         return <span style={{ marginRight: 3 }}>📖</span>
       }
       if (component === "extractionTextPage") {
+        return <span style={{ marginRight: 3 }}>📄</span>
+      }
+      if (component === "extractionImagePage") {
         return <span style={{ marginRight: 3 }}>📄</span>
       }
       if (component === "extractionMEDimagePage") {
