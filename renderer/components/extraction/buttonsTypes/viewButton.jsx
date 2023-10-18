@@ -1,6 +1,6 @@
 import React, { useContext } from "react"
 import Button from "react-bootstrap/Button"
-import { requestJson } from "../../../utilities/requests"
+import { requestBackend } from "../../../utilities/requests"
 import { WorkspaceContext } from "../../workspace/workspaceContext"
 import { ErrorRequestContext } from "../../flow/context/errorRequestContext"
 
@@ -40,7 +40,7 @@ const ViewButton = ({ id, data, type }) => {
       }
     }
 
-    requestJson(port, "/extraction/view", formData, (response) => {
+    requestBackend(port, "/extraction/view", formData, (response) => {
       if (response.error) {
         setError(response.error)
       } else {
@@ -51,17 +51,8 @@ const ViewButton = ({ id, data, type }) => {
 
   return (
     <div className="test">
-      <Button
-        type="button"
-        className="viewButton"
-        onClick={viewImage}
-        disabled={!data.internal.enableView}
-      >
-        <img
-          src="../icon/extraction/eye.svg"
-          className="viewImage"
-          alt="View button"
-        />
+      <Button type="button" className="viewButton" onClick={viewImage} disabled={!data.internal.enableView}>
+        <img src="../icon/extraction/eye.svg" className="viewImage" alt="View button" />
         View image
       </Button>
     </div>

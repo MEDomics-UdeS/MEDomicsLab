@@ -3,7 +3,7 @@ import { toast } from "react-toastify"
 
 // Import utilities
 import { loadJsonSync, downloadFile } from "../../utilities/fileManagementUtils"
-import { requestJson } from "../../utilities/requests"
+import { requestBackend } from "../../utilities/requests"
 
 // Workflow imports
 import { useNodesState, useEdgesState, useReactFlow } from "reactflow"
@@ -456,7 +456,7 @@ const FlowCanvas = ({ workflowType, setWorkflowType }) => {
           json_scene: newFlow
         })
 
-        requestJson(port, "/extraction/run", formData, (response) => {
+        requestBackend(port, "/extraction/run", formData, (response) => {
           if (response.error) {
             setError(response.error)
           } else {
@@ -526,7 +526,7 @@ const FlowCanvas = ({ workflowType, setWorkflowType }) => {
     console.log(newFlow)
 
     // Post request to extraction/run-all for current workflow
-    requestJson(port, "/extraction/run-all", newFlow, (response) => {
+    requestBackend(port, "/extraction/run-all", newFlow, (response) => {
       if (response.error) {
         setError(response.error)
       } else {
