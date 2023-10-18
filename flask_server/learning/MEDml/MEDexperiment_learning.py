@@ -1,18 +1,12 @@
 from .MEDexperiment import MEDexperiment
 import copy
-import pandas as pd
 import os
-import numpy as np
 from pycaret.classification.oop import ClassificationExperiment
 from pycaret.regression.oop import RegressionExperiment
 from learning.MEDml.logger.MEDml_logger_pycaret import MEDml_logger
 import json
 from learning.MEDml.nodes.NodeObj import *
 from learning.MEDml.nodes import *
-from typing import Any, Dict, List, Union
-from typing import Union
-from pathlib import Path
-from utils.server_utils import get_repo_path
 
 
 def create_pycaret_exp(ml_type: str) -> json:
@@ -30,6 +24,9 @@ def create_pycaret_exp(ml_type: str) -> json:
 
 
 class MEDexperimentLearning(MEDexperiment):
+    """
+    This class is used to create the experiment object and the logger object for the pycaret experiment.
+    """
 
     def __init__(self, global_config_json: json) -> None:
         super().__init__(global_config_json)

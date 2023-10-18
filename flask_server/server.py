@@ -1,14 +1,8 @@
-import os
-
 from learning.app_learning_blueprint import app_learning
 from extraction_ts.app_extraction_ts_blueprint import app_extraction_ts
 from extraction.app_extraction_blueprint import app_extraction
 from input.app_input_blueprint import app_input
-import json
-import argparse
-from flask import Flask, request, jsonify
-from utils.server_utils import get_json_from_request
-import argparse
+from flask import Flask
 
 
 def create_app():
