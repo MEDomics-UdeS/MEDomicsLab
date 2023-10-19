@@ -3,7 +3,7 @@ import decompress from "decompress"
 import { promises as fsPromises } from "fs"
 import zipper from "zip-local"
 
-import { createFolderSync, loadJsonPath } from "./fileManagementUtils.js"
+import { createFolderSync, loadJsonPath, getFileReadingMethodFromExtension } from "./fileManagementUtils.js"
 import { toast } from "react-toastify"
 import Path from "path"
 
@@ -116,10 +116,11 @@ export default class CustomZipFile {
             //listing all files using forEach
             console.log("files", files)
             files.forEach((element) => {
-              console.log("element", element, CustomZipFile.getPathType(Path.join(folderPath, element)))
               if (CustomZipFile.getPathType(Path.join(folderPath, element)) == IS_FILE) {
-                if (element.split(".")[1] == "json") {
-                  subContent[element.split(".")[0]] = loadJsonPath(Path.join(folderPath, element))
+                let extension = element.split(".")[1]
+                const readingFct = getFileReadingMethodFromExtension[extension]
+                if (extension == "json") {
+                  subContent[element.split(".")[0]] = readingFct(Path.join(folderPath, element))
                 } else {
                   subContent[element.split(".")[0]] = element
                 }
@@ -130,7 +131,6 @@ export default class CustomZipFile {
                 })
               }
             })
-            console.log("subContent", subContent)
             resolve2(subContent)
           })
         })

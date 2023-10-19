@@ -7,6 +7,7 @@ import { toast } from "react-toastify" // https://www.npmjs.com/package/react-to
 import { Tooltip } from "react-tooltip"
 import { Markup } from "interweave"
 import WsSelect from "../mainPages/dataComponents/wsSelect"
+import { customZipFile2Object } from "../../utilities/customZipFile"
 
 /**
  *
@@ -353,6 +354,16 @@ const Input = ({ name, settingInfos, currentValue, onInputChange }) => {
                     value: { name: e.target.value, path: path },
                     type: settingInfos.type
                   })
+                  if (path != "") {
+                    customZipFile2Object(path).then((content) => {
+                      setInputUpdate({
+                        name: name,
+                        value: { name: e.target.value, path: path, columns: content.model_required_cols },
+                        type: settingInfos.type
+                      })
+                      console.log("content", content)
+                    })
+                  }
                 }}
               />
             </FloatingLabel>

@@ -34,6 +34,7 @@ def run_experiment(id_):
     global exp_progress
     global storing_mode
     try:
+        exp_progress[scene_id] = {'now': 0, 'currentLabel': 'Starting'}
         # check if experiment already exists
         exp_already_exists = False
         if storing_mode == USE_RAM_FOR_EXPERIMENTS_STORING:

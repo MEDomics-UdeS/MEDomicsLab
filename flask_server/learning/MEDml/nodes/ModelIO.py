@@ -42,7 +42,7 @@ class ModelIO(Node):
         return_val = {}
         if self.type == 'save_model':
             self.CodeHandler.add_line(
-                "code", f"for model in trained_models:", 1)
+                "code", f"for model in trained_models:")
             for model in kwargs['models']:
                 if 'model_name' not in settings.keys():
                     settings['model_name'] = "model"
@@ -57,6 +57,9 @@ class ModelIO(Node):
                             self.type)(model, **settings)
                     self.CodeHandler.add_line(
                         "code", f"pycaret_exp.save_model(model, {self.CodeHandler.convert_dict_to_params(settings)})", 1)
+                    model_path = os.path.join(path, "model_required_cols.json")
+                    with open(model_path, 'w') as f:
+                        json.dump(self.global_config_json["data_columns"], f)
 
                 self.CustZipFileModel.create_zip(new_path, add_model_to_zip)
 

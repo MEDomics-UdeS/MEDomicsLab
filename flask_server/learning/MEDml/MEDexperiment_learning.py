@@ -133,16 +133,17 @@ class MEDexperimentLearning(MEDexperiment):
             'dataset': pycaret_exp.get_config('X').join(pycaret_exp.get_config('y')),
             'X_test': pycaret_exp.get_config('X_test'),
             'y_test': pycaret_exp.get_config('y_test'),
+
         }
+        self.global_json_config["data_columns"] = list(temp_df.columns.values.tolist())
         self.pipelines_objects[node.id]['results']['data'] = {
             "table": dataset_metaData['dataset'].to_json(orient='records'),
             "paths": node.get_path_list(),
         }
-
+        node._info_for_next_node['dataset'] = dataset_metaData['dataset']
         return {
             'pycaret_exp': pycaret_exp,
             'medml_logger': medml_logger,
-            'dataset_metaData': dataset_metaData
         }
 
     def _make_save_ready_rec(self, next_nodes: dict):
