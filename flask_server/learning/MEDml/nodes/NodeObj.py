@@ -1,3 +1,5 @@
+import copy
+
 from termcolor import colored
 from colorama import Fore, Back, Style
 import pandas as pd
@@ -56,7 +58,7 @@ class Node(ABC):
         self.config_json = global_config_json['nodes'][str(id_)]
         self._code = self.config_json['data']['internal']['code']
         self.CodeHandler = NodeCodeHandler()
-        self.settings = self.config_json['data']['internal']['settings']
+        self.settings = copy.deepcopy(self.config_json['data']['internal']['settings'])
         self.type = self.config_json['data']['internal']['type']
         self.username = self.config_json['data']['internal']['name']
         self.id = id_

@@ -72,7 +72,6 @@ class CustomZipFile:
         extracted_path = self.handle_input_path(path)
         self._cwd = extracted_path
 
-        print("extracted_path", extracted_path)
         # create an empty folder (temporary)
         os.makedirs(extracted_path, exist_ok=True)
 

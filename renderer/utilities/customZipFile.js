@@ -116,9 +116,13 @@ export default class CustomZipFile {
             //listing all files using forEach
             console.log("files", files)
             files.forEach((element) => {
-              console.log("element", element, Path.join(folderPath, element), CustomZipFile.getPathType(Path.join(folderPath, element)))
+              console.log("element", element, CustomZipFile.getPathType(Path.join(folderPath, element)))
               if (CustomZipFile.getPathType(Path.join(folderPath, element)) == IS_FILE) {
-                subContent[element.split(".")[0]] = loadJsonPath(Path.join(folderPath, element))
+                if (element.split(".")[1] == "json") {
+                  subContent[element.split(".")[0]] = loadJsonPath(Path.join(folderPath, element))
+                } else {
+                  subContent[element.split(".")[0]] = element
+                }
               } else if (CustomZipFile.getPathType(Path.join(folderPath, element)) == IS_FOLDER) {
                 subContent[element] = {}
                 readDirRecursive(Path.join(folderPath, element)).then((subSubContent) => {

@@ -148,7 +148,7 @@ class MEDexperimentLearning(MEDexperiment):
     def _make_save_ready_rec(self, next_nodes: dict):
         for node_id, node_content in next_nodes.items():
             saved_path = os.path.join(
-                self.global_json_config['internalPaths']['exp'], f"exp_{node_id.replace('*', '--')}")
+                self.global_json_config['internalPaths']['exp'], f"exp_{node_id.replace('*', '--')}.pycaretexp")
             if 'exp_path' in node_content['experiment']:
                 saved_path = node_content['experiment']['exp_path']
 
