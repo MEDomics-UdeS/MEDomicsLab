@@ -1,5 +1,11 @@
 import extractionDefaultSettings from "./possibleSettings/extraction/extractionDefaultSettings"
 
+export const sceneDescription = {
+  extension: "medimg",
+  extrenalFolders: [],
+  internalFolders: ["tmp", "exp"]
+}
+
 // Node parameters for Home module of extraction tab
 const nodesParams = {
   input: {
@@ -96,12 +102,7 @@ const nodesParams = {
     classes: "object extraction run",
     nbInput: 1,
     nbOutput: 0,
-    input: [
-      "re_segmentation_data",
-      "filter_data",
-      "roi_extraction_data",
-      "discretization_data"
-    ],
+    input: ["re_segmentation_data", "filter_data", "roi_extraction_data", "discretization_data"],
     output: [],
     img: "extraction.svg",
     title: "Extraction",

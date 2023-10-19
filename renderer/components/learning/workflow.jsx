@@ -15,6 +15,7 @@ import { WorkspaceContext } from "../workspace/workspaceContext"
 import { ErrorRequestContext } from "../flow/context/errorRequestContext"
 import MedDataObject from "../workspace/medDataObject"
 import { modifyZipFileSync } from "../../utilities/customZipFile.js"
+import { sceneDescription } from "../../public/setupVariables/learningNodesParams.jsx"
 
 // here are the different types of nodes implemented in the workflow
 import StandardNode from "./nodesTypes/standardNode"
@@ -696,12 +697,16 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
       newJson.path_seperator = MedDataObject.getPathSeparator()
       let scenePath = configPath.substring(0, configPath.lastIndexOf(newJson.path_seperator))
       newJson.paths = {
-        ws: scenePath,
-        tmp: scenePath + newJson.path_seperator + "tmp",
-        models: scenePath + newJson.path_seperator + "models",
-        exp: scenePath + newJson.path_seperator + "exp"
+        ws: scenePath
       }
-      // eslint-disable-next-line camelcase
+      newJson.internalPaths = {}
+      sceneDescription.extrenalFolders.forEach((folder) => {
+        newJson.paths[folder] = scenePath + newJson.path_seperator + folder
+      })
+      sceneDescription.internalFolders.forEach((folder) => {
+        newJson.internalPaths[folder] = configPath.split(".")[0] + newJson.path_seperator + folder
+      })
+      newJson.configPath = configPath
       newJson.nbNodes2Run = nbNodes2Run + 1 // +1 because the results generation is a time consuming task
 
       return { newflow: newJson, isValid: isValidDefault }

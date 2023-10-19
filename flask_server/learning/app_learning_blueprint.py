@@ -16,7 +16,7 @@ app_learning = Blueprint('app_learning', __name__,
 # global variables
 current_experiments = {}
 exp_progress = {}
-storing_mode = USE_RAM_FOR_EXPERIMENTS_STORING
+storing_mode = USE_SAVE_FOR_EXPERIMENTS_STORING
 
 
 @app_learning.route("/run_experiment/<id_>", methods=["POST"])
@@ -49,8 +49,7 @@ def run_experiment(id_):
                 exp_progress[scene_id] = {
                     'now': 0, 'currentLabel': 'Loading the experiment'}
                 current_experiments[scene_id] = load_experiment(scene_id)
-            elif storing_mode == USE_RAM_FOR_EXPERIMENTS_STORING:
-                current_experiments[scene_id].update(json_config)
+        current_experiments[scene_id].update(json_config)
         current_experiments[scene_id].start()
         results_pipeline = current_experiments[scene_id].get_results()
         if storing_mode == USE_SAVE_FOR_EXPERIMENTS_STORING:

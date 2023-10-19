@@ -9,6 +9,7 @@ from typing import Union
 from pathlib import Path
 from utils.server_utils import get_repo_path
 from abc import ABC, abstractmethod
+from utils.CustomZipFile import CustomZipFile
 
 DATAFRAME_LIKE = Union[dict, list, tuple, np.ndarray, pd.DataFrame]
 TARGET_LIKE = Union[int, str, list, tuple, np.ndarray, pd.Series]
@@ -62,6 +63,8 @@ class MEDexperiment(ABC):
         self._nb_nodes_done: float = 0.0
         self.global_json_config['unique_id'] = 0
         self.pipelines_objects = self.create_next_nodes(self.pipelines, {})
+        self.sceneZipFile = CustomZipFile(
+            path=global_json_config['configPath'])
         if self.global_json_config['paths']['ws'][0] == '.':
             for key, value in self.global_json_config['paths'].items():
                 self.global_json_config['paths'][key] = get_repo_path(
@@ -69,10 +72,12 @@ class MEDexperiment(ABC):
         os.chdir(str(Path(os.path.dirname(os.path.abspath(__file__))).parent.parent))
         print("current working directory: ", os.getcwd())
 
-        for f in os.listdir(self.global_json_config['paths']['tmp']):
-            if f != '.gitkeep':
-                os.remove(os.path.join(
-                    self.global_json_config['paths']['tmp'], f))
+        def clean_tmp_folder(path):
+            for f in os.listdir(os.path.join(path, 'tmp')):
+                if f != '.gitkeep':
+                    os.remove(os.path.join(path, 'tmp', f))
+
+        self.sceneZipFile.write_to_zip(custom_actions=clean_tmp_folder)
 
     def update(self, global_json_config: json = None):
         """Updates the experiment with the pipelines and the global configuration.

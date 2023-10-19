@@ -28,7 +28,7 @@ class ModelIO(Node):
         """
         super().__init__(id_, global_config_json)
         self.model_extension = '.medmodel'
-        self.CustZipFile = CustomZipFile(self.model_extension)
+        self.CustZipFileModel = CustomZipFile(self.model_extension)
 
     def _execute(self, experiment: dict = None, **kwargs) -> json:
         """
@@ -58,7 +58,7 @@ class ModelIO(Node):
                     self.CodeHandler.add_line(
                         "code", f"pycaret_exp.save_model(model, {self.CodeHandler.convert_dict_to_params(settings)})", 1)
 
-                self.CustZipFile.create_zip(new_path, add_model_to_zip)
+                self.CustZipFileModel.create_zip(new_path, add_model_to_zip)
 
                 return_val[model.__class__.__name__] = new_path + \
                     self.model_extension
@@ -78,6 +78,7 @@ class ModelIO(Node):
                 self._info_for_next_node = {'models': [
                     trained_model.named_steps['trained_model']]}
 
-            self.CustZipFile.unzip_actions(original_path, load_model_from_zip)
+            self.CustZipFileModel.read_in_zip(
+                original_path, load_model_from_zip)
 
         return return_val

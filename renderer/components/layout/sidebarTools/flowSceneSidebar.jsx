@@ -13,19 +13,17 @@ import { LayoutModelContext } from "../layoutContext"
 import { toast } from "react-toastify"
 import { createZipFileSync } from "../../../utilities/customZipFile"
 import Path from "path"
+import { sceneDescription as learningSceneDescription } from "../../../public/setupVariables/learningNodesParams"
+import { sceneDescription as extractionSceneDescription } from "../../../public/setupVariables/extractionNodesParams"
 
 const typeInfo = {
   learning: {
     title: "Learning",
-    extension: "medml",
-    extrenalFolders: ["models"],
-    internalFolders: ["tmp", "notebooks", "exp"]
+    ...learningSceneDescription
   },
   extractionImage: {
     title: "Extraction Image",
-    extension: "medimg",
-    extrenalFolders: [],
-    internalFolders: ["tmp", "exp"]
+    ...extractionSceneDescription
   }
 }
 
@@ -188,14 +186,16 @@ const FlowSceneSidebar = ({ type }) => {
               <hr className="solid" />
             </Stack>
           </div>
-          <div className="body">
-            <span className="p-float-label">
-              <InputText id="expName" value={sceneName} onChange={(e) => setSceneName(e.target.value)} aria-describedby="name-msg" className={`${showErrorMessage ? "p-invalid" : ""}`} />
-              <label htmlFor="expName">Enter scene name</label>
-            </span>
-            <small id="name-msg" className="text-red">
-              {showErrorMessage ? "Scene name is empty, contains spaces or already exists" : ""}
-            </small>
+          <div className="create-scene-overlayPanel-body">
+            <div>
+              <span className="p-float-label">
+                <InputText id="expName" value={sceneName} onChange={(e) => setSceneName(e.target.value)} aria-describedby="name-msg" className={`${showErrorMessage ? "p-invalid" : ""}`} />
+                <label htmlFor="expName">Enter scene name</label>
+              </span>
+              <small id="name-msg" className="text-red">
+                {showErrorMessage ? "Scene name is empty, contains spaces or already exists" : ""}
+              </small>
+            </div>
 
             <hr className="solid" />
             <Button variant="secondary" onClick={(e) => createSceneRef.current.toggle(e)} style={{ marginRight: "1rem" }}>

@@ -20,6 +20,7 @@ func main() {
 	fmt.Println("Server is listening on :" + port + "...")
 	err := http.ListenAndServe(":"+port, handler)
 	if err != nil {
+		fmt.Println("Error starting server: ", err)
 		return
 	}
 }

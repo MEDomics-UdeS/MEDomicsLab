@@ -4,6 +4,12 @@ import classificationModelsSettings from "./possibleSettings/learning/classifica
 import regressionModelsSettings from "./possibleSettings/learning/regressionModelSettings"
 /* eslint-disable */
 
+export const sceneDescription = {
+  extension: "medml",
+  extrenalFolders: ["models", "notebooks"],
+  internalFolders: ["tmp", "exp"]
+}
+
 const nodesParams = {
   dataset: {
     type: "standardNode",
