@@ -103,9 +103,10 @@ const IconSidebar = ({ onSidebarItemSelect }) => {
         <Tooltip target=".evaluationNav" {...delayOptions} className="tooltip-icon-sidebar" />
         <Tooltip target=".applicationNav" {...delayOptions} className="tooltip-icon-sidebar" />
         <Tooltip target=".layoutTestNav" {...delayOptions} className="tooltip-icon-sidebar" />
-        <Tooltip target=".ext-img-btn" {...delayOptions} className="tooltip-icon-sidebar" />
+        <Tooltip target=".ext-MEDimg-btn" {...delayOptions} className="tooltip-icon-sidebar" />
         <Tooltip target=".ext-text-btn" {...delayOptions} className="tooltip-icon-sidebar" />
         <Tooltip target=".ext-ts-btn" {...delayOptions} className="tooltip-icon-sidebar" />
+        <Tooltip target=".ext-img-btn" {...delayOptions} className="tooltip-icon-sidebar" />
 
         {/* ------------------------------------------- END Tooltips ----------------------------------------- */}
 
@@ -158,20 +159,20 @@ const IconSidebar = ({ onSidebarItemSelect }) => {
                 {extractionBtnstate ? <VscChromeClose style={{ height: "1.7rem", width: "auto" }} /> : <TbFileExport style={{ height: "1.7rem", width: "auto" }} />}
                 <div className={`btn-group-ext ${extractionBtnstate ? "clicked" : ""}`}>
                   <Button
-                    className="ext-img-btn"
+                    className="ext-MEDimg-btn"
                     icon="pi pi-image"
                     data-pr-at="right center"
                     data-pr-my="left center"
-                    data-pr-tooltip="Image"
+                    data-pr-tooltip="MEDimage"
                     data-is-ext-btn
                     onClick={(event) => {
                       console.log("clicked extraction image", event)
                       event.stopPropagation()
                       event.preventDefault()
-                      handleClick(event, "extraction_images")
+                      handleClick(event, "extractionMEDimage")
                       setExtractionBtnstate(!extractionBtnstate)
                     }}
-                    onAuxClick={(event) => handleRightClick(event, "ExtractionImage")}
+                    onAuxClick={(event) => handleRightClick(event, "ExtractionMEDimage")}
                   />
                   <Button
                     className="ext-text-btn"
@@ -184,7 +185,7 @@ const IconSidebar = ({ onSidebarItemSelect }) => {
                       console.log("clicked extraction text", event)
                       event.stopPropagation()
                       event.preventDefault()
-                      handleClick(event, "extraction_text")
+                      handleClick(event, "extractionText")
                       setExtractionBtnstate(!extractionBtnstate)
                     }}
                     onAuxClick={(event) => handleRightClick(event, "ExtractionText")}
@@ -200,10 +201,26 @@ const IconSidebar = ({ onSidebarItemSelect }) => {
                       console.log("clicked extraction ts", event)
                       event.stopPropagation()
                       event.preventDefault()
-                      handleClick(event, "extraction_ts")
+                      handleClick(event, "extractionTS")
                       setExtractionBtnstate(!extractionBtnstate)
                     }}
                     onAuxClick={(event) => handleRightClick(event, "ExtractionTS")}
+                  />
+                  <Button
+                    className="ext-img-btn"
+                    icon="pi pi-database"
+                    data-pr-at="right center"
+                    data-pr-my="left center"
+                    data-pr-tooltip="Image"
+                    data-is-ext-btn
+                    onClick={(event) => {
+                      console.log("clicked extraction image", event)
+                      event.stopPropagation()
+                      event.preventDefault()
+                      handleClick(event, "extractionImage")
+                      setExtractionBtnstate(!extractionBtnstate)
+                    }}
+                    onAuxClick={(event) => handleRightClick(event, "ExtractionImage")}
                   />
                 </div>
               </Nav.Link>

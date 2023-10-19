@@ -35,7 +35,7 @@ pp = pprint.PrettyPrinter(indent=4, compact=True, width=40,
 
 ## Importation du submodule MEDimage
 import submodules.MEDimage.MEDimage as MEDimage
-import extraction.MEDimageApp.utils as utils
+import extraction_MEDimage.MEDimageApp.utils as utils
 import ray
 
 # Global variables
@@ -57,7 +57,7 @@ NB_RUNS = 0
 df = {}
 
 # Creation of flask blueprint for extraction tab of MEDomicsLab
-app_extraction = Blueprint('app_extraction', __name__, static_folder='static', template_folder='templates')
+app_extraction_MEDimage = Blueprint('app_extraction_MEDimage', __name__, static_folder='static', template_folder='templates')
 
 
 def generateAllPipelines(id: str, node_content, pip, json_scene, pips):
@@ -1139,7 +1139,7 @@ def execute_pips(pips, json_scene):
 
 
 # Upload file in Input Object node
-@app_extraction.route('/upload', methods=['GET', 'POST'])
+@app_extraction_MEDimage.route('/upload', methods=['GET', 'POST'])
 def getUpload():  # Code selected from  https://flask.palletsprojects.com/en/2.2.x/patterns/fileuploads/
     try:
         up_file_infos = {}
@@ -1212,7 +1212,7 @@ def getUpload():  # Code selected from  https://flask.palletsprojects.com/en/2.2
 
 
 # Run all button to run all drawflow pipelines
-@app_extraction.route("/run-all", methods=["GET","POST"])
+@app_extraction_MEDimage.route("/run-all", methods=["GET","POST"])
 def runAll():
     try:
         if not bool(MED_IMG_OBJ):
@@ -1255,7 +1255,7 @@ def runAll():
 
 
 # TODO : Verifier si le node peut bien etre execute
-@app_extraction.route('/run', methods=['GET', 'POST'])
+@app_extraction_MEDimage.route('/run', methods=['GET', 'POST'])
 def run():
     try:
         data = get_json_from_request(request)
@@ -1277,7 +1277,7 @@ def run():
 
 
 # TODO : Verifier si fonctionne aussi pour d'autre types que des images IRM. (TEP devrait etre couleur, IRM et CT noir et blanc).
-@app_extraction.route('/view', methods=['GET', 'POST'])
+@app_extraction_MEDimage.route('/view', methods=['GET', 'POST'])
 def get3DView():
     try:
         data = get_json_from_request(request)

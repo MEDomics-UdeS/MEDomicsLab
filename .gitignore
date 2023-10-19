@@ -146,7 +146,7 @@ dmypy.json
 /flaskProject/static/tmp
 *.idea
 /learning-tests-scene*
-flask_server/extraction/MEDimageApp/tmp/*
+flask_server/extraction_MEDimage/MEDimageApp/tmp/*
 /flask_server/local_dir/*
 path2condaenv_toDeleteInProd.txt
 

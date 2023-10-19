@@ -1,6 +1,6 @@
 import React, { useContext } from "react"
 import Button from "react-bootstrap/Button"
-import { requestBackend } from "../../../utilities/requests"
+import { requestJson } from "../../../utilities/requests"
 import { WorkspaceContext } from "../../workspace/workspaceContext"
 import { ErrorRequestContext } from "../../flow/context/errorRequestContext"
 
@@ -20,12 +20,12 @@ const ViewButton = ({ id, data, type }) => {
 
   /**
    * @description
-   * This function is used to send a POST request to /extraction/view.
+   * This function is used to send a POST request to /extraction_MEDimage/view.
    */
   const viewImage = () => {
     console.log("Viewing image for node " + id)
 
-    // Construction of form data to send to /extraction/view. If the node is input, the name of the file is needed
+    // Construction of form data to send to /extraction_MEDimage/view. If the node is input, the name of the file is needed
     let formData
     if (type === "input") {
       formData = {
@@ -40,7 +40,7 @@ const ViewButton = ({ id, data, type }) => {
       }
     }
 
-    requestBackend(port, "/extraction/view", formData, (response) => {
+    requestJson(port, "/extraction_MEDimage/view", formData, (response) => {
       if (response.error) {
         setError(response.error)
       } else {

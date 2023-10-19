@@ -3,7 +3,7 @@ import { toast } from "react-toastify"
 
 // Import utilities
 import { loadJsonSync, downloadFile } from "../../utilities/fileManagementUtils"
-import { requestBackend } from "../../utilities/requests"
+import { requestJson } from "../../utilities/requests"
 
 // Workflow imports
 import { useNodesState, useEdgesState, useReactFlow } from "reactflow"
@@ -449,14 +449,14 @@ const FlowCanvas = ({ workflowType, setWorkflowType }) => {
         // Get the node from id
         let nodeName = newFlow.drawflow.Home.data[id] ? newFlow.drawflow.Home.data[id].name : "extraction"
 
-        // POST request to /extraction/run for the current node by sending form_data
+        // POST request to /extraction_MEDimage/run for the current node by sending form_data
         var formData = JSON.stringify({
           id: id,
           name: nodeName,
           json_scene: newFlow
         })
 
-        requestBackend(port, "/extraction/run", formData, (response) => {
+        requestJson(port, "/extraction_MEDimage/run", formData, (response) => {
           if (response.error) {
             setError(response.error)
           } else {
@@ -525,8 +525,8 @@ const FlowCanvas = ({ workflowType, setWorkflowType }) => {
     console.log("Flow dictionnary sent to back end is : ")
     console.log(newFlow)
 
-    // Post request to extraction/run-all for current workflow
-    requestBackend(port, "/extraction/run-all", newFlow, (response) => {
+    // Post request to extraction_MEDimage/run-all for current workflow
+    requestJson(port, "/extraction_MEDimage/run-all", newFlow, (response) => {
       if (response.error) {
         setError(response.error)
       } else {
@@ -723,11 +723,11 @@ const FlowCanvas = ({ workflowType, setWorkflowType }) => {
         onDeleteNode={deleteNode}
         isGoodConnection={isGoodConnection}
         // represents the visual of the workflow
-        ui={
+
+        uiTopRight={
           <>
-            {/* Components in the upper right corner of the workflow */}
-            <div className="btn-panel-top-corner-right">
-              {workflowType == "extraction" ? (
+            {workflowType == "extraction" ? (
+              <>
                 <BtnDiv
                   buttonsList={[
                     { type: "run", onClick: onRun },
@@ -736,10 +736,10 @@ const FlowCanvas = ({ workflowType, setWorkflowType }) => {
                     { type: "load", onClick: onLoad }
                   ]}
                 />
-              ) : (
-                <BtnDiv buttonsList={[{ type: "back", onClick: onBack }]} />
-              )}
-            </div>
+              </>
+            ) : (
+              <BtnDiv buttonsList={[{ type: "back", onClick: onBack }]} />
+            )}
           </>
         }
       />

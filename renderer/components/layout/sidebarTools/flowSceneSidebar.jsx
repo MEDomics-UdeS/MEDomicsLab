@@ -14,16 +14,16 @@ import { toast } from "react-toastify"
 import { createZipFileSync } from "../../../utilities/customZipFile"
 import Path from "path"
 import { sceneDescription as learningSceneDescription } from "../../../public/setupVariables/learningNodesParams"
-import { sceneDescription as extractionSceneDescription } from "../../../public/setupVariables/extractionNodesParams"
+import { sceneDescription as extractionMEDimageSceneDescription } from "../../../public/setupVariables/extractionMEDimageNodesParams"
 
 const typeInfo = {
   learning: {
     title: "Learning",
     ...learningSceneDescription
   },
-  extractionImage: {
-    title: "Extraction Image",
-    ...extractionSceneDescription
+  extractionMEDimage: {
+    title: "Extraction MEDimage",
+    ...extractionMEDimageSceneDescription
   }
 }
 

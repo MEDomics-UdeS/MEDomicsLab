@@ -1,4 +1,4 @@
-import extractionDefaultSettings from "./possibleSettings/extraction/extractionDefaultSettings"
+import extractionMEDimageDefaultSettings from "./possibleSettings/extractionMEDimage/extractionMEDimageDefaultSettings"
 
 export const sceneDescription = {
   extension: "medimg",
@@ -18,7 +18,7 @@ const nodesParams = {
     img: "input.svg",
     title: "Input",
     possibleSettings: {
-      defaultSettings: extractionDefaultSettings.input
+      defaultSettings: extractionMEDimageDefaultSettings.input
     }
   },
   segmentation: {
@@ -31,7 +31,7 @@ const nodesParams = {
     img: "segmentation.svg",
     title: "Segmentation",
     possibleSettings: {
-      defaultSettings: extractionDefaultSettings.segmentation
+      defaultSettings: extractionMEDimageDefaultSettings.segmentation
     }
   },
   interpolation: {
@@ -44,7 +44,7 @@ const nodesParams = {
     img: "interpolation.svg",
     title: "Interpolation",
     possibleSettings: {
-      defaultSettings: extractionDefaultSettings.interpolation
+      defaultSettings: extractionMEDimageDefaultSettings.interpolation
     }
   },
   filter: {
@@ -57,7 +57,7 @@ const nodesParams = {
     img: "filter.svg",
     title: "Filter",
     possibleSettings: {
-      defaultSettings: extractionDefaultSettings.filter
+      defaultSettings: extractionMEDimageDefaultSettings.filter
     }
   },
   re_segmentation: {
@@ -70,7 +70,7 @@ const nodesParams = {
     img: "segmentation.svg",
     title: "Re-Segmentation",
     possibleSettings: {
-      defaultSettings: extractionDefaultSettings.re_segmentation
+      defaultSettings: extractionMEDimageDefaultSettings.re_segmentation
     }
   },
   roi_extraction: {
@@ -94,7 +94,7 @@ const nodesParams = {
     img: "discretization.svg",
     title: "Discretization",
     possibleSettings: {
-      defaultSettings: extractionDefaultSettings.discretization
+      defaultSettings: extractionMEDimageDefaultSettings.discretization
     }
   },
   extraction: {
