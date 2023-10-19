@@ -23,14 +23,22 @@ function FlowResultsProvider({ children }) {
   // This function is used to update the flowResults
   const updateFlowResults = (newResults) => {
     if (!newResults) return
-    setFlowResults({ ...newResults })
-    setIsResults(true)
-    if (workspace.hasBeenSet && experimentName && sceneName) {
-      MedDataObject.writeFileSync(newResults, [getBasePath(EXPERIMENTS), experimentName, sceneName], sceneName, "medmlres").then((res) => {
-        console.log("res", res)
-        toast.success("Results generated and saved !")
-        MedDataObject.updateWorkspaceDataObject()
-      })
+    const isValidFormat = (results) => {
+      let firstKey = Object.keys(results)[0]
+      return results[firstKey].results ? true : false
+    }
+    if (isValidFormat(newResults)) {
+      setFlowResults({ ...newResults })
+      setIsResults(true)
+      if (workspace.hasBeenSet && experimentName && sceneName) {
+        MedDataObject.writeFileSync(newResults, [getBasePath(EXPERIMENTS), experimentName, sceneName], sceneName, "medmlres").then((res) => {
+          console.log("res", res)
+          toast.success("Results generated and saved !")
+          MedDataObject.updateWorkspaceDataObject()
+        })
+      }
+    } else {
+      toast.error("The results are not in the correct format")
     }
   }
 

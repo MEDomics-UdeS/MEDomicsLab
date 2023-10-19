@@ -3,14 +3,14 @@ File: models_settings_generator.py
 Author: Guillaume Blain
 Date: 2023-10-04
 
-Description: This script generate automatically models settings accordingly to the selected machine learning for the MEDml app.
+Description: This scripts generate automatically models settings accordingly to the selected machine learning for the MEDml app.
 """
 
 from pycaret.datasets import get_data
 import inspect
 import json
 
-# python script arguments
+# python scripts arguments
 import argparse
 parser = argparse.ArgumentParser(description='Script so useful.')
 parser.add_argument("--mlType", type=str, default="regression", help="machine learning type to generate settings for (classification or regression)")

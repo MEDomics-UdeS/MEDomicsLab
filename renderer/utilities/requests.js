@@ -1,24 +1,33 @@
 import { ipcRenderer } from "electron"
 import axios from "axios"
 import { toast } from "react-toastify"
+import MEDconfig, { SERVER_CHOICE } from "../../medomics.dev"
 
 /**
- * 
- * @param {Integer} port the port to send the request to
- * @param {String} topic the topic to send the request to
- * @param {Object} json2send the json to send
- * @param {Function} jsonReceivedCB extecuted when the json is received
- * 
- * @example
- * import { requestJson } from '/utilities/requests';
+ *
+ * @param {int} port server port
+ * @param {string} topic route to send the request to
+ * @param {string} pageId id of the page where the request is send from (optional)
+ * @param {Object} json2send json to send
+ * @param {Function} jsonReceivedCB executed when the json is received
+ * @param {Function} onError executed when an error occurs
+ */
+export const requestBackend = (port, topic, pageId = null, json2send, jsonReceivedCB, onError) => {
+  if (MEDconfig.serverChoice == SERVER_CHOICE.GO) {
+    axiosPostJsonGo(port, topic, json2send, jsonReceivedCB, onError)
+  } else if (MEDconfig.serverChoice == SERVER_CHOICE.FLASK) {
+    requestJson(port, pageId ? topic + "/" + pageId : topic, json2send, jsonReceivedCB, onError)
+  }
+}
 
- <Button variant="primary" onClick={
-    () => {
-        requestJson(5000, "test", { test: "test" }, (jsonResponse) => {
-            console.log(jsonResponse);
-        });
-    }
-}>send test</Button> 
+/**
+ *
+ * @param {int} port server port
+ * @param {string} topic route to send the request to
+ * @param {string} pageId id of the page where the request is send from (optional)
+ * @param {Object} json2send json to send
+ * @param {Function} jsonReceivedCB executed when the json is received
+ * @param {Function} onError executed when an error occurs
  */
 export const requestJson = (port, topic, json2send, jsonReceivedCB, onError) => {
   try {
@@ -49,6 +58,51 @@ export const requestJson = (port, topic, json2send, jsonReceivedCB, onError) => 
   }
 }
 
+/**
+ *
+ * @param {int} port server port
+ * @param {string} topic route to send the request to
+ * @param {string} pageId id of the page where the request is send from (optional)
+ * @param {Object} json2send json to send
+ * @param {Function} jsonReceivedCB executed when the json is received
+ * @param {Function} onError executed when an error occurs
+ */
+export const axiosPostJsonGo = async (port, topic, json2send, jsonReceivedCB, onError) => {
+  try {
+    const response = await axios.post("http://localhost:" + port + topic, { message: JSON.stringify(json2send) }, { headers: { "Content-Type": "application/json" } })
+    console.log(response.data)
+    response.data.type == "toParse" ? jsonReceivedCB(JSON.parse(response.data.response_message)) : jsonReceivedCB(response.data.response_message)
+    return response.data
+  } catch (error) {
+    console.error(error)
+    onError(error)
+
+    onError
+      ? onError(error)
+      : () => {
+          if (error.response) {
+            // The request was made and the server responded with a status code
+            // that falls out of the range of 2xx
+            console.error("Server Error:", error.response.data)
+            console.error("Status Code:", error.response.status)
+            console.error("Headers:", error.response.headers)
+          } else if (error.request) {
+            // The request was made but no response was received
+            // `error.request` is an instance of XMLHttpRequest in the browser
+            console.error("Request Error:", error.request)
+          } else {
+            // Something happened in setting up the request that triggered an Error
+            console.error("Error:", error.message)
+          }
+        }
+  }
+}
+
+/**
+ * @param {Object} jsonData json to send
+ * @param {string} pathName route to send the request to
+ * @returns
+ */
 export const axiosPostJson = async (jsonData, pathName) => {
   try {
     const response = await axios.post("http://localhost:5000/" + pathName, jsonData, { headers: { "Content-Type": "application/json" } })
@@ -73,56 +127,4 @@ export const axiosPostJson = async (jsonData, pathName) => {
     }
     throw error
   }
-}
-
-// example of use:
-{
-  /*
-
-import { requestJson } from '/utilities/requests';
-
- <Button variant="primary" onClick={
-    () => {
-        requestJson(5000, "test", { test: "test" }, (jsonResponse) => {
-            console.log(jsonResponse);
-        }, function (err) {
-            console.error(err);
-        });
-    }
-}>send test</Button> 
-
-*/
-}
-
-export const downloadFile = (downloadUrl, onSuccess, onError) => {
-  console.log("DownloadFile: " + downloadUrl)
-  if (downloadUrl) {
-    var xhr = new XMLHttpRequest()
-    xhr.open("GET", downloadUrl)
-    xhr.onload = function () {
-      if (xhr.status == 200) {
-        onSuccess(xhr.responseText)
-      } else {
-        onError(xhr.status + " " + xhr.statusText)
-      }
-    }
-    xhr.onerror = function (e) {
-      console.log(e)
-      onError(e)
-    }
-    xhr.send()
-  }
-}
-
-export const getQueryParams = () => {
-  var a = window.location.search.substr(1)
-  if (a == "") return {}
-  var params = a.split("&")
-  var b = {}
-  for (var i = 0; i < params.length; ++i) {
-    var p = params[i].split("=", 2)
-    if (p.length == 1) b[p[0]] = ""
-    else b[p[0]] = decodeURIComponent(p[1].replace(/\+/g, " "))
-  }
-  return b
 }

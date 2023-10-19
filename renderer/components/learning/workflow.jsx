@@ -4,7 +4,7 @@ import Form from "react-bootstrap/Form"
 import { useNodesState, useEdgesState, useReactFlow, addEdge } from "reactflow"
 import WorkflowBase from "../flow/workflowBase"
 import { loadJsonSync } from "../../utilities/fileManagementUtils"
-import { requestJson } from "../../utilities/requests"
+import { requestBackend } from "../../utilities/requests"
 import EditableLabel from "react-simple-editlabel"
 import BtnDiv from "../flow/btnDiv"
 import ProgressBarRequests from "../generalPurpose/progressBarRequests"
@@ -14,6 +14,7 @@ import { FlowResultsContext } from "../flow/context/flowResultsContext"
 import { WorkspaceContext } from "../workspace/workspaceContext"
 import { ErrorRequestContext } from "../flow/context/errorRequestContext"
 import MedDataObject from "../workspace/medDataObject"
+import MEDconfig, { SERVER_CHOICE } from "../../../medomics.dev.js"
 
 // here are the different types of nodes implemented in the workflow
 import StandardNode from "./nodesTypes/standardNode"
@@ -27,6 +28,7 @@ import nodesParams from "../../public/setupVariables/allNodesParams"
 // here are static functions used in the workflow
 import { removeDuplicates, deepCopy } from "../../utilities/staticFunctions"
 import { defaultValueFromType } from "../../utilities/learning/inputTypesUtils.js"
+import { Button } from "primereact/button"
 
 const staticNodesParams = nodesParams // represents static nodes parameters
 
@@ -510,9 +512,10 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
           console.log("sended flow", flow)
           console.log("port", port)
           setIsProgressUpdating(true)
-          requestJson(
+          requestBackend(
             port,
-            "/learning/run_experiment/" + pageId,
+            "/learning/run_experiment",
+            pageId,
             flow,
             (jsonResponse) => {
               console.log("received results:", jsonResponse)

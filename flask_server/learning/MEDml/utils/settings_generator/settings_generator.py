@@ -3,7 +3,7 @@ File: settings_generator.py
 Author: Guillaume Blain
 Date: 2023-10-04
 
-Description: This script generate automatically the selected machine learning type settings file for the MEDml app.
+Description: This scripts generate automatically the selected machine learning type settings file for the MEDml app.
 """
 import pandas as pd
 from selenium import webdriver
@@ -12,7 +12,7 @@ import json
 import dpath.util as dp
 from collections.abc import MutableMapping
 
-# python script arguments
+# python scripts arguments
 import argparse
 parser = argparse.ArgumentParser(description='Script so useful.')
 parser.add_argument("--mlType", type=str, default="regression",
