@@ -162,9 +162,9 @@
 }
 
 .mergeToolMultiSelect .p-component {
-  text-overflow: ellipsis;
+  /* text-overflow: ellipsis;
   white-space: nowrap;
-  overflow: hidden;
+  overflow: hidden; */
 }
 
 .mergeToolMultiSelect h6 {
@@ -259,4 +259,201 @@
   padding: 0rem 0.25rem 0rem 0.25rem;
   font-weight: 700;
   border-radius: 0.4rem 0.4rem 0rem 0rem;
+}
+
+.groupingTool .p-dropdown-item {
+  padding-top: 0.25rem !important;
+  padding-bottom: 0.25rem !important;
+  margin: 0.1rem !important;
+}
+.groupingTool .p-dropdown-items {
+  padding-top: 0.1rem !important;
+  padding-bottom: 0.1rem !important;
+}
+
+.groupingTool .p-dropdown-trigger {
+  width: 1.5rem;
+}
+
+.groupingTool .p-tree {
+  padding: 0%;
+}
+
+.groupingTool .p-treeselect-header {
+  padding: 0.5rem;
+  background-color: #00000036;
+}
+
+.groupingTool .p-treeselect-filter {
+  padding: 0.5rem;
+}
+
+.groupingTool .toggle-font-color-button {
+  padding: 0rem;
+  width: fit-content;
+}
+
+.groupingTool .toggle-font-color-button[aria-pressed="false"] {
+  background-color: #000000ad;
+}
+
+.groupingTool .toggle-font-color-button[aria-pressed="true"] {
+  background-color: #e9e9e9d0;
+}
+
+.groupingTool .toggle-font-color-button:hover[aria-pressed="true"] {
+  background-color: #0038b175 !important;
+}
+
+.groupingTool .toggle-font-color-button:hover[aria-pressed="false"] {
+  background-color: #2760da75 !important;
+}
+
+.groupingToolTree {
+  /* display: flex;
+  flex-direction: row;
+  flex-grow: 1; */
+  /* height: 100%; */
+}
+
+.groupingToolTree .p-tree {
+  padding: 0%;
+}
+.groupingToolTree .p-treenode-content {
+  padding: 0% !important;
+}
+.groupingToolTree .p-treenode-children {
+  padding: 0%;
+  padding-left: 1rem;
+}
+
+.groupingTool .p-chips .p-inputtext {
+  padding: 0% !important;
+  padding: 0.25rem !important;
+  width: 100% !important;
+}
+
+.groupingTool .p-chips .p-chips-input-token {
+  padding: 0% !important;
+  padding: 0.25rem !important;
+  width: 100% !important;
+}
+
+.groupingTool .p-chips {
+  padding: 0% !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 100% !important;
+}
+
+.groupingToolTree .flex.align-items-center {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  align-content: center;
+  /* justify-content: safe center; */
+}
+
+.groupingToolTree .flex.align-items-center .p-tag {
+  margin-inline: 0.25rem;
+
+  /* justify-content: safe center; */
+}
+
+.groupingTool.mergeToolMultiSelect .p-component .p-colorpicker-preview {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.groupingTool .listItem {
+  display: flex;
+  flex-direction: row;
+
+  /* justify-content: flex-end; */
+  padding: 0.25rem;
+  /* text-justify: ; */
+}
+
+.groupingTool .listItem .icon-button-div {
+  width: fit-content;
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+  align-items: center;
+  flex-wrap: nowrap;
+}
+
+.small-token .p-chips-token {
+  margin-inline: 0rem !important;
+  margin-top: 0.15rem;
+  padding: 0.15rem 0.25rem !important;
+}
+
+.small-token .p-chips-token-icon {
+  margin-left: 0.15rem !important;
+}
+
+.small-token .p-chips-token-label {
+  /*  margin-left: 0.15rem; */
+
+  font-size: smaller;
+}
+
+.small-token .p-multiselect-token-label {
+  /*  margin-left: 0.15rem; */
+
+  font-size: smaller;
+}
+
+.small-token .p-treeselect-token {
+  margin-inline: 0.15rem !important;
+
+  padding: 0.15rem 0.25rem !important;
+}
+
+.small-token .p-treeselect-token-icon {
+  margin-left: 0.15rem !important;
+}
+
+.small-token .p-treeselect-token-label {
+  /*  margin-left: 0.15rem; */
+
+  font-size: smaller;
+}
+
+.small-token.p-treeselect {
+  width: 100% !important;
+  margin-right: 0.5rem !important;
+}
+
+.token-bg-transparent .p-chips-token {
+  background-color: transparent !important;
+  padding: 0% !important;
+}
+
+.custom-token {
+  padding: 0.25rem 0.35rem !important;
+  margin: 0rem !important;
+  margin-inline: 0.15rem !important;
+  border-radius: 1rem;
+  font-size: 0.75rem !important;
+}
+
+.custom-token .p-chip-text {
+  padding: 0.05rem 0.35rem !important;
+  margin: 0rem !important;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.custom-token .p-icon {
+  margin: 0rem !important;
+}
+
+.small-token .p-multiselect-label {
+  display: block;
+  white-space: nowrap;
+  cursor: pointer;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
