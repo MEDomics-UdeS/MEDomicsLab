@@ -150,8 +150,7 @@ flask_server/extraction_MEDimage/MEDimageApp/tmp/*
 /flask_server/local_dir/*
 path2condaenv_toDeleteInProd.txt
 
-test/extraction/IBSI/data_sets/*
-test/extraction/IBSI/dicom/*
+test/*
 package-lock.json
 
 !*.gitkeep

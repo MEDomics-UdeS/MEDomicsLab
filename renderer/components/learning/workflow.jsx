@@ -31,7 +31,6 @@ import nodesParams from "../../public/setupVariables/allNodesParams"
 // here are static functions used in the workflow
 import { removeDuplicates, deepCopy } from "../../utilities/staticFunctions"
 import { defaultValueFromType } from "../../utilities/learning/inputTypesUtils.js"
-import { Button } from "primereact/button"
 import { FlowInfosContext } from "../flow/context/flowInfosContext.jsx"
 
 const staticNodesParams = nodesParams // represents static nodes parameters

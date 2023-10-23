@@ -1,7 +1,6 @@
 import copy
 
-from termcolor import colored
-from colorama import Fore, Back, Style
+from colorama import Fore
 import pandas as pd
 from abc import ABC, abstractmethod
 import numpy as np
@@ -58,14 +57,16 @@ class Node(ABC):
         self.config_json = global_config_json['nodes'][str(id_)]
         self._code = self.config_json['data']['internal']['code']
         self.CodeHandler = NodeCodeHandler()
-        self.settings = copy.deepcopy(self.config_json['data']['internal']['settings'])
+        self.settings = copy.deepcopy(
+            self.config_json['data']['internal']['settings'])
         self.type = self.config_json['data']['internal']['type']
         self.username = self.config_json['data']['internal']['name']
         self.id = id_
         self._has_run = False
         self.just_run = False
         self._info_for_next_node = {}
-        self.CustZipFile = CustomZipFile(path=self.global_config_json['configPath'])
+        self.CustZipFile = CustomZipFile(
+            path=self.global_config_json['configPath'])
         for setting, value in self.settings.items():
             if isinstance(value, str):
                 if is_float(value):

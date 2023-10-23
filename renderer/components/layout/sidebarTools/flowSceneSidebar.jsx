@@ -9,7 +9,6 @@ import { OverlayPanel } from "primereact/overlaypanel"
 import { Accordion } from "react-bootstrap"
 import MedDataObject from "../../workspace/medDataObject"
 import { DataContext } from "../../workspace/dataContext"
-import { LayoutModelContext } from "../layoutContext"
 import { toast } from "react-toastify"
 import { createZipFileSync } from "../../../utilities/customZipFile"
 import Path from "path"
@@ -42,7 +41,6 @@ const FlowSceneSidebar = ({ type }) => {
   const [selectedItems, setSelectedItems] = useState([]) // We initialize the selected items state to an empty array
   const [dbSelectedItem, setDbSelectedItem] = useState(null) // We initialize the selected item state to an empty string
   const { globalData } = useContext(DataContext)
-  const { dispatchLayout } = useContext(LayoutModelContext)
 
   // We use the useEffect hook to update the experiment list state when the workspace changes
   useEffect(() => {
@@ -113,6 +111,12 @@ const FlowSceneSidebar = ({ type }) => {
     }
   }
 
+  /**
+   *
+   * @param {String} path The path of the folder where the scene will be created
+   * @param {String} sceneName The name of the scene
+   * @param {String} extension The extension of the scene
+   */
   const createSceneContent = (path, sceneName, extension) => {
     const emptyScene = loadJsonPath("./resources/emptyScene.json")
     MedDataObject.createEmptyFolderFSsync(sceneName, path).then(async (sceneFolderPath) => {
@@ -132,17 +136,6 @@ const FlowSceneSidebar = ({ type }) => {
       })
     })
   }
-
-  // We use the useEffect hook to open the learning page when the selected item changes
-  // useEffect(() => {
-  //   console.log(dbSelectedItem)
-  //   // if (globalData[dbSelectedItem] !== undefined) {
-  //   if (dbSelectedItem !== null) {
-  //     if (dbSelectedItem.name !== undefined) {
-  //       dispatchLayout({ type: "openInLearningModule", payload: dbSelectedItem })
-  //     }
-  //   }
-  // }, [dbSelectedItem])
 
   /**
    *

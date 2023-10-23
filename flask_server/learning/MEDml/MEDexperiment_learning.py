@@ -160,7 +160,6 @@ class MEDexperimentLearning(MEDexperiment):
             data = node_content['experiment']['pycaret_exp'].data
             self.sceneZipFile.write_to_zip(
                 custom_actions=lambda path: node_content['experiment']['pycaret_exp'].save_experiment(saved_path))
-            # node_content['experiment']['pycaret_exp'].save_experiment(saved_path)
             node_content['experiment']['exp_path'] = saved_path
             node_content['experiment']['dataset'] = data
             node_content['experiment']['pycaret_exp'] = None
@@ -178,6 +177,5 @@ class MEDexperimentLearning(MEDexperiment):
 
             node_content['experiment']['pycaret_exp'] = self.sceneZipFile.read_in_zip(
                 custom_actions=lambda path: get_experiment(pycaret_exp, data, saved_path))
-            # node_content['experiment']['pycaret_exp'] = node_content['experiment']['pycaret_exp'].load_experiment(node_content['experiment']['exp_path'], data=data)
 
             self._init_obj_rec(node_content['next_nodes'])
