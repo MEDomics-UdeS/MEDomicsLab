@@ -342,88 +342,8 @@ def execute_pips(pips, json_scene):
                                                                  )
 
             # ------------------------------------------ HOME ------------------------------------------
-            # DATA MANAGER
-            if (content["name"] == "datamanager"):
-                print("\n********DATAMANAGER execution********")
-
-                # Retrieve data from json request
-                if "path_dicoms" in content["data"].keys() and content["data"]["path_dicoms"] != "":
-                    path_to_dicoms = Path(content["data"]["path_dicoms"])
-                else:
-                    path_to_dicoms = None
-                if "path_niftis" in content["data"].keys() and content["data"]["path_niftis"] != "":
-                    path_to_niftis = Path(content["data"]["path_niftis"])
-                else:
-                    path_to_niftis = None
-                if "path_save" in content["data"].keys() and content["data"]["path_save"] != "":
-                    path_save = Path(content["data"]["path_save"])
-                if "path_csv" in content["data"].keys() and content["data"]["path_csv"] != "":
-                    path_csv = Path(content["data"]["path_csv"])
-                if "save" in content["data"].keys():
-                    save = content["data"]["save"]
-                if "n_batch" in content["data"].keys():
-                    n_batch = content["data"]["n_batch"]
-
-                # Check if at least one path to data is given
-                if not ("path_dicoms" in content["data"].keys() and content["data"]["path_dicoms"] != "") and not (
-                        "path_niftis" in content["data"].keys() and content["data"]["path_niftis"] != ""):
-                    print("No path to data given")
-                    return Response("No path to data given! At least DICOM or NIFTI path must be given.", status=400)
-
-                # Init DataManager instance
-                dm = MEDimage.wrangling.DataManager(
-                    path_to_dicoms=path_to_dicoms,
-                    path_to_niftis=path_to_niftis,
-                    path_save=path_save,
-                    path_csv=path_csv,
-                    save=save, 
-                    n_batch=n_batch)
-                
-                # Run the DataManager
-                if path_to_dicoms is not None and path_to_niftis is None:
-                    dm.process_all_dicoms()
-                elif path_to_dicoms is None and path_to_niftis is not None:
-                    dm.process_all_niftis()
-                else:
-                    dm.process_all()
-            
-            # Batch Extractor
-            elif (content["name"] == "batchextractor"):
-                print("\n********BATCHEXTRACTOR execution********")
-
-                # Retrieve data from json request
-                if "path_read" in content["data"].keys() and content["data"]["path_read"] != "":
-                    path_read = Path(content["data"]["path_read"])
-                else:
-                    return Response("Path to npy objects is not given!", status=400)
-                if "path_params" in content["data"].keys() and content["data"]["path_params"] != "":
-                    path_params = Path(content["data"]["path_params"])
-                else:
-                    return Response("Path to parameters is not given!", status=400)
-                if "path_save" in content["data"].keys() and content["data"]["path_save"] != "":
-                    path_save = Path(content["data"]["path_save"])
-                else:
-                    return Response("Path to save is not given!", status=400)
-                if "path_csv" in content["data"].keys() and content["data"]["path_csv"] != "":
-                    path_csv = Path(content["data"]["path_csv"])
-                else:
-                    return Response("Path to csv is not given!", status=400)
-                if "n_batch" in content["data"].keys():
-                    n_batch = content["data"]["n_batch"]
-
-                # Init BatchExtractor instance
-                batch_extractor = MEDimage.biomarkers.BatchExtractor(
-                                    path_read=path_read,
-                                    path_csv=path_csv,
-                                    path_params=path_params,
-                                    path_save=path_save,
-                                    n_batch=n_batch)
-                
-                # Run the BatchExtractor
-                batch_extractor.compute_radiomics()
-
             # INPUT
-            elif (content["name"] == "input"):
+            if (content["name"] == "input"):
                 print("\n********INPUT execution********")
                 print("filename_loaded : ", filename_loaded)
                 print("content data : ", content["data"]["filepath"])
@@ -1284,30 +1204,32 @@ def getUpload():  # Code selected from  https://flask.palletsprojects.com/en/2.2
 def RunDM():
     if request.method == 'POST':
         data = request.get_json()
+        keys = list(data.keys())
+        data = data[keys[0]]
 
     # Retrieve data from json request
-    if "path_dicoms" in data.keys() and data["path_dicoms"] != "":
-        path_to_dicoms = Path(data["path_dicoms"])
+    if "pathDicoms" in data.keys() and data["pathDicoms"] != "":
+        path_to_dicoms = Path(data["pathDicoms"])
     else:
         path_to_dicoms = None
-    if "path_niftis" in data.keys() and data["path_niftis"] != "":
-        path_to_niftis = Path(data["path_niftis"])
+    if "pathNiftis" in data.keys() and data["pathNiftis"] != "":
+        path_to_niftis = Path(data["pathNiftis"])
     else:
         path_to_niftis = None
-    if "path_save" in data.keys() and data["path_save"] != "":
-        path_save = Path(data["path_save"])
-    if "path_csv" in data.keys() and data["path_csv"] != "":
-        path_csv = Path(data["path_csv"])
+    if "pathSave" in data.keys() and data["pathSave"] != "":
+        path_save = Path(data["pathSave"])
+    if "pathCSV" in data.keys() and data["pathCSV"] != "":
+        path_csv = Path(data["pathCSV"])
     else:
         path_csv = None
     if "save" in data.keys():
         save = data["save"]
-    if "n_batch" in data.keys():
-        n_batch = data["n_batch"]
+    if "nBatch" in data.keys():
+        n_batch = data["nBatch"]
 
     # Check if at least one path to data is given
-    if not ("path_dicoms" in data.keys() and data["path_dicoms"] != "") and not (
-            "path_niftis" in data.keys() and data["path_niftis"] != ""):
+    if not ("pathDicoms" in data.keys() and data["pathDicoms"] != "") and not (
+            "pathNiftis" in data.keys() and data["pathNiftis"] != ""):
         print("No path to data given")
         return Response("No path to data given! At least DICOM or NIFTI path must be given.", status=400)
     
@@ -1353,51 +1275,51 @@ def RunDM():
 def RunPreChecks():
     if request.method == 'POST':
         data = request.get_json()
+        keys = list(data.keys())
+        data = data[keys[0]]
 
     # Retrieve data from json request
-    if "path_dicoms" in data.keys() and data["path_dicoms"] != "":
-        path_to_dicoms = Path(data["path_dicoms"])
+    if "pathDicoms" in data.keys() and data["pathDicoms"] != "":
+        path_to_dicoms = Path(data["pathDicoms"])
     else:
         path_to_dicoms = None
-    if "path_niftis" in data.keys() and data["path_niftis"] != "":
-        path_to_niftis = Path(data["path_niftis"])
+    if "pathNiftis" in data.keys() and data["pathNiftis"] != "":
+        path_to_niftis = Path(data["pathNiftis"])
     else:
         path_to_niftis = None
-    if "path_save" in data.keys() and data["path_save"] != "":
-        path_save = Path(data["path_save"])
-    if "path_csv" in data.keys() and data["path_csv"] != "":
-        path_csv = Path(data["path_csv"])
+    if "pathSave" in data.keys() and data["pathSave"] != "":
+        path_save = Path(data["pathSave"])
+    if "pathCSV" in data.keys() and data["pathCSV"] != "":
+        path_csv = Path(data["pathCSV"])
     else:
         path_csv = None
     if "save" in data.keys():
         save = data["save"]
-    if "n_batch" in data.keys():
-        n_batch = data["n_batch"]
+    if "nBatch" in data.keys():
+        n_batch = data["nBatch"]
     if "wildcards_dimensions" in data.keys():
-        wildcards_dimensions = [data["wildcards_dimensions"]]
+        wildcards_dimensions = data["wildcards_dimensions"]
     else:
         wildcards_dimensions = None
     if "wildcards_window" in data.keys():
-        wildcards_window = [data["wildcards_window"]]
+        wildcards_window = data["wildcards_window"]
     else:
         wildcards_window = None
-
-    # Check if at least one path to data is given
-    if not ("path_dicoms" in data.keys() and data["path_dicoms"] != "") and not (
-            "path_niftis" in data.keys() and data["path_niftis"] != ""):
-        print("No path to data given")
-        return Response("No path to data given! At least DICOM or NIFTI path must be given.", status=400)
     
     # Check if wildcards are given
     if not wildcards_dimensions and not wildcards_window:
         return Response("No wildcards given! both wildcard for dimensions and for window must be given.", status=400)
     
+    # path save (TODO: find another work-around)
+    path_save_checks = Path.cwd() / "renderer/public/images"
+
     # Init DataManager instance
     dm = MEDimage.wrangling.DataManager(
         path_to_dicoms=path_to_dicoms,
         path_to_niftis=path_to_niftis,
         path_save=path_save,
         path_csv=path_csv,
+        path_save_checks=path_save_checks,
         save=save, 
         n_batch=n_batch)
 
@@ -1406,16 +1328,26 @@ def RunPreChecks():
         path_data=path_save,
         wildcards_dimensions=wildcards_dimensions, 
         wildcards_window=wildcards_window, 
-        path_csv=path_csv)
+        path_csv=path_csv,
+        save=True)
+
+    # Get pre-checks images
+    # Find all png files in path
+    list_png = list((path_save_checks / 'checks').glob('*.png'))
+    list_titles = [png.name for png in list_png]
+    list_png = [str(png) for png in list_png]
+    url_list = ['.' + png.split('public')[-1].replace('\\', '/') for png in list_png]
     
     # Return success message
-    return Response("DataManager run successfully!", status=200)
+    return jsonify({"url_list": url_list, "list_titles": list_titles, "message": "Pre-checks done successfully."}) 
 
 # Run BatchExtractor
 @app_extraction.route('/count/be', methods=['GET', 'POST'])
 def RunBECount():
     if request.method == 'POST':
         data = request.get_json()
+        keys = list(data.keys())
+        data = data[keys[0]]
 
     # Retrieve data from json request
     if "path_read" in data.keys() and data["path_read"] != "":
@@ -1474,6 +1406,8 @@ def RunBECount():
 def RunBE():
     if request.method == 'POST':
         data = request.get_json()
+        keys = list(data.keys())
+        data = data[keys[0]]
 
     # Retrieve data from json request
     if "path_read" in data.keys() and data["path_read"] != "":

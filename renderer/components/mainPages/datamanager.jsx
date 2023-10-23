@@ -1,15 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import { WorkspaceContext } from "../workspace/workspaceContext"
+import React, { useState, useEffect, useContext } from 'react';
 import {Row, Col, Card, Form, Offcanvas, Container, Alert} from 'react-bootstrap';
 import { toast } from 'react-toastify';
-import { axiosPostJson } from "../../utilities/requests"
+import { requestJson } from "../../utilities/requests"
 import { ProgressBar } from 'react-bootstrap';
-import Image from 'react-bootstrap/Image';
-import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
-import Tooltip from 'react-bootstrap/Tooltip';
 import Table from 'react-bootstrap/Table';
 import ModulePage from './moduleBasics/modulePage';
 import {Button} from 'primereact/button';
-
+import { MultiSelect } from 'primereact/multiselect';
+import { Dialog } from 'primereact/dialog';
+import { Galleria } from 'primereact/galleria';
+import { InputText } from 'primereact/inputtext';
+import { Tooltip } from 'primereact/tooltip';
 
 /**
  * @param {Object} nodeForm form associated to the discretization node
@@ -21,23 +23,31 @@ import {Button} from 'primereact/button';
  * This component is used to display a InputForm.
  */
 const DataManager = ({ reload, setReload }) => {
+  const { port } = useContext(WorkspaceContext)
   const [progress, setProgress] = useState(0);
   const [refreshEnabled, setRefreshEnabled] = useState(false); // A boolean variable to control refresh
+  const [refreshEnabledPreChecks, setRefreshEnabledPreChecks] = useState(false); // A boolean variable to control refresh for preChecks
   const [selectedDcmFolder, setSelectedDcmFolder] = useState('');
   const [selectedNiftiFolder, setSelectedNiftiFolder] = useState('');
   const [selectedSaveFolder, setSelectedSaveFolder] = useState('');
   const [selectedSave, setSelectedSave] = useState(true);
+  const [selectedNpyFolder, setSelectedNpyFolder] = useState('');
   const [selectedNBatch, setSelectedNBatch] = useState(12);
   const [selectedCSVFile, setSelectedCSVFile] = useState('');
-  const [wildcardWindow, setWildcardWindow] = useState('');
-  const [wildcardDim, setWildcardDim] = useState('');
+  const [selectedPreChecksOptions, setSelectedPreChecksOptions] = useState(null);
+  const [selectedInstitutions, setSelectedInstitutions] = useState([]);
+  const [selectedStudies, setSelectedStudies] = useState([]);
+  const [selectedModalities, setSelectedModalities] = useState([]);
+  const [costumWildCard, setCostumWildCard] = useState(null); // A boolean variable to control refresh
   const [summary, setSummary] = useState(''); // A string variable to store the summary of the node
   const [showOffCanvas, setShowOffCanvas] = useState(false) // used to display the offcanvas
+  const [showPreChecksImages, setShowPreChecksImages] = useState(false) // used to display the offcanvas
   const handleOffCanvasClose = () => setShowOffCanvas(false) // used to close the offcanvas
   const handleOffCanvasShow = () => setShowOffCanvas(true) // used to show the offcanvas
 
+  const [preChecksImages, setPreChecksImages] = useState([]) // used to display the offcanvas
+
   const handleGoBackClick = () => {
-    console.log("Go back to extraction menu", reload)
     setReload(!reload);
   };
 
@@ -104,6 +114,8 @@ const DataManager = ({ reload, setReload }) => {
     else {
       setSelectedSaveFolder(event.target.files.path)
     }
+    // Update npy folder automatically
+    setSelectedNpyFolder(selectedSaveFolder);
   };
 
   const handleSaveChange = (event) => {
@@ -112,8 +124,8 @@ const DataManager = ({ reload, setReload }) => {
   };
 
   const handleNBatchChange = (event) => {
-    const n_batch = event.target.value;
-    setSelectedNBatch(parseInt(n_batch));
+    const nBatch = event.target.value;
+    setSelectedNBatch(parseInt(nBatch));
   };
 
   const handleCSVFileChange = (event) => {
@@ -125,6 +137,32 @@ const DataManager = ({ reload, setReload }) => {
     else {
       setSelectedCSVFile(event.target.files.path)
     }
+  };
+
+  const handleNpyFolderChange = (event) => {
+    var fileList = event.target.files
+    if (fileList.length > 0) {
+      fileList = fileList[0].path
+
+      // The path of the image needs to be the path of the common folder of all the files
+      // If the directory is constructed according to standard DICOM format, the path
+      // of the image is the one containning the folders image and mask
+      if (fileList.indexOf("\\") >= 0) {
+        fileList = fileList.split("\\").slice(0, -1).join("\\")
+      } else if (fileList.indexOf("/") >= 0) {
+        fileList = fileList.split("/").slice(0, -1).join("/")
+      } else {
+        fileList = fileList.split("/").slice(0, -1).join("/")
+      }
+      setSelectedNpyFolder(fileList)
+    }
+    else {
+      setSelectedNpyFolder(event.target.files.path)
+    }
+  };
+
+  const itemTemplate = (item) => {
+    return <img src={item.itemImageSrc} alt={item.alt} style={{ width: '100%', display: 'block' }} />;
   };
 
   const fs = require('fs');
@@ -180,65 +218,228 @@ const DataManager = ({ reload, setReload }) => {
     }
   }
 
+
+  /**
+   * @returns {JSX.Element} A tree menu or a warning message
+   * @param {Object} JsonData - The data to display in the tree menu
+   * @description This function is used to render the tree menu of the extraction node.
+  */
+  const getFinalWildCards = () => {
+    let finalWildCards = new Array();
+    if (selectedStudies === null && selectedInstitutions === null && selectedModalities === null) {
+      toast.error('Please select at least a study, an institution or a modality');
+      return;
+    }
+    else {
+      let studies = selectedStudies;
+      let institutions = selectedInstitutions;
+      let modalities = selectedModalities;
+      
+      if (studies === null || studies.length === 0) {
+        studies = [{label: ''}];
+      }
+      if (institutions === null || institutions.length === 0) {
+        institutions = [{label: ''}];
+      }
+      if (modalities === null || modalities.length === 0) {
+        modalities = [{label: ''}];
+      }
+
+      for (let i = 0; i < studies.length; i++) {
+        for (let j = 0; j < institutions.length; j++) {
+          for (let k = 0; k < modalities.length; k++) {
+            if (institutions[j].label === '' && modalities[k].label === '') {
+              finalWildCards.push(studies[i].label + '*.npy');
+            }
+            else if (studies[i].label === '' && modalities[k].label === '') {
+              finalWildCards.push('*' + institutions[j].label + '*.npy');
+            }
+            else if (studies[i].label === '' && institutions[j].label === '') {
+              finalWildCards.push('*' + modalities[k].label + '*.npy');
+            }
+            else if (studies[i].label === '') {
+              finalWildCards.push('*' + institutions[j].label + '*' + modalities[k].label + '*.npy');
+            }
+            else if (institutions[j].label === '') {
+              finalWildCards.push(studies[i].label + '*' + '*' + modalities[k].label + '*.npy');
+            }
+            else if (modalities[k].label === '') {
+              finalWildCards.push(studies[i].label + '*' + institutions[j].label + '*.npy');
+            }
+            else{
+              finalWildCards.push(studies[i].label + '-' + institutions[j].label + '*' + modalities[k].label + '*.npy');
+            }
+          }
+        }
+      }
+    }
+    return finalWildCards;
+  }
+
+  /**
+   * @returns {JSX.Element} A tree menu or a warning message
+   * @param {Object} JsonData - The data to display in the tree menu
+   * @description This function is used to render the tree menu of the extraction node.
+  */
+  const updateWildCards = (JsonData) => {
+    console.log("JsonData: ", JsonData);
+    // Initialization
+    let studies = new Array();
+    let institutions = new Array();
+    let modalities = new Array();
+    // get unique studies
+    try {
+      JsonData.map((value, key) => (studies.push(value.study)));
+      studies = [...new Set(studies)];
+      // Delete the empty string
+      studies = studies.filter(function (el) {
+        return el != "";
+      });
+      studies = studies.map((value, key) => ({ label: value}));
+    } catch (error) {
+      console.error('Error counting studies:', error);
+    }
+  
+    // get unique institutions
+    try {
+      JsonData.map((value, _) => (institutions.push(value.institution)));
+      institutions = [...new Set(institutions)];
+      // Delete the empty string
+      institutions = institutions.filter(function (el) {
+        return el != "";
+      });
+      institutions = institutions.map((value, key) => ({ label: value}));
+      console.log("institutions: ", institutions);
+    } catch (error) {
+      console.error('Error counting studies:', error);
+    }
+
+    // get unique modalities
+    try {
+      JsonData.map((value, _) => (modalities.push(value.scan_type)));
+      modalities = [...new Set(modalities)];
+      // Delete the empty string
+      modalities = modalities.filter(function (el) {
+        return el != "";
+      });
+      modalities = modalities.map((value, key) => ({ label: value}));
+      console.log("modalities: ", modalities);
+    } catch (error) {
+      console.error('Error counting studies:', error);
+    }
+
+    // Update pre checks options
+    let preChecksOptions = new Object();
+    preChecksOptions.studies = studies;
+    preChecksOptions.institutions = institutions;
+    preChecksOptions.modalities = modalities;
+    setSelectedPreChecksOptions(preChecksOptions);
+
+  }
+
+  /**
+   * @description Handles the click on the process button of the DICOM or NIfTI data.
+  */
   const handleProcessClick = () => {
     
     // Simulate page refresh
     setRefreshEnabled(true);
 
     // Create an object with the input values
-    const requestData = {
-      path_dicoms: selectedDcmFolder,
-      path_niftis: selectedNiftiFolder,
-      path_save: selectedSaveFolder,
+    let requestData = {
+      pathDicoms: selectedDcmFolder,
+      pathNiftis: selectedNiftiFolder,
+      pathSave: selectedSaveFolder,
       save: selectedSave,
-      n_batch: parseInt(selectedNBatch),
+      nBatch: parseInt(selectedNBatch),
     };
     // Make a POST request to the backend API
-    axiosPostJson(requestData, 'extraction/run/dm')
-      .then((response) => {
-        // Handle the response from the backend if needed
-        console.log('Response from backend:', response);
-        setSummary(response);
-        toast.success('Data processed!')
-      })
-      .catch((error) => {
+    requestJson(port, '/extraction_img/run/dm', requestData, (response) => {
+
+      // Handle the response from the backend if needed
+      console.log('Response from backend:', response);
+
+      // Update summary
+      setSummary(response);
+
+      // Update wildcards
+      updateWildCards(response);
+
+      // Update npy folder
+      setSelectedNpyFolder(selectedSaveFolder);
+
+      toast.success('Data processed!')},
+
+      // Handle errors if the request fails
+      (error) => {
+        // Cancel the refresh
+        setRefreshEnabled(false);
+        
         // Handle errors if the request fails
         console.error('Error:', error);
-        toast.error('Error: ' + error.message)
-        if (error.response.data){
-          toast.error('Error message: ' + error.response.data)
-        }
-      });
+        toast.error('Error: ' + error)
+      })
   };
 
+  /**
+   * @description Handles the click on the run button for the pre-checks
+  */
   const handleRunClick = () => {
+
+    // Get the final wildcards
+    let finalwildcard = null;
+    if (!costumWildCard) {
+      console.log("no costum wildcard");
+      finalwildcard = getFinalWildCards();
+    } else if (!costumWildCard.endsWith('.npy')) {
+      console.log("costum wildcard");
+      finalwildcard = costumWildCard + '.npy';
+    } else {
+      console.log("costum wildcard with npy");
+      finalwildcard = costumWildCard;
+    }
+
+    //Check if npy folder is defined
+    if (selectedNpyFolder === '' || selectedSaveFolder) {
+      toast.error('Please select a npy folder');
+      return;
+    }
+
+    // refresh
+    setRefreshEnabledPreChecks(true);
     
     // Create an object with the input values
-    const requestData = {
-      path_dicoms: selectedDcmFolder,
-      path_niftis: selectedNiftiFolder,
-      path_save: selectedSaveFolder,
+    let requestData = {
+      pathDicoms: selectedDcmFolder,
+      pathNiftis: selectedNiftiFolder,
+      pathSave: selectedSaveFolder ? selectedSaveFolder : selectedNpyFolder,
       save: selectedSave,
-      path_csv: selectedCSVFile,
-      wildcards_dimensions: wildcardDim,
-      wildcards_window: wildcardWindow,
-      n_batch: parseInt(selectedNBatch),
+      pathCSV: selectedCSVFile,
+      wildcards_dimensions: finalwildcard,
+      wildcards_window: finalwildcard,
+      nBatch: parseInt(selectedNBatch),
     };
+    console.log("requestData: ", requestData);
     // Make a POST request to the backend API
-    axiosPostJson(requestData, 'extraction/run/dm/prechecks')
-      .then((response) => {
-        // Handle the response from the backend if needed
-        console.log('Response from backend:', response);
-        toast.success('Pre-checks done!')
-      })
-      .catch((error) => {
+    requestJson(port, '/extraction_img/run/dm/prechecks', requestData, (response) => {
+      // Handle the response from the backend if needed
+      console.log('Response from backend:', response);
+      toast.success('Pre-checks done!')
+      // refresh
+      setRefreshEnabledPreChecks(false);
+      // set images
+      let imagesPreCheck = new Array();
+      response["url_list"].map((value, key) => (imagesPreCheck.push({itemImageSrc: value, alt: response["list_titles"][key]})));
+      setPreChecksImages(imagesPreCheck);
+      },
+      (error) => {
         // Handle errors if the request fails
+        // refresh
+        console.log("Error on response pre checks");
+        setRefreshEnabledPreChecks(false);
         console.error('Error:', error);
-        toast.error('Error: ' + error.message)
-        if (error.response.data){
-          toast.error('Error message: ' + error.response.data)
-        }
-      });
+        toast.error('Error: ' + error)
+      })
   };
 
   // Function to fetch and update data (your front-end function)
@@ -262,6 +463,7 @@ const DataManager = ({ reload, setReload }) => {
 
     if (newData === 100) {
       setRefreshEnabled(false);
+      console.log("Refresh is disabled");
     }
   };
 
@@ -278,10 +480,21 @@ const DataManager = ({ reload, setReload }) => {
       // Clean up the interval when the component unmounts
       return () => {
         clearInterval(intervalId);
-    };
-  }
+      };
+    } 
   }, [refreshEnabled]); // The empty dependency array ensures this effect runs only once when the component mounts
 
+  useEffect(() => {
+    if (!refreshEnabledPreChecks ) {
+      setRefreshEnabledPreChecks(false);
+    };
+  }, [refreshEnabledPreChecks]); // The empty dependency array ensures this effect runs only once when the component mounts
+
+  /**
+   * @returns {JSX.Element} A tree menu or a warning message
+   * @param {Object} JsonData - The data to display in the tree menu
+   * @description This function is used to render the tree menu of the extraction node.
+  */
   function JsonDataDisplay(JsonData){
     const DisplayData = [JsonData].map(
         info=>{
@@ -350,10 +563,17 @@ const DataManager = ({ reload, setReload }) => {
   return (
     <>
     <ModulePage pageId="dataManager-id">
-
     <div>
     <div data-bs-theme="blue" className='bg-blue p-2'>
-      <Button icon="pi pi-chevron-left" className="d-inline-flex align-items-center" onClick={handleGoBackClick}  outlined severity="danger" aria-label="Cancel" tooltip="Go back to extraction menu" tooltipOptions={{ position: 'right' }} />
+      <Button 
+        icon="pi pi-chevron-left" 
+        className="d-inline-flex align-items-center" 
+        onClick={handleGoBackClick}  
+        outlined severity="danger" 
+        aria-label="Cancel" 
+        tooltip="Go back to extraction menu" 
+        tooltipOptions={{ position: 'right' }} 
+      />
     </div>
     <Card>
       <Card.Body>
@@ -364,11 +584,18 @@ const DataManager = ({ reload, setReload }) => {
       <Form method="post" encType="multipart/form-data" className="inputFile">
       {/* UPLOAD DICOM DATASET FOLDER*/}
         <Row className="form-group-box">
-          <Form.Label htmlFor="file">DICOM dataset folder</Form.Label>
+          <Tooltip target=".dcm-path"/>
+          <Form.Label 
+            className="dcm-path" 
+            data-pr-tooltip="Path to the DICOM dataset folder you want to process"
+            data-pr-position="bottom"
+            htmlFor="file">
+              DICOM dataset folder
+          </Form.Label>
           <Col style={{ width: "150px" }}>
             <Form.Group controlId="enterFile">
               <Form.Control
-                name="path_dicoms"
+                name="pathDicoms"
                 type="file"
                 webkitdirectory="true"
                 directory="true"
@@ -380,11 +607,18 @@ const DataManager = ({ reload, setReload }) => {
 
         {/* UPLOAD NIfTI DATASET FOLDER*/}
         <Row className="form-group-box">
-          <Form.Label htmlFor="file">NIfTI dataset folder</Form.Label>
+          <Tooltip target=".nifti-path"/>
+          <Form.Label 
+            className="nifti-path" 
+            data-pr-tooltip="Path to the NIfTI dataset folder you want to process" 
+            data-pr-position="bottom"
+            htmlFor="file">
+              NIfTI dataset folder
+          </Form.Label>
           <Col style={{ width: "150px" }}>
             <Form.Group controlId="enterFile">
               <Form.Control
-                name="path_niftis"
+                name="pathNiftis"
                 type="file"
                 webkitdirectory="true"
                 directory="true"
@@ -396,11 +630,18 @@ const DataManager = ({ reload, setReload }) => {
 
         {/* UPLOAD SAVING FOLDER*/}
         <Row className="form-group-box">
-          <Form.Label htmlFor="file">Save folder</Form.Label>
+          <Tooltip target=".save-path"/>
+          <Form.Label 
+            className="save-path" 
+            data-pr-tooltip="Folder to where the processed data will be saved"
+            data-pr-position="bottom"
+            htmlFor="file">
+              Save folder
+          </Form.Label>
           <Col style={{ width: "150px" }}>
             <Form.Group controlId="enterFile">
               <Form.Control
-                name="path_save"
+                name="pathSave"
                 type="file"
                 webkitdirectory="true"
                 directory="true"
@@ -415,7 +656,13 @@ const DataManager = ({ reload, setReload }) => {
       <Row className="form-group-box">
         <Col>
         <Form.Group controlId="save" style={{ paddingTop: "10px" }}>
-          <Form.Label>Save:</Form.Label>
+          <Tooltip target=".save"/>
+          <Form.Label 
+            className="save" 
+            data-pr-tooltip="Whether to save the processed data or not (Always True for now)"
+            data-pr-position="bottom">
+              Save :
+          </Form.Label>
             <Form.Control
               as="select"
               name="save"
@@ -429,10 +676,16 @@ const DataManager = ({ reload, setReload }) => {
         </Col>
       {/* NUMBER OF BATCH*/}
         <Col>
-        <Form.Group controlId="n_batch" style={{ paddingTop: "10px" }}>
-          <Form.Label>Number of cores to use :</Form.Label>
+        <Form.Group controlId="nBatch" style={{ paddingTop: "10px" }}>
+          <Tooltip target=".nbatch"/>
+          <Form.Label 
+            className="nbatch" 
+            data-pr-tooltip="Number of cores to use for the parallel processing"
+            data-pr-position="bottom">
+              Number of cores to use :
+          </Form.Label>
             <Form.Control
-              name="n_batch"
+              name="nBatch"
               type="number"
               defaultValue={12}
               placeholder={"Default: " + 12}
@@ -445,31 +698,53 @@ const DataManager = ({ reload, setReload }) => {
       {/* PROCESS BUTTON*/}
       <Row className="form-group-box">
         <Col>
-          <div className="text-center"> {/* Center-align the button */}
-              <Button
-                variant="primary"
-                name="ProcessButton"
-                type="button"
-                onClick={handleProcessClick}
-                disabled={(!selectedDcmFolder || !selectedSaveFolder || refreshEnabled) && (!selectedNiftiFolder || !selectedSaveFolder)}
-                className="small-results-button"
-              >
-                Process
-              </Button>
-          </div>
+            <Button
+              severity="success"
+              label="Process"
+              name="ProcessButton"
+              onClick={handleProcessClick}
+              disabled={(!selectedDcmFolder || !selectedSaveFolder || refreshEnabled) && (!selectedNiftiFolder || !selectedSaveFolder)}
+              icon="pi pi-wrench"
+              raised
+              rounded
+              loading={refreshEnabled}
+            />
           </Col>
         <Col>
-        <Button
-          variant="success"
-          name="ShowSummaryButton"
-          type="button"
-          className="small-results-button"
-          onClick={handleOffCanvasShow}
-        >
-          Show Summary
-        </Button>
-
+          <Button
+            severity="secondary"
+            label="Show Summary"
+            name="ShowSummaryButton"
+            onClick={handleOffCanvasShow}
+            icon="pi pi-list"
+            raised
+            rounded
+          />
         </Col>
+      </Row>
+
+        {/* PROGRESS BAR*/}
+        {(refreshEnabled || progress === 100 || progress !== 0) && (
+        <React.Fragment>
+          <br />
+          <br />
+          <br />
+          <br />
+        </React.Fragment>
+        )}
+        <Row className="text-center">
+          {(progress === 0) && (refreshEnabled) &&(
+            <div className="panel-bottom-center">
+                <ProgressBar animated striped variant="danger" now={100} label="Reading data and associating RT objects to imaging volumes"/>
+            </div>)}
+          {progress !== 0 && progress !== 100 &&(<div className="panel-bottom-center">
+                <label>Processing</label>
+                <ProgressBar animated striped variant="info" now={progress} label={`${progress}%`} />
+            </div>)}
+          {progress === 100 &&(<div className="panel-bottom-center">
+              <label>Done!</label>
+              <ProgressBar animated striped variant="success" now={progress} label={`${progress}%`} />
+          </div>)}
         </Row>
       </Card.Body>
     </Card>
@@ -490,21 +765,6 @@ const DataManager = ({ reload, setReload }) => {
       </Offcanvas>
     </Container>
 
-    {/* PROGRESS BAR*/}
-    <br></br>
-    {(progress === 0) && (refreshEnabled) &&(<Card>
-        <Card.Body>
-          <ProgressBar animated striped variant="success" now={100} label={'Reading data and associating RT objects to imaging volumes...'} />
-        </Card.Body>
-      </Card>)}
-    {progress !== 0 &&(<Card>
-        <Card.Body>
-          <ProgressBar animated striped variant="info" now={progress} label={`${progress}%`} />
-        </Card.Body>
-      </Card>)}
-    <br></br>
-
-
     {/* RADIOMICS PRE-CHECKS*/}
     <Card>
       <Card.Body>
@@ -512,71 +772,151 @@ const DataManager = ({ reload, setReload }) => {
             <h4>Data Manager - Radiomics Pre-checks</h4>
         </Card.Header>
 
-        <Form method="post" encType="multipart/form-data" className="inputFile">
-        {/* UPLOAD CSV FILE*/}
-          <Row className="form-group-box">
-            <Form.Label htmlFor="file">CSV File</Form.Label>
-            <Col style={{ width: "150px" }}>
+        <Row className="form-group-box">
+          <Col style={{ width: "150px" }}>
+            <Form method="post" encType="multipart/form-data" className="inputFile">
+              {/* UPLOAD CSV FILE*/}
+              <Tooltip target=".csv-file"/>
+              <Form.Label 
+                className="csv-file" 
+                data-pr-tooltip="CSV file containing the scans to check and their associated ROI (Region of Interest)"
+                data-pr-position="bottom"
+                htmlFor="file">
+                  CSV File
+              </Form.Label>
               <Form.Group controlId="enterFile">
                 <Form.Control
-                  name="path_csv"
+                  name="pathCSV"
                   type="file"
                   onChange={handleCSVFileChange}
                 />
               </Form.Group>
-            </Col>
-          </Row>
-        </Form>      
+            </Form>
+          </Col>
+
+          {/* UPLOAD SAVING FOLDER*/}
+          <Col style={{ width: "150px" }}>
+            <Form method="post" encType="multipart/form-data" className="inputFile">
+              <Tooltip target=".npy-path"/>
+              <Form.Label 
+                className="npy-path" 
+                data-pr-tooltip="Path to the folder containing the .npy files to check (If empty, path save will be used)"
+                data-pr-position="bottom"
+                htmlFor="file">
+                  NPY dataset folder
+              </Form.Label>
+              <Form.Group controlId="enterFile">
+                <Form.Control
+                  name="pathNpy"
+                  type="file"
+                  webkitdirectory="true"
+                  directory="true"
+                  onChange={handleNpyFolderChange}
+                />
+              </Form.Group>
+            </Form>
+          </Col>
+      </Row>   
       
       {/* WILD CARDS*/}
-      <Row className="form-group-box">
-        <Col>
-          <Form.Group controlId="name_save">
-            <Form.Label column>Window's wildcard:</Form.Label>
-              <Form.Control
-                name="windowwildcard"
-                type="text"
-                value={wildcardWindow}
-                placeholder={
-                  'For ex: *CTscan.npy, STS*MRscan.npy'
-                }
-                onChange={(event) => setWildcardWindow(event.target.value)}
+      <Form>
+          <Row className="form-group-box">
+            <Tooltip target=".checks-options"/>
+            <Form.Label 
+              className="checks-options" 
+              data-pr-tooltip="Options to determine the scans to check (studies, institutions and modalities).
+               If empty, use a costum wildcard (For example: 'STS*CECT*.npy')"
+              data-pr-position="bottom"
+              htmlFor="file">
+                Pre-checks options
+            </Form.Label>
+            <Col>
+              <MultiSelect 
+                value={selectedStudies} 
+                onChange={(e) => setSelectedStudies(e.value)} 
+                options={selectedPreChecksOptions === null ? [] : selectedPreChecksOptions.studies} 
+                optionLabel="label" 
+                display="chip"
+                placeholder="Select studies" 
+                className="w-full md:w-20rem" 
               />
-          </Form.Group>
-        </Col>
-        <Col>
-          <Form.Group controlId="name_save">
-            <Form.Label column>Dimension's wildcard:</Form.Label>
-              <Form.Control
-                name="dimwildcard"
-                type="text"
-                value={wildcardDim}
-                placeholder={
-                  'For ex: *CTscan.npy, STS*MRscan.npy'
-                }
-                onChange={(event) => setWildcardDim(event.target.value)}
+            </Col>
+            <Col>
+              <MultiSelect 
+                value={selectedInstitutions} 
+                onChange={(e) => setSelectedInstitutions(e.value)} 
+                options={selectedPreChecksOptions === null ? [] : selectedPreChecksOptions.institutions}
+                optionLabel="label" 
+                display="chip"
+                placeholder="Select institutions" 
+                className="w-full md:w-20rem" 
               />
-          </Form.Group>
-        </Col>
-      </Row>
-          
+            </Col>
+            <Col>
+              <MultiSelect 
+                value={selectedModalities} 
+                onChange={(e) => setSelectedModalities(e.value)} 
+                options={selectedPreChecksOptions === null ? [] : selectedPreChecksOptions.modalities} 
+                optionLabel="label" 
+                display="chip"
+                placeholder="Select Modalities" 
+                className="w-full md:w-20rem" 
+              />
+            </Col>
+            <Col>
+              <InputText placeholder="Costum (optional)" onChange={(e) => setCostumWildCard(e.target.value)}/>
+            </Col>
+          </Row>
+        </Form>
+      
       {/* RUN PRE-CHECKS BUTTON*/}
       <Row className="form-group-box">
-          <div className="text-center"> {/* Center-align the button */}
-              <Button
-                variant="primary"
-                name="RunButton"
-                type="button"
-                onClick={handleRunClick}
-                disabled={(!selectedCSVFile)}
-                className="upload-button"
-              >
-                RUN
-              </Button>
-          </div>
+        <Col>
+          <Button
+            severity="success"
+            label="RUN"
+            name="RunButton"
+            onClick={handleRunClick}
+            disabled={
+              (!selectedCSVFile || refreshEnabledPreChecks) || 
+              (selectedModalities.length === 0 && selectedInstitutions.length === 0 && selectedStudies.length === 0 && !costumWildCard)}
+            icon="pi pi-play"
+            raised
+            rounded
+          />
+        </Col>
+        <Col>
+          <Button
+            severity="secondary"
+            label="Show results"
+            name="ShowResultsButton"
+            onClick={() => setShowPreChecksImages(true)}
+            icon="pi pi-images"
+            raised
+            rounded
+          />
+        </Col>
         </Row>
       </Card.Body>
     </Card>
+    
+    {/*PreChecks images dialog*/}
+    <Dialog 
+      header="Radiomics Pre-Checks Results" 
+      visible={showPreChecksImages} 
+      style={{ width: '50vw' }}
+      position={'right'}
+      onHide={() => setShowPreChecksImages(false)}
+    >
+      {((preChecksImages.length !== 0) && 
+        (<Galleria value={preChecksImages} style={{ maxWidth: '640px' }} showThumbnails={false} showIndicators item={itemTemplate} />)
+      )}
+      {((preChecksImages.length === 0) && 
+        (<Alert variant="danger" className="warning-message">
+          <b>No results available</b>
+        </Alert>)
+      )}
+    </Dialog>
 
   </div>
   </ModulePage>

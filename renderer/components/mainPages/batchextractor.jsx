@@ -1,13 +1,17 @@
-import React, { useState, useEffect } from 'react';
-import {Row, Col, Card, Form, Button, Offcanvas, Container, Alert} from 'react-bootstrap';
+import { WorkspaceContext } from "../workspace/workspaceContext"
+import React, { useState, useEffect, useContext } from 'react';
+import {Row, Col, Card, Form, Alert} from 'react-bootstrap';
 import { toast } from 'react-toastify';
-import { axiosPostJson } from "../../utilities/requests"
+import { requestJson } from "../../utilities/requests"
 import { ProgressBar } from 'react-bootstrap';
-import Image from 'react-bootstrap/Image';
-import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
-import Tooltip from 'react-bootstrap/Tooltip';
-import Table from 'react-bootstrap/Table';
 import ModulePage from './moduleBasics/modulePage';
+import {Button} from 'primereact/button';
+import { Tooltip } from 'primereact/tooltip';
+import { TreeTable } from 'primereact/treetable';
+import { Column } from 'primereact/column';
+import { Dialog } from 'primereact/dialog';
+import { TabView, TabPanel } from 'primereact/tabview';
+
 /**
  * @param {Object} nodeForm form associated to the discretization node
  * @param {object} data data of the node
@@ -18,6 +22,7 @@ import ModulePage from './moduleBasics/modulePage';
  * This component is used to display a InputForm.
  */
 const BatchExtractor = ({ reload, setReload }) => {
+  const { port } = useContext(WorkspaceContext); // Get the port of the backend
   const [progress, setProgress] = useState(0);
   const [refreshEnabled, setRefreshEnabled] = useState(false); // A boolean variable to control refresh
   const [selectedReadFolder, setSelectedReadFolder] = useState('');
@@ -27,9 +32,18 @@ const BatchExtractor = ({ reload, setReload }) => {
   const [selectedSettingsFile, setSelectedSettingsFile] = useState('');
   const [nscans, setNscans] = useState(0); // Number of scans to be processed
   const [saveFolder, setSaveFolder] = useState(''); // Path of the folder where the results are saved
-  const [showOffCanvas, setShowOffCanvas] = useState(false) // used to display the offcanvas
-  const handleOffCanvasClose = () => setShowOffCanvas(false) // used to close the offcanvas
-  const handleOffCanvasShow = () => setShowOffCanvas(true) // used to show the offcanvas
+  const [showRadiomicsResults, setShowRadiomicsResults] = useState(false) // used to display the extraction results
+  const [showEdit, setShowEdit] = useState(false) // used to display the extraction results
+  const [nodes, setNodes] = useState([]);
+  
+  let temp = [{
+    data: {
+      modality: 'Documents',
+      roi: '75kb',
+      space: 'Folder'
+  },
+  }];
+  const fs = require('fs');
 
   const handleGoBackClick = () => {
     setReload(!reload);
@@ -105,11 +119,17 @@ const BatchExtractor = ({ reload, setReload }) => {
     }
   };
 
-  const fs = require('fs');
+  const handleShowResultsClick = () => {
+    setShowRadiomicsResults(true)
+  }
 
   function countFoldersInPath(path) {
     try {
-      let fileCount = 0;  
+      // check is folder exists
+      if (!fs.existsSync(path)) {
+        return 0;
+      }
+      let fileCount = 0;
       const files = fs.readdirSync(path);
   
       for (const file of files) {
@@ -128,7 +148,40 @@ const BatchExtractor = ({ reload, setReload }) => {
     }
   }
 
+  /**
+   * Find the csv files in a folder and fill nodes data.
+   * @param {string} folderPath - The path of the csv data
+   */
+  function fillNodesData(folderPath) {
+    try {
+      const files = fs.readdirSync(folderPath);
+      for (const file of files) {
+        if (file.split('.').pop() === 'csv') {
+          let modality = file.substring(file.indexOf('__') + 2, file.indexOf('(') );
+          let roi = file.substring(file.indexOf('(') + 1, file.indexOf(')') );
+          let space = file.substring(file.indexOf(')') + 3, file.indexOf('.csv') );
+          nodes.push({
+            data: {
+              modality: modality,
+              roi: roi,
+              space: space
+            },
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Error filling nodes data:', error);
+      return 0;
+    }
+  }
+
   const handleEditClick = () => {
+    setShowEdit(true)
+  }
+
+  const handleOpenFolderClick = () => {
+    const { shell } = require('electron');
+    shell.openPath(saveFolder);
   }
 
   const handleRunClick = () => {
@@ -145,38 +198,36 @@ const BatchExtractor = ({ reload, setReload }) => {
       n_batch: parseInt(selectedNBatch),
     };
 
-     // Make a POST request to the backend API to count the final scans to be processed
-     axiosPostJson(requestData, 'extraction/count/be')
-     .then((response) => {
-       // Handle the response from the backend if needed
-       setNscans(response.n_scans);
-       setSaveFolder(response.folder_save_path);
-     })
-     .catch((error) => {
-       // Handle errors if the request fails
-       console.error('Error:', error);
-       toast.error('Error: ' + error.message)
-       if (error.response.data){
-         toast.error('Error while counting total scans to process: ' + error.response.data)
-       }
-     });
-
     // Make a POST request to the backend API
-    axiosPostJson(requestData, 'extraction/run/be')
-      .then((response) => {
-        // Handle the response from the backend if needed
-        console.log('Response from backend:', response);
-        toast.success('Data processed!')
-        setRefreshEnabled(false);
-      })
-      .catch((error) => {
-        // Handle errors if the request fails
+    requestJson(port, '/extraction_img/count/be', requestData, (response) => {
+      // Handle the response from the backend if needed
+      setNscans(response.n_scans);
+      setSaveFolder(response.folder_save_path);
+      // fill nodes data
+      if (saveFolder !== null) {
+       fillNodesData(saveFolder);
+      }        
+      // Handle errors if the request fails
+      (error) => {
         console.error('Error:', error);
-        toast.error('Error: ' + error.message)
-        if (error.response.data){
-          toast.error('Error message: ' + error.response.data)
-        }
-      });
+        toast.error('Error: ' + error)
+        setRefreshEnabled(false);
+      }
+    });
+
+    // Make a POST request to the backend API to run BatchExtractor
+    requestJson(port, '/extraction_img/run/be', requestData, (response) => {
+      // Handle the response from the backend if needed
+      console.log('Response from backend:', response);
+      toast.success('Finished extraction!')
+      setRefreshEnabled(false);
+      // Handle errors if the request fails
+      (error) => {       
+       setRefreshEnabled(false);
+       console.error('Error:', error);
+       toast.error('Error: ' + error)
+      }
+    });
   };
 
   // Function to fetch and update data (your front-end function)
@@ -220,89 +271,109 @@ const BatchExtractor = ({ reload, setReload }) => {
   }
   }, [refreshEnabled, nscans, saveFolder]); // The empty dependency array ensures this effect runs only once when the component mounts
 
-  function JsonDataDisplay(JsonData){
-    const DisplayData = [JsonData].map(
-        info=>{
-            return(
-              info.map(infos=>{
-                return(
-                <tr>
-                    <td>{infos.study}</td>
-                    <td>{infos.institution}</td>
-                    <td>{infos.scan_type}</td>
-                    <td>{infos.roi_type}</td>
-                    <td>{infos.count}</td>
-                </tr>
-                )
-              }
-              )
-            )
-        }
-    ) 
-    return(
-      <div>
-          <Table striped hover size="sm">
-              <thead>
-                  <tr>
-                  <th>Study</th>
-                  <th>Insitution</th>
-                  <th>Scan type</th>
-                  <th>ROI type</th>
-                  <th>Count</th>
-                  </tr>
-              </thead>
-              <tbody> 
-                  {DisplayData}
-              </tbody>
-              </Table>
-            
-      </div>
-    )
- }
+  /**
+   * @returns {JSX.Element} A dialog to edit extraction options
+   * @description This function is used to render the dialog to edit extraction options.
+   */
+  const renderEdit = () => {
+    if (selectedSettingsFile && showEdit) {
+      return (
+        <Dialog
+          header="Edit extraction options"
+          visible={showEdit}
+          style={{ width: '50vw' }}
+          position={'right'}
+          onHide={() => setShowEdit(false)}
+        >
+          <TabView>
+            <TabPanel header="MR-scan">
+                <p className="m-0">
+                    MR - À implémenter
+                </p>
+            </TabPanel>
+            <TabPanel header="CT-scan">
+                <p className="m-0">
+                CT - À implémenter
+                </p>
+            </TabPanel>
+            <TabPanel header="PET-scan">
+                <p className="m-0">
+                PET - À implémenter
+                </p>
+            </TabPanel>
+          </TabView>
+        </Dialog>
+      )
+    }
+  }
 
   /**
-   * @returns {JSX.Element} A tree menu or a warning message
+   * @returns {JSX.Element} A dialog of extraction results
    *
    * @description
    * This function is used to render the tree menu of the extraction node.
    */
-  const renderTree = () => {
+  const renderResults = () => {
     // Check if data.internal.settings.results is available
-    return (
-      <Alert variant="danger" className="warning-message">
-        <b>No results available</b>
-      </Alert>
-    )
-    
+    if (showRadiomicsResults){
+      if (saveFolder){
+        return (  
+        <Dialog 
+          header="Radiomics extraction results (CSV files)" 
+          visible={showRadiomicsResults} 
+          style={{ width: '50vw' }}
+          position={'right'}
+          onHide={() => setShowRadiomicsResults(false)}
+        >
+          <div className="card">
+              <TreeTable value={nodes} className="mt-4" tableStyle={{ minWidth: '25rem' }}>
+                  <Column field="modality" header="Modality" ></Column>
+                  <Column field="roi" header="ROI"></Column>
+                  <Column field="space" header="space"></Column>
+              </TreeTable>
+          </div>
+          <br></br>
+          <div className="flex justify-content-start">
+            <Button icon="pi pi-folder-open" label="Open folder" severity="info" onClick={handleOpenFolderClick}/>
+          </div>
+        </Dialog>
+        )
+      } else {
+        return (
+        <Dialog 
+          header="Radiomics extraction results (CSV files)" 
+          visible={showRadiomicsResults} 
+          style={{ width: '50vw' }}
+          position={'right'}
+          onHide={() => setShowRadiomicsResults(false)}
+        >
+          <Alert variant="danger" className="warning-message">
+            <b>No results available</b>
+          </Alert>
+        </Dialog>
+        )
+      }
+    }
   }
 
   return (
     <>
     <ModulePage pageId="batchExtractor_id">
-
+      {renderResults()}
+      {renderEdit()}
     <div>
     <div data-bs-theme="blue" className='bg-blue p-2'>
-      <OverlayTrigger
-        placement="bottom"
-        overlay={<Tooltip id="button-tooltip-2" data-pr-showdelay={500}>Go back to extraction menu</Tooltip>}
-      >
-        {({ ref, ...triggerHandler }) => (
-          <Button
-            variant="danger"
-            {...triggerHandler}
-            className="d-inline-flex align-items-center"
-            onClick={handleGoBackClick}
-          >
-            <Image
-              width="30"
-              ref={ref}
-              roundedCircle
-              src="../icon/extraction_img/arrow-narrow-left.svg"
-            />
-          </Button>
-        )}
-      </OverlayTrigger>
+      <Button 
+        icon="pi pi-chevron-left" 
+        className="d-inline-flex align-items-center" 
+        onClick={handleGoBackClick}  
+        outlined severity="danger" 
+        aria-label="Cancel" 
+        tooltip="Go back to extraction menu" 
+        tooltipOptions={{ position: 'right' }} 
+      />
     </div>
+    
     <Card className="text-center">
       <Card.Body>
         <Card.Header>
@@ -312,7 +383,14 @@ const BatchExtractor = ({ reload, setReload }) => {
       <Form method="post" encType="multipart/form-data" className="inputFile">
       {/* UPLOAD NPY DATASET FOLDER*/}
         <Row className="form-group-box">
-          <Form.Label htmlFor="file">NPY dataset folder (MEDscan objects)</Form.Label>
+          <Tooltip target=".npy-folder"/>
+          <Form.Label 
+            className="npy-folder" 
+            data-pr-tooltip="Path to the folder containing the NPY dataset to use for radiomics features extraction"
+            data-pr-position="bottom"
+            htmlFor="file">
+              NPY dataset folder (MEDscan objects)
+          </Form.Label>
           <Col style={{ width: "150px" }}>
             <Form.Group controlId="enterFile">
               <Form.Control
@@ -328,35 +406,51 @@ const BatchExtractor = ({ reload, setReload }) => {
 
         {/* UPLOAD SETTINGS FILE*/}
         <Row className="form-group-box">
-            <Form.Label htmlFor="file">Settings File</Form.Label>
-            <Col xs={11}>
-              <Form.Group controlId="enterFile">
-                <Form.Control
-                  accept='.json'
-                  name="path_params"
-                  type="file"
-                  onChange={handleSettingsFileChange}
-                />
-              </Form.Group>
-            </Col>
-            <Col>
-              <Button
-                variant="primary"
-                name="EditSettingsButton"
-                type="button"
-                onClick={handleEditClick}
-                disabled={(!selectedSettingsFile)}
-                className="upload-button"
-              >
-                Edit
-              </Button>
-            </Col>
-          </Row>
-        </Form>  
+          <Tooltip target=".settings-file"/>
+          <Form.Label 
+            className="settings-file" 
+            data-pr-tooltip="Path to the extraction settings file"
+            data-pr-position="bottom"
+            htmlFor="file">
+              Settings File
+          </Form.Label>
+          <Col xs={10}>
+            <Form.Group controlId="enterFile">
+              <Form.Control
+                accept='.json'
+                name="path_params"
+                type="file"
+                onChange={handleSettingsFileChange}
+              />
+            </Form.Group>
+          </Col>
+          <Col>
+            <Button
+              type="button"
+              severity="info"
+              label="Edit"
+              name="EditSettingsButton"
+              onClick={handleEditClick}
+              disabled={(!selectedSettingsFile)}
+              icon="pi pi-pencil"
+              iconPos="left"
+              raised
+              rounded
+            />
+          </Col>
+        </Row>
+      </Form>  
 
         {/* UPLOAD CSV FILE*/}
         <Row className="form-group-box">
-        <Form.Label htmlFor="file">Path to the CSV File</Form.Label>
+        <Tooltip target=".csv-file"/>
+        <Form.Label 
+          className="csv-file" 
+          data-pr-tooltip="CSV file containing the scans to use for radiomics features extraction with their corresponding ROIs (Regions of Interest)"
+          data-pr-position="bottom"
+          htmlFor="file">
+            CSV File
+        </Form.Label>
           <Col style={{ width: "150px" }}>
             <Form.Group controlId="enterFile">
               <Form.Control
@@ -372,7 +466,14 @@ const BatchExtractor = ({ reload, setReload }) => {
 
         {/* UPLOAD SAVING FOLDER*/}
         <Row className="form-group-box">
-          <Form.Label htmlFor="file">Save folder</Form.Label>
+          <Tooltip target=".save"/>
+          <Form.Label 
+            className="save" 
+            data-pr-tooltip="Folder where the results of the extraction will be saved"
+            data-pr-position="bottom"
+            htmlFor="file">
+              Save folder
+          </Form.Label>
           <Col style={{ width: "150px" }}>
             <Form.Group controlId="enterFile">
               <Form.Control
@@ -390,7 +491,13 @@ const BatchExtractor = ({ reload, setReload }) => {
       <Row className="form-group-box">
         <Col>
         <Form.Group controlId="n_batch" style={{ paddingTop: "10px" }}>
-          <Form.Label>Number of cores to use :</Form.Label>
+            <Tooltip target=".nbatch"/>
+            <Form.Label 
+              className="nbatch" 
+              data-pr-tooltip="Number of cores to use for the parallel extraction of features"
+              data-pr-position="bottom">
+                Number of cores to use :
+            </Form.Label>
             <Form.Control
               name="n_batch"
               type="number"
@@ -405,67 +512,75 @@ const BatchExtractor = ({ reload, setReload }) => {
       {/* PROCESS BUTTON*/}
       <Row className="form-group-box">
         <Col>
-          <div className="text-center"> {/* Center-align the button */}
-              <Button
-                variant="primary"
-                name="ProcessButton"
-                type="button"
-                onClick={handleRunClick}
-                disabled={(!selectedReadFolder || !selectedSaveFolder || refreshEnabled || !selectedSettingsFile)}
-                className="small-results-button"
-              >
-                RUN
-              </Button>
-          </div>
+            <div className="text-center"> {/* Center-align the button */}
+                <Button
+                  severity="success"
+                  label="RUN"
+                  name="ProcessButton"
+                  onClick={handleRunClick}
+                  disabled={(!selectedReadFolder || !selectedSaveFolder || refreshEnabled || !selectedSettingsFile)}
+                  icon="pi pi-play"
+                  raised
+                  rounded
+                />
+            </div>
           </Col>
         <Col>
-        <Button
-          variant="success"
-          name="ShowSummaryButton"
-          type="button"
-          className="small-results-button"
-          onClick={handleOffCanvasShow}
-        >
-          Show Results
-        </Button>
-
+          <Button
+            severity="secondary"
+            label="Show Results"
+            name="ShowResultsButton"
+            icon="pi pi-list"
+            onClick={handleShowResultsClick}
+            raised
+            rounded 
+          />
         </Col>
         </Row>
       </Card.Body>
     </Card>
-  
-    {/* offcanvas of the node (panel coming from right when a node is clicked )*/}
-    <Container>
-      <Offcanvas
-        show={showOffCanvas}
-        onHide={handleOffCanvasClose}
-        placement="end"
-        scroll
-        backdrop
-      >
-        <Offcanvas.Header closeButton>
-          <Offcanvas.Title>Extraction results</Offcanvas.Title>
-        </Offcanvas.Header>
-        <Offcanvas.Body>{renderTree()}</Offcanvas.Body>
-      </Offcanvas>
-    </Container>
 
     {/* PROGRESS BAR*/}
-    <br></br>
-    {(progress === 0) && (refreshEnabled) &&(<Card>
+    {(refreshEnabled || progress === 100 || progress !== 0) && (
+        <React.Fragment>
+          <br />
+          <br />
+          <br />
+          <br />
+        </React.Fragment>
+        )}
+    {(progress === 0) && (refreshEnabled) &&(
+      <Card>
         <Card.Body>
-          <ProgressBar animated striped variant="success" now={100} label={'Preparing data...'} />
+        <div className="panel-bottom-center">
+          <label>Processing</label>
+            <ProgressBar animated striped variant="danger" now={100} label={'Preparing data...'} />
+        </div>
           {/* <ProgressBarRequests progress={progress} setProgress={setProgress} variant="success" /> */}
-
         </Card.Body>
       </Card>)}
-    {progress !== 0 &&(<Card>
+    {progress !== 0 && progress !== 100 && (
+      <Card>
         <Card.Body>
-          <ProgressBar animated striped variant="info" now={progress} label={`${progress}%`} />
+          <div className="panel-bottom-center">
+            <label>Extracting features</label>
+              <ProgressBar animated striped variant="info" now={progress} label={`${progress}%`} />
+          </div>
           {/* <ProgressBarRequests progress={progress} setProgress={setProgress} variant="success" /> */}
-
         </Card.Body>
-      </Card>)}
+      </Card>
+      )}
+      {progress === 100 && (
+      <Card>
+        <Card.Body>
+          <div className="panel-bottom-center">
+            <label>Done!</label>
+              <ProgressBar animated striped variant="success" now={progress} label={`${progress}%`} />
+          </div>
+          {/* <ProgressBarRequests progress={progress} setProgress={setProgress} variant="success" /> */}
+        </Card.Body>
+      </Card>
+      )}
 
   </div>
   </ModulePage>
