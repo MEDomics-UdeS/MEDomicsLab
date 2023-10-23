@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, useContext } from "react"
 import CreatableSelect from "react-select/creatable" // https://react-select.com/creatable
 import Select from "react-select"
 import FloatingLabel from "react-bootstrap/FloatingLabel"
@@ -8,6 +8,8 @@ import { Tooltip } from "react-tooltip"
 import { Markup } from "interweave"
 import WsSelect from "../mainPages/dataComponents/wsSelect"
 import { customZipFile2Object } from "../../utilities/customZipFile"
+import { DataContext } from "../workspace/dataContext"
+import MedDataObject from "../workspace/medDataObject"
 
 /**
  *
@@ -33,9 +35,10 @@ const createOption = (label) => ({
  * This component is used to display a Input component.
  * it handles multiple types of input and format them to be similar
  */
-const Input = ({ name, settingInfos, currentValue, onInputChange }) => {
+const Input = ({ name, settingInfos, currentValue, onInputChange, disabled, setHasWarning = () => {} }) => {
   const [inputUpdate, setInputUpdate] = useState({})
   const [inputValue, setInputValue] = useState("")
+  const { globalData, setGlobalData } = useContext(DataContext)
 
   /**
    *
@@ -113,6 +116,7 @@ const Input = ({ name, settingInfos, currentValue, onInputChange }) => {
           <>
             <FloatingLabel id={name} controlId={name} label={name} className=" input-hov">
               <Form.Control
+                disabled={disabled}
                 type="text"
                 defaultValue={currentValue}
                 onChange={(e) =>
@@ -133,6 +137,7 @@ const Input = ({ name, settingInfos, currentValue, onInputChange }) => {
           <>
             <FloatingLabel controlId={name} label={name} className=" input-hov">
               <Form.Control
+                disabled={disabled}
                 type="number"
                 defaultValue={currentValue}
                 onChange={(e) =>
@@ -153,6 +158,7 @@ const Input = ({ name, settingInfos, currentValue, onInputChange }) => {
           <>
             <FloatingLabel controlId={name} label={name} className=" input-hov">
               <Form.Control
+                disabled={disabled}
                 type="number"
                 defaultValue={currentValue}
                 onChange={(e) =>
@@ -173,6 +179,7 @@ const Input = ({ name, settingInfos, currentValue, onInputChange }) => {
           <>
             <FloatingLabel controlId={name} label={name} className=" input-hov">
               <Form.Select
+                disabled={disabled}
                 defaultValue={currentValue}
                 onChange={(e) =>
                   setInputUpdate({
@@ -195,6 +202,7 @@ const Input = ({ name, settingInfos, currentValue, onInputChange }) => {
           <>
             <FloatingLabel controlId={name} label={name} className=" input-hov">
               <Form.Select
+                disabled={disabled}
                 className=""
                 defaultValue={currentValue}
                 onChange={(e) =>
@@ -224,6 +232,7 @@ const Input = ({ name, settingInfos, currentValue, onInputChange }) => {
             <div id={name}>
               <label className="custom-lbl">{name}</label>
               <Select
+                disabled={disabled}
                 options={Object.entries(settingInfos.choices).map(([option, tooltip]) => {
                   currentValue == undefined && (currentValue = [])
                   console.log("option", option)
@@ -253,6 +262,7 @@ const Input = ({ name, settingInfos, currentValue, onInputChange }) => {
           <>
             <FloatingLabel controlId={name} label={name} className=" input-hov">
               <Form.Control
+                disabled={disabled}
                 type="range"
                 defaultValue={currentValue}
                 onChange={(e) =>
@@ -274,6 +284,7 @@ const Input = ({ name, settingInfos, currentValue, onInputChange }) => {
             <div id={name} style={{ height: "56px" }}>
               <label className="custom-lbl">{name}</label>
               <CreatableSelect
+                disabled={disabled}
                 components={{ DropdownIndicator: null }}
                 inputValue={inputValue}
                 isClearable
@@ -302,6 +313,7 @@ const Input = ({ name, settingInfos, currentValue, onInputChange }) => {
           <>
             <FloatingLabel controlId={name} label={name} className=" input-hov">
               <Form.Control
+                disabled={disabled}
                 type="text"
                 defaultValue={currentValue}
                 onChange={(e) =>
@@ -322,12 +334,18 @@ const Input = ({ name, settingInfos, currentValue, onInputChange }) => {
           <>
             <FloatingLabel id={name} controlId={name} label={name} className=" input-hov">
               <WsSelect
+                disabled={disabled}
                 selectedPath={currentValue}
                 rootDir="DATA"
-                acceptedExtensions={["csv", "xlsx"]}
+                acceptedExtensions={["csv", "xlsx", "json"]}
                 acceptFolder
                 onChange={(e, path) => {
                   console.log("e", e, path)
+                  if (path == "") {
+                    setHasWarning({ state: true, tooltip: <p>No file selected</p> })
+                  } else {
+                    setHasWarning({ state: false })
+                  }
                   setInputUpdate({
                     name: name,
                     value: { name: e.target.value, path: path },
@@ -362,7 +380,13 @@ const Input = ({ name, settingInfos, currentValue, onInputChange }) => {
                         type: settingInfos.type
                       })
                       console.log("content", content)
+                      let modelDataObject = MedDataObject.checkIfMedDataObjectInContextbyPath(path, globalData)
+                      modelDataObject.metadata.content = content
+                      setGlobalData({ ...globalData })
                     })
+                    setHasWarning({ state: false })
+                  } else {
+                    setHasWarning({ state: true, tooltip: <p>No model selected</p> })
                   }
                 }}
               />
@@ -375,8 +399,9 @@ const Input = ({ name, settingInfos, currentValue, onInputChange }) => {
       default:
         return (
           <>
-            <FloatingLabel controlId={name} label={name} className=" input-hov">
+            <FloatingLabel controlId={name} label={name} className="input-hov">
               <Form.Control
+                disabled={disabled}
                 type="text"
                 defaultValue={currentValue}
                 onChange={(e) =>

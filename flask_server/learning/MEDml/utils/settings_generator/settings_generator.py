@@ -313,7 +313,7 @@ def specific_case(dict_settings: dict) -> dict:
     dict_settings['tune_model']['options']['tuner_verbose']['default_val'] = 0
     dict_settings['save_model']['options']['model_name']['default_val'] = "model"
 
-    del dict_settings['dataset']['options']['target']['default_val']
+    del dict_settings['dataset']['options']['target']
     del dict_settings['dataset']['options']['log_experiment']
     del dict_settings['dataset']['options']['system_log']
     del dict_settings['compare_models']['options']['parallel']

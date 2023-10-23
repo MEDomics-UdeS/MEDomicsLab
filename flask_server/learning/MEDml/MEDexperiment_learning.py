@@ -94,6 +94,8 @@ class MEDexperimentLearning(MEDexperiment):
             del kwargs['filesFromInput']
         if 'data' in kwargs:
             del kwargs['data']
+        if 'columns' in kwargs:
+            del kwargs['columns']
 
         # add the imports
         node.CodeHandler.add_import("import numpy as np")
@@ -135,7 +137,9 @@ class MEDexperimentLearning(MEDexperiment):
             'y_test': pycaret_exp.get_config('y_test'),
 
         }
-        self.global_json_config["data_columns"] = list(temp_df.columns.values.tolist())
+        self.global_json_config["columns"] = list(
+            temp_df.columns.values.tolist())
+        self.global_json_config["target_column"] = kwargs['target']
         self.pipelines_objects[node.id]['results']['data'] = {
             "table": dataset_metaData['dataset'].to_json(orient='records'),
             "paths": node.get_path_list(),

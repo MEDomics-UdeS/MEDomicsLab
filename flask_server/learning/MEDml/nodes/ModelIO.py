@@ -59,7 +59,9 @@ class ModelIO(Node):
                         "code", f"pycaret_exp.save_model(model, {self.CodeHandler.convert_dict_to_params(settings)})", 1)
                     model_path = os.path.join(path, "model_required_cols.json")
                     with open(model_path, 'w') as f:
-                        json.dump(self.global_config_json["data_columns"], f)
+                        to_write = {
+                            "columns": self.global_config_json["columns"], "target": self.global_config_json["target_column"]}
+                        json.dump(to_write, f)
 
                 self.CustZipFileModel.create_zip(new_path, add_model_to_zip)
 
