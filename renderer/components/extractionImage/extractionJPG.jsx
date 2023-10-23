@@ -77,7 +77,8 @@ const ExtractionJPG = ({ extractionTypeList, serverUrl, defaultFilename }) => {
       serverUrl + extractionFunction,
       {
         relativeToExtractionType: extractionJsonData,
-        csvPath: selectedFolder?.path,
+        depth: folderDepth,
+        folderPath: selectedFolder?.path,
         filename: filename
       },
       (jsonResponse) => {

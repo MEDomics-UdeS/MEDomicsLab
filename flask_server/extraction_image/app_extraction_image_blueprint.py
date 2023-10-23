@@ -1,4 +1,10 @@
+import cv2
 import os
+import pandas as pd
+import skimage
+import torch
+import torch.nn.functional as F
+import torchxrayvision as xrv
 
 from flask import request, Blueprint
 from pathlib import Path
@@ -10,6 +16,64 @@ app_extraction_image = Blueprint('app_extraction_image', __name__, template_fold
 # global variable
 progress = 0
 step = "initialization"
+
+
+def get_single_chest_xray_embeddings(img_path, model_weights_name):
+    """
+    Code taken and updated from the HAIM github repository : https://github.com/lrsoenksen/HAIM
+    """
+    # Inputs:
+    #   img -> Image array
+    #
+    # Outputs:
+    #   densefeature_embeddings ->  CXR dense feature embeddings for image
+    #   prediction_embeddings ->  CXR embeddings of predictions for image
+    
+    
+    # %% EXAMPLE OF USE
+    # densefeature_embeddings, prediction_embeddings = get_single_chest_xray_embeddings(img)
+    
+    # Extract chest x-ray image embeddings and preddictions
+    densefeature_embeddings = []
+    prediction_embeddings = []
+    
+    img = skimage.io.imread(img_path) # If importing from path use this
+    img = xrv.datasets.normalize(img, 255)
+
+    # For each image check if they are 2D arrays
+    if len(img.shape) > 2:
+        img = img[:, :, 0]
+    if len(img.shape) < 2:
+        print("Error: Dimension lower than 2 for image!")
+    
+    # Add color channel for prediction
+    #Resize using OpenCV
+    img = cv2.resize(img, (224, 224), interpolation = cv2.INTER_AREA)   
+    img = img[None, :, :]
+
+    model = xrv.models.DenseNet(weights = model_weights_name)
+
+    with torch.no_grad():
+        img = torch.from_numpy(img).unsqueeze(0)
+          
+        # Extract dense features
+        feats = model.features(img)
+        feats = F.relu(feats, inplace=True)
+        feats = F.adaptive_avg_pool2d(feats, (1, 1))
+        densefeatures = feats.cpu().detach().numpy().reshape(-1)
+        densefeature_embeddings = densefeatures
+
+        # Extract predicted probabilities of considered 18 classes:
+        # Get by calling "xrv.datasets.default_pathologies" or "dict(zip(xrv.datasets.default_pathologies,preds[0].detach().numpy()))"
+        # ['Atelectasis','Consolidation','Infiltration','Pneumothorax','Edema','Emphysema',Fibrosis',
+        #  'Effusion','Pneumonia','Pleural_Thickening','Cardiomegaly','Nodule',Mass','Hernia',
+        #  'Lung Lesion','Fracture','Lung Opacity','Enlarged Cardiomediastinum']
+        preds = model(img).cpu()
+        predictions = preds[0].detach().numpy()
+        prediction_embeddings = predictions  
+
+    # Return embeddings
+    return densefeature_embeddings, prediction_embeddings
 
 
 @app_extraction_image.route("/DenseNet_extraction", methods=["GET", "POST"]) 
@@ -24,16 +88,54 @@ def DenseNet_extraction():
     global progress
     global step
     progress = 0
-    step = "initialization"
+    step = "Initialization"
 
     try:
         # Set local variables
         json_config = get_json_from_request(request)
+        folder_path = json_config["folderPath"]
+        depth = json_config["depth"]
+        weights = json_config["relativeToExtractionType"]["selectedWeights"]
+        features_to_generate = json_config["relativeToExtractionType"]["selectedFeaturesToGenerate"]
+
+        data = pd.DataFrame()
+
+        # Count total number of images, in order to update progressbar
+        nb_images = 0
+        for root, dirs, files in os.walk(folder_path):
+            current_depth = root[len(folder_path):].count(os.sep)
+            if current_depth == depth:
+                for file in files:
+                    if file.endswith(".jpg"):
+                        nb_images += 1
+
+        progress = 30
+        step = "Extraction"
+        # Proceed to extraction file by file
+        for root, dirs, files in os.walk(folder_path):
+            current_depth = root[len(folder_path):].count(os.sep)
+            if current_depth == depth:
+                for file in files:
+                    if file.endswith(".jpg"):
+                        data_img = root.split(os.sep)[-depth:]
+                        data_img.append(file)
+                        features = get_single_chest_xray_embeddings(os.path.join(root, file), weights)
+                        data_img = pd.concat([pd.DataFrame(data_img), pd.DataFrame(features[0]), pd.DataFrame(features[1])], ignore_index=True)
+                        data = pd.concat([data, pd.DataFrame(data_img).transpose()], ignore_index=True)
+                progress += 1/nb_images*60
+
+        data.columns = ["level_" + str(i+1) for i in range(depth)] + ["filename"] + ["densefeatures_" + str(i) for i in range(len(features[0]))] + ["predictions_" + str(i) for i in range(len(features[1]))]
+
+        if "denseFeatures" not in features_to_generate:
+            data.drop(["densefeatures_" + str(i) for i in range(len(features[0]))], axis=1, inplace=True)
+        elif "predictions" not in features_to_generate:
+            data.drop(["predictions_" + str(i) for i in range(len(features[1]))], axis=1, inplace=True)
 
         # Save extracted features
         progress = 90
         step = "Save extracted features"
-        csv_result_path = os.path.join(str(Path(json_config["csvPath"]).parent.absolute()), json_config['filename'])
+        csv_result_path = os.path.join(str(Path(json_config["folderPath"]).parent.absolute()), json_config['filename'])
+        data.to_csv(csv_result_path, index=False)
         json_config["csv_result_path"] = csv_result_path
 
     except BaseException as e:
