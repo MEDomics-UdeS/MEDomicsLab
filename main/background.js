@@ -125,7 +125,7 @@ if (isProd) {
 
   // link: https://medium.com/red-buffer/integrating-python-flask-backend-with-electron-nodejs-frontend-8ac621d13f72
   console.log(MEDconfig.runServerAutomatically ? "Server will start automatically here (in background of the application)" : "Server must be started manually")
-  console.log("Server type:", MEDconfig.serverChoice)
+  MEDconfig.runServerAutomatically && console.log("Server type:", MEDconfig.serverChoice)
   if (MEDconfig.runServerAutomatically) {
     if (!isProd) {
       //**** DEVELOPMENT ****//
@@ -382,9 +382,9 @@ function findAvailablePort(startPort, endPort = 8000) {
           resolve(port)
         } else {
           if (killProcess) {
-            let PID = stdout.trim().split(/\s+/)[stdout.trim().split(/\s+/).length -1].split("/")[0]
+            let PID = stdout.trim().split(/\s+/)[stdout.trim().split(/\s+/).length - 1].split("/")[0]
             exec(`${platform == "win32" ? "taskkill /f /t /pid" : "kill"} ${PID}`, (err, stdout, stderr) => {
-              if(!err){
+              if (!err) {
                 console.log("Previous server instance was killed successfully")
                 console.log(`Port ${port} is now available !`)
                 resolve(port)

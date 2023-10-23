@@ -1,4 +1,4 @@
-import extractionFeatures from "./possibleSettings/extraction/extractionFeatures.js"
+import extractionMEDimageFeatures from "./possibleSettings/extractionMEDimage/extractionMEDimageFeatures.js"
 
 // Node parameters for Extraction module of extraction tab
 const nodesParams = {
@@ -11,7 +11,7 @@ const nodesParams = {
     output: [],
     img: "features.svg",
     title: "MORPH",
-    possibleSettings: { defaultSettings: extractionFeatures.morph }
+    possibleSettings: { defaultSettings: extractionMEDimageFeatures.morph }
   },
   li: {
     type: "featuresNode",
@@ -22,7 +22,7 @@ const nodesParams = {
     output: [],
     img: "features.svg",
     title: "LI",
-    possibleSettings: { defaultSettings: extractionFeatures.li }
+    possibleSettings: { defaultSettings: extractionMEDimageFeatures.li }
   },
   is_stat: {
     type: "featuresNode",
@@ -33,7 +33,7 @@ const nodesParams = {
     output: [],
     img: "features.svg",
     title: "IS, STAT",
-    possibleSettings: { defaultSettings: extractionFeatures.is_stat }
+    possibleSettings: { defaultSettings: extractionMEDimageFeatures.is_stat }
   },
   ih: {
     type: "featuresNode",
@@ -44,7 +44,7 @@ const nodesParams = {
     output: [],
     img: "features.svg",
     title: "IH",
-    possibleSettings: { defaultSettings: extractionFeatures.ih }
+    possibleSettings: { defaultSettings: extractionMEDimageFeatures.ih }
   },
   ivh: {
     type: "featuresNode",
@@ -55,7 +55,7 @@ const nodesParams = {
     output: [],
     img: "features.svg",
     title: "IVH",
-    possibleSettings: { defaultSettings: extractionFeatures.ivh }
+    possibleSettings: { defaultSettings: extractionMEDimageFeatures.ivh }
   },
   glcm: {
     type: "featuresNode",
@@ -66,7 +66,7 @@ const nodesParams = {
     output: [],
     img: "features.svg",
     title: "GLCM",
-    possibleSettings: { defaultSettings: extractionFeatures.glcm }
+    possibleSettings: { defaultSettings: extractionMEDimageFeatures.glcm }
   },
   gldzm: {
     type: "featuresNode",
@@ -77,7 +77,7 @@ const nodesParams = {
     output: [],
     img: "features.svg",
     title: "GLDZM",
-    possibleSettings: { defaultSettings: extractionFeatures.gldzm }
+    possibleSettings: { defaultSettings: extractionMEDimageFeatures.gldzm }
   },
   glrlm: {
     type: "featuresNode",
@@ -88,7 +88,7 @@ const nodesParams = {
     output: [],
     img: "features.svg",
     title: "GLRLM",
-    possibleSettings: { defaultSettings: extractionFeatures.glrlm }
+    possibleSettings: { defaultSettings: extractionMEDimageFeatures.glrlm }
   },
   glszm: {
     type: "featuresNode",
@@ -99,7 +99,7 @@ const nodesParams = {
     output: [],
     img: "features.svg",
     title: "GLSZM",
-    possibleSettings: { defaultSettings: extractionFeatures.glszm }
+    possibleSettings: { defaultSettings: extractionMEDimageFeatures.glszm }
   },
   ngldm: {
     type: "featuresNode",
@@ -110,7 +110,7 @@ const nodesParams = {
     output: [],
     img: "features.svg",
     title: "NGLDM",
-    possibleSettings: { defaultSettings: extractionFeatures.ngldm }
+    possibleSettings: { defaultSettings: extractionMEDimageFeatures.ngldm }
   },
   ngtdm: {
     type: "featuresNode",
@@ -121,7 +121,7 @@ const nodesParams = {
     output: [],
     img: "features.svg",
     title: "NGTDM",
-    possibleSettings: { defaultSettings: extractionFeatures.ngtdm }
+    possibleSettings: { defaultSettings: extractionMEDimageFeatures.ngtdm }
   }
 }
 

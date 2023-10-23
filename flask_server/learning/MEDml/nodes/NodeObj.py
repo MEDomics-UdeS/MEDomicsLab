@@ -1,10 +1,12 @@
-from termcolor import colored
-from colorama import Fore, Back, Style
+import copy
+
+from colorama import Fore
 import pandas as pd
 from abc import ABC, abstractmethod
 import numpy as np
 import json
 from typing import Any, Dict, List, Union
+from utils.CustomZipFile import CustomZipFile
 DATAFRAME_LIKE = Union[dict, list, tuple, np.ndarray, pd.DataFrame]
 TARGET_LIKE = Union[int, str, list, tuple, np.ndarray, pd.Series]
 
@@ -49,18 +51,22 @@ class Node(ABC):
             id_: the corresponding id of the node
             global_config_json: specifies the configuration of the node (e.g. settings, inputs, outputs)
         """
-        print(Fore.BLUE + f"Node {id_} created : {global_config_json['nodes'][str(id_)]['data']['internal']['type']}" + Fore.RESET)
+        print(
+            Fore.BLUE + f"Node {id_} created : {global_config_json['nodes'][str(id_)]['data']['internal']['type']}" + Fore.RESET)
         self.global_config_json = global_config_json
         self.config_json = global_config_json['nodes'][str(id_)]
         self._code = self.config_json['data']['internal']['code']
         self.CodeHandler = NodeCodeHandler()
-        self.settings = self.config_json['data']['internal']['settings']
+        self.settings = copy.deepcopy(
+            self.config_json['data']['internal']['settings'])
         self.type = self.config_json['data']['internal']['type']
         self.username = self.config_json['data']['internal']['name']
         self.id = id_
         self._has_run = False
         self.just_run = False
         self._info_for_next_node = {}
+        self.CustZipFile = CustomZipFile(
+            path=self.global_config_json['configPath'])
         for setting, value in self.settings.items():
             if isinstance(value, str):
                 if is_float(value):

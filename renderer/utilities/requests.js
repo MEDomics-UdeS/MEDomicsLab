@@ -30,6 +30,7 @@ export const requestBackend = (port, topic, pageId = null, json2send, jsonReceiv
  * @param {Function} onError executed when an error occurs
  */
 export const requestJson = (port, topic, json2send, jsonReceivedCB, onError) => {
+  topic[0] == "/" && (topic = topic.substring(1))
   try {
     ipcRenderer
       .invoke("request", {

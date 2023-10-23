@@ -14,7 +14,8 @@ import { FlowResultsContext } from "../flow/context/flowResultsContext"
 import { WorkspaceContext } from "../workspace/workspaceContext"
 import { ErrorRequestContext } from "../flow/context/errorRequestContext"
 import MedDataObject from "../workspace/medDataObject"
-import MEDconfig, { SERVER_CHOICE } from "../../../medomics.dev.js"
+import { modifyZipFileSync } from "../../utilities/customZipFile.js"
+import { sceneDescription } from "../../public/setupVariables/learningNodesParams.jsx"
 
 // here are the different types of nodes implemented in the workflow
 import StandardNode from "./nodesTypes/standardNode"
@@ -28,7 +29,6 @@ import nodesParams from "../../public/setupVariables/allNodesParams"
 // here are static functions used in the workflow
 import { removeDuplicates, deepCopy } from "../../utilities/staticFunctions"
 import { defaultValueFromType } from "../../utilities/learning/inputTypesUtils.js"
-import { Button } from "primereact/button"
 
 const staticNodesParams = nodesParams // represents static nodes parameters
 
@@ -697,12 +697,16 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
       newJson.path_seperator = MedDataObject.getPathSeparator()
       let scenePath = configPath.substring(0, configPath.lastIndexOf(newJson.path_seperator))
       newJson.paths = {
-        ws: scenePath,
-        tmp: scenePath + newJson.path_seperator + "tmp",
-        models: scenePath + newJson.path_seperator + "models",
-        exp: scenePath + newJson.path_seperator + "exp"
+        ws: scenePath
       }
-      // eslint-disable-next-line camelcase
+      newJson.internalPaths = {}
+      sceneDescription.extrenalFolders.forEach((folder) => {
+        newJson.paths[folder] = scenePath + newJson.path_seperator + folder
+      })
+      sceneDescription.internalFolders.forEach((folder) => {
+        newJson.internalPaths[folder] = configPath.split(".")[0] + newJson.path_seperator + folder
+      })
+      newJson.configPath = configPath
       newJson.nbNodes2Run = nbNodes2Run + 1 // +1 because the results generation is a time consuming task
 
       return { newflow: newJson, isValid: isValidDefault }
@@ -722,7 +726,9 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
         node.data.setupParam = null
       })
       flow.intersections = intersections
-      MedDataObject.writeFileSyncPath(flow, configPath).then(() => {
+      modifyZipFileSync(configPath, async (path) => {
+        // do custom actions in the folder while it is unzipped
+        await MedDataObject.writeFileSync(flow, path, "metadata", "json")
         toast.success("Scene has been saved successfully")
       })
     }
@@ -868,7 +874,7 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
           <>
             {/* bottom center - progress bar */}
             <div className="panel-bottom-center">
-              <ProgressBarRequests progressBarProps={{animated:true, variant:"success"}} isUpdating={isProgressUpdating} setIsUpdating={setIsProgressUpdating} progress={progress} setProgress={setProgress} requestTopic={"learning/progress/" + pageId} />
+              <ProgressBarRequests progressBarProps={{ animated: true, variant: "success" }} isUpdating={isProgressUpdating} setIsUpdating={setIsProgressUpdating} progress={progress} setProgress={setProgress} requestTopic={"learning/progress/" + pageId} />
             </div>
           </>
         }

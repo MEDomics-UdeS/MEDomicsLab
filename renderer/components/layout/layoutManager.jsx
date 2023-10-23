@@ -5,9 +5,10 @@ import IconSidebar from "../layout/iconSidebar"
 import Home from "../mainPages/home"
 import Input from "../mainPages/input"
 import Learning from "../mainPages/learning"
-import ExtractionImagePage from "../mainPages/extraction_images"
-import ExtractionTextPage from "../mainPages/extraction_text"
-import ExtractionTSPage from "../mainPages/extraction_ts"
+import ExtractionMEDimagePage from "../mainPages/extractionMEDimage"
+import ExtractionImagePage from "../mainPages/extractionImage"
+import ExtractionTextPage from "../mainPages/extractionText"
+import ExtractionTSPage from "../mainPages/extractionTS"
 import ExploratoryPage from "../mainPages/exploratory"
 import ResultsPage from "../mainPages/results"
 import ApplicationPage from "../mainPages/application"
@@ -16,7 +17,7 @@ import ExplorerSidebar from "./sidebarTools/explorerSidebar"
 import SearchSidebar from "./sidebarTools/searchSidebar"
 import LayoutTestSidebar from "./sidebarTools/layoutTestSidebar"
 import InputSidebar from "./sidebarTools/inputSidebar"
-import LearningSidebar from "./sidebarTools/learningSidebar"
+import FlowSceneSidebar from "./sidebarTools/flowSceneSidebar"
 import ExtractionSidebar from "./sidebarTools/extractionSidebar"
 import { ipcRenderer } from "electron"
 import { MainContainer } from "./flexlayout/mainContainerClass"
@@ -80,12 +81,14 @@ const LayoutManager = (props) => {
           return <Input pageId="42" />
         case "learning":
           return <Learning pageId="123" />
-        case "extraction_images":
-          return <ExtractionImagePage pageId="1234" />
-        case "extraction_text":
-          return <ExtractionTextPage pageId="4567"/>
-        case "extraction_ts":
+        case "extractionMEDimage":
+          return <ExtractionMEDimagePage pageId="1234" />
+        case "extractionText":
+          return <ExtractionTextPage pageId="4567" />
+        case "extractionTS":
           return <ExtractionTSPage pageId="456" />
+        case "extractionImage":
+          return <ExtractionImagePage pageId="678" />
         case "exploratory":
           return <ExploratoryPage />
         case "results":
@@ -114,11 +117,15 @@ const LayoutManager = (props) => {
       case "input":
         return <InputSidebar />
       case "learning":
-        return <LearningSidebar />
-      case "extraction_text":
+        return <FlowSceneSidebar type="learning" />
+      case "extractionText":
         return <ExtractionSidebar />
-      case "extraction_ts":
+      case "extractionTS":
         return <ExtractionSidebar />
+      case "extractionImage":
+        return <ExtractionSidebar />
+      case "extractionMEDimage":
+        return <FlowSceneSidebar type="extractionMEDimage" />
 
       default:
         return (
