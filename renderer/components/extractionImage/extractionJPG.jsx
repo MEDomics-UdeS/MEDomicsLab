@@ -1,14 +1,111 @@
+import Button from "react-bootstrap/Button"
 import { DataContext } from "../workspace/dataContext"
+import DataTableFromContext from "../mainPages/dataComponents/dataTableFromContext"
 import { Dropdown } from "primereact/dropdown"
+import ExtractionDenseNet from "./extractionTypes/extractionDenseNet"
 import { InputNumber } from "primereact/inputnumber"
+import { InputText } from "primereact/inputtext"
+import MedDataObject from "../workspace/medDataObject"
 import { Message } from "primereact/message"
 import React, { useContext, useEffect, useState } from "react"
+import { requestJson } from "../../utilities/requests"
+import ProgressBarRequests from "../generalPurpose/progressBarRequests"
+import { toast } from "react-toastify"
+import { WorkspaceContext } from "../workspace/workspaceContext"
 
-const ExtractionJPG = () => {
+const ExtractionJPG = ({ extractionTypeList, serverUrl, defaultFilename }) => {
   const [dataFolderList, setDataFolderList] = useState([])
+  const [extractionFunction, setExtractionFunction] = useState(extractionTypeList[0] + "_extraction") // name of the function to use for extraction
+  const [extractionJsonData, setExtractionJsonData] = useState({}) // json data depending on extractionType
+  const [extractionProgress, setExtractionProgress] = useState(0) // advancement state in the extraction function
+  const [extractionStep, setExtractionStep] = useState("") // current step in the extraction function
+  const [extractionType, setExtractionType] = useState(extractionTypeList[0]) // extraction type
+  const [filename, setFilename] = useState(defaultFilename) // name of the csv file containing extracted data
   const [folderDepth, setFolderDepth] = useState(1)
+  const [isResultDatasetLoaded, setIsResultDatasetLoaded] = useState(false) // boolean set to false every time we reload an extracted data dataset
+  const [optionsSelected, setOptionsSelected] = useState(false)
+  const [progress, setProgress] = useState({ now: 0, currentLabel: "" }) // progress bar state [now, currentLabel]
+  const [resultDataset, setResultDataset] = useState(null) // dataset of extracted data used to be display
+  const [running, setRunning] = useState(false)
   const [selectedFolder, setSelectedFolder] = useState(null)
+  const [showProgressBar, setShowProgressBar] = useState(false) // wether to show or not the extraction progressbar
+
   const { globalData } = useContext(DataContext) // we get the global data from the context to retrieve the directory tree of the workspace, thus retrieving the data files
+  const { port } = useContext(WorkspaceContext) // we get the port for server connexion
+
+  /**
+   *
+   * @param {String} name
+   *
+   * @description
+   * Called when the user change the name under which the extracted data
+   * file will be saved.
+   *
+   */
+  const handleFilenameChange = (name) => {
+    if (name.match("^[a-zA-Z0-9_]+.csv$") != null) {
+      setFilename(name)
+    }
+  }
+
+  /**
+   *
+   * @param {String} value
+   *
+   * @description
+   * Called when the user select an extraction type.
+   *
+   */
+  const onChangeExtractionType = (value) => {
+    setExtractionType(value)
+    setExtractionFunction(value + "_extraction")
+  }
+
+  /**
+   *
+   * @description
+   * Run extraction depending on the choosen extraction type, on the mentionned url server.
+   * Update the progress bar depending on the extraction execution.
+   *
+   */
+  const runExtraction = () => {
+    setRunning(true)
+    setShowProgressBar(true)
+    // Run extraction process
+    requestJson(
+      port,
+      serverUrl + extractionFunction,
+      {
+        relativeToExtractionType: extractionJsonData,
+        csvPath: selectedFolder?.path,
+        filename: filename
+      },
+      (jsonResponse) => {
+        console.log("received results:", jsonResponse)
+        if (!jsonResponse.error) {
+          //setCsvResultPath(jsonResponse["csv_result_path"])
+          setExtractionStep("Extracted Features Saved")
+          MedDataObject.updateWorkspaceDataObject()
+          setExtractionProgress(100)
+          setIsResultDatasetLoaded(false)
+          console.log("Server return without problem")
+        } else {
+          toast.error(`Extraction failed: ${jsonResponse.error.message}`)
+          setExtractionStep("")
+          setShowProgressBar(false)
+        }
+        setShowProgressBar(false)
+        setRunning(false)
+      },
+      function (err) {
+        console.error(err)
+        toast.error(`Extraction failed: ${err}`)
+        setExtractionStep("")
+        setRunning(false)
+        setShowProgressBar(false)
+      }
+    )
+  }
 
   /**
    *
@@ -50,6 +147,19 @@ const ExtractionJPG = () => {
     setDataFolderList(foldersWithMatchingFiles)
   }
 
+  // Called while progress is updated
+  useEffect(() => {
+    setProgress({
+      now: extractionProgress,
+      currentLabel: extractionStep
+    })
+  }, [extractionStep, extractionProgress])
+
+  // Set selected folder to null when folderDepth is updated
+  useEffect(() => {
+    setSelectedFolder(null)
+  }, [folderDepth])
+
   // Called when data in DataContext is updated, in order to updated dataFolderList
   useEffect(() => {
     if (globalData !== undefined) {
@@ -75,7 +185,50 @@ const ExtractionJPG = () => {
             </div>
           </div>
         </div>
+
         <hr></hr>
+        <div className="margin-top-bottom-15">
+          <div className="center">
+            {/* Extraction Type Selection */}
+            <h2>Select an extraction type</h2>
+            <div className="margin-top-15">
+              <Dropdown value={extractionType} options={extractionTypeList} onChange={(event) => onChangeExtractionType(event.value)} />
+            </div>
+            <div className="margin-top-15">{extractionType == "DenseNet" && <ExtractionDenseNet setExtractionJsonData={setExtractionJsonData} setOptionsSelected={setOptionsSelected} />}</div>
+          </div>
+        </div>
+
+        <hr></hr>
+        <div className="margin-top-bottom-15">
+          <div className="center">
+            {/* Features Extraction */}
+            <h2>Extract features</h2>
+            <div className="margin-top-30">
+              <div className="flex-container">
+                <div>
+                  Save extracted features as : &nbsp;
+                  <InputText value={filename} onChange={(e) => handleFilenameChange(e.target.value)} />
+                </div>
+                <div>
+                  {/* Button activated only if all necessary columns have been selected */}
+                  <Button disabled={running == true || optionsSelected == false || !selectedFolder} onClick={runExtraction}>
+                    Extract Data
+                  </Button>
+                </div>
+              </div>
+            </div>
+            <div className="margin-top-30 extraction-progress">{showProgressBar && <ProgressBarRequests progressBarProps={{}} isUpdating={showProgressBar} setIsUpdating={setShowProgressBar} progress={progress} setProgress={setProgress} requestTopic={serverUrl + "progress"} />}</div>
+          </div>
+        </div>
+
+        <hr></hr>
+        <div className="margin-top-bottom-15">
+          {/* Display extracted data */}
+          <div className="center">
+            <h2>Extracted data</h2>
+            {resultDataset ? <DataTableFromContext MedDataObject={resultDataset} tablePropsData={{ size: "small", paginator: true, rows: 5 }} isDatasetLoaded={isResultDatasetLoaded} setIsDatasetLoaded={setIsResultDatasetLoaded} /> : <p>Nothing to show, proceed to extraction first.</p>}
+          </div>
+        </div>
       </div>
     </>
   )

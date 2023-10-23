@@ -8,7 +8,7 @@ const ExtractionImagePage = ({ pageId, configPath = "" }) => {
       <ModulePage pageId={pageId} configPath={configPath}>
         <h1 className="center">Extraction - Images</h1>
         <hr></hr>
-        <ExtractionJPG/>
+        <ExtractionJPG extractionTypeList={["DenseNet"]} serverUrl={"/extraction_image/"} defaultFilename={"image_extracted_features.csv"} />
       </ModulePage>
     </>
   )

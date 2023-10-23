@@ -4,7 +4,7 @@ import numpy as np
 import os
 import pandas as pd
 
-from flask import request, Blueprint, jsonify
+from flask import request, Blueprint
 from pathlib import Path
 from utils.server_utils import get_json_from_request, get_response_from_error
 from transformers import AutoTokenizer, AutoModel

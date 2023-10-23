@@ -33,13 +33,13 @@ const ExtractionTabularData = ({ extractionTypeList, serverUrl, defaultFilename 
   const [extractionFunction, setExtractionFunction] = useState(extractionTypeList[0] + "_extraction") // name of the function to use for extraction
   const [extractionProgress, setExtractionProgress] = useState(0) // advancement state in the extraction function
   const [extractionStep, setExtractionStep] = useState("") // current step in the extraction function
-  const [progress, setProgress] = useState({ now: 0, currentLabel: "" }) // progress bar state [now, currentLabel]
   const [extractionJsonData, setExtractionJsonData] = useState({}) // json data depending on extractionType
   const [extractionType, setExtractionType] = useState(extractionTypeList[0]) // extraction type
   const [filename, setFilename] = useState(defaultFilename) // name of the csv file containing extracted data
   const [isDatasetLoaded, setIsDatasetLoaded] = useState(false) // boolean set to false every time we reload a dataset for data to extract
   const [isResultDatasetLoaded, setIsResultDatasetLoaded] = useState(false) // boolean set to false every time we reload an extracted data dataset
   const [mayProceed, setMayProceed] = useState(false) // boolean set to true if all informations about the extraction (depending on extractionType) have been completed
+  const [progress, setProgress] = useState({ now: 0, currentLabel: "" }) // progress bar state [now, currentLabel]
   const [resultDataset, setResultDataset] = useState(null) // dataset of extracted data used to be display
   const [selectedDataset, setSelectedDataset] = useState(null) // dataset of data to extract used to be display
   const [showProgressBar, setShowProgressBar] = useState(false) // wether to show or not the extraction progressbar
@@ -109,7 +109,7 @@ const ExtractionTabularData = ({ extractionTypeList, serverUrl, defaultFilename 
   /**
    *
    * @description
-   * Run extraction depending on the choosen extraction type, on the extraction_ts server.
+   * Run extraction depending on the choosen extraction type, on the mentionned url server.
    * Update the progress bar depending on the extraction execution.
    *
    */
@@ -152,6 +152,7 @@ const ExtractionTabularData = ({ extractionTypeList, serverUrl, defaultFilename 
     )
   }
 
+  // Called while progress is updated
   useEffect(() => {
     setProgress({
       now: extractionProgress,
@@ -185,7 +186,7 @@ const ExtractionTabularData = ({ extractionTypeList, serverUrl, defaultFilename 
     }
   }, [isDatasetLoaded])
 
-  // Called when isDatasetLoaded change, in order to update csvPath and dataframe.
+  // Called when isDatasetLoaded change, in order to update the progressbar.
   useEffect(() => {
     if (isResultDatasetLoaded == true || displayResults == false) {
       setShowProgressBar(false)
@@ -244,8 +245,8 @@ const ExtractionTabularData = ({ extractionTypeList, serverUrl, defaultFilename 
       <hr></hr>
       <div className="margin-top-bottom-15">
         <div className="center">
-          {/* Time Series Extraction */}
-          <h2>Extract time series</h2>
+          {/* Features Extraction */}
+          <h2>Extract features</h2>
           <div className="margin-top-30">
             <div className="flex-container">
               <div>
@@ -260,16 +261,7 @@ const ExtractionTabularData = ({ extractionTypeList, serverUrl, defaultFilename 
               </div>
             </div>
           </div>
-          <div className="margin-top-30 extraction-progress">
-            {showProgressBar && <ProgressBarRequests
-              progressBarProps={{}} 
-              isUpdating={showProgressBar}
-              setIsUpdating={setShowProgressBar}
-              progress={progress}
-              setProgress={setProgress}
-              requestTopic={serverUrl + "progress"}
-            />}
-          </div>
+          <div className="margin-top-30 extraction-progress">{showProgressBar && <ProgressBarRequests progressBarProps={{}} isUpdating={showProgressBar} setIsUpdating={setShowProgressBar} progress={progress} setProgress={setProgress} requestTopic={serverUrl + "progress"} />}</div>
         </div>
       </div>
 
@@ -285,9 +277,7 @@ const ExtractionTabularData = ({ extractionTypeList, serverUrl, defaultFilename 
             <DataTableFromContext MedDataObject={resultDataset} tablePropsData={{ size: "small", paginator: true, rows: 5 }} isDatasetLoaded={isResultDatasetLoaded} setIsDatasetLoaded={setIsResultDatasetLoaded} />
           </div>
         )}
-        {resultDataset && displayResults == false && (
-          <p>Features saved under {filename}. The result dataset is too large to be display here. </p>
-        )}
+        {resultDataset && displayResults == false && <p>Features saved under {filename}. The result dataset is too large to be display here. </p>}
       </div>
     </div>
   )
