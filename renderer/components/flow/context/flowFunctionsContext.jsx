@@ -15,6 +15,7 @@ function FlowFunctionsProvider({ children }) {
   const [groupNodeId, setGroupNodeId] = useState({ id: "MAIN" })
   const [node2Run, setNode2Run] = useState(null)
   const [node2Delete, setNode2Delete] = useState(null)
+  const [hasNewConnection, setHasNewConnection] = useState(false)
 
   /**
    *
@@ -81,6 +82,10 @@ function FlowFunctionsProvider({ children }) {
     setNode2Run(nodeId)
   }
 
+  const newConnectionCreated = () => {
+    setHasNewConnection(!hasNewConnection)
+  }
+
   return (
     // here we provide the updateNode function and the nodeUpdate state to all the components that need it
     <FlowFunctionsContext.Provider
@@ -94,7 +99,9 @@ function FlowFunctionsProvider({ children }) {
         node2Run,
         runNode,
         node2Delete,
-        onDeleteNode
+        onDeleteNode,
+        newConnectionCreated,
+        hasNewConnection
       }}
     >
       {children}

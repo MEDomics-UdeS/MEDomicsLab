@@ -21,7 +21,7 @@ import { TabView, TabPanel } from 'primereact/tabview';
  * @description
  * This component is used to display a InputForm.
  */
-const BatchExtractor = ({ reload, setReload }) => {
+const BatchExtractor = ({ pageId, configPath = "" , reload, setReload }) => {
   const { port } = useContext(WorkspaceContext); // Get the port of the backend
   const [progress, setProgress] = useState(0);
   const [refreshEnabled, setRefreshEnabled] = useState(false); // A boolean variable to control refresh
@@ -358,7 +358,7 @@ const BatchExtractor = ({ reload, setReload }) => {
 
   return (
     <>
-    <ModulePage pageId="batchExtractor_id">
+    <ModulePage pageId={pageId} configPath={configPath}>
       {renderResults()}
       {renderEdit()}
     <div>

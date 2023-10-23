@@ -1,15 +1,15 @@
-import learningNodesParams from "./learningNodesParams";
-import optimizeNodesParams from "./optimizeNodesParams";
-import extractionNodesParams from "./extractionNodesParams";
-import featuresNodesParams from "./featuresNodesParams";
+import learningNodesParams from "./learningNodesParams"
+import optimizeNodesParams from "./optimizeNodesParams"
+import extractionMEDimageNodesParams from "./extractionMEDimageNodesParams"
+import featuresNodesParams from "./featuresNodesParams"
 
 /* eslint-disable camelcase */
 
 const nodesParams = {
-	learning: learningNodesParams,
-	optimize: optimizeNodesParams,
-	extraction: extractionNodesParams,
-	features: featuresNodesParams,
-};
+  learning: learningNodesParams,
+  optimize: optimizeNodesParams,
+  extraction: extractionMEDimageNodesParams,
+  features: featuresNodesParams
+}
 
-export default nodesParams;
+export default nodesParams

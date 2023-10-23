@@ -1,7 +1,5 @@
 import React, { useState, useEffect, useContext, useRef } from "react"
-import { Button } from "react-bootstrap"
-import CloseButton from "react-bootstrap/CloseButton"
-import Card from "react-bootstrap/Card"
+import { Card } from "primereact/card"
 import { toast } from "react-toastify" // https://www.npmjs.com/package/react-toastify
 import EditableLabel from "react-simple-editlabel"
 import Handlers from "./handlers"
@@ -12,6 +10,10 @@ import * as Icon from "react-bootstrap-icons"
 import NodeWrapperResults from "./nodeWrapperResults"
 import { OverlayPanel } from "primereact/overlaypanel"
 import { Stack } from "react-bootstrap"
+import { IoClose } from "react-icons/io5"
+import { BsPlay } from "react-icons/bs"
+import { AiOutlineInfoCircle } from "react-icons/ai"
+import { shell } from "electron"
 // keep this import for the code editor (to be implemented)
 // import dynamic from "next/dynamic"
 // const CodeEditor = dynamic(() => import("./codeEditor"), {
@@ -34,7 +36,7 @@ import { Stack } from "react-bootstrap"
  * Note: all JSX.Element props are not mandatory
  * Note: see Powerpoint for additionnal
  */
-const NodeObject = ({ id, data, nodeSpecific, nodeBody, defaultSettings }) => {
+const NodeObject = ({ id, data, nodeSpecific, nodeBody, defaultSettings, onClickCustom, isGroupNode }) => {
   const [nodeName, setNodeName] = useState(data.internal.name) // used to store the name of the node
   const { flowInfos } = useContext(FlowInfosContext) // used to get the flow infos
   const { showResultsPane } = useContext(FlowResultsContext) // used to get the flow results
@@ -84,64 +86,98 @@ const NodeObject = ({ id, data, nodeSpecific, nodeBody, defaultSettings }) => {
 
   return (
     <>
-      <div>
+      <div className="node">
         {/* here are the handlers (connection points)*/}
         <Handlers id={id} setupParam={data.setupParam} tooltipBy={data.tooltipBy} />
         {/* here is the node (the Card element)*/}
         <Card
           key={id}
           id={id}
+          pt={{
+            body: { className: `${nodeBody ? "padding-0_2rem-important" : "padding-0-important"}` }
+          }}
+          onClick={(e) => (onClickCustom ? onClickCustom(e) : op.current.toggle(e))}
           // if the node has run and the results pane is displayed, the node is displayed normally
           // if the node has not run and the results pane is displayed, the node is displayed with a notRun class (see .css file)
-          className={`text-left node ${data.internal.hasRun && showResultsPane ? "" : showResultsPane ? "notRun" : ""}`}
-        >
-          {/* header of the node (name of the node)*/}
-          <Card.Header onClick={(e) => op.current.toggle(e)}>
-            <img src={`/icon/${flowInfos.type}/` + `${data.internal.img.replaceAll(" ", "_")}`} alt={data.internal.img} className="icon-nodes" />
-            {/* here are the buttons to delete and run the node*/}
-            <CloseButton onClick={() => onDeleteNode(id)} disabled={showResultsPane} />
+          className={`text-left ${data.internal.hasRun && showResultsPane ? "" : showResultsPane ? "notRun" : ""}`}
+          header={
+            <>
+              <div className="align-center">
+                <img src={`/icon/${flowInfos.type}/` + `${data.internal.img.replaceAll(" ", "_")}`} alt={data.internal.img} className="icon-nodes" />
+                {data.internal.name}
+              </div>
 
-            {/* if the node is a run node (by checking setupParam classes), a button to run the node is displayed*/}
-            {data.setupParam.classes.split(" ").includes("run") && (
-              <>
-                <Button variant="success" className="btn-runNode" onClick={() => runNode(id)} disabled={showResultsPane}>
-                  <img src={"/icon/run.svg"} alt="run" className="img-fluid" />
-                </Button>
-              </>
-            )}
-            {data.internal.name}
-          </Card.Header>
+              <div className="btn-node-div">
+                {/* here are the buttons to delete and run the node*/}
+                <IoClose
+                  className="btn-close-node"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    onDeleteNode(id)
+                  }}
+                  disabled={showResultsPane}
+                />
+
+                {/* if the node is a run node (by checking setupParam classes), a button to run the node is displayed*/}
+                {data.setupParam.classes.split(" ").includes("run") && (
+                  <>
+                    <BsPlay
+                      className="btn-run-node"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        runNode(id)
+                      }}
+                      disabled={showResultsPane}
+                    />
+                  </>
+                )}
+              </div>
+            </>
+          }
+        >
           {/* body of the node*/}
-          {nodeBody != undefined && <Card.Body>{nodeBody}</Card.Body>}
+          {nodeBody && <>{nodeBody}</>}
         </Card>
       </div>
-      {/* here is an overlay panel that is displayed when the user clicks on the node name. It contains the settings of the node*/}
-      <OverlayPanel className="options-overlayPanel" ref={op}>
-        <Stack direction="vertical" gap={1}>
-          <div className="header">
-            <Icon.Pencil width="18px" height="18px" />
-            <EditableLabel
-              text={data.internal.name}
-              labelClassName="node-editableLabel"
-              inputClassName="node-editableLabel"
-              inputWidth="20ch"
-              inputHeight="1.5rem"
-              labelFontWeight="bold"
-              inputFontWeight="bold"
-              onFocusOut={(value) => {
-                newNameHasBeenWritten(value)
-              }}
-            />
-          </div>
-          <hr className="solid" />
-          {/* here are the default settings of the node. if nothing is specified, nothing is displayed*/}
-          {defaultSettings}
-          {/* here are the node specific settings. if nothing is specified, nothing is displayed*/}
-          {nodeSpecific}
-          {/* note : quand on va implémenter codeeditor */}
-          {/* <CodeEditor data={data} /> */}
-        </Stack>
-      </OverlayPanel>
+      {!isGroupNode && (
+        <>
+          {/* here is an overlay panel that is displayed when the user clicks on the node name. It contains the settings of the node*/}
+          <OverlayPanel className="options-overlayPanel" ref={op}>
+            <Stack direction="vertical" gap={1}>
+              <div className="header">
+                <div className="editable-node-name">
+                  <Icon.Pencil width="18px" height="18px" />
+                  <EditableLabel
+                    text={data.internal.name}
+                    labelClassName="node-editableLabel"
+                    inputClassName="node-editableLabel"
+                    inputWidth="20ch"
+                    inputHeight="1.5rem"
+                    labelFontWeight="bold"
+                    inputFontWeight="bold"
+                    onFocusOut={(value) => {
+                      newNameHasBeenWritten(value)
+                    }}
+                  />
+                </div>
+                <AiOutlineInfoCircle
+                  className="btn-info-node"
+                  onClick={() => {
+                    shell.openExternal("http://google.com")
+                  }}
+                />
+              </div>
+              <hr className="solid" />
+              {/* here are the default settings of the node. if nothing is specified, nothing is displayed*/}
+              {defaultSettings}
+              {/* here are the node specific settings. if nothing is specified, nothing is displayed*/}
+              {nodeSpecific}
+              {/* note : quand on va implémenter codeeditor */}
+              {/* <CodeEditor data={data} /> */}
+            </Stack>
+          </OverlayPanel>
+        </>
+      )}
     </>
   )
 }

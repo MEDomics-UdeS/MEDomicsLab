@@ -4,7 +4,7 @@ import DataTablePath from "../utilities/dataTablePath"
 import { Accordion, AccordionTab } from "primereact/accordion"
 
 /**
- * 
+ *
  * @param {Object} selectedResults The selected results
  * @returns {JSX.Element} The DataParamResults component
  */
@@ -14,7 +14,7 @@ const DataParamResults = ({ selectedResults }) => {
       <Accordion multiple className="data-param-results-accordion">
         <AccordionTab header="Parameters">
           <Parameters
-            params={selectedResults.logs.setup}
+            params={selectedResults.logs.setup.params}
             tableProps={{
               scrollable: true,
               scrollHeight: "400px",

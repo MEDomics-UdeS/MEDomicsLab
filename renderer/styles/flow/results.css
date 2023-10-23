@@ -2,8 +2,9 @@
   height: 100%;
 }
 
-.results-Panel .card {
+.results-Panel > .card {
   height: 100%;
+  border-radius: 0;
 }
 
 .results-Panel .p-tabview-nav .p-tabview-title {
@@ -72,7 +73,7 @@
 }
 
 .pipeline-results-accordion .p-accordion-header .p-accordion-header-link {
-  padding: 0.2rem 0.5rem;
+  padding: 0.3rem 0.3rem;
 }
 
 .pipeline-results-accordion .p-accordion-header .p-accordion-header-link .p-accordion-toggle-icon {
@@ -88,7 +89,7 @@
 .results-Panel .card-body {
   padding: 0;
   padding-top: 0.2rem;
-  overflow-y: scroll;
+  overflow-y: auto;
 }
 
 .results-Panel::-webkit-scrollbar {
@@ -113,17 +114,49 @@
   transition: all 0.15s ease-in-out !important;
   transition:
     border-color 0.15s 0.15s ease-in-out,
-    background-color 0.15s ease-in-out !important;
-  border-color: #328a00cc !important;
-  background-color: #338a001f !important;
+    background-color 0.15s ease-in-out,
+    box-shadow 0.5s ease-in-out !important;
+  border-color: #338a0088 !important;
+  background-color: #338a0052 !important;
   /* color: #ffffff !important; */
   width: 8rem !important;
+  box-shadow: inset 0px 0 5px 1px #00000033;
+}
+
+.btn-show-results:hover {
+  color: white !important;
+  border-color: #338a00e7 !important;
+  background-color: #338a00b2 !important;
+  box-shadow: none;
+}
+
+.btn-show-results:focus {
+  box-shadow:
+    0 0 0 2px #ffffff,
+    0 0 0 4px #bff8b1,
+    0 1px 2px 0 rgb(0 0 0);
+}
+
+.btn-show-results span {
+  color: white !important;
 }
 
 .p-highlight.btn-show-results {
-  background-color: #6366f1 !important;
-  border-color: #6366f1 !important;
+  background-color: rgba(99, 101, 241, 0.3) !important;
+  border-color: rgba(99, 101, 241, 0.5) !important;
   width: 11rem !important;
+}
+
+.p-highlight.btn-show-results:focus {
+  box-shadow:
+    0 0 0 2px #ffffff,
+    0 0 0 4px #c7d2fe,
+    0 1px 2px 0 rgb(0 0 0);
+}
+
+.p-highlight.btn-show-results:hover {
+  background-color: rgba(99, 102, 241, 1) !important;
+  border-color: rgba(99, 102, 241, 1) !important;
 }
 
 .results-header {
@@ -152,4 +185,46 @@
   flex-direction: row;
   flex-wrap: wrap;
   gap: 1rem;
+}
+
+.results-Panel .p-image-preview-indicator {
+  border-radius: 0.5rem;
+}
+
+.list-model-download-container {
+  display: flex;
+  flex-direction: column;
+}
+.list-model-download-container .link {
+  display: flex;
+  cursor: copy;
+  border-radius: 0.5rem;
+  padding: 0.5rem 1rem;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  height: 3.75rem;
+}
+.list-model-download-container .link p {
+  display: none;
+  white-space: nowrap;
+  overflow-x: auto;
+  margin-bottom: 0;
+  margin-left: 1rem;
+}
+
+.list-model-download-container .link p::-webkit-scrollbar {
+  display: none;
+}
+
+.list-model-download-container .link:hover p {
+  display: block;
+}
+
+.list-model-download-container .link:hover {
+  color: #0077ff;
+  background-color: rgba(0, 0, 0, 0.108);
+}
+.list-model-download-container .link .text {
+  margin-bottom: 0;
 }

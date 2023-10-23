@@ -4,6 +4,9 @@ import { PageInfosProvider, PageInfosContext } from "./pageInfosContext"
 import { loadJsonPath } from "../../../utilities/fileManagementUtils"
 import { ErrorRequestProvider } from "../../flow/context/errorRequestContext"
 import ErrorRequestDialog from "../../flow/errorRequestDialog"
+import { customZipFile2Object } from "../../../utilities/customZipFile"
+
+const ZipFileExtensions = ["medml", "medimg"]
 
 /**
  *
@@ -21,10 +24,21 @@ const ModulePageWithProvider = ({ children, pageId, configPath = "" }) => {
 
   useEffect(() => {
     if (configPath !== "" && configPath !== undefined) {
-      const config = loadJsonPath(configPath)
-      console.log("loaded config", config)
-      setConfig(config)
-      console.log("config", config)
+      let config = {}
+      let extension = configPath.split(".")[configPath.split(".").length - 1]
+      if (ZipFileExtensions.includes(extension)) {
+        customZipFile2Object(configPath).then((content) => {
+          config = content.metadata
+          console.log("loaded config", config)
+          console.log("config", config)
+          setConfig(config)
+        })
+      } else {
+        config = loadJsonPath(configPath)
+        console.log("loaded config", config)
+        console.log("config", config)
+        setConfig(config)
+      }
     }
   }, [configPath])
 

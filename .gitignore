@@ -1,4 +1,5 @@
 # Byte-compiled / optimized / DLL files
+__pycache__/
 __pycache__/*
 *.py[cod]
 *$py.class
@@ -144,13 +145,12 @@ dmypy.json
 # custom gitignore
 /flaskProject/static/tmp
 *.idea
-/learning-tests-scene
-flask_server/extraction_img/MEDimageApp/tmp/*
+/learning-tests-scene*
+flask_server/extraction_MEDimage/MEDimageApp/tmp/*
 /flask_server/local_dir/*
 path2condaenv_toDeleteInProd.txt
 
-test/extraction_img/IBSI/data_sets/*
-test/extraction_img/IBSI/dicom/*
+test/*
 package-lock.json
 
 !*.gitkeep

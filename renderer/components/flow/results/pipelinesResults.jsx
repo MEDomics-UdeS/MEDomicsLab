@@ -4,6 +4,7 @@ import { deepCopy } from "../../../utilities/staticFunctions"
 import DataParamResults from "../../learning/results/node/dataParamResults"
 import ModelsResults from "../../learning/results/node/modelsResults"
 import AnalyseResults from "../../learning/results/node/analyseResults"
+import SaveModelResults from "../../learning/results/node/saveModelResults"
 import { SelectButton } from "primereact/selectbutton"
 import MedDataObject from "../../workspace/medDataObject"
 import { FlowResultsContext } from "../context/flowResultsContext"
@@ -13,6 +14,7 @@ import { toast } from "react-toastify"
 import * as Icon from "react-bootstrap-icons"
 import { WorkspaceContext, EXPERIMENTS } from "../../workspace/workspaceContext"
 import { loadJsonPath } from "../../../utilities/fileManagementUtils"
+import process from "process"
 
 /**
  *
@@ -43,24 +45,17 @@ const checkIfObjectContainsId = (obj, id) => {
  */
 const PipelineResult = ({ pipeline, selectionMode, flowContent }) => {
   const { flowResults, selectedResultsId } = useContext(FlowResultsContext)
-
   const [body, setBody] = useState(<></>)
   const [selectedId, setSelectedId] = useState(null)
 
   useEffect(() => {
-    console.log("selectedResultsId", selectedResultsId)
-    setSelectedId(
-      !selectedResultsId || selectionMode == "Compare Mode"
-        ? selectedResultsId
-        : selectedResultsId[pipeline.join("-")]
-    )
+    setSelectedId(!selectedResultsId || selectionMode == "Compare Mode" ? selectedResultsId : selectedResultsId[pipeline.join("-")])
   }, [selectedResultsId])
 
   useEffect(() => {
     if (pipeline.length == 0) {
       setBody(<></>)
     } else {
-      console.log("pipeline result update", pipeline)
       setBody(createBody())
     }
   }, [pipeline, selectedId])
@@ -88,24 +83,26 @@ const PipelineResult = ({ pipeline, selectionMode, flowContent }) => {
             resultsCopy = resultsCopy.next_nodes
           }
         } else {
-          console.log("id " + selectedId + " not found in results")
-          !selectedNode.data.internal.hasRun &&
-            (toReturn = (
-              <div className="pipe-name-notRun">Has not been run yet !</div>
-            ))
+          !selectedNode.data.internal.hasRun && (toReturn = <div className="pipe-name-notRun">Has not been run yet !</div>)
         }
       })
-      console.log("selected results", selectedResults, selectedNode)
+      console.log("selectedResults", selectedResults)
       if (selectedResults) {
         let type = selectedNode.data.internal.type
+        console.log("type", type)
         if (type == "dataset" || type == "clean") {
           toReturn = <DataParamResults selectedResults={selectedResults} />
-        } else if (type == "create_model" || type == "compare_models") {
-          console.log("create model / compare models")
+        } else if (["train_model", "compare_models", "stack_models", "ensemble_model", "tune_model", "blend_models", "calibrate_model"].includes(type)) {
           toReturn = <ModelsResults selectedResults={selectedResults} />
-        } else if (type == "analyse") {
+        } else if (type == "analyze") {
           toReturn = <AnalyseResults selectedResults={selectedResults} />
+        } else if (type == "save_model") {
+          toReturn = <SaveModelResults selectedResults={selectedResults} />
+        } else {
+          toReturn = <div>Results not available for this node type</div>
         }
+      } else {
+        toReturn = <div className="pipe-name-notRun">Has not been run yet !</div>
       }
     }
 
@@ -126,21 +123,28 @@ const PipelineResult = ({ pipeline, selectionMode, flowContent }) => {
  * This component takes all the selected pipelines and displays them in an accordion.
  */
 const PipelinesResults = ({ pipelines, selectionMode, flowContent }) => {
-  const { selectedResultsId, setSelectedResultsId, flowResults } =
-    useContext(FlowResultsContext)
+  const { selectedResultsId, setSelectedResultsId, flowResults, showResultsPane, isResults } = useContext(FlowResultsContext)
   const { getBasePath } = useContext(WorkspaceContext)
   const { sceneName, experimentName } = useContext(FlowInfosContext)
 
+  const [accordionActiveIndexStore, setAccordionActiveIndexStore] = useState([])
   const [accordionActiveIndex, setAccordionActiveIndex] = useState([])
 
+  //when the selectionMode change, reset the selectedResultsId and the accordionActiveIndex
   useEffect(() => {
     setSelectedResultsId(null)
     setAccordionActiveIndex([])
   }, [selectionMode])
 
+  // When the showResultsPane change, save the state of accordionActiveIndex and set it to [] if showResultsPane is false for performance purpose
   useEffect(() => {
-    console.log("accordionActiveIndex", accordionActiveIndex)
-  }, [accordionActiveIndex])
+    if (!showResultsPane) {
+      setAccordionActiveIndexStore(accordionActiveIndex)
+      setAccordionActiveIndex([])
+    } else {
+      setAccordionActiveIndex(accordionActiveIndexStore)
+    }
+  }, [showResultsPane])
 
   /**
    * @returns {JSX.Element} The title of the accordion tab
@@ -197,12 +201,9 @@ const PipelinesResults = ({ pipelines, selectionMode, flowContent }) => {
         pipeline.forEach((id) => {
           let nodeResults = checkIfObjectContainsId(resultsCopy, id)
           if (nodeResults) {
-            finalCode = [...finalCode, ...nodeResults.results.code.content]
-            console.log("imports", nodeResults.results.code.imports)
-            finalImports = [
-              ...finalImports,
-              ...nodeResults.results.code.imports
-            ]
+            finalCode = [...finalCode, ...Object.values(nodeResults.results.code.content)]
+            console.log("imports", Object.values(nodeResults.results.code.imports))
+            finalImports = [...finalImports, ...Object.values(nodeResults.results.code.imports)]
             resultsCopy = nodeResults.next_nodes
           } else {
             console.log("id " + id + " not found in results")
@@ -226,18 +227,8 @@ const PipelinesResults = ({ pipelines, selectionMode, flowContent }) => {
        */
       const createNoteBookDoc = (code, imports) => {
         let newLineChar = process.platform === "linux" ? "\n" : ""
-        let notebook = loadJsonPath(
-          [
-            getBasePath(EXPERIMENTS),
-            experimentName,
-            sceneName,
-            "notebooks",
-            pipeline.map((id) => getName(id)).join("-")
-          ].join(MedDataObject.getPathSeparator()) + ".ipynb"
-        )
-        notebook = notebook
-          ? deepCopy(notebook)
-          : deepCopy(loadJsonPath("./resources/emptyNotebook.ipynb"))
+        let notebook = loadJsonPath([getBasePath(EXPERIMENTS), experimentName, sceneName, "notebooks", pipeline.map((id) => getName(id)).join("-")].join(MedDataObject.getPathSeparator()) + ".ipynb")
+        notebook = notebook ? deepCopy(notebook) : deepCopy(loadJsonPath("./resources/emptyNotebook.ipynb"))
         notebook.cells = []
         let lastType = "md"
         // This function is used to add a code cell to the notebook
@@ -274,17 +265,9 @@ const PipelinesResults = ({ pipelines, selectionMode, flowContent }) => {
           }
         }
         // HEADER
-        addMarkdown([
-          "## Notebook automatically generated\n\n",
-          "**Experiment:** " + experimentName + "\n\n",
-          "**Scene:** " + sceneName + "\n\n",
-          "**Pipeline:** " +
-            pipeline.map((id) => getName(id)).join(" ➡️ ") +
-            "\n\n",
-          "**Date:** " + new Date().toLocaleString() + "\n\n"
-        ])
+        addMarkdown(["## Notebook automatically generated\n\n", "**Experiment:** " + experimentName + "\n\n", "**Scene:** " + sceneName + "\n\n", "**Pipeline:** " + pipeline.map((id) => getName(id)).join(" ➡️ ") + "\n\n", "**Date:** " + new Date().toLocaleString() + "\n\n"])
         // IMPORTS
-        addCode(imports.map((imp) => imp.content))
+        addCode(imports.map((imp) => imp.content + newLineChar))
         // CODE
         let linesOfSameType = []
         code.forEach((line) => {
@@ -292,18 +275,13 @@ const PipelinesResults = ({ pipelines, selectionMode, flowContent }) => {
             linesOfSameType.push(line.content + newLineChar)
           } else {
             compileLines(linesOfSameType)
-            linesOfSameType = [line.content]
+            linesOfSameType = [line.content + newLineChar]
             lastType = line.type
           }
         })
         compileLines(linesOfSameType)
 
-        MedDataObject.writeFileSync(
-          notebook,
-          [getBasePath(EXPERIMENTS), experimentName, sceneName, "notebooks"],
-          pipeline.map((id) => getName(id)).join("-"),
-          "ipynb"
-        ).then(() => {
+        MedDataObject.writeFileSync(notebook, [getBasePath(EXPERIMENTS), experimentName, sceneName, "notebooks"], pipeline.map((id) => getName(id)).join("-"), "ipynb").then(() => {
           toast.success("Notebook generated and saved !")
         })
       }
@@ -312,11 +290,7 @@ const PipelinesResults = ({ pipelines, selectionMode, flowContent }) => {
         <>
           <SelectButton
             className="results-select-button"
-            value={
-              selectionMode == "Compare Mode"
-                ? selectedResultsId
-                : selectedResultsId && selectedResultsId[pipelineId]
-            }
+            value={selectionMode == "Compare Mode" ? selectedResultsId : selectedResultsId && selectedResultsId[pipelineId]}
             onChange={(e) => {
               e.preventDefault()
               e.stopPropagation()
@@ -333,9 +307,7 @@ const PipelinesResults = ({ pipelines, selectionMode, flowContent }) => {
               return {
                 name: getName(id),
                 value: id,
-                class: `${isChecked(id) ? "checked" : "unchecked"} ${
-                  !hasRun(id) ? "pipe-name-notRun" : ""
-                }`
+                class: `${isChecked(id) ? "checked" : "unchecked"} ${!hasRun(id) ? "pipe-name-notRun" : ""}`
               }
             })}
             itemTemplate={buttonTemplate}
@@ -367,20 +339,10 @@ const PipelinesResults = ({ pipelines, selectionMode, flowContent }) => {
   }
 
   return (
-    <Accordion
-      multiple
-      activeIndex={accordionActiveIndex}
-      onTabChange={(e) => setAccordionActiveIndex(e.index)}
-      className="pipeline-results-accordion"
-    >
+    <Accordion multiple activeIndex={accordionActiveIndex} onTabChange={(e) => setAccordionActiveIndex(e.index)} className="pipeline-results-accordion">
       {pipelines.map((pipeline, index) => (
-        <AccordionTab key={index} header={createTitleFromPipe(pipeline)}>
-          <PipelineResult
-            key={index}
-            pipeline={pipeline}
-            selectionMode={selectionMode}
-            flowContent={flowContent}
-          />
+        <AccordionTab disabled={!isResults} key={index} header={createTitleFromPipe(pipeline)}>
+          <PipelineResult key={index} pipeline={pipeline} selectionMode={selectionMode} flowContent={flowContent} />
         </AccordionTab>
       ))}
     </Accordion>

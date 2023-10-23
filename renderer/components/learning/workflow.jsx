@@ -3,18 +3,19 @@ import { toast } from "react-toastify"
 import Form from "react-bootstrap/Form"
 import { useNodesState, useEdgesState, useReactFlow, addEdge } from "reactflow"
 import WorkflowBase from "../flow/workflowBase"
-import { loadJsonSync, downloadJson } from "../../utilities/fileManagementUtils"
-import { requestJson } from "../../utilities/requests"
+import { loadJsonSync } from "../../utilities/fileManagementUtils"
+import { requestBackend } from "../../utilities/requests"
 import EditableLabel from "react-simple-editlabel"
 import BtnDiv from "../flow/btnDiv"
-import ProgressBarRequests from "../flow/progressBarRequests"
+import ProgressBarRequests from "../generalPurpose/progressBarRequests"
 import { PageInfosContext } from "../mainPages/moduleBasics/pageInfosContext"
 import { FlowFunctionsContext } from "../flow/context/flowFunctionsContext"
 import { FlowResultsContext } from "../flow/context/flowResultsContext"
 import { WorkspaceContext } from "../workspace/workspaceContext"
-import { FlowInfosContext } from "../flow/context/flowInfosContext"
 import { ErrorRequestContext } from "../flow/context/errorRequestContext"
 import MedDataObject from "../workspace/medDataObject"
+import { modifyZipFileSync } from "../../utilities/customZipFile.js"
+import { sceneDescription } from "../../public/setupVariables/learningNodesParams.jsx"
 
 // here are the different types of nodes implemented in the workflow
 import StandardNode from "./nodesTypes/standardNode"
@@ -51,12 +52,15 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
   const { getIntersectingNodes } = useReactFlow() // getIntersectingNodes is used to get the intersecting nodes of a node
   const [intersections, setIntersections] = useState([]) // intersections is used to store the intersecting nodes related to optimize nodes start and end
   const [isProgressUpdating, setIsProgressUpdating] = useState(false) // progress is used to store the progress of the workflow execution
+  const [progress, setProgress] = useState({
+    now: 0,
+    currentLabel: ""
+  })
+  const { groupNodeId, changeSubFlow, hasNewConnection } = useContext(FlowFunctionsContext)
   const { config, pageId, configPath } = useContext(PageInfosContext) // used to get the page infos such as id and config path
-  const { groupNodeId, changeSubFlow } = useContext(FlowFunctionsContext)
-  const { updateFlowResults } = useContext(FlowResultsContext)
-  const { port, workspace, getBasePath } = useContext(WorkspaceContext)
+  const { updateFlowResults, isResults } = useContext(FlowResultsContext)
+  const { port } = useContext(WorkspaceContext)
   const { setError } = useContext(ErrorRequestContext)
-  const { experimentName, sceneName } = useContext(FlowInfosContext)
 
   // declare node types using useMemo hook to avoid re-creating component types unnecessarily (it memorizes the output) https://www.w3schools.com/react/react_usememo.asp
   const nodeTypes = useMemo(
@@ -78,6 +82,16 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
       console.log("No config file found for this page, base workflow will be used")
     }
   }, [config])
+
+  // when isResults is changed, we set the progressBar to completed state
+  useEffect(() => {
+    if (isResults) {
+      setProgress({
+        now: 100,
+        currentLabel: "Done!"
+      })
+    }
+  }, [isResults])
 
   // executed when the machine learning type is changed
   // it updates the possible settings of the nodes
@@ -142,45 +156,49 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
     // it basically bypasses the optimize nodes
     setEdges((eds) => eds.filter((edge) => !edge.id.includes("opt"))) // remove all edges that are linked to optimize nodes
     intersections.forEach((intersect, index) => {
-      let edgeSource = null
-      let edgeTarget = null
       if (intersect.targetId.includes("start")) {
-        edgeSource = intersect.targetId.split(".")[1]
-        edgeTarget = intersect.sourceId
-        let prevOptEdge = edges.find((edge) => edge.target == edgeSource)
-        if (prevOptEdge) {
-          edgeSource = prevOptEdge.source
-        } else {
-          edgeSource = null
-        }
-      } else if (intersect.targetId.includes("end")) {
-        edgeSource = intersect.sourceId
-        edgeTarget = intersect.targetId.split(".")[1]
-        let nextOptEdge = edges.find((edge) => edge.source == edgeTarget)
-        if (nextOptEdge) {
-          edgeTarget = nextOptEdge.target
-        } else {
-          edgeTarget = null
-        }
-      }
-
-      edgeSource &&
-        edgeTarget &&
-        setEdges((eds) =>
-          addEdge(
-            {
-              source: edgeSource,
-              sourceHandle: "0_" + edgeSource, // we add 0_ because the sourceHandle always starts with 0_. Handles are created by a for loop so it represents an index
-              target: edgeTarget,
-              targetHandle: "0_" + edgeTarget,
-              id: index + intersect.targetId,
-              hidden: true
-            },
-            eds
+        let groupNodeId = intersect.targetId.split(".")[1]
+        let groupNodeIdConnections = edges.filter((eds) => eds.target == groupNodeId)
+        groupNodeIdConnections.forEach((groupNodeIdConnection, index2) => {
+          let edgeSource = groupNodeIdConnection.source
+          let edgeTarget = intersect.sourceId
+          setEdges((eds) =>
+            addEdge(
+              {
+                source: edgeSource,
+                sourceHandle: 0 + "_" + edgeSource, // we add 0_ because the sourceHandle always starts with 0_. Handles are created by a for loop so it represents an index
+                target: edgeTarget,
+                targetHandle: 0 + "_" + edgeTarget,
+                id: index + "_" + index2 + edgeSource + "_" + edgeTarget + "_opt",
+                hidden: true
+              },
+              eds
+            )
           )
-        )
+        })
+      } else if (intersect.targetId.includes("end")) {
+        let groupNodeId = intersect.targetId.split(".")[1]
+        let groupNodeIdConnections = edges.filter((eds) => eds.source == groupNodeId)
+        groupNodeIdConnections.forEach((groupNodeIdConnection, index2) => {
+          let edgeSource = intersect.sourceId
+          let edgeTarget = groupNodeIdConnection.target
+          setEdges((eds) =>
+            addEdge(
+              {
+                source: edgeSource,
+                sourceHandle: 0 + "_" + edgeSource, // we add 0_ because the sourceHandle always starts with 0_. Handles are created by a for loop so it represents an index
+                target: edgeTarget,
+                targetHandle: 0 + "_" + edgeTarget,
+                id: index + "_" + index2 + edgeSource + "_" + edgeTarget + "_opt",
+                hidden: true
+              },
+              eds
+            )
+          )
+        })
+      }
     })
-  }, [intersections])
+  }, [intersections, hasNewConnection])
 
   /**
    *
@@ -245,8 +263,8 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
 
     let treeMenuData = {}
     edges.forEach((edge) => {
-      let sourceNode = JSON.parse(JSON.stringify(nodes.find((node) => node.id === edge.source)))
-      if (sourceNode.name == "Dataset") {
+      let sourceNode = deepCopy(nodes.find((node) => node.id === edge.source))
+      if (sourceNode.data.setupParam.classes.split(" ").includes("startNode")) {
         treeMenuData[sourceNode.id] = {
           label: sourceNode.data.internal.name,
           nodes: createTreeFromNodesRec(sourceNode)
@@ -409,6 +427,7 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
     newNode.data.tooltipBy = "type"
     newNode.data.setupParam = setupParams
     newNode.data.internal.code = ""
+    newNode.className = setupParams.classes
 
     let tempDefaultSettings = {}
     if (newNode.data.setupParam.possibleSettings) {
@@ -493,16 +512,26 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
           console.log("sended flow", flow)
           console.log("port", port)
           setIsProgressUpdating(true)
-          requestJson(
+          requestBackend(
             port,
-            "/learning/run_experiment/" + pageId,
+            "/learning/run_experiment",
+            pageId,
             flow,
             (jsonResponse) => {
               console.log("received results:", jsonResponse)
               if (!jsonResponse.error) {
                 updateFlowResults(jsonResponse)
+                setIsProgressUpdating(false)
+                setProgress({
+                  now: 100,
+                  currentLabel: "Done!"
+                })
               } else {
                 setIsProgressUpdating(false)
+                setProgress({
+                  now: 0,
+                  currentLabel: ""
+                })
                 toast.error("Error detected while running the experiment")
                 console.log("error", jsonResponse.error)
                 setError(jsonResponse.error)
@@ -510,6 +539,10 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
             },
             (error) => {
               setIsProgressUpdating(false)
+              setProgress({
+                now: 0,
+                currentLabel: ""
+              })
               toast.error("Error detected while running the experiment")
               console.log("error", error)
               setError(error)
@@ -582,7 +615,7 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
           let currentNode = nodes.find((node) => node.id === key)
           let nodeType = currentNode.data.internal.type
           let edgesCopy = deepCopy(edges)
-          if (nodeType == "create_model") {
+          if (nodeType == "train_model") {
             edgesCopy = edgesCopy.filter((edge) => edge.target == currentNode.id)
             edgesCopy = edgesCopy.reduce((acc, edge) => {
               if (edge.target == currentNode.id) {
@@ -661,14 +694,20 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
       newJson.pipelines = recursivePipelines
       newJson.pageId = pageId
       // eslint-disable-next-line camelcase
-      newJson.ws_path = configPath.substring(0, configPath.lastIndexOf(MedDataObject.getPathSeparator()))
-      // eslint-disable-next-line camelcase
-      newJson.tmp_path = newJson.ws_path + MedDataObject.getPathSeparator() + "tmp"
-      // eslint-disable-next-line camelcase
       newJson.path_seperator = MedDataObject.getPathSeparator()
-      // eslint-disable-next-line camelcase
-      newJson.scene_id = pageId // TODO: change this to scene uuid
-      newJson.nbNodes2Run = nbNodes2Run
+      let scenePath = configPath.substring(0, configPath.lastIndexOf(newJson.path_seperator))
+      newJson.paths = {
+        ws: scenePath
+      }
+      newJson.internalPaths = {}
+      sceneDescription.extrenalFolders.forEach((folder) => {
+        newJson.paths[folder] = scenePath + newJson.path_seperator + folder
+      })
+      sceneDescription.internalFolders.forEach((folder) => {
+        newJson.internalPaths[folder] = configPath.split(".")[0] + newJson.path_seperator + folder
+      })
+      newJson.configPath = configPath
+      newJson.nbNodes2Run = nbNodes2Run + 1 // +1 because the results generation is a time consuming task
 
       return { newflow: newJson, isValid: isValidDefault }
     },
@@ -687,25 +726,11 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
         node.data.setupParam = null
       })
       flow.intersections = intersections
-      MedDataObject.writeFileSyncPath(flow, configPath).then(() => {
+      modifyZipFileSync(configPath, async (path) => {
+        // do custom actions in the folder while it is unzipped
+        await MedDataObject.writeFileSync(flow, path, "metadata", "json")
         toast.success("Scene has been saved successfully")
       })
-    }
-  }, [reactFlowInstance, MLType, intersections])
-
-  /**
-   * save the workflow as a json file
-   */
-  const onDownload = useCallback(() => {
-    if (reactFlowInstance) {
-      const flow = deepCopy(reactFlowInstance.toObject())
-      flow.MLType = MLType
-      console.log("flow debug", flow)
-      flow.nodes.forEach((node) => {
-        node.data.setupParam = null
-      })
-      flow.intersections = intersections
-      downloadJson(flow, "scene")
     }
   }, [reactFlowInstance, MLType, intersections])
 
@@ -849,7 +874,7 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
           <>
             {/* bottom center - progress bar */}
             <div className="panel-bottom-center">
-              <ProgressBarRequests isUpdating={isProgressUpdating} setIsUpdating={setIsProgressUpdating} />
+              <ProgressBarRequests progressBarProps={{ animated: true, variant: "success" }} isUpdating={isProgressUpdating} setIsUpdating={setIsProgressUpdating} progress={progress} setProgress={setProgress} requestTopic={"learning/progress/" + pageId} />
             </div>
           </>
         }

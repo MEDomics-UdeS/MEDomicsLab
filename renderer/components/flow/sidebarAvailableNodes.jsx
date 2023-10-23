@@ -1,7 +1,6 @@
-import React, { useEffect } from "react"
-import Card from "react-bootstrap/Card"
+import React from "react"
+import { Card } from "primereact/card"
 import nodesParams from "../../public/setupVariables/allNodesParams"
-import { Col, Row } from "react-bootstrap"
 import { Stack } from "react-bootstrap"
 
 /**
@@ -32,73 +31,56 @@ const onDragStart = (event, node) => {
  *
  */
 const SidebarAvailableNodes = ({ title, sidebarType, ExtraPages, reload, setReload }) => {
-
-  useEffect(() => {
-    console.log("nodesParams", nodesParams)
-  }, [])
- 
   return (
     <>
-      <Col className=" padding-0 available-nodes-panel">
-        <Card className="text-center height-100">
-          <Card.Header>
-            <Row>
-              <h5>{title}</h5>
-            </Row>
-          </Card.Header>
-          <Card.Body className="overflow-auto">
-            <Stack direction="vertical" gap={2}>
-              {Object.keys(nodesParams[sidebarType]).map((nodeName) => {
-                // this code is executed for each node in nodesParams[sidebarType] and returns a Card for each node
-                // it also attaches the onDragStart function to each Card so that the node can be dragged from the sidebar and dropped in the flow
-                // the data that is being dragged is set in the onDragStart function and passed to the onDrop function in the flow
-                let node = nodesParams[sidebarType][nodeName]
-                return (
-                  <div
-                    key={nodeName}
-                    className="cursor-grab"
-                    onDragStart={(event) =>
-                      onDragStart(event, {
-                        nodeType: `${node.type}`,
-                        name: `${node.title}`,
-                        image: `${node.img}`
-                      })
-                    }
-                    draggable
-                  >
-                    <Card key={node.title} className="text-left">
-                      <Card.Header className="draggable-side-node">
-                        {node.title}
-                        <img src={`/icon/${sidebarType == "extraction" ? "extraction_img": sidebarType}/${node.img}`} alt={node.title} className="icon-nodes" />
-                      </Card.Header>
-                    </Card>
-                  </div>
-                )
-              })}
-            </Stack>
-          </Card.Body>
-        </Card>
-      <br/>
-      {/* Available pages */}
-      {ExtraPages && (
-        <Card className="text-center">
-          <Card.Header>
-            <h4>Available Pages</h4>
-          </Card.Header>
-          <Card.Body>
-            <Stack direction="vertical" gap={2}>
-            {ExtraPages.map((BtnPage, index) => {
+      <div className="available-nodes-panel-container ">
+        <Card
+          className="text-center height-100 available-nodes-panel"
+          title={title}
+          pt={{
+            body: { className: "overflow-auto height-100" }
+          }}
+        >
+          <Stack direction="vertical" gap={1}>
+            {Object.keys(nodesParams[sidebarType]).map((nodeName) => {
+              // this code is executed for each node in nodesParams[sidebarType] and returns a Card for each node
+              // it also attaches the onDragStart function to each Card so that the node can be dragged from the sidebar and dropped in the flow
+              // the data that is being dragged is set in the onDragStart function and passed to the onDrop function in the flow
+              let node = nodesParams[sidebarType][nodeName]
               return (
-                <BtnPage key={index} reload={reload[index]} setReload={setReload[index]}/>
+                <div
+                  key={nodeName}
+                  className="draggable-component"
+                  onDragStart={(event) =>
+                    onDragStart(event, {
+                      nodeType: `${node.type}`,
+                      name: `${node.title}`,
+                      image: `${node.img}`
+                    })
+                  }
+                  draggable
+                >
+                  <Card
+                    key={node.title}
+                    className="draggable-side-node"
+                    pt={{
+                      body: { className: "padding-0-important" },
+                      header: { className: "header" }
+                    }}
+                    header={
+                      <>
+                        {node.title}
+                        <img src={`/icon/${sidebarType}/${node.img}`} alt={node.title} className="icon-nodes" />
+                      </>
+                    }
+                  />
+                </div>
               )
-            }
-            )}
-            </Stack>
-            </Card.Body>
+            })}
+          </Stack>
+          {/* </div> */}
         </Card>
-      )}
-      
-      </Col>
+      </div>
     </>
   )
 }

@@ -9,6 +9,7 @@ import { ipcRenderer } from "electron"
 import { DataContextProvider } from "../components/workspace/dataContext"
 import MedDataObject from "../components/workspace/medDataObject"
 import { ActionContextProvider } from "../components/layout/actionContext"
+import { HotkeysProvider } from "@blueprintjs/core"
 
 // CSS
 import "bootstrap/dist/css/bootstrap.min.css"
@@ -22,26 +23,28 @@ import "primereact/resources/primereact.min.css"
 import "primereact/resources/themes/lara-light-indigo/theme.css"
 import "primeicons/primeicons.css"
 
+// blueprintjs
+import "@blueprintjs/core/lib/css/blueprint.css"
+import "@blueprintjs/table/lib/css/table.css"
+
+import "react-complex-tree/lib/style-modern.css"
+import "react-contexify/dist/ReactContexify.css"
+import "flexlayout-react/style/light.css"
+
 // --my styles (priority over bootstrap and other dist styles)
 import "../styles/flow/reactFlow.css"
 import "../styles/globals.css"
 import "../styles/learning/learning.css"
-import "../styles/extraction/extraction_img.css"
-import "../styles/extraction/extraction_ts.css"
-import "flexlayout-react/style/light.css"
+import "../styles/extraction/extractionMEDimage.css"
+import "../styles/extraction/extractionTabular.css"
 import "../styles/workspaceSidebar.css"
 import "../styles/iconSidebar.css"
-import "react-contexify/dist/ReactContexify.css"
 import "../styles/learning/sidebar.css"
 import "../styles/flow/results.css"
-import "react-complex-tree/lib/style-modern.css"
 import "../styles/sidebarTree.css"
 import "../styles/customPrimeReact.css"
 import "../styles/imageContainer.css"
-import "@blueprintjs/core/lib/css/blueprint.css"
-import "@blueprintjs/table/lib/css/table.css"
 import "../styles/datatableWrapper.css"
-import { HotkeysProvider } from "@blueprintjs/core"
 
 /**
  * This is the main app component. It is the root component of the app.
@@ -275,9 +278,9 @@ function App() {
   }, [layoutModel]) // Here, we specify that the hook should only be called when the layoutModel state variable changes
 
   // This useEffect hook is called at the beginning of the app to clear the localStorage
-  useEffect(() => {
-    localStorage.clear()
-  }, [])
+  // useEffect(() => {
+  //   localStorage.clear()
+  // }, [])
   return (
     <>
       <Head>

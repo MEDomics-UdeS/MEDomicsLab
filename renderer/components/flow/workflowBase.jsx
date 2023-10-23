@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 import React, { useRef, useCallback, useEffect, useContext, useState } from "react"
 import { toast } from "react-toastify"
-import ReactFlow, { Controls, Background, MiniMap, addEdge } from "reactflow"
+import ReactFlow, { Controls, ControlButton, Background, MiniMap, addEdge } from "reactflow"
 import { FlowFunctionsContext } from "./context/flowFunctionsContext"
 import { PageInfosContext } from "../mainPages/moduleBasics/pageInfosContext"
 import { FlowInfosContext } from "./context/flowInfosContext"
@@ -9,9 +9,10 @@ import { FlowResultsContext } from "./context/flowResultsContext"
 import { getId, deepCopy } from "../../utilities/staticFunctions"
 import { ipcRenderer } from "electron"
 import { ToggleButton } from "primereact/togglebutton"
-import Container from "react-bootstrap/Container"
 import Row from "react-bootstrap/Row"
 import Col from "react-bootstrap/Col"
+import { Button } from "primereact/button"
+import { ErrorRequestContext } from "./context/errorRequestContext"
 
 /**
  *
@@ -19,6 +20,10 @@ import Col from "react-bootstrap/Col"
  * @param { function } onDeleteNode function to delete a node
  * @param { function } groupNodeHandlingDefault function to handle a group node default actions such as creation of start and end nodes
  * @param { JSX.Element } ui jsx element to display on the workflow
+ * @param { JSX.Element } uiTopLeft jsx element to display on the top left of the workflow
+ * @param { JSX.Element } uiTopRight jsx element to display on the top right of the workflow
+ * @param { JSX.Element } uiTopCenter jsx element to display on the top center of the workflow
+ * @param { function } customOnConnect function to call when a connection is created
  *
  * @param { object } 	mandatoryProps.reactFlowInstance instance of the reactFlow
  * @param { function } 	mandatoryProps.setReactFlowInstance function to set the reactFlowInstance
@@ -42,15 +47,23 @@ import Col from "react-bootstrap/Col"
  * This component is used to display a workflow.
  * It manages base workflow functions such as node creation, node deletion, node connection, etc.
  */
-const WorkflowBase = ({ isGoodConnection, groupNodeHandlingDefault, onDeleteNode, onNodeDrag, mandatoryProps, ui, uiTopLeft, uiTopRight, uiTopCenter }) => {
+const WorkflowBase = ({ isGoodConnection, groupNodeHandlingDefault, onDeleteNode, onNodeDrag, mandatoryProps, ui, uiTopLeft, uiTopRight, uiTopCenter, customOnConnect }) => {
   const { reactFlowInstance, setReactFlowInstance, addSpecificToNode, nodeTypes, nodes, setNodes, onNodesChange, edges, setEdges, onEdgesChange, runNode } = mandatoryProps
 
   const edgeUpdateSuccessful = useRef(true)
   const { pageId } = useContext(PageInfosContext) // used to get the page infos
-  const { updateNode, nodeUpdate, updateEdge, edgeUpdate, node2Delete, node2Run } = useContext(FlowFunctionsContext) // used to get the function to update the node
+  const { updateNode, nodeUpdate, updateEdge, edgeUpdate, node2Delete, node2Run, newConnectionCreated, hasNewConnection } = useContext(FlowFunctionsContext) // used to get the function to update the node
   const { showAvailableNodes, setShowAvailableNodes, updateFlowContent } = useContext(FlowInfosContext) // used to update the flow infos
   const { showResultsPane, setShowResultsPane, isResults, flowResults } = useContext(FlowResultsContext) // used to update the flow infos
-  const [newConnection, setNewConnection] = useState(false)
+  const { showError, setShowError } = useContext(ErrorRequestContext) // used to get the flow infos
+  const [hasBeenAnError, setHasBeenAnError] = useState(false) // used to get the flow infos
+  const [miniMapState, setMiniMapState] = useState(true) // used to get the flow infos
+
+  useEffect(() => {
+    if (showError) {
+      setHasBeenAnError(true)
+    }
+  }, [showError])
 
   // this useEffect is used to update the nodes when the nodeUpdate object changes
   useEffect(() => {
@@ -145,10 +158,48 @@ const WorkflowBase = ({ isGoodConnection, groupNodeHandlingDefault, onDeleteNode
           setHasRunRec(obj[id].next_nodes)
         })
       }
+      if (Object.keys(flowResults).length > 0) {
+        Object.keys(flowResults).forEach((id) => {
+          setHasRun(id)
+          setHasRunRec(flowResults[id].next_nodes)
+        })
+      } else {
+        nodes.forEach((node) => {
+          node.data.internal.hasRun = false
+          updateNode({
+            id: node.id,
+            updatedData: node.data.internal
+          })
+        })
+      }
+    }
 
-      Object.keys(flowResults).forEach((id) => {
-        setHasRun(id)
-        setHasRunRec(flowResults[id].next_nodes)
+    const setHasRunGroupNode = () => {
+      const setHasRun = (id, hasRun = true) => {
+        let node = nodes.find((node) => node.id == id)
+        if (node) {
+          node.data.internal.hasRun = hasRun
+          updateNode({
+            id: node.id,
+            updatedData: node.data.internal
+          })
+        }
+      }
+
+      let groupNodes = nodes.filter((node) => node.type == "groupNode")
+      console.log("groupNodes", groupNodes)
+      groupNodes.forEach((groupNode) => {
+        let hasRun = true
+        let groupNodeSubNodes = nodes.filter((node) => node.data.internal.subflowId == groupNode.id && node.type != "optimizeIO")
+        console.log(groupNode.id, groupNodeSubNodes)
+
+        groupNodeSubNodes.forEach((subNode) => {
+          console.log(subNode.id, subNode.data.internal.hasRun)
+          if (!subNode.data.internal.hasRun) {
+            hasRun = false
+          }
+        })
+        setHasRun(groupNode.id, hasRun)
       })
     }
 
@@ -159,14 +210,36 @@ const WorkflowBase = ({ isGoodConnection, groupNodeHandlingDefault, onDeleteNode
       // making a list of edges that have run
       let edgesHasRun = []
       const setHasRun = (sourceId, targetId) => {
+        // in case of a train model node, we need to manually add the model node because it is a backward relation
         if (sourceId.split("*").length > 1) {
           let ids = sourceId.split("*")
           setHasRun(ids[1], ids[0])
         }
         sourceId = sourceId.split("*")[0]
         targetId = targetId.split("*")[0]
+
         let edge = edges.find((edge) => edge.source == sourceId && edge.target == targetId)
         edge && edgesHasRun.push(edge.id)
+
+        // in case of a groupNode, another connection has to be added wich is the connection between the groupNode is the target node
+        let targetNode = nodes.find((node) => node.id == targetId)
+        if (targetNode) {
+          let targetIdSubflowId = targetNode.data.internal.subflowId
+          if (targetIdSubflowId != "MAIN") {
+            let edge = edges.find((edge) => edge.source == sourceId && edge.target == targetIdSubflowId)
+            edge && edgesHasRun.push(edge.id)
+          }
+        }
+
+        // in case of a groupNode, another connection has to be added wich is the connection between the groupNode is the source node
+        let sourceNode = nodes.find((node) => node.id == sourceId)
+        if (sourceNode) {
+          let sourceIdSubflowId = sourceNode.data.internal.subflowId
+          if (sourceIdSubflowId != "MAIN") {
+            let edge = edges.find((edge) => edge.source == sourceIdSubflowId && edge.target == targetId)
+            edge && edgesHasRun.push(edge.id)
+          }
+        }
       }
 
       const setHasRunRec = (obj) => {
@@ -185,7 +258,7 @@ const WorkflowBase = ({ isGoodConnection, groupNodeHandlingDefault, onDeleteNode
         setHasRunRec(flowResults[id].next_nodes)
       })
       edges.forEach((edge) => {
-        edge.data = { hasRun: edgesHasRun.includes(edge.id) }
+        edge.data ? (edge.data.hasRun = edgesHasRun.includes(edge.id)) : (edge.data = { hasRun: edgesHasRun.includes(edge.id) })
         edge.className = edgesHasRun.includes(edge.id) && showResultsPane ? "stroke-hasRun" : showResultsPane ? "stroke-notRun" : ""
         updateEdge({
           id: edge.id,
@@ -195,8 +268,23 @@ const WorkflowBase = ({ isGoodConnection, groupNodeHandlingDefault, onDeleteNode
     }
 
     setNodesHasRunState()
+    setHasRunGroupNode()
     setEdgesHasRunState()
-  }, [flowResults, showResultsPane, newConnection])
+  }, [flowResults, showResultsPane, hasNewConnection])
+
+  // when showResultsPane changes, update the nodes draggable property
+  useEffect(() => {
+    setNodes((nds) =>
+      nds.map((node) => {
+        // it's important that you create a new object here in order to notify react flow about the change
+        node.data = {
+          ...node.data
+        }
+        node.draggable = !showResultsPane
+        return node
+      })
+    )
+  }, [showResultsPane])
 
   /**
    * @param {object} params
@@ -228,6 +316,7 @@ const WorkflowBase = ({ isGoodConnection, groupNodeHandlingDefault, onDeleteNode
       // get the source and target nodes
       let sourceNode = deepCopy(nodes.find((node) => node.id === params.source))
       let targetNode = deepCopy(nodes.find((node) => node.id === params.target))
+
       // check if sourceNode's outputs is compatible with targetNode's inputs
       let isValidConnection = false
       sourceNode.data.setupParam.output.map((output) => {
@@ -241,9 +330,11 @@ const WorkflowBase = ({ isGoodConnection, groupNodeHandlingDefault, onDeleteNode
 
       // check if the connection creates an infinite loop
       let isLoop = verificationForLoopHoles(params)
-      setNewConnection(!newConnection)
+      newConnectionCreated() // this is used to update the workflow when a connection is created
+
       if (!alreadyExists && isValidConnection && !isLoop) {
         setEdges((eds) => addEdge(params, eds))
+        customOnConnect && customOnConnect(params)
       } else {
         let message = "Not a valid connection"
         if (alreadyExists) {
@@ -349,6 +440,7 @@ const WorkflowBase = ({ isGoodConnection, groupNodeHandlingDefault, onDeleteNode
           // create a base node with common properties
           let newNode = createBaseNode(position, node, newId)
           // add specific properties to the node
+          newNode.draggable = !showResultsPane
           newNode = addSpecificToNode(newNode)
           // add the new node to the nodes array
           setNodes((nds) => nds.concat(newNode))
@@ -358,7 +450,7 @@ const WorkflowBase = ({ isGoodConnection, groupNodeHandlingDefault, onDeleteNode
         }
       }
     },
-    [reactFlowInstance, addSpecificToNode]
+    [reactFlowInstance, addSpecificToNode, showResultsPane]
   )
 
   /**
@@ -374,6 +466,8 @@ const WorkflowBase = ({ isGoodConnection, groupNodeHandlingDefault, onDeleteNode
    */
   const createBaseNode = (position, node, id) => {
     const { nodeType, name, image } = node
+    // console.log("createBaseNode", nodeType, name, image)
+    console.log("node", node)
     let newNode = {
       id: id,
       type: nodeType,
@@ -385,7 +479,8 @@ const WorkflowBase = ({ isGoodConnection, groupNodeHandlingDefault, onDeleteNode
           name: name,
           img: image,
           type: name.toLowerCase().replaceAll(" ", "_"),
-          results: { checked: false, contextChecked: false }
+          results: { checked: false, contextChecked: false },
+          hasRun: false
         },
         tooltipBy: "node" // this is a default value that can be changed in addSpecificToNode function see workflow.jsx for example
       }
@@ -431,6 +526,7 @@ const WorkflowBase = ({ isGoodConnection, groupNodeHandlingDefault, onDeleteNode
         alreadyExists = true
       }
     })
+    newConnectionCreated() // this is used to update the workflow when a connection is created
     if (!alreadyExists) {
       console.log("connection changed")
       setEdges((els) => updateEdge(oldEdge, newConnection, els))
@@ -460,44 +556,41 @@ const WorkflowBase = ({ isGoodConnection, groupNodeHandlingDefault, onDeleteNode
   const onEdgeUpdateEnd = useCallback((_, edge) => {
     if (!edgeUpdateSuccessful.current) {
       setEdges((eds) => eds.filter((e) => e.id !== edge.id))
+      newConnectionCreated() // this is used to update the workflow when a connection is created
     }
     edgeUpdateSuccessful.current = true
   }, [])
 
   return (
-    <div className="height-100">
+    <div className="height-100 width-100">
       {/* here is the reactflow component which handles a lot of features listed below */}
       <ReactFlow nodes={nodes} edges={edges} onNodesChange={onNodesChange} onEdgesChange={onEdgesChange} onInit={setReactFlowInstance} nodeTypes={nodeTypes} onNodeDrag={onNodeDrag} onConnect={onConnect} onDrop={onDrop} onDragOver={onDragOver} onEdgeUpdate={onEdgeUpdate} onEdgeUpdateStart={onEdgeUpdateStart} onEdgeUpdateEnd={onEdgeUpdateEnd} fitView>
-        <Background /> <MiniMap className="minimapStyle" zoomable pannable /> <Controls />
+        <Background />
+        {miniMapState && <MiniMap className="minimapStyle" zoomable pannable />}
+        <Controls>
+          <ControlButton onClick={() => setMiniMapState(!miniMapState)} title="Toggle Minimap">
+            <div>
+              <i className="pi pi-map"></i>
+            </div>
+          </ControlButton>
+        </Controls>
         {ui}
-        {/* <div className="btn-panel-top-corner-left gap-2">
-          <ToggleButton onIcon="pi pi-list" offIcon="pi pi-times" onLabel="" offLabel="" checked={!showAvailableNodes} onChange={(e) => setShowAvailableNodes(!e.value)} className="btn-ctl-available-nodes" />
-          <ToggleButton onLabel="Results mode on" offLabel="See results" onIcon="pi pi-chart-bar" offIcon="pi pi-eye" disabled={!isResults} checked={showResultsPane} onChange={(e) => setShowResultsPane(e.value)} className="btn-show-results" />
-        </div> */}
-        {/* <div className="flow-btn-panel-top">
-          <div className="left">
-            <ToggleButton onIcon="pi pi-list" offIcon="pi pi-times" onLabel="" offLabel="" checked={!showAvailableNodes} onChange={(e) => setShowAvailableNodes(!e.value)} className="btn-ctl-available-nodes" />
-            <ToggleButton onLabel="Results mode on" offLabel="See results" onIcon="pi pi-chart-bar" offIcon="pi pi-eye" disabled={!isResults} checked={showResultsPane} onChange={(e) => setShowResultsPane(e.value)} className="btn-show-results" />
-            {uiTopLeft}
-          </div>
-          <div className="center">{uiTopCenter}</div>
-          <div className="right">{uiTopRight}</div>
-        </div> */}
-        <Container className="flow-btn-panel-top">
-          <Row>
-            <Col sm className="left">
+        <div className="flow-btn-panel-top">
+          <Row className="margin-0" style={{ justifyContent: "space-between" }}>
+            <Col md="auto" className="left">
               <ToggleButton onIcon="pi pi-list" offIcon="pi pi-times" onLabel="" offLabel="" checked={!showAvailableNodes} onChange={(e) => setShowAvailableNodes(!e.value)} className="btn-ctl-available-nodes" />
-              <ToggleButton onLabel="Results mode on" offLabel="See results" onIcon="pi pi-chart-bar" offIcon="pi pi-eye" disabled={!isResults} checked={showResultsPane} onChange={(e) => setShowResultsPane(e.value)} className="btn-show-results" />
+              <ToggleButton onLabel="Results mode on" offLabel="See results" onIcon="pi pi-chart-bar" offIcon="pi pi-eye" disabled={!isResults} checked={showResultsPane} onChange={(e) => setShowResultsPane(e.value)} severity="success" className="btn-show-results" />
               {uiTopLeft}
             </Col>
             <Col md="auto" className="center">
               {uiTopCenter}
             </Col>
-            <Col sm className="right">
+            <Col md="auto" className="right">
               {uiTopRight}
             </Col>
           </Row>
-        </Container>
+        </div>
+        <div className="flow-btn-panel-left-vertical">{hasBeenAnError && <Button icon="pi pi-exclamation-circle" rounded severity="danger" aria-label="Cancel" tooltip="See last error" tooltipOptions={{ showDelay: 1000, hideDelay: 300 }} onClick={() => setShowError(true)} />}</div>
       </ReactFlow>
     </div>
   )
