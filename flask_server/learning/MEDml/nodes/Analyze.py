@@ -59,6 +59,9 @@ class Analyze(Node):
                 return_path = return_value
 
                 def move_file(return_path, new_path):
+                    """
+                        This function is used to move and replace a file from return_path to new_path.
+                    """
                     if os.path.isfile(new_path):
                         os.remove(new_path)
                     os.rename(return_path, new_path)

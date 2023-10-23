@@ -72,12 +72,15 @@ class MEDexperiment(ABC):
         os.chdir(str(Path(os.path.dirname(os.path.abspath(__file__))).parent.parent))
         print("current working directory: ", os.getcwd())
 
-        def clean_tmp_folder(path):
+        def clear_tmp_folder(path):
+            """
+                Function that clear the tmp folder of the experiment.
+            """
             for f in os.listdir(os.path.join(path, 'tmp')):
                 if f != '.gitkeep':
                     os.remove(os.path.join(path, 'tmp', f))
 
-        self.sceneZipFile.write_to_zip(custom_actions=clean_tmp_folder)
+        self.sceneZipFile.write_to_zip(custom_actions=clear_tmp_folder)
 
     def update(self, global_json_config: json = None):
         """Updates the experiment with the pipelines and the global configuration.

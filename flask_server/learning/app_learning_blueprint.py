@@ -4,7 +4,6 @@ import json
 from utils.server_utils import get_json_from_request, get_response_from_error
 import os
 import pickle
-from memory_profiler import profile
 
 USE_RAM_FOR_EXPERIMENTS_STORING = 1
 USE_SAVE_FOR_EXPERIMENTS_STORING = 0

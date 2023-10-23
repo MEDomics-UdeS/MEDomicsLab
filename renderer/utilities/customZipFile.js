@@ -63,6 +63,11 @@ export const modifyZipFileSync = async (path, customActions) => {
   }
 }
 
+/**
+ *
+ * @param {String} path /path/to/file.extension
+ * @returns {Promise<Object>} An object containing the content of the zip file in json format
+ */
 export const customZipFile2Object = async (path) => {
   if (!path.includes(".")) {
     toast.error("Please provide a path with a file extension")
@@ -94,6 +99,10 @@ export default class CustomZipFile {
     }
   }
 
+  /**
+   *
+   * @returns {Promise<Object>} An object containing the content of the zip file in json format
+   */
   async toObject() {
     let content = {}
     await this.interactZipSync("default", async (folderPath) => {
@@ -102,6 +111,11 @@ export default class CustomZipFile {
     return content
   }
 
+  /**
+   *
+   * @param {String} folderPath The path of the folder to open
+   * @returns {Promise<Object>} An object containing the content of the folder in json format
+   */
   openContentToObject(folderPath) {
     return new Promise((resolve, reject) => {
       const readDirRecursive = (folderPath) => {
@@ -146,6 +160,11 @@ export default class CustomZipFile {
     })
   }
 
+  /**
+   *
+   * @param {String} path The path to check
+   * @returns {Number} 0 if the path is a file, 1 if it is a folder
+   */
   static getPathType(path) {
     if (path.includes(".")) {
       return IS_FILE

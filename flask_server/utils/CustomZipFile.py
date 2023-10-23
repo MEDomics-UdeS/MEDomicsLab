@@ -123,6 +123,12 @@ class CustomZipFile:
         return return_value
 
     def handle_input_path(self, input_path):
+        """
+        Handles the input path to get a standardized path
+
+        Args:
+            input_path: path to handle
+        """
         if input_path is not None:
             path = os.path.abspath(input_path)
             if '.' in input_path:
