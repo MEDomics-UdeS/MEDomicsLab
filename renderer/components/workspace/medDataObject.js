@@ -994,7 +994,7 @@ export default class MedDataObject {
       console.log("data: ", data)
       if (data.$columns) {
         newColumns = data.$columns
-        // this.metadata.columns = newColumns
+        this.metadata.columns = newColumns
         // return data.$columns
       }
     }

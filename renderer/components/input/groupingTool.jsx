@@ -39,6 +39,7 @@ const GroupingTool = ({ pageId = "42-grouping", configPath = null }) => {
   const [tagsPresentInSelectedDatasets, setTagsPresentInSelectedDatasets] = useState([])
   const [overwrite, setOverwrite] = useState(false)
   const [overwriteWasAsked, setOverwriteWasAsked] = useState(false)
+  const [isBeingAsked, setIsBeingAsked] = useState(false)
 
   const mergeOptions = [
     { label: "Left", value: "left" },
@@ -99,8 +100,17 @@ const GroupingTool = ({ pageId = "42-grouping", configPath = null }) => {
 
   const addTagsToTagsAlreadyInSelectedDatasets = (tagsToAdd) => {
     let newTags = { ...tagsPresentInSelectedDatasets }
-    tagsToAdd.forEach((tag) => {})
-    setTagsPresentInSelectedDatasets
+    let newTagsDict = { ...tagsDict }
+    tagsToAdd.forEach((tag) => {
+      newTagsDict = addTagToTagsDict(tag, generateRandomColor(), newTagsDict)
+      if (newTags[tag]) {
+        newTags[tag] = [...newTags[tag], ...tagsToAdd]
+      } else {
+        newTags[tag] = tagsToAdd
+      }
+    })
+    setTagsDict(newTagsDict)
+    setTagsPresentInSelectedDatasets(newTags)
   }
 
   useEffect(() => {
@@ -117,6 +127,12 @@ const GroupingTool = ({ pageId = "42-grouping", configPath = null }) => {
             if (columnsTag[column]) {
               console.log("columnsTag[column]", columnsTag[column])
               addTagsToArrayIfNotPresent(columnsTag[column], key)
+              columnsTag[column].forEach((tag) => {
+                if (!tagsToAdd.includes(tag)) {
+                  tagsToAdd.push(tag)
+                }
+              })
+              addTagsToTagsAlreadyInSelectedDatasets(tagsToAdd)
               console.log("tagsToAdd", tagsToAdd)
               datasetChildren.push({ key: column + "_|_" + key, label: column, value: column, checked: true, partialChecked: false, tags: columnsTag[column] })
             } else {
@@ -129,11 +145,11 @@ const GroupingTool = ({ pageId = "42-grouping", configPath = null }) => {
     })
     setNodes(newNodes)
     console.log("tagsToAdd", tagsToAdd)
+
     if (tagsToAdd.length > 0) {
       let tagsAlreadyThere = Object.keys(tagsDict)
-      let tagsThatWillBeAdded = returnArrayOfElementsNotPresentInArray(tagsAlreadyThere, tagsToAdd)
       let newTagsDict = { ...tagsDict }
-      tagsThatWillBeAdded.forEach((tag) => {
+      tagsToAdd.forEach((tag) => {
         console.log("TAG BEING ADDED", tag)
         newTagsDict = addTagToTagsDict(tag, generateRandomColor(), newTagsDict)
       })
@@ -205,7 +221,7 @@ const GroupingTool = ({ pageId = "42-grouping", configPath = null }) => {
         if (tagsDict[tag]) {
           newTagsDict[tag] = tagsDict[tag]
         } else {
-          newTagsDict[tag] = { fontColor: "white", color: "#000000", datasets: {}, protect: true }
+          newTagsDict[tag] = { fontColor: "white", color: generateRandomColor(), datasets: {}, protect: true }
         }
       })
       setTagsDict(newTagsDict)
@@ -267,19 +283,26 @@ const GroupingTool = ({ pageId = "42-grouping", configPath = null }) => {
 
   const addArrayOfStringsToArrayOfStringsIfNotPresent = (stringsToAdd, array) => {
     let newArray = array
-    stringsToAdd.forEach((stringToAdd) => {
-      if (!array.includes(stringToAdd)) {
-        newArray.push(stringToAdd)
-      }
-    })
+    // Check if array contains an array of strings
+    if (array[0] && typeof array[0] === "string") {
+      array = array
 
-    return newArray
+      stringsToAdd.forEach((stringToAdd) => {
+        console.log("stringToAdd", stringToAdd, array)
+        if (!array.includes(stringToAdd)) {
+          newArray.push(stringToAdd)
+        }
+      })
+      console.log("newArray", newArray)
+      return newArray
+    }
   }
 
   const updateNodeTags = () => {
     if (overwriteWasAsked) {
       setOverwriteWasAsked(false)
-      setOverwrite(false)
+      setOverwrite(null)
+      setIsBeingAsked(false)
     }
 
     new Promise((resolveMaster, reject) => {
@@ -306,74 +329,169 @@ const GroupingTool = ({ pageId = "42-grouping", configPath = null }) => {
 
       const handleOverwrite = async (child, columnsTag, column) => {
         if (await confirmOverwrite()) {
-          child.tags = tagsConcerned
-          columnsTag[column] = tagsConcerned
+          return true
         } else {
-          child.tags = addArrayOfStringsToArrayOfStringsIfNotPresent(tagsConcerned, child.tags)
-          columnsTag[column] = addArrayOfStringsToArrayOfStringsIfNotPresent(tagsConcerned, columnsTag[column])
+          return false
         }
-        return columnsTag[column]
       }
 
-      let globalDataCopy = { ...globalData }
+      const handleApplyingOverwrite = async (overwriteLocal, child, columnsTag, column) => {
+        console.log("dataset columnsTag[column]", columnsTag[column], column)
+        console.log("Here", columnsTag[column], column)
+        if (overwriteLocal) {
+          child.tags = sortTheArrayOfStringsAlphabetically(tagsConcerned)
+          columnsTag[column] = sortTheArrayOfStringsAlphabetically(tagsConcerned)
+        } else {
+          console.log("child.tags", child.tags, tagsConcerned)
+          console.log("columnsTag[column]", columnsTag[column], tagsConcerned)
+          child.tags = sortTheArrayOfStringsAlphabetically(addArrayOfStringsToArrayOfStringsIfNotPresent(tagsConcerned, child.tags))
+
+          columnsTag[column] = sortTheArrayOfStringsAlphabetically(addArrayOfStringsToArrayOfStringsIfNotPresent(tagsConcerned, columnsTag[column]))
+        }
+        return [child.tags, columnsTag[column]]
+      }
+
+      const handleAskingOverwrite = async (child, columnsTag, column) => {
+        // console.warn("HERE before asking")
+        if (isBeingAsked === false && (overwrite === null || overwrite === undefined)) {
+          setIsBeingAsked(true)
+          let overwriteLocal
+          if (await handleOverwrite(child, columnsTag, column)) {
+            overwriteLocal = true
+          } else {
+            overwriteLocal = false
+          }
+
+          console.log("HERE")
+          setIsBeingAsked(false)
+          setOverwriteWasAsked(true)
+          let res = await handleApplyingOverwrite(overwriteLocal, child, columnsTag, column)
+          console.log("columnsTag[column]", res, column)
+          return res
+        } else if (isBeingAsked === false && overwrite !== null) {
+          let overwriteLocal = overwrite
+          let res = await handleApplyingOverwrite(overwriteLocal, child, columnsTag, column)
+          console.log("columnsTag[column]", res, column)
+          return res
+        } else if (isBeingAsked === true) {
+          await new Promise((resolve, reject) => {
+            setTimeout(() => {
+              resolve()
+            }, 1000)
+          })
+          return handleAskingOverwrite(child, columnsTag, column)
+        }
+      }
+
       let overwriteWasAskedLocal = false
+      let globalDataCopy = { ...globalData }
       let result = () =>
         new Promise((resolveToCall, reject) => {
-          newNodes.forEach(async (node) => {
+          nodes.forEach(async (node) => {
             let nodeKeys = identifyColumnKeyToDatasetKey(node.key)
             console.log("nodeKeys", nodeKeys)
             let dataset = globalDataCopy[nodeKeys.datasetKey]
             let columnsTag = getColumnsTagging(dataset)
             if (nodeKeys.column === null) {
-              node.children.forEach(async (child) => {
+              for (let child of node.children) {
                 let childKeys = identifyColumnKeyToDatasetKey(child.key)
                 if (childKeys) {
+                  // console.log("child", childKeys)
                   let column = childKeys.column
                   let datasetKey = childKeys.datasetKey
                   if (datasetsConcerned.includes(datasetKey)) {
                     let columnsToCheck = columnsConcerned[datasetKey]
+
                     if (columnsToCheck.includes(column)) {
+                      console.log("columnsToCheck", columnsToCheck)
                       if (child.tags) {
                         if (child.tags.length > 0) {
-                          if (!overwriteWasAskedLocal) {
-                            columnsTag[column] = await handleOverwrite(child, columnsTag, column)
-                            overwriteWasAskedLocal = true
-                            resolveToCall(columnsTag[column])
+                          if (overwrite !== null && overwrite !== undefined) {
+                            console.log("overwrite", overwrite)
+                            let res = handleApplyingOverwrite(overwrite, child, columnsTag, column)
+                            child.tags = res[0]
+                            columnsTag[column] = res[1]
                           } else {
-                            if (overwrite) {
-                              child.tags = tagsConcerned
-                              columnsTag[column] = tagsConcerned
-                            } else {
-                              child.tags = addArrayOfStringsToArrayOfStringsIfNotPresent(tagsConcerned, child.tags)
-                              columnsTag[column] = addArrayOfStringsToArrayOfStringsIfNotPresent(tagsConcerned, columnsTag[column])
-                            }
+                            let res = await handleAskingOverwrite(child, columnsTag, column)
+                            child.tags = res[0]
+                            columnsTag[column] = res[1]
                           }
                         } else {
-                          child.tags = tagsConcerned
-                          columnsTag[column] = tagsConcerned
+                          child.tags = sortTheArrayOfStringsAlphabetically(tagsConcerned)
+                          columnsTag[column] = sortTheArrayOfStringsAlphabetically(tagsConcerned)
                         }
                       } else {
-                        child.tags = tagsConcerned
-                        columnsTag[column] = tagsConcerned
+                        child.tags = sortTheArrayOfStringsAlphabetically(tagsConcerned)
+                        columnsTag[column] = sortTheArrayOfStringsAlphabetically(tagsConcerned)
                       }
                     }
                   }
                 }
-              })
+              }
+              resolveToCall()
             }
-            dataset.metadata.columnsTag = columnsTag
+            dataset.metadata.columnsTag = sortTheArrayOfStringsAlphabetically(columnsTag)
             globalDataCopy[nodeKeys.datasetKey] = dataset
           })
-          setGlobalData(globalDataCopy)
-          setNodes(newNodes)
-          setOverwriteWasAsked(false)
-          setOverwrite(false)
         })
       result().then((res) => {
+        console.log("Passer tout droit", globalDataCopy)
+        setGlobalData(globalDataCopy)
+        setNodes(newNodes)
+        setOverwriteWasAsked(false)
+        setOverwrite()
         resolveMaster(res)
+        setIsBeingAsked(false)
         // applyTagging(res)
       })
     })
+  }
+
+  const sortObjectsArraysAlphabetically = (objects) => {
+    let newObjects = { ...objects }
+    let keys = Object.keys(newObjects)
+    keys.forEach((key) => {
+      newObjects[key] = sortTheArrayOfStringsAlphabetically(newObjects[key])
+    })
+    return newObjects
+  }
+
+  const sortTheArrayOfStringsAlphabetically = (array) => {
+    console.log("array", array)
+    if (Array.isArray(array) === false) {
+      if (Object.keys(array).length > 0) {
+        return array
+        // return sortObjectsArraysAlphabetically(array)
+      } else {
+        return array
+      }
+    }
+
+    let newArray = array
+    newArray.sort((a, b) => {
+      if (a < b) {
+        return -1
+      }
+      if (a > b) {
+        return 1
+      }
+      return 0
+    })
+    return newArray
+  }
+
+  const sortTheTagsAlphabetically = (tags) => {
+    let newTags = [...tags]
+    newTags.sort((a, b) => {
+      if (a.label < b.label) {
+        return -1
+      }
+      if (a.label > b.label) {
+        return 1
+      }
+      return 0
+    })
+    return newTags
   }
 
   const applyTagging = async () => {
@@ -459,7 +577,7 @@ const GroupingTool = ({ pageId = "42-grouping", configPath = null }) => {
   }
 
   const columnSelectionTemplate = (option) => {
-    // let tagsDictCopy = { ...tagsDict }
+    let tagsDictCopy = { ...tagsDict }
 
     return (
       <div className="flex align-items-center">
@@ -478,16 +596,16 @@ const GroupingTool = ({ pageId = "42-grouping", configPath = null }) => {
 
   const customChip = (option) => {
     let style = { padding: "0px 5px", backgroundColor: tagsDict[option].color, color: tagsDict[option].fontColor }
-    console.log("OPTIONS", option)
+    // console.log("OPTIONS", option)
 
     return <Chip className="custom-token" label={option} style={style}></Chip>
   }
 
   const customChipRemovable = (option) => {
-    console.log("OPTIONS REMOVABLE", option)
+    // console.log("OPTIONS REMOVABLE", option)
     if (option !== undefined) {
       let style = { padding: "0px 5px", backgroundColor: tagsDict[option].color, color: tagsDict[option].fontColor }
-      return <Chip className="custom-token" label={option} removable style={style}></Chip>
+      return <Chip className="custom-token" label={option} style={style}></Chip>
     } else {
       return <></>
     }
@@ -546,6 +664,9 @@ const GroupingTool = ({ pageId = "42-grouping", configPath = null }) => {
     console.log("newTagsPresentInSelectedDatasets", newTagsPresentInSelectedDatasets)
   }
 
+  const secondMultiselect = useRef(null)
+  // console.log("secondMultiselect", secondMultiselect)
+
   return (
     <>
       <div className="groupingTool mergeToolMultiSelect">
@@ -595,6 +716,8 @@ const GroupingTool = ({ pageId = "42-grouping", configPath = null }) => {
                             confirmInfo(
                               e,
                               () => {
+                                let selectedDatasetsCopy = { ...selectedDatasets }
+                                selectedDatasetsCopy[key].columns = getColumnsFromPromise(globalData[key])
                                 let newGlobalData = { ...globalData }
                                 if (newGlobalData[key]) {
                                   if (newGlobalData[key].metadata) {
@@ -773,12 +896,9 @@ const GroupingTool = ({ pageId = "42-grouping", configPath = null }) => {
           <Col lg={6} style={{ display: "flex", flexDirection: "column", flexGrow: "1", alignItems: "start", justifyContent: "start", paddingInline: "0rem" }}>
             <h5>Set/Modify Tag</h5>
             <div style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-between", width: "100%", flexWrap: "nowrap" }}>
-              {/* <Row className="justify-content-center width-100" style={{ display: "flex", flexDirection: "row" }}> */}
-              {/* <Col sm> */}
               <p style={{ paddingRight: "0.5rem", minWidth: "fit-content", margin: "0px" }}>Add tag</p>
-              {/* </Col> */}
-              {/* <Col md={"auto"} > */}
               <MultiSelect
+                ref={secondMultiselect}
                 selectedItemTemplate={customChipRemovable}
                 removable={true}
                 itemTemplate={tagTemplate}
@@ -793,14 +913,11 @@ const GroupingTool = ({ pageId = "42-grouping", configPath = null }) => {
                 }}
                 optionLabel="label"
                 placeholder="Select a tag"
-                style={{}}
+                style={{ flexGrow: "1", marginRight: "0.5rem", overflow: "hidden" }}
               />
-              {/* </Col>
-              <Col sm> */}
-              {/* Checkmark button to apply */}
               <Button
                 className="p-button-success checkmarkButton"
-                style={{ width: "fit-content", height: "fit-content", padding: "0.25rem", margin: "0px" }}
+                style={{ width: "fit-content", height: "fit-content", padding: "0.25rem", margin: "0px", flexShrink: "0" }}
                 onClick={(e) => {
                   setOverwriteWasAsked(false)
                   console.log("overWrite", overwrite)
@@ -819,8 +936,6 @@ const GroupingTool = ({ pageId = "42-grouping", configPath = null }) => {
               >
                 {<Check2Square size={30} />}
               </Button>
-              {/* </Col> */}
-              {/* </Row> */}
             </div>
           </Col>
         </Row>
