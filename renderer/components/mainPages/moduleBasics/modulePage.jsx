@@ -24,7 +24,6 @@ const ModulePageWithProvider = ({ children, pageId, configPath = "", shadow }) =
 
   useEffect(() => {
     if (configPath && configPath !== "") {
-      console.log("configPath", configPath)
       let config = {}
       let extension = configPath.split(".")[configPath.split(".").length - 1]
       if (ZipFileExtensions.includes(extension)) {

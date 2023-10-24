@@ -137,8 +137,8 @@ class MEDexperimentLearning(MEDexperiment):
             'y_test': pycaret_exp.get_config('y_test'),
 
         }
-        self.global_json_config["columns"] = list(
-            temp_df.columns.values.tolist())
+        self.global_json_config["columns"] = copy.deepcopy(list(
+            temp_df.columns.values.tolist()))
         self.global_json_config["target_column"] = kwargs['target']
         self.pipelines_objects[node.id]['results']['data'] = {
             "table": dataset_metaData['dataset'].to_json(orient='records'),

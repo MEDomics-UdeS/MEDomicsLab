@@ -2,7 +2,10 @@ import pandas as pd
 import copy
 import numpy as np
 import json
-from learning.MEDml.nodes.NodeObj import Node
+
+from sklearn.pipeline import Pipeline
+
+from learning.MEDml.nodes.NodeObj import Node, format_model
 from typing import Union
 from colorama import Fore
 from learning.MEDml.CodeHandler import convert_dict_to_params
@@ -45,6 +48,7 @@ class Finalize(Node):
             f"trained_models_finalized.append(finalized_model)",
             1)
         for model in kwargs['models']:
+            model = format_model(model)
             print(Fore.CYAN +
                   f"finalizing: {model.__class__.__name__}" + Fore.RESET)
             trained_models.append(
@@ -59,6 +63,5 @@ class Finalize(Node):
             trained_models_json[model_copy.__class__.__name__] = model_copy.__dict__
             for key, value in model_copy.__dict__.items():
                 if isinstance(value, np.ndarray):
-                    trained_models_json[model_copy.__class__.__name__][key] = value.tolist(
-                    )
+                    trained_models_json[model_copy.__class__.__name__][key] = value.tolist()
         return trained_models_json

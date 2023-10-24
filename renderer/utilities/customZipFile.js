@@ -1,4 +1,4 @@
-import fs from "fs"
+import * as fs from "fs-extra"
 import decompress from "decompress"
 import { promises as fsPromises } from "fs"
 import zipper from "zip-local"
@@ -240,9 +240,11 @@ export default class CustomZipFile {
           let extensionPath = this._cwd + this.fileExtension
           this.unzipDirectory(extensionPath, this._cwd).then(async () => {
             // do custom actions on the unzipped folder
-            await customActions(this._cwd)
-            await this.zipDirectory(this._cwd)
-            resolve(this._cwd + this.fileExtension)
+            customActions(this._cwd).then(() => {
+              this.zipDirectory(this._cwd).then(() => {
+                resolve(this._cwd + this.fileExtension)
+              })
+            })
           })
         })
       })
@@ -318,7 +320,7 @@ export default class CustomZipFile {
       try {
         // rename the zip file to have the custom extension
         if (fs.existsSync(extensionPath)) {
-          fs.unlinkSync(extensionPath)
+          fs.rmSync(extensionPath)
         }
         fs.renameSync(zipPath, extensionPath)
 

@@ -3,11 +3,10 @@ import pandas as pd
 import os
 import numpy as np
 import json
-from learning.MEDml.nodes.NodeObj import Node
+from learning.MEDml.nodes.NodeObj import Node, format_model
 from typing import Union
 from colorama import Fore
 import os
-from sklearn.pipeline import Pipeline
 from utils.CustomZipFile import CustomZipFile
 
 
@@ -44,6 +43,7 @@ class ModelIO(Node):
             self.CodeHandler.add_line(
                 "code", f"for model in trained_models:")
             for model in kwargs['models']:
+                model = format_model(model)
                 if 'model_name' not in settings.keys():
                     settings['model_name'] = "model"
                 new_path = os.path.join(self.global_config_json['paths']['models'],
@@ -52,15 +52,18 @@ class ModelIO(Node):
 
                 def add_model_to_zip(path):
                     model_path = os.path.join(path, "model")
-                    settings['model_name'] = model_path
+                    settings_copy = copy.deepcopy(settings)
+                    settings_copy['model_name'] = model_path
                     getattr(experiment['pycaret_exp'],
-                            self.type)(model, **settings)
+                            self.type)(model, **settings_copy)
                     self.CodeHandler.add_line(
-                        "code", f"pycaret_exp.save_model(model, {self.CodeHandler.convert_dict_to_params(settings)})", 1)
+                        "code", f"pycaret_exp.save_model(model, {self.CodeHandler.convert_dict_to_params(settings_copy)})", 1)
                     model_path = os.path.join(path, "model_required_cols.json")
                     with open(model_path, 'w') as f:
                         to_write = {
-                            "columns": self.global_config_json["columns"], "target": self.global_config_json["target_column"]}
+                            "columns": self.global_config_json["columns"],
+                            "target": self.global_config_json["target_column"]
+                        }
                         json.dump(to_write, f)
 
                 self.CustZipFileModel.create_zip(new_path, add_model_to_zip)
@@ -74,14 +77,15 @@ class ModelIO(Node):
 
             def load_model_from_zip(path):
                 models_path = os.path.join(path, "model")
-                settings['model_name'] = models_path
-                del settings['model_to_load']
+                settings_copy = copy.deepcopy(settings)
+                settings_copy['model_name'] = models_path
+                del settings_copy['model_to_load']
                 trained_model: Pipeline = experiment['pycaret_exp'].load_model(
-                    **settings)
+                    **settings_copy)
                 self.CodeHandler.add_line(
-                    "code", f"pycaret_exp.load_model({self.CodeHandler.convert_dict_to_params(settings)})")
-                self._info_for_next_node = {'models': [
-                    trained_model.named_steps['trained_model']]}
+                    "code", f"pycaret_exp.load_model({self.CodeHandler.convert_dict_to_params(settings_copy)})")
+                self._info_for_next_node = {'models': [trained_model]}
+                print('trained_model:', trained_model)
 
             self.CustZipFileModel.read_in_zip(
                 original_path, load_model_from_zip)

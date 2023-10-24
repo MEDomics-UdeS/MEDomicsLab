@@ -528,28 +528,28 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
               console.log("received results:", jsonResponse)
               if (!jsonResponse.error) {
                 updateFlowResults(jsonResponse)
-                setIsProgressUpdating(false)
                 setProgress({
                   now: 100,
                   currentLabel: "Done!"
                 })
-              } else {
                 setIsProgressUpdating(false)
+              } else {
                 setProgress({
                   now: 0,
                   currentLabel: ""
                 })
+                setIsProgressUpdating(false)
                 toast.error("Error detected while running the experiment")
                 console.log("error", jsonResponse.error)
                 setError(jsonResponse.error)
               }
             },
             (error) => {
-              setIsProgressUpdating(false)
               setProgress({
                 now: 0,
                 currentLabel: ""
               })
+              setIsProgressUpdating(false)
               toast.error("Error detected while running the experiment")
               console.log("error", error)
               setError(error)
