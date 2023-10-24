@@ -17,7 +17,7 @@ const ZipFileExtensions = ["medml", "medimg", "medeval"]
  * @description This component is the base for all the flow pages. It contains the sidebar, the workflow and the backdrop.
  *
  */
-const ModulePageWithProvider = ({ children, pageId, configPath = "", shadow }) => {
+const ModulePageWithProvider = ({ children, pageId, configPath = "", shadow = false }) => {
   // here is the use of the context to update the flowInfos
   const { setupPageInfos } = useContext(PageInfosContext)
   const [config, setConfig] = useState({})

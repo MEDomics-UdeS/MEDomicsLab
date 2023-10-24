@@ -12,7 +12,7 @@ const InputPage = ({ pageId = "42", configPath = null }) => {
   const [activeIndex, setActiveIndex] = React.useState([0, 2])
   return (
     <>
-      <ModulePage pageId={pageId} configPath={configPath}>
+      <ModulePage pageId={pageId} configPath={configPath} shadow>
         <h1>INPUT MODULE</h1>
         <Accordion multiple activeIndex={activeIndex} onTabChange={(e) => setActiveIndex(e.index)}>
           <AccordionTab header="Dataset Selector">

@@ -4,7 +4,7 @@ import ModulePage from "./moduleBasics/modulePage"
 const ExtractionImagePage = ({ pageId, configPath = "" }) => {
   return (
     <>
-      <ModulePage pageId={pageId} configPath={configPath}>
+      <ModulePage pageId={pageId} configPath={configPath} shadow>
         <h1 className="center">Extraction - Images</h1>
       </ModulePage>
     </>
