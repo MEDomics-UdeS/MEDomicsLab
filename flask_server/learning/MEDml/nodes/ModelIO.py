@@ -52,11 +52,12 @@ class ModelIO(Node):
 
                 def add_model_to_zip(path):
                     model_path = os.path.join(path, "model")
-                    settings['model_name'] = model_path
+                    settings_copy = copy.deepcopy(settings)
+                    settings_copy['model_name'] = model_path
                     getattr(experiment['pycaret_exp'],
-                            self.type)(model, **settings)
+                            self.type)(model, **settings_copy)
                     self.CodeHandler.add_line(
-                        "code", f"pycaret_exp.save_model(model, {self.CodeHandler.convert_dict_to_params(settings)})", 1)
+                        "code", f"pycaret_exp.save_model(model, {self.CodeHandler.convert_dict_to_params(settings_copy)})", 1)
                     model_path = os.path.join(path, "model_required_cols.json")
                     with open(model_path, 'w') as f:
                         to_write = {
@@ -74,12 +75,13 @@ class ModelIO(Node):
 
             def load_model_from_zip(path):
                 models_path = os.path.join(path, "model")
-                settings['model_name'] = models_path
-                del settings['model_to_load']
+                settings_copy = copy.deepcopy(settings)
+                settings_copy['model_name'] = models_path
+                del settings_copy['model_to_load']
                 trained_model: Pipeline = experiment['pycaret_exp'].load_model(
-                    **settings)
+                    **settings_copy)
                 self.CodeHandler.add_line(
-                    "code", f"pycaret_exp.load_model({self.CodeHandler.convert_dict_to_params(settings)})")
+                    "code", f"pycaret_exp.load_model({self.CodeHandler.convert_dict_to_params(settings_copy)})")
                 self._info_for_next_node = {'models': [
                     trained_model.named_steps['trained_model']]}
 
