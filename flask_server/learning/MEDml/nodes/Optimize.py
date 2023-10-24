@@ -2,7 +2,10 @@ import pandas as pd
 import copy
 import numpy as np
 import json
-from learning.MEDml.nodes.NodeObj import Node
+
+from sklearn.pipeline import Pipeline
+
+from learning.MEDml.nodes.NodeObj import Node, format_model
 from typing import Union
 from colorama import Fore
 from learning.MEDml.CodeHandler import convert_dict_to_params
@@ -34,12 +37,15 @@ class Optimize(Node):
         settings = copy.deepcopy(self.settings)
         trained_models = []
         trained_models_json = {}
+        input_models = []
+        for model in kwargs['models']:
+            input_models.append(format_model(model))
         if "models" in self.type:
             self.CodeHandler.add_line(
                 "code",
                 f"optimized_model = pycaret_exp.{self.type}(trained_models, {self.CodeHandler.convert_dict_to_params(settings)})",
                 1)
-            trained_models.append(getattr(experiment['pycaret_exp'], self.type)(kwargs['models'], **settings))
+            trained_models.append(getattr(experiment['pycaret_exp'], self.type)(input_models, **settings))
         else:
             self.CodeHandler.add_line("code", f"trained_models_optimized = []")
             self.CodeHandler.add_line("code", f"for model in trained_models:")
@@ -49,7 +55,8 @@ class Optimize(Node):
                 1)
             self.CodeHandler.add_line(
                 "code", f"trained_models_optimized.append(optimized_model)", 1)
-            for model in kwargs['models']:
+            for model in input_models:
+
                 print(Fore.CYAN +
                       f"optimizing: {model.__class__.__name__}" + Fore.RESET)
                 trained_models.append(

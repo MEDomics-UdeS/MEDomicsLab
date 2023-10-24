@@ -15,7 +15,7 @@ app_learning = Blueprint('app_learning', __name__,
 # global variables
 current_experiments = {}
 exp_progress = {}
-storing_mode = USE_SAVE_FOR_EXPERIMENTS_STORING
+storing_mode = USE_RAM_FOR_EXPERIMENTS_STORING
 
 
 @app_learning.route("/run_experiment/<id_>", methods=["POST"])
@@ -33,6 +33,7 @@ def run_experiment(id_):
     global exp_progress
     global storing_mode
     try:
+        exp_progress[scene_id] = {'now': 0, 'currentLabel': 'Starting'}
         # check if experiment already exists
         exp_already_exists = False
         if storing_mode == USE_RAM_FOR_EXPERIMENTS_STORING:

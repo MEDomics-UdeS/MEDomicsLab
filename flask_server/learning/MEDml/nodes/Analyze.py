@@ -4,7 +4,10 @@ import pandas as pd
 import os
 import numpy as np
 import json
-from learning.MEDml.nodes.NodeObj import Node
+
+from sklearn.pipeline import Pipeline
+
+from learning.MEDml.nodes.NodeObj import Node, format_model
 from typing import Union
 from colorama import Fore
 from learning.MEDml.CodeHandler import convert_dict_to_params
@@ -51,7 +54,7 @@ class Analyze(Node):
         self.CodeHandler.add_line(
             "code", f"pycaret_exp.{selection}(model, {self.CodeHandler.convert_dict_to_params(print_settings)})", 1)
         for model in kwargs['models']:
-            print('model:', model)
+            model = format_model(model)
             return_value = getattr(
                 experiment['pycaret_exp'], selection)(model, **settings)
 

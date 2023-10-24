@@ -22,6 +22,8 @@ import StandardNode from "./nodesTypes/standardNode"
 import SelectionNode from "./nodesTypes/selectionNode"
 import GroupNode from "../flow/groupNode"
 import OptimizeIO from "./nodesTypes/optimizeIO"
+import DatasetNode from "./nodesTypes/datasetNode"
+import LoadModelNode from "./nodesTypes/loadModelNode"
 
 // here are the parameters of the nodes
 import nodesParams from "../../public/setupVariables/allNodesParams"
@@ -29,6 +31,7 @@ import nodesParams from "../../public/setupVariables/allNodesParams"
 // here are static functions used in the workflow
 import { removeDuplicates, deepCopy } from "../../utilities/staticFunctions"
 import { defaultValueFromType } from "../../utilities/learning/inputTypesUtils.js"
+import { FlowInfosContext } from "../flow/context/flowInfosContext.jsx"
 
 const staticNodesParams = nodesParams // represents static nodes parameters
 
@@ -59,6 +62,7 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
   const { groupNodeId, changeSubFlow, hasNewConnection } = useContext(FlowFunctionsContext)
   const { config, pageId, configPath } = useContext(PageInfosContext) // used to get the page infos such as id and config path
   const { updateFlowResults, isResults } = useContext(FlowResultsContext)
+  const { canRun } = useContext(FlowInfosContext)
   const { port } = useContext(WorkspaceContext)
   const { setError } = useContext(ErrorRequestContext)
 
@@ -68,7 +72,9 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
       standardNode: StandardNode,
       selectionNode: SelectionNode,
       groupNode: GroupNode,
-      optimizeIO: OptimizeIO
+      optimizeIO: OptimizeIO,
+      datasetNode: DatasetNode,
+      loadModelNode: LoadModelNode
     }),
     []
   )
@@ -441,6 +447,7 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
     newNode.data.internal.selection = newNode.type == "selectionNode" && Object.keys(setupParams.possibleSettings)[0]
     newNode.data.internal.checkedOptions = []
     newNode.data.internal.subflowId = !associatedNode ? groupNodeId.id : associatedNode
+    newNode.data.internal.hasWarning = { state: false }
 
     return newNode
   }
@@ -521,28 +528,28 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
               console.log("received results:", jsonResponse)
               if (!jsonResponse.error) {
                 updateFlowResults(jsonResponse)
-                setIsProgressUpdating(false)
                 setProgress({
                   now: 100,
                   currentLabel: "Done!"
                 })
-              } else {
                 setIsProgressUpdating(false)
+              } else {
                 setProgress({
                   now: 0,
                   currentLabel: ""
                 })
+                setIsProgressUpdating(false)
                 toast.error("Error detected while running the experiment")
                 console.log("error", jsonResponse.error)
                 setError(jsonResponse.error)
               }
             },
             (error) => {
-              setIsProgressUpdating(false)
               setProgress({
                 now: 0,
                 currentLabel: ""
               })
+              setIsProgressUpdating(false)
               toast.error("Error detected while running the experiment")
               console.log("error", error)
               setError(error)
@@ -825,7 +832,7 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
                 </Form.Select>
                 <BtnDiv
                   buttonsList={[
-                    { type: "run", onClick: onRun },
+                    { type: "run", onClick: onRun, disabled: !canRun },
                     { type: "clear", onClick: onClear },
                     { type: "save", onClick: onSave },
                     { type: "load", onClick: onLoad }
