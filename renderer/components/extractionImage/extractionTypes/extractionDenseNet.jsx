@@ -2,12 +2,31 @@ import { Checkbox } from "primereact/checkbox"
 import { Dropdown } from "primereact/dropdown"
 import React, { useEffect, useState } from "react"
 
+
+/**
+ *
+ * @param {Function} setExtractionJsonData function setting data to send to the extraction_image server
+ * @param {Function} setOptionsSelected function setting the boolean variable setOptionsSelected, telling if the choosen options are convenient for the extraction
+ * @returns {JSX.Element} sub-component of the ExtractionJPG component
+ *
+ * @description
+ * This component is displayed in the ExtractionJPG component when the user choose "DenseNet"
+ * extraction type. It is used to select options for the DenseNet extraction.
+ *
+ */
 const ExtractionDenseNet = ({ setExtractionJsonData, setOptionsSelected }) => {
   const [selectedFeaturesToGenerate, setSelectedFeaturesToGenerate] = useState(["denseFeatures"])
   const [selectedWeights, setSelectedWeights] = useState("densenet121-res224-chex")
   const [weightsList] = useState(["densenet121-res224-chex", "densenet121-res224-pc", "densenet121-res224-nih", "densenet121-res224-rsna", "densenet121-res224-all", "densenet121-res224-mimic_nb", "densenet121-res224-mimic_ch"])
 
-  const onCategoryChange = (e) => {
+  /**
+   * 
+   * @param {event} e 
+   * 
+   * @description
+   * Called when features checkbox are checked / unchecked
+   */
+  const onFeaturesChange = (e) => {
     let selectedFeatures = [...selectedFeaturesToGenerate]
 
     if (e.checked) selectedFeatures.push(e.value)
@@ -45,11 +64,11 @@ const ExtractionDenseNet = ({ setExtractionJsonData, setOptionsSelected }) => {
               <b>Select the features you want to generate &nbsp;</b>
               <hr></hr>
               <div className="margin-top-15">
-                <Checkbox value={"denseFeatures"} onChange={onCategoryChange} checked={selectedFeaturesToGenerate.some((item) => item === "denseFeatures")} />
+                <Checkbox value={"denseFeatures"} onChange={onFeaturesChange} checked={selectedFeaturesToGenerate.some((item) => item === "denseFeatures")} />
                 &nbsp; DenseFeatures
               </div>
               <div className="margin-top-15">
-                <Checkbox value={"predictions"} onChange={onCategoryChange} checked={selectedFeaturesToGenerate.some((item) => item === "predictions")} />
+                <Checkbox value={"predictions"} onChange={onFeaturesChange} checked={selectedFeaturesToGenerate.some((item) => item === "predictions")} />
                 &nbsp; Predictions
               </div>
             </div>

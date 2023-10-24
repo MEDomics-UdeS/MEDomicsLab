@@ -16,6 +16,8 @@ import ProgressBarRequests from "../generalPurpose/progressBarRequests"
 /**
  *
  * @param {List} extractionTypeList list containing possible types of extraction
+ * @param {String} serverUrl path to server
+ * @param {String} defaultFilename default name under which the extracted features will be saved
  * @returns {JSX.Element} a page
  *
  * @description

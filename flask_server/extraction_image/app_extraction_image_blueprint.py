@@ -122,7 +122,7 @@ def DenseNet_extraction():
                         features = get_single_chest_xray_embeddings(os.path.join(root, file), weights)
                         data_img = pd.concat([pd.DataFrame(data_img), pd.DataFrame(features[0]), pd.DataFrame(features[1])], ignore_index=True)
                         data = pd.concat([data, pd.DataFrame(data_img).transpose()], ignore_index=True)
-                progress += 1/nb_images*60
+                        progress += 1/nb_images*60
 
         data.columns = ["level_" + str(i+1) for i in range(depth)] + ["filename"] + ["densefeatures_" + str(i) for i in range(len(features[0]))] + ["predictions_" + str(i) for i in range(len(features[1]))]
 

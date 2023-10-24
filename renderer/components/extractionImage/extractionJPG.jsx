@@ -13,21 +13,34 @@ import ProgressBarRequests from "../generalPurpose/progressBarRequests"
 import { toast } from "react-toastify"
 import { WorkspaceContext } from "../workspace/workspaceContext"
 
+
+/**
+ *
+ * @param {List} extractionTypeList list containing possible types of extraction
+ * @param {String} serverUrl path to server
+ * @param {String} defaultFilename default name under which the extracted features will be saved
+ * @returns {JSX.Element} a page
+ *
+ * @description
+ * This component is a general page used for jpg data extraction.
+ * Its composition depend on the type of extraction choosen.
+ *
+ */
 const ExtractionJPG = ({ extractionTypeList, serverUrl, defaultFilename }) => {
-  const [dataFolderList, setDataFolderList] = useState([])
+  const [dataFolderList, setDataFolderList] = useState([]) // list of the folder containing jpg data at a specified Depth
   const [extractionFunction, setExtractionFunction] = useState(extractionTypeList[0] + "_extraction") // name of the function to use for extraction
   const [extractionJsonData, setExtractionJsonData] = useState({}) // json data depending on extractionType
   const [extractionProgress, setExtractionProgress] = useState(0) // advancement state in the extraction function
   const [extractionStep, setExtractionStep] = useState("") // current step in the extraction function
   const [extractionType, setExtractionType] = useState(extractionTypeList[0]) // extraction type
   const [filename, setFilename] = useState(defaultFilename) // name of the csv file containing extracted data
-  const [folderDepth, setFolderDepth] = useState(1)
+  const [folderDepth, setFolderDepth] = useState(1) // depth to consider when searching jpg data in folders
   const [isResultDatasetLoaded, setIsResultDatasetLoaded] = useState(false) // boolean set to false every time we reload an extracted data dataset
-  const [optionsSelected, setOptionsSelected] = useState(false)
+  const [optionsSelected, setOptionsSelected] = useState(true) // boolean set to true when the options seleted are convenient for extraction
   const [progress, setProgress] = useState({ now: 0, currentLabel: "" }) // progress bar state [now, currentLabel]
   const [resultDataset, setResultDataset] = useState(null) // dataset of extracted data used to be display
-  const [running, setRunning] = useState(false)
-  const [selectedFolder, setSelectedFolder] = useState(null)
+  const [running, setRunning] = useState(false) // boolean set to true when extraction is running
+  const [selectedFolder, setSelectedFolder] = useState(null) // folder containing the data for extraction
   const [showProgressBar, setShowProgressBar] = useState(false) // wether to show or not the extraction progressbar
 
   const { globalData } = useContext(DataContext) // we get the global data from the context to retrieve the directory tree of the workspace, thus retrieving the data files
@@ -89,7 +102,7 @@ const ExtractionJPG = ({ extractionTypeList, serverUrl, defaultFilename }) => {
           MedDataObject.updateWorkspaceDataObject()
           setExtractionProgress(100)
           setIsResultDatasetLoaded(false)
-          console.log("Server return without problem")
+          findResultDataset(globalData, jsonResponse["csv_result_path"])
         } else {
           toast.error(`Extraction failed: ${jsonResponse.error.message}`)
           setExtractionStep("")
@@ -148,6 +161,24 @@ const ExtractionJPG = ({ extractionTypeList, serverUrl, defaultFilename }) => {
     setDataFolderList(foldersWithMatchingFiles)
   }
 
+  /**
+   * 
+   * @param {DataContext} dataContext 
+   * @param {String} csvPath 
+   * 
+   * @description
+   * Get the result dataset from the dataContext. 
+   * Called when request from runExtraction get response.
+   */
+  function findResultDataset(dataContext, csvPath) {
+    let keys = Object.keys(dataContext)
+    keys.forEach((key) => {
+      if (dataContext[key].type !== "folder" && dataContext[key].path == csvPath) {
+        setResultDataset(dataContext[key])
+      }
+    })
+  }
+
   // Called while progress is updated
   useEffect(() => {
     setProgress({
@@ -167,6 +198,15 @@ const ExtractionJPG = ({ extractionTypeList, serverUrl, defaultFilename }) => {
       findFoldersWithJPGFilesAtDepth(globalData, folderDepth)
     }
   }, [globalData, folderDepth])
+
+  // Called when isDatasetLoaded change, in order to update the progressbar.
+  useEffect(() => {
+    if (isResultDatasetLoaded == true) {
+      setShowProgressBar(false)
+      setExtractionProgress(0)
+      setExtractionStep("")
+    }
+  }, [isResultDatasetLoaded])
 
   return (
     <>
@@ -204,6 +244,7 @@ const ExtractionJPG = ({ extractionTypeList, serverUrl, defaultFilename }) => {
           <div className="center">
             {/* Features Extraction */}
             <h2>Extract features</h2>
+            {optionsSelected==false && (<Message severity="warn" text="You must select convenient options for feature generation" />)}
             <div className="margin-top-30">
               <div className="flex-container">
                 <div>
