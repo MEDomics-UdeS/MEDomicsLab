@@ -14,6 +14,7 @@ import { createZipFileSync } from "../../../../utilities/customZipFile"
 import Path from "path"
 import { sceneDescription as learningSceneDescription } from "../../../../public/setupVariables/learningNodesParams"
 import { sceneDescription as extractionMEDimageSceneDescription } from "../../../../public/setupVariables/extractionMEDimageNodesParams"
+import FileCreationBtn from "../fileCreationBtn"
 
 const typeInfo = {
   learning: {
@@ -50,31 +51,11 @@ const FlowSceneSidebar = ({ type }) => {
         experimentList.push(globalData[childId].name)
       })
     }
-
     setExperimentList(experimentList)
   }, [workspace, selectedItems, globalData[selectedItems[0]]]) // We log the workspace when it changes
 
-  // We use the useEffect hook to update the create experiment error message state when the experiment name changes
-  useEffect(() => {
-    if (sceneName != "" && !experimentList.includes(sceneName) && !sceneName.includes(" ")) {
-      setBtnCreateSceneState(true)
-      setShowErrorMessage(false)
-    } else {
-      setBtnCreateSceneState(false)
-      setShowErrorMessage(true)
-    }
-  }, [sceneName, experimentList]) // We set the button state to true if the experiment name is empty, otherwise we set it to false
-
-  /**
-   *
-   * @param {Event} e - The event passed on by the create button
-   * @description - This function is used to create an experiment when the create button is clicked
-   */
-  const createExperiment = (e) => {
-    console.log("Create Scene")
-    console.log(`Scene Name: ${sceneName}`) // We log the experiment name when the create button is clicked
-    createSceneRef.current.toggle(e)
-    createEmptyScene(getBasePath(EXPERIMENTS), sceneName)
+  const checkIsNameValid = (name) => {
+    return name != "" && !experimentList.includes(name) && !name.includes(" ")
   }
 
   /**
@@ -137,16 +118,6 @@ const FlowSceneSidebar = ({ type }) => {
     })
   }
 
-  /**
-   *
-   * @param {Event} e - The event passed on by the create scene button
-   * @description - This function is used to open the create scene overlay panel when the create scene button is clicked
-   */
-  const handleClickCreateScene = (e) => {
-    console.log("Create Scene")
-    createSceneRef.current.toggle(e)
-  }
-
   return (
     <>
       <Stack direction="vertical" gap={0}>
@@ -161,45 +132,12 @@ const FlowSceneSidebar = ({ type }) => {
         >
           {typeInfo[type].title} Module
         </p>
-        <Button className={`btn-sidebar`} onClick={handleClickCreateScene}>
-          Create Scene
-          <Icon.Plus />
-        </Button>
+        <FileCreationBtn label="Create scene" piIcon="pi-plus" createEmptyFile={createEmptyScene} checkIsNameValid={checkIsNameValid} />
 
         <Accordion defaultActiveKey={["dirTree"]} alwaysOpen>
           <SidebarDirectoryTreeControlled setExternalSelectedItems={setSelectedItems} setExternalDBClick={setDbSelectedItem} />
         </Accordion>
       </Stack>
-
-      <OverlayPanel className="create-scene-overlayPanel" ref={createSceneRef}>
-        <Stack direction="vertical" gap={4}>
-          <div className="header">
-            <Stack direction="vertical" gap={1}>
-              <h5>Create Scene</h5>
-              <hr className="solid" />
-            </Stack>
-          </div>
-          <div className="create-scene-overlayPanel-body">
-            <div>
-              <span className="p-float-label">
-                <InputText id="expName" value={sceneName} onChange={(e) => setSceneName(e.target.value)} aria-describedby="name-msg" className={`${showErrorMessage ? "p-invalid" : ""}`} />
-                <label htmlFor="expName">Enter scene name</label>
-              </span>
-              <small id="name-msg" className="text-red">
-                {showErrorMessage ? "Scene name is empty, contains spaces or already exists" : ""}
-              </small>
-            </div>
-
-            <hr className="solid" />
-            <Button variant="secondary" onClick={(e) => createSceneRef.current.toggle(e)} style={{ marginRight: "1rem" }}>
-              Cancel
-            </Button>
-            <Button variant="primary" disabled={!btnCreateSceneState} onClick={createExperiment}>
-              Create
-            </Button>
-          </div>
-        </Stack>
-      </OverlayPanel>
     </>
   )
 }

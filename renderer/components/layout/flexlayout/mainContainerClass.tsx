@@ -612,14 +612,14 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
           return <InputPage pageId={"InputPage"} />
         }
       }
-    } else if (component === "resultsPage") {
+    } else if (component === "evaluationPage") {
       if (node.getExtraData().data == null) {
         const config = node.getConfig()
 
         if (config.path !== null) {
-          return <ResultsPage pageId={config.uuid} configPath={config.path} />
+          return <EvaluationPage pageId={config.uuid} configPath={config.path} />
         } else {
-          return <ResultsPage pageId={"ResultsPage"} />
+          return <EvaluationPage pageId={"ResultsPage"} />
         }
       }
     } else if (component === "iFramePage") {

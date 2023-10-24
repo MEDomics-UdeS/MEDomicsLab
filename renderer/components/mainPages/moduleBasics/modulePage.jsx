@@ -6,7 +6,7 @@ import { ErrorRequestProvider } from "../../flow/context/errorRequestContext"
 import ErrorRequestDialog from "../../flow/errorRequestDialog"
 import { customZipFile2Object } from "../../../utilities/customZipFile"
 
-const ZipFileExtensions = ["medml", "medimg"]
+const ZipFileExtensions = ["medml", "medimg", "medeval"]
 
 /**
  *
@@ -17,13 +17,14 @@ const ZipFileExtensions = ["medml", "medimg"]
  * @description This component is the base for all the flow pages. It contains the sidebar, the workflow and the backdrop.
  *
  */
-const ModulePageWithProvider = ({ children, pageId, configPath = "" }) => {
+const ModulePageWithProvider = ({ children, pageId, configPath = "", shadow }) => {
   // here is the use of the context to update the flowInfos
   const { setupPageInfos } = useContext(PageInfosContext)
   const [config, setConfig] = useState({})
 
   useEffect(() => {
     if (configPath && configPath !== "") {
+      console.log("configPath", configPath)
       let config = {}
       let extension = configPath.split(".")[configPath.split(".").length - 1]
       if (ZipFileExtensions.includes(extension)) {
@@ -54,8 +55,8 @@ const ModulePageWithProvider = ({ children, pageId, configPath = "" }) => {
 
   return (
     <>
-      <div id={pageId} className="module-page">
-        {children}
+      <div id={pageId} className={`module-page ${shadow ? "with-shadow" : ""}`}>
+        <div className={`width-100 height-100 module-page-shadow`}>{children}</div>
       </div>
       <ErrorRequestDialog />
     </>

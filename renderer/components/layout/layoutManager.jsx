@@ -12,17 +12,18 @@ import ExtractionTSPage from "../mainPages/extractionTS"
 import ExploratoryPage from "../mainPages/exploratory"
 import ResultsPage from "../mainPages/results"
 import ApplicationPage from "../mainPages/application"
-import HomeSidebar from "./sidebarTools/homeSidebar"
-import ExplorerSidebar from "./sidebarTools/explorerSidebar"
-import SearchSidebar from "./sidebarTools/searchSidebar"
-import LayoutTestSidebar from "./sidebarTools/layoutTestSidebar"
-import InputSidebar from "./sidebarTools/inputSidebar"
-import FlowSceneSidebar from "./sidebarTools/flowSceneSidebar"
-import ExtractionSidebar from "./sidebarTools/extractionSidebar"
+import HomeSidebar from "./sidebarTools/pageSidebar/homeSidebar"
+import ExplorerSidebar from "./sidebarTools/pageSidebar/explorerSidebar"
+import SearchSidebar from "./sidebarTools/pageSidebar/searchSidebar"
+import LayoutTestSidebar from "./sidebarTools/pageSidebar/layoutTestSidebar"
+import InputSidebar from "./sidebarTools/pageSidebar/inputSidebar"
+import FlowSceneSidebar from "./sidebarTools/pageSidebar/flowSceneSidebar"
+import ExtractionSidebar from "./sidebarTools/pageSidebar/extractionSidebar"
+import EvaluationSidebar from "./sidebarTools/pageSidebar/evaluationSidebar"
 import { ipcRenderer } from "electron"
 import { MainContainer } from "./flexlayout/mainContainerClass"
 import EvaluationPage from "../mainPages/evaluation"
-import SidebarDirectoryTreeControlled from "./sidebarTools/sidebarDirectoryTreeControlled"
+import SidebarDirectoryTreeControlled from "./sidebarTools/directoryTree/sidebarDirectoryTreeControlled"
 import { Accordion, Stack } from "react-bootstrap"
 import { LayoutModelContext } from "./layoutContext"
 import { WorkspaceContext } from "../workspace/workspaceContext"
@@ -126,6 +127,8 @@ const LayoutManager = (props) => {
         return <ExtractionSidebar />
       case "extractionMEDimage":
         return <FlowSceneSidebar type="extractionMEDimage" />
+      case "evaluation":
+        return <EvaluationSidebar />
 
       default:
         return (

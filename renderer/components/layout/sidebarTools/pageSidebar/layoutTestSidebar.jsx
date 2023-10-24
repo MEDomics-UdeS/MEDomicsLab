@@ -4,7 +4,7 @@ import { ArrowCounterclockwise, Folder } from "react-bootstrap-icons"
 import { SidebarFolder } from "../components"
 import { LayoutModelContext } from "../../layoutContext"
 import { useEffect } from "react"
-import SidebarDirectoryTreeControlled from "../sidebarDirectoryTreeControlled"
+import SidebarDirectoryTreeControlled from "../directoryTree/sidebarDirectoryTreeControlled"
 
 const LayoutTestSidebar = () => {
   /**
