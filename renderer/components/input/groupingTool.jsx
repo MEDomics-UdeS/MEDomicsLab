@@ -19,18 +19,13 @@ import { ToggleButton } from "primereact/togglebutton"
 import { confirmDialog } from "primereact/confirmdialog"
 
 const GroupingTool = ({ pageId = "42-grouping", configPath = null }) => {
-  const { port } = useContext(WorkspaceContext) // we get the port for server connexion
   const [listOfDatasets, setListOfDatasets] = useState([])
-  const [dictOfDatasets, setDictOfDatasets] = useState({})
   const { globalData, setGlobalData } = useContext(DataContext)
   const [selectedDatasets, setSelectedDatasets] = useState({})
   const firstMultiselect = useRef(null)
-  const [newDatasetName, setNewDatasetName] = useState("")
-  const [newDatasetExtension, setNewDatasetExtension] = useState(".csv")
   const [progress, setProgress] = useState({ now: 0, currentLabel: "" })
   const [isProgressUpdating, setIsProgressUpdating] = useState(false)
   const [tagsDict, setTagsDict] = useState({})
-  const [tagsList, setTagsList] = useState([])
   const [editingTag, setEditingTag] = useState(null)
   const [tempTag, setTempTag] = useState("")
   const [selectedNodes, setSelectedNodes] = useState(null)
@@ -41,13 +36,6 @@ const GroupingTool = ({ pageId = "42-grouping", configPath = null }) => {
   const [overwriteWasAsked, setOverwriteWasAsked] = useState(false)
   const [isBeingAsked, setIsBeingAsked] = useState(false)
 
-  const mergeOptions = [
-    { label: "Left", value: "left" },
-    { label: "Right", value: "right" },
-    { label: "Inner", value: "inner" },
-    { label: "Outer", value: "outer" },
-    { label: "Cross", value: "cross" }
-  ]
   const updateListOfDatasets = () => {
     let newDatasetList = []
     Object.keys(globalData).forEach((key) => {
@@ -534,7 +522,7 @@ const GroupingTool = ({ pageId = "42-grouping", configPath = null }) => {
     Object.keys(tagsDict).forEach((tag) => {
       newTagsList.push({ label: tag, value: tag, color: tagsDict[tag].color })
     })
-    setTagsList(newTagsList)
+    // setTagsList(newTagsList)
   }, [tagsDict])
 
   useEffect(() => {
@@ -553,16 +541,6 @@ const GroupingTool = ({ pageId = "42-grouping", configPath = null }) => {
       newTagsDict[tag] = { color: color, fontColor: "black", datasets: {}, protect: protect !== "undefined" ? protect : false }
     }
     return newTagsDict
-  }
-
-  async function getTagDict() {
-    setTimeout(() => {
-      return { ...tagsDict }
-    }, 1000)
-  }
-
-  const getColorFromTag = (tag, tagDict) => {
-    return tagDict[tag].color
   }
 
   const tagTemplate = (option) => {
