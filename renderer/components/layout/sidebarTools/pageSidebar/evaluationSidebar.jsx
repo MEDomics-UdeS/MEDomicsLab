@@ -27,7 +27,7 @@ const typeInfo = {
  * @returns {JSX.Element} - This component is the sidebar tools component that will be used in the sidebar component as the learning page
  */
 const EvaluationSidebar = ({}) => {
-  const { workspace, getBasePath } = useContext(WorkspaceContext) // We get the workspace from the context to retrieve the directory tree of the workspace, thus retrieving the data files
+  const { workspace } = useContext(WorkspaceContext) // We get the workspace from the context to retrieve the directory tree of the workspace, thus retrieving the data files
   const [experimentList, setExperimentList] = useState([]) // We initialize the experiment list state to an empty array
   const [selectedItems, setSelectedItems] = useState([]) // We initialize the selected items state to an empty array
   const [dbSelectedItem, setDbSelectedItem] = useState(null) // We initialize the selected item state to an empty string
@@ -36,12 +36,15 @@ const EvaluationSidebar = ({}) => {
   // We use the useEffect hook to update the experiment list state when the workspace changes
   useEffect(() => {
     let experimentList = []
-    if (globalData && selectedItems && globalData[selectedItems[0]] && globalData[selectedItems[0]].childrenIDs) {
-      globalData[selectedItems[0]].childrenIDs.forEach((childId) => {
-        experimentList.push(globalData[childId].name)
+    if (globalData && selectedItems && globalData[selectedItems[0]]) {
+      let element = globalData[selectedItems[0]].type != "folder" ? globalData[globalData[selectedItems[0]].parentID] : globalData[selectedItems[0]]
+      console.log("element", element)
+      element.childrenIDs.forEach((childID) => {
+        if (globalData[childID].type == "file" && globalData[childID].extension == typeInfo.extension) {
+          experimentList.push(globalData[childID].name.replace("." + typeInfo.extension, ""))
+        }
       })
     }
-
     setExperimentList(experimentList)
   }, [workspace, selectedItems, globalData[selectedItems[0]]]) // We log the workspace when it changes
 
@@ -54,7 +57,7 @@ const EvaluationSidebar = ({}) => {
    * @description - This function is used to create an empty scene
    */
   const createEmptyScene = async (name) => {
-    let path = getBasePath(EXPERIMENTS)
+    let path = ""
     console.log("selectedItems", selectedItems)
     if (selectedItems.length == 0 || selectedItems[0] == undefined || globalData[selectedItems[0]] == undefined) {
       toast.error("Please select a folder to create the file in")

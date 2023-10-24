@@ -3,8 +3,13 @@ import { Image } from "primereact/image"
 import MedDataObject from "../../../workspace/medDataObject"
 import { modifyZipFileSync } from "../../../../utilities/customZipFile"
 
-const getLocalImage = (src) => {
-  return new Promise((resolve, reject) => {
+/**
+ *
+ * @param {String} src An absolute path to the image
+ * @returns
+ */
+const getLocalImageSync = (src) => {
+  return new Promise((resolve) => {
     const nativeImage = require("electron").nativeImage
     const image = nativeImage.createFromPath(src)
     resolve(image.toDataURL())
@@ -30,6 +35,13 @@ const AnalyseResults = ({ selectedResults }) => {
     }
   }, [selectedResults])
 
+  /**
+   *
+   * @param {List} imagesInfos The list of images infos
+   * @description - This function is used to create the images
+   *
+   * @returns {JSX.Element} The AnalyseResults component
+   */
   const createImages = (imagesInfos) => {
     if (imagesInfos.length != 0) {
       console.log("imagesInfos", imagesInfos)
@@ -39,7 +51,7 @@ const AnalyseResults = ({ selectedResults }) => {
       modifyZipFileSync(zipPath + ".medml", () => {
         const addImage = (modelName, path) => {
           return new Promise((resolve) => {
-            getLocalImage(path).then((imageUrl) => {
+            getLocalImageSync(path).then((imageUrl) => {
               images.push(
                 <div key={modelName}>
                   <Image src={imageUrl} alt="Image" height="250" indicatorIcon={<h5>{modelName}</h5>} preview downloadable />
