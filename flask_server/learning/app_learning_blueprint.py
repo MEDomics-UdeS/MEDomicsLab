@@ -15,7 +15,7 @@ app_learning = Blueprint('app_learning', __name__,
 # global variables
 current_experiments = {}
 exp_progress = {}
-storing_mode = USE_SAVE_FOR_EXPERIMENTS_STORING
+storing_mode = USE_RAM_FOR_EXPERIMENTS_STORING
 
 
 @app_learning.route("/run_experiment/<id_>", methods=["POST"])

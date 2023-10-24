@@ -46,10 +46,6 @@ class Clean(Node):
             "code", f"ml_obj = pycaret_exp.setup(data=dataset, target='{kwargs['target']}', {self.CodeHandler.convert_dict_to_params(self.settings)})")
         self.CodeHandler.add_line(
             "code", f"dataset = ml_obj.get_config('X').join(ml_obj.get_config('y'))")
-        # save json object to file
-        # path = os.path.join(
-        #     "./", self.global_config_json['paths']['tmp'], f"{self.global_config_json['unique_id']}-dataset.json")
-        # experiment['dataset_metaData']['dataset'].to_csv(path)
         return {
             "table": "dataset",
             "paths": ["path"],

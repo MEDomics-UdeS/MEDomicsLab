@@ -373,9 +373,12 @@ if (MEDconfig.useRactDevTools) {
 function findAvailablePort(startPort, endPort = 8000) {
   let killProcess = MEDconfig.portFindingMethod === PORT_FINDING_METHOD.FIX || !MEDconfig.runServerAutomatically
   let platform = process.platform
+  console.log("killProcess: ", killProcess, "platform: ", platform)
   return new Promise((resolve, reject) => {
     let port = startPort
     function tryPort() {
+      console.log(`Trying port ${port}...`)
+      console.log(`netstat ${platform == "win32" ? "-ano | find" : "-ltnup | grep"} ":${port}"`)
       exec(`netstat ${platform == "win32" ? "-ano | find" : "-ltnup | grep"} ":${port}"`, (err, stdout, stderr) => {
         if (err) {
           console.log(`Port ${port} is available !`)
@@ -383,6 +386,8 @@ function findAvailablePort(startPort, endPort = 8000) {
         } else {
           if (killProcess) {
             let PID = stdout.trim().split(/\s+/)[stdout.trim().split(/\s+/).length - 1].split("/")[0]
+            console.log(`PID: ${PID}`)
+            console.log(`${platform == "win32" ? "taskkill /f /t /pid" : "kill"} ${PID}`)
             exec(`${platform == "win32" ? "taskkill /f /t /pid" : "kill"} ${PID}`, (err, stdout, stderr) => {
               if (!err) {
                 console.log("Previous server instance was killed successfully")

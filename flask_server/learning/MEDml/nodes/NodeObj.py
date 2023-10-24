@@ -6,6 +6,10 @@ from abc import ABC, abstractmethod
 import numpy as np
 import json
 from typing import Any, Dict, List, Union
+
+from sklearn.base import BaseEstimator
+from sklearn.pipeline import Pipeline
+
 from utils.CustomZipFile import CustomZipFile
 DATAFRAME_LIKE = Union[dict, list, tuple, np.ndarray, pd.DataFrame]
 TARGET_LIKE = Union[int, str, list, tuple, np.ndarray, pd.Series]
@@ -37,6 +41,20 @@ def is_float(element: Any) -> bool:
         return True
     except ValueError:
         return False
+
+
+def format_model(model: Union[Pipeline, BaseEstimator]) -> Union[BaseEstimator]:
+    """
+    Formats a model (e.g. if it is a Pipeline, it returns the last step of the Pipeline)
+    Args:
+        model: the model to format
+
+    Returns:
+        the formatted model
+    """
+    if isinstance(model, Pipeline):
+        model = model.steps[-1][1]
+    return model
 
 
 class Node(ABC):
