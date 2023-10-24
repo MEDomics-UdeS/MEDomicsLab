@@ -48,10 +48,11 @@ def get_single_chest_xray_embeddings(img_path, model_weights_name):
     
     # Add color channel for prediction
     #Resize using OpenCV
-    img = cv2.resize(img, (224, 224), interpolation = cv2.INTER_AREA)   
+    img = cv2.resize(img, (224, 224), interpolation=cv2.INTER_AREA)
     img = img[None, :, :]
 
-    model = xrv.models.DenseNet(weights = model_weights_name)
+    print("model_weights_name", model_weights_name)
+    model = xrv.models.DenseNet(weights=model_weights_name)
 
     with torch.no_grad():
         img = torch.from_numpy(img).unsqueeze(0)
@@ -119,6 +120,7 @@ def DenseNet_extraction():
                     if file.endswith(".jpg"):
                         data_img = root.split(os.sep)[-depth:]
                         data_img.append(file)
+                        print(os.path.join(root, file))
                         features = get_single_chest_xray_embeddings(os.path.join(root, file), weights)
                         data_img = pd.concat([pd.DataFrame(data_img), pd.DataFrame(features[0]), pd.DataFrame(features[1])], ignore_index=True)
                         data = pd.concat([data, pd.DataFrame(data_img).transpose()], ignore_index=True)
@@ -139,7 +141,7 @@ def DenseNet_extraction():
         json_config["csv_result_path"] = csv_result_path
 
     except BaseException as e:
-        return get_response_from_error(e) 
+        return get_response_from_error(e)
 
     return json_config 
     

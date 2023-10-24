@@ -12,6 +12,7 @@ import { requestJson } from "../../utilities/requests"
 import ProgressBarRequests from "../generalPurpose/progressBarRequests"
 import { toast } from "react-toastify"
 import { WorkspaceContext } from "../workspace/workspaceContext"
+import { ErrorRequestContext } from "../flow/context/errorRequestContext"
 
 
 /**
@@ -42,6 +43,7 @@ const ExtractionJPG = ({ extractionTypeList, serverUrl, defaultFilename }) => {
   const [running, setRunning] = useState(false) // boolean set to true when extraction is running
   const [selectedFolder, setSelectedFolder] = useState(null) // folder containing the data for extraction
   const [showProgressBar, setShowProgressBar] = useState(false) // wether to show or not the extraction progressbar
+  const { setError } = useContext(ErrorRequestContext)
 
   const { globalData } = useContext(DataContext) // we get the global data from the context to retrieve the directory tree of the workspace, thus retrieving the data files
   const { port } = useContext(WorkspaceContext) // we get the port for server connexion
@@ -105,6 +107,7 @@ const ExtractionJPG = ({ extractionTypeList, serverUrl, defaultFilename }) => {
           findResultDataset(globalData, jsonResponse["csv_result_path"])
         } else {
           toast.error(`Extraction failed: ${jsonResponse.error.message}`)
+          setError(jsonResponse.error)
           setExtractionStep("")
           setShowProgressBar(false)
         }
