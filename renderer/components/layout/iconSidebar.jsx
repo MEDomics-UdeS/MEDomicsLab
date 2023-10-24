@@ -169,7 +169,7 @@ const IconSidebar = ({ onSidebarItemSelect }) => {
                       console.log("clicked extraction image", event)
                       event.stopPropagation()
                       event.preventDefault()
-                      handleClick(event, "extraction_images")
+                      handleClick(event, "extractionMEDimage")
                       setExtractionBtnstate(!extractionBtnstate)
                     }}
                     onAuxClick={(event) => handleRightClick(event, "ExtractionMEDimage")}

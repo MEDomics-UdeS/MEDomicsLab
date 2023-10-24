@@ -12,7 +12,11 @@ import { OverlayPanel } from "primereact/overlaypanel"
 import { Stack } from "react-bootstrap"
 import { IoClose } from "react-icons/io5"
 import { BsPlay } from "react-icons/bs"
+import { Tooltip } from "primereact/tooltip"
 import { AiOutlineInfoCircle } from "react-icons/ai"
+import { defaultValueFromType } from "../../utilities/learning/inputTypesUtils"
+import { deepCopy } from "../../utilities/staticFunctions"
+import { Tag } from "primereact/tag"
 import { shell } from "electron"
 // keep this import for the code editor (to be implemented)
 // import dynamic from "next/dynamic"
@@ -38,10 +42,15 @@ import { shell } from "electron"
  */
 const NodeObject = ({ id, data, nodeSpecific, nodeBody, defaultSettings, onClickCustom, isGroupNode }) => {
   const [nodeName, setNodeName] = useState(data.internal.name) // used to store the name of the node
-  const { flowInfos } = useContext(FlowInfosContext) // used to get the flow infos
+  const { flowInfos, canRun } = useContext(FlowInfosContext) // used to get the flow infos
   const { showResultsPane } = useContext(FlowResultsContext) // used to get the flow results
   const { updateNode, onDeleteNode, runNode } = useContext(FlowFunctionsContext) // used to get the function to update the node
   const op = useRef(null)
+
+  // update warnings when the node is loaded
+  useEffect(() => {
+    updateHasWarning(data)
+  }, [])
 
   /**
    * @description
@@ -87,6 +96,14 @@ const NodeObject = ({ id, data, nodeSpecific, nodeBody, defaultSettings, onClick
   return (
     <>
       <div className="node">
+        {data.internal.hasWarning.state && (
+          <>
+            <Tag className="node-warning-tag" icon="pi pi-exclamation-triangle" severity="warning" value="" rounded data-pr-position="left" data-pr-showdelay={200} />
+            <Tooltip target=".node-warning-tag">
+              <span>{data.internal.hasWarning.tooltip}</span>
+            </Tooltip>
+          </>
+        )}
         {/* here are the handlers (connection points)*/}
         <Handlers id={id} setupParam={data.setupParam} tooltipBy={data.tooltipBy} />
         {/* here is the node (the Card element)*/}
@@ -112,8 +129,10 @@ const NodeObject = ({ id, data, nodeSpecific, nodeBody, defaultSettings, onClick
                 <IoClose
                   className="btn-close-node"
                   onClick={(e) => {
-                    e.stopPropagation()
-                    onDeleteNode(id)
+                    if (!showResultsPane) {
+                      e.stopPropagation()
+                      onDeleteNode(id)
+                    }
                   }}
                   disabled={showResultsPane}
                 />
@@ -124,10 +143,12 @@ const NodeObject = ({ id, data, nodeSpecific, nodeBody, defaultSettings, onClick
                     <BsPlay
                       className="btn-run-node"
                       onClick={(e) => {
-                        e.stopPropagation()
-                        runNode(id)
+                        if (canRun && !showResultsPane) {
+                          e.stopPropagation()
+                          runNode(id)
+                        }
                       }}
-                      disabled={showResultsPane}
+                      disabled={showResultsPane || !canRun}
                     />
                   </>
                 )}
@@ -142,7 +163,7 @@ const NodeObject = ({ id, data, nodeSpecific, nodeBody, defaultSettings, onClick
       {!isGroupNode && (
         <>
           {/* here is an overlay panel that is displayed when the user clicks on the node name. It contains the settings of the node*/}
-          <OverlayPanel className="options-overlayPanel" ref={op}>
+          <OverlayPanel className="options-overlayPanel" ref={op} onMouseLeave={(e) => op.current.hide(e)}>
             <Stack direction="vertical" gap={1}>
               <div className="header">
                 <div className="editable-node-name">
@@ -202,3 +223,33 @@ const Node = (props) => {
 }
 
 export default Node
+
+/**
+ *
+ * @param {Object} data data of a node
+ * @description
+ * This function is used to update the hasWarning state of a node.
+ * It is called only at the creation of the node.
+ */
+export const updateHasWarning = (data) => {
+  console.log("start")
+  data.internal.hasWarning = { state: false }
+  if ("default" in data.setupParam.possibleSettings) {
+    Object.entries(data.setupParam.possibleSettings.default).map(([settingName, setting]) => {
+      if (settingName in data.internal.settings) {
+        let value = deepCopy(data.internal.settings[settingName])
+        let defaultVal = deepCopy(defaultValueFromType[setting.type])
+        if (typeof data.internal.settings[settingName] === "object") {
+          value = JSON.stringify(data.internal.settings[settingName])
+          defaultVal = JSON.stringify(defaultValueFromType[setting.type])
+        }
+        if (value == defaultVal) {
+          data.internal.hasWarning = { state: true, tooltip: <p>Please fill all the mandatory fields</p> }
+        }
+      } else {
+        data.internal.hasWarning = { state: true, tooltip: <p>Please fill all the mandatory fields</p> }
+      }
+    })
+  }
+  console.log("end")
+}

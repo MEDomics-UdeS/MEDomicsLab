@@ -51,17 +51,8 @@ const ViewButton = ({ id, data, type }) => {
 
   return (
     <div className="test">
-      <Button
-        type="button"
-        className="viewButton"
-        onClick={viewImage}
-        disabled={!data.internal.enableView}
-      >
-        <img
-          src="../icon/extraction/eye.svg"
-          className="viewImage"
-          alt="View button"
-        />
+      <Button type="button" className="viewButton" onClick={viewImage} disabled={!data.internal.enableView}>
+        <img src="../icon/extraction/eye.svg" className="viewImage" alt="View button" />
         View image
       </Button>
     </div>

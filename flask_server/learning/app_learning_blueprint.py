@@ -3,11 +3,7 @@ from flask import request, Blueprint
 import json
 from utils.server_utils import get_json_from_request, get_response_from_error
 import os
-from pathlib import Path
 import pickle
-import psutil
-from memory_profiler import profile
-import gc
 
 USE_RAM_FOR_EXPERIMENTS_STORING = 1
 USE_SAVE_FOR_EXPERIMENTS_STORING = 0
@@ -37,6 +33,7 @@ def run_experiment(id_):
     global exp_progress
     global storing_mode
     try:
+        exp_progress[scene_id] = {'now': 0, 'currentLabel': 'Starting'}
         # check if experiment already exists
         exp_already_exists = False
         if storing_mode == USE_RAM_FOR_EXPERIMENTS_STORING:
@@ -52,8 +49,7 @@ def run_experiment(id_):
                 exp_progress[scene_id] = {
                     'now': 0, 'currentLabel': 'Loading the experiment'}
                 current_experiments[scene_id] = load_experiment(scene_id)
-            elif storing_mode == USE_RAM_FOR_EXPERIMENTS_STORING:
-                current_experiments[scene_id].update(json_config)
+            current_experiments[scene_id].update(json_config)
         current_experiments[scene_id].start()
         results_pipeline = current_experiments[scene_id].get_results()
         if storing_mode == USE_SAVE_FOR_EXPERIMENTS_STORING:

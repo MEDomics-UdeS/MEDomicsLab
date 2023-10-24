@@ -94,6 +94,8 @@ class MEDexperimentLearning(MEDexperiment):
             del kwargs['filesFromInput']
         if 'data' in kwargs:
             del kwargs['data']
+        if 'columns' in kwargs:
+            del kwargs['columns']
 
         # add the imports
         node.CodeHandler.add_import("import numpy as np")
@@ -133,26 +135,31 @@ class MEDexperimentLearning(MEDexperiment):
             'dataset': pycaret_exp.get_config('X').join(pycaret_exp.get_config('y')),
             'X_test': pycaret_exp.get_config('X_test'),
             'y_test': pycaret_exp.get_config('y_test'),
+
         }
+        self.global_json_config["columns"] = copy.deepcopy(list(
+            temp_df.columns.values.tolist()))
+        self.global_json_config["target_column"] = kwargs['target']
         self.pipelines_objects[node.id]['results']['data'] = {
             "table": dataset_metaData['dataset'].to_json(orient='records'),
             "paths": node.get_path_list(),
         }
-
+        node._info_for_next_node['dataset'] = dataset_metaData['dataset']
         return {
             'pycaret_exp': pycaret_exp,
             'medml_logger': medml_logger,
-            'dataset_metaData': dataset_metaData
         }
 
     def _make_save_ready_rec(self, next_nodes: dict):
         for node_id, node_content in next_nodes.items():
-            saved_path = os.path.join(self.global_json_config['paths']['exp'], f"exp_{node_id.replace('*', '--')}")
+            saved_path = os.path.join(
+                self.global_json_config['internalPaths']['exp'], f"exp_{node_id.replace('*', '--')}.pycaretexp")
             if 'exp_path' in node_content['experiment']:
                 saved_path = node_content['experiment']['exp_path']
 
             data = node_content['experiment']['pycaret_exp'].data
-            node_content['experiment']['pycaret_exp'].save_experiment(saved_path)
+            self.sceneZipFile.write_to_zip(
+                custom_actions=lambda path: node_content['experiment']['pycaret_exp'].save_experiment(saved_path))
             node_content['experiment']['exp_path'] = saved_path
             node_content['experiment']['dataset'] = data
             node_content['experiment']['pycaret_exp'] = None
@@ -161,7 +168,14 @@ class MEDexperimentLearning(MEDexperiment):
     def _init_obj_rec(self, next_nodes: dict):
         for node_id, node_content in next_nodes.items():
             data = node_content['experiment']['dataset']
-            node_content['experiment']['pycaret_exp'] = create_pycaret_exp(
+            pycaret_exp = create_pycaret_exp(
                 ml_type=self.global_json_config['MLType'])
-            node_content['experiment']['pycaret_exp'] = node_content['experiment']['pycaret_exp'].load_experiment(node_content['experiment']['exp_path'], data=data)
+            saved_path = node_content['experiment']['exp_path']
+
+            def get_experiment(pycaret_exp, data, saved_path):
+                return pycaret_exp.load_experiment(saved_path, data=data)
+
+            node_content['experiment']['pycaret_exp'] = self.sceneZipFile.read_in_zip(
+                custom_actions=lambda path: get_experiment(pycaret_exp, data, saved_path))
+
             self._init_obj_rec(node_content['next_nodes'])

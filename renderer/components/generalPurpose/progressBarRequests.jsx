@@ -1,9 +1,11 @@
-import React, { useContext } from "react"
+import React, { useContext, useEffect } from "react"
 import ProgressBar from "react-bootstrap/ProgressBar"
 import useInterval from "@khalidalansi/use-interval"
 import { requestJson } from "../../utilities/requests"
 import { WorkspaceContext } from "../workspace/workspaceContext"
 import { toast } from "react-toastify"
+import MEDconfig, { SERVER_CHOICE } from "../../../medomics.dev"
+const isFlask = MEDconfig.serverChoice == SERVER_CHOICE.FLASK
 
 /**
  *
@@ -18,8 +20,19 @@ import { toast } from "react-toastify"
 
  * @returns a progress bar that shows the progress of the current flow
  */
-const ProgressBarRequests = ({ isUpdating, setIsUpdating, progress, setProgress, requestTopic, withLabel = true, delayMS = 400, progressBarProps={animated:true, variant: "success"} }) => {
+const ProgressBarRequests = ({ isUpdating, setIsUpdating, progress, setProgress, requestTopic, withLabel = true, delayMS = 400, progressBarProps = { animated: true, variant: "success" } }) => {
   const { port } = useContext(WorkspaceContext) // used to get the port
+  useEffect(() => {
+    if (isUpdating && !isFlask) {
+      setIsUpdating(false)
+      setProgress({
+        now: 0,
+        currentLabel: ""
+      })
+      toast.warn("Progress is only available with the Flask server (for now))")
+    }
+  }, [isUpdating])
+
   useInterval(
     () => {
       requestJson(
@@ -55,7 +68,7 @@ const ProgressBarRequests = ({ isUpdating, setIsUpdating, progress, setProgress,
         }
       )
     },
-    isUpdating ? delayMS : null
+    isUpdating && isFlask ? delayMS : null
   )
 
   return (

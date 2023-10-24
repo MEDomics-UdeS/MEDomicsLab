@@ -49,8 +49,7 @@ const InputForm = ({ nodeForm, changeNodeForm, enableView }) => {
       // The path of the image needs to be the path of the common folder of all the files
       // If the directory is constructed according to standard DICOM format, the path
       // of the image is the one containning the folders image and mask
-      let selectedImageFolder =
-        "/" + selectedFile.path.split("/").slice(1, -2).join("/")
+      let selectedImageFolder = "/" + selectedFile.path.split("/").slice(1, -2).join("/")
       setSelectedFile(selectedImageFolder)
     }
   }
@@ -102,24 +101,12 @@ const InputForm = ({ nodeForm, changeNodeForm, enableView }) => {
         <Form.Label htmlFor="file">MEDImage Object (.npy)</Form.Label>
         <Col style={{ width: "150px" }}>
           <Form.Group controlId="enterFile">
-            <Form.Control
-              name="file"
-              type="file"
-              accept=".npy"
-              onChange={handleFileChange}
-            />
+            <Form.Control name="file" type="file" accept=".npy" onChange={handleFileChange} />
           </Form.Group>
         </Col>
         <Col className="upload-button-col">
           <Form.Group controlId="uploadButton">
-            <Button
-              name="uploadButtonFile"
-              type="button"
-              variant="primary"
-              onClick={() => handleUpload("file")}
-              disabled={!selectedFile}
-              className="upload-button"
-            >
+            <Button name="uploadButtonFile" type="button" variant="primary" onClick={() => handleUpload("file")} disabled={!selectedFile} className="upload-button">
               Upload
             </Button>
           </Form.Group>
@@ -129,25 +116,12 @@ const InputForm = ({ nodeForm, changeNodeForm, enableView }) => {
         <Form.Label htmlFor="file">DICOM image (folder)</Form.Label>
         <Col style={{ width: "150px" }}>
           <Form.Group controlId="enterFile">
-            <Form.Control
-              name="file"
-              type="file"
-              webkitdirectory="true"
-              directory="true"
-              onChange={handleFolderChange}
-            />
+            <Form.Control name="file" type="file" webkitdirectory="true" directory="true" onChange={handleFolderChange} />
           </Form.Group>
         </Col>
         <Col className="upload-button-col">
           <Form.Group controlId="uploadButton">
-            <Button
-              name="uploadButtonFolder"
-              type="button"
-              variant="primary"
-              onClick={() => handleUpload("folder")}
-              disabled={!selectedFile}
-              className="upload-button"
-            >
+            <Button name="uploadButtonFolder" type="button" variant="primary" onClick={() => handleUpload("folder")} disabled={!selectedFile} className="upload-button">
               Upload
             </Button>
           </Form.Group>

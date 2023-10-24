@@ -3,16 +3,14 @@ import axios from "axios"
 import serve from "electron-serve"
 import { createWindow } from "./helpers"
 import { installExtension, REACT_DEVELOPER_TOOLS } from "electron-extension-installer"
+import MEDconfig, { SERVER_CHOICE, PORT_FINDING_METHOD } from "../medomics.dev"
 const fs = require("fs")
 var path = require("path")
 const dirTree = require("directory-tree")
-const { spawn, exec } = require("child_process")
+const { spawn, exec, execFile } = require("child_process")
 var serverProcess = null
-var flaskPort = 5000
+var flaskPort = MEDconfig.defaultPort
 var hasBeenSet = false
-
-const RUN_SERVER_WITH_APP = true
-const USE_REACT_DEV_TOOLS = false
 
 const isProd = process.env.NODE_ENV === "production"
 
@@ -126,50 +124,55 @@ if (isProd) {
   ]
 
   // link: https://medium.com/red-buffer/integrating-python-flask-backend-with-electron-nodejs-frontend-8ac621d13f72
-  console.log(RUN_SERVER_WITH_APP ? "Server will start automatically here (in background of the application)" : "Server must be started manually")
-  if (RUN_SERVER_WITH_APP) {
+  console.log(MEDconfig.runServerAutomatically ? "Server will start automatically here (in background of the application)" : "Server must be started manually")
+  MEDconfig.runServerAutomatically && console.log("Server type:", MEDconfig.serverChoice)
+  if (MEDconfig.runServerAutomatically) {
     if (!isProd) {
       //**** DEVELOPMENT ****//
-      // IMPORTANT: Select python interpreter (related to your virtual environment)
-      var path2conda = fs.readFileSync("./path2condaenv_toDeleteInProd.txt", "utf8").replace(/\s/g, "")
-      console.log(`path2conda: "${path2conda}"`)
 
-      const net = require("net")
-
-      findAvailablePort(5000, 8000)
+      findAvailablePort(MEDconfig.defaultPort)
         .then((port) => {
-          console.log(`Available port: ${port}`)
-          // open and modify .flaskenv file
-          let content = []
-          content.push("FLASK_APP=flask_server/server.py")
-          content.push("FLASK_RUN_PORT=" + port)
-          content.push("FLASK_ENV=development")
-          content.push("FLASK_DEBUG=0")
-          fs.writeFile("flask_server/.flaskenv", content.join("\n"), function (err) {
-            if (err) {
-              return console.log(err)
-            }
-            console.log(".flaskenv modified successfully!")
-          })
-
-          serverProcess = spawn(path2conda, ["-m", "flask", "-e", "flask_server/.flaskenv", "run"])
-          // serverProcess = spawn("set", ["FLASK_APP=flask_server/server.py && set FLASK_RUN_PORT=" + port, "&&", path2conda, "-m", "flask", "run"])
           flaskPort = port
-          serverProcess.stdout.on("data", function (data) {
-            console.log("data: ", data.toString("utf8"))
-          })
-          serverProcess.stderr.on("data", (data) => {
-            console.log(`stderr: ${data}`) // when error
-          })
-          serverProcess.on("close", (code) => {
-            console.log(`child process close all stdio with code ${code}`)
-          })
+          if (MEDconfig.serverChoice === SERVER_CHOICE.FLASK) {
+            serverProcess = spawn(MEDconfig.condaEnv, ["-m", "flask", "run"], {
+              cwd: path.join(process.cwd(), "flask_server"),
+              env: {
+                FLASK_APP: "server.py",
+                FLASK_RUN_PORT: flaskPort,
+                FLASK_ENV: "development",
+                FLASK_DEBUG: 0
+              }
+            })
+          } else if (MEDconfig.serverChoice === SERVER_CHOICE.GO) {
+            serverProcess = execFile(`${process.platform == "win32" ? "main.exe" : "./main"}`, {
+              windowsHide: false,
+              cwd: path.join(process.cwd(), "go_server"),
+              env: {
+                ELECTRON_PORT: flaskPort,
+                ELECTRON_CONDA_ENV: MEDconfig.condaEnv
+              }
+            })
+          }
+          if (serverProcess) {
+            serverProcess.stdout.on("data", function (data) {
+              console.log("data: ", data.toString("utf8"))
+            })
+            serverProcess.stderr.on("data", (data) => {
+              console.log(`stderr: ${data}`)
+            })
+            serverProcess.on("close", (code) => {
+              console.log(`server child process close all stdio with code ${code}`)
+            })
+          } else {
+            throw new Error("You must choose a valid server in medomics.dev.js")
+          }
         })
         .catch((err) => {
           console.error(err)
         })
     } else {
       //**** PRODUCTION ****//
+
       let backend
       backend = path.join(process.cwd(), "resources/backend/dist/app.exe")
       var execfile = require("child_process").execFile
@@ -202,25 +205,13 @@ if (isProd) {
     }
   } else {
     //**** NO SERVER ****//
-    const { exec } = require("child_process")
-    exec('netstat -ano | find "5000"', (err, stdout, stderr) => {
-      if (err) {
-        console.log("port 5000 availabe")
-        return
-      } else {
-        console.log("port 5000 not available")
-        let PID = stdout.split(" ")[stdout.split(" ").length - 1]
-        exec("taskkill /f /t /pid " + PID, (err, stdout, stderr) => {
-          if (err) {
-            console.log(err)
-            return
-          } else {
-            console.log("port 5000 killed")
-            console.log("port 5000 available, you can now start the sever on port 5000 ")
-          }
-        })
-      }
-    })
+    findAvailablePort(MEDconfig.defaultPort)
+      .then((port) => {
+        flaskPort = port
+      })
+      .catch((err) => {
+        console.error(err)
+      })
   }
   const menu = Menu.buildFromTemplate(template)
   Menu.setApplicationMenu(menu)
@@ -327,8 +318,6 @@ function createWorkingDirectory() {
   // See the workspace template in the repository
   createFolder("DATA")
   createFolder("EXPERIMENTS")
-  createFolder("MODELS")
-  createFolder("RESULTS")
 }
 
 function createFolder(folderString) {
@@ -365,13 +354,13 @@ ipcMain.handle("request", async (_, axios_request) => {
 app.on("window-all-closed", () => {
   app.quit()
   console.log("app quit")
-  if (!isProd && RUN_SERVER_WITH_APP) {
+  if (!isProd && MEDconfig.runServerAutomatically) {
     serverProcess.kill()
     console.log("serverProcess killed")
   }
 })
 
-if (USE_REACT_DEV_TOOLS) {
+if (MEDconfig.useRactDevTools) {
   app.on("ready", async () => {
     await installExtension(REACT_DEVELOPER_TOOLS, {
       loadExtensionOptions: {
@@ -381,34 +370,38 @@ if (USE_REACT_DEV_TOOLS) {
   })
 }
 
-function findAvailablePort(startPort, endPort) {
+function findAvailablePort(startPort, endPort = 8000) {
+  let killProcess = MEDconfig.portFindingMethod === PORT_FINDING_METHOD.FIX || !MEDconfig.runServerAutomatically
+  let platform = process.platform
   return new Promise((resolve, reject) => {
-    const net = require("net")
     let port = startPort
-
     function tryPort() {
-      const server = net.createServer()
-      server.once("error", (err) => {
-        if (err.code === "EADDRINUSE") {
-          port++
-          if (port <= endPort) {
-            tryPort()
-          } else {
-            reject(new Error("No available ports found"))
-          }
+      exec(`netstat ${platform == "win32" ? "-ano | find" : "-ltnup | grep"} ":${port}"`, (err, stdout, stderr) => {
+        if (err) {
+          console.log(`Port ${port} is available !`)
+          resolve(port)
         } else {
-          reject(err)
+          if (killProcess) {
+            let PID = stdout.trim().split(/\s+/)[stdout.trim().split(/\s+/).length - 1].split("/")[0]
+            exec(`${platform == "win32" ? "taskkill /f /t /pid" : "kill"} ${PID}`, (err, stdout, stderr) => {
+              if (!err) {
+                console.log("Previous server instance was killed successfully")
+                console.log(`Port ${port} is now available !`)
+                resolve(port)
+              }
+              (stdout) && console.log(stdout)
+              (stderr) && console.log(stderr)
+            })
+          } else {
+            port++
+            if (port > endPort) {
+              reject("No available port")
+            }
+            tryPort()
+          }
         }
       })
-      server.once("listening", () => {
-        server.close()
-        resolve(port)
-      })
-      server.listen(port, "127.0.0.1", () => {
-        server.close()
-      })
     }
-
     tryPort()
   })
 }

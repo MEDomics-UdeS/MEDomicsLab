@@ -723,11 +723,11 @@ const FlowCanvas = ({ workflowType, setWorkflowType }) => {
         onDeleteNode={deleteNode}
         isGoodConnection={isGoodConnection}
         // represents the visual of the workflow
-        ui={
+
+        uiTopRight={
           <>
-            {/* Components in the upper right corner of the workflow */}
-            <div className="btn-panel-top-corner-right">
-              {workflowType == "extraction" ? (
+            {workflowType == "extraction" ? (
+              <>
                 <BtnDiv
                   buttonsList={[
                     { type: "run", onClick: onRun },
@@ -736,10 +736,10 @@ const FlowCanvas = ({ workflowType, setWorkflowType }) => {
                     { type: "load", onClick: onLoad }
                   ]}
                 />
-              ) : (
-                <BtnDiv buttonsList={[{ type: "back", onClick: onBack }]} />
-              )}
-            </div>
+              </>
+            ) : (
+              <BtnDiv buttonsList={[{ type: "back", onClick: onBack }]} />
+            )}
           </>
         }
       />

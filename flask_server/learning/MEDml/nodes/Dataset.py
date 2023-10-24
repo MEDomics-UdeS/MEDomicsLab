@@ -52,7 +52,7 @@ class Dataset(Node):
         else:
             self.entry_file_type = INPUT
             self.df = self.global_config_json['dfs_from_input'][self.settings['filesFromInput']]
-        self._info_for_next_node = {'target': self.settings['target']}
+        self._info_for_next_node['target'] = self.settings['target']
         return {}
 
     def load_csv_in_folder(self, folder_name: str) -> None:

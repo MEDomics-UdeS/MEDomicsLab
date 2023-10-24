@@ -590,10 +590,7 @@ const WorkflowBase = ({ isGoodConnection, groupNodeHandlingDefault, onDeleteNode
             </Col>
           </Row>
         </div>
-        <div className="flow-btn-panel-left-vertical">
-          {/* <Button label="! Error" severity="danger" raised /> */}
-          {hasBeenAnError && <Button icon="pi pi-exclamation-circle" rounded severity="danger" aria-label="Cancel" tooltip="See last error" onClick={() => setShowError(true)} />}
-        </div>
+        <div className="flow-btn-panel-left-vertical">{hasBeenAnError && <Button icon="pi pi-exclamation-circle" rounded severity="danger" aria-label="Cancel" tooltip="See last error" tooltipOptions={{ showDelay: 1000, hideDelay: 300 }} onClick={() => setShowError(true)} />}</div>
       </ReactFlow>
     </div>
   )

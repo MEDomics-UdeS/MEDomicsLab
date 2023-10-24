@@ -19,12 +19,24 @@ import { Stack } from "react-bootstrap"
  * it handles the display of the node and the modal
  *
  */
-const StandardNode = ({ id, data, type }) => {
+const StandardNode = ({ id, data }) => {
   const [modalShow, setModalShow] = useState(false) // state of the modal
   const { updateNode } = useContext(FlowFunctionsContext)
 
   const onInputChange = (inputUpdate) => {
     data.internal.settings[inputUpdate.name] = inputUpdate.value
+    updateNode({
+      id: id,
+      updatedData: data.internal
+    })
+  }
+
+  /**
+   *
+   * @param {Object} hasWarning an object containing the state of the warning and the tooltip
+   */
+  const handleWarning = (hasWarning) => {
+    data.internal.hasWarning = hasWarning
     updateNode({
       id: id,
       updatedData: data.internal
@@ -38,7 +50,6 @@ const StandardNode = ({ id, data, type }) => {
         key={id}
         id={id}
         data={data}
-        type={type}
         setupParam={data.setupParam}
         // no body for this node (particular to this node)
         // default settings are the default settings of the node, so mandatory settings
@@ -47,19 +58,9 @@ const StandardNode = ({ id, data, type }) => {
             {"default" in data.setupParam.possibleSettings && (
               <>
                 <Stack direction="vertical" gap={1}>
-                  {Object.entries(data.setupParam.possibleSettings.default).map(
-                    ([settingName, setting]) => {
-                      return (
-                        <Input
-                          key={settingName}
-                          name={settingName}
-                          settingInfos={setting}
-                          currentValue={data.internal.settings[settingName]}
-                          onInputChange={onInputChange}
-                        />
-                      )
-                    }
-                  )}
+                  {Object.entries(data.setupParam.possibleSettings.default).map(([settingName, setting]) => {
+                    return <Input setHasWarning={handleWarning} key={settingName} name={settingName} settingInfos={setting} currentValue={data.internal.settings[settingName]} onInputChange={onInputChange} />
+                  })}
                 </Stack>
               </>
             )}
@@ -69,34 +70,14 @@ const StandardNode = ({ id, data, type }) => {
         nodeSpecific={
           <>
             {/* the button to open the modal (the plus sign)*/}
-            <Button
-              variant="light"
-              className="width-100 btn-contour"
-              onClick={() => setModalShow(true)}
-            >
+            <Button variant="light" className="width-100 btn-contour" onClick={() => setModalShow(true)}>
               <Icon.Plus width="30px" height="30px" className="img-fluid" />
             </Button>
             {/* the modal component*/}
-            <ModalSettingsChooser
-              show={modalShow}
-              onHide={() => setModalShow(false)}
-              options={data.setupParam.possibleSettings.options}
-              data={data}
-              id={id}
-            />
+            <ModalSettingsChooser show={modalShow} onHide={() => setModalShow(false)} options={data.setupParam.possibleSettings.options} data={data} id={id} />
             {/* the inputs for the options */}
             {data.internal.checkedOptions.map((optionName) => {
-              return (
-                <Input
-                  key={optionName}
-                  name={optionName}
-                  settingInfos={
-                    data.setupParam.possibleSettings.options[optionName]
-                  }
-                  currentValue={data.internal.settings[optionName]}
-                  onInputChange={onInputChange}
-                />
-              )
+              return <Input key={optionName} name={optionName} settingInfos={data.setupParam.possibleSettings.options[optionName]} currentValue={data.internal.settings[optionName]} onInputChange={onInputChange} />
             })}
           </>
         }
