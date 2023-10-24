@@ -54,11 +54,7 @@ class Analyze(Node):
         self.CodeHandler.add_line(
             "code", f"pycaret_exp.{selection}(model, {self.CodeHandler.convert_dict_to_params(print_settings)})", 1)
         for model in kwargs['models']:
-            print("model:", model)
-            print("type(model):", type(model))
-            print("isinstance(model, Pipeline):", isinstance(model, Pipeline))
             model = format_model(model)
-            print('model:', model)
             return_value = getattr(
                 experiment['pycaret_exp'], selection)(model, **settings)
 
