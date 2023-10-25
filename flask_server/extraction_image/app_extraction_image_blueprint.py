@@ -1,6 +1,7 @@
 import cv2
 import os
 import pandas as pd
+import requests
 import skimage
 import torch
 import torch.nn.functional as F
@@ -16,6 +17,41 @@ app_extraction_image = Blueprint('app_extraction_image', __name__, template_fold
 # global variable
 progress = 0
 step = "initialization"
+
+
+def download_model(model):
+    """
+    Function used to download model from model name because TorchXRayVision downloading may cause errors on Windows.
+    """
+    if model == "densenet121-res224-all":
+        url = "https://github.com/mlmed/torchxrayvision/releases/download/v1/nih-pc-chex-mimic_ch-google-openi-kaggle-densenet121-d121-tw-lr001-rot45-tr15-sc15-seed0-best.pt"
+    elif model == "densenet121-res224-nih":
+        url = "https://github.com/mlmed/torchxrayvision/releases/download/v1/nih-densenet121-d121-tw-lr001-rot45-tr15-sc15-seed0-best.pt"
+    elif model == "densenet121-res224-pc":
+        url = "https://github.com/mlmed/torchxrayvision/releases/download/v1/pc-densenet121-d121-tw-lr001-rot45-tr15-sc15-seed0-best.pt"
+    elif model == "densenet121-res224-chex":
+        url = "https://github.com/mlmed/torchxrayvision/releases/download/v1/chex-densenet121-d121-tw-lr001-rot45-tr15-sc15-seed0-best.pt"
+    elif model == "densenet121-res224-rsna":
+        url = "https://github.com/mlmed/torchxrayvision/releases/download/v1/kaggle-densenet121-d121-tw-lr001-rot45-tr15-sc15-seed0-best.pt"
+    elif model == "densenet121-res224-mimic_nb":
+        url = "https://github.com/mlmed/torchxrayvision/releases/download/v1/mimic_nb-densenet121-d121-tw-lr001-rot45-tr15-sc15-seed0-best.pt"
+    elif model == "densenet121-res224-mimic_ch":
+        url = "https://github.com/mlmed/torchxrayvision/releases/download/v1/mimic_ch-densenet121-d121-tw-lr001-rot45-tr15-sc15-seed0-best.pt"
+    else: 
+        return
+    weights_filename = os.path.basename(url)
+    weights_storage_folder = os.path.expanduser(os.path.join("~", ".torchxrayvision", "models_data"))
+    weights_filename_local = os.path.expanduser(os.path.join(weights_storage_folder, weights_filename))
+    with open(weights_filename_local, 'wb') as f:
+        response = requests.get(url, stream=True)
+        total = response.headers.get('content-length')
+
+        if total is None:
+            f.write(response.content)
+        else:
+            total = int(total)
+            for data in response.iter_content(chunk_size=max(int(total / 1000), 1024 * 1024)):
+                f.write(data)
 
 
 def get_single_chest_xray_embeddings(img_path, model_weights_name):
@@ -51,7 +87,6 @@ def get_single_chest_xray_embeddings(img_path, model_weights_name):
     img = cv2.resize(img, (224, 224), interpolation=cv2.INTER_AREA)
     img = img[None, :, :]
 
-    print("model_weights_name", model_weights_name)
     model = xrv.models.DenseNet(weights=model_weights_name)
 
     with torch.no_grad():
@@ -109,6 +144,10 @@ def DenseNet_extraction():
                 for file in files:
                     if file.endswith(".jpg"):
                         nb_images += 1
+
+        progress = 20
+        step = "Downloading weights"
+        download_model(weights)
 
         progress = 30
         step = "Extraction"
