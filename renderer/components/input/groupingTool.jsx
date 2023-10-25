@@ -1,41 +1,49 @@
-import React, { useState, useEffect, useContext, useRef, useTimeout } from "react"
-import { AccordionTab } from "primereact/accordion"
+import React, { useState, useEffect, useContext, useRef } from "react"
 import { DataContext } from "../workspace/dataContext"
-import { Dropdown } from "primereact/dropdown"
 import Row from "react-bootstrap/Row"
 import Col from "react-bootstrap/Col"
-import { PlusSquare, XSquare, PencilSquare, Check2Square, Eraser, Fonts, Pass } from "react-bootstrap-icons"
+import { PlusSquare, XSquare, PencilSquare, Check2Square, Eraser, Fonts } from "react-bootstrap-icons"
 import { Button } from "primereact/button"
 import { MultiSelect } from "primereact/multiselect"
-import { WorkspaceContext } from "../workspace/workspaceContext"
-import ProgressBarRequests from "../flow/progressBarRequests"
 import { Chips } from "primereact/chips"
 import { Chip } from "primereact/chip"
 import { ColorPicker } from "primereact/colorpicker"
-import { ConfirmPopup, confirmPopup } from "primereact/confirmpopup"
+import { confirmPopup } from "primereact/confirmpopup"
 import { TreeSelect } from "primereact/treeselect"
 import { Tag } from "primereact/tag"
 import { ToggleButton } from "primereact/togglebutton"
 import { confirmDialog } from "primereact/confirmdialog"
-
+import { deepCopy } from "../../utilities/staticFunctions"
+/**
+ * GroupingTool
+ * @param {string} pageId
+ * @param {string} configPath
+ * @returns {JSX.Element}
+ * @summary This component is used to group/tag the columns of selected datasets
+ */
 const GroupingTool = ({ pageId = "42-grouping", configPath = null }) => {
-  const [listOfDatasets, setListOfDatasets] = useState([])
-  const { globalData, setGlobalData } = useContext(DataContext)
-  const [selectedDatasets, setSelectedDatasets] = useState({})
-  const firstMultiselect = useRef(null)
-  const [progress, setProgress] = useState({ now: 0, currentLabel: "" })
-  const [isProgressUpdating, setIsProgressUpdating] = useState(false)
-  const [tagsDict, setTagsDict] = useState({})
-  const [editingTag, setEditingTag] = useState(null)
-  const [tempTag, setTempTag] = useState("")
-  const [selectedNodes, setSelectedNodes] = useState(null)
-  const [nodes, setNodes] = useState([])
-  const [selectedTags, setSelectedTags] = useState([])
-  const [tagsPresentInSelectedDatasets, setTagsPresentInSelectedDatasets] = useState([])
-  const [overwrite, setOverwrite] = useState(false)
-  const [overwriteWasAsked, setOverwriteWasAsked] = useState(false)
-  const [isBeingAsked, setIsBeingAsked] = useState(false)
+  const { globalData, setGlobalData } = useContext(DataContext) // Global data
 
+  const firstMultiselect = useRef(null) // Reference to the first multiselect
+  const secondMultiselect = useRef(null) // Reference to the second multiselect
+
+  const [listOfDatasets, setListOfDatasets] = useState([]) // List of datasets to be displayed in the multiselect
+  const [selectedDatasets, setSelectedDatasets] = useState({}) // List of selected datasets
+  const [tagsDict, setTagsDict] = useState({}) // Dictionary of tags
+  const [editingTag, setEditingTag] = useState(null) // Tag being edited
+  const [tempTag, setTempTag] = useState("") // Temporary tag
+  const [selectedNodes, setSelectedNodes] = useState(null) // Selected nodes in the tree
+  const [nodes, setNodes] = useState([]) // Nodes in the tree
+  const [selectedTags, setSelectedTags] = useState([]) // Selected tags
+  const [tagsPresentInSelectedDatasets, setTagsPresentInSelectedDatasets] = useState([]) // Tags present in selected datasets
+  const [overwrite, setOverwrite] = useState(false) // Setting to overwrite the tags already present in the datasets
+  const [overwriteWasAsked, setOverwriteWasAsked] = useState(false) // Variable to know if the user was asked to overwrite the tags
+
+  /**
+   * Update the list of datasets
+   * @summary This function is used to update the list of datasets
+   * @returns {void}
+   */
   const updateListOfDatasets = () => {
     let newDatasetList = []
     Object.keys(globalData).forEach((key) => {
@@ -46,8 +54,13 @@ const GroupingTool = ({ pageId = "42-grouping", configPath = null }) => {
     setListOfDatasets(newDatasetList)
   }
 
+  /**
+   * Clean the string
+   * @param {string} string
+   * @returns {string}
+   * @summary This function is used to clean the string, replace the spaces and the quotes
+   */
   const cleanString = (string) => {
-    // if String has spaces or "", erase them
     if (string.includes(" ") || string.includes('"')) {
       string = string.replaceAll(" ", "")
       string = string.replaceAll('"', "")
@@ -55,6 +68,11 @@ const GroupingTool = ({ pageId = "42-grouping", configPath = null }) => {
     return string
   }
 
+  /**
+   * Get the columns tagging
+   * @param {object} dataObject - Data object
+   * @returns  {object} - Columns tagging
+   */
   function getColumnsTagging(dataObject) {
     if (dataObject.metadata.columnsTag === null || dataObject.metadata.columnsTag === undefined) {
       return {}
@@ -63,6 +81,43 @@ const GroupingTool = ({ pageId = "42-grouping", configPath = null }) => {
     }
   }
 
+  /**
+   * Add tags dict to tags dict
+   * @param {object} tagsDictToAdd - Tags dict to add
+   * @param {object} tagsDict - Tags dict
+   * @returns {object} - Tags dict
+   */
+  function addTagsDictToTagsDict(tagsDictToAdd) {
+    let newTagsDict = { ...tagsDict }
+    Object.keys(tagsDictToAdd).forEach((tag) => {
+      if (!newTagsDict[tag]) {
+        newTagsDict[tag] = tagsDictToAdd[tag]
+      }
+    })
+    setTagsDict(newTagsDict)
+    return newTagsDict
+  }
+
+  /**
+   * Get the tags dict from the data object's metadata
+   * @param {object} dataObject - Data object
+   * @returns  {object} - tags dict
+   */
+  function getDatasetTagsDict(dataObject) {
+    if (dataObject.metadata.tagsDict === null || dataObject.metadata.tagsDict === undefined) {
+      return {}
+    } else {
+      addTagsDictToTagsDict(dataObject.metadata.tagsDict)
+      return dataObject.metadata.tagsDict
+    }
+  }
+
+  /**
+   * Get the columns from a promise
+   * @param {object} dataObject - Data object
+   * @returns {array} - Columns
+   * @summary This function is used to get the columns from a promise - async function
+   */
   async function getColumnsFromPromise(dataObject) {
     let promise = new Promise((resolve, reject) => {
       resolve(dataObject.getColumnsOfTheDataObjectIfItIsATable())
@@ -71,26 +126,17 @@ const GroupingTool = ({ pageId = "42-grouping", configPath = null }) => {
     return columns
   }
 
-  useEffect(() => {
-    // console.log("listOfDatasets", listOfDatasets)
-  }, [listOfDatasets])
-
-  useEffect(() => {
-    if (globalData !== null) {
-      updateListOfDatasets()
-      // updateDatasetSelectorElement()
-    }
-  }, [globalData])
-
-  useEffect(() => {
-    console.log("Overwrite was asked", overwriteWasAsked)
-  }, [overwriteWasAsked])
-
+  /**
+   * Add tags to tags already in selected datasets
+   * @param {array} tagsToAdd - Tags to add
+   * @returns {object} - Tags already in selected datasets
+   * @summary This function is used to add tags to tags already in selected datasets
+   */
   const addTagsToTagsAlreadyInSelectedDatasets = (tagsToAdd) => {
     let newTags = { ...tagsPresentInSelectedDatasets }
     let newTagsDict = { ...tagsDict }
     tagsToAdd.forEach((tag) => {
-      newTagsDict = addTagToTagsDict(tag, generateRandomColor(), newTagsDict)
+      // newTagsDict = addTagToTagsDict(tag, generateRandomColor(), newTagsDict)
       if (newTags[tag]) {
         newTags[tag] = [...newTags[tag], ...tagsToAdd]
       } else {
@@ -101,65 +147,24 @@ const GroupingTool = ({ pageId = "42-grouping", configPath = null }) => {
     setTagsPresentInSelectedDatasets(newTags)
   }
 
-  useEffect(() => {
-    let newNodes = []
-    let tagsToAdd = []
-    Object.keys(selectedDatasets).forEach((key) => {
-      let dataset = selectedDatasets[key]
-      let datasetChildren = []
-      if (dataset) {
-        let columnsTag = getColumnsTagging(globalData[key])
-        getColumnsFromPromise(globalData[key]).then((columns) => {
-          columns.forEach((column) => {
-            column = cleanString(column)
-            if (columnsTag[column]) {
-              console.log("columnsTag[column]", columnsTag[column])
-              addTagsToArrayIfNotPresent(columnsTag[column], key)
-              columnsTag[column].forEach((tag) => {
-                if (!tagsToAdd.includes(tag)) {
-                  tagsToAdd.push(tag)
-                }
-              })
-              addTagsToTagsAlreadyInSelectedDatasets(tagsToAdd)
-              console.log("tagsToAdd", tagsToAdd)
-              datasetChildren.push({ key: column + "_|_" + key, label: column, value: column, checked: true, partialChecked: false, tags: columnsTag[column] })
-            } else {
-              datasetChildren.push({ key: column + "_|_" + key, label: column, value: column, checked: true, partialChecked: false, tags: [] })
-            }
-          })
-        })
-      }
-      newNodes.push({ key: key, label: dataset.name, value: dataset.name, children: datasetChildren, checked: false, partialChecked: false })
-    })
-    setNodes(newNodes)
-    console.log("tagsToAdd", tagsToAdd)
-
-    if (tagsToAdd.length > 0) {
-      let tagsAlreadyThere = Object.keys(tagsDict)
-      let newTagsDict = { ...tagsDict }
-      tagsToAdd.forEach((tag) => {
-        console.log("TAG BEING ADDED", tag)
-        newTagsDict = addTagToTagsDict(tag, generateRandomColor(), newTagsDict)
-      })
-      setTagsDict(newTagsDict)
-    }
-  }, [selectedDatasets])
-
-  const returnArrayOfElementsNotPresentInArray = (oldArray, arrayOfNewElements) => {
-    let newArray = []
-    arrayOfNewElements.forEach((element) => {
-      if (!oldArray.includes(element)) {
-        newArray.push(element)
-      }
-    })
-    return newArray
-  }
-
+  /**
+   * Generate random color
+   * @returns {string} - Random color
+   * @summary This function is used to generate a random color
+   */
   const generateRandomColor = () => {
     let color = "#" + Math.floor(Math.random() * 16777215).toString(16)
     return color
   }
 
+  /**
+   * Confirm danger
+   * @param {object} event - Event
+   * @param {function} acceptCB - Accept callback
+   * @param {function} rejectCB - Reject callback
+   * @param {string} message - Message
+   * @returns {void}
+   */
   const confirmDanger = (event, acceptCB, rejectCB, message) => {
     if (message === undefined) {
       message = "Do you want to proceed with the deletion?"
@@ -175,6 +180,14 @@ const GroupingTool = ({ pageId = "42-grouping", configPath = null }) => {
     })
   }
 
+  /**
+   * Confirm info
+   * @param {object} event - Event
+   * @param {function} acceptCB - Accept callback
+   * @param {function} rejectCB - Reject callback
+   * @param {string} message - Message
+   * @returns {void}
+   */
   const confirmInfo = (event, acceptCB, rejectCB, message) => {
     if (message === undefined) {
       message = "Do you want to proceed with the tagging?"
@@ -188,6 +201,14 @@ const GroupingTool = ({ pageId = "42-grouping", configPath = null }) => {
     })
   }
 
+  /**
+   * Confirm info dialog
+   * @param {object} event - Event
+   * @param {function} acceptCB - Accept callback
+   * @param {function} rejectCB - Reject callback
+   * @param {string} message - Message
+   * @returns {void}
+   */
   const confirmInfoDialog = (event, acceptCB, rejectCB, message) => {
     if (message === undefined) {
       message = "Do you want to overwrite the tags?"
@@ -201,6 +222,12 @@ const GroupingTool = ({ pageId = "42-grouping", configPath = null }) => {
     })
   }
 
+  /**
+   * Handle tags creation
+   * @param {object} e - Event
+   * @returns {void}
+   * @summary This function is used to handle the creation of tags
+   */
   const handleTagsCreation = (e) => {
     let innerTagsList = e.value
     if (innerTagsList.length > 0) {
@@ -216,6 +243,12 @@ const GroupingTool = ({ pageId = "42-grouping", configPath = null }) => {
     }
   }
 
+  /**
+   * Identify column key to dataset key
+   * @param {string} columnKey - Column key
+   * @returns {object} - Column key to dataset key
+   * @summary This function is used to identify the column key to dataset key
+   */
   const identifyColumnKeyToDatasetKey = (columnKey) => {
     let columnKeySplitted = columnKey.split("_|_")
     if (columnKeySplitted.length === 2) {
@@ -227,30 +260,46 @@ const GroupingTool = ({ pageId = "42-grouping", configPath = null }) => {
     }
   }
 
+  /**
+   * Get selected tags and selected columns
+   * @returns {object} - Selected tags and selected columns
+   * @summary This function is used to get the selected tags and selected columns
+   */
   const getSelectedTagsAndSelectedColumns = () => {
     let datasetsConcerned = []
     let columnsConcerned = {}
     let tagsConcerned = selectedTags
-    console.log("tagsConcerned", tagsConcerned, selectedTags)
+    if (selectedNodes !== null && selectedNodes !== undefined && Object.keys(selectedNodes).length > 0) {
+      Object.keys(selectedNodes).forEach((node) => {
+        let nodeKeys = identifyColumnKeyToDatasetKey(node)
+        if (nodeKeys) {
+          let column = nodeKeys.column
+          let datasetKey = nodeKeys.datasetKey
+          if (datasetsConcerned.includes(datasetKey) === false) {
+            datasetsConcerned.push(datasetKey)
+          }
 
-    Object.keys(selectedNodes).forEach((node) => {
-      let nodeKeys = identifyColumnKeyToDatasetKey(node)
-      if (nodeKeys) {
-        let column = nodeKeys.column
-        let datasetKey = nodeKeys.datasetKey
-        datasetsConcerned.push(datasetKey)
-        let columnsAlreadyThere = columnsConcerned[datasetKey]
-        if (columnsAlreadyThere) {
-          columnsAlreadyThere.push(column)
-          columnsConcerned[datasetKey] = columnsAlreadyThere
-        } else {
-          columnsConcerned[datasetKey] = [column]
+          if (column !== null) {
+            let columnsAlreadyThere = columnsConcerned[datasetKey]
+            if (columnsAlreadyThere) {
+              columnsAlreadyThere.push(column)
+              columnsConcerned[datasetKey] = columnsAlreadyThere
+            } else {
+              columnsConcerned[datasetKey] = [column]
+            }
+          }
         }
-      }
-    })
+      })
+    }
     return { datasetsConcerned: datasetsConcerned, columnsConcerned: columnsConcerned, tagsConcerned: tagsConcerned }
   }
 
+  /**
+   * Add tags to array if not present
+   * @param {array} tagsToAdd - Tags to add
+   * @param {string} datasetKey - Dataset key
+   * @returns {object} - Tags present in selected datasets
+   */
   const addTagsToArrayIfNotPresent = (tagsToAdd, datasetKey) => {
     let newTags = { ...tagsPresentInSelectedDatasets }
     let tagsPresentList = Object.keys(tagsPresentInSelectedDatasets)
@@ -269,34 +318,49 @@ const GroupingTool = ({ pageId = "42-grouping", configPath = null }) => {
     return newTags
   }
 
+  /**
+   * Add array of strings to array of strings if not present
+   * @param {array} stringsToAdd - Strings to add
+   * @param {array} array - Array
+   * @returns {array} - Array of strings
+   */
   const addArrayOfStringsToArrayOfStringsIfNotPresent = (stringsToAdd, array) => {
     let newArray = array
     // Check if array contains an array of strings
     if (array[0] && typeof array[0] === "string") {
-      array = array
-
       stringsToAdd.forEach((stringToAdd) => {
-        console.log("stringToAdd", stringToAdd, array)
         if (!array.includes(stringToAdd)) {
           newArray.push(stringToAdd)
         }
       })
-      console.log("newArray", newArray)
       return newArray
     }
+    if (Array.isArray(array) && array.length === 0) {
+      return stringsToAdd
+    }
+    return array
   }
 
+  /**
+   * Apply the tags to the selected columns and updates the nodes
+   */
   const updateNodeTags = () => {
+    /* We ensure that the variables related to the overwrite logic are initialised */
     if (overwriteWasAsked) {
       setOverwriteWasAsked(false)
       setOverwrite(null)
-      setIsBeingAsked(false)
     }
 
-    new Promise((resolveMaster, reject) => {
+    /* We create a promise to update the nodes */
+    new Promise(async (resolveMaster, reject) => {
+      /* We get the selected tags and selected columns */
       let { datasetsConcerned, columnsConcerned, tagsConcerned } = getSelectedTagsAndSelectedColumns()
-      let newNodes = [...nodes]
 
+      /**
+       * Confirm overwrite - This function is used to asked the user if he wants to overwrite the tags
+       * @returns {void}
+       *
+       */
       const confirmOverwrite = () =>
         new Promise((resolve, reject) => {
           confirmInfoDialog(
@@ -315,7 +379,11 @@ const GroupingTool = ({ pageId = "42-grouping", configPath = null }) => {
           )
         })
 
-      const handleOverwrite = async (child, columnsTag, column) => {
+      /**
+       * Handle overwrite - This function is used to handle the overwrite
+       * @returns
+       */
+      const handleOverwrite = async () => {
         if (await confirmOverwrite()) {
           return true
         } else {
@@ -323,138 +391,134 @@ const GroupingTool = ({ pageId = "42-grouping", configPath = null }) => {
         }
       }
 
+      /**
+       * Handle applying overwrite
+       * This function is called after the user has been asked if he wants to overwrite the tags
+       * @param {boolean} overwriteLocal - Overwrite local
+       * @param {object} child - Child
+       * @param {object} columnsTag - Columns tag
+       * @param {string} column - Column
+       * @returns {array} - Array of two elements : [0] : child tags, [1] : columns tag
+       */
       const handleApplyingOverwrite = async (overwriteLocal, child, columnsTag, column) => {
-        console.log("dataset columnsTag[column]", columnsTag[column], column)
-        console.log("Here", columnsTag[column], column)
-        if (overwriteLocal) {
-          child.tags = sortTheArrayOfStringsAlphabetically(tagsConcerned)
-          columnsTag[column] = sortTheArrayOfStringsAlphabetically(tagsConcerned)
+        if (columnsTag === undefined) {
+          columnsTag = []
+        }
+        let newChildTags = deepCopy(child.tags)
+        let newColumnsTag = deepCopy(columnsTag)
+
+        if (overwriteLocal === true || newColumnsTag === 0) {
+          newChildTags = sortTheArrayOfStringsAlphabetically(tagsConcerned)
+          newColumnsTag = sortTheArrayOfStringsAlphabetically(tagsConcerned)
         } else {
-          console.log("child.tags", child.tags, tagsConcerned)
-          console.log("columnsTag[column]", columnsTag[column], tagsConcerned)
-          child.tags = sortTheArrayOfStringsAlphabetically(addArrayOfStringsToArrayOfStringsIfNotPresent(tagsConcerned, child.tags))
-
-          columnsTag[column] = sortTheArrayOfStringsAlphabetically(addArrayOfStringsToArrayOfStringsIfNotPresent(tagsConcerned, columnsTag[column]))
+          newChildTags = sortTheArrayOfStringsAlphabetically(addArrayOfStringsToArrayOfStringsIfNotPresent(tagsConcerned, newChildTags))
+          newColumnsTag = sortTheArrayOfStringsAlphabetically(addArrayOfStringsToArrayOfStringsIfNotPresent(tagsConcerned, newColumnsTag))
         }
-        return [child.tags, columnsTag[column]]
+        return [newChildTags, newColumnsTag]
       }
 
-      const handleAskingOverwrite = async (child, columnsTag, column) => {
-        // console.warn("HERE before asking")
-        if (isBeingAsked === false && (overwrite === null || overwrite === undefined)) {
-          setIsBeingAsked(true)
-          let overwriteLocal
-          if (await handleOverwrite(child, columnsTag, column)) {
-            overwriteLocal = true
-          } else {
-            overwriteLocal = false
-          }
-
-          console.log("HERE")
-          setIsBeingAsked(false)
-          setOverwriteWasAsked(true)
-          let res = await handleApplyingOverwrite(overwriteLocal, child, columnsTag, column)
-          console.log("columnsTag[column]", res, column)
-          return res
-        } else if (isBeingAsked === false && overwrite !== null) {
-          let overwriteLocal = overwrite
-          let res = await handleApplyingOverwrite(overwriteLocal, child, columnsTag, column)
-          console.log("columnsTag[column]", res, column)
-          return res
-        } else if (isBeingAsked === true) {
-          await new Promise((resolve, reject) => {
-            setTimeout(() => {
-              resolve()
-            }, 1000)
-          })
-          return handleAskingOverwrite(child, columnsTag, column)
-        }
-      }
-
-      let overwriteWasAskedLocal = false
       let globalDataCopy = { ...globalData }
-      let result = () =>
-        new Promise((resolveToCall, reject) => {
-          nodes.forEach(async (node) => {
-            let nodeKeys = identifyColumnKeyToDatasetKey(node.key)
-            console.log("nodeKeys", nodeKeys)
-            let dataset = globalDataCopy[nodeKeys.datasetKey]
-            let columnsTag = getColumnsTagging(dataset)
-            if (nodeKeys.column === null) {
-              for (let child of node.children) {
-                let childKeys = identifyColumnKeyToDatasetKey(child.key)
-                if (childKeys) {
-                  // console.log("child", childKeys)
-                  let column = childKeys.column
-                  let datasetKey = childKeys.datasetKey
-                  if (datasetsConcerned.includes(datasetKey)) {
-                    let columnsToCheck = columnsConcerned[datasetKey]
+      let overwriteLocal = false
+      /* We ask the user if he wants to overwrite the tags */
+      if (await confirmOverwrite()) {
+        overwriteLocal = true
+      } else {
+        overwriteLocal = false
+      }
+      /* We create a promise for each node and we wait for every promise to be resolved */
+      await Promise.all(
+        nodes.map(async (node) => {
+          // We iterate through the nodes, which are the columns or the datasets
+          let nodeKeys = identifyColumnKeyToDatasetKey(node.key) // We identify the column key and the dataset key
+          let dataset = globalDataCopy[nodeKeys.datasetKey] // We get the dataset
+          let columnsTag = { ...getColumnsTagging(dataset) } // We get the columns tagging
 
-                    if (columnsToCheck.includes(column)) {
-                      console.log("columnsToCheck", columnsToCheck)
-                      if (child.tags) {
-                        if (child.tags.length > 0) {
-                          if (overwrite !== null && overwrite !== undefined) {
-                            console.log("overwrite", overwrite)
-                            let res = handleApplyingOverwrite(overwrite, child, columnsTag, column)
-                            child.tags = res[0]
-                            columnsTag[column] = res[1]
-                          } else {
-                            let res = await handleAskingOverwrite(child, columnsTag, column)
-                            child.tags = res[0]
-                            columnsTag[column] = res[1]
-                          }
+          if (nodeKeys.column === null) {
+            // If the node is a dataset, not a column, we iterate through the children that are the columns
+            for (let child of node.children) {
+              // IMPORTANT : For an async function, we need to use a for loop, not a forEach loop
+              let childKeys = identifyColumnKeyToDatasetKey(child.key) // We identify the column key and the dataset key
+              let dataset = globalDataCopy[nodeKeys.datasetKey] // We get the dataset
+              if (childKeys) {
+                let column = childKeys.column // We get the column
+                let newColumnTagList = columnsTag[column] // We create a new column tag array
+                let datasetKey = childKeys.datasetKey // We get the dataset key
+                if (datasetsConcerned.includes(datasetKey)) {
+                  // If the dataset key is in the list of the selected datasets
+                  let columnsToCheck = columnsConcerned[datasetKey] // We get the columns to check
+                  if (columnsToCheck.includes(column)) {
+                    // If the column is in the list of the columns to check
+                    if (child.tags) {
+                      // If the child has tags already
+                      let res = await handleApplyingOverwrite(overwriteLocal, child, newColumnTagList, column) // We apply the tagging
+                      child.tags = res[0] // We update the child tags in the nodes
+                      newColumnTagList = res[1]
+                      if (dataset.metadata.columnsTag !== undefined) {
+                        if (dataset.metadata.columnsTag[column] !== undefined) {
+                          dataset.metadata.columnsTag[column] = res[1] // We update the columns tagging in the dataset
+                          // dataset.metadata.columnsTag[column] = res[1] // We update the columns tagging in the dataset
                         } else {
-                          child.tags = sortTheArrayOfStringsAlphabetically(tagsConcerned)
-                          columnsTag[column] = sortTheArrayOfStringsAlphabetically(tagsConcerned)
+                          dataset.metadata.columnsTag = { ...dataset.metadata.columnsTag, [column]: res[1] }
                         }
                       } else {
-                        child.tags = sortTheArrayOfStringsAlphabetically(tagsConcerned)
-                        columnsTag[column] = sortTheArrayOfStringsAlphabetically(tagsConcerned)
+                        dataset.metadata = { ...dataset.metadata, columnsTag: { [column]: res[1] } }
+                      }
+                    } else {
+                      // If the child has no tags, we apply the tagging directly
+                      child.tags = sortTheArrayOfStringsAlphabetically(tagsConcerned)
+                      columnsTag[column] = sortTheArrayOfStringsAlphabetically(tagsConcerned)
+                      if (dataset.metadata.columnsTag !== undefined) {
+                        if (dataset.metadata.columnsTag[column] !== undefined) {
+                          dataset.metadata.columnsTag[column] = sortTheArrayOfStringsAlphabetically(tagsConcerned) // We update the columns tagging in the dataset
+                        } else {
+                          dataset.metadata.columnsTag = { ...dataset.metadata.columnsTag, [column]: sortTheArrayOfStringsAlphabetically(tagsConcerned) }
+                        }
+                      } else {
+                        dataset.metadata = { ...dataset.metadata, columnsTag: { [column]: sortTheArrayOfStringsAlphabetically(tagsConcerned) } }
                       }
                     }
+                    dataset.metadata.tagsDict = { ...tagsDict } // We update the tags dict in the dataset
+                    globalDataCopy[nodeKeys.datasetKey] = dataset
                   }
                 }
               }
-              resolveToCall()
             }
-            dataset.metadata.columnsTag = sortTheArrayOfStringsAlphabetically(columnsTag)
-            globalDataCopy[nodeKeys.datasetKey] = dataset
-          })
+          }
+          // resolveToCall() // We resolve the promise
+          // })
         })
-      result().then((res) => {
-        console.log("Passer tout droit", globalDataCopy)
-        setGlobalData(globalDataCopy)
-        setNodes(newNodes)
-        setOverwriteWasAsked(false)
-        setOverwrite()
-        resolveMaster(res)
-        setIsBeingAsked(false)
-        // applyTagging(res)
+      ).then((res) => {
+        setGlobalData(globalDataCopy) // We update the global data
+        setOverwriteWasAsked(false) // We reset the overwrite was asked variable
+        setOverwrite(null) // We reset the overwrite variable
+        resolveMaster(res) // We resolve the master promise which can be used to chain other promises after the update of the nodes
       })
     })
   }
 
-  const sortObjectsArraysAlphabetically = (objects) => {
-    let newObjects = { ...objects }
-    let keys = Object.keys(newObjects)
-    keys.forEach((key) => {
-      newObjects[key] = sortTheArrayOfStringsAlphabetically(newObjects[key])
+  const generateTagsDictWithColors = () => {
+    let tagsDictWithColors = {}
+    Object.keys(tagsDict).forEach((tag) => {
+      tagsDictWithColors[tag] = { color: tagsDict[tag].color, fontColor: tagsDict[tag].fontColor }
     })
-    return newObjects
+    return tagsDictWithColors
   }
 
+  /**
+   * Sort the array of strings alphabetically
+   * @param {array} array - Array
+   * @returns {array} - Sorted array
+   * @summary This function is used to sort the strings in an array alphabetically
+   */
   const sortTheArrayOfStringsAlphabetically = (array) => {
-    console.log("array", array)
     if (Array.isArray(array) === false) {
-      if (Object.keys(array).length > 0) {
-        return array
-        // return sortObjectsArraysAlphabetically(array)
+      // If the array is not an array, we return the array
+      if (array === undefined) {
+        return []
       } else {
         return array
       }
     }
-
     let newArray = array
     newArray.sort((a, b) => {
       if (a < b) {
@@ -468,72 +532,15 @@ const GroupingTool = ({ pageId = "42-grouping", configPath = null }) => {
     return newArray
   }
 
-  const sortTheTagsAlphabetically = (tags) => {
-    let newTags = [...tags]
-    newTags.sort((a, b) => {
-      if (a.label < b.label) {
-        return -1
-      }
-      if (a.label > b.label) {
-        return 1
-      }
-      return 0
-    })
-    return newTags
-  }
-
-  const applyTagging = async () => {
-    console.log("APPLY TAGGING")
-    let globalDataCopy = { ...globalData }
-    let { datasetsConcerned, columnsConcerned, tagsConcerned } = getSelectedTagsAndSelectedColumns()
-    datasetsConcerned.forEach((datasetKey) => {
-      let dataset = globalDataCopy[datasetKey]
-      let columnsTag = getColumnsTagging(dataset)
-      if (columnsTag) {
-        columnsConcerned[datasetKey].forEach((column) => {
-          let tagsAlreadyThere = columnsTag[column]
-          if (tagsAlreadyThere && tagsAlreadyThere.length > 0) {
-            if (overwriteWasAsked && !overwrite) {
-              addTagsToArrayIfNotPresent(tagsAlreadyThere, tagsConcerned)
-              columnsTag[column] = tagsAlreadyThere
-            } else if (overwriteWasAsked && overwrite) {
-              columnsTag[column] = tagsConcerned
-            }
-          } else {
-            columnsTag[column] = tagsConcerned
-          }
-        })
-      } else {
-        columnsConcerned[datasetKey].forEach((column) => {
-          columnsTag[column] = tagsConcerned
-        })
-      }
-      dataset.metadata.columnsTag = columnsTag
-      globalDataCopy[datasetKey] = dataset
-    })
-    setGlobalData(globalDataCopy)
-    setOverwriteWasAsked(false)
-    setOverwrite(false)
-  }
-
-  useEffect(() => {
-    console.log("tagsDict", tagsDict)
-    let newTagsList = []
-    Object.keys(tagsDict).forEach((tag) => {
-      newTagsList.push({ label: tag, value: tag, color: tagsDict[tag].color })
-    })
-    // setTagsList(newTagsList)
-  }, [tagsDict])
-
-  useEffect(() => {
-    console.log("selectedTags", selectedTags)
-  }, [selectedTags])
-
-  useEffect(() => {
-    console.log("selectedNodes", selectedNodes)
-    console.log("nodes", nodes)
-  }, [selectedNodes])
-
+  /**
+   * Add tag to tags dict
+   * @param {string} tag - Tag
+   * @param {string} color - Color
+   * @param {object} newTagsDict - New tags dict
+   * @param {boolean} protect - Protect
+   * @returns {object} - New tags dict
+   * @summary This function is used to add a tag to the tags dict
+   */
   const addTagToTagsDict = (tag, color, newTagsDict, protect) => {
     if (newTagsDict[tag]) {
       console.log("tag already present")
@@ -543,6 +550,12 @@ const GroupingTool = ({ pageId = "42-grouping", configPath = null }) => {
     return newTagsDict
   }
 
+  /**
+   * Template for the tags in the multiselect tags alone - used primarily to add colors to the tags
+   * @param {object} option - Option
+   * @returns {JSX.Element} - JSX element - tag template
+   * @summary --> itemName [tag1] [tag2]
+   */
   const tagTemplate = (option) => {
     let style = { backgroundColor: option.color, color: tagsDict[option.label].fontColor }
     return (
@@ -554,13 +567,17 @@ const GroupingTool = ({ pageId = "42-grouping", configPath = null }) => {
     )
   }
 
+  /**
+   * Template for the tags in the multiselect - tags following the items
+   * @param {object} option - Option
+   * @returns {JSX.Element} - JSX element - tag template
+   * @summary --> option.label [tag1] [tag2]
+   */
   const columnSelectionTemplate = (option) => {
-    let tagsDictCopy = { ...tagsDict }
-
     return (
       <div className="flex align-items-center">
         <span>{option.label}</span>
-        {option.tags &&
+        {option.tags && // If the option has tags
           option.tags.map((tag) => {
             return (
               <Tag className={tag.color} key={tag} style={{ backgroundColor: tagsDict[tag].color, color: tagsDict[tag].fontColor }}>
@@ -572,15 +589,23 @@ const GroupingTool = ({ pageId = "42-grouping", configPath = null }) => {
     )
   }
 
+  /**
+   * Template for the chips being shown in the input field of the multiselect
+   * @param {object} option - Option
+   * @returns {JSX.Element} - JSX element - chip template
+   */
   const customChip = (option) => {
     let style = { padding: "0px 5px", backgroundColor: tagsDict[option].color, color: tagsDict[option].fontColor }
-    // console.log("OPTIONS", option)
 
     return <Chip className="custom-token" label={option} style={style}></Chip>
   }
 
+  /**
+   * Template for the chips being shown in the input field of the multiselect
+   * @param {object} option - Option
+   * @returns {JSX.Element} - JSX element - chip template
+   */
   const customChipRemovable = (option) => {
-    // console.log("OPTIONS REMOVABLE", option)
     if (option !== undefined) {
       let style = { padding: "0px 5px", backgroundColor: tagsDict[option].color, color: tagsDict[option].fontColor }
       return <Chip className="custom-token" label={option} style={style}></Chip>
@@ -589,10 +614,26 @@ const GroupingTool = ({ pageId = "42-grouping", configPath = null }) => {
     }
   }
 
-  useEffect(() => {
-    console.log("globalData", globalData)
-  }, [globalData])
+  /**
+   * Function to update the tags dictionnary in all the selected datasets
+   */
+  const updateTagsDictInAllSelectedDatasets = () => {
+    let newGlobalData = { ...globalData }
+    let newTagsDict = generateTagsDictWithColors()
+    Object.keys(selectedDatasets).forEach((key) => {
+      let dataset = newGlobalData[key]
+      if (dataset) {
+        dataset.metadata.tagsDict = newTagsDict
+        newGlobalData[key] = dataset
+      }
+    })
+    setGlobalData(newGlobalData)
+  }
 
+  /**
+   * Function to update the tags dict with the tags already present in the selected datasets
+   * @returns {void}
+   */
   const updateTagsDictWithAlreadyPresentTags = () => {
     let newTagsDict = { ...tagsDict }
     Object.keys(tagsPresentInSelectedDatasets).forEach((tag) => {
@@ -600,66 +641,144 @@ const GroupingTool = ({ pageId = "42-grouping", configPath = null }) => {
         newTagsDict = addTagToTagsDict(tag, generateRandomColor(), newTagsDict, false)
       }
     })
-
     setTagsDict(newTagsDict)
   }
 
-  useEffect(() => {
-    console.log("tagsPresentInSelectedDatasets", tagsPresentInSelectedDatasets)
-    // Object.keys(tagsPresentInSelectedDatasets)
-    updateTagsDictWithAlreadyPresentTags()
-  }, [tagsPresentInSelectedDatasets])
-
-  useEffect(() => {
-    updateTagsPresentInSelectedDatasets()
-    console.log("selectedDatasets", selectedDatasets)
-  }, [selectedDatasets])
-
+  /**
+   * Function to update the tags present in the selected datasets
+   * @returns {void}
+   * @note we update primarily the datasets with their associated tags, but HERE, we update the tags with their associated datasets
+   */
   const updateTagsPresentInSelectedDatasets = () => {
-    let selectedKeys = Object.keys(selectedDatasets)
-    let tagsArray = Object.entries(tagsPresentInSelectedDatasets)
-    let newTagsPresentInSelectedDatasets = { ...tagsPresentInSelectedDatasets }
+    let selectedKeys = Object.keys(selectedDatasets) // We get the selected keys
+    let tagsArray = Object.entries(tagsPresentInSelectedDatasets) // We get the tags array
+    let newTagsPresentInSelectedDatasets = { ...tagsPresentInSelectedDatasets } // We create a new tags present in selected datasets dict
     tagsArray.forEach((tag) => {
-      let datasets = tag[1]
+      // We iterate through the tags array
+      let datasets = tag[1] // We get the datasets
       if (datasets) {
-        let datasetsToRemove = []
+        // If the datasets exist
+        let datasetsToRemove = [] // We create a new datasets to remove array
         datasets.forEach((dataset) => {
+          // We iterate through the datasets
           if (!selectedKeys.includes(dataset)) {
-            datasetsToRemove.push(dataset)
+            datasetsToRemove.push(dataset) // We add the dataset to the datasets to remove array
           }
         })
         datasetsToRemove.forEach((dataset) => {
-          let index = datasets.indexOf(dataset)
-          datasets.splice(index, 1)
+          // We iterate through the datasets to remove
+          let index = datasets.indexOf(dataset) // We get the index of the dataset
+          datasets.splice(index, 1) // We remove the dataset from the datasets
         })
-        newTagsPresentInSelectedDatasets[tag[0]] = datasets
+        newTagsPresentInSelectedDatasets[tag[0]] = datasets // We update the new tags present in selected datasets dict
       } else {
-        delete newTagsPresentInSelectedDatasets[tag[0]]
+        delete newTagsPresentInSelectedDatasets[tag[0]] // We delete the tag from the new tags present in selected datasets dict
       }
     })
-
     setTagsPresentInSelectedDatasets(newTagsPresentInSelectedDatasets)
-    console.log("newTagsPresentInSelectedDatasets", newTagsPresentInSelectedDatasets)
   }
 
-  const secondMultiselect = useRef(null)
-  // console.log("secondMultiselect", secondMultiselect)
+  /**
+   * Function that is called when the global data is updated
+   * @returns {void}
+   * @summary This function is used to update the list of datasets when the global data is updated
+   */
+  useEffect(() => {
+    if (globalData !== null) {
+      updateListOfDatasets()
+    }
+  }, [globalData])
+
+  /**
+   * Function that is called when the selected datasets are updated
+   * @returns {void}
+   * @summary This function is used to update the nodes when the selected datasets are updated
+   *           It also updates the tags already present in the selected datasets
+   *           It also updates the tags dict
+   * @note We get the columns names here and we create the nodes for the tree
+   */
+  useEffect(() => {
+    let newNodes = [] // We create a new nodes array
+    let tagsToAdd = [] // We create a new tags to add array
+    Object.keys(selectedDatasets).forEach((key) => {
+      // We iterate through the selected datasets
+      let dataset = selectedDatasets[key] // We get the dataset
+      let datasetChildren = [] // We create a new dataset children array
+      if (dataset) {
+        // If the dataset exists
+        let columnsTag = getColumnsTagging(globalData[key]) // We get the columns tagging
+        getColumnsFromPromise(globalData[key]).then((columns) => {
+          // We get the columns from the promise
+          columns.forEach((column) => {
+            // We iterate through the columns
+            column = cleanString(column) // We clean the column name, remove the spaces and the quotes
+            if (columnsTag[column]) {
+              // If the column is already tagged
+              console.log("columnsTag[column]", columnsTag[column], column)
+              addTagsToArrayIfNotPresent(columnsTag[column], key) // We add the tags to the tags already present in the selected datasets
+              columnsTag[column].forEach((tag) => {
+                // We iterate through the tags
+                if (!tagsToAdd.includes(tag)) {
+                  // If the tag is not in the tags to add array
+                  tagsToAdd.push(tag) // We add the tag to the tags to add array
+                }
+              })
+              addTagsToTagsAlreadyInSelectedDatasets(tagsToAdd) // We add the tags to the tags already in the selected datasets
+              datasetChildren.push({ key: column + "_|_" + key, label: column, value: column, checked: true, partialChecked: false, tags: columnsTag[column] })
+            } else {
+              // If the column is not tagged
+              datasetChildren.push({ key: column + "_|_" + key, label: column, value: column, checked: true, partialChecked: false, tags: [] })
+            }
+          })
+        })
+      }
+      newNodes.push({ key: key, label: dataset.name, value: dataset.name, children: datasetChildren, checked: false, partialChecked: false }) // We push the dataset to the nodes
+    })
+    setNodes(newNodes) // We update the nodes
+  }, [selectedDatasets])
+
+  /**
+   * Function that is called when the tags present in selected datasets are updated
+   * @returns {void}
+   * @summary This function is used to update the tags dict when the tags present in selected datasets are updated
+   */
+  useEffect(() => {
+    updateTagsDictWithAlreadyPresentTags()
+  }, [tagsPresentInSelectedDatasets])
+
+  /**
+   * Function that is called when the selected datasets are updated
+   * @returns {void}
+   * @summary This function is used to update the tags present in selected datasets when the selected datasets are updated
+   */
+  useEffect(() => {
+    updateTagsPresentInSelectedDatasets()
+  }, [selectedDatasets])
+
+  /**
+   * Function that is called when tags dict is updated
+   * @returns {void}
+   * @summary This function is used to update the tags dict of every selected dataset when the tags dict is updated
+   */
+  useEffect(() => {
+    updateTagsDictInAllSelectedDatasets()
+  }, [tagsDict])
 
   return (
     <>
       <div className="groupingTool mergeToolMultiSelect">
+        {" "}
+        {/* Merge tool multiselect is here to use the same class inheritance - CSS*/}
         <Row className="justify-content-center ">
-          {/* <Col style={{ display: "flex", flexDirection: "row", flexGrow: "1", alignItems: "start", justifyContent: "start", paddingInline: "0rem" }}> */}
           <Col lg={4} style={{ display: "flex", flexDirection: "column", flexGrow: "1", alignItems: "start", justifyContent: "start", paddingInline: "0rem", marginInline: "0.5rem" }}>
             <h6 style={{ paddingBottom: "0.25rem", margin: "0rem", marginInline: "0.5rem", height: "1.5rem" }}> Select the datasets you want to tag</h6>
-            <MultiSelect
+            <MultiSelect // Multiselect to select the datasets (.csv, .json & .xlsx files)
               display="chip"
               ref={firstMultiselect}
               className="w-full md:w-14rem margintop8px"
               value={
                 Object.keys(selectedDatasets).length !== 0
                   ? Object.entries(selectedDatasets).map((arr) => {
-                      // console.log("arr", arr)
                       return { name: arr[1].name, key: arr[0] }
                     })
                   : null
@@ -667,9 +786,9 @@ const GroupingTool = ({ pageId = "42-grouping", configPath = null }) => {
               options={listOfDatasets}
               onChange={async (e) => {
                 let newSelectedDatasetsDict = {}
-                console.log("e", e)
                 e.value.forEach((value) => {
                   if (value.key !== undefined) {
+                    getDatasetTagsDict(globalData[value.key])
                     newSelectedDatasetsDict[value.key] = { name: value.name, columns: getColumnsFromPromise(globalData[value.key]), selectedColumns: null, mergeType: null, isValid: false }
                   }
                 })
@@ -682,21 +801,23 @@ const GroupingTool = ({ pageId = "42-grouping", configPath = null }) => {
             {/* Map the selected datasets in a list */}
             <ul style={{ padding: "0rem", columnCount: "2", columnFill: "balance", maxHeight: "15rem", overflow: "auto", maxWidth: "100%" }}>
               {Object.keys(selectedDatasets).map((key, index) => {
+                // We iterate through the selected datasets
                 return (
                   <li key={index} style={{ display: "flex", flexDirection: "row" }}>
                     <div className="listItem" key={index} style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-between", width: "100%" }}>
-                      <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{selectedDatasets[key].name}</span>
+                      <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{selectedDatasets[key].name}</span> {/* We display the name of the dataset */}
                       <div className="icon-button-div">
-                        <a
+                        <a // We add an icon to remove the tags from the dataset
                           value={key}
                           style={{ marginLeft: "1rem" }}
                           onClick={(e) => {
                             confirmInfo(
                               e,
                               () => {
-                                let selectedDatasetsCopy = { ...selectedDatasets }
-                                selectedDatasetsCopy[key].columns = getColumnsFromPromise(globalData[key])
-                                let newGlobalData = { ...globalData }
+                                // If the user confirms the removal of the tags from the dataset
+                                let selectedDatasetsCopy = { ...selectedDatasets } // We create a copy of the selected datasets
+                                selectedDatasetsCopy[key].columns = getColumnsFromPromise(globalData[key]) // We get the columns from the promise
+                                let newGlobalData = { ...globalData } // We create a copy of the global data
                                 if (newGlobalData[key]) {
                                   if (newGlobalData[key].metadata) {
                                     if (newGlobalData[key].metadata.columnsTag) {
@@ -715,7 +836,7 @@ const GroupingTool = ({ pageId = "42-grouping", configPath = null }) => {
                         >
                           <Eraser size={20} />
                         </a>
-                        <a
+                        <a // We add an icon to remove the dataset from the selected datasets
                           value={key}
                           style={{ marginLeft: "0.1rem" }}
                           onClick={() => {
@@ -736,7 +857,7 @@ const GroupingTool = ({ pageId = "42-grouping", configPath = null }) => {
           <Col lg={4} style={{ display: "flex", flexDirection: "column", flexGrow: "1", alignItems: "flex-start", justifyContent: "flex-start", paddingInline: "0rem" }}>
             <div style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center", width: "100%", flexWrap: "nowrap", height: "1.5rem" }}>
               <h6 style={{ paddingBottom: "0.25rem", margin: "0rem", marginInline: "1rem" }}> Create your tags</h6>
-              <Button
+              <Button // Button to add the default tags
                 className="checkmarkButton"
                 style={{ width: "fit-content", height: "fit-content", padding: "0.15rem", margin: "0px" }}
                 onClick={() => {
@@ -753,7 +874,7 @@ const GroupingTool = ({ pageId = "42-grouping", configPath = null }) => {
               </Button>
             </div>
 
-            <Chips
+            <Chips // Chips to display the tags
               className="w-full md:w-14rem margintop8px small-token token-bg-transparent"
               value={Object.keys(tagsDict)}
               removable={false}
@@ -769,12 +890,13 @@ const GroupingTool = ({ pageId = "42-grouping", configPath = null }) => {
                 <b>Tags</b>
               </u>
             </h6>
-            <ul style={{ padding: "0rem" }}>
+            <ul style={{ padding: "0rem", width: "100%" }}>
               {Object.keys(tagsDict).map((tag, key) => {
+                // We iterate through the tags dict
                 return (
                   <li key={key} style={{ display: "flex", flexDirection: "row" }}>
                     <div key={key} style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-between", width: "100%", flexWrap: "wrap" }}>
-                      {editingTag === tag ? (
+                      {editingTag === tag ? ( // If the tag is being edited (renamed)
                         <input
                           value={tempTag}
                           onChange={(e) => setTempTag(e.target.value)}
@@ -786,6 +908,7 @@ const GroupingTool = ({ pageId = "42-grouping", configPath = null }) => {
                             setEditingTag(null)
                           }}
                           onKeyDown={(e) => {
+                            // If the user presses enter, we rename the tag
                             if (e.key === "Enter") {
                               let newTagsDict = { ...tagsDict }
                               delete newTagsDict[tag]
@@ -796,24 +919,22 @@ const GroupingTool = ({ pageId = "42-grouping", configPath = null }) => {
                           }}
                         />
                       ) : (
-                        <span style={{ paddingRight: "0.5rem" }}>{tag}</span>
+                        <span style={{ paddingRight: "0.5rem", whiteSpace: "nowrap", textOverflow: "ellipsis", overflow: "hidden" }}>{tag}</span> // If the tag is not being edited (renamed), we display the tag name
                       )}
-                      <div style={{ right: "0px", display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-between", flexWrap: "nowrap" }}>
-                        <ColorPicker
+                      <div style={{ marginLeft: "auto", display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-between", flexWrap: "nowrap" }}>
+                        <ColorPicker // Color picker to change the color of the tag
                           key={key}
                           value={tagsDict[tag].color}
                           onChange={(e) => {
                             let newTagsDict = { ...tagsDict }
                             newTagsDict[tag].color = "#" + e.value
-                            console.log("newTagsDict", newTagsDict)
                             setTagsDict(newTagsDict)
                           }}
                         />
-                        <ToggleButton
+                        <ToggleButton // Toggle button to change the font color of the tag
                           style={{ marginLeft: "0.25rem" }}
                           className="toggle-font-color-button"
                           onChange={(e) => {
-                            console.log("e", e.value)
                             let newTagsDict = { ...tagsDict }
                             newTagsDict[tag].fontColor = newTagsDict[tag].fontColor === "black" ? "white" : "black"
                             setTagsDict(newTagsDict)
@@ -824,19 +945,17 @@ const GroupingTool = ({ pageId = "42-grouping", configPath = null }) => {
                           onIcon={(options) => <Fonts size={20} color="black" {...options.iconProps} />}
                           offIcon={(options) => <Fonts size={20} color="white" {...options.iconProps} />}
                         />
-                        <a
+                        <a // Icon to edit/rename the tag
                           value={tag}
                           style={{ marginLeft: "0.25rem" }}
                           onClick={(e) => {
-                            // RENAME TAG
                             setTempTag(tag)
                             setEditingTag(tag)
-                            // let newTagsDict = { ...tagsDict }
                           }}
                         >
                           <PencilSquare size={20} />
                         </a>
-                        <a
+                        <a // Icon to delete the tag
                           value={tag}
                           style={{ marginLeft: "0.25rem" }}
                           onClick={(e) => {
@@ -844,13 +963,11 @@ const GroupingTool = ({ pageId = "42-grouping", configPath = null }) => {
                             confirmDanger(
                               e,
                               () => {
-                                console.log("tag", tag)
-
                                 delete newTagsDict[tag]
                                 setTagsDict(newTagsDict)
                               },
                               () => {
-                                console.log("NO")
+                                console.log("Canceled deletion of the tag")
                               }
                             )
                           }}
@@ -864,21 +981,20 @@ const GroupingTool = ({ pageId = "42-grouping", configPath = null }) => {
               })}
             </ul>
           </Col>
-          {/* </Col> */}
         </Row>
         <Row className="justify-content-center">
           <Col md={4} style={{ display: "flex", flexDirection: "column", flexGrow: "1", alignItems: "start", justifyContent: "start", paddingInline: "0rem", marginInline: "0.5rem" }}>
             <h5>Columns</h5>
-            <TreeSelect className="small-token" nodeTemplate={columnSelectionTemplate} panelClassName="groupingToolTree" filter value={selectedNodes} options={nodes} metaKeySelection={false} selectionMode="checkbox" display="chip" selectionKeys={selectedNodes} onChange={(e) => setSelectedNodes(e.value)} />
+            {/* Tree select to select the columns */}
+            <TreeSelect className="small-token" nodeTemplate={columnSelectionTemplate} panelClassName="groupingToolTree" filter value={selectedNodes} options={nodes} metaKeySelection={false} selectionMode="checkbox" display="chip" onChange={(e) => setSelectedNodes(e.value)} />
           </Col>
           <Col lg={6} style={{ display: "flex", flexDirection: "column", flexGrow: "1", alignItems: "start", justifyContent: "start", paddingInline: "0rem" }}>
             <h5>Set/Modify Tag</h5>
             <div style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-between", width: "100%", flexWrap: "nowrap" }}>
               <p style={{ paddingRight: "0.5rem", minWidth: "fit-content", margin: "0px" }}>Add tag</p>
-              <MultiSelect
+              <MultiSelect // Multiselect to select the tags to add to the selected columns
                 ref={secondMultiselect}
                 selectedItemTemplate={customChipRemovable}
-                removable={true}
                 itemTemplate={tagTemplate}
                 display="chip"
                 className=" md:w-14rem margintop8px groupingTool small-token"
@@ -893,21 +1009,19 @@ const GroupingTool = ({ pageId = "42-grouping", configPath = null }) => {
                 placeholder="Select a tag"
                 style={{ flexGrow: "1", marginRight: "0.5rem", overflow: "hidden" }}
               />
-              <Button
+              <Button // Button to add the selected tags to the selected columns
                 className="p-button-success checkmarkButton"
                 style={{ width: "fit-content", height: "fit-content", padding: "0.25rem", margin: "0px", flexShrink: "0" }}
                 onClick={(e) => {
                   setOverwriteWasAsked(false)
-                  console.log("overWrite", overwrite)
-                  console.log("overwriteWasAsked", overwriteWasAsked)
+                  setOverwrite(null)
                   confirmInfo(
                     e,
                     async () => {
                       let res = await updateNodeTags()
-                      console.log("I have waited", res)
                     },
                     () => {
-                      console.log("NO")
+                      console.log("Canceled adding tags to the columns")
                     }
                   )
                 }}
@@ -916,12 +1030,6 @@ const GroupingTool = ({ pageId = "42-grouping", configPath = null }) => {
               </Button>
             </div>
           </Col>
-        </Row>
-
-        <Row className="justify-content-start">
-          <Col lg={6} style={{ display: "flex", flexDirection: "row", justifyContent: "center", flexGrow: 0, alignItems: "center", marginTop: "1rem" }} xs></Col>
-
-          <div className="progressBar-merge">{<ProgressBarRequests isUpdating={isProgressUpdating} setIsUpdating={setIsProgressUpdating} progress={progress} setProgress={setProgress} requestTopic={"input/progress/" + pageId} delayMS={50} />}</div>
         </Row>
       </div>
     </>

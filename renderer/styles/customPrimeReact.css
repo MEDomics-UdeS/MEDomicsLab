@@ -19,7 +19,7 @@
 .p-listbox {
   border: solid 1px #8ac4ffdc;
   border-radius: 5px;
-  background-color: transparent;
+  background-color: #414e6426;
   padding: 0.1rem !important;
 }
 
@@ -191,8 +191,9 @@
 .p-float-label .p-inputwrapper-focus ~ label,
 .p-float-label .p-inputwrapper-filled ~ label,
 .p-float-label .p-tooltip-target-wrapper ~ label {
-  top: -0.45rem;
+  top: -0.55rem;
   font-size: 16px;
+  color: #495057;
 }
 
 .mergeToolMultiSelect .p-input-group.dataset-name .p-inputtext {

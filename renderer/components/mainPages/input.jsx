@@ -1,7 +1,8 @@
 import React, { useEffect, useContext, useState, use } from "react"
 import DatasetSelector from "./dataComponents/datasetSelector"
 import ModulePage from "./moduleBasics/modulePage"
-import { Accordion, AccordionTab } from "primereact/accordion"
+// import { Accordion, AccordionTab } from "primereact/accordion"
+import { Accordion } from "react-bootstrap"
 import { DataContext } from "../workspace/dataContext"
 import { Dropdown } from "primereact/dropdown"
 import { Stack } from "react-bootstrap"
@@ -30,16 +31,25 @@ const InputPage = ({ pageId = "42", configPath = null }) => {
       <ModulePage pageId={pageId} configPath={configPath}>
         <h1>INPUT MODULE</h1>
         <div className="input-page">
-          <Accordion multiple activeIndex={activeIndex} onTabChange={(e) => setActiveIndex(e.index)}>
-            <AccordionTab header="Dataset Selector">
-              <DatasetSelector multiSelect={true} />
-            </AccordionTab>
-            <AccordionTab header="Merge Tool">
-              <MergeTool pageId={pageId} />
-            </AccordionTab>
-            <AccordionTab header="Grouping Tool">
-              <GroupingTool pageId={pageId} />
-            </AccordionTab>
+          <Accordion className="card-accordion" defaultActiveKey={["0"]} alwaysOpen>
+            <Accordion.Item eventKey="0">
+              <Accordion.Header>Dataset selector</Accordion.Header>
+              <Accordion.Body>
+                <DatasetSelector multiSelect={true} />
+              </Accordion.Body>
+            </Accordion.Item>
+            <Accordion.Item eventKey="1">
+              <Accordion.Header>Merge tool</Accordion.Header>
+              <Accordion.Body>
+                <MergeTool pageId={pageId} />
+              </Accordion.Body>
+            </Accordion.Item>
+            <Accordion.Item eventKey="2">
+              <Accordion.Header>Grouping/Tagging tool</Accordion.Header>
+              <Accordion.Body>
+                <GroupingTool pageId={pageId} />
+              </Accordion.Body>
+            </Accordion.Item>
           </Accordion>
         </div>
       </ModulePage>

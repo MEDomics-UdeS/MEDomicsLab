@@ -52,28 +52,19 @@ const MergeTool = ({ pageId = "42", configPath = null }) => {
           ;(async () => {
             let newDictOfDatasets = { ...dictOfDatasets }
             let columnsOriginal = await globalData[dictOfDatasets[key].data].getColumnsOfTheDataObjectIfItIsATable()
-            // console.log("Columns", columnsOriginal)
             let columnsOptions = generateColumnsOptionsFromColumns(columnsOriginal)
-            // console.log("newDictOfDatasets", newDictOfDatasets, key)
             newDictOfDatasets[key].options = columnsOptions
             if (key !== "0") {
               if (dictOfDatasets[0].mergeOn) {
                 // Check if the mergeOn column is present in the dataset
                 if (!columnsOriginal.includes(dictOfDatasets[0].mergeOn)) {
-                  // console.log("MERGE ON NOT PRESENT")
                   newDictOfDatasets[key].isValid = false
                 } else {
-                  // console.log("MERGE ON PRESENT")
                   newDictOfDatasets[key].isValid = true
                 }
               }
             }
-            // if (key === "0" && firstDatasetHasChanged) {
-            //   // console.log("firstDatasetHasChanged", firstDatasetHasChanged)
-            //   newDictOfDatasets[key].selectedColumns = columnsOptions
-            //   setFirstDatasetHasChanged(false)
-            // }
-            // }
+
             setDictOfDatasets(newDictOfDatasets)
           })()
         }
@@ -82,25 +73,18 @@ const MergeTool = ({ pageId = "42", configPath = null }) => {
   }, [dictOfDatasets])
 
   const returnListWithoutDatasetAlreadyUsed = (index) => {
-    // Object.keys(dictOfDatasets).forEach((key) => {
-
-    // console.log("DictOfDatasets", dictOfDatasets)
     let alreadySelectedDatasets = Object.entries(dictOfDatasets).map((arr) => {
-      // console.log("arr", arr, i, index)
       if (arr[1] && arr[1].data) {
         if (arr[0] !== index) {
           return arr[1].data
         }
       }
     })
-    // console.log("alreadySelectedDatasets", alreadySelectedDatasets)
     let options = listOfDatasets.filter((dataset) => !alreadySelectedDatasets.includes(dataset.key))
-    // console.log("options", options)
     return options
   }
 
   const cleanString = (string) => {
-    // if String has spaces or "", erase them
     if (string.includes(" ") || string.includes('"')) {
       string = string.replaceAll(" ", "")
       string = string.replaceAll('"', "")
@@ -109,7 +93,6 @@ const MergeTool = ({ pageId = "42", configPath = null }) => {
   }
 
   const generateColumnsOptionsFromColumns = (columns) => {
-    // console.log("columns", columns)
     let options = []
     if (columns === null || columns === undefined) {
       return options
@@ -125,7 +108,6 @@ const MergeTool = ({ pageId = "42", configPath = null }) => {
   const addMergeOnToSelectedColumnsIfPresent = (datasetKey, selectedColumns) => {
     let dataset = dictOfDatasets[datasetKey]
     let newSelectedColumns = selectedColumns
-    // console.log("datasetKey", datasetKey)
 
     if (mergeOn && datasetKey) {
       if (dataset && selectedColumns) {
@@ -230,8 +212,6 @@ const MergeTool = ({ pageId = "42", configPath = null }) => {
             </span>
           </Col>
           <Col md={4} style={{ display: "flex", flexDirection: "row", flexGrow: "1", alignItems: "center", justifyContent: "center", paddingInline: "0.5rem" }}>
-            {/* <h6 style={{ padding: ".25rem", margin: "0rem", marginLeft: "0rem", minWidth: "8rem" }}>Column to merge on :</h6> */}
-            {/* {const columns = dataset ? globalData[dictOfDatasets[key].data].metadata.columns : null} */}
             <span className="p-float-label" style={{ width: "100%" }}>
               <Dropdown
                 disabled={dictOfDatasets[0] ? false : true}
@@ -245,7 +225,6 @@ const MergeTool = ({ pageId = "42", configPath = null }) => {
                 label="Select the column to merge on"
                 placeholder="Merge on..."
                 style={{ width: "100%" }}
-                // style={{ minWidth: "7rem" }}
                 onChange={(e) => {
                   let newDictOfDatasets = dictOfDatasets ? { ...dictOfDatasets } : {}
                   newDictOfDatasets[0].mergeOn = e.target.value
@@ -284,7 +263,6 @@ const MergeTool = ({ pageId = "42", configPath = null }) => {
                 onChange={(e) => {
                   if (dictOfDatasets[0]) {
                     let newDictOfDatasets = dictOfDatasets ? { ...dictOfDatasets } : {}
-                    // console.log("e", e, dictOfDatasets[0].options, dictOfDatasets[0].mergeOn)
                     newDictOfDatasets[0].selectedColumns = e.target.value
                     setDictOfDatasets(newDictOfDatasets)
                   }
@@ -308,7 +286,6 @@ const MergeTool = ({ pageId = "42", configPath = null }) => {
             if (dictOfDatasets[key] && dictOfDatasets[0].mergeOn) {
               if (dictOfDatasets[key].isValid !== undefined && dictOfDatasets[key].isValid !== null) {
                 isValid = dictOfDatasets[key].isValid
-                // console.log("isValid", isValid)
               }
             }
 
@@ -329,7 +306,6 @@ const MergeTool = ({ pageId = "42", configPath = null }) => {
                       </a>
                     </Col>
 
-                    {/* <Col md={} key={key + "col2"} style={{ display: "flex", flexDirection: "column", flexGrow: "1", alignItems: "center", justifyContent: "center", marginTop: "1rem" }}> */}
                     <span className="p-float-label" style={{ width: "100%" }}>
                       <Dropdown
                         className={`w-full md:w-14rem padding8px ${isValid ? "" : "p-invalid"}`}
@@ -395,9 +371,7 @@ const MergeTool = ({ pageId = "42", configPath = null }) => {
                           )
                         }}
                         onFocus={() => {
-                          // console.log("FOCUS", e)
                           if (dictOfDatasets[key]) {
-                            // console.log("FOCUS INNER", e)
                             let newDictOfDatasets = dictOfDatasets ? { ...dictOfDatasets } : {}
                             newDictOfDatasets[key].selectedColumns = addMergeOnToSelectedColumnsIfPresent(dictOfDatasets[key], dictOfDatasets[key].selectedColumns ? dictOfDatasets[key].selectedColumns : [])
                             setDictOfDatasets(newDictOfDatasets)
@@ -406,7 +380,6 @@ const MergeTool = ({ pageId = "42", configPath = null }) => {
                         onChange={(e) => {
                           if (isValid) {
                             let newDictOfDatasets = dictOfDatasets ? { ...dictOfDatasets } : {}
-                            // console.log("e", e, dictOfDatasets[key].options, dictOfDatasets[0].mergeOn)
                             newDictOfDatasets[key].selectedColumns = e.target.value
                             setDictOfDatasets(newDictOfDatasets)
                           }
@@ -414,7 +387,6 @@ const MergeTool = ({ pageId = "42", configPath = null }) => {
                       />
                       <label htmlFor="in">Selected columns</label>
                     </span>
-                    {/* </Col> */}
                   </Col>
                 </Row>
                 <Row key={key + "lastRow"} className="justify-content-center">
