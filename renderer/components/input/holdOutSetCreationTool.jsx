@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useContext, useRef } from "react"
-import { AccordionTab } from "primereact/accordion"
 import { DataContext } from "../workspace/dataContext"
 import { Dropdown } from "primereact/dropdown"
 import Row from "react-bootstrap/Row"
@@ -13,11 +12,11 @@ import MedDataObject from "../workspace/medDataObject"
 import { InputText } from "primereact/inputtext"
 import ProgressBarRequests from "../flow/progressBarRequests"
 
-const MergeTool = ({ pageId = "42", configPath = null }) => {
+const HoldOutSetCreationTool = ({ pageId = "42", configPath = null }) => {
   const { port } = useContext(WorkspaceContext) // we get the port for server connexion
-  const [listOfDatasets, setListOfDatasets] = useState([]) // The list of datasets to show in the dropdown
-  const [dictOfDatasets, setDictOfDatasets] = useState({}) // The dict of datasets to show in the dropdown
-  const { globalData } = useContext(DataContext) // We get the global data from the context to retrieve the directory tree of the workspace, thus retrieving the data files
+  const [listOfDatasets, setListOfDatasets] = useState([])
+  const [dictOfDatasets, setDictOfDatasets] = useState({})
+  const { globalData } = useContext(DataContext)
   const [firstSelectedDataset, setFirstSelectedDataset] = useState(null)
   const [mergeOn, setMergeOn] = useState(null)
   const [inError, setInError] = useState(false)
@@ -28,13 +27,6 @@ const MergeTool = ({ pageId = "42", configPath = null }) => {
   const [progress, setProgress] = useState({ now: 0, currentLabel: "" })
   const [isProgressUpdating, setIsProgressUpdating] = useState(false)
 
-  const mergeOptions = [
-    { label: "Left", value: "left" },
-    { label: "Right", value: "right" },
-    { label: "Inner", value: "inner" },
-    { label: "Outer", value: "outer" },
-    { label: "Cross", value: "cross" }
-  ]
   const updateListOfDatasets = () => {
     let newDatasetList = []
     Object.keys(globalData).forEach((key) => {

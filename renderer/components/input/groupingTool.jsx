@@ -451,7 +451,7 @@ const GroupingTool = ({ pageId = "42-grouping", configPath = null }) => {
                     if (child.tags) {
                       // If the child has tags already
                       let res = await handleApplyingOverwrite(overwriteLocal, child, newColumnTagList, column) // We apply the tagging
-                      child.tags = res[0] // We update the child tags in the nodes
+                        child.tags = res[0] // We update the child tags in the nodes
                       newColumnTagList = res[1]
                       if (dataset.metadata.columnsTag !== undefined) {
                         if (dataset.metadata.columnsTag[column] !== undefined) {
@@ -685,6 +685,7 @@ const GroupingTool = ({ pageId = "42-grouping", configPath = null }) => {
    */
   useEffect(() => {
     if (globalData !== null) {
+      console.log("Updating list of datasets", globalData)
       updateListOfDatasets()
     }
   }, [globalData])

@@ -235,6 +235,43 @@ function App() {
     return { childrenIDsToReturn: childrenIDsToReturn }
   }
 
+  const getChildrenPaths = (children) => {
+    let childrenPaths = []
+    children.forEach((child) => {
+      childrenPaths.push(child.path)
+      if (child.children !== undefined) {
+        let answer = getChildrenPaths(child.children)
+        childrenPaths = childrenPaths.concat(answer)
+      }
+    })
+    return childrenPaths
+  }
+
+  const createListOfFilesNotFoundInWorkspace = (currentWorkspace, currentGlobalData) => {
+    let listOfFilesNotFoundInWorkspace = []
+    let workspaceChildren = currentWorkspace.workingDirectory.children
+    let workspaceChildrenPaths = []
+    workspaceChildrenPaths = getChildrenPaths(workspaceChildren)
+    Object.keys(currentGlobalData).forEach((key) => {
+      let dataObject = currentGlobalData[key]
+      let filePath = dataObject.path
+      if (!workspaceChildrenPaths.includes(filePath)) {
+        listOfFilesNotFoundInWorkspace.push(dataObject._UUID)
+      }
+    })
+    return listOfFilesNotFoundInWorkspace
+  }
+
+  const cleanGlobalDataFromFilesNotFoundInWorkspace = (workspace, dataContext) => {
+    let newGlobalData = { ...dataContext }
+    let listOfFilesNotFoundInWorkspace = createListOfFilesNotFoundInWorkspace(workspace, dataContext)
+    console.log("listOfFilesNotFoundInWorkspace", listOfFilesNotFoundInWorkspace)
+    listOfFilesNotFoundInWorkspace.forEach((file) => {
+      if (newGlobalData[file] !== undefined && file !== "UUID_ROOT") delete newGlobalData[file]
+    })
+    return newGlobalData
+  }
+
   // This useEffect hook is called whenever the `workspaceObject` state changes.
   useEffect(() => {
     // Create a copy of the `globalData` state object.
@@ -260,6 +297,9 @@ function App() {
       })
       newGlobalData[rootParentID] = rootDataObject
     }
+    // Clean the globalData from files & folders that are not in the workspace
+    newGlobalData = cleanGlobalDataFromFilesNotFoundInWorkspace(workspaceObject, newGlobalData)
+
     // Update the `globalData` state object with the new `newGlobalData` object.
     setGlobalData(newGlobalData)
   }, [workspaceObject])

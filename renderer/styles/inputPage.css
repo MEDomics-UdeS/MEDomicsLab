@@ -7,6 +7,7 @@
 .card-accordion .accordion-item {
   border-radius: 0.5rem;
   border: 1px solid #424242da !important;
+  background-color: #f7f7f7bb;
 }
 .card-accordion .accordion-header {
 }
@@ -18,17 +19,19 @@
   color: #161616;
 }
 .card-accordion .accordion-button[aria-expanded="true"] {
-  background-color: #f7f7f7da !important;
+  background-color: #d3d3d3 !important;
   color: #161616;
 }
 
 .card-accordion .accordion-button[aria-expanded="false"] {
-  background-color: #f7f7f78e !important;
+  background-color: #f7f7f7bb !important;
   color: #161616;
 }
 
 .card-accordion .accordion-header .accordion-button {
+  margin-bottom: 1px;
   border-radius: 0.5rem;
+  border: none;
   padding-left: 2rem;
   padding: 1rem 2rem;
   font-size: large;
@@ -38,9 +41,9 @@
   align-items: center;
 }
 
-.card-accordion .accordion-header .accordion-button[aria-expanded="true"] {
-  background-color: #00000036;
-}
+/* .card-accordion .accordion-header .accordion-button[aria-expanded="true"] {
+  background-color: #00000049;
+} */
 
 .card-accordion .accordion-header .accordion-button::before {
   left: 0.5rem;
