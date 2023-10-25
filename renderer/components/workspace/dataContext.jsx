@@ -19,6 +19,13 @@ const DataContext = createContext(null)
 function DataContextProvider({ children, globalData, setGlobalData }) {
   const [dataRequest, setDataRequest] = useState({})
 
+  const copyGlobalDataSync = () => {
+    return new Promise((resolve) => {
+      let globalDataCopy = { ...globalData }
+      resolve(globalDataCopy)
+    })
+  }
+
   return (
     <>
       <DataContext.Provider
@@ -26,7 +33,8 @@ function DataContextProvider({ children, globalData, setGlobalData }) {
           globalData,
           setGlobalData,
           dataRequest,
-          setDataRequest
+          setDataRequest,
+          copyGlobalDataSync
         }}
       >
         {children}
