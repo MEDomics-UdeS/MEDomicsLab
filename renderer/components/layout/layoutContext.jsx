@@ -266,13 +266,14 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
     openGeneric(action, "Extraction Text", "extractionTextPage")
   }
 
-  /**
+    /**
    * @summary Function that adds a tab of the Extraction Image Module to the layout model
    * @params {Object} action - The action passed on by the dispatchLayout function
    */
-  const openExtractionImage = (action) => {
-    openGeneric(action, "Extraction Image", "extractionImagePage")
-  }
+     const openExtractionImage = (action) => {
+      openGeneric(action, "Extraction Image", "extractionImagePage")
+    }
+
 
   /**
    * @summary Function that adds a tab of Dtale to the layout model

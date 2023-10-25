@@ -812,7 +812,7 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
         return <span style={{ marginRight: 3 }}>📄</span>
       }
       if (component === "extractionImagePage") {
-        return <span style={{ marginRight: 3 }}>📄</span>
+        return <span style={{ marginRight: 3 }}>📷</span>
       }
       if (component === "extractionMEDimagePage") {
         return <span style={{ marginRight: 3 }}>📷</span>

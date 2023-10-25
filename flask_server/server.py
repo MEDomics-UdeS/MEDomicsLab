@@ -1,4 +1,5 @@
 from learning.app_learning_blueprint import app_learning
+from extraction_image.app_extraction_image_blueprint import app_extraction_image
 from extraction_text.app_extraction_text_blueprint import app_extraction_text
 from extraction_ts.app_extraction_ts_blueprint import app_extraction_ts
 from extraction_MEDimage.app_extraction_blueprint import app_extraction_MEDimage
@@ -12,6 +13,7 @@ def create_app():
     app.register_blueprint(app_extraction_MEDimage,
                            url_prefix='/extraction_MEDimage')
     app.register_blueprint(app_learning, url_prefix='/learning')
+    app.register_blueprint(app_extraction_image, url_prefix='/extraction_image')
     app.register_blueprint(app_extraction_text, url_prefix='/extraction_text')
     app.register_blueprint(app_extraction_ts, url_prefix='/extraction_ts')
     app.register_blueprint(app_input, url_prefix='/input')
