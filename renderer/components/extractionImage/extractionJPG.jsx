@@ -104,7 +104,6 @@ const ExtractionJPG = ({ extractionTypeList, serverUrl, defaultFilename }) => {
           MedDataObject.updateWorkspaceDataObject()
           setExtractionProgress(100)
           setIsResultDatasetLoaded(false)
-          //findResultDataset(globalData, jsonResponse["csv_result_path"])
         } else {
           toast.error(`Extraction failed: ${jsonResponse.error.message}`)
           setError(jsonResponse.error)
