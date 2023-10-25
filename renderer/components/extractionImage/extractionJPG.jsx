@@ -14,7 +14,6 @@ import { toast } from "react-toastify"
 import { WorkspaceContext } from "../workspace/workspaceContext"
 import { ErrorRequestContext } from "../flow/context/errorRequestContext"
 
-
 /**
  *
  * @param {List} extractionTypeList list containing possible types of extraction
@@ -28,6 +27,7 @@ import { ErrorRequestContext } from "../flow/context/errorRequestContext"
  *
  */
 const ExtractionJPG = ({ extractionTypeList, serverUrl, defaultFilename }) => {
+  const [csvResultPath, setCsvResultPath] = useState("") // csv path of extracted data
   const [dataFolderList, setDataFolderList] = useState([]) // list of the folder containing jpg data at a specified Depth
   const [extractionFunction, setExtractionFunction] = useState(extractionTypeList[0] + "_extraction") // name of the function to use for extraction
   const [extractionJsonData, setExtractionJsonData] = useState({}) // json data depending on extractionType
@@ -99,12 +99,12 @@ const ExtractionJPG = ({ extractionTypeList, serverUrl, defaultFilename }) => {
       (jsonResponse) => {
         console.log("received results:", jsonResponse)
         if (!jsonResponse.error) {
-          //setCsvResultPath(jsonResponse["csv_result_path"])
+          setCsvResultPath(jsonResponse["csv_result_path"])
           setExtractionStep("Extracted Features Saved")
           MedDataObject.updateWorkspaceDataObject()
           setExtractionProgress(100)
           setIsResultDatasetLoaded(false)
-          findResultDataset(globalData, jsonResponse["csv_result_path"])
+          //findResultDataset(globalData, jsonResponse["csv_result_path"])
         } else {
           toast.error(`Extraction failed: ${jsonResponse.error.message}`)
           setError(jsonResponse.error)
@@ -137,10 +137,10 @@ const ExtractionJPG = ({ extractionTypeList, serverUrl, defaultFilename }) => {
     function findFoldersRecursively(item, currentDepth) {
       const foldersWithMatchingFiles = []
 
-      if (item.type === "folder") {
+      if (item?.type && item.type === "folder") {
         if (currentDepth === depth) {
           // Look for matching files in this folder
-          const containsMatchingFile = item.childrenIDs.some((childId) => dataContext[childId].type === "file" && dataContext[childId].extension === "jpg")
+          const containsMatchingFile = item.childrenIDs.some((childId) => dataContext[childId]?.type && dataContext[childId].type === "file" && dataContext[childId].extension === "jpg")
           if (containsMatchingFile) {
             foldersWithMatchingFiles.push(item)
           }
@@ -165,12 +165,12 @@ const ExtractionJPG = ({ extractionTypeList, serverUrl, defaultFilename }) => {
   }
 
   /**
-   * 
-   * @param {DataContext} dataContext 
-   * @param {String} csvPath 
-   * 
+   *
+   * @param {DataContext} dataContext
+   * @param {String} csvPath
+   *
    * @description
-   * Get the result dataset from the dataContext. 
+   * Get the result dataset from the dataContext.
    * Called when request from runExtraction get response.
    */
   function findResultDataset(dataContext, csvPath) {
@@ -195,7 +195,14 @@ const ExtractionJPG = ({ extractionTypeList, serverUrl, defaultFilename }) => {
     setSelectedFolder(null)
   }, [folderDepth])
 
-  // Called when data in DataContext is updated, in order to updated dataFolderList
+  // Called when data in DataContext is updated, in order to updated resultDataset
+  useEffect(() => {
+    if (globalData !== undefined && csvResultPath !== "") {
+      findResultDataset(globalData, csvResultPath)
+    }
+  }, [globalData])
+
+  // Called when data in DataContext is updated, in order to update dataFolderList
   useEffect(() => {
     if (globalData !== undefined) {
       findFoldersWithJPGFilesAtDepth(globalData, folderDepth)
@@ -247,7 +254,7 @@ const ExtractionJPG = ({ extractionTypeList, serverUrl, defaultFilename }) => {
           <div className="center">
             {/* Features Extraction */}
             <h2>Extract features</h2>
-            {optionsSelected==false && (<Message severity="warn" text="You must select convenient options for feature generation" />)}
+            {optionsSelected == false && <Message severity="warn" text="You must select convenient options for feature generation" />}
             <div className="margin-top-30">
               <div className="flex-container">
                 <div>
