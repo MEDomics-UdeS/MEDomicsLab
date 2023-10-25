@@ -31,13 +31,20 @@ const EvaluationSidebar = ({}) => {
   const [experimentList, setExperimentList] = useState([]) // We initialize the experiment list state to an empty array
   const [selectedItems, setSelectedItems] = useState([]) // We initialize the selected items state to an empty array
   const [dbSelectedItem, setDbSelectedItem] = useState(null) // We initialize the selected item state to an empty string
+  const [refreshExperimentList, setRefreshExperimentList] = useState(false) // We initialize the refresh experiment list state to false
   const { globalData } = useContext(DataContext)
 
   // We use the useEffect hook to update the experiment list state when the workspace changes
   useEffect(() => {
     let experimentList = []
-    if (globalData && selectedItems && globalData[selectedItems[0]]) {
-      let element = globalData[selectedItems[0]].type != "folder" ? globalData[globalData[selectedItems[0]].parentID] : globalData[selectedItems[0]]
+    if (globalData) {
+      let element = null
+      console.log("selectedItems", selectedItems)
+      if (selectedItems.length == 0 || selectedItems[0] == undefined) {
+        element = globalData["UUID_ROOT"]
+      } else {
+        element = globalData[selectedItems[0]].type != "folder" ? globalData[globalData[selectedItems[0]].parentID] : globalData[selectedItems[0]]
+      }
       console.log("element", element)
       element.childrenIDs.forEach((childID) => {
         if (globalData[childID].type == "file" && globalData[childID].extension == typeInfo.extension) {
@@ -46,7 +53,7 @@ const EvaluationSidebar = ({}) => {
       })
     }
     setExperimentList(experimentList)
-  }, [workspace, selectedItems, globalData[selectedItems[0]]]) // We log the workspace when it changes
+  }, [workspace, selectedItems, globalData, refreshExperimentList]) // We log the workspace when it changes
 
   const checkIsNameValid = (name) => {
     return name != "" && !experimentList.includes(name) && !name.includes(" ")
@@ -57,15 +64,15 @@ const EvaluationSidebar = ({}) => {
    * @description - This function is used to create an empty scene
    */
   const createEmptyScene = async (name) => {
-    let path = ""
     console.log("selectedItems", selectedItems)
+    let path = ""
     if (selectedItems.length == 0 || selectedItems[0] == undefined || globalData[selectedItems[0]] == undefined) {
-      toast.error("Please select a folder to create the file in")
+      path = globalData["UUID_ROOT"].path
     } else {
       // if the selected folder is the EXPERIMENT folder
-      globalData[selectedItems[0]].type != "folder" ? (path = globalData[globalData[selectedItems[0]].parentID].path) : globalData[selectedItems[0]].path
-      await createSceneContent(path, name, typeInfo.extension)
+      path = globalData[selectedItems[0]].type != "folder" ? globalData[globalData[selectedItems[0]].parentID].path : globalData[selectedItems[0]].path
     }
+    await createSceneContent(path, name, typeInfo.extension)
   }
 
   /**
@@ -88,6 +95,11 @@ const EvaluationSidebar = ({}) => {
     })
   }
 
+  const handleClick = (e) => {
+    console.log("handleClick")
+    setSelectedItems([...selectedItems])
+  }
+
   return (
     <>
       <Stack direction="vertical" gap={0}>
@@ -102,7 +114,7 @@ const EvaluationSidebar = ({}) => {
         >
           {typeInfo.title} Module
         </p>
-        <FileCreationBtn label="Create evaluation page" piIcon="pi-plus" createEmptyFile={createEmptyScene} checkIsNameValid={checkIsNameValid} />
+        <FileCreationBtn label="Create evaluation page" piIcon="pi-plus" createEmptyFile={createEmptyScene} checkIsNameValid={checkIsNameValid} handleClickCreateScene={handleClick} />
 
         <Accordion defaultActiveKey={["dirTree"]} alwaysOpen>
           <SidebarDirectoryTreeControlled setExternalSelectedItems={setSelectedItems} setExternalDBClick={setDbSelectedItem} />

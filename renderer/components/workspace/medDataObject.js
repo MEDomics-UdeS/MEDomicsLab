@@ -326,6 +326,31 @@ export default class MedDataObject {
   }
 
   /**
+   *
+   * @param {String} path A path to a MedDataObject
+   * @returns {Object, Object} - {columnsArray, columnsObject} - The columns of the data object if it is a table.
+   */
+  static getColumnsFromPath = async (path, globalData, setGlobalData = undefined) => {
+    let dataObject = MedDataObject.checkIfMedDataObjectInContextbyPath(path, globalData)
+    let columnsArray = []
+    if (!dataObject) return { columnsArray: [], columnsObject: {} }
+    if (dataObject.metadata.columns) {
+      columnsArray = dataObject.metadata.columns
+    } else {
+      console.log("dataObject: ", dataObject)
+      columnsArray = await dataObject.getColumnsOfTheDataObjectIfItIsATable(path)
+      dataObject.metadata.columns = columnsArray
+      setGlobalData && setGlobalData({ ...globalData })
+    }
+    let columnsObject = {}
+    columnsArray.forEach((element) => {
+      columnsObject[element] = element
+    })
+
+    return { columnsArray: columnsArray, columnsObject: columnsObject }
+  }
+
+  /**
    * Create an empty folder in the file system.
    * @param {string} name
    * @param {string} path
@@ -951,10 +976,46 @@ export default class MedDataObject {
   /**
    * Loads the data from the file associated with the `MedDataObject` instance.
    */
-  loadDataFromDisk() {
+  loadFileFromDisk() {
     this.data = fs.readFileSync(this.path)
     this.dataLoaded = true
     this.lastModified = Date(Date.now())
+  }
+
+  /**
+   * @param {string} filePath - The path to the file to load.
+   * @returns {Promise} - A promise that resolves to the data loaded from the file.
+   */
+  loadDataFromDisk = async (filePath) => {
+    const Path = require("path")
+    let extension = Path.extname(filePath).slice(1)
+    console.log("extension: ", extension)
+    // let path = this.path
+    let data = undefined
+    const dfd = require("danfojs-node")
+    if (extension === "xlsx") {
+      data = await dfd.readExcel(filePath)
+    } else if (extension === "csv") {
+      data = await dfd.readCSV(filePath)
+    } else if (extension === "json") {
+      data = await dfd.readJSON(filePath)
+    }
+    return data
+  }
+
+  /**
+   * GetsTheColumnsOfTheDataObjectIfItIsATable
+   * @returns {Array} - The columns of the data object if it is a table.
+   */
+  async getColumnsOfTheDataObjectIfItIsATable(path) {
+    let newColumns = []
+    const data = await this.loadDataFromDisk(path)
+    console.log("data: ", data)
+    if (data.$columns) {
+      newColumns = data.$columns
+      this.metadata.columns = newColumns
+    }
+    return newColumns
   }
 
   /**

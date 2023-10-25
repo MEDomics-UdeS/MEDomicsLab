@@ -8,8 +8,6 @@ import { customZipFile2Object } from "../../../utilities/customZipFile"
 import { LoaderProvider, LoaderContext } from "../../generalPurpose/loaderContext"
 import ReactLoading from "react-loading"
 
-const ZipFileExtensions = ["medml", "medimg", "medeval"]
-
 /**
  *
  * @param {String} pageId Id of the page for multi-tabs support
@@ -19,45 +17,20 @@ const ZipFileExtensions = ["medml", "medimg", "medeval"]
  * @description This component is the base for all the flow pages. It contains the sidebar, the workflow and the backdrop.
  *
  */
-const ModulePageWithProvider = ({ children, pageId, configPath = "", shadow = false }) => {
+const ModulePageWithProvider = ({ children, pageId, configPath = "null", shadow = false, className }) => {
   // here is the use of the context to update the flowInfos
-  const { setupPageInfos } = useContext(PageInfosContext)
+  const { setPageId, setConfigPath } = useContext(PageInfosContext)
   const { loader } = useContext(LoaderContext)
-  const [config, setConfig] = useState({})
-
-  useEffect(() => {
-    if (configPath && configPath !== "") {
-      let config = {}
-      let extension = configPath.split(".")[configPath.split(".").length - 1]
-      if (ZipFileExtensions.includes(extension)) {
-        customZipFile2Object(configPath).then((content) => {
-          config = content.metadata
-          console.log("loaded config", config)
-          console.log("config", config)
-          setConfig(config)
-        })
-      } else {
-        config = loadJsonPath(configPath)
-        console.log("loaded config", config)
-        console.log("config", config)
-        setConfig(config)
-      }
-    }
-  }, [configPath])
 
   // this useEffect is used to update the flowInfos when the pageId or the workflowType changes
   useEffect(() => {
-    setupPageInfos({
-      id: pageId,
-      configPath: configPath,
-      config: config,
-      setConfig: setConfig
-    })
-  }, [pageId, config])
+    setPageId(pageId)
+    setConfigPath(configPath)
+  }, [pageId, configPath])
 
   return (
     <>
-      <div id={pageId} className={`module-page ${shadow ? "with-shadow" : ""}`}>
+      <div id={pageId} className={`module-page ${shadow ? "with-shadow" : ""} ${className}`}>
         {loader && (
           <>
             <div className="module-loading">

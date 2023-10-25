@@ -1,5 +1,4 @@
 import React, { createContext, useState } from "react"
-import { toast } from "react-toastify"
 
 // This context is used to store the flowResults (id and type of the workflow)
 /**

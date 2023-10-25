@@ -1,8 +1,10 @@
-import React, { createContext, useState } from "react"
+import React, { createContext, useState, useEffect } from "react"
+import { loadJsonPath } from "../../../utilities/fileManagementUtils"
+import { customZipFile2Object } from "../../../utilities/customZipFile"
 
 // This context is used to store the pageInfos (id and config of the workflow)
 const PageInfosContext = createContext()
-
+const ZipFileExtensions = ["medml", "medimg", "medeval"]
 /**
  *
  * @param {*} children components that will use the context
@@ -10,15 +12,41 @@ const PageInfosContext = createContext()
  *  It is used to store the pageInfos (id and config of the workflow)
  */
 function PageInfosProvider({ children }) {
-  const [config, setConfig] = useState({}) // Initial style
-  const [configPath, setConfigPath] = useState("") // Initial style
-  const [pageId, setPageId] = useState("") // Initial style
+  const [config, setConfig] = useState(null)
+  const [configPath, setConfigPath] = useState("")
+  const [pageId, setPageId] = useState("")
+  const [configReloadTrigger, setConfigReloadTrigger] = useState(false)
 
-  const setupPageInfos = (pageInfos) => {
-    setConfig(pageInfos.config)
-    setConfigPath(pageInfos.configPath)
-    setPageId(pageInfos.id)
+  const reloadConfig = () => {
+    console.log("reloadConfig")
+    setConfigReloadTrigger(!configReloadTrigger)
   }
+
+  useEffect(() => {
+    if (configPath && configPath !== "") {
+      const fs = require("fs")
+      if (fs.existsSync(configPath)) {
+        let config = {}
+        let extension = configPath.split(".")[configPath.split(".").length - 1]
+        if (ZipFileExtensions.includes(extension)) {
+          customZipFile2Object(configPath).then((content) => {
+            config = content.metadata
+            console.log("loaded config", config)
+            console.log("config", config)
+            setConfig(config)
+          })
+        } else {
+          config = loadJsonPath(configPath)
+          console.log("loaded config", config)
+          console.log("config", config)
+          setConfig(config)
+        }
+      } else {
+        console.log("configPath", configPath)
+        console.log("config not found")
+      }
+    }
+  }, [configPath, configReloadTrigger])
 
   return (
     // in the value attribute we pass the pageInfos and the function to update it.
@@ -31,7 +59,7 @@ function PageInfosProvider({ children }) {
         setConfigPath,
         pageId,
         setPageId,
-        setupPageInfos
+        reloadConfig
       }}
     >
       {children}

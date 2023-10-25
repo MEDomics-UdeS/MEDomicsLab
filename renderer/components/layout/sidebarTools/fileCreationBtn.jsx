@@ -36,6 +36,8 @@ const FileCreationBtn = ({ createEmptyFile, label = "Create Page", piIcon = "pi-
    */
   const defaultHandleClickCreateScene = (e) => {
     createSceneRef.current.toggle(e)
+    defaultCheckIsNameValid(sceneName)
+    handleClickCreateScene && handleClickCreateScene(e)
   }
 
   /**
@@ -63,7 +65,7 @@ const FileCreationBtn = ({ createEmptyFile, label = "Create Page", piIcon = "pi-
 
   return (
     <>
-      <Button onClick={handleClickCreateScene ? handleClickCreateScene : defaultHandleClickCreateScene} className={`btn-sidebar`} label={label} icon={"pi " + piIcon} iconPos="right" />
+      <Button onClick={defaultHandleClickCreateScene} className={`btn-sidebar`} label={label} icon={"pi " + piIcon} iconPos="right" />
       <OverlayPanel className="create-scene-overlayPanel" ref={createSceneRef}>
         <div>
           <div className="header">

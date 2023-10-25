@@ -98,43 +98,6 @@ const DatasetNode = ({ id, data }) => {
   }
 
   /**
-   * Loads the data from the file associated with the `MedDataObject` instance.
-   */
-  const loadDataFromDisk = async (filePath) => {
-    let extension = Path.extname(filePath).slice(1)
-    console.log("extension: ", extension)
-    // let path = this.path
-    let data = undefined
-    const dfd = require("danfojs-node")
-
-    // let filePath = Path.(this.path)
-    if (extension === "xlsx") {
-      data = await dfd.readExcel(filePath)
-    } else if (extension === "csv") {
-      data = await dfd.readCSV(filePath)
-    } else if (extension === "json") {
-      data = await dfd.readJSON(filePath)
-    }
-    return data
-  }
-
-  /**
-   * GetsTheColumnsOfTheDataObjectIfItIsATable
-   * @returns {Array} - The columns of the data object if it is a table.
-   */
-  const getColumnsOfTheDataObjectIfItIsATable = async (path) => {
-    let newColumns = []
-    setLoader(true)
-    const data = await loadDataFromDisk(path)
-    setLoader(false)
-    console.log("data: ", data)
-    if (data.$columns) {
-      newColumns = data.$columns
-    }
-    return newColumns
-  }
-
-  /**
    *
    * @param {Object} inputUpdate The input update
    *
@@ -144,7 +107,7 @@ const DatasetNode = ({ id, data }) => {
   const onFilesChange = async (inputUpdate) => {
     data.internal.settings[inputUpdate.name] = inputUpdate.value
     if (inputUpdate.value.path != "") {
-      let { columnsArray, columnsObject } = await getColumnsFromPath(inputUpdate.value.path)
+      let { columnsArray, columnsObject } = await MedDataObject.getColumnsFromPath(inputUpdate.value.path, globalData, setGlobalData)
       data.internal.settings.columns = columnsObject
       data.internal.settings.target = columnsArray[columnsArray.length - 1]
     } else {
@@ -155,29 +118,6 @@ const DatasetNode = ({ id, data }) => {
       id: id,
       updatedData: data.internal
     })
-  }
-
-  /**
-   *
-   * @param {String} path A path to a MedDataObject
-   * @returns {Object, Object} - {columnsArray, columnsObject} - The columns of the data object if it is a table.
-   */
-  const getColumnsFromPath = async (path) => {
-    let dataObject = MedDataObject.checkIfMedDataObjectInContextbyPath(path, globalData)
-    let columnsArray = []
-    if (dataObject.metadata.columns) {
-      columnsArray = dataObject.metadata.columns
-    } else {
-      columnsArray = await getColumnsOfTheDataObjectIfItIsATable(path)
-      dataObject.metadata.columns = columnsArray
-      setGlobalData({ ...globalData })
-    }
-    let columnsObject = {}
-    columnsArray.forEach((element) => {
-      columnsObject[element] = element
-    })
-
-    return { columnsArray: columnsArray, columnsObject: columnsObject }
   }
 
   return (

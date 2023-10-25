@@ -19,6 +19,7 @@
   --card-rgb: 180, 185, 188;
   --card-border-rgb: 131, 134, 135;
   --sidebar-width: 3rem;
+  --med-shadow: 2px 2px 3px -1px rgb(0 0 0 / 20%), 0 1px 1px 0 rgb(0 0 0 / 14%), 0px 0px 3px 2px rgb(0 0 0 / 12%);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -39,6 +40,7 @@
     --card-rgb: 100, 100, 100;
     --card-border-rgb: 200, 200, 200;
     --sidebar-width: 3rem;
+    --med-shadow: 2px 2px 3px -1px rgb(0 0 0 / 20%), 0 1px 1px 0 rgb(0 0 0 / 14%), 0px 0px 3px 2px rgb(0 0 0 / 12%);
   }
 }
 
@@ -378,4 +380,12 @@ body {
   left: 50%;
   transform: translate(-50%, -50%);
   z-index: 10;
+}
+
+.center-page {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  width: 100%;
 }

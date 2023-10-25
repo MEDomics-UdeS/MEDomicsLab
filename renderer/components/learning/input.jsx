@@ -27,8 +27,7 @@ const createOption = (label) => ({
 /**
  *
  * @param {string} name name of the setting
- * @param {object} settingInfos infos of the setting
- * @param {object} data data of the node
+ * @param {object} settingInfos infos of the setting ex: {type: "string", tooltip: "this is a tooltip"}
  * @returns {JSX.Element} A Input component
  *
  * @description

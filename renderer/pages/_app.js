@@ -45,6 +45,7 @@ import "../styles/sidebarTree.css"
 import "../styles/customPrimeReact.css"
 import "../styles/imageContainer.css"
 import "../styles/datatableWrapper.css"
+import "../styles/evaluation/evaluation.css"
 
 /**
  * This is the main app component. It is the root component of the app.
