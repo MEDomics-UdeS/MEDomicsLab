@@ -33,12 +33,8 @@ const typeInfo = {
  * @returns {JSX.Element} - This component is the sidebar tools component that will be used in the sidebar component as the learning page
  */
 const FlowSceneSidebar = ({ type }) => {
-  const { workspace, getBasePath } = useContext(WorkspaceContext) // We get the workspace from the context to retrieve the directory tree of the workspace, thus retrieving the data files
-  const [btnCreateSceneState, setBtnCreateSceneState] = useState(false)
-  const [sceneName, setSceneName] = useState("") // We initialize the experiment name state to an empty string
+  const { workspace } = useContext(WorkspaceContext) // We get the workspace from the context to retrieve the directory tree of the workspace, thus retrieving the data files
   const [experimentList, setExperimentList] = useState([]) // We initialize the experiment list state to an empty array
-  const [showErrorMessage, setShowErrorMessage] = useState(false) // We initialize the create experiment error message state to an empty string
-  const createSceneRef = useRef(null)
   const [selectedItems, setSelectedItems] = useState([]) // We initialize the selected items state to an empty array
   const [dbSelectedItem, setDbSelectedItem] = useState(null) // We initialize the selected item state to an empty string
   const { globalData } = useContext(DataContext)

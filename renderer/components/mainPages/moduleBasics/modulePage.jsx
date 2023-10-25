@@ -2,9 +2,11 @@ import "reactflow/dist/style.css"
 import React, { useContext, useEffect, useState } from "react"
 import { PageInfosProvider, PageInfosContext } from "./pageInfosContext"
 import { loadJsonPath } from "../../../utilities/fileManagementUtils"
-import { ErrorRequestProvider } from "../../flow/context/errorRequestContext"
+import { ErrorRequestProvider } from "../../generalPurpose/errorRequestContext"
 import ErrorRequestDialog from "../../flow/errorRequestDialog"
 import { customZipFile2Object } from "../../../utilities/customZipFile"
+import { LoaderProvider, LoaderContext } from "../../generalPurpose/loaderContext"
+import ReactLoading from "react-loading"
 
 const ZipFileExtensions = ["medml", "medimg", "medeval"]
 
@@ -20,6 +22,7 @@ const ZipFileExtensions = ["medml", "medimg", "medeval"]
 const ModulePageWithProvider = ({ children, pageId, configPath = "", shadow = false }) => {
   // here is the use of the context to update the flowInfos
   const { setupPageInfos } = useContext(PageInfosContext)
+  const { loader } = useContext(LoaderContext)
   const [config, setConfig] = useState({})
 
   useEffect(() => {
@@ -55,8 +58,17 @@ const ModulePageWithProvider = ({ children, pageId, configPath = "", shadow = fa
   return (
     <>
       <div id={pageId} className={`module-page ${shadow ? "with-shadow" : ""}`}>
-        <div className={`width-100 height-100 module-page-shadow`}>{children}</div>
+        {loader && (
+          <>
+            <div className="module-loading">
+              <ReactLoading className="loader" type={"spin"} color={"#00000090"} height={200} width={200} />
+            </div>
+          </>
+        )}
+
+        <div className={`width-100 height-100 module-page-subdiv`}>{children}</div>
       </div>
+
       <ErrorRequestDialog />
     </>
   )
@@ -73,11 +85,13 @@ const ModulePageWithProvider = ({ children, pageId, configPath = "", shadow = fa
  */
 const ModulePage = (props) => {
   return (
-    <ErrorRequestProvider>
-      <PageInfosProvider>
-        <ModulePageWithProvider {...props} />
-      </PageInfosProvider>
-    </ErrorRequestProvider>
+    <LoaderProvider>
+      <ErrorRequestProvider>
+        <PageInfosProvider>
+          <ModulePageWithProvider {...props} />
+        </PageInfosProvider>
+      </ErrorRequestProvider>
+    </LoaderProvider>
   )
 }
 export default ModulePage

@@ -12,7 +12,7 @@ import { ToggleButton } from "primereact/togglebutton"
 import Row from "react-bootstrap/Row"
 import Col from "react-bootstrap/Col"
 import { Button } from "primereact/button"
-import { ErrorRequestContext } from "./context/errorRequestContext"
+import { ErrorRequestContext } from "../generalPurpose/errorRequestContext"
 
 /**
  *

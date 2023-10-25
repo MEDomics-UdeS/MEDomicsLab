@@ -310,6 +310,7 @@
 .flow-btn-panel-top select {
   width: 10rem;
   display: inline;
+  cursor: pointer;
 }
 
 .flow-btn-panel-top .right {

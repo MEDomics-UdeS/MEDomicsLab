@@ -10,6 +10,7 @@ import Form from "react-bootstrap/Form"
 import Path from "path"
 import { DataContext } from "../../workspace/dataContext"
 import MedDataObject from "../../workspace/medDataObject"
+import { LoaderContext } from "../../generalPurpose/loaderContext"
 
 /**
  *
@@ -27,6 +28,7 @@ const DatasetNode = ({ id, data }) => {
   const [selection, setSelection] = useState(data.internal.selection)
   const { updateNode } = useContext(FlowFunctionsContext)
   const { globalData, setGlobalData } = useContext(DataContext)
+  const { setLoader } = useContext(LoaderContext)
 
   // update the node internal data when the selection changes
   useEffect(() => {
@@ -122,7 +124,9 @@ const DatasetNode = ({ id, data }) => {
    */
   const getColumnsOfTheDataObjectIfItIsATable = async (path) => {
     let newColumns = []
+    setLoader(true)
     const data = await loadDataFromDisk(path)
+    setLoader(false)
     console.log("data: ", data)
     if (data.$columns) {
       newColumns = data.$columns
