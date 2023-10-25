@@ -57,6 +57,15 @@ def download_model(model):
 def get_single_chest_xray_embeddings(img_path, model_weights_name):
     """
     Code taken and updated from the HAIM github repository : https://github.com/lrsoenksen/HAIM
+    The function take a JPG image path and DenseNet model weghts and return
+    two embeddings vectors containing extracted features from image using the model.
+
+    :param img_path: path to the JGP image
+    :param model_weights_name: string identifying the model weights
+
+    Returns: densefeature_embeddings, prediction_embeddings : embedding vectors for the image, computed by the model.
+
+
     """
     # Inputs:
     #   img -> Image array
