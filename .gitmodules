@@ -2,3 +2,7 @@
 	path = flask_server/submodules/MEDimage
 	url = git@github.com:MahdiAll99/MEDimage.git
 	branch = dev_lab
+[submodule "flask_server/submodules/MEDprofiles"]
+	path = flask_server/submodules/MEDprofiles
+	url = git@github.com:MEDomics-UdeS/MEDprofiles.git
+	branch = fusion_MEDomicsLab
