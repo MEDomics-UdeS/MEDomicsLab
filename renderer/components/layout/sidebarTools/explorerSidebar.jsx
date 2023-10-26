@@ -1,17 +1,22 @@
 import React, { useContext } from "react"
 import { Accordion, Button, Stack } from "react-bootstrap"
 import { WorkspaceContext } from "../../workspace/workspaceContext"
+import { DataContext } from "../../workspace/dataContext"
 import { ipcRenderer } from "electron"
 import SidebarDirectoryTreeControlled from "./sidebarDirectoryTreeControlled"
+
 const ExplorerSidebar = () => {
   // eslint-disable-next-line no-unused-vars
   const { workspace } = useContext(WorkspaceContext) // We get the workspace from the context to retrieve the directory tree of the workspace, thus retrieving the data files
+  const { setGlobalData } = useContext(DataContext) // The global data object
 
   /**
    * @description - This function is called when the user clicks on the change workspace button
    * @summary - This function sends a message to the main process (Electron) to open a dialog box to change the workspace
    */
   async function handleWorkspaceChange() {
+    let globalDataReset = {}
+    setGlobalData(globalDataReset)
     ipcRenderer.send("messageFromNext", "requestDialogFolder")
   }
 

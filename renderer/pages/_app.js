@@ -121,6 +121,10 @@ function App() {
   }
 
   /**
+   * TODO : When changing the working directory, the global data should be cleared and the new working directory should be set
+   */
+
+  /**
    * This is the state for the layout model. It is passed to the LayoutContextProvider, which provides the layout model to all components.
    * @param {Object} layoutModel - The layout model for the LayoutContextProvider
    * @param {Function} setLayoutModel - The function to set the layout model for the LayoutContextProvider
@@ -251,7 +255,12 @@ function App() {
     let listOfFilesNotFoundInWorkspace = []
     let workspaceChildren = currentWorkspace.workingDirectory.children
     let workspaceChildrenPaths = []
-    workspaceChildrenPaths = getChildrenPaths(workspaceChildren)
+    if (workspaceChildren !== undefined) {
+      workspaceChildrenPaths = getChildrenPaths(workspaceChildren)
+    } else {
+      return listOfFilesNotFoundInWorkspace
+    }
+
     Object.keys(currentGlobalData).forEach((key) => {
       let dataObject = currentGlobalData[key]
       let filePath = dataObject.path

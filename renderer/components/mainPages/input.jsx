@@ -17,6 +17,7 @@ import MedDataObject from "../workspace/medDataObject"
 import { Button } from "primereact/button"
 import MergeTool from "../input/mergeTool"
 import GroupingTool from "../input/groupingTool"
+import HoldOutSetCreationTool from "../input/holdOutSetCreationTool"
 
 /**
  * @description - This component is the input page of the application
@@ -48,6 +49,12 @@ const InputPage = ({ pageId = "42", configPath = null }) => {
               <Accordion.Header>Grouping/Tagging tool</Accordion.Header>
               <Accordion.Body>
                 <GroupingTool pageId={pageId} />
+              </Accordion.Body>
+            </Accordion.Item>
+            <Accordion.Item eventKey="3">
+              <Accordion.Header>Holdout set creation tool</Accordion.Header>
+              <Accordion.Body>
+                <HoldOutSetCreationTool pageId={pageId} />
               </Accordion.Body>
             </Accordion.Item>
           </Accordion>

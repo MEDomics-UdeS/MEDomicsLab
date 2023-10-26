@@ -21,9 +21,9 @@ import { deepCopy } from "../../utilities/staticFunctions"
  * @returns {JSX.Element}
  * @summary This component is used to group/tag the columns of selected datasets
  */
+// eslint-disable-next-line no-unused-vars
 const GroupingTool = ({ pageId = "42-grouping", configPath = null }) => {
   const { globalData, setGlobalData } = useContext(DataContext) // Global data
-
   const firstMultiselect = useRef(null) // Reference to the first multiselect
   const secondMultiselect = useRef(null) // Reference to the second multiselect
 
@@ -36,6 +36,7 @@ const GroupingTool = ({ pageId = "42-grouping", configPath = null }) => {
   const [nodes, setNodes] = useState([]) // Nodes in the tree
   const [selectedTags, setSelectedTags] = useState([]) // Selected tags
   const [tagsPresentInSelectedDatasets, setTagsPresentInSelectedDatasets] = useState([]) // Tags present in selected datasets
+  // eslint-disable-next-line no-unused-vars
   const [overwrite, setOverwrite] = useState(false) // Setting to overwrite the tags already present in the datasets
   const [overwriteWasAsked, setOverwriteWasAsked] = useState(false) // Variable to know if the user was asked to overwrite the tags
 
@@ -119,7 +120,7 @@ const GroupingTool = ({ pageId = "42-grouping", configPath = null }) => {
    * @summary This function is used to get the columns from a promise - async function
    */
   async function getColumnsFromPromise(dataObject) {
-    let promise = new Promise((resolve, reject) => {
+    let promise = new Promise((resolve) => {
       resolve(dataObject.getColumnsOfTheDataObjectIfItIsATable())
     })
     let columns = await promise
@@ -352,7 +353,7 @@ const GroupingTool = ({ pageId = "42-grouping", configPath = null }) => {
     }
 
     /* We create a promise to update the nodes */
-    new Promise(async (resolveMaster, reject) => {
+    new Promise(async (resolveMaster) => {
       /* We get the selected tags and selected columns */
       let { datasetsConcerned, columnsConcerned, tagsConcerned } = getSelectedTagsAndSelectedColumns()
 
@@ -362,7 +363,7 @@ const GroupingTool = ({ pageId = "42-grouping", configPath = null }) => {
        *
        */
       const confirmOverwrite = () =>
-        new Promise((resolve, reject) => {
+        new Promise((resolve) => {
           confirmInfoDialog(
             null,
             () => {
@@ -380,18 +381,6 @@ const GroupingTool = ({ pageId = "42-grouping", configPath = null }) => {
         })
 
       /**
-       * Handle overwrite - This function is used to handle the overwrite
-       * @returns
-       */
-      const handleOverwrite = async () => {
-        if (await confirmOverwrite()) {
-          return true
-        } else {
-          return false
-        }
-      }
-
-      /**
        * Handle applying overwrite
        * This function is called after the user has been asked if he wants to overwrite the tags
        * @param {boolean} overwriteLocal - Overwrite local
@@ -400,7 +389,7 @@ const GroupingTool = ({ pageId = "42-grouping", configPath = null }) => {
        * @param {string} column - Column
        * @returns {array} - Array of two elements : [0] : child tags, [1] : columns tag
        */
-      const handleApplyingOverwrite = async (overwriteLocal, child, columnsTag, column) => {
+      const handleApplyingOverwrite = async (overwriteLocal, child, columnsTag) => {
         if (columnsTag === undefined) {
           columnsTag = []
         }
@@ -450,13 +439,12 @@ const GroupingTool = ({ pageId = "42-grouping", configPath = null }) => {
                     // If the column is in the list of the columns to check
                     if (child.tags) {
                       // If the child has tags already
-                      let res = await handleApplyingOverwrite(overwriteLocal, child, newColumnTagList, column) // We apply the tagging
-                        child.tags = res[0] // We update the child tags in the nodes
+                      let res = await handleApplyingOverwrite(overwriteLocal, child, newColumnTagList) // We apply the tagging
+                      child.tags = res[0] // We update the child tags in the nodes
                       newColumnTagList = res[1]
                       if (dataset.metadata.columnsTag !== undefined) {
                         if (dataset.metadata.columnsTag[column] !== undefined) {
                           dataset.metadata.columnsTag[column] = res[1] // We update the columns tagging in the dataset
-                          // dataset.metadata.columnsTag[column] = res[1] // We update the columns tagging in the dataset
                         } else {
                           dataset.metadata.columnsTag = { ...dataset.metadata.columnsTag, [column]: res[1] }
                         }
@@ -935,7 +923,7 @@ const GroupingTool = ({ pageId = "42-grouping", configPath = null }) => {
                         <ToggleButton // Toggle button to change the font color of the tag
                           style={{ marginLeft: "0.25rem" }}
                           className="toggle-font-color-button"
-                          onChange={(e) => {
+                          onChange={() => {
                             let newTagsDict = { ...tagsDict }
                             newTagsDict[tag].fontColor = newTagsDict[tag].fontColor === "black" ? "white" : "black"
                             setTagsDict(newTagsDict)
@@ -949,7 +937,7 @@ const GroupingTool = ({ pageId = "42-grouping", configPath = null }) => {
                         <a // Icon to edit/rename the tag
                           value={tag}
                           style={{ marginLeft: "0.25rem" }}
-                          onClick={(e) => {
+                          onClick={() => {
                             setTempTag(tag)
                             setEditingTag(tag)
                           }}
@@ -1019,7 +1007,7 @@ const GroupingTool = ({ pageId = "42-grouping", configPath = null }) => {
                   confirmInfo(
                     e,
                     async () => {
-                      let res = await updateNodeTags()
+                      await updateNodeTags()
                     },
                     () => {
                       console.log("Canceled adding tags to the columns")

@@ -985,17 +985,17 @@ export default class MedDataObject {
    */
   async getColumnsOfTheDataObjectIfItIsATable() {
     let newColumns = []
-    if (this.dataLoaded) {
-      if (this.data.$columns) {
-        newColumns = this.data.columns
-      }
+    if (this.dataLoaded && this.data.$columns) {
+      newColumns = this.data.$columns
+    } else if (this.metadata.columns) {
+      newColumns = await this.metadata.columns
     } else {
       const data = await this.loadDataFromDisk()
       console.log("data: ", data)
       if (data.$columns) {
         newColumns = data.$columns
         this.metadata.columns = newColumns
-        // return data.$columns
+        return data.$columns
       }
     }
     return newColumns

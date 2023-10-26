@@ -1,79 +1,53 @@
-import React, { useState, useEffect, useContext, useRef } from "react"
-import { DataContext } from "../workspace/dataContext"
-import { Dropdown } from "primereact/dropdown"
-import Row from "react-bootstrap/Row"
-import Col from "react-bootstrap/Col"
-import { PlusSquare, XSquare } from "react-bootstrap-icons"
-import { Button } from "primereact/button"
 import { MultiSelect } from "primereact/multiselect"
-import { requestJson } from "../../utilities/requests"
+import React, { useContext, useState, useEffect } from "react"
+import { Row, Col } from "react-bootstrap"
+import { Checkbox } from "primereact/checkbox"
 import { WorkspaceContext } from "../workspace/workspaceContext"
+import { DataContext } from "../workspace/dataContext"
+import { Button } from "primereact/button"
+import { Tooltip } from "primereact/tooltip"
+import { Dropdown } from "primereact/dropdown"
 import MedDataObject from "../workspace/medDataObject"
 import { InputText } from "primereact/inputtext"
+import { Slider } from "primereact/slider"
+import { InputNumber } from "primereact/inputnumber"
+import { requestJson } from "../../utilities/requests"
 import ProgressBarRequests from "../flow/progressBarRequests"
 
-const HoldOutSetCreationTool = ({ pageId = "42", configPath = null }) => {
-  const { port } = useContext(WorkspaceContext) // we get the port for server connexion
-  const [listOfDatasets, setListOfDatasets] = useState([])
-  const [dictOfDatasets, setDictOfDatasets] = useState({})
+const HoldOutSetCreationTool = ({ pageId = "inputModule", configPath = "" }) => {
+  const { port } = useContext(WorkspaceContext)
   const { globalData } = useContext(DataContext)
-  const [firstSelectedDataset, setFirstSelectedDataset] = useState(null)
-  const [mergeOn, setMergeOn] = useState(null)
-  const [inError, setInError] = useState(false)
-  const [firstDatasetHasChanged, setFirstDatasetHasChanged] = useState(false)
-  const firstMultiselect = useRef(null)
+  const [listOfDatasets, setListOfDatasets] = useState([])
+  const [selectedDataset, setSelectedDataset] = useState(null)
+  const [options, setOptions] = useState({ shuffle: false, stratify: false })
+  const [selectedColumns, setSelectedColumns] = useState([])
+  const [selectedDatasetColumns, setSelectedDatasetColumns] = useState([])
+  const [holdoutSetSize, setHoldoutSetSize] = useState(20)
   const [newDatasetName, setNewDatasetName] = useState("")
   const [newDatasetExtension, setNewDatasetExtension] = useState(".csv")
   const [progress, setProgress] = useState({ now: 0, currentLabel: "" })
   const [isProgressUpdating, setIsProgressUpdating] = useState(false)
+  const [nanMethod, setNaNMethod] = useState("drop")
 
-  const updateListOfDatasets = () => {
-    let newDatasetList = []
-    Object.keys(globalData).forEach((key) => {
-      if (globalData[key].extension === "csv") {
-        newDatasetList.push({ name: globalData[key].name, object: globalData[key], key: key })
-      }
-    })
-    setListOfDatasets(newDatasetList)
+  const nanMethods = ["drop", "bfill", "ffill"]
+
+  const handleColumnSelection = (e) => {
+    setSelectedColumns(e.value)
   }
 
-  useEffect(() => {
-    Object.keys(dictOfDatasets).forEach((key) => {
-      if (dictOfDatasets[key] !== null && dictOfDatasets !== undefined) {
-        if (dictOfDatasets[key].options === null || dictOfDatasets[key].options === undefined) {
-          ;(async () => {
-            let newDictOfDatasets = { ...dictOfDatasets }
-            let columnsOriginal = await globalData[dictOfDatasets[key].data].getColumnsOfTheDataObjectIfItIsATable()
-            let columnsOptions = generateColumnsOptionsFromColumns(columnsOriginal)
-            newDictOfDatasets[key].options = columnsOptions
-            if (key !== "0") {
-              if (dictOfDatasets[0].mergeOn) {
-                // Check if the mergeOn column is present in the dataset
-                if (!columnsOriginal.includes(dictOfDatasets[0].mergeOn)) {
-                  newDictOfDatasets[key].isValid = false
-                } else {
-                  newDictOfDatasets[key].isValid = true
-                }
-              }
-            }
+  const handleSelectedDatasetChange = async (e) => {
+    setSelectedDataset(globalData[e.target.value])
+    let columnsOptions = []
 
-            setDictOfDatasets(newDictOfDatasets)
-          })()
-        }
-      }
-    })
-  }, [dictOfDatasets])
-
-  const returnListWithoutDatasetAlreadyUsed = (index) => {
-    let alreadySelectedDatasets = Object.entries(dictOfDatasets).map((arr) => {
-      if (arr[1] && arr[1].data) {
-        if (arr[0] !== index) {
-          return arr[1].data
-        }
-      }
-    })
-    let options = listOfDatasets.filter((dataset) => !alreadySelectedDatasets.includes(dataset.key))
-    return options
+    if (globalData[e.target.value].extension === "csv") {
+      globalData[e.target.value].getColumnsOfTheDataObjectIfItIsATable().then((columns) => {
+        console.log("columnsOptions", columns)
+        columnsOptions = generateColumnsOptionsFromColumns(columns)
+        setSelectedDatasetColumns(columnsOptions)
+      })
+      setSelectedColumns([])
+    }
+    setSelectedDatasetColumns(columnsOptions)
   }
 
   const cleanString = (string) => {
@@ -93,402 +67,244 @@ const HoldOutSetCreationTool = ({ pageId = "42", configPath = null }) => {
         column = cleanString(column)
         options.push({ label: column, value: column })
       })
+
       return options
     }
   }
 
-  const addMergeOnToSelectedColumnsIfPresent = (datasetKey, selectedColumns) => {
-    let dataset = dictOfDatasets[datasetKey]
-    let newSelectedColumns = selectedColumns
-
-    if (mergeOn && datasetKey) {
-      if (dataset && selectedColumns) {
-        let options = Object.entries(dataset.options).map((arr) => arr[1].value)
-        // console.log("HERE options", options)
-        if (!selectedColumns.includes(mergeOn)) {
-          if (options.includes(mergeOn)) {
-            newSelectedColumns.push(mergeOn)
-          }
-        }
+  const updateListOfDatasets = () => {
+    let newDatasetList = []
+    Object.keys(globalData).forEach((key) => {
+      if (globalData[key].extension === "csv") {
+        newDatasetList.push({ name: globalData[key].name, object: globalData[key], key: key })
       }
+    })
+    setListOfDatasets(newDatasetList)
+  }
+
+  const handleOptionsChange = (e) => {
+    let newOptions = { ...options }
+    newOptions[e.target.name] = e.target.checked
+    if (newOptions.shuffle === false) {
+      newOptions.stratify = false
     }
 
-    return newSelectedColumns
+    setOptions(newOptions)
+  }
+
+  const checkIfNameAlreadyUsed = (name) => {
+    let alreadyUsed = false
+    if (newDatasetName.length > 0 && selectedDataset !== null && selectedDataset !== undefined) {
+      let newDatasetPathParent = globalData[selectedDataset.parentID].path
+      let pathToCheck = newDatasetPathParent + MedDataObject.getPathSeparator() + name
+      Object.entries(globalData).map((arr) => {
+        if (arr[1].path === pathToCheck) {
+          alreadyUsed = true
+        }
+      })
+    }
+    return alreadyUsed
   }
 
   useEffect(() => {
-    // console.log("mergeOn", mergeOn)
-    Object.keys(dictOfDatasets).forEach((key) => {
-      let datasetToVerify = dictOfDatasets[key]
-      if (datasetToVerify) {
-        if (datasetToVerify.options !== null && datasetToVerify.options !== undefined) {
-          let isValid = datasetToVerify.options.map((option) => option.value).includes(mergeOn)
-          // console.log("isValid", isValid)
-          let newDictOfDatasets = { ...dictOfDatasets }
-          newDictOfDatasets[key].isValid = isValid
-          setDictOfDatasets(newDictOfDatasets)
-        }
-      }
-    })
-  }, [mergeOn])
-
-  const handleFirstDatasetChange = () => {
-    let columnsToReturn = []
-    let newOptions = dictOfDatasets[0].options.map((option) => {
-      return option.value
-    })
-    if (firstDatasetHasChanged) {
-      let newDictOfDatasets = { ...dictOfDatasets }
-      newDictOfDatasets[0].selectedColumns = newOptions
-      setFirstDatasetHasChanged(false)
-      columnsToReturn = newOptions
-    } else {
-      columnsToReturn = dictOfDatasets[0].selectedColumns
-    }
-    if (mergeOn) {
-      if (!columnsToReturn.includes(dictOfDatasets[0].mergeOn)) {
-        columnsToReturn.push(dictOfDatasets[0].mergeOn)
-      }
-    }
-    return columnsToReturn
-  }
+    console.log("OPTIONS", options)
+  }, [options])
 
   useEffect(() => {
-    if (globalData !== null) {
-      updateListOfDatasets()
-    }
+    updateListOfDatasets()
   }, [globalData])
 
   useEffect(() => {
-    console.log("dictOfDatasets", dictOfDatasets)
-  }, [dictOfDatasets])
+    console.log("selectedDataset", selectedDataset)
+  }, [selectedDataset])
 
   useEffect(() => {
-    console.log("newDatasetName", newDatasetName)
-  }, [newDatasetName])
+    console.log("selectedColumns", selectedColumns)
+  }, [selectedColumns])
 
   useEffect(() => {
-    console.log("newDatasetExtension", newDatasetExtension)
-  }, [newDatasetExtension])
+    console.log("selectedDatasetColumns", selectedDatasetColumns)
+  }, [selectedDatasetColumns])
+
+  const createHoldoutSet = async () => {
+    let newDatasetPathParent = globalData[selectedDataset.parentID].path
+    let datasetName = newDatasetName.length > 0 ? newDatasetName : "mergedDataset"
+    // datasetName = datasetName
+    let newDatasetObject = new MedDataObject({
+      originalName: datasetName,
+      name: datasetName,
+      type: "folder",
+      parentID: selectedDataset.parentID,
+      path: newDatasetPathParent + MedDataObject.getPathSeparator() + datasetName
+    })
+    MedDataObject.createFolderFromPath(newDatasetObject.path)
+
+    let JSONToSend = { request: "createHoldoutSet", pageId: "inputModule", configPath: configPath, finalDatasetExtension: newDatasetExtension, finalDatasetPath: newDatasetObject.path + MedDataObject.getPathSeparator(), payload: {} }
+    JSONToSend.payload["name"] = selectedDataset.name
+    JSONToSend.payload["extension"] = selectedDataset.extension
+    JSONToSend.payload["datasetPath"] = selectedDataset.path
+    JSONToSend.payload["holdoutSetSize"] = holdoutSetSize
+    JSONToSend.payload["shuffle"] = options.shuffle
+    JSONToSend.payload["stratify"] = options.stratify
+    JSONToSend.payload["columnsToStratifyWith"] = selectedColumns
+    JSONToSend.payload["nanMethod"] = "drop"
+    JSONToSend.payload["randomState"] = 54288
+    newDatasetObject.relatedInformation = JSONToSend
+    console.log("JSONToSend", JSONToSend)
+    requestJson(
+      port,
+      "/input/create_holdout_set",
+      JSONToSend,
+      (jsonResponse) => {
+        setIsProgressUpdating(false)
+        console.log("jsonResponse", jsonResponse)
+        setProgress({ now: 100, currentLabel: "Holdout set creation complete ✅ : " + jsonResponse["finalDatasetPath"] })
+        MedDataObject.updateWorkspaceDataObject()
+      },
+      function (error) {
+        setIsProgressUpdating(false)
+        console.log("error", error)
+      }
+    )
+    setIsProgressUpdating(true)
+  }
 
   return (
     <>
-      <div className="mergeToolMultiSelect">
-        <Row className="justify-content-center ">
-          <Col md={4} style={{ display: "flex", flexDirection: "row", flexGrow: "1", alignItems: "center", justifyContent: "center", paddingInline: "0rem" }}>
-            <span className="p-float-label" style={{ width: "100%" }}>
-              <Dropdown
-                className="w-full md:w-14rem padding8px"
-                filter
-                panelClassName="mergeToolMultiSelect"
-                label="Select the first dataset"
-                placeholder="First dataset"
-                value={firstSelectedDataset ? firstSelectedDataset.getUUID() : null}
-                options={listOfDatasets}
-                optionLabel="name"
-                optionValue="key"
-                style={firstSelectedDataset ? { border: "1px solid #ced4da" } : { border: "1px solid green" }}
-                onChange={(e) => {
-                  setFirstDatasetHasChanged(true)
-                  setFirstSelectedDataset(globalData[e.target.value])
-                  let newDictOfDatasets = dictOfDatasets ? { ...dictOfDatasets } : {}
-                  delete newDictOfDatasets[0]
-                  newDictOfDatasets[0] = { data: e.target.value, columns: globalData[e.target.value].getColumnsOfTheDataObjectIfItIsATable(), mergeOn: null }
-                  if (!dictOfDatasets[1] || Object.keys(dictOfDatasets[1]).length === 1) {
-                    newDictOfDatasets[1] = null
-                  }
-                  setDictOfDatasets(newDictOfDatasets)
-                }}
-              />
-              <label htmlFor="in">First dataset</label>
-            </span>
-          </Col>
-          <Col md={4} style={{ display: "flex", flexDirection: "row", flexGrow: "1", alignItems: "center", justifyContent: "center", paddingInline: "0.5rem" }}>
-            <span className="p-float-label" style={{ width: "100%" }}>
-              <Dropdown
-                disabled={dictOfDatasets[0] ? false : true}
-                filter
-                panelClassName="mergeToolMultiSelect"
-                className="w-full md:w-14rem padding8px"
-                optionLabel="label"
-                value={dictOfDatasets[0] ? dictOfDatasets[0].mergeOn : null}
-                optionValue="value"
-                options={dictOfDatasets[0] && dictOfDatasets[0].options ? dictOfDatasets[0].options : []}
-                label="Select the column to merge on"
-                placeholder="Merge on..."
-                style={{ width: "100%" }}
-                onChange={(e) => {
-                  let newDictOfDatasets = dictOfDatasets ? { ...dictOfDatasets } : {}
-                  newDictOfDatasets[0].mergeOn = e.target.value
-                  setDictOfDatasets(newDictOfDatasets)
-                  setMergeOn(e.target.value)
-                }}
-              />
-              <label htmlFor="in">Column to merge on</label>
-            </span>
-          </Col>
-          <Col md={4} style={{ display: "flex", flexDirection: "row", flexGrow: "1", alignItems: "center", justifyContent: "center", paddingInline: "0rem" }}>
-            <span className="p-float-label" style={{ width: "100%" }}>
-              <MultiSelect
-                selectAll={true}
-                ref={firstMultiselect}
-                optionDisabled={(option) => {
-                  return option.value === mergeOn
-                }}
-                panelClassName="mergeToolMultiSelect"
-                disabled={firstSelectedDataset && mergeOn ? false : true}
-                className="w-full md:w-14rem  margintop8px "
-                filter
-                value={dictOfDatasets[0] && dictOfDatasets[0].options ? handleFirstDatasetChange() : null}
-                display="chip"
-                style={{ width: "100%" }}
-                placeholder="Select columns to merge"
-                options={dictOfDatasets[0] && dictOfDatasets[0].options ? dictOfDatasets[0].options : []}
-                panelFooterTemplate={() => {
-                  const length = dictOfDatasets[0] && dictOfDatasets[0].selectedColumns ? dictOfDatasets[0].selectedColumns.length : 0
-                  return (
-                    <div className="p-d-flex p-ai-center p-jc-between" style={{ marginLeft: "8px" }}>
-                      <b>{length}</b> item{length > 1 ? "s" : ""} selected
-                    </div>
-                  )
-                }}
-                onChange={(e) => {
-                  if (dictOfDatasets[0]) {
-                    let newDictOfDatasets = dictOfDatasets ? { ...dictOfDatasets } : {}
-                    newDictOfDatasets[0].selectedColumns = e.target.value
-                    setDictOfDatasets(newDictOfDatasets)
-                  }
-                }}
-              />
-              <label htmlFor="in">Selected columns</label>
-            </span>
-          </Col>
-        </Row>
-        <Row className="justify-content-center">
-          {Object.keys(dictOfDatasets).map((key) => {
-            if (key == "0") {
-              return <></>
-            }
+      {/* <Tooltip target=".stratify-check" autoHide={false}>
+        <div className="flex align-items-center">
+          <span style={{ minWidth: "5rem" }}>See </span>
+          <a href=""></a>
+        </div>
+      </Tooltip> */}
+      <Row className="holdout-set">
+        <Col>
+          <h6>Select the dataset you want to create the holdout set from</h6>
+          <Dropdown options={listOfDatasets} optionLabel="name" optionValue="key" className="w-100" value={selectedDataset ? selectedDataset.getUUID() : null} onChange={handleSelectedDatasetChange}></Dropdown>
 
-            let dataset
-            if (dictOfDatasets[key] && dictOfDatasets[key].data) {
-              dataset = globalData[dictOfDatasets[key].data]
-            }
-            let isValid = true
-            if (dictOfDatasets[key] && dictOfDatasets[0].mergeOn) {
-              if (dictOfDatasets[key].isValid !== undefined && dictOfDatasets[key].isValid !== null) {
-                isValid = dictOfDatasets[key].isValid
-              }
-            }
-
-            return (
-              <Col className="card" lg={6} key={key + "COLPARENTS"} style={{ paddingBottom: "1rem" }}>
-                <Row md={6} key={key + "rowParent"} className="justify-content-center" style={{ paddingTop: "1rem" }}>
-                  <Col md={6} key={key + "col1"} style={{ display: "flex", flexDirection: "column", flexGrow: "1", alignItems: "center", justifyContent: "center", flexWrap: "nowrap" }}>
-                    <Col style={{ display: "flex", marginBottom: "1rem", flexDirection: "row", flexGrow: "0", alignItems: "center", justifyContent: "center" }}>
-                      <h6 style={{ padding: ".25rem", flexGrow: "1" }}>{dictOfDatasets[key] && dictOfDatasets[key].data ? dataset.name : "Dataset #" + parseInt(key)}</h6>
-                      <a
-                        onClick={() => {
-                          const newDictOfDatasets = { ...dictOfDatasets }
-                          delete newDictOfDatasets[key]
-                          setDictOfDatasets(newDictOfDatasets)
-                        }}
-                      >
-                        <XSquare size={25} style={{ marginRight: "1rem" }} />
-                      </a>
-                    </Col>
-
-                    <span className="p-float-label" style={{ width: "100%" }}>
-                      <Dropdown
-                        className={`w-full md:w-14rem padding8px ${isValid ? "" : "p-invalid"}`}
-                        panelClassName="mergeToolMultiSelect"
-                        filter
-                        label={`Select dataset #${parseInt(key)}`}
-                        placeholder={`Dataset #${parseInt(key)}`}
-                        value={dataset && dataset.getUUID() ? dataset.getUUID() : null}
-                        options={returnListWithoutDatasetAlreadyUsed(key)}
-                        optionLabel="name"
-                        optionValue="key"
-                        style={{ width: "100%" }}
-                        onChange={(e) => {
-                          const newDictOfDatasets = { ...dictOfDatasets }
-                          newDictOfDatasets[key] = { data: e.target.value, columns: globalData[e.target.value].getColumnsOfTheDataObjectIfItIsATable(), selectedColumns: null, mergeType: null, isValid: false }
-
-                          setDictOfDatasets(newDictOfDatasets)
-                          // console.log(e)
-                        }}
-                      />
-                      <label htmlFor="in">Dataset #{parseInt(key)}</label>
+          <Row style={{ display: "flex", justifyContent: "space-evenly", flexDirection: "row", marginTop: "0.5rem" }}>
+            <Col className="align-items-center " style={{ display: "flex" }}>
+              <Checkbox inputId="shuffle-check" name="shuffle" value="shuffle" checked={options.shuffle === true} onChange={handleOptionsChange} />
+              <label htmlFor="shuffle-check" className="ml-2">
+                Shuffle
+              </label>
+            </Col>
+            <Col className="align-items-center " style={{ display: "flex" }}>
+              <Checkbox className="stratify-check" inputId=".stratify-check" name="stratify" value="stratify" checked={options.stratify === true} onChange={handleOptionsChange} disabled={!options.shuffle} />
+              <label htmlFor="stratify-check" className="stratify-check" aria-disabled={!options.shuffle}>
+                Stratify
+              </label>
+              {options.shuffle === false && (
+                <Tooltip target=".stratify-check " autoHide={false}>
+                  <div className="flex align-items-center">
+                    <span style={{ minWidth: "5rem" }}>
+                      Shuffle must be set to <b>True</b> for Stratify to be <b>True</b>{" "}
                     </span>
-                    <div className="divider" />
-                    <span className="p-float-label" style={{ width: "100%" }}>
-                      <Dropdown
-                        disabled={dataset ? false : true}
-                        className="w-full md:w-14rem padding8px"
-                        panelClassName="mergeToolMultiSelect"
-                        value={dictOfDatasets[key] ? dictOfDatasets[key].mergeType : null}
-                        options={mergeOptions}
-                        label="Select the merge type"
-                        placeholder="Merge type"
-                        style={{ width: "100%" }}
-                        onChange={(e) => {
-                          let newDictOfDatasets = dictOfDatasets ? { ...dictOfDatasets } : {}
-                          newDictOfDatasets[key].mergeType = e.target.value
-                          setDictOfDatasets(newDictOfDatasets)
-                        }}
-                      />
-                      <label htmlFor="in">Merge type</label>
-                    </span>
-                    <div className="divider" />
-                    <span className="p-float-label" style={{ width: "100%" }}>
-                      <MultiSelect
-                        optionDisabled={(option) => {
-                          return option.value === mergeOn
-                        }}
-                        panelClassName="mergeToolMultiSelect"
-                        disabled={dataset ? false : true}
-                        className="w-full md:w-14rem  margintop8px "
-                        filter
-                        value={dictOfDatasets[key] && isValid && dataset ? addMergeOnToSelectedColumnsIfPresent(key, dictOfDatasets[key].selectedColumns) : null}
-                        display="chip"
-                        style={{ width: "100%" }}
-                        placeholder="Select columns to merge"
-                        options={dictOfDatasets[key] && dictOfDatasets[key].options ? dictOfDatasets[key].options : []}
-                        panelFooterTemplate={() => {
-                          const length = dictOfDatasets[key] && dictOfDatasets[key].selectedColumns ? dictOfDatasets[key].selectedColumns.length : 0
-                          return (
-                            <div className="p-d-flex p-ai-center p-jc-between" style={{ marginLeft: "8px" }}>
-                              <b>{length}</b> item{length > 1 ? "s" : ""} selected
-                            </div>
-                          )
-                        }}
-                        onFocus={() => {
-                          if (dictOfDatasets[key]) {
-                            let newDictOfDatasets = dictOfDatasets ? { ...dictOfDatasets } : {}
-                            newDictOfDatasets[key].selectedColumns = addMergeOnToSelectedColumnsIfPresent(dictOfDatasets[key], dictOfDatasets[key].selectedColumns ? dictOfDatasets[key].selectedColumns : [])
-                            setDictOfDatasets(newDictOfDatasets)
-                          }
-                        }}
-                        onChange={(e) => {
-                          if (isValid) {
-                            let newDictOfDatasets = dictOfDatasets ? { ...dictOfDatasets } : {}
-                            newDictOfDatasets[key].selectedColumns = e.target.value
-                            setDictOfDatasets(newDictOfDatasets)
-                          }
-                        }}
-                      />
-                      <label htmlFor="in">Selected columns</label>
-                    </span>
-                  </Col>
-                </Row>
-                <Row key={key + "lastRow"} className="justify-content-center">
-                  {!isValid && (
-                    <span style={{ color: "red", textAlign: "center" }}>
-                      The column to merge on <b>({dictOfDatasets[0].mergeOn})</b> is not present in this dataset
-                    </span>
-                  )}
-                </Row>
-              </Col>
-            )
-          })}
-        </Row>
-        <Col style={{ display: "flex", flexDirection: "row", justifyContent: "center", flexGrow: 0, alignItems: "center", marginTop: "1rem" }} xs>
-          <a
-            onClick={() => {
-              const newDictOfDatasets = { ...dictOfDatasets }
-              newDictOfDatasets[Object.keys(dictOfDatasets).length] = null
-              setDictOfDatasets(newDictOfDatasets)
-            }}
-            style={{ marginLeft: "1rem", display: "flex", flexDirection: "row", flexGrow: "-moz-initial" }}
-          >
-            <PlusSquare size={35} />
-          </a>
+                    <a href=""></a>
+                  </div>
+                </Tooltip>
+              )}
+            </Col>
+          </Row>
+          <h6 className="stratify-check" style={{ marginTop: "0.5rem" }} aria-disabled={!options.stratify}>
+            Select the column(s){" "}
+          </h6>
+          <MultiSelect className="w-100 " options={selectedDatasetColumns} display="chip" optionLabel="label" value={selectedColumns} onChange={handleColumnSelection} disabled={!options.stratify}></MultiSelect>
         </Col>
-        <Row className="justify-content-start">
-          <Col style={{ display: "flex", flexDirection: "row", justifyContent: "center", flexGrow: 0, alignItems: "center", marginTop: "1rem" }} xs>
-            <Button
-              label="Merge"
-              style={{ position: "relative", display: "flex", alignSelf: "end", alignItems: "flex-end", justifyContent: "flex-end", justifySelf: "flex-end" }}
-              onClick={() => {
-                let newDatasetPathParent = globalData[globalData[dictOfDatasets[0].data].parentID].path
-                let datasetName = newDatasetName.length > 0 ? newDatasetName : "mergedDataset"
-                datasetName = datasetName + newDatasetExtension
-                let newDatasetObject = new MedDataObject({
-                  originalName: datasetName,
-                  name: datasetName,
-                  type: "file",
-                  parentID: globalData[dictOfDatasets[0].data].parentID,
-                  path: newDatasetPathParent + MedDataObject.getPathSeparator() + datasetName
-                })
-                // newDatasetObject.extension = "csv"
-
-                let JSONToSend = { request: "mergeDatasets", pageId: pageId, configPath: configPath, finalDatasetExtension: newDatasetExtension, finalDatasetPath: newDatasetObject.path, payload: {} }
-                Object.keys(dictOfDatasets).forEach((key) => {
-                  if (dictOfDatasets[key]) {
-                    JSONToSend.payload[key] = {
-                      name: globalData[dictOfDatasets[key].data].name,
-                      path: globalData[dictOfDatasets[key].data].path,
-                      extension: globalData[dictOfDatasets[key].data].extension,
-                      mergeType: dictOfDatasets[key].mergeType,
-                      mergeOn: dictOfDatasets[0].mergeOn,
-                      selectedColumns: dictOfDatasets[key].selectedColumns
-                    }
-                  }
-                })
-                newDatasetObject.relatedInformation = JSONToSend
-
-                // console.log("JSONToSend", JSONToSend)
-                requestJson(
-                  port,
-                  "/input/merge_datasets",
-                  JSONToSend,
-                  (jsonResponse) => {
-                    setIsProgressUpdating(false)
-                    console.log("jsonResponse", jsonResponse)
-                    setProgress({ now: 100, currentLabel: "Merged complete ✅ : " + jsonResponse["finalDatasetPath"] })
-                  },
-                  function (error) {
-                    setIsProgressUpdating(false)
-                    console.log("error", error)
-                  }
-                )
-
-                setIsProgressUpdating(true)
-              }}
-            />
-          </Col>
-          <Col style={{ display: "flex", flexDirection: "row", justifyContent: "center", flexGrow: 0, alignItems: "center", marginTop: "1rem" }} xs>
-            <div className="p-input-group flex-1 dataset-name" style={{ display: "flex", flexDirection: "row" }}>
-              <InputText
-                placeholder="Dataset name"
-                keyfilter={"alphanum"}
-                onChange={(e) => {
-                  setNewDatasetName(e.target.value)
-                }}
-              />
-              <span className="p-inputgroup-addon">
-                <Dropdown
-                  // className="p-ml-2"
-                  panelClassName="dataset-name"
-                  value={newDatasetExtension}
-                  options={[
-                    { label: ".csv", value: ".csv" },
-                    { label: ".json", value: ".json" },
-                    { label: ".xlsx", value: ".xlsx" }
-                  ]}
+        <Col>
+          <p>Holdout set creation tool</p>
+          <Row style={{ display: "flex", justifyContent: "space-evenly", flexDirection: "row", marginTop: "0.5rem" }}>
+            <label htmlFor="minmax-buttons" className="font-bold block mb-2">
+              Holdout set size (%){" "}
+            </label>
+            <Row style={{ display: "flex", justifyContent: "space-evenly", flexDirection: "row", marginTop: "0.5rem", alignContent: "center" }}>
+              <Col style={{ display: "flex", flexDirection: "row", alignContent: "center", alignItems: "center" }}>
+                <Slider
+                  className="custom-slider holdout-slider"
+                  value={holdoutSetSize}
+                  style={{ flexGrow: "2" }}
                   onChange={(e) => {
-                    setNewDatasetExtension(e.target.value)
+                    setHoldoutSetSize(e.value)
+                  }}
+                ></Slider>
+                <InputNumber
+                  prefix="% "
+                  inputId="minmax-buttons"
+                  value={holdoutSetSize}
+                  onValueChange={(e) => {
+                    setHoldoutSetSize(e.value)
+                  }}
+                  mode="decimal"
+                  showButtons
+                  min={0}
+                  max={100}
+                  size={2}
+                  style={{ marginLeft: "1rem" }}
+                />
+              </Col>
+            </Row>
+            <Row style={{ display: "flex", justifyContent: "space-evenly", flexDirection: "row", marginTop: "0.5rem", alignContent: "center" }}>
+              <Col style={{ display: "flex", flexDirection: "row", alignContent: "center", alignItems: "center" }}>
+                <label htmlFor="minmax-buttons" className="font-bold block mb-2">
+                  NaN method{" "}
+                </label>
+
+                <Dropdown
+                  className="w-100"
+                  value={nanMethod}
+                  options={nanMethods}
+                  onChange={(e) => {
+                    setNaNMethod(e.target.value)
                   }}
                 />
-              </span>
-            </div>
-          </Col>
-          <div className="progressBar-merge">{<ProgressBarRequests isUpdating={isProgressUpdating} setIsUpdating={setIsProgressUpdating} progress={progress} setProgress={setProgress} requestTopic={"input/progress/" + pageId} delayMS={50} />}</div>
-        </Row>
-      </div>
+              </Col>
+            </Row>
+            <Row style={{ display: "flex", justifyContent: "space-evenly", flexDirection: "row", marginTop: "1rem", alignItems: "center" }}>
+              <Col style={{ display: "flex", flexDirection: "row", justifyContent: "center", flexGrow: 0, alignItems: "center" }} xs>
+                <div className="p-input-group flex-1 dataset-name " style={{ display: "flex", flexDirection: "row" }}>
+                  <InputText
+                    className={`${checkIfNameAlreadyUsed(newDatasetName + newDatasetExtension) ? "p-invalid" : ""}`}
+                    placeholder="Holdout set name"
+                    keyfilter={"alphanum"}
+                    onChange={(e) => {
+                      setNewDatasetName(e.target.value)
+                    }}
+                  />
+                  <span className="p-inputgroup-addon">
+                    <Dropdown
+                      className={`${checkIfNameAlreadyUsed(newDatasetName + newDatasetExtension) ? "p-invalid" : ""}`}
+                      panelClassName="dataset-name"
+                      value={newDatasetExtension}
+                      options={[
+                        { label: ".csv", value: ".csv" },
+                        { label: ".json", value: ".json" },
+                        { label: ".xlsx", value: ".xlsx" }
+                      ]}
+                      onChange={(e) => {
+                        setNewDatasetExtension(e.target.value)
+                      }}
+                    />
+                  </span>
+                </div>
+              </Col>
+              <Col>
+                <Button
+                  label="Create holdout set"
+                  disabled={checkIfNameAlreadyUsed(newDatasetName) || selectedDataset === null || selectedDataset === undefined}
+                  onClick={() => {
+                    console.log("CREATE HOLDOUT SET")
+
+                    createHoldoutSet()
+                  }}
+                />
+              </Col>
+            </Row>
+          </Row>
+        </Col>
+        <div className="progressBar-merge">{<ProgressBarRequests isUpdating={isProgressUpdating} setIsUpdating={setIsProgressUpdating} progress={progress} setProgress={setProgress} requestTopic={"input/progress/" + pageId} delayMS={50} />}</div>
+      </Row>
     </>
   )
 }
 
-export default MergeTool
-// export { MergeTool }
+export default HoldOutSetCreationTool
