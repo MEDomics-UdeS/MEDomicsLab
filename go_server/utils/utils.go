@@ -55,7 +55,7 @@ func JsonStr2map(jsonStr string) (map[string]interface{}, error) {
 }
 
 // Map2jsonStr converts a map to a json string
-func Map2jsonStr(data map[string]interface{}) (string, error) {
+func Map2jsonStr(data map[string]string) (string, error) {
 	jsonData, err := json.Marshal(data)
 	if err != nil {
 		return "", err
@@ -66,6 +66,7 @@ func Map2jsonStr(data map[string]interface{}) (string, error) {
 // GetConfigFromMessage gets the config json from the message in input
 func GetConfigFromMessage(w http.ResponseWriter, request []byte) (string, error) {
 	data, err := JsonStr2map(string(request))
+	fmt.Println("Data: " + string(request))
 	if err != nil {
 		http.Error(w, "Failed to parse JSON request body", http.StatusBadRequest)
 		return "", err
@@ -73,8 +74,12 @@ func GetConfigFromMessage(w http.ResponseWriter, request []byte) (string, error)
 	return data["message"].(string), nil
 }
 
+type Progress struct {
+	Progress string
+}
+
 // CreateHandleFunc creates the handle function for the server
-func CreateHandleFunc(topic string, processRequest func(jsonConfig string) (string, error), isThreaded bool) {
+func CreateHandleFunc(topic string, processRequest func(jsonConfig string) (string, error), isThreaded bool, progress *map[string]string) {
 	fmt.Println("Adding handle func for topic: " + topic)
 	http.HandleFunc("/"+topic, func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
@@ -83,11 +88,13 @@ func CreateHandleFunc(topic string, processRequest func(jsonConfig string) (stri
 		}
 
 		// Read and reset the request body
+		fmt.Println("Reading request body")
 		savedRequestBody, err := io.ReadAll(r.Body)
 		if err != nil {
 			http.Error(w, "Failed to read request body", http.StatusBadRequest)
 			return
 		}
+		fmt.Println("Request body: " + string(savedRequestBody))
 
 		r.Body = io.NopCloser(bytes.NewBuffer(savedRequestBody))
 
@@ -104,11 +111,17 @@ func CreateHandleFunc(topic string, processRequest func(jsonConfig string) (stri
 		if isThreaded {
 			wg.Add(1)
 			go func(wg *sync.WaitGroup) {
+
 				processResponse, err = processRequest(jsonConfig)
 				if err != nil {
 					http.Error(w, "Failed to process request", http.StatusInternalServerError)
 					return
 				}
+				defer wg.Done()
+			}(&wg)
+			wg.Add(1)
+			go func(wg *sync.WaitGroup) {
+				startUDPServer("5008", progress)
 				defer wg.Done()
 			}(&wg)
 			wg.Wait()

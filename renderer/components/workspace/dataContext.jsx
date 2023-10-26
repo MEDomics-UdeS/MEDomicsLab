@@ -1,5 +1,7 @@
 import { React, createContext, useState } from "react"
 
+export const UUID_ROOT = "UUID_ROOT"
+
 /**
  * @typedef {React.Context} DataContext
  * @description A context object that provides global data and data request state to its children components.
@@ -23,7 +25,7 @@ function DataContextProvider({ children, globalData, setGlobalData }) {
   const [dataRequest, setDataRequest] = useState({}) // The data request object that will be used to request data from the main process
 
   /**
-   * 
+   *
    * @returns {Promise} - A promise that resolves with a copy of the global data object.
    */
   const copyGlobalDataSync = () => {

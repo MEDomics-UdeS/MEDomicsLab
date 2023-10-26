@@ -16,6 +16,7 @@ import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels"
 import { TabView, TabPanel } from "primereact/tabview"
 import ShapValues from "./shapValues"
 import Dashboard from "./dashboard"
+import { customZipFile2Object } from "../../utilities/customZipFile"
 
 const ConfigPage = ({ pageId, config, chosenModel, setChosenModel, chosenDataset, setChosenDataset, modelHasWarning, setModelHasWarning, datasetHasWarning, setDatasetHasWarning, updateEvaluationConfig }) => {
   useEffect(() => {
@@ -76,9 +77,13 @@ const ConfigPage = ({ pageId, config, chosenModel, setChosenModel, chosenDataset
   )
 }
 
-const EvaluationContent = ({ pageId, config, chosenModel, setChosenModel, updateEvaluationConfig, chosenDataset, setChosenDataset, modelHasWarning, setModelHasWarning, datasetHasWarning, setDatasetHasWarning }) => {
+const EvaluationContent = ({ pageId, config, updateWarnings, chosenModel, setChosenModel, updateEvaluationConfig, chosenDataset, setChosenDataset, modelHasWarning, setModelHasWarning, datasetHasWarning, setDatasetHasWarning }) => {
   const evaluationHeaderPanelRef = useRef(null)
   const [showHeader, setShowHeader] = useState(true)
+
+  useEffect(() => {
+    updateWarnings()
+  }, [])
 
   useEffect(() => {
     console.log("EvaluationContent config", config)
@@ -139,7 +144,7 @@ const EvaluationContent = ({ pageId, config, chosenModel, setChosenModel, update
             <hr />
           </Button>
           <div className="eval-body-content">
-            <TabView>
+            <TabView renderActiveOnly={false}>
               <TabPanel key="shap" header="Shap values">
                 <ShapValues />
               </TabPanel>
@@ -197,14 +202,21 @@ const EvaluationPageContent = () => {
       //   getting colummns of the model
       let modelColsString = ""
       let modelData = []
-      let modelDataObject = MedDataObject.checkIfMedDataObjectInContextbyPath(chosenModel.path, globalData)
-      if (modelDataObject && modelDataObject.metadata.content) {
-        modelData = modelDataObject.metadata.content.model_required_cols
-        console.log("modelData", modelData)
-        modelColsString = JSON.stringify(modelData.columns)
+      let modelDataObject = await MedDataObject.getObjectByPathSync(chosenModel.path, globalData)
+      console.log("modelDataObject", modelDataObject)
+      if (!modelDataObject.metadata.content) {
+        let content = await customZipFile2Object(chosenModel.path)
+        console.log("content", content)
+        console.log("loaded config", content.model_required_cols)
+        modelDataObject.metadata.content = content.model_required_cols
       }
+      console.log("modelDataObject", modelDataObject)
+      modelData = modelDataObject.metadata.content.columns
+      console.log("modelData", modelData)
+      modelColsString = JSON.stringify(modelData)
       console.log("datasetColsString", datasetColsString)
       console.log("modelColsString", modelColsString)
+      // setGlobalData({ ...globalData })
       if (datasetColsString !== modelColsString) {
         setDatasetHasWarning({
           state: true,
@@ -218,7 +230,7 @@ const EvaluationPageContent = () => {
                     <Col>
                       <p>Needed columns:</p>
                       <ul>
-                        {modelData.columns.map((col) => {
+                        {modelData.map((col) => {
                           return <li key={col}>{col}</li>
                         })}
                       </ul>

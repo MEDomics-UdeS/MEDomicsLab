@@ -8,7 +8,7 @@ import { loadJsonPath } from "../../../../utilities/fileManagementUtils"
 import { OverlayPanel } from "primereact/overlaypanel"
 import { Accordion } from "react-bootstrap"
 import MedDataObject from "../../../workspace/medDataObject"
-import { DataContext } from "../../../workspace/dataContext"
+import { DataContext, UUID_ROOT } from "../../../workspace/dataContext"
 import { toast } from "react-toastify"
 import { createZipFileSync } from "../../../../utilities/customZipFile"
 import Path from "path"
@@ -59,7 +59,9 @@ const FlowSceneSidebar = ({ type }) => {
    * @param {String} name The name of the scene
    * @description - This function is used to create an empty scene
    */
-  const createEmptyScene = async (path, name) => {
+  const createEmptyScene = async (name) => {
+    let path = Path.join(globalData[UUID_ROOT].path, EXPERIMENTS)
+    console.log("path", path)
     if (selectedItems.length == 0 || selectedItems[0] == undefined) {
       toast.error("Please select the EXPERIMENT folder to create the scene in")
     } else {

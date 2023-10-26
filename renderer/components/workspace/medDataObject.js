@@ -258,6 +258,27 @@ export default class MedDataObject {
   }
 
   /**
+   * Checks if a MED data object with the given path exists in the global data context.
+   * @param {string} dataObjectPath - The path of the MED data object to search for.
+   * @param {Object} globalDataContext - The global data context object to search in.
+   * @returns {Object|null} - The MED data object if found, otherwise null.
+   */
+  static getObjectByPathSync(dataObjectPath, globalDataContext) {
+    return new Promise((resolve) => {
+      let dataObjectList = globalDataContext
+      let dataObjectToReturn = null
+      let arrayObjectUUIDs = Object.keys(dataObjectList)
+      arrayObjectUUIDs.forEach((key) => {
+        let dataObject = dataObjectList[key]
+        if (dataObject.path === dataObjectPath) {
+          dataObjectToReturn = dataObject
+        }
+      })
+      resolve(dataObjectToReturn)
+    })
+  }
+
+  /**
    * Creates a copy of a MED data object.
    * @param {MedDataObject} dataObject - The MED data object to copy.
    * @param {Object} [globalDataContext={}] - The global data context object to search in.

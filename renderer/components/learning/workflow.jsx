@@ -881,7 +881,7 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
           <>
             {/* bottom center - progress bar */}
             <div className="panel-bottom-center">
-              <ProgressBarRequests progressBarProps={{ animated: true, variant: "success" }} isUpdating={isProgressUpdating} setIsUpdating={setIsProgressUpdating} progress={progress} setProgress={setProgress} requestTopic={"learning/progress/" + pageId} />
+              <ProgressBarRequests progressBarProps={{ animated: true, variant: "success" }} isUpdating={isProgressUpdating} setIsUpdating={setIsProgressUpdating} progress={progress} setProgress={setProgress} requestTopic={"learning/progress"} />
             </div>
           </>
         }

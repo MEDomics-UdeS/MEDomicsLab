@@ -14,7 +14,7 @@ import MEDconfig, { SERVER_CHOICE } from "../../medomics.dev"
  */
 export const requestBackend = (port, topic, pageId = null, json2send, jsonReceivedCB, onError) => {
   if (MEDconfig.serverChoice == SERVER_CHOICE.GO) {
-    axiosPostJsonGo(port, topic, json2send, jsonReceivedCB, onError)
+    axiosPostJsonGo(port, pageId ? topic + "/" + pageId : topic, json2send, jsonReceivedCB, onError)
   } else if (MEDconfig.serverChoice == SERVER_CHOICE.FLASK) {
     requestJson(port, pageId ? topic + "/" + pageId : topic, json2send, jsonReceivedCB, onError)
   }
@@ -69,8 +69,9 @@ export const requestJson = (port, topic, json2send, jsonReceivedCB, onError) => 
  * @param {Function} onError executed when an error occurs
  */
 export const axiosPostJsonGo = async (port, topic, json2send, jsonReceivedCB, onError) => {
+  console.log("http://localhost:" + port + topic)
   try {
-    const response = await axios.post("http://localhost:" + port + topic, { message: JSON.stringify(json2send) }, { headers: { "Content-Type": "application/json" } })
+    const response = await axios.post("http://localhost:" + port + "/" + topic, { message: JSON.stringify(json2send) }, { headers: { "Content-Type": "application/json" } })
     console.log(response.data)
     response.data.type == "toParse" ? jsonReceivedCB(JSON.parse(response.data.response_message)) : jsonReceivedCB(response.data.response_message)
     return response.data
