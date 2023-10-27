@@ -5,6 +5,7 @@ from extraction_ts.app_extraction_ts_blueprint import app_extraction_ts
 from extraction_MEDimage.app_extraction_blueprint import app_extraction_MEDimage
 from input.app_input_blueprint import app_input
 from flask import Flask
+from MEDprofiles_.app_MEDprofiles_blueprint import app_MEDprofiles
 
 
 def create_app():
@@ -15,4 +16,5 @@ def create_app():
     app.register_blueprint(app_extraction_text, url_prefix='/extraction_text')
     app.register_blueprint(app_extraction_ts, url_prefix='/extraction_ts')
     app.register_blueprint(app_input, url_prefix='/input')
+    app.register_blueprint(app_MEDprofiles, url_prefix='/MEDprofiles')
     return app

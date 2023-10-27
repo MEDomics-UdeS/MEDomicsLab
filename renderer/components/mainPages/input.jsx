@@ -1,7 +1,8 @@
 import React from "react"
 import DatasetSelector from "./dataComponents/datasetSelector"
 import ModulePage from "./moduleBasics/modulePage"
-import { Accordion, AccordionTab } from "primereact/accordion"
+import { Accordion } from "react-bootstrap"
+import MEDprofilesPrepareData from "../input/MEDprofilesPrepareData"
 /**
  * @description - This component is the input page of the application
  * @returns the input page component
@@ -14,13 +15,20 @@ const InputPage = ({ pageId = "42", configPath = null }) => {
     <>
       <ModulePage pageId={pageId} configPath={configPath}>
         <h1>INPUT MODULE</h1>
-        <Accordion multiple activeIndex={activeIndex} onTabChange={(e) => setActiveIndex(e.index)}>
+        {/* <Accordion multiple activeIndex={activeIndex} onTabChange={(e) => setActiveIndex(e.index)}>
           <AccordionTab header="Dataset Selector">
             <DatasetSelector multiSelect={true} />
           </AccordionTab>
           <AccordionTab header="Merge Tool">
             <h1>Merge Tool</h1>
-          </AccordionTab>
+          </AccordionTab> */}
+        <Accordion>
+          <Accordion.Item eventKey="10">
+              <Accordion.Header>MEDprofiles</Accordion.Header>
+              <Accordion.Body>
+                <MEDprofilesPrepareData/>
+              </Accordion.Body>
+            </Accordion.Item>
         </Accordion>
       </ModulePage>
     </>

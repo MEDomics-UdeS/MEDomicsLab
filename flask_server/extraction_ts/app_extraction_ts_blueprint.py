@@ -7,7 +7,6 @@ from flask import request, Blueprint
 from pathlib import Path
 from tsfresh import extract_features
 from tsfresh.feature_extraction import ComprehensiveFCParameters, EfficientFCParameters, MinimalFCParameters
-from tsfresh.utilities.dataframe_functions import impute
 from utils.server_utils import get_json_from_request, get_response_from_error
 
 # blueprint definition
