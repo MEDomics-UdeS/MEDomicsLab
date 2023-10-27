@@ -2,7 +2,7 @@ import * as React from "react"
 import { Button } from "primereact/button"
 import { Menu, MenuItem, Intent, HotkeysTarget2, Divider, Collapse } from "@blueprintjs/core"
 import xlxs from "xlsx"
-import { Column, ColumnHeaderCell, CopyCellsMenuItem, MenuContext, Table2, Utils, EditableCell2 } from "@blueprintjs/table"
+import { Column, ColumnHeaderCell, CopyCellsMenuItem, MenuContext, Table2, Utils, EditableCell2, EditableName } from "@blueprintjs/table"
 import { Stack } from "react-bootstrap"
 import { ChevronRight, FiletypeCsv, FiletypeJson, FiletypeXlsx } from "react-bootstrap-icons"
 import { PiFloppyDisk } from "react-icons/pi"
@@ -16,10 +16,12 @@ const dfUtils = new danfoUtils()
 export type CellLookup = (rowIndex: number, columnIndex: number) => any // function that returns the cell data
 export type SortCallback = (columnIndex: number, comparator: (a: any, b: any) => number) => void // function that sorts the column
 export type FilterCallback = (columnIndex: number, filterValue: string) => void // function that filters the column
+export type nameRenderer = (name: string, columnIndex: number) => React.ReactElement // function that renders the name of the column
+export type getName = (columnIndex: number) => string // function that returns the name of the column
 
 export interface SortableColumn {
   // interface for the sortable column
-  getColumn(getCellRenderer: CellLookup, getCellData: CellLookup, sortColumn: SortCallback, filterColumn: FilterCallback): JSX.Element
+  getColumn(getCellRenderer: CellLookup, getCellData: CellLookup, sortColumn: SortCallback, filterColumn: FilterCallback, nameRenderer: nameRenderer, colName: getName): JSX.Element
 }
 
 /**
@@ -52,13 +54,12 @@ abstract class AbstractSortableColumn implements SortableColumn {
    * @param filterColumn - function that filters the column
    * @returns JSX.Element - column
    */
-  public getColumn(getCellRenderer: CellLookup, getCellData: CellLookup, sortColumn: SortCallback, filterColumn: FilterCallback) {
+  public getColumn(getCellRenderer: CellLookup, getCellData: CellLookup, sortColumn: SortCallback, filterColumn: FilterCallback, nameRenderer: nameRenderer, getName: getName) {
     const menuRenderer = this.renderMenu.bind(this, sortColumn) // bind the sortColumn function to the menuRenderer
     const filterThisColumn = (filterValue: string) => filterColumn(this.index, filterValue) // bind the filterColumn function to the filterThisColumn function
     const columnHeaderCellRenderer = () => (
       // function that returns the column header cell renderer
-
-      <ColumnHeaderCell name={this.name} menuRenderer={menuRenderer}>
+      <ColumnHeaderCell name={getName(this.index)} menuRenderer={menuRenderer} nameRenderer={nameRenderer}>
         <DataTablePopoverBP // popover that contains the filter input
           config={this.config}
           category={this.category}
@@ -73,7 +74,7 @@ abstract class AbstractSortableColumn implements SortableColumn {
         cellRenderer={getCellRenderer}
         columnHeaderCellRenderer={columnHeaderCellRenderer}
         key={this.index}
-        name={this.name}
+        // name={this.name}
       />
     )
   }
@@ -156,6 +157,7 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
    * @memberof DataTableWrapperBPClass
    */
   public state = {
+    newColumnNames: [] as string[], // new column names
     columnsNames: [] as string[], // names of the columns
     columns: [] as SortableColumn[], // columns
     data: this.props.data as any[], // data
@@ -246,6 +248,7 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
       return
     }
     let columnsNames = Object.keys(this.props.data[0]) // get the column names
+    let newColumnNames = columnsNames // new column names
     let newColumns: any[] = [] // new columns
     let newColumnIndexMap: any[] = [] // new column index map
     let newColumnTypes = this.getColumnsTypes(this.props.data) // get the column types
@@ -257,7 +260,7 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
     this.state.columnsNames = columnsNames // set the column names
     this.state.columns = newColumns // set the columns
     this.setState({ data: this.props.data }) // set the data
-    this.setState({ columnsNames: columnsNames, columns: newColumns, columnIndexMap: newColumnIndexMap }) // set the column names, columns and column index map
+    this.setState({ columnsNames: columnsNames, columns: newColumns, columnIndexMap: newColumnIndexMap, newColumnNames: newColumnNames }) // set the column names, columns and column index map
     // console.log("componentDidMount", this.state.data, this.state.sortedIndexMap) // log the data and sorted index map
   }
 
@@ -276,6 +279,11 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
       // if the previous props are not the same as the current props
       this.setState({ data: this.props.data }) // set the data
       let columnsNames = Object.keys(this.props.data[0]) // get the column names
+      let newColumnNames = this.state.newColumnNames
+      if (this.state.newColumnNames.length === 0) {
+        // if the new column names are empty
+        newColumnNames = columnsNames // new column names
+      }
       let newColumns: any[] = []
       let newColumnIndexMap: any[] = []
       let newColumnTypes = this.getColumnsTypes(this.props.data) // get the column types
@@ -284,7 +292,7 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
         newColumnIndexMap.push(index)
       })
       this.describeColumns(this.props.data) // describe the columns
-      this.setState({ columnsNames: columnsNames, columns: newColumns, columnIndexMap: newColumnIndexMap }) // set the column names, columns and column index map
+      this.setState({ columnsNames: columnsNames, columns: newColumns, columnIndexMap: newColumnIndexMap, newColumnNames: newColumnNames }) // set the column names, columns and column index map
     }
     if (prevState !== this.state) {
       // if the previous state is not the same as the current state
@@ -303,6 +311,10 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
       if (prevState.filteredIndexMap !== this.state.filteredIndexMap) {
         // if the previous filtered index map is not the same as the current filtered index map
         this.setState({ filteredIndexMap: this.state.filteredIndexMap }) // set the filtered index map
+      }
+      if (prevState.columnIndexMap !== this.state.columnIndexMap) {
+        // if the previous column index map is not the same as the current column index map
+        this.setState({ columnIndexMap: this.state.columnIndexMap }) // set the column index map
       }
       if (prevState.columnIndexMap !== this.state.columnIndexMap) {
         // if the previous column index map is not the same as the current column index map
@@ -346,7 +358,8 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
     let csvContentHeader = "data:text/csv;charset=utf-8,"
     let csvContent = ""
     let headers = Object.keys(data[0])
-    let firstRow = headers.join(",")
+    // let firstRow = headers.join(",")
+    let firstRow = this.state.newColumnNames.join(",")
     csvContent += firstRow + "\r\n"
     let length = data.length
     data.forEach(function (rowArray: { [x: string]: string }, rowindex: number) {
@@ -469,7 +482,9 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
    */
   public exportToJSON(event: React.MouseEvent<HTMLButtonElement, MouseEvent>, data: any, filePath?: string) {
     data = this.getModifiedData(data)
-    console.log("exportToJSON", data)
+    let df = new dfd.DataFrame(data)
+    this.saveColumnsNewNames(df)
+    data = dfd.toJSON(df)
     let jsonContent = "data:text/json;charset=utf-8, \r\n[\r\n\t"
     data.forEach((row: { [x: string]: string }, index: number) => {
       jsonContent += JSON.stringify(row)
@@ -515,7 +530,7 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
     data = this.getModifiedData(data)
     let headers = Object.keys(data[0])
     let excelData: any[] = []
-    excelData.push(headers)
+    excelData.push(this.state.newColumnNames)
     data.forEach((row: { [x: string]: string }, index: number) => {
       let rowToPush: any[] = []
       headers.forEach((header) => {
@@ -535,6 +550,23 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
   }
 
   /**
+   * @description this function renames the columns with the new column names
+   * @param df - dataframe
+   * @returns void
+   */
+  private saveColumnsNewNames = (df: DataFrame) => {
+    let newColumnNames = this.state.newColumnNames
+    let columnsNames = this.state.columnsNames
+    let columnsRenamingMap = {}
+    columnsNames.forEach((columnName, index) => {
+      if (newColumnNames[index] !== columnName) {
+        columnsRenamingMap[columnName] = newColumnNames[index]
+      }
+    })
+    df.rename(columnsRenamingMap, { inplace: true })
+  }
+
+  /**
    * This function saves the modified data in the format specified in the config and at the location specified in the config
    * @param event - event
    * @param data - data to be saved
@@ -543,6 +575,7 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
   public async saveData(event: React.MouseEvent<HTMLButtonElement, MouseEvent>, data: any) {
     data = this.getModifiedData(data)
     let df = new dfd.DataFrame(data)
+    this.saveColumnsNewNames(df)
     console.log("saveData", data)
     console.log("saveData", this.state.config)
     if (this.state.config.extension === "csv") {
@@ -587,7 +620,7 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
     const columns = this.state.columns.map(
       (
         col // get the columns
-      ) => col.getColumn(this.getCellRenderer, this.getCellData, this.sortColumn, this.filterColumn)
+      ) => col.getColumn(this.getCellRenderer, this.getCellData, this.sortColumn, this.filterColumn, this.getColumnNameRenderer, this.getColumnNameFromColumnIndex)
     )
     return (
       <div className="bp-datatable-wrapper">
@@ -641,6 +674,7 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
 
         <HotkeysTarget2 hotkeys={[]}>
           <Table2
+            enableColumnInteractionBar={true}
             ref={this.ref}
             className={`${this.state.config.uuid}-tableBP`}
             bodyContextMenuRenderer={this.renderBodyContextMenu}
@@ -698,6 +732,15 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
   }
 
   /**
+   * @description This function gets the column name from the column index
+   * @param columnIndex - column index
+   * @returns columnName - column name
+   */
+  private getColumnNameFromColumnIndex = (columnIndex: number) => {
+    return this.state.columnsNames[this.state.columnIndexMap[columnIndex]]
+  }
+
+  /**
    * @description This function returns the cell data
    * @param rowIndex - row index
    * @param columnIndex - column index
@@ -728,6 +771,37 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
     }
 
     return <EditableCell2 intent={this.state.sparseCellIntent[`${rowIndex}-${this.state.columnsNames[this.state.columnIndexMap[columnIndex]]}`]} value={this.getCellData(rowIndex, columnIndex)} onCancel={this.cellValidator(rowIndex, columnIndex)} onChange={this.cellValidator(rowIndex, columnIndex)} onConfirm={this.cellSetter(rowIndex, columnIndex)}></EditableCell2>
+  }
+
+  /**
+   * @description This function returns the column's name renderer
+   * @param columnIndex - column index
+   * @returns columnNameRenderer - column name renderer
+   */
+  private getColumnNameRenderer = (name: string, columnIndex: number) => {
+    return <EditableName name={this.state.columnsNames[this.state.columnIndexMap[columnIndex]]} onCancel={this.columnNameValidator(columnIndex)} onChange={this.columnNameValidator(columnIndex)} onConfirm={this.columnNameSetter(columnIndex)} />
+  }
+
+  /**
+   * @description This function validates the column name and sets the column name
+   * @param columnIndex - column index
+   * @returns columnNameValidator - column name validator
+   */
+  private columnNameValidator = (columnIndex: number) => {
+    return (name: string) => {
+      this.setArrayState("newColumnNames", this.state.columnIndexMap[columnIndex], name)
+    }
+  }
+
+  /**
+   * @description This function sets the column name
+   * @param columnIndex - column index
+   * @returns columnNameSetter - column name setter
+   */
+  private columnNameSetter = (columnIndex: number) => {
+    return (name: string) => {
+      this.setArrayState("newColumnNames", this.state.columnIndexMap[columnIndex], name)
+    }
   }
 
   /**
@@ -915,6 +989,20 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
     const stateData = (this.state as any)[stateKey] as { [key: string]: T }
     const values = { ...stateData, [dataKey]: value }
     this.setState({ [stateKey]: values })
+  }
+
+  /**
+   * This function sets the array state
+   * @param key - The key of the state inside the state object
+   * @param index - The index of the array
+   * @param value - The value to be set
+   */
+  private setArrayState<T>(key: string, index: number, value: T) {
+    console.log("setArrayState", key, index, value, this.state[key])
+    const values = (this.state as any)[key].slice() as T[]
+    values[index] = value
+    this.setState({ [key]: values })
+    console.log("Column names", this.state.columnsNames)
   }
 }
 

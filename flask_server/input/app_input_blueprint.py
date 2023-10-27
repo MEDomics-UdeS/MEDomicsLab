@@ -47,7 +47,7 @@ def save_dataframe(path, extension, df):
     elif extension == ".xlsx":
         df.to_excel(path, index=False)
     elif extension == ".json":
-        df.to_json(path, index=False)
+        df.to_json(path, orient="records")
     else:
         print("Extension not supported, cannot save the file")
         return None
@@ -110,7 +110,7 @@ def merge():
     final_dataset_extension = json_config["finalDatasetExtension"]
     final_dataset_path = json_config["finalDatasetPath"]
     save_dataframe(final_dataset_path, final_dataset_extension, first_dataset)
-    input_progress[request_id] = {"now": progress, "currentLabel": "Saving with " + dataset_name}
+    input_progress[request_id] = {"now": progress, "currentLabel": "Saving with " + final_dataset_path}
 
     json_config["final_path"] = final_dataset_path
     return json_config
@@ -219,34 +219,7 @@ def create_holdout_set():
     else:
         train_set, holdout_set = train_test_split(df_cleaned, test_size=holdout_size, random_state=random_state)
 
-
-    # input_progress[request_id] = {"now": progress, "currentLabel": "Initialisation : Loading the first dataset"}
-    # first_dataset = load_data_file(first_dataset_path, first_dataset_extension)[first_dataset_selected_columns]
-    #
-    # for dataset in payload.keys():
-    #     if(dataset=="0"):
-    #         continue
-    #     else:
-    #         dataset_path = payload[dataset]["path"]
-    #         dataset_name = payload[dataset]["name"]
-    #         dataset_extension = payload[dataset]["extension"]
-    #         dataset_selected_columns = payload[dataset]["selectedColumns"]
-    #         dataset_merge_on = payload[dataset]["mergeOn"]
-    #         dataset_merge_type = payload[dataset]["mergeType"]
-    #
-    #         # Update the progress
-    #         input_progress[request_id] = {"now": progress, "currentLabel": "Initialisation : Loading the first dataset"}
-    #         progress += progress_step
-    #
-    #         # Load the dataset
-    #         new_dataframe = load_data_file(dataset_path, dataset_extension)[dataset_selected_columns]
-    #         input_progress[request_id] = {"now": progress, "currentLabel": "Merging with " + dataset_name}
-    #         progress += progress_step
-    #
-    #         # Merge the dataset
-    #         first_dataset = first_dataset.merge(new_dataframe, how=dataset_merge_type, on=dataset_merge_on)
-
-    # Save the merged dataset
+    # Save the datasets
     progress += progress_step
     input_progress[request_id] = {"now": progress, "currentLabel": "Saving with " + final_name}
 

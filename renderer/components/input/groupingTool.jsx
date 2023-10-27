@@ -353,6 +353,7 @@ const GroupingTool = ({ pageId = "42-grouping", configPath = null }) => {
     }
 
     /* We create a promise to update the nodes */
+    // eslint-disable-next-line no-async-promise-executor
     new Promise(async (resolveMaster) => {
       /* We get the selected tags and selected columns */
       let { datasetsConcerned, columnsConcerned, tagsConcerned } = getSelectedTagsAndSelectedColumns()
