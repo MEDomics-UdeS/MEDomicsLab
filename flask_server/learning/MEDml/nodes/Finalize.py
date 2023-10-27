@@ -2,7 +2,10 @@ import pandas as pd
 import copy
 import numpy as np
 import json
-from learning.MEDml.nodes.NodeObj import Node
+
+from sklearn.pipeline import Pipeline
+
+from learning.MEDml.nodes.NodeObj import Node, format_model
 from typing import Union
 from colorama import Fore
 from learning.MEDml.CodeHandler import convert_dict_to_params
@@ -34,20 +37,25 @@ class Finalize(Node):
         settings = copy.deepcopy(self.settings)
         trained_models = []
         trained_models_json = {}
-        self.CodeHandler.add_line("code", f"trained_models_optimized = []")
+        self.CodeHandler.add_line("code", f"trained_models_finalized = []")
         self.CodeHandler.add_line("code", f"for model in trained_models:")
         self.CodeHandler.add_line(
             "code",
-            f"optimized_model = pycaret_exp.finalize_model(model, {self.CodeHandler.convert_dict_to_params(settings)})",
+            f"finalized_model = pycaret_exp.finalize_model(model, {self.CodeHandler.convert_dict_to_params(settings)})",
+            1)
+        self.CodeHandler.add_line(
+            "code",
+            f"trained_models_finalized.append(finalized_model)",
             1)
         for model in kwargs['models']:
+            model = format_model(model)
             print(Fore.CYAN +
-                  f"optimizing: {model.__class__.__name__}" + Fore.RESET)
+                  f"finalizing: {model.__class__.__name__}" + Fore.RESET)
             trained_models.append(
                 experiment['pycaret_exp'].finalize_model(model, **settings))
 
         self.CodeHandler.add_line(
-            "code", f"trained_models = trained_models_optimized")
+            "code", f"trained_models = trained_models_finalized")
         trained_models_copy = trained_models.copy()
         self._info_for_next_node = {'models': trained_models}
         for model in trained_models_copy:

@@ -4,9 +4,15 @@ import classificationModelsSettings from "./possibleSettings/learning/classifica
 import regressionModelsSettings from "./possibleSettings/learning/regressionModelSettings"
 /* eslint-disable */
 
+export const sceneDescription = {
+  extension: "medml",
+  extrenalFolders: ["models", "notebooks"],
+  internalFolders: ["tmp", "exp"]
+}
+
 const nodesParams = {
   dataset: {
-    type: "standardNode",
+    type: "datasetNode",
     classes: "object dataset run startNode",
     nbInput: 0,
     nbOutput: 1,
@@ -64,7 +70,7 @@ const nodesParams = {
     possibleSettings: { classification: classificationSettings["compare_models"], regression: regressionSettings["compare_models"] }
   },
   load_model: {
-    type: "standardNode",
+    type: "loadModelNode",
     classes: "action load_model run",
     nbInput: 1,
     nbOutput: 1,

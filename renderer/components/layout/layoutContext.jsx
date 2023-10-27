@@ -77,7 +77,9 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
         case "openInExploratoryModule":
           return openInExploratory(action)
         case "openInLearningModule":
-          return openLearning(action)
+          return openInLearning(action)
+        case "openInExtractionMEDimageModule":
+          return openInExtractionMEDimage(action)
         case "openInResultsModule":
           return openInResults(action)
         case "openInIFrame":
@@ -111,10 +113,12 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
           return openExploratory(action)
         case "openExtractionTSModule":
           return openExtractionTS(action)
-        case "openExtractionImageModule":
-          return openExtractionImage(action)
+        case "openExtractionMEDimageModule":
+          return openExtractionMEDimage(action)
         case "openExtractionTextModule":
           return openExtractionText(action)
+        case "openExtractionImageModule":
+          return openExtractionImage(action)
 
         case "add":
           return add(action)
@@ -161,6 +165,14 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
       let layoutRequestQueueCopy = [...layoutRequestQueue]
       layoutRequestQueueCopy.push({ type: "ADD_TAB", payload: newChild })
       setLayoutRequestQueue(layoutRequestQueueCopy)
+
+      if (component == "learningPage" || component == "extractionMEDimagePage") {
+        const nextlayoutModel = { ...layoutModel }
+        // To add a new child to the layout model, we need to add it to the children array (layoutModel.layout.children[x].children)
+        // ****IMPORTANT**** For the hook to work, we need to create a new array and not modify the existing one
+        const newChildren = [...layoutModel.layout.children[0].children, newChild]
+        nextlayoutModel.layout.children[0].children = newChildren
+      }
     }
   }
 
@@ -239,11 +251,11 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
   }
 
   /**
-   * @summary Function that adds a tab of the Extraction Image Module to the layout model
+   * @summary Function that adds a tab of the Extraction MEDimage Module to the layout model
    * @params {Object} action - The action passed on by the dispatchLayout function
    */
-  const openExtractionImage = (action) => {
-    openGeneric(action, "Extraction Image", "extractionImagePage")
+  const openExtractionMEDimage = (action) => {
+    openGeneric(action, "Extraction MEDimage", "extractionMEDimagePage")
   }
 
   /**
@@ -253,6 +265,15 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
   const openExtractionText = (action) => {
     openGeneric(action, "Extraction Text", "extractionTextPage")
   }
+
+    /**
+   * @summary Function that adds a tab of the Extraction Image Module to the layout model
+   * @params {Object} action - The action passed on by the dispatchLayout function
+   */
+     const openExtractionImage = (action) => {
+      openGeneric(action, "Extraction Image", "extractionImagePage")
+    }
+
 
   /**
    * @summary Function that adds a tab of Dtale to the layout model
@@ -375,35 +396,44 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
    * @summary Function that adds a new child to the layout model
    * @params {Object} action - The action passed on by the dispatchLayout function, it uses the payload in the action as a JSON object to add a new child to the layout model
    */
-  const openLearning = (action) => {
-    console.log("ACTION", action)
-    let medObject = action.payload
-    console.log("medObject", medObject)
-    let textString = action.payload
-    let isAlreadyIn = checkIfIDIsInLayoutModel(medObject.UUID, layoutModel)
+  const openInLearning = (action) => {
+    openInDotDotDot(action, "learningPage")
+    // console.log("ACTION", action)
+    // let medObject = action.payload
+    // console.log("medObject", medObject)
+    // let textString = action.payload
+    // let isAlreadyIn = checkIfIDIsInLayoutModel(medObject.UUID, layoutModel)
 
-    if (!isAlreadyIn) {
-      const newChild = {
-        type: "tab",
-        helpText: medObject.path,
-        name: medObject.name,
-        id: medObject.UUID,
-        component: "learningPage",
-        config: { path: medObject.path, uuid: medObject.UUID, extension: medObject.type }
-      }
-      let layoutRequestQueueCopy = [...layoutRequestQueue]
-      layoutRequestQueueCopy.push({ type: "ADD_TAB", payload: newChild })
-      setLayoutRequestQueue(layoutRequestQueueCopy)
+    // if (!isAlreadyIn) {
+    //   const newChild = {
+    //     type: "tab",
+    //     helpText: medObject.path,
+    //     name: medObject.name,
+    //     id: medObject.UUID,
+    //     component: "learningPage",
+    //     config: { path: medObject.path, uuid: medObject.UUID, extension: medObject.type }
+    //   }
+    //   let layoutRequestQueueCopy = [...layoutRequestQueue]
+    //   layoutRequestQueueCopy.push({ type: "ADD_TAB", payload: newChild })
+    //   setLayoutRequestQueue(layoutRequestQueueCopy)
 
-      const nextlayoutModel = { ...layoutModel }
-      // To add a new child to the layout model, we need to add it to the children array (layoutModel.layout.children[x].children)
-      // ****IMPORTANT**** For the hook to work, we need to create a new array and not modify the existing one
-      const newChildren = [...layoutModel.layout.children[0].children, newChild]
-      nextlayoutModel.layout.children[0].children = newChildren
-      // setLayoutModel(nextlayoutModel)
-      console.log("ADDING LEARNING PAGE", textString)
-      console.dir(layoutModel)
-    }
+    //   const nextlayoutModel = { ...layoutModel }
+    //   // To add a new child to the layout model, we need to add it to the children array (layoutModel.layout.children[x].children)
+    //   // ****IMPORTANT**** For the hook to work, we need to create a new array and not modify the existing one
+    //   const newChildren = [...layoutModel.layout.children[0].children, newChild]
+    //   nextlayoutModel.layout.children[0].children = newChildren
+    //   // setLayoutModel(nextlayoutModel)
+    //   console.log("ADDING LEARNING PAGE", textString)
+    //   console.dir(layoutModel)
+    // }
+  }
+
+  /**
+   * @summary Function that adds a tab with an extraction image page to the layout model
+   * @params {Object} action - The action passed on by the dispatchLayout function, it uses the payload in the action as a JSON object to add a new child to the layout model
+   */
+  const openInExtractionMEDimage = (action) => {
+    openInDotDotDot(action, "extractionMEDimagePage")
   }
 
   /**

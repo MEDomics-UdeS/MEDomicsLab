@@ -25,6 +25,7 @@ const iconExtension = {
     </span>
   ),
   medml: <span className="emoji">🎯</span>,
+  medimg: <span className="emoji">🩻</span>,
   medmlres: <span className="emoji">📊</span>,
   medmodel: (
     <span>

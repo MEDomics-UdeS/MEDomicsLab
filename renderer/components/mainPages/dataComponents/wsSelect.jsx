@@ -9,7 +9,7 @@ import { Form } from "react-bootstrap"
  * @params props.onChange - The function to call when the selected data file changes
  * @params props.name - The name of the component
  */
-const WsSelect = ({ selectedPath, onChange, rootDir, acceptFolder = false, acceptedExtensions = ["all"] }) => {
+const WsSelect = ({ selectedPath, onChange, rootDir, acceptFolder = false, acceptedExtensions = ["all"], disabled }) => {
   const { globalData } = useContext(DataContext) // We get the global data from the context to retrieve the directory tree of the workspace, thus retrieving the data files
   const [datasetList, setDatasetList] = useState([])
 
@@ -45,7 +45,7 @@ const WsSelect = ({ selectedPath, onChange, rootDir, acceptFolder = false, accep
   }, [globalData])
 
   return (
-    <Form.Select value={selectedPath && selectedPath.name} onChange={(e) => onChange(e, datasetList.find((dataset) => dataset.name == e.target.value).path)}>
+    <Form.Select disabled={disabled} value={selectedPath && selectedPath.name} onChange={(e) => onChange(e, datasetList.find((dataset) => dataset.name == e.target.value).path)}>
       {datasetList.map((dataset) => {
         return (
           <option key={dataset.name} value={dataset.name}>

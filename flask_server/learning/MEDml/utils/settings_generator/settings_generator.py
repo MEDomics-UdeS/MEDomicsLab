@@ -3,7 +3,7 @@ File: settings_generator.py
 Author: Guillaume Blain
 Date: 2023-10-04
 
-Description: This script generate automatically the selected machine learning type settings file for the MEDml app.
+Description: This scripts generate automatically the selected machine learning type settings file for the MEDml app.
 """
 import pandas as pd
 from selenium import webdriver
@@ -12,7 +12,7 @@ import json
 import dpath.util as dp
 from collections.abc import MutableMapping
 
-# python script arguments
+# python scripts arguments
 import argparse
 parser = argparse.ArgumentParser(description='Script so useful.')
 parser.add_argument("--mlType", type=str, default="regression",
@@ -192,7 +192,7 @@ def convert_to_medomics_standards(settings: dict, types_conv: dict, nodes_includ
     # init standard_settings
     for node in nodes_include.keys():
         standard_settings[node] = {}
-  
+
     # CLEAN SETTINGS
     clean_options = nodes_include['clean']['info']
     standard_settings['clean']['options'] = {}
@@ -313,7 +313,7 @@ def specific_case(dict_settings: dict) -> dict:
     dict_settings['tune_model']['options']['tuner_verbose']['default_val'] = 0
     dict_settings['save_model']['options']['model_name']['default_val'] = "model"
 
-    del dict_settings['dataset']['options']['target']['default_val']
+    del dict_settings['dataset']['options']['target']
     del dict_settings['dataset']['options']['log_experiment']
     del dict_settings['dataset']['options']['system_log']
     del dict_settings['compare_models']['options']['parallel']

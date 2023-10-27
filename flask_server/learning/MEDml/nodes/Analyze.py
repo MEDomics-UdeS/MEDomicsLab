@@ -4,7 +4,10 @@ import pandas as pd
 import os
 import numpy as np
 import json
-from learning.MEDml.nodes.NodeObj import Node
+
+from sklearn.pipeline import Pipeline
+
+from learning.MEDml.nodes.NodeObj import Node, format_model
 from typing import Union
 from colorama import Fore
 from learning.MEDml.CodeHandler import convert_dict_to_params
@@ -33,7 +36,7 @@ class Analyze(Node):
         """
         selection = self.config_json['data']['internal']['selection']
         print()
-        print(Fore.BLUE + "=== Analysing === " +
+        print(Fore.BLUE + "=== Analysing === " + 'paths' +
               Fore.YELLOW + f"({self.username})" + Fore.RESET)
         print(Fore.CYAN + f"Using {selection}" + Fore.RESET)
         settings = copy.deepcopy(self.settings)
@@ -51,18 +54,25 @@ class Analyze(Node):
         self.CodeHandler.add_line(
             "code", f"pycaret_exp.{selection}(model, {self.CodeHandler.convert_dict_to_params(print_settings)})", 1)
         for model in kwargs['models']:
-            print('model:', model)
+            model = format_model(model)
             return_value = getattr(
                 experiment['pycaret_exp'], selection)(model, **settings)
 
             if 'save' in settings and settings['save'] and return_value is not None:
-                path = return_value
+                return_path = return_value
+
+                def move_file(return_path, new_path):
+                    """
+                        This function is used to move and replace a file from return_path to new_path.
+                    """
+                    if os.path.isfile(new_path):
+                        os.remove(new_path)
+                    os.rename(return_path, new_path)
                 new_path = os.path.join(
-                    self.global_config_json['paths']['tmp'], f'{self.global_config_json["unique_id"]}-{model.__class__.__name__}.png')
+                    self.global_config_json['internalPaths']['tmp'], f'{self.global_config_json["unique_id"]}-{model.__class__.__name__}.png')
                 self.global_config_json["unique_id"] += 1
-                if os.path.isfile(new_path):
-                    os.remove(new_path)
-                os.rename(path, new_path)
+                self.CustZipFile.write_to_zip(
+                    custom_actions=lambda path: move_file(return_path, new_path))
 
                 plot_paths[model.__class__.__name__] = new_path
         return plot_paths

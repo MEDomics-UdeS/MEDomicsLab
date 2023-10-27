@@ -37,8 +37,8 @@ import "flexlayout-react/style/light.css"
 import "../styles/flow/reactFlow.css"
 import "../styles/globals.css"
 import "../styles/learning/learning.css"
-import "../styles/extraction/extraction.css"
-import "../styles/extraction/extraction_ts.css"
+import "../styles/extraction/extractionMEDimage.css"
+import "../styles/extraction/extractionTabular.css"
 import "../styles/workspaceSidebar.css"
 import "../styles/iconSidebar.css"
 import "../styles/learning/sidebar.css"
@@ -330,10 +330,9 @@ function App() {
   }, [layoutModel]) // Here, we specify that the hook should only be called when the layoutModel state variable changes
 
   // This useEffect hook is called at the beginning of the app to clear the localStorage
-  useEffect(() => {
-    localStorage.clear() // TODO : Add useState to enable or not the clearing of the localStorage
-  }, [])
-
+  // useEffect(() => {
+  //   localStorage.clear()
+  // }, [])
   return (
     <>
       <Head>

@@ -10,7 +10,7 @@ import { requestJson } from "../../utilities/requests"
 import { WorkspaceContext } from "../workspace/workspaceContext"
 import MedDataObject from "../workspace/medDataObject"
 import { InputText } from "primereact/inputtext"
-import ProgressBarRequests from "../flow/progressBarRequests"
+import ProgressBarRequests from "../generalPurpose/progressBarRequests"
 import { toast } from "react-toastify"
 import { confirmPopup } from "primereact/confirmpopup"
 

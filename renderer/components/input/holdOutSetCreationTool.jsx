@@ -12,7 +12,7 @@ import { InputText } from "primereact/inputtext"
 import { Slider } from "primereact/slider"
 import { InputNumber } from "primereact/inputnumber"
 import { requestJson } from "../../utilities/requests"
-import ProgressBarRequests from "../flow/progressBarRequests"
+import ProgressBarRequests from "../generalPurpose/progressBarRequests"
 
 const HoldOutSetCreationTool = ({ pageId = "inputModule", configPath = "" }) => {
   const { port } = useContext(WorkspaceContext)
@@ -128,7 +128,7 @@ const HoldOutSetCreationTool = ({ pageId = "inputModule", configPath = "" }) => 
 
   const createHoldoutSet = async () => {
     let newDatasetPathParent = globalData[selectedDataset.parentID].path
-    let datasetName = newDatasetName.length > 0 ? newDatasetName : "mergedDataset"
+    let datasetName = newDatasetName.length > 0 ? newDatasetName : "HoldoutDataset"
     // datasetName = datasetName
     let newDatasetObject = new MedDataObject({
       originalName: datasetName,

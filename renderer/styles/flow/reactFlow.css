@@ -49,6 +49,7 @@
     3px 3px 5px -1px rgb(0 0 0 / 40%),
     0 1px 1px 0 rgb(0 0 0 / 14%),
     0px 0px 3px 2px rgb(0 0 0 / 24%);
+  width: 100%;
 }
 
 .btn-node-div {
@@ -56,6 +57,17 @@
   flex-direction: column;
   gap: 0.1rem;
   justify-content: space-between;
+}
+
+.btn-node-div svg[disabled] {
+  cursor: default;
+  color: #49505780;
+}
+
+.btn-node-div svg[disabled]:hover {
+  border-radius: 25%;
+  background-color: #00000000;
+  color: #49505780;
 }
 
 .btn-close-node {
@@ -70,6 +82,7 @@
   border-radius: 25%;
   background-color: rgba(255, 0, 0, 0.25);
   color: red;
+  opacity: 0.75;
 }
 
 .btn-run-node {
@@ -84,6 +97,7 @@
   border-radius: 25%;
   background-color: rgba(0, 128, 0, 0.25);
   color: green;
+  opacity: 0.75;
 }
 
 .btn-info-node {
@@ -144,6 +158,19 @@
   float: left;
   width: 1.8rem;
   height: 1.8rem;
+}
+.node .p-tag {
+  height: 1.5rem;
+  width: 1.5rem;
+  position: absolute;
+  left: -0.75rem;
+  top: -0.75rem;
+  cursor: pointer;
+  z-index: 1;
+}
+
+.node .p-tag .p-tag-icon {
+  display: contents;
 }
 
 .react-flow {
@@ -232,6 +259,11 @@
 
 .available-nodes-panel .p-card-body .p-card-content {
   padding: 0;
+  background-color: transparent;
+}
+
+.available-nodes-panel .p-card-body .p-card-content {
+  padding: 0;
 }
 
 .closeBtn.btn:hover {
@@ -282,6 +314,11 @@
 
 .flow-btn-panel-top .right {
   text-align: right;
+}
+
+.flow-btn-panel-top .right .btn:disabled {
+  border-color: #00000000;
+  background-color: #00000015;
 }
 
 .flow-btn-panel-top .left {
@@ -402,19 +439,6 @@
   z-index: 5;
   text-align: center;
   width: 50%;
-}
-
-.panel-bottom-center label {
-  position: absolute;
-  bottom: 1rem;
-  left: 50%;
-  transform: translate(-50%, 0);
-  cursor: progress;
-  background-color: #00000040;
-  color: #5050509c;
-  padding: 0rem 0.25rem 0rem 0.25rem;
-  font-weight: 700;
-  border-radius: 0.4rem 0.4rem 0rem 0rem;
 }
 
 .node-editableLabel {
@@ -614,4 +638,33 @@ path {
     0 1px 1px 0 rgb(0 0 0 / 14%),
     0px 0px 3px 2px rgb(0 0 0 / 12%);
   border-radius: 0.5rem;
+}
+
+.create-scene-overlayPanel .p-overlaypanel-content .vstack {
+  display: flex;
+  justify-content: center;
+  text-align: center;
+  width: 15rem;
+}
+
+.create-scene-overlayPanel .p-overlaypanel-content .vstack .header {
+  min-height: 0px;
+  height: 1.5rem;
+}
+
+.create-scene-overlayPanel .p-overlaypanel-content .vstack .header h5 {
+  margin: 0px;
+  padding: 0px;
+}
+
+.create-scene-overlayPanel .p-overlaypanel-content .vstack .p-inputtext {
+  padding: 0.35rem 0.35rem;
+}
+
+.create-scene-overlayPanel .p-overlaypanel-content .vstack .p-float-label label {
+  left: 2rem;
+}
+
+.create-scene-overlayPanel-body > div {
+  margin: 0.35rem 0;
 }

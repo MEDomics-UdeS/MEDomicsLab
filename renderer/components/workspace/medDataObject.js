@@ -535,7 +535,7 @@ export default class MedDataObject {
    * @returns {Boolean} - `true` if the name is valid, `false` otherwise.
    */
   static validateNewName(medObject, newName, dataContext) {
-    const namesYouCantRename = ["UUID_ROOT", "DATA", "EXPERIMENTS", "RESULTS", "MODELS"]
+    const namesYouCantRename = ["UUID_ROOT", "DATA", "EXPERIMENTS"]
     if (newName == "") {
       toast.error("Error: Name cannot be empty")
       return false

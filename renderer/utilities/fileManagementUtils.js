@@ -329,4 +329,13 @@ const loadXLSXFromPath = async (filePath, whenLoaded) => {
   whenLoaded(dfJSON)
 }
 
-export { downloadFile, downloadPath, loadFileFromPathSync, writeFile, loadJson, loadJsonSync, loadJsonPath, loadCSVPath, loadCSVFromPath, createFolder, createFolderSync, loadJSONFromPath, loadXLSXFromPath }
+/**
+ * @description This Object get the reading method from the file extension
+ */
+const getFileReadingMethodFromExtension = {
+  json: (path) => loadJsonPath(path),
+  csv: (path, whenLoaded) => loadCSVPath(path, whenLoaded),
+  xlsx: (path, whenLoaded) => loadXLSXFromPath(path, whenLoaded)
+}
+
+export { downloadFile, downloadPath, loadFileFromPathSync, writeFile, loadJson, loadJsonSync, loadJsonPath, loadCSVPath, loadCSVFromPath, createFolder, createFolderSync, loadJSONFromPath, loadXLSXFromPath, getFileReadingMethodFromExtension }

@@ -1,10 +1,14 @@
-const fs = require("fs")
-const decompress = require("decompress")
-const fsPromises = require("fs").promises
-const zipper = require("zip-local")
+import * as fs from "fs-extra"
+import decompress from "decompress"
+import { promises as fsPromises } from "fs"
+import zipper from "zip-local"
 
-import { createFolderSync } from "./fileManagementUtils.js"
+import { createFolderSync, loadJsonPath } from "./fileManagementUtils.js"
 import { toast } from "react-toastify"
+import Path from "path"
+
+const IS_FILE = 0
+const IS_FOLDER = 1
 
 /**
  *
@@ -20,7 +24,7 @@ import { toast } from "react-toastify"
  *   )
  * }
  */
-const createZipFileSync = async (path, customActions) => {
+export const createZipFileSync = async (path, customActions) => {
   if (!path.includes(".")) {
     toast.error("Please provide a path with a file extension")
     return
@@ -44,7 +48,7 @@ const createZipFileSync = async (path, customActions) => {
  *  )
  * }
  */
-const modifyZipFileSync = async (path, customActions) => {
+export const modifyZipFileSync = async (path, customActions) => {
   if (!path.includes(".")) {
     toast.error("Please provide a path with a file extension")
     return
@@ -53,6 +57,26 @@ const modifyZipFileSync = async (path, customActions) => {
     if (fs.existsSync(path)) {
       let zipFile = new CustomZipFile(path)
       await zipFile.interactZipSync(path, customActions)
+    } else {
+      toast.error("The file does not exist: " + path)
+    }
+  }
+}
+
+/**
+ *
+ * @param {String} path /path/to/file.extension
+ * @returns {Promise<Object>} An object containing the content of the zip file in json format
+ */
+export const customZipFile2Object = async (path) => {
+  if (!path.includes(".")) {
+    toast.error("Please provide a path with a file extension")
+    return
+  } else {
+    // check if file exists
+    if (fs.existsSync(path)) {
+      let zipFile = new CustomZipFile(path)
+      return await zipFile.toObject()
     } else {
       toast.error("The file does not exist: " + path)
     }
@@ -72,6 +96,80 @@ export default class CustomZipFile {
     } else {
       this.fileExtension = ""
       this._cwd = ""
+    }
+  }
+
+  /**
+   *
+   * @returns {Promise<Object>} An object containing the content of the zip file in json format
+   */
+  async toObject() {
+    let content = {}
+    await this.interactZipSync("default", async (folderPath) => {
+      content = await this.openContentToObject(folderPath)
+    })
+    return content
+  }
+
+  /**
+   *
+   * @param {String} folderPath The path of the folder to open
+   * @returns {Promise<Object>} An object containing the content of the folder in json format
+   */
+  openContentToObject(folderPath) {
+    return new Promise((resolve, reject) => {
+      const readDirRecursive = (folderPath) => {
+        return new Promise((resolve2, reject2) => {
+          let subContent = {}
+          fs.readdir(folderPath, function (err, files) {
+            //handling error
+            if (err) {
+              console.log("Unable to scan directory: " + err)
+              reject2(err)
+            }
+            //listing all files using forEach
+            console.log("files", files)
+            files.forEach((element) => {
+              console.log("element", element, CustomZipFile.getPathType(Path.join(folderPath, element)))
+              if (CustomZipFile.getPathType(Path.join(folderPath, element)) == IS_FILE) {
+                if (element.split(".")[1] == "json") {
+                  subContent[element.split(".")[0]] = loadJsonPath(Path.join(folderPath, element))
+                } else {
+                  subContent[element.split(".")[0]] = element
+                }
+              } else if (CustomZipFile.getPathType(Path.join(folderPath, element)) == IS_FOLDER) {
+                subContent[element] = {}
+                readDirRecursive(Path.join(folderPath, element)).then((subSubContent) => {
+                  subContent[element] = subSubContent
+                })
+              }
+            })
+            console.log("subContent", subContent)
+            resolve2(subContent)
+          })
+        })
+      }
+      readDirRecursive(folderPath)
+        .then((content) => {
+          resolve(content)
+          console.log("content", content)
+        })
+        .catch((err) => {
+          reject(err)
+        })
+    })
+  }
+
+  /**
+   *
+   * @param {String} path The path to check
+   * @returns {Number} 0 if the path is a file, 1 if it is a folder
+   */
+  static getPathType(path) {
+    if (path.includes(".")) {
+      return IS_FILE
+    } else {
+      return IS_FOLDER
     }
   }
 
@@ -142,9 +240,11 @@ export default class CustomZipFile {
           let extensionPath = this._cwd + this.fileExtension
           this.unzipDirectory(extensionPath, this._cwd).then(async () => {
             // do custom actions on the unzipped folder
-            await customActions(this._cwd)
-            await this.zipDirectory(this._cwd)
-            resolve(this._cwd + this.fileExtension)
+            customActions(this._cwd).then(() => {
+              this.zipDirectory(this._cwd).then(() => {
+                resolve(this._cwd + this.fileExtension)
+              })
+            })
           })
         })
       })
@@ -220,7 +320,7 @@ export default class CustomZipFile {
       try {
         // rename the zip file to have the custom extension
         if (fs.existsSync(extensionPath)) {
-          fs.unlinkSync(extensionPath)
+          fs.rmSync(extensionPath)
         }
         fs.renameSync(zipPath, extensionPath)
 
@@ -238,5 +338,3 @@ export default class CustomZipFile {
     })
   }
 }
-
-export { createZipFileSync, modifyZipFileSync }
