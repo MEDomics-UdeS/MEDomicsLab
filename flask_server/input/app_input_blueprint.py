@@ -79,7 +79,7 @@ def merge():
     first_dataset_path = payload["0"]["path"]
     first_dataset_extension = payload["0"]["extension"]
     first_dataset_selected_columns = payload["0"]["selectedColumns"]
-
+    first_dataset_selected_columns = [column for column in first_dataset_selected_columns if column != None]
     input_progress[request_id] = {"now": progress, "currentLabel": "Initialisation : Loading the first dataset"}
     first_dataset = load_data_file(first_dataset_path, first_dataset_extension)[first_dataset_selected_columns]
 
@@ -173,25 +173,30 @@ def create_holdout_set():
     progress += progress_step
     input_progress[request_id] = {"now": progress, "currentLabel": "Initialisation : Loading the dataset"}
     main_dataset = load_data_file(main_dataset_path, main_dataset_extension)
-
+    print("main_dataset", main_dataset)
     progress += progress_step
     input_progress[request_id] = {"now": progress, "currentLabel": "Initialisation : Creating stratifying subset"}
     stratify = main_dataset.copy(deep=True) if ((len(columns_to_stratify_with) > 0) and stratify_bool) else pd.DataFrame()
 
     progress += progress_step
     input_progress[request_id] = {"now": progress, "currentLabel": "Cleaning stratifying subset"}
-    df_cleaned = stratify.replace(float('nan'), np.nan)
+    df_cleaned = main_dataset.replace(float('nan'), np.nan)
+    # print("df_cleaned #1", df_cleaned)
+    # Clean the stratifying subset
+    if stratify_bool:
+        stratify = stratify.loc[:, columns_to_stratify_with]
+        print("stratify", stratify)
+        assert_no_nan_values_for_each_column(stratify)
+        print("stratify #2", stratify)
+        stratify = stratify.dropna(axis=0, how='any')
+        print("stratify #3", stratify)
+
 
     if stratify[columns_to_stratify_with].isnull().values.any() and len(columns_to_stratify_with) > 0 and stratify_bool:
         if nan_method == 'drop':
             print("Dropping null values")
             df_cleaned = df_cleaned.dropna(subset=columns_to_stratify_with, axis=0)
-        elif nan_method == 'ffill':
-            print("Filling null values (forward)")
-            df_cleaned.loc[:, columns_to_stratify_with] = df_cleaned.loc[:, columns_to_stratify_with].fillna(axis=0, method='ffill')
-        elif nan_method == 'bfill':
-            print("Filling null values (backward)")
-            df_cleaned.loc[:, columns_to_stratify_with] = df_cleaned.loc[:, columns_to_stratify_with].fillna(axis=0, method='bfill')
+
 
 
     holdout_set = {}
@@ -199,7 +204,9 @@ def create_holdout_set():
     stratify_df = df_cleaned.loc[:, columns_to_stratify_with] if (len(columns_to_stratify_with) > 0 and stratify_bool) else None
 
     # stratify_df = None
-    assert_no_nan_values_for_each_column(stratify_df)
+    print("stratify_df", stratify_df)
+    if stratify_df is not None:
+        assert_no_nan_values_for_each_column(stratify_df)
 
 
     # Create the holdout set

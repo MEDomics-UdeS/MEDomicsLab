@@ -14,12 +14,15 @@ import ProgressBarRequests from "../flow/progressBarRequests"
 import { toast } from "react-toastify"
 import { confirmPopup } from "primereact/confirmpopup"
 
+/**
+ *
+ */
 const MergeTool = ({ pageId = "42", configPath = null }) => {
   const { port } = useContext(WorkspaceContext) // we get the port for server connexion
   const [listOfDatasets, setListOfDatasets] = useState([]) // The list of datasets to show in the dropdown
   const [dictOfDatasets, setDictOfDatasets] = useState({}) // The dict of datasets to show in the dropdown
   const { globalData, setGlobalData } = useContext(DataContext) // We get the global data from the context to retrieve the directory tree of the workspace, thus retrieving the data files
-  const [firstSelectedDataset, setFirstSelectedDataset] = useState(null)
+  const [firstSelectedDataset, setFirstSelectedDataset] = useState(null) //
   const [mergeOn, setMergeOn] = useState(null)
   const [inError, setInError] = useState(false)
   const [firstDatasetHasChanged, setFirstDatasetHasChanged] = useState(false)
@@ -60,6 +63,7 @@ const MergeTool = ({ pageId = "42", configPath = null }) => {
     Object.keys(dictOfDatasets).forEach((key) => {
       if (dictOfDatasets[key] !== null && dictOfDatasets !== undefined) {
         if (dictOfDatasets[key].options === null || dictOfDatasets[key].options === undefined) {
+          // eslint-disable-next-line no-extra-semi
           ;(async () => {
             let newDictOfDatasets = { ...dictOfDatasets }
             let columnsOriginal = await globalData[dictOfDatasets[key].data].getColumnsOfTheDataObjectIfItIsATable()
@@ -142,7 +146,6 @@ const MergeTool = ({ pageId = "42", configPath = null }) => {
       if (datasetToVerify) {
         if (datasetToVerify.options !== null && datasetToVerify.options !== undefined) {
           let isValid = datasetToVerify.options.map((option) => option.value).includes(mergeOn)
-          // console.log("isValid", isValid)
           let newDictOfDatasets = { ...dictOfDatasets }
           newDictOfDatasets[key].isValid = isValid
           setDictOfDatasets(newDictOfDatasets)
@@ -401,7 +404,7 @@ const MergeTool = ({ pageId = "42", configPath = null }) => {
               <Col className="card" lg={6} key={key + "COLPARENTS"} style={{ paddingBottom: "1rem" }}>
                 <Row md={6} key={key + "rowParent"} className="justify-content-center" style={{ paddingTop: "1rem" }}>
                   <Col md={6} key={key + "col1"} style={{ display: "flex", flexDirection: "column", flexGrow: "1", alignItems: "center", justifyContent: "center", flexWrap: "nowrap" }}>
-                    <Col style={{ display: "flex", marginBottom: "1rem", flexDirection: "row", flexGrow: "0", alignItems: "center", justifyContent: "center" }}>
+                    <Col key={key + "col2"} style={{ display: "flex", marginBottom: "1rem", flexDirection: "row", flexGrow: "0", alignItems: "center", justifyContent: "center" }}>
                       <h6 style={{ padding: ".25rem", flexGrow: "1" }}>{dictOfDatasets[key] && dictOfDatasets[key].data ? dataset.name : "Dataset #" + parseInt(key)}</h6>
                       <a
                         onClick={() => {

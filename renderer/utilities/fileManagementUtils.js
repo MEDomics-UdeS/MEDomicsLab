@@ -47,8 +47,8 @@ const downloadPath = (path) => {
 }
 
 /**
- * 
- * @param {string} path path to the file 
+ *
+ * @param {string} path path to the file
  * @returns {Promise} Promise that resolves to the file content
  */
 const loadFileFromPathSync = (path) => {
@@ -134,8 +134,6 @@ const loadJsonSync = () => {
     input.click()
   })
 }
-
-
 
 /**
  * @param {String} path
@@ -226,16 +224,33 @@ const loadCSVFromPath = (path, whenLoaded) => {
       })
       let columns = array.shift()
       let df = new dfd.DataFrame(array, { columns: columns })
+      df.drop(removeEmptyRows(df, 5))
       let dfJSON = dfd.toJSON(df)
       whenLoaded(dfJSON)
     }
   })
 }
 
-
+/**
+ * Check if the last rows of the dataframe are empty or undefined, and if so, remove them
+ * @param {Object} df dataframe
+ * @param {Number} numberOfRowToCheck number of rows to check
+ * @returns {Array} array of index to drop
+ */
+const removeEmptyRows = (df, numberOfRowToCheck) => {
+  let dfLastRows = df.tail(numberOfRowToCheck)
+  let dfColumnCount = df.$columns.length
+  let indexToDrop = []
+  let rowCounts = dfLastRows.count()
+  rowCounts.values.forEach((rowCount, index) => {
+    if (rowCount <= 1) {
+      indexToDrop.push(rowCounts.$index[index])
+    }
+  })
+  return { index: indexToDrop, inplace: true }
+}
 
 /**
- *
  * @param {string} path_ path to the file
  * @param {string} folderName name of the folder to create
  */
@@ -288,6 +303,7 @@ const loadJSONFromPath = (path, whenLoaded) => {
       console.log("File read successfully")
       let result = JSON.parse(data)
       let df = new dfd.DataFrame(result)
+      df.drop(removeEmptyRows(df, 5))
       let dfJSON = dfd.toJSON(df)
       console.log("DFJSON", dfJSON)
       whenLoaded(dfJSON)
@@ -308,6 +324,7 @@ const loadXLSXFromPath = async (filePath, whenLoaded) => {
   console.log("path", finalPath)
   let df = await dfdNode.readExcel(jsonPath)
   console.log("File read successfully")
+  df.drop(removeEmptyRows(df, 5))
   let dfJSON = dfd.toJSON(df)
   whenLoaded(dfJSON)
 }
