@@ -23,16 +23,8 @@ step = "Initialization"
 
 @app_MEDprofiles.route("/create_MEDclasses", methods=["GET", "POST"]) 
 def create_MEDclasses():
-    # global variables
-    global progress
-    global step
-    progress = 0
-    step = "Initialization"
-
     # Set local variables
     json_config = get_json_from_request(request)
-    progress = 50
-    step = "In Progress"
 
     master_table_path = json_config["masterTablePath"]
     MEDclasses_folder_path = json_config["selectedFolderPath"]

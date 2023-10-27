@@ -5,6 +5,7 @@ import MedDataObject from "../workspace/medDataObject"
 import ProgressBarRequests from "../generalPurpose/progressBarRequests"
 import React, {useContext, useEffect, useState} from "react"
 import { requestJson } from "../../utilities/requests"
+import { ScrollPanel } from 'primereact/scrollpanel';
 import { toast } from "react-toastify"
 import { WorkspaceContext } from "../workspace/workspaceContext"
 
@@ -14,6 +15,7 @@ const MEDprofilesPrepareData = () => {
   const [extractionProgress, setExtractionProgress] = useState(0) // advancement state in the MEDprofiles' functions
   const [extractionStep, setExtractionStep] = useState("") // current step in the MEDprofiles' functions
   const [folderList, setFolderList] = useState([]) // list of available folders in DATA folder
+  const [generatedClassesFolder, setGeneratedClassesFolder] = useState(null) // folder containin the generated MEDclasses
   const [mayCreateClasses, setMayCreateClasses] = useState(false) // boolean updating the "Create MEDclasses" button state
   const [progress, setProgress] = useState({ now: 0, currentLabel: "" }) // progress bar state [now, currentLabel]
   const [selectedFolder, setSelectedFolder] = useState(null) // folder selected where to put the MEDclasses
@@ -28,7 +30,7 @@ const MEDprofilesPrepareData = () => {
    * @param {DataContext} dataContext
    *
    * @description
-   * This functions get all files from the DataContext and update datasetList.
+   * This functions get all files from the DataContext DATA folder and update datasetList.
    *
    */
    function getDatasetListFromDataContext(dataContext) {
@@ -47,7 +49,7 @@ const MEDprofilesPrepareData = () => {
    * @param {DataContext} dataContext
    *
    * @description
-   * This functions get all files from the DataContext and update datasetList.
+   * This functions get all folders from the DataContext DATA folder and update folderList.
    *
    */
    function getFolderListFromDataContext(dataContext) {
@@ -62,12 +64,28 @@ const MEDprofilesPrepareData = () => {
   }
 
   /**
+   *
+   * @param {DataContext} dataContext
+   *
+   * @description
+   * This functions is called when the MEDclasses have been generated.
+   *
+   */
+     function getGeneratedClassesFolder(dataContext, path) {
+      let keys = Object.keys(dataContext)
+      keys.forEach((key) => {
+        if (dataContext[key].path == path) {
+          setGeneratedClassesFolder(dataContext[key])
+        }
+      })
+    }
+
+  /**
    * @description
    * This function calls the create_MEclasses method in the MEDprofiles server
    */
   const createMEDclasses = () => {
     setMayCreateClasses(false)
-    setShowProgressBar(true)
     // Run extraction process
     requestJson(
       port,
@@ -79,23 +97,17 @@ const MEDprofilesPrepareData = () => {
       (jsonResponse) => {
         console.log("received results:", jsonResponse)
         if (!jsonResponse.error) {
-          setExtractionStep("Extracted Features Saved")
           MedDataObject.updateWorkspaceDataObject()
-          setExtractionProgress(100)
+          getGeneratedClassesFolder(globalData, selectedFolder.path + "/MEDclasses")
         } else {
           toast.error(`Extraction failed: ${jsonResponse.error.message}`)
-          setExtractionStep("")
-          setShowProgressBar(false)
         }
-        setShowProgressBar(false)
         setMayCreateClasses(true)
       },
       function (err) {
         console.error(err)
         toast.error(`Extraction failed: ${err}`)
-        setExtractionStep("")
         setMayCreateClasses(true)
-        setShowProgressBar(false)
       }
     )
   }
@@ -124,6 +136,10 @@ const MEDprofilesPrepareData = () => {
     }
   }, [selectedMasterTable, selectedFolder])
 
+  useEffect(() => {
+    console.log("GEN", generatedClassesFolder.childrenIDs?.map((child) => {return globalData[child].nameWithoutExtension}))
+  }, [generatedClassesFolder])
+
   // Called once at initialization in order to set default selected folder to "DATA"
   useEffect(() => {
     if (globalData !== undefined) {
@@ -134,8 +150,7 @@ const MEDprofilesPrepareData = () => {
       }
     })
     }
-  }, [])
-  
+  }, [])  
   
     return (
       <>
@@ -143,12 +158,20 @@ const MEDprofilesPrepareData = () => {
         <b>Select your master table : &nbsp;</b>
         {datasetList.length > 0 ? <Dropdown value={selectedMasterTable} options={datasetList.filter((value) => value.extension == "csv")} optionLabel="name" onChange={(event) => setSelectedMasterTable(event.value)} placeholder="Select a master table" /> : <Dropdown placeholder="No dataset to show" disabled />}
       </div>
-      <div>
-        <b>Select the location of your MEDclasses folder : &nbsp;</b>
-        {folderList.length > 0 ? <Dropdown value={selectedFolder} options={folderList} optionLabel="name" onChange={(event) => setSelectedFolder(event.value)} placeholder="Select a folder" /> : <Dropdown placeholder="No folder to show" disabled />}
-        <Button disabled={!mayCreateClasses} onClick={createMEDclasses}>Create MEDclasses</Button>
-        <div className="margin-top-30 extraction-progress">{showProgressBar && <ProgressBarRequests progressBarProps={{}} isUpdating={showProgressBar} setIsUpdating={setShowProgressBar} progress={progress} setProgress={setProgress} requestTopic={"/MEDprofiles/progress"} />}</div>
+      <hr></hr>
+      <div className="flex-container">
+        <div>
+          <b>Select the location of your MEDclasses folder : &nbsp;</b>
+          {folderList.length > 0 ? <Dropdown value={selectedFolder} options={folderList} optionLabel="name" onChange={(event) => setSelectedFolder(event.value)} placeholder="Select a folder" /> : <Dropdown placeholder="No folder to show" disabled />}
+        </div>
+        <div>
+          <Button disabled={!mayCreateClasses} onClick={createMEDclasses}>Create MEDclasses</Button>
+        </div>
       </div>
+      {generatedClassesFolder && (<div>
+        <b>Generated MEDclasses :</b>
+        {generatedClassesFolder.childrenIDs?.map((child) => {return <div key={child}>{globalData[child].nameWithoutExtension}</div>})}
+      </div>)}
       </>
     )
   }
