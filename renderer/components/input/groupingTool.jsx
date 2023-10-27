@@ -757,7 +757,6 @@ const GroupingTool = ({ pageId = "42-grouping", configPath = null }) => {
   return (
     <>
       <div className="groupingTool mergeToolMultiSelect">
-        {" "}
         {/* Merge tool multiselect is here to use the same class inheritance - CSS*/}
         <Row className="justify-content-center ">
           <Col lg={4} style={{ display: "flex", flexDirection: "column", flexGrow: "1", alignItems: "start", justifyContent: "start", paddingInline: "0rem", marginInline: "0.5rem" }}>

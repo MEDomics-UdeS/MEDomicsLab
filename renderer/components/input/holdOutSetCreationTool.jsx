@@ -129,7 +129,6 @@ const HoldOutSetCreationTool = ({ pageId = "inputModule", configPath = "" }) => 
   const createHoldoutSet = async () => {
     let newDatasetPathParent = globalData[selectedDataset.parentID].path
     let datasetName = newDatasetName.length > 0 ? newDatasetName : "HoldoutDataset"
-    // datasetName = datasetName
     let newDatasetObject = new MedDataObject({
       originalName: datasetName,
       name: datasetName,
@@ -171,12 +170,6 @@ const HoldOutSetCreationTool = ({ pageId = "inputModule", configPath = "" }) => 
 
   return (
     <>
-      {/* <Tooltip target=".stratify-check" autoHide={false}>
-        <div className="flex align-items-center">
-          <span style={{ minWidth: "5rem" }}>See </span>
-          <a href=""></a>
-        </div>
-      </Tooltip> */}
       <Row className="holdout-set">
         <Col>
           <h6>Select the dataset you want to create the holdout set from</h6>

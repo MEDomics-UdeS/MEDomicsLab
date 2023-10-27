@@ -35,16 +35,6 @@ if (isProd) {
     show: true
   })
 
-  // const splashScreen = createWindow("splash", {
-  //   width: 700,
-  //   height: 700,
-  //   transparent: false,
-  //   frame: true,
-  //   alwaysOnTop: true,
-  //   center: true,
-  //   show: false
-  // })
-
   const mainWindow = createWindow("main", {
     width: 1500,
     height: 1000,

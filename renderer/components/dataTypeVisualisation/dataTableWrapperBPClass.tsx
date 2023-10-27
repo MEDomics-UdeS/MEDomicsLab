@@ -74,7 +74,7 @@ abstract class AbstractSortableColumn implements SortableColumn {
         cellRenderer={getCellRenderer}
         columnHeaderCellRenderer={columnHeaderCellRenderer}
         key={this.index}
-        // name={this.name}
+        name={this.name}
       />
     )
   }
@@ -261,7 +261,6 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
     this.state.columns = newColumns // set the columns
     this.setState({ data: this.props.data }) // set the data
     this.setState({ columnsNames: columnsNames, columns: newColumns, columnIndexMap: newColumnIndexMap, newColumnNames: newColumnNames }) // set the column names, columns and column index map
-    // console.log("componentDidMount", this.state.data, this.state.sortedIndexMap) // log the data and sorted index map
   }
 
   /**
@@ -321,7 +320,6 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
         this.setState({ columnIndexMap: this.state.columnIndexMap }) // set the column index map
       }
     }
-    // console.log("componentDidUpdate", this.state.data, this.state.filteredIndexMap) // log the data and sorted index map
   }
 
   /**
@@ -354,7 +352,6 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
    */
   public async exportToCSV(event: React.MouseEvent<HTMLButtonElement, MouseEvent>, data: any, filePath?: string) {
     data = this.getModifiedData(data) // get the modified data
-    console.log("exportToCSV", data)
     let csvContentHeader = "data:text/csv;charset=utf-8,"
     let csvContent = ""
     let headers = Object.keys(data[0])
@@ -376,18 +373,16 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
       })
       csvContent += rowToPush
     })
-    console.log("csvContent", csvContent)
     if (filePath) {
       const path = require("path")
       const finalPath = path.join(filePath, this.state.config.name)
-      console.log("finalPath", finalPath)
       const fs = require("fs")
 
       fs.writeFile(filePath, csvContent, function (err: any) {
         if (err) {
           return console.error(err)
         }
-        console.log("HEY!")
+        console.log("File written!")
       })
     } else {
       let filename = this.getSuggestedFileName("csv")
@@ -465,9 +460,7 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
         // for each column name
         let column = df.$getColumnData(columnName) // get the column data
         try {
-          console.log(column.asType(dfUtils.unique).dropNa().describe().print()) // print the description of the column
           let uniqueValues = dfUtils.unique(column) // get the unique values of the column
-          // console.log("uniqueValues", uniqueValues) // log the unique values
         } catch (e) {
           // No operation
         }
@@ -544,7 +537,6 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
     if (filePath) {
       const path = require("path")
       const finalPath = path.join(filePath, fileName)
-      console.log("finalPath", finalPath)
     }
     xlxs.writeFile(wb, fileName)
   }
@@ -576,11 +568,8 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
     data = this.getModifiedData(data)
     let df = new dfd.DataFrame(data)
     this.saveColumnsNewNames(df)
-    console.log("saveData", data)
-    console.log("saveData", this.state.config)
     if (this.state.config.extension === "csv") {
       try {
-        // dfd.toCSV(df, { filePath: this.state.config.path })
         await this.exportToCSV(event, data, this.state.config.path)
       } catch (e) {
         // No operation
@@ -828,7 +817,6 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
     const dataKey = this.dataKey(rowIndex, columnIndex)
     return (value: string) => {
       const intent = this.isValidValue(value) ? null : Intent.DANGER
-      // this.setSparseState("sparseCellIntent", dataKey, intent)
       this.setSparseState("sparseCellData", dataKey, value)
     }
   }
@@ -874,9 +862,6 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
     const newFilteredIndexMap = Utils.times(data.length, (i: number) => i).filter((rowIndex: number) => {
       // Create an index range from 0 to the number of rows and then filter the rows
       const sortedRowIndex = this.state.sortedIndexMap[rowIndex]
-      // if (sortedRowIndex != null) {
-      //   rowIndex = sortedRowIndex
-      // }
       try {
         return data[rowIndex][columnsNames[columnIndexMap[columnIndex]]].toString().toLowerCase().includes(filterValue.toLowerCase()) // Filter the rows based on the filter value (Everything is converted to lowercase strings)
       } catch (e) {
@@ -998,11 +983,9 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
    * @param value - The value to be set
    */
   private setArrayState<T>(key: string, index: number, value: T) {
-    console.log("setArrayState", key, index, value, this.state[key])
     const values = (this.state as any)[key].slice() as T[]
     values[index] = value
     this.setState({ [key]: values })
-    console.log("Column names", this.state.columnsNames)
   }
 }
 

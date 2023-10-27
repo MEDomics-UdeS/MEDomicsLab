@@ -1,7 +1,6 @@
 import React, { useState } from "react"
 import DatasetSelector from "./dataComponents/datasetSelector"
 import ModulePage from "./moduleBasics/modulePage"
-// import { Accordion, AccordionTab } from "primereact/accordion"
 import { Accordion } from "react-bootstrap"
 import MergeTool from "../input/mergeTool"
 import GroupingTool from "../input/groupingTool"
