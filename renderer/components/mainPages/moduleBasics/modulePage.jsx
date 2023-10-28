@@ -17,7 +17,7 @@ import ReactLoading from "react-loading"
  * @description This component is the base for all the flow pages. It contains the sidebar, the workflow and the backdrop.
  *
  */
-const ModulePageWithProvider = ({ children, pageId, configPath = "null", shadow = false, className }) => {
+const ModulePageWithProvider = ({ children, pageId, configPath = "null", shadow = false, additionnalClassName = "" }) => {
   // here is the use of the context to update the flowInfos
   const { setPageId, setConfigPath } = useContext(PageInfosContext)
   const { loader } = useContext(LoaderContext)
@@ -30,7 +30,7 @@ const ModulePageWithProvider = ({ children, pageId, configPath = "null", shadow 
 
   return (
     <>
-      <div id={pageId} className={`module-page ${shadow ? "with-shadow" : ""} ${className}`}>
+      <div id={pageId} className={`module-page ${shadow ? "with-shadow" : ""} ${additionnalClassName}`}>
         {loader && (
           <>
             <div className="module-loading">

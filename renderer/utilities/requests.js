@@ -12,11 +12,11 @@ import MEDconfig, { SERVER_CHOICE } from "../../medomics.dev"
  * @param {Function} jsonReceivedCB executed when the json is received
  * @param {Function} onError executed when an error occurs
  */
-export const requestBackend = (port, topic, pageId = null, json2send, jsonReceivedCB, onError) => {
+export const requestBackend = (port, topic, json2send, jsonReceivedCB, onError) => {
   if (MEDconfig.serverChoice == SERVER_CHOICE.GO) {
-    axiosPostJsonGo(port, pageId ? topic + "/" + pageId : topic, json2send, jsonReceivedCB, onError)
+    axiosPostJsonGo(port, topic, json2send, jsonReceivedCB, onError)
   } else if (MEDconfig.serverChoice == SERVER_CHOICE.FLASK) {
-    requestJson(port, pageId ? topic + "/" + pageId : topic, json2send, jsonReceivedCB, onError)
+    requestJson(port, topic, json2send, jsonReceivedCB, onError)
   }
 }
 
@@ -38,7 +38,7 @@ export const requestJson = (port, topic, json2send, jsonReceivedCB, onError) => 
           json2send
         },
         method: "POST",
-        url: "http://localhost:" + port + "/" + topic
+        url: "http://localhost:" + port + (topic[0] != "/" ? "/" : "") + topic
       })
       .then((data) => {
         jsonReceivedCB(data["data"])
@@ -69,16 +69,14 @@ export const requestJson = (port, topic, json2send, jsonReceivedCB, onError) => 
  * @param {Function} onError executed when an error occurs
  */
 export const axiosPostJsonGo = async (port, topic, json2send, jsonReceivedCB, onError) => {
-  console.log("http://localhost:" + port + topic)
+  console.log("http://localhost:" + port + (topic[0] != "/" ? "/" : "") + topic)
   try {
-    const response = await axios.post("http://localhost:" + port + "/" + topic, { message: JSON.stringify(json2send) }, { headers: { "Content-Type": "application/json" } })
-    console.log(response.data)
+    const response = await axios.post("http://localhost:" + port + (topic[0] != "/" ? "/" : "") + topic, { message: JSON.stringify(json2send) }, { headers: { "Content-Type": "application/json" } })
     response.data.type == "toParse" ? jsonReceivedCB(JSON.parse(response.data.response_message)) : jsonReceivedCB(response.data.response_message)
     return response.data
   } catch (error) {
     console.error(error)
     onError(error)
-
     onError
       ? onError(error)
       : () => {

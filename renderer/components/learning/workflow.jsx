@@ -521,8 +521,7 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
           setIsProgressUpdating(true)
           requestBackend(
             port,
-            "/learning/run_experiment",
-            pageId,
+            "/learning/run_experiment/" + pageId,
             flow,
             (jsonResponse) => {
               console.log("received results:", jsonResponse)
@@ -881,7 +880,7 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
           <>
             {/* bottom center - progress bar */}
             <div className="panel-bottom-center">
-              <ProgressBarRequests progressBarProps={{ animated: true, variant: "success" }} isUpdating={isProgressUpdating} setIsUpdating={setIsProgressUpdating} progress={progress} setProgress={setProgress} requestTopic={"learning/progress"} />
+              <ProgressBarRequests progressBarProps={{ animated: true, variant: "success" }} isUpdating={isProgressUpdating} setIsUpdating={setIsProgressUpdating} progress={progress} setProgress={setProgress} requestTopic={"learning/progress/" + pageId} />
             </div>
           </>
         }

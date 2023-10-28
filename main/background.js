@@ -389,8 +389,7 @@ function findAvailablePort(startPort, endPort = 8000) {
                 console.log(`Port ${port} is now available !`)
                 resolve(port)
               }
-              (stdout) && console.log(stdout)
-              (stderr) && console.log(stderr)
+              stdout && console.log(stdout)(stderr) && console.log(stderr)
             })
           } else {
             port++

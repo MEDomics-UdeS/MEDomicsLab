@@ -1,0 +1,105 @@
+/* :root {
+  --bg-color-play: #21a30071;
+  --bg-color-play-hover: #21a300d0;
+  --bg-color-play-focus: #21a300ec;
+  --bg-color-play-active: #00ff00;
+  --bg-color-play-active-hover: #00ff00;
+  --bg-color-play-active-focus: #00ff00;
+
+  --bg-color-pause: #ff0000;
+  --bg-color-pause-hover: #ff0000;
+  --bg-color-pause-focus: #ff0000;
+  --bg-color-pause-active: #ff0000;
+  --bg-color-pause-active-hover: #ff0000;
+  --bg-color-pause-active-focus: #ff0000;
+}
+
+.outputPage .p-selectbutton > .p-button {
+  padding: 0;
+} */
+
+/* PLAY -------- normal */
+/* .outputPage .p-selectbutton > .p-button > .p-button.play {
+  background-color: var(--bg-color-play) !important;
+  opacity: 0.5;
+  color: var(--color-default);
+}
+
+.outputPage .p-selectbutton > .p-button:hover > .play.p-button {
+  opacity: 0.75;
+} */
+
+/* PLAY -------- active */
+/* .outputPage .p-selectbutton > .p-button.p-highlight {
+  background-color: var(--bg-color-play) !important;
+}
+
+.outputPage .p-selectbutton > .p-button.p-highlight:hover > .play.p-button {
+} */
+
+/* pause -------- normal */
+/* .outputPage .p-selectbutton > .p-button > .pause.p-button {
+  background-color: var(--bg-color-pause) !important;
+  opacity: 0.5;
+  color: var(--color-default);
+} */
+
+/* .outputPage .p-selectbutton > .p-button:hover > .pause.p-button {
+  opacity: 0.75;
+}
+*/
+/* pause -------- active */
+/*
+.outputPage .p-selectbutton > .p-button.p-highlight  {
+  background-color: var(--bg-color-pause) !important;
+}
+
+.outputPage .p-selectbutton > .p-button.p-highlight:hover > .pause.p-button {
+} 
+*/
+
+.btn-play-pause {
+  display: flex;
+  align-items: center;
+  flex-direction: row;
+  justify-content: center;
+  gap: 0.25rem;
+  height: 0.75rem;
+}
+
+.outputPage .module-page-subdiv > div {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.outputPage .module-page-subdiv > div > .header {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: 0 0.5rem;
+  flex-wrap: wrap;
+}
+
+.outputPage .p-card {
+  margin: 0.5rem;
+  box-shadow:
+    4px 4px 5px -1px rgb(0 0 0 / 30%),
+    -1px 1px 1px 0 rgb(0 0 0 / 7%),
+    0px -1px 3px 2px rgb(0 0 0 / 12%);
+}
+
+.outputPage .p-card-body {
+  padding: 0.8rem;
+}
+
+.outputPage .p-card-content {
+  padding: 0.2rem 0;
+}
+
+.web-server-link:hover {
+  text-decoration: underline;
+  cursor: pointer;
+}

@@ -21,7 +21,7 @@ const isFlask = MEDconfig.serverChoice == SERVER_CHOICE.FLASK
 
  * @returns a progress bar that shows the progress of the current flow
  */
-const ProgressBarRequests = ({ isUpdating, setIsUpdating, progress, setProgress, requestTopic, withLabel = true, delayMS = 400, progressBarProps = { animated: true, variant: "success" } }) => {
+const ProgressBarRequests = ({ isUpdating, setIsUpdating, progress, setProgress, requestTopic, withLabel = true, delayMS = 400, progressBarProps = { animated: true, variant: "success" }, onDataReceived }) => {
   const { port } = useContext(WorkspaceContext) // used to get the port
   const { pageId } = useContext(PageInfosContext) // used to get the pageId
 
@@ -30,20 +30,20 @@ const ProgressBarRequests = ({ isUpdating, setIsUpdating, progress, setProgress,
       requestBackend(
         port,
         requestTopic,
-        pageId,
         { pageId: pageId },
         (data) => {
+          onDataReceived && onDataReceived(data)
           if ("now" in data) {
             setProgress({
               now: data.now,
               currentLabel: data.currentLabel && data.currentLabel
             })
             if (data.now >= 100) {
-              setIsUpdating(false)
               setProgress({
                 now: data.now,
                 currentLabel: "Done!"
               })
+              setIsUpdating(false)
             }
           } else {
             toast.error("No 'now' key in the response: " + JSON.stringify(data))

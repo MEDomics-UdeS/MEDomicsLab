@@ -13,6 +13,7 @@ import Row from "react-bootstrap/Row"
 import Col from "react-bootstrap/Col"
 import { Button } from "primereact/button"
 import { ErrorRequestContext } from "../generalPurpose/errorRequestContext"
+import { ContextMenu } from "primereact/contextmenu"
 
 /**
  *
@@ -560,7 +561,6 @@ const WorkflowBase = ({ isGoodConnection, groupNodeHandlingDefault, onDeleteNode
     }
     edgeUpdateSuccessful.current = true
   }, [])
-
   return (
     <div className="height-100 width-100">
       {/* here is the reactflow component which handles a lot of features listed below */}
@@ -590,6 +590,7 @@ const WorkflowBase = ({ isGoodConnection, groupNodeHandlingDefault, onDeleteNode
             </Col>
           </Row>
         </div>
+
         <div className="flow-btn-panel-left-vertical">{hasBeenAnError && <Button icon="pi pi-exclamation-circle" rounded severity="danger" aria-label="Cancel" tooltip="See last error" tooltipOptions={{ showDelay: 1000, hideDelay: 300 }} onClick={() => setShowError(true)} />}</div>
       </ReactFlow>
     </div>

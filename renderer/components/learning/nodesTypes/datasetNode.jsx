@@ -107,7 +107,9 @@ const DatasetNode = ({ id, data }) => {
   const onFilesChange = async (inputUpdate) => {
     data.internal.settings[inputUpdate.name] = inputUpdate.value
     if (inputUpdate.value.path != "") {
+      setLoader(true)
       let { columnsArray, columnsObject } = await MedDataObject.getColumnsFromPath(inputUpdate.value.path, globalData, setGlobalData)
+      setLoader(false)
       data.internal.settings.columns = columnsObject
       data.internal.settings.target = columnsArray[columnsArray.length - 1]
     } else {
@@ -145,7 +147,7 @@ const DatasetNode = ({ id, data }) => {
                 value="medomics"
                 // selected={optionName === selection}
               >
-                MEDomics Lab standard
+                MEDomicsLab standard
               </option>
               <option
                 key="custom"

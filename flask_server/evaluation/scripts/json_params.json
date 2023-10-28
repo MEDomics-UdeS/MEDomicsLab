@@ -1,0 +1,35 @@
+{
+    "pageId": "1c94acaa-d11b-4f16-a9e9-1b1bdcdfdc97",
+    "model": {
+        "name": "0-lr_test-LogisticRegression.medmodel",
+        "path": "C:\\Users\\gblai\\Documents\\github\\MEDomicsLab\\learning-tests-scene\\EXPERIMENTS\\experiment\\create_model\\models\\0-lr_test-LogisticRegression.medmodel",
+        "columns": {
+            "columns": [
+                "id",
+                "age",
+                "pao2fio2",
+                "uo",
+                "admissiontype",
+                "bicarbonate",
+                "bilirubin",
+                "bun",
+                "chron_dis",
+                "gcs",
+                "hr",
+                "potassium",
+                "sbp",
+                "sodium",
+                "tempc",
+                "wbc",
+                "deceased"
+            ],
+            "target": "deceased"
+        }
+    },
+    "dataset": {
+        "name": "eicu_processed.csv",
+        "path": "C:\\Users\\gblai\\Documents\\github\\MEDomicsLab\\learning-tests-scene\\DATA\\eicu_processed.csv"
+    },
+    "sampleSizeFrac": 0.01,
+    "dashboardName": "0-lr_test-LogisticRegression"
+}

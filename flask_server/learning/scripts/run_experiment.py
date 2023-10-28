@@ -2,32 +2,43 @@ import argparse
 import pickle
 import os
 import sys
+import threading
+import time
 from pathlib import Path
 import json
+
 sys.path.append(
     str(Path(os.path.dirname(os.path.abspath(__file__))).parent.parent))
 
 from utils.server_utils import go_print
-from utils.GoExecutionScript import GoExecutionScript
+from utils.GoExecutionScript import GoExecutionScript, parse_arguments
 from learning.MEDml.MEDexperiment_learning import MEDexperimentLearning
 
 USE_RAM_FOR_EXPERIMENTS_STORING = 1
 USE_SAVE_FOR_EXPERIMENTS_STORING = 0
 
-parser = argparse.ArgumentParser()
-parser.add_argument('--json-param', type=str, default='.')
-args = parser.parse_args()
-json_param_str = args.json_param
-
+json_params_dict, id_ = parse_arguments()
+go_print("running run_experiment.py:"+id_)
 
 class GoExecScriptRunExperiment(GoExecutionScript):
     """
         This class is used to run the pipeline execution of pycaret
+
+        Args:
+            json_params: The json params of the pipeline execution
+            _id: The id of the pipeline execution
+            isProgressInThread: A boolean indicating if the progress is updated in a thread
     """
-    def __init__(self, json_params: str, process_fn: callable = None, isProgress: bool = False):
-        super().__init__(json_params, process_fn, isProgress)
+
+    def __init__(self, json_params: dict, _id: str = None, isProgressInThread: bool = False):
+        super().__init__(json_params, _id)
         self.storing_mode = USE_SAVE_FOR_EXPERIMENTS_STORING
         self.current_experiment = None
+        self._progress_update_frequency_HZ = 5.0
+        if isProgressInThread:
+            self.progress_thread = threading.Thread(target=self._update_progress_periodically, args=())
+            self.progress_thread.daemon = True
+            self.progress_thread.start()
 
     def _custom_process(self, json_config: dict) -> dict:
         go_print(json.dumps(json_config, indent=4))
@@ -45,6 +56,22 @@ class GoExecScriptRunExperiment(GoExecutionScript):
         self.current_experiment.set_progress(label='Saving the experiment')
         save_experiment(self.current_experiment)
         return results_pipeline
+
+    def update_progress(self):
+        """
+        This function is used to update the progress of the pipeline execution.
+        It is called periodically by the thread self.progress_thread
+        """
+        if self.current_experiment is not None:
+            self._set_progress(self.current_experiment.get_progress())
+        else:
+            self._set_progress({"now": 0, "currentLabel": ""})
+
+    def _update_progress_periodically(self):
+        while True:
+            self.update_progress()
+            self.push_progress()
+            time.sleep(1.0 / self._progress_update_frequency_HZ)
 
 
 def save_experiment(experiment: MEDexperimentLearning):
@@ -82,5 +109,5 @@ def is_experiment_exist(id_):
     return os.path.exists('local_dir/MEDexperiment_' + id_ + '.medexp')
 
 
-run_experiment = GoExecScriptRunExperiment(json_param_str)
+run_experiment = GoExecScriptRunExperiment(json_params_dict, id_, True)
 run_experiment.start()

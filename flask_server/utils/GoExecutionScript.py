@@ -1,8 +1,32 @@
 import json
 import os
 import sys
+import threading
+import time
 import traceback
 from abc import ABC, abstractmethod
+import asyncio
+from typing import Tuple, Any
+
+import websockets
+import argparse
+from utils.server_utils import go_print
+
+
+def parse_arguments() -> tuple[dict, str]:
+    """
+    Parses the arguments of the script
+
+    Returns:
+        A tuple of the json params and the id
+    """
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--json-param', type=str, default='.')
+    parser.add_argument('--id', type=str, default='.')
+    args = parser.parse_args()
+    json_params = json.loads(args.json_param)
+    id_ = args.id
+    return json_params, id_
 
 
 def get_response_from_error(e=None, toast=None):
@@ -30,50 +54,32 @@ def get_response_from_error(e=None, toast=None):
         return {"error": {"toast": toast}}
 
 
-def send_response(response: dict):
-    """
-    handle sending the response to the Go server
-
-    Args:
-        response: The response to send
-
-    """
-    to_send = json.dumps(response)
-    file_path = os.path.join(os.getcwd(), "temp_requests.txt")
-    f = open(file_path, "w")
-    f.write(to_send)
-    f.close()
-    sys.stdout.flush()
-    print("response-ready")
-    sys.stdout.flush()
-    print(file_path)
-    sys.stdout.flush()
-
-
 class GoExecutionScript(ABC):
     """
     This class is used to execute a process in Go
+
+    Args:
+        json_params: The json params that were sent from the client side
+        _id: The id of the process
     """
-    def __init__(self, json_params: str, process_fn: callable = None, isProgress: bool = False):
-        self._json_params = json.loads(json_params)
-        self._process_fn = process_fn
+
+    def __init__(self, json_params: dict, _id: str = "default_id"):
+        self._json_params = json_params
         self._error_handler = None
-        self._progress = {"now": 0, "currentLabel": ""} if isProgress else None
+        self._progress = {"now": 0, "currentLabel": ""}
+        self._id = _id
 
     def start(self):
         """
         Starts the process
         """
         try:
-            if self._process_fn is not None:
-                results = self._process_fn(self._json_params)
-            else:
-                results = self._custom_process(self._json_params)
-            send_response(results)
+            results = self._custom_process(self._json_params)
+            self.send_response(results)
         except BaseException as e:
             if self._error_handler is not None:
                 self._error_handler(e)
-            send_response(get_response_from_error(e))
+            self.send_response(get_response_from_error(e))
 
     def _set_error_handler(self, error_handler: callable):
         """
@@ -107,9 +113,7 @@ class GoExecutionScript(ABC):
             if now is not None:
                 self._progress["now"] = now
 
-        sys.stdout.flush()
-        print("progress-" + json.dumps(self._progress))
-        sys.stdout.flush()
+        self.push_progress()
 
     @abstractmethod
     def _custom_process(self, json_params: dict) -> dict:
@@ -120,3 +124,31 @@ class GoExecutionScript(ABC):
             json_params: The json params that were sent from the client side
         """
         return get_response_from_error(toast="No process function was provided")
+
+    def push_progress(self):
+        """
+        handle pushing the progress to the Go server
+        """
+        print(self._id, json.dumps(self._progress))
+        msg = "progress*_*" + self._id + "*_*" + json.dumps(self._progress)
+        go_print(msg)
+
+    def send_response(self, response: dict):
+        """
+        handle sending the response to the Go server
+
+        Args:
+            response: The response to send
+
+        """
+        to_send = json.dumps(response)
+        file_path = os.path.join(os.getcwd(), "temp_requests.txt")
+        f = open(file_path, "w")
+        f.write(to_send)
+        f.close()
+        self._set_progress(label="Done", now=100)
+        sys.stdout.flush()
+        print("response-ready")
+        sys.stdout.flush()
+        print(file_path)
+        sys.stdout.flush()
