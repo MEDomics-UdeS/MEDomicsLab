@@ -13,6 +13,7 @@ import { Slider } from "primereact/slider"
 import { InputNumber } from "primereact/inputnumber"
 import { requestJson } from "../../utilities/requests"
 import ProgressBarRequests from "../generalPurpose/progressBarRequests"
+import { toast } from "react-toastify"
 
 /**
  * Component that renders the holdout set creation tool
@@ -196,7 +197,8 @@ const HoldOutSetCreationTool = ({ pageId = "inputModule", configPath = "" }) => 
       },
       function (error) {
         setIsProgressUpdating(false)
-        console.log("error", error)
+        setProgress({ now: 0, currentLabel: "Holdout set creation failed ❌" })
+        toast.error("Holdout set creation failed", error)
       }
     )
     setIsProgressUpdating(true)
