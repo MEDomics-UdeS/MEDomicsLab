@@ -63,7 +63,7 @@ abstract class AbstractSortableColumn implements SortableColumn {
         <DataTablePopoverBP // popover that contains the filter input
           config={this.config}
           category={this.category}
-          columnName={this.name}
+          columnName={getName(this.index)}
           filterColumn={filterThisColumn}
         />
       </ColumnHeaderCell>
@@ -74,7 +74,7 @@ abstract class AbstractSortableColumn implements SortableColumn {
         cellRenderer={getCellRenderer}
         columnHeaderCellRenderer={columnHeaderCellRenderer}
         key={this.index}
-        name={this.name}
+        name={getName(this.index)}
       />
     )
   }
@@ -674,7 +674,7 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
             enableRowReordering={true}
             onRowsReordered={this.handleRowsReordered}
             onColumnsReordered={this.handleColumnsReordered}
-            enableColumnReordering={false} // TODO: Figure out the bug with column reordering while filtering
+            enableColumnReordering={true} // TODO: Figure out the bug with column reordering while filtering
           >
             {columns}
           </Table2>
@@ -726,7 +726,7 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
    * @returns columnName - column name
    */
   private getColumnNameFromColumnIndex = (columnIndex: number) => {
-    return this.state.columnsNames[this.state.columnIndexMap[columnIndex]]
+    return this.state.newColumnNames[this.state.columnIndexMap[columnIndex]]
   }
 
   /**
@@ -738,11 +738,10 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
   private getCellData = (rowIndex: number, columnIndex: number) => {
     const sortedRowIndex = this.state.sortedIndexMap[rowIndex]
 
-    if (this.state.sparseCellData[`${rowIndex}-${this.state.columnsNames[this.state.columnIndexMap[columnIndex]]}`]) {
+    if (this.state.sparseCellData[`${rowIndex}-${this.state.columnIndexMap[columnIndex]}`]) {
       // if the cell data is not null in the sparse cell data
-      return this.state.sparseCellData[`${rowIndex}-${this.state.columnsNames[this.state.columnIndexMap[columnIndex]]}`] // return the cell data modified in the sparse cell data
+      return this.state.sparseCellData[`${rowIndex}-${this.state.columnIndexMap[columnIndex]}`] // return the cell data modified in the sparse cell data
     }
-    ;[this.state.columnIndexMap[columnIndex]]
     return this.state.data[rowIndex][this.state.columnsNames[this.state.columnIndexMap[columnIndex]]]
   }
 
@@ -759,7 +758,7 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
       rowIndex = sortedRowIndex // if the sorted row index is not null, set the row index to the sorted row index
     }
 
-    return <EditableCell2 intent={this.state.sparseCellIntent[`${rowIndex}-${this.state.columnsNames[this.state.columnIndexMap[columnIndex]]}`]} value={this.getCellData(rowIndex, columnIndex)} onCancel={this.cellValidator(rowIndex, columnIndex)} onChange={this.cellValidator(rowIndex, columnIndex)} onConfirm={this.cellSetter(rowIndex, columnIndex)}></EditableCell2>
+    return <EditableCell2 intent={this.state.sparseCellIntent[`${rowIndex}-${[this.state.columnIndexMap[columnIndex]]}`]} value={this.getCellData(rowIndex, columnIndex)} onCancel={this.cellValidator(rowIndex, columnIndex)} onChange={this.cellValidator(rowIndex, columnIndex)} onConfirm={this.cellSetter(rowIndex, columnIndex)}></EditableCell2>
   }
 
   /**
@@ -768,7 +767,25 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
    * @returns columnNameRenderer - column name renderer
    */
   private getColumnNameRenderer = (name: string, columnIndex: number) => {
-    return <EditableName name={this.state.columnsNames[this.state.columnIndexMap[columnIndex]]} onCancel={this.columnNameValidator(columnIndex)} onChange={this.columnNameValidator(columnIndex)} onConfirm={this.columnNameSetter(columnIndex)} />
+    return <EditableName index={columnIndex} name={this.getName(columnIndex)} onCancel={this.columnNameValidator(columnIndex)} onChange={this.columnNameValidator(columnIndex)} onConfirm={this.columnNameSetter(columnIndex)} />
+  }
+
+  /**
+   * Function that returns the name of the column from the column index
+   * @param columnIndex - column index
+   * @returns {String} columnName - column name
+   */
+  private getName = (columnIndex: number): string => {
+    return this.state.newColumnNames[this.state.columnIndexMap[columnIndex]]
+  }
+
+  /**
+   * @description This function returns the right column index
+   * @param columnIndex - column index
+   * @returns correctedColumnIndex - corrected column index
+   */
+  private correctedColumnIndex = (columnIndex: number) => {
+    return this.state.columnIndexMap[columnIndex]
   }
 
   /**
@@ -804,7 +821,18 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
     if (sortedRowIndex != null) {
       rowIndex = sortedRowIndex
     }
-    return `${rowIndex}-${this.state.columnsNames[columnIndex]}`
+    return `${rowIndex}-${[columnIndex]}`
+  }
+
+  /**
+   * Decouple the datakey to get the row index and column index
+   * @param dataKey - data key
+   * @returns [rowIndex, columnIndex] - row index and column index
+   */
+  private decoupleDataKey = (dataKey: string) => {
+    let rowIndex = dataKey.split("-")[0]
+    let columnIndex = dataKey.split("-")[1]
+    return [rowIndex, columnIndex]
   }
 
   /**
