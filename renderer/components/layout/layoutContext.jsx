@@ -1,5 +1,4 @@
-import React, { createContext, useContext, useState } from "react"
-import { DataContext } from "../workspace/dataContext"
+import React, { createContext, useState } from "react"
 import { useEffect } from "react"
 import { toast } from "react-toastify"
 /**
@@ -25,7 +24,6 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
   const [layoutRequestQueue, setLayoutRequestQueue] = useState([])
   const [developerMode, setDeveloperMode] = useState(false)
 
-  const { globalData } = useContext(DataContext)
   /**
    * @param {FlexLayout.Model.Action} action - The actions passed on by the flexlayout-react library
    * @param {FlexLayout.Model} model - The model passed on by the flexlayout-react library
@@ -266,14 +264,13 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
     openGeneric(action, "Extraction Text", "extractionTextPage")
   }
 
-    /**
+  /**
    * @summary Function that adds a tab of the Extraction Image Module to the layout model
    * @params {Object} action - The action passed on by the dispatchLayout function
    */
-     const openExtractionImage = (action) => {
-      openGeneric(action, "Extraction Image", "extractionImagePage")
-    }
-
+  const openExtractionImage = (action) => {
+    openGeneric(action, "Extraction Image", "extractionImagePage")
+  }
 
   /**
    * @summary Function that adds a tab of Dtale to the layout model
@@ -491,12 +488,6 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
 function checkIfIDIsInLayoutModel(id, layoutModel) {
   let isInLayoutModel = false
   console.log("CHECKING IF ID IS IN LAYOUT MODEL", layoutModel, id)
-  // Object.keys(layoutModel._idMap).map((key) => {
-  //   if (key === id) {
-  //     isInLayoutModel = true
-  //     console.log("GOT IT", layoutModel._idMap[key])
-  //   }
-  // })
   return isInLayoutModel
 }
 
