@@ -485,6 +485,10 @@ const GroupingTool = ({ pageId = "42-grouping", configPath = null }) => {
     })
   }
 
+  /**
+   * Generate tags dict with colors to save in the datasets metadata
+   * @returns {object} - Tags dict with colors
+   */
   const generateTagsDictWithColors = () => {
     let tagsDictWithColors = {}
     Object.keys(tagsDict).forEach((tag) => {

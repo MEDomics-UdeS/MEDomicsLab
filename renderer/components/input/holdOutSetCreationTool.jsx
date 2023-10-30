@@ -14,27 +14,43 @@ import { InputNumber } from "primereact/inputnumber"
 import { requestJson } from "../../utilities/requests"
 import ProgressBarRequests from "../generalPurpose/progressBarRequests"
 
+/**
+ * Component that renders the holdout set creation tool
+ * @param {Object} props
+ * @param {String} props.pageId - The id of the page
+ * @param {String} props.configPath - The path of the config file
+ */
 const HoldOutSetCreationTool = ({ pageId = "inputModule", configPath = "" }) => {
-  const { port } = useContext(WorkspaceContext)
-  const { globalData } = useContext(DataContext)
-  const [listOfDatasets, setListOfDatasets] = useState([])
-  const [selectedDataset, setSelectedDataset] = useState(null)
-  const [options, setOptions] = useState({ shuffle: false, stratify: false })
-  const [selectedColumns, setSelectedColumns] = useState([])
-  const [selectedDatasetColumns, setSelectedDatasetColumns] = useState([])
-  const [holdoutSetSize, setHoldoutSetSize] = useState(20)
-  const [newDatasetName, setNewDatasetName] = useState("")
-  const [newDatasetExtension, setNewDatasetExtension] = useState(".csv")
-  const [progress, setProgress] = useState({ now: 0, currentLabel: "" })
-  const [isProgressUpdating, setIsProgressUpdating] = useState(false)
-  const [nanMethod, setNaNMethod] = useState("drop")
+  const { port } = useContext(WorkspaceContext) // The port
+  const { globalData } = useContext(DataContext) // The global data object
+  const [listOfDatasets, setListOfDatasets] = useState([]) // The list of datasets
+  const [selectedDataset, setSelectedDataset] = useState(null) // The selected dataset
+  const [options, setOptions] = useState({ shuffle: false, stratify: false }) // The options for the holdout set creation
+  const [selectedColumns, setSelectedColumns] = useState([]) // The selected columns
+  const [selectedDatasetColumns, setSelectedDatasetColumns] = useState([]) // The columns of the selected dataset
+  const [holdoutSetSize, setHoldoutSetSize] = useState(20) // The size of the holdout set
+  const [newDatasetName, setNewDatasetName] = useState("") // The name of the new dataset
+  const [newDatasetExtension, setNewDatasetExtension] = useState(".csv") // The extension of the new dataset
+  const [progress, setProgress] = useState({ now: 0, currentLabel: "" }) // The progress of the holdout set creation
+  const [isProgressUpdating, setIsProgressUpdating] = useState(false) // To check if the progress is updating
+  const [nanMethod, setNaNMethod] = useState("drop") // The NaN method to use
 
-  const nanMethods = ["drop", "bfill", "ffill"]
+  const nanMethods = ["drop", "bfill", "ffill"] // The NaN methods
 
+  /**
+   * To handle the column selection
+   * @param {Object} e - The event object
+   * @returns {Void}
+   */
   const handleColumnSelection = (e) => {
     setSelectedColumns(e.value)
   }
 
+  /**
+   * To handle the change in the selected dataset, and update the columns options
+   * @param {Object} e - The event object
+   * @returns {Void}
+   */
   const handleSelectedDatasetChange = async (e) => {
     setSelectedDataset(globalData[e.target.value])
     let columnsOptions = []
@@ -50,6 +66,11 @@ const HoldOutSetCreationTool = ({ pageId = "inputModule", configPath = "" }) => 
     setSelectedDatasetColumns(columnsOptions)
   }
 
+  /**
+   * To clean the string
+   * @param {String} string - The string to clean
+   * @returns {String} - The cleaned string
+   */
   const cleanString = (string) => {
     if (string.includes(" ") || string.includes('"')) {
       string = string.replaceAll(" ", "")
@@ -58,6 +79,11 @@ const HoldOutSetCreationTool = ({ pageId = "inputModule", configPath = "" }) => 
     return string
   }
 
+  /**
+   * To generate the columns options from the columns
+   * @param {Array} columns - The columns
+   * @returns {Array} - The columns options
+   */
   const generateColumnsOptionsFromColumns = (columns) => {
     let options = []
     if (columns === null || columns === undefined) {
@@ -72,6 +98,10 @@ const HoldOutSetCreationTool = ({ pageId = "inputModule", configPath = "" }) => 
     }
   }
 
+  /**
+   * To update the list of datasets
+   * @returns {Void}
+   */
   const updateListOfDatasets = () => {
     let newDatasetList = []
     Object.keys(globalData).forEach((key) => {
@@ -82,6 +112,11 @@ const HoldOutSetCreationTool = ({ pageId = "inputModule", configPath = "" }) => 
     setListOfDatasets(newDatasetList)
   }
 
+  /**
+   * To handle the change in the options
+   * @param {Object} e - The event object
+   * @returns {Void}
+   */
   const handleOptionsChange = (e) => {
     let newOptions = { ...options }
     newOptions[e.target.name] = e.target.checked
@@ -92,6 +127,11 @@ const HoldOutSetCreationTool = ({ pageId = "inputModule", configPath = "" }) => 
     setOptions(newOptions)
   }
 
+  /**
+   * To check if the name is already used
+   * @param {String} name - The name to check
+   * @returns {Boolean} - True if the name is already used, false otherwise
+   */
   const checkIfNameAlreadyUsed = (name) => {
     let alreadyUsed = false
     if (newDatasetName.length > 0 && selectedDataset !== null && selectedDataset !== undefined) {
@@ -106,30 +146,23 @@ const HoldOutSetCreationTool = ({ pageId = "inputModule", configPath = "" }) => 
     return alreadyUsed
   }
 
-  useEffect(() => {
-    console.log("OPTIONS", options)
-  }, [options])
-
+  /**
+   * Hook that is called when the global data object is updated to update the list of datasets
+   */
   useEffect(() => {
     updateListOfDatasets()
   }, [globalData])
 
-  useEffect(() => {
-    console.log("selectedDataset", selectedDataset)
-  }, [selectedDataset])
-
-  useEffect(() => {
-    console.log("selectedColumns", selectedColumns)
-  }, [selectedColumns])
-
-  useEffect(() => {
-    console.log("selectedDatasetColumns", selectedDatasetColumns)
-  }, [selectedDatasetColumns])
-
+  /**
+   * Function to create the holdout set, send the request to the backend
+   * @returns {Void}
+   * @async
+   */
   const createHoldoutSet = async () => {
-    let newDatasetPathParent = globalData[selectedDataset.parentID].path
-    let datasetName = newDatasetName.length > 0 ? newDatasetName : "HoldoutDataset"
+    let newDatasetPathParent = globalData[selectedDataset.parentID].path // The path of the parent of the new dataset
+    let datasetName = newDatasetName.length > 0 ? newDatasetName : "HoldoutDataset" // The name of the new dataset
     let newDatasetObject = new MedDataObject({
+      // The new dataset object
       originalName: datasetName,
       name: datasetName,
       type: "folder",
@@ -151,6 +184,7 @@ const HoldOutSetCreationTool = ({ pageId = "inputModule", configPath = "" }) => 
     newDatasetObject.relatedInformation = JSONToSend
     console.log("JSONToSend", JSONToSend)
     requestJson(
+      // Send the request
       port,
       "/input/create_holdout_set",
       JSONToSend,
@@ -173,6 +207,7 @@ const HoldOutSetCreationTool = ({ pageId = "inputModule", configPath = "" }) => 
       <Row className="holdout-set">
         <Col>
           <h6>Select the dataset you want to create the holdout set from</h6>
+          {/* Dropdown to select the first dataset */}
           <Dropdown options={listOfDatasets} optionLabel="name" optionValue="key" className="w-100" value={selectedDataset ? selectedDataset.getUUID() : null} onChange={handleSelectedDatasetChange}></Dropdown>
 
           <Row style={{ display: "flex", justifyContent: "space-evenly", flexDirection: "row", marginTop: "0.5rem" }}>
@@ -200,7 +235,7 @@ const HoldOutSetCreationTool = ({ pageId = "inputModule", configPath = "" }) => 
             </Col>
           </Row>
           <h6 className="stratify-check" style={{ marginTop: "0.5rem" }} aria-disabled={!options.stratify}>
-            Select the column(s){" "}
+            Select the column(s) (It should be a categorical variable){" "}
           </h6>
           <MultiSelect className="w-100 " options={selectedDatasetColumns} display="chip" optionLabel="label" value={selectedColumns} onChange={handleColumnSelection} disabled={!options.stratify}></MultiSelect>
         </Col>

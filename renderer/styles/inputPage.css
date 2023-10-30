@@ -11,11 +11,6 @@
   background-color: #f7f7f7bb;
   box-shadow: none;
 }
-.card-accordion .accordion-header {
-}
-
-.card-accordion .accordion-collapse {
-}
 
 .card-accordion .accordion-body {
   color: #161616;
@@ -73,9 +68,6 @@
 
 .card-accordion .accordion-body .p-listbox {
   background-color: #cfcfcfcf !important;
-}
-
-@media (prefers-color-scheme: dark) {
 }
 
 .holdout-set label {

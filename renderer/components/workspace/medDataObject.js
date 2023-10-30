@@ -3,8 +3,6 @@ import * as fs from "fs-extra"
 import { toast } from "react-toastify"
 import { ipcRenderer } from "electron"
 import process from "process"
-import { loadJSONFromPath } from "../../utilities/fileManagementUtils"
-import { resolve } from "path"
 
 /**
  * Represents a data object in the workspace.

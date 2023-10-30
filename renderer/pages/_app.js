@@ -239,6 +239,12 @@ function App() {
     return { childrenIDsToReturn: childrenIDsToReturn }
   }
 
+  /**
+   * Gets the children paths of the children passed as a parameter
+   * @param {Object} children - The children of the current directory
+   * @returns {Array} - The children paths of the current directory
+   * @description This function is used to recursively recense the directory tree and add the files and folders to the global data object
+   */
   const getChildrenPaths = (children) => {
     let childrenPaths = []
     children.forEach((child) => {
@@ -251,6 +257,12 @@ function App() {
     return childrenPaths
   }
 
+  /**
+   * Creates a list of files not found in the workspace
+   * @param {Object} currentWorkspace - The current workspace
+   * @param {Object} currentGlobalData - The current global data
+   * @returns {Array} - The list of files not found in the workspace
+   */
   const createListOfFilesNotFoundInWorkspace = (currentWorkspace, currentGlobalData) => {
     let listOfFilesNotFoundInWorkspace = []
     let workspaceChildren = currentWorkspace.workingDirectory.children
@@ -271,6 +283,12 @@ function App() {
     return listOfFilesNotFoundInWorkspace
   }
 
+  /**
+   * Cleans the global data from files and folders not found in the workspace
+   * @param {Object} workspace - The current workspace
+   * @param {Object} dataContext - The current global data
+   * @returns {Object} - The new global data
+   */
   const cleanGlobalDataFromFilesNotFoundInWorkspace = (workspace, dataContext) => {
     let newGlobalData = { ...dataContext }
     let listOfFilesNotFoundInWorkspace = createListOfFilesNotFoundInWorkspace(workspace, dataContext)
