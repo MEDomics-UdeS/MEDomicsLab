@@ -202,12 +202,16 @@ const DataTablePopoverBP = (props) => {
             <Select
               items={getUniqueValues()}
               itemRenderer={(item, { handleClick, modifiers }) => {
-                return <MenuItem selected={item == props.filterValue(props.index).filterValue} active={modifiers.active} disabled={modifiers.disabled} key={item} onClick={handleClick} text={item} roleStructure="listoption" />
+                return <MenuItem selected={item === props.filterValue(props.index).filterValue} active={modifiers.active} disabled={modifiers.disabled} key={item} onClick={handleClick} text={item} roleStructure="listoption" />
               }}
               onItemSelect={(item, dict) => {
                 console.log("Item selected", item, props.index, dict)
-                if (item == props.filterValue(props.index).filterValue) {
-                  props.filterColumn(props.index, "")
+                if (props.filterValue(props.index).filterValue !== undefined && props.filterValue(props.index).filterValue !== null) {
+                  if (props.filterValue(props.index).filterValue == item) {
+                    props.filterColumn(props.index, "")
+                  } else {
+                    props.filterColumn(props.index, item)
+                  }
                 } else {
                   props.filterColumn(props.index, item)
                 }
@@ -215,12 +219,13 @@ const DataTablePopoverBP = (props) => {
               popoverProps={{
                 usePortal: true
               }}
+              inputProps={{ value: props.filterValue(props.index).filterValue }}
               popoverContentProps={{
                 style: { maxHeight: "200px", width: "100%", height: "200px", overflow: "auto" }
               }}
               filterable={false}
             >
-              <Button rightIcon="caret-down" placeholder="Select value" text={filterValue !== "" ? filterValue : "Select value"} style={{ width: "auto", height: "1.5rem" }} small={true} />
+              <Button rightIcon="caret-down" placeholder="Select value" text={props.filterValue(props.index).filterValue !== "" && props.filterValue(props.index).filterValue ? props.filterValue(props.index).filterValue : "Select value"} style={{ width: "auto", height: "1.5rem" }} small={true} />
             </Select>
           </>
         )}{" "}
