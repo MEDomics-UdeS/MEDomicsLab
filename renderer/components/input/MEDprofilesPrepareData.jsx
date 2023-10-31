@@ -1,24 +1,24 @@
 import Button from "react-bootstrap/Button"
 import { DataContext } from "../workspace/dataContext"
+import { DataView } from 'primereact/dataview';
 import { Dropdown } from "primereact/dropdown"
 import MedDataObject from "../workspace/medDataObject"
 import ProgressBarRequests from "../generalPurpose/progressBarRequests"
 import React, {useContext, useEffect, useState} from "react"
 import { requestJson } from "../../utilities/requests"
-import { ScrollPanel } from 'primereact/scrollpanel';
 import { toast } from "react-toastify"
 import { WorkspaceContext } from "../workspace/workspaceContext"
 
 const MEDprofilesPrepareData = () => {
 
   const [datasetList, setDatasetList] = useState([]) // list of available datasets in DATA folder
-  const [extractionProgress, setExtractionProgress] = useState(0) // advancement state in the MEDprofiles' functions
-  const [extractionStep, setExtractionStep] = useState("") // current step in the MEDprofiles' functions
   const [folderList, setFolderList] = useState([]) // list of available folders in DATA folder
   const [generatedClassesFolder, setGeneratedClassesFolder] = useState(null) // folder containin the generated MEDclasses
   const [mayCreateClasses, setMayCreateClasses] = useState(false) // boolean updating the "Create MEDclasses" button state
+  const [mayInstantiateMEDprofiles, setMayInstantiateMEDprofiles] = useState(false) // boolean updating the "Instantiate MEDprofiles" button state
   const [progress, setProgress] = useState({ now: 0, currentLabel: "" }) // progress bar state [now, currentLabel]
-  const [selectedFolder, setSelectedFolder] = useState(null) // folder selected where to put the MEDclasses
+  const [selectedMEDclassesFolder, setSelectedMEDclassesFolder] = useState(null) // folder selected where to put the MEDclasses
+  const [selectedMEDprofilesFolder, setSelectedMEDprofilesFolder] = useState(null) // folder selected where to put the MEDprofiles binary file
   const [selectedMasterTable, setSelectedMasterTable] = useState(null) // dataset of data to extract used to be display
   const [showProgressBar, setShowProgressBar] = useState(false) // wether to show or not the extraction progressbar
 
@@ -92,24 +92,65 @@ const MEDprofilesPrepareData = () => {
       "/MEDprofiles/create_MEDclasses",
       {
         masterTablePath: selectedMasterTable.path,
-        selectedFolderPath: selectedFolder.path + "/MEDclasses"
+        selectedFolderPath: selectedMEDclassesFolder.path + "/MEDclasses"
       },
       (jsonResponse) => {
         console.log("received results:", jsonResponse)
         if (!jsonResponse.error) {
           MedDataObject.updateWorkspaceDataObject()
-          getGeneratedClassesFolder(globalData, selectedFolder.path + "/MEDclasses")
         } else {
-          toast.error(`Extraction failed: ${jsonResponse.error.message}`)
+          toast.error(`Creation failed: ${jsonResponse.error.message}`)
         }
         setMayCreateClasses(true)
       },
       function (err) {
         console.error(err)
-        toast.error(`Extraction failed: ${err}`)
+        toast.error(`Creation failed: ${err}`)
         setMayCreateClasses(true)
       }
     )
+  }
+
+  /**
+   * @description
+   * This function calls the instantiate_MEDprofiles method in the MEDprofiles server
+   */
+   const instantiateMEDprofiles = () => {
+    setMayInstantiateMEDprofiles(false)
+    setMayCreateClasses(false)
+    setShowProgressBar(true)
+    // Run extraction process
+    requestJson(
+      port,
+      "/MEDprofiles/instantiate_MEDprofiles",
+      {
+        masterTablePath: selectedMasterTable.path,
+        destinationFile: selectedMEDprofilesFolder.path + "/MEDprofiles_bin", 
+      },
+      (jsonResponse) => {
+        console.log("received results:", jsonResponse)
+        if (!jsonResponse.error) {
+          MedDataObject.updateWorkspaceDataObject()
+        } else {
+          toast.error(`Instantiation failed: ${jsonResponse.error.message}`)
+        }
+        setMayInstantiateMEDprofiles(true)
+        setMayCreateClasses(true)
+        setShowProgressBar(false)
+      },
+      function (err) {
+        console.error(err)
+        toast.error(`Instantiation failed: ${err}`)
+        setMayInstantiateMEDprofiles(true)
+        setMayCreateClasses(true)
+        setShowProgressBar(false)
+      }
+    )
+  }
+
+  // Look of items in the MEDclasses DataView
+  const MEDclassesDisplay = (element) => {
+    return(<div>{globalData[element]?.nameWithoutExtension}</div>)
   }
 
   // Called when data in DataContext is updated, in order to updated datasetList and folderList
@@ -117,28 +158,29 @@ const MEDprofilesPrepareData = () => {
     if (globalData !== undefined) {
       getDatasetListFromDataContext(globalData)
       getFolderListFromDataContext(globalData)
+      if (selectedMEDclassesFolder?.path) {
+        getGeneratedClassesFolder(globalData, selectedMEDclassesFolder.path + "/MEDclasses/MEDclasses")
+      }
     }
   }, [globalData])
 
-  // Called while progress is updated
+  // Called while the MEDclasses folder is updated in order to tell if we may instantiate the MEDprofiles' data
   useEffect(() => {
-    setProgress({
-      now: extractionProgress,
-      currentLabel: extractionStep
-    })
-  }, [extractionStep, extractionProgress])
+    if (generatedClassesFolder) {
+      setMayInstantiateMEDprofiles(true)
+    } else {
+      setMayInstantiateMEDprofiles(false)
+    }
+  }, [generatedClassesFolder])
 
+  // Called when options are modified in order to tell if the process may be run
   useEffect(() => {
-    if (selectedMasterTable && selectedFolder) {
+    if (selectedMasterTable && selectedMEDclassesFolder) {
       setMayCreateClasses(true)
     } else {
       setMayCreateClasses(false)
     }
-  }, [selectedMasterTable, selectedFolder])
-
-  useEffect(() => {
-    console.log("GEN", generatedClassesFolder.childrenIDs?.map((child) => {return globalData[child].nameWithoutExtension}))
-  }, [generatedClassesFolder])
+  }, [selectedMasterTable, selectedMEDclassesFolder])
 
   // Called once at initialization in order to set default selected folder to "DATA"
   useEffect(() => {
@@ -146,7 +188,8 @@ const MEDprofilesPrepareData = () => {
     let keys = Object.keys(globalData)
     keys.forEach((key) => {
       if (globalData[key].type == "folder" && globalData[key].name == "DATA" && globalData[key].parentID == "UUID_ROOT") {
-        setSelectedFolder(globalData[key])
+        setSelectedMEDclassesFolder(globalData[key])
+        setSelectedMEDprofilesFolder(globalData[key])
       }
     })
     }
@@ -162,16 +205,26 @@ const MEDprofilesPrepareData = () => {
       <div className="flex-container">
         <div>
           <b>Select the location of your MEDclasses folder : &nbsp;</b>
-          {folderList.length > 0 ? <Dropdown value={selectedFolder} options={folderList} optionLabel="name" onChange={(event) => setSelectedFolder(event.value)} placeholder="Select a folder" /> : <Dropdown placeholder="No folder to show" disabled />}
+          {folderList.length > 0 ? <Dropdown value={selectedMEDclassesFolder} options={folderList} optionLabel="name" onChange={(event) => setSelectedMEDclassesFolder(event.value)} placeholder="Select a folder" /> : <Dropdown placeholder="No folder to show" disabled />}
         </div>
         <div>
           <Button disabled={!mayCreateClasses} onClick={createMEDclasses}>Create MEDclasses</Button>
         </div>
       </div>
-      {generatedClassesFolder && (<div>
-        <b>Generated MEDclasses :</b>
-        {generatedClassesFolder.childrenIDs?.map((child) => {return <div key={child}>{globalData[child].nameWithoutExtension}</div>})}
+      {generatedClassesFolder?.childrenIDs && (<div className="card data-view">
+        <DataView value={generatedClassesFolder.childrenIDs} itemTemplate={MEDclassesDisplay} paginator rows={5} header="Generated MEDclasses" style={{"textAlign":"center"}}/>
       </div>)}
+      <hr></hr>
+      <div className="flex-container">
+        <div>
+          <b>Select the location of your MEDprofiles binary file : &nbsp;</b>
+          {folderList.length > 0 ? <Dropdown value={selectedMEDprofilesFolder} options={folderList} optionLabel="name" onChange={(event) => setSelectedMEDprofilesFolder(event.value)} placeholder="Select a folder" /> : <Dropdown placeholder="No folder to show" disabled />}
+        </div>
+        <div>
+          <Button disabled={!mayInstantiateMEDprofiles} onClick={instantiateMEDprofiles}>Instantiate MEDprofiles</Button>
+        </div>
+      </div>
+      <div className="margin-top-30 extraction-progress">{showProgressBar && <ProgressBarRequests progressBarProps={{}} isUpdating={showProgressBar} setIsUpdating={setShowProgressBar} progress={progress} setProgress={setProgress} requestTopic={"/MEDprofiles/progress"} />}</div>
       </>
     )
   }

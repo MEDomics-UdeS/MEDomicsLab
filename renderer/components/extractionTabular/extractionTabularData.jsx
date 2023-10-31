@@ -139,7 +139,6 @@ const ExtractionTabularData = ({ extractionTypeList, serverUrl, defaultFilename 
         } else {
           toast.error(`Extraction failed: ${jsonResponse.error.message}`)
           setExtractionStep("")
-          setShowProgressBar(false)
         }
         setShowProgressBar(false)
         setMayProceed(true)
