@@ -15,7 +15,7 @@ const dfUtils = new danfoUtils()
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 
 export type CellLookup = (rowIndex: number, columnIndex: number) => any // function that returns the cell data
-export type SortCallback = (columnIndex: number, comparator: (a: any, b: any) => number) => void // function that sorts the column
+export type SortCallback = (columnIndex: number, comparator: (a: any, b: any) => number, direction: boolean) => void // function that sorts the column
 export type FilterCallback = (columnIndex: number, filterValue: string) => void // function that filters the column
 export type nameRenderer = (name: string, columnIndex: number) => React.ReactElement // function that renders the name of the column
 export type getName = (columnIndex: number) => string // function that returns the name of the column
@@ -98,8 +98,8 @@ class NumericalSortableColumn extends AbstractSortableColumn {
    * @returns JSX.Element - menu
    */
   protected renderMenu(sortColumn: SortCallback) {
-    const sortAsc = () => sortColumn(this.index, (a, b) => this.compare(a, b))
-    const sortDesc = () => sortColumn(this.index, (a, b) => this.compare(b, a))
+    const sortAsc = () => sortColumn(this.index, (a, b) => this.compare(a, b), true)
+    const sortDesc = () => sortColumn(this.index, (a, b) => this.compare(b, a), false)
     return (
       <>
         <Menu>
@@ -171,6 +171,7 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
     sparseCellData: {} as { [key: string]: string }, // sparse cell data - Used to contain the data of the cells that have been modified
     sparseCellIntent: {} as { [key: string]: Intent }, // sparse cell intent - Used to contain the intent of the cells that have been modified - Intent meaning the background color of a cell
     columnsFilter: {} as { [key: string]: string }, // columns filter - Used to contain the filter value of the columns
+    frozenColumns: [] as number[], // frozen columns
     options: {
       // options of the datatable
       isEditable: true, // is editable
@@ -256,6 +257,7 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
     let newColumns: any[] = [] // new columns
     let newColumnIndexMap: any[] = [] // new column index map
     let newColumnTypes = this.getColumnsTypes(this.props.data) // get the column types
+    // console.log("New Column Types: ", newColumnTypes)
     let columnsFilter = {} // columns filter
     columnsNames.forEach((columnName, index) => {
       // for each column name, create a new NumericalSortableColumn
@@ -1054,12 +1056,30 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
    * @param comparator - comparator function to be used to sort the column
    * @returns void
    */
-  private sortColumn = (columnIndex: number, comparator: (a: any, b: any) => number) => {
+  private sortColumn = (columnIndex: number, comparator: (a: any, b: any) => number, direction: boolean) => {
     const { data, columnsNames } = this.state
     const sortedIndexMap = Utils.times(data.length, (i: number) => i)
-    sortedIndexMap.sort((a: number, b: number) => {
-      return comparator(data[a][columnsNames[columnIndex]], data[b][columnsNames[columnIndex]])
-    })
+    if (this.getColumnsTypes(data)[columnIndex][0] === "string") {
+      comparator = (a: string, b: string) => {
+        return a.localeCompare(b)
+      }
+      sortedIndexMap.sort((a: number, b: number) => {
+        let dataA = data[a][columnsNames[columnIndex]] !== "" ? data[a][columnsNames[columnIndex]] : "NaN" // get the data of the first row
+        let dataB = data[b][columnsNames[columnIndex]] !== "" ? data[b][columnsNames[columnIndex]] : "NaN"
+        if (direction) {
+          return comparator(dataA, dataB)
+        } else {
+          return comparator(dataB, dataA)
+        }
+      })
+    } else {
+      sortedIndexMap.sort((a: number, b: number) => {
+        let dataA = data[a][columnsNames[columnIndex]] !== "" ? data[a][columnsNames[columnIndex]] : 999999 // get the data of the first row
+        let dataB = data[b][columnsNames[columnIndex]] !== "" ? data[b][columnsNames[columnIndex]] : 999999
+        return comparator(dataA, dataB)
+      })
+    }
+
     this.setState({ sortedIndexMap })
   }
 
