@@ -712,7 +712,7 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
             enableRowReordering={true}
             onRowsReordered={this.handleRowsReordered}
             onColumnsReordered={this.handleColumnsReordered}
-            enableColumnReordering={true} // TODO: Figure out the bug with column reordering while filtering
+            enableColumnReordering={numFrozenColumns === 0} // TODO: Figure out the bug with column reordering while filtering
             numFrozenColumns={numFrozenColumns}
           >
             {columns}
@@ -1074,10 +1074,13 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
 
     if (newFrozenColumns.includes(index)) {
       newFrozenColumns.splice(newFrozenColumns.indexOf(index), 1)
-      this.handleColumnsReordered(thisIndex, index + length, 1, () => {
+      if (thisIndex !== index + length - 1) {
+        this.handleColumnsReordered(thisIndex, index + length - 1, 1, () => {
+          this.setState({ frozenColumns: newFrozenColumns })
+        })
+      } else {
         this.setState({ frozenColumns: newFrozenColumns })
-      })
-      return
+      }
     } else {
       newFrozenColumns.push(index)
       if (thisIndex !== length) {
