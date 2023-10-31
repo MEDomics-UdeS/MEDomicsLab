@@ -5,6 +5,8 @@ import { Tag } from "react-bootstrap-icons"
 import { Stack } from "react-bootstrap"
 import { DataContext } from "../workspace/dataContext"
 import { Utils as danfoUtils } from "danfojs-node"
+import { deepCopy } from "../../utilities/staticFunctions"
+
 const dfUtils = new danfoUtils()
 
 /**
@@ -15,6 +17,7 @@ const dfUtils = new danfoUtils()
  * @param {String} props.columnName - The name of the column
  * @param {Array} props.category - The category of the column
  * @param {Function} props.filterColumn - The function to filter the column
+ * @param {Function} props.filterValue - The filter value
  * @returns {JSX.Element}
  */
 const DataTablePopoverBP = (props) => {
@@ -43,10 +46,9 @@ const DataTablePopoverBP = (props) => {
   }
 
   const { globalData, setGlobalData } = useContext(DataContext) // The global data object
-  const [selectedType, setSelectedType] = useState("Numerical") // The selected data type
+  const [selectedType, setSelectedType] = useState(getTypeInGlobalData()) // The selected data type
   const [filterValue, setFilterValue] = useState("") // The filter value
   const menuItemOptions = { shouldDismissPopover: false, onClick: (e) => handleDataTypeChange(e), roleStructure: "listoption" } // The options for the menu items
-
   /**
    * To handle the change in the data type
    * @param {Object} e - The event object
@@ -85,6 +87,18 @@ const DataTablePopoverBP = (props) => {
     }
   }
 
+  function getTypeInGlobalData() {
+    let medObject = globalData[props.config.uuid]
+    if (medObject) {
+      if (medObject.metadata.columnsInfo) {
+        if (medObject.metadata.columnsInfo[props.columnName]) {
+          return medObject.metadata.columnsInfo[props.columnName].dataType
+        }
+      }
+    }
+    return "Numerical"
+  }
+
   /**
    * To get the unique values in the column
    * @returns {Array} - The array of unique values
@@ -96,6 +110,11 @@ const DataTablePopoverBP = (props) => {
       let colName = props.columnName
       let colData = df.$getColumnData(colName).$data
       let uniqueValues = dfUtils.unique(colData)
+      // If unique values contain "", then write it as "[Empty]"
+      if (uniqueValues.includes("")) {
+        uniqueValues[uniqueValues.indexOf("")] = "[Empty]"
+      }
+
       return uniqueValues
     }
     return []
@@ -138,11 +157,16 @@ const DataTablePopoverBP = (props) => {
   /**
    * To filter the column when the filter value changes
    */
+  useEffect(() => {}, [filterValue])
+
   useEffect(() => {
-    if (props.filterColumn) {
-      props.filterColumn(filterValue)
+    if (props.filterValue.reordered !== undefined) {
+      if (props.filterValue.reordered) {
+        // console.log("HEY", props.filterValue)
+        // setFilterValue(props.filterValue.filterValue)
+      }
     }
-  }, [filterValue])
+  }, [props])
 
   /**
    * To clear the filter value when the data type changes
@@ -152,8 +176,11 @@ const DataTablePopoverBP = (props) => {
   }, [selectedType])
 
   useEffect(() => {
-    console.log("Rerender", filterValue)
-  }, [])
+    // console.log("Rerender", filterValue)
+    setSelectedType(getTypeInGlobalData())
+    setFilterValue(props.filterValue.filterValue || "")
+  }, [props])
+
   return (
     <>
       <Stack direction="horizontal" gap={1} style={{ marginInline: "5px", paddingBottom: "3px" }}>
@@ -175,10 +202,15 @@ const DataTablePopoverBP = (props) => {
             <Select
               items={getUniqueValues()}
               itemRenderer={(item, { handleClick, modifiers }) => {
-                return <MenuItem active={modifiers.active} disabled={modifiers.disabled} key={item} onClick={handleClick} text={item} roleStructure="listoption" />
+                return <MenuItem selected={item == props.filterValue(props.index).filterValue} active={modifiers.active} disabled={modifiers.disabled} key={item} onClick={handleClick} text={item} roleStructure="listoption" />
               }}
-              onItemSelect={(item) => {
-                setFilterValue(item)
+              onItemSelect={(item, dict) => {
+                console.log("Item selected", item, props.index, dict)
+                if (item == props.filterValue(props.index).filterValue) {
+                  props.filterColumn(props.index, "")
+                } else {
+                  props.filterColumn(props.index, item)
+                }
               }}
               popoverProps={{
                 usePortal: true
@@ -198,13 +230,14 @@ const DataTablePopoverBP = (props) => {
               asyncControl={true}
               disabled={false}
               large={false}
-              placeholder="Filter..."
+              placeholder={props.columnName + " " + props.index}
               readOnly={false}
               small={true}
               style={{ width: "100%" }}
-              value={filterValue}
+              value={props.filterValue(props.index).filterValue || ""}
               onValueChange={(value) => {
-                setFilterValue(value)
+                props.filterColumn(props.index, value)
+                // setFilterValue(value)
               }}
             />
           </>
@@ -215,15 +248,17 @@ const DataTablePopoverBP = (props) => {
               asyncControl={true}
               disabled={false}
               large={false}
-              placeholder="Filter..."
+              placeholder={props.columnName + " " + props.index}
               readOnly={false}
               small={true}
               style={{ width: "100%" }}
               rightElement={<Tag style={{ marginInline: "5px" }} />}
-              value={filterValue}
+              value={props.filterValue(props.index).filterValue || ""}
               onChange={(e) => {
                 console.log("Filter value changed", e.target.value)
-                setFilterValue(e.target.value)
+                props.filterColumn(props.index, e.target.value)
+
+                // setFilterValue(e.target.value)
               }}
             />
           </>
@@ -234,13 +269,14 @@ const DataTablePopoverBP = (props) => {
               asyncControl={true}
               disabled={false}
               large={false}
-              placeholder="Filter..."
+              placeholder={props.columnName + " " + props.index}
               readOnly={false}
               small={true}
               style={{ width: "100%" }}
-              value={filterValue}
+              value={deepCopy(props.filterValue(props.index).filterValue) || ""}
               onValueChange={(value) => {
-                setFilterValue(value)
+                props.filterColumn(props.index, value)
+                // setFilterValue(value)
               }}
             />
           </>

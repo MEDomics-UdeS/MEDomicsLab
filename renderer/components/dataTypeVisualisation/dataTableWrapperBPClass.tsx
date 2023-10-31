@@ -10,6 +10,7 @@ import { toast } from "react-toastify"
 const dfd = require("danfojs-node")
 import { DataFrame, Utils as danfoUtils } from "danfojs-node"
 import { DataTablePopoverBP } from "./dataTablePopoverBPClass"
+import { deepCopy } from "../../utilities/staticFunctions"
 const dfUtils = new danfoUtils()
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 
@@ -21,7 +22,7 @@ export type getName = (columnIndex: number) => string // function that returns t
 
 export interface SortableColumn {
   // interface for the sortable column
-  getColumn(getCellRenderer: CellLookup, getCellData: CellLookup, sortColumn: SortCallback, filterColumn: FilterCallback, nameRenderer: nameRenderer, colName: getName): JSX.Element
+  getColumn(getCellRenderer: CellLookup, getCellData: CellLookup, sortColumn: SortCallback, filterColumn: FilterCallback, nameRenderer: nameRenderer, colName: getName, getFilterValue: getName): JSX.Element
 }
 
 /**
@@ -54,17 +55,20 @@ abstract class AbstractSortableColumn implements SortableColumn {
    * @param filterColumn - function that filters the column
    * @returns JSX.Element - column
    */
-  public getColumn(getCellRenderer: CellLookup, getCellData: CellLookup, sortColumn: SortCallback, filterColumn: FilterCallback, nameRenderer: nameRenderer, getName: getName) {
+  public getColumn(getCellRenderer: CellLookup, getCellData: CellLookup, sortColumn: SortCallback, filterColumn: FilterCallback, nameRenderer: nameRenderer, getName: getName, getFilterValue?: getName) {
     const menuRenderer = this.renderMenu.bind(this, sortColumn) // bind the sortColumn function to the menuRenderer
-    const filterThisColumn = (filterValue: string) => filterColumn(this.index, filterValue) // bind the filterColumn function to the filterThisColumn function
+    // const filterThisColumn = (filterValue: string) => filterColumn(this.index, filterValue) // bind the filterColumn function to the filterThisColumn function
     const columnHeaderCellRenderer = () => (
       // function that returns the column header cell renderer
-      <ColumnHeaderCell name={getName(this.index)} menuRenderer={menuRenderer} nameRenderer={nameRenderer}>
+
+      <ColumnHeaderCell menuRenderer={menuRenderer} nameRenderer={nameRenderer}>
         <DataTablePopoverBP // popover that contains the filter input
           config={this.config}
           category={this.category}
-          columnName={getName(this.index)}
-          filterColumn={filterThisColumn}
+          columnName={this.name}
+          index={this.index}
+          filterColumn={filterColumn}
+          filterValue={getFilterValue}
         />
       </ColumnHeaderCell>
     )
@@ -252,15 +256,17 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
     let newColumns: any[] = [] // new columns
     let newColumnIndexMap: any[] = [] // new column index map
     let newColumnTypes = this.getColumnsTypes(this.props.data) // get the column types
+    let columnsFilter = {} // columns filter
     columnsNames.forEach((columnName, index) => {
       // for each column name, create a new NumericalSortableColumn
       newColumns.push(new NumericalSortableColumn(columnName, index, newColumnTypes[index]))
       newColumnIndexMap.push(index)
+      columnsFilter[index] = { filterValue: "", reordered: false } // set the columns filter
     })
     this.state.columnsNames = columnsNames // set the column names
     this.state.columns = newColumns // set the columns
     this.setState({ data: this.props.data }) // set the data
-    this.setState({ columnsNames: columnsNames, columns: newColumns, columnIndexMap: newColumnIndexMap, newColumnNames: newColumnNames }) // set the column names, columns and column index map
+    this.setState({ columnsNames: columnsNames, columns: newColumns, columnIndexMap: newColumnIndexMap, newColumnNames: newColumnNames, columnsFilter: columnsFilter }) // set the column names, columns and column index map
   }
 
   /**
@@ -279,6 +285,18 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
       this.setState({ data: this.props.data }) // set the data
       let columnsNames = Object.keys(this.props.data[0]) // get the column names
       let newColumnNames = this.state.newColumnNames
+      let columnsFilter = this.state.columnsFilter
+      if (Object.keys(this.state.columnsFilter).length !== columnsNames.length) {
+        let newColumnsFilter = {}
+        columnsNames.forEach((columnName, index) => {
+          if (!columnsFilter[index]) {
+            newColumnsFilter[index] = { filterValue: "", reordered: false, columnName: columnName }
+          } else {
+            newColumnsFilter[index] = columnsFilter[index]
+          }
+        })
+      }
+
       if (this.state.newColumnNames.length === 0) {
         // if the new column names are empty
         newColumnNames = columnsNames // new column names
@@ -286,6 +304,7 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
       let newColumns: any[] = []
       let newColumnIndexMap: any[] = []
       let newColumnTypes = this.getColumnsTypes(this.props.data) // get the column types
+
       columnsNames.forEach((columnName, index) => {
         newColumns.push(new NumericalSortableColumn(columnName, index, newColumnTypes[index], this.state.config)) // create a new NumericalSortableColumn for each column name, we pass the column type and config
         newColumnIndexMap.push(index)
@@ -318,6 +337,17 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
       if (prevState.columnIndexMap !== this.state.columnIndexMap) {
         // if the previous column index map is not the same as the current column index map
         this.setState({ columnIndexMap: this.state.columnIndexMap }) // set the column index map
+      }
+      let columnsFilter = this.state.columnsFilter
+      if (Object.keys(this.state.columnsFilter).length !== this.state.columnsNames.length) {
+        let newColumnsFilter = {}
+        this.state.columnsNames.forEach((columnName, index) => {
+          if (!columnsFilter[index]) {
+            newColumnsFilter[index] = { filterValue: "", reordered: false, columnName: columnName }
+          } else {
+            newColumnsFilter[index] = columnsFilter[index]
+          }
+        })
       }
     }
   }
@@ -609,7 +639,7 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
     const columns = this.state.columns.map(
       (
         col // get the columns
-      ) => col.getColumn(this.getCellRenderer, this.getCellData, this.sortColumn, this.filterColumn, this.getColumnNameRenderer, this.getColumnNameFromColumnIndex)
+      ) => col.getColumn(this.getCellRenderer, this.getCellData, this.sortColumn, this.filterColumn, this.getColumnNameRenderer, this.getColumnNameFromColumnIndex, this.getFilterValue)
     )
     return (
       <div className="bp-datatable-wrapper">
@@ -696,7 +726,20 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
     }
     const nextChildren = Utils.reorderArray(this.state.columns, oldIndex, newIndex, length)
     const nextColumnIndexMap = Utils.reorderArray(this.state.columnIndexMap, oldIndex, newIndex, length)
+    this.updateFilterValueOnColumnsReordered()
     this.setState({ columns: nextChildren, columnIndexMap: nextColumnIndexMap })
+  }
+
+  /**
+   * This function is called to update the columns filter state with the new filter value and a flag for each indicating the columns were reordered
+   */
+  private updateFilterValueOnColumnsReordered = () => {
+    let columnsFilter = this.state.columnsFilter
+    let newColumnsFilter = {}
+    Object.keys(columnsFilter).forEach((key) => {
+      newColumnsFilter[key] = { filterValue: columnsFilter[key].filterValue, reordered: true }
+    })
+    this.setState({ columnsFilter: newColumnsFilter })
   }
 
   /**
@@ -777,6 +820,14 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
    */
   private getName = (columnIndex: number): string => {
     return this.state.newColumnNames[this.state.columnIndexMap[columnIndex]]
+  }
+
+  private getFilterValue = (columnIndex: number): string => {
+    if (!this.state.columnsFilter[columnIndex]) {
+      return ""
+    } else {
+      return deepCopy(this.state.columnsFilter[columnIndex])
+    }
   }
 
   /**
@@ -885,23 +936,30 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
     const { data, columnsNames, columnsFilter, columnIndexMap } = this.state
     const newFilterValue = filterValue
     const newFilterValueDict = columnsFilter
-    newFilterValueDict[columnsNames[columnIndexMap[columnIndex]]] = { filterValue: newFilterValue }
+    newFilterValueDict[columnIndex] = { filterValue: newFilterValue, reordered: false }
     this.setState({ columnsFilter: newFilterValueDict })
     const newFilteredIndexMap = Utils.times(data.length, (i: number) => i).filter((rowIndex: number) => {
       // Create an index range from 0 to the number of rows and then filter the rows
       const sortedRowIndex = this.state.sortedIndexMap[rowIndex]
       try {
-        return data[rowIndex][columnsNames[columnIndexMap[columnIndex]]].toString().toLowerCase().includes(filterValue.toLowerCase()) // Filter the rows based on the filter value (Everything is converted to lowercase strings)
+        return data[rowIndex][columnsNames[columnIndex]].toString().toLowerCase().includes(filterValue.toLowerCase()) // Filter the rows based on the filter value (Everything is converted to lowercase strings)
       } catch (e) {
         // No operation
       }
     })
-
+    console.log(newFilteredIndexMap)
     let columnName = columnsNames[columnIndex] // get the column name
     let newGlobalFilteredIndexMap = this.state.filteredIndexMap ? this.state.filteredIndexMap : {} // get the filtered index map
-    newGlobalFilteredIndexMap[columnName] = newFilteredIndexMap // set the filtered index map
+    // Remove from the filtered index map the columns with null as value
+    Object.keys(newGlobalFilteredIndexMap).forEach((key: string) => {
+      if (newGlobalFilteredIndexMap[key] === null) {
+        delete newGlobalFilteredIndexMap[key]
+      }
+    })
+    newGlobalFilteredIndexMap[columnIndex] = newFilteredIndexMap // set the filtered index map
+    console.log("newGlobalFilteredIndexMap", newGlobalFilteredIndexMap)
     this.setState({ filteredIndexMap: newGlobalFilteredIndexMap }) // set the filtered index map in the state
-    this.updateIntent(filterValue, columnName, "AND") // update the intent
+    this.updateIntent(filterValue, columnIndexMap[columnIndex], "AND") // update the intent
   }
 
   /**
@@ -911,8 +969,8 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
    * @param logicalOperation  - logical operation, either AND or OR, for now it is always AND. If multiple filters are applied, what do we keep? Every row that satisfies all the filters or every row that satisfies at least one filter?
    * @returns void
    */
-  private updateIntent = (filterValue, columnName, logicalOperation) => {
-    const { columnsNames, sparseCellIntent, filteredIndexMap, columnsFilter, sortedIndexMap } = this.state
+  private updateIntent = (filterValue, columnIndexToCheck, logicalOperation) => {
+    const { columnsNames, sparseCellIntent, filteredIndexMap, columnsFilter, sortedIndexMap, columnIndexMap } = this.state
     // Adds the intent to the cells that are present in the filteredIndexMap
     // and removes the intent from the cells that are not present in the filteredIndexMap
     let newSparseCellIntent = {}
@@ -920,16 +978,20 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
     if (filterValue === "") {
       // If the filter value is empty, remove the intent from the cells that are not present in the filteredIndexMap
       Object.keys(sparseCellIntent).forEach((key: string) => {
-        if (key.includes(columnName)) {
+        let decoupledKey = this.decoupleDataKey(key)
+        let rowIndex = decoupledKey[0]
+        let columnIndex = decoupledKey[1]
+        if (columnIndexToCheck === columnIndex) {
+          // if (key.includes(columnName)) {
           newSparseCellIntent[key] = Intent.NONE
         }
       })
       let newFilteredIndexMap = filteredIndexMap
       if (newFilteredIndexMap != null) {
-        newFilteredIndexMap[columnName] = null
+        newFilteredIndexMap[columnIndexToCheck] = null
       }
     }
-
+    console.log("columnsFilter", columnsFilter)
     let columnsNamesFiltered = []
     let rowIntent = {}
     if (filteredIndexMap != null) {
@@ -941,7 +1003,7 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
         if (columnsFilter[key].filterValue !== "") {
           // If the filter value is not empty
           columnsNamesFiltered.push(key) // Add the column name to the columnsNamesFiltered array
-
+          console.log("columnsNamesFiltered", columnsNamesFiltered)
           filteredIndexMap[key].forEach((rowIndex: number) => {
             // For each row index in the filtered index map
             rowIntent[rowIndex] = rowIntent[rowIndex] ? rowIntent[rowIndex] + 1 : 1 // Increment the row intent
@@ -953,14 +1015,15 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
       if (logicalOperation === "AND") {
         // If the logical operation is AND
         rowIntentArray = Object.keys(rowIntent).filter((key: string) => {
+          // console.log("rowIntent[key]", rowIntent[key])
           return rowIntent[key] === columnsNamesFiltered.length // Filter the row intent array based on the number of columns filtered, if it is equal to the number of columns filtered, keep it
         })
       }
 
       rowIntentArray.forEach((rowIndex: number) => {
         // For each row index in the row intent array, that satisfies every filter if "AND"
-        columnsNames.forEach((columnName: string) => {
-          newSparseCellIntent[`${rowIndex}-${columnName}`] = Intent.SUCCESS // Set the intent of every cell in the row to success
+        columnIndexMap.forEach((columnIndex: string) => {
+          newSparseCellIntent[`${rowIndex}-${columnIndex}`] = Intent.SUCCESS // Set the intent of every cell in the row to success
         })
       })
 
