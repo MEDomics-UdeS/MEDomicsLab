@@ -10,6 +10,7 @@ import WsSelect from "../mainPages/dataComponents/wsSelect"
 import { customZipFile2Object } from "../../utilities/customZipFile"
 import { DataContext } from "../workspace/dataContext"
 import MedDataObject from "../workspace/medDataObject"
+import { Dropdown } from "primereact/dropdown"
 
 /**
  *
@@ -34,7 +35,7 @@ const createOption = (label) => ({
  * This component is used to display a Input component.
  * it handles multiple types of input and format them to be similar
  */
-const Input = ({ name, settingInfos, currentValue, onInputChange, disabled, setHasWarning = () => {} }) => {
+const Input = ({ name, settingInfos, currentValue, onInputChange, disabled, setHasWarning = () => {}, customProps }) => {
   const [inputUpdate, setInputUpdate] = useState({})
   const [inputValue, setInputValue] = useState("")
   const { globalData, setGlobalData } = useContext(DataContext)
@@ -199,11 +200,12 @@ const Input = ({ name, settingInfos, currentValue, onInputChange, disabled, setH
       case "list":
         return (
           <>
-            <FloatingLabel controlId={name} label={name} className=" input-hov">
-              <Form.Select
+            <FloatingLabel controlId={name} label={name} className="input-hov">
+              <Dropdown
+                className="form-select"
+                {...customProps}
                 disabled={disabled}
-                className=""
-                defaultValue={currentValue}
+                value={currentValue}
                 onChange={(e) =>
                   setInputUpdate({
                     name: name,
@@ -211,15 +213,14 @@ const Input = ({ name, settingInfos, currentValue, onInputChange, disabled, setH
                     type: settingInfos.type
                   })
                 }
-              >
-                {Object.entries(settingInfos.choices).map(([option, tooltip]) => {
-                  return (
-                    <option key={option} value={option}>
-                      {option}
-                    </option>
-                  )
+                options={Object.entries(settingInfos.choices).map(([option, tooltip]) => {
+                  return {
+                    name: option,
+                    tooltip: tooltip
+                  }
                 })}
-              </Form.Select>
+                optionLabel="name"
+              />
             </FloatingLabel>
             {createTooltip(settingInfos.tooltip, name)}
           </>

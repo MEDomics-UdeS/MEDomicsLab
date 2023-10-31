@@ -56,9 +56,10 @@ export const modifyZipFileSync = async (path, customActions) => {
     // check if file exists
     if (fs.existsSync(path)) {
       let zipFile = new CustomZipFile(path)
-      await zipFile.interactZipSync(path, customActions)
+      return await zipFile.interactZipSync(path, customActions)
     } else {
       toast.error("The file does not exist: " + path)
+      return null
     }
   }
 }
@@ -227,6 +228,7 @@ export default class CustomZipFile {
     path = "default",
     customActions = () => {
       console.log("No default custom actions")
+      return null
     }
   ) {
     try {

@@ -360,7 +360,7 @@ app.on("window-all-closed", () => {
   }
 })
 
-if (MEDconfig.useRactDevTools) {
+if (MEDconfig.useReactDevTools) {
   app.on("ready", async () => {
     await installExtension(REACT_DEVELOPER_TOOLS, {
       loadExtensionOptions: {

@@ -1,8 +1,8 @@
 {
-    "pageId": "1c94acaa-d11b-4f16-a9e9-1b1bdcdfdc97",
+    "pageId": "f3f9da65-5891-48d0-82c7-444a5f1acd02",
     "model": {
-        "name": "0-lr_test-LogisticRegression.medmodel",
-        "path": "C:\\Users\\gblai\\Documents\\github\\MEDomicsLab\\learning-tests-scene\\EXPERIMENTS\\experiment\\create_model\\models\\0-lr_test-LogisticRegression.medmodel",
+        "name": "3-model-LinearDiscriminantAnalysis.medmodel",
+        "path": "C:\\Users\\gblai\\Documents\\github\\MEDomicsLab\\learning-tests-scene\\EXPERIMENTS\\experiment\\create_model\\models\\3-model-LinearDiscriminantAnalysis.medmodel",
         "columns": {
             "columns": [
                 "id",
@@ -31,5 +31,5 @@
         "path": "C:\\Users\\gblai\\Documents\\github\\MEDomicsLab\\learning-tests-scene\\DATA\\eicu_processed.csv"
     },
     "sampleSizeFrac": 0.01,
-    "dashboardName": "0-lr_test-LogisticRegression"
+    "dashboardName": "3-model-LinearDiscriminantAnalysis"
 }

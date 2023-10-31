@@ -86,7 +86,7 @@ func GetConfigFromMessage(w http.ResponseWriter, request []byte) (string, error)
 }
 
 // CreateHandleFunc creates the handle function for the server
-func CreateHandleFunc(topic string, processRequest func(jsonConfig string, id string) (string, error), isThreaded bool) {
+func CreateHandleFunc(topic string, processRequest func(jsonConfig string, id string) (string, error), wg *sync.WaitGroup) {
 	fmt.Println("Adding handle func for topic: " + topic)
 	http.HandleFunc("/"+topic, func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
@@ -94,7 +94,7 @@ func CreateHandleFunc(topic string, processRequest func(jsonConfig string, id st
 			return
 		}
 		id := strings.ReplaceAll(r.URL.Path, "/"+topic, "")
-		_, _ = fmt.Fprintf(os.Stdout, "id: \"%s\"\n", id)
+		_, _ = fmt.Fprintf(os.Stdout, "Go request: \"%s\"\n", r.URL.Path)
 		// Read and reset the request body
 		savedRequestBody, err := io.ReadAll(r.Body)
 		if err != nil {
@@ -112,28 +112,22 @@ func CreateHandleFunc(topic string, processRequest func(jsonConfig string, id st
 		}
 
 		// Process the request on a separate thread if needed
-		var processResponse string
 		var wg sync.WaitGroup
-		if isThreaded {
-			wg.Add(1)
-			go func(wg *sync.WaitGroup) {
-				processResponse, err = processRequest(jsonConfig, id)
+		//get the value at the address of wg
 
-				if err != nil {
-					http.Error(w, "Failed to process request", http.StatusInternalServerError)
-					return
-				}
-				defer wg.Done()
-			}(&wg)
-			wg.Wait()
-			fmt.Println("Done")
-		} else {
+		var processResponse string
+		wg.Add(1)
+		go func(wg *sync.WaitGroup) {
 			processResponse, err = processRequest(jsonConfig, id)
+
 			if err != nil {
 				http.Error(w, "Failed to process request", http.StatusInternalServerError)
 				return
 			}
-		}
+			defer wg.Done()
+		}(&wg)
+		wg.Wait()
+		fmt.Println("Done")
 
 		// Write the response
 		response := CreateResponse(map[string]interface{}{
@@ -202,6 +196,7 @@ func copyOutput(r io.Reader, response *string) {
 	for scanner.Scan() {
 		lineText = scanner.Text()
 		if lineText == "response-incoming" {
+			fmt.Println("response-incoming---------------------------------------------------------")
 			for lineText != "response-finished" {
 				scanner.Scan()
 				lineText = scanner.Text()
@@ -210,9 +205,9 @@ func copyOutput(r io.Reader, response *string) {
 					*response = *response + lineText
 				}
 			}
-		} else if lineText == "response-ready" {
-			scanner.Scan()
-			path := scanner.Text()
+			fmt.Println("response-outcoming---------------------------------------------------------")
+		} else if strings.Contains(lineText, "response-ready*_*") {
+			path := strings.Split(lineText, "*_*")[1]
 			*response = ReadFile(path)
 			//	delete this file
 			err := os.Remove(path)
@@ -262,8 +257,16 @@ func GetDotEnvVariable(key string) string {
 	}
 }
 
-func RemoveIdFromScripts(id string) {
+func RemoveIdFromScripts(id string) bool {
 	Mu.Lock()
+	script, ok := Scripts[id]
+	if ok {
+		err := script.Cmd.Process.Kill()
+		if err != nil {
+			fmt.Println(err)
+		}
+	}
 	delete(Scripts, id)
 	Mu.Unlock()
+	return ok
 }

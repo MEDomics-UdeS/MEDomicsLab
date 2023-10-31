@@ -135,6 +135,10 @@ function App() {
   const [globalData, setGlobalData] = useState({})
 
   useEffect(() => {
+    localStorage.clear()
+  }, [])
+
+  useEffect(() => {
     // This useEffect hook is called only once and it sets the ipcRenderer to listen for the "messageFromElectron" message from the main process
     // Log a message to the console whenever the ipcRenderer receives a message from the main process
     ipcRenderer.on("messageFromElectron", (event, data) => {

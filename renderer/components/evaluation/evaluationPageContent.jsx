@@ -77,9 +77,10 @@ const ConfigPage = ({ pageId, config, chosenModel, setChosenModel, chosenDataset
   )
 }
 
-const EvaluationContent = ({ pageId, config, updateWarnings, chosenModel, setChosenModel, updateEvaluationConfig, chosenDataset, setChosenDataset, modelHasWarning, setModelHasWarning, datasetHasWarning, setDatasetHasWarning }) => {
+const EvaluationContent = ({ chosenConfig, pageId, config, updateWarnings, chosenModel, setChosenModel, updateEvaluationConfig, chosenDataset, setChosenDataset, modelHasWarning, setModelHasWarning, datasetHasWarning, setDatasetHasWarning }) => {
   const evaluationHeaderPanelRef = useRef(null)
   const [showHeader, setShowHeader] = useState(true)
+  const [isPredictFinished, setIsPredictFinished] = useState(false)
 
   useEffect(() => {
     updateWarnings()
@@ -146,10 +147,10 @@ const EvaluationContent = ({ pageId, config, updateWarnings, chosenModel, setCho
           <div className="eval-body-content">
             <TabView renderActiveOnly={false}>
               <TabPanel key="Predict" header="Predict/Test">
-                <PredictPanel chosenModel={chosenModel} chosenDataset={chosenDataset} />
+                <PredictPanel chosenConfig={chosenConfig} />
               </TabPanel>
               <TabPanel key="Dash" header="Dashboard">
-                <Dashboard chosenModel={chosenModel} chosenDataset={chosenDataset} />
+                <Dashboard chosenConfig={chosenConfig} />
               </TabPanel>
             </TabView>
           </div>
@@ -167,6 +168,7 @@ const EvaluationPageContent = () => {
   const [datasetHasWarning, setDatasetHasWarning] = useState({ state: false, tooltip: "" })
   const { globalData, setGlobalData } = useContext(DataContext)
   const { setLoader } = useContext(LoaderContext)
+  const [chosenConfig, setChosenConfig] = useState()
 
   useEffect(() => {
     updateWarnings()
@@ -177,12 +179,17 @@ const EvaluationPageContent = () => {
       model: chosenModel,
       dataset: chosenDataset
     }
+    setChosenConfig(config)
     modifyZipFileSync(configPath, async (path) => {
       await MedDataObject.writeFileSync(config, path, "metadata", "json")
       toast.success("Config has been saved successfully")
       reloadConfig()
     })
   }, [configPath, chosenModel, chosenDataset])
+
+  useEffect(() => {
+    config && setChosenConfig(config)
+  }, [config])
 
   const updateWarnings = async () => {
     console.log("chosenModel", chosenModel)
@@ -197,44 +204,48 @@ const EvaluationPageContent = () => {
       console.log("modelDataObject", modelDataObject)
       if (modelDataObject && !modelDataObject.metadata.content) {
         let content = await customZipFile2Object(chosenModel.path)
-        modelDataObject.metadata.content = content.model_required_cols
-        let modelData = modelDataObject.metadata.content.columns
-        let datasetColsString = JSON.stringify(columnsArray)
-        let modelColsString = JSON.stringify(modelData)
-        if (datasetColsString !== modelColsString) {
-          setDatasetHasWarning({
-            state: true,
-            tooltip: (
-              <>
-                <div className="evaluation-tooltip">
-                  <h4>This dataset does not respect the model format</h4>
-                  {/* here is a list of the needed columns */}
-                  <div style={{ maxHeight: "400px", overflowY: "auto", overflowX: "hidden" }}>
-                    <Row>
-                      <Col>
-                        <p>Needed columns:</p>
-                        <ul>
-                          {modelData.map((col) => {
-                            return <li key={col}>{col}</li>
-                          })}
-                        </ul>
-                      </Col>
-                      <Col>
-                        <p>Received columns:</p>
-                        <ul>
-                          {columnsArray.map((col) => {
-                            return <li key={col}>{col}</li>
-                          })}
-                        </ul>
-                      </Col>
-                    </Row>
-                  </div>
-                </div>
-              </>
-            )
-          })
-        } else {
-          setModelHasWarning({ state: false, tooltip: "" })
+        if (content.model_required_cols) {
+          modelDataObject.metadata.content = content.model_required_cols
+          if (modelDataObject.metadata.content) {
+            let modelData = modelDataObject.metadata.content.columns
+            let datasetColsString = JSON.stringify(columnsArray)
+            let modelColsString = JSON.stringify(modelData)
+            if (datasetColsString !== modelColsString) {
+              setDatasetHasWarning({
+                state: true,
+                tooltip: (
+                  <>
+                    <div className="evaluation-tooltip">
+                      <h4>This dataset does not respect the model format</h4>
+                      {/* here is a list of the needed columns */}
+                      <div style={{ maxHeight: "400px", overflowY: "auto", overflowX: "hidden" }}>
+                        <Row>
+                          <Col>
+                            <p>Needed columns:</p>
+                            <ul>
+                              {modelData.map((col) => {
+                                return <li key={col}>{col}</li>
+                              })}
+                            </ul>
+                          </Col>
+                          <Col>
+                            <p>Received columns:</p>
+                            <ul>
+                              {columnsArray.map((col) => {
+                                return <li key={col}>{col}</li>
+                              })}
+                            </ul>
+                          </Col>
+                        </Row>
+                      </div>
+                    </div>
+                  </>
+                )
+              })
+            } else {
+              setModelHasWarning({ state: false, tooltip: "" })
+            }
+          }
         }
       }
     }
@@ -242,13 +253,13 @@ const EvaluationPageContent = () => {
 
   const getEvaluationStep = () => {
     if (Object.keys(config).length == 0) {
-      return <ConfigPage pageId={pageId} config={config} setDatasetHasWarning={setDatasetHasWarning} datasetHasWarning={datasetHasWarning} setModelHasWarning={setModelHasWarning} modelHasWarning={modelHasWarning} updateEvaluationConfig={updateEvaluationConfig} updateWarnings={updateWarnings} configPath={configPath} reloadConfig={reloadConfig} chosenModel={chosenModel} setChosenModel={setChosenModel} chosenDataset={chosenDataset} setChosenDataset={setChosenDataset} />
+      return <ConfigPage chosenConfig={chosenConfig} pageId={pageId} config={config} setDatasetHasWarning={setDatasetHasWarning} datasetHasWarning={datasetHasWarning} setModelHasWarning={setModelHasWarning} modelHasWarning={modelHasWarning} updateEvaluationConfig={updateEvaluationConfig} updateWarnings={updateWarnings} configPath={configPath} reloadConfig={reloadConfig} chosenModel={chosenModel} setChosenModel={setChosenModel} chosenDataset={chosenDataset} setChosenDataset={setChosenDataset} />
     } else {
-      return <EvaluationContent pageId={pageId} config={config} setDatasetHasWarning={setDatasetHasWarning} datasetHasWarning={datasetHasWarning} setModelHasWarning={setModelHasWarning} modelHasWarning={modelHasWarning} updateWarnings={updateWarnings} updateEvaluationConfig={updateEvaluationConfig} chosenDataset={chosenDataset} setChosenDataset={setChosenDataset} chosenModel={chosenModel} setChosenModel={setChosenModel} />
+      return <EvaluationContent chosenConfig={chosenConfig} pageId={pageId} config={config} setDatasetHasWarning={setDatasetHasWarning} datasetHasWarning={datasetHasWarning} setModelHasWarning={setModelHasWarning} modelHasWarning={modelHasWarning} updateWarnings={updateWarnings} updateEvaluationConfig={updateEvaluationConfig} chosenDataset={chosenDataset} setChosenDataset={setChosenDataset} chosenModel={chosenModel} setChosenModel={setChosenModel} />
     }
   }
 
-  return <>{config && getEvaluationStep()}</>
+  return <>{chosenConfig && getEvaluationStep()}</>
 }
 
 export default EvaluationPageContent

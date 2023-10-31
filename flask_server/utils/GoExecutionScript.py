@@ -74,6 +74,7 @@ class GoExecutionScript(ABC):
         Starts the process
         """
         try:
+            self.push_progress()
             results = self._custom_process(self._json_params)
             self.send_response(results)
         except BaseException as e:
@@ -91,7 +92,7 @@ class GoExecutionScript(ABC):
         """
         self._error_handler = error_handler
 
-    def _set_progress(self, progress: dict = None, label: str = None, now: int = None):
+    def set_progress(self, label: str = None, now: int = None):
         """
         Sets the progress of the process
 
@@ -105,13 +106,10 @@ class GoExecutionScript(ABC):
             If label is not None, it will set the current label to the given label
             If now is not None, it will set the current progress to the given progress
         """
-        if progress is not None:
-            self._progress = progress
-        else:
-            if label is not None:
-                self._progress["currentLabel"] = label
-            if now is not None:
-                self._progress["now"] = now
+        if label is not None:
+            self._progress["currentLabel"] = label
+        if now is not None:
+            self._progress["now"] = now
 
         self.push_progress()
 
@@ -146,9 +144,5 @@ class GoExecutionScript(ABC):
         f = open(file_path, "w")
         f.write(to_send)
         f.close()
-        self._set_progress(label="Done", now=100)
-        sys.stdout.flush()
-        print("response-ready")
-        sys.stdout.flush()
-        print(file_path)
-        sys.stdout.flush()
+        self.set_progress(label="Done", now=100)
+        go_print(f"response-ready*_*{file_path}")

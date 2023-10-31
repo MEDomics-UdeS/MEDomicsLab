@@ -34,7 +34,8 @@ class GoExecScriptRunExperiment(GoExecutionScript):
         super().__init__(json_params, _id)
         self.storing_mode = USE_SAVE_FOR_EXPERIMENTS_STORING
         self.current_experiment = None
-        self._progress_update_frequency_HZ = 5.0
+        self._progress["type"] = "process"
+        self._progress_update_frequency_HZ = 1.0
         if isProgressInThread:
             self.progress_thread = threading.Thread(target=self._update_progress_periodically, args=())
             self.progress_thread.daemon = True
@@ -63,9 +64,10 @@ class GoExecScriptRunExperiment(GoExecutionScript):
         It is called periodically by the thread self.progress_thread
         """
         if self.current_experiment is not None:
-            self._set_progress(self.current_experiment.get_progress())
+            progress = self.current_experiment.get_progress()
+            self.set_progress(now=progress['now'], label=progress['currentLabel'])
         else:
-            self._set_progress({"now": 0, "currentLabel": ""})
+            self.set_progress(now=0, label="")
 
     def _update_progress_periodically(self):
         while True:

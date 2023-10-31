@@ -75,24 +75,23 @@ export const axiosPostJsonGo = async (port, topic, json2send, jsonReceivedCB, on
     response.data.type == "toParse" ? jsonReceivedCB(JSON.parse(response.data.response_message)) : jsonReceivedCB(response.data.response_message)
     return response.data
   } catch (error) {
-    console.error(error)
-    onError(error)
+    console.log("error code: " + onError)
     onError
       ? onError(error)
       : () => {
           if (error.response) {
             // The request was made and the server responded with a status code
             // that falls out of the range of 2xx
-            console.error("Server Error:", error.response.data)
-            console.error("Status Code:", error.response.status)
-            console.error("Headers:", error.response.headers)
+            console.log("Server Error:", error.response.data)
+            console.log("Status Code:", error.response.status)
+            console.log("Headers:", error.response.headers)
           } else if (error.request) {
             // The request was made but no response was received
             // `error.request` is an instance of XMLHttpRequest in the browser
-            console.error("Request Error:", error.request)
+            console.log("Request Error:", error.request)
           } else {
             // Something happened in setting up the request that triggered an Error
-            console.error("Error:", error.message)
+            console.log("Error:", error.message)
           }
         }
   }

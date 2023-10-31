@@ -3,14 +3,15 @@ package learning
 import (
 	"fmt"
 	Utils "go_module/src"
+	"sync"
 )
 
 var prePath = "learning"
 
 // AddHandleFunc adds the specific module handle function to the server
-func AddHandleFunc() {
-	Utils.CreateHandleFunc(prePath+"/run_experiment/", handleRunExperiment, true)
-	Utils.CreateHandleFunc(prePath+"/progress/", handleProgress, true)
+func AddHandleFunc(wg *sync.WaitGroup) {
+	Utils.CreateHandleFunc(prePath+"/run_experiment/", handleRunExperiment, wg)
+	Utils.CreateHandleFunc(prePath+"/progress/", handleProgress, wg)
 }
 
 // handleRunExperiment handles the request to run an experiment

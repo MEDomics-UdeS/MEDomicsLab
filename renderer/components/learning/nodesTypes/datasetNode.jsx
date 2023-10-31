@@ -190,6 +190,9 @@ const DatasetNode = ({ id, data }) => {
                             choices: data.internal.settings.columns || {}
                           }}
                           onInputChange={onInputChange}
+                          customProps={{
+                            filter: true
+                          }}
                         />
                       </>
                     )

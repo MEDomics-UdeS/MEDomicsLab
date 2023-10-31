@@ -12,10 +12,14 @@ import { Card } from "primereact/card"
 import { ProgressBar } from "primereact/progressbar"
 import { Tooltip } from "primereact/tooltip"
 import MEDconfig from "../../../medomics.dev"
+import { IoClose } from "react-icons/io5"
+import { PageInfosContext } from "./moduleBasics/pageInfosContext"
 
 const ActiveElement = ({ activeElement }) => {
   const { globalData, setGlobalData } = useContext(DataContext)
-  const [metadata, setMetadata] = useState({})
+  const [metadata, setMetadata] = useState(undefined)
+  const { port } = useContext(WorkspaceContext) // we get the port for server connexion
+  const { pageId } = useContext(PageInfosContext) // we get the pageId to send to the server
 
   useEffect(() => {
     if (globalData) {
@@ -36,12 +40,12 @@ const ActiveElement = ({ activeElement }) => {
           lastModified: element.lastModified,
           activities: element.activities,
           id: element.id,
+          urlId: activeElement.urlId,
           absPath: element.path,
           pid: activeElement.pid,
           processState: activeElement.ProcessState,
-
-          isProgress: activeElement.progress != "" ? true : false,
-          progress: activeElement.progress
+          progress: activeElement.progress,
+          isProgress: activeElement.progress != ""
         }
         setMetadata(metadata)
       } else {
@@ -50,15 +54,79 @@ const ActiveElement = ({ activeElement }) => {
     }
   }, [activeElement, globalData])
 
-  useEffect(() => {
-    console.log("metadata:", metadata)
-  }, [metadata])
+  const getOutput2Show = (metadata) => {
+    if (!metadata) return <></>
+    switch (metadata.progress.type) {
+      case "dashboard":
+        return (
+          <>
+            {metadata.progress.dashboard_url ? (
+              <h5>
+                Opened webserver on url:{" "}
+                <a
+                  className="web-server-link"
+                  onClick={() => {
+                    require("electron").shell.openExternal(metadata.progress.dashboard_url)
+                  }}
+                >
+                  {metadata.progress.dashboard_url}
+                </a>
+              </h5>
+            ) : (
+              <>
+                <h5>Dashboard is building... </h5>
+                <h6 className="margin-0.25">Approximate duration: {metadata.progress.duration} min</h6>
+                <ProgressBar value={metadata.progress.now >= 100 ? 100 : metadata.progress.now} />
+              </>
+            )}
+          </>
+        )
+      case "process":
+        return (
+          <>
+            <ProgressBar className={"tooltip-progressBar-" + metadata.id} value={metadata.progress.now >= 100 ? 100 : metadata.progress.now} />
+            <Tooltip target={".tooltip-progressBar-" + metadata.id} showDelay={200} position="top">
+              {metadata.progress.currentLabel ? metadata.progress.currentLabel : ""}
+            </Tooltip>
+          </>
+        )
+      default:
+        return (
+          <>
+            <h5>Gathering informations...</h5>
+          </>
+        )
+    }
+  }
 
   return (
     <>
       {metadata && (
         <Card
-          title={metadata.name}
+          title={
+            <>
+              {metadata.name}
+              <IoClose
+                className="btn-close-output-card"
+                onClick={(e) => {
+                  requestBackend(
+                    port,
+                    "removeId/" + metadata.urlId,
+                    { pageId: pageId },
+                    (data) => {
+                      if (data.error) {
+                        console.error(data)
+                      }
+                      console.log("closing", data, "with id:", pageId)
+                    },
+                    (error) => {
+                      console.error(error)
+                    }
+                  )
+                }}
+              />
+            </>
+          }
           subTitle={
             <>
               <table>
@@ -76,44 +144,7 @@ const ActiveElement = ({ activeElement }) => {
             </>
           }
         >
-          {metadata.isProgress && metadata.progress ? (
-            <>
-              {metadata.progress.is_server && (
-                <>
-                  {metadata.progress.dashboard_url ? (
-                    <>
-                      <h5>
-                        Opened webserver on url:{" "}
-                        <a
-                          className="web-server-link"
-                          onClick={() => {
-                            require("electron").shell.openExternal(metadata.progress.dashboard_url)
-                          }}
-                        >
-                          {metadata.progress.dashboard_url}
-                        </a>
-                      </h5>
-                    </>
-                  ) : (
-                    <>
-                      <h5>Dashboard is building...</h5>
-                      <ProgressBar value={metadata.progress.now} />
-                    </>
-                  )}
-                </>
-              )}
-              {metadata.progress.now && metadata.progress.currentLabel && (
-                <>
-                  <ProgressBar className={"tooltip-progressBar-" + activeElement.id} value={metadata.progress.now} />
-                  <Tooltip target={".tooltip-progressBar-" + activeElement.id} showDelay={200} position="top">
-                    {metadata.progress.currentLabel ? metadata.progress.currentLabel : ""}
-                  </Tooltip>
-                </>
-              )}
-            </>
-          ) : (
-            <>{metadata && <h5>Nothing specific to show, this process is opened in server</h5>}</>
-          )}
+          {getOutput2Show(metadata)}
         </Card>
       )}
     </>
@@ -142,32 +173,28 @@ const OutputPage = ({ pageId = "output", configPath = undefined }) => {
 
   useInterval(
     () => {
-      getHealthInfosGoServer()
+      requestBackend(
+        port,
+        "get_server_health",
+        { pageId: pageId },
+        (data) => {
+          let activeElements = []
+          Object.keys(data).forEach((key) => {
+            let element = JSON.parse(data[key])
+            element.progress = element.progress != "" ? JSON.parse(element.progress) : ""
+            element.urlId = key
+            element.id = key.split("/")[key.split("/").length - 1]
+            activeElements.push(element)
+          })
+          setActiveElements(activeElements)
+        },
+        (error) => {
+          setIsUpdating(false)
+        }
+      )
     },
     isUpdating ? 1000 : null
   )
-
-  const getHealthInfosGoServer = () => {
-    requestBackend(
-      port,
-      "get_server_health",
-      { pageId: pageId },
-      (data) => {
-        let activeElements = []
-        Object.keys(data).forEach((key) => {
-          data[key] = JSON.parse(data[key])
-          data[key].progress = data[key].progress != "" ? JSON.parse(data[key].progress) : ""
-          data[key].id = key
-          activeElements.push(data[key])
-        })
-        setActiveElements(activeElements)
-      },
-      (error) => {
-        console.error(error)
-        setIsUpdating(false)
-      }
-    )
-  }
 
   const btnTemplate = (option) => {
     return (
@@ -192,15 +219,17 @@ const OutputPage = ({ pageId = "output", configPath = undefined }) => {
 
   return (
     <>
-      <ModulePage pageId={pageId} configPath={configPath} additionnalClassName="outputPage" shadow>
+      <ModulePage pageId={pageId} configPath={configPath} additionnalClassName="outputPage" shadow scrollable={false}>
         <div>
           <div className="header">
             <h1>Active processes - {MEDconfig.serverChoice} server</h1>
             <SelectButton value={value} onChange={handleOnSelectBtnChange} itemTemplate={btnTemplate} options={options} />
           </div>
-          {activeElements.map((activeElement, index) => (
-            <ActiveElement key={index} activeElement={activeElement} />
-          ))}
+          <div className="eval-body">
+            {activeElements.map((activeElement, index) => (
+              <ActiveElement key={index} activeElement={activeElement} />
+            ))}
+          </div>
         </div>
       </ModulePage>
     </>

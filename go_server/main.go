@@ -8,13 +8,18 @@ import (
 	Learning "go_module/blueprints/learning"
 	Utils "go_module/src"
 	"net/http"
+	"sync"
 )
 
 func main() {
+
+	var wg sync.WaitGroup
+
 	// Here is where you add the handle functions to the server
-	Learning.AddHandleFunc()
-	Evaluation.AddHandleFunc()
-	Utils.CreateHandleFunc("get_server_health", handleGetServerHealth, true)
+	Learning.AddHandleFunc(&wg)
+	Evaluation.AddHandleFunc(&wg)
+	Utils.CreateHandleFunc("get_server_health", handleGetServerHealth, &wg)
+	Utils.CreateHandleFunc("removeId/", handleRemoveId, &wg)
 
 	// Here is where you start the server
 	c := cors.Default()
@@ -46,8 +51,13 @@ func handleGetServerHealth(jsonConfig string, id string) (string, error) {
 
 func convScript2JsonStr(script Utils.ScriptInfo) (string, error) {
 	data := make(map[string]string)
-	data["ProcessState"] = script.Cmd.ProcessState.String()
 	data["progress"] = script.Progress
 	jsonData, _ := Utils.Map2jsonStr(data)
 	return string(jsonData), nil
+}
+
+func handleRemoveId(jsonConfig string, id string) (string, error) {
+	var ok = Utils.RemoveIdFromScripts(id)
+	var toReturn = "Removed successfully state : " + fmt.Sprint(ok)
+	return toReturn, nil
 }
