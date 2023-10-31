@@ -22,7 +22,7 @@ export type getName = (columnIndex: number) => string // function that returns t
 
 export interface SortableColumn {
   // interface for the sortable column
-  getColumn(getCellRenderer: CellLookup, getCellData: CellLookup, sortColumn: SortCallback, filterColumn: FilterCallback, nameRenderer: nameRenderer, colName: getName, getFilterValue: getName): JSX.Element
+  getColumn(getCellRenderer: CellLookup, getCellData: CellLookup, sortColumn: SortCallback, filterColumn: FilterCallback, nameRenderer: nameRenderer, colName: getName, getFilterValue: getName, freezeColumn: any, isFrozen: any): JSX.Element
 }
 
 /**
@@ -55,8 +55,8 @@ abstract class AbstractSortableColumn implements SortableColumn {
    * @param filterColumn - function that filters the column
    * @returns JSX.Element - column
    */
-  public getColumn(getCellRenderer: CellLookup, getCellData: CellLookup, sortColumn: SortCallback, filterColumn: FilterCallback, nameRenderer: nameRenderer, getName: getName, getFilterValue?: getName) {
-    const menuRenderer = this.renderMenu.bind(this, sortColumn) // bind the sortColumn function to the menuRenderer
+  public getColumn(getCellRenderer: CellLookup, getCellData: CellLookup, sortColumn: SortCallback, filterColumn: FilterCallback, nameRenderer: nameRenderer, getName: getName, getFilterValue: getName, freezeColumn: any, getIsFrozen: any) {
+    const menuRenderer = this.renderMenu.bind(this, sortColumn, freezeColumn, getIsFrozen) // bind the sortColumn function to the menuRenderer
     // const filterThisColumn = (filterValue: string) => filterColumn(this.index, filterValue) // bind the filterColumn function to the filterThisColumn function
     const columnHeaderCellRenderer = () => (
       // function that returns the column header cell renderer
@@ -83,7 +83,7 @@ abstract class AbstractSortableColumn implements SortableColumn {
     )
   }
 
-  protected abstract renderMenu(sortColumn: SortCallback): JSX.Element // abstract function that renders the menu
+  protected abstract renderMenu(sortColumn: SortCallback, freezeColumn: any, getIsFrozen: any): JSX.Element // abstract function that renders the menu
 }
 
 /**
@@ -97,14 +97,17 @@ class NumericalSortableColumn extends AbstractSortableColumn {
    * @param sortColumn - function that sorts the column
    * @returns JSX.Element - menu
    */
-  protected renderMenu(sortColumn: SortCallback) {
+  protected renderMenu(sortColumn: SortCallback, freezeColumn: any, getIsFrozen: any) {
     const sortAsc = () => sortColumn(this.index, (a, b) => this.compare(a, b), true)
     const sortDesc = () => sortColumn(this.index, (a, b) => this.compare(b, a), false)
+    const handleFreezeColumn = (e) => freezeColumn(e, this.index)
     return (
       <>
         <Menu>
           <MenuItem icon="sort-asc" onClick={sortAsc} text="Sort Asc" />
           <MenuItem icon="sort-desc" onClick={sortDesc} text="Sort Desc" />
+          <Divider />
+          <MenuItem icon="snowflake" onClick={handleFreezeColumn} text="Freeze Column" active={getIsFrozen(this.index)} />
           <Divider />
           <MenuItem icon="filter" text="Type">
             <MenuItem icon="array-floating-point" text="Numerical" />
@@ -641,8 +644,11 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
     const columns = this.state.columns.map(
       (
         col // get the columns
-      ) => col.getColumn(this.getCellRenderer, this.getCellData, this.sortColumn, this.filterColumn, this.getColumnNameRenderer, this.getColumnNameFromColumnIndex, this.getFilterValue)
+      ) => col.getColumn(this.getCellRenderer, this.getCellData, this.sortColumn, this.filterColumn, this.getColumnNameRenderer, this.getColumnNameFromColumnIndex, this.getFilterValue, this.freezeColumn, this.getIsFrozen)
     )
+
+    const numFrozenColumns = this.state.frozenColumns.length
+
     return (
       <div className="bp-datatable-wrapper">
         <ChevronRight className={`bp-datatable-wrapper-options-icon ${this.state.options.isOpen ? "bp-datatable-wrapper-options-icon-open rotate-90-cw" : "bp-datatable-wrapper-options-icon-closed rotate--90-cw"}`} />
@@ -701,12 +707,13 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
             bodyContextMenuRenderer={this.renderBodyContextMenu}
             numRows={numRows}
             getCellClipboardData={this.getCellData}
-            cellRendererDependencies={[this.state.sortedIndexMap, this.state.columnIndexMap, this.state.filteredIndexMap, this.state.sparseCellIntent]}
+            cellRendererDependencies={[this.state.sortedIndexMap, this.state.columnIndexMap, this.state.filteredIndexMap, this.state.sparseCellIntent, this.state.frozenColumns]}
             enableMultipleSelection={true}
             enableRowReordering={true}
             onRowsReordered={this.handleRowsReordered}
             onColumnsReordered={this.handleColumnsReordered}
             enableColumnReordering={true} // TODO: Figure out the bug with column reordering while filtering
+            numFrozenColumns={numFrozenColumns}
           >
             {columns}
           </Table2>
@@ -722,15 +729,15 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
    * @param length - length of the column
    * @returns void
    */
-  private handleColumnsReordered = (oldIndex: number, newIndex: number, length: number) => {
+  private handleColumnsReordered = (oldIndex: number, newIndex: number, length: number, callback?: any) => {
     if (oldIndex === newIndex) {
       return
     }
+    console.log("Old Index: ", oldIndex, "New Index: ", newIndex, "Length: ", length)
     const nextChildren = Utils.reorderArray(this.state.columns, oldIndex, newIndex, length)
     const nextColumnIndexMap = Utils.reorderArray(this.state.columnIndexMap, oldIndex, newIndex, length)
     this.updateFilterValueOnColumnsReordered()
-    this.setState({ columns: nextChildren, columnIndexMap: nextColumnIndexMap })
-    console.log("Columns Filter: ", this.state.columnsFilter)
+    this.setState({ columns: nextChildren, columnIndexMap: nextColumnIndexMap }, callback)
   }
 
   /**
@@ -1034,7 +1041,6 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
       if (logicalOperation === "AND") {
         // If the logical operation is AND
         rowIntentArray = Object.keys(rowIntent).filter((key: string) => {
-          // console.log("rowIntent[key]", rowIntent[key])
           return rowIntent[key] === columnsNamesFiltered.length // Filter the row intent array based on the number of columns filtered, if it is equal to the number of columns filtered, keep it
         })
       }
@@ -1047,6 +1053,49 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
       })
 
       this.setState({ sparseCellIntent: newSparseCellIntent }) // Set the sparse cell intent
+    }
+  }
+
+  private moveColumnIndexTo = (oldIndex: number, newIndex: number) => {
+    const { columnIndexMap } = this.state
+    let newColumnIndexMap = deepCopy(columnIndexMap)
+    newColumnIndexMap = Utils.reorderArray(columnIndexMap, oldIndex, newIndex, 1)
+    console.log("newColumnIndexMap", newColumnIndexMap, columnIndexMap)
+    this.setState({ columnIndexMap: newColumnIndexMap })
+  }
+
+  private freezeColumn = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>, index: number) => {
+    let newFrozenColumns = deepCopy(this.state.frozenColumns)
+    let length = newFrozenColumns.length
+    let thisIndexMap = deepCopy(this.state.columnIndexMap)
+
+    console.log("HERE", e, index, thisIndexMap, newFrozenColumns)
+    let thisIndex = this.state.columnIndexMap.indexOf(index)
+
+    if (newFrozenColumns.includes(index)) {
+      newFrozenColumns.splice(newFrozenColumns.indexOf(index), 1)
+      this.handleColumnsReordered(thisIndex, index + length, 1, () => {
+        this.setState({ frozenColumns: newFrozenColumns })
+      })
+      return
+    } else {
+      newFrozenColumns.push(index)
+      if (thisIndex !== length) {
+        this.handleColumnsReordered(thisIndex, length, 1, () => {
+          this.setState({ frozenColumns: newFrozenColumns })
+        })
+      } else {
+        this.setState({ frozenColumns: newFrozenColumns })
+      }
+    }
+  }
+
+  private getIsFrozen = (index: number) => {
+    if (index !== undefined && index !== null) {
+      if (this.state.frozenColumns.length === 0) {
+        return false
+      }
+      return this.state.frozenColumns.includes(index)
     }
   }
 
