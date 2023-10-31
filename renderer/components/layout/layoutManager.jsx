@@ -32,7 +32,7 @@ const LayoutManager = (props) => {
   const [workspaceIsSet, setWorkspaceIsSet] = useState(true) // State to keep track of active nav item
   const sidebarRef = useRef(null) // Reference to the sidebar object
 
-  const { layoutState, dispatchLayout, developerMode, setDeveloperMode } = useContext(LayoutModelContext)
+  const { developerMode } = useContext(LayoutModelContext)
   const { workspace } = useContext(WorkspaceContext)
   useEffect(() => {
     if (workspace.hasBeenSet == false) {
@@ -70,7 +70,7 @@ const LayoutManager = (props) => {
   }
 
   // Render content component based on activeNavItem state
-  const renderContentComponent = ({ props }) => {
+  const renderContentComponent = () => {
     if (developerMode && workspaceIsSet) {
       return <MainContainer />
     } else {

@@ -31,7 +31,8 @@ if (isProd) {
     transparent: true,
     frame: false,
     alwaysOnTop: true,
-    center: true
+    center: true,
+    show: true
   })
 
   const mainWindow = createWindow("main", {
@@ -40,8 +41,12 @@ if (isProd) {
     show: false
   })
 
-  splashScreen.loadURL(path.join(__dirname, "../main/splash.html"))
-  splashScreen.show()
+  splashScreen.loadFile(path.join(__dirname, "../main/splash.html"))
+  splashScreen.once("ready-to-show", () => {
+    splashScreen.show()
+    splashScreen.focus()
+    splashScreen.setAlwaysOnTop(true)
+  })
 
   const template = [
     {
@@ -284,7 +289,39 @@ function setWorkingDirectory(event, mainWindow) {
       } else {
         const file = result.filePaths[0]
         console.log(file)
-        if (file === app.getPath("sessionData")) {
+        if (dirTree(file).children.length > 0) {
+          // If the selected folder is not empty
+          console.log("Selected folder is not empty")
+          event.reply("messageFromElectron", "Selected folder is not empty")
+          // Open a dialog to ask the user if he wants to still use the selected folder as the working directory or if he wants to select another folder
+          dialog
+            .showMessageBox(mainWindow, {
+              type: "question",
+              buttons: ["Yes", "No"],
+              title: "Folder is not empty",
+              message: "The selected folder is not empty. Do you want to use this folder as the working directory?"
+            })
+            .then((result) => {
+              if (result.response === 0) {
+                // If the user clicks on "Yes"
+                console.log("Working directory set to " + file)
+                event.reply("messageFromElectron", "Working directory set to " + file)
+                app.setPath("sessionData", file)
+                createWorkingDirectory()
+                hasBeenSet = true // The boolean hasBeenSet is set to true to indicate that the working directory has been set
+                // This is the variable that controls the disabled/enabled state of the IconSidebar's buttons in Next.js
+                event.reply("messageFromElectron", dirTree(file))
+                event.reply("workingDirectorySet", {
+                  workingDirectory: dirTree(file),
+                  hasBeenSet: hasBeenSet
+                })
+              } else if (result.response === 1) {
+                // If the user clicks on "No"
+                console.log("Dialog was canceled")
+                event.reply("messageFromElectron", "Dialog was canceled")
+              }
+            })
+        } else if (file === app.getPath("sessionData")) {
           // If the working directory is already set to the selected folder
           console.log("Working directory is already set to " + file)
           event.reply("messageFromElectron", "Working directory is already set to " + file)
@@ -389,8 +426,7 @@ function findAvailablePort(startPort, endPort = 8000) {
                 console.log(`Port ${port} is now available !`)
                 resolve(port)
               }
-              (stdout) && console.log(stdout)
-              (stderr) && console.log(stderr)
+              stdout && console.log(stdout)(stderr) && console.log(stderr)
             })
           } else {
             port++
