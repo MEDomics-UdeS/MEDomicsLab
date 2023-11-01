@@ -117,6 +117,8 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
           return openExtractionText(action)
         case "openExtractionImageModule":
           return openExtractionImage(action)
+        case "openMEDprofilesViewerModule":
+          return openMEDprofilesViewer(action)
 
         case "add":
           return add(action)
@@ -270,6 +272,14 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
    */
   const openExtractionImage = (action) => {
     openGeneric(action, "Extraction Image", "extractionImagePage")
+  }
+
+  /**
+   * @summary Function that adds a tab of the Extraction Text Module to the layout model
+   * @params {Object} action - The action passed on by the dispatchLayout function
+   */
+   const openMEDprofilesViewer = (action) => {
+    openGeneric(action, "MEDprofiles Viewer", "MEDprofilesViewer")
   }
 
   /**

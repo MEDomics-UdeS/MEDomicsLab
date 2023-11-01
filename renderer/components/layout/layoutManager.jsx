@@ -8,6 +8,7 @@ import Learning from "../mainPages/learning"
 import ExtractionMEDimagePage from "../mainPages/extractionMEDimage"
 import ExtractionImagePage from "../mainPages/extractionImage"
 import ExtractionTextPage from "../mainPages/extractionText"
+import MEDprofilesViewer from "../input/MEDprofiles/MEDprofilesViewer"
 import ExtractionTSPage from "../mainPages/extractionTS"
 import ExploratoryPage from "../mainPages/exploratory"
 import ResultsPage from "../mainPages/results"
@@ -89,6 +90,8 @@ const LayoutManager = (props) => {
           return <ExtractionTSPage pageId="456" />
         case "extractionImage":
           return <ExtractionImagePage pageId="678" />
+        case "MEDprofilesViewer":
+          return <MEDprofilesViewer pageId="72" />
         case "exploratory":
           return <ExploratoryPage />
         case "results":
@@ -126,6 +129,8 @@ const LayoutManager = (props) => {
         return <ExtractionSidebar />
       case "extractionMEDimage":
         return <FlowSceneSidebar type="extractionMEDimage" />
+      case "MEDprofilesViewer":
+        return <InputSidebar />
 
       default:
         return (
