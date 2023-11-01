@@ -1064,9 +1064,15 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
     this.setState({ columnIndexMap: newColumnIndexMap })
   }
 
+  /**
+   * @description This function freezes the column
+   * @param e - event
+   * @param index - index of the column
+   * @returns void
+   */
   private freezeColumn = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>, index: number) => {
-    let newFrozenColumns = deepCopy(this.state.frozenColumns)
-    let length = newFrozenColumns.length
+    let newFrozenColumns = deepCopy(this.state.frozenColumns) // get the frozen columns
+    let length = newFrozenColumns.length // get the length of the frozen columns
     let thisIndexMap = deepCopy(this.state.columnIndexMap)
 
     console.log("HERE", e, index, thisIndexMap, newFrozenColumns)

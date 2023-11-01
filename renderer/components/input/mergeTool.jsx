@@ -300,7 +300,8 @@ const MergeTool = ({ pageId = "42", configPath = null }) => {
       parentID: globalData[dictOfDatasets[0].data].parentID,
       path: newDatasetPathParent + MedDataObject.getPathSeparator() + datasetName
     })
-
+    let mergedDatasetColumnsTags = {}
+    let mergedDatasetTagsDict = {}
     let JSONToSend = { request: "mergeDatasets", pageId: pageId, configPath: configPath, finalDatasetExtension: newDatasetExtension, finalDatasetPath: newDatasetObject.path, payload: {} }
     Object.keys(dictOfDatasets).forEach((key) => {
       if (dictOfDatasets[key]) {
@@ -312,9 +313,22 @@ const MergeTool = ({ pageId = "42", configPath = null }) => {
           mergeOn: dictOfDatasets[0].mergeOn,
           selectedColumns: dictOfDatasets[key].selectedColumns
         }
+        dictOfDatasets[key].selectedColumns.forEach((column) => {
+          if (globalData[dictOfDatasets[key].data].metadata) {
+            if (globalData[dictOfDatasets[key].data].metadata.columnsTag) {
+              if (globalData[dictOfDatasets[key].data].metadata.columnsTag[column]) {
+                mergedDatasetColumnsTags[column] = globalData[dictOfDatasets[key].data].metadata.columnsTag[column]
+              }
+            }
+          }
+        })
+        if (globalData[dictOfDatasets[key].data].metadata.tagsDict) {
+          mergedDatasetTagsDict = { ...mergedDatasetTagsDict, ...globalData[dictOfDatasets[key].data].metadata.tagsDict }
+        }
       }
     })
     newDatasetObject.relatedInformation = JSONToSend
+    newDatasetObject.metadata = { columnsTag: mergedDatasetColumnsTags, tagsDict: mergedDatasetTagsDict }
     let newGlobalData = { ...globalData }
     newGlobalData[newDatasetObject.getUUID()] = newDatasetObject
     setGlobalData(newGlobalData)
