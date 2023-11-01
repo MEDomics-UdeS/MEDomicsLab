@@ -4,6 +4,7 @@ import ModulePage from "./moduleBasics/modulePage"
 import { Accordion } from "react-bootstrap"
 import MergeTool from "../input/mergeTool"
 import GroupingTool from "../input/groupingTool"
+import SimpleCleaningTool from "../input/simpleCleaningTool"
 import HoldOutSetCreationTool from "../input/holdOutSetCreationTool"
 
 /**
@@ -39,6 +40,12 @@ const InputPage = ({ pageId = "42", configPath = null }) => {
               </Accordion.Body>
             </Accordion.Item>
             <Accordion.Item eventKey="3">
+              <Accordion.Header>Simple cleaning tool</Accordion.Header>
+              <Accordion.Body>
+                <SimpleCleaningTool pageId={pageId} />
+              </Accordion.Body>
+            </Accordion.Item>
+            <Accordion.Item eventKey="4">
               <Accordion.Header>Holdout set creation tool</Accordion.Header>
               <Accordion.Body>
                 <HoldOutSetCreationTool pageId={pageId} />

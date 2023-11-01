@@ -844,6 +844,56 @@ export default class MedDataObject {
   }
 
   /**
+   * This function saves the modified data in the format specified in the config and at the location specified in the config
+   * @param event - event
+   * @param data - data to be saved
+   * @returns void
+   */
+  static async saveDatasetToDisk({ data = undefined, df = undefined, filePath = undefined, extension = undefined }) {
+    const dfd = require("danfojs-node")
+    if (filePath === undefined || filePath === null || filePath === "") {
+      toast.error("No file path specified")
+      return
+    }
+    if (extension === undefined || extension === null || extension === "") {
+      toast.error("No file extension specified")
+      return
+    }
+    if (df === undefined && data !== undefined) {
+      df = new dfd.DataFrame(data)
+    } else if (df === undefined && data === undefined) {
+      toast.error("No data to save")
+      return
+    } else if (df !== undefined && data === undefined) {
+      // No operation
+    }
+    if (extension === "csv") {
+      try {
+        dfd.toCSV(df, { filePath: filePath })
+      } catch (e) {
+        // No operation
+      } finally {
+        toast.success("Data saved successfully", filePath)
+      }
+    } else if (extension === "json") {
+      try {
+        dfd.toJSON(df, { filePath: filePath })
+      } catch (e) {
+        // No operation
+      } finally {
+        toast.success("Data saved successfully", filePath)
+      }
+    } else if (extension === "xlsx") {
+      try {
+        dfd.toExcel(df, { filePath: filePath })
+      } catch (e) {
+        // No operation
+      } finally {
+        toast.success("Data saved successfully", filePath)
+      }
+    }
+  }
+  /**
    * Saves the provided `dataObject` instance to the file system.
    * @param {MedDataObject} dataObject - The `MedDataObject` instance to save.
    * @README - This function is not implemented yet. Acts as a placeholder for future development.
@@ -975,6 +1025,13 @@ export default class MedDataObject {
     this.dataLoaded = true
     this.lastModified = Date(Date.now())
     return data
+  }
+
+  /**
+   * Save the data of the `MedDataObject` instance to the file associated with it.
+   */
+  async saveData(df = undefined) {
+    MedDataObject.saveDatasetToDisk({ data: this.data, df: df, filePath: this.path, extension: this.extension })
   }
 
   /**
