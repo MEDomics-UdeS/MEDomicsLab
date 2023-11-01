@@ -19,6 +19,7 @@ import { OverlayPanel } from "primereact/overlaypanel"
  * @param {String} props.pageId - The id of the page
  * @param {String} props.configPath - The path of the config file
  */
+// eslint-disable-next-line no-unused-vars
 const SimpleCleaningTool = ({ pageId = "inputModule", configPath = "" }) => {
   const { globalData } = useContext(DataContext) // The global data object
   const [listOfDatasets, setListOfDatasets] = useState([]) // The list of datasets
@@ -49,38 +50,6 @@ const SimpleCleaningTool = ({ pageId = "inputModule", configPath = "" }) => {
       globalData[e.target.value].getColumnsOfTheDataObjectIfItIsATable().then((columns) => {
         console.log("columnsOptions", columns)
       })
-    }
-  }
-
-  /**
-   * To clean the string
-   * @param {String} string - The string to clean
-   * @returns {String} - The cleaned string
-   */
-  const cleanString = (string) => {
-    if (string.includes(" ") || string.includes('"')) {
-      string = string.replaceAll(" ", "")
-      string = string.replaceAll('"', "")
-    }
-    return string
-  }
-
-  /**
-   * To generate the columns options from the columns
-   * @param {Array} columns - The columns
-   * @returns {Array} - The columns options
-   */
-  const generateColumnsOptionsFromColumns = (columns) => {
-    let options = []
-    if (columns === null || columns === undefined) {
-      return options
-    } else {
-      columns.forEach((column) => {
-        column = cleanString(column)
-        options.push({ label: column, value: column })
-      })
-
-      return options
     }
   }
 
@@ -124,11 +93,14 @@ const SimpleCleaningTool = ({ pageId = "inputModule", configPath = "" }) => {
     updateListOfDatasets()
   }, [globalData])
 
-  useEffect(() => {
-    console.log("newLocalDatasetName", newLocalDatasetName + newLocalDatasetExtension)
-    console.log("checkIfNameAlreadyUsed(newLocalDatasetName + newLocalDatasetExtension)", checkIfNameAlreadyUsed(newLocalDatasetName + newLocalDatasetExtension))
-  }, [newLocalDatasetName, newLocalDatasetExtension])
-
+  /**
+   * To get the infos of the data
+   * @param {Object} data - The data
+   * @returns {Object} - The infos
+   * @returns {Number} - The infos.columnsLength - The number of columns
+   * @returns {Number} - The infos.rowsLength - The number of rows
+   * @returns {Array} - The infos.rowsCount - The number of non-NaN values per row
+   */
   const getInfos = (data) => {
     let infos = { columnsLength: data.shape[1], rowsLength: data.shape[0] }
     infos.rowsCount = data.count().$data
@@ -136,13 +108,22 @@ const SimpleCleaningTool = ({ pageId = "inputModule", configPath = "" }) => {
     return infos
   }
 
+  /**
+   * To get the data
+   * @returns {Promise} - The promise of the data
+   */
   const getData = () => {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
       let data = selectedDataset.loadDataFromDisk()
       resolve(data)
     })
   }
 
+  /**
+   * To drop the rows
+   * @param {Boolean} overwrite - True if the dataset should be overwritten, false otherwise
+   * @returns {Void}
+   */
   const dropRows = (overwrite) => {
     console.log("dropRows")
     getData().then((data) => {
@@ -152,6 +133,11 @@ const SimpleCleaningTool = ({ pageId = "inputModule", configPath = "" }) => {
     })
   }
 
+  /**
+   * To drop the rows or the columns
+   * @param {Boolean} overwrite - True if the dataset should be overwritten, false otherwise
+   * @returns {Void}
+   */
   const dropRowsOrColumns = (overwrite) => {
     if (dropType === "columns") {
       dropColumns(overwrite)
@@ -160,6 +146,11 @@ const SimpleCleaningTool = ({ pageId = "inputModule", configPath = "" }) => {
     }
   }
 
+  /**
+   * To drop all - the rows and the columns
+   * @param {Boolean} overwrite - True if the dataset should be overwritten, false otherwise
+   * @returns {Void}
+   */
   const dropAll = (overwrite) => {
     console.log("dropAll")
     getData().then((data) => {
@@ -199,18 +190,37 @@ const SimpleCleaningTool = ({ pageId = "inputModule", configPath = "" }) => {
     }
   }, [selectedDataset])
 
+  /**
+   * Template for the rows in the columns datatable
+   * @param {Object} data - The row data
+   * @returns {Object} - The row template
+   */
   const columnClass = (data) => {
     return { "bg-invalid": data.percentage < columnThreshold }
   }
 
+  /**
+   * Template for the rows in the rows datatable
+   * @param {Object} data - The row data
+   * @returns {Object} - The row template
+   */
   const rowClass = (data) => {
     return { "bg-invalid": data.percentage < rowThreshold }
   }
 
+  /**
+   * Template for the percentage cells
+   * @param {Object} rowData - The row data
+   * @returns {Object} - The percentage template
+   */
   const percentageTemplate = (rowData) => {
     return <span>{rowData.percentage.toFixed(2)} %</span>
   }
 
+  /**
+   * To drop the columns
+   * @param {Boolean} overwrite - True if the dataset should be overwritten, false otherwise
+   */
   const dropColumns = (overwrite) => {
     console.log("dropColumns")
     getData().then((data) => {
@@ -220,10 +230,17 @@ const SimpleCleaningTool = ({ pageId = "inputModule", configPath = "" }) => {
     })
   }
 
+  /**
+   * To save the clean dataset
+   * @param {Object} newData - The new data
+   * @param {Boolean} overwrite - True if the dataset should be overwritten, false otherwise
+   * @param {Boolean} local - True if the dataset is called from the overlaypanel (will use newLocalDatasetName and newLocalDatasetExtension instead of newDatasetName and newDatasetExtension), false otherwise
+   */
   const saveCleanDataset = (newData, overwrite = undefined, local = undefined) => {
     if (overwrite === true) {
       console.log("overwrite")
       selectedDataset.saveData(newData)
+      setSelectedDataset(null)
     } else {
       if (local === true) {
         console.log("local", getParentIDfolderPath(selectedDataset) + newLocalDatasetName, newLocalDatasetExtension)
@@ -235,6 +252,11 @@ const SimpleCleaningTool = ({ pageId = "inputModule", configPath = "" }) => {
     MedDataObject.updateWorkspaceDataObject()
   }
 
+  /**
+   * To get the parent ID folder path
+   * @param {Object} dataset - The dataset
+   * @returns {String} - The parent ID folder path with a trailing separator
+   */
   const getParentIDfolderPath = (dataset) => {
     let parentID = dataset.parentID
     let parentPath = globalData[parentID].path
@@ -242,6 +264,9 @@ const SimpleCleaningTool = ({ pageId = "inputModule", configPath = "" }) => {
     return parentPath + separator
   }
 
+  /**
+   * Hook that is called when the columns infos are updated to update the columns to drop
+   */
   useEffect(() => {
     let newColumnsToDrop = []
     selectedDatasetColumnsInfos.forEach((column) => {
@@ -252,6 +277,9 @@ const SimpleCleaningTool = ({ pageId = "inputModule", configPath = "" }) => {
     setColumnsToDrop(newColumnsToDrop)
   }, [selectedDatasetColumnsInfos, columnThreshold])
 
+  /**
+   * Hook that is called when the rows infos are updated to update the rows to drop
+   */
   useEffect(() => {
     let newRowsToDrop = []
     rowsInfos.forEach((row) => {

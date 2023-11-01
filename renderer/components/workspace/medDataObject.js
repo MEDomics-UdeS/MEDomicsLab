@@ -77,6 +77,10 @@ export default class MedDataObject {
     this.relatedInformation = []
   }
 
+  /**
+   * Creates a folder in the file system if it does not exist.
+   * @param {string} path - The path of the folder to create.
+   */
   static createFolderFromPath(path) {
     if (!fs.existsSync(path)) {
       fs.mkdirSync(path, { recursive: true })
@@ -131,7 +135,7 @@ export default class MedDataObject {
     let newPath = typeof path === "string" ? path : path.join(getPathSeparator())
     const pathToCreate = `${newPath}${getPathSeparator()}${name}.${extension}`
     if (!fs.existsSync(newPath)) {
-      this.createFolderFSsync(newPath).then((newPath) => {
+      this.createFolderFSsync(newPath).then(() => {
         let convertedExportObj = typeof exportObj === "string" ? exportObj : JSON.stringify(exportObj, null, 2)
         const fsPromises = fs.promises
         this.updateWorkspaceDataObject(1000)
@@ -487,6 +491,10 @@ export default class MedDataObject {
     return dataObject
   }
 
+  /**
+   * Returns the path separator based on the operating system.
+   * @returns {string} - The path separator.
+   */
   static getPathSeparator() {
     if (process.platform === "win32") {
       return "\\"
@@ -495,7 +503,11 @@ export default class MedDataObject {
     }
   }
 
-  // static changeChildrenPaths(newParentPath, children, globalDataContext, setGlobalDataContext) {
+  /**
+   * Returns the names of the folders and files in the provided path.
+   * @param {string} path - The path to search in.
+   * @returns {Array} - The names of the folders and files in the provided path.
+   */
   static getNamesOfFolderAndFilesInPath(path) {
     // eslint-disable-next-line no-undef
     let fs = require("fs")
@@ -555,6 +567,12 @@ export default class MedDataObject {
     }
   }
 
+  /**
+   * This function returns a new name for a file or folder that is not in the provided list of names.
+   * @param {string} name - The name to check.
+   * @param {Array} names - The list of names to check against.
+   * @param {string} extension - The extension of the file to check.
+   */
   static returnNameNotInList(name, names, extension = undefined) {
     let nameFound = false
     let index = 0
@@ -572,6 +590,11 @@ export default class MedDataObject {
     return nameToReturn
   }
 
+  /**
+   * This function returns a new name for a  folder that is not in the provided list of names.
+   * @param {string} name - The name to check.
+   * @param {string} folderPath - The path of the folder to check.
+   */
   static getNewNameForFolder({ name, folderPath }) {
     let nameToReturn = name
     let names = this.getNamesOfFolderAndFilesInPath(folderPath)
@@ -579,6 +602,12 @@ export default class MedDataObject {
     return nameToReturn
   }
 
+  /**
+   * This function returns a new name for a file that is not in the provided list of names.
+   * @param {string} name - The name to check.
+   * @param {string} folderPath - The path of the folder to check.
+   * @param {string} extension - The extension of the file to check.
+   */
   static getNewNameForFile({ name, folderPath, extension }) {
     let nameToReturn = name
     let names = this.getNamesOfFolderAndFilesInPath(folderPath)
@@ -592,12 +621,24 @@ export default class MedDataObject {
     return nameToReturn
   }
 
+  /**
+   * This function returns the total path of a file or folder.
+   * @param {string} newName - The name of the file or folder.
+   * @param {string} parentPath - The path of the parent folder.
+   */
   static getTotalPath(newName, parentPath) {
     let separator = getPathSeparator()
     let totalPath = parentPath + separator + newName
     return totalPath
   }
 
+  /**
+   * This function moves a `MedDataObject` to a new folder.
+   * @param {Object} dataObject - The `MedDataObject` to move.
+   * @param {Object} newParentObject - The `MedDataObject` to move to.
+   * @param {Object} globalDataContext - The global data context object to search in.
+   * @param {function} setGlobalDataContext - The function to set the updated global data context.
+   */
   static move(dataObject, newParentObject, globalDataContext, setGlobalDataContext) {
     let newDataObject = dataObject
     let oldParentID = dataObject.parentID
@@ -850,6 +891,7 @@ export default class MedDataObject {
    * @returns void
    */
   static async saveDatasetToDisk({ data = undefined, df = undefined, filePath = undefined, extension = undefined }) {
+    // eslint-disable-next-line no-undef
     const dfd = require("danfojs-node")
     if (filePath === undefined || filePath === null || filePath === "") {
       toast.error("No file path specified")
@@ -905,7 +947,6 @@ export default class MedDataObject {
    * @param {string} newName - The new name for the `MedDataObject` instance.
    * @returns {MedDataObject} - The modified `MedDataObject` instance.
    */
-
   rename(newName) {
     this.name = newName
     let separator = getPathSeparator()
@@ -1009,9 +1050,10 @@ export default class MedDataObject {
    */
   async loadDataFromDisk() {
     let extension = this.extension
-    // let path = this.path
     let data = undefined
+    // eslint-disable-next-line no-undef
     const dfd = require("danfojs-node")
+    // eslint-disable-next-line no-undef
     const path = require("path")
     let filePath = path.join(this.path)
     if (extension === "xlsx") {
@@ -1213,7 +1255,10 @@ function splitStringAtTheLastSeparator(string, separator) {
   let firstElements = splitString.join(separator)
   return [firstElements, lastElement]
 }
-
+/**
+ * Returns the path separator based on the operating system.
+ * @returns {string} - The path separator.
+ */
 function getPathSeparator() {
   // eslint-disable-next-line no-undef
   let process = require("process")
@@ -1224,6 +1269,12 @@ function getPathSeparator() {
   }
 }
 
+/**
+ * This function evaluates if a name is present in an array.
+ * @param {string} name - The name to check.
+ * @param {Array} array - The array to check against.
+ * @returns {Boolean} - `true` if the name is in the array, `false` otherwise.
+ */
 function boolNameInArray(name, array) {
   let nameInArray = false
   array.includes(name) ? (nameInArray = true) : (nameInArray = false)
