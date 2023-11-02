@@ -279,7 +279,23 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
    * @params {Object} action - The action passed on by the dispatchLayout function
    */
    const openMEDprofilesViewer = (action) => {
-    openGeneric(action, "MEDprofiles Viewer", "MEDprofilesViewer")
+    let type = "MEDprofiles Viewer"
+    let component = "MEDprofilesViewer"
+
+    let id = type
+    let isAlreadyIn = checkIfIDIsInLayoutModel(id, layoutModel)
+    if (!isAlreadyIn) {
+      const newChild = {
+        type: "tab",
+        name: type,
+        id: component,
+        component: component,
+        config: { path: null, uuid: id, extension: type, MEDclassesFolder: action.payload.MEDclassesFolder, MEDprofilesBinaryFile: action.payload.MEDprofilesBinaryFile  },
+      }
+      let layoutRequestQueueCopy = [...layoutRequestQueue]
+      layoutRequestQueueCopy.push({ type: "ADD_TAB", payload: newChild })
+      setLayoutRequestQueue(layoutRequestQueueCopy)
+    }
   }
 
   /**

@@ -675,9 +675,9 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
       if (node.getExtraData().data == null) {
         const config = node.getConfig()
         if (config.path !== null) {
-          return <MEDprofilesViewer pageId={config.uuid} configPath={config.path} />
+          return <MEDprofilesViewer pageId={config.uuid} configPath={config.path} MEDclassesFolder={config?.MEDclassesFolder} MEDprofilesBinaryFile={config?.MEDprofilesBinaryFile} />
         } else {
-          return <MEDprofilesViewer pageId={"MEDprofilesViewer"} />
+          return <MEDprofilesViewer pageId={"MEDprofilesViewer"} MEDclassesFolder={config?.MEDclassesFolder} MEDprofilesBinaryFile={config?.MEDprofilesBinaryFile}/>
         }
       }
     } else if (component === "extractionImagePage") {

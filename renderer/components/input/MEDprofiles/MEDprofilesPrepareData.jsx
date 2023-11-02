@@ -95,7 +95,7 @@ const MEDprofilesPrepareData = () => {
     }
 
   function openMEDprofilesViewer() {
-    dispatchLayout({ type: `openMEDprofilesViewerModule`, payload: { pageId: "MEDprofilesViewer" } })
+    dispatchLayout({ type: `openMEDprofilesViewerModule`, payload: { pageId: "MEDprofilesViewer", MEDclassesFolder: generatedClassesFolder, MEDprofilesBinaryFile: generatedMEDprofilesFile } })
   }
 
   /**

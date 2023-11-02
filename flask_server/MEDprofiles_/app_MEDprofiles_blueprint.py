@@ -1,4 +1,5 @@
 import os
+import pickle
 import sys
 from flask import request, Blueprint
 from pathlib import Path
@@ -55,6 +56,39 @@ def instantiate_MEDprofiles():
         MEDprofiles.src.back.instantiate_data_from_master_table.main(master_table_path, destination_file)
     except BaseException as e:
         return get_response_from_error(e)
+
+    return json_config
+
+
+@app_MEDprofiles.route("/load_pickle_cohort", methods=["GET", "POST"])
+def load_pickle_cohort():
+    # Set local variables
+    json_config = get_json_from_request(request)
+    MEDclasses_folder_path = json_config["MEDclassesFolder"]
+    MEDprofiles_bin_path = json_config["MEDprofilesBinaryFile"]
+    MEDclasses_module_path = os.path.dirname(MEDclasses_folder_path)
+
+    # Add MEDclasses module to sys.path if not present
+    if MEDclasses_module_path not in sys.path:
+        sys.path.append(MEDclasses_module_path)
+
+    # Import MEDclasses module
+    import MEDclasses as medclasses_module
+
+    # Load the pickle file
+    data_file = open(MEDprofiles_bin_path, 'rb')
+    MEDprofile_list = pickle.load(data_file)
+    data_file.close()
+
+    # Get the cohort
+    cohort = medclasses_module.MEDcohort(list_MEDprofile=MEDprofile_list[:5])
+
+    # Save the json data
+    MEDprofiles_json_path = os.path.join(os.path.dirname(MEDprofiles_bin_path), "MEDprofiles.json")
+    with open(MEDprofiles_json_path, "w") as json_file:
+        json_file.write(cohort.to_json())
+    json_file.close()
+    json_config["jsonFilePath"] = MEDprofiles_json_path
 
     return json_config
 
