@@ -1007,7 +1007,7 @@ export default class MedDataObject {
     this.data = fs.readFileSync(this.path)
     this.dataLoaded = true
     this.lastModified = Date(Date.now())
-    return data
+    return this.data
   }
 
   /**
@@ -1051,57 +1051,6 @@ export default class MedDataObject {
       data = await dfd.readJSON(filePath)
     }
     return data
-  }
-
-  /**
-   * GetsTheColumnsOfTheDataObjectIfItIsATable
-   * @returns {Array} - The columns of the data object if it is a table.
-   */
-  async getColumnsOfTheDataObjectIfItIsATable2(path) {
-    let newColumns = []
-    const data = await this.loadDataFromDisk(path)
-    console.log("data: ", data)
-    if (data.$columns) {
-      newColumns = data.$columns
-      this.metadata.columns = newColumns
-    }
-    return newColumns
-  }
-
-  /**
-   * @param {string} filePath - The path to the file to load.
-   * @returns {Promise} - A promise that resolves to the data loaded from the file.
-   */
-  loadDataFromDisk2 = async (filePath) => {
-    const Path = require("path")
-    let extension = Path.extname(filePath).slice(1)
-    console.log("extension: ", extension)
-    // let path = this.path
-    let data = undefined
-    const dfd = require("danfojs-node")
-    if (extension === "xlsx") {
-      data = await dfd.readExcel(filePath)
-    } else if (extension === "csv") {
-      data = await dfd.readCSV(filePath)
-    } else if (extension === "json") {
-      data = await dfd.readJSON(filePath)
-    }
-    return data
-  }
-
-  /**
-   * GetsTheColumnsOfTheDataObjectIfItIsATable
-   * @returns {Array} - The columns of the data object if it is a table.
-   */
-  async getColumnsOfTheDataObjectIfItIsATable2(path) {
-    let newColumns = []
-    const data = await this.loadDataFromDisk(path)
-    console.log("data: ", data)
-    if (data.$columns) {
-      newColumns = data.$columns
-      this.metadata.columns = newColumns
-    }
-    return newColumns
   }
 
   /**
