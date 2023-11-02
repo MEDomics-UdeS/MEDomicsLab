@@ -20,6 +20,7 @@ import ExtractionMEDimagePage from "../../mainPages/extractionMEDimage"
 import ExtractionTSPage from "../../mainPages/extractionTS"
 import HomePage from "../../mainPages/home"
 import TerminalPage from "../../mainPages/terminal"
+import ModelViewer from "../../mainPages/modelViewer"
 import OutputPage from "../../mainPages/output"
 import ApplicationPage from "../../mainPages/application"
 import * as Icons from "react-bootstrap-icons"
@@ -717,6 +718,12 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
         const config = node.getConfig()
 
         return <OutputPage />
+      }
+    } else if (component === "modelViewer") {
+      if (node.getExtraData().data == null) {
+        const config = node.getConfig()
+        console.log("config", config)
+        return <ModelViewer pageId={config.uuid} configPath={config.path} />
       }
     } else if (component !== "") {
       if (node.getExtraData().data == null) {

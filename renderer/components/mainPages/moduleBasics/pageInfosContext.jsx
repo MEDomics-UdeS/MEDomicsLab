@@ -4,7 +4,7 @@ import { customZipFile2Object } from "../../../utilities/customZipFile"
 
 // This context is used to store the pageInfos (id and config of the workflow)
 const PageInfosContext = createContext()
-const ZipFileExtensions = ["medml", "medimg", "medeval"]
+const ZipFileExtensions = ["medml", "medimg", "medeval", "medmodel"]
 /**
  *
  * @param {*} children components that will use the context
@@ -30,10 +30,10 @@ function PageInfosProvider({ children }) {
         let extension = configPath.split(".")[configPath.split(".").length - 1]
         if (ZipFileExtensions.includes(extension)) {
           customZipFile2Object(configPath).then((content) => {
-            config = content.metadata
-            console.log("loaded config", config)
-            console.log("config", config)
-            setConfig(config)
+            content.metadata && (content = content.metadata)
+            console.log("loaded config path", configPath)
+            console.log("loaded config", content)
+            setConfig(content)
           })
         } else {
           config = loadJsonPath(configPath)

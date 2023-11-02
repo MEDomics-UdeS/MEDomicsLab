@@ -7,9 +7,8 @@ import { ErrorRequestContext } from "../generalPurpose/errorRequestContext"
 import useInterval from "@khalidalansi/use-interval"
 import ProgressBarRequests from "../generalPurpose/progressBarRequests"
 import DataTableWrapperBPClass from "../dataTypeVisualisation/dataTableWrapperBPClass"
-import MedDataObject from "../workspace/medDataObject"
 
-const PredictPanel = ({ chosenConfig }) => {
+const PredictPanel = ({ chosenConfig, modelObjPath }) => {
   const { port } = useContext(WorkspaceContext) // we get the port for server connexion
   const { pageId } = useContext(PageInfosContext) // we get the pageId to send to the server
   const [progressValue, setProgressValue] = useState(0) // we use this to store the progress value of the dashboard
@@ -17,9 +16,8 @@ const PredictPanel = ({ chosenConfig }) => {
   const [predictedData, setPredictedData] = useState(undefined) // we use this to store the predicted data
   const [isPredictOpen, setIsPredictOpen] = useState(false) // we use this to open and close the dashboard
   const [isPredictMounted, setIsPredictMounted] = useState(false) // we use this to mount and unmount the dashboard
-  const [chosenModel, setChosenModel] = useState({}) // we use this to store the chosen model
-  const [chosenDataset, setChosenDataset] = useState({}) // we use this to store the chosen dataset
   const { setError } = useContext(ErrorRequestContext)
+  const [isRunning, setIsRunning] = useState(false) // we use this to know if the dashboard is running or not
 
   // handle the dashboard opening (mounting) and closing (unmounting)
   useEffect(() => {
@@ -29,8 +27,6 @@ const PredictPanel = ({ chosenConfig }) => {
   useEffect(() => {
     if (Object.keys(chosenConfig).length != 0) {
       if (Object.keys(chosenConfig.model).length != 0 && Object.keys(chosenConfig.dataset).length != 0) {
-        setChosenModel(chosenConfig.model)
-        setChosenDataset(chosenConfig.dataset)
         setIsPredictOpen(true)
       }
     }
@@ -38,20 +34,27 @@ const PredictPanel = ({ chosenConfig }) => {
 
   // handle the dashboard opening (mounting) and closing (unmounting)
   useEffect(() => {
-    if (isPredictOpen && isPredictMounted) {
+    if (isPredictOpen && isPredictMounted && !isRunning && modelObjPath != "") {
+      setIsRunning(true)
+      console.log("starting predict...")
+      setProgressValue(0)
       setIsUpdating(true)
+      console.log("modelObjPath predict", modelObjPath)
+      console.log("chosenConfig:", chosenConfig)
       requestBackend(
         port,
         "evaluation/predict_test/predict/" + pageId,
-        { pageId: pageId, model: chosenModel, dataset: chosenDataset, mlType: chosenModel.mlType },
+        { pageId: pageId, model: chosenConfig.model, dataset: chosenConfig.dataset, modelObjPath: modelObjPath },
         (data) => {
           setIsUpdating(false)
           if (data.error) {
             setError(data.error)
           } else {
+            setIsRunning(false)
+            setIsPredictOpen(false)
             setPredictedData(data)
           }
-          console.log("openDashboard received data:", data)
+          console.log("predict_test received data:", data)
         },
         (error) => {
           console.error(error)
@@ -59,7 +62,7 @@ const PredictPanel = ({ chosenConfig }) => {
         }
       )
     }
-  }, [isPredictOpen, isPredictMounted, chosenModel, chosenDataset])
+  }, [isPredictOpen, isPredictMounted, chosenConfig, modelObjPath, isRunning])
 
   const onProgressDataReceived = (data) => {
     setProgressValue(data.now)
@@ -79,7 +82,7 @@ const PredictPanel = ({ chosenConfig }) => {
               config={{
                 extension: "csv",
                 name: "predictedData",
-                path: chosenModel.path.replace(".medmodel", ".csv")
+                path: chosenConfig.model.path.replace(".medmodel", ".csv")
               }}
             />
           </div>

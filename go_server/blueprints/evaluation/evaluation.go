@@ -1,40 +1,39 @@
 package evaluation
 
 import (
-	"fmt"
 	Utils "go_module/src"
-	"sync"
+	"log"
+	"strconv"
 )
 
 var prePath = "evaluation"
 
 // AddHandleFunc adds the specific module handle function to the server
-func AddHandleFunc(wg *sync.WaitGroup) {
-	Utils.CreateHandleFunc(prePath+"/open_dashboard/", handleOpenDashboard, wg)
-	Utils.CreateHandleFunc(prePath+"/close_dashboard/", handleCloseDashboard, wg)
-	Utils.CreateHandleFunc(prePath+"/progress/", handleProgress, wg)
-	Utils.CreateHandleFunc(prePath+"/predict_test/", handlePredictTest, wg)
-
+func AddHandleFunc() {
+	Utils.CreateHandleFunc(prePath+"/open_dashboard/", handleOpenDashboard)
+	Utils.CreateHandleFunc(prePath+"/close_dashboard/", handleCloseDashboard)
+	Utils.CreateHandleFunc(prePath+"/progress/", handleProgress)
+	Utils.CreateHandleFunc(prePath+"/predict_test/", handlePredictTest)
 }
 
 // handleOpenDashboard handles the request to open the dashboard
 // It returns the response from the python script
 func handleOpenDashboard(jsonConfig string, id string) (string, error) {
-	fmt.Println("Running dashboard...", id)
-	response, err := Utils.StartPythonScript(jsonConfig, "../flask_server/evaluation/scripts/open_dashboard.py", id)
+	log.Println("Running dashboard...", id)
+	response, err := Utils.StartPythonScripts(jsonConfig, "../flask_server/evaluation/scripts/open_dashboard.py", id)
 	Utils.RemoveIdFromScripts(id)
 	if err != nil {
 		return "", err
 	}
+	log.Println("Dashboard opened finished successfully with response: ", response)
 	return response, nil
 }
 
 // handleCloseDashboard handles the request to close the dashboard
 // It returns the response from the python script
 func handleCloseDashboard(jsonConfig string, id string) (string, error) {
-	var ok = Utils.RemoveIdFromScripts(id)
-	var toReturn = "closed successfully state : " + fmt.Sprint(ok)
-	return toReturn, nil
+	ok := Utils.KillScript(id)
+	return "closed successfully. killing script status: " + strconv.FormatBool(ok), nil
 }
 
 // handleProgress handles the request to get the progress of the experiment
@@ -55,8 +54,8 @@ func handleProgress(jsonConfig string, id string) (string, error) {
 }
 
 func handlePredictTest(jsonConfig string, id string) (string, error) {
-	fmt.Println("Running predict test...", id)
-	response, err := Utils.StartPythonScript(jsonConfig, "../flask_server/evaluation/scripts/predict_test.py", id)
+	log.Println("Running predict test...", id)
+	response, err := Utils.StartPythonScripts(jsonConfig, "../flask_server/evaluation/scripts/predict_test.py", id)
 	if err != nil {
 		return "", err
 	}

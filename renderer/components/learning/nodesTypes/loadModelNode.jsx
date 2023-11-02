@@ -1,7 +1,7 @@
 import React, { useState, useContext, useEffect } from "react"
 import Node from "../../flow/node"
 import Input from "../input"
-import { Button } from "react-bootstrap"
+import { Button, Row, Col } from "react-bootstrap"
 import ModalSettingsChooser from "../modalSettingsChooser"
 import * as Icon from "react-bootstrap-icons"
 import { FlowFunctionsContext } from "../../flow/context/flowFunctionsContext"
@@ -9,6 +9,7 @@ import { Stack } from "react-bootstrap"
 import { DataContext } from "../../workspace/dataContext"
 import MedDataObject from "../../workspace/medDataObject"
 import { FlowInfosContext } from "../../flow/context/flowInfosContext"
+import { set } from "react-hook-form"
 
 /**
  *
@@ -29,12 +30,16 @@ const LoadModelNode = ({ id, data }) => {
   const { globalData } = useContext(DataContext)
   const { flowContent } = useContext(FlowInfosContext)
 
+  useEffect(() => {
+    setModelInfo(data.internal.settings.model_to_load)
+  }, [])
+
   // update the node internal data when the selection changes
   useEffect(() => {
     if (globalData && modelInfo) {
       let modelDataObject = MedDataObject.checkIfMedDataObjectInContextbyPath(data.internal.settings.model_to_load.path, globalData)
       if (modelDataObject && modelDataObject.metadata.content) {
-        let modelData = modelDataObject.metadata.content.model_required_cols
+        let modelData = modelDataObject.metadata.content
         console.log("modelData", modelData)
         checkPreviousDatasetFormat(modelData)
       }
@@ -141,27 +146,49 @@ const LoadModelNode = ({ id, data }) => {
           datasetNodeModelDataFormatted = { columns: Object.keys(datasetNodeModelData.columns), target: datasetNodeModelData.target }
         }
         console.log("datasetNodeModelDataFormatted", datasetNodeModelDataFormatted)
+        let modelDataFormatted = { columns: modelData.columns, target: modelData.target }
         console.log("modelData", modelData)
-        if (JSON.stringify(datasetNodeModelDataFormatted) == JSON.stringify(modelData)) {
+        if (JSON.stringify(datasetNodeModelDataFormatted) == JSON.stringify(modelDataFormatted)) {
           datasetNode.data.internal.hasWarning = { state: false }
         } else {
           datasetNode.data.internal.hasWarning = {
             state: true,
             tooltip: (
               <>
-                <h4>This dataset does not respect the model format</h4>
-                <p>Needed columns:</p>
-                {/* here is a list of the needed columns */}
-                <ul>
-                  {modelData.columns.map((col) => {
-                    return <li key={col}>{col}</li>
-                  })}
-                </ul>
-                <p>Needed target:</p>
-                {/* here is the required target */}
-                <ul>
-                  <li>{modelData.target}</li>
-                </ul>
+                <div className="evaluation-tooltip">
+                  <h4>This dataset does not respect the model format</h4>
+                  {/* here is a list of the needed columns */}
+                  <div style={{ maxHeight: "400px", overflowY: "auto", overflowX: "hidden" }}>
+                    <Row>
+                      <Col>
+                        <p>Needed target:</p>
+                        <ul>{modelDataFormatted.target}</ul>
+                      </Col>
+                      <Col>
+                        <p>Received target:</p>
+                        <ul>{datasetNodeModelDataFormatted.target}</ul>
+                      </Col>
+                    </Row>
+                    <Row>
+                      <Col>
+                        <p>Needed columns:</p>
+                        <ul>
+                          {modelDataFormatted.columns.map((col) => {
+                            return <li key={col}>{col}</li>
+                          })}
+                        </ul>
+                      </Col>
+                      <Col>
+                        <p>Received columns:</p>
+                        <ul>
+                          {datasetNodeModelDataFormatted.columns.map((col) => {
+                            return <li key={col}>{col}</li>
+                          })}
+                        </ul>
+                      </Col>
+                    </Row>
+                  </div>
+                </div>
               </>
             )
           }

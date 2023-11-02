@@ -1,0 +1,51 @@
+import React, { useContext, useEffect, useState } from "react"
+import ModulePage from "./moduleBasics/modulePage"
+import { PageInfosContext } from "./moduleBasics/pageInfosContext"
+import Path from "path"
+
+const ModelViewer = () => {
+  const { config, configPath } = useContext(PageInfosContext)
+  useEffect(() => {
+    console.log("model config", config)
+  }, [config])
+
+  return (
+    <>
+      {config && (
+        <>
+          <h1>
+            Model informations : <strong>{configPath && Path.basename(configPath)}</strong>
+          </h1>
+          <h3>Required columns</h3>
+          <ul>
+            {config.columns.map((col, i) => (
+              <li key={i}>{col}</li>
+            ))}
+          </ul>
+          <h3>Model target</h3>
+          <p>{config.target}</p>
+          <h3>machine learning type</h3>
+          <p>{config.mlType}</p>
+        </>
+      )}
+    </>
+  )
+}
+
+/**
+ * @param {String} pageId Id of the page for multi-tabs support
+ * @param {String} configPath Path to the config file
+ *
+ * @description This component is the base for all the flow pages. It contains the sidebar, the workflow and the backdrop.
+ */
+const ModelViewerWithContext = ({ pageId = "results123", configPath = null }) => {
+  return (
+    <>
+      <ModulePage pageId={pageId} configPath={configPath} shadow>
+        <ModelViewer />
+      </ModulePage>
+    </>
+  )
+}
+
+export default ModelViewerWithContext

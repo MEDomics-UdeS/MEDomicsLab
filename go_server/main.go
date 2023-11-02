@@ -7,28 +7,27 @@ import (
 	Evaluation "go_module/blueprints/evaluation"
 	Learning "go_module/blueprints/learning"
 	Utils "go_module/src"
+	"log"
 	"net/http"
-	"sync"
 )
 
 func main() {
 
-	var wg sync.WaitGroup
-
 	// Here is where you add the handle functions to the server
-	Learning.AddHandleFunc(&wg)
-	Evaluation.AddHandleFunc(&wg)
-	Utils.CreateHandleFunc("get_server_health", handleGetServerHealth, &wg)
-	Utils.CreateHandleFunc("removeId/", handleRemoveId, &wg)
+	Learning.AddHandleFunc()
+	Evaluation.AddHandleFunc()
+	Utils.CreateHandleFunc("get_server_health", handleGetServerHealth)
+	Utils.CreateHandleFunc("removeId/", handleRemoveId)
+	Utils.CreateHandleFunc("clearAll", handleClearAll)
 
 	// Here is where you start the server
 	c := cors.Default()
 	handler := c.Handler(http.DefaultServeMux)
 	port := Utils.GetDotEnvVariable("PORT")
-	fmt.Println("Server is listening on :" + port + "...")
+	log.Println("Server is listening on :" + port + "...")
 	err := http.ListenAndServe(":"+port, handler)
 	if err != nil {
-		fmt.Println("Error starting server: ", err)
+		log.Println("Error starting server: ", err)
 		return
 	}
 }
@@ -45,19 +44,27 @@ func handleGetServerHealth(jsonConfig string, id string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	fmt.Println("Server health: " + string(jsonData))
+	// check number of keys in map
+	numKeys := len(states)
+	log.Printf("Server health: %d active processes", numKeys)
 	return string(jsonData), nil
 }
 
 func convScript2JsonStr(script Utils.ScriptInfo) (string, error) {
 	data := make(map[string]string)
+	//data["info"] = script.Cmd.String()
 	data["progress"] = script.Progress
 	jsonData, _ := Utils.Map2jsonStr(data)
-	return string(jsonData), nil
+	return jsonData, nil
 }
 
 func handleRemoveId(jsonConfig string, id string) (string, error) {
-	var ok = Utils.RemoveIdFromScripts(id)
-	var toReturn = "Removed successfully state : " + fmt.Sprint(ok)
-	return toReturn, nil
+	ok := Utils.KillScript(id)
+	Utils.RemoveIdFromScripts(id)
+	return "Removed successfully state : " + fmt.Sprint(ok), nil
+}
+
+func handleClearAll(jsonConfig string, id string) (string, error) {
+	Utils.ClearAllScripts()
+	return "Removed all states successfully", nil
 }

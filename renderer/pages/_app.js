@@ -10,6 +10,7 @@ import { DataContextProvider } from "../components/workspace/dataContext"
 import MedDataObject from "../components/workspace/medDataObject"
 import { ActionContextProvider } from "../components/layout/actionContext"
 import { HotkeysProvider } from "@blueprintjs/core"
+import { requestBackend } from "../utilities/requests"
 
 // CSS
 import "bootstrap/dist/css/bootstrap.min.css"

@@ -131,7 +131,7 @@ const DataTablePopoverBP = (props) => {
         setGlobalData(globalDataCopy)
       }
     } else {
-      console.log("MedObject not found")
+      // console.log("MedObject not found")
     }
   }, [])
 
@@ -152,7 +152,7 @@ const DataTablePopoverBP = (props) => {
   }, [selectedType])
 
   useEffect(() => {
-    console.log("Rerender", filterValue)
+    // console.log("Rerender", filterValue)
   }, [])
   return (
     <>

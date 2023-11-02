@@ -11,12 +11,16 @@ import MedDataObject from "../workspace/medDataObject"
 import { LoaderContext } from "../generalPurpose/loaderContext"
 import { Col, Row } from "react-bootstrap"
 import { toast } from "react-toastify"
-import { modifyZipFileSync } from "../../utilities/customZipFile"
+import { modifyZipFileSync, customZipFile2Object } from "../../utilities/customZipFile"
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels"
 import { TabView, TabPanel } from "primereact/tabview"
 import PredictPanel from "./predictPanel"
 import Dashboard from "./dashboard"
-import { customZipFile2Object } from "../../utilities/customZipFile"
+import fsprom from "fs/promises"
+import fs from "fs"
+import path from "path"
+import { WorkspaceContext } from "../workspace/workspaceContext"
+import { requestBackend } from "../../utilities/requests"
 
 const ConfigPage = ({ pageId, config, chosenModel, setChosenModel, chosenDataset, setChosenDataset, modelHasWarning, setModelHasWarning, datasetHasWarning, setDatasetHasWarning, updateEvaluationConfig }) => {
   useEffect(() => {
@@ -52,7 +56,7 @@ const ConfigPage = ({ pageId, config, chosenModel, setChosenModel, chosenDataset
               {modelHasWarning.state && (
                 <>
                   <Tag className={`model-warning-tag-${pageId}`} icon="pi pi-exclamation-triangle" severity="warning" value="" rounded data-pr-position="left" data-pr-showdelay={200} />
-                  <Tooltip target={`.model-warning-tag-${pageId}`}>
+                  <Tooltip target={`.model-warning-tag-${pageId}`} autoHide={false}>
                     <span>{modelHasWarning.tooltip}</span>
                   </Tooltip>
                 </>
@@ -63,7 +67,7 @@ const ConfigPage = ({ pageId, config, chosenModel, setChosenModel, chosenDataset
               {datasetHasWarning.state && (
                 <>
                   <Tag className={`dataset-warning-tag-${pageId}`} icon="pi pi-exclamation-triangle" severity="warning" value="" rounded data-pr-position="left" data-pr-showdelay={200} />
-                  <Tooltip target={`.dataset-warning-tag-${pageId}`}>
+                  <Tooltip target={`.dataset-warning-tag-${pageId}`} autoHide={false}>
                     <span>{datasetHasWarning.tooltip}</span>
                   </Tooltip>
                 </>
@@ -80,7 +84,7 @@ const ConfigPage = ({ pageId, config, chosenModel, setChosenModel, chosenDataset
 const EvaluationContent = ({ chosenConfig, pageId, config, updateWarnings, chosenModel, setChosenModel, updateEvaluationConfig, chosenDataset, setChosenDataset, modelHasWarning, setModelHasWarning, datasetHasWarning, setDatasetHasWarning }) => {
   const evaluationHeaderPanelRef = useRef(null)
   const [showHeader, setShowHeader] = useState(true)
-  const [isPredictFinished, setIsPredictFinished] = useState(false)
+  const [modelObjPathModule, setModelObjPathModule] = useState({ predict: "", dashboard: "" })
 
   useEffect(() => {
     updateWarnings()
@@ -91,6 +95,19 @@ const EvaluationContent = ({ chosenConfig, pageId, config, updateWarnings, chose
     setChosenDataset(config.dataset)
     setChosenModel(config.model)
   }, [config])
+
+  useEffect(() => {
+    console.log("chosenConfig", chosenConfig)
+    if (chosenConfig && chosenConfig.model && chosenConfig.dataset) {
+      modifyZipFileSync(chosenConfig.model.path, async (path) => {
+        console.log("path:", path)
+        return await unpickleMedmodel(path + "/model.pkl", pageId)
+      }).then((modelObjPaths) => {
+        console.log("modelObjPaths 2:", modelObjPaths)
+        setModelObjPathModule({ predict: modelObjPaths[0], dashboard: modelObjPaths[1] })
+      })
+    }
+  }, [chosenConfig])
 
   useEffect(() => {
     if (evaluationHeaderPanelRef.current) {
@@ -104,6 +121,50 @@ const EvaluationContent = ({ chosenConfig, pageId, config, updateWarnings, chose
     }
   }, [showHeader])
 
+  const unpickleMedmodel = (fname, id) => {
+    function writeFile(absPath, data) {
+      return new Promise((resolve, reject) => {
+        let dir = path.dirname(absPath)
+        if (!fs.existsSync(dir)) {
+          fsprom.mkdir(dir, { recursive: true }).then(() => {
+            fsprom.writeFile(absPath, data).then(() => {
+              console.log("written")
+              resolve(absPath)
+            })
+          })
+        } else {
+          fsprom.writeFile(absPath, data).then(() => {
+            console.log("written")
+            resolve(absPath)
+          })
+        }
+      })
+    }
+    return new Promise((resolve, reject) => {
+      console.log("unpickling:", path.join(fname))
+      // list all files in the directory
+      fsprom.readdir(path.dirname(fname)).then((files) => {
+        console.log("files:", files)
+        fsprom
+          .readFile(path.join(fname))
+          .then((pkl) => {
+            console.log("pkl:", pkl)
+            let absPathPredict = path.resolve("tmp/model-" + id + "-predict.pkl")
+            let absPathDashboard = path.resolve("tmp/model-" + id + "-dashboard.pkl")
+            let absPaths = [absPathPredict, absPathDashboard]
+            let promises = absPaths.map((absPath) => writeFile(absPath, pkl))
+            Promise.all(promises).then((results) => {
+              resolve(results)
+            })
+          })
+          .catch((err) => {
+            console.error("Error while reading file:", err)
+            reject(err)
+          })
+      })
+    })
+  }
+
   return (
     <div className="evaluation-content">
       <PanelGroup style={{ height: "100%", display: "flex", flexGrow: 1 }} direction="vertical" id={pageId}>
@@ -115,7 +176,7 @@ const EvaluationContent = ({ chosenConfig, pageId, config, updateWarnings, chose
               {modelHasWarning.state && (
                 <>
                   <Tag className={`model-warning-tag-${pageId}`} icon="pi pi-exclamation-triangle" severity="warning" value="" rounded data-pr-position="bottom" data-pr-showdelay={200} />
-                  <Tooltip target={`.model-warning-tag-${pageId}`}>
+                  <Tooltip target={`.model-warning-tag-${pageId}`} autoHide={false}>
                     <span>{modelHasWarning.tooltip}</span>
                   </Tooltip>
                 </>
@@ -126,7 +187,7 @@ const EvaluationContent = ({ chosenConfig, pageId, config, updateWarnings, chose
               {datasetHasWarning.state && (
                 <>
                   <Tag className={`dataset-warning-tag-${pageId}`} icon="pi pi-exclamation-triangle" severity="warning" value="" rounded data-pr-position="bottom" data-pr-showdelay={200} />
-                  <Tooltip target={`.dataset-warning-tag-${pageId}`}>
+                  <Tooltip target={`.dataset-warning-tag-${pageId}`} autoHide={false}>
                     <span>{datasetHasWarning.tooltip}</span>
                   </Tooltip>
                 </>
@@ -147,10 +208,10 @@ const EvaluationContent = ({ chosenConfig, pageId, config, updateWarnings, chose
           <div className="eval-body-content">
             <TabView renderActiveOnly={false}>
               <TabPanel key="Predict" header="Predict/Test">
-                <PredictPanel chosenConfig={chosenConfig} />
+                <PredictPanel chosenConfig={chosenConfig} modelObjPath={modelObjPathModule.predict} />
               </TabPanel>
               <TabPanel key="Dash" header="Dashboard">
-                <Dashboard chosenConfig={chosenConfig} />
+                <Dashboard chosenConfig={chosenConfig} modelObjPath={modelObjPathModule.dashboard} />
               </TabPanel>
             </TabView>
           </div>
@@ -169,31 +230,93 @@ const EvaluationPageContent = () => {
   const { globalData, setGlobalData } = useContext(DataContext)
   const { setLoader } = useContext(LoaderContext)
   const [chosenConfig, setChosenConfig] = useState()
+  const { port } = useContext(WorkspaceContext) // we get the port for server connexion
 
   useEffect(() => {
-    updateWarnings()
-  }, [chosenModel, chosenDataset, globalData])
+    ;(async () => {
+      await updateWarnings()
+    })()
+  }, [chosenDataset])
 
   const updateEvaluationConfig = useCallback(() => {
+    console.log("updateEvaluationConfig")
     let config = {
       model: chosenModel,
       dataset: chosenDataset
     }
-    setChosenConfig(config)
     modifyZipFileSync(configPath, async (path) => {
       await MedDataObject.writeFileSync(config, path, "metadata", "json")
       toast.success("Config has been saved successfully")
       reloadConfig()
+    }).then((res) => {
+      console.log("res:", res)
+      requestBackend(
+        port,
+        "evaluation/close_dashboard/dashboard/" + pageId,
+        { pageId: pageId },
+        (data) => {
+          console.log("closeDashboard received data:", data)
+        },
+        (error) => {
+          console.log("closeDashboard received error:", error)
+        }
+      )
+      setChosenConfig(config)
     })
   }, [configPath, chosenModel, chosenDataset])
 
   useEffect(() => {
-    config && setChosenConfig(config)
+    console.log("new config", config)
+    if (config) {
+      setChosenConfig(config)
+    }
   }, [config])
 
   const updateWarnings = async () => {
+    console.log("updateWarnings-----------------------------")
     console.log("chosenModel", chosenModel)
     console.log("chosenDataset", chosenDataset)
+
+    const checkWarnings = (columnsArray, modelData) => {
+      let datasetColsString = JSON.stringify(columnsArray)
+      let modelColsString = JSON.stringify(modelData)
+      if (datasetColsString !== modelColsString) {
+        setDatasetHasWarning({
+          state: true,
+          tooltip: (
+            <>
+              <div className="evaluation-tooltip">
+                <h4>This dataset does not respect the model format</h4>
+                {/* here is a list of the needed columns */}
+                <div style={{ maxHeight: "400px", overflowY: "auto", overflowX: "hidden" }}>
+                  <Row>
+                    <Col>
+                      <p>Needed columns:</p>
+                      <ul>
+                        {modelData.map((col) => {
+                          return <li key={col}>{col}</li>
+                        })}
+                      </ul>
+                    </Col>
+                    <Col>
+                      <p>Received columns:</p>
+                      <ul>
+                        {columnsArray.map((col) => {
+                          return <li key={col}>{col}</li>
+                        })}
+                      </ul>
+                    </Col>
+                  </Row>
+                </div>
+              </div>
+            </>
+          )
+        })
+      } else {
+        setModelHasWarning({ state: false, tooltip: "" })
+      }
+    }
+
     if (Object.keys(chosenModel).length > 0 && Object.keys(chosenDataset).length > 0 && chosenModel.name != "No selection" && chosenDataset.name != "No selection") {
       //   getting colummns of the dataset
       setLoader(true)
@@ -202,51 +325,26 @@ const EvaluationPageContent = () => {
       //   getting colummns of the model
       let modelDataObject = await MedDataObject.getObjectByPathSync(chosenModel.path, globalData)
       console.log("modelDataObject", modelDataObject)
-      if (modelDataObject && !modelDataObject.metadata.content) {
-        let content = await customZipFile2Object(chosenModel.path)
-        if (content.model_required_cols) {
-          modelDataObject.metadata.content = content.model_required_cols
-          if (modelDataObject.metadata.content) {
-            let modelData = modelDataObject.metadata.content.columns
-            let datasetColsString = JSON.stringify(columnsArray)
-            let modelColsString = JSON.stringify(modelData)
-            if (datasetColsString !== modelColsString) {
-              setDatasetHasWarning({
-                state: true,
-                tooltip: (
-                  <>
-                    <div className="evaluation-tooltip">
-                      <h4>This dataset does not respect the model format</h4>
-                      {/* here is a list of the needed columns */}
-                      <div style={{ maxHeight: "400px", overflowY: "auto", overflowX: "hidden" }}>
-                        <Row>
-                          <Col>
-                            <p>Needed columns:</p>
-                            <ul>
-                              {modelData.map((col) => {
-                                return <li key={col}>{col}</li>
-                              })}
-                            </ul>
-                          </Col>
-                          <Col>
-                            <p>Received columns:</p>
-                            <ul>
-                              {columnsArray.map((col) => {
-                                return <li key={col}>{col}</li>
-                              })}
-                            </ul>
-                          </Col>
-                        </Row>
-                      </div>
-                    </div>
-                  </>
-                )
-              })
-            } else {
-              setModelHasWarning({ state: false, tooltip: "" })
-            }
+      if (modelDataObject) {
+        if (!modelDataObject.metadata.content) {
+          try {
+            customZipFile2Object(chosenModel.path).then((content) => {
+              if (content && Object.keys(content).length > 0) {
+                console.log("content", content)
+                modelDataObject.metadata.content = content
+                setGlobalData({ ...globalData })
+                let modelData = content.columns
+                checkWarnings(columnsArray, modelData)
+              }
+            })
+          } catch (error) {
+            console.log("error", error)
           }
+        } else {
+          let modelData = modelDataObject.metadata.content.columns
+          checkWarnings(columnsArray, modelData)
         }
+        console.log("modelDataObject.metadata.content", modelDataObject.metadata.content)
       }
     }
   }

@@ -75,7 +75,6 @@ export const axiosPostJsonGo = async (port, topic, json2send, jsonReceivedCB, on
     response.data.type == "toParse" ? jsonReceivedCB(JSON.parse(response.data.response_message)) : jsonReceivedCB(response.data.response_message)
     return response.data
   } catch (error) {
-    console.log("error code: " + onError)
     onError
       ? onError(error)
       : () => {

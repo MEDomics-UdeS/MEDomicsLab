@@ -2,13 +2,16 @@ import os
 import sys
 from pathlib import Path
 import json
+
+import joblib
 from pycaret.classification.oop import ClassificationExperiment
 from pycaret.regression.oop import RegressionExperiment
+from sklearn.pipeline import Pipeline
 
 sys.path.append(
     str(Path(os.path.dirname(os.path.abspath(__file__))).parent.parent))
 
-from utils.server_utils import go_print, get_model_from_medmodel, load_csv
+from utils.server_utils import go_print, get_model_from_medmodel, load_csv, get_model_from_path
 from utils.GoExecutionScript import GoExecutionScript, parse_arguments
 
 json_params_dict, id_ = parse_arguments()
@@ -29,27 +32,33 @@ class GoExecScriptPredictTest(GoExecutionScript):
         self.results = {"data": "nothing to return"}
         self._progress["type"] = "process"
 
-
     def _custom_process(self, json_config: dict) -> dict:
         go_print(json.dumps(json_config, indent=4))
         model_infos = json_config['model']
-        medmodel_path = model_infos['path']
+        ml_type = model_infos['metadata']['ml_type']
         dataset_infos = json_config['dataset']
         dataset_path = dataset_infos['path']
         self.set_progress(label="Loading the model", now=10)
-        model = get_model_from_medmodel(medmodel_path)
+        pickle_path = json_config['modelObjPath']
+        model = get_model_from_path(pickle_path)
+        os.remove(pickle_path)
+        go_print(f"model loaded: {model}")
         self.set_progress(label="Loading the dataset", now=20)
-        dataset = load_csv(dataset_path, model_infos['columns']['target'])
+        dataset = load_csv(dataset_path, model_infos['metadata']['target'])
 
         # caluclate the predictions
         self.set_progress(label="Setting up the experiment", now=30)
-        exp = ClassificationExperiment()
-        self.set_progress(label="Setting up the experiment", now=40)
-        exp.setup(data=dataset, target=model_infos['columns']['target'])
-        self.set_progress(label="Predicting...", now=50)
+        exp = None
+        if ml_type == 'regression':
+            exp = RegressionExperiment()
+        elif ml_type == 'classification':
+            exp = ClassificationExperiment()
+        self.set_progress(label="Setting up the experiment", now=50)
+        exp.setup(data=dataset, target=model_infos['metadata']['target'])
+        self.set_progress(label="Predicting...", now=70)
         pred_unseen = exp.predict_model(model, data=dataset)
         self.results = {"data": pred_unseen.to_dict(orient='records')}
-        self.set_progress(label="Predicting...", now=50)
+        self.set_progress(label="Compiling results ...", now=80)
         return self.results
 
 

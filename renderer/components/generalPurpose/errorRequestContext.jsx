@@ -24,9 +24,14 @@ function ErrorRequestProvider({ children }) {
   const [showError, setShowError] = useState(false) // Initial state
 
   useEffect(() => {
+    console.log("error", error)
     if (Object.keys(error).length !== 0) {
       if (error.toast) {
-        toast.error(error.toast)
+        if (error.go_kill) {
+          toast.warn(error.toast)
+        } else {
+          toast.error(error.toast)
+        }
       } else {
         setShowError(true)
       }

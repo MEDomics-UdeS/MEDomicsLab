@@ -205,18 +205,17 @@ const Input = ({ name, settingInfos, currentValue, onInputChange, disabled, setH
                 className="form-select"
                 {...customProps}
                 disabled={disabled}
-                value={currentValue}
+                value={{ name: currentValue }}
                 onChange={(e) =>
                   setInputUpdate({
                     name: name,
-                    value: e.target.value,
+                    value: e.target.value.name,
                     type: settingInfos.type
                   })
                 }
-                options={Object.entries(settingInfos.choices).map(([option, tooltip]) => {
+                options={Object.entries(settingInfos.choices).map(([option]) => {
                   return {
-                    name: option,
-                    tooltip: tooltip
+                    name: option
                   }
                 })}
                 optionLabel="name"
@@ -229,14 +228,12 @@ const Input = ({ name, settingInfos, currentValue, onInputChange, disabled, setH
       case "list-multiple":
         return (
           <>
-            <div id={name}>
+            <div id={name} className="list-multiple">
               <label className="custom-lbl">{name}</label>
               <Select
                 disabled={disabled}
                 options={Object.entries(settingInfos.choices).map(([option, tooltip]) => {
                   currentValue == undefined && (currentValue = [])
-                  console.log("option", option)
-                  console.log("currentValue", currentValue)
                   if (!currentValue.includes(option)) return createOption(option)
                 })}
                 value={currentValue}
@@ -281,7 +278,7 @@ const Input = ({ name, settingInfos, currentValue, onInputChange, disabled, setH
       case "custom-list":
         return (
           <>
-            <div id={name} style={{ height: "56px" }}>
+            <div id={name} style={{ height: "52px" }} className="custom-list">
               <label className="custom-lbl">{name}</label>
               <CreatableSelect
                 disabled={disabled}
@@ -376,12 +373,12 @@ const Input = ({ name, settingInfos, currentValue, onInputChange, disabled, setH
                     customZipFile2Object(path).then((content) => {
                       setInputUpdate({
                         name: name,
-                        value: { name: e.target.value, path: path, columns: content.model_required_cols },
+                        value: { name: e.target.value, path: path, metadata: content.metadata },
                         type: settingInfos.type
                       })
                       console.log("content", content)
                       let modelDataObject = MedDataObject.checkIfMedDataObjectInContextbyPath(path, globalData)
-                      modelDataObject.metadata.content = content
+                      modelDataObject.metadata.content = content.metadata
                       setGlobalData({ ...globalData })
                     })
                     setHasWarning({ state: false })

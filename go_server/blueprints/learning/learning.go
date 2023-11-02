@@ -1,28 +1,27 @@
 package learning
 
 import (
-	"fmt"
 	Utils "go_module/src"
-	"sync"
+	"log"
 )
 
 var prePath = "learning"
 
 // AddHandleFunc adds the specific module handle function to the server
-func AddHandleFunc(wg *sync.WaitGroup) {
-	Utils.CreateHandleFunc(prePath+"/run_experiment/", handleRunExperiment, wg)
-	Utils.CreateHandleFunc(prePath+"/progress/", handleProgress, wg)
+func AddHandleFunc() {
+	Utils.CreateHandleFunc(prePath+"/run_experiment/", handleRunExperiment)
+	Utils.CreateHandleFunc(prePath+"/progress/", handleProgress)
 }
 
 // handleRunExperiment handles the request to run an experiment
 // It returns the response from the python script
 func handleRunExperiment(jsonConfig string, id string) (string, error) {
-	fmt.Println("Running experiment...", id)
-	response, err := Utils.StartPythonScript(jsonConfig, "../flask_server/learning/scripts/run_experiment.py", id)
+	log.Println("Running experiment...", id)
+	response, err := Utils.StartPythonScripts(jsonConfig, "../flask_server/learning/scripts/run_experiment.py", id)
+	Utils.RemoveIdFromScripts(id)
 	if err != nil {
 		return "", err
 	}
-	Utils.RemoveIdFromScripts(id)
 	return response, nil
 }
 

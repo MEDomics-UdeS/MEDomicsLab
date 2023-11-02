@@ -103,6 +103,18 @@ def get_model_from_medmodel(medmodel_path: str) -> sklearn.base.BaseEstimator:
         medmodel_path, load_model_from_zip)
 
 
+def get_model_from_path(path: str) -> sklearn.base.BaseEstimator:
+    """
+        This function is used to get the model from a medmodel
+    """
+    import joblib
+    with open(path, "rb") as f:
+        model = joblib.load(f)
+    if isinstance(model, Pipeline):
+        model = model.steps[-1][1]
+    return model
+
+
 def load_csv(path: str, target: str) -> pandas.DataFrame:
     """
         This function is used to load a csv file
