@@ -1,25 +1,16 @@
-import base64
-import copy
 import sys
 import os
 import threading
 import time
-import argparse
 import json
 from pathlib import Path
-import pandas as pd
-import jsonpickle
-import pickle
-import joblib
-from pycaret.internal.patches import sklearn
-from sklearn.pipeline import Pipeline
 from explainerdashboard import RegressionExplainer, ClassifierExplainer, ExplainerDashboard
 
 sys.path.append(
     str(Path(os.path.dirname(os.path.abspath(__file__))).parent.parent))
 
 from utils.server_utils import go_print, find_next_available_port, get_model_from_medmodel, load_csv, \
-    get_model_from_path
+    get_model_from_path, is_port_in_use
 from utils.GoExecutionScript import GoExecutionScript, parse_arguments
 from utils.CustomZipFile import CustomZipFile
 
@@ -40,12 +31,14 @@ class GoExecScriptOpenDashboard(GoExecutionScript):
         self.thread_delay = 2
         self.speed = 2  # rows/second
         self.row_count = 10000
-        self.ed = None
+        self.ed:ExplainerDashboard = None
         self.CustZipFileModel = CustomZipFile(".medmodel")
         self.is_calculating = True
         self.progress_thread = threading.Thread(target=self._update_progress_periodically, args=())
         self.progress_thread.daemon = True
         self.progress_thread.start()
+        self.dashboard_thread = threading.Thread(target=self._server_dashboard, args=())
+        self.dashboard_thread.daemon = True
 
     def _custom_process(self, json_config: dict) -> dict:
         go_print(json.dumps(json_config, indent=4))
@@ -80,21 +73,27 @@ class GoExecScriptOpenDashboard(GoExecutionScript):
         self.now = 100
         go_print(f"dashboard created")
         self.port = find_next_available_port()
+        self.dashboard_thread.start()
         self.progress_thread.join()
-        self.ed.run(host="localhost", port=self.port, use_waitress=True, mode="dash")
+        self.dashboard_thread.join()
         return {"results_html": "html"}
 
     def _update_progress_periodically(self):
         while self.is_calculating:
             if self.port is not None:
-                self._progress["dashboard_url"] = f"http://localhost:{self.port}"
-                self._progress["port"] = self.port
-                self.is_calculating = False
+                if is_port_in_use(self.port):
+                    self._progress["dashboard_url"] = f"http://localhost:{self.port}/"
+                    self._progress["port"] = self.port
+                    go_print("self.ed run state" + str(self.ed.app))
+                    self.is_calculating = False
 
             self.now += round(self.thread_delay * self.speed / self.row_count * 100, 2)
             self._progress["now"] = "{:.2f}".format(self.now)
             self.push_progress()
             time.sleep(self.thread_delay)
+
+    def _server_dashboard(self):
+        self.ed.run(host="localhost", port=self.port, use_waitress=True, mode="dash")
 
 
 open_dashboard = GoExecScriptOpenDashboard(json_params_dict, id_)

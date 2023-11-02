@@ -55,6 +55,7 @@
     "react-dropzone": "^14.2.3",
     "react-hook-form": "^7.47.0",
     "react-icons": "^4.11.0",
+    "react-iframe": "^1.8.5",
     "react-loading": "^2.0.3",
     "react-native-uuid": "^2.0.1",
     "react-popper": "^2.3.0",

@@ -125,6 +125,7 @@ const EvaluationContent = ({ chosenConfig, pageId, config, updateWarnings, chose
     function writeFile(absPath, data) {
       return new Promise((resolve, reject) => {
         let dir = path.dirname(absPath)
+        console.log("dir:", dir)
         if (!fs.existsSync(dir)) {
           fsprom.mkdir(dir, { recursive: true }).then(() => {
             fsprom.writeFile(absPath, data).then(() => {
@@ -233,12 +234,22 @@ const EvaluationPageContent = () => {
   const { port } = useContext(WorkspaceContext) // we get the port for server connexion
 
   useEffect(() => {
-    ;(async () => {
-      await updateWarnings()
-    })()
+    updateWarnings()
   }, [chosenDataset])
 
-  const updateEvaluationConfig = useCallback(() => {
+  useEffect(() => {
+    console.log("chosenModel *************************", chosenModel)
+  }, [chosenModel])
+
+  useEffect(() => {
+    console.log("chosenDataset ***************************", chosenDataset)
+  }, [chosenDataset])
+
+  useEffect(() => {
+    console.log("configPath *************************************", configPath)
+  }, [configPath])
+
+  const updateEvaluationConfig = () => {
     console.log("updateEvaluationConfig")
     let config = {
       model: chosenModel,
@@ -263,12 +274,15 @@ const EvaluationPageContent = () => {
       )
       setChosenConfig(config)
     })
-  }, [configPath, chosenModel, chosenDataset])
+  }
 
   useEffect(() => {
     console.log("new config", config)
     if (config) {
-      setChosenConfig(config)
+      if (Object.keys(config).length > 0) {
+        console.log("config in if", Object.keys(config).length)
+        setChosenConfig(config)
+      }
     }
   }, [config])
 
@@ -333,6 +347,7 @@ const EvaluationPageContent = () => {
                 console.log("content", content)
                 modelDataObject.metadata.content = content
                 setGlobalData({ ...globalData })
+                console.log("modelDataObject", modelDataObject)
                 let modelData = content.columns
                 checkWarnings(columnsArray, modelData)
               }
@@ -357,7 +372,7 @@ const EvaluationPageContent = () => {
     }
   }
 
-  return <>{chosenConfig && getEvaluationStep()}</>
+  return <>{config && getEvaluationStep()}</>
 }
 
 export default EvaluationPageContent

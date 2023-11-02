@@ -121,13 +121,21 @@ export default class CustomZipFile {
     return new Promise((resolve, reject) => {
       this.interactZipSync("default", (folderPath) => {
         return new Promise((resolve2, reject2) => {
-          this.openContentToObject(folderPath).then((content) => {
-            resolve2(content)
-          })
+          this.openContentToObject(folderPath)
+            .then((content) => {
+              resolve2(content)
+            })
+            .catch((err) => {
+              reject2(err)
+            })
         })
-      }).then((content) => {
-        resolve(content)
       })
+        .then((content) => {
+          resolve(content)
+        })
+        .catch((err) => {
+          reject(err)
+        })
     })
     // await this.interactZipSync("default", async (folderPath) => {
     //   content = await this.openContentToObject(folderPath)
@@ -144,29 +152,33 @@ export default class CustomZipFile {
     return new Promise((resolve, reject) => {
       const readDirRecursive = (folderPath) => {
         return new Promise((resolve2, reject2) => {
-          let subContent = {}
-          let files = fs.readdirSync(folderPath)
-          console.log("files", files)
-          if (files) {
-            files.forEach((element) => {
-              console.log("element", element, CustomZipFile.getPathType(Path.join(folderPath, element)))
-              if (CustomZipFile.getPathType(Path.join(folderPath, element)) == IS_FILE) {
-                if (element.split(".")[1] == "json") {
-                  subContent[element.split(".")[0]] = loadJsonPath(Path.join(folderPath, element))
-                } else {
-                  subContent[element.split(".")[0]] = element
+          try {
+            let subContent = {}
+            let files = fs.readdirSync(folderPath)
+            console.log("files", files)
+            if (files) {
+              files.forEach((element) => {
+                console.log("element", element, CustomZipFile.getPathType(Path.join(folderPath, element)))
+                if (CustomZipFile.getPathType(Path.join(folderPath, element)) == IS_FILE) {
+                  if (element.split(".")[1] == "json") {
+                    subContent[element.split(".")[0]] = loadJsonPath(Path.join(folderPath, element))
+                  } else {
+                    subContent[element.split(".")[0]] = element
+                  }
+                } else if (CustomZipFile.getPathType(Path.join(folderPath, element)) == IS_FOLDER) {
+                  subContent[element] = {}
+                  readDirRecursive(Path.join(folderPath, element)).then((subSubContent) => {
+                    subContent[element] = subSubContent
+                  })
                 }
-              } else if (CustomZipFile.getPathType(Path.join(folderPath, element)) == IS_FOLDER) {
-                subContent[element] = {}
-                readDirRecursive(Path.join(folderPath, element)).then((subSubContent) => {
-                  subContent[element] = subSubContent
-                })
-              }
-            })
-          } else {
-            console.log("No files found")
+              })
+            } else {
+              console.log("No files found")
+            }
+            resolve2(subContent)
+          } catch (err) {
+            reject2(err)
           }
-          resolve2(subContent)
         })
       }
       readDirRecursive(folderPath)
@@ -255,26 +267,31 @@ export default class CustomZipFile {
       // get the file extension from the path
       this.handleInputPath(path)
       return new Promise((resolve, reject) => {
-        // create an empty folder (temporary)
-        fsPromises.mkdir(this._cwd, { recursive: true }).then(() => {
-          // unzip the folder
-          let extensionPath = this._cwd + this.fileExtension
-          this.unzipDirectory(extensionPath, this._cwd).then(async () => {
-            // do custom actions on the unzipped folder
-            // customActions(this._cwd).then((value) => {
-            //   console.log("this._cwd", this._cwd)
-            //   // alert("this._cwd" + this._cwd)
-            //   this.zipDirectory(this._cwd).then(() => {
-            //     resolve(value)
-            //   })
-            // })
-            console.log("CUSTOM ACTIONS ")
-            let returnValue = await customActions(this._cwd)
-            console.log("ZIP DIRECTORY ")
-            await this.zipDirectory(this._cwd)
-            resolve(returnValue)
+        try {
+          // create an empty folder (temporary)
+          fsPromises.mkdir(this._cwd, { recursive: true }).then(() => {
+            // unzip the folder
+            let extensionPath = this._cwd + this.fileExtension
+            this.unzipDirectory(extensionPath, this._cwd).then(async () => {
+              // do custom actions on the unzipped folder
+              // customActions(this._cwd).then((value) => {
+              //   console.log("this._cwd", this._cwd)
+              //   // alert("this._cwd" + this._cwd)
+              //   this.zipDirectory(this._cwd).then(() => {
+              //     resolve(value)
+              //   })
+              // })
+              console.log("CUSTOM ACTIONS ")
+              let returnValue = await customActions(this._cwd)
+              console.log("ZIP DIRECTORY ")
+              await this.zipDirectory(this._cwd)
+              resolve(returnValue)
+            })
           })
-        })
+        } catch (err) {
+          console.log(err)
+          reject(err)
+        }
       })
     } catch (err) {
       console.log(err)
@@ -312,14 +329,18 @@ export default class CustomZipFile {
    * @returns {Promise}
    */
   async zipDirectory(sourceDir) {
-    let zipPath = sourceDir + ".zip"
-    console.log("zipping.....................", zipPath)
-    console.log("sourceDir", sourceDir)
-    if (fs.existsSync(sourceDir)) {
-      await zipper.sync.zip(sourceDir).compress().save(zipPath)
-      await this.convertExtension(zipPath)
-    } else {
-      console.log("sourceDir does not exist")
+    try {
+      let zipPath = sourceDir + ".zip"
+      console.log("zipping.....................", zipPath)
+      console.log("sourceDir", sourceDir)
+      if (fs.existsSync(sourceDir)) {
+        await zipper.sync.zip(sourceDir).compress().save(zipPath)
+        await this.convertExtension(zipPath)
+      } else {
+        console.log("sourceDir does not exist")
+      }
+    } catch (err) {
+      console.error(err)
     }
   }
 

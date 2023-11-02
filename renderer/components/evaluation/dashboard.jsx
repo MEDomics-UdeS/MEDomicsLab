@@ -1,9 +1,10 @@
-import React, { useEffect, useContext, useState } from "react"
+import React, { useEffect, useContext, useState, use, useCallback } from "react"
 import { requestBackend } from "../../utilities/requests"
 import { WorkspaceContext } from "../workspace/workspaceContext"
 import { PageInfosContext } from "../mainPages/moduleBasics/pageInfosContext"
 import { ErrorRequestContext } from "../generalPurpose/errorRequestContext"
 import ProgressBarRequests from "../generalPurpose/progressBarRequests"
+import Iframe from "react-iframe"
 
 const Dashboard = ({ chosenConfig, modelObjPath }) => {
   const { port } = useContext(WorkspaceContext) // we get the port for server connexion
@@ -47,6 +48,10 @@ const Dashboard = ({ chosenConfig, modelObjPath }) => {
 
   // handle the dashboard opening (mounting) and closing (unmounting)
   useEffect(() => {
+    handleRunDashboard()
+  }, [isDashboardOpen])
+
+  const handleRunDashboard = useCallback(() => {
     console.log("isDashboardOpen:", isDashboardOpen)
     console.log("isDashboardMounted:", isDashboardMounted)
     console.log("isRunning:", isRunning)
@@ -71,11 +76,14 @@ const Dashboard = ({ chosenConfig, modelObjPath }) => {
           requestBackend(
             port,
             "evaluation/open_dashboard/dashboard/" + pageId,
-            { pageId: pageId, model: chosenConfig.model, dataset: chosenConfig.dataset, sampleSizeFrac: 0.005, dashboardName: chosenConfig.model.name.split(".")[0], modelObjPath: modelObjPath },
+            { pageId: pageId, model: chosenConfig.model, dataset: chosenConfig.dataset, sampleSizeFrac: 0.01, dashboardName: chosenConfig.model.name.split(".")[0], modelObjPath: modelObjPath },
             (data) => {
               console.log("openDashboard received data:", data)
               setIsUpdating(false)
               if (data.error) {
+                if (typeof data.error == "string") {
+                  data.error = JSON.parse(data.error)
+                }
                 setError(data.error)
               } else {
                 setIsDashboardOpen(false)
@@ -104,7 +112,7 @@ const Dashboard = ({ chosenConfig, modelObjPath }) => {
     }
   }
 
-  return <>{url ? <iframe src={url} width="100%" height="100%" frameBorder="0"></iframe> : <ProgressBarRequests delayMS={1000} isUpdating={isUpdating} setIsUpdating={setIsUpdating} progress={{ now: progressValue }} setProgress={(prog) => setProgressValue(prog.now)} requestTopic={"evaluation/progress/dashboard/" + pageId} onDataReceived={onProgressDataReceived} />}</>
+  return <>{url ? <Iframe url={url} width="100%" height="100%" frameBorder="0" /> : <ProgressBarRequests delayMS={1000} isUpdating={isUpdating} setIsUpdating={setIsUpdating} progress={{ now: progressValue }} setProgress={(prog) => setProgressValue(prog.now)} requestTopic={"evaluation/progress/dashboard/" + pageId} onDataReceived={onProgressDataReceived} />}</>
 }
 
 export default Dashboard

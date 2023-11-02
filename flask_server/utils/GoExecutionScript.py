@@ -8,7 +8,6 @@ from abc import ABC, abstractmethod
 import asyncio
 from typing import Tuple, Any
 
-import websockets
 import argparse
 from utils.server_utils import go_print
 

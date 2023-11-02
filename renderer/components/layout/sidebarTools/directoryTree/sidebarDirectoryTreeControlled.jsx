@@ -506,12 +506,12 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
         type: medDataItem.extension,
         path: medDataItem.path,
         acceptedFiles: medDataItem.acceptedFileTypes,
-        children: medDataItem.childrenIDs !== null ? reorderArrayOfFoldersAndFiles(medDataItem.childrenIDs, medDataContext) : [],
+        children: medDataItem.childrenIDs ? reorderArrayOfFoldersAndFiles(medDataItem.childrenIDs, medDataContext) : [],
         data: medDataItemName,
         canRename: ableToRename
       }
       treeToSend[key] = treeItem
-      if (medDataItem.parentID.length == 0) {
+      if (medDataItem.parentID && medDataItem.parentID.length == 0) {
         treeToSend.root.children.push(key)
       }
     })

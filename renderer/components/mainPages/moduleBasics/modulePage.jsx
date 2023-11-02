@@ -1,5 +1,5 @@
 import "reactflow/dist/style.css"
-import React, { useContext, useEffect, useState } from "react"
+import React, { useCallback, useContext, useEffect, useState } from "react"
 import { PageInfosProvider, PageInfosContext } from "./pageInfosContext"
 import { loadJsonPath } from "../../../utilities/fileManagementUtils"
 import { ErrorRequestProvider } from "../../generalPurpose/errorRequestContext"
@@ -7,6 +7,7 @@ import ErrorRequestDialog from "../../flow/errorRequestDialog"
 import { customZipFile2Object } from "../../../utilities/customZipFile"
 import { LoaderProvider, LoaderContext } from "../../generalPurpose/loaderContext"
 import ReactLoading from "react-loading"
+import { DataContext } from "../../workspace/dataContext"
 
 /**
  *
@@ -19,14 +20,31 @@ import ReactLoading from "react-loading"
  */
 const ModulePageWithProvider = ({ children, pageId, configPath = "null", shadow = false, additionnalClassName = "", scrollable = true }) => {
   // here is the use of the context to update the flowInfos
-  const { setPageId, setConfigPath } = useContext(PageInfosContext)
+  const { setPageId, setConfigPath, config } = useContext(PageInfosContext)
   const { loader } = useContext(LoaderContext)
-
+  const { globalData, setGlobalData } = useContext(DataContext)
   // this useEffect is used to update the flowInfos when the pageId or the workflowType changes
   useEffect(() => {
     setPageId(pageId)
     setConfigPath(configPath)
   }, [pageId, configPath])
+
+  // useEffect(() => {
+  //   if (config && Object.keys(config).length > 0) {
+  //     updateConfig(config)
+  //   }
+  // }, [config])
+
+  // const updateConfig = useCallback(
+  //   (config) => {
+  //     if (globalData[pageId]) {
+  //       let newGlobalData = { ...globalData }
+  //       newGlobalData[pageId] = config
+  //       setGlobalData(newGlobalData)
+  //     }
+  //   },
+  //   [globalData, setGlobalData, pageId]
+  // )
 
   return (
     <>

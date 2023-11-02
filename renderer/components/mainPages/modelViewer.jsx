@@ -25,7 +25,7 @@ const ModelViewer = () => {
           <h3>Model target</h3>
           <p>{config.target}</p>
           <h3>machine learning type</h3>
-          <p>{config.mlType}</p>
+          <p>{config.ml_type}</p>
         </>
       )}
     </>
@@ -38,7 +38,7 @@ const ModelViewer = () => {
  *
  * @description This component is the base for all the flow pages. It contains the sidebar, the workflow and the backdrop.
  */
-const ModelViewerWithContext = ({ pageId = "results123", configPath = null }) => {
+const ModelViewerWithContext = ({ pageId, configPath = null }) => {
   return (
     <>
       <ModulePage pageId={pageId} configPath={configPath} shadow>
