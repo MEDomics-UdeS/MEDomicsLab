@@ -13,7 +13,8 @@ def create_app():
     app.register_blueprint(app_extraction_MEDimage,
                            url_prefix='/extraction_MEDimage')
     app.register_blueprint(app_learning, url_prefix='/learning')
-    app.register_blueprint(app_extraction_image, url_prefix='/extraction_image')
+    app.register_blueprint(app_extraction_image,
+                           url_prefix='/extraction_image')
     app.register_blueprint(app_extraction_text, url_prefix='/extraction_text')
     app.register_blueprint(app_extraction_ts, url_prefix='/extraction_ts')
     app.register_blueprint(app_input, url_prefix='/input')

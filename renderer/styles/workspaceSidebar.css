@@ -288,3 +288,20 @@
   margin-top: 0.25rem;
   border-top: 0.15rem solid #ffffff14;
 }
+
+.home-sidebar-page-buttons .btn {
+  align-items: center;
+  align-content: center;
+  justify-content: center;
+  display: flex;
+  margin-top: 0.5rem;
+  width: 100%;
+  font-size: 1rem;
+}
+
+.home-sidebar-page-buttons {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}

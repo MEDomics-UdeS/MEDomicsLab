@@ -66,16 +66,16 @@ const DataTablePopoverBP = (props) => {
   const changeTypeInGlobalData = (type) => {
     let globalDataCopy = { ...globalData }
     if (globalDataCopy[props.config.uuid]) {
-      if (globalDataCopy[props.config.uuid].metadata.columns) {
-        if (globalDataCopy[props.config.uuid].metadata.columns[props.columnName]) {
-          globalDataCopy[props.config.uuid].metadata.columns[props.columnName].dataType = type
+      if (globalDataCopy[props.config.uuid].metadata.columnsInfo) {
+        if (globalDataCopy[props.config.uuid].metadata.columnsInfo[props.columnName]) {
+          globalDataCopy[props.config.uuid].metadata.columnsInfo[props.columnName].dataType = type
         } else {
-          globalDataCopy[props.config.uuid].metadata.columns[props.columnName] = {
+          globalDataCopy[props.config.uuid].metadata.columnsInfo[props.columnName] = {
             dataType: type
           }
         }
       } else {
-        globalDataCopy[props.config.uuid].metadata.columns = {
+        globalDataCopy[props.config.uuid].metadata.columnsInfo = {
           [props.columnName]: {
             dataType: type
           }
@@ -109,21 +109,21 @@ const DataTablePopoverBP = (props) => {
     let medObject = globalData[props.config.uuid]
     let globalDataCopy = { ...globalData }
     if (medObject) {
-      if (medObject.metadata.columns) {
-        if (medObject.metadata.columns[props.columnName]) {
-          if (medObject.metadata.columns[props.columnName].dataType) {
-            let type = medObject.metadata.columns[props.columnName].dataType
+      if (medObject.metadata.columnsInfo) {
+        if (medObject.metadata.columnsInfo[props.columnName]) {
+          if (medObject.metadata.columnsInfo[props.columnName].dataType) {
+            let type = medObject.metadata.columnsInfo[props.columnName].dataType
             if (Object.keys(selectedIcon).includes(type)) {
-              setSelectedType(medObject.metadata.columns[props.columnName].dataType)
+              setSelectedType(medObject.metadata.columnsInfo[props.columnName].dataType)
             } else {
-              globalDataCopy[props.config.uuid].metadata.columns[props.columnName].dataType = getTypeFromInferedDtype(props.category[0])
+              globalDataCopy[props.config.uuid].metadata.columnsInfo[props.columnName].dataType = getTypeFromInferedDtype(props.category[0])
               setSelectedType(getTypeFromInferedDtype(props.category[0]))
               setGlobalData(globalDataCopy)
             }
           }
         }
       } else {
-        globalDataCopy[props.config.uuid].metadata.columns = {
+        globalDataCopy[props.config.uuid].metadata.columnsInfo = {
           [props.columnName]: {
             dataType: getTypeFromInferedDtype(props.category[0])
           }

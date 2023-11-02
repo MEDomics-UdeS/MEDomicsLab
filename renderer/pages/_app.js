@@ -10,6 +10,8 @@ import { DataContextProvider } from "../components/workspace/dataContext"
 import MedDataObject from "../components/workspace/medDataObject"
 import { ActionContextProvider } from "../components/layout/actionContext"
 import { HotkeysProvider } from "@blueprintjs/core"
+import { ConfirmPopup } from "primereact/confirmpopup"
+import { ConfirmDialog } from "primereact/confirmdialog"
 import { requestBackend } from "../utilities/requests"
 
 // CSS
@@ -46,6 +48,7 @@ import "../styles/sidebarTree.css"
 import "../styles/customPrimeReact.css"
 import "../styles/imageContainer.css"
 import "../styles/datatableWrapper.css"
+import "../styles/inputPage.css"
 import "../styles/evaluation/evaluation.css"
 import "../styles/output.css"
 
@@ -119,6 +122,10 @@ function App() {
       ]
     }
   }
+
+  /**
+   * TODO : When changing the working directory, the global data should be cleared and the new working directory should be set
+   */
 
   /**
    * This is the state for the layout model. It is passed to the LayoutContextProvider, which provides the layout model to all components.
@@ -239,6 +246,66 @@ function App() {
     return { childrenIDsToReturn: childrenIDsToReturn }
   }
 
+  /**
+   * Gets the children paths of the children passed as a parameter
+   * @param {Object} children - The children of the current directory
+   * @returns {Array} - The children paths of the current directory
+   * @description This function is used to recursively recense the directory tree and add the files and folders to the global data object
+   */
+  const getChildrenPaths = (children) => {
+    let childrenPaths = []
+    children.forEach((child) => {
+      childrenPaths.push(child.path)
+      if (child.children !== undefined) {
+        let answer = getChildrenPaths(child.children)
+        childrenPaths = childrenPaths.concat(answer)
+      }
+    })
+    return childrenPaths
+  }
+
+  /**
+   * Creates a list of files not found in the workspace
+   * @param {Object} currentWorkspace - The current workspace
+   * @param {Object} currentGlobalData - The current global data
+   * @returns {Array} - The list of files not found in the workspace
+   */
+  const createListOfFilesNotFoundInWorkspace = (currentWorkspace, currentGlobalData) => {
+    let listOfFilesNotFoundInWorkspace = []
+    let workspaceChildren = currentWorkspace.workingDirectory.children
+    let workspaceChildrenPaths = []
+    if (workspaceChildren !== undefined) {
+      workspaceChildrenPaths = getChildrenPaths(workspaceChildren)
+    } else {
+      return listOfFilesNotFoundInWorkspace
+    }
+
+    Object.keys(currentGlobalData).forEach((key) => {
+      let dataObject = currentGlobalData[key]
+      let filePath = dataObject.path
+      if (!workspaceChildrenPaths.includes(filePath)) {
+        listOfFilesNotFoundInWorkspace.push(dataObject._UUID)
+      }
+    })
+    return listOfFilesNotFoundInWorkspace
+  }
+
+  /**
+   * Cleans the global data from files and folders not found in the workspace
+   * @param {Object} workspace - The current workspace
+   * @param {Object} dataContext - The current global data
+   * @returns {Object} - The new global data
+   */
+  const cleanGlobalDataFromFilesNotFoundInWorkspace = (workspace, dataContext) => {
+    let newGlobalData = { ...dataContext }
+    let listOfFilesNotFoundInWorkspace = createListOfFilesNotFoundInWorkspace(workspace, dataContext)
+    console.log("listOfFilesNotFoundInWorkspace", listOfFilesNotFoundInWorkspace)
+    listOfFilesNotFoundInWorkspace.forEach((file) => {
+      if (newGlobalData[file] !== undefined && file !== "UUID_ROOT") delete newGlobalData[file]
+    })
+    return newGlobalData
+  }
+
   // This useEffect hook is called whenever the `workspaceObject` state changes.
   useEffect(() => {
     // Create a copy of the `globalData` state object.
@@ -264,6 +331,9 @@ function App() {
       })
       newGlobalData[rootParentID] = rootDataObject
     }
+    // Clean the globalData from files & folders that are not in the workspace
+    newGlobalData = cleanGlobalDataFromFilesNotFoundInWorkspace(workspaceObject, newGlobalData)
+
     // Update the `globalData` state object with the new `newGlobalData` object.
     setGlobalData(newGlobalData)
   }, [workspaceObject])
@@ -314,6 +384,8 @@ function App() {
             </DataContextProvider>
           </ActionContextProvider>
         </HotkeysProvider>
+        <ConfirmPopup />
+        <ConfirmDialog />
         <ToastContainer // This is the ToastContainer, which is used to display toast notifications
           position="bottom-right"
           autoClose={2000}

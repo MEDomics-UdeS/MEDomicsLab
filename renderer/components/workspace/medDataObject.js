@@ -25,6 +25,9 @@ import process from "process"
  * @property {Number} size - The size of the data object.
  * @property {Object} metadata - The metadata of the data object.
  * @property {Array} acceptedFileTypes - The accepted file types for the data object.
+ * @property {string} objectType - The object type of the data object.
+ * @property {Array} virtualTransformations - The virtual transformations of the data object.
+ * @property {Array} relatedInformation - The related information of the data object.
  */
 export default class MedDataObject {
   /**
@@ -69,6 +72,9 @@ export default class MedDataObject {
     this.size = 0
     this.metadata = {}
     this.acceptedFileTypes = []
+    this.objectType = ""
+    this.virtualTransformations = []
+    this.relatedInformation = []
   }
 
   static createFolderFromPath(path) {
@@ -1001,6 +1007,29 @@ export default class MedDataObject {
     this.data = fs.readFileSync(this.path)
     this.dataLoaded = true
     this.lastModified = Date(Date.now())
+    return data
+  }
+
+  /**
+   * GetsTheColumnsOfTheDataObjectIfItIsATable
+   * @returns {Array} - The columns of the data object if it is a table.
+   */
+  async getColumnsOfTheDataObjectIfItIsATable() {
+    let newColumns = []
+    if (this.dataLoaded && this.data.$columns) {
+      newColumns = this.data.$columns
+    } else if (this.metadata.columns) {
+      newColumns = await this.metadata.columns
+    } else {
+      const data = await this.loadDataFromDisk()
+      console.log("data: ", data)
+      if (data.$columns) {
+        newColumns = data.$columns
+        this.metadata.columns = newColumns
+        return data.$columns
+      }
+    }
+    return newColumns
   }
 
   /**
@@ -1028,7 +1057,43 @@ export default class MedDataObject {
    * GetsTheColumnsOfTheDataObjectIfItIsATable
    * @returns {Array} - The columns of the data object if it is a table.
    */
-  async getColumnsOfTheDataObjectIfItIsATable(path) {
+  async getColumnsOfTheDataObjectIfItIsATable2(path) {
+    let newColumns = []
+    const data = await this.loadDataFromDisk(path)
+    console.log("data: ", data)
+    if (data.$columns) {
+      newColumns = data.$columns
+      this.metadata.columns = newColumns
+    }
+    return newColumns
+  }
+
+  /**
+   * @param {string} filePath - The path to the file to load.
+   * @returns {Promise} - A promise that resolves to the data loaded from the file.
+   */
+  loadDataFromDisk2 = async (filePath) => {
+    const Path = require("path")
+    let extension = Path.extname(filePath).slice(1)
+    console.log("extension: ", extension)
+    // let path = this.path
+    let data = undefined
+    const dfd = require("danfojs-node")
+    if (extension === "xlsx") {
+      data = await dfd.readExcel(filePath)
+    } else if (extension === "csv") {
+      data = await dfd.readCSV(filePath)
+    } else if (extension === "json") {
+      data = await dfd.readJSON(filePath)
+    }
+    return data
+  }
+
+  /**
+   * GetsTheColumnsOfTheDataObjectIfItIsATable
+   * @returns {Array} - The columns of the data object if it is a table.
+   */
+  async getColumnsOfTheDataObjectIfItIsATable2(path) {
     let newColumns = []
     const data = await this.loadDataFromDisk(path)
     console.log("data: ", data)

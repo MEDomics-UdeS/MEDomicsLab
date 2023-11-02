@@ -540,7 +540,7 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
         <Accordion.Header onClick={() => MedDataObject.updateWorkspaceDataObject()}>
           <Stack direction="horizontal" style={{ flexGrow: "1" }}>
             <p>
-              <strong>OPEN EDITORS</strong>
+              <strong>WORKSPACE</strong>
             </p>
             <div style={{ flexGrow: "10" }} />
 
