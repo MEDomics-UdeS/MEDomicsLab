@@ -6,6 +6,7 @@ import MergeTool from "../input/mergeTool"
 import GroupingTool from "../input/groupingTool"
 import SimpleCleaningTool from "../input/simpleCleaningTool"
 import HoldOutSetCreationTool from "../input/holdOutSetCreationTool"
+import SubsetCreationTool from "../input/subsetCreationTool"
 
 /**
  * @description - This component is the input page of the application
@@ -49,6 +50,12 @@ const InputPage = ({ pageId = "42", configPath = null }) => {
               <Accordion.Header>Holdout set creation tool</Accordion.Header>
               <Accordion.Body>
                 <HoldOutSetCreationTool pageId={pageId} />
+              </Accordion.Body>
+            </Accordion.Item>
+            <Accordion.Item eventKey="5">
+              <Accordion.Header>Subset creation tool</Accordion.Header>
+              <Accordion.Body>
+                <SubsetCreationTool pageId={pageId} />
               </Accordion.Body>
             </Accordion.Item>
           </Accordion>
