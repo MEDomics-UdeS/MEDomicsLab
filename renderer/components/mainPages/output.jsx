@@ -14,13 +14,20 @@ import { Tooltip } from "primereact/tooltip"
 import MEDconfig from "../../../medomics.dev"
 import { IoClose } from "react-icons/io5"
 import { PageInfosContext } from "./moduleBasics/pageInfosContext"
+import { InputNumber } from "primereact/inputnumber"
 
+/**
+ *
+ * @param {Object} activeElement the active element to show
+ * @returns the active element card
+ */
 const ActiveElement = ({ activeElement }) => {
   const { globalData, setGlobalData } = useContext(DataContext)
   const [metadata, setMetadata] = useState(undefined)
   const { port } = useContext(WorkspaceContext) // we get the port for server connexion
   const { pageId } = useContext(PageInfosContext) // we get the pageId to send to the server
 
+  // handle updating the metadata of the active element when it changes
   useEffect(() => {
     if (globalData) {
       if (activeElement.id in globalData) {
@@ -54,6 +61,13 @@ const ActiveElement = ({ activeElement }) => {
     }
   }, [activeElement, globalData])
 
+  /**
+   *
+   * @param {Object} metadata the metadata of the active element
+   *
+   * @description This function is used to get the output to show depending on the type of the active element
+   * @returns the output to show
+   */
   const getOutput2Show = (metadata) => {
     if (!metadata) return <></>
     switch (metadata.progress.type) {
@@ -151,6 +165,13 @@ const ActiveElement = ({ activeElement }) => {
   )
 }
 
+/**
+ *
+ * @param {String} pageId the id of the page
+ * @param {String} configPath the path of the config file
+ *
+ * @returns the output page
+ */
 const OutputPage = ({ pageId = "output", configPath = undefined }) => {
   const { port } = useContext(WorkspaceContext) // we get the port for server connexion
   const [activeElements, setActiveElements] = useState([])
@@ -161,7 +182,9 @@ const OutputPage = ({ pageId = "output", configPath = undefined }) => {
   ]
 
   const [value, setValue] = useState(options[0])
+  const [requestDelay, setRequestDelay] = useState(2500)
 
+  // handle when the page is mounted and unmounted
   useEffect(() => {
     console.log("OutputPage mounted")
     setIsUpdating(true)
@@ -171,6 +194,7 @@ const OutputPage = ({ pageId = "output", configPath = undefined }) => {
     }
   }, [])
 
+  // handle periodic request to get the active elements
   useInterval(
     () => {
       requestBackend(
@@ -190,12 +214,18 @@ const OutputPage = ({ pageId = "output", configPath = undefined }) => {
         },
         (error) => {
           setIsUpdating(false)
+          setValue(options[1])
         }
       )
     },
-    isUpdating ? 1000 : null
+    isUpdating ? requestDelay : null
   )
 
+  /**
+   *
+   * @param {Object} option the option of the select button
+   * @returns the template of the select button
+   */
   const btnTemplate = (option) => {
     return (
       <div className="p-d-flex p-ai-center btn-play-pause">
@@ -205,6 +235,12 @@ const OutputPage = ({ pageId = "output", configPath = undefined }) => {
     )
   }
 
+  /**
+   *
+   * @param {Event} e event of the select button
+   *
+   * @description This function is used to handle the change of the select button.
+   */
   const handleOnSelectBtnChange = (e) => {
     if (e.value && e.value != value) {
       setValue(e.value)
@@ -223,7 +259,10 @@ const OutputPage = ({ pageId = "output", configPath = undefined }) => {
         <div>
           <div className="header">
             <h1>Active processes - {MEDconfig.serverChoice} server</h1>
-            <SelectButton value={value} onChange={handleOnSelectBtnChange} itemTemplate={btnTemplate} options={options} />
+            <div className="output-btns">
+              {isUpdating && <InputNumber inputId="stacked-buttons" value={requestDelay} onValueChange={(e) => setRequestDelay(e.value)} showButtons suffix=" Ms" min={250} step={250} />}
+              <SelectButton value={value} onChange={handleOnSelectBtnChange} itemTemplate={btnTemplate} options={options} />
+            </div>
           </div>
           <div className="eval-body">
             {activeElements.map((activeElement, index) => (

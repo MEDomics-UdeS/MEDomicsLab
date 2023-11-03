@@ -3,6 +3,10 @@ import ModulePage from "./moduleBasics/modulePage"
 import { PageInfosContext } from "./moduleBasics/pageInfosContext"
 import Path from "path"
 
+/**
+ *
+ * @returns a page that shows the model informations
+ */
 const ModelViewer = () => {
   const { config, configPath } = useContext(PageInfosContext)
   useEffect(() => {
@@ -24,7 +28,7 @@ const ModelViewer = () => {
           </ul>
           <h3>Model target</h3>
           <p>{config.target}</p>
-          <h3>machine learning type</h3>
+          <h3>Machine learning type</h3>
           <p>{config.ml_type}</p>
         </>
       )}

@@ -27,6 +27,9 @@ class GoExecScriptCustom(GoExecutionScript):
         self.results = {"data": "nothing to return"}
 
     def _custom_process(self, json_config: dict) -> dict:
+        """
+        TODO: add your doc here
+        """
         go_print(json.dumps(json_config, indent=4))
         # TODO: add your code here
         return self.results

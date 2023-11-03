@@ -23,8 +23,9 @@ function ErrorRequestProvider({ children }) {
   const [error, setError] = useState({}) // Initial style
   const [showError, setShowError] = useState(false) // Initial state
 
+  // We use the useEffect hook to display the error modal when the error state changes
   useEffect(() => {
-    console.log("error", error)
+    console.log("Error request:", error)
     if (Object.keys(error).length !== 0) {
       if (error.toast) {
         if (error.go_kill) {

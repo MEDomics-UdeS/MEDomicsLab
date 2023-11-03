@@ -76,24 +76,30 @@ export const modifyZipFileSync = async (path, customActions) => {
  * @param {String} path /path/to/file.extension
  * @returns {Promise<Object>} An object containing the content of the zip file in json format
  */
-export const customZipFile2Object = async (path) => {
-  if (!path.includes(".")) {
-    toast.error("Please provide a path with a file extension")
-    return
-  } else {
-    // check if file exists
-    if (fs.existsSync(path)) {
-      try {
-        let zipFile = new CustomZipFile(path)
-        return await zipFile.toObject()
-      } catch (err) {
-        toast.error("The file is not a zip file: " + path)
-        return null
-      }
+export const customZipFile2Object = (path) => {
+  return new Promise((resolve, reject) => {
+    if (!path.includes(".")) {
+      console.error("Please provide a path with a file extension")
+      reject()
     } else {
-      toast.error("The file does not exist: " + path)
+      // check if file exists
+      if (fs.existsSync(path)) {
+        let zipFile = new CustomZipFile(path)
+        zipFile
+          .toObject()
+          .then((content) => {
+            resolve(content)
+          })
+          .catch((err) => {
+            console.error("an error occured while converting the zip file to an object")
+            reject(err)
+          })
+      } else {
+        toast.error("The file does not exist: " + path)
+        reject()
+      }
     }
-  }
+  })
 }
 
 /**
@@ -137,10 +143,6 @@ export default class CustomZipFile {
           reject(err)
         })
     })
-    // await this.interactZipSync("default", async (folderPath) => {
-    //   content = await this.openContentToObject(folderPath)
-    // })
-    // return content
   }
 
   /**
@@ -154,6 +156,7 @@ export default class CustomZipFile {
         return new Promise((resolve2, reject2) => {
           try {
             let subContent = {}
+            console.log("folderPath", folderPath)
             let files = fs.readdirSync(folderPath)
             console.log("files", files)
             if (files) {
@@ -272,21 +275,25 @@ export default class CustomZipFile {
           fsPromises.mkdir(this._cwd, { recursive: true }).then(() => {
             // unzip the folder
             let extensionPath = this._cwd + this.fileExtension
-            this.unzipDirectory(extensionPath, this._cwd).then(async () => {
-              // do custom actions on the unzipped folder
-              // customActions(this._cwd).then((value) => {
-              //   console.log("this._cwd", this._cwd)
-              //   // alert("this._cwd" + this._cwd)
-              //   this.zipDirectory(this._cwd).then(() => {
-              //     resolve(value)
-              //   })
-              // })
-              console.log("CUSTOM ACTIONS ")
-              let returnValue = await customActions(this._cwd)
-              console.log("ZIP DIRECTORY ")
-              await this.zipDirectory(this._cwd)
-              resolve(returnValue)
-            })
+            this.unzipDirectory(extensionPath, this._cwd)
+              .then(async () => {
+                customActions(this._cwd)
+                  .then((returnValue) => {
+                    this.zipDirectory(this._cwd)
+                      .then(() => {
+                        resolve(returnValue)
+                      })
+                      .catch((err) => {
+                        reject(err)
+                      })
+                  })
+                  .catch((err) => {
+                    reject(err)
+                  })
+              })
+              .catch((err) => {
+                reject(err)
+              })
           })
         } catch (err) {
           console.log(err)
@@ -331,8 +338,6 @@ export default class CustomZipFile {
   async zipDirectory(sourceDir) {
     try {
       let zipPath = sourceDir + ".zip"
-      console.log("zipping.....................", zipPath)
-      console.log("sourceDir", sourceDir)
       if (fs.existsSync(sourceDir)) {
         await zipper.sync.zip(sourceDir).compress().save(zipPath)
         await this.convertExtension(zipPath)
@@ -370,21 +375,15 @@ export default class CustomZipFile {
   convertExtension(zipPath) {
     let extensionPath = zipPath.replace(".zip", this.fileExtension)
     let folderPath = zipPath.replace(".zip", "")
-    console.log("CONVERT EXTENSION.....................", extensionPath, "-----", folderPath)
 
     return new Promise((resolve, reject) => {
       try {
         // rename the zip file to have the custom extension
-        console.log("IF EXIST :", extensionPath, fs.existsSync(extensionPath))
 
         if (fs.existsSync(extensionPath)) {
           fs.unlinkSync(extensionPath)
         }
-        console.log("RENAME")
-
         fs.renameSync(zipPath, extensionPath)
-        console.log("REMOVE DIR :", folderPath, fs.existsSync(folderPath))
-
         if (fs.existsSync(folderPath)) {
           fs.rmdirSync(
             folderPath,

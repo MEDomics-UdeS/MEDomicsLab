@@ -33,6 +33,9 @@ class GoExecScriptPredictTest(GoExecutionScript):
         self._progress["type"] = "process"
 
     def _custom_process(self, json_config: dict) -> dict:
+        """
+        This function is the main script of the execution of the process from Go
+        """
         go_print(json.dumps(json_config, indent=4))
         model_infos = json_config['model']
         ml_type = model_infos['metadata']['ml_type']

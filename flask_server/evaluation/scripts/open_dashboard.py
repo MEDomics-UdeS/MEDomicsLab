@@ -19,7 +19,7 @@ json_params_dict, id_ = parse_arguments()
 
 class GoExecScriptOpenDashboard(GoExecutionScript):
     """
-        This class is used to run the pipeline execution of pycaret
+        This class is used to run a script from Go to open a dashboard
     """
 
     def __init__(self, json_params: dict, _id: str = "default_id"):
@@ -41,6 +41,9 @@ class GoExecScriptOpenDashboard(GoExecutionScript):
         self.dashboard_thread.daemon = True
 
     def _custom_process(self, json_config: dict) -> dict:
+        """
+        This function is the main script opening the dashboard
+        """
         go_print(json.dumps(json_config, indent=4))
         model_infos = json_config['model']
         ml_type = model_infos['metadata']['ml_type']
@@ -79,6 +82,9 @@ class GoExecScriptOpenDashboard(GoExecutionScript):
         return {"results_html": "html"}
 
     def _update_progress_periodically(self):
+        """
+        This function is used to update the progress of the pipeline execution.
+        """
         while self.is_calculating:
             if self.port is not None:
                 if is_port_in_use(self.port):
@@ -93,6 +99,9 @@ class GoExecScriptOpenDashboard(GoExecutionScript):
             time.sleep(self.thread_delay)
 
     def _server_dashboard(self):
+        """
+        This function is used to run the dashboard
+        """
         self.ed.run(host="localhost", port=self.port, use_waitress=True, mode="dash")
 
 

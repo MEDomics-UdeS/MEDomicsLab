@@ -72,7 +72,17 @@ export const axiosPostJsonGo = async (port, topic, json2send, jsonReceivedCB, on
   console.log("http://localhost:" + port + (topic[0] != "/" ? "/" : "") + topic)
   try {
     const response = await axios.post("http://localhost:" + port + (topic[0] != "/" ? "/" : "") + topic, { message: JSON.stringify(json2send) }, { headers: { "Content-Type": "application/json" } })
-    response.data.type == "toParse" ? jsonReceivedCB(JSON.parse(response.data.response_message)) : jsonReceivedCB(response.data.response_message)
+    if (response.data.type == "toParse") {
+      let cleanResponse = {}
+      try {
+        cleanResponse = JSON.parse(response.data.response_message)
+      } catch (error) {
+        cleanResponse = JSON.parse(parsingCleaning(response.data.response_message))
+      }
+      jsonReceivedCB(cleanResponse)
+    } else {
+      jsonReceivedCB(response.data.response_message)
+    }
     return response.data
   } catch (error) {
     onError
@@ -125,4 +135,14 @@ export const axiosPostJson = async (jsonData, pathName) => {
     }
     throw error
   }
+}
+
+/**
+ *
+ * @param {String} response the response string to clean
+ * @description trim the response string to only keep the json parsable part
+ * @returns the cleaned response
+ */
+const parsingCleaning = (response) => {
+  return response.substring(response.indexOf("{"), response.lastIndexOf("}") + 1)
 }

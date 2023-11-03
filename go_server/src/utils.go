@@ -118,6 +118,7 @@ func CreateHandleFunc(topic string, processRequest func(jsonConfig string, id st
 		go func(wg *sync.WaitGroup) {
 			processResponse, err = processRequest(jsonConfig, id)
 			if err != nil {
+				log.Println("Error processing request: " + id + ", " + err.Error())
 				processResponse = "{\"error\":\"{\\\"toast\\\":\\\"" + err.Error() + "\\\", \\\"go_kill\\\":\\\"true\\\"}\"}"
 			}
 			defer wg.Done()
@@ -144,7 +145,7 @@ func StartPythonScripts(jsonParam string, filename string, id string) (string, e
 	condaEnv := GetDotEnvVariable("CONDA_ENV")
 	cwd, err := os.Getwd()
 	if err != nil {
-		panic(err)
+		log.Println(err.Error())
 	}
 	log.Println("Conda env: " + condaEnv)
 	script, _ := filepath.Abs(filepath.Join(cwd, filename))
@@ -157,14 +158,14 @@ func StartPythonScripts(jsonParam string, filename string, id string) (string, e
 	Mu.Unlock()
 	if err != nil {
 		log.Println("Error getting stdout pipe")
-		panic(err)
+		log.Println(err.Error())
 	}
 	Mu.Lock()
 	stderr, err := Scripts[id].Cmd.StderrPipe()
 	Mu.Unlock()
 	if err != nil {
 		log.Println("Error getting stderr pipe")
-		panic(err)
+		log.Println(err.Error())
 	}
 	Mu.Lock()
 	err = Scripts[id].Cmd.Start()
@@ -202,6 +203,7 @@ func copyOutput(r io.Reader, response *string) {
 		} else if strings.Contains(lineText, "progress*_*") {
 			id := strings.Split(lineText, "*_*")[1]
 			progress := strings.Split(lineText, "*_*")[2]
+			log.Println("Progress: " + progress)
 			Mu.Lock()
 			Scripts[id] = ScriptInfo{
 				Cmd:      Scripts[id].Cmd,
@@ -269,6 +271,7 @@ func KillScript(id string) bool {
 	Mu.Lock()
 	script, ok := Scripts[id]
 	if ok {
+		defer HandlePanic()
 		err := script.Cmd.Process.Kill()
 		if err != nil {
 			log.Print("Error killing process: ", err.Error())
@@ -277,6 +280,14 @@ func KillScript(id string) bool {
 	log.Println(" Killed script: ", id)
 	Mu.Unlock()
 	return ok
+}
+
+func HandlePanic() {
+	r := recover()
+
+	if r != nil {
+		log.Println("RECOVER-------------------", r)
+	}
 }
 
 func ClearAllScripts() {

@@ -15,26 +15,27 @@ function PageInfosProvider({ children }) {
   const [config, setConfig] = useState(null)
   const [configPath, setConfigPath] = useState("")
   const [pageId, setPageId] = useState("")
-  const [configReloadTrigger, setConfigReloadTrigger] = useState(false)
 
-  const reloadConfig = () => {
-    console.log("reloadConfig")
-    setConfigReloadTrigger(!configReloadTrigger)
-  }
-
+  // We use the useEffect hook to reload the config when the configPath changes
   useEffect(() => {
+    console.log("reloading config", configPath)
     if (configPath && configPath !== "") {
       const fs = require("fs")
       if (fs.existsSync(configPath)) {
         let config = {}
         let extension = configPath.split(".")[configPath.split(".").length - 1]
         if (ZipFileExtensions.includes(extension)) {
-          customZipFile2Object(configPath).then((content) => {
-            content.metadata && (content = content.metadata)
-            console.log("loaded config path", configPath)
-            console.log("loaded config", content)
-            setConfig(content)
-          })
+          customZipFile2Object(configPath)
+            .then((content) => {
+              console.log("raw read content", content)
+              Object.keys(content).includes("metadata") && (content = content.metadata)
+              console.log("loaded config path", configPath)
+              console.log("loaded config", content)
+              setConfig(content)
+            })
+            .catch((err) => {
+              console.log("error while loading config", err)
+            })
         } else {
           config = loadJsonPath(configPath)
           console.log("loaded config", config)
@@ -46,7 +47,7 @@ function PageInfosProvider({ children }) {
         console.log("config not found")
       }
     }
-  }, [configPath, configReloadTrigger])
+  }, [configPath])
 
   return (
     // in the value attribute we pass the pageInfos and the function to update it.
@@ -58,8 +59,7 @@ function PageInfosProvider({ children }) {
         configPath,
         setConfigPath,
         pageId,
-        setPageId,
-        reloadConfig
+        setPageId
       }}
     >
       {children}

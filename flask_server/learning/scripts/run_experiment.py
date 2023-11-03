@@ -18,7 +18,8 @@ USE_RAM_FOR_EXPERIMENTS_STORING = 1
 USE_SAVE_FOR_EXPERIMENTS_STORING = 0
 
 json_params_dict, id_ = parse_arguments()
-go_print("running run_experiment.py:"+id_)
+go_print("running run_experiment.py:" + id_)
+
 
 class GoExecScriptRunExperiment(GoExecutionScript):
     """
@@ -42,6 +43,9 @@ class GoExecScriptRunExperiment(GoExecutionScript):
             self.progress_thread.start()
 
     def _custom_process(self, json_config: dict) -> dict:
+        """
+        This function is the main script of the pipeline execution
+        """
         go_print(json.dumps(json_config, indent=4))
         scene_id = json_config['pageId']
         # check if experiment already exists

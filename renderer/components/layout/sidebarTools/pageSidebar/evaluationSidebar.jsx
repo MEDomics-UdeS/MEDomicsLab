@@ -1,20 +1,15 @@
-import React, { useContext, useEffect, useState, useRef } from "react"
-import { Button, Stack } from "react-bootstrap"
-import { EXPERIMENTS, WorkspaceContext } from "../../../workspace/workspaceContext"
-import * as Icon from "react-bootstrap-icons"
-import { InputText } from "primereact/inputtext"
+import React, { useContext, useEffect, useState } from "react"
+import { Stack } from "react-bootstrap"
+import { WorkspaceContext } from "../../../workspace/workspaceContext"
 import SidebarDirectoryTreeControlled from "../directoryTree/sidebarDirectoryTreeControlled"
-import { loadJsonPath } from "../../../../utilities/fileManagementUtils"
-import { OverlayPanel } from "primereact/overlaypanel"
 import { Accordion } from "react-bootstrap"
 import MedDataObject from "../../../workspace/medDataObject"
 import { DataContext } from "../../../workspace/dataContext"
-import { toast } from "react-toastify"
 import { createZipFileSync } from "../../../../utilities/customZipFile"
-
 import Path from "path"
 import FileCreationBtn from "../fileCreationBtn"
 
+// Variable used to store some modularity information about the module
 const typeInfo = {
   title: "Evaluation",
   extension: "medeval",
@@ -26,12 +21,10 @@ const typeInfo = {
  * @summary - It contains the dropzone component and the workspace directory tree filtered to only show the models and experiment folder and the model files
  * @returns {JSX.Element} - This component is the sidebar tools component that will be used in the sidebar component as the learning page
  */
-const EvaluationSidebar = ({}) => {
+const EvaluationSidebar = () => {
   const { workspace } = useContext(WorkspaceContext) // We get the workspace from the context to retrieve the directory tree of the workspace, thus retrieving the data files
   const [experimentList, setExperimentList] = useState([]) // We initialize the experiment list state to an empty array
   const [selectedItems, setSelectedItems] = useState([]) // We initialize the selected items state to an empty array
-  const [dbSelectedItem, setDbSelectedItem] = useState(null) // We initialize the selected item state to an empty string
-  const [refreshExperimentList, setRefreshExperimentList] = useState(false) // We initialize the refresh experiment list state to false
   const { globalData } = useContext(DataContext)
 
   // We use the useEffect hook to update the experiment list state when the workspace changes
@@ -40,20 +33,22 @@ const EvaluationSidebar = ({}) => {
     if (globalData) {
       let element = null
       console.log("selectedItems", selectedItems)
-      if (selectedItems.length == 0 || selectedItems[0] == undefined) {
-        element = globalData["UUID_ROOT"]
-      } else {
-        element = globalData[selectedItems[0]].type != "folder" ? globalData[globalData[selectedItems[0]].parentID] : globalData[selectedItems[0]]
-      }
-      console.log("element", element)
-      element.childrenIDs.forEach((childID) => {
-        if (globalData[childID].type == "file" && globalData[childID].extension == typeInfo.extension) {
-          experimentList.push(globalData[childID].name.replace("." + typeInfo.extension, ""))
+      if (globalData[selectedItems[0]]) {
+        if (selectedItems.length == 0 || selectedItems[0] == undefined) {
+          element = globalData["UUID_ROOT"]
+        } else {
+          element = globalData[selectedItems[0]].type != "folder" ? globalData[globalData[selectedItems[0]].parentID] : globalData[selectedItems[0]]
         }
-      })
+        console.log("element", element)
+        element.childrenIDs.forEach((childID) => {
+          if (globalData[childID].type == "file" && globalData[childID].extension == typeInfo.extension) {
+            experimentList.push(globalData[childID].name.replace("." + typeInfo.extension, ""))
+          }
+        })
+      }
     }
     setExperimentList(experimentList)
-  }, [workspace, selectedItems, globalData, refreshExperimentList]) // We log the workspace when it changes
+  }, [workspace, selectedItems, globalData]) // We log the workspace when it changes
 
   const checkIsNameValid = (name) => {
     return name != "" && !experimentList.includes(name) && !name.includes(" ")
@@ -95,8 +90,10 @@ const EvaluationSidebar = ({}) => {
     })
   }
 
-  const handleClick = (e) => {
-    console.log("handleClick")
+  /**
+   * @description - This function is used to handle the click on the create scene button
+   */
+  const handleClick = () => {
     setSelectedItems([...selectedItems])
   }
 
@@ -117,7 +114,7 @@ const EvaluationSidebar = ({}) => {
         <FileCreationBtn label="Create evaluation page" piIcon="pi-plus" createEmptyFile={createEmptyScene} checkIsNameValid={checkIsNameValid} handleClickCreateScene={handleClick} />
 
         <Accordion defaultActiveKey={["dirTree"]} alwaysOpen>
-          <SidebarDirectoryTreeControlled setExternalSelectedItems={setSelectedItems} setExternalDBClick={setDbSelectedItem} />
+          <SidebarDirectoryTreeControlled setExternalSelectedItems={setSelectedItems} />
         </Accordion>
       </Stack>
     </>

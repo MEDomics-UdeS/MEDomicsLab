@@ -370,17 +370,21 @@ const Input = ({ name, settingInfos, currentValue, onInputChange, disabled, setH
                     type: settingInfos.type
                   })
                   if (path != "") {
-                    customZipFile2Object(path).then((content) => {
-                      setInputUpdate({
-                        name: name,
-                        value: { name: e.target.value, path: path, metadata: content.metadata },
-                        type: settingInfos.type
+                    customZipFile2Object(path)
+                      .then((content) => {
+                        setInputUpdate({
+                          name: name,
+                          value: { name: e.target.value, path: path, metadata: content.metadata },
+                          type: settingInfos.type
+                        })
+                        console.log("content", content)
+                        let modelDataObject = MedDataObject.checkIfMedDataObjectInContextbyPath(path, globalData)
+                        modelDataObject.metadata.content = content.metadata
+                        setGlobalData({ ...globalData })
                       })
-                      console.log("content", content)
-                      let modelDataObject = MedDataObject.checkIfMedDataObjectInContextbyPath(path, globalData)
-                      modelDataObject.metadata.content = content.metadata
-                      setGlobalData({ ...globalData })
-                    })
+                      .catch((error) => {
+                        console.log("error", error)
+                      })
                     setHasWarning({ state: false })
                   } else {
                     setHasWarning({ state: true, tooltip: <p>No model selected</p> })
