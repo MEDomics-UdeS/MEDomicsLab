@@ -590,6 +590,7 @@ export default class MedDataObject {
     return nameToReturn
   }
 
+
   /**
    * This function returns a new name for a  folder that is not in the provided list of names.
    * @param {string} name - The name to check.

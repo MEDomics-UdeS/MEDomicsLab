@@ -104,6 +104,7 @@ const SimpleCleaningTool = ({ pageId = "inputModule", configPath = "" }) => {
   const getInfos = (data) => {
     let infos = { columnsLength: data.shape[1], rowsLength: data.shape[0] }
     infos.rowsCount = data.count().$data
+    
     infos.columnsCount = data.count({ axis: 0 }).$data
     return infos
   }

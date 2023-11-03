@@ -481,7 +481,7 @@ const MergeTool = ({ pageId = "42", configPath = null }) => {
               <Col className="card" lg={6} key={key + "COLPARENTS"} style={{ paddingBottom: "1rem" }}>
                 <Row md={6} key={key + "rowParent"} className="justify-content-center" style={{ paddingTop: "1rem" }}>
                   <Col md={6} key={key + "col1"} style={{ display: "flex", flexDirection: "column", flexGrow: "1", alignItems: "center", justifyContent: "center", flexWrap: "nowrap" }}>
-                    <Col key={key + "col2"} style={{ display: "flex", marginBottom: "1rem", flexDirection: "row", flexGrow: "0", alignItems: "center", justifyContent: "center" }}>
+                    <Col key={key + "col2"} style={{ display: "flex", marginBottom: "1rem", flexDirection: "row", flexGrow: "0", alignItems: "center", justifyContent: "center", width: "100%" }}>
                       <h6 key={key + "h6"} style={{ padding: ".25rem", flexGrow: "1" }}>
                         {dictOfDatasets[key] && dictOfDatasets[key].data ? dataset.name : "Dataset #" + parseInt(key)}
                       </h6>
@@ -687,9 +687,9 @@ const MergeTool = ({ pageId = "42", configPath = null }) => {
           <Col lg={3} style={{ display: "flex", flexDirection: "row", justifyContent: "center", flexGrow: 0, alignItems: "center", marginTop: "1rem" }}>
             {newDatasetName.length === 0 && <span style={{ color: "red", textAlign: "center" }}>The dataset name is empty, the dataset will be named mergedDataset</span>}
           </Col>
-          <div className="progressBar-merge">{<ProgressBarRequests isUpdating={isProgressUpdating} setIsUpdating={setIsProgressUpdating} progress={progress} setProgress={setProgress} requestTopic={"input/progress/" + pageId} delayMS={50} />}</div>
+          <div className="progressBar-merge">{<ProgressBarRequests isUpdating={isProgressUpdating} setIsUpdating={setIsProgressUpdating} progress={progress} setProgress={setProgress} requestTopic={"input/progress/" + pageId} delayMS={50} style={{width:"100% "}}/>}</div>
         </Row>
-      </div>
+      </div>  
     </>
   )
 }

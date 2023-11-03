@@ -12,6 +12,7 @@ import { DataTable } from "primereact/datatable"
 import { Column } from "@blueprintjs/table"
 import { Tag } from "primereact/tag"
 import { OverlayPanel } from "primereact/overlaypanel"
+import { toast } from "react-toastify"
 const dfd = require("danfojs-node")
 
 /**
@@ -40,6 +41,9 @@ const SubsetCreationTool = ({ pageId = "inputModule", configPath = "" }) => {
   const [dropType, setDropType] = useState("columns") // The drop type [columns, rows
   const opCol = React.useRef(null)
   const [dataset, setDataset] = useState(null) // The dataset to drop
+  const [globalFilterValue, setGlobalFilterValue] = useState("") // The global filter value
+  const [filters, setFilters] = useState({}) // The filters
+  const [filteredData, setFilteredData] = useState([]) // The filtered data
 
   /**
    * To handle the change in the selected dataset, and update the columns options
@@ -143,6 +147,12 @@ const SubsetCreationTool = ({ pageId = "inputModule", configPath = "" }) => {
     }
   }
 
+  const initFilters = () => {
+    let newFilters = {}
+    newFilters["global"] = { value: "", matchMode: "contains" }
+    setFilters(newFilters)
+  }
+
   /**
    * To drop all - the rows and the columns
    * @param {Boolean} overwrite - True if the dataset should be overwritten, false otherwise
@@ -211,9 +221,9 @@ const SubsetCreationTool = ({ pageId = "inputModule", configPath = "" }) => {
         })
       }
       setNewDatasetExtension(selectedDataset.extension)
-      setNewDatasetName(selectedDataset.nameWithoutExtension + "_clean")
+      setNewDatasetName(selectedDataset.nameWithoutExtension + "_filtered")
       setNewLocalDatasetExtension(selectedDataset.extension)
-      setNewLocalDatasetName(selectedDataset.nameWithoutExtension + "_clean")
+      setNewLocalDatasetName(selectedDataset.nameWithoutExtension + "_filtered")
     }
   }, [selectedDataset])
 
@@ -279,6 +289,24 @@ const SubsetCreationTool = ({ pageId = "inputModule", configPath = "" }) => {
     MedDataObject.updateWorkspaceDataObject()
   }
 
+   /**
+   * To save the clean dataset
+   * @param {Object} newData - The new data
+   * @param {Boolean} overwrite - True if the dataset should be overwritten, false otherwise
+   * @param {Boolean} local - True if the dataset is called from the overlaypanel (will use newLocalDatasetName and newLocalDatasetExtension instead of newDatasetName and newDatasetExtension), false otherwise
+   */
+   const saveFilteredDataset = (newData) => { 
+    console.log("saveFilteredDataset", newData)
+    console.log("getParentIDfolderPath(selectedDataset)", getParentIDfolderPath(selectedDataset))
+    if (newData.length !== dataset.length && newData !== null && newData !== undefined && newData.length !== 0) {   
+    MedDataObject.saveDatasetToDisk({ data: newData, filePath: getParentIDfolderPath(selectedDataset) + newDatasetName + "." + newDatasetExtension, extension: newDatasetExtension })
+    MedDataObject.updateWorkspaceDataObject()
+    } else {
+      toast.error("Filtered data is not valid")
+    }
+  }
+
+
   /**
    * This function is used to clean a string
    * @param {string} string - The string to clean
@@ -333,7 +361,37 @@ const SubsetCreationTool = ({ pageId = "inputModule", configPath = "" }) => {
 
   useEffect(() => {
     console.log("dataset", dataset)
+    initFilters()
   }, [dataset])
+
+  const clearFilter = () => {
+    setGlobalFilterValue("")
+    setFilteredData(dataset)
+  }
+
+  
+
+  useEffect(() => {
+    let newFilters = { ...filters }
+    if (globalFilterValue.length > 0) {
+      newFilters["global"].value = globalFilterValue
+    }
+    setFilters(newFilters)
+  }, [globalFilterValue])
+
+  const renderHeader = () => {
+    return (
+      <div className="table-header" style={{ display: "flex", justifyContent: "space-between" }}>
+        <Button icon="pi pi-filter-slash" className="p-mr-2" outlined label="Clear" onClick={clearFilter} />
+        <span className="p-input-icon-left">
+          <i className="pi pi-search" />
+          <InputText type="search" onChange={(e) => setGlobalFilterValue(e.target.value)} placeholder="Global Search" />
+        </span>
+      </div>
+    )
+  }
+
+  const header = renderHeader()
 
   return (
     <>
@@ -344,11 +402,37 @@ const SubsetCreationTool = ({ pageId = "inputModule", configPath = "" }) => {
           <Dropdown options={listOfDatasets} optionLabel="name" optionValue="key" className="w-100" value={selectedDataset ? selectedDataset.getUUID() : null} onChange={handleSelectedDatasetChange}></Dropdown>
 
           <Row style={{ display: "flex", justifyContent: "space-evenly", flexDirection: "row", marginTop: "0.5rem" }}>
-            <DataTable size={"small"} paginator={true} value={dataset ? dataset : null} rowClassName={columnClass} rows={5} rowsPerPageOptions={[5, 10, 25, 50]} className="p-datatable-striped p-datatable-gridlines">
+            <DataTable
+              onValueChange={(e) => {
+                setFilteredData(e)
+                console.log("FILTER", e)
+              }}
+              size={"small"}
+              header={header}
+              paginator={true}
+              filters={filters}
+              value={dataset ? dataset : null}
+              globalFilterFields={selectedDatasetColumns}
+              rowClassName={columnClass}
+              rows={5}
+              rowsPerPageOptions={[5, 10, 25, 50]}
+              className="p-datatable-striped p-datatable-gridlines"
+            >
               {selectedDatasetColumns.length > 0 && selectedDatasetColumns.map((column, index) => <Column key={column} field={String(column)} header={String(column).toLocaleUpperCase()}></Column>)}
             </DataTable>
           </Row>
-
+          <Row className={"card"} style={{ display: "flex", justifyContent: "space-evenly", flexDirection: "row", marginTop: "0.5rem", backgroundColor: "transparent", padding: "0.5rem" }}>
+          <h6>
+          Rows selected : <b>
+            
+            {filteredData.length}
+            </b>&nbsp;
+             of &nbsp;
+             <b>
+              {dataset ? dataset.length : 0}
+              </b>
+          </h6>
+          </Row>
           <Row className={"card"} style={{ display: "flex", justifyContent: "space-evenly", flexDirection: "row", marginTop: "0.5rem", backgroundColor: "transparent", padding: "0.5rem" }}>
             <Col style={{ display: "flex", flexDirection: "row", justifyContent: "center", flexGrow: 0, alignItems: "center" }} xs>
               <div className="p-input-group flex-1 dataset-name " style={{ display: "flex", flexDirection: "row" }}>
@@ -380,11 +464,12 @@ const SubsetCreationTool = ({ pageId = "inputModule", configPath = "" }) => {
             </Col>
             <Col>
               <Button
-                label="Create a clean copy"
+                label="Create subset from filtered rows"
                 disabled={checkIfNameAlreadyUsed(newDatasetName + "." + newDatasetExtension) || selectedDataset === null || selectedDataset === undefined || newDatasetName.length === 0}
                 onClick={() => {
-                  dropAll(false)
-                  console.log("CREATE A CLEAN DATASET")
+                  // dropAll(false)
+                  console.log("CREATE A SUBSET")
+                  saveFilteredDataset(filteredData)
                 }}
               />
             </Col>
@@ -401,7 +486,7 @@ const SubsetCreationTool = ({ pageId = "inputModule", configPath = "" }) => {
             <InputText
               size={"small"}
               className={`${checkIfNameAlreadyUsed(newLocalDatasetName + "." + newLocalDatasetExtension) ? "p-invalid" : ""}`}
-              placeholder="Clean dataset name"
+              placeholder="Subset name"
               keyfilter={"alphanum"}
               value={newLocalDatasetName}
               onChange={(e) => {

@@ -70,7 +70,7 @@ def merge():
     request_id = json_config["pageId"]
     input_progress[request_id] = {"now": 0, "currentLabel": "None"}
 
-    length = len(payload.keys())*2
+    length = (len(payload.keys())-1)*2
     progress_step = 100/length
     progress = 0
     input_progress[request_id] = {
