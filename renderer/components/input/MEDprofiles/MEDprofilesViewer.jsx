@@ -23,12 +23,12 @@ const MEDprofilesViewer= ({ pageId, configPath = "", MEDclassesFolder, MEDprofil
         if (!jsonResponse.error) {
           setJsonFilePath(jsonResponse.jsonFilePath)
         } else {
-          toast.error(`Instantiation failed: ${jsonResponse.error.message}`)
+          toast.error(`Reading failed: ${jsonResponse.error.message}`)
         }
       },
       function (err) {
         console.error(err)
-        toast.error(`Instantiation failed: ${err}`)
+        toast.error(`Reading failed: ${err}`)
       }
     )
   }
