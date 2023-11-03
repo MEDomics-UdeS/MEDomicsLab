@@ -1,19 +1,22 @@
-import React, { useContext, useState, useEffect, use } from "react"
+import React, { useContext, useState, useEffect } from "react"
 import { Row, Col } from "react-bootstrap"
 import { DataContext } from "../workspace/dataContext"
 import { Button } from "primereact/button"
 import { Dropdown } from "primereact/dropdown"
 import MedDataObject from "../workspace/medDataObject"
 import { InputText } from "primereact/inputtext"
-import { Slider } from "primereact/slider"
 import { InputNumber } from "primereact/inputnumber"
 import ProgressBarRequests from "../generalPurpose/progressBarRequests"
 import { DataTable } from "primereact/datatable"
 import { Column } from "@blueprintjs/table"
-import { Tag } from "primereact/tag"
 import { OverlayPanel } from "primereact/overlaypanel"
 import { toast } from "react-toastify"
+import { FilterMatchMode, FilterOperator } from "primereact/api"
+import { MultiSelect } from "primereact/multiselect"
+import { Utils as danfoUtils } from "danfojs-node"
+
 const dfd = require("danfojs-node")
+const dfdUtils = new danfoUtils()
 
 /**
  * Component that renders the holdout set creation tool
@@ -30,20 +33,20 @@ const SubsetCreationTool = ({ pageId = "inputModule", configPath = "" }) => {
   const [newDatasetExtension, setNewDatasetExtension] = useState(".csv") // The extension of the new dataset
   const [progress, setProgress] = useState({ now: 0, currentLabel: "" }) // The progress of the holdout set creation
   const [isProgressUpdating, setIsProgressUpdating] = useState(false) // To check if the progress is updating
-  const [columnThreshold, setColumnThreshold] = useState(0) // The column threshold
-  const [rowThreshold, setRowThreshold] = useState(0) // The row threshold
   const [selectedDatasetColumns, setSelectedDatasetColumns] = useState([]) // The columns infos of the selected dataset
-  const [rowsInfos, setRowsInfos] = useState([]) // The rows infos of the selected dataset
   const [columnsToDrop, setColumnsToDrop] = useState([]) // The columns to drop
   const [rowsToDrop, setRowsToDrop] = useState([]) // The rows to drop
   const [newLocalDatasetName, setNewLocalDatasetName] = useState("") // The name of the new dataset
   const [newLocalDatasetExtension, setNewLocalDatasetExtension] = useState(".csv") // The extension of the new dataset
-  const [dropType, setDropType] = useState("columns") // The drop type [columns, rows
-  const opCol = React.useRef(null)
+  const opTab = React.useRef(null)
   const [dataset, setDataset] = useState(null) // The dataset to drop
   const [globalFilterValue, setGlobalFilterValue] = useState("") // The global filter value
   const [filters, setFilters] = useState({}) // The filters
   const [filteredData, setFilteredData] = useState([]) // The filtered data
+  const [df, setDf] = useState(null) // The dataframe
+  const [columnTypes, setColumnTypes] = useState({}) // The column types
+
+  const filterDisplay = "menu"
 
   /**
    * To handle the change in the selected dataset, and update the columns options
@@ -110,6 +113,11 @@ const SubsetCreationTool = ({ pageId = "inputModule", configPath = "" }) => {
   }
 
   /**
+   * To get the infos of the columns
+   */
+  const getColumnsInfos = () => {}
+
+  /**
    * To get the data
    * @returns {Promise} - The promise of the data
    */
@@ -126,10 +134,8 @@ const SubsetCreationTool = ({ pageId = "inputModule", configPath = "" }) => {
    * @returns {Void}
    */
   const dropRows = (overwrite) => {
-    console.log("dropRows")
     getData().then((data) => {
       let newData = data.drop({ index: rowsToDrop })
-      console.log("newData", newData, selectedDataset)
       saveCleanDataset(newData, overwrite, true)
     })
   }
@@ -150,6 +156,17 @@ const SubsetCreationTool = ({ pageId = "inputModule", configPath = "" }) => {
   const initFilters = () => {
     let newFilters = {}
     newFilters["global"] = { value: "", matchMode: "contains" }
+
+    Object.keys(columnTypes).forEach((column) => {
+      if (columnTypes[column] === "category") {
+        newFilters[column] = { value: "", matchMode: FilterMatchMode.IN }
+      } else if (columnTypes[column] === "int32" || columnTypes[column] === "float32") {
+        newFilters[column] = { operator: FilterOperator.AND, constraints: [{ value: "", matchMode: FilterMatchMode.EQUALS }] }
+      } else if (columnTypes[column] === "string") {
+        newFilters[column] = { operator: FilterOperator.AND, constraints: [{ value: "", matchMode: FilterMatchMode.STARTS_WITH }] }
+      }
+    })
+
     setFilters(newFilters)
   }
 
@@ -159,11 +176,9 @@ const SubsetCreationTool = ({ pageId = "inputModule", configPath = "" }) => {
    * @returns {Void}
    */
   const dropAll = (overwrite) => {
-    console.log("dropAll")
     getData().then((data) => {
       let newData = data.drop({ columns: columnsToDrop })
       newData = newData.drop({ index: rowsToDrop })
-      console.log("newData", newData, selectedDataset)
       saveCleanDataset(newData, overwrite, false)
     })
   }
@@ -195,9 +210,7 @@ const SubsetCreationTool = ({ pageId = "inputModule", configPath = "" }) => {
       })
       newData[cleanedColumnNames[index]] = newColumn
     })
-    console.log("newData", newData, data.$columns)
     let df = new dfd.DataFrame(newData)
-    console.log("df", df)
     return df
   }
 
@@ -206,18 +219,15 @@ const SubsetCreationTool = ({ pageId = "inputModule", configPath = "" }) => {
    */
   useEffect(() => {
     if (selectedDataset !== null && selectedDataset !== undefined) {
-      console.log("selectedDataset", selectedDataset.data)
       if (selectedDataset !== null || selectedDataset !== undefined) {
         getData().then((data) => {
-          console.log("data", data, dfd)
           data = cleanDataset(data)
-          console.log("data cleaned", data, dfd)
 
           let columns = data.columns
-          data = dfd.toJSON(data)
-          setDataset(data)
+          setDf(data)
+          let jsonData = dfd.toJSON(data)
+          setDataset(jsonData)
           setSelectedDatasetColumns(columns)
-          console.log("data cleaned", data, dfd)
         })
       }
       setNewDatasetExtension(selectedDataset.extension)
@@ -228,84 +238,19 @@ const SubsetCreationTool = ({ pageId = "inputModule", configPath = "" }) => {
   }, [selectedDataset])
 
   /**
-   * Template for the rows in the columns datatable
-   * @param {Object} data - The row data
-   * @returns {Object} - The row template
-   */
-  const columnClass = (data) => {
-    return { "bg-invalid": data.percentage < columnThreshold }
-  }
-
-  /**
-   * Template for the rows in the rows datatable
-   * @param {Object} data - The row data
-   * @returns {Object} - The row template
-   */
-  const rowClass = (data) => {
-    return { "bg-invalid": data.percentage < rowThreshold }
-  }
-
-  /**
-   * Template for the percentage cells
-   * @param {Object} rowData - The row data
-   * @returns {Object} - The percentage template
-   */
-  const percentageTemplate = (rowData) => {
-    return <span>{rowData.percentage.toFixed(2)} %</span>
-  }
-
-  /**
-   * To drop the columns
-   * @param {Boolean} overwrite - True if the dataset should be overwritten, false otherwise
-   */
-  const dropColumns = (overwrite) => {
-    console.log("dropColumns")
-    getData().then((data) => {
-      let newData = data.drop({ columns: columnsToDrop })
-      console.log("newData", newData, selectedDataset)
-      saveCleanDataset(newData, overwrite, true)
-    })
-  }
-
-  /**
-   * To save the clean dataset
+   * To save the filtered dataset
    * @param {Object} newData - The new data
    * @param {Boolean} overwrite - True if the dataset should be overwritten, false otherwise
    * @param {Boolean} local - True if the dataset is called from the overlaypanel (will use newLocalDatasetName and newLocalDatasetExtension instead of newDatasetName and newDatasetExtension), false otherwise
    */
-  const saveCleanDataset = (newData, overwrite = undefined, local = undefined) => {
-    if (overwrite === true) {
-      console.log("overwrite")
-      selectedDataset.saveData(newData)
-      setSelectedDataset(null)
-    } else {
-      if (local === true) {
-        console.log("local", getParentIDfolderPath(selectedDataset) + newLocalDatasetName, newLocalDatasetExtension)
-        MedDataObject.saveDatasetToDisk({ df: newData, filePath: getParentIDfolderPath(selectedDataset) + newLocalDatasetName + "." + newLocalDatasetExtension, extension: newLocalDatasetExtension })
-      } else {
-        MedDataObject.saveDatasetToDisk({ df: newData, filePath: getParentIDfolderPath(selectedDataset) + newDatasetName + "." + newDatasetExtension, extension: newDatasetExtension })
-      }
-    }
-    MedDataObject.updateWorkspaceDataObject()
-  }
-
-   /**
-   * To save the clean dataset
-   * @param {Object} newData - The new data
-   * @param {Boolean} overwrite - True if the dataset should be overwritten, false otherwise
-   * @param {Boolean} local - True if the dataset is called from the overlaypanel (will use newLocalDatasetName and newLocalDatasetExtension instead of newDatasetName and newDatasetExtension), false otherwise
-   */
-   const saveFilteredDataset = (newData) => { 
-    console.log("saveFilteredDataset", newData)
-    console.log("getParentIDfolderPath(selectedDataset)", getParentIDfolderPath(selectedDataset))
-    if (newData.length !== dataset.length && newData !== null && newData !== undefined && newData.length !== 0) {   
-    MedDataObject.saveDatasetToDisk({ data: newData, filePath: getParentIDfolderPath(selectedDataset) + newDatasetName + "." + newDatasetExtension, extension: newDatasetExtension })
-    MedDataObject.updateWorkspaceDataObject()
+  const saveFilteredDataset = (newData) => {
+    if (newData.length !== dataset.length && newData !== null && newData !== undefined && newData.length !== 0) {
+      MedDataObject.saveDatasetToDisk({ data: newData, filePath: getParentIDfolderPath(selectedDataset) + newDatasetName + "." + newDatasetExtension, extension: newDatasetExtension })
+      MedDataObject.updateWorkspaceDataObject()
     } else {
       toast.error("Filtered data is not valid")
     }
   }
-
 
   /**
    * This function is used to clean a string
@@ -333,47 +278,19 @@ const SubsetCreationTool = ({ pageId = "inputModule", configPath = "" }) => {
     return parentPath + separator
   }
 
-  /**
-   * Hook that is called when the columns infos are updated to update the columns to drop
-   */
   useEffect(() => {
-    let newColumnsToDrop = []
-    selectedDatasetColumns.forEach((column) => {
-      if (column.percentage < columnThreshold) {
-        newColumnsToDrop.push(column.label)
-      }
-    })
-    setColumnsToDrop(newColumnsToDrop)
-  }, [selectedDatasetColumns, columnThreshold])
-
-  /**
-   * Hook that is called when the rows infos are updated to update the rows to drop
-   */
-  useEffect(() => {
-    let newRowsToDrop = []
-    rowsInfos.forEach((row) => {
-      if (row.percentage < rowThreshold) {
-        newRowsToDrop.push(row.label)
-      }
-    })
-    setRowsToDrop(newRowsToDrop)
-  }, [rowsInfos, rowThreshold])
-
-  useEffect(() => {
-    console.log("dataset", dataset)
-    initFilters()
+    // initFilters()
   }, [dataset])
 
   const clearFilter = () => {
     setGlobalFilterValue("")
+    initFilters()
     setFilteredData(dataset)
   }
 
-  
-
   useEffect(() => {
     let newFilters = { ...filters }
-    if (globalFilterValue.length > 0) {
+    if (globalFilterValue.length !== 0) {
       newFilters["global"].value = globalFilterValue
     }
     setFilters(newFilters)
@@ -385,13 +302,115 @@ const SubsetCreationTool = ({ pageId = "inputModule", configPath = "" }) => {
         <Button icon="pi pi-filter-slash" className="p-mr-2" outlined label="Clear" onClick={clearFilter} />
         <span className="p-input-icon-left">
           <i className="pi pi-search" />
-          <InputText type="search" onChange={(e) => setGlobalFilterValue(e.target.value)} placeholder="Global Search" />
+          <InputText
+            type="search"
+            onChange={(e) => {
+              setGlobalFilterValue(e.target.value)
+            }}
+            placeholder="Global Search"
+          />
         </span>
       </div>
     )
   }
 
   const header = renderHeader()
+
+  useEffect(() => {
+    if (df !== null && df !== undefined) {
+      let newColumnTypes = {}
+      df.ctypes.$data.forEach((type, index) => {
+        if (df.nUnique(0).$data[index] < 10) {
+          type = "category"
+        }
+        newColumnTypes[df.columns[index]] = type
+      })
+      setColumnTypes(newColumnTypes)
+    }
+  }, [df])
+
+  useEffect(() => {
+    initFilters()
+  }, [columnTypes])
+
+  const categoryFilterTemplate = (options) => {
+    let onChangeFunc = (e) => {
+      options.filterCallback(e.value)
+    }
+    if (filterDisplay === "row") {
+      onChangeFunc = (e) => {
+        options.filterApplyCallback(e.value)
+      }
+    }
+
+    let colData = df.$getColumnData(options.field).$data
+    let uniqueValues = dfdUtils.unique(colData)
+    let newOptions = []
+    uniqueValues.forEach((value) => {
+      newOptions.push({ name: value, value: value })
+    })
+    return <MultiSelect value={options.value} options={newOptions} onChange={onChangeFunc} optionLabel="name" placeholder={`Search by ${options.field}`} className="p-column-filter" maxSelectedLabels={1} />
+  }
+
+  const numberFilterTemplate = (options) => {
+    let onChangeFunc = (e) => {
+      options.filterCallback(e.value, options.index)
+    }
+    if (filterDisplay === "row") {
+      onChangeFunc = (e) => {
+        options.filterApplyCallback(e.value, options.index)
+      }
+    }
+    return <InputNumber value={options.value} onChange={onChangeFunc} placeholder={`Search by ${options.field}`} locale="en-US" />
+  }
+
+  const stringFilterTemplate = (options) => {
+    let onChangeFunc = (e) => {
+      options.filterCallback(e.target.value, options.index)
+    }
+    if (filterDisplay === "row") {
+      onChangeFunc = (e) => {
+        options.filterApplyCallback(e.target.value, options.field)
+      }
+    }
+    return <InputText type="search" value={options.value} placeholder={`Search by ${options.field}`} onChange={onChangeFunc} />
+  }
+
+  const filterTemplateRenderer = (index) => {
+    let columnType = columnTypes[selectedDatasetColumns[index]]
+    if (columnType === "category") {
+      return categoryFilterTemplate
+    } else if (columnType === "int32" || columnType === "float32") {
+      return numberFilterTemplate
+    } else if (columnType === "string") {
+      return stringFilterTemplate
+    }
+  }
+
+  function capitalizeFirstLetter(string) {
+    return string[0].toUpperCase() + string.slice(1)
+  }
+
+  function getColumnDataType(column) {
+    if (columnTypes[column] === "int32" || columnTypes[column] === "float32") {
+      return "numeric"
+    } else if (columnTypes[column] === "string") {
+      return "text"
+    } else if (columnTypes[column] === "category") {
+      return "category"
+    } else if (columnTypes[column] === "bool") {
+      return "boolean"
+    }
+  }
+
+  const getColumnOptions = (column) => {
+    let optionsToReturn = { showFilterMatchModes: true, showFilterMenu: true }
+    if (columnTypes[column] === "category") {
+      optionsToReturn.showFilterMatchModes = false
+      optionsToReturn.showFilterMenu = true
+    }
+    return optionsToReturn
+  }
 
   return (
     <>
@@ -403,35 +422,30 @@ const SubsetCreationTool = ({ pageId = "inputModule", configPath = "" }) => {
 
           <Row style={{ display: "flex", justifyContent: "space-evenly", flexDirection: "row", marginTop: "0.5rem" }}>
             <DataTable
+              ref={opTab}
               onValueChange={(e) => {
                 setFilteredData(e)
-                console.log("FILTER", e)
               }}
+              filterDisplay={filterDisplay}
               size={"small"}
               header={header}
               paginator={true}
               filters={filters}
               value={dataset ? dataset : null}
               globalFilterFields={selectedDatasetColumns}
-              rowClassName={columnClass}
               rows={5}
               rowsPerPageOptions={[5, 10, 25, 50]}
               className="p-datatable-striped p-datatable-gridlines"
+              removableSort={true}
             >
-              {selectedDatasetColumns.length > 0 && selectedDatasetColumns.map((column, index) => <Column key={column} field={String(column)} header={String(column).toLocaleUpperCase()}></Column>)}
+              {selectedDatasetColumns.length > 0 && selectedDatasetColumns.map((column, index) => <Column key={column} {...getColumnOptions(column)} dataType={getColumnDataType(column)} field={String(column)} sortable filterPlaceholder={`Search by ${column}`} filterElement={filterTemplateRenderer(index)} filter header={capitalizeFirstLetter(column)} style={{ minWidth: "5rem" }}></Column>)}
             </DataTable>
           </Row>
           <Row className={"card"} style={{ display: "flex", justifyContent: "space-evenly", flexDirection: "row", marginTop: "0.5rem", backgroundColor: "transparent", padding: "0.5rem" }}>
-          <h6>
-          Rows selected : <b>
-            
-            {filteredData.length}
-            </b>&nbsp;
-             of &nbsp;
-             <b>
-              {dataset ? dataset.length : 0}
-              </b>
-          </h6>
+            <h6>
+              Rows selected : <b>{filteredData.length}</b>&nbsp; of &nbsp;
+              <b>{dataset ? dataset.length : 0}</b>
+            </h6>
           </Row>
           <Row className={"card"} style={{ display: "flex", justifyContent: "space-evenly", flexDirection: "row", marginTop: "0.5rem", backgroundColor: "transparent", padding: "0.5rem" }}>
             <Col style={{ display: "flex", flexDirection: "row", justifyContent: "center", flexGrow: 0, alignItems: "center" }} xs>
@@ -468,7 +482,6 @@ const SubsetCreationTool = ({ pageId = "inputModule", configPath = "" }) => {
                 disabled={checkIfNameAlreadyUsed(newDatasetName + "." + newDatasetExtension) || selectedDataset === null || selectedDataset === undefined || newDatasetName.length === 0}
                 onClick={() => {
                   // dropAll(false)
-                  console.log("CREATE A SUBSET")
                   saveFilteredDataset(filteredData)
                 }}
               />
@@ -477,7 +490,7 @@ const SubsetCreationTool = ({ pageId = "inputModule", configPath = "" }) => {
         </Col>
         <div className="progressBar-merge">{<ProgressBarRequests isUpdating={isProgressUpdating} setIsUpdating={setIsProgressUpdating} progress={progress} setProgress={setProgress} requestTopic={"input/progress/" + pageId} delayMS={50} />}</div>
       </Row>
-      <OverlayPanel ref={opCol} showCloseIcon={true} dismissable={true} style={{ width: "auto" }}>
+      <OverlayPanel showCloseIcon={true} dismissable={true} style={{ width: "auto" }}>
         Do you want to <b>overwrite</b> the dataset or <b>create a new one</b> ?
         <div className="" style={{ display: "flex", flexDirection: "row", marginTop: "0.5rem" }}>
           <Button size="small" severity={"danger"} label="Overwrite" onClick={() => dropRowsOrColumns(true)} style={{ alignContent: "center", alignSelf: "center", display: "flex", justifyContent: "center" }}></Button>
