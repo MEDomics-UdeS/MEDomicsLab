@@ -260,7 +260,6 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
     let newColumns: any[] = [] // new columns
     let newColumnIndexMap: any[] = [] // new column index map
     let newColumnTypes = this.getColumnsTypes(this.props.data) // get the column types
-    // console.log("New Column Types: ", newColumnTypes)
     let columnsFilter = {} // columns filter
     columnsNames.forEach((columnName, index) => {
       // for each column name, create a new NumericalSortableColumn
@@ -733,7 +732,6 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
     if (oldIndex === newIndex) {
       return
     }
-    console.log("Old Index: ", oldIndex, "New Index: ", newIndex, "Length: ", length)
     const nextChildren = Utils.reorderArray(this.state.columns, oldIndex, newIndex, length)
     const nextColumnIndexMap = Utils.reorderArray(this.state.columnIndexMap, oldIndex, newIndex, length)
     this.updateFilterValueOnColumnsReordered()
@@ -946,7 +944,6 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
     const { data, columnsNames, columnsFilter, columnIndexMap } = this.state
     const newFilterValue = filterValue
     let newFilterValueDict = { ...columnsFilter }
-    console.log("columnsFilter", columnsFilter, columnsNames)
     if (Object.keys(columnsFilter).length !== columnsNames.length) {
       let newColumnsFilter = {}
       columnsNames.forEach((columnName, index) => {
@@ -960,7 +957,6 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
     }
     newFilterValueDict[columnIndex] = { filterValue: newFilterValue, reordered: false }
     this.state.columnsFilter = newFilterValueDict
-    console.log("newFilterValueDict", newFilterValueDict)
     const newFilteredIndexMap = Utils.times(data.length, (i: number) => i).filter((rowIndex: number) => {
       // Create an index range from 0 to the number of rows and then filter the rows
       const sortedRowIndex = this.state.sortedIndexMap[rowIndex]
@@ -970,7 +966,6 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
         // No operation
       }
     })
-    console.log(newFilteredIndexMap)
     let columnName = columnsNames[columnIndex] // get the column name
     let newGlobalFilteredIndexMap = this.state.filteredIndexMap ? this.state.filteredIndexMap : {} // get the filtered index map
     // Remove from the filtered index map the columns with null as value
@@ -980,7 +975,6 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
       }
     })
     newGlobalFilteredIndexMap[columnIndex] = newFilteredIndexMap // set the filtered index map
-    console.log("newGlobalFilteredIndexMap", newGlobalFilteredIndexMap)
     this.setState({ filteredIndexMap: newGlobalFilteredIndexMap }) // set the filtered index map in the state
     this.updateIntent(filterValue, columnIndexMap[columnIndex], "AND", newFilterValueDict, newGlobalFilteredIndexMap) // update the intent
   }
@@ -999,9 +993,7 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
     // Adds the intent to the cells that are present in the filteredIndexMap
     // and removes the intent from the cells that are not present in the filteredIndexMap
     let newSparseCellIntent = {}
-    console.log("filterValue", filterValue, columnIndexToCheck)
     if (filterValue === "") {
-      console.log("filterValue is empty")
       // If the filter value is empty, remove the intent from the cells that are not present in the filteredIndexMap
       Object.keys(sparseCellIntent).forEach((key: string) => {
         let decoupledKey = this.decoupleDataKey(key)
@@ -1017,7 +1009,6 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
         newFilteredIndexMap[columnIndexToCheck] = null
       }
     }
-    console.log("columnsFilter", columnsFilter)
     let columnsNamesFiltered = []
     let rowIntent = {}
     if (filteredIndexMap != null) {
@@ -1029,7 +1020,6 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
         if (columnsFilter[key].filterValue !== "") {
           // If the filter value is not empty
           columnsNamesFiltered.push(key) // Add the column name to the columnsNamesFiltered array
-          console.log("columnsNamesFiltered", columnsNamesFiltered)
           filteredIndexMap[key].forEach((rowIndex: number) => {
             // For each row index in the filtered index map
             rowIntent[rowIndex] = rowIntent[rowIndex] ? rowIntent[rowIndex] + 1 : 1 // Increment the row intent
@@ -1060,7 +1050,6 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
     const { columnIndexMap } = this.state
     let newColumnIndexMap = deepCopy(columnIndexMap)
     newColumnIndexMap = Utils.reorderArray(columnIndexMap, oldIndex, newIndex, 1)
-    console.log("newColumnIndexMap", newColumnIndexMap, columnIndexMap)
     this.setState({ columnIndexMap: newColumnIndexMap })
   }
 
@@ -1075,7 +1064,6 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
     let length = newFrozenColumns.length // get the length of the frozen columns
     let thisIndexMap = deepCopy(this.state.columnIndexMap)
 
-    console.log("HERE", e, index, thisIndexMap, newFrozenColumns)
     let thisIndex = this.state.columnIndexMap.indexOf(index)
 
     if (newFrozenColumns.includes(index)) {

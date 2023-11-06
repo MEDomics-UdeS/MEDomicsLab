@@ -426,6 +426,7 @@ function App() {
     if (workspaceObject.hasBeenSet === true) {
       let path = workspaceObject.workingDirectory.path + "/.medomics"
       // Check if the .medomics folder exists
+      // eslint-disable-next-line no-undef
       const fsx = require("fs-extra")
       fsx.ensureDirSync(workspaceObject.workingDirectory.path + "/.medomics")
       // Save the global data to a file

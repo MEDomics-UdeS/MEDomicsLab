@@ -17,7 +17,7 @@ go_print("running script.py:" + id_)
 
 class GoExecScriptMerge(GoExecutionScript):
     """
-        This class is used to execute a process from Go
+        This class is used to execute the merge script
 
         Args:
             json_params: The input json params

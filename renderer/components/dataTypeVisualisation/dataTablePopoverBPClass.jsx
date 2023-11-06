@@ -150,23 +150,9 @@ const DataTablePopoverBP = (props) => {
         setGlobalData(globalDataCopy)
       }
     } else {
-      // console.log("MedObject not found")
+      // NO OP
     }
   }, [])
-
-  /**
-   * To filter the column when the filter value changes
-   */
-  useEffect(() => {}, [filterValue])
-
-  useEffect(() => {
-    if (props.filterValue.reordered !== undefined) {
-      if (props.filterValue.reordered) {
-        // console.log("HEY", props.filterValue)
-        // setFilterValue(props.filterValue.filterValue)
-      }
-    }
-  }, [props])
 
   /**
    * To clear the filter value when the data type changes
@@ -176,7 +162,6 @@ const DataTablePopoverBP = (props) => {
   }, [selectedType])
 
   useEffect(() => {
-    // console.log("Rerender", filterValue)
     setSelectedType(getTypeInGlobalData())
     setFilterValue(props.filterValue.filterValue || "")
   }, [props])
@@ -242,7 +227,6 @@ const DataTablePopoverBP = (props) => {
               value={props.filterValue(props.index).filterValue || ""}
               onValueChange={(value) => {
                 props.filterColumn(props.index, value)
-                // setFilterValue(value)
               }}
             />
           </>
@@ -260,10 +244,7 @@ const DataTablePopoverBP = (props) => {
               rightElement={<Tag style={{ marginInline: "5px" }} />}
               value={props.filterValue(props.index).filterValue || ""}
               onChange={(e) => {
-                console.log("Filter value changed", e.target.value)
                 props.filterColumn(props.index, e.target.value)
-
-                // setFilterValue(e.target.value)
               }}
             />
           </>
@@ -281,7 +262,6 @@ const DataTablePopoverBP = (props) => {
               value={deepCopy(props.filterValue(props.index).filterValue) || ""}
               onValueChange={(value) => {
                 props.filterColumn(props.index, value)
-                // setFilterValue(value)
               }}
             />
           </>

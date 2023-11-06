@@ -104,7 +104,7 @@ const SimpleCleaningTool = ({ pageId = "inputModule", configPath = "" }) => {
   const getInfos = (data) => {
     let infos = { columnsLength: data.shape[1], rowsLength: data.shape[0] }
     infos.rowsCount = data.count().$data
-    
+
     infos.columnsCount = data.count({ axis: 0 }).$data
     return infos
   }
@@ -126,10 +126,8 @@ const SimpleCleaningTool = ({ pageId = "inputModule", configPath = "" }) => {
    * @returns {Void}
    */
   const dropRows = (overwrite) => {
-    console.log("dropRows")
     getData().then((data) => {
       let newData = data.drop({ index: rowsToDrop })
-      console.log("newData", newData, selectedDataset)
       saveCleanDataset(newData, overwrite, true)
     })
   }
@@ -153,11 +151,9 @@ const SimpleCleaningTool = ({ pageId = "inputModule", configPath = "" }) => {
    * @returns {Void}
    */
   const dropAll = (overwrite) => {
-    console.log("dropAll")
     getData().then((data) => {
       let newData = data.drop({ columns: columnsToDrop })
       newData = newData.drop({ index: rowsToDrop })
-      console.log("newData", newData, selectedDataset)
       saveCleanDataset(newData, overwrite, false)
     })
   }
@@ -167,10 +163,8 @@ const SimpleCleaningTool = ({ pageId = "inputModule", configPath = "" }) => {
    */
   useEffect(() => {
     if (selectedDataset !== null && selectedDataset !== undefined) {
-      console.log("selectedDataset", selectedDataset.data)
       if (selectedDataset !== null || selectedDataset !== undefined) {
         getData().then((data) => {
-          console.log("data", data)
           let infos = getInfos(data)
           let newColumnsInfos = []
           data.$columns.forEach((column, index) => {
@@ -223,10 +217,8 @@ const SimpleCleaningTool = ({ pageId = "inputModule", configPath = "" }) => {
    * @param {Boolean} overwrite - True if the dataset should be overwritten, false otherwise
    */
   const dropColumns = (overwrite) => {
-    console.log("dropColumns")
     getData().then((data) => {
       let newData = data.drop({ columns: columnsToDrop })
-      console.log("newData", newData, selectedDataset)
       saveCleanDataset(newData, overwrite, true)
     })
   }
@@ -239,12 +231,10 @@ const SimpleCleaningTool = ({ pageId = "inputModule", configPath = "" }) => {
    */
   const saveCleanDataset = (newData, overwrite = undefined, local = undefined) => {
     if (overwrite === true) {
-      console.log("overwrite")
       selectedDataset.saveData(newData)
       setSelectedDataset(null)
     } else {
       if (local === true) {
-        console.log("local", getParentIDfolderPath(selectedDataset) + newLocalDatasetName, newLocalDatasetExtension)
         MedDataObject.saveDatasetToDisk({ df: newData, filePath: getParentIDfolderPath(selectedDataset) + newLocalDatasetName + "." + newLocalDatasetExtension, extension: newLocalDatasetExtension })
       } else {
         MedDataObject.saveDatasetToDisk({ df: newData, filePath: getParentIDfolderPath(selectedDataset) + newDatasetName + "." + newDatasetExtension, extension: newDatasetExtension })
@@ -483,7 +473,6 @@ const SimpleCleaningTool = ({ pageId = "inputModule", configPath = "" }) => {
                 disabled={checkIfNameAlreadyUsed(newDatasetName + "." + newDatasetExtension) || selectedDataset === null || selectedDataset === undefined || newDatasetName.length === 0}
                 onClick={() => {
                   dropAll(false)
-                  console.log("CREATE A CLEAN DATASET")
                 }}
               />
             </Col>

@@ -17,9 +17,9 @@ go_print("running script.py:" + id_)
 
 
 
-class GoExecScriptMerge(GoExecutionScript):
+class GoExecScriptCreateHoldoutSet(GoExecutionScript):
     """
-        This class is used to execute a process from Go
+        This class is used to execute the holdout set creation script
 
         Args:
             json_params: The input json params
@@ -124,5 +124,5 @@ class GoExecScriptMerge(GoExecutionScript):
         return self.results
 
 
-script = GoExecScriptMerge(json_params_dict, id_)
+script = GoExecScriptCreateHoldoutSet(json_params_dict, id_)
 script.start()
