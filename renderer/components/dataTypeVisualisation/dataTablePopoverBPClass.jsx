@@ -47,7 +47,6 @@ const DataTablePopoverBP = (props) => {
 
   const { globalData, setGlobalData } = useContext(DataContext) // The global data object
   const [selectedType, setSelectedType] = useState(getTypeInGlobalData()) // The selected data type
-  const [filterValue, setFilterValue] = useState("") // The filter value
   const menuItemOptions = { shouldDismissPopover: false, onClick: (e) => handleDataTypeChange(e), roleStructure: "listoption" } // The options for the menu items
   /**
    * To handle the change in the data type
