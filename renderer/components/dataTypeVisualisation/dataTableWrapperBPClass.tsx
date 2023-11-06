@@ -1051,13 +1051,6 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
     }
   }
 
-  private moveColumnIndexTo = (oldIndex: number, newIndex: number) => {
-    const { columnIndexMap } = this.state
-    let newColumnIndexMap = deepCopy(columnIndexMap)
-    newColumnIndexMap = Utils.reorderArray(columnIndexMap, oldIndex, newIndex, 1)
-    this.setState({ columnIndexMap: newColumnIndexMap })
-  }
-
   /**
    * @description This function freezes the column
    * @param e - event
