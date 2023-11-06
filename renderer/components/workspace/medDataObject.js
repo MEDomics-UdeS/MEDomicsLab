@@ -42,7 +42,7 @@ export default class MedDataObject {
    * @param {Array<string>} [options.childrenIDs=[]] - The IDs of the child objects.
    * @param {Array<string>} [options.acceptedFileTypes] - The accepted file types for the data object.
    */
-  constructor({ originalName = "Unnamed", name = undefined, type = "", parentID = [], path = "", childrenIDs = [], _UUID = undefined } = {}) {
+  constructor({ originalName = "Unnamed", name = undefined, type = "", parentID = [], path = "", childrenIDs = [], _UUID = undefined, virtualPath = [], lastModified = Date(Date.now()), created = Date(Date.now()), metadata = {}, acceptedFileTypes = [], virtualTransformations = {}, relatedInformation = {} } = {}) {
     this.originalName = originalName
     if (name === undefined) {
       this.name = originalName
@@ -54,7 +54,7 @@ export default class MedDataObject {
     this.extension = splitStringAtTheLastSeparator(this.name, ".")[0].length > 0 ? splitStringAtTheLastSeparator(this.name, ".")[1] : ""
     this.type = type
     this.path = path
-    this.virtualPath = []
+    this.virtualPath = virtualPath
 
     if (_UUID === undefined) {
       this._UUID = randomUUID()
@@ -64,17 +64,17 @@ export default class MedDataObject {
     this.parentID = parentID
     this.childrenIDs = childrenIDs
 
-    this.lastModified = Date(Date.now())
-    this.created = Date(Date.now())
+    this.lastModified = lastModified
+    this.created = created
     this.dataLoaded = false
     this.data = null
     this.dataModificationQueue = []
     this.size = 0
-    this.metadata = {}
-    this.acceptedFileTypes = []
+    this.metadata = metadata
+    this.acceptedFileTypes = acceptedFileTypes
     this.objectType = ""
-    this.virtualTransformations = []
-    this.relatedInformation = []
+    this.virtualTransformations = virtualTransformations
+    this.relatedInformation = relatedInformation
   }
 
   /**
@@ -293,11 +293,13 @@ export default class MedDataObject {
    * @returns {Promise} - A promise that resolves to the data loaded from the file.
    */
   static loadTableFromDisk = async (filePath) => {
+    // eslint-disable-next-line no-undef
     const Path = require("path")
     let extension = Path.extname(filePath).slice(1)
     console.log("extension: ", extension)
     // let path = this.path
     let data = undefined
+    // eslint-disable-next-line no-undef
     const dfd = require("danfojs-node")
     if (extension === "xlsx") {
       data = await dfd.readExcel(filePath)
@@ -1119,37 +1121,6 @@ export default class MedDataObject {
   }
 
   /**
-   * Loads the data from the file associated with the `MedDataObject` instance.
-   */
-  async loadDataFromDisk() {
-    let extension = this.extension
-    let data = undefined
-    // eslint-disable-next-line no-undef
-    const dfd = require("danfojs-node")
-    // eslint-disable-next-line no-undef
-    const path = require("path")
-    let filePath = path.join(this.path)
-    if (extension === "xlsx") {
-      data = await dfd.readExcel(filePath)
-    } else if (extension === "csv") {
-      data = await dfd.readCSV(filePath)
-    } else if (extension === "json") {
-      data = await dfd.readJSON(filePath)
-    }
-    this.data = data
-    this.dataLoaded = true
-    this.lastModified = Date(Date.now())
-    return this.data
-  }
-
-  /**
-   * Save the data of the `MedDataObject` instance to the file associated with it.
-   */
-  async saveData(df = undefined) {
-    MedDataObject.saveDatasetToDisk({ data: this.data, df: df, filePath: this.path, extension: this.extension })
-  }
-
-  /**
    * Save the data of the `MedDataObject` instance to the file associated with it.
    */
   async saveData(df = undefined) {
@@ -1204,10 +1175,12 @@ export default class MedDataObject {
       filePath = this.path
     }
     console.log("filePath: ", filePath)
+    // eslint-disable-next-line no-undef
     const Path = require("path")
     let extension = Path.extname(filePath).slice(1)
     console.log("extension: ", extension)
     let data = undefined
+    // eslint-disable-next-line no-undef
     const dfd = require("danfojs-node")
     if (extension === "xlsx") {
       data = await dfd.readExcel(filePath)

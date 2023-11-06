@@ -66,6 +66,8 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
           onPaste(item, selectedItems[0])
         })
       }
+    } else if (event.code === "KeyH" && event.ctrlKey) {
+      setShowHiddenFiles(!showHiddenFiles)
     }
   }
 
@@ -590,8 +592,8 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
                       setShowHiddenFiles(!showHiddenFiles)
                     }}
                   >
-                    {showHiddenFiles && <EyeFill size={"1rem"} className="context-menu-icon refresh-icon" data-pr-at="right bottom" data-pr-tooltip="Refresh" data-pr-my="left top" />}
-                    {!showHiddenFiles && <EyeSlashFill size={"1rem"} className="context-menu-icon refresh-icon" data-pr-at="right bottom" data-pr-tooltip="Refresh" data-pr-my="left top" />}
+                    {showHiddenFiles && <EyeFill size={"1rem"} className="context-menu-icon refresh-icon" data-pr-at="right bottom" data-pr-tooltip="Hide hidden files" data-pr-my="left top" />}
+                    {!showHiddenFiles && <EyeSlashFill size={"1rem"} className="context-menu-icon refresh-icon" data-pr-at="right bottom" data-pr-tooltip="Show hidden files" data-pr-my="left top" />}
                   </a>
                 </>
               ) /* We display the add folder icon only if the mouse is hovering the directory tree and if the accordion is not collapsed*/

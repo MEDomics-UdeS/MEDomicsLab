@@ -120,6 +120,7 @@ const GroupingTool = ({ pageId = "42-grouping", configPath = null }) => {
    * @summary This function is used to get the columns from a promise - async function
    */
   async function getColumnsFromPromise(dataObject) {
+    console.log("getColumnsFromPromise", dataObject)
     let promise = new Promise((resolve) => {
       resolve(dataObject.getColumnsOfTheDataObjectIfItIsATable())
     })
