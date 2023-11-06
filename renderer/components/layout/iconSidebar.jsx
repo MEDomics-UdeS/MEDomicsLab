@@ -242,10 +242,6 @@ const IconSidebar = ({ onSidebarItemSelect }) => {
                 <LuNetwork style={{ height: "1.7rem", width: "auto", rotate: "-90deg" }} />
               </Nav.Link>
 
-              <Nav.Link className="resultsNav btnSidebar align-center" data-pr-at="right center" data-pr-my="left center" data-pr-tooltip="Results" eventKey="Results" onClick={(event) => handleClick(event, "results")} disabled={disabledIcon} onDoubleClick={(event) => handleDoubleClick(event, "Results")}>
-                <VscGraph style={{ height: "1.7rem", width: "auto" }} />
-              </Nav.Link>
-
               <Nav.Link className="evaluationNav btnSidebar align-center" data-pr-at="right center" data-pr-my="left center" data-pr-tooltip="Evaluation" eventKey="Evaluation" onClick={(event) => handleClick(event, "evaluation")} disabled={disabledIcon}>
                 <PiFlaskFill style={{ height: "2.2rem", width: "auto" }} />
               </Nav.Link>
