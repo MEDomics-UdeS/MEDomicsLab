@@ -2,12 +2,12 @@ import React, { useContext, useRef, useState, useEffect } from "react"
 import { Trash, BoxArrowUpRight, Eraser, FolderPlus, ArrowClockwise } from "react-bootstrap-icons"
 import { Accordion, Stack } from "react-bootstrap"
 import { ControlledTreeEnvironment, Tree } from "react-complex-tree"
-import { DataContext } from "../../workspace/dataContext"
-import MedDataObject from "../../workspace/medDataObject"
+import { DataContext } from "../../../workspace/dataContext"
+import MedDataObject from "../../../workspace/medDataObject"
 import { toast } from "react-toastify"
-import { LayoutModelContext } from "../layoutContext"
+import { LayoutModelContext } from "../../layoutContext"
 import { useContextMenu, Menu, Item, Submenu } from "react-contexify"
-import renderItem from "./directoryTree/renderItem"
+import renderItem from "./renderItem"
 import { Tooltip } from "primereact/tooltip"
 
 /**
@@ -236,6 +236,8 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
         dispatchLayout({ type: "openInLearningModule", payload: item })
       } else if (item.type == "medimg") {
         dispatchLayout({ type: "openInExtractionMEDimageModule", payload: item })
+      } else if (item.type == "medeval") {
+        dispatchLayout({ type: "openInEvaluationModule", payload: item })
       } else if (item.type == "csv" || item.type == "tsv" || item.type == "xlsx") {
         dispatchLayout({ type: "openInDataTable", payload: item })
       } else if (item.type == "json") {
@@ -249,6 +251,8 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
       } else if (item.type == "txt") {
         dispatchLayout({ type: "openInTextEditor", payload: item })
       } else if (item.type == "pkl") {
+        dispatchLayout({ type: "openInModelViewer", payload: item })
+      } else if (item.type == "medmodel") {
         dispatchLayout({ type: "openInModelViewer", payload: item })
       } else {
         console.log("DBCLICKED", event, item)
@@ -502,12 +506,12 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
         type: medDataItem.extension,
         path: medDataItem.path,
         acceptedFiles: medDataItem.acceptedFileTypes,
-        children: medDataItem.childrenIDs !== null ? reorderArrayOfFoldersAndFiles(medDataItem.childrenIDs, medDataContext) : [],
+        children: medDataItem.childrenIDs ? reorderArrayOfFoldersAndFiles(medDataItem.childrenIDs, medDataContext) : [],
         data: medDataItemName,
         canRename: ableToRename
       }
       treeToSend[key] = treeItem
-      if (medDataItem.parentID.length == 0) {
+      if (medDataItem.parentID && medDataItem.parentID.length == 0) {
         treeToSend.root.children.push(key)
       }
     })

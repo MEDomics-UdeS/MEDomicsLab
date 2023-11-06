@@ -134,7 +134,7 @@ export default class MedDataObject {
       this.createFolderFSsync(newPath).then((newPath) => {
         let convertedExportObj = typeof exportObj === "string" ? exportObj : JSON.stringify(exportObj, null, 2)
         const fsPromises = fs.promises
-        this.updateWorkspaceDataObject(1000)
+        // this.updateWorkspaceDataObject(1000)
         return new Promise((resolve) => {
           fsPromises
             .writeFile(pathToCreate, convertedExportObj)
@@ -264,6 +264,48 @@ export default class MedDataObject {
   }
 
   /**
+   * Checks if a MED data object with the given path exists in the global data context.
+   * @param {string} dataObjectPath - The path of the MED data object to search for.
+   * @param {Object} globalDataContext - The global data context object to search in.
+   * @returns {Object|null} - The MED data object if found, otherwise null.
+   */
+  static getObjectByPathSync(dataObjectPath, globalDataContext) {
+    return new Promise((resolve) => {
+      let dataObjectList = globalDataContext
+      let dataObjectToReturn = null
+      let arrayObjectUUIDs = Object.keys(dataObjectList)
+      arrayObjectUUIDs.forEach((key) => {
+        let dataObject = dataObjectList[key]
+        if (dataObject.path === dataObjectPath) {
+          dataObjectToReturn = dataObject
+        }
+      })
+      resolve(dataObjectToReturn)
+    })
+  }
+
+  /**
+   * @param {string} filePath - The path to the file to load.
+   * @returns {Promise} - A promise that resolves to the data loaded from the file.
+   */
+  static loadTableFromDisk = async (filePath) => {
+    const Path = require("path")
+    let extension = Path.extname(filePath).slice(1)
+    console.log("extension: ", extension)
+    // let path = this.path
+    let data = undefined
+    const dfd = require("danfojs-node")
+    if (extension === "xlsx") {
+      data = await dfd.readExcel(filePath)
+    } else if (extension === "csv") {
+      data = await dfd.readCSV(filePath)
+    } else if (extension === "json") {
+      data = await dfd.readJSON(filePath)
+    }
+    return data
+  }
+
+  /**
    * Creates a copy of a MED data object.
    * @param {MedDataObject} dataObject - The MED data object to copy.
    * @param {Object} [globalDataContext={}] - The global data context object to search in.
@@ -329,6 +371,37 @@ export default class MedDataObject {
       return newPath
     }
     return newPath
+  }
+
+  /**
+   *
+   * @param {String} path A path to a MedDataObject
+   * @returns {Object, Object} - {columnsArray, columnsObject} - The columns of the data object if it is a table.
+   */
+  static getColumnsFromPath = async (path, globalData, setGlobalData = undefined) => {
+    try {
+      let dataObject = MedDataObject.checkIfMedDataObjectInContextbyPath(path, globalData)
+      let columnsArray = []
+      if (!dataObject) return { columnsArray: [], columnsObject: {} }
+      if (dataObject.metadata.columns) {
+        columnsArray = dataObject.metadata.columns
+      } else {
+        console.log("dataObject: ", dataObject)
+        columnsArray = await dataObject.getColumns(dataObject.path)
+        dataObject.metadata.columns = columnsArray
+        setGlobalData && setGlobalData({ ...globalData })
+      }
+      let columnsObject = {}
+      columnsArray.forEach((element) => {
+        columnsObject[element] = element
+      })
+
+      return { columnsArray: columnsArray, columnsObject: columnsObject }
+    } catch (error) {
+      console.error(error)
+      toast.error("Error getting columns from path")
+      return { columnsArray: [], columnsObject: {} }
+    }
   }
 
   /**
@@ -957,38 +1030,27 @@ export default class MedDataObject {
   /**
    * Loads the data from the file associated with the `MedDataObject` instance.
    */
-  async loadDataFromDisk() {
-    let extension = this.extension
-    // let path = this.path
-    let data = undefined
-    const dfd = require("danfojs-node")
-    const path = require("path")
-    let filePath = path.join(this.path)
-    if (extension === "xlsx") {
-      data = await dfd.readExcel(filePath)
-    } else if (extension === "csv") {
-      data = await dfd.readCSV(filePath)
-    } else if (extension === "json") {
-      data = await dfd.readJSON(filePath)
-    }
-    this.data = data
+  loadFileFromDisk() {
+    this.data = fs.readFileSync(this.path)
     this.dataLoaded = true
     this.lastModified = Date(Date.now())
-    return data
+    return this.data
   }
 
   /**
    * GetsTheColumnsOfTheDataObjectIfItIsATable
    * @returns {Array} - The columns of the data object if it is a table.
    */
-  async getColumnsOfTheDataObjectIfItIsATable() {
+  async getColumnsOfTheDataObjectIfItIsATable(filePath = undefined) {
+    console.log("this: ", this)
+    !filePath && (filePath = this.path)
     let newColumns = []
     if (this.dataLoaded && this.data.$columns) {
       newColumns = this.data.$columns
     } else if (this.metadata.columns) {
       newColumns = await this.metadata.columns
     } else {
-      const data = await this.loadDataFromDisk()
+      const data = await this.loadDataFromDisk(this.path)
       console.log("data: ", data)
       if (data.$columns) {
         newColumns = data.$columns
@@ -997,6 +1059,45 @@ export default class MedDataObject {
       }
     }
     return newColumns
+  }
+
+  /**
+   * GetsTheColumnsOfTheDataObjectIfItIsATable
+   * @returns {Array} - The columns of the data object if it is a table.
+   */
+  async getColumns(path) {
+    let newColumns = []
+    const data = await MedDataObject.loadTableFromDisk(path)
+    console.log("data: ", data)
+    if (data.$columns) {
+      newColumns = data.$columns
+      this.metadata.columns = newColumns
+    }
+    return newColumns
+  }
+
+  /**
+   * @param {string} filePath - The path to the file to load.
+   * @returns {Promise} - A promise that resolves to the data loaded from the file.
+   */
+  async loadDataFromDisk(filePath = undefined) {
+    if (!filePath) {
+      filePath = this.path
+    }
+    console.log("filePath: ", filePath)
+    const Path = require("path")
+    let extension = Path.extname(filePath).slice(1)
+    console.log("extension: ", extension)
+    let data = undefined
+    const dfd = require("danfojs-node")
+    if (extension === "xlsx") {
+      data = await dfd.readExcel(filePath)
+    } else if (extension === "csv") {
+      data = await dfd.readCSV(filePath)
+    } else if (extension === "json") {
+      data = await dfd.readJSON(filePath)
+    }
+    return data
   }
 
   /**

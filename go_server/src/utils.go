@@ -1,10 +1,9 @@
-package utils
+package src
 
 import (
 	"bufio"
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -17,6 +16,14 @@ import (
 	"github.com/joho/godotenv"
 )
 
+type ScriptInfo struct {
+	Cmd      *exec.Cmd
+	Progress string
+}
+
+var Mu sync.Mutex // guards balance
+var Scripts = make(map[string]ScriptInfo)
+
 // RequestData is the data sent in the request
 type RequestData struct {
 	Message string `json:"message"`
@@ -26,6 +33,11 @@ type RequestData struct {
 type ResponseData struct {
 	Response string `json:"response_message"`
 	Type     string `json:"type"`
+}
+
+// Progress is the data sent in the progress response
+type Progress struct {
+	Progress string
 }
 
 // CreateResponse creates the response data sent to the client side
@@ -55,7 +67,7 @@ func JsonStr2map(jsonStr string) (map[string]interface{}, error) {
 }
 
 // Map2jsonStr converts a map to a json string
-func Map2jsonStr(data map[string]interface{}) (string, error) {
+func Map2jsonStr(data map[string]string) (string, error) {
 	jsonData, err := json.Marshal(data)
 	if err != nil {
 		return "", err
@@ -74,14 +86,15 @@ func GetConfigFromMessage(w http.ResponseWriter, request []byte) (string, error)
 }
 
 // CreateHandleFunc creates the handle function for the server
-func CreateHandleFunc(topic string, processRequest func(jsonConfig string) (string, error), isThreaded bool) {
-	fmt.Println("Adding handle func for topic: " + topic)
+func CreateHandleFunc(topic string, processRequest func(jsonConfig string, id string) (string, error)) {
+	log.Println("Adding handle func for topic: " + topic)
 	http.HandleFunc("/"+topic, func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			http.Error(w, "Invalid request method. Only POST is allowed.", http.StatusMethodNotAllowed)
 			return
 		}
-
+		id := strings.ReplaceAll(r.URL.Path, "/"+topic, "")
+		log.Printf("Go request: \"%s\"\n", r.URL.Path)
 		// Read and reset the request body
 		savedRequestBody, err := io.ReadAll(r.Body)
 		if err != nil {
@@ -99,28 +112,20 @@ func CreateHandleFunc(topic string, processRequest func(jsonConfig string) (stri
 		}
 
 		// Process the request on a separate thread if needed
-		var processResponse string
 		var wg sync.WaitGroup
-		if isThreaded {
-			wg.Add(1)
-			go func(wg *sync.WaitGroup) {
-				processResponse, err = processRequest(jsonConfig)
-				if err != nil {
-					http.Error(w, "Failed to process request", http.StatusInternalServerError)
-					return
-				}
-				defer wg.Done()
-			}(&wg)
-			wg.Wait()
-			fmt.Println("Done")
-		} else {
-			processResponse, err = processRequest(jsonConfig)
+		//get the value at the address of wg
+		wg.Add(1)
+		var processResponse string
+		go func(wg *sync.WaitGroup) {
+			processResponse, err = processRequest(jsonConfig, id)
 			if err != nil {
-				http.Error(w, "Failed to process request", http.StatusInternalServerError)
-				return
+				log.Println("Error processing request: " + id + ", " + err.Error())
+				processResponse = "{\"error\":\"{\\\"toast\\\":\\\"" + err.Error() + "\\\", \\\"go_kill\\\":\\\"true\\\"}\"}"
 			}
+			defer wg.Done()
+		}(&wg)
+		wg.Wait()
 
-		}
 		// Write the response
 		response := CreateResponse(map[string]interface{}{
 			"message": processResponse,
@@ -136,71 +141,79 @@ func CreateHandleFunc(topic string, processRequest func(jsonConfig string) (stri
 	})
 }
 
-// StartPythonScript starts a python script
-// It takes the json param and the filename of the script in input
-// It returns the response from the script
-func StartPythonScript(jsonParam string, filename string) (string, error) {
-	fmt.Println("Starting python script: " + filename)
+// StartPythonScripts starts the python script
+func StartPythonScripts(jsonParam string, filename string, id string) (string, error) {
+	log.Println("Starting python script: " + filename)
 	condaEnv := GetDotEnvVariable("CONDA_ENV")
 	cwd, err := os.Getwd()
 	if err != nil {
-		panic(err)
+		log.Println(err.Error())
 	}
-	fmt.Println("Conda env: " + condaEnv)
+	log.Println("Conda env: " + condaEnv)
 	script, _ := filepath.Abs(filepath.Join(cwd, filename))
-	cmd := exec.Command(condaEnv, script, "--json-param", jsonParam)
-	fmt.Println("Command: " + cmd.String())
-	stdout, err := cmd.StdoutPipe()
-	if err != nil {
-		fmt.Println("Error getting stdout pipe")
-		panic(err)
+	Mu.Lock()
+	Scripts[id] = ScriptInfo{
+		Cmd:      exec.Command(condaEnv, "-u", script, "--json-param", jsonParam, "--id", id),
+		Progress: "",
 	}
-	stderr, err := cmd.StderrPipe()
+	stdout, err := Scripts[id].Cmd.StdoutPipe()
+	Mu.Unlock()
 	if err != nil {
-		fmt.Println("Error getting stderr pipe")
-		panic(err)
+		log.Println("Error getting stdout pipe")
+		log.Println(err.Error())
 	}
-	err = cmd.Start()
+	Mu.Lock()
+	stderr, err := Scripts[id].Cmd.StderrPipe()
+	Mu.Unlock()
 	if err != nil {
-		fmt.Println("Error starting command " + script + " " + condaEnv)
-		panic(err)
+		log.Println("Error getting stderr pipe")
+		log.Println(err.Error())
+	}
+	Mu.Lock()
+	err = Scripts[id].Cmd.Start()
+	Mu.Unlock()
+	if err != nil {
+		log.Println("Error starting command " + script + " " + condaEnv)
+		log.Panicf(err.Error())
 	}
 	response := ""
 	go copyOutput(stdout, &response)
 	go copyOutput(stderr, &response)
-	err = cmd.Wait()
+	err = Scripts[id].Cmd.Wait()
 	if err != nil {
+		log.Println("Error waiting for command to finish")
 		return "", err
 	}
-	//fmt.Println("Script finished returning response: " + response)
+	log.Println("Finished running script: " + filename + " with id: " + id)
 	return response, nil
 }
 
 // It is used to transfer stdout and stderr to the terminal
 func copyOutput(r io.Reader, response *string) {
 	scanner := bufio.NewScanner(r)
+	lineText := ""
 	for scanner.Scan() {
-		if scanner.Text() == "response-incoming" {
-			text := scanner.Text()
-			for text != "response-finished" {
-				scanner.Scan()
-				text = scanner.Text()
-				//fmt.Println("response", text)
-				if text != "response-finished" {
-					*response = *response + text
-				}
-			}
-		} else if scanner.Text() == "response-ready" {
-			scanner.Scan()
-			path := scanner.Text()
+		lineText = scanner.Text()
+		if strings.Contains(lineText, "response-ready*_*") {
+			path := strings.Split(lineText, "*_*")[1]
 			*response = ReadFile(path)
 			//	delete this file
 			err := os.Remove(path)
 			if err != nil {
-				fmt.Println(err)
+				log.Println(err)
 			}
+		} else if strings.Contains(lineText, "progress*_*") {
+			id := strings.Split(lineText, "*_*")[1]
+			progress := strings.Split(lineText, "*_*")[2]
+			log.Println("Progress: " + progress)
+			Mu.Lock()
+			Scripts[id] = ScriptInfo{
+				Cmd:      Scripts[id].Cmd,
+				Progress: progress,
+			}
+			Mu.Unlock()
 		} else {
-			fmt.Println(scanner.Text())
+			log.Println(lineText)
 		}
 	}
 }
@@ -208,7 +221,7 @@ func copyOutput(r io.Reader, response *string) {
 // ReadFile reads a file and returns its content as a string
 func ReadFile(filename string) string {
 	absPath, _ := filepath.Abs(filename)
-	fmt.Println("Reading file: " + absPath)
+	log.Println("Reading file: " + absPath)
 	data, err := os.ReadFile(absPath)
 	if err != nil {
 		log.Panicf("failed reading data from file: %s", err)
@@ -231,4 +244,67 @@ func GetDotEnvVariable(key string) string {
 		}
 		return os.Getenv(key)
 	}
+}
+
+// RemoveIdFromScripts removes the id from the scripts
+func RemoveIdFromScripts(id string) {
+	Mu.Lock()
+	delete(Scripts, id)
+	Mu.Unlock()
+}
+
+// WriteScriptId writes the data to the script with the id
+func WriteScriptId(data string, id string) error {
+	Mu.Lock()
+	script, ok := Scripts[id]
+	if ok {
+		stdin, err := script.Cmd.StdinPipe()
+		if err != nil {
+			return err
+		}
+		_, err2 := io.WriteString(stdin, data)
+		if err2 != nil {
+			return err2
+		}
+	}
+	Mu.Unlock()
+	return nil
+}
+
+// KillScript kills the script with the id
+func KillScript(id string) bool {
+	Mu.Lock()
+	script, ok := Scripts[id]
+	if ok {
+		defer HandlePanic()
+		err := script.Cmd.Process.Kill()
+		if err != nil {
+			log.Print("Error killing process: ", err.Error())
+		}
+	}
+	log.Println(" Killed script: ", id)
+	Mu.Unlock()
+	return ok
+}
+
+// HandlePanic handles the panic
+func HandlePanic() {
+	r := recover()
+
+	if r != nil {
+		log.Println("RECOVER-------------------", r)
+	}
+}
+
+// ClearAllScripts clears all the scripts
+func ClearAllScripts() {
+	Mu.Lock()
+	for id, script := range Scripts {
+		err := script.Cmd.Process.Kill()
+		if err != nil {
+			log.Print("Error killing process: ", err.Error())
+		}
+		delete(Scripts, id)
+	}
+	Mu.Unlock()
 }

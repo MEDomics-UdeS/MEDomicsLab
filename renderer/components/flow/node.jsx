@@ -232,7 +232,6 @@ export default Node
  * It is called only at the creation of the node.
  */
 export const updateHasWarning = (data) => {
-  console.log("start")
   data.internal.hasWarning = { state: false }
   if ("default" in data.setupParam.possibleSettings) {
     Object.entries(data.setupParam.possibleSettings.default).map(([settingName, setting]) => {
@@ -251,5 +250,4 @@ export const updateHasWarning = (data) => {
       }
     })
   }
-  console.log("end")
 }

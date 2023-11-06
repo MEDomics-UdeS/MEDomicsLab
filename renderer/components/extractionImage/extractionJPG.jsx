@@ -12,7 +12,7 @@ import { requestJson } from "../../utilities/requests"
 import ProgressBarRequests from "../generalPurpose/progressBarRequests"
 import { toast } from "react-toastify"
 import { WorkspaceContext } from "../workspace/workspaceContext"
-import { ErrorRequestContext } from "../flow/context/errorRequestContext"
+import { ErrorRequestContext } from "../generalPurpose/errorRequestContext"
 
 /**
  *

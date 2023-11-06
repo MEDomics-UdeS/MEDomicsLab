@@ -10,6 +10,7 @@ import WsSelect from "../mainPages/dataComponents/wsSelect"
 import { customZipFile2Object } from "../../utilities/customZipFile"
 import { DataContext } from "../workspace/dataContext"
 import MedDataObject from "../workspace/medDataObject"
+import { Dropdown } from "primereact/dropdown"
 
 /**
  *
@@ -27,15 +28,14 @@ const createOption = (label) => ({
 /**
  *
  * @param {string} name name of the setting
- * @param {object} settingInfos infos of the setting
- * @param {object} data data of the node
+ * @param {object} settingInfos infos of the setting ex: {type: "string", tooltip: "this is a tooltip"}
  * @returns {JSX.Element} A Input component
  *
  * @description
  * This component is used to display a Input component.
  * it handles multiple types of input and format them to be similar
  */
-const Input = ({ name, settingInfos, currentValue, onInputChange, disabled, setHasWarning = () => {} }) => {
+const Input = ({ name, settingInfos, currentValue, onInputChange, disabled, setHasWarning = () => {}, customProps }) => {
   const [inputUpdate, setInputUpdate] = useState({})
   const [inputValue, setInputValue] = useState("")
   const { globalData, setGlobalData } = useContext(DataContext)
@@ -200,27 +200,26 @@ const Input = ({ name, settingInfos, currentValue, onInputChange, disabled, setH
       case "list":
         return (
           <>
-            <FloatingLabel controlId={name} label={name} className=" input-hov">
-              <Form.Select
+            <FloatingLabel controlId={name} label={name} className="input-hov">
+              <Dropdown
+                className="form-select"
+                {...customProps}
                 disabled={disabled}
-                className=""
-                defaultValue={currentValue}
+                value={{ name: currentValue }}
                 onChange={(e) =>
                   setInputUpdate({
                     name: name,
-                    value: e.target.value,
+                    value: e.target.value.name,
                     type: settingInfos.type
                   })
                 }
-              >
-                {Object.entries(settingInfos.choices).map(([option, tooltip]) => {
-                  return (
-                    <option key={option} value={option}>
-                      {option}
-                    </option>
-                  )
+                options={Object.entries(settingInfos.choices).map(([option]) => {
+                  return {
+                    name: option
+                  }
                 })}
-              </Form.Select>
+                optionLabel="name"
+              />
             </FloatingLabel>
             {createTooltip(settingInfos.tooltip, name)}
           </>
@@ -229,14 +228,12 @@ const Input = ({ name, settingInfos, currentValue, onInputChange, disabled, setH
       case "list-multiple":
         return (
           <>
-            <div id={name}>
+            <div id={name} className="list-multiple">
               <label className="custom-lbl">{name}</label>
               <Select
                 disabled={disabled}
                 options={Object.entries(settingInfos.choices).map(([option, tooltip]) => {
                   currentValue == undefined && (currentValue = [])
-                  console.log("option", option)
-                  console.log("currentValue", currentValue)
                   if (!currentValue.includes(option)) return createOption(option)
                 })}
                 value={currentValue}
@@ -281,7 +278,7 @@ const Input = ({ name, settingInfos, currentValue, onInputChange, disabled, setH
       case "custom-list":
         return (
           <>
-            <div id={name} style={{ height: "56px" }}>
+            <div id={name} style={{ height: "52px" }} className="custom-list">
               <label className="custom-lbl">{name}</label>
               <CreatableSelect
                 disabled={disabled}
@@ -373,17 +370,21 @@ const Input = ({ name, settingInfos, currentValue, onInputChange, disabled, setH
                     type: settingInfos.type
                   })
                   if (path != "") {
-                    customZipFile2Object(path).then((content) => {
-                      setInputUpdate({
-                        name: name,
-                        value: { name: e.target.value, path: path, columns: content.model_required_cols },
-                        type: settingInfos.type
+                    customZipFile2Object(path)
+                      .then((content) => {
+                        setInputUpdate({
+                          name: name,
+                          value: { name: e.target.value, path: path, metadata: content.metadata },
+                          type: settingInfos.type
+                        })
+                        console.log("content", content)
+                        let modelDataObject = MedDataObject.checkIfMedDataObjectInContextbyPath(path, globalData)
+                        modelDataObject.metadata.content = content.metadata
+                        setGlobalData({ ...globalData })
                       })
-                      console.log("content", content)
-                      let modelDataObject = MedDataObject.checkIfMedDataObjectInContextbyPath(path, globalData)
-                      modelDataObject.metadata.content = content
-                      setGlobalData({ ...globalData })
-                    })
+                      .catch((error) => {
+                        console.log("error", error)
+                      })
                     setHasWarning({ state: false })
                   } else {
                     setHasWarning({ state: true, tooltip: <p>No model selected</p> })

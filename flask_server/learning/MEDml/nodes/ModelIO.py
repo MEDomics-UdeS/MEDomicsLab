@@ -10,7 +10,6 @@ import os
 from utils.CustomZipFile import CustomZipFile
 
 
-
 DATAFRAME_LIKE = Union[dict, list, tuple, np.ndarray, pd.DataFrame]
 TARGET_LIKE = Union[int, str, list, tuple, np.ndarray, pd.Series]
 
@@ -59,11 +58,12 @@ class ModelIO(Node):
                             self.type)(model, **settings_copy)
                     self.CodeHandler.add_line(
                         "code", f"pycaret_exp.save_model(model, {self.CodeHandler.convert_dict_to_params(settings_copy)})", 1)
-                    model_path = os.path.join(path, "model_required_cols.json")
+                    model_path = os.path.join(path, "metadata.json")
                     with open(model_path, 'w') as f:
                         to_write = {
                             "columns": self.global_config_json["columns"],
-                            "target": self.global_config_json["target_column"]
+                            "target": self.global_config_json["target_column"],
+                            "ml_type": self.global_config_json["MLType"]
                         }
                         json.dump(to_write, f)
 
