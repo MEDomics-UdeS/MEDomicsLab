@@ -53,6 +53,8 @@ func handleProgress(jsonConfig string, id string) (string, error) {
 	}
 }
 
+// handlePredictTest handles the request to run the predict test
+// It returns the response from the python script
 func handlePredictTest(jsonConfig string, id string) (string, error) {
 	log.Println("Running predict test...", id)
 	response, err := Utils.StartPythonScripts(jsonConfig, "../flask_server/evaluation/scripts/predict_test.py", id)

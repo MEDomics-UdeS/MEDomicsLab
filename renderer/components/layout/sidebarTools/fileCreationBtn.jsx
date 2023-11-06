@@ -2,10 +2,18 @@ import React, { useRef, useState, useEffect } from "react"
 import { Button } from "primereact/button"
 import { InputText } from "primereact/inputtext"
 import { OverlayPanel } from "primereact/overlaypanel"
-import { Stack } from "react-bootstrap"
-import { Controller, useForm } from "react-hook-form"
-import classNames from "classnames"
 
+/**
+ *
+ * @param {Function} createEmptyFile - Function to create an empty file
+ * @param {String} label - Label of the create button
+ * @param {String} piIcon - Icon of the create button
+ * @param {Function} handleClickCreateScene - Function to call when the create button is clicked
+ * @param {Function} checkIsNameValid - Function to check if the name is valid
+ *
+ * @description - This component is used to create a file in the sidebar
+ * @returns - A button to create a file
+ */
 const FileCreationBtn = ({ createEmptyFile, label = "Create Page", piIcon = "pi-plus", handleClickCreateScene, checkIsNameValid }) => {
   const createSceneRef = useRef(null)
   const [btnCreateSceneState, setBtnCreateSceneState] = useState(false)
@@ -17,6 +25,11 @@ const FileCreationBtn = ({ createEmptyFile, label = "Create Page", piIcon = "pi-
     defaultCheckIsNameValid(sceneName)
   }, [sceneName]) // We set the button state to true if the experiment name is empty, otherwise we set it to false
 
+  /**
+   *
+   * @param {String} sceneName - Name of the scene
+   * @returns - True if the name is valid, false otherwise
+   */
   const defaultCheckIsNameValid = (sceneName) => {
     checkIsNameValid
       ? checkIsNameValid(sceneName)

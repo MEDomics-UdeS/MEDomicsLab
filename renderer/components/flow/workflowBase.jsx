@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 import React, { useRef, useCallback, useEffect, useContext, useState } from "react"
 import { toast } from "react-toastify"
-import ReactFlow, { Controls, ControlButton, Background, MiniMap, addEdge } from "reactflow"
+import ReactFlow, { Controls, ControlButton, Background, MiniMap, addEdge, useReactFlow } from "reactflow"
 import { FlowFunctionsContext } from "./context/flowFunctionsContext"
 import { PageInfosContext } from "../mainPages/moduleBasics/pageInfosContext"
 import { FlowInfosContext } from "./context/flowInfosContext"
@@ -13,7 +13,6 @@ import Row from "react-bootstrap/Row"
 import Col from "react-bootstrap/Col"
 import { Button } from "primereact/button"
 import { ErrorRequestContext } from "../generalPurpose/errorRequestContext"
-import { ContextMenu } from "primereact/contextmenu"
 
 /**
  *
@@ -59,6 +58,8 @@ const WorkflowBase = ({ isGoodConnection, groupNodeHandlingDefault, onDeleteNode
   const { showError, setShowError } = useContext(ErrorRequestContext) // used to get the flow infos
   const [hasBeenAnError, setHasBeenAnError] = useState(false) // used to get the flow infos
   const [miniMapState, setMiniMapState] = useState(true) // used to get the flow infos
+  const [numberOfNodes, setNumberOfNodes] = useState(0) // used to get the flow infos
+  const { fitView } = useReactFlow()
 
   useEffect(() => {
     if (showError) {
@@ -108,7 +109,13 @@ const WorkflowBase = ({ isGoodConnection, groupNodeHandlingDefault, onDeleteNode
 
   // this useEffect is used to update the flow content when the nodes or edges change
   useEffect(() => {
-    // console.log("update of nodes and edges (flowContent)")
+    if (numberOfNodes != nodes.length) {
+      setNumberOfNodes(nodes.length)
+      if (nodes.length == 1) {
+        console.log("fitView")
+        fitView({ minZoom: 0.9, maxZoom: 1 })
+      }
+    }
     updateFlowContent({
       nodes: nodes,
       edges: edges
@@ -432,6 +439,7 @@ const WorkflowBase = ({ isGoodConnection, groupNodeHandlingDefault, onDeleteNode
             x: event.clientX - flowWindow.x - 300,
             y: event.clientY - flowWindow.y - 25
           })
+
           // create a new random id for the node
           let newId = getId()
           // if the node is a group node, call the groupNodeHandlingDefault function if it is defined
@@ -445,6 +453,7 @@ const WorkflowBase = ({ isGoodConnection, groupNodeHandlingDefault, onDeleteNode
           newNode = addSpecificToNode(newNode)
           // add the new node to the nodes array
           setNodes((nds) => nds.concat(newNode))
+
           console.log("new node created: ", node)
         } else {
           console.log("node type not found: ", nodeType)
@@ -561,6 +570,7 @@ const WorkflowBase = ({ isGoodConnection, groupNodeHandlingDefault, onDeleteNode
     }
     edgeUpdateSuccessful.current = true
   }, [])
+
   return (
     <div className="height-100 width-100">
       {/* here is the reactflow component which handles a lot of features listed below */}

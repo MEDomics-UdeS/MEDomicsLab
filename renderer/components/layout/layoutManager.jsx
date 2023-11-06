@@ -37,6 +37,8 @@ const LayoutManager = (props) => {
 
   const { developerMode } = useContext(LayoutModelContext)
   const { workspace } = useContext(WorkspaceContext)
+
+  // This is a useEffect that will be called when the workspace change
   useEffect(() => {
     if (workspace.hasBeenSet == false) {
       setWorkspaceIsSet(false)
@@ -45,6 +47,7 @@ const LayoutManager = (props) => {
     }
   }, [workspace])
 
+  // This is a useEffect that will be called when the component is mounted to send a clearAll request to the backend
   useEffect(() => {
     requestBackend(
       port,
@@ -72,6 +75,7 @@ const LayoutManager = (props) => {
     }
   }, [])
 
+  // This is a useEffect that will be called when a key is pressed
   useEffect(() => {
     // attach the event listener
     document.addEventListener("keydown", handleKeyPress)
@@ -81,6 +85,13 @@ const LayoutManager = (props) => {
     }
   }, [handleKeyPress])
 
+  /**
+   *
+   * @param {Array} selectedItem Array of selected item
+   *
+   * This function is called when a sidebar item is selected
+   * It will update the activeSidebarItem state and send a message to the backend to update the working directory
+   */
   const handleSidebarItemSelect = (selectedItem) => {
     setActiveSidebarItem(selectedItem) // Update activeNavItem state with selected item
     ipcRenderer.send("messageFromNext", "updateWorkingDirectory")

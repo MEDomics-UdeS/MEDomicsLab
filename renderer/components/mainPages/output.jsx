@@ -1,10 +1,8 @@
-import React, { use, useContext, useEffect, useState } from "react"
+import React, { useContext, useEffect, useState } from "react"
 import useInterval from "@khalidalansi/use-interval"
 import ModulePage from "./moduleBasics/modulePage"
-import { Button } from "primereact/button"
 import { requestBackend } from "../../utilities/requests"
 import { WorkspaceContext } from "../workspace/workspaceContext"
-import MedDataObject from "../workspace/medDataObject"
 import { DataContext } from "../workspace/dataContext"
 import { toast } from "react-toastify"
 import { SelectButton } from "primereact/selectbutton"
@@ -22,7 +20,7 @@ import { InputNumber } from "primereact/inputnumber"
  * @returns the active element card
  */
 const ActiveElement = ({ activeElement }) => {
-  const { globalData, setGlobalData } = useContext(DataContext)
+  const { globalData } = useContext(DataContext)
   const [metadata, setMetadata] = useState(undefined)
   const { port } = useContext(WorkspaceContext) // we get the port for server connexion
   const { pageId } = useContext(PageInfosContext) // we get the pageId to send to the server

@@ -5,8 +5,8 @@ import { customZipFile2Object } from "../../../utilities/customZipFile"
 // This context is used to store the pageInfos (id and config of the workflow)
 const PageInfosContext = createContext()
 const ZipFileExtensions = ["medml", "medimg", "medeval", "medmodel"]
+
 /**
- *
  * @param {*} children components that will use the context
  * @description This component is used to provide the pageInfos context to all the components that need it.
  *  It is used to store the pageInfos (id and config of the workflow)

@@ -9,7 +9,6 @@ import { Stack } from "react-bootstrap"
 import { DataContext } from "../../workspace/dataContext"
 import MedDataObject from "../../workspace/medDataObject"
 import { FlowInfosContext } from "../../flow/context/flowInfosContext"
-import { set } from "react-hook-form"
 
 /**
  *
@@ -30,6 +29,7 @@ const LoadModelNode = ({ id, data }) => {
   const { globalData } = useContext(DataContext)
   const { flowContent } = useContext(FlowInfosContext)
 
+  // set the model info when the node is mounted
   useEffect(() => {
     setModelInfo(data.internal.settings.model_to_load)
   }, [])

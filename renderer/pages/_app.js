@@ -12,7 +12,6 @@ import { ActionContextProvider } from "../components/layout/actionContext"
 import { HotkeysProvider } from "@blueprintjs/core"
 import { ConfirmPopup } from "primereact/confirmpopup"
 import { ConfirmDialog } from "primereact/confirmdialog"
-import { requestBackend } from "../utilities/requests"
 
 // CSS
 import "bootstrap/dist/css/bootstrap.min.css"

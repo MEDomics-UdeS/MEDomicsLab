@@ -1,13 +1,8 @@
 import json
 import os
 import sys
-import threading
-import time
 import traceback
 from abc import ABC, abstractmethod
-import asyncio
-from typing import Tuple, Any
-
 import argparse
 from utils.server_utils import go_print
 
@@ -43,7 +38,8 @@ def get_response_from_error(e=None, toast=None):
         stack_trace = ''
         for trace in trace_back:
             stack_trace += \
-                "\nFile -> %s \nLine -> %d\nFunc.Name -> %s\nMessage -> %s\n" % (trace[0], trace[1], trace[2], trace[3])
+                "\nFile -> %s \nLine -> %d\nFunc.Name -> %s\nMessage -> %s\n" % (
+                    trace[0], trace[1], trace[2], trace[3])
 
         print("Exception type : %s " % ex_type.__name__)
         print("Exception message : %s" % ex_value)

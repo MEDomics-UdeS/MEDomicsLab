@@ -1,11 +1,8 @@
-import React, { useContext, useEffect, useState, useRef } from "react"
-import { Button, Stack } from "react-bootstrap"
+import React, { useContext, useEffect, useState } from "react"
+import { Stack } from "react-bootstrap"
 import { EXPERIMENTS, WorkspaceContext } from "../../../workspace/workspaceContext"
-import * as Icon from "react-bootstrap-icons"
-import { InputText } from "primereact/inputtext"
 import SidebarDirectoryTreeControlled from "../directoryTree/sidebarDirectoryTreeControlled"
 import { loadJsonPath } from "../../../../utilities/fileManagementUtils"
-import { OverlayPanel } from "primereact/overlaypanel"
 import { Accordion } from "react-bootstrap"
 import MedDataObject from "../../../workspace/medDataObject"
 import { DataContext, UUID_ROOT } from "../../../workspace/dataContext"
@@ -36,7 +33,6 @@ const FlowSceneSidebar = ({ type }) => {
   const { workspace } = useContext(WorkspaceContext) // We get the workspace from the context to retrieve the directory tree of the workspace, thus retrieving the data files
   const [experimentList, setExperimentList] = useState([]) // We initialize the experiment list state to an empty array
   const [selectedItems, setSelectedItems] = useState([]) // We initialize the selected items state to an empty array
-  const [dbSelectedItem, setDbSelectedItem] = useState(null) // We initialize the selected item state to an empty string
   const { globalData } = useContext(DataContext)
 
   // We use the useEffect hook to update the experiment list state when the workspace changes
@@ -133,7 +129,7 @@ const FlowSceneSidebar = ({ type }) => {
         <FileCreationBtn label="Create scene" piIcon="pi-plus" createEmptyFile={createEmptyScene} checkIsNameValid={checkIsNameValid} />
 
         <Accordion defaultActiveKey={["dirTree"]} alwaysOpen>
-          <SidebarDirectoryTreeControlled setExternalSelectedItems={setSelectedItems} setExternalDBClick={setDbSelectedItem} />
+          <SidebarDirectoryTreeControlled setExternalSelectedItems={setSelectedItems} />
         </Accordion>
       </Stack>
     </>

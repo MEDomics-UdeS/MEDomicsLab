@@ -3,12 +3,13 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/rs/cors"
 	Evaluation "go_module/blueprints/evaluation"
 	Learning "go_module/blueprints/learning"
 	Utils "go_module/src"
 	"log"
 	"net/http"
+
+	"github.com/rs/cors"
 )
 
 func main() {
@@ -32,6 +33,7 @@ func main() {
 	}
 }
 
+// handleGetServerHealth handles the request to get the server health
 func handleGetServerHealth(jsonConfig string, id string) (string, error) {
 	Utils.Mu.Lock()
 	states := Utils.Scripts
@@ -50,6 +52,7 @@ func handleGetServerHealth(jsonConfig string, id string) (string, error) {
 	return string(jsonData), nil
 }
 
+// convScript2JsonStr converts the script info to json string
 func convScript2JsonStr(script Utils.ScriptInfo) (string, error) {
 	data := make(map[string]string)
 	//data["info"] = script.Cmd.String()
@@ -58,12 +61,14 @@ func convScript2JsonStr(script Utils.ScriptInfo) (string, error) {
 	return jsonData, nil
 }
 
+// handleRemoveId handles the request to remove the id from the scripts
 func handleRemoveId(jsonConfig string, id string) (string, error) {
 	ok := Utils.KillScript(id)
 	Utils.RemoveIdFromScripts(id)
 	return "Removed successfully state : " + fmt.Sprint(ok), nil
 }
 
+// handleClearAll handles the request to clear all the scripts
 func handleClearAll(jsonConfig string, id string) (string, error) {
 	Utils.ClearAllScripts()
 	return "Removed all states successfully", nil

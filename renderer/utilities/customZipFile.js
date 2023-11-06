@@ -49,6 +49,9 @@ export const createZipFileSync = async (path, customActions) => {
  * }
  */
 export const modifyZipFileSync = async (path, customActions) => {
+  if (!path) {
+    throw new Error("The path is null.")
+  }
   if (!path.includes(".")) {
     toast.error("Please provide a path with a file extension")
     return

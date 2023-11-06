@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"bytes"
 	"encoding/json"
-	"github.com/joho/godotenv"
 	"io"
 	"log"
 	"net/http"
@@ -13,6 +12,8 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+
+	"github.com/joho/godotenv"
 )
 
 type ScriptInfo struct {
@@ -140,6 +141,7 @@ func CreateHandleFunc(topic string, processRequest func(jsonConfig string, id st
 	})
 }
 
+// StartPythonScripts starts the python script
 func StartPythonScripts(jsonParam string, filename string, id string) (string, error) {
 	log.Println("Starting python script: " + filename)
 	condaEnv := GetDotEnvVariable("CONDA_ENV")
@@ -244,12 +246,14 @@ func GetDotEnvVariable(key string) string {
 	}
 }
 
+// RemoveIdFromScripts removes the id from the scripts
 func RemoveIdFromScripts(id string) {
 	Mu.Lock()
 	delete(Scripts, id)
 	Mu.Unlock()
 }
 
+// WriteScriptId writes the data to the script with the id
 func WriteScriptId(data string, id string) error {
 	Mu.Lock()
 	script, ok := Scripts[id]
@@ -267,6 +271,7 @@ func WriteScriptId(data string, id string) error {
 	return nil
 }
 
+// KillScript kills the script with the id
 func KillScript(id string) bool {
 	Mu.Lock()
 	script, ok := Scripts[id]
@@ -282,6 +287,7 @@ func KillScript(id string) bool {
 	return ok
 }
 
+// HandlePanic handles the panic
 func HandlePanic() {
 	r := recover()
 
@@ -290,6 +296,7 @@ func HandlePanic() {
 	}
 }
 
+// ClearAllScripts clears all the scripts
 func ClearAllScripts() {
 	Mu.Lock()
 	for id, script := range Scripts {

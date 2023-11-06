@@ -205,7 +205,7 @@ const loadJsonPath = (path) => {
     const cwd = process.cwd()
     let cwdSlashType = cwd.includes("/") ? "/" : "\\"
     let cwdSlashTypeInv = cwdSlashType == "/" ? "\\" : "/"
-    path.charAt(0) == "." && (path = cwd + Path.substring(1).replaceAll(cwdSlashTypeInv, cwdSlashType))
+    path.charAt(0) == "." && (path = cwd + path.substring(1).replaceAll(cwdSlashTypeInv, cwdSlashType))
     console.log("reading json file: " + path)
     const data = fs.readFileSync(path)
     const jsonData = JSON.parse(data)
@@ -228,7 +228,7 @@ const loadCSVPath = (path, whenLoaded) => {
   const cwd = process.cwd()
   let cwdSlashType = cwd.includes("/") ? "/" : "\\"
   let cwdSlashTypeInv = cwdSlashType == "/" ? "\\" : "/"
-  Path.charAt(0) == "." && (path = cwd + Path.substring(1).replaceAll(cwdSlashTypeInv, cwdSlashType))
+  Path.charAt(0) == "." && (path = cwd + path.substring(1).replaceAll(cwdSlashTypeInv, cwdSlashType))
   console.log("reading csv file: " + path)
   try {
     fs.createReadStream(path)

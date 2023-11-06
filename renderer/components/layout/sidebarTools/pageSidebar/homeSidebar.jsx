@@ -3,14 +3,17 @@ import { Accordion, Button, Stack } from "react-bootstrap"
 import { WorkspaceContext } from "../../../workspace/workspaceContext"
 import { ipcRenderer } from "electron"
 import SidebarDirectoryTreeControlled from "../directoryTree/sidebarDirectoryTreeControlled"
-const HomeSidebar = () => {
-  /**
-   * @description - This component is the sidebar tools component that will be used in the sidebar component as the home page
-   *
-   */
 
+/**
+ * @description - This component is the sidebar tools component that will be used in the sidebar component as the home page
+ *
+ */
+const HomeSidebar = () => {
   const { workspace } = useContext(WorkspaceContext) // We get the workspace from the context to retrieve the directory tree of the workspace, thus retrieving the data files
 
+  /**
+   * @description - This function is used to send a message to the main process to request a folder from the user
+   */
   async function handleWorkspaceChange() {
     ipcRenderer.send("messageFromNext", "requestDialogFolder")
   }
