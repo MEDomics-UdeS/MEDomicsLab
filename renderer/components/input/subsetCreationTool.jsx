@@ -98,26 +98,6 @@ const SubsetCreationTool = ({ pageId = "inputModule", configPath = "" }) => {
   }, [globalData])
 
   /**
-   * To get the infos of the data
-   * @param {Object} data - The data
-   * @returns {Object} - The infos
-   * @returns {Number} - The infos.columnsLength - The number of columns
-   * @returns {Number} - The infos.rowsLength - The number of rows
-   * @returns {Array} - The infos.rowsCount - The number of non-NaN values per row
-   */
-  const getInfos = (data) => {
-    let infos = { columnsLength: data.shape[1], rowsLength: data.shape[0] }
-    infos.rowsCount = data.count().$data
-    infos.columnsCount = data.count({ axis: 0 }).$data
-    return infos
-  }
-
-  /**
-   * To get the infos of the columns
-   */
-  const getColumnsInfos = () => {}
-
-  /**
    * To get the data
    * @returns {Promise} - The promise of the data
    */
@@ -153,6 +133,10 @@ const SubsetCreationTool = ({ pageId = "inputModule", configPath = "" }) => {
     }
   }
 
+  /**
+   * This function initializes the filters
+   * @returns {Void}
+   */
   const initFilters = () => {
     let newFilters = {}
     newFilters["global"] = { value: "", matchMode: "contains" }
@@ -168,19 +152,6 @@ const SubsetCreationTool = ({ pageId = "inputModule", configPath = "" }) => {
     })
 
     setFilters(newFilters)
-  }
-
-  /**
-   * To drop all - the rows and the columns
-   * @param {Boolean} overwrite - True if the dataset should be overwritten, false otherwise
-   * @returns {Void}
-   */
-  const dropAll = (overwrite) => {
-    getData().then((data) => {
-      let newData = data.drop({ columns: columnsToDrop })
-      newData = newData.drop({ index: rowsToDrop })
-      saveCleanDataset(newData, overwrite, false)
-    })
   }
 
   /**
@@ -278,10 +249,6 @@ const SubsetCreationTool = ({ pageId = "inputModule", configPath = "" }) => {
     return parentPath + separator
   }
 
-  useEffect(() => {
-    // initFilters()
-  }, [dataset])
-
   const clearFilter = () => {
     setGlobalFilterValue("")
     initFilters()
@@ -316,11 +283,15 @@ const SubsetCreationTool = ({ pageId = "inputModule", configPath = "" }) => {
 
   const header = renderHeader()
 
+  /**
+   * This hook is used to update the column types
+   */
   useEffect(() => {
     if (df !== null && df !== undefined) {
       let newColumnTypes = {}
       df.ctypes.$data.forEach((type, index) => {
         if (df.nUnique(0).$data[index] < 10) {
+          // If the number of unique values is less than 10, then it is a category
           type = "category"
         }
         newColumnTypes[df.columns[index]] = type
@@ -329,10 +300,18 @@ const SubsetCreationTool = ({ pageId = "inputModule", configPath = "" }) => {
     }
   }, [df])
 
+  /**
+   * The filters are initialized when the column types are updated
+   */
   useEffect(() => {
     initFilters()
   }, [columnTypes])
 
+  /**
+   * This function is used to render the category filter template
+   * @param {Object} options - The options
+   * @returns {Object} - The filter template
+   */
   const categoryFilterTemplate = (options) => {
     let onChangeFunc = (e) => {
       options.filterCallback(e.value)
@@ -352,6 +331,11 @@ const SubsetCreationTool = ({ pageId = "inputModule", configPath = "" }) => {
     return <MultiSelect value={options.value} options={newOptions} onChange={onChangeFunc} optionLabel="name" placeholder={`Search by ${options.field}`} className="p-column-filter" maxSelectedLabels={1} />
   }
 
+  /**
+   * This function is used to render the number filter template
+   * @param {Object} options - The options
+   * @returns {Object} - The filter template
+   */
   const numberFilterTemplate = (options) => {
     let onChangeFunc = (e) => {
       options.filterCallback(e.value, options.index)
@@ -364,6 +348,11 @@ const SubsetCreationTool = ({ pageId = "inputModule", configPath = "" }) => {
     return <InputNumber value={options.value} onChange={onChangeFunc} placeholder={`Search by ${options.field}`} locale="en-US" />
   }
 
+  /**
+   * This function is used to render the string filter template
+   * @param {Object} options - The options
+   * @returns {Object} - The filter template
+   */
   const stringFilterTemplate = (options) => {
     let onChangeFunc = (e) => {
       options.filterCallback(e.target.value, options.index)
@@ -376,6 +365,11 @@ const SubsetCreationTool = ({ pageId = "inputModule", configPath = "" }) => {
     return <InputText type="search" value={options.value} placeholder={`Search by ${options.field}`} onChange={onChangeFunc} />
   }
 
+  /**
+   * This function is used to render the filter template
+   * @param {number} index - The index of the column
+   * @returns {Object} - The filter template
+   */
   const filterTemplateRenderer = (index) => {
     let columnType = columnTypes[selectedDatasetColumns[index]]
     if (columnType === "category") {
@@ -387,10 +381,20 @@ const SubsetCreationTool = ({ pageId = "inputModule", configPath = "" }) => {
     }
   }
 
+  /**
+   * This function is used to capitalize the first letter of a string
+   * @param {string} string - The string to capitalize
+   * @returns {string} - The capitalized string
+   */
   function capitalizeFirstLetter(string) {
     return string[0].toUpperCase() + string.slice(1)
   }
 
+  /**
+   * This function is used to get the column data type
+   * @param {string} column - The column
+   * @returns {string} - The column data type
+   */
   function getColumnDataType(column) {
     if (columnTypes[column] === "int32" || columnTypes[column] === "float32") {
       return "numeric"
@@ -403,6 +407,11 @@ const SubsetCreationTool = ({ pageId = "inputModule", configPath = "" }) => {
     }
   }
 
+  /**
+   * This function is used to get the column options according to the column type
+   * @param {string} column - The column
+   * @returns {Object} - The column options
+   */
   const getColumnOptions = (column) => {
     let optionsToReturn = { showFilterMatchModes: true, showFilterMenu: true }
     if (columnTypes[column] === "category") {

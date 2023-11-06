@@ -87,6 +87,10 @@ const DataTablePopoverBP = (props) => {
     }
   }
 
+  /**
+   * To get the data type of the column from the global data object
+   * @returns {String} - The data type of the column
+   */
   function getTypeInGlobalData() {
     let medObject = globalData[props.config.uuid]
     if (medObject) {

@@ -830,6 +830,11 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
     return this.state.newColumnNames[this.state.columnIndexMap[columnIndex]]
   }
 
+  /**
+   * Return the filter value of the column
+   * @param columnIndex - column index
+   * @returns {String} filterValue - filter value
+   */
   private getFilterValue = (columnIndex: number): string => {
     if (!this.state.columnsFilter[columnIndex]) {
       return ""
@@ -1087,6 +1092,11 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
     }
   }
 
+  /**
+   * @description This function returns the boolean value indicating if the column is frozen
+   * @param index - index of the column
+   * @returns boolean - true if the column is frozen, false otherwise
+   */
   private getIsFrozen = (index: number) => {
     if (index !== undefined && index !== null) {
       if (this.state.frozenColumns.length === 0) {

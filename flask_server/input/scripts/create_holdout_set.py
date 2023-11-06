@@ -32,7 +32,12 @@ class GoExecScriptCreateHoldoutSet(GoExecutionScript):
 
     def _custom_process(self, json_config: dict) -> dict:
         """
-        TODO: add your doc here
+        This function is used to create a holdout set
+        and a train set with Pandas
+
+        Args:
+            json_config: The input json params
+
         """
         go_print(json.dumps(json_config, indent=4))
         # Set local variables

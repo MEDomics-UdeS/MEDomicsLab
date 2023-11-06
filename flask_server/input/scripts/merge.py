@@ -2,7 +2,6 @@ import os
 import sys
 from pathlib import Path
 import json
-import pandas as pd
 sys.path.append(
     str(Path(os.path.dirname(os.path.abspath(__file__))).parent.parent))
     
@@ -30,7 +29,10 @@ class GoExecScriptMerge(GoExecutionScript):
 
     def _custom_process(self, json_config: dict) -> dict:
         """
-        TODO: add your doc here
+        This function is used to merge datasets with Pandas
+
+        Args:
+            json_config: The input json params
         """
         go_print(json.dumps(json_config, indent=4))
         # Set local variables
