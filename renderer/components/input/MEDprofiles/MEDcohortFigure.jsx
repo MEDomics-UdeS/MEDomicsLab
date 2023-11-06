@@ -48,15 +48,18 @@ const MEDcohortFigure = ({ jsonFilePath }) => {
 
       profile?.list_MEDtab?.forEach((tab) => {
         let attributes = Object.keys(tab)
+        console.log("tab", tab)
         attributes.forEach((attribute) => {
           if (attribute !== "Date" && attribute !== "Time_point" && isNotNull(tab, attribute)) {
+            let attributeValue = tab[attribute]
+            console.log("attributeValue", attributeValue)
             formattedData.push({
               x: [new Date(tab.Date)],
               y: [attribute],
               mode: "markers",
               type: "scatter",
               marker: { color: color },
-              text: `PatientID: ${profile.PatientID}\n${attribute}: ${tab[attribute]}\n`,
+              text: `PatientID: ${profile.PatientID}` + ` ${attribute}: ` + { attributeValue },
               name: attribute
             })
           }
@@ -82,14 +85,31 @@ const MEDcohortFigure = ({ jsonFilePath }) => {
   return (
     <div className="MEDcohort-figure">
       <Plot
+        onClick={(data) => {
+          console.log(data)
+        }}
+        onClickAnnotation={(data) => {
+          console.log("Annotation clicked!", data)
+        }}
+        onLegendClick={(data) => {
+          console.log(data)
+        }}
         data={plotData}
         layout={{
           width: 750,
           height: 750,
           title: "MEDcohort",
           showlegend: false,
-          xaxis: { type: "date" }
+          xaxis: {
+            title: "<b>Date</b>",
+            type: "date"
+          },
+          yaxis: {
+            title: "<b>Classes</b>",
+            type: "category"
+          }
         }}
+        editable={true}
       />
     </div>
   )
