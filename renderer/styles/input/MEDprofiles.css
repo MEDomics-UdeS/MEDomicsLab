@@ -1,5 +1,12 @@
 .data-view {
-    width: fit-content;
-    margin: auto;
-    margin-top: 30px;
+  width: fit-content;
+  margin: auto;
+  margin-top: 30px;
+}
+
+.MEDcohort-figure {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
 }

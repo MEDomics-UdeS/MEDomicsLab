@@ -1,24 +1,24 @@
 import Button from "react-bootstrap/Button"
-import { DataContext } from "../../workspace/dataContext";
-import { DataView } from 'primereact/dataview';
+import { DataContext } from "../../workspace/dataContext"
+import { DataView } from "primereact/dataview"
 import { Dropdown } from "primereact/dropdown"
-import { LayoutModelContext } from "../../layout/layoutContext";
+import { LayoutModelContext } from "../../layout/layoutContext"
 import MedDataObject from "../../workspace/medDataObject"
 import ProgressBarRequests from "../../generalPurpose/progressBarRequests"
-import React, {useContext, useEffect, useState} from "react"
+import React, { useContext, useEffect, useState } from "react"
 import { requestJson } from "../../../utilities/requests"
 import { toast } from "react-toastify"
 import { WorkspaceContext } from "../../workspace/workspaceContext"
 
 /**
- * 
+ *
  * @returns {JSX.Element} a page
- * 
- * @description 
- * Component of the input module as an Accordion, MEDprofilesPrepareDara allows the user to 
- * create MEDclasses from a master table, instantiate his master table data as MEDprofiles, 
+ *
+ * @description
+ * Component of the input module as an Accordion, MEDprofilesPrepareDara allows the user to
+ * create MEDclasses from a master table, instantiate his master table data as MEDprofiles,
  * and finally open the generated data in MEDprofilesViewer.
- * 
+ *
  */
 const MEDprofilesPrepareData = () => {
   const [classesGenerated, setClassesGenerated] = useState(false) // boolean telling if the MEDclasses have been generated
@@ -46,7 +46,7 @@ const MEDprofilesPrepareData = () => {
    * This functions get all files from the DataContext DATA folder and update datasetList.
    *
    */
-   function getDatasetListFromDataContext(dataContext) {
+  function getDatasetListFromDataContext(dataContext) {
     let keys = Object.keys(dataContext)
     let datasetListToShow = []
     keys.forEach((key) => {
@@ -65,7 +65,7 @@ const MEDprofilesPrepareData = () => {
    * This functions get all folders from the DataContext DATA folder and update folderList.
    *
    */
-   function getFolderListFromDataContext(dataContext) {
+  function getFolderListFromDataContext(dataContext) {
     let keys = Object.keys(dataContext)
     let folderListToShow = []
     keys.forEach((key) => {
@@ -81,19 +81,25 @@ const MEDprofilesPrepareData = () => {
    * @param {DataContext} dataContext
    *
    * @description
-   * This functions is called when the MEDclasses or the MEDprofiles' 
+   * This functions is called when the MEDclasses or the MEDprofiles'
    * binary file have been generated.
    *
    */
-     function getGeneratedElement(dataContext, path, setter) {
-      let keys = Object.keys(dataContext)
-      keys.forEach((key) => {
-        if (dataContext[key].path == path) {
-          setter(dataContext[key])
-        }
-      })
-    }
+  function getGeneratedElement(dataContext, path, setter) {
+    let keys = Object.keys(dataContext)
+    console.log("path to find", path)
+    keys.forEach((key) => {
+      if (dataContext[key].path == path) {
+        console.log("setter", key)
+        setter(dataContext[key])
+      }
+    })
+  }
 
+  /**
+   * @description
+   * Open the MEDprofilesViewerPage, depending on generatedClassesFolder and generatedMEDprofilesFile
+   */
   function openMEDprofilesViewer() {
     dispatchLayout({ type: `openMEDprofilesViewerModule`, payload: { pageId: "MEDprofilesViewer", MEDclassesFolder: generatedClassesFolder, MEDprofilesBinaryFile: generatedMEDprofilesFile } })
   }
@@ -135,7 +141,7 @@ const MEDprofilesPrepareData = () => {
    * @description
    * This function calls the instantiate_MEDprofiles method in the MEDprofiles server
    */
-   const instantiateMEDprofiles = () => {
+  const instantiateMEDprofiles = () => {
     setMayInstantiateMEDprofiles(false)
     setMayCreateClasses(false)
     setShowProgressBar(true)
@@ -145,7 +151,7 @@ const MEDprofilesPrepareData = () => {
       "/MEDprofiles/instantiate_MEDprofiles",
       {
         masterTablePath: selectedMasterTable.path,
-        destinationFile: selectedMEDprofilesFolder.path + "/MEDprofiles_bin", 
+        destinationFile: selectedMEDprofilesFolder.path + MedDataObject.getPathSeparator() + "MEDprofiles_bin"
       },
       (jsonResponse) => {
         console.log("received results:", jsonResponse)
@@ -170,7 +176,7 @@ const MEDprofilesPrepareData = () => {
 
   // Look of items in the MEDclasses DataView
   const MEDclassesDisplay = (element) => {
-    return(<div>{globalData[element]?.nameWithoutExtension}</div>)
+    return <div>{globalData[element]?.nameWithoutExtension}</div>
   }
 
   // Called when data in DataContext is updated, in order to updated datasetList and folderList
@@ -179,10 +185,10 @@ const MEDprofilesPrepareData = () => {
       getDatasetListFromDataContext(globalData)
       getFolderListFromDataContext(globalData)
       if (selectedMEDclassesFolder?.path) {
-        getGeneratedElement(globalData, selectedMEDclassesFolder.path + "/MEDclasses/MEDclasses", setGeneratedClassesFolder)
+        getGeneratedElement(globalData, selectedMEDclassesFolder.path + MedDataObject.getPathSeparator() + "MEDclasses" + MedDataObject.getPathSeparator() + "MEDclasses", setGeneratedClassesFolder)
       }
       if (selectedMEDprofilesFolder?.path) {
-        getGeneratedElement(globalData, selectedMEDprofilesFolder.path + "/MEDprofiles_bin", setGeneratedMEDprofilesFile)
+        getGeneratedElement(globalData, selectedMEDprofilesFolder.path + MedDataObject.getPathSeparator() + "MEDprofiles_bin", setGeneratedMEDprofilesFile)
       }
     }
   }, [globalData])
@@ -208,19 +214,19 @@ const MEDprofilesPrepareData = () => {
   // Called once at initialization in order to set default selected folder to "DATA"
   useEffect(() => {
     if (globalData !== undefined) {
-    let keys = Object.keys(globalData)
-    keys.forEach((key) => {
-      if (globalData[key].type == "folder" && globalData[key].name == "DATA" && globalData[key].parentID == "UUID_ROOT") {
-        setSelectedMEDclassesFolder(globalData[key])
-        setSelectedMEDprofilesFolder(globalData[key])
-      }
-    })
+      let keys = Object.keys(globalData)
+      keys.forEach((key) => {
+        if (globalData[key].type == "folder" && globalData[key].name == "DATA" && globalData[key].parentID == "UUID_ROOT") {
+          setSelectedMEDclassesFolder(globalData[key])
+          setSelectedMEDprofilesFolder(globalData[key])
+        }
+      })
     }
-  }, [])  
-  
-    return (
-      <>
-      <div className="align-center"> 
+  }, [])
+
+  return (
+    <>
+      <div className="align-center">
         <b>Select your master table : &nbsp;</b>
         {datasetList.length > 0 ? <Dropdown value={selectedMasterTable} options={datasetList.filter((value) => value.extension == "csv")} optionLabel="name" onChange={(event) => setSelectedMasterTable(event.value)} placeholder="Select a master table" /> : <Dropdown placeholder="No dataset to show" disabled />}
       </div>
@@ -231,12 +237,16 @@ const MEDprofilesPrepareData = () => {
           {folderList.length > 0 ? <Dropdown value={selectedMEDclassesFolder} options={folderList} optionLabel="name" onChange={(event) => setSelectedMEDclassesFolder(event.value)} placeholder="Select a folder" /> : <Dropdown placeholder="No folder to show" disabled />}
         </div>
         <div>
-          <Button disabled={!mayCreateClasses} onClick={createMEDclasses}>Create MEDclasses</Button>
+          <Button disabled={!mayCreateClasses} onClick={createMEDclasses}>
+            Create MEDclasses
+          </Button>
         </div>
       </div>
-      {generatedClassesFolder?.childrenIDs && classesGenerated && (<div className="card data-view">
-        <DataView value={generatedClassesFolder.childrenIDs} itemTemplate={MEDclassesDisplay} paginator rows={5} header="Generated MEDclasses" style={{"textAlign":"center"}}/>
-      </div>)}
+      {generatedClassesFolder?.childrenIDs && classesGenerated && (
+        <div className="card data-view">
+          <DataView value={generatedClassesFolder.childrenIDs} itemTemplate={MEDclassesDisplay} paginator rows={5} header="Generated MEDclasses" style={{ textAlign: "center" }} />
+        </div>
+      )}
       <hr></hr>
       <div className="flex-container">
         <div>
@@ -244,16 +254,20 @@ const MEDprofilesPrepareData = () => {
           {folderList.length > 0 ? <Dropdown value={selectedMEDprofilesFolder} options={folderList} optionLabel="name" onChange={(event) => setSelectedMEDprofilesFolder(event.value)} placeholder="Select a folder" /> : <Dropdown placeholder="No folder to show" disabled />}
         </div>
         <div>
-          <Button disabled={!mayInstantiateMEDprofiles} onClick={instantiateMEDprofiles}>Instantiate MEDprofiles</Button>
+          <Button disabled={!mayInstantiateMEDprofiles} onClick={instantiateMEDprofiles}>
+            Instantiate MEDprofiles
+          </Button>
         </div>
       </div>
       <div className="margin-top-30 extraction-progress">{showProgressBar && <ProgressBarRequests progressBarProps={{}} isUpdating={showProgressBar} setIsUpdating={setShowProgressBar} progress={progress} setProgress={setProgress} requestTopic={"/MEDprofiles/progress"} />}</div>
       <hr></hr>
       <div className="align-center">
-        <Button disabled={!generatedClassesFolder && !generatedMEDprofilesFile} onClick={openMEDprofilesViewer}>Open MEDprofiles Viewer</Button>
+        <Button disabled={!generatedClassesFolder && !generatedMEDprofilesFile} onClick={openMEDprofilesViewer}>
+          Open MEDprofiles Viewer
+        </Button>
       </div>
-      </>
-    )
-  }
-  
-  export default MEDprofilesPrepareData
+    </>
+  )
+}
+
+export default MEDprofilesPrepareData
