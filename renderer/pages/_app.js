@@ -305,10 +305,18 @@ function App() {
     return newGlobalData
   }
 
-  const checkIfMetadataFileExists = (dataObject) => {
+  const checkIfMetadataFileExists = () => {
     // Check if a file ending with .medomics exists in the workspace directory
     let metadataFileExists = false
     let workspaceChildren = workspaceObject.workingDirectory.children
+    workspaceChildren.forEach((child) => {
+      console.log("child", child)
+      if (child.name == ".medomics") {
+        metadataFileExists = true
+        console.log("FOUND IT")
+      }
+    })
+    return metadataFileExists
   }
 
   // This useEffect hook is called whenever the `workspaceObject` state changes.
@@ -324,6 +332,7 @@ function App() {
       let rootName = workspaceObject.workingDirectory.name
       let rootPath = workspaceObject.workingDirectory.path
       let rootType = "folder"
+      let metadataFileExists = checkIfMetadataFileExists()
       let rootChildrenIDs = recursivelyRecenseTheDirectory(rootChildren, rootParentID, newGlobalData).childrenIDsToReturn
 
       let rootDataObject = new MedDataObject({
