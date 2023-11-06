@@ -157,16 +157,8 @@ const DataTablePopoverBP = (props) => {
     }
   }, [])
 
-  /**
-   * To clear the filter value when the data type changes
-   */
-  useEffect(() => {
-    setFilterValue("")
-  }, [selectedType])
-
   useEffect(() => {
     setSelectedType(getTypeInGlobalData())
-    setFilterValue(props.filterValue.filterValue || "")
   }, [props])
 
   return (
