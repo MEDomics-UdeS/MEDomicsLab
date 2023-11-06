@@ -2,6 +2,7 @@ import { loadJsonPath } from "../../../utilities/fileManagementUtils"
 import React, { useEffect, useState } from "react"
 import dynamic from "next/dynamic"
 import * as d3 from "d3"
+import { randInt } from "three/src/math/MathUtils"
 
 /**
  *
@@ -14,9 +15,10 @@ import * as d3 from "d3"
  * a MEDcohort with interactive options.
  *
  */
-const MEDcohortFigure = ({ jsonFilePath, classes, setClasses }) => {
+const MEDcohortFigure = ({ jsonFilePath, classes, setClasses, relativeTime }) => {
   const [jsonData, setJsonData] = useState(null)
   const [plotData, setPlotData] = useState([])
+  // const [relativeTimePatients, setRelativeTimePatients] = useState([])
   const Plot = dynamic(() => import("react-plotly.js"), { ssr: false })
 
   /**
@@ -42,14 +44,14 @@ const MEDcohortFigure = ({ jsonFilePath, classes, setClasses }) => {
   // Format the JSON data in order to display it in the graph
   const formatData = () => {
     let formattedData = []
-
+    let newClasses = new Set()
     jsonData?.list_MEDprofile?.forEach((profile) => {
       const color = d3.interpolateTurbo(jsonData.list_MEDprofile.indexOf(profile) / jsonData.list_MEDprofile.length)
 
       profile?.list_MEDtab?.forEach((tab) => {
         let attributes = Object.keys(tab)
-        console.log("tab", tab)
         attributes.forEach((attribute) => {
+          newClasses.add(attribute)
           if (attribute !== "Date" && attribute !== "Time_point" && isNotNull(tab, attribute)) {
             let attributeValue = tab[attribute]
             console.log("attributeValue", attributeValue)
@@ -66,9 +68,81 @@ const MEDcohortFigure = ({ jsonFilePath, classes, setClasses }) => {
         })
       })
     })
-
+    setClasses(newClasses)
     setPlotData(formattedData)
   }
+
+  const getTimeZeroForClass = (className, profileIndex) => {
+    let timeZero = jsonData.list_MEDprofile[profileIndex].list_MEDtab[0].Date
+    let timeZeroDate = new Date(timeZero)
+    let timeZeroAttribute = null
+    jsonData?.list_MEDprofile[profileIndex]?.list_MEDtab?.forEach((tab) => {
+      let attributes = Object.keys(tab)
+      let attributeIndex = attributes.indexOf(className)
+      if (attributeIndex !== -1) {
+        let attribute = attributes[attributeIndex]
+        if (attribute !== "Date" && attribute !== "Time_point" && isNotNull(tab, attribute)) {
+          let attributeValue = tab[attribute]
+          if (attribute === relativeTime && timeZeroAttribute === null) {
+            return (timeZeroAttribute = tab.Date)
+          }
+        }
+      }
+    })
+    return timeZeroAttribute
+  }
+
+  const setRelativeTimeData = () => {
+    let formattedData = []
+
+    let timeZero = jsonData.list_MEDprofile[0].list_MEDtab[0].Date
+    let timeZeroAttribute = null
+    jsonData?.list_MEDprofile?.forEach((profile, index) => {
+      let profileRandomTime = index
+      let profilAttributeTimeZero = getTimeZeroForClass(relativeTime, index)
+      const color = d3.interpolateTurbo(jsonData.list_MEDprofile.indexOf(profile) / jsonData.list_MEDprofile.length)
+      profile?.list_MEDtab?.forEach((tab) => {
+        let attributes = Object.keys(tab)
+        attributes.forEach((attribute) => {
+          if (attribute !== "Date" && attribute !== "Time_point" && isNotNull(tab, attribute)) {
+            let attributeValue = tab[attribute]
+            if (attribute === relativeTime && timeZeroAttribute === null) {
+              timeZeroAttribute = tab.Date
+            }
+            console.log("attributeValue", attributeValue)
+            if (timeZeroAttribute !== null) {
+              let newDate = new Date(new Date(tab.Date) - new Date(profilAttributeTimeZero))
+              newDate.setHours(newDate.getHours() + profileRandomTime)
+              formattedData.push({
+                x: [newDate],
+                y: [attribute],
+                mode: "markers",
+                type: "scatter",
+                marker: { color: color },
+                text: `PatientID: ${profile.PatientID}` + ` ${attribute}: ` + { attributeValue },
+                name: attribute
+              })
+            } else {
+              let newDate = new Date(new Date(tab.Date) - new Date(profilAttributeTimeZero))
+              newDate.setHours(newDate.getHours() + profileRandomTime)
+              formattedData.push({
+                x: [newDate],
+                y: [attribute],
+                mode: "markers",
+                type: "scatter",
+                marker: { color: color },
+                text: `PatientID: ${profile.PatientID}` + ` ${attribute}: ` + { attributeValue },
+                name: attribute
+              })
+            }
+          }
+        })
+      })
+    })
+    setPlotData(formattedData)
+  }
+
+  const getTimeZero = () => {}
 
   // Called at initialization in order to load the JSON data
   useEffect(() => {
@@ -82,19 +156,27 @@ const MEDcohortFigure = ({ jsonFilePath, classes, setClasses }) => {
     }
   }, [jsonData])
 
+  // If the relativeTime is changed, we update the figure
+  useEffect(() => {
+    console.log("relativeTime", relativeTime)
+    if (relativeTime !== null) {
+      setRelativeTimeData()
+    } else {
+      formatData()
+    }
+  }, [relativeTime])
+
+  useEffect(() => {
+    console.log("plotData", plotData)
+  }, [plotData])
+
   return (
     <div className="MEDcohort-figure">
       <Plot
-        onClick={(data) => {
-          console.log(data)
-        }}
-        onClickAnnotation={(data) => {
-          console.log("Annotation clicked!", data)
-        }}
-        onLegendClick={(data) => {
-          console.log(data)
-        }}
         data={plotData}
+        onClick={(data) => {
+          console.log("data", data, plotData, jsonData)
+        }}
         layout={{
           width: 750,
           height: 750,
