@@ -246,7 +246,7 @@ const IconSidebar = ({ onSidebarItemSelect }) => {
                 <VscGraph style={{ height: "1.7rem", width: "auto" }} />
               </Nav.Link>
 
-              <Nav.Link className="evaluationNav btnSidebar align-center" data-pr-at="right center" data-pr-my="left center" data-pr-tooltip="Evaluation" eventKey="Evaluation" onClick={(event) => handleClick(event, "evaluation")} disabled={disabledIcon} onDoubleClick={(event) => handleDoubleClick(event, "Evaluation")}>
+              <Nav.Link className="evaluationNav btnSidebar align-center" data-pr-at="right center" data-pr-my="left center" data-pr-tooltip="Evaluation" eventKey="Evaluation" onClick={(event) => handleClick(event, "evaluation")} disabled={disabledIcon}>
                 <PiFlaskFill style={{ height: "2.2rem", width: "auto" }} />
               </Nav.Link>
             </div>
