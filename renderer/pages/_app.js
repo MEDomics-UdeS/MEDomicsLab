@@ -299,6 +299,12 @@ function App() {
     return newGlobalData
   }
 
+  const checkIfMetadataFileExists = (dataObject) => {
+    // Check if a file ending with .medomics exists in the workspace directory
+    let metadataFileExists = false
+    let workspaceChildren = workspaceObject.workingDirectory.children
+  }
+
   // This useEffect hook is called whenever the `workspaceObject` state changes.
   useEffect(() => {
     // Create a copy of the `globalData` state object.
