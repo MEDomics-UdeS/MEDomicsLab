@@ -115,9 +115,8 @@ class MEDexperimentLearning(MEDexperiment):
         temp_df = df[df[kwargs['target']].notna()]
         node.CodeHandler.add_line(
             "code", f"temp_df = df[df['{kwargs['target']}'].notna()]")
-        nan_value = float("NaN")
         node.CodeHandler.add_line("code", f"nan_value = float('NaN')")
-        temp_df.replace("", nan_value, inplace=True)
+        temp_df.replace("", float("NaN"), inplace=True)
         node.CodeHandler.add_line(
             "code", f"temp_df.replace('', nan_value, inplace=True)")
         temp_df.dropna(how='all', axis=1, inplace=True)

@@ -18,8 +18,8 @@ exp_progress = {}
 storing_mode = USE_RAM_FOR_EXPERIMENTS_STORING
 
 
-@app_learning.route("/run_experiment/<id_>", methods=["POST"])
-def run_experiment(id_):
+@app_learning.route("/run_experiment", methods=["POST"])
+def run_experiment():
     """
     triggered by the button play in the dashboard, it starts the execution of the pipeline
 
@@ -28,7 +28,7 @@ def run_experiment(id_):
     json_config = get_json_from_request(request)
     print("received data from topic: /run_experiment:")
     print(json.dumps(json_config, indent=4, sort_keys=True))
-    scene_id = id_
+    scene_id = json_config['pageId']
     global current_experiments
     global exp_progress
     global storing_mode

@@ -1,11 +1,10 @@
-import React, { useContext, useEffect } from "react"
+import React, { useContext } from "react"
 import ProgressBar from "react-bootstrap/ProgressBar"
 import useInterval from "@khalidalansi/use-interval"
-import { requestJson } from "../../utilities/requests"
+import { requestBackend } from "../../utilities/requests"
 import { WorkspaceContext } from "../workspace/workspaceContext"
 import { toast } from "react-toastify"
-import MEDconfig, { SERVER_CHOICE } from "../../../medomics.dev"
-const isFlask = MEDconfig.serverChoice == SERVER_CHOICE.FLASK
+import { PageInfosContext } from "../mainPages/moduleBasics/pageInfosContext"
 
 /**
  *
@@ -17,44 +16,41 @@ const isFlask = MEDconfig.serverChoice == SERVER_CHOICE.FLASK
  * @param {string} variant the variant of the progress bar
  * @param {boolean} withLabel should the progress bar have a label to follow the progress
  * @param {number} delayMS the delay in ms between each request
-
+ * @param {object} progressBarProps the props to pass to the progress bar
+ * @param {function} onDataReceived the function to call when data is received
  * @returns a progress bar that shows the progress of the current flow
  */
-const ProgressBarRequests = ({ isUpdating, setIsUpdating, progress, setProgress, requestTopic, withLabel = true, delayMS = 400, progressBarProps = { animated: true, variant: "success" } }) => {
+const ProgressBarRequests = ({ isUpdating, setIsUpdating, progress, setProgress, requestTopic, withLabel = true, delayMS = 1000, progressBarProps = { animated: true, variant: "success" }, onDataReceived }) => {
   const { port } = useContext(WorkspaceContext) // used to get the port
-  useEffect(() => {
-    if (isUpdating && !isFlask) {
-      setIsUpdating(false)
-      setProgress({
-        now: 0,
-        currentLabel: ""
-      })
-      toast.warn("Progress is only available with the Flask server (for now))")
-    }
-  }, [isUpdating])
+  const { pageId } = useContext(PageInfosContext) // used to get the pageId
 
   useInterval(
     () => {
-      requestJson(
+      requestBackend(
         port,
         requestTopic,
-        // eslint-disable-next-line camelcase
-        {},
+        { pageId: pageId },
         (data) => {
           if ("now" in data) {
             setProgress({
               now: data.now,
               currentLabel: data.currentLabel && data.currentLabel
             })
-            if (data.now >= 100) {
-              setIsUpdating(false)
-              setProgress({
-                now: data.now,
-                currentLabel: "Done!"
-              })
+            if (onDataReceived) {
+              onDataReceived(data)
+            } else {
+              if (data.now >= 100) {
+                setProgress({
+                  now: 100,
+                  currentLabel: "Done!"
+                })
+                setIsUpdating(false)
+              }
             }
           } else {
-            toast.error("No 'now' key in the response")
+            console.log("An error occured during: ", requestTopic)
+            console.log("data:", data)
+            toast.error("No 'now' key in the response: " + JSON.stringify(data))
             setProgress({
               now: 0,
               currentLabel: ""
@@ -63,19 +59,20 @@ const ProgressBarRequests = ({ isUpdating, setIsUpdating, progress, setProgress,
           }
         },
         (error) => {
+          console.log("An error occured during: ", requestTopic)
           console.error(error)
           setIsUpdating(false)
         }
       )
     },
-    isUpdating && isFlask ? delayMS : null
+    isUpdating ? delayMS : null
   )
 
   return (
     <>
       <div className="progress-bar-requests">
         {withLabel && <label>{progress.currentLabel || ""}</label>}
-        <ProgressBar {...progressBarProps} now={progress.now} label={`${progress.now}%`} />
+        <ProgressBar {...progressBarProps} now={progress.now >= 100 ? 100 : progress.now} label={`${progress.now >= 100 ? 100 : progress.now}%`} />
       </div>
     </>
   )

@@ -1,18 +1,21 @@
-import React, { useContext } from "react"
+import React, { useContext, useEffect } from "react"
 import { Button, Stack, Accordion } from "react-bootstrap"
 import { Plus } from "react-bootstrap-icons"
-import DropzoneComponent from "../../mainPages/dataComponents/dropzoneComponent"
-import { WorkspaceContext } from "../../workspace/workspaceContext"
-import SidebarDirectoryTreeControlled from "./sidebarDirectoryTreeControlled"
+import DropzoneComponent from "../../../mainPages/dataComponents/dropzoneComponent"
+import { WorkspaceContext } from "../../../workspace/workspaceContext"
+import SidebarDirectoryTreeControlled from "../directoryTree/sidebarDirectoryTreeControlled"
 
 /**
- * @description - This component is the sidebar tools component that will be used in the sidebar component as the input page
- * @summary - It contains the dropzone component and the workspace directory tree filtered to only show the data folder and the data files
- * @returns {JSX.Element} - This component is the sidebar tools component that will be used in the sidebar component as the input page
+ * @description - This component is the sidebar tools component that will be used in the sidebar component as the extraction Time Series page
+ * @summary - It contains the dropzone component and the workspace directory tree filtered to only show the data folder
+ * @returns {JSX.Element} - This component is the sidebar tools component that will be used in the sidebar component as the extraction Time Series page
  */
-const InputSidebar = () => {
-  // eslint-disable-next-line no-unused-vars
+const ExtractionSidebar = () => {
   const { workspace } = useContext(WorkspaceContext) // We get the workspace from the context to retrieve the directory tree of the workspace, thus retrieving the data files
+
+  useEffect(() => {
+    console.log(workspace)
+  }, [workspace]) // We log the workspace when it changes
 
   return (
     <>
@@ -34,14 +37,13 @@ const InputSidebar = () => {
           </Button>
         </DropzoneComponent>
 
-        <Accordion defaultActiveKey={["dirTree"]} alwaysOpen>
+        <Accordion defaultActiveKey={["0"]} alwaysOpen>
           <SidebarDirectoryTreeControlled />
         </Accordion>
-
         {/* We render the workspace only if it is set, otherwise it throws an error */}
       </Stack>
     </>
   )
 }
 
-export default InputSidebar
+export default ExtractionSidebar

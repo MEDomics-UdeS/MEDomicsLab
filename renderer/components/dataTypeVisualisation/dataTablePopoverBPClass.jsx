@@ -150,7 +150,7 @@ const DataTablePopoverBP = (props) => {
         setGlobalData(globalDataCopy)
       }
     } else {
-      console.log("MedObject not found")
+      // console.log("MedObject not found")
     }
   }, [])
 

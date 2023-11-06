@@ -48,6 +48,8 @@ import "../styles/customPrimeReact.css"
 import "../styles/imageContainer.css"
 import "../styles/datatableWrapper.css"
 import "../styles/inputPage.css"
+import "../styles/evaluation/evaluation.css"
+import "../styles/output.css"
 
 /**
  * This is the main app component. It is the root component of the app.
@@ -138,6 +140,10 @@ function App() {
   const [port, setPort] = useState(5000)
 
   const [globalData, setGlobalData] = useState({})
+
+  useEffect(() => {
+    localStorage.clear()
+  }, [])
 
   useEffect(() => {
     // This useEffect hook is called only once and it sets the ipcRenderer to listen for the "messageFromElectron" message from the main process

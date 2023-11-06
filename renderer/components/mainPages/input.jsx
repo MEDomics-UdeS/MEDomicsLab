@@ -18,7 +18,7 @@ const InputPage = ({ pageId = "42", configPath = null }) => {
 
   return (
     <>
-      <ModulePage pageId={pageId} configPath={configPath}>
+      <ModulePage pageId={pageId} configPath={configPath} shadow>
         <h1>INPUT MODULE</h1>
         <div className="input-page">
           <Accordion className="card-accordion" defaultActiveKey={["0"]} alwaysOpen>
