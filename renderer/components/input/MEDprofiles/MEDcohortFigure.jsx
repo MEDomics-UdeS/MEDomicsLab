@@ -14,7 +14,7 @@ import * as d3 from "d3"
  * a MEDcohort with interactive options.
  *
  */
-const MEDcohortFigure = ({ jsonFilePath }) => {
+const MEDcohortFigure = ({ jsonFilePath, classes, setClasses }) => {
   const [jsonData, setJsonData] = useState(null)
   const [plotData, setPlotData] = useState([])
   const Plot = dynamic(() => import("react-plotly.js"), { ssr: false })

@@ -22,6 +22,7 @@ import MEDcohortFigure from "./MEDcohortFigure"
 const MEDprofilesViewer = ({ pageId, configPath = "", MEDclassesFolder, MEDprofilesBinaryFile }) => {
   const [jsonFilePath, setJsonFilePath] = useState(null)
   const { port } = useContext(WorkspaceContext) // we get the port for server connexion
+  const [classes, setClasses] = useState({}) // list of classes in the MEDclasses folder
 
   /**
    * @description
@@ -64,7 +65,7 @@ const MEDprofilesViewer = ({ pageId, configPath = "", MEDclassesFolder, MEDprofi
         <h1 className="center">MEDprofiles Viewer</h1>
         <div>MEDclasses folder : {MEDclassesFolder?.path}</div>
         <div>MEDprofiles binary file : {MEDprofilesBinaryFile?.path}</div>
-        {jsonFilePath && <MEDcohortFigure jsonFilePath={jsonFilePath} />}
+        {jsonFilePath && <MEDcohortFigure jsonFilePath={jsonFilePath} classes={classes} setClasses={setClasses} />}
       </ModulePage>
     </>
   )
