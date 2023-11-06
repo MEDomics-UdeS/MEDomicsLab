@@ -23,6 +23,7 @@ import TerminalPage from "../../mainPages/terminal"
 import ModelViewer from "../../mainPages/modelViewer"
 import OutputPage from "../../mainPages/output"
 import ApplicationPage from "../../mainPages/application"
+import ModulePage from "../../mainPages/moduleBasics/modulePage"
 import * as Icons from "react-bootstrap-icons"
 import Image from "next/image"
 import ZoomPanPinchComponent from "./zoomPanPinchComponent"
@@ -559,7 +560,11 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
       }
       const jsonText = JSON.stringify(node.getExtraData().data, null, "\t")
       const html = Prism.highlight(jsonText, Prism.languages.javascript, "javascript")
-      return <pre style={{ tabSize: "20px" }} dangerouslySetInnerHTML={{ __html: html }} />
+      return (
+        <ModulePage pageId={"jsonViewer-" + config.path} configPath={config.path} shadow>
+          <pre style={{ tabSize: "20px" }} dangerouslySetInnerHTML={{ __html: html }} />
+        </ModulePage>
+      )
     } else if (component === "dataTable") {
       const config = node.getConfig()
       if (node.getExtraData().data == null) {

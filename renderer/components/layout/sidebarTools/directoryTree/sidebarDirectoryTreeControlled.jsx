@@ -1,5 +1,5 @@
 import React, { useContext, useRef, useState, useEffect } from "react"
-import { Trash, BoxArrowUpRight, Eraser, FolderPlus, ArrowClockwise } from "react-bootstrap-icons"
+import { Trash, BoxArrowUpRight, Eraser, FolderPlus, ArrowClockwise, EyeFill, EyeSlashFill } from "react-bootstrap-icons"
 import { Accordion, Stack } from "react-bootstrap"
 import { ControlledTreeEnvironment, Tree } from "react-complex-tree"
 import { DataContext } from "../../../workspace/dataContext"
@@ -29,7 +29,7 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
   // eslint-disable-next-line no-unused-vars
   const [cutItems, setCutItems] = useState([]) // This state is used to keep track of the items that have been cut
   const [isHovering, setIsHovering] = useState(false) // This state is used to know if the mouse is hovering the directory tree
-
+  const [showHiddenFiles, setShowHiddenFiles] = useState(false) // This state is used to know if the user wants to see hidden files or not
   const [isAccordionShowing, setIsAccordionShowing] = useState(true) // This state is used to know if the accordion is collapsed or not
   const { globalData, setGlobalData } = useContext(DataContext) // We get the global data from the context to retrieve the directory tree of the workspace, thus retrieving the data files
   const { dispatchLayout, developerMode } = useContext(LayoutModelContext)
@@ -37,6 +37,7 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
   const [dirTree, setDirTree] = useState({}) // We get the directory tree from the workspace
 
   useEffect(() => {
+    console.log("selectedItems", selectedItems)
     setExternalSelectedItems && setExternalSelectedItems(selectedItems)
   }, [selectedItems])
 
@@ -65,6 +66,8 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
           onPaste(item, selectedItems[0])
         })
       }
+    } else if (event.code === "KeyH" && event.ctrlKey) {
+      setShowHiddenFiles(!showHiddenFiles)
     }
   }
 
@@ -217,6 +220,18 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
           break
         case "delete":
           onDelete(props.UUID)
+          break
+        case "revealInFileExplorer":
+          if (globalData[props.UUID] !== undefined) {
+            if (globalData[props.UUID].path !== undefined) {
+              // eslint-disable-next-line no-undef
+              require("electron").shell.showItemInFolder(globalData[props.UUID].path)
+            } else {
+              toast.error("Error: No path found")
+            }
+          } else {
+            toast.error("Error: No item selected")
+          }
           break
       }
     } else {
@@ -496,6 +511,11 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
     Object.keys(medDataContext).forEach((key) => {
       let medDataItem = medDataContext[key]
       let medDataItemName = medDataItem.name
+      if (showHiddenFiles == false) {
+        if (medDataItemName.startsWith(".")) {
+          return
+        }
+      }
       let itemIsFolder = medDataItem.type === "folder"
       let ableToRename = !boolNameInArray(medDataItemName, namesYouCantRename)
       let treeItem = {
@@ -527,7 +547,7 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
       let newTree = fromJSONtoTree({ ...globalData })
       setDirTree(newTree)
     }
-  }, [globalData])
+  }, [globalData, showHiddenFiles])
 
   const delayOptions = { showDelay: 750, hideDelay: 0 }
 
@@ -535,14 +555,14 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
     <>
       <Tooltip className="tooltip-small" target=".add-folder-icon" {...delayOptions} />
       <Tooltip className="tooltip-small" target=".refresh-icon" {...delayOptions} />
-
+      <Tooltip className="tooltip-small" target=".context-menu-icon" {...delayOptions} />
       <Accordion.Item eventKey="dirTree">
         <Accordion.Header onClick={() => MedDataObject.updateWorkspaceDataObject()}>
           <Stack direction="horizontal" style={{ flexGrow: "1" }}>
             <p>
               <strong>WORKSPACE</strong>
             </p>
-            <div style={{ flexGrow: "10" }} />
+            <div style={{ flexGrow: "5" }} />
 
             {
               isAccordionShowing && (
@@ -565,6 +585,16 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
                   >
                     <ArrowClockwise size={"1rem"} className="context-menu-icon refresh-icon" data-pr-at="right bottom" data-pr-tooltip="Refresh" data-pr-my="left top" />
                   </a>
+                  <a
+                    onClick={(e) => {
+                      e.preventDefault()
+                      e.stopPropagation()
+                      setShowHiddenFiles(!showHiddenFiles)
+                    }}
+                  >
+                    {showHiddenFiles && <EyeFill size={"1rem"} className="context-menu-icon refresh-icon" data-pr-at="right bottom" data-pr-tooltip="Hide hidden files" data-pr-my="left top" />}
+                    {!showHiddenFiles && <EyeSlashFill size={"1rem"} className="context-menu-icon refresh-icon" data-pr-at="right bottom" data-pr-tooltip="Show hidden files" data-pr-my="left top" />}
+                  </a>
                 </>
               ) /* We display the add folder icon only if the mouse is hovering the directory tree and if the accordion is not collapsed*/
             }
@@ -581,7 +611,8 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
                   MENU_ID,
                   displayMenu,
                   isHovering,
-                  onDBClickItem
+                  onDBClickItem,
+                  setSelectedItems
                 })
               }
               getItemTitle={(item) => item.data}
@@ -633,7 +664,7 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
             PandasProfiling
           </Item>
         </Submenu>
-        <Item id="revealInFileExplorer" onClick={() => require("electron").shell.showItemInFolder(globalData[selectedItems[0]].path)}>
+        <Item id="revealInFileExplorer" onClick={handleContextMenuAction}>
           {/* <BoxArrowUpRight size={"1rem"} className="context-menu-icon" /> */}
           Reveal in File Explorer
         </Item>
@@ -666,7 +697,7 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
             PandasProfiling
           </Item>
         </Submenu>
-        <Item id="revealInFileExplorer" onClick={() => require("electron").shell.showItemInFolder(globalData[selectedItems[0]].path)}>
+        <Item id="revealInFileExplorer" onClick={handleContextMenuAction}>
           {/* <BoxArrowUpRight size={"1rem"} className="context-menu-icon" /> */}
           Reveal in File Explorer
         </Item>
@@ -694,7 +725,7 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
             Learning module (default)
           </Item>
         </Submenu>
-        <Item id="revealInFileExplorer" onClick={() => require("electron").shell.showItemInFolder(globalData[selectedItems[0]].path)}>
+        <Item id="revealInFileExplorer" onClick={handleContextMenuAction}>
           {/* <BoxArrowUpRight size={"1rem"} className="context-menu-icon" /> */}
           Reveal in File Explorer
         </Item>
@@ -709,7 +740,7 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
       </Menu>
 
       <Menu id="MENU_FOLDER">
-        <Item id="revealInFileExplorer" onClick={() => require("electron").shell.showItemInFolder(globalData[selectedItems[0]].path)}>
+        <Item id="revealInFileExplorer" onClick={handleContextMenuAction}>
           {/* <BoxArrowUpRight size={"1rem"} className="context-menu-icon" /> */}
           Reveal in File Explorer
         </Item>
@@ -744,7 +775,7 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
             VSCode
           </Item>
         </Submenu>
-        <Item id="revealInFileExplorer" onClick={() => require("electron").shell.showItemInFolder(globalData[selectedItems[0]].path)}>
+        <Item id="revealInFileExplorer" onClick={handleContextMenuAction}>
           {/* <BoxArrowUpRight size={"1rem"} className="context-menu-icon" /> */}
           Reveal in File Explorer
         </Item>
@@ -772,7 +803,7 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
             Image viewer (default)
           </Item>
         </Submenu>
-        <Item id="revealInFileExplorer" onClick={() => require("electron").shell.showItemInFolder(globalData[selectedItems[0]].path)}>
+        <Item id="revealInFileExplorer" onClick={handleContextMenuAction}>
           {/* <BoxArrowUpRight size={"1rem"} className="context-menu-icon" /> */}
           Reveal in File Explorer
         </Item>
@@ -800,7 +831,7 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
             PDF viewer (default)
           </Item>
         </Submenu>
-        <Item id="revealInFileExplorer" onClick={() => require("electron").shell.showItemInFolder(globalData[selectedItems[0]].path)}>
+        <Item id="revealInFileExplorer" onClick={handleContextMenuAction}>
           {/* <BoxArrowUpRight size={"1rem"} className="context-menu-icon" /> */}
           Reveal in File Explorer
         </Item>
@@ -826,7 +857,7 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
         >
           <Item>Text editor (default)</Item>
         </Submenu>
-        <Item id="revealInFileExplorer" onClick={() => require("electron").shell.showItemInFolder(globalData[selectedItems[0]].path)}>
+        <Item id="revealInFileExplorer" onClick={handleContextMenuAction}>
           {/* <BoxArrowUpRight size={"1rem"} className="context-menu-icon" /> */}
           Reveal in File Explorer
         </Item>
@@ -860,7 +891,7 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
             Application Module
           </Item>
         </Submenu>
-        <Item id="revealInFileExplorer" onClick={() => require("electron").shell.showItemInFolder(globalData[selectedItems[0]].path)}>
+        <Item id="revealInFileExplorer" onClick={handleContextMenuAction}>
           {/* <BoxArrowUpRight size={"1rem"} className="context-menu-icon" /> */}
           Reveal in File Explorer
         </Item>
@@ -875,7 +906,7 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
       </Menu>
 
       <Menu id="MENU_DEFAULT">
-        <Item id="revealInFileExplorer" onClick={() => require("electron").shell.showItemInFolder(globalData[selectedItems[0]].path)}>
+        <Item id="revealInFileExplorer" onClick={handleContextMenuAction}>
           {/* <BoxArrowUpRight size={"1rem"} className="context-menu-icon" /> */}
           Reveal in File Explorer
         </Item>

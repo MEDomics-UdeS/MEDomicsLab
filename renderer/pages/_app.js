@@ -305,36 +305,60 @@ function App() {
     return newGlobalData
   }
 
+  /**
+   * Checks if a metadata file exists in the workspace
+   */
+  const checkIfMetadataFileExists = () => {
+    // Check if a file ending with .medomics exists in the workspace directory
+    let metadataFileExists = false
+    let workspaceChildren = workspaceObject.workingDirectory.children
+    workspaceChildren.forEach((child) => {
+      console.log("child", child)
+      if (child.name == ".medomics") {
+        metadataFileExists = true
+      }
+    })
+    return metadataFileExists
+  }
+
   // This useEffect hook is called whenever the `workspaceObject` state changes.
   useEffect(() => {
-    // Create a copy of the `globalData` state object.
-    let newGlobalData = { ...globalData }
-    // Check if the `workingDirectory` property of the `workspaceObject` has been set.
-    if (workspaceObject.hasBeenSet === true) {
-      // Loop through each child of the `workingDirectory`.
+    const updateGlobalData = async () => {
+      // Create a copy of the `globalData` state object.
+      let newGlobalData = { ...globalData }
+      // Check if the `workingDirectory` property of the `workspaceObject` has been set.
+      if (workspaceObject.hasBeenSet === true) {
+        // Loop through each child of the `workingDirectory`.
 
-      let rootChildren = workspaceObject.workingDirectory.children
-      let rootParentID = "UUID_ROOT"
-      let rootName = workspaceObject.workingDirectory.name
-      let rootPath = workspaceObject.workingDirectory.path
-      let rootType = "folder"
-      let rootChildrenIDs = recursivelyRecenseTheDirectory(rootChildren, rootParentID, newGlobalData).childrenIDsToReturn
+        let metadataFileExists = checkIfMetadataFileExists()
+        if (metadataFileExists && Object.keys(globalData).length == 0) {
+          // Load the global data from the metadata file
+          newGlobalData = await loadGlobalDataFromFile()
+        }
+        let rootChildren = workspaceObject.workingDirectory.children
+        let rootParentID = "UUID_ROOT"
+        let rootName = workspaceObject.workingDirectory.name
+        let rootPath = workspaceObject.workingDirectory.path
+        let rootType = "folder"
+        let rootChildrenIDs = recursivelyRecenseTheDirectory(rootChildren, rootParentID, newGlobalData).childrenIDsToReturn
 
-      let rootDataObject = new MedDataObject({
-        originalName: rootName,
-        path: rootPath,
-        parentID: rootParentID,
-        type: rootType,
-        childrenIDs: rootChildrenIDs,
-        _UUID: rootParentID
-      })
-      newGlobalData[rootParentID] = rootDataObject
+        let rootDataObject = new MedDataObject({
+          originalName: rootName,
+          path: rootPath,
+          parentID: rootParentID,
+          type: rootType,
+          childrenIDs: rootChildrenIDs,
+          _UUID: rootParentID
+        })
+        newGlobalData[rootParentID] = rootDataObject
+      }
+      // Clean the globalData from files & folders that are not in the workspace
+      newGlobalData = cleanGlobalDataFromFilesNotFoundInWorkspace(workspaceObject, newGlobalData)
+
+      // Update the `globalData` state object with the new `newGlobalData` object.
+      setGlobalData(newGlobalData)
     }
-    // Clean the globalData from files & folders that are not in the workspace
-    newGlobalData = cleanGlobalDataFromFilesNotFoundInWorkspace(workspaceObject, newGlobalData)
-
-    // Update the `globalData` state object with the new `newGlobalData` object.
-    setGlobalData(newGlobalData)
+    updateGlobalData()
   }, [workspaceObject])
 
   // This useEffect hook is called whenever the `workspaceObject` state changes.
@@ -342,9 +366,72 @@ function App() {
     console.log("workspaceObject changed", workspaceObject)
   }, [workspaceObject])
 
+  /**
+   * Function that saves a JSON Object to a file to a specified path
+   * @param {Object} objectToSave - The object to save
+   * @param {String} path - The path to save the object to
+   * @returns {Promise} - A promise that resolves when the object is saved
+   */
+  const saveObjectToFile = (objectToSave, path) => {
+    return new Promise((resolve, reject) => {
+      // eslint-disable-next-line no-undef
+      const fsx = require("fs-extra")
+      fsx.writeFile(path, JSON.stringify(objectToSave, null, 2), (err) => {
+        if (err) {
+          console.error(err)
+          reject(err)
+        }
+        resolve()
+      })
+    })
+  }
+
+  /**
+   * Parse the global data so that the objects are MedDataObjects
+   * @param {Object} globalData - The global data to parse
+   * @returns {Object} - The parsed global data
+   */
+  const parseGlobalData = (globalData) => {
+    let parsedGlobalData = {}
+    Object.keys(globalData).forEach((key) => {
+      let dataObject = globalData[key]
+      let parsedDataObject = new MedDataObject(dataObject)
+      parsedGlobalData[key] = parsedDataObject
+    })
+    return parsedGlobalData
+  }
+
+  /**
+   * Load the global data from a file
+   */
+  const loadGlobalDataFromFile = () => {
+    return new Promise((resolve, reject) => {
+      // eslint-disable-next-line no-undef
+      const fsx = require("fs-extra")
+      let path = workspaceObject.workingDirectory.path + "/.medomics"
+      fsx.readFile(path + "/globalData.json", "utf8", (err, data) => {
+        if (err) {
+          console.error(err)
+          reject(err)
+        }
+        resolve(parseGlobalData(JSON.parse(data)))
+      })
+    })
+  }
+
   // This useEffect hook is called whenever the `globalData` state changes.
   useEffect(() => {
     console.log("globalData changed", globalData)
+    // Save the global data to a file
+    if (workspaceObject.hasBeenSet === true) {
+      let path = workspaceObject.workingDirectory.path + "/.medomics"
+      // Check if the .medomics folder exists
+      // eslint-disable-next-line no-undef
+      const fsx = require("fs-extra")
+      fsx.ensureDirSync(workspaceObject.workingDirectory.path + "/.medomics")
+      // Save the global data to a file
+      saveObjectToFile(globalData, path + "/globalData.json")
+    }
   }, [globalData])
 
   // This useEffect hook is called whenever the `layoutModel` state changes.

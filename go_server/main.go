@@ -5,6 +5,7 @@ import (
 	"fmt"
 	Evaluation "go_module/blueprints/evaluation"
 	Learning "go_module/blueprints/learning"
+	Input "go_module/blueprints/input"
 	Utils "go_module/src"
 	"log"
 	"net/http"
@@ -17,6 +18,7 @@ func main() {
 	// Here is where you add the handle functions to the server
 	Learning.AddHandleFunc()
 	Evaluation.AddHandleFunc()
+	Input.AddHandleFunc()
 	Utils.CreateHandleFunc("get_server_health", handleGetServerHealth)
 	Utils.CreateHandleFunc("removeId/", handleRemoveId)
 	Utils.CreateHandleFunc("clearAll", handleClearAll)

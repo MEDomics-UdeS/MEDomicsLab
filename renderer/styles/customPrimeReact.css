@@ -489,3 +489,14 @@
   background: #08458a !important;
   border: #4384cec7 2px solid;
 }
+
+.bg-invalid {
+  background-color: #f8091d56 !important;
+}
+
+.overlay-dropdown .p-dropdown-label {
+  align-items: center;
+  align-content: center;
+  top: -0.2rem;
+  position: relative;
+}

@@ -112,7 +112,8 @@ const renderItem = ({ item, depth, children, title, context, arrow }, additional
                   className={cx("rct-tree-item-button", item.isFolder && "rct-tree-item-button-isFolder", context.isSelected && "rct-tree-item-button-selected", context.isExpanded && "rct-tree-item-button-expanded", context.isFocused && "rct-tree-item-button-focused", context.isDraggingOver && "rct-tree-item-button-dragging-over", context.isSearchMatching && "rct-tree-item-button-search-match")}
                   data={item}
                   onContextMenu={(e) => {
-                    console.log("onContextMenu", item.index)
+                    console.log("onContextMenu", item.index, e, additionalParams, item)
+                    // additionalParams.setSelectedItems([item.UUID])
                     additionalParams.displayMenu(e, item)
                   }}
                 >
