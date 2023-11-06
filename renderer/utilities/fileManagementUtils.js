@@ -194,8 +194,8 @@ const loadCSVPath = (path, whenLoaded) => {
       })
       .on("end", function () {
         // Here log the result array
-        console.log("parsed csv data:")
-        console.log(data)
+        //console.log("parsed csv data:")
+        //console.log(data)
         whenLoaded(data)
       })
   } catch (error) {

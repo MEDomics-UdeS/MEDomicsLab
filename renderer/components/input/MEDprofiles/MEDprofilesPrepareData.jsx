@@ -1,8 +1,10 @@
 import Button from "react-bootstrap/Button"
 import { DataContext } from "../../workspace/dataContext"
+import { DataFrame } from "danfojs"
 import { DataView } from "primereact/dataview"
 import { Dropdown } from "primereact/dropdown"
 import { LayoutModelContext } from "../../layout/layoutContext"
+import { loadCSVPath } from "../../../utilities/fileManagementUtils"
 import MedDataObject from "../../workspace/medDataObject"
 import ProgressBarRequests from "../../generalPurpose/progressBarRequests"
 import React, { useContext, useEffect, useState } from "react"
@@ -32,6 +34,7 @@ const MEDprofilesPrepareData = () => {
   const [selectedMEDclassesFolder, setSelectedMEDclassesFolder] = useState(null) // folder selected where to put the MEDclasses
   const [selectedMEDprofilesFolder, setSelectedMEDprofilesFolder] = useState(null) // folder selected where to put the MEDprofiles binary file
   const [selectedMasterTable, setSelectedMasterTable] = useState(null) // dataset of data to extract used to be display
+  const [subMasterTableFileList, setSubMasterTableFileList] = useState([]) // list of csv data matching the "Sub-MasterTable" format
   const [showProgressBar, setShowProgressBar] = useState(false) // wether to show or not the extraction progressbar
 
   const { dispatchLayout } = useContext(LayoutModelContext)
@@ -87,7 +90,6 @@ const MEDprofilesPrepareData = () => {
    */
   function getGeneratedElement(dataContext, path, setter) {
     let keys = Object.keys(dataContext)
-    console.log("path to find", path)
     keys.forEach((key) => {
       if (dataContext[key].path == path) {
         console.log("setter", key)
@@ -95,6 +97,55 @@ const MEDprofilesPrepareData = () => {
       }
     })
   }
+
+  /**
+   *
+   * @param {DataContext} dataContext
+   *
+   * @description
+   * This function is called when the data context is updated in order
+   * to obtain the csv files matching the subMasterTableFormt.
+   *
+   */
+  function getSubMasterTableFileList(dataContext) {
+    const keys = Object.keys(dataContext)
+    const matchingDatasetList = []
+
+    // Créez une promesse pour chaque fichier CSV
+    const loadCSVFile = (dataContext) => {
+      return new Promise((resolve) => {
+        loadCSVPath(dataContext.path, (data) => {
+          const dataframe = new DataFrame(data)
+          if (dataframe.$dtypes[0] === "int32" || dataframe.$dtypes[0] === "int64") {
+            matchingDatasetList.push(dataContext)
+          }
+          resolve()
+        })
+      })
+    }
+
+    // Créez un tableau de promesses pour les fichiers CSV
+    const promises = keys
+      .filter((key) => {
+        const item = dataContext[key]
+        return item.type !== "folder" && item.path.includes("DATA") && item.extension === "csv"
+      })
+      .map((key) => loadCSVFile(dataContext[key]))
+
+    // Utilisez Promise.all pour attendre que toutes les promesses se terminent
+    Promise.all(promises)
+      .then(() => {
+        setSubMasterTableFileList(matchingDatasetList)
+      })
+      .catch((error) => {
+        // Gérez les erreurs ici
+        console.error(error)
+      })
+  }
+
+  useEffect(() => {
+    console.log("SUBMASTERLIST", subMasterTableFileList)
+  }, [subMasterTableFileList])
 
   /**
    * @description
@@ -179,11 +230,12 @@ const MEDprofilesPrepareData = () => {
     return <div>{globalData[element]?.nameWithoutExtension}</div>
   }
 
-  // Called when data in DataContext is updated, in order to updated datasetList and folderList
+  // Called when data in DataContext is updated, in order to updated datasetList, folderList and subMasterTableFileList
   useEffect(() => {
     if (globalData !== undefined) {
       getDatasetListFromDataContext(globalData)
       getFolderListFromDataContext(globalData)
+      getSubMasterTableFileList(globalData)
       if (selectedMEDclassesFolder?.path) {
         getGeneratedElement(globalData, selectedMEDclassesFolder.path + MedDataObject.getPathSeparator() + "MEDclasses" + MedDataObject.getPathSeparator() + "MEDclasses", setGeneratedClassesFolder)
       }
@@ -226,6 +278,16 @@ const MEDprofilesPrepareData = () => {
 
   return (
     <>
+      <div className="flex-container">
+        <div>
+          <b>Select your csv files : &nbsp;</b>
+          {subMasterTableFileList}
+        </div>
+        <div>
+          <Button>Create Master Table</Button>
+        </div>
+      </div>
+      <hr></hr>
       <div className="align-center">
         <b>Select your master table : &nbsp;</b>
         {datasetList.length > 0 ? <Dropdown value={selectedMasterTable} options={datasetList.filter((value) => value.extension == "csv")} optionLabel="name" onChange={(event) => setSelectedMasterTable(event.value)} placeholder="Select a master table" /> : <Dropdown placeholder="No dataset to show" disabled />}
