@@ -6,13 +6,14 @@ import Col from "react-bootstrap/Col"
 import { PlusSquare, XSquare } from "react-bootstrap-icons"
 import { Button } from "primereact/button"
 import { MultiSelect } from "primereact/multiselect"
-import { requestJson } from "../../utilities/requests"
+import { requestBackend } from "../../utilities/requests"
 import { WorkspaceContext } from "../workspace/workspaceContext"
 import MedDataObject from "../workspace/medDataObject"
 import { InputText } from "primereact/inputtext"
 import ProgressBarRequests from "../generalPurpose/progressBarRequests"
 import { toast } from "react-toastify"
 import { confirmPopup } from "primereact/confirmpopup"
+import { ErrorRequestContext } from "../generalPurpose/errorRequestContext"
 
 /**
  * Merging tool
@@ -23,6 +24,7 @@ import { confirmPopup } from "primereact/confirmpopup"
  */
 const MergeTool = ({ pageId = "42", configPath = null }) => {
   const { port } = useContext(WorkspaceContext) // we get the port for server connexion
+  const { setError } = useContext(ErrorRequestContext) // We get the setError function from the context
   const [listOfDatasets, setListOfDatasets] = useState([]) // The list of datasets to show in the dropdown
   const [dictOfDatasets, setDictOfDatasets] = useState({}) // The dict of datasets to show in the dropdown
   const { globalData, setGlobalData } = useContext(DataContext) // We get the global data from the context to retrieve the directory tree of the workspace, thus retrieving the data files
@@ -333,15 +335,22 @@ const MergeTool = ({ pageId = "42", configPath = null }) => {
     newGlobalData[newDatasetObject.getUUID()] = newDatasetObject
     setGlobalData(newGlobalData)
 
-    requestJson(
+    requestBackend(
       port,
-      "/input/merge_datasets",
+      "/input/merge_datasets/" + pageId,
       JSONToSend,
       (jsonResponse) => {
-        setIsProgressUpdating(false)
-        console.log("jsonResponse", jsonResponse)
-        setProgress({ now: 100, currentLabel: "Merged complete ✅ : " + jsonResponse["finalDatasetPath"] })
-        MedDataObject.updateWorkspaceDataObject()
+        if (jsonResponse.error) {
+          if (typeof jsonResponse.error == "string") {
+            jsonResponse.error = JSON.parse(jsonResponse.error)
+          }
+          setError(jsonResponse.error)
+        } else {
+          setIsProgressUpdating(false)
+          console.log("jsonResponse", jsonResponse)
+          setProgress({ now: 100, currentLabel: "Merged complete ✅ : " + jsonResponse["finalDatasetPath"] })
+          MedDataObject.updateWorkspaceDataObject()
+        }
       },
       function (error) {
         setIsProgressUpdating(false)
@@ -687,9 +696,9 @@ const MergeTool = ({ pageId = "42", configPath = null }) => {
           <Col lg={3} style={{ display: "flex", flexDirection: "row", justifyContent: "center", flexGrow: 0, alignItems: "center", marginTop: "1rem" }}>
             {newDatasetName.length === 0 && <span style={{ color: "red", textAlign: "center" }}>The dataset name is empty, the dataset will be named mergedDataset</span>}
           </Col>
-          <div className="progressBar-merge">{<ProgressBarRequests isUpdating={isProgressUpdating} setIsUpdating={setIsProgressUpdating} progress={progress} setProgress={setProgress} requestTopic={"input/progress/" + pageId} delayMS={50} style={{width:"100% "}}/>}</div>
+          <div className="progressBar-merge">{<ProgressBarRequests isUpdating={isProgressUpdating} setIsUpdating={setIsProgressUpdating} progress={progress} setProgress={setProgress} requestTopic={"input/progress/" + pageId} delayMS={500} style={{ width: "100% " }} />}</div>
         </Row>
-      </div>  
+      </div>
     </>
   )
 }
