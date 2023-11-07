@@ -11,7 +11,6 @@ import { LayoutModelContext } from "../layoutContext"
 import { DataContext } from "../../workspace/dataContext"
 import MedDataObject from "../../workspace/medDataObject"
 import InputPage from "../../mainPages/input"
-import ResultsPage from "../../mainPages/results"
 import ExploratoryPage from "../../mainPages/exploratory"
 import EvaluationPage from "../../mainPages/evaluation"
 import ExtractionTextPage from "../../mainPages/extractionText"
@@ -20,19 +19,17 @@ import ExtractionMEDimagePage from "../../mainPages/extractionMEDimage"
 import ExtractionTSPage from "../../mainPages/extractionTS"
 import HomePage from "../../mainPages/home"
 import TerminalPage from "../../mainPages/terminal"
-import ModelViewer from "../../mainPages/modelViewer"
 import OutputPage from "../../mainPages/output"
 import ApplicationPage from "../../mainPages/application"
+import ModulePage from "../../mainPages/moduleBasics/modulePage"
 import * as Icons from "react-bootstrap-icons"
 import Image from "next/image"
 import ZoomPanPinchComponent from "./zoomPanPinchComponent"
 import DataTableWrapperBPClass from "../../dataTypeVisualisation/dataTableWrapperBPClass"
-import FileViewer from "@codesmith-99/react-file-preview"
 import HtmlViewer from "../../mainPages/htmlViewer"
+import ModelViewer from "../../mainPages/modelViewer"
 
 var fields = ["Name", "Field1", "Field2", "Field3", "Field4", "Field5"]
-
-const ContextExample = React.createContext("")
 
 interface LayoutContextType {
   layoutRequestQueue: any[]
@@ -561,7 +558,11 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
       }
       const jsonText = JSON.stringify(node.getExtraData().data, null, "\t")
       const html = Prism.highlight(jsonText, Prism.languages.javascript, "javascript")
-      return <pre style={{ tabSize: "20px" }} dangerouslySetInnerHTML={{ __html: html }} />
+      return (
+        <ModulePage pageId={"jsonViewer-" + config.path} configPath={config.path} shadow>
+          <pre style={{ tabSize: "20px" }} dangerouslySetInnerHTML={{ __html: html }} />
+        </ModulePage>
+      )
     } else if (component === "dataTable") {
       const config = node.getConfig()
       if (node.getExtraData().data == null) {
@@ -731,9 +732,6 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
       if (node.getExtraData().data == null) {
         const config = node.getConfig()
         console.log("config", config)
-        // return <div dangerouslySetInnerHTML={{ __html: require(config.path) }} />
-        // return <div dangerouslySetInnerHTML={{ __html: require("fs").readFileSync(config.path, "utf8") }} />
-        // return <iframe title={node.getId()} src={config.path} style={{ display: "block", border: "none", boxSizing: "border-box" }} width="100%" height="100%" />
         return <HtmlViewer configPath={config.path} />
       }
     } else if (component !== "") {

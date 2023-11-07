@@ -536,7 +536,8 @@ const GroupingTool = ({ pageId = "42-grouping", configPath = null }) => {
    */
   const addTagToTagsDict = (tag, color, newTagsDict, protect) => {
     if (newTagsDict[tag]) {
-      console.log("tag already present")
+      // If the tag is already in the tags dict
+      // NO OP
     } else {
       newTagsDict[tag] = { color: color, fontColor: "black", datasets: {}, protect: protect !== "undefined" ? protect : false }
     }
@@ -678,7 +679,6 @@ const GroupingTool = ({ pageId = "42-grouping", configPath = null }) => {
    */
   useEffect(() => {
     if (globalData !== null) {
-      console.log("Updating list of datasets", globalData)
       updateListOfDatasets()
     }
   }, [globalData])
@@ -708,7 +708,6 @@ const GroupingTool = ({ pageId = "42-grouping", configPath = null }) => {
             column = cleanString(column) // We clean the column name, remove the spaces and the quotes
             if (columnsTag[column]) {
               // If the column is already tagged
-              console.log("columnsTag[column]", columnsTag[column], column)
               addTagsToArrayIfNotPresent(columnsTag[column], key) // We add the tags to the tags already present in the selected datasets
               columnsTag[column].forEach((tag) => {
                 // We iterate through the tags

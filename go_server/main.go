@@ -5,6 +5,7 @@ import (
 	"fmt"
 	Evaluation "go_module/blueprints/evaluation"
 	Exploratory "go_module/blueprints/exploratory"
+	Input "go_module/blueprints/input"
 	Learning "go_module/blueprints/learning"
 	Utils "go_module/src"
 	"log"
@@ -19,6 +20,7 @@ func main() {
 	Learning.AddHandleFunc()
 	Evaluation.AddHandleFunc()
 	Exploratory.AddHandleFunc()
+	Input.AddHandleFunc()
 	Utils.CreateHandleFunc("get_server_health", handleGetServerHealth)
 	Utils.CreateHandleFunc("removeId/", handleRemoveId)
 	Utils.CreateHandleFunc("clearAll", handleClearAll)

@@ -83,3 +83,8 @@
 .holdout-set h6[aria-disabled="true"] {
   color: #16161681;
 }
+
+
+.progressBar-merge .progress-bar-requests {
+  width: 100%;
+}
