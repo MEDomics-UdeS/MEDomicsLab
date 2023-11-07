@@ -28,6 +28,23 @@ const downloadFile = (exportObj, exportName) => {
 
 /**
  *
+ * @param {String} path path to the file
+ *
+ * @description
+ * This function takes a path and downloads the file
+ */
+const downloadFilePath = (path) => {
+  fs.copyFileSync(path, "./renderer/public/tmp/" + Path.basename(path))
+  var downloadAnchorNode = document.createElement("a")
+  downloadAnchorNode.setAttribute("href", "./tmp/" + Path.basename(path))
+  downloadAnchorNode.setAttribute("download", Path.basename(path))
+  document.body.appendChild(downloadAnchorNode) // required for firefox
+  downloadAnchorNode.click()
+  downloadAnchorNode.remove()
+}
+
+/**
+ *
  * @param {Object} exportObj object to be exported
  * @param {String} exportName name of the exported file
  *
@@ -391,4 +408,4 @@ const getFileReadingMethodFromExtension = {
   xlsx: (path, whenLoaded) => loadXLSXFromPath(path, whenLoaded)
 }
 
-export { downloadFile, downloadPath, loadFileFromPathSync, writeFile, writeJson, writeJsonSync, loadJson, loadJsonSync, loadJsonPath, loadCSVPath, loadCSVFromPath, createFolder, createFolderSync, loadJSONFromPath, loadXLSXFromPath, getFileReadingMethodFromExtension }
+export { downloadFile, downloadPath, downloadFilePath, loadFileFromPathSync, writeFile, writeJson, writeJsonSync, loadJson, loadJsonSync, loadJsonPath, loadCSVPath, loadCSVFromPath, createFolder, createFolderSync, loadJSONFromPath, loadXLSXFromPath, getFileReadingMethodFromExtension }

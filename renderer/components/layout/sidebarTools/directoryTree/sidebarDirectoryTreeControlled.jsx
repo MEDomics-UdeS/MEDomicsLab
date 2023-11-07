@@ -248,10 +248,10 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
         dispatchLayout({ type: "openInImageViewer", payload: item })
       } else if (item.type == "pdf") {
         dispatchLayout({ type: "openInPDFViewer", payload: item })
+      } else if (item.type == "html") {
+        dispatchLayout({ type: "openHtmlViewer", payload: item })
       } else if (item.type == "txt") {
         dispatchLayout({ type: "openInTextEditor", payload: item })
-      } else if (item.type == "pkl") {
-        dispatchLayout({ type: "openInModelViewer", payload: item })
       } else if (item.type == "medmodel") {
         dispatchLayout({ type: "openInModelViewer", payload: item })
       } else {

@@ -7,7 +7,6 @@ import MEDconfig, { SERVER_CHOICE } from "../../medomics.dev"
  *
  * @param {int} port server port
  * @param {string} topic route to send the request to
- * @param {string} pageId id of the page where the request is send from (optional)
  * @param {Object} json2send json to send
  * @param {Function} jsonReceivedCB executed when the json is received
  * @param {Function} onError executed when an error occurs

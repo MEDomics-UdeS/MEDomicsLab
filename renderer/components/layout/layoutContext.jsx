@@ -92,6 +92,8 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
           return openPDFViewer(action)
         case "openInTextEditor":
           return openTextEditor(action)
+        case "openHtmlViewer":
+          return openHtmlViewer(action)
         case "openInModelViewer":
           return openModelViewer(action)
         case "openInJSONViewer":
@@ -318,6 +320,14 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
    */
   const openModelViewer = (action) => {
     openInDotDotDot(action, "modelViewer")
+  }
+
+  /**
+   * @summary Function that adds a tab with a model viewer to the layout model
+   * @params {Object} action - The action passed on by the dispatchLayout function
+   */
+  const openHtmlViewer = (action) => {
+    openInDotDotDot(action, "htmlViewer")
   }
 
   /**

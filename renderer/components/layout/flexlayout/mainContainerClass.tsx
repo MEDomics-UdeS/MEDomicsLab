@@ -27,6 +27,8 @@ import * as Icons from "react-bootstrap-icons"
 import Image from "next/image"
 import ZoomPanPinchComponent from "./zoomPanPinchComponent"
 import DataTableWrapperBPClass from "../../dataTypeVisualisation/dataTableWrapperBPClass"
+import FileViewer from "@codesmith-99/react-file-preview"
+import HtmlViewer from "../../mainPages/htmlViewer"
 
 var fields = ["Name", "Field1", "Field2", "Field3", "Field4", "Field5"]
 
@@ -724,6 +726,15 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
         const config = node.getConfig()
         console.log("config", config)
         return <ModelViewer pageId={config.uuid} configPath={config.path} />
+      }
+    } else if (component === "htmlViewer") {
+      if (node.getExtraData().data == null) {
+        const config = node.getConfig()
+        console.log("config", config)
+        // return <div dangerouslySetInnerHTML={{ __html: require(config.path) }} />
+        // return <div dangerouslySetInnerHTML={{ __html: require("fs").readFileSync(config.path, "utf8") }} />
+        // return <iframe title={node.getId()} src={config.path} style={{ display: "block", border: "none", boxSizing: "border-box" }} width="100%" height="100%" />
+        return <HtmlViewer configPath={config.path} />
       }
     } else if (component !== "") {
       if (node.getExtraData().data == null) {

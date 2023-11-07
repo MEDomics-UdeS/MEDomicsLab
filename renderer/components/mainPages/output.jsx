@@ -4,7 +4,6 @@ import ModulePage from "./moduleBasics/modulePage"
 import { requestBackend } from "../../utilities/requests"
 import { WorkspaceContext } from "../workspace/workspaceContext"
 import { DataContext } from "../workspace/dataContext"
-import { toast } from "react-toastify"
 import { SelectButton } from "primereact/selectbutton"
 import { Card } from "primereact/card"
 import { ProgressBar } from "primereact/progressbar"
@@ -54,7 +53,16 @@ const ActiveElement = ({ activeElement }) => {
         }
         setMetadata(metadata)
       } else {
-        toast.error("No element with id: " + activeElement.id + " in globalData")
+        let metadata = {
+          name: activeElement.id,
+          urlId: activeElement.urlId,
+          pid: activeElement.pid,
+          processState: activeElement.ProcessState,
+          progress: activeElement.progress,
+          isProgress: activeElement.progress != ""
+        }
+        setMetadata(metadata)
+        // toast.error("No element with id: " + activeElement.id + " in globalData")
       }
     }
   }, [activeElement, globalData])
@@ -141,18 +149,20 @@ const ActiveElement = ({ activeElement }) => {
           }
           subTitle={
             <>
-              <table>
-                <tbody>
-                  <tr>
-                    <td style={{ paddingRight: "1rem" }}>Last modified date:</td>
-                    <td>{metadata.lastModified ? metadata.lastModified : "test"}</td>
-                  </tr>
-                  <tr>
-                    <td style={{ paddingRight: "1rem" }}>Path:</td>
-                    <td>{metadata.absPath}</td>
-                  </tr>
-                </tbody>
-              </table>
+              {metadata.lastModified && (
+                <table>
+                  <tbody>
+                    <tr>
+                      <td style={{ paddingRight: "1rem" }}>Last modified date:</td>
+                      <td>{metadata.lastModified}</td>
+                    </tr>
+                    <tr>
+                      <td style={{ paddingRight: "1rem" }}>Path:</td>
+                      <td>{metadata.absPath}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              )}
             </>
           }
         >

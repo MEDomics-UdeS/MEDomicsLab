@@ -1,6 +1,6 @@
 /* global to EvaluationPage */
 
-.EvaluationPage .p-tag .p-tag-icon {
+.p-tag .p-tag-icon {
   display: contents;
   font-size: 1rem;
 }
