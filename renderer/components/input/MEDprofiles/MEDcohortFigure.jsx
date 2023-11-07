@@ -47,7 +47,7 @@ const MEDcohortFigure = ({ jsonFilePath, classes, setClasses, relativeTime }) =>
     let newClasses = new Set()
     jsonData?.list_MEDprofile?.forEach((profile) => {
       const color = d3.interpolateTurbo(jsonData.list_MEDprofile.indexOf(profile) / jsonData.list_MEDprofile.length)
-
+      let profilteData = { x: [], y: [], mode: "markers", type: "scatter", marker: { color: color }, text: [], name: profile.PatientID }
       profile?.list_MEDtab?.forEach((tab) => {
         let attributes = Object.keys(tab)
         attributes.forEach((attribute) => {
@@ -55,26 +55,19 @@ const MEDcohortFigure = ({ jsonFilePath, classes, setClasses, relativeTime }) =>
           if (attribute !== "Date" && attribute !== "Time_point" && isNotNull(tab, attribute)) {
             let attributeValue = tab[attribute]
             console.log("attributeValue", attributeValue)
-            formattedData.push({
-              x: [new Date(tab.Date)],
-              y: [attribute],
-              mode: "markers",
-              type: "scatter",
-              marker: { color: color },
-              text: `PatientID: ${profile.PatientID}` + ` ${attribute}: ` + { attributeValue },
-              name: attribute
-            })
+            profilteData.x.push(new Date(tab.Date))
+            profilteData.y.push(attribute)
+            profilteData.text.push(`${attribute}: ` + { attributeValue })
           }
         })
       })
+      formattedData.push(profilteData)
     })
     setClasses(newClasses)
     setPlotData(formattedData)
   }
 
   const getTimeZeroForClass = (className, profileIndex) => {
-    let timeZero = jsonData.list_MEDprofile[profileIndex].list_MEDtab[0].Date
-    let timeZeroDate = new Date(timeZero)
     let timeZeroAttribute = null
     jsonData?.list_MEDprofile[profileIndex]?.list_MEDtab?.forEach((tab) => {
       let attributes = Object.keys(tab)
@@ -82,7 +75,6 @@ const MEDcohortFigure = ({ jsonFilePath, classes, setClasses, relativeTime }) =>
       if (attributeIndex !== -1) {
         let attribute = attributes[attributeIndex]
         if (attribute !== "Date" && attribute !== "Time_point" && isNotNull(tab, attribute)) {
-          let attributeValue = tab[attribute]
           if (attribute === relativeTime && timeZeroAttribute === null) {
             return (timeZeroAttribute = tab.Date)
           }
@@ -94,8 +86,6 @@ const MEDcohortFigure = ({ jsonFilePath, classes, setClasses, relativeTime }) =>
 
   const setRelativeTimeData = () => {
     let formattedData = []
-
-    let timeZero = jsonData.list_MEDprofile[0].list_MEDtab[0].Date
     let timeZeroAttribute = null
     jsonData?.list_MEDprofile?.forEach((profile, index) => {
       let profileRandomTime = index
@@ -132,7 +122,21 @@ const MEDcohortFigure = ({ jsonFilePath, classes, setClasses, relativeTime }) =>
                 type: "scatter",
                 marker: { color: color },
                 text: `PatientID: ${profile.PatientID}` + ` ${attribute}: ` + { attributeValue },
-                name: attribute
+                name: attribute,
+                transforms: [
+                  {
+                    type: "groupby",
+                    groups: [profile.PatientID],
+                    styles: [
+                      {
+                        target: "PatientID",
+                        value: {
+                          marker: { color: color }
+                        }
+                      }
+                    ]
+                  }
+                ]
               })
             }
           }
@@ -141,8 +145,6 @@ const MEDcohortFigure = ({ jsonFilePath, classes, setClasses, relativeTime }) =>
     })
     setPlotData(formattedData)
   }
-
-  const getTimeZero = () => {}
 
   // Called at initialization in order to load the JSON data
   useEffect(() => {
@@ -181,7 +183,7 @@ const MEDcohortFigure = ({ jsonFilePath, classes, setClasses, relativeTime }) =>
           width: 750,
           height: 750,
           title: "MEDcohort",
-          showlegend: false,
+          showlegend: true,
           xaxis: {
             title: "<b>Date</b>",
             type: "date"
@@ -191,7 +193,6 @@ const MEDcohortFigure = ({ jsonFilePath, classes, setClasses, relativeTime }) =>
             type: "category"
           }
         }}
-        editable={true}
       />
     </div>
   )
