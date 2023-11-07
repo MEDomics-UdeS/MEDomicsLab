@@ -1,4 +1,4 @@
-import React, { useState, useContext } from "react"
+import React, { useState, useContext, useEffect, useCallback } from "react"
 import ModulePage from "./moduleBasics/modulePage"
 import { Card } from "primereact/card"
 import Input from "../learning/input"
@@ -17,6 +17,8 @@ import MedDataObject from "../workspace/medDataObject"
 import ProgressBarRequests from "../generalPurpose/progressBarRequests"
 import { LoaderContext } from "../generalPurpose/loaderContext"
 import { Stack } from "react-bootstrap"
+import { IoClose } from "react-icons/io5"
+import { getId } from "../../utilities/staticFunctions"
 
 /**
  *
@@ -315,28 +317,35 @@ const YDataProfiling = ({ pageId, port, setError }) => {
   )
 }
 
-/**
- *
- * @param {String} pageId The page id
- * @param {Number} port The port of the backend
- * @param {Function} setError The function to set the error
- *
- * @returns the exploratory page with the module page
- */
-const DTale = ({ pageId, port, setError }) => {
+const DTaleProcess = ({ uniqueId, pageId, port, setError, onDelete }) => {
   const [mainDataset, setMainDataset] = useState()
   const [mainDatasetHasWarning, setMainDatasetHasWarning] = useState({ state: false, tooltip: "" })
   const [isCalculating, setIsCalculating] = useState(false)
   const [progress, setProgress] = useState({ now: 0, currentLabel: 0 })
   const [serverPath, setServerPath] = useState("")
+  const { dispatchLayout } = useContext(LayoutModelContext)
+
+  const shutdownDTale = (serverPath) => {
+    console.log("shutting down dtale: ", serverPath)
+    if (serverPath != "") {
+      fetch(serverPath + "/shutdown", {
+        mode: "no-cors",
+        credentials: "include",
+        method: "GET"
+      })
+        .then((response) => console.log(response))
+        .catch((error) => console.log(error))
+    }
+  }
 
   /**
    * @description This function is used to open the html viewer with the given file path
    */
   const generateReport = () => {
+    shutdownDTale(serverPath)
     requestBackend(
       port,
-      "removeId/" + pageId,
+      "removeId/" + uniqueId + "/" + pageId + "-" + Path.basename(mainDataset.value.path),
       { dataset: mainDataset.value },
       (response) => {
         console.log(response)
@@ -344,13 +353,14 @@ const DTale = ({ pageId, port, setError }) => {
         setServerPath("")
         requestBackend(
           port,
-          "exploratory/start_dtale/" + pageId,
+          "exploratory/start_dtale/" + uniqueId + "/" + pageId + "-" + Path.basename(mainDataset.value.path),
           { dataset: mainDataset.value },
           (response) => {
             console.log(response)
             if (response.error) {
               setError(response.error)
             }
+            setServerPath("")
           },
           (error) => {
             console.log(error)
@@ -369,15 +379,86 @@ const DTale = ({ pageId, port, setError }) => {
    * @param {Object} data Data received from the server on progress update
    */
   const onProgressDataReceived = (data) => {
-    console.log(data)
     if (data.web_server_url) {
       setServerPath(data.web_server_url)
       setIsCalculating(false)
     }
   }
 
+  const handleOpenWebServer = (urlPath, uniqueId) => {
+    const medObj = new MedDataObject({ path: urlPath, type: "html", name: "d-tale1", _UUID: uniqueId })
+    dispatchLayout({ type: "openInIFrame", payload: medObj })
+  }
+  return (
+    <>
+      <div className="data-with-warning">
+        {mainDatasetHasWarning.state && (
+          <>
+            <Tag className={`main-dataset-warning-tag-${pageId}`} icon="pi pi-exclamation-triangle" severity="warning" value="" rounded data-pr-position="left" data-pr-showdelay={200} />
+            <Tooltip target={`.main-dataset-warning-tag-${pageId}`} autoHide={false}>
+              <span>{mainDatasetHasWarning.tooltip}</span>
+            </Tooltip>
+          </>
+        )}
+        <div className="input-btn-group">
+          <Input name="Choose main dataset" settingInfos={{ type: "data-input", tooltip: "" }} currentValue={mainDataset && mainDataset.value} onInputChange={(data) => setMainDataset(data)} setHasWarning={setMainDatasetHasWarning} />
+          <Button onClick={generateReport} className="btn btn-primary" label="Generate report" icon="pi pi-chart-bar" iconPos="right" disabled={!mainDataset || mainDatasetHasWarning.state} />
+          {serverPath && <Button onClick={() => handleOpenWebServer(serverPath, uniqueId)} className="btn btn-primary" label="Open D-Tale" icon="pi pi-table" iconPos="right" severity="success" />}
+          <IoClose
+            className="btn-close-output-card"
+            onClick={(e) => {
+              onDelete(uniqueId)
+              shutdownDTale(serverPath)
+            }}
+          />
+        </div>
+      </div>
+      {isCalculating && <ProgressBarRequests delayMS={1000} progressBarProps={{ animated: true, variant: "success" }} isUpdating={isCalculating} setIsUpdating={setIsCalculating} progress={progress} setProgress={setProgress} requestTopic={"exploratory/progress/" + uniqueId + "/" + pageId + "-" + Path.basename(mainDataset.value.path)} onDataReceived={onProgressDataReceived} />}
+    </>
+  )
+}
+
+/**
+ *
+ * @param {String} pageId The page id
+ * @param {Number} port The port of the backend
+ * @param {Function} setError The function to set the error
+ *
+ * @returns the exploratory page with the module page
+ */
+const DTale = ({ pageId, port, setError }) => {
+  const [processes, setProcesses] = useState([])
+
+  useEffect(() => {
+    handleAddDTaleComp()
+  }, [])
+
+  useEffect(() => {
+    console.log("processes", processes)
+  }, [processes])
+
+  const onDelete = (uniqueId) => {
+    console.log("deleting", uniqueId)
+    let newProcesses = []
+    processes.forEach((processId) => {
+      if (processId != uniqueId) {
+        newProcesses.push(processId)
+      }
+    })
+    console.log("newProcesses", newProcesses)
+    setProcesses(newProcesses)
+  }
+
+  const handleAddDTaleComp = () => {
+    let newId = getId()
+    console.log(newId)
+    processes.push(newId)
+    setProcesses([...processes])
+  }
+
   return (
     <Card
+      style={{ marginBottom: "1rem" }}
       title={
         <>
           <div className="p-card-title">
@@ -394,26 +475,10 @@ const DTale = ({ pageId, port, setError }) => {
       }
     >
       <Stack gap={2}>
-        <div className="data-with-warning">
-          {mainDatasetHasWarning.state && (
-            <>
-              <Tag className={`main-dataset-warning-tag-${pageId}`} icon="pi pi-exclamation-triangle" severity="warning" value="" rounded data-pr-position="left" data-pr-showdelay={200} />
-              <Tooltip target={`.main-dataset-warning-tag-${pageId}`} autoHide={false}>
-                <span>{mainDatasetHasWarning.tooltip}</span>
-              </Tooltip>
-            </>
-          )}
-          <div className="input-btn-group">
-            <Input name="Choose main dataset" settingInfos={{ type: "data-input", tooltip: "" }} currentValue={mainDataset && mainDataset.value} onInputChange={(data) => setMainDataset(data)} setHasWarning={setMainDatasetHasWarning} />
-            <Button onClick={generateReport} className="btn btn-primary" label="Generate report" icon="pi pi-chart-bar" iconPos="right" disabled={!mainDataset || mainDatasetHasWarning.state} />
-          </div>
-        </div>
-        {isCalculating && <ProgressBarRequests delayMS={100} progressBarProps={{ animated: true, variant: "success" }} isUpdating={isCalculating} setIsUpdating={setIsCalculating} progress={progress} setProgress={setProgress} requestTopic={"exploratory/progress/" + pageId} onDataReceived={onProgressDataReceived} />}
-        {serverPath && (
-          <div className="finish-btn-group">
-            <Button onClick={() => require("electron").shell.openExternal(serverPath)} className="btn btn-primary" label="Open generated file" icon="pi pi-chart-bar" iconPos="right" severity="success" />
-          </div>
-        )}
+        {processes.map((id) => (
+          <DTaleProcess onDelete={onDelete} uniqueId={id} key={id} port={port} pageId={pageId} setError={setError} />
+        ))}
+        <Button className="add-compare" label="Add new D-Tale analysis" onClick={handleAddDTaleComp} />
       </Stack>
     </Card>
   )

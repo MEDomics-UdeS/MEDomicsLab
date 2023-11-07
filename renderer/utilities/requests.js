@@ -29,7 +29,10 @@ export const requestBackend = (port, topic, json2send, jsonReceivedCB, onError) 
  * @param {Function} onError executed when an error occurs
  */
 export const requestJson = (port, topic, json2send, jsonReceivedCB, onError) => {
-  topic[0] == "/" && (topic = topic.substring(1))
+  let url = "http://localhost:" + port + (topic[0] != "/" ? "/" : "") + topic
+  if (topic.includes("http")) {
+    url = topic
+  }
   try {
     ipcRenderer
       .invoke("request", {
@@ -37,7 +40,7 @@ export const requestJson = (port, topic, json2send, jsonReceivedCB, onError) => 
           json2send
         },
         method: "POST",
-        url: "http://localhost:" + port + (topic[0] != "/" ? "/" : "") + topic
+        url: url
       })
       .then((data) => {
         jsonReceivedCB(data["data"])
@@ -68,9 +71,13 @@ export const requestJson = (port, topic, json2send, jsonReceivedCB, onError) => 
  * @param {Function} onError executed when an error occurs
  */
 export const axiosPostJsonGo = async (port, topic, json2send, jsonReceivedCB, onError) => {
-  console.log("http://localhost:" + port + (topic[0] != "/" ? "/" : "") + topic)
   try {
-    const response = await axios.post("http://localhost:" + port + (topic[0] != "/" ? "/" : "") + topic, { message: JSON.stringify(json2send) }, { headers: { "Content-Type": "application/json" } })
+    let url = "http://localhost:" + port + (topic[0] != "/" ? "/" : "") + topic
+    if (topic.includes("http")) {
+      url = topic
+    }
+    console.log(url)
+    const response = await axios.post(url, { message: JSON.stringify(json2send) }, { headers: { "Content-Type": "application/json" } })
     if (response.data.type == "toParse") {
       let cleanResponse = {}
       try {

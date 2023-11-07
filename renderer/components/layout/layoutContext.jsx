@@ -81,7 +81,8 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
         case "openInEvaluationModule":
           return openInEvaluation(action)
         case "openInIFrame":
-          return openIFrame(action)
+          // return openIFrame(action)
+          return openInIFrame(action)
         case "openInDataTable":
           return openDataTable(action)
         case "openInCodeEditor":
@@ -336,6 +337,15 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
    */
   const openDataTable = (action) => {
     openInDotDotDot(action, "dataTable")
+  }
+
+  /**
+   *
+   * @summary Function that adds a tab with an iframe to the layout model
+   * @params {Object} action - The action passed on by the dispatchLayout function, it uses the payload in the action as a JSON object to add a new child to the layout model
+   */
+  const openInIFrame = (action) => {
+    openInDotDotDot(action, "iframeViewer")
   }
 
   /**

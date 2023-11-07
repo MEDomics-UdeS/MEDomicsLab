@@ -41,23 +41,26 @@
   flex-direction: row;
   gap: 0.5rem;
   width: 100%;
-  align-items: stretch;
+  align-items: center;
   flex-wrap: wrap;
 }
 
 .input-btn-group .p-button {
   width: 16.5rem;
+  height: 58px;
 }
 
 .input-btn-group > .form-floating {
   flex-grow: 1;
+  height: 58px;
 }
 
 .add-compare {
   width: 100%;
   padding: 0.1rem;
-  background-color: aliceblue;
-  border-color: antiquewhite;
+  background-color: #ffffff;
+  color: #495057;
+  border: 1px solid #ced4da;
 }
 
 .finish-btn-group {

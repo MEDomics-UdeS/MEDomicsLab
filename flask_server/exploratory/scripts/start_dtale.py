@@ -1,3 +1,4 @@
+
 import sys
 import os
 import threading
@@ -11,9 +12,8 @@ import dtale
 sys.path.append(
     str(Path(os.path.dirname(os.path.abspath(__file__))).parent.parent))
 
-from utils.server_utils import go_print, find_next_available_port, is_port_in_use
 from utils.GoExecutionScript import GoExecutionScript, parse_arguments
-from utils.CustomZipFile import CustomZipFile
+from utils.server_utils import go_print, find_next_available_port, is_port_in_use
 
 json_params_dict, id_ = parse_arguments()
 
@@ -28,7 +28,7 @@ class GoExecScriptDTale(GoExecutionScript):
         self.model = None
         self.port = None
         self.now = 0
-        self._progress["type"] = "webServer"
+        self._progress["type"] = "webserver"
         self.thread_delay = 2
         self.speed = 1  # rows/second
         self.dataset = None
@@ -36,12 +36,13 @@ class GoExecScriptDTale(GoExecutionScript):
         self.row_count = 45
         self.json_config = json_params
         self.is_calculating = True
-        self.progress_thread = threading.Thread(target=self._update_progress_periodically, args=())
+        self.progress_thread = threading.Thread(
+            target=self._update_progress_periodically, args=())
         self.progress_thread.daemon = True
         self.progress_thread.start()
-        self.web_server_thread = threading.Thread(target=self._server_process, args=())
+        self.web_server_thread = threading.Thread(
+            target=self._server_process, args=())
         self.web_server_thread.daemon = True
-
 
     def _custom_process(self, json_config: dict) -> dict:
         """
@@ -59,13 +60,15 @@ class GoExecScriptDTale(GoExecutionScript):
         This function is used to update the progress of the pipeline execution.
         """
         while self.is_calculating:
+            go_print(str(dtale.instances()))
             if self.port is not None:
                 if is_port_in_use(self.port):
                     self._progress["web_server_url"] = f"http://localhost:{self.port}/"
                     self._progress["port"] = self.port
                     self.is_calculating = False
 
-            self.now += round(self.thread_delay * self.speed / self.row_count * 100, 2)
+            self.now += round(self.thread_delay *
+                              self.speed / self.row_count * 100, 2)
             self._progress["now"] = "{:.2f}".format(self.now)
             self.push_progress()
             time.sleep(self.thread_delay)

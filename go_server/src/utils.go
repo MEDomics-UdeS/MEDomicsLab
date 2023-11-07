@@ -276,22 +276,34 @@ func KillScript(id string) bool {
 	Mu.Lock()
 	script, ok := Scripts[id]
 	if ok {
-		defer HandlePanic()
-		err := script.Cmd.Process.Kill()
-		if err != nil {
-			log.Print("Error killing process: ", err.Error())
+		defer func() {
+			if r := recover(); r != nil {
+				log.Println("Recovered in KillScript", r)
+				return
+			}
+		}()
+		if script.Cmd != nil { // Check if script.Cmd is not nil
+			if script.Cmd.ProcessState != nil && script.Cmd.ProcessState.Exited() {
+				log.Println("Script can be killed")
+				err := script.Cmd.Process.Kill()
+				if err != nil {
+					log.Print("Error killing process: ", err.Error())
+				}
+			} else {
+				log.Println("Script process not killable")
+			}
+		} else {
+			log.Println("script.Cmd is nil")
 		}
 	}
-	log.Println(" Killed script: ", id)
+	log.Println("Killed script: ", id)
 	Mu.Unlock()
 	return ok
 }
 
 // HandlePanic handles the panic
 func HandlePanic() {
-	r := recover()
-
-	if r != nil {
+	if r := recover(); r != nil {
 		log.Println("RECOVER-------------------", r)
 	}
 }
