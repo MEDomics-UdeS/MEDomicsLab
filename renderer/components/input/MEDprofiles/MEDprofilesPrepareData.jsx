@@ -6,7 +6,10 @@ import { Dropdown } from "primereact/dropdown"
 import { LayoutModelContext } from "../../layout/layoutContext"
 import { loadCSVPath } from "../../../utilities/fileManagementUtils"
 import MedDataObject from "../../workspace/medDataObject"
+import { Message } from "primereact/message"
+import { MultiSelect } from "primereact/multiselect"
 import ProgressBarRequests from "../../generalPurpose/progressBarRequests"
+import { ProgressSpinner } from "primereact/progressspinner"
 import React, { useContext, useEffect, useState } from "react"
 import { requestJson } from "../../../utilities/requests"
 import { toast } from "react-toastify"
@@ -28,12 +31,14 @@ const MEDprofilesPrepareData = () => {
   const [folderList, setFolderList] = useState([]) // list of available folders in DATA folder
   const [generatedClassesFolder, setGeneratedClassesFolder] = useState(null) // folder containing the generated MEDclasses
   const [generatedMEDprofilesFile, setGeneratedMEDprofilesFile] = useState(null) // file containing the generated MEDprofiles binary file
+  const [loadingSubMasterTables, setLoadingSubMasterTables] = useState(true) // boolean telling if the csv analyse for submaster is processing
   const [mayCreateClasses, setMayCreateClasses] = useState(false) // boolean updating the "Create MEDclasses" button state
   const [mayInstantiateMEDprofiles, setMayInstantiateMEDprofiles] = useState(false) // boolean updating the "Instantiate MEDprofiles" button state
   const [progress, setProgress] = useState({ now: 0, currentLabel: "" }) // progress bar state [now, currentLabel]
   const [selectedMEDclassesFolder, setSelectedMEDclassesFolder] = useState(null) // folder selected where to put the MEDclasses
   const [selectedMEDprofilesFolder, setSelectedMEDprofilesFolder] = useState(null) // folder selected where to put the MEDprofiles binary file
   const [selectedMasterTable, setSelectedMasterTable] = useState(null) // dataset of data to extract used to be display
+  const [selectedSubMasterTableFiles, setSelectedSubMasterTableFiles] = useState(null) // selected csv for master table creation
   const [subMasterTableFileList, setSubMasterTableFileList] = useState([]) // list of csv data matching the "Sub-MasterTable" format
   const [showProgressBar, setShowProgressBar] = useState(false) // wether to show or not the extraction progressbar
 
@@ -111,20 +116,43 @@ const MEDprofilesPrepareData = () => {
     const keys = Object.keys(dataContext)
     const matchingDatasetList = []
 
-    // Créez une promesse pour chaque fichier CSV
-    const loadCSVFile = (dataContext) => {
+    // Load the CSV file in order to check if the data is matching the required format
+    const loadCSVFile = (MEDdata) => {
+      // The first column must be identifiers
+      const firstColumnMatchingFormat = (dataframe) => {
+        return dataframe.$dtypes[0] === "int32" || dataframe.$dtypes[0] === "int64" || (dataframe.$dtypes[0] === "string" && dataframe[dataframe.$columns[0]].dt.$dateObjectArray[0] === "Invalid Date")
+      }
+
+      // The second column must be date
+      const secondColumnMatchingFormat = (dataframe) => {
+        return dataframe.$dtypes[1] === "string" && dataframe[dataframe.$columns[1]].dt.$dateObjectArray[0] !== "Invalid Date"
+      }
+
+      // All the others columns must be numerical features and their columns names must respect the format className_attributeName
+      const allOtherColumnsAreNumerical = (dataframe) => {
+        for (let i = 2; i < dataframe.$columns.length; i++) {
+          const columnType = dataframe.$dtypes[i]
+          if (columnType !== "int32" && columnType !== "int64" && columnType !== "float32" && columnType !== "float64") {
+            return false
+          }
+        }
+        return true
+      }
+
+      // Create a promise for each CSV file
       return new Promise((resolve) => {
-        loadCSVPath(dataContext.path, (data) => {
+        loadCSVPath(MEDdata.path, (data) => {
           const dataframe = new DataFrame(data)
-          if (dataframe.$dtypes[0] === "int32" || dataframe.$dtypes[0] === "int64") {
-            matchingDatasetList.push(dataContext)
+          // The dataframe must contain at least 3 columns and respect the format for each column as specified in the checking functions
+          if (dataframe.$columns.length > 2 && firstColumnMatchingFormat(dataframe) && secondColumnMatchingFormat(dataframe) && allOtherColumnsAreNumerical(dataframe)) {
+            matchingDatasetList.push(MEDdata)
           }
           resolve()
         })
       })
     }
 
-    // Créez un tableau de promesses pour les fichiers CSV
+    // Create a promises array for all the csv files
     const promises = keys
       .filter((key) => {
         const item = dataContext[key]
@@ -132,20 +160,16 @@ const MEDprofilesPrepareData = () => {
       })
       .map((key) => loadCSVFile(dataContext[key]))
 
-    // Utilisez Promise.all pour attendre que toutes les promesses se terminent
+    // Wait for all the csv files to have been examinated
     Promise.all(promises)
       .then(() => {
         setSubMasterTableFileList(matchingDatasetList)
+        setLoadingSubMasterTables(false)
       })
       .catch((error) => {
-        // Gérez les erreurs ici
-        console.error(error)
+        toast.error("Error while loading MEDdata :", error)
       })
   }
-
-  useEffect(() => {
-    console.log("SUBMASTERLIST", subMasterTableFileList)
-  }, [subMasterTableFileList])
 
   /**
    * @description
@@ -153,6 +177,14 @@ const MEDprofilesPrepareData = () => {
    */
   function openMEDprofilesViewer() {
     dispatchLayout({ type: `openMEDprofilesViewerModule`, payload: { pageId: "MEDprofilesViewer", MEDclassesFolder: generatedClassesFolder, MEDprofilesBinaryFile: generatedMEDprofilesFile } })
+  }
+
+  /**
+   * @description
+   * Calls the create_master_table method in the MEDprofiles server
+   */
+  const createMasterTable = () => {
+    console.log("ok")
   }
 
   /**
@@ -233,6 +265,8 @@ const MEDprofilesPrepareData = () => {
   // Called when data in DataContext is updated, in order to updated datasetList, folderList and subMasterTableFileList
   useEffect(() => {
     if (globalData !== undefined) {
+      setLoadingSubMasterTables(true)
+      setSubMasterTableFileList([])
       getDatasetListFromDataContext(globalData)
       getFolderListFromDataContext(globalData)
       getSubMasterTableFileList(globalData)
@@ -278,27 +312,32 @@ const MEDprofilesPrepareData = () => {
 
   return (
     <>
-      <div className="flex-container">
+      <div>
         <div>
-          <b>Select your csv files : &nbsp;</b>
-          {subMasterTableFileList}
+          <h5 className="align-center">Create or Select your master table</h5>
+          <div className="align-center">
+            <Message severity="info" text="Only the files matching the required format will be shown" />
+          </div>
         </div>
-        <div>
-          <Button>Create Master Table</Button>
+        <div className="margin-top-15 flex-container">
+          <div className="mergeToolMultiSelect flex-container">
+            <div>{loadingSubMasterTables == true && <ProgressSpinner style={{ width: "40px", height: "40px" }} />}</div>
+            <div>{subMasterTableFileList?.length > 0 ? <MultiSelect style={{ width: "100%" }} value={selectedSubMasterTableFiles} onChange={(e) => setSelectedSubMasterTableFiles(e.value)} options={subMasterTableFileList} optionLabel="name" className="w-full md:w-14rem margintop8px" display="chip" placeholder="Select CSV files" /> : loadingSubMasterTables == true ? <MultiSelect placeholder="Loading..." /> : <MultiSelect placeholder="No CSV files to show" />}</div>
+            <div>
+              <Button disabled={selectedSubMasterTableFiles?.length < 1} onClick={createMasterTable}>
+                Create Master Table
+              </Button>
+            </div>
+          </div>
+          <div className="vertical-divider"></div>
+          <div>{datasetList.length > 0 ? <Dropdown value={selectedMasterTable} options={datasetList.filter((value) => value.extension == "csv")} optionLabel="name" onChange={(event) => setSelectedMasterTable(event.value)} placeholder="Select a master table" /> : <Dropdown placeholder="No dataset to show" disabled />}</div>
         </div>
       </div>
       <hr></hr>
-      <div className="align-center">
-        <b>Select your master table : &nbsp;</b>
-        {datasetList.length > 0 ? <Dropdown value={selectedMasterTable} options={datasetList.filter((value) => value.extension == "csv")} optionLabel="name" onChange={(event) => setSelectedMasterTable(event.value)} placeholder="Select a master table" /> : <Dropdown placeholder="No dataset to show" disabled />}
-      </div>
-      <hr></hr>
-      <div className="flex-container">
-        <div>
-          <b>Select the location of your MEDclasses folder : &nbsp;</b>
-          {folderList.length > 0 ? <Dropdown value={selectedMEDclassesFolder} options={folderList} optionLabel="name" onChange={(event) => setSelectedMEDclassesFolder(event.value)} placeholder="Select a folder" /> : <Dropdown placeholder="No folder to show" disabled />}
-        </div>
-        <div>
+      <div className="centered-container">
+        <h5>Select the location of your MEDclasses folder &nbsp;</h5>
+        <div className="margin-top-15">{folderList.length > 0 ? <Dropdown value={selectedMEDclassesFolder} options={folderList} optionLabel="name" onChange={(event) => setSelectedMEDclassesFolder(event.value)} placeholder="Select a folder" /> : <Dropdown placeholder="No folder to show" disabled />}</div>
+        <div className="margin-top-15">
           <Button disabled={!mayCreateClasses} onClick={createMEDclasses}>
             Create MEDclasses
           </Button>
@@ -310,12 +349,10 @@ const MEDprofilesPrepareData = () => {
         </div>
       )}
       <hr></hr>
-      <div className="flex-container">
-        <div>
-          <b>Select the location of your MEDprofiles binary file : &nbsp;</b>
-          {folderList.length > 0 ? <Dropdown value={selectedMEDprofilesFolder} options={folderList} optionLabel="name" onChange={(event) => setSelectedMEDprofilesFolder(event.value)} placeholder="Select a folder" /> : <Dropdown placeholder="No folder to show" disabled />}
-        </div>
-        <div>
+      <div className="centered-container">
+        <h5>Select the location of your MEDprofiles binary file &nbsp;</h5>
+        <div className="margin-top-15">{folderList.length > 0 ? <Dropdown value={selectedMEDprofilesFolder} options={folderList} optionLabel="name" onChange={(event) => setSelectedMEDprofilesFolder(event.value)} placeholder="Select a folder" /> : <Dropdown placeholder="No folder to show" disabled />}</div>
+        <div className="margin-top-15">
           <Button disabled={!mayInstantiateMEDprofiles} onClick={instantiateMEDprofiles}>
             Instantiate MEDprofiles
           </Button>

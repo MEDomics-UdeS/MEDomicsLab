@@ -211,13 +211,13 @@ function App() {
         let acceptedFiles = MedDataObject.setAcceptedFileTypes(dataObject, acceptedFileTypes)
         dataObject.setAcceptedFileTypes(acceptedFiles)
         if (child.children === undefined) {
-          console.log("File:", child)
+          //console.log("File:", child)
           objectType = "file"
           childrenIDs = null
         } else if (child.children.length == 0) {
-          console.log("Empty folder:", child)
+          //console.log("Empty folder:", child)
         } else {
-          console.log("Folder:", child)
+          //console.log("Folder:", child)
           let answer = recursivelyRecenseTheDirectory(child.children, objectUUID, newGlobalData, acceptedFiles)
           childrenIDs = answer.childrenIDsToReturn
         }
