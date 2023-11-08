@@ -324,6 +324,7 @@ const DTaleProcess = ({ uniqueId, pageId, port, setError, onDelete }) => {
   const [progress, setProgress] = useState({ now: 0, currentLabel: 0 })
   const [serverPath, setServerPath] = useState("")
   const { dispatchLayout } = useContext(LayoutModelContext)
+  const [name, setName] = useState("")
 
   const shutdownDTale = (serverPath) => {
     console.log("shutting down dtale: ", serverPath)
@@ -381,12 +382,13 @@ const DTaleProcess = ({ uniqueId, pageId, port, setError, onDelete }) => {
   const onProgressDataReceived = (data) => {
     if (data.web_server_url) {
       setServerPath(data.web_server_url)
+      setName(data.name)
       setIsCalculating(false)
     }
   }
 
   const handleOpenWebServer = (urlPath, uniqueId) => {
-    const medObj = new MedDataObject({ path: urlPath, type: "html", name: "d-tale1", _UUID: uniqueId })
+    const medObj = new MedDataObject({ path: urlPath, type: "html", name: name, _UUID: uniqueId })
     dispatchLayout({ type: "openInIFrame", payload: medObj })
   }
   return (
@@ -458,7 +460,6 @@ const DTale = ({ pageId, port, setError }) => {
 
   return (
     <Card
-      style={{ marginBottom: "1rem" }}
       title={
         <>
           <div className="p-card-title">
