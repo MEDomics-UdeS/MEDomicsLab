@@ -81,7 +81,6 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
         case "openInEvaluationModule":
           return openInEvaluation(action)
         case "openInIFrame":
-          // return openIFrame(action)
           return openInIFrame(action)
         case "openInDataTable":
           return openDataTable(action)
@@ -386,27 +385,6 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
    */
   const openInEvaluation = (action) => {
     openInDotDotDot(action, "evaluationPage")
-  }
-
-  /**
-   * @summary Function that adds a tab with an iframe to the layout model
-   * @params {Object} action - The action passed on by the dispatchLayout function, it uses the payload in the action as a JSON object to add a new child to the layout model
-   */
-  const openIFrame = (action) => {
-    let URL = action.payload.url
-    let isAlreadyIn = checkIfIDIsInLayoutModel(URL, layoutModel)
-    if (!isAlreadyIn) {
-      const newChild = {
-        type: "tab",
-        name: action.payload.iframe_name ? action.payload.iframe_name : URL,
-        id: URL,
-        component: "iFramePage",
-        config: { path: URL, uuid: URL, extension: URL }
-      }
-      let layoutRequestQueueCopy = [...layoutRequestQueue]
-      layoutRequestQueueCopy.push({ type: "ADD_TAB", payload: newChild })
-      setLayoutRequestQueue(layoutRequestQueueCopy)
-    }
   }
 
   /**

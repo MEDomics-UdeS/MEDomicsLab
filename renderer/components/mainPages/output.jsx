@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from "react"
 import useInterval from "@khalidalansi/use-interval"
 import ModulePage from "./moduleBasics/modulePage"
-import { requestBackend, requestJson } from "../../utilities/requests"
+import { requestBackend } from "../../utilities/requests"
 import { WorkspaceContext } from "../workspace/workspaceContext"
 import { DataContext } from "../workspace/dataContext"
 import { SelectButton } from "primereact/selectbutton"

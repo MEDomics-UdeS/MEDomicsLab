@@ -117,57 +117,126 @@ const  myFct = (someParams) =­> {}
 ```bash
 
 components
-
-│   navbar.jsx
+├───dataTypeVisualisation
+│       dataTablePopoverBPClass.jsx
+│       dataTableWrapper.jsx
+│       dataTableWrapperBPClass.tsx
+│       
+├───evaluation
+│       dashboard.jsx
+│       evaluationPageContent.jsx
+│       pageConfig.jsx
+│       pageEval.jsx
+│       predictPanel.jsx
 │
-├───extraction
-│   │   .gitkeep
+├───extractionImage
+│   │   extractionJPG.jsx
+│   │
+│   └───extractionTypes
+│           extractionDenseNet.jsx
+│
+├───extractionMEDimage
+│   │   docLink.jsx
 │   │   flowCanvas.jsx
-│   │   sideBar.jsx
-│   │   utilityButtons.jsx
 │   │
 │   ├───buttonsTypes
-│   │       uploadButton.jsx
+│   │       resultsButton.jsx
 │   │       viewButton.jsx
 │   │
 │   └───nodesTypes
-│           groupNode.jsx
-│           inputNode.jsx
-│           standardNode.jsx
+│       │   extractionNode.jsx
+│       │   featuresNode.jsx
+│       │   filterNode.jsx
+│       │   segmentationNode.jsx
+│       │   standardNode.jsx
+│       │
+│       ├───filterTypes
+│       │       gaborFilter.jsx
+│       │       lawsFilter.jsx
+│       │       logFilter.jsx
+│       │       meanFilter.jsx
+│       │       waveletFilter.jsx
+│       │
+│       └───standardNodeForms
+│               discretizationForm.jsx
+│               inputForm.jsx
+│               interpolationForm.jsx
+│               reSegmentationForm.jsx
+│
+├───extractionTabular
+│   │   extractionTabularData.jsx
+│   │
+│   └───extractionTypes
+│           extractionBioBERT.jsx
+│           extractionTSfresh.jsx
 │
 ├───flow
-│   │   backdrop.jsx
 │   │   btnDiv.jsx
+│   │   codeEditor.jsx
+│   │   errorRequestDialog.jsx
 │   │   flowPageBase.jsx
 │   │   groupNode.jsx
 │   │   handlers.jsx
 │   │   node.jsx
-│   │   progressBarRequests.jsx
+│   │   nodeWrapperResults.jsx
 │   │   sidebarAvailableNodes.jsx
 │   │   workflowBase.jsx
 │   │
-│   └───context
-│           flowInfosContext.jsx
-│           offCanvasBackdropStyleContext.jsx
+│   ├───context
+│   │       flowFunctionsContext.jsx
+│   │       flowInfosContext.jsx
+│   │       flowResultsContext.jsx
+│   │
+│   └───results
+│           pipelinesResults.jsx
+│           resultsPane.jsx
+│
+├───generalPurpose
+│       errorRequestContext.jsx
+│       loaderContext.jsx
+│       progressBarRequests.jsx
+│
+├───input
+│       groupingTool.jsx
+│       holdOutSetCreationTool.jsx
+│       mergeTool.jsx
+│       simpleCleaningTool.jsx
+│       subsetCreationTool.jsx
 │
 ├───layout
+│   │   actionContext.jsx
 │   │   iconSidebar.jsx
 │   │   layoutContext.jsx
 │   │   layoutManager.jsx
-│   │   mainContainerFunctional.jsx
-│   │   WorkspaceSidebar.jsx
 │   │
-│   ├───flexlayoutComponents
-│   │       NewFeatures.jsx
-│   │       PopupMenu.jsx
-│   │       TabStorage.jsx
+│   ├───flexlayout
+│   │       mainContainerClass.tsx
+│   │       popout.html
+│   │       popupMenu.tsx
+│   │       simple.layout
+│   │       tabStorage.tsx
+│   │       utils.tsx
+│   │       zoomPanPinchComponent.jsx
 │   │
-│   └───SidebarTools
-│           components.jsx
-│           explorerSidebar.jsx
-│           homeSidebar.jsx
-│           layoutTestSidebar.jsx
-│           searchSidebar.jsx
+│   └───sidebarTools
+│       │   components.jsx
+│       │   fileCreationBtn.jsx
+│       │   recursiveChildrenTest.js
+│       │
+│       ├───directoryTree
+│       │       renderItem.js
+│       │       sidebarDirectoryTreeControlled.jsx
+│       │       workspaceDirectoryTree.jsx
+│       │
+│       └───pageSidebar
+│               evaluationSidebar.jsx
+│               explorerSidebar.jsx
+│               extractionSidebar.jsx
+│               flowSceneSidebar.jsx
+│               homeSidebar.jsx
+│               inputSidebar.jsx
+│               layoutTestSidebar.jsx
+│               searchSidebar.jsx
 │
 ├───learning
 │   │   checkOption.jsx
@@ -175,20 +244,59 @@ components
 │   │   modalSettingsChooser.jsx
 │   │   workflow.jsx
 │   │
-│   └───nodesTypes
-│           optimizeIO.jsx
-│           selectionNode.jsx
-│           standardNode.jsx
+│   ├───nodesTypes
+│   │       datasetNode.jsx
+│   │       loadModelNode.jsx
+│   │       optimizeIO.jsx
+│   │       selectionNode.jsx
+│   │       standardNode.jsx
+│   │
+│   └───results
+│       ├───node
+│       │       analyseResults.jsx
+│       │       dataParamResults.jsx
+│       │       modelsResults.jsx
+│       │       saveModelResults.jsx
+│       │
+│       └───utilities
+│               dataTablePath.jsx
+│               parameters.jsx
 │
-└───mainPages
-        application.jsx
-        discovery.jsx
-        extraction.jsx
-        home.jsx
-        input.jsx
-        layoutTest.jsx
-        learning.jsx
-        results.jsx
+├───mainPages
+│   │   application.jsx
+│   │   evaluation.jsx
+│   │   exploratory.jsx
+│   │   extractionImage.jsx
+│   │   extractionMEDimage.jsx
+│   │   extractionText.jsx
+│   │   extractionTS.jsx
+│   │   home.jsx
+│   │   htmlViewer.jsx
+│   │   input.jsx
+│   │   learning.jsx
+│   │   modelViewer.jsx
+│   │   output.jsx
+│   │   results.jsx
+│   │   terminal.jsx
+│   │   test.jsx
+│   │
+│   ├───dataComponents
+│   │       datasetSelector.jsx
+│   │       dataTableFromContext.jsx
+│   │       dataTableFromContextBP.jsx
+│   │       dropzoneComponent.jsx
+│   │       dropzoneComponent2.jsx
+│   │       listBoxSelector.jsx
+│   │       wsSelect.jsx
+│   │
+│   └───moduleBasics
+│           modulePage.jsx
+│           pageInfosContext.jsx
+│
+└───workspace
+        dataContext.jsx
+        medDataObject.js
+        workspaceContext.jsx
 
 ```
 

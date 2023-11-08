@@ -144,6 +144,7 @@ dmypy.json
 
 # custom gitignore
 /tmp/*
+/test/*
 /flaskProject/static/tmp
 /renderer/public/tmp/*
 *.idea
@@ -152,7 +153,6 @@ flask_server/extraction_MEDimage/MEDimageApp/tmp/*
 /flask_server/local_dir/*
 path2condaenv_toDeleteInProd.txt
 
-test/*
 package-lock.json
 
 !*.gitkeep
