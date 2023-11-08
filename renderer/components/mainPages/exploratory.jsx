@@ -1,4 +1,4 @@
-import React, { useState, useContext, useEffect, useCallback } from "react"
+import React, { useState, useContext, useEffect } from "react"
 import ModulePage from "./moduleBasics/modulePage"
 import { Card } from "primereact/card"
 import Input from "../learning/input"
@@ -317,6 +317,16 @@ const YDataProfiling = ({ pageId, port, setError }) => {
   )
 }
 
+/**
+ * 
+ * @param {String} uniqueId The unique id of the process
+ * @param {String} pageId The page id
+ * @param {Number} port The port of the backend
+ * @param {Function} setError The function to set the error
+ * @param {Function} onDelete The function to delete the process
+ * 
+ * @returns A card with the D-Tale module
+ */
 const DTaleProcess = ({ uniqueId, pageId, port, setError, onDelete }) => {
   const [mainDataset, setMainDataset] = useState()
   const [mainDatasetHasWarning, setMainDatasetHasWarning] = useState({ state: false, tooltip: "" })
@@ -326,6 +336,11 @@ const DTaleProcess = ({ uniqueId, pageId, port, setError, onDelete }) => {
   const { dispatchLayout } = useContext(LayoutModelContext)
   const [name, setName] = useState("")
 
+  /**
+   * 
+   * @param {String} serverPath The server path
+   * @description This function is used to shutdown the dtale server 
+   */
   const shutdownDTale = (serverPath) => {
     console.log("shutting down dtale: ", serverPath)
     if (serverPath != "") {
@@ -387,6 +402,11 @@ const DTaleProcess = ({ uniqueId, pageId, port, setError, onDelete }) => {
     }
   }
 
+  /**
+   * 
+   * @param {String} urlPath The url path to open
+   * @param {String} uniqueId The unique id of the process
+   */
   const handleOpenWebServer = (urlPath, uniqueId) => {
     const medObj = new MedDataObject({ path: urlPath, type: "html", name: name, _UUID: uniqueId })
     dispatchLayout({ type: "openInIFrame", payload: medObj })
@@ -431,14 +451,20 @@ const DTaleProcess = ({ uniqueId, pageId, port, setError, onDelete }) => {
 const DTale = ({ pageId, port, setError }) => {
   const [processes, setProcesses] = useState([])
 
+  // when the component is mounted, add a new process
   useEffect(() => {
     handleAddDTaleComp()
   }, [])
 
+  // when the processes change, log them
   useEffect(() => {
     console.log("processes", processes)
   }, [processes])
 
+  /**
+   * 
+   * @param {String} uniqueId The unique id of the process 
+   */
   const onDelete = (uniqueId) => {
     console.log("deleting", uniqueId)
     let newProcesses = []
@@ -451,6 +477,9 @@ const DTale = ({ pageId, port, setError }) => {
     setProcesses(newProcesses)
   }
 
+  /**
+   * @description This function is used to add a new process
+   */
   const handleAddDTaleComp = () => {
     let newId = getId()
     console.log(newId)

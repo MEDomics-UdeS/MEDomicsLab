@@ -1,6 +1,4 @@
 import React, { useEffect, useState } from "react"
-import ModulePage from "./moduleBasics/modulePage"
-import { PageInfosContext } from "./moduleBasics/pageInfosContext"
 import Path from "path"
 import Iframe from "react-iframe"
 import fs from "fs"

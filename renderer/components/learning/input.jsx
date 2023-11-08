@@ -333,9 +333,8 @@ const Input = ({ name, settingInfos, currentValue, onInputChange, disabled, setH
               <WsSelect
                 disabled={disabled}
                 selectedPath={currentValue}
-                rootDir="DATA"
-                acceptedExtensions={["csv", "xlsx", "json"]}
-                acceptFolder
+                acceptedExtensions={["csv"]}
+                acceptFolder= {settingInfos.acceptFolder? settingInfos.acceptFolder : false}
                 onChange={(e, path) => {
                   console.log("e", e, path)
                   if (path == "") {
