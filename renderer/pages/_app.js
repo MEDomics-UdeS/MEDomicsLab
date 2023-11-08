@@ -49,7 +49,7 @@ import "../styles/customPrimeReact.css"
 import "../styles/imageContainer.css"
 import "../styles/datatableWrapper.css"
 import "../styles/inputPage.css"
-
+import "../styles/medProfiles.css"
 /**
  * This is the main app component. It is the root component of the app.
  * It is the parent of all other components.

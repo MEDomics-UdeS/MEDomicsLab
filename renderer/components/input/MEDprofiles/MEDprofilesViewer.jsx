@@ -89,10 +89,10 @@ const MEDprofilesViewer = ({ pageId, configPath = "", MEDclassesFolder, MEDprofi
           <Col md="auto">
             <h6>Select the class for relative time</h6>
           </Col>
-          <Col md="auto" style={{ display: "flex", flexDirection: "row" }}>
+          {/* <Col md="auto" style={{ display: "flex", flexDirection: "row" }}>
             <Dropdown value={selectedClass} options={getClassesOptions()} onChange={(e) => setSelectedClass(e.value)} style={{ width: "100%" }} />
             <Button label="Set" onClick={() => setRelativeTime(selectedClass)} />
-          </Col>
+          </Col> */}
         </Row>
       </ModulePage>
     </>
