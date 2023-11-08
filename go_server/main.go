@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	Application "go_module/blueprints/application"
 	Evaluation "go_module/blueprints/evaluation"
 	Exploratory "go_module/blueprints/exploratory"
 	Input "go_module/blueprints/input"
@@ -21,6 +22,7 @@ func main() {
 	Evaluation.AddHandleFunc()
 	Exploratory.AddHandleFunc()
 	Input.AddHandleFunc()
+	Application.AddHandleFunc()
 	Utils.CreateHandleFunc("get_server_health", handleGetServerHealth)
 	Utils.CreateHandleFunc("removeId/", handleRemoveId)
 	Utils.CreateHandleFunc("clearAll", handleClearAll)

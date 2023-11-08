@@ -414,3 +414,14 @@ body {
   height: 100%;
   width: 100%;
 }
+
+.quebec-flag {
+  width: auto;
+  height: 100%;
+  transition: opacity 3s ease-in-out;
+  opacity: 0;
+  border-radius: 2rem;
+  box-shadow:
+    4px 7px 8px 0.25rem rgb(39 39 39 / 70%),
+    0px 0px 7px 0.1rem rgb(39 39 39 / 55%);
+}
