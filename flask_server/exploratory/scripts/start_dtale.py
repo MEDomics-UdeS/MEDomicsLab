@@ -65,6 +65,7 @@ class GoExecScriptDTale(GoExecutionScript):
                 if is_port_in_use(self.port):
                     self._progress["web_server_url"] = f"http://localhost:{self.port}/"
                     self._progress["port"] = self.port
+                    self._progress["name"] = self.dataset["name"].split(".")[0].capitalize()
                     self.is_calculating = False
 
             self.now += round(self.thread_delay *
