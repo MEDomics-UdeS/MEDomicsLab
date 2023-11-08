@@ -1,6 +1,6 @@
 import Button from "react-bootstrap/Button"
 import { DataContext } from "../../workspace/dataContext"
-import { DataFrame } from "danfojs"
+import { DataFrame, Series } from "danfojs"
 import { DataView } from "primereact/dataview"
 import { Dropdown } from "primereact/dropdown"
 import { LayoutModelContext } from "../../layout/layoutContext"
@@ -27,12 +27,13 @@ import { WorkspaceContext } from "../../workspace/workspaceContext"
  */
 const MEDprofilesPrepareData = () => {
   const [classesGenerated, setClassesGenerated] = useState(false) // boolean telling if the MEDclasses have been generated
-  const [datasetList, setDatasetList] = useState([]) // list of available datasets in DATA folder
   const [folderList, setFolderList] = useState([]) // list of available folders in DATA folder
   const [generatedClassesFolder, setGeneratedClassesFolder] = useState(null) // folder containing the generated MEDclasses
   const [generatedMEDprofilesFile, setGeneratedMEDprofilesFile] = useState(null) // file containing the generated MEDprofiles binary file
+  const [loadingMasterTables, setLoadingMasterTables] = useState(true) // boolean telling if the csv analyse for mastertable is processing
   const [loadingSubMasterTables, setLoadingSubMasterTables] = useState(true) // boolean telling if the csv analyse for submaster is processing
   const [mayCreateClasses, setMayCreateClasses] = useState(false) // boolean updating the "Create MEDclasses" button state
+  const [masterTableFileList, setMasterTableFileList] = useState([]) // list of csv data matching the "MasterTable" format
   const [mayInstantiateMEDprofiles, setMayInstantiateMEDprofiles] = useState(false) // boolean updating the "Instantiate MEDprofiles" button state
   const [progress, setProgress] = useState({ now: 0, currentLabel: "" }) // progress bar state [now, currentLabel]
   const [selectedMEDclassesFolder, setSelectedMEDclassesFolder] = useState(null) // folder selected where to put the MEDclasses
@@ -45,25 +46,6 @@ const MEDprofilesPrepareData = () => {
   const { dispatchLayout } = useContext(LayoutModelContext)
   const { globalData } = useContext(DataContext) // we get the global data from the context to retrieve the directory tree of the workspace, thus retrieving the data files
   const { port } = useContext(WorkspaceContext) // we get the port for server connexion
-
-  /**
-   *
-   * @param {DataContext} dataContext
-   *
-   * @description
-   * This functions get all files from the DataContext DATA folder and update datasetList.
-   *
-   */
-  function getDatasetListFromDataContext(dataContext) {
-    let keys = Object.keys(dataContext)
-    let datasetListToShow = []
-    keys.forEach((key) => {
-      if (dataContext[key].type !== "folder" && dataContext[key].path.includes("DATA")) {
-        datasetListToShow.push(dataContext[key])
-      }
-    })
-    setDatasetList(datasetListToShow)
-  }
 
   /**
    *
@@ -109,7 +91,125 @@ const MEDprofilesPrepareData = () => {
    *
    * @description
    * This function is called when the data context is updated in order
-   * to obtain the csv files matching the subMasterTableFormt.
+   * to obtain the csv files matching the MasterTableFormat.
+   *
+   */
+  function getMasterTableFileList(dataContext) {
+    const keys = Object.keys(dataContext)
+    const matchingDatasetList = []
+
+    // The column names must be 'PatientID', 'Date', 'Time_point' and the others must contains '_'
+    const columnsMatchingFormat = (dataframe) => {
+      if (dataframe.$columns[0] !== "PatientID" || dataframe.$columns[1] !== "Date" || dataframe.$columns[2] !== "Time_point") {
+        return false
+      }
+      for (let i = 3; i < dataframe.$columns.length; i++) {
+        if (!dataframe.$columns[i].includes("_")) {
+          return false
+        }
+      }
+      return true
+    }
+
+    // The 1st line (after columns) must contains 'string' or 'num' at 1st position, 'datetime.date' at 2nd and 'num' in all others
+    const firstLineMatchingFormat = (dataframe) => {
+      let firstLine = dataframe.$data[0]
+      if ((firstLine[0] !== "string" && firstLine[0] !== "num") || firstLine[1] !== "datetime.date") {
+        return false
+      }
+      for (let i = 2; i < firstLine.length; i++) {
+        if (firstLine[i] !== "num") {
+          return false
+        }
+      }
+      return true
+    }
+
+    // The first column (removing 1st line) must contains str or int
+    const firstColumnMatchingFormat = (dataframe) => {
+      let copy = [...dataframe.$dataIncolumnFormat[0]]
+      copy.shift()
+      let column = new Series(copy)
+      if (column.$dtypes.length === 1 && (column.$dtypes[0] === "int32" || column.$dtypes[0] === "int64" || (column.$dtypes[0] === "string" && column.dt.$dateObjectArray[0] == "Invalid Date"))) {
+        return true
+      }
+      return false
+    }
+
+    // The second column (removing 1st line) must contains datetime values
+    const secondColumnMatchingFormat = (dataframe) => {
+      let copy = [...dataframe.$dataIncolumnFormat[1]]
+      copy.shift()
+      let column = new Series(copy)
+      if (column.$dtypes.length === 1 && column.$dtypes[0] === "string" && column.dt.$dateObjectArray[0] != "Invalid Date") {
+        return true
+      }
+      return false
+    }
+
+    // The third column (removing 1st line) must contains null or int values
+    const thirdColumnMatchingFormat = (dataframe) => {
+      let copy = [...dataframe.$dataIncolumnFormat[2]]
+      copy.shift()
+      let column = new Series(copy)
+      if (column.$dtypes.length === 1 && (column.$dtypes[0] === "int32" || column.$dtypes[0] === "int64")) {
+        return true
+      }
+      return false
+    }
+
+    // The others columns (removing 1st line) must contains num values
+    const allNumericValues = (dataframe) => {
+      for (let i = 2; i < dataframe.$columns.length; i++) {
+        const columnType = dataframe.$dtypes[i]
+        if (columnType !== "int32" && columnType !== "int64" && columnType !== "float32" && columnType !== "float64" && !dataframe.$columns[i].includes("_")) {
+          return false
+        }
+      }
+      return true
+    }
+
+    // Load the CSV file in order to check if the data is matching the required format
+    const loadCSVFile = (MEDdata) => {
+      // Create a promise for each CSV file
+      return new Promise((resolve) => {
+        loadCSVPath(MEDdata.path, (data) => {
+          let dataframe = new DataFrame(data)
+          // The dataframe must contain at least 3 columns and respect the format for each column as specified in the checking functions
+          if (dataframe.$columns.length > 3 && columnsMatchingFormat(dataframe) && firstLineMatchingFormat(dataframe) && firstColumnMatchingFormat(dataframe) && secondColumnMatchingFormat(dataframe) && thirdColumnMatchingFormat(dataframe) && allNumericValues(dataframe)) {
+            matchingDatasetList.push(MEDdata)
+          }
+          resolve()
+        })
+      })
+    }
+
+    // Create a promises array for all the csv files
+    const promises = keys
+      .filter((key) => {
+        const item = dataContext[key]
+        return item.type !== "folder" && item.path.includes("DATA") && item.extension === "csv"
+      })
+      .map((key) => loadCSVFile(dataContext[key]))
+
+    // Wait for all the csv files to have been examinated
+    Promise.all(promises)
+      .then(() => {
+        setMasterTableFileList(matchingDatasetList)
+        setLoadingMasterTables(false)
+      })
+      .catch((error) => {
+        toast.error("Error while loading MEDdata :", error)
+      })
+  }
+
+  /**
+   *
+   * @param {DataContext} dataContext
+   *
+   * @description
+   * This function is called when the data context is updated in order
+   * to obtain the csv files matching the subMasterTableFormat.
    *
    */
   function getSubMasterTableFileList(dataContext) {
@@ -132,7 +232,7 @@ const MEDprofilesPrepareData = () => {
       const allOtherColumnsAreNumerical = (dataframe) => {
         for (let i = 2; i < dataframe.$columns.length; i++) {
           const columnType = dataframe.$dtypes[i]
-          if (columnType !== "int32" && columnType !== "int64" && columnType !== "float32" && columnType !== "float64") {
+          if (columnType !== "int32" && columnType !== "int64" && columnType !== "float32" && columnType !== "float64" && !dataframe.$columns[i].includes("_")) {
             return false
           }
         }
@@ -142,7 +242,7 @@ const MEDprofilesPrepareData = () => {
       // Create a promise for each CSV file
       return new Promise((resolve) => {
         loadCSVPath(MEDdata.path, (data) => {
-          const dataframe = new DataFrame(data)
+          let dataframe = new DataFrame(data)
           // The dataframe must contain at least 3 columns and respect the format for each column as specified in the checking functions
           if (dataframe.$columns.length > 2 && firstColumnMatchingFormat(dataframe) && secondColumnMatchingFormat(dataframe) && allOtherColumnsAreNumerical(dataframe)) {
             matchingDatasetList.push(MEDdata)
@@ -265,11 +365,13 @@ const MEDprofilesPrepareData = () => {
   // Called when data in DataContext is updated, in order to updated datasetList, folderList and subMasterTableFileList
   useEffect(() => {
     if (globalData !== undefined) {
+      setLoadingMasterTables(true)
       setLoadingSubMasterTables(true)
       setSubMasterTableFileList([])
-      getDatasetListFromDataContext(globalData)
+      setMasterTableFileList([])
       getFolderListFromDataContext(globalData)
       getSubMasterTableFileList(globalData)
+      getMasterTableFileList(globalData)
       if (selectedMEDclassesFolder?.path) {
         getGeneratedElement(globalData, selectedMEDclassesFolder.path + MedDataObject.getPathSeparator() + "MEDclasses" + MedDataObject.getPathSeparator() + "MEDclasses", setGeneratedClassesFolder)
       }
@@ -310,6 +412,10 @@ const MEDprofilesPrepareData = () => {
     }
   }, [])
 
+  useEffect(() => {
+    console.log("selected files", selectedSubMasterTableFiles)
+  }, [selectedSubMasterTableFiles])
+
   return (
     <>
       <div>
@@ -322,15 +428,16 @@ const MEDprofilesPrepareData = () => {
         <div className="margin-top-15 flex-container">
           <div className="mergeToolMultiSelect flex-container">
             <div>{loadingSubMasterTables == true && <ProgressSpinner style={{ width: "40px", height: "40px" }} />}</div>
-            <div>{subMasterTableFileList?.length > 0 ? <MultiSelect style={{ width: "100%" }} value={selectedSubMasterTableFiles} onChange={(e) => setSelectedSubMasterTableFiles(e.value)} options={subMasterTableFileList} optionLabel="name" className="w-full md:w-14rem margintop8px" display="chip" placeholder="Select CSV files" /> : loadingSubMasterTables == true ? <MultiSelect placeholder="Loading..." /> : <MultiSelect placeholder="No CSV files to show" />}</div>
+            <div>{subMasterTableFileList?.length > 0 ? <MultiSelect style={{ width: "100%" }} value={selectedSubMasterTableFiles} onChange={(e) => setSelectedSubMasterTableFiles(e.value)} options={subMasterTableFileList} optionLabel="name" className="w-full md:w-14rem margintop8px" display="chip" placeholder="Select CSV files" /> : loadingSubMasterTables == true ? <MultiSelect placeholder="Loading..." disabled /> : <MultiSelect placeholder="No CSV files to show" disabled />}</div>
             <div>
-              <Button disabled={selectedSubMasterTableFiles?.length < 1} onClick={createMasterTable}>
+              <Button disabled={!selectedSubMasterTableFiles || selectedSubMasterTableFiles?.length < 1} onClick={createMasterTable}>
                 Create Master Table
               </Button>
             </div>
           </div>
           <div className="vertical-divider"></div>
-          <div>{datasetList.length > 0 ? <Dropdown value={selectedMasterTable} options={datasetList.filter((value) => value.extension == "csv")} optionLabel="name" onChange={(event) => setSelectedMasterTable(event.value)} placeholder="Select a master table" /> : <Dropdown placeholder="No dataset to show" disabled />}</div>
+          <div>{loadingMasterTables == true && <ProgressSpinner style={{ width: "40px", height: "40px" }} />}</div>
+          <div>{masterTableFileList.length > 0 ? <Dropdown value={selectedMasterTable} options={masterTableFileList} optionLabel="name" onChange={(event) => setSelectedMasterTable(event.value)} placeholder="Select a master table" /> : loadingMasterTables == true ? <Dropdown placeholder="Loading..." disabled /> : <Dropdown placeholder="No CSV files to show" disabled />}</div>
         </div>
       </div>
       <hr></hr>
