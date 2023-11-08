@@ -9,6 +9,27 @@ import { Dropdown } from "primereact/dropdown"
 import { Slider } from "@blueprintjs/core"
 import { deepCopy } from "../../../utilities/staticFunctions"
 import { XSquare } from "react-bootstrap-icons"
+
+const MEDcohortFigure = ({ jsonFilePath, classes, setClasses }) => {
+  const [selections, setSelections] = useState([])
+
+  const handleSelect = (data) => {
+    console.log("data", data)
+    setSelections(data.selections)
+  }
+
+  const handleDeselect = (data) => {
+    console.log("data", data)
+    setSelections([])
+  }
+
+  return (
+    <>
+      <MEDcohortFigureChild jsonFilePath={jsonFilePath} classes={classes} setClasses={setClasses} selections={selections} handleSelect={handleSelect} handleDeselect={handleDeselect} />
+    </>
+  )
+}
+
 /**
  *
  * @param {jsonFilePath} jsonFilePath Path to the file containing a MEDcohort as JSON data
@@ -20,7 +41,7 @@ import { XSquare } from "react-bootstrap-icons"
  * a MEDcohort with interactive options.
  *
  */
-const MEDcohortFigure = ({ jsonFilePath, classes, setClasses }) => {
+const MEDcohortFigureChild = ({ jsonFilePath, classes, setClasses, selections, handleSelect, handleDeselect }) => {
   const [jsonData, setJsonData] = useState(null)
   const [plotData, setPlotData] = useState([])
   const [selectedClass, setSelectedClass] = useState() // list of selected classes in the dropdown menu
@@ -34,8 +55,9 @@ const MEDcohortFigure = ({ jsonFilePath, classes, setClasses }) => {
   const [timePoint, setTimePoint] = useState(1)
   const [selectedData, setSelectedData] = useState([])
   const [timePointClusters, setTimePointClusters] = useState([])
-  const [selections, setSelections] = useState([])
+  const [test, setTest] = useState(null)
   const [layout, setLayout] = useState({})
+
   const Plot = dynamic(() => import("react-plotly.js"), { ssr: false })
 
   /**
@@ -284,6 +306,9 @@ const MEDcohortFigure = ({ jsonFilePath, classes, setClasses }) => {
 
   useEffect(() => {
     console.log("Shapes", shapes)
+    let newLayout = { ...layout }
+    newLayout.shapes = shapes
+    setLayout(newLayout)
   }, [shapes])
 
   useEffect(() => {
@@ -413,6 +438,19 @@ const MEDcohortFigure = ({ jsonFilePath, classes, setClasses }) => {
     setJsonData(newJsonData)
   }
 
+  useEffect(() => {
+    console.log("Layout", layout)
+  }, [layout])
+
+  useEffect(() => {
+    console.log("test", test)
+  }, [test])
+
+  // const handleSelect = (data) => {
+  //   console.log("data", data)
+  //   setSelections(data.selections)
+  // }
+
   return (
     <>
       <Row style={{ width: "100%" }}>
@@ -433,7 +471,7 @@ const MEDcohortFigure = ({ jsonFilePath, classes, setClasses }) => {
                   // Add a slider for the relative time
                 ],
                 shapes: shapes,
-                selections: [],
+                selections: selections,
                 selectdirection: "h",
                 autosize: true,
                 title: "MEDcohort",
@@ -456,9 +494,12 @@ const MEDcohortFigure = ({ jsonFilePath, classes, setClasses }) => {
                 annotations: annotations
               }}
               useResizeHandler={true}
-              onUpdate={(data) => {
-                console.log("UPDATE", data)
+              onUpdate={(figure) => {
+                console.log("UPDATE LAYOUT", figure)
+                console.log("Selections", figure.layout.selections)
               }}
+              onSelected={handleSelect}
+              onDeselect={handleDeselect}
               onInitialized={(figure) => {
                 console.log("INITIALIZED", figure)
               }}
@@ -520,7 +561,7 @@ const MEDcohortFigure = ({ jsonFilePath, classes, setClasses }) => {
             <Col style={{ display: "flex", flexDirection: "column", justifyContent: "center", marginTop: "1rem", alignItems: "flex-start" }}>
               {timePointClusters.length !== 0 && (
                 <>
-                  <label htmlFor="dd-city">
+                  <label htmlFor="">
                     <b>
                       <u>Time Points associated data</u>
                     </b>
