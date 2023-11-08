@@ -61,6 +61,7 @@ export default class MedDataObject {
     } else {
       this._UUID = _UUID
     }
+    this.UUID = this._UUID
     this.parentID = parentID
     this.childrenIDs = childrenIDs
 

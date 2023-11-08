@@ -11,7 +11,6 @@ import { LayoutModelContext } from "../layoutContext"
 import { DataContext } from "../../workspace/dataContext"
 import MedDataObject from "../../workspace/medDataObject"
 import InputPage from "../../mainPages/input"
-import ResultsPage from "../../mainPages/results"
 import ExploratoryPage from "../../mainPages/exploratory"
 import EvaluationPage from "../../mainPages/evaluation"
 import ExtractionTextPage from "../../mainPages/extractionText"
@@ -20,7 +19,6 @@ import ExtractionMEDimagePage from "../../mainPages/extractionMEDimage"
 import ExtractionTSPage from "../../mainPages/extractionTS"
 import HomePage from "../../mainPages/home"
 import TerminalPage from "../../mainPages/terminal"
-import ModelViewer from "../../mainPages/modelViewer"
 import OutputPage from "../../mainPages/output"
 import ApplicationPage from "../../mainPages/application"
 import ModulePage from "../../mainPages/moduleBasics/modulePage"
@@ -28,10 +26,11 @@ import * as Icons from "react-bootstrap-icons"
 import Image from "next/image"
 import ZoomPanPinchComponent from "./zoomPanPinchComponent"
 import DataTableWrapperBPClass from "../../dataTypeVisualisation/dataTableWrapperBPClass"
+import HtmlViewer from "../../mainPages/htmlViewer"
+import ModelViewer from "../../mainPages/modelViewer"
+import Iframe from "react-iframe"
 
 var fields = ["Name", "Field1", "Field2", "Field3", "Field4", "Field5"]
-
-const ContextExample = React.createContext("")
 
 interface LayoutContextType {
   layoutRequestQueue: any[]
@@ -729,6 +728,18 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
         const config = node.getConfig()
         console.log("config", config)
         return <ModelViewer pageId={config.uuid} configPath={config.path} />
+      }
+    } else if (component === "htmlViewer") {
+      if (node.getExtraData().data == null) {
+        const config = node.getConfig()
+        console.log("config", config)
+        return <HtmlViewer configPath={config.path} />
+      }
+    } else if (component === "iframeViewer") {
+      if (node.getExtraData().data == null) {
+        const config = node.getConfig()
+        console.log("config", config)
+        return <Iframe url={config.path} width="100%" height="100%" />
       }
     } else if (component !== "") {
       if (node.getExtraData().data == null) {

@@ -4,7 +4,6 @@ import ModulePage from "./moduleBasics/modulePage"
 import { requestBackend } from "../../utilities/requests"
 import { WorkspaceContext } from "../workspace/workspaceContext"
 import { DataContext } from "../workspace/dataContext"
-import { toast } from "react-toastify"
 import { SelectButton } from "primereact/selectbutton"
 import { Card } from "primereact/card"
 import { ProgressBar } from "primereact/progressbar"
@@ -54,7 +53,16 @@ const ActiveElement = ({ activeElement }) => {
         }
         setMetadata(metadata)
       } else {
-        toast.error("No element with id: " + activeElement.id + " in globalData")
+        let metadata = {
+          name: activeElement.id,
+          urlId: activeElement.urlId,
+          pid: activeElement.pid,
+          processState: activeElement.ProcessState,
+          progress: activeElement.progress,
+          isProgress: activeElement.progress != ""
+        }
+        setMetadata(metadata)
+        // toast.error("No element with id: " + activeElement.id + " in globalData")
       }
     }
   }, [activeElement, globalData])
@@ -93,6 +101,30 @@ const ActiveElement = ({ activeElement }) => {
             )}
           </>
         )
+      case "webserver":
+        return (
+          <>
+            {metadata.progress.web_server_url ? (
+              <h5>
+                Opened webserver on url:{" "}
+                <a
+                  className="web-server-link"
+                  onClick={() => {
+                    require("electron").shell.openExternal(metadata.progress.web_server_url)
+                  }}
+                >
+                  {metadata.progress.web_server_url}
+                </a>
+              </h5>
+            ) : (
+              <>
+                <h5>WebServer is building... </h5>
+                <h6 className="margin-0.25">Approximate duration: {metadata.progress.duration} min</h6>
+                <ProgressBar value={metadata.progress.now >= 100 ? 100 : metadata.progress.now} />
+              </>
+            )}
+          </>
+        )
       case "process":
         return (
           <>
@@ -121,38 +153,51 @@ const ActiveElement = ({ activeElement }) => {
               <IoClose
                 className="btn-close-output-card"
                 onClick={(e) => {
-                  requestBackend(
-                    port,
-                    "removeId/" + metadata.urlId,
-                    { pageId: pageId },
-                    (data) => {
-                      if (data.error) {
-                        console.error(data)
+                  let topic = "removeId/" + metadata.urlId
+                  if (metadata.name == "D-Tale" && metadata.progress.web_server_url) {
+                    topic = metadata.progress.web_server_url + "/shutdown"
+
+                    fetch(topic, {
+                      mode: "no-cors",
+                      credentials: "include",
+                      method: "GET"
+                    }).then((response) => console.log(response))
+                  } else {
+                    requestBackend(
+                      port,
+                      topic,
+                      { pageId: pageId },
+                      (data) => {
+                        if (data.error) {
+                          console.error(data)
+                        }
+                        console.log("closing", data, "with id:", pageId)
+                      },
+                      (error) => {
+                        console.error(error)
                       }
-                      console.log("closing", data, "with id:", pageId)
-                    },
-                    (error) => {
-                      console.error(error)
-                    }
-                  )
+                    )
+                  }
                 }}
               />
             </>
           }
           subTitle={
             <>
-              <table>
-                <tbody>
-                  <tr>
-                    <td style={{ paddingRight: "1rem" }}>Last modified date:</td>
-                    <td>{metadata.lastModified ? metadata.lastModified : "test"}</td>
-                  </tr>
-                  <tr>
-                    <td style={{ paddingRight: "1rem" }}>Path:</td>
-                    <td>{metadata.absPath}</td>
-                  </tr>
-                </tbody>
-              </table>
+              {metadata.lastModified && (
+                <table>
+                  <tbody>
+                    <tr>
+                      <td style={{ paddingRight: "1rem" }}>Last modified date:</td>
+                      <td>{metadata.lastModified}</td>
+                    </tr>
+                    <tr>
+                      <td style={{ paddingRight: "1rem" }}>Path:</td>
+                      <td>{metadata.absPath}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              )}
             </>
           }
         >

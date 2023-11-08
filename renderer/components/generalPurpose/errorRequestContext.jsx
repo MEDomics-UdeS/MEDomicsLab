@@ -25,13 +25,17 @@ function ErrorRequestProvider({ children }) {
 
   // We use the useEffect hook to display the error modal when the error state changes
   useEffect(() => {
-    console.log("Error request:", error)
-    if (Object.keys(error).length !== 0) {
-      if (error.toast) {
-        if (error.go_kill) {
-          toast.warn(error.toast)
+    let parsedError = error
+    if (typeof error === "string") {
+      parsedError = JSON.parse(error)
+    }
+    console.log("Error request:", parsedError)
+    if (Object.keys(parsedError).length !== 0) {
+      if (parsedError.toast) {
+        if (parsedError.go_kill) {
+          toast.warn(parsedError.toast)
         } else {
-          toast.error(error.toast)
+          toast.error(parsedError.toast)
         }
       } else {
         setShowError(true)

@@ -50,6 +50,7 @@ import "../styles/datatableWrapper.css"
 import "../styles/inputPage.css"
 import "../styles/evaluation/evaluation.css"
 import "../styles/output.css"
+import "../styles/exploratory/exploratory.css"
 
 /**
  * This is the main app component. It is the root component of the app.
