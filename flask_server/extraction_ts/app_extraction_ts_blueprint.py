@@ -17,7 +17,7 @@ progress = 0
 step = "initialization"
 
 
-def generate_TSfresh_embeddings(dataframe, frequency, column_id, column_weight, column_kind, column_value, default_fc_parameters, column_admission="", column_admission_time="", column_time=""):
+def generate_TSfresh_embeddings(dataframe, frequency, column_id, column_weight, column_kind, column_value, default_fc_parameters, master_table_compatible, column_admission="", column_admission_time="", column_time=""):
     """
     Function generating TSfresh embeddings for time series.
 
@@ -28,6 +28,7 @@ def generate_TSfresh_embeddings(dataframe, frequency, column_id, column_weight, 
     :param column_kind: Column name in the dataframe identifying kind of time series.
     :param column_value: Column name in the dataframe containing the time series values.
     :param default_fc_parameters: TSfresh feature generation option.
+    :param master_table_compatible: Boolean true if the returned dataframe must matching the sub-master table format.
     :param column_admission: Column name in the dataframe containing admission identifiers, may be null if frequency is not "Admission".
     :param column_admission_time: Column name in the dataframe containing admission time, may be null if frequency is not "Admission".
     :param column_time: Time column in the dataframe, may be null if frequency is not a hour range.
@@ -50,6 +51,8 @@ def generate_TSfresh_embeddings(dataframe, frequency, column_id, column_weight, 
                                                      column_kind=column_kind, 
                                                      column_value=column_value,
                                                      default_fc_parameters=default_fc_parameters, n_jobs=0)
+            # Insert time in the dataframe
+            df_patient_embeddings.insert(0, column_time, df_patient[column_time].iloc[0])
             # Insert patient_id in the dataframe
             df_patient_embeddings.insert(0, column_id, patient_id)
             df_ts_embeddings = pd.concat([df_ts_embeddings, df_patient_embeddings], ignore_index=True)
@@ -69,8 +72,9 @@ def generate_TSfresh_embeddings(dataframe, frequency, column_id, column_weight, 
                                                            default_fc_parameters=default_fc_parameters, n_jobs=0)
                 # Insert admission_time in the dataframe
                 df_admission_embeddings.insert(0, column_admission_time, df_admission[column_admission_time].iloc[0])
-                # Insert admission_id in the dataframe
-                df_admission_embeddings.insert(0, column_admission, admission_id)
+                # Insert admission_id in the dataframe (except if the dataframe must respect submaster table format)
+                if not master_table_compatible:
+                    df_admission_embeddings.insert(0, column_admission, admission_id)
                 # Insert patient_id in the dataframe
                 df_admission_embeddings.insert(0, column_id, patient_id)
                 df_ts_embeddings = pd.concat([df_ts_embeddings, df_admission_embeddings], ignore_index=True)
@@ -92,8 +96,9 @@ def generate_TSfresh_embeddings(dataframe, frequency, column_id, column_weight, 
                                                           column_kind=column_kind, 
                                                           column_value=column_value,
                                                           default_fc_parameters=default_fc_parameters,n_jobs=0)
-                    # Insert time in the dataframe
-                    df_time_embeddings.insert(0, "end_date", end_date)
+                    # Insert time in the dataframe (only start_date if the dataframe must respect submaster table format)
+                    if not master_table_compatible:
+                        df_time_embeddings.insert(0, "end_date", end_date)
                     df_time_embeddings.insert(0, "start_date", start_date)
                     # Insert patient_id in the dataframe
                     df_time_embeddings.insert(0, column_id, patient_id)
@@ -159,7 +164,8 @@ def TSfresh_extraction():
         df_extracted_features = generate_TSfresh_embeddings(df_ts, frequency, selected_columns["patientIdentifier"], 
                                                             selected_columns["measurementWeight"], 
                                                             selected_columns["measuredItemIdentifier"], 
-                                                            selected_columns["measurementValue"], settings, 
+                                                            selected_columns["measurementValue"], settings,
+                                                            json_config["relativeToExtractionType"]["masterTableCompatible"], 
                                                             selected_columns["admissionIdentifier"],
                                                             selected_columns["admissionTime"],
                                                             selected_columns["time"])
@@ -167,7 +173,10 @@ def TSfresh_extraction():
         # Save extracted features
         progress = 90
         step = "Save extracted features"
-        csv_result_path = os.path.join(str(Path(json_config["csvPath"]).parent.absolute()), json_config['filename'])
+        extracted_folder_path = os.path.join(str(Path(json_config["dataFolderPath"])), "extracted_features")
+        if not os.path.exists(extracted_folder_path):
+            os.makedirs(extracted_folder_path)
+        csv_result_path = os.path.join(extracted_folder_path, json_config['filename'])
         df_extracted_features.to_csv(csv_result_path, index=False)
         json_config["csv_result_path"] = csv_result_path
 

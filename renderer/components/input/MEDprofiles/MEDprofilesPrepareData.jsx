@@ -161,7 +161,7 @@ const MEDprofilesPrepareData = () => {
     const allNumericValues = (dataframe) => {
       for (let i = 2; i < dataframe.$columns.length; i++) {
         const columnType = dataframe.$dtypes[i]
-        if (columnType !== "int32" && columnType !== "int64" && columnType !== "float32" && columnType !== "float64" && !dataframe.$columns[i].includes("_")) {
+        if ((columnType !== "int32" && columnType !== "int64" && columnType !== "float32" && columnType !== "float64") || !dataframe.$columns[i].includes("_")) {
           return false
         }
       }
@@ -219,7 +219,7 @@ const MEDprofilesPrepareData = () => {
     const loadCSVFile = (MEDdata) => {
       // The first column must be identifiers
       const firstColumnMatchingFormat = (dataframe) => {
-        return dataframe.$dtypes[0] === "int32" || dataframe.$dtypes[0] === "int64" || (dataframe.$dtypes[0] === "string" && dataframe[dataframe.$columns[0]].dt.$dateObjectArray[0] === "Invalid Date")
+        return dataframe.$dtypes[0] === "int32" || dataframe.$dtypes[0] === "int64" || (dataframe.$dtypes[0] === "string" && dataframe[dataframe.$columns[0]].dt.$dateObjectArray[0] == "Invalid Date")
       }
 
       // The second column must be date
@@ -231,7 +231,7 @@ const MEDprofilesPrepareData = () => {
       const allOtherColumnsAreNumerical = (dataframe) => {
         for (let i = 2; i < dataframe.$columns.length; i++) {
           const columnType = dataframe.$dtypes[i]
-          if (columnType !== "int32" && columnType !== "int64" && columnType !== "float32" && columnType !== "float64" && !dataframe.$columns[i].includes("_")) {
+          if ((columnType !== "int32" && columnType !== "int64" && columnType !== "float32" && columnType !== "float64") || !dataframe.$columns[i].includes("_")) {
             return false
           }
         }
@@ -299,7 +299,7 @@ const MEDprofilesPrepareData = () => {
       "/MEDprofiles/create_MEDclasses",
       {
         masterTablePath: selectedMasterTable.path,
-        selectedFolderPath: dataFolder.path + "/MEDclasses"
+        selectedFolderPath: dataFolder.path + MedDataObject.getPathSeparator() + "MEDclasses"
       },
       (jsonResponse) => {
         console.log("received results:", jsonResponse)
@@ -433,7 +433,7 @@ const MEDprofilesPrepareData = () => {
         <div className="margin-top-15 flex-container">
           <div className="mergeToolMultiSelect flex-container">
             <div>{loadingSubMasterTables == true && <ProgressSpinner style={{ width: "40px", height: "40px" }} />}</div>
-            <div>{subMasterTableFileList?.length > 0 ? <MultiSelect style={{ width: "100%" }} value={selectedSubMasterTableFiles} onChange={(e) => setSelectedSubMasterTableFiles(e.value)} options={subMasterTableFileList} optionLabel="name" className="w-full md:w-14rem margintop8px" display="chip" placeholder="Select CSV files" /> : loadingSubMasterTables == true ? <MultiSelect placeholder="Loading..." disabled /> : <MultiSelect placeholder="No CSV files to show" disabled />}</div>
+            <div>{subMasterTableFileList?.length > 0 ? <MultiSelect style={{ width: "300px" }} value={selectedSubMasterTableFiles} onChange={(e) => setSelectedSubMasterTableFiles(e.value)} options={subMasterTableFileList} optionLabel="name" className="w-full md:w-14rem margintop8px" display="chip" placeholder="Select CSV files" /> : loadingSubMasterTables == true ? <MultiSelect placeholder="Loading..." disabled /> : <MultiSelect placeholder="No CSV files to show" disabled />}</div>
             <div>
               <Button disabled={!selectedSubMasterTableFiles || selectedSubMasterTableFiles?.length < 1} onClick={createMasterTable}>
                 Create Master Table

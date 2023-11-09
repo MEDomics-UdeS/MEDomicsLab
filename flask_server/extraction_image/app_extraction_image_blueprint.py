@@ -142,6 +142,8 @@ def DenseNet_extraction():
         depth = json_config["depth"]
         weights = json_config["relativeToExtractionType"]["selectedWeights"]
         features_to_generate = json_config["relativeToExtractionType"]["selectedFeaturesToGenerate"]
+        master_table_compatible = json_config["relativeToExtractionType"]["masterTableCompatible"]
+        patient_id_level = json_config["relativeToExtractionType"]["patientIdentifierLevel"]
 
         data = pd.DataFrame()
 
@@ -168,7 +170,6 @@ def DenseNet_extraction():
                     if file.endswith(".jpg"):
                         data_img = root.split(os.sep)[-depth:]
                         data_img.append(file)
-                        print(os.path.join(root, file))
                         features = get_single_chest_xray_embeddings(os.path.join(root, file), weights)
                         data_img = pd.concat([pd.DataFrame(data_img), pd.DataFrame(features[0]), pd.DataFrame(features[1])], ignore_index=True)
                         data = pd.concat([data, pd.DataFrame(data_img).transpose()], ignore_index=True)
@@ -181,10 +182,19 @@ def DenseNet_extraction():
         elif "predictions" not in features_to_generate:
             data.drop(["predictions_" + str(i) for i in range(len(features[1]))], axis=1, inplace=True)
 
+        if master_table_compatible:
+            for i in range(1, depth + 1):
+                if i != patient_id_level:
+                    data.drop(["level_" + str(i)], axis=1, inplace=True)
+            data.drop(["filename"], axis=1, inplace=True)
+
         # Save extracted features
         progress = 90
         step = "Save extracted features"
-        csv_result_path = os.path.join(str(Path(json_config["folderPath"]).parent.absolute()), json_config['filename'])
+        extracted_folder_path = os.path.join(str(Path(json_config["dataFolderPath"])), "extracted_features")
+        if not os.path.exists(extracted_folder_path):
+            os.makedirs(extracted_folder_path)
+        csv_result_path = os.path.join(extracted_folder_path, json_config['filename'])
         data.to_csv(csv_result_path, index=False)
         json_config["csv_result_path"] = csv_result_path
 

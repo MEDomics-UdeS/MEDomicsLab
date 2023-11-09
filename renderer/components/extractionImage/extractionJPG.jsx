@@ -29,6 +29,7 @@ import { ErrorRequestContext } from "../flow/context/errorRequestContext"
 const ExtractionJPG = ({ extractionTypeList, serverUrl, defaultFilename }) => {
   const [csvResultPath, setCsvResultPath] = useState("") // csv path of extracted data
   const [dataFolderList, setDataFolderList] = useState([]) // list of the folder containing jpg data at a specified Depth
+  const [dataFolderPath, setDataFolderPath] = useState("") // DATA folder
   const [extractionFunction, setExtractionFunction] = useState(extractionTypeList[0] + "_extraction") // name of the function to use for extraction
   const [extractionJsonData, setExtractionJsonData] = useState({}) // json data depending on extractionType
   const [extractionProgress, setExtractionProgress] = useState(0) // advancement state in the extraction function
@@ -47,6 +48,23 @@ const ExtractionJPG = ({ extractionTypeList, serverUrl, defaultFilename }) => {
 
   const { globalData } = useContext(DataContext) // we get the global data from the context to retrieve the directory tree of the workspace, thus retrieving the data files
   const { port } = useContext(WorkspaceContext) // we get the port for server connexion
+
+  /**
+   *
+   * @param {DataContext} dataContext
+   *
+   * @description
+   * This functions returns the DATA folder path
+   *
+   */
+  function getDataFolderPath(dataContext) {
+    let keys = Object.keys(dataContext)
+    keys.forEach((key) => {
+      if (dataContext[key].type == "folder" && dataContext[key].name == "DATA" && dataContext[key].parentID == "UUID_ROOT") {
+        setDataFolderPath(dataContext[key].path)
+      }
+    })
+  }
 
   /**
    *
@@ -94,7 +112,8 @@ const ExtractionJPG = ({ extractionTypeList, serverUrl, defaultFilename }) => {
         relativeToExtractionType: extractionJsonData,
         depth: folderDepth,
         folderPath: selectedFolder?.path,
-        filename: filename
+        filename: filename,
+        dataFolderPath: dataFolderPath
       },
       (jsonResponse) => {
         console.log("received results:", jsonResponse)
@@ -194,10 +213,13 @@ const ExtractionJPG = ({ extractionTypeList, serverUrl, defaultFilename }) => {
     setSelectedFolder(null)
   }, [folderDepth])
 
-  // Called when data in DataContext is updated, in order to updated resultDataset
+  // Called when data in DataContext is updated, in order to updated resultDataset and dataFolderPath
   useEffect(() => {
-    if (globalData !== undefined && csvResultPath !== "") {
-      findResultDataset(globalData, csvResultPath)
+    if (globalData !== undefined) {
+      getDataFolderPath(globalData)
+      if (csvResultPath !== "") {
+        findResultDataset(globalData, csvResultPath)
+      }
     }
   }, [globalData])
 
@@ -244,7 +266,7 @@ const ExtractionJPG = ({ extractionTypeList, serverUrl, defaultFilename }) => {
             <div className="margin-top-15">
               <Dropdown value={extractionType} options={extractionTypeList} onChange={(event) => onChangeExtractionType(event.value)} />
             </div>
-            <div className="margin-top-15">{extractionType == "DenseNet" && <ExtractionDenseNet setExtractionJsonData={setExtractionJsonData} setOptionsSelected={setOptionsSelected} />}</div>
+            <div className="margin-top-15">{extractionType == "DenseNet" && <ExtractionDenseNet folderDepth={folderDepth} setExtractionJsonData={setExtractionJsonData} setOptionsSelected={setOptionsSelected} />}</div>
           </div>
         </div>
 

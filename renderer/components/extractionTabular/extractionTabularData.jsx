@@ -29,6 +29,7 @@ const ExtractionTabularData = ({ extractionTypeList, serverUrl, defaultFilename 
   const [areResultsLarge, setAreResultsLarge] = useState(false) // if the results are too large we don't display them
   const [csvPath, setCsvPath] = useState("") // csv path of data to extract
   const [csvResultPath, setCsvResultPath] = useState("") // csv path of extracted data
+  const [dataFolderPath, setDataFolderPath] = useState("") // DATA folder
   const [dataframe, setDataframe] = useState([]) // djanfo dataframe of data to extract
   const [datasetList, setDatasetList] = useState([]) // list of available datasets in DATA folder
   const [displayResults, setDisplayResults] = useState(true) // say if the result data may be displayed
@@ -65,6 +66,23 @@ const ExtractionTabularData = ({ extractionTypeList, serverUrl, defaultFilename 
       }
     })
     setDatasetList(datasetListToShow)
+  }
+
+  /**
+   *
+   * @param {DataContext} dataContext
+   *
+   * @description
+   * This functions returns the DATA folder path
+   *
+   */
+  function getDataFolderPath(dataContext) {
+    let keys = Object.keys(dataContext)
+    keys.forEach((key) => {
+      if (dataContext[key].type == "folder" && dataContext[key].name == "DATA" && dataContext[key].parentID == "UUID_ROOT") {
+        setDataFolderPath(dataContext[key].path)
+      }
+    })
   }
 
   /**
@@ -125,7 +143,8 @@ const ExtractionTabularData = ({ extractionTypeList, serverUrl, defaultFilename 
       {
         relativeToExtractionType: extractionJsonData,
         csvPath: csvPath,
-        filename: filename
+        filename: filename,
+        dataFolderPath: dataFolderPath
       },
       (jsonResponse) => {
         console.log("received results:", jsonResponse)
@@ -172,10 +191,11 @@ const ExtractionTabularData = ({ extractionTypeList, serverUrl, defaultFilename 
     }
   }, [datasetList])
 
-  // Called when data in DataContext is updated, in order to updated datasetList
+  // Called when data in DataContext is updated, in order to updated datasetList and DataFolderPath
   useEffect(() => {
     if (globalData !== undefined) {
       getDatasetListFromDataContext(globalData)
+      getDataFolderPath(globalData)
     }
   }, [globalData])
 
@@ -278,7 +298,12 @@ const ExtractionTabularData = ({ extractionTypeList, serverUrl, defaultFilename 
             <DataTableFromContext MedDataObject={resultDataset} tablePropsData={{ size: "small", paginator: true, rows: 5 }} isDatasetLoaded={isResultDatasetLoaded} setIsDatasetLoaded={setIsResultDatasetLoaded} />
           </div>
         )}
-        {resultDataset && displayResults == false && <p>Features saved under {filename}. The result dataset is too large to be display here. </p>}
+        {resultDataset && displayResults == false && (
+          <p>
+            Features saved under &quot;extracted_features/
+            {filename}&quot;. The result dataset is too large to be display here.{" "}
+          </p>
+        )}
       </div>
     </div>
   )

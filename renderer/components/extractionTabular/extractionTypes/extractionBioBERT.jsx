@@ -137,7 +137,7 @@ const ExtractionBioBERT = ({ dataframe, setExtractionJsonData, setMayProceed }) 
               <hr></hr>
               <div className="margin-top-15">
                 <RadioButton inputId="note" name="frequency" value="Note" onChange={(e) => setFrequency(e.value)} checked={frequency === "Note"} />
-                <label htmlFor="note">&nbsp; Notes</label>
+                <label htmlFor="note">&nbsp; Notes (master table compatible)</label>
               </div>
               <div className="margin-top-15">
                 <Card subTitle="MIMIC-HAIM specific">
