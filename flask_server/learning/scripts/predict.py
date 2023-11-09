@@ -8,7 +8,7 @@ import pandas as pd
 sys.path.append(
     str(Path(os.path.dirname(os.path.abspath(__file__))).parent.parent))
 
-from utils.server_utils import go_print, get_model_from_medmodel
+from utils.server_utils import go_print, get_model_from_medmodel, load_csv
 from utils.GoExecutionScript import GoExecutionScript, parse_arguments
 
 json_params_dict, id_ = parse_arguments()
@@ -34,11 +34,19 @@ class GoExecScriptPredict(GoExecutionScript):
         """
         go_print(json.dumps(json_config, indent=4))
         model_infos = json_config['model']
-        data = json_config['data']
         model = get_model_from_medmodel(model_infos['path'])
-        data_df = pd.DataFrame(data)
-        y_pred = model.predict(data_df)
-        self.results = {"prediction": str(y_pred[0])}
+
+        if json_config['type'] == "table":
+            dataset_original = load_csv(json_config['dataset']['path'], model_infos['metadata']['target'])
+            dataset = dataset_original.drop(columns=[model_infos['metadata']['target']])
+            y_pred = model.predict(dataset)
+            dataset[str("pred_"+model_infos['metadata']['target'])] = y_pred
+            self.results = {"resultDataset": dataset.to_dict(orient='records')}
+        else:
+            data = json_config['data']
+            data_df = pd.DataFrame(data)
+            y_pred = model.predict(data_df)
+            self.results = {"prediction": str(y_pred[0])}
         return self.results
 
 

@@ -33,3 +33,21 @@
   margin: 0;
   padding: 0;
 }
+
+.data-input-tag-right > .p-tag {
+  height: 2rem;
+  width: 2rem;
+  position: absolute;
+  right: 1rem;
+  translate: -200% 40%;
+  z-index: 3;
+}
+
+.data-input-tag-right > .p-tag > .p-icon {
+  height: 1.5rem;
+  width: 1.5rem;
+}
+
+.div-predictions-file > .p-button {
+  width: 100%;
+}
