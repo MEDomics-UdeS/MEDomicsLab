@@ -1,4 +1,6 @@
 
+from utils.server_utils import go_print, find_next_available_port, is_port_in_use
+from utils.GoExecutionScript import GoExecutionScript, parse_arguments
 import sys
 import os
 import threading
@@ -12,8 +14,6 @@ import dtale
 sys.path.append(
     str(Path(os.path.dirname(os.path.abspath(__file__))).parent.parent))
 
-from utils.GoExecutionScript import GoExecutionScript, parse_arguments
-from utils.server_utils import go_print, find_next_available_port, is_port_in_use
 
 json_params_dict, id_ = parse_arguments()
 
@@ -65,6 +65,8 @@ class GoExecScriptDTale(GoExecutionScript):
                 if is_port_in_use(self.port):
                     self._progress["web_server_url"] = f"http://localhost:{self.port}/"
                     self._progress["port"] = self.port
+                    self._progress["name"] = self.dataset["name"].split(".")[
+                        0].capitalize()
                     self.is_calculating = False
 
             self.now += round(self.thread_delay *
