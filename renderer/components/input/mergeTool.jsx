@@ -317,7 +317,6 @@ const MergeTool = ({ pageId = "42", configPath = null }) => {
     newDatasetObject.relatedInformation = JSONToSend
     let newGlobalData = { ...globalData }
     newGlobalData[newDatasetObject.getUUID()] = newDatasetObject
-    setGlobalData(newGlobalData)
 
     requestJson(
       port,
@@ -325,6 +324,7 @@ const MergeTool = ({ pageId = "42", configPath = null }) => {
       JSONToSend,
       (jsonResponse) => {
         setIsProgressUpdating(false)
+        setGlobalData(newGlobalData)
         console.log("jsonResponse", jsonResponse)
         setProgress({ now: 100, currentLabel: "Merged complete ✅ : " + jsonResponse["finalDatasetPath"] })
         MedDataObject.updateWorkspaceDataObject()

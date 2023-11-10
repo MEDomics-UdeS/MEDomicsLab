@@ -6,9 +6,29 @@ import { Button } from "primereact/button"
 import { Col, Row } from "react-bootstrap"
 import { ToggleButton } from "primereact/togglebutton"
 import { Dropdown } from "primereact/dropdown"
+import { Slider } from "@blueprintjs/core"
 import { deepCopy } from "../../../utilities/staticFunctions"
 import { XSquare } from "react-bootstrap-icons"
-import ReactECharts from "echarts-for-react"
+
+const MEDcohortFigure = ({ jsonFilePath, classes, setClasses }) => {
+  const [selections, setSelections] = useState([])
+
+  const handleSelect = (data) => {
+    console.log("data", data)
+    setSelections(data.selections)
+  }
+
+  const handleDeselect = (data) => {
+    console.log("data", data)
+    setSelections([])
+  }
+
+  return (
+    <>
+      <MEDcohortFigureChild jsonFilePath={jsonFilePath} classes={classes} setClasses={setClasses} selections={selections} handleSelect={handleSelect} handleDeselect={handleDeselect} />
+    </>
+  )
+}
 
 /**
  *
@@ -21,7 +41,7 @@ import ReactECharts from "echarts-for-react"
  * a MEDcohort with interactive options.
  *
  */
-const MEDcohortFigure = ({ jsonFilePath, classes, setClasses }) => {
+const MEDcohortFigureChild = ({ jsonFilePath, classes, setClasses, selections, handleSelect, handleDeselect }) => {
   const [jsonData, setJsonData] = useState(null)
   const [plotData, setPlotData] = useState([])
   const [selectedClass, setSelectedClass] = useState() // list of selected classes in the dropdown menu
@@ -37,7 +57,8 @@ const MEDcohortFigure = ({ jsonFilePath, classes, setClasses }) => {
   const [timePointClusters, setTimePointClusters] = useState([])
   const [test, setTest] = useState(null)
   const [layout, setLayout] = useState({})
-  const [echartsOptions, setEchartsOptions] = useState(null)
+
+  const Plot = dynamic(() => import("react-plotly.js"), { ssr: false })
 
   /**
    *
@@ -68,79 +89,77 @@ const MEDcohortFigure = ({ jsonFilePath, classes, setClasses }) => {
       if (attributeIndex !== -1) {
         let attribute = attributes[attributeIndex]
         if (attribute !== "Date" && attribute !== "Time_point" && isNotNull(tab, attribute)) {
-          if (attribute === relativeTime && timeZeroAttribute === null && tab.Date !== null) {
+          if (attribute === relativeTime && timeZeroAttribute === null) {
             return (timeZeroAttribute = tab.Date)
           }
         }
-      } else {
-        console.log("Attribute not found", className, attributes)
       }
     })
     return timeZeroAttribute
   }
 
   // Format the JSON data in order to display it in the graph
-  // const formatData = () => {
-  //   let formattedData = []
-  //   let newClasses = new Set()
-  //   let timeZeroAttribute = null
-  //   let newTimePointsClusters = []
-  //   jsonData?.list_MEDprofile?.forEach((profile, index) => {
-  //     const color = d3.interpolateTurbo(jsonData.list_MEDprofile.indexOf(profile) / jsonData.list_MEDprofile.length)
-  //     let profileData = { x: [], y: [], mode: "markers", type: "scatter", marker: { color: color }, text: [], name: profile.PatientID, customdata: [] }
-  //     let profileRandomTime = index
-  //     let profilAttributeTimeZero = getTimeZeroForClass(relativeTime, index)
-  //     profile?.list_MEDtab?.forEach((tab) => {
-  //       let attributes = Object.keys(tab)
-  //       attributes.forEach((attribute) => {
-  //         newClasses.add(attribute)
-  //         if (attribute !== "Date") {
-  //           if (attribute === relativeTime && timeZeroAttribute === null) {
-  //             timeZeroAttribute = 0
-  //           }
-  //           let newDate = new Date(tab.Date)
-  //           if (profilAttributeTimeZero !== null) {
-  //             newDate = (new Date(tab.Date) - new Date(profilAttributeTimeZero)) / (1000 * 60 * 60 * 24 * 365)
-  //           }
-  //           if (separateHorizontally) {
-  //             newDate.setHours(newDate.getHours() + profileRandomTime)
-  //           }
-  //           if (attribute !== "Time_point" && isNotNull(tab, attribute)) {
-  //             profileData.x.push(newDate)
-  //             if (separateVertically) {
-  //               profileData.y.push(attribute + profileRandomTime)
-  //             } else {
-  //               profileData.y.push(attribute)
-  //             }
-  //             profileData.text.push(`${attribute}`)
-  //             profileData.customdata.push(tab[attribute])
-  //           } else if (attribute === "Time_point") {
-  //             let timePoint = tab[attribute]
-  //             if (timePoint === null) return
-  //             if (newTimePointsClusters[timePoint] === undefined || newTimePointsClusters[timePoint] === null) {
-  //               newTimePointsClusters[timePoint] = { x: [], y: [], mode: "lines", type: "scatter", marker: { color: color }, text: [], name: timePoint, customdata: [], fill: "toself" }
-  //             }
-  //             newTimePointsClusters[timePoint].x.push(newDate)
-  //             if (separateVertically) {
-  //               newTimePointsClusters[timePoint].y.push(attribute + profileRandomTime)
-  //             } else {
-  //               newTimePointsClusters[timePoint].y.push(attribute)
-  //             }
-  //           }
-  //         }
-  //       })
-  //     })
+  const formatData = () => {
+    let formattedData = []
+    let newClasses = new Set()
+    let timeZeroAttribute = null
+    let newTimePointsClusters = []
+    jsonData?.list_MEDprofile?.forEach((profile, index) => {
+      const color = d3.interpolateTurbo(jsonData.list_MEDprofile.indexOf(profile) / jsonData.list_MEDprofile.length)
+      let profileData = { x: [], y: [], mode: "markers", type: "scatter", marker: { color: color }, text: [], name: profile.PatientID, customdata: [] }
+      let profileRandomTime = index
+      let profilAttributeTimeZero = getTimeZeroForClass(relativeTime, index)
+      profile?.list_MEDtab?.forEach((tab) => {
+        let attributes = Object.keys(tab)
+        attributes.forEach((attribute) => {
+          newClasses.add(attribute)
+          if (attribute !== "Date") {
+            if (attribute === relativeTime && timeZeroAttribute === null) {
+              timeZeroAttribute = tab.Date
+            }
+            let newDate = new Date(tab.Date)
+            if (profilAttributeTimeZero !== null) {
+              newDate = new Date(new Date(tab.Date) - new Date(profilAttributeTimeZero))
+            }
+            if (separateHorizontally) {
+              newDate.setHours(newDate.getHours() + profileRandomTime)
+            }
+            if (attribute !== "Time_point" && isNotNull(tab, attribute)) {
+              profileData.x.push(newDate)
+              if (separateVertically) {
+                profileData.y.push(attribute + profileRandomTime)
+              } else {
+                profileData.y.push(attribute)
+              }
+              profileData.text.push(`${attribute}`)
+              profileData.customdata.push(tab[attribute])
+            } else if (attribute === "Time_point") {
+              let timePoint = tab[attribute]
+              if (timePoint === null) return
+              if (newTimePointsClusters[timePoint] === undefined || newTimePointsClusters[timePoint] === null) {
+                newTimePointsClusters[timePoint] = { x: [], y: [], mode: "lines", type: "scatter", marker: { color: color }, text: [], name: timePoint, customdata: [], fill: "toself" }
+              }
+              newTimePointsClusters[timePoint].x.push(newDate)
+              if (separateVertically) {
+                newTimePointsClusters[timePoint].y.push(attribute + profileRandomTime)
+              } else {
+                newTimePointsClusters[timePoint].y.push(attribute)
+              }
+            }
+          }
+        })
+      })
 
-  //     formattedData.push(profileData)
-  //   })
-  //   let correctedTimePointClusters = []
-  //   Object.keys(newTimePointsClusters).forEach((key) => {
-  //     correctedTimePointClusters.push(newTimePointsClusters[key])
-  //   })
-  //   setPlotData(formattedData)
-  //   setClasses(newClasses)
-  //   setTimePointClusters(correctedTimePointClusters)
-  // }
+      formattedData.push(profileData)
+    })
+    let correctedTimePointClusters = []
+    Object.keys(newTimePointsClusters).forEach((key) => {
+      correctedTimePointClusters.push(newTimePointsClusters[key])
+    })
+    setPlotData(formattedData)
+    setClasses(newClasses)
+    setTimePointClusters(correctedTimePointClusters)
+  }
 
   // Called at initialization in order to load the JSON data
   useEffect(() => {
@@ -151,170 +170,14 @@ const MEDcohortFigure = ({ jsonFilePath, classes, setClasses }) => {
   useEffect(() => {
     if (jsonData) {
       // formatData()
-      // formatData()
-      generateEchartsOptions()
+      formatData()
     }
   }, [jsonData])
-
-  const generateEchartsOptions = () => {
-    let newEchartsOption = {
-      title: {
-        text: "MEDcohort"
-      },
-      tooltip: {
-        trigger: "item"
-      },
-      grid: {
-        left: "3%",
-        right: "4%",
-        bottom: "5%",
-        containLabel: true
-      },
-      xAxis: [
-        {
-          type: (relativeTime !== null && "value") || "time"
-        }
-      ],
-      yAxis: [
-        {
-          type: "category",
-          data: []
-        }
-      ],
-      brush: {
-        brushLink: "all",
-        toolbox: ["rect", "polygon", "clear"],
-        seriesIndex: "all",
-        xAxisIndex: 0,
-        inBrush: {
-          opacity: 1
-        },
-        throttleType: "debounce",
-        throttleDelay: 300
-      },
-      series: [],
-      legend: {
-        // Legend shows each patient
-        title: {
-          text: "<b>Patients</b>"
-        },
-        type: "scroll",
-        orient: "vertical",
-        right: 10,
-        top: 50,
-        bottom: "10%",
-        padding: [150, 20],
-        data: []
-      },
-      dataZoom: [
-        {
-          type: "inside",
-          bottom: 100
-        },
-        {
-          start: 1,
-          end: 200
-        }
-      ],
-      toolbox: {
-        feature: {
-          dataZoom: {
-            yAxisIndex: "none"
-          },
-          restore: {},
-          saveAsImage: {}
-        }
-      }
-      // visualMap: {}
-    }
-
-    let patientNames = new Set()
-    let innerYClasses = new Set()
-    let newClasses = new Set()
-    let timeZeroAttribute = 0
-    let newTimePointsClusters = []
-    let numberOfPatients = jsonData?.list_MEDprofile?.length
-    jsonData?.list_MEDprofile?.forEach((profile, index) => {
-      if (profile.PatientID !== "32379" && profile.PatientID !== "25881" && profile.PatientID !== "21690" && profile.PatientID !== "18089") {
-        const color = d3.interpolateTurbo(jsonData.list_MEDprofile.indexOf(profile) / jsonData.list_MEDprofile.length)
-        patientNames.add(profile.PatientID)
-        let profileSerie = { type: "scatter", data: [], name: profile.PatientID, itemStyle: { color: color }, symbolSize: 5, emphasis: { focus: "series" }, selectMode: "multiple" }
-        let profileRandomTime = index
-        let profilAttributeTimeZero = getTimeZeroForClass(relativeTime, index)
-        profile?.list_MEDtab?.forEach((tab) => {
-          let attributes = Object.keys(tab)
-          attributes.forEach((attribute) => {
-            newClasses.add(attribute)
-            if (attribute !== "Date") {
-              if (attribute === relativeTime && timeZeroAttribute === null) {
-                timeZeroAttribute = tab.Date
-              }
-              let newDate = new Date(tab.Date)
-              if (profilAttributeTimeZero !== null) {
-                newDate = new Date(new Date(tab.Date) - new Date(profilAttributeTimeZero))
-              }
-              if (separateHorizontally) {
-                newDate = Date.parse(newDate + profileRandomTime)
-              }
-              let x, y
-              if (attribute !== "Time_point" && isNotNull(tab, attribute)) {
-                if (relativeTime !== null) {
-                  x = newDate.valueOf() / (1000 * 60 * 60 * 24)
-                  if (separateHorizontally) {
-                    x = x + profileRandomTime / (numberOfPatients * 2)
-                  }
-                } else {
-                  x = newDate
-                }
-                if (separateVertically) {
-                  y = attribute + profileRandomTime
-                  innerYClasses.add(attribute + profileRandomTime)
-                } else {
-                  y = attribute
-                  innerYClasses.add(attribute)
-                }
-                profileSerie.data.push([x, y])
-              } else if (attribute === "Time_point") {
-                let timePoint = tab[attribute]
-                if (timePoint === null) return
-                if (newTimePointsClusters[timePoint] === undefined || newTimePointsClusters[timePoint] === null) {
-                  newTimePointsClusters[timePoint] = { x: [], y: [], mode: "lines", type: "scatter", marker: { color: color }, text: [], name: timePoint, customdata: [], fill: "toself" }
-                }
-                newTimePointsClusters[timePoint].x.push(newDate)
-                if (separateVertically) {
-                  newTimePointsClusters[timePoint].y.push(attribute + profileRandomTime)
-                } else {
-                  newTimePointsClusters[timePoint].y.push(attribute)
-                }
-              }
-            }
-          })
-        })
-        newEchartsOption.series.push(profileSerie)
-      }
-
-      // formattedData.push(profileData)
-    })
-    newEchartsOption.yAxis[0].data = [...innerYClasses]
-    newEchartsOption.legend.data = [...patientNames]
-    let correctedTimePointClusters = []
-    Object.keys(newTimePointsClusters).forEach((key) => {
-      correctedTimePointClusters.push(newTimePointsClusters[key])
-    })
-    setEchartsOptions(newEchartsOption)
-    setClasses(newClasses)
-    setTimePointClusters(correctedTimePointClusters)
-  }
-
-  useEffect(() => {
-    console.log("echartsOptions", echartsOptions)
-  }, [echartsOptions])
 
   // If the relativeTime is changed, we update the figure
   useEffect(() => {
     console.log("relativeTime", relativeTime)
-    // formatData()
-    generateEchartsOptions()
+    formatData()
   }, [relativeTime])
 
   useEffect(() => {
@@ -380,8 +243,7 @@ const MEDcohortFigure = ({ jsonFilePath, classes, setClasses }) => {
 
   useEffect(() => {
     console.log("separate", separateVertically, separateHorizontally)
-    // formatData()
-    generateEchartsOptions()
+    formatData()
   }, [separateVertically, separateHorizontally])
 
   useEffect(() => {
@@ -443,13 +305,10 @@ const MEDcohortFigure = ({ jsonFilePath, classes, setClasses }) => {
   }, [selectedData])
 
   useEffect(() => {
-    if (echartsOptions !== null) {
-      let newEchartsOptions = { ...echartsOptions }
-      shapes.forEach((shape) => {
-        newEchartsOptions.series.push(shape)
-      })
-      setEchartsOptions(newEchartsOptions)
-    }
+    console.log("Shapes", shapes)
+    let newLayout = { ...layout }
+    newLayout.shapes = shapes
+    setLayout(newLayout)
   }, [shapes])
 
   useEffect(() => {
@@ -501,11 +360,9 @@ const MEDcohortFigure = ({ jsonFilePath, classes, setClasses }) => {
 
   const createRectFromTimePoint = (timePoint, length) => {
     const findEarliestDate = (timePoint) => {
-      let earliestDate = null
+      let earliestDate = new Date()
       timePointClusters[timePoint].x.forEach((x, index) => {
-        if (earliestDate === null) {
-          earliestDate = x
-        } else if (x < earliestDate) {
+        if (x < earliestDate) {
           earliestDate = x
         }
       })
@@ -523,49 +380,29 @@ const MEDcohortFigure = ({ jsonFilePath, classes, setClasses }) => {
     let earliestDate = findEarliestDate(timePoint)
     let latestDate = findLatestDate(timePoint)
     console.log("earliestDate", earliestDate, "latestDate", latestDate, earliestDate === latestDate)
-    // if (earliestDate.toTimeString() === latestDate.toTimeString()) {
-    //   // earliestDate.setHours(earliestDate.getHours() - 1)
-    //   // latestDate.setHours(latestDate.getHours() + 1)
-    // }
-    if (relativeTime !== null) {
-      earliestDate = earliestDate.valueOf() / (1000 * 60 * 60 * 24)
-      latestDate = latestDate.valueOf() / (1000 * 60 * 60 * 24)
+    if (earliestDate.toTimeString() === latestDate.toTimeString()) {
+      earliestDate.setHours(earliestDate.getHours() - 1)
+      latestDate.setHours(latestDate.getHours() + 1)
     }
-    let rect = {
-      name: `T${timePoint + 1}`,
-      type: "scatter",
 
-      markArea: {
-        silent: true,
-        itemStyle: {
-          color: returnTurboColorFromIndexInList(timePoint, 5),
-          opacity: 0.1,
-          borderWidth: 1,
-          borderType: "dashed"
-        },
-        label: {
-          position: "bottom",
-          show: true,
-          formatter: `T${timePoint + 1}`
-        },
-        data: [
-          [
-            {
-              name: `T${timePoint + 1}`,
-              xAxis: earliestDate,
-              yAxis: -1
-            },
-            {
-              xAxis: latestDate,
-              yAxis: echartsOptions.yAxis[0].data.length
-            }
-          ]
-        ]
+    let rect = {
+      type: "rect",
+      xref: "x",
+      yref: "paper",
+      x0: earliestDate,
+      y0: 0,
+      x1: latestDate,
+      y1: 1,
+      fillcolor: addTransparencyToColor(returnTurboColorFromIndexInList(timePoint, length), 0.2),
+      line: {
+        width: 1,
+        color: addTransparencyToColor(returnTurboColorFromIndexInList(timePoint, length), 0.9)
       },
-      data: [
-        [earliestDate, -1],
-        [latestDate, echartsOptions.yAxis[0].data.length]
-      ]
+      label: {
+        text: `T${timePoint + 1}`,
+        textposition: "bottom center",
+        font: { size: 10, color: darkenColorFromTurbo(returnTurboColorFromIndexInList(timePoint, length)) }
+      }
     }
     return rect
   }
@@ -605,43 +442,21 @@ const MEDcohortFigure = ({ jsonFilePath, classes, setClasses }) => {
     console.log("Layout", layout)
   }, [layout])
 
-  const handleSelect = (param, echartSelected) => {
-    console.log("selected", echartSelected, param)
-    // let batch = param.batch
-    if (param.areas === null) return
-    else if (param.areas !== undefined) {
-      // let areas = batch["0"].areas
-      // let newSelectedData = []
-      // areas.forEach((area) => {
-      //   newSelectedData.push({ type: "lineX", range: area.coordRanges })
-      // })
-      // setSelectedData(param.areas)
-    }
-  }
-  // const handleSelect = (param, echartSelected) => {
-  //   console.log("selected", echartSelected, param)
-  //   let batch = param.batch
-  //   if (batch === null) return
-  //   else if (batch["0"].areas !== undefined) {
-  //     let areas = batch["0"].areas
-  //     let newSelectedData = []
-  //     areas.forEach((area) => {
-  //       newSelectedData.push({ type: "lineX", range: area.coordRanges })
-  //     })
-  //     // setSelectedData(newSelectedData)
-  //   }
+  useEffect(() => {
+    console.log("test", test)
+  }, [test])
+
+  // const handleSelect = (data) => {
+  //   console.log("data", data)
+  //   setSelections(data.selections)
   // }
 
-  const ref = React.useRef(null)
-  console.log("echartsOptions", ref.current.getEchartsInstance())
   return (
     <>
-      <Row style={{ width: "100%", justifyContent: "center" }}>
+      <Row style={{ width: "100%" }}>
         <Col lg={8} className="center">
           <div className="MEDcohort-figure" style={{ display: "flex", flexDirection: "column", boxShadow: "2px 2px 4px rgba(0, 0, 0, 0.25)" }}>
-            {echartsOptions && <ReactECharts ref={ref} option={echartsOptions} onEvents={{ brushend: handleSelect }} style={{ width: "100%", height: "100%" }} lazyUpdate={true} />}
-
-            {/* <Plot
+            <Plot
               data={plotData}
               onClick={(data) => {
                 console.log("data", data, plotData, jsonData)
@@ -656,7 +471,7 @@ const MEDcohortFigure = ({ jsonFilePath, classes, setClasses }) => {
                   // Add a slider for the relative time
                 ],
                 shapes: shapes,
-                selections: [],
+                selections: selections,
                 selectdirection: "h",
                 autosize: true,
                 title: "MEDcohort",
@@ -683,14 +498,15 @@ const MEDcohortFigure = ({ jsonFilePath, classes, setClasses }) => {
                 console.log("UPDATE LAYOUT", figure)
                 console.log("Selections", figure.layout.selections)
               }}
+              onSelected={handleSelect}
+              onDeselect={handleDeselect}
               onInitialized={(figure) => {
                 console.log("INITIALIZED", figure)
               }}
               style={{ width: "100%", height: "100%" }}
-            /> */}
+            />
           </div>
         </Col>
-
         <Col lg={4} style={{ display: "flex", flexDirection: "column", justifyContent: "space-evenly" }}>
           <Row className="justify-content-md-center medprofile-buttons" style={{ display: "flex", flexDirection: "row", alignContent: "center", alignItems: "center", width: "100%", justifyContent: "center", boxShadow: "2px 2px 4px rgba(0, 0, 0, 0.25)", padding: "1rem", borderRadius: "1rem" }}>
             <Col xxl="6" style={{ display: "flex", flexDirection: "row", justifyContent: "center", marginBottom: "1rem" }}>

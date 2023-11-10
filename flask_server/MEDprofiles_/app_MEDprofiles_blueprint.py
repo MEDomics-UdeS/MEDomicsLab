@@ -81,7 +81,7 @@ def load_pickle_cohort():
     data_file.close()
 
     # Get the cohort
-    cohort = medclasses_module.MEDcohort(list_MEDprofile=MEDprofile_list[:5])
+    cohort = medclasses_module.MEDcohort(list_MEDprofile=MEDprofile_list)
 
     # Save the json data
     MEDprofiles_json_path = os.path.join(os.path.dirname(MEDprofiles_bin_path), "MEDprofiles.json")

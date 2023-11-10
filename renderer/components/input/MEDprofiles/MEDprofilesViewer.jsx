@@ -63,21 +63,6 @@ const MEDprofilesViewer = ({ pageId, configPath = "", MEDclassesFolder, MEDprofi
     }
   }, [])
 
-  useEffect(() => {
-    console.log("classes", classes)
-  }, [classes])
-
-  const getClassesOptions = () => {
-    if (classes.size === 0) return []
-    let classesArray = []
-    classes.forEach((className) => {
-      classesArray.push({ label: className, value: className })
-    })
-    classesArray.sort((a, b) => (a.label > b.label ? 1 : -1))
-    classesArray.unshift({ label: "Select a class", value: null })
-    return classesArray
-  }
-
   return (
     <>
       <ModulePage pageId={pageId} configPath={configPath}>
@@ -89,10 +74,6 @@ const MEDprofilesViewer = ({ pageId, configPath = "", MEDclassesFolder, MEDprofi
           <Col md="auto">
             <h6>Select the class for relative time</h6>
           </Col>
-          {/* <Col md="auto" style={{ display: "flex", flexDirection: "row" }}>
-            <Dropdown value={selectedClass} options={getClassesOptions()} onChange={(e) => setSelectedClass(e.value)} style={{ width: "100%" }} />
-            <Button label="Set" onClick={() => setRelativeTime(selectedClass)} />
-          </Col> */}
         </Row>
       </ModulePage>
     </>
