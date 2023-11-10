@@ -99,7 +99,7 @@ const MEDprofilesPrepareData = () => {
 
     // The column names must be 'PatientID', 'Date', 'Time_point' and the others must contains '_'
     const columnsMatchingFormat = (dataframe) => {
-      if (dataframe.$columns[0] !== "PatientID" || dataframe.$columns[1] !== "Date" || dataframe.$columns[2] !== "Time_point") {
+      if (dataframe.$columns[0] != "PatientID" || dataframe.$columns[1] != "Date" || dataframe.$columns[2] != "Time_point") {
         return false
       }
       for (let i = 3; i < dataframe.$columns.length; i++) {
@@ -113,11 +113,11 @@ const MEDprofilesPrepareData = () => {
     // The 1st line (after columns) must contains 'string' or 'num' at 1st position, 'datetime.date' at 2nd and 'num' in all others
     const firstLineMatchingFormat = (dataframe) => {
       let firstLine = dataframe.$data[0]
-      if ((firstLine[0] !== "string" && firstLine[0] !== "num") || firstLine[1] !== "datetime.date") {
+      if ((firstLine[0] != "string" && firstLine[0] != "num") || firstLine[1] != "datetime.date") {
         return false
       }
       for (let i = 2; i < firstLine.length; i++) {
-        if (firstLine[i] !== "num") {
+        if (firstLine[i] != "num") {
           return false
         }
       }
@@ -129,7 +129,7 @@ const MEDprofilesPrepareData = () => {
       let copy = [...dataframe.$dataIncolumnFormat[0]]
       copy.shift()
       let column = new Series(copy)
-      if (column.$dtypes.length === 1 && (column.$dtypes[0] === "int32" || column.$dtypes[0] === "int64" || (column.$dtypes[0] === "string" && column.dt.$dateObjectArray[0] == "Invalid Date"))) {
+      if (column.$dtypes.length == 1 && (column.$dtypes[0] == "int32" || column.$dtypes[0] == "int64" || (column.$dtypes[0] == "string" && column.dt.$dateObjectArray[0] == "Invalid Date"))) {
         return true
       }
       return false
@@ -140,7 +140,7 @@ const MEDprofilesPrepareData = () => {
       let copy = [...dataframe.$dataIncolumnFormat[1]]
       copy.shift()
       let column = new Series(copy)
-      if (column.$dtypes.length === 1 && column.$dtypes[0] === "string" && column.dt.$dateObjectArray[0] != "Invalid Date") {
+      if (column.$dtypes.length == 1 && column.$dtypes[0] == "string" && column.dt.$dateObjectArray[0] != "Invalid Date") {
         return true
       }
       return false
@@ -151,7 +151,7 @@ const MEDprofilesPrepareData = () => {
       let copy = [...dataframe.$dataIncolumnFormat[2]]
       copy.shift()
       let column = new Series(copy)
-      if (column.$dtypes.length === 1 && (column.$dtypes[0] === "int32" || column.$dtypes[0] === "int64")) {
+      if (column.$dtypes.length == 1 && (column.$dtypes[0] == "int32" || column.$dtypes[0] == "int64")) {
         return true
       }
       return false
@@ -159,9 +159,12 @@ const MEDprofilesPrepareData = () => {
 
     // The others columns (removing 1st line) must contains num values
     const allNumericValues = (dataframe) => {
-      for (let i = 2; i < dataframe.$columns.length; i++) {
-        const columnType = dataframe.$dtypes[i]
-        if ((columnType !== "int32" && columnType !== "int64" && columnType !== "float32" && columnType !== "float64") || !dataframe.$columns[i].includes("_")) {
+      let copy = [...dataframe.$data]
+      copy.shift()
+      let data = new DataFrame(copy)
+      for (let i = 3; i < data.$dtypes.length; i++) {
+        const columnType = data.$dtypes[i]
+        if (columnType != "int32" && columnType != "int64" && columnType != "float32" && columnType != "float64") {
           return false
         }
       }
@@ -219,19 +222,19 @@ const MEDprofilesPrepareData = () => {
     const loadCSVFile = (MEDdata) => {
       // The first column must be identifiers
       const firstColumnMatchingFormat = (dataframe) => {
-        return dataframe.$dtypes[0] === "int32" || dataframe.$dtypes[0] === "int64" || (dataframe.$dtypes[0] === "string" && dataframe[dataframe.$columns[0]].dt.$dateObjectArray[0] == "Invalid Date")
+        return dataframe.$dtypes[0] == "int32" || dataframe.$dtypes[0] == "int64" || (dataframe.$dtypes[0] == "string" && dataframe[dataframe.$columns[0]].dt.$dateObjectArray[0] == "Invalid Date")
       }
 
       // The second column must be date
       const secondColumnMatchingFormat = (dataframe) => {
-        return dataframe.$dtypes[1] === "string" && dataframe[dataframe.$columns[1]].dt.$dateObjectArray[0] !== "Invalid Date"
+        return dataframe.$dtypes[1] == "string" && dataframe[dataframe.$columns[1]].dt.$dateObjectArray[0] != "Invalid Date"
       }
 
       // All the others columns must be numerical features and their columns names must respect the format className_attributeName
       const allOtherColumnsAreNumerical = (dataframe) => {
         for (let i = 2; i < dataframe.$columns.length; i++) {
           const columnType = dataframe.$dtypes[i]
-          if ((columnType !== "int32" && columnType !== "int64" && columnType !== "float32" && columnType !== "float64") || !dataframe.$columns[i].includes("_")) {
+          if ((columnType != "int32" && columnType != "int64" && columnType != "float32" && columnType != "float64") || !dataframe.$columns[i].includes("_")) {
             return false
           }
         }
