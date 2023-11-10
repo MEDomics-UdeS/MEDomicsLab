@@ -7,13 +7,15 @@ import { Column } from "primereact/column"
 
 /**
  *
- * @param {Object} data data to display in the table
+ * @param {Object} data data to display in the table. should be an array of arrays or an array of dictionaries
  * @param {Object} tablePropsData props to pass to the data
  * @param {Object} tablePropsColumn props to pass to the columns
+ * @param {Function} customGetColumnsFromData function to get the columns from the data
+ * @param {Array[Object]} columns Optional. If provided, the columns to display in the table
  * @returns {JSX.Element} A JSX element containing the data table
  * @description This component is a wrapper for the primereact datatable. It is used to display data in a table.
  */
-const DataTableWrapper = ({ data, tablePropsData, tablePropsColumn, customGetColumnsFromData }) => {
+const DataTableWrapper = ({ data, tablePropsData, tablePropsColumn, customGetColumnsFromData, columns }) => {
   const [header, setHeader] = useState([])
   const [rows, setRows] = useState([])
 
@@ -42,28 +44,21 @@ const DataTableWrapper = ({ data, tablePropsData, tablePropsColumn, customGetCol
         // Case data is an array of arrays
         let keys = Object.keys(data[0])
         return keys.map((key) => {
-          return (
-            <Column
-              key={key}
-              field={key}
-              header={data[0][key]}
-              {...tablePropsColumn}
-            />
-          )
+          return <Column key={key} field={key} header={data[0][key]} {...tablePropsColumn} />
         })
       } else {
         // Case data is an array of dictionaries
         return Object.keys(data[0]).map((key) => <Column key={key} field={key} header={key} {...tablePropsColumn} />)
       }
     }
-      
+
     return <></>
   }
 
   return (
     <>
       <DataTable value={rows} {...tablePropsData} size="small" scrollable height={"100%"} width={"100%"}>
-        {header}
+        {columns ? columns.map((col) => <Column key={col.title} field={col.title} header={col.title} {...col.props} />) : header}
       </DataTable>
     </>
   )
