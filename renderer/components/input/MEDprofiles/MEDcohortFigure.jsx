@@ -605,19 +605,19 @@ const MEDcohortFigure = ({ jsonFilePath, classes, setClasses }) => {
     console.log("Layout", layout)
   }, [layout])
 
-  const handleSelect = (param, echartSelected) => {
-    console.log("selected", echartSelected, param)
-    // let batch = param.batch
-    if (param.areas === null) return
-    else if (param.areas !== undefined) {
-      // let areas = batch["0"].areas
-      // let newSelectedData = []
-      // areas.forEach((area) => {
-      //   newSelectedData.push({ type: "lineX", range: area.coordRanges })
-      // })
-      // setSelectedData(param.areas)
-    }
-  }
+  // const handleSelect = (param, echartSelected) => {
+  //   console.log("selected", echartSelected, param)
+  //   // let batch = param.batch
+  //   if (param.areas === null) return
+  //   else if (param.areas !== undefined) {
+  //     // let areas = batch["0"].areas
+  //     // let newSelectedData = []
+  //     // areas.forEach((area) => {
+  //     //   newSelectedData.push({ type: "lineX", range: area.coordRanges })
+  //     // })
+  //     // setSelectedData(param.areas)
+  //   }
+  // }
   // const handleSelect = (param, echartSelected) => {
   //   console.log("selected", echartSelected, param)
   //   let batch = param.batch

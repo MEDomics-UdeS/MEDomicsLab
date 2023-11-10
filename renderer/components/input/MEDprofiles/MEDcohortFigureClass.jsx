@@ -79,69 +79,6 @@ const MEDcohortFigure = ({ jsonFilePath, classes, setClasses }) => {
     return timeZeroAttribute
   }
 
-  // Format the JSON data in order to display it in the graph
-  // const formatData = () => {
-  //   let formattedData = []
-  //   let newClasses = new Set()
-  //   let timeZeroAttribute = null
-  //   let newTimePointsClusters = []
-  //   jsonData?.list_MEDprofile?.forEach((profile, index) => {
-  //     const color = d3.interpolateTurbo(jsonData.list_MEDprofile.indexOf(profile) / jsonData.list_MEDprofile.length)
-  //     let profileData = { x: [], y: [], mode: "markers", type: "scatter", marker: { color: color }, text: [], name: profile.PatientID, customdata: [] }
-  //     let profileRandomTime = index
-  //     let profilAttributeTimeZero = getTimeZeroForClass(relativeTime, index)
-  //     profile?.list_MEDtab?.forEach((tab) => {
-  //       let attributes = Object.keys(tab)
-  //       attributes.forEach((attribute) => {
-  //         newClasses.add(attribute)
-  //         if (attribute !== "Date") {
-  //           if (attribute === relativeTime && timeZeroAttribute === null) {
-  //             timeZeroAttribute = 0
-  //           }
-  //           let newDate = new Date(tab.Date)
-  //           if (profilAttributeTimeZero !== null) {
-  //             newDate = (new Date(tab.Date) - new Date(profilAttributeTimeZero)) / (1000 * 60 * 60 * 24 * 365)
-  //           }
-  //           if (separateHorizontally) {
-  //             newDate.setHours(newDate.getHours() + profileRandomTime)
-  //           }
-  //           if (attribute !== "Time_point" && isNotNull(tab, attribute)) {
-  //             profileData.x.push(newDate)
-  //             if (separateVertically) {
-  //               profileData.y.push(attribute + profileRandomTime)
-  //             } else {
-  //               profileData.y.push(attribute)
-  //             }
-  //             profileData.text.push(`${attribute}`)
-  //             profileData.customdata.push(tab[attribute])
-  //           } else if (attribute === "Time_point") {
-  //             let timePoint = tab[attribute]
-  //             if (timePoint === null) return
-  //             if (newTimePointsClusters[timePoint] === undefined || newTimePointsClusters[timePoint] === null) {
-  //               newTimePointsClusters[timePoint] = { x: [], y: [], mode: "lines", type: "scatter", marker: { color: color }, text: [], name: timePoint, customdata: [], fill: "toself" }
-  //             }
-  //             newTimePointsClusters[timePoint].x.push(newDate)
-  //             if (separateVertically) {
-  //               newTimePointsClusters[timePoint].y.push(attribute + profileRandomTime)
-  //             } else {
-  //               newTimePointsClusters[timePoint].y.push(attribute)
-  //             }
-  //           }
-  //         }
-  //       })
-  //     })
-
-  //     formattedData.push(profileData)
-  //   })
-  //   let correctedTimePointClusters = []
-  //   Object.keys(newTimePointsClusters).forEach((key) => {
-  //     correctedTimePointClusters.push(newTimePointsClusters[key])
-  //   })
-  //   setPlotData(formattedData)
-  //   setClasses(newClasses)
-  //   setTimePointClusters(correctedTimePointClusters)
-  // }
-
   // Called at initialization in order to load the JSON data
   useEffect(() => {
     setJsonData(loadJsonPath(jsonFilePath))
