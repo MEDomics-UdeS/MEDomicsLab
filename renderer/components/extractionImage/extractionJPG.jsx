@@ -2,17 +2,18 @@ import Button from "react-bootstrap/Button"
 import { DataContext } from "../workspace/dataContext"
 import DataTableFromContext from "../mainPages/dataComponents/dataTableFromContext"
 import { Dropdown } from "primereact/dropdown"
+import { ErrorRequestContext } from "../flow/context/errorRequestContext"
 import ExtractionDenseNet from "./extractionTypes/extractionDenseNet"
 import { InputNumber } from "primereact/inputnumber"
 import { InputText } from "primereact/inputtext"
 import MedDataObject from "../workspace/medDataObject"
 import { Message } from "primereact/message"
+import ProgressBarRequests from "../generalPurpose/progressBarRequests"
+import { ProgressSpinner } from "primereact/progressspinner"
 import React, { useContext, useEffect, useState } from "react"
 import { requestJson } from "../../utilities/requests"
-import ProgressBarRequests from "../generalPurpose/progressBarRequests"
 import { toast } from "react-toastify"
 import { WorkspaceContext } from "../workspace/workspaceContext"
-import { ErrorRequestContext } from "../flow/context/errorRequestContext"
 
 /**
  *
@@ -37,6 +38,7 @@ const ExtractionJPG = ({ extractionTypeList, serverUrl, defaultFilename }) => {
   const [extractionType, setExtractionType] = useState(extractionTypeList[0]) // extraction type
   const [filename, setFilename] = useState(defaultFilename) // name of the csv file containing extracted data
   const [folderDepth, setFolderDepth] = useState(1) // depth to consider when searching jpg data in folders
+  const [isLoadingDataset, setIsLoadingDataset] = useState(false) // boolean telling if the result dataset is loading
   const [isResultDatasetLoaded, setIsResultDatasetLoaded] = useState(false) // boolean set to false every time we reload an extracted data dataset
   const [optionsSelected, setOptionsSelected] = useState(true) // boolean set to true when the options seleted are convenient for extraction
   const [progress, setProgress] = useState({ now: 0, currentLabel: "" }) // progress bar state [now, currentLabel]
@@ -124,6 +126,7 @@ const ExtractionJPG = ({ extractionTypeList, serverUrl, defaultFilename }) => {
           MedDataObject.updateWorkspaceDataObject()
           setExtractionProgress(100)
           setIsResultDatasetLoaded(false)
+          setIsLoadingDataset(true)
         } else {
           toast.error(`Extraction failed: ${jsonResponse.error.message}`)
           setError(jsonResponse.error)
@@ -237,6 +240,7 @@ const ExtractionJPG = ({ extractionTypeList, serverUrl, defaultFilename }) => {
       setShowProgressBar(false)
       setExtractionProgress(0)
       setExtractionStep("")
+      setIsLoadingDataset(false)
     }
   }, [isResultDatasetLoaded])
 
@@ -300,7 +304,7 @@ const ExtractionJPG = ({ extractionTypeList, serverUrl, defaultFilename }) => {
           {/* Display extracted data */}
           <div className="center">
             <h2>Extracted data</h2>
-            {resultDataset ? <DataTableFromContext MedDataObject={resultDataset} tablePropsData={{ size: "small", paginator: true, rows: 5 }} isDatasetLoaded={isResultDatasetLoaded} setIsDatasetLoaded={setIsResultDatasetLoaded} /> : <p>Nothing to show, proceed to extraction first.</p>}
+            {resultDataset ? <DataTableFromContext MedDataObject={resultDataset} tablePropsData={{ size: "small", paginator: true, rows: 5 }} isDatasetLoaded={isResultDatasetLoaded} setIsDatasetLoaded={setIsResultDatasetLoaded} /> : isLoadingDataset ? <ProgressSpinner /> : <p>Nothing to show, proceed to extraction first.</p>}
           </div>
         </div>
       </div>

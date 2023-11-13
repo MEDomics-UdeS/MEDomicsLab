@@ -148,6 +148,7 @@ def DenseNet_extraction():
         features_to_generate = json_config["relativeToExtractionType"]["selectedFeaturesToGenerate"]
         master_table_compatible = json_config["relativeToExtractionType"]["masterTableCompatible"]
         patient_id_level = json_config["relativeToExtractionType"]["patientIdentifierLevel"]
+        column_prefix = json_config["relativeToExtractionType"]["columnPrefix"] + '_'
         if master_table_compatible:
             info_dataframe = json_config["relativeToExtractionType"]["selectedDataset"]
             selected_columns = json_config["relativeToExtractionType"]["selectedColumns"]
@@ -186,12 +187,12 @@ def DenseNet_extraction():
                         data = pd.concat([data, pd.DataFrame(data_img).transpose()], ignore_index=True)
                         progress += 1/nb_images*50
 
-        data.columns = ["level_" + str(i+1) for i in range(depth)] + ["filename"] + ["densefeatures_" + str(i) for i in range(len(features[0]))] + ["predictions_" + str(i) for i in range(len(features[1]))]
+        data.columns = ["level_" + str(i+1) for i in range(depth)] + ["filename"] + [column_prefix + '_' + "densefeatures_" + str(i) for i in range(len(features[0]))] + [column_prefix + '_' + "predictions_" + str(i) for i in range(len(features[1]))]
 
         if "denseFeatures" not in features_to_generate:
-            data.drop(["densefeatures_" + str(i) for i in range(len(features[0]))], axis=1, inplace=True)
+            data.drop([column_prefix + '_' + "densefeatures_" + str(i) for i in range(len(features[0]))], axis=1, inplace=True)
         elif "predictions" not in features_to_generate:
-            data.drop(["predictions_" + str(i) for i in range(len(features[1]))], axis=1, inplace=True)
+            data.drop([column_prefix + '_' + "predictions_" + str(i) for i in range(len(features[1]))], axis=1, inplace=True)
 
         progress = 80
         step = "Conversion into submaster table"
