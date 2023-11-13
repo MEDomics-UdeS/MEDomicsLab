@@ -1,10 +1,9 @@
 import ModulePage from "../../mainPages/moduleBasics/modulePage"
-import React, { use, useContext, useEffect, useState } from "react"
+import React, { useContext, useEffect, useState } from "react"
 import { requestJson } from "../../../utilities/requests"
 import { toast } from "react-toastify"
 import { WorkspaceContext } from "../../workspace/workspaceContext"
 import MEDcohortFigure from "./MEDcohortFigure"
-import MEDcohortFigureClass from "./MEDcohortFigureClass"
 import { Dropdown } from "primereact/dropdown"
 import { Col, Row } from "react-bootstrap"
 import { Button } from "primereact/button"
@@ -27,7 +26,6 @@ const MEDprofilesViewer = ({ pageId, configPath = "", MEDclassesFolder, MEDprofi
   const [jsonFilePath, setJsonFilePath] = useState(null)
   const { port } = useContext(WorkspaceContext) // we get the port for server connexion
   const [classes, setClasses] = useState(new Set()) // list of classes in the MEDclasses folder
-  const [selectedClass, setSelectedClass] = useState() // list of selected classes in the dropdown menu
   const [relativeTime, setRelativeTime] = useState(null) // relative time for the selected class [0, 1
   /**
    * @description
@@ -70,8 +68,7 @@ const MEDprofilesViewer = ({ pageId, configPath = "", MEDclassesFolder, MEDprofi
         <h1 className="center">MEDprofiles Viewer</h1>
         <div>MEDclasses folder : {MEDclassesFolder?.path}</div>
         <div>MEDprofiles binary file : {MEDprofilesBinaryFile?.path}</div>
-        {/* {jsonFilePath && <MEDcohortFigure jsonFilePath={jsonFilePath} classes={classes} setClasses={setClasses} relativeTime={relativeTime} />} */}
-        {jsonFilePath && <MEDcohortFigureClass jsonFilePath={jsonFilePath} classes={classes} setClasses={setClasses} relativeTime={relativeTime} />}
+        {jsonFilePath && <MEDcohortFigure jsonFilePath={jsonFilePath} classes={classes} setClasses={setClasses} relativeTime={relativeTime} />}
         <Row className="justify-content-md-center" style={{ display: "flex", flexDirection: "row", alignContent: "center", alignItems: "center", width: "100%" }}>
           <Col md="auto">
             <h6>Select the class for relative time</h6>
