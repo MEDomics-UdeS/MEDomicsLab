@@ -633,13 +633,13 @@ const MEDcohortFigure = ({ jsonFilePath, classes, setClasses }) => {
   // }
 
   const ref = React.useRef(null)
-  console.log("echartsOptions", ref.current.getEchartsInstance())
+  // console.log("echartsOptions", ref.current.getEchartsInstance())
   return (
     <>
       <Row style={{ width: "100%", justifyContent: "center" }}>
         <Col lg={8} className="center">
           <div className="MEDcohort-figure" style={{ display: "flex", flexDirection: "column", boxShadow: "2px 2px 4px rgba(0, 0, 0, 0.25)" }}>
-            {echartsOptions && <ReactECharts ref={ref} option={echartsOptions} onEvents={{ brushend: handleSelect }} style={{ width: "100%", height: "100%" }} lazyUpdate={true} />}
+            {echartsOptions && <ReactECharts ref={ref} option={echartsOptions} onEvents={{}} style={{ width: "100%", height: "100%" }} lazyUpdate={true} />}
 
             {/* <Plot
               data={plotData}

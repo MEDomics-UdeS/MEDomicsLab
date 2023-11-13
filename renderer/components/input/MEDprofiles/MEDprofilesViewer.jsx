@@ -4,6 +4,7 @@ import { requestJson } from "../../../utilities/requests"
 import { toast } from "react-toastify"
 import { WorkspaceContext } from "../../workspace/workspaceContext"
 import MEDcohortFigure from "./MEDcohortFigure"
+import MEDcohortFigureClass from "./MEDcohortFigureClass"
 import { Dropdown } from "primereact/dropdown"
 import { Col, Row } from "react-bootstrap"
 import { Button } from "primereact/button"
@@ -69,7 +70,8 @@ const MEDprofilesViewer = ({ pageId, configPath = "", MEDclassesFolder, MEDprofi
         <h1 className="center">MEDprofiles Viewer</h1>
         <div>MEDclasses folder : {MEDclassesFolder?.path}</div>
         <div>MEDprofiles binary file : {MEDprofilesBinaryFile?.path}</div>
-        {jsonFilePath && <MEDcohortFigure jsonFilePath={jsonFilePath} classes={classes} setClasses={setClasses} relativeTime={relativeTime} />}
+        {/* {jsonFilePath && <MEDcohortFigure jsonFilePath={jsonFilePath} classes={classes} setClasses={setClasses} relativeTime={relativeTime} />} */}
+        {jsonFilePath && <MEDcohortFigureClass jsonFilePath={jsonFilePath} classes={classes} setClasses={setClasses} relativeTime={relativeTime} />}
         <Row className="justify-content-md-center" style={{ display: "flex", flexDirection: "row", alignContent: "center", alignItems: "center", width: "100%" }}>
           <Col md="auto">
             <h6>Select the class for relative time</h6>
