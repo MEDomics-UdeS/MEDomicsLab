@@ -104,6 +104,7 @@ const ExtractionJPG = ({ extractionTypeList, serverUrl, defaultFilename }) => {
   const runExtraction = () => {
     setRunning(true)
     setShowProgressBar(true)
+    console.log(extractionJsonData)
     // Run extraction process
     requestJson(
       port,

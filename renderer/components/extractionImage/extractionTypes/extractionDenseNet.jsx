@@ -1,8 +1,11 @@
 import { Checkbox } from "primereact/checkbox"
+import { DataFrame } from "danfojs"
+import { DataContext } from "../../workspace/dataContext"
 import { Dropdown } from "primereact/dropdown"
 import { InputNumber } from "primereact/inputnumber"
 import { InputSwitch } from "primereact/inputswitch"
-import React, { useEffect, useState } from "react"
+import { loadCSVPath } from "../../../utilities/fileManagementUtils"
+import React, { useContext, useEffect, useState } from "react"
 
 /**
  *
@@ -16,11 +19,71 @@ import React, { useEffect, useState } from "react"
  *
  */
 const ExtractionDenseNet = ({ folderDepth, setExtractionJsonData, setOptionsSelected }) => {
+  const [dataframe, setDataframe] = useState(null) // danfojs dataframe from the selected csv
+  const [datasetList, setDatasetList] = useState([]) // list of available datasets
   const [masterTableCompatible, setMasterTableCompatible] = useState(true)
+  const [parsePatientIdAsInt, setParsePatientIdAsInt] = useState(false)
   const [patientIdentifierLevel, setPatientIdentifierLevel] = useState(1)
   const [selectedFeaturesToGenerate, setSelectedFeaturesToGenerate] = useState(["denseFeatures"])
+  const [selectedColumns, setSelectedColumns] = useState({
+    filename: "",
+    date: ""
+  })
+  const [selectedDataset, setSelectedDataset] = useState(null) // dataset choosen that must associate dates to filenames
   const [selectedWeights, setSelectedWeights] = useState("densenet121-res224-chex")
   const [weightsList] = useState(["densenet121-res224-chex", "densenet121-res224-pc", "densenet121-res224-nih", "densenet121-res224-rsna", "densenet121-res224-all", "densenet121-res224-mimic_nb", "densenet121-res224-mimic_ch"])
+  const { globalData } = useContext(DataContext) // we get the global data from the context to retrieve the directory tree of the workspace, thus retrieving the data files
+
+  /**
+   *
+   * @param {DataContext} dataContext
+   *
+   * @description
+   * This functions get all files from the DataContext and update datasetList.
+   *
+   */
+  function getDatasetListFromDataContext(dataContext) {
+    let keys = Object.keys(dataContext)
+    let datasetListToShow = []
+    keys.forEach((key) => {
+      if (dataContext[key].type !== "folder") {
+        datasetListToShow.push(dataContext[key])
+      }
+    })
+    setDatasetList(datasetListToShow)
+  }
+
+  /**
+   *
+   * @param {string} column
+   * @param {event} event
+   *
+   * @description
+   * Function used to attribute column values from selectors
+   *
+   */
+  const handleColumnSelect = (column, event) => {
+    const { value } = event.target
+    setSelectedColumns({
+      ...selectedColumns,
+      [column]: value
+    })
+  }
+
+  /**
+   *
+   * @param {event} e
+   *
+   * @description
+   * Called when dataset is selected
+   */
+  const onDatasetSelected = (e) => {
+    let medobject = e.value
+    setSelectedDataset(medobject)
+    loadCSVPath(medobject.path, (data) => {
+      setDataframe(new DataFrame(data))
+    })
+  }
 
   /**
    *
@@ -40,18 +103,23 @@ const ExtractionDenseNet = ({ folderDepth, setExtractionJsonData, setOptionsSele
 
   // Called when options are modified
   useEffect(() => {
-    if (selectedWeights != "" && selectedFeaturesToGenerate.length > 0) {
+    if (selectedWeights != "" && selectedFeaturesToGenerate.length > 0 && (!masterTableCompatible || (masterTableCompatible && selectedColumns.filename !== "" && selectedColumns.date !== ""))) {
       setOptionsSelected(true)
     } else {
       setOptionsSelected(false)
     }
-    setExtractionJsonData({ selectedWeights: selectedWeights, selectedFeaturesToGenerate: selectedFeaturesToGenerate, masterTableCompatible: masterTableCompatible, patientIdentifierLevel: patientIdentifierLevel })
-  }, [selectedWeights, selectedFeaturesToGenerate, masterTableCompatible, patientIdentifierLevel])
+    setExtractionJsonData({ selectedWeights: selectedWeights, selectedFeaturesToGenerate: selectedFeaturesToGenerate, masterTableCompatible: masterTableCompatible, patientIdentifierLevel: patientIdentifierLevel, selectedColumns: selectedColumns, selectedDataset: selectedDataset?.path, parsePatientIdAsInt: parsePatientIdAsInt })
+  }, [selectedWeights, selectedFeaturesToGenerate, masterTableCompatible, patientIdentifierLevel, selectedColumns, selectedDataset, parsePatientIdAsInt])
 
   // Update the patient identifier level to minimum while folder depth is updated
   useEffect(() => {
     setPatientIdentifierLevel(1)
   }, [folderDepth])
+
+  // Called while the datacontext is updated in order to reload csv files
+  useEffect(() => {
+    getDatasetListFromDataContext(globalData)
+  }, [globalData])
 
   return (
     <>
@@ -81,23 +149,43 @@ const ExtractionDenseNet = ({ folderDepth, setExtractionJsonData, setOptionsSele
               </div>
             </div>
           </div>
-          <div className="vertical-divider"></div>
+        </div>
+        <div className="flex-container margin-top-15">
           <div>
-            <div>
-              {/* Master Table compatible */}
-              <b>Format the dataset as master table &nbsp;</b>
-              <hr></hr>
-              <div className="margin-top-15">
-                <InputSwitch inputId="masterTableCompatible" checked={masterTableCompatible} onChange={(e) => setMasterTableCompatible(e.value)} tooltip="The master table format may contain less columns in order to enter the MEDprofiles' process." />
-                <label htmlFor="masterTableCompatible">&nbsp; Master Table Compatible &nbsp;</label>
-              </div>
-              {masterTableCompatible == true && (
-                <div>
+            <hr></hr>
+            {/* Master Table compatible */}
+            <b>Format the dataset as master table &nbsp;</b>
+            <hr></hr>
+            <div className="margin-top-15">
+              <InputSwitch inputId="masterTableCompatible" checked={masterTableCompatible} onChange={(e) => setMasterTableCompatible(e.value)} tooltip="The master table format may contain less/different columns in order to enter the MEDprofiles' process." />
+              <label htmlFor="masterTableCompatible">&nbsp; Master Table Compatible &nbsp;</label>
+            </div>
+            {masterTableCompatible && (
+              <>
+                <div className="margin-top-15">
                   Patient Identifier folder level : &nbsp;
                   <InputNumber value={patientIdentifierLevel} onValueChange={(e) => setPatientIdentifierLevel(e.value)} size={1} showButtons min={1} max={folderDepth} />
                 </div>
-              )}
-            </div>
+                <div className="margin-top-15">
+                  <Checkbox value={"parse"} onChange={(e) => setParsePatientIdAsInt(e.checked)} checked={parsePatientIdAsInt == true} />
+                  <label htmlFor="parse">&nbsp; Parse patients ID as integers &nbsp;</label>
+                </div>
+                <div className="margin-top-15">
+                  Select a CSV file associating image filenames to dates : &nbsp;
+                  {datasetList.length > 0 ? <Dropdown value={selectedDataset} options={datasetList.filter((value) => value.extension === "csv")} optionLabel="name" onChange={(event) => onDatasetSelected(event)} placeholder="Select a dataset" /> : <Dropdown placeholder="No CSV file to show" disabled />}
+                </div>
+                <div className="margin-top-15">
+                  <div className="margin-top-15">
+                    Filename column : &nbsp;
+                    {dataframe && dataframe.$data ? <Dropdown value={selectedColumns.filename} onChange={(event) => handleColumnSelect("filename", event)} options={dataframe.$columns.filter((column, index) => dataframe.$dtypes[index] == "string" && dataframe[column].dt.$dateObjectArray[0] == "Invalid Date")} placeholder="Filename" /> : <Dropdown placeholder="Filename" disabled />}
+                  </div>
+                  <div className="margin-top-15">
+                    Date column : &nbsp;
+                    {dataframe && dataframe.$data ? <Dropdown value={selectedColumns.date} onChange={(event) => handleColumnSelect("date", event)} options={dataframe.$columns.filter((column, index) => dataframe.$dtypes[index] == "string" && dataframe[column].dt.$dateObjectArray[0] != "Invalid Date")} placeholder="Date" /> : <Dropdown placeholder="Date" disabled />}
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         </div>
       </div>
