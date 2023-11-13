@@ -155,6 +155,7 @@ const ExtractionTabularData = ({ extractionTypeList, serverUrl, defaultFilename 
           setCsvResultPath(jsonResponse["csv_result_path"])
           setExtractionStep("Extracted Features Saved")
           MedDataObject.updateWorkspaceDataObject()
+          setResultDataset(null)
           setExtractionProgress(100)
           setIsResultDatasetLoaded(false)
           setDisplayResults(areResultsLarge == false)

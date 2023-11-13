@@ -125,6 +125,7 @@ const ExtractionJPG = ({ extractionTypeList, serverUrl, defaultFilename }) => {
           setExtractionStep("Extracted Features Saved")
           MedDataObject.updateWorkspaceDataObject()
           setExtractionProgress(100)
+          setResultDataset(null)
           setIsResultDatasetLoaded(false)
           setIsLoadingDataset(true)
         } else {
