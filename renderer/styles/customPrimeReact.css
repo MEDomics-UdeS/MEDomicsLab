@@ -489,3 +489,11 @@
   background: #08458a !important;
   border: #4384cec7 2px solid;
 }
+
+.medcohort-drop .p-dropdown-trigger {
+  width: 1.5rem;
+}
+
+.medcohort-drop .p-multiselect-trigger {
+  width: 1.5rem;
+}

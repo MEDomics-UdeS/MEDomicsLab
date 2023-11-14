@@ -12,6 +12,7 @@ import { Button } from "primereact/button"
 import { MultiSelect } from "primereact/multiselect"
 import MedDataObject from "../../workspace/medDataObject"
 import { toast } from "react-toastify"
+import { confirmDialog } from "primereact/confirmdialog"
 
 /**
  * @class MEDcohortFigureClass
@@ -56,13 +57,24 @@ class MEDcohortFigureClass extends React.Component {
     this.chartRef = React.createRef()
   }
 
-  // You can add lifecycle methods like componentDidMount, componentDidUpdate here
+  /**
+   * Invoked immediately after a component is mounted
+   * Sets the jsonData state by loading the JSON file at the specified path and generates Echarts options.
+   * @function
+   * @returns {void}
+   */
   componentDidMount() {
     this.setState({ jsonData: loadJsonPath(this.props.jsonFilePath) }, () => {
       this.generateEchartsOptions()
     })
   }
 
+  /**
+   * @desc React lifecycle method that is called after the component updates. It is used to respond to changes in props or state.
+   * @param {object} prevProps - The previous props object.
+   * @param {object} prevState - The previous state object.
+   * @returns {void}
+   */
   componentDidUpdate(prevProps, prevState) {
     if (this.chartRef.current !== null) {
       console.log("REF", this.chartRef.current.getEchartsInstance())
@@ -85,11 +97,31 @@ class MEDcohortFigureClass extends React.Component {
     // Clean up event listeners, cancel timeouts, etc.
   }
 
+  /**
+   * Returns a color from the Turbo color scheme based on the index in a list.
+   * @param {number} index - The index of the color in the list.
+   * @param {number} length - The length of the list.
+   * @returns {string} - The color in hexadecimal format.
+   */
   returnTurboColorFromIndexInList = (index, length) => {
     return d3.interpolateTurbo(index / length)
   }
 
+  /**
+   * Creates a rectangle from a given time point, length, time point clusters, echarts options, and name.
+   * @param {number} timePoint - The time point to create the rectangle from.
+   * @param {number} length - The length of the rectangle.
+   * @param {Object} timePointClusters - The time point clusters.
+   * @param {Object} echartsOptions - The echarts options.
+   * @param {string} name - The name of the rectangle.
+   * @returns {Object} - The rectangle object.
+   */
   createRectFromTimePoint = (timePoint, length, timePointClusters, echartsOptions, name) => {
+    /**
+     * Finds the earliest date in a given time point.
+     * @param {number} timePoint - The time point to find the earliest date from.
+     * @returns {Date} - The earliest date.
+     */
     const findEarliestDate = (timePoint) => {
       let earliestDate = null
       timePointClusters[timePoint].x.forEach((x) => {
@@ -101,6 +133,11 @@ class MEDcohortFigureClass extends React.Component {
       })
       return earliestDate
     }
+    /**
+     * Finds the latest date in a given time point.
+     * @param {number} timePoint - The time point to find the latest date from.
+     * @returns {Date} - The latest date.
+     */
     const findLatestDate = (timePoint) => {
       let latestDate = new Date(0)
       timePointClusters[timePoint].x.forEach((x) => {
@@ -157,6 +194,12 @@ class MEDcohortFigureClass extends React.Component {
     return rect
   }
 
+  /**
+   * Updates the time point clusters and echarts options, and updates the state with new time points and shapes.
+   * @param {Array} timePointClusters - An array of time point clusters.
+   * @param {Object} echartsOptions - The echarts options object.
+   * @returns {void}
+   */
   handleTimePointClustersChange = (timePointClusters, echartsOptions) => {
     console.log("timePointClusters", timePointClusters)
     let newShapes = []
@@ -186,10 +229,21 @@ class MEDcohortFigureClass extends React.Component {
     this.setState({ timePoints: newTimePoints, shapes: newShapes })
   }
 
+  /**
+   * Returns an array of numbers from startAt to startAt + size - 1.
+   * @param {number} size - The size of the array to be returned.
+   * @param {number} startAt - The starting number of the array.
+   * @returns {number[]} - An array of numbers from startAt to startAt + size - 1.
+   */
   range(size, startAt) {
     return [...Array(size).keys()].map((i) => i + startAt)
   }
 
+  /**
+   * Updates the time points based on the given time point clusters.
+   * @param {Array} timePointClusters - An array of time point clusters.
+   * @returns {Array} An array of objects containing label and value properties for each time point.
+   */
   updateTimePoints = (timePointClusters) => {
     let newTimePoints = new Set([1])
     timePointClusters.forEach((cluster) => {
@@ -223,6 +277,12 @@ class MEDcohortFigureClass extends React.Component {
     return toRet
   }
 
+  /**
+   * Gets the time zero for a given class name and profile index.
+   * @param {String} className - The class name to get the time zero for.
+   * @param {number} profileIndex - The profile index to get the time zero for.
+   * @returns {Date} The time zero for the given class name and profile index.
+   */
   getTimeZeroForClass = (className, profileIndex) => {
     let timeZeroAttribute = null
     if (className === null) return null
@@ -243,6 +303,11 @@ class MEDcohortFigureClass extends React.Component {
     return timeZeroAttribute
   }
 
+  /**
+   * Sets the time point for selected classes in the jsonData object.
+   * @function
+   * @returns {void}
+   */
   handleSetTimePointByClass = () => {
     console.log("selectedClassesToSetTimePoint", this.state.selectedClassesToSetTimePoint)
     let newJsonData = { ...this.state.jsonData }
@@ -265,20 +330,29 @@ class MEDcohortFigureClass extends React.Component {
     this.setState({ jsonData: newJsonData })
   }
 
+  /**
+   * Generates the options for the ECharts visualization.
+   * @returns {void}
+   */
   generateEchartsOptions = () => {
+    // Create a new ECharts option object
     let newEchartsOption = {
+      // Set the title of the chart
       title: {
         text: "MEDcohort"
       },
+      // Set the tooltip trigger
       tooltip: {
         trigger: "item"
       },
+      // Set the grid layout
       grid: {
         left: "3%",
         right: "4%",
         bottom: "5%",
         containLabel: true
       },
+      // Set the x-axis type based on the relativeTime state
       xAxis: [
         {
           axisPointer: {
@@ -287,6 +361,7 @@ class MEDcohortFigureClass extends React.Component {
           type: (this.state.relativeTime !== null && "value") || "time"
         }
       ],
+      // Set the y-axis type and data
       yAxis: [
         {
           axisPointer: {
@@ -296,6 +371,7 @@ class MEDcohortFigureClass extends React.Component {
           data: []
         }
       ],
+      // Set the toolbox features
       toolbox: {
         feature: {
           dataZoom: {
@@ -305,6 +381,7 @@ class MEDcohortFigureClass extends React.Component {
           saveAsImage: {}
         }
       },
+      // Set the brush options
       brush: {
         toolbox: ["lineX", "clear"],
         seriesIndex: "all",
@@ -316,7 +393,9 @@ class MEDcohortFigureClass extends React.Component {
         throttleType: "debounce",
         throttleDelay: 300
       },
+      // Set the series data
       series: [],
+      // Set the legend options
       legend: {
         // Legend shows each patient
         title: {
@@ -330,6 +409,7 @@ class MEDcohortFigureClass extends React.Component {
         padding: [150, 20],
         data: []
       },
+      // Set the data zoom options
       dataZoom: [
         {
           type: "inside",
@@ -340,40 +420,60 @@ class MEDcohortFigureClass extends React.Component {
           end: 200
         }
       ]
-
-      // visualMap: {}
     }
-    // console.log("this.state.jsonData", this.state.jsonData)
+
+    // Create sets to store patient names, inner y classes, and new classes
     let patientNames = new Set()
     let innerYClasses = new Set()
     let newClasses = new Set()
     let timeZeroAttribute = 0
     let newTimePointsClusters = []
     let numberOfPatients = this.state.jsonData?.list_MEDprofile?.length
+
+    // Loop through each MEDprofile in the jsonData
     this.state.jsonData?.list_MEDprofile?.forEach((profile, index) => {
+      // Exclude specific patient IDs
       if (profile.PatientID !== "32379" && profile.PatientID !== "25881" && profile.PatientID !== "21690" && profile.PatientID !== "18089") {
+        // Generate a color for the patient
         const color = d3.interpolateTurbo(this.state.jsonData.list_MEDprofile.indexOf(profile) / this.state.jsonData.list_MEDprofile.length)
+        // Add the patient name to the set
         patientNames.add(profile.PatientID)
-        let profileSerie = { type: "scatter", data: [], name: profile.PatientID, itemStyle: { color: color }, symbolSize: 5, emphasis: { focus: "series" }, selectMode: "multiple" }
+        // Create a new series for the patient
+        let profileSerie = {
+          type: "scatter",
+          data: [],
+          name: profile.PatientID,
+          itemStyle: { color: color },
+          symbolSize: 5,
+          emphasis: { focus: "series" },
+          selectMode: "multiple"
+        }
         let profileRandomTime = index
         let profilAttributeTimeZero = this.getTimeZeroForClass(this.state.relativeTime, index)
+        // Loop through each MEDtab in the profile
         profile?.list_MEDtab?.forEach((tab) => {
           let attributes = Object.keys(tab)
+          // Loop through each attribute in the MEDtab
           attributes.forEach((attribute) => {
+            // Add the attribute to the new classes set
             newClasses.add(attribute)
             if (attribute !== "Date") {
+              // Set the time zero attribute if it hasn't been set yet
               if (attribute === this.state.relativeTime && timeZeroAttribute === null) {
                 timeZeroAttribute = tab.Date
               }
               let newDate = new Date(tab.Date)
+              // Set the new date based on the relative time and time zero attribute
               if (profilAttributeTimeZero !== null) {
                 newDate = new Date(new Date(tab.Date) - new Date(profilAttributeTimeZero))
               }
+              // Add the profile random time if separate horizontally is true
               if (this.state.separateHorizontally) {
                 newDate = Date.parse(newDate + profileRandomTime)
               }
               let x, y
               if (attribute !== "Time_point" && this.isNotNull(tab, attribute)) {
+                // Set the x and y values for the scatter plot
                 if (this.state.relativeTime !== null) {
                   x = newDate.valueOf() / (1000 * 60 * 60 * 24)
                   if (this.state.separateHorizontally) {
@@ -393,9 +493,20 @@ class MEDcohortFigureClass extends React.Component {
               } else if (attribute === "Time_point") {
                 let timePoints = tab[attribute]
                 if (timePoints === null) return
+                // Loop through each time point and add it to the new time points clusters array
                 timePoints.forEach((timePoint) => {
                   if (newTimePointsClusters[timePoint] === undefined || newTimePointsClusters[timePoint] === null) {
-                    newTimePointsClusters[timePoint] = { x: [], y: [], mode: "lines", type: "scatter", marker: { color: color }, text: [], name: timePoint, customdata: [], fill: "toself" }
+                    newTimePointsClusters[timePoint] = {
+                      x: [],
+                      y: [],
+                      mode: "lines",
+                      type: "scatter",
+                      marker: { color: color },
+                      text: [],
+                      name: timePoint,
+                      customdata: [],
+                      fill: "toself"
+                    }
                   }
                   newTimePointsClusters[timePoint].x.push(newDate)
                   if (this.state.separateVertically) {
@@ -411,152 +522,213 @@ class MEDcohortFigureClass extends React.Component {
         newEchartsOption.series.push(profileSerie)
       }
     })
+    // Set the y-axis data to the inner y classes set
     newEchartsOption.yAxis[0].data = [...innerYClasses]
+    // Set the legend data to the patient names set
     newEchartsOption.legend.data = [...patientNames]
     let correctedTimePointClusters = []
+    // Loop through each key in the new time points clusters object and add it to the corrected time points clusters array
     Object.keys(newTimePointsClusters).forEach((key) => {
       correctedTimePointClusters.push(newTimePointsClusters[key])
     })
+    // Call the handleTimePointClustersChange function
     this.handleTimePointClustersChange(correctedTimePointClusters, newEchartsOption)
 
+    // Set the state with the new ECharts options, time point clusters, and classes
     this.setState({ echartsOptions: newEchartsOption })
     this.setState({ timePointClusters: correctedTimePointClusters })
     this.setState({ classes: newClasses })
   }
 
+  /**
+   * Removes a time point from the jsonData and shapes state variables.
+   * @param {number} timePoint - The time point to be removed.
+   */
   removeTimePointFromJsonData = (timePoint) => {
+    // Create a copy of the jsonData state variable
     let newJsonData = { ...this.state.jsonData }
-    console.log("timepoint to remove", timePoint)
+
+    // Loop through each profile and tab in the jsonData
     newJsonData.list_MEDprofile.forEach((profile) => {
       profile.list_MEDtab.forEach((tab) => {
+        // If the tab does not have a time point, skip it
         if (tab.Time_point === null || tab.Time_point === undefined || tab.Time_point.length === 0) return
-        console.log("REMOVE TAB", tab.Time_point, timePoint, tab.Time_point.includes(parseInt(timePoint)))
+
+        // If the tab has the time point to be removed, remove it from the tab's time points
         if (tab.Time_point.includes(parseInt(timePoint))) {
           let timePointIndex = tab.Time_point.findIndex((timePointElement) => timePointElement === timePoint)
           tab.Time_point.splice(timePointIndex, 1)
         }
       })
     })
+
+    // Create a copy of the shapes state variable
     let newShapes = [...this.state.shapes]
-    console.log("newJsonData", newJsonData)
+
+    // Loop through each shape in the shapes state variable
     this.state.shapes.forEach((shape) => {
+      // If the shape is the time point to be removed, remove it from the shapes state variable
       if (shape.name === `T${timePoint}`) {
         let shapeIndex = newShapes.findIndex((shapeElement) => shapeElement.name === `T${timePoint}`)
         newShapes.splice(shapeIndex, 1)
       }
     })
-    console.log("newShapes", newShapes, this.state.shapes, this.state.shapes.length, newShapes.length)
+
+    // Update the state variables with the new jsonData, shapes, and echartsOptions
     this.setState({ shapes: newShapes, jsonData: newJsonData }, () => {
       this.generateEchartsOptions()
       let newEchartsOptions = { ...this.state.echartsOptions }
       newEchartsOptions.series = [...this.state.echartsOptions.series, ...newShapes]
 
       this.chartRef.current.getEchartsInstance().setOption(newEchartsOptions, { notMerge: true })
-      console.log("newEchartsOptions", newEchartsOptions, this.chartRef.current.getEchartsInstance().getOption())
     })
   }
 
+  /**
+   * Returns an array of objects with label and value properties, representing the available classes.
+   * @returns {Array} An array of objects with label and value properties.
+   */
   getClassesOptions = () => {
+    // Get the classes from the component state
     let thisClasses = this.state.classes
+    // If there are no classes, return an empty array
     if (thisClasses === null) return []
+    // If there are no classes in the set, return an empty array
     if (thisClasses.size === 0) return []
+    // Create an array to hold the class objects
     let classesArray = []
+    // Iterate over the classes set
     thisClasses.forEach((className) => {
+      // If the class name is not "Date" or "Time_point", add it to the array
       if (className !== "Date" && className !== "Time_point") {
         classesArray.push({ label: className, value: className })
       }
     })
+    // Sort the array by label property
     classesArray.sort((a, b) => (a.label > b.label ? 1 : -1))
+    // Return the array of class objects
     return classesArray
   }
 
+  /**
+   * Returns a function that can be used to find a patient by their ID.
+   * @param {String} patientId - The ID of the patient to find.
+   * @returns {Boolean} returns true if the patient's ID matches the given ID.
+   */
   getFindPatientFunction = (patientId) => {
     return (patient) => {
       return patient.PatientID === patientId
     }
   }
 
+  /**
+   * Sets the time point for selected data points and updates the jsonData state accordingly.
+   * @returns {void}
+   */
   handleSetTimePoint = () => {
-    console.log("SETTINT TIMEPOINT", this.state.timePoint)
-    console.log("selectedData", this.state.selectedData, this.state.jsonData.list_MEDprofile)
+    // Creates a copy of the jsonData state
     let newJsonData = { ...this.state.jsonData }
-    /*
-    selectedData: [
-      {
-        seriesId: '\x001693\x000',
-        seriesName: '1693',
-        seriesIndex: 0, 
-        dataIndex: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
-      }, 
-      ...
-    ]
-    */
 
+    // Loops through each selected data point
     this.state.selectedData.forEach((data, seriesIndex) => {
+      // Gets the series name and profile index for the current data point
       let seriesName = data.seriesName
       let profileIndex = newJsonData.list_MEDprofile.findIndex(this.getFindPatientFunction(seriesName))
+
+      // Gets the profile and selected data points for the current data point
       let profile = newJsonData.list_MEDprofile[profileIndex]
       let selectedPoints = data.dataIndex
+
+      // Logs the selected data points and corresponding data for debugging purposes
       console.log("selectedPoints", selectedPoints, profile, this.state.echartsOptions.series[seriesIndex])
+
+      // If the profile is undefined, returns early
       if (profile === undefined) return
+
+      // Gets the corresponding data for the current data point
       let correspondingData = this.state.echartsOptions.series[seriesIndex].data
+
+      // Filters the corresponding data to only include the selected data points
       let onlySelectedData = []
       correspondingData.forEach((dataPoint, index) => {
         if (selectedPoints.includes(index)) {
           onlySelectedData.push(dataPoint)
         }
       })
+
+      // Logs the filtered data for debugging purposes
       console.log("onlySelectedData", onlySelectedData)
+
+      // Initializes the patient global index
       let patientGlobalIndex = 0
+
+      // Loops through each tab in the profile
       profile.list_MEDtab.forEach((tab) => {
+        // Gets the attributes for the current tab
         let attributes = Object.keys(tab)
+
+        // Loops through each attribute in the tab
         attributes.forEach((attribute) => {
+          // If the attribute is not "Date", "Time_point", or null, and the data point is selected
           if (attribute !== "Date" && attribute !== "Time_point" && this.isNotNull(tab, attribute)) {
             if (selectedPoints.includes(patientGlobalIndex)) {
-              console.log("patientGlobalIndex", patientGlobalIndex, tab, attribute)
+              // If the time point is null, sets it to the current time point
               if (tab.Time_point === null) {
                 tab.Time_point = [this.state.timePoint]
               } else {
+                // If the time point does not already include the current time point, adds it
                 if (!tab.Time_point.includes(this.state.timePoint)) {
                   tab.Time_point.push(this.state.timePoint)
                 }
               }
             }
+
+            // Increments the patient global index
             patientGlobalIndex += 1
           }
         })
       })
     })
+
+    // Updates the jsonData state with the new data
     this.setState({ jsonData: newJsonData })
   }
 
+  /**
+   * Updates the selected data in the component's state.
+   * @param {Object} data - The data to be selected.
+   */
   handleSelectData = (data) => {
-    // console.log("data", data.batch["0"].selected)
     this.setState({ selectedData: data.batch["0"].selected })
   }
 
-  handleExportTimePoints = () => {
+  /**
+   * This function exports the data for each time point to a separate CSV file.
+   * @returns {void}
+   */
+  handleExportTimePoints = async () => {
     const { jsonData } = this.state
     let newJsonData = { ...jsonData }
     let timePointsData = {}
-    console.log("jsonData", newJsonData)
+
+    // Loop through each profile and tab in the jsonData object
     newJsonData.list_MEDprofile.forEach((profile) => {
       profile.list_MEDtab.forEach((tab) => {
         if (tab.Time_point !== null) {
           if (tab.Time_point.length !== 0) {
+            // Loop through each time point in the tab
             tab.Time_point.forEach((timePoint) => {
               if (timePointsData[timePoint] === undefined) {
                 timePointsData[timePoint] = []
               }
-              // Remove the time point from the tab
-              delete tab.Time_point
               let attributes = Object.keys(tab)
               attributes.forEach((attribute) => {
                 if (attribute !== "Date" && attribute !== "Time_point" && this.isNotNull(tab, attribute)) {
                   if (timePointsData[timePoint][attribute] === undefined) {
                     timePointsData[timePoint][attribute] = []
                   }
-                  timePointsData[timePoint][attribute].push({ Date: tab.Date, ID: profile.PatientID, ...tab[attribute] })
+                  // Add the data for the attribute to the time point data object
+                  timePointsData[timePoint][attribute].push({ Date: tab.Date, ID: profile.PatientID, Class: attribute, ...tab[attribute] })
                 }
               })
             })
@@ -564,45 +736,113 @@ class MEDcohortFigureClass extends React.Component {
         }
       })
     })
-    console.log("timePointsData", timePointsData)
+
+    // Create a folder to store the time point CSV files
     let separator = MedDataObject.getPathSeparator()
     let folderPath = this.props.jsonFilePath.split(separator)
-    let fileBaseName = folderPath.pop()
+    folderPath.pop()
     folderPath = folderPath.join(separator)
     folderPath = folderPath + separator + "timePoints" + separator
-    console.log("folderPath", folderPath, fileBaseName)
-    MedDataObject.createFolderFromPath(folderPath)
-    Object.keys(timePointsData).forEach((timePoint) => {
-      let localFolderPath = folderPath + "T" + timePoint + separator
-      MedDataObject.createFolderFromPath(localFolderPath)
-      this.timePointToCsv(timePoint, timePointsData[timePoint], localFolderPath)
-    })
   }
 
+  /**
+   * This function exports the data for each time point to a separate CSV file.
+   * @description It shows a confirmation dialog if the folder already exists.
+   * @param {Object} timePointsData - The data for each time point.
+   * @param {string} folderPath - The path to the folder to store the CSV files.
+   * @returns {void}
+   */
+  confirmOverwriteFolder = async (timePointsData, folderPath) => {
+    // eslint-disable-next-line no-undef
+    const fsx = require("fs-extra")
+    if (fsx.existsSync(folderPath)) {
+      await new Promise((resolve, reject) => {
+        confirmDialog({
+          message: `The folder ${folderPath} already exists. Do you want to overwrite it?`,
+          header: "Confirmation",
+          icon: "pi pi-exclamation-triangle",
+          accept: () => {
+            resolve()
+          },
+          reject: () => {
+            // Do nothing
+            reject()
+          }
+        })
+      })
+        .then(() => {
+          // Remove the folder
+          fsx.removeSync(folderPath)
+          // Create a new folder
+          MedDataObject.createFolderFromPath(folderPath)
+          // Export the time point data to CSV files
+          Object.keys(timePointsData).forEach((timePoint) => {
+            this.timePointToCsv(timePoint, timePointsData[timePoint], folderPath)
+          })
+        })
+        .catch(() => {
+          // Do nothing
+        })
+    } else {
+      // Create a new folder
+      MedDataObject.createFolderFromPath(folderPath)
+      // Export the time point data to CSV files
+      Object.keys(timePointsData).forEach((timePoint) => {
+        this.timePointToCsv(timePoint, timePointsData[timePoint], folderPath)
+      })
+    }
+  }
+
+  /**
+   * This function exports the data for a given time point to a CSV file.
+   * @param {number} timePoint - The time point to export.
+   * @param {Object} timePointData - The data for the time point.
+   * @param {string} folderPath - The path to the folder to store the CSV file.
+   * @returns {void}
+   */
   timePointToCsv = (timePoint, timePointData, folderPath) => {
     // eslint-disable-next-line no-undef
     const dfd = require("danfojs-node")
     console.log("timePointData", timePointData, dfd)
     if (timePointData === undefined) return
     if (Object.keys(timePointData).length >= 1) {
+      // If there is at least one attribute
+      let dfList = [] // Create a list to store the dataframes
       Object.keys(timePointData).forEach((attribute) => {
-        let filePath = folderPath + "T" + timePoint + "_" + attribute + ".csv"
-        let dfData = new dfd.DataFrame(timePointData[attribute])
-        try {
-          dfd.toCSV(dfData, { filePath: filePath })
-        } catch (error) {
-          console.log("error", error)
-        } finally {
-          toast.success(`Time point ${timePoint} exported to ${filePath}`)
-        }
+        // Loop through each attribute
+        let localDf = new dfd.DataFrame(timePointData[attribute])
+        let renamingDict = {} // Create a dictionary to store the renaming information
+        let columns = localDf.columns
+        columns.forEach((column) => {
+          if (column !== "Date" && column !== "ID" && column !== "Class") {
+            renamingDict[column] = attribute + "_|_" + column
+          }
+        })
+        localDf = localDf.rename(renamingDict)
+        dfList.push(localDf)
       })
+
+      let dfData = dfd.concat({ dfList: dfList, axis: 0 }) // Concatenate the dataframes
+      let filePath = folderPath + "T" + timePoint + ".csv" // Create the file path
+      try {
+        // Save the data to a CSV file
+        dfd.toCSV(dfData, { filePath: filePath })
+      } catch (error) {
+        console.log("error", error)
+      } finally {
+        toast.success(`Time point ${timePoint} exported to ${filePath}`)
+      }
       return
     }
   }
 
+  /**
+   * Renders the MEDcohortFigure component.
+   * @returns {JSX.Element} The rendered component.
+   */
   render() {
     // Destructure state and props for easier access
-    const { selectedClass, relativeTime, separateVertically, separateHorizontally, selectedClassesToSetTimePoint, shapes, timePoints, timePoint, timePointClusters, echartsOptions } = this.state
+    const { selectedClass, relativeTime, separateVertically, separateHorizontally, selectedClassesToSetTimePoint, shapes, timePoints, timePoint, echartsOptions } = this.state
     let newEchartsOption = { ...echartsOptions }
     if (echartsOptions !== null) {
       newEchartsOption.series = [...echartsOptions.series, ...shapes]
@@ -612,7 +852,7 @@ class MEDcohortFigureClass extends React.Component {
       <>
         <Row style={{ width: "100%", justifyContent: "center" }}>
           <Col lg={8} className="center">
-            <div className="MEDcohort-figure" style={{ display: "flex", flexDirection: "column", boxShadow: "2px 2px 4px rgba(0, 0, 0, 0.25)" }}>
+            <div className="MEDcohort-figure" style={{ display: "flex", flexDirection: "column", boxShadow: "2px 2px 4px rgba(0, 0, 0, 0.25)", borderRadius: " 1rem", padding: "0.5rem" }}>
               {echartsOptions && <ReactECharts ref={this.chartRef} option={newEchartsOption} onEvents={{ brushselected: this.handleSelectData }} style={{ width: "100%", height: "100%" }} lazyUpdate={false} />}
             </div>
           </Col>
@@ -632,9 +872,9 @@ class MEDcohortFigureClass extends React.Component {
                 <label htmlFor="dd-city">Select the class for relative time</label>
                 <Col style={{ display: "flex", flexDirection: "row", justifyContent: "center", marginTop: "0rem" }}>
                   <div style={{ width: "100%" }} className="p-inputgroup ">
-                    <Dropdown style={{ width: "100%" }} value={selectedClass} options={this.getClassesOptions()} onChange={(e) => this.setState({ selectedClass: e.value })} />
-                    <ToggleButton
-                      className={`relative-time-toggle-button ${relativeTime !== null ? "p-button-success" : "p-button-info"}`}
+                    <Dropdown className="medcohort-drop" style={{}} value={selectedClass} options={this.getClassesOptions()} onChange={(e) => this.setState({ selectedClass: e.value })} />
+                    <ToggleButton // Sets and unsets the relative time
+                      className={`separate-toggle-button relative-time-toggle-button ${relativeTime !== null ? "p-button-success" : "p-button-info"}`}
                       checked={relativeTime === null}
                       onLabel="Set"
                       offLabel="Unset"
@@ -645,7 +885,7 @@ class MEDcohortFigureClass extends React.Component {
                           this.setState({ relativeTime: null })
                         }
                       }}
-                      style={{ borderRadius: "0 4px 4px 0" }}
+                      style={{ borderRadius: "0 4px 4px 0", padding: "0rem", minWidth: "3rem" }}
                     />
                   </div>
                 </Col>
@@ -654,8 +894,8 @@ class MEDcohortFigureClass extends React.Component {
                 <label htmlFor="dd-city">Set time points to selected data points</label>
                 <Col style={{ display: "flex", flexDirection: "row", justifyContent: "center", marginTop: "0rem" }}>
                   <div style={{ width: "100%" }} className="p-inputgroup ">
-                    <Dropdown style={{ width: "100%" }} value={timePoint} options={timePoints} onChange={(e) => this.setState({ timePoint: e.value })} />
-                    <Button className="separate-toggle-button" style={{ borderRadius: "0 4px 4px 0", width: "5rem", padding: "0rem" }} onClick={this.handleSetTimePoint} label={`Set T${timePoint}`} />
+                    <Dropdown className="medcohort-drop" value={timePoint} options={timePoints} onChange={(e) => this.setState({ timePoint: e.value })} />
+                    <Button className="separate-toggle-button" style={{ borderRadius: "0 4px 4px 0", padding: "0rem", minWidth: "3rem" }} onClick={this.handleSetTimePoint} label={`Set T${timePoint}`} />
                   </div>
                 </Col>
               </Col>
@@ -663,9 +903,8 @@ class MEDcohortFigureClass extends React.Component {
                 <label htmlFor="dd-city">Set time points by classes</label>
                 <Col style={{ display: "flex", flexDirection: "row", justifyContent: "center", marginTop: "0rem" }}>
                   <div style={{ width: "100%" }} className="p-inputgroup ">
-                    {/* <Dropdown style={{ width: "100%" }} value={selectedClassesToSetTimePoint} options={this.getClassesOptions()} onChange={(e) => this.setState({ selectedClassesToSetTimePoint: e.value })} /> */}
-                    <MultiSelect style={{ width: "100%" }} value={selectedClassesToSetTimePoint} options={this.getClassesOptions()} onChange={(e) => this.setState({ selectedClassesToSetTimePoint: e.value })} />
-                    <Button className="separate-toggle-button" style={{ borderRadius: "0 4px 4px 0", width: "5rem", padding: "0rem" }} onClick={this.handleSetTimePointByClass} label={`Set T${timePoint}`} />
+                    <MultiSelect className="medcohort-drop" value={selectedClassesToSetTimePoint} options={this.getClassesOptions()} onChange={(e) => this.setState({ selectedClassesToSetTimePoint: e.value })} />
+                    <Button className="separate-toggle-button" style={{ borderRadius: "0 4px 4px 0", padding: "0rem", minWidth: "3rem" }} onClick={this.handleSetTimePointByClass} label={`Set T${timePoint}`} />
                   </div>
                 </Col>
               </Col>
@@ -677,7 +916,7 @@ class MEDcohortFigureClass extends React.Component {
                         <u>Time Points associated data</u>
                       </b>
                     </label>
-                    {this.state.timePointClusters.map((cluster, index) => {
+                    {this.state.timePointClusters.map((cluster) => {
                       console.log("cluster", cluster)
                       return (
                         <>
@@ -693,8 +932,6 @@ class MEDcohortFigureClass extends React.Component {
                               value={cluster.name}
                               style={{ margin: "0", marginLeft: "0.5rem", cursor: "pointer" }}
                               onClick={() => {
-                                let newTimePointsClusters = deepCopy(timePointClusters)
-                                newTimePointsClusters.splice(index, 1)
                                 let newTimePoints = deepCopy(timePoints)
                                 let indexOfTimePoint = newTimePoints.findIndex((timePoint) => timePoint.value === cluster.name)
                                 console.log("indexOfTimePoint", indexOfTimePoint)
@@ -702,7 +939,6 @@ class MEDcohortFigureClass extends React.Component {
                                   newTimePoints.splice(indexOfTimePoint, 1)
                                 }
                                 this.setState({ timePoints: newTimePoints })
-                                this.setState({ timePointClusters: newTimePointsClusters })
                                 this.removeTimePointFromJsonData(cluster.name)
                               }}
                             >

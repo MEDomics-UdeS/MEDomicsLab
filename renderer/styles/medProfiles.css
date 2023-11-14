@@ -16,9 +16,3 @@
   margin-inline: 0.1rem !important;
   padding: 0rem !important;
 }
-
-.relative-time-toggle-button {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
