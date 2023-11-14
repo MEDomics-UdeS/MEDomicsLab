@@ -24,7 +24,6 @@ const MEDprofilesViewer = ({ pageId, configPath = "", MEDclassesFolder, MEDprofi
   const [jsonFilePath, setJsonFilePath] = useState(null)
   const { port } = useContext(WorkspaceContext) // we get the port for server connexion
   const [classes, setClasses] = useState(new Set()) // list of classes in the MEDclasses folder
-  const [relativeTime, setRelativeTime] = useState(null) // relative time for the selected class [0, 1
   /**
    * @description
    * This function is called while the page elements are loaded in order
@@ -66,7 +65,7 @@ const MEDprofilesViewer = ({ pageId, configPath = "", MEDclassesFolder, MEDprofi
         <h1 className="center">MEDprofiles Viewer</h1>
         <div>MEDclasses folder : {MEDclassesFolder?.path}</div>
         <div>MEDprofiles binary file : {MEDprofilesBinaryFile?.path}</div>
-        {jsonFilePath && <MEDcohortFigure jsonFilePath={jsonFilePath} classes={classes} setClasses={setClasses} relativeTime={relativeTime} />}
+        {jsonFilePath && <MEDcohortFigure jsonFilePath={jsonFilePath} classes={classes} setClasses={setClasses} />}
         <Row className="justify-content-md-center" style={{ display: "flex", flexDirection: "row", alignContent: "center", alignItems: "center", width: "100%" }}>
           <Col md="auto">
             <h6>Select the class for relative time</h6>

@@ -1,3 +1,4 @@
+/* eslint-disable camelcase */
 import React from "react"
 import { loadJsonPath } from "../../../utilities/fileManagementUtils"
 import { deepCopy } from "../../../utilities/staticFunctions"
@@ -9,13 +10,35 @@ import { ToggleButton } from "primereact/togglebutton"
 import { Dropdown } from "primereact/dropdown"
 import { Button } from "primereact/button"
 import { MultiSelect } from "primereact/multiselect"
+import MedDataObject from "../../workspace/medDataObject"
+import { toast } from "react-toastify"
 
+/**
+ * @class MEDcohortFigureClass
+ * @category Components
+ * @classdesc Class component that renders a figure of the MEDcohort data.
+ * @param {Object} props
+ * @param {String} props.jsonFilePath - Path to the MEDcohort json file.
+ * @param {MEDprofiles.list_MEDprofile.MEDprofile} props.jsonData - MEDcohort json data.
+ * @param {String} props.classes - Classes to be displayed in the figure.
+ * @param {String} props.relativeTime - Class to be used as relative time.
+ * @param {Boolean} props.separateVertically - If true, the classes will be separated vertically.
+ * @param {Boolean} props.separateHorizontally - If true, the classes will be separated horizontally.
+ * @param {Boolean} props.selectedClassesToSetTimePoint - Classes to be used to set the time point.
+ * @param {Boolean} props.shapes - Shapes to be displayed in the figure.
+ * @param {Boolean} props.timePoints - Time points to be displayed in the figure.
+ * @param {Boolean} props.timePoint - Time point to be displayed in the figure.
+ * @param {Boolean} props.selectedData - Selected data to be displayed in the figure.
+ * @param {Boolean} props.timePointClusters - Time point clusters to be displayed in the figure.
+ * @param {Boolean} props.echartsOptions - Echarts options to be displayed in the figure.
+ * @param {Boolean} props.annotations - Annotations to be displayed in the figure.
+ * @param {Boolean} props.layout - Layout to be displayed in the figure.
+ */
 class MEDcohortFigureClass extends React.Component {
   constructor(props) {
     super(props)
     this.state = {
       jsonData: this.props.jsonData,
-      plotData: [],
       selectedClass: undefined,
       relativeTime: null,
       annotations: [],
@@ -27,8 +50,6 @@ class MEDcohortFigureClass extends React.Component {
       timePoint: 1,
       selectedData: [],
       timePointClusters: [],
-      test: null,
-      layout: {},
       echartsOptions: null,
       classes: this.props.classes
     }
@@ -71,7 +92,7 @@ class MEDcohortFigureClass extends React.Component {
   createRectFromTimePoint = (timePoint, length, timePointClusters, echartsOptions, name) => {
     const findEarliestDate = (timePoint) => {
       let earliestDate = null
-      timePointClusters[timePoint].x.forEach((x, index) => {
+      timePointClusters[timePoint].x.forEach((x) => {
         if (earliestDate === null) {
           earliestDate = x
         } else if (x < earliestDate) {
@@ -171,7 +192,7 @@ class MEDcohortFigureClass extends React.Component {
 
   updateTimePoints = (timePointClusters) => {
     let newTimePoints = new Set([1])
-    timePointClusters.forEach((cluster, index) => {
+    timePointClusters.forEach((cluster) => {
       newTimePoints.add(cluster.name)
     })
     console.log("newTimePoints", newTimePoints)
@@ -260,17 +281,32 @@ class MEDcohortFigureClass extends React.Component {
       },
       xAxis: [
         {
+          axisPointer: {
+            snap: true
+          },
           type: (this.state.relativeTime !== null && "value") || "time"
         }
       ],
       yAxis: [
         {
+          axisPointer: {
+            snap: true
+          },
           type: "category",
           data: []
         }
       ],
+      toolbox: {
+        feature: {
+          dataZoom: {
+            yAxisIndex: "none"
+          },
+          restore: {},
+          saveAsImage: {}
+        }
+      },
       brush: {
-        toolbox: ["rect", "polygon", "lineX", "lineY", "clear"],
+        toolbox: ["lineX", "clear"],
         seriesIndex: "all",
         xAxisIndex: "all",
         yAxisIndex: "all",
@@ -303,16 +339,8 @@ class MEDcohortFigureClass extends React.Component {
           start: 1,
           end: 200
         }
-      ],
-      toolbox: {
-        feature: {
-          dataZoom: {
-            yAxisIndex: "none"
-          },
-          restore: {},
-          saveAsImage: {}
-        }
-      }
+      ]
+
       // visualMap: {}
     }
     // console.log("this.state.jsonData", this.state.jsonData)
@@ -480,7 +508,7 @@ class MEDcohortFigureClass extends React.Component {
       })
       console.log("onlySelectedData", onlySelectedData)
       let patientGlobalIndex = 0
-      profile.list_MEDtab.forEach((tab, index) => {
+      profile.list_MEDtab.forEach((tab) => {
         let attributes = Object.keys(tab)
         attributes.forEach((attribute) => {
           if (attribute !== "Date" && attribute !== "Time_point" && this.isNotNull(tab, attribute)) {
@@ -499,36 +527,6 @@ class MEDcohortFigureClass extends React.Component {
         })
       })
     })
-    // profile.list_MEDtab.forEach((tab, index) => {
-
-    // selectedPoints.forEach((pointIndex) => {
-    //   let tab = profile.list_MEDtab[pointIndex]
-    //   if (tab !== undefined) {
-    //     console.log("pointIndex", pointIndex, profile, tab)
-    //     if (tab.Time_point === null) {
-    //       tab.Time_point = [this.state.timePoint]
-    //     } else {
-    //       tab.Time_point.push(this.state.timePoint)
-    //     }
-    //   }
-    // })
-
-    //   console.log("data", data, newJsonData.list_MEDprofile)
-    //   let profileIndex = newJsonData.list_MEDprofile.findIndex(this.getFindPatientFunction(data.name))
-
-    //   // Go through all the profiles and set the time point to the selected value for the selected data
-    //   let profile = newJsonData.list_MEDprofile[profileIndex]
-    //   let selectedPoints = data.selectedpoints
-    //   selectedPoints.forEach((pointIndex) => {
-    //     let tab = profile.list_MEDtab[pointIndex]
-    //     console.log("pointIndex", pointIndex, profile, tab)
-    //     if (tab.Time_point === null) {
-    //       tab.Time_point = [this.state.timePoint]
-    //     } else {
-    //       tab.Time_point.push(this.state.timePoint)
-    //     }
-    //   })
-    // })
     this.setState({ jsonData: newJsonData })
   }
 
@@ -537,15 +535,79 @@ class MEDcohortFigureClass extends React.Component {
     this.setState({ selectedData: data.batch["0"].selected })
   }
 
+  handleExportTimePoints = () => {
+    const { jsonData } = this.state
+    let newJsonData = { ...jsonData }
+    let timePointsData = {}
+    console.log("jsonData", newJsonData)
+    newJsonData.list_MEDprofile.forEach((profile) => {
+      profile.list_MEDtab.forEach((tab) => {
+        if (tab.Time_point !== null) {
+          if (tab.Time_point.length !== 0) {
+            tab.Time_point.forEach((timePoint) => {
+              if (timePointsData[timePoint] === undefined) {
+                timePointsData[timePoint] = []
+              }
+              // Remove the time point from the tab
+              delete tab.Time_point
+              let attributes = Object.keys(tab)
+              attributes.forEach((attribute) => {
+                if (attribute !== "Date" && attribute !== "Time_point" && this.isNotNull(tab, attribute)) {
+                  if (timePointsData[timePoint][attribute] === undefined) {
+                    timePointsData[timePoint][attribute] = []
+                  }
+                  timePointsData[timePoint][attribute].push({ Date: tab.Date, ID: profile.PatientID, ...tab[attribute] })
+                }
+              })
+            })
+          }
+        }
+      })
+    })
+    console.log("timePointsData", timePointsData)
+    let separator = MedDataObject.getPathSeparator()
+    let folderPath = this.props.jsonFilePath.split(separator)
+    let fileBaseName = folderPath.pop()
+    folderPath = folderPath.join(separator)
+    folderPath = folderPath + separator + "timePoints" + separator
+    console.log("folderPath", folderPath, fileBaseName)
+    MedDataObject.createFolderFromPath(folderPath)
+    Object.keys(timePointsData).forEach((timePoint) => {
+      let localFolderPath = folderPath + "T" + timePoint + separator
+      MedDataObject.createFolderFromPath(localFolderPath)
+      this.timePointToCsv(timePoint, timePointsData[timePoint], localFolderPath)
+    })
+  }
+
+  timePointToCsv = (timePoint, timePointData, folderPath) => {
+    // eslint-disable-next-line no-undef
+    const dfd = require("danfojs-node")
+    console.log("timePointData", timePointData, dfd)
+    if (timePointData === undefined) return
+    if (Object.keys(timePointData).length >= 1) {
+      Object.keys(timePointData).forEach((attribute) => {
+        let filePath = folderPath + "T" + timePoint + "_" + attribute + ".csv"
+        let dfData = new dfd.DataFrame(timePointData[attribute])
+        try {
+          dfd.toCSV(dfData, { filePath: filePath })
+        } catch (error) {
+          console.log("error", error)
+        } finally {
+          toast.success(`Time point ${timePoint} exported to ${filePath}`)
+        }
+      })
+      return
+    }
+  }
+
   render() {
     // Destructure state and props for easier access
-    const { classes, setClasses, jsonFilePath } = this.props
-    const { jsonData, plotData, selectedClass, relativeTime, annotations, separateVertically, separateHorizontally, selectedClassesToSetTimePoint, shapes, timePoints, timePoint, selectedData, timePointClusters, test, layout, echartsOptions } = this.state
+    const { selectedClass, relativeTime, separateVertically, separateHorizontally, selectedClassesToSetTimePoint, shapes, timePoints, timePoint, timePointClusters, echartsOptions } = this.state
     let newEchartsOption = { ...echartsOptions }
     if (echartsOptions !== null) {
       newEchartsOption.series = [...echartsOptions.series, ...shapes]
     }
-    // Render your component's JSX here
+
     return (
       <>
         <Row style={{ width: "100%", justifyContent: "center" }}>
@@ -652,6 +714,9 @@ class MEDcohortFigureClass extends React.Component {
                     })}
                   </>
                 )}
+              </Col>
+              <Col style={{ display: "flex", flexDirection: "column", justifyContent: "center", marginTop: "1rem", alignItems: "flex-start", flex: "unset" }}>
+                <Button label="Export timepoints to CSVs" disabled={timePoints.length <= 1} onClick={this.handleExportTimePoints} />
               </Col>
             </Row>
           </Col>
