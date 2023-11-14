@@ -1,7 +1,9 @@
 import { Card } from "primereact/card"
+import { Carousel } from "primereact/carousel"
 import { DataContext } from "../../workspace/dataContext"
 import { Dropdown } from "primereact/dropdown"
 import { InputNumber } from "primereact/inputnumber"
+import { InputSwitch } from "primereact/inputswitch"
 import { InputText } from "primereact/inputtext"
 import MedDataObject from "../../workspace/medDataObject"
 import { Message } from "primereact/message"
@@ -21,10 +23,11 @@ import React, { useContext, useEffect, useState } from "react"
  *
  */
 const ExtractionBioBERT = ({ dataframe, setExtractionJsonData, setMayProceed }) => {
-  const [columnPrefix, setColumnPrefix] = useState("notes_")
+  const [columnPrefix, setColumnPrefix] = useState("notes")
   const [frequency, setFrequency] = useState("Note")
   const [hourRange, setHourRange] = useState(24)
   const [isModelAvailable, setIsModelAvailable] = useState(false)
+  const [masterTableCompatible, setMasterTableCompatible] = useState(true)
   const [selectedColumns, setSelectedColumns] = useState({
     patientIdentifier: "",
     admissionIdentifier: "",
@@ -35,6 +38,37 @@ const ExtractionBioBERT = ({ dataframe, setExtractionJsonData, setMayProceed }) 
   })
 
   const { globalData } = useContext(DataContext)
+
+  // display options for the carousel
+  const responsiveOptions = [
+    {
+      breakpoint: "1024px",
+      numVisible: 1,
+      numScroll: 1
+    },
+    {
+      breakpoint: "768px",
+      numVisible: 1,
+      numScroll: 1
+    },
+    {
+      breakpoint: "560px",
+      numVisible: 1,
+      numScroll: 1
+    }
+  ]
+
+  /**
+   *
+   * @param {Carousel Item} item
+   * @returns html content
+   *
+   * @description
+   * Function used to format the carousel data
+   */
+  const carouselTemplate = (item) => {
+    return <div className="centered-carousel-item">{item.content}</div>
+  }
 
   /**
    *
@@ -94,18 +128,18 @@ const ExtractionBioBERT = ({ dataframe, setExtractionJsonData, setMayProceed }) 
   useEffect(() => {
     if (frequency == "Patient") {
       setMayProceed(isModelAvailable == true && selectedColumns.patientIdentifier !== "" && selectedColumns.notesWeight !== "" && selectedColumns.notes !== "")
-      setExtractionJsonData({ selectedColumns: selectedColumns, columnPrefix: columnPrefix, frequency: frequency })
+      setExtractionJsonData({ selectedColumns: selectedColumns, columnPrefix: columnPrefix, frequency: frequency, masterTableCompatible: masterTableCompatible })
     } else if (frequency == "Admission") {
       setMayProceed(isModelAvailable == true && selectedColumns.patientIdentifier !== "" && selectedColumns.notesWeight !== "" && selectedColumns.notes !== "" && selectedColumns.admissionIdentifier !== "" && selectedColumns.admissionTime !== "")
-      setExtractionJsonData({ selectedColumns: selectedColumns, columnPrefix: columnPrefix, frequency: frequency })
+      setExtractionJsonData({ selectedColumns: selectedColumns, columnPrefix: columnPrefix, frequency: frequency, masterTableCompatible: masterTableCompatible })
     } else if (frequency == "HourRange") {
       setMayProceed(isModelAvailable == true && selectedColumns.patientIdentifier !== "" && selectedColumns.notesWeight !== "" && selectedColumns.notes !== "" && selectedColumns.time !== "")
-      setExtractionJsonData({ selectedColumns: selectedColumns, columnPrefix: columnPrefix, frequency: frequency, hourRange: hourRange })
+      setExtractionJsonData({ selectedColumns: selectedColumns, columnPrefix: columnPrefix, frequency: frequency, hourRange: hourRange, masterTableCompatible: masterTableCompatible })
     } else if (frequency == "Note") {
       setMayProceed(isModelAvailable == true && selectedColumns.patientIdentifier !== "" && selectedColumns.notes !== "" && selectedColumns.time !== "")
-      setExtractionJsonData({ selectedColumns: selectedColumns, columnPrefix: columnPrefix, frequency: frequency })
+      setExtractionJsonData({ selectedColumns: selectedColumns, columnPrefix: columnPrefix, frequency: frequency, masterTableCompatible: masterTableCompatible })
     }
-  }, [selectedColumns, frequency, hourRange])
+  }, [selectedColumns, frequency, hourRange, masterTableCompatible, columnPrefix])
 
   // Called when data in DataContext is updated, in order to updated datasetList
   useEffect(() => {
@@ -125,84 +159,110 @@ const ExtractionBioBERT = ({ dataframe, setExtractionJsonData, setMayProceed }) 
     MedDataObject.updateWorkspaceDataObject()
   }, [])
 
-  return (
-    <>
-      <div>
-        <div>{isModelAvailable == false && <Message severity="warn" text="You must have download the pretrained_bert_tf folder in workspace DATA to proceed" />}</div>
-        <div className="text-left margin-top-15">
-          <div className="flex-container">
-            <div>
-              {/* Time interval for generation of extracted features */}
-              <b>Compute Features by : &nbsp;</b>
-              <hr></hr>
-              <div className="margin-top-15">
-                <RadioButton inputId="note" name="frequency" value="Note" onChange={(e) => setFrequency(e.value)} checked={frequency === "Note"} />
-                <label htmlFor="note">&nbsp; Notes</label>
+  // The options for extraction are displayed in a Carousel component
+  const carouselItems = [
+    {
+      key: "1",
+      content: (
+        <div>
+          {/* Time interval for generation of extracted features */}
+          <b>Compute Features by : &nbsp;</b>
+          <hr></hr>
+          <div className="margin-top-15">
+            <RadioButton
+              inputId="note"
+              name="frequency"
+              value="Note"
+              onChange={(e) => {
+                setFrequency(e.value)
+                setMasterTableCompatible(true)
+              }}
+              checked={frequency === "Note"}
+            />
+            <label htmlFor="note">&nbsp; Notes</label>
+          </div>
+          <div className="margin-top-15">
+            <Card subTitle="MIMIC-HAIM specific">
+              <div>
+                <RadioButton inputId="patient" name="frequency" value="Patient" onChange={(e) => setFrequency(e.value)} checked={frequency === "Patient"} />
+                <label htmlFor="patient">&nbsp; Patient</label>
               </div>
               <div className="margin-top-15">
-                <Card subTitle="MIMIC-HAIM specific">
-                  <div>
-                    <RadioButton inputId="patient" name="frequency" value="Patient" onChange={(e) => setFrequency(e.value)} checked={frequency === "Patient"} />
-                    <label htmlFor="patient">&nbsp; Patient</label>
-                  </div>
-                  <div className="margin-top-15">
-                    <RadioButton inputId="admission" name="frequency" value="Admission" onChange={(e) => setFrequency(e.value)} checked={frequency === "Admission"} />
-                    <label htmlFor="admission">&nbsp; Admission</label>
-                  </div>
-                  <div className="margin-top-15">
-                    <RadioButton inputId="hourRange" name="frequency" value="HourRange" onChange={(e) => setFrequency(e.value)} checked={frequency === "HourRange"} />
-                    <label htmlFor="hourRange">&nbsp; Hour Range &nbsp;</label>
-                    {frequency == "HourRange" && <InputNumber value={hourRange} onValueChange={(e) => setHourRange(e.value)} size={1} showButtons min={1} />}
-                  </div>
-                </Card>
+                <RadioButton inputId="admission" name="frequency" value="Admission" onChange={(e) => setFrequency(e.value)} checked={frequency === "Admission"} />
+                <label htmlFor="admission">&nbsp; Admission</label>
               </div>
-            </div>
-            <div className="vertical-divider"></div>
-            <div>
-              {/* Dropdowns for column selection */}
-              <b>Select columns corresponding to :</b>
-              <hr></hr>
               <div className="margin-top-15">
-                Patient Identifier : &nbsp;
-                {dataframe && dataframe.$data ? <Dropdown value={selectedColumns.patientIdentifier} onChange={(event) => handleColumnSelect("patientIdentifier", event)} options={dataframe.$columns.filter((column, index) => dataframe.$dtypes[index] == "int32" || (dataframe.$dtypes[index] == "string" && dataframe[column].dt.$dateObjectArray[0] == "Invalid Date"))} placeholder="Patient Identifier" /> : <Dropdown placeholder="Patient Identifier" disabled />}
+                <RadioButton inputId="hourRange" name="frequency" value="HourRange" onChange={(e) => setFrequency(e.value)} checked={frequency === "HourRange"} />
+                <label htmlFor="hourRange">&nbsp; Hour Range &nbsp;</label>
+                {frequency == "HourRange" && <InputNumber value={hourRange} onValueChange={(e) => setHourRange(e.value)} size={1} showButtons min={1} />}
               </div>
-              {frequency == "Admission" && (
-                <div>
-                  <div className="margin-top-15">
-                    Admission Identifier : &nbsp;
-                    {dataframe && dataframe.$data ? <Dropdown value={selectedColumns.admissionIdentifier} onChange={(event) => handleColumnSelect("admissionIdentifier", event)} options={dataframe.$columns.filter((column, index) => dataframe.$dtypes[index] == "int32" || (dataframe.$dtypes[index] == "string" && dataframe[column].dt.$dateObjectArray[0] == "Invalid Date"))} placeholder="Admission Identifier" /> : <Dropdown placeholder="Admission Identifier" disabled />}
-                  </div>
-                  <div className="margin-top-15">
-                    Admission Time : &nbsp;
-                    {dataframe && dataframe.$data ? <Dropdown value={selectedColumns.admissionTime} onChange={(event) => handleColumnSelect("admissionTime", event)} options={dataframe.$columns.filter((column, index) => dataframe.$dtypes[index] == "string" && dataframe[column].dt.$dateObjectArray[0] != "Invalid Date")} placeholder="Admission Time" /> : <Dropdown placeholder="Admission Time" disabled />}
-                  </div>
-                </div>
-              )}
-              {frequency != "Note" && (
-                <div className="margin-top-15">
-                  Notes Weight : &nbsp;
-                  {dataframe.$data ? <Dropdown value={selectedColumns.notesWeight} onChange={(event) => handleColumnSelect("notesWeight", event)} options={dataframe.$columns.filter((column, index) => dataframe.$dtypes[index] == "int32" || dataframe.$dtypes[index] == "float32" || (dataframe.$dtypes[index] == "string" && dataframe[column].dt.$dateObjectArray[0] != "Invalid Date"))} placeholder="Notes Weight" /> : <Dropdown placeholder="Notes Weight" disabled />}
-                </div>
-              )}
-              {(frequency == "HourRange" || frequency == "Note") && (
-                <div className="margin-top-15">
-                  Time : &nbsp;
-                  {dataframe.$data ? <Dropdown value={selectedColumns.time} onChange={(event) => handleColumnSelect("time", event)} options={dataframe.$columns.filter((column, index) => dataframe.$dtypes[index] == "string" && dataframe[column].dt.$dateObjectArray[0] != "Invalid Date")} placeholder="Time" /> : <Dropdown placeholder="Time" disabled />}
-                </div>
-              )}
-              <div className="margin-top-15">
-                Notes : &nbsp;
-                {dataframe.$data ? <Dropdown value={selectedColumns.notes} onChange={(event) => handleColumnSelect("notes", event)} options={dataframe.$columns.filter((column, index) => dataframe.$dtypes[index] == "string" && dataframe[column].dt.$dateObjectArray[0] == "Invalid Date")} placeholder="Notes" /> : <Dropdown placeholder="Notes" disabled />}
-              </div>
-            </div>
+            </Card>
+          </div>
+          <div className="margin-top-30">
+            <InputSwitch inputId="masterTableCompatible" disabled={frequency === "Note"} checked={masterTableCompatible} onChange={(e) => setMasterTableCompatible(e.value)} tooltip="The master table format may contain less columns in order to enter the MEDprofiles' process." />
+            <label htmlFor="masterTableCompatible">&nbsp; Master Table Compatible &nbsp;</label>
           </div>
         </div>
-        <div className="margin-top-15">
+      )
+    },
+    {
+      key: "2",
+      content: (
+        <div>
+          {/* Dropdowns for column selection */}
+          <b>Select columns corresponding to :</b>
+          <hr></hr>
+          <div className="margin-top-15">
+            Patient Identifier : &nbsp;
+            {dataframe && dataframe.$data ? <Dropdown value={selectedColumns.patientIdentifier} onChange={(event) => handleColumnSelect("patientIdentifier", event)} options={dataframe.$columns.filter((column, index) => dataframe.$dtypes[index] == "int32" || (dataframe.$dtypes[index] == "string" && dataframe[column].dt.$dateObjectArray[0] == "Invalid Date"))} placeholder="Patient Identifier" /> : <Dropdown placeholder="Patient Identifier" disabled />}
+          </div>
+          {frequency == "Admission" && (
+            <div>
+              <div className="margin-top-15">
+                Admission Identifier : &nbsp;
+                {dataframe && dataframe.$data ? <Dropdown value={selectedColumns.admissionIdentifier} onChange={(event) => handleColumnSelect("admissionIdentifier", event)} options={dataframe.$columns.filter((column, index) => dataframe.$dtypes[index] == "int32" || (dataframe.$dtypes[index] == "string" && dataframe[column].dt.$dateObjectArray[0] == "Invalid Date"))} placeholder="Admission Identifier" /> : <Dropdown placeholder="Admission Identifier" disabled />}
+              </div>
+              <div className="margin-top-15">
+                Admission Time : &nbsp;
+                {dataframe && dataframe.$data ? <Dropdown value={selectedColumns.admissionTime} onChange={(event) => handleColumnSelect("admissionTime", event)} options={dataframe.$columns.filter((column, index) => dataframe.$dtypes[index] == "string" && dataframe[column].dt.$dateObjectArray[0] != "Invalid Date")} placeholder="Admission Time" /> : <Dropdown placeholder="Admission Time" disabled />}
+              </div>
+            </div>
+          )}
+          {(frequency == "HourRange" || frequency == "Note" || (frequency == "Patient" && masterTableCompatible)) && (
+            <div className="margin-top-15">
+              Time : &nbsp;
+              {dataframe.$data ? <Dropdown value={selectedColumns.time} onChange={(event) => handleColumnSelect("time", event)} options={dataframe.$columns.filter((column, index) => dataframe.$dtypes[index] == "string" && dataframe[column].dt.$dateObjectArray[0] != "Invalid Date")} placeholder="Time" /> : <Dropdown placeholder="Time" disabled />}
+            </div>
+          )}
+          {frequency != "Note" && (
+            <div className="margin-top-15">
+              Notes Weight : &nbsp;
+              {dataframe.$data ? <Dropdown value={selectedColumns.notesWeight} onChange={(event) => handleColumnSelect("notesWeight", event)} options={dataframe.$columns.filter((column, index) => dataframe.$dtypes[index] == "int32" || dataframe.$dtypes[index] == "float32" || (dataframe.$dtypes[index] == "string" && dataframe[column].dt.$dateObjectArray[0] != "Invalid Date"))} placeholder="Notes Weight" /> : <Dropdown placeholder="Notes Weight" disabled />}
+            </div>
+          )}
+          <div className="margin-top-15">
+            Notes : &nbsp;
+            {dataframe.$data ? <Dropdown value={selectedColumns.notes} onChange={(event) => handleColumnSelect("notes", event)} options={dataframe.$columns.filter((column, index) => dataframe.$dtypes[index] == "string" && dataframe[column].dt.$dateObjectArray[0] == "Invalid Date")} placeholder="Notes" /> : <Dropdown placeholder="Notes" disabled />}
+          </div>
+        </div>
+      )
+    },
+    {
+      key: "3",
+      content: (
+        <div>
           {/* Text input for column names */}
           <b>Column name prefix : &nbsp;</b>
           <InputText value={columnPrefix} onChange={(e) => handleColumnPrefixChange(e.target.value)} />
         </div>
-      </div>
+      )
+    }
+  ]
+
+  return (
+    <>
+      <div>{isModelAvailable == false && <Message severity="warn" text="You must have download the pretrained_bert_tf folder in workspace DATA to proceed" />}</div>
+      <Carousel value={carouselItems} numVisible={1} numScroll={1} responsiveOptions={responsiveOptions} itemTemplate={carouselTemplate} />
     </>
   )
 }

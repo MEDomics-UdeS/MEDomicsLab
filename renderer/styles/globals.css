@@ -111,6 +111,10 @@ a {
   width: 100%;
 }
 
+.width-x {
+  width: 100px;
+}
+
 .overflow-y-auto {
   overflow-y: scroll;
   height: 100%;
@@ -168,12 +172,23 @@ a {
   text-align: left;
 }
 
+.text-right {
+  text-align: right;
+}
+
 hr.solid {
   border-top: 3px solid #bbb;
   margin: 0 0 0.25rem 0;
 }
 
 .center {
+  text-align: center;
+}
+
+.centered-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   text-align: center;
 }
 

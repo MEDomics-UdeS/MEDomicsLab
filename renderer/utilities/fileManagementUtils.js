@@ -175,7 +175,7 @@ const loadCSVPath = (path, whenLoaded) => {
   let cwdSlashType = cwd.includes("/") ? "/" : "\\"
   let cwdSlashTypeInv = cwdSlashType == "/" ? "\\" : "/"
   path.charAt(0) == "." && (path = cwd + path.substring(1).replaceAll(cwdSlashTypeInv, cwdSlashType))
-  console.log("reading csv file: " + path)
+  //console.log("reading csv file: " + path)
   try {
     fs.createReadStream(path)
       .pipe(
@@ -194,8 +194,8 @@ const loadCSVPath = (path, whenLoaded) => {
       })
       .on("end", function () {
         // Here log the result array
-        console.log("parsed csv data:")
-        console.log(data)
+        //console.log("parsed csv data:")
+        //console.log(data)
         whenLoaded(data)
       })
   } catch (error) {

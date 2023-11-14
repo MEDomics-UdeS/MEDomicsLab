@@ -219,7 +219,8 @@ const IconSidebar = ({ onSidebarItemSelect }) => {
                       console.log("clicked extraction image", event)
                       event.stopPropagation()
                       event.preventDefault()
-                      handleClick(event, "extractionImage")
+                      // handleClick(event, "extractionImage")
+                      handleDoubleClick(event, "ExtractionImage")
                       setExtractionBtnstate(!extractionBtnstate)
                     }}
                     onDoubleClick={(event) => handleDoubleClick(event, "ExtractionImage")}
