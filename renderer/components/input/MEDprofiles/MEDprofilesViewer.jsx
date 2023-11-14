@@ -23,7 +23,6 @@ import { Col, Row } from "react-bootstrap"
 const MEDprofilesViewer = ({ pageId, configPath = "", MEDclassesFolder, MEDprofilesBinaryFile }) => {
   const [jsonFilePath, setJsonFilePath] = useState(null)
   const { port } = useContext(WorkspaceContext) // we get the port for server connexion
-  const [classes, setClasses] = useState(new Set()) // list of classes in the MEDclasses folder
   /**
    * @description
    * This function is called while the page elements are loaded in order
@@ -65,7 +64,7 @@ const MEDprofilesViewer = ({ pageId, configPath = "", MEDclassesFolder, MEDprofi
         <h1 className="center">MEDprofiles Viewer</h1>
         <div>MEDclasses folder : {MEDclassesFolder?.path}</div>
         <div>MEDprofiles binary file : {MEDprofilesBinaryFile?.path}</div>
-        {jsonFilePath && <MEDcohortFigure jsonFilePath={jsonFilePath} classes={classes} setClasses={setClasses} />}
+        {jsonFilePath && <MEDcohortFigure jsonFilePath={jsonFilePath} />}
         <Row className="justify-content-md-center" style={{ display: "flex", flexDirection: "row", alignContent: "center", alignItems: "center", width: "100%" }}>
           <Col md="auto">
             <h6>Select the class for relative time</h6>

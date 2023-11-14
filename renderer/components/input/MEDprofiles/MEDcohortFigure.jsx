@@ -21,7 +21,6 @@ import { confirmDialog } from "primereact/confirmdialog"
  * @classdesc Class component that renders a figure of the MEDcohort data.
  * @param {Object} props
  * @param {String} props.jsonFilePath - Path to the MEDcohort json file.
- * @param {String} props.classes - Classes to be displayed in the figure.
  */
 class MEDcohortFigureClass extends React.Component {
   /**
@@ -58,7 +57,7 @@ class MEDcohortFigureClass extends React.Component {
       selectedData: [],
       timePointClusters: [],
       echartsOptions: null,
-      classes: this.props.classes,
+      classes: new Set(),
       darkMode: false
     }
     this.chartRef = React.createRef()
