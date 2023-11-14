@@ -14,9 +14,6 @@ import { MultiSelect } from "primereact/multiselect"
 import MedDataObject from "../../workspace/medDataObject"
 import { toast } from "react-toastify"
 import { confirmDialog } from "primereact/confirmdialog"
-// import echarts from "../../../../node_modules/echarts/"
-
-// const darkTheme = require("../../../styles/input/medCohortFigureDark.json")
 
 /**
  * @class MEDcohortFigureClass
@@ -77,7 +74,7 @@ class MEDcohortFigureClass extends React.Component {
     this.setState({ jsonData: loadJsonPath(this.props.jsonFilePath) }, () => {
       this.generateEchartsOptions()
     })
-    this.setState({ darkMode: window.matchMedia("(prefers-color-scheme)").matches ? "dark" : "light" })
+    this.setState({ darkMode: window.matchMedia("(prefers-color-scheme)").matches ? "dark" : "light" }) // Set the initial theme type
     window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", (e) => {
       if (e.matches) {
         this.setState({ darkMode: true })
@@ -88,7 +85,7 @@ class MEDcohortFigureClass extends React.Component {
   }
 
   componentWillUnmount() {
-    window.matchMedia("(prefers-color-scheme)").removeEventListener("change", (e) => {})
+    window.matchMedia("(prefers-color-scheme)").removeEventListener("change", () => {})
   }
 
   /**
@@ -98,6 +95,7 @@ class MEDcohortFigureClass extends React.Component {
    * @returns {void}
    */
   componentDidUpdate(prevProps, prevState) {
+    // eslint-disable-next-line no-undef
     echarts.registerTheme("dark", require("../../../styles/input/medCohortFigureDark.json"))
 
     if (this.chartRef.current !== null) {
