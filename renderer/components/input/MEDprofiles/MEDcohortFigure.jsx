@@ -3,6 +3,7 @@ import React from "react"
 import { loadJsonPath } from "../../../utilities/fileManagementUtils"
 import { deepCopy } from "../../../utilities/staticFunctions"
 import { XSquare } from "react-bootstrap-icons"
+import * as echarts from "echarts/core"
 import ReactECharts from "echarts-for-react"
 import * as d3 from "d3"
 import { Col, Row } from "react-bootstrap"
@@ -13,6 +14,9 @@ import { MultiSelect } from "primereact/multiselect"
 import MedDataObject from "../../workspace/medDataObject"
 import { toast } from "react-toastify"
 import { confirmDialog } from "primereact/confirmdialog"
+// import echarts from "../../../../node_modules/echarts/"
+
+// const darkTheme = require("../../../styles/input/medCohortFigureDark.json")
 
 /**
  * @class MEDcohortFigureClass
@@ -20,22 +24,27 @@ import { confirmDialog } from "primereact/confirmdialog"
  * @classdesc Class component that renders a figure of the MEDcohort data.
  * @param {Object} props
  * @param {String} props.jsonFilePath - Path to the MEDcohort json file.
- * @param {MEDprofiles.list_MEDprofile.MEDprofile} props.jsonData - MEDcohort json data.
  * @param {String} props.classes - Classes to be displayed in the figure.
- * @param {String} props.relativeTime - Class to be used as relative time.
- * @param {Boolean} props.separateVertically - If true, the classes will be separated vertically.
- * @param {Boolean} props.separateHorizontally - If true, the classes will be separated horizontally.
- * @param {Boolean} props.selectedClassesToSetTimePoint - Classes to be used to set the time point.
- * @param {Boolean} props.shapes - Shapes to be displayed in the figure.
- * @param {Boolean} props.timePoints - Time points to be displayed in the figure.
- * @param {Boolean} props.timePoint - Time point to be displayed in the figure.
- * @param {Boolean} props.selectedData - Selected data to be displayed in the figure.
- * @param {Boolean} props.timePointClusters - Time point clusters to be displayed in the figure.
- * @param {Boolean} props.echartsOptions - Echarts options to be displayed in the figure.
- * @param {Boolean} props.annotations - Annotations to be displayed in the figure.
- * @param {Boolean} props.layout - Layout to be displayed in the figure.
  */
 class MEDcohortFigureClass extends React.Component {
+  /**
+   * @constructor
+   * @property {Object} this.state - Component state.
+   * @property {Object} this.state.jsonData - MEDcohort json data.
+   * @property {String} this.state.classes - Classes to be displayed in the figure.
+   * @property {String} this.state.relativeTime - Class to be used as relative time.
+   * @property {Boolean} this.state.separateVertically - If true, the classes will be separated vertically.
+   * @property {Boolean} this.state.separateHorizontally - If true, the classes will be separated horizontally.
+   * @property {Boolean} this.state.selectedClassesToSetTimePoint - Classes to be used to set the time point.
+   * @property {Boolean} this.state.shapes - Shapes to be displayed in the figure.
+   * @property {Boolean} this.state.timePoints - Time points to be displayed in the figure.
+   * @property {Boolean} this.state.timePoint - Time point to be displayed in the figure.
+   * @property {Boolean} this.state.selectedData - Selected data to be displayed in the figure.
+   * @property {Boolean} this.state.timePointClusters - Time point clusters to be displayed in the figure.
+   * @property {Boolean} this.state.echartsOptions - Echarts options to be displayed in the figure.
+   * @property {Boolean} this.state.layout - Layout to be displayed in the figure.
+   * @property {Boolean} this.state.darkMode - If true, the figure will be displayed in dark mode.
+   */
   constructor(props) {
     super(props)
     this.state = {
@@ -52,7 +61,8 @@ class MEDcohortFigureClass extends React.Component {
       selectedData: [],
       timePointClusters: [],
       echartsOptions: null,
-      classes: this.props.classes
+      classes: this.props.classes,
+      darkMode: false
     }
     this.chartRef = React.createRef()
   }
@@ -67,6 +77,18 @@ class MEDcohortFigureClass extends React.Component {
     this.setState({ jsonData: loadJsonPath(this.props.jsonFilePath) }, () => {
       this.generateEchartsOptions()
     })
+    this.setState({ darkMode: window.matchMedia("(prefers-color-scheme)").matches ? "dark" : "light" })
+    window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", (e) => {
+      if (e.matches) {
+        this.setState({ darkMode: true })
+      } else {
+        this.setState({ darkMode: false })
+      }
+    })
+  }
+
+  componentWillUnmount() {
+    window.matchMedia("(prefers-color-scheme)").removeEventListener("change", (e) => {})
   }
 
   /**
@@ -76,6 +98,8 @@ class MEDcohortFigureClass extends React.Component {
    * @returns {void}
    */
   componentDidUpdate(prevProps, prevState) {
+    echarts.registerTheme("dark", require("../../../styles/input/medCohortFigureDark.json"))
+
     if (this.chartRef.current !== null) {
       console.log("REF", this.chartRef.current.getEchartsInstance())
     }
@@ -90,11 +114,10 @@ class MEDcohortFigureClass extends React.Component {
       this.generateEchartsOptions()
     } else if (prevState.relativeTime !== this.state.relativeTime) {
       this.generateEchartsOptions()
+    } else if (prevState.darkMode !== this.state.darkMode) {
+      console.log("darkMode", this.state.darkMode)
+      this.generateEchartsOptions()
     }
-  }
-
-  componentWillUnmount() {
-    // Clean up event listeners, cancel timeouts, etc.
   }
 
   /**
@@ -847,13 +870,20 @@ class MEDcohortFigureClass extends React.Component {
     if (echartsOptions !== null) {
       newEchartsOption.series = [...echartsOptions.series, ...shapes]
     }
+    let themeName = "light"
+    if (this.state.darkMode === undefined || this.state.darkMode === false) {
+      themeName = "light"
+    }
+    if (this.state.darkMode === true) {
+      themeName = "dark"
+    }
 
     return (
       <>
         <Row style={{ width: "100%", justifyContent: "center" }}>
           <Col lg={8} className="center">
-            <div className="MEDcohort-figure" style={{ display: "flex", flexDirection: "column", boxShadow: "2px 2px 4px rgba(0, 0, 0, 0.25)", borderRadius: " 1rem", padding: "0.5rem" }}>
-              {echartsOptions && <ReactECharts ref={this.chartRef} option={newEchartsOption} onEvents={{ brushselected: this.handleSelectData }} style={{ width: "100%", height: "100%" }} lazyUpdate={false} />}
+            <div className="MEDcohort-figure" style={{ display: "flex", flexDirection: "column", boxShadow: "2px 2px 4px rgba(0, 0, 0, 0.25)", borderRadius: " 1rem", padding: "0" }}>
+              {echartsOptions && <ReactECharts className="echarts-custom" ref={this.chartRef} option={newEchartsOption} theme={themeName} onEvents={{ brushselected: this.handleSelectData }} style={{ width: "100%", height: "100%" }} lazyUpdate={true} class={"echarts-scatter"} />}
             </div>
           </Col>
 

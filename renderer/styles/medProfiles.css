@@ -16,3 +16,8 @@
   margin-inline: 0.1rem !important;
   padding: 0rem !important;
 }
+
+.echarts-custom canvas {
+  border-radius: 0.5rem;
+  padding: 0rem;
+}
