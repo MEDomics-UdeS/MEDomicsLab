@@ -4,9 +4,7 @@ import { requestJson } from "../../../utilities/requests"
 import { toast } from "react-toastify"
 import { WorkspaceContext } from "../../workspace/workspaceContext"
 import MEDcohortFigure from "./MEDcohortFigure"
-import { Dropdown } from "primereact/dropdown"
 import { Col, Row } from "react-bootstrap"
-import { Button } from "primereact/button"
 
 /**
  *
