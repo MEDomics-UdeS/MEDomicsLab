@@ -206,11 +206,17 @@ const ExtractionTabularData = ({ extractionTypeList, serverUrl, defaultFilename 
 
   // Called when isDatasetLoaded change, in order to update csvPath and dataframe.
   useEffect(() => {
+    console.log("selectedDataset", selectedDataset)
     if (selectedDataset && selectedDataset.data && selectedDataset.path) {
+      console.log("in if", selectedDataset.data)
       setCsvPath(selectedDataset.path)
       setDataframe(new DataFrame(selectedDataset.data))
       setIsLoadingDataset(false)
     }
+  }, [isDatasetLoaded])
+
+  useEffect(() => {
+    console.log("dataframe in tab", isDatasetLoaded)
   }, [isDatasetLoaded])
 
   // Called when isDatasetLoaded change, in order to update the progressbar.

@@ -109,6 +109,10 @@ const ExtractionTSfresh = ({ dataframe, setExtractionJsonData, setMayProceed, se
     setAreResultsLarge(featuresOption !== "Minimal")
   }, [featuresOption])
 
+  useEffect(() => {
+    console.log("dataframe:", dataframe)
+  }, [dataframe])
+
   /**
    *
    * @description
