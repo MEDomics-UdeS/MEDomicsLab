@@ -23,7 +23,9 @@ nvm use lts
 ```
 cd <.../MEDomicsLab/>
 git submodule init
-git submodule update
+git submodule update --init --recursive --remote
+cd flask_server/submodules/MEDimage
+git checkout dev_lab
 ```
 
 ## 5. Run the Electron app in development mode

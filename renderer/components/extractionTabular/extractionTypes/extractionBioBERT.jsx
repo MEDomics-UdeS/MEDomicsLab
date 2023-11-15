@@ -23,12 +23,13 @@ import React, { useContext, useEffect, useState } from "react"
  *
  */
 const ExtractionBioBERT = ({ dataframe, setExtractionJsonData, setMayProceed }) => {
-  const [columnPrefix, setColumnPrefix] = useState("notes")
-  const [frequency, setFrequency] = useState("Note")
-  const [hourRange, setHourRange] = useState(24)
-  const [isModelAvailable, setIsModelAvailable] = useState(false)
-  const [masterTableCompatible, setMasterTableCompatible] = useState(true)
+  const [columnPrefix, setColumnPrefix] = useState("notes") // column prefix to set in the generated dataframe from extracted features
+  const [frequency, setFrequency] = useState("Note") // frequency choosen for the features generation
+  const [hourRange, setHourRange] = useState(24) // hour range in which to generated the features if the frequency is "Hour"
+  const [isModelAvailable, setIsModelAvailable] = useState(false) // boolean set to false if the specified pre-trained model is not located in the DATA folder
+  const [masterTableCompatible, setMasterTableCompatible] = useState(true) // boolean set to true if the extracted features dataset must respect the submaster table format
   const [selectedColumns, setSelectedColumns] = useState({
+    // columns names for feature extraction matching a required type
     patientIdentifier: "",
     admissionIdentifier: "",
     admissionTime: "",
@@ -37,7 +38,7 @@ const ExtractionBioBERT = ({ dataframe, setExtractionJsonData, setMayProceed }) 
     time: ""
   })
 
-  const { globalData } = useContext(DataContext)
+  const { globalData } = useContext(DataContext) // we get the global data from the context to retrieve the directory tree of the workspace, thus retrieving the data files
 
   // display options for the carousel
   const responsiveOptions = [

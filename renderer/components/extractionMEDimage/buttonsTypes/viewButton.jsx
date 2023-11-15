@@ -2,7 +2,7 @@ import React, { useContext } from "react"
 import Button from "react-bootstrap/Button"
 import { requestJson } from "../../../utilities/requests"
 import { WorkspaceContext } from "../../workspace/workspaceContext"
-import { ErrorRequestContext } from "../../flow/context/errorRequestContext"
+import { ErrorRequestContext } from "../../generalPurpose/errorRequestContext"
 
 /**
  * @param {string} id id of the node

@@ -2,7 +2,7 @@ import Button from "react-bootstrap/Button"
 import { DataContext } from "../workspace/dataContext"
 import DataTableFromContext from "../mainPages/dataComponents/dataTableFromContext"
 import { Dropdown } from "primereact/dropdown"
-import { ErrorRequestContext } from "../flow/context/errorRequestContext"
+import { ErrorRequestContext } from "../generalPurpose/errorRequestContext"
 import ExtractionDenseNet from "./extractionTypes/extractionDenseNet"
 import { InputNumber } from "primereact/inputnumber"
 import { InputText } from "primereact/inputtext"
@@ -46,10 +46,10 @@ const ExtractionJPG = ({ extractionTypeList, serverUrl, defaultFilename }) => {
   const [running, setRunning] = useState(false) // boolean set to true when extraction is running
   const [selectedFolder, setSelectedFolder] = useState(null) // folder containing the data for extraction
   const [showProgressBar, setShowProgressBar] = useState(false) // wether to show or not the extraction progressbar
-  const { setError } = useContext(ErrorRequestContext)
 
   const { globalData } = useContext(DataContext) // we get the global data from the context to retrieve the directory tree of the workspace, thus retrieving the data files
   const { port } = useContext(WorkspaceContext) // we get the port for server connexion
+  const { setError } = useContext(ErrorRequestContext) // used to diplay the errors
 
   /**
    *

@@ -1,3 +1,4 @@
+from fileinput import filename
 import numpy as np
 import os
 import pandas as pd
@@ -25,6 +26,13 @@ step = ""
 
 @app_MEDprofiles.route("/create_master_table", methods=["GET", "POST"]) 
 def create_master_table():
+    """
+    Create a master table from list of csv files paths given by a json request.
+    The master table file is created following the specifications given in the json request.
+
+    Returns: json_config : dict containing the json request and the master table path.
+
+    """
     # Set local variables
     json_config = get_json_from_request(request)
 
@@ -74,6 +82,13 @@ def create_master_table():
 
 @app_MEDprofiles.route("/create_MEDclasses", methods=["GET", "POST"]) 
 def create_MEDclasses():
+    """
+    Create MEDclasses given a master table specified by a json request in a specified folder.
+    Use the create_classes_from_master_table.main function from the MEDprofiles submodule. 
+
+    Returns: json_config : dict containing the json request and the generated MEDclasses folder path.
+
+    """
     # Set local variables
     json_config = get_json_from_request(request)
 
@@ -85,7 +100,8 @@ def create_MEDclasses():
         if not os.path.exists(MEDclasses_folder_path):
             os.mkdir(MEDclasses_folder_path)
         MEDprofiles.src.back.create_classes_from_master_table.main(master_table_path, MEDclasses_folder_path)
-
+        MEDclasses_pkg = os.path.join(MEDclasses_folder_path, "MEDclasses")
+        json_config["generated_MEDclasses_folder"] = MEDclasses_pkg
     except BaseException as e:
         return get_response_from_error(e)
 
@@ -94,6 +110,13 @@ def create_MEDclasses():
 
 @app_MEDprofiles.route("/create_MEDprofiles_folder", methods=["GET", "POST"]) 
 def create_MEDprofiles_folder():
+    """
+    Method called at the opening of the MEDprofiles module in order to create a folder
+    relative to the MEDprofiles data. 
+
+    Returns: json_config : dict containing the json request and the generated MEDprofiles folder path.
+
+    """
     # Set local variables
     json_config = get_json_from_request(request)
 
@@ -116,6 +139,14 @@ def create_MEDprofiles_folder():
 
 @app_MEDprofiles.route("/instantiate_MEDprofiles", methods=["GET", "POST"])
 def instantiate_MEDprofiles():
+    """
+    Instantiate MEDprofiles data as binary file given a master table and MEDclasses
+    specified by a json request.
+    Use the instantiate_data_from_master_table.main function from the MEDprofiles submodule. 
+
+    Returns: json_config : dict containing the json request and the genrated binary file path.
+
+    """
     # Global variables
     global progress
     global step
@@ -126,10 +157,12 @@ def instantiate_MEDprofiles():
 
     master_table_path = json_config["masterTablePath"]
     MEDprofiles_folder = json_config["MEDprofilesFolderPath"]
-    destination_file = os.path.join(MEDprofiles_folder, "MEDprofiles_bin")
+    filename = json_config["filename"]
+    destination_file = os.path.join(MEDprofiles_folder, filename)
 
     try:
         MEDprofiles.src.back.instantiate_data_from_master_table.main(master_table_path, destination_file)
+        json_config["generated_file_path"] = destination_file
     except BaseException as e:
         return get_response_from_error(e)
 
@@ -138,6 +171,13 @@ def instantiate_MEDprofiles():
 
 @app_MEDprofiles.route("/load_pickle_cohort", methods=["GET", "POST"])
 def load_pickle_cohort():
+    """
+    Function reading MEDprofiles binary data given a binary file and MEDclasses
+    specified by a json request and converting it into json.
+    Use the to_json method from MEDcohort in MEDprofiles submodule.
+
+    Returns: json_config : dict containing the json request and the generated json file path.
+    """
     # Set local variables
     json_config = get_json_from_request(request)
     MEDclasses_folder_path = json_config["MEDclassesFolder"]

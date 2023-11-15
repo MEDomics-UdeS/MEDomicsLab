@@ -19,6 +19,7 @@ const iconExtension = {
     </span>
   ),
   pdf: <span className="emoji">📕</span>,
+  html: <span className="emoji">🌐</span>,
   medomics: (
     <span>
       <Image src={medomicsImg} width={12} height={12} alt="medomics.svg" style={{ marginRight: "0.15rem" }} />
@@ -27,6 +28,8 @@ const iconExtension = {
   medml: <span className="emoji">🎯</span>,
   medimg: <span className="emoji">🩻</span>,
   medmlres: <span className="emoji">📊</span>,
+  medeval: <span className="emoji">🔬</span>,
+  zip: <span className="emoji">🔒</span>,
   medmodel: (
     <span>
       <PiGraph className="icon-offset" style={{ color: "#97edfb" }} />
@@ -110,7 +113,8 @@ const renderItem = ({ item, depth, children, title, context, arrow }, additional
                   className={cx("rct-tree-item-button", item.isFolder && "rct-tree-item-button-isFolder", context.isSelected && "rct-tree-item-button-selected", context.isExpanded && "rct-tree-item-button-expanded", context.isFocused && "rct-tree-item-button-focused", context.isDraggingOver && "rct-tree-item-button-dragging-over", context.isSearchMatching && "rct-tree-item-button-search-match")}
                   data={item}
                   onContextMenu={(e) => {
-                    console.log("onContextMenu", item.index)
+                    console.log("onContextMenu", item.index, e, additionalParams, item)
+                    // additionalParams.setSelectedItems([item.UUID])
                     additionalParams.displayMenu(e, item)
                   }}
                 >

@@ -497,3 +497,14 @@
 .medcohort-drop .p-multiselect-trigger {
   width: 1.5rem;
 }
+
+.bg-invalid {
+  background-color: #f8091d56 !important;
+}
+
+.overlay-dropdown .p-dropdown-label {
+  align-items: center;
+  align-content: center;
+  top: -0.2rem;
+  position: relative;
+}

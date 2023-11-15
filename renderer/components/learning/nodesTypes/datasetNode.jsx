@@ -7,9 +7,9 @@ import * as Icon from "react-bootstrap-icons"
 import { FlowFunctionsContext } from "../../flow/context/flowFunctionsContext"
 import { Stack } from "react-bootstrap"
 import Form from "react-bootstrap/Form"
-import Path from "path"
 import { DataContext } from "../../workspace/dataContext"
 import MedDataObject from "../../workspace/medDataObject"
+import { LoaderContext } from "../../generalPurpose/loaderContext"
 
 /**
  *
@@ -27,6 +27,7 @@ const DatasetNode = ({ id, data }) => {
   const [selection, setSelection] = useState(data.internal.selection)
   const { updateNode } = useContext(FlowFunctionsContext)
   const { globalData, setGlobalData } = useContext(DataContext)
+  const { setLoader } = useContext(LoaderContext)
 
   // update the node internal data when the selection changes
   useEffect(() => {
@@ -96,41 +97,6 @@ const DatasetNode = ({ id, data }) => {
   }
 
   /**
-   * Loads the data from the file associated with the `MedDataObject` instance.
-   */
-  const loadDataFromDisk = async (filePath) => {
-    let extension = Path.extname(filePath).slice(1)
-    console.log("extension: ", extension)
-    // let path = this.path
-    let data = undefined
-    const dfd = require("danfojs-node")
-
-    // let filePath = Path.(this.path)
-    if (extension === "xlsx") {
-      data = await dfd.readExcel(filePath)
-    } else if (extension === "csv") {
-      data = await dfd.readCSV(filePath)
-    } else if (extension === "json") {
-      data = await dfd.readJSON(filePath)
-    }
-    return data
-  }
-
-  /**
-   * GetsTheColumnsOfTheDataObjectIfItIsATable
-   * @returns {Array} - The columns of the data object if it is a table.
-   */
-  const getColumnsOfTheDataObjectIfItIsATable = async (path) => {
-    let newColumns = []
-    const data = await loadDataFromDisk(path)
-    console.log("data: ", data)
-    if (data.$columns) {
-      newColumns = data.$columns
-    }
-    return newColumns
-  }
-
-  /**
    *
    * @param {Object} inputUpdate The input update
    *
@@ -140,7 +106,9 @@ const DatasetNode = ({ id, data }) => {
   const onFilesChange = async (inputUpdate) => {
     data.internal.settings[inputUpdate.name] = inputUpdate.value
     if (inputUpdate.value.path != "") {
-      let { columnsArray, columnsObject } = await getColumnsFromPath(inputUpdate.value.path)
+      setLoader(true)
+      let { columnsArray, columnsObject } = await MedDataObject.getColumnsFromPath(inputUpdate.value.path, globalData, setGlobalData)
+      setLoader(false)
       data.internal.settings.columns = columnsObject
       data.internal.settings.target = columnsArray[columnsArray.length - 1]
     } else {
@@ -151,29 +119,6 @@ const DatasetNode = ({ id, data }) => {
       id: id,
       updatedData: data.internal
     })
-  }
-
-  /**
-   *
-   * @param {String} path A path to a MedDataObject
-   * @returns {Object, Object} - {columnsArray, columnsObject} - The columns of the data object if it is a table.
-   */
-  const getColumnsFromPath = async (path) => {
-    let dataObject = MedDataObject.checkIfMedDataObjectInContextbyPath(path, globalData)
-    let columnsArray = []
-    if (dataObject.metadata.columns) {
-      columnsArray = dataObject.metadata.columns
-    } else {
-      columnsArray = await getColumnsOfTheDataObjectIfItIsATable(path)
-      dataObject.metadata.columns = columnsArray
-      setGlobalData({ ...globalData })
-    }
-    let columnsObject = {}
-    columnsArray.forEach((element) => {
-      columnsObject[element] = element
-    })
-
-    return { columnsArray: columnsArray, columnsObject: columnsObject }
   }
 
   return (
@@ -201,7 +146,7 @@ const DatasetNode = ({ id, data }) => {
                 value="medomics"
                 // selected={optionName === selection}
               >
-                MEDomics Lab standard
+                MEDomicsLab standard
               </option>
               <option
                 key="custom"
@@ -244,6 +189,9 @@ const DatasetNode = ({ id, data }) => {
                             choices: data.internal.settings.columns || {}
                           }}
                           onInputChange={onInputChange}
+                          customProps={{
+                            filter: true
+                          }}
                         />
                       </>
                     )
