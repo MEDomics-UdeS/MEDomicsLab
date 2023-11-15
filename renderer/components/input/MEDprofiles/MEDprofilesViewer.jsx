@@ -4,8 +4,6 @@ import { requestJson } from "../../../utilities/requests"
 import { toast } from "react-toastify"
 import { WorkspaceContext } from "../../workspace/workspaceContext"
 import MEDcohortFigure from "./MEDcohortFigure"
-import { Col, Row } from "react-bootstrap"
-import { Spinner } from "react-bootstrap"
 import { ProgressSpinner } from "primereact/progressspinner"
 
 /**
