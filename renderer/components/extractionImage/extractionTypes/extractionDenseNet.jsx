@@ -21,20 +21,21 @@ import React, { useContext, useEffect, useState } from "react"
  *
  */
 const ExtractionDenseNet = ({ folderDepth, setExtractionJsonData, setOptionsSelected }) => {
-  const [columnPrefix, setColumnPrefix] = useState("img")
+  const [columnPrefix, setColumnPrefix] = useState("img") // column prefix to set in the generated dataframe from extracted features
   const [dataframe, setDataframe] = useState(null) // danfojs dataframe from the selected csv
   const [datasetList, setDatasetList] = useState([]) // list of available datasets
-  const [masterTableCompatible, setMasterTableCompatible] = useState(true)
-  const [parsePatientIdAsInt, setParsePatientIdAsInt] = useState(false)
-  const [patientIdentifierLevel, setPatientIdentifierLevel] = useState(1)
-  const [selectedFeaturesToGenerate, setSelectedFeaturesToGenerate] = useState(["denseFeatures"])
+  const [masterTableCompatible, setMasterTableCompatible] = useState(true) // boolean true if the generated dataframe from extracted features must follow the submaster table specifications
+  const [parsePatientIdAsInt, setParsePatientIdAsInt] = useState(false) // boolean true if the patients identifiers given by folder names must be parsed as integer in the result dataframe
+  const [patientIdentifierLevel, setPatientIdentifierLevel] = useState(1) // integer indicating at which folder level are specified the patients identifiers
+  const [selectedFeaturesToGenerate, setSelectedFeaturesToGenerate] = useState(["denseFeatures"]) // list of string specifying the features to extract
   const [selectedColumns, setSelectedColumns] = useState({
+    // dictionnary of the specified columns matching the required format from selectedDataset
     filename: "",
     date: ""
   })
-  const [selectedDataset, setSelectedDataset] = useState(null) // dataset choosen that must associate dates to filenames
-  const [selectedWeights, setSelectedWeights] = useState("densenet121-res224-chex")
-  const [weightsList] = useState(["densenet121-res224-chex", "densenet121-res224-pc", "densenet121-res224-nih", "densenet121-res224-rsna", "densenet121-res224-all", "densenet121-res224-mimic_nb", "densenet121-res224-mimic_ch"])
+  const [selectedDataset, setSelectedDataset] = useState(null) // dataset choosen that must associate dates to filenames if masterTableCompatible is true
+  const [selectedWeights, setSelectedWeights] = useState("densenet121-res224-chex") // string indicating weights to use for the features generation
+  const [weightsList] = useState(["densenet121-res224-chex", "densenet121-res224-pc", "densenet121-res224-nih", "densenet121-res224-rsna", "densenet121-res224-all", "densenet121-res224-mimic_nb", "densenet121-res224-mimic_ch"]) // list of available weigths for feature generation
   const { globalData } = useContext(DataContext) // we get the global data from the context to retrieve the directory tree of the workspace, thus retrieving the data files
 
   // display options for the carousel

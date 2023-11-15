@@ -3,6 +3,7 @@ import { DataContext } from "../workspace/dataContext"
 import { DataFrame } from "danfojs"
 import DataTableFromContext from "../mainPages/dataComponents/dataTableFromContext"
 import { Dropdown } from "primereact/dropdown"
+import { ErrorRequestContext } from "../flow/context/errorRequestContext"
 import ExtractionBioBERT from "./extractionTypes/extractionBioBERT"
 import ExtractionTSfresh from "./extractionTypes/extractionTSfresh"
 import { InputText } from "primereact/inputtext"
@@ -49,8 +50,10 @@ const ExtractionTabularData = ({ extractionTypeList, serverUrl, defaultFilename 
   const [resultDataset, setResultDataset] = useState(null) // dataset of extracted data used to be display
   const [selectedDataset, setSelectedDataset] = useState(null) // dataset of data to extract used to be display
   const [showProgressBar, setShowProgressBar] = useState(false) // wether to show or not the extraction progressbar
+
   const { globalData } = useContext(DataContext) // we get the global data from the context to retrieve the directory tree of the workspace, thus retrieving the data files
   const { port } = useContext(WorkspaceContext) // we get the port for server connexion
+  const { setError } = useContext(ErrorRequestContext) // used to diplay the errors
 
   /**
    *
@@ -162,6 +165,7 @@ const ExtractionTabularData = ({ extractionTypeList, serverUrl, defaultFilename 
           setIsLoadingDataset(true)
         } else {
           toast.error(`Extraction failed: ${jsonResponse.error.message}`)
+          setError(jsonResponse.error)
           setExtractionStep("")
         }
         setShowProgressBar(false)

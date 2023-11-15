@@ -19,12 +19,13 @@ import React, { useEffect, useState } from "react"
  *
  */
 const ExtractionTSfresh = ({ dataframe, setExtractionJsonData, setMayProceed, setAreResultsLarge }) => {
-  const [columnPrefix, setColumnPrefix] = useState("ts")
-  const [featuresOption, setFeaturesOption] = useState("Minimal")
-  const [frequency, setFrequency] = useState("Admission")
-  const [hourRange, setHourRange] = useState(24)
-  const [masterTableCompatible, setMasterTableCompatible] = useState(true)
+  const [columnPrefix, setColumnPrefix] = useState("ts") // column prefix to set in the generated dataframe from extracted features
+  const [featuresOption, setFeaturesOption] = useState("Minimal") // features generation option
+  const [frequency, setFrequency] = useState("Admission") // frequency choosen for the features generation
+  const [hourRange, setHourRange] = useState(24) // hour range in which to generated the features if the frequency is "Hour"
+  const [masterTableCompatible, setMasterTableCompatible] = useState(true) // boolean set to true if the extracted features dataset must respect the submaster table format
   const [selectedColumns, setSelectedColumns] = useState({
+    // columns names for feature extraction matching a required type
     patientIdentifier: "",
     admissionIdentifier: "",
     admissionTime: "",
