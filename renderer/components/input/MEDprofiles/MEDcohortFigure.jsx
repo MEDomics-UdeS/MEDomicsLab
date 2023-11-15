@@ -22,6 +22,7 @@ import { Spinner } from "react-bootstrap"
  * @classdesc Class component that renders a figure of the MEDcohort data.
  * @param {Object} props
  * @param {String} props.jsonFilePath - Path to the MEDcohort json file.
+ * @param {Object} props.jsonDataIsLoaded - If MEDcohort json data is loaded. Spinner is showed by the parent component.
  */
 class MEDcohortFigureClass extends React.Component {
   /**
@@ -75,6 +76,7 @@ class MEDcohortFigureClass extends React.Component {
   componentDidMount() {
     this.setState({ jsonData: loadJsonPath(this.props.jsonFilePath) }, () => {
       this.generateEchartsOptions()
+      this.props.setJsonDataIsLoaded(true)
     })
     this.setState({ darkMode: window.matchMedia("(prefers-color-scheme)").matches ? "dark" : "light" }) // Set the initial theme type
     window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", (e) => {
@@ -86,6 +88,12 @@ class MEDcohortFigureClass extends React.Component {
     })
   }
 
+  /**
+   * Invoked immediately before a component is unmounted and destroyed.
+   * @function
+   * @returns {void}
+   * @desc Removes the event listener for the dark mode.
+   */
   componentWillUnmount() {
     window.matchMedia("(prefers-color-scheme)").removeEventListener("change", () => {})
   }
@@ -924,9 +932,6 @@ class MEDcohortFigureClass extends React.Component {
               <Col xxl="6" style={{ display: "flex", flexDirection: "row", justifyContent: "center", marginBottom: "1rem" }}>
                 <ToggleButton className="separate-toggle-button" checked={separateVertically} onChange={(e) => this.setState({ separateVertically: e.value })} onLabel="Overlap vertically" offLabel="Separate vertically" onIcon="pi pi-check" offIcon="pi pi-times" />
               </Col>
-              {/* <Col style={{ display: "flex", flexDirection: "row", justifyContent: "center", marginBottom: "1rem" }}>
-                <Button size="small" label="Clear annotations" onClick={() => this.setState({ annotations: [] })} />
-              </Col> */}
               <Col style={{ display: "flex", flexDirection: "column", justifyContent: "center" }}>
                 <label htmlFor="dd-city">Select the class for relative time</label>
                 <Col style={{ display: "flex", flexDirection: "row", justifyContent: "center", marginTop: "0rem" }}>
@@ -1020,7 +1025,7 @@ class MEDcohortFigureClass extends React.Component {
                           <Spinner />
                         </>
                       )}
-                      <p> &nbsp;Export timepoints to CSVs</p>{" "}
+                      <p style={{ margin: "0rem" }}> &nbsp;Export timepoints to CSVs</p>{" "}
                     </div>
                   }
                   disabled={timePoints.length <= 1 || this.state.isWorking}
