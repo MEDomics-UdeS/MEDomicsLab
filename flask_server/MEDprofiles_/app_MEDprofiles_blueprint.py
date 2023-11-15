@@ -1,3 +1,4 @@
+from fileinput import filename
 import numpy as np
 import os
 import pandas as pd
@@ -85,7 +86,7 @@ def create_MEDclasses():
     Create MEDclasses given a master table specified by a json request in a specified folder.
     Use the create_classes_from_master_table.main function from the MEDprofiles submodule. 
 
-    Returns: json_config : dict containing the json request.
+    Returns: json_config : dict containing the json request and the generated MEDclasses folder path.
 
     """
     # Set local variables
@@ -99,7 +100,8 @@ def create_MEDclasses():
         if not os.path.exists(MEDclasses_folder_path):
             os.mkdir(MEDclasses_folder_path)
         MEDprofiles.src.back.create_classes_from_master_table.main(master_table_path, MEDclasses_folder_path)
-
+        MEDclasses_pkg = os.path.join(MEDclasses_folder_path, "MEDclasses")
+        json_config["generated_MEDclasses_folder"] = MEDclasses_pkg
     except BaseException as e:
         return get_response_from_error(e)
 
@@ -142,7 +144,7 @@ def instantiate_MEDprofiles():
     specified by a json request.
     Use the instantiate_data_from_master_table.main function from the MEDprofiles submodule. 
 
-    Returns: json_config : dict containing the json request.
+    Returns: json_config : dict containing the json request and the genrated binary file path.
 
     """
     # Global variables
@@ -155,10 +157,12 @@ def instantiate_MEDprofiles():
 
     master_table_path = json_config["masterTablePath"]
     MEDprofiles_folder = json_config["MEDprofilesFolderPath"]
-    destination_file = os.path.join(MEDprofiles_folder, "MEDprofiles_bin")
+    filename = json_config["filename"]
+    destination_file = os.path.join(MEDprofiles_folder, filename)
 
     try:
         MEDprofiles.src.back.instantiate_data_from_master_table.main(master_table_path, destination_file)
+        json_config["generated_file_path"] = destination_file
     except BaseException as e:
         return get_response_from_error(e)
 
