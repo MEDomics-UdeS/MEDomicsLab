@@ -12,7 +12,7 @@ export const PORT_FINDING_METHOD = {
 
 const config = {
   runServerAutomatically: true,
-  useRactDevTools: false,
+  useReactDevTools: false,
   condaEnv: fs.readFileSync("./path2condaenv_toDeleteInProd.txt", "utf8").replace(/\s/g, ""),
   defaultPort: 5000,
   serverChoice: SERVER_CHOICE.FLASK,

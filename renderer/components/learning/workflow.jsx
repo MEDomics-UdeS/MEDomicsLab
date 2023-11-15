@@ -12,7 +12,7 @@ import { PageInfosContext } from "../mainPages/moduleBasics/pageInfosContext"
 import { FlowFunctionsContext } from "../flow/context/flowFunctionsContext"
 import { FlowResultsContext } from "../flow/context/flowResultsContext"
 import { WorkspaceContext } from "../workspace/workspaceContext"
-import { ErrorRequestContext } from "../flow/context/errorRequestContext"
+import { ErrorRequestContext } from "../generalPurpose/errorRequestContext.jsx"
 import MedDataObject from "../workspace/medDataObject"
 import { modifyZipFileSync } from "../../utilities/customZipFile.js"
 import { sceneDescription } from "../../public/setupVariables/learningNodesParams.jsx"
@@ -521,8 +521,7 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
           setIsProgressUpdating(true)
           requestBackend(
             port,
-            "/learning/run_experiment",
-            pageId,
+            "/learning/run_experiment/" + pageId,
             flow,
             (jsonResponse) => {
               console.log("received results:", jsonResponse)
@@ -880,9 +879,7 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
         ui={
           <>
             {/* bottom center - progress bar */}
-            <div className="panel-bottom-center">
-              <ProgressBarRequests progressBarProps={{ animated: true, variant: "success" }} isUpdating={isProgressUpdating} setIsUpdating={setIsProgressUpdating} progress={progress} setProgress={setProgress} requestTopic={"learning/progress/" + pageId} />
-            </div>
+            <div className="panel-bottom-center">{isProgressUpdating && <ProgressBarRequests progressBarProps={{ animated: true, variant: "success" }} isUpdating={isProgressUpdating} setIsUpdating={setIsProgressUpdating} progress={progress} setProgress={setProgress} requestTopic={"learning/progress/" + pageId} />}</div>
           </>
         }
       />

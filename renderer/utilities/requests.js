@@ -7,16 +7,15 @@ import MEDconfig, { SERVER_CHOICE } from "../../medomics.dev"
  *
  * @param {int} port server port
  * @param {string} topic route to send the request to
- * @param {string} pageId id of the page where the request is send from (optional)
  * @param {Object} json2send json to send
  * @param {Function} jsonReceivedCB executed when the json is received
  * @param {Function} onError executed when an error occurs
  */
-export const requestBackend = (port, topic, pageId = null, json2send, jsonReceivedCB, onError) => {
+export const requestBackend = (port, topic, json2send, jsonReceivedCB, onError) => {
   if (MEDconfig.serverChoice == SERVER_CHOICE.GO) {
     axiosPostJsonGo(port, topic, json2send, jsonReceivedCB, onError)
   } else if (MEDconfig.serverChoice == SERVER_CHOICE.FLASK) {
-    requestJson(port, pageId ? topic + "/" + pageId : topic, json2send, jsonReceivedCB, onError)
+    requestJson(port, topic, json2send, jsonReceivedCB, onError)
   }
 }
 
@@ -30,7 +29,10 @@ export const requestBackend = (port, topic, pageId = null, json2send, jsonReceiv
  * @param {Function} onError executed when an error occurs
  */
 export const requestJson = (port, topic, json2send, jsonReceivedCB, onError) => {
-  topic[0] == "/" && (topic = topic.substring(1))
+  let url = "http://localhost:" + port + (topic[0] != "/" ? "/" : "") + topic
+  if (topic.includes("http")) {
+    url = topic
+  }
   try {
     ipcRenderer
       .invoke("request", {
@@ -38,7 +40,7 @@ export const requestJson = (port, topic, json2send, jsonReceivedCB, onError) => 
           json2send
         },
         method: "POST",
-        url: "http://localhost:" + port + "/" + topic
+        url: url
       })
       .then((data) => {
         jsonReceivedCB(data["data"])
@@ -70,30 +72,41 @@ export const requestJson = (port, topic, json2send, jsonReceivedCB, onError) => 
  */
 export const axiosPostJsonGo = async (port, topic, json2send, jsonReceivedCB, onError) => {
   try {
-    const response = await axios.post("http://localhost:" + port + topic, { message: JSON.stringify(json2send) }, { headers: { "Content-Type": "application/json" } })
-    console.log(response.data)
-    response.data.type == "toParse" ? jsonReceivedCB(JSON.parse(response.data.response_message)) : jsonReceivedCB(response.data.response_message)
+    let url = "http://localhost:" + port + (topic[0] != "/" ? "/" : "") + topic
+    if (topic.includes("http")) {
+      url = topic
+    }
+    console.log(url)
+    const response = await axios.post(url, { message: JSON.stringify(json2send) }, { headers: { "Content-Type": "application/json" } })
+    if (response.data.type == "toParse") {
+      let cleanResponse = {}
+      try {
+        cleanResponse = JSON.parse(response.data.response_message)
+      } catch (error) {
+        cleanResponse = JSON.parse(parsingCleaning(response.data.response_message))
+      }
+      jsonReceivedCB(cleanResponse)
+    } else {
+      jsonReceivedCB(response.data.response_message)
+    }
     return response.data
   } catch (error) {
-    console.error(error)
-    onError(error)
-
     onError
       ? onError(error)
       : () => {
           if (error.response) {
             // The request was made and the server responded with a status code
             // that falls out of the range of 2xx
-            console.error("Server Error:", error.response.data)
-            console.error("Status Code:", error.response.status)
-            console.error("Headers:", error.response.headers)
+            console.log("Server Error:", error.response.data)
+            console.log("Status Code:", error.response.status)
+            console.log("Headers:", error.response.headers)
           } else if (error.request) {
             // The request was made but no response was received
             // `error.request` is an instance of XMLHttpRequest in the browser
-            console.error("Request Error:", error.request)
+            console.log("Request Error:", error.request)
           } else {
             // Something happened in setting up the request that triggered an Error
-            console.error("Error:", error.message)
+            console.log("Error:", error.message)
           }
         }
   }
@@ -128,4 +141,14 @@ export const axiosPostJson = async (jsonData, pathName) => {
     }
     throw error
   }
+}
+
+/**
+ *
+ * @param {String} response the response string to clean
+ * @description trim the response string to only keep the json parsable part
+ * @returns the cleaned response
+ */
+const parsingCleaning = (response) => {
+  return response.substring(response.indexOf("{"), response.lastIndexOf("}") + 1)
 }

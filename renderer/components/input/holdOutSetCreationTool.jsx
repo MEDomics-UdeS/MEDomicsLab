@@ -11,9 +11,10 @@ import MedDataObject from "../workspace/medDataObject"
 import { InputText } from "primereact/inputtext"
 import { Slider } from "primereact/slider"
 import { InputNumber } from "primereact/inputnumber"
-import { requestJson } from "../../utilities/requests"
+import { requestBackend } from "../../utilities/requests"
 import ProgressBarRequests from "../generalPurpose/progressBarRequests"
 import { toast } from "react-toastify"
+import { ErrorRequestContext } from "../generalPurpose/errorRequestContext"
 
 /**
  * Component that renders the holdout set creation tool
@@ -23,6 +24,7 @@ import { toast } from "react-toastify"
  */
 const HoldOutSetCreationTool = ({ pageId = "inputModule", configPath = "" }) => {
   const { port } = useContext(WorkspaceContext) // The port
+  const { setError } = useContext(ErrorRequestContext) // We get the setError function from the context
   const { globalData } = useContext(DataContext) // The global data object
   const [listOfDatasets, setListOfDatasets] = useState([]) // The list of datasets
   const [selectedDataset, setSelectedDataset] = useState(null) // The selected dataset
@@ -184,16 +186,23 @@ const HoldOutSetCreationTool = ({ pageId = "inputModule", configPath = "" }) => 
     JSONToSend.payload["randomState"] = 54288
     newDatasetObject.relatedInformation = JSONToSend
     console.log("JSONToSend", JSONToSend)
-    requestJson(
+    requestBackend(
       // Send the request
       port,
-      "/input/create_holdout_set",
+      "/input/create_holdout_set/" + pageId,
       JSONToSend,
       (jsonResponse) => {
-        setIsProgressUpdating(false)
-        console.log("jsonResponse", jsonResponse)
-        setProgress({ now: 100, currentLabel: "Holdout set creation complete ✅ : " + jsonResponse["finalDatasetPath"] })
-        MedDataObject.updateWorkspaceDataObject()
+        if (jsonResponse.error) {
+          if (typeof jsonResponse.error == "string") {
+            jsonResponse.error = JSON.parse(jsonResponse.error)
+          }
+          setError(jsonResponse.error)
+        } else {
+          setIsProgressUpdating(false)
+          console.log("jsonResponse", jsonResponse)
+          setProgress({ now: 100, currentLabel: "Holdout set creation complete ✅ : " + jsonResponse["finalDatasetPath"] })
+          MedDataObject.updateWorkspaceDataObject()
+        }
       },
       function (error) {
         setIsProgressUpdating(false)
@@ -331,7 +340,7 @@ const HoldOutSetCreationTool = ({ pageId = "inputModule", configPath = "" }) => 
             </Row>
           </Row>
         </Col>
-        <div className="progressBar-merge">{<ProgressBarRequests isUpdating={isProgressUpdating} setIsUpdating={setIsProgressUpdating} progress={progress} setProgress={setProgress} requestTopic={"input/progress/" + pageId} delayMS={50} />}</div>
+        <div className="progressBar-merge">{<ProgressBarRequests isUpdating={isProgressUpdating} setIsUpdating={setIsProgressUpdating} progress={progress} setProgress={setProgress} requestTopic={"input/progress/" + pageId} delayMS={500} />}</div>
       </Row>
     </>
   )

@@ -13,28 +13,33 @@ import ExtractionTSPage from "../mainPages/extractionTS"
 import ExploratoryPage from "../mainPages/exploratory"
 import ResultsPage from "../mainPages/results"
 import ApplicationPage from "../mainPages/application"
-import HomeSidebar from "./sidebarTools/homeSidebar"
-import ExplorerSidebar from "./sidebarTools/explorerSidebar"
-import SearchSidebar from "./sidebarTools/searchSidebar"
-import LayoutTestSidebar from "./sidebarTools/layoutTestSidebar"
-import InputSidebar from "./sidebarTools/inputSidebar"
-import FlowSceneSidebar from "./sidebarTools/flowSceneSidebar"
-import ExtractionSidebar from "./sidebarTools/extractionSidebar"
+import HomeSidebar from "./sidebarTools/pageSidebar/homeSidebar"
+import ExplorerSidebar from "./sidebarTools/pageSidebar/explorerSidebar"
+import SearchSidebar from "./sidebarTools/pageSidebar/searchSidebar"
+import LayoutTestSidebar from "./sidebarTools/pageSidebar/layoutTestSidebar"
+import InputSidebar from "./sidebarTools/pageSidebar/inputSidebar"
+import FlowSceneSidebar from "./sidebarTools/pageSidebar/flowSceneSidebar"
+import ExtractionSidebar from "./sidebarTools/pageSidebar/extractionSidebar"
+import EvaluationSidebar from "./sidebarTools/pageSidebar/evaluationSidebar"
 import { ipcRenderer } from "electron"
 import { MainContainer } from "./flexlayout/mainContainerClass"
 import EvaluationPage from "../mainPages/evaluation"
-import SidebarDirectoryTreeControlled from "./sidebarTools/sidebarDirectoryTreeControlled"
+import SidebarDirectoryTreeControlled from "./sidebarTools/directoryTree/sidebarDirectoryTreeControlled"
 import { Accordion, Stack } from "react-bootstrap"
 import { LayoutModelContext } from "./layoutContext"
 import { WorkspaceContext } from "../workspace/workspaceContext"
+import { requestBackend } from "../../utilities/requests"
 
 const LayoutManager = (props) => {
   const [activeSidebarItem, setActiveSidebarItem] = useState("home") // State to keep track of active nav item
   const [workspaceIsSet, setWorkspaceIsSet] = useState(true) // State to keep track of active nav item
   const sidebarRef = useRef(null) // Reference to the sidebar object
+  const { port } = useContext(WorkspaceContext) // we get the port for server connexion
 
   const { developerMode } = useContext(LayoutModelContext)
   const { workspace } = useContext(WorkspaceContext)
+
+  // This is a useEffect that will be called when the workspace change
   useEffect(() => {
     if (workspace.hasBeenSet == false) {
       setWorkspaceIsSet(false)
@@ -42,6 +47,21 @@ const LayoutManager = (props) => {
       setWorkspaceIsSet(true)
     }
   }, [workspace])
+
+  // This is a useEffect that will be called when the component is mounted to send a clearAll request to the backend
+  useEffect(() => {
+    requestBackend(
+      port,
+      "clearAll",
+      { data: "clearAll" },
+      (data) => {
+        console.log("clearAll received data:", data)
+      },
+      (error) => {
+        console.log("clearAll error:", error)
+      }
+    )
+  }, [])
 
   // This is a callback that will be called when the user presses a key
   // It will check if the user pressed ctrl+b and if so, it will collapse or expand the sidebar
@@ -56,6 +76,7 @@ const LayoutManager = (props) => {
     }
   }, [])
 
+  // This is a useEffect that will be called when a key is pressed
   useEffect(() => {
     // attach the event listener
     document.addEventListener("keydown", handleKeyPress)
@@ -65,6 +86,13 @@ const LayoutManager = (props) => {
     }
   }, [handleKeyPress])
 
+  /**
+   *
+   * @param {Array} selectedItem Array of selected item
+   *
+   * This function is called when a sidebar item is selected
+   * It will update the activeSidebarItem state and send a message to the backend to update the working directory
+   */
   const handleSidebarItemSelect = (selectedItem) => {
     setActiveSidebarItem(selectedItem) // Update activeNavItem state with selected item
     ipcRenderer.send("messageFromNext", "updateWorkingDirectory")
@@ -131,6 +159,8 @@ const LayoutManager = (props) => {
         return <FlowSceneSidebar type="extractionMEDimage" />
       case "MEDprofilesViewer":
         return <InputSidebar />
+      case "evaluation":
+        return <EvaluationSidebar />
 
       default:
         return (

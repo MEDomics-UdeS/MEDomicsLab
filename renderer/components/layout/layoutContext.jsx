@@ -78,10 +78,10 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
           return openInLearning(action)
         case "openInExtractionMEDimageModule":
           return openInExtractionMEDimage(action)
-        case "openInResultsModule":
-          return openInResults(action)
+        case "openInEvaluationModule":
+          return openInEvaluation(action)
         case "openInIFrame":
-          return openIFrame(action)
+          return openInIFrame(action)
         case "openInDataTable":
           return openDataTable(action)
         case "openInCodeEditor":
@@ -92,6 +92,8 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
           return openPDFViewer(action)
         case "openInTextEditor":
           return openTextEditor(action)
+        case "openHtmlViewer":
+          return openHtmlViewer(action)
         case "openInModelViewer":
           return openModelViewer(action)
         case "openInJSONViewer":
@@ -347,11 +349,28 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
   }
 
   /**
+   * @summary Function that adds a tab with a model viewer to the layout model
+   * @params {Object} action - The action passed on by the dispatchLayout function
+   */
+  const openHtmlViewer = (action) => {
+    openInDotDotDot(action, "htmlViewer")
+  }
+
+  /**
    * @summary Function that adds a tab with a data table to the layout model
    * @params {Object} action - The action passed on by the dispatchLayout function, it uses the payload in the action as a JSON object to add a tab containing a data table to the layout model
    */
   const openDataTable = (action) => {
     openInDotDotDot(action, "dataTable")
+  }
+
+  /**
+   *
+   * @summary Function that adds a tab with an iframe to the layout model
+   * @params {Object} action - The action passed on by the dispatchLayout function, it uses the payload in the action as a JSON object to add a new child to the layout model
+   */
+  const openInIFrame = (action) => {
+    openInDotDotDot(action, "iframeViewer")
   }
 
   /**
@@ -390,29 +409,8 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
    * @summary Function that adds a Results page with a medDataObject to the layout model
    * @params {Object} action - The action passed on by the dispatchLayout function, it uses the payload in the action as a JSON object to add a new child to the layout model
    */
-  const openInResults = (action) => {
-    openInDotDotDot(action, "resultsPage")
-  }
-
-  /**
-   * @summary Function that adds a tab with an iframe to the layout model
-   * @params {Object} action - The action passed on by the dispatchLayout function, it uses the payload in the action as a JSON object to add a new child to the layout model
-   */
-  const openIFrame = (action) => {
-    let URL = action.payload.url
-    let isAlreadyIn = checkIfIDIsInLayoutModel(URL, layoutModel)
-    if (!isAlreadyIn) {
-      const newChild = {
-        type: "tab",
-        name: action.payload.iframe_name ? action.payload.iframe_name : URL,
-        id: URL,
-        component: "iFramePage",
-        config: { path: URL, uuid: URL, extension: URL }
-      }
-      let layoutRequestQueueCopy = [...layoutRequestQueue]
-      layoutRequestQueueCopy.push({ type: "ADD_TAB", payload: newChild })
-      setLayoutRequestQueue(layoutRequestQueueCopy)
-    }
+  const openInEvaluation = (action) => {
+    openInDotDotDot(action, "evaluationPage")
   }
 
   /**
@@ -421,34 +419,6 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
    */
   const openInLearning = (action) => {
     openInDotDotDot(action, "learningPage")
-    // console.log("ACTION", action)
-    // let medObject = action.payload
-    // console.log("medObject", medObject)
-    // let textString = action.payload
-    // let isAlreadyIn = checkIfIDIsInLayoutModel(medObject.UUID, layoutModel)
-
-    // if (!isAlreadyIn) {
-    //   const newChild = {
-    //     type: "tab",
-    //     helpText: medObject.path,
-    //     name: medObject.name,
-    //     id: medObject.UUID,
-    //     component: "learningPage",
-    //     config: { path: medObject.path, uuid: medObject.UUID, extension: medObject.type }
-    //   }
-    //   let layoutRequestQueueCopy = [...layoutRequestQueue]
-    //   layoutRequestQueueCopy.push({ type: "ADD_TAB", payload: newChild })
-    //   setLayoutRequestQueue(layoutRequestQueueCopy)
-
-    //   const nextlayoutModel = { ...layoutModel }
-    //   // To add a new child to the layout model, we need to add it to the children array (layoutModel.layout.children[x].children)
-    //   // ****IMPORTANT**** For the hook to work, we need to create a new array and not modify the existing one
-    //   const newChildren = [...layoutModel.layout.children[0].children, newChild]
-    //   nextlayoutModel.layout.children[0].children = newChildren
-    //   // setLayoutModel(nextlayoutModel)
-    //   console.log("ADDING LEARNING PAGE", textString)
-    //   console.dir(layoutModel)
-    // }
   }
 
   /**
