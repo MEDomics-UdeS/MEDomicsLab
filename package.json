@@ -30,6 +30,7 @@
     "danfojs-node": "^1.1.2",
     "decompress": "^4.2.1",
     "directory-tree": "^3.5.1",
+    "echarts": "^5.4.3",
     "echarts-for-react": "^3.0.2",
     "electron-extension-installer": "^1.2.0",
     "electron-loading": "^0.3.0",
