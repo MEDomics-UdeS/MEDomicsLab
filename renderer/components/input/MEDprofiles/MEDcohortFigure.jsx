@@ -14,6 +14,7 @@ import { MultiSelect } from "primereact/multiselect"
 import MedDataObject from "../../workspace/medDataObject"
 import { toast } from "react-toastify"
 import { confirmDialog } from "primereact/confirmdialog"
+import { Spinner } from "react-bootstrap"
 
 /**
  * @class MEDcohortFigureClass
@@ -43,6 +44,7 @@ class MEDcohortFigureClass extends React.Component {
    */
   constructor(props) {
     super(props)
+    console.log("MEDcohortFigureClass", props)
     this.state = {
       jsonData: this.props.jsonData,
       selectedClass: undefined,
@@ -58,7 +60,8 @@ class MEDcohortFigureClass extends React.Component {
       timePointClusters: [],
       echartsOptions: null,
       classes: new Set(),
-      darkMode: false
+      darkMode: false,
+      isWorking: false
     }
     this.chartRef = React.createRef()
   }
@@ -114,6 +117,8 @@ class MEDcohortFigureClass extends React.Component {
     } else if (prevState.darkMode !== this.state.darkMode) {
       console.log("darkMode", this.state.darkMode)
       this.generateEchartsOptions()
+    } else if (prevProps.isExporting !== this.props.isExporting) {
+      this.setState({ isWorking: this.props.isExporting })
     }
   }
 
@@ -333,18 +338,20 @@ class MEDcohortFigureClass extends React.Component {
     let newJsonData = { ...this.state.jsonData }
     newJsonData.list_MEDprofile.forEach((profile) => {
       profile.list_MEDtab.forEach((tab) => {
-        let attributes = Object.keys(tab)
-        attributes.forEach((attribute) => {
-          if (attribute !== "Date" && attribute !== "Time_point" && this.isNotNull(tab, attribute)) {
-            if (this.state.selectedClassesToSetTimePoint.includes(attribute)) {
-              if (tab.Time_point === null) {
-                tab.Time_point = [this.state.timePoint]
-              } else {
-                tab.Time_point.push(this.state.timePoint)
+        if (tab.Date !== null) {
+          let attributes = Object.keys(tab)
+          attributes.forEach((attribute) => {
+            if (attribute !== "Date" && attribute !== "Time_point" && this.isNotNull(tab, attribute)) {
+              if (this.state.selectedClassesToSetTimePoint.includes(attribute)) {
+                if (tab.Time_point === null) {
+                  tab.Time_point = [this.state.timePoint]
+                } else {
+                  tab.Time_point.push(this.state.timePoint)
+                }
               }
             }
-          }
-        })
+          })
+        }
       })
     })
     this.setState({ jsonData: newJsonData })
@@ -446,101 +453,107 @@ class MEDcohortFigureClass extends React.Component {
     let patientNames = new Set()
     let innerYClasses = new Set()
     let newClasses = new Set()
-    let timeZeroAttribute = 0
     let newTimePointsClusters = []
     let numberOfPatients = this.state.jsonData?.list_MEDprofile?.length
+    let profilesToHide = []
 
     // Loop through each MEDprofile in the jsonData
     this.state.jsonData?.list_MEDprofile?.forEach((profile, index) => {
-      // Exclude specific patient IDs
-      if (profile.PatientID !== "32379" && profile.PatientID !== "25881" && profile.PatientID !== "21690" && profile.PatientID !== "18089") {
-        // Generate a color for the patient
-        const color = d3.interpolateTurbo(this.state.jsonData.list_MEDprofile.indexOf(profile) / this.state.jsonData.list_MEDprofile.length)
+      // Generate a color for the patient
+      const color = d3.interpolateTurbo(this.state.jsonData.list_MEDprofile.indexOf(profile) / this.state.jsonData.list_MEDprofile.length)
+      // Create a new series for the patient
+      let profileSerie = {
+        type: "scatter",
+        data: [],
+        name: profile.PatientID,
+        itemStyle: { color: color },
+        symbolSize: 5,
+        emphasis: { focus: "series" },
+        selectMode: "multiple"
+      }
+      let profileRandomTime = index
+      let profilAttributeTimeZero = this.getTimeZeroForClass(this.state.relativeTime, index)
+      if (profilAttributeTimeZero === null && this.state.relativeTime !== null) {
+        // If the time zero attribute is null and the relative time is not null, add the patient ID to the profiles to hide array
+        console.log("profilAttributeTimeZero", profile.PatientID, this.state.relativeTime, profilAttributeTimeZero, (profilAttributeTimeZero !== null && this.state.relativeTime !== null) || this.state.relativeTime === null)
+        if (!((profilAttributeTimeZero !== null && this.state.relativeTime !== null) || this.state.relativeTime === null)) {
+          profilesToHide.push(profile.PatientID)
+        }
+      }
+
+      if ((profilAttributeTimeZero !== null && this.state.relativeTime !== null) || this.state.relativeTime === null) {
         // Add the patient name to the set
         patientNames.add(profile.PatientID)
-        // Create a new series for the patient
-        let profileSerie = {
-          type: "scatter",
-          data: [],
-          name: profile.PatientID,
-          itemStyle: { color: color },
-          symbolSize: 5,
-          emphasis: { focus: "series" },
-          selectMode: "multiple"
-        }
-        let profileRandomTime = index
-        let profilAttributeTimeZero = this.getTimeZeroForClass(this.state.relativeTime, index)
         // Loop through each MEDtab in the profile
         profile?.list_MEDtab?.forEach((tab) => {
           let attributes = Object.keys(tab)
           // Loop through each attribute in the MEDtab
-          attributes.forEach((attribute) => {
-            // Add the attribute to the new classes set
-            newClasses.add(attribute)
-            if (attribute !== "Date") {
-              // Set the time zero attribute if it hasn't been set yet
-              if (attribute === this.state.relativeTime && timeZeroAttribute === null) {
-                timeZeroAttribute = tab.Date
-              }
-              let newDate = new Date(tab.Date)
-              // Set the new date based on the relative time and time zero attribute
-              if (profilAttributeTimeZero !== null) {
-                newDate = new Date(new Date(tab.Date) - new Date(profilAttributeTimeZero))
-              }
-              // Add the profile random time if separate horizontally is true
-              if (this.state.separateHorizontally) {
-                newDate = Date.parse(newDate + profileRandomTime)
-              }
-              let x, y
-              if (attribute !== "Time_point" && this.isNotNull(tab, attribute)) {
-                // Set the x and y values for the scatter plot
-                if (this.state.relativeTime !== null) {
-                  x = newDate.valueOf() / (1000 * 60 * 60 * 24)
-                  if (this.state.separateHorizontally) {
-                    x = x + profileRandomTime / (numberOfPatients * 2)
-                  }
-                } else {
-                  x = newDate
+          if (tab.Date !== null) {
+            attributes.forEach((attribute) => {
+              // Add the attribute to the new classes set
+              newClasses.add(attribute)
+              if (attribute !== "Date") {
+                let newDate = new Date(tab.Date)
+                // Set the new date based on the relative time and time zero attribute
+                if (profilAttributeTimeZero !== null) {
+                  newDate = new Date(new Date(tab.Date) - new Date(profilAttributeTimeZero))
                 }
-                if (this.state.separateVertically) {
-                  y = attribute + profileRandomTime
-                  innerYClasses.add(attribute + profileRandomTime)
-                } else {
-                  y = attribute
-                  innerYClasses.add(attribute)
+                // Add the profile random time if separate horizontally is true
+                if (this.state.separateHorizontally) {
+                  newDate = Date.parse(newDate + profileRandomTime)
                 }
-                profileSerie.data.push([x, y])
-              } else if (attribute === "Time_point") {
-                let timePoints = tab[attribute]
-                if (timePoints === null) return
-                // Loop through each time point and add it to the new time points clusters array
-                timePoints.forEach((timePoint) => {
-                  if (newTimePointsClusters[timePoint] === undefined || newTimePointsClusters[timePoint] === null) {
-                    newTimePointsClusters[timePoint] = {
-                      x: [],
-                      y: [],
-                      mode: "lines",
-                      type: "scatter",
-                      marker: { color: color },
-                      text: [],
-                      name: timePoint,
-                      customdata: [],
-                      fill: "toself"
+                let x, y
+                if (attribute !== "Time_point" && this.isNotNull(tab, attribute)) {
+                  // Set the x and y values for the scatter plot
+                  if (this.state.relativeTime !== null) {
+                    x = newDate.valueOf() / (1000 * 60 * 60 * 24)
+                    if (this.state.separateHorizontally) {
+                      x = x + profileRandomTime / (numberOfPatients * 2)
                     }
-                  }
-                  newTimePointsClusters[timePoint].x.push(newDate)
-                  if (this.state.separateVertically) {
-                    newTimePointsClusters[timePoint].y.push(attribute + profileRandomTime)
                   } else {
-                    newTimePointsClusters[timePoint].y.push(attribute)
+                    x = newDate
                   }
-                })
+                  if (this.state.separateVertically) {
+                    y = attribute + profileRandomTime
+                    innerYClasses.add(attribute + profileRandomTime)
+                  } else {
+                    y = attribute
+                    innerYClasses.add(attribute)
+                  }
+                  profileSerie.data.push([x, y])
+                } else if (attribute === "Time_point") {
+                  let timePoints = tab[attribute]
+                  if (timePoints === null) return
+                  // Loop through each time point and add it to the new time points clusters array
+                  timePoints.forEach((timePoint) => {
+                    if (newTimePointsClusters[timePoint] === undefined || newTimePointsClusters[timePoint] === null) {
+                      newTimePointsClusters[timePoint] = {
+                        x: [],
+                        y: [],
+                        mode: "lines",
+                        type: "scatter",
+                        marker: { color: color },
+                        text: [],
+                        name: timePoint,
+                        customdata: [],
+                        fill: "toself"
+                      }
+                    }
+                    newTimePointsClusters[timePoint].x.push(newDate)
+                    if (this.state.separateVertically) {
+                      newTimePointsClusters[timePoint].y.push(attribute + profileRandomTime)
+                    } else {
+                      newTimePointsClusters[timePoint].y.push(attribute)
+                    }
+                  })
+                }
               }
-            }
-          })
+            })
+          }
         })
         newEchartsOption.series.push(profileSerie)
       }
+      // }
     })
     // Set the y-axis data to the inner y classes set
     newEchartsOption.yAxis[0].data = [...innerYClasses]
@@ -551,11 +564,21 @@ class MEDcohortFigureClass extends React.Component {
     Object.keys(newTimePointsClusters).forEach((key) => {
       correctedTimePointClusters.push(newTimePointsClusters[key])
     })
+
     // Call the handleTimePointClustersChange function
     this.handleTimePointClustersChange(correctedTimePointClusters, newEchartsOption)
+    if (this.state.echartsOptions !== null) {
+      if (this.state.echartsOptions.series !== undefined) {
+        if (this.state.echartsOptions.series.length !== newEchartsOption.series.length) {
+          toast.error("The number of patients has changed. The reloading time will be affected. Check your data for NaN values in the Date/Time values." + " If you are using the relative time, check if the selected class for relative time is not null for every patient." + " Problematic Patient IDs: " + profilesToHide.join(", "))
 
-    // Set the state with the new ECharts options, time point clusters, and classes
+          this.chartRef.current.getEchartsInstance().setOption(newEchartsOption, { notMerge: true })
+        }
+      }
+    }
+
     this.setState({ echartsOptions: newEchartsOption })
+    // Set the state with the new ECharts options, time point clusters, and classes
     this.setState({ timePointClusters: correctedTimePointClusters })
     this.setState({ classes: newClasses })
   }
@@ -686,27 +709,28 @@ class MEDcohortFigureClass extends React.Component {
       profile.list_MEDtab.forEach((tab) => {
         // Gets the attributes for the current tab
         let attributes = Object.keys(tab)
-
-        // Loops through each attribute in the tab
-        attributes.forEach((attribute) => {
-          // If the attribute is not "Date", "Time_point", or null, and the data point is selected
-          if (attribute !== "Date" && attribute !== "Time_point" && this.isNotNull(tab, attribute)) {
-            if (selectedPoints.includes(patientGlobalIndex)) {
-              // If the time point is null, sets it to the current time point
-              if (tab.Time_point === null) {
-                tab.Time_point = [this.state.timePoint]
-              } else {
-                // If the time point does not already include the current time point, adds it
-                if (!tab.Time_point.includes(this.state.timePoint)) {
-                  tab.Time_point.push(this.state.timePoint)
+        if (tab.Date !== null) {
+          // Loops through each attribute in the tab
+          attributes.forEach((attribute) => {
+            // If the attribute is not "Date", "Time_point", or null, and the data point is selected
+            if (attribute !== "Date" && attribute !== "Time_point" && this.isNotNull(tab, attribute)) {
+              if (selectedPoints.includes(patientGlobalIndex)) {
+                // If the time point is null, sets it to the current time point
+                if (tab.Time_point === null) {
+                  tab.Time_point = [this.state.timePoint]
+                } else {
+                  // If the time point does not already include the current time point, adds it
+                  if (!tab.Time_point.includes(this.state.timePoint)) {
+                    tab.Time_point.push(this.state.timePoint)
+                  }
                 }
               }
-            }
 
-            // Increments the patient global index
-            patientGlobalIndex += 1
-          }
-        })
+              // Increments the patient global index
+              patientGlobalIndex += 1
+            }
+          })
+        }
       })
     })
 
@@ -730,7 +754,7 @@ class MEDcohortFigureClass extends React.Component {
     const { jsonData } = this.state
     let newJsonData = { ...jsonData }
     let timePointsData = {}
-
+    console.log("EXPORTING", newJsonData)
     // Loop through each profile and tab in the jsonData object
     newJsonData.list_MEDprofile.forEach((profile) => {
       profile.list_MEDtab.forEach((tab) => {
@@ -763,6 +787,7 @@ class MEDcohortFigureClass extends React.Component {
     folderPath.pop()
     folderPath = folderPath.join(separator)
     folderPath = folderPath + separator + "timePoints" + separator
+    this.confirmOverwriteFolder(timePointsData, folderPath)
   }
 
   /**
@@ -776,29 +801,35 @@ class MEDcohortFigureClass extends React.Component {
     // eslint-disable-next-line no-undef
     const fsx = require("fs-extra")
     if (fsx.existsSync(folderPath)) {
-      await new Promise((resolve, reject) => {
+      await new Promise((resolve) => {
         confirmDialog({
+          closable: false,
           message: `The folder ${folderPath} already exists. Do you want to overwrite it?`,
           header: "Confirmation",
           icon: "pi pi-exclamation-triangle",
           accept: () => {
-            resolve()
+            resolve(true)
           },
           reject: () => {
             // Do nothing
-            reject()
+            resolve(false)
           }
         })
       })
+        .then((res) => {
+          if (res) {
+            // Remove the folder
+            fsx.removeSync(folderPath)
+            // Create a new folder
+            MedDataObject.createFolderFromPath(folderPath)
+            // Export the time point data to CSV files
+            Object.keys(timePointsData).forEach((timePoint) => {
+              this.timePointToCsv(timePoint, timePointsData[timePoint], folderPath)
+            })
+          }
+        })
         .then(() => {
-          // Remove the folder
-          fsx.removeSync(folderPath)
-          // Create a new folder
-          MedDataObject.createFolderFromPath(folderPath)
-          // Export the time point data to CSV files
-          Object.keys(timePointsData).forEach((timePoint) => {
-            this.timePointToCsv(timePoint, timePointsData[timePoint], folderPath)
-          })
+          this.setState({ isWorking: false })
         })
         .catch(() => {
           // Do nothing
@@ -810,6 +841,7 @@ class MEDcohortFigureClass extends React.Component {
       Object.keys(timePointsData).forEach((timePoint) => {
         this.timePointToCsv(timePoint, timePointsData[timePoint], folderPath)
       })
+      this.setState({ isWorking: false })
     }
   }
 
@@ -892,9 +924,9 @@ class MEDcohortFigureClass extends React.Component {
               <Col xxl="6" style={{ display: "flex", flexDirection: "row", justifyContent: "center", marginBottom: "1rem" }}>
                 <ToggleButton className="separate-toggle-button" checked={separateVertically} onChange={(e) => this.setState({ separateVertically: e.value })} onLabel="Overlap vertically" offLabel="Separate vertically" onIcon="pi pi-check" offIcon="pi pi-times" />
               </Col>
-              <Col style={{ display: "flex", flexDirection: "row", justifyContent: "center", marginBottom: "1rem" }}>
+              {/* <Col style={{ display: "flex", flexDirection: "row", justifyContent: "center", marginBottom: "1rem" }}>
                 <Button size="small" label="Clear annotations" onClick={() => this.setState({ annotations: [] })} />
-              </Col>
+              </Col> */}
               <Col style={{ display: "flex", flexDirection: "column", justifyContent: "center" }}>
                 <label htmlFor="dd-city">Select the class for relative time</label>
                 <Col style={{ display: "flex", flexDirection: "row", justifyContent: "center", marginTop: "0rem" }}>
@@ -977,9 +1009,26 @@ class MEDcohortFigureClass extends React.Component {
                     })}
                   </>
                 )}
-              </Col>
+              </Col>{" "}
+              &nbsp;
               <Col style={{ display: "flex", flexDirection: "column", justifyContent: "center", marginTop: "1rem", alignItems: "flex-start", flex: "unset" }}>
-                <Button label="Export timepoints to CSVs" disabled={timePoints.length <= 1} onClick={this.handleExportTimePoints} />
+                <Button
+                  label={
+                    <div>
+                      {this.state.isWorking && (
+                        <>
+                          <Spinner />
+                        </>
+                      )}
+                      <p> &nbsp;Export timepoints to CSVs</p>{" "}
+                    </div>
+                  }
+                  disabled={timePoints.length <= 1 || this.state.isWorking}
+                  onClick={() => {
+                    this.setState({ isWorking: true })
+                    this.handleExportTimePoints()
+                  }}
+                />
               </Col>
             </Row>
           </Col>
