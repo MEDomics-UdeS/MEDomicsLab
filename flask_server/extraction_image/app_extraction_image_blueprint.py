@@ -187,12 +187,12 @@ def DenseNet_extraction():
                         data = pd.concat([data, pd.DataFrame(data_img).transpose()], ignore_index=True)
                         progress += 1/nb_images*50
 
-        data.columns = ["level_" + str(i+1) for i in range(depth)] + ["filename"] + [column_prefix + '_' + "densefeatures_" + str(i) for i in range(len(features[0]))] + [column_prefix + '_' + "predictions_" + str(i) for i in range(len(features[1]))]
+        data.columns = ["level_" + str(i+1) for i in range(depth)] + ["filename"] + [column_prefix + "densefeatures_" + str(i) for i in range(len(features[0]))] + [column_prefix + "predictions_" + str(i) for i in range(len(features[1]))]
 
         if "denseFeatures" not in features_to_generate:
-            data.drop([column_prefix + '_' + "densefeatures_" + str(i) for i in range(len(features[0]))], axis=1, inplace=True)
+            data.drop([column_prefix + "densefeatures_" + str(i) for i in range(len(features[0]))], axis=1, inplace=True)
         elif "predictions" not in features_to_generate:
-            data.drop([column_prefix + '_' + "predictions_" + str(i) for i in range(len(features[1]))], axis=1, inplace=True)
+            data.drop([column_prefix + "predictions_" + str(i) for i in range(len(features[1]))], axis=1, inplace=True)
 
         progress = 80
         step = "Conversion into submaster table"

@@ -54,7 +54,7 @@ def generate_TSfresh_embeddings(dataframe, frequency, column_id, column_weight, 
                                                      default_fc_parameters=default_fc_parameters, n_jobs=0)
             # Add prefix to extracted columns
             columns = list(df_patient_embeddings.columns)
-            new_columns = [column_prefix + '_' + col for col in columns]
+            new_columns = [column_prefix + col for col in columns]
             df_patient_embeddings.columns = new_columns
             # Insert time in the dataframe
             df_patient_embeddings.insert(0, column_time, df_patient[column_time].iloc[0])
@@ -77,7 +77,7 @@ def generate_TSfresh_embeddings(dataframe, frequency, column_id, column_weight, 
                                                            default_fc_parameters=default_fc_parameters, n_jobs=0)
                 # Add prefix to extracted columns
                 columns = list(df_admission_embeddings.columns)
-                new_columns = [column_prefix + '_' + col for col in columns]
+                new_columns = [column_prefix + col for col in columns]
                 df_admission_embeddings.columns = new_columns
                 # Insert admission_time in the dataframe
                 df_admission_embeddings.insert(0, column_admission_time, df_admission[column_admission_time].iloc[0])
@@ -107,7 +107,7 @@ def generate_TSfresh_embeddings(dataframe, frequency, column_id, column_weight, 
                                                           default_fc_parameters=default_fc_parameters,n_jobs=0)
                     # Add prefix to extracted columns
                     columns = list(df_time_embeddings.columns)
-                    new_columns = [column_prefix + '_' + col for col in columns]
+                    new_columns = [column_prefix + col for col in columns]
                     df_time_embeddings.columns = new_columns
                     # Insert time in the dataframe (only start_date if the dataframe must respect submaster table format)
                     if not master_table_compatible:
@@ -142,7 +142,7 @@ def TSfresh_extraction():
         # Set local variables
         json_config = get_json_from_request(request)
         selected_columns = json_config["relativeToExtractionType"]["selectedColumns"]
-        column_prefix = json_config["relativeToExtractionType"]["columnPrefix"] + '_'
+        column_prefix = json_config["relativeToExtractionType"]["columnPrefix"] + '_attr_'
         columnKeys = [key for key in selected_columns]
         columnValues = []
         for key in columnKeys:

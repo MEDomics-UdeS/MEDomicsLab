@@ -262,7 +262,7 @@ def BioBERT_extraction():
         # Set local variables
         json_config = get_json_from_request(request)
         selected_columns = json_config["relativeToExtractionType"]["selectedColumns"]
-        column_prefix = json_config["relativeToExtractionType"]["columnPrefix"] + '_'
+        column_prefix = json_config["relativeToExtractionType"]["columnPrefix"] + '_attr'
         columnKeys = [key for key in selected_columns]
         columnValues = []
         for key in columnKeys:

@@ -1,4 +1,6 @@
+import numpy as np
 import os
+import pandas as pd
 import pickle
 import sys
 from flask import request, Blueprint
@@ -21,6 +23,54 @@ app_MEDprofiles = Blueprint('app_MEDprofiles', __name__, template_folder='templa
 progress = 0
 step = ""
 
+@app_MEDprofiles.route("/create_master_table", methods=["GET", "POST"]) 
+def create_master_table():
+    # Set local variables
+    json_config = get_json_from_request(request)
+
+    csv_path_list = json_config["csvPaths"]
+    master_folder = json_config["masterTableFolder"]
+    master_filename = json_config["filename"]
+
+    try:
+        # Initialize df_master from the first csv
+        df_master = pd.read_csv(csv_path_list[0])
+        columns = ['PatientID', 'Date'] + list(df_master.columns[2:])
+        df_master.columns = columns
+
+        # Merge all the dataframes
+        for csv_path in csv_path_list[1:]:
+            df = pd.read_csv(csv_path)
+            columns = ['PatientID', 'Date'] + list(df.columns[2:])
+            df.columns = columns
+            df_master = df_master.merge(df, on=['PatientID', 'Date'], how='outer')
+
+        # Sort the dataframe and insert a Time_point column
+        df_master['Date'] = pd.to_datetime(df_master['Date'])
+        df_master.sort_values(by=['PatientID', 'Date'], inplace=True)
+        df_master.insert(2, 'Time_point', np.NaN)
+
+        # Create a type list to add in the master table
+        # All the attributes are numbers except the date and the patient id
+        type_list = ['num' for _ in df_master.columns]
+        type_list[1] = 'datetime.date'
+        if df_master.dtypes[0] == 'object':
+            type_list[0] = 'str'
+
+        # Add types row to the dataframe
+        df_types = pd.DataFrame([type_list], columns=df_master.columns)
+        df_master = pd.concat([df_types, df_master]).reset_index(drop=True)
+
+        # Save the master table
+        path_master_file = os.path.join(master_folder, master_filename)
+        df_master.to_csv(path_master_file, index=False)
+        json_config["master_table_path"] = path_master_file
+
+    except BaseException as e:
+        return get_response_from_error(e)
+
+    return json_config
+
 
 @app_MEDprofiles.route("/create_MEDclasses", methods=["GET", "POST"]) 
 def create_MEDclasses():
@@ -28,10 +78,35 @@ def create_MEDclasses():
     json_config = get_json_from_request(request)
 
     master_table_path = json_config["masterTablePath"]
-    MEDclasses_folder_path = json_config["selectedFolderPath"]
+    MEDprofiles_folder = json_config["MEDprofilesFolderPath"]
+    
+    try:
+        MEDclasses_folder_path = os.path.join(MEDprofiles_folder, "MEDclasses")
+        if not os.path.exists(MEDclasses_folder_path):
+            os.mkdir(MEDclasses_folder_path)
+        MEDprofiles.src.back.create_classes_from_master_table.main(master_table_path, MEDclasses_folder_path)
+
+    except BaseException as e:
+        return get_response_from_error(e)
+
+    return json_config
+
+
+@app_MEDprofiles.route("/create_MEDprofiles_folder", methods=["GET", "POST"]) 
+def create_MEDprofiles_folder():
+    # Set local variables
+    json_config = get_json_from_request(request)
+
+    root_data_folder = json_config["rootDataFolder"]
 
     try:
-        MEDprofiles.src.back.create_classes_from_master_table.main(master_table_path, MEDclasses_folder_path)
+        path_MEDprofiles = os.path.join(root_data_folder, "MEDprofiles")
+        if not os.path.exists(path_MEDprofiles):
+            os.mkdir(path_MEDprofiles)
+        path_master_tables = os.path.join(path_MEDprofiles, "master_tables")
+        if not os.path.exists(path_master_tables):
+            os.mkdir(path_master_tables)
+        json_config["MEDprofiles_folder"] = path_MEDprofiles
 
     except BaseException as e:
         return get_response_from_error(e)
@@ -50,7 +125,8 @@ def instantiate_MEDprofiles():
     json_config = get_json_from_request(request)
 
     master_table_path = json_config["masterTablePath"]
-    destination_file = json_config["destinationFile"]
+    MEDprofiles_folder = json_config["MEDprofilesFolderPath"]
+    destination_file = os.path.join(MEDprofiles_folder, "MEDprofiles_bin")
 
     try:
         MEDprofiles.src.back.instantiate_data_from_master_table.main(master_table_path, destination_file)
