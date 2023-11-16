@@ -41,7 +41,7 @@ if (isProd) {
     show: false
   })
 
-  if(isProd) {
+  if (isProd) {
     splashScreen.loadFile(path.join(__dirname, "splash.html"))
   } else {
     splashScreen.loadFile(path.join(__dirname, "../main/splash.html"))
@@ -187,15 +187,17 @@ if (isProd) {
         .then((port) => {
           flaskPort = port
           console.log("__dirname: ", __dirname)
-
-            serverProcess = execFile(path.join(__dirname, `${process.platform == "win32" ? "server_go.exe" : "server_go"}`), [flaskPort, "prod", __dirname], {
-              windowsHide: false,
-              env: {
-                ELECTRON_PORT: flaskPort,
-                ELECTRON_CONDA_ENV: MEDconfig.condaEnv,
-                ELECTRON_RUN_MODE: "prod"
-              }
-            })  
+          console.log("app.getAppPath():", app.getAppPath())
+          console.log("process.resourcesPath:", process.resourcesPath)
+          console.log("env", process.env)
+          serverProcess = execFile(path.join(__dirname, `${process.platform == "win32" ? "server_go.exe" : "server_go"}`), [flaskPort, "prod", process.resourcesPath], {
+            windowsHide: false
+            // env: {
+            //   ELECTRON_PORT: flaskPort,
+            //   ELECTRON_CONDA_ENV: MEDconfig.condaEnv,
+            //   ELECTRON_RUN_MODE: "prod"
+            // }
+          })
           if (serverProcess) {
             serverProcess.stdout.on("data", function (data) {
               console.log("data: ", data.toString("utf8"))

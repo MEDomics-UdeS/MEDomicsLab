@@ -13,8 +13,16 @@
     },
     "files": [
       "app/**/*",
-      "node_modules/**/*"
+      "node_modules/**/*",
+      "resources/**/*"
     ],
+    "extraResources": [
+      "./pythonCode/**/*",
+      "!./pythonCode/venv/**/*",
+      "!./pythonCode/.idea/**/*",
+      "!*.git/**/*"
+    ],
+    "asarUnpack": "./pythonCode/**/*",
     "extends": null,
     "mac": {
       "category": "public.app-category.developer-tools",
@@ -26,22 +34,23 @@
     },
     "win": {
       "target": "nsis",
-      "publish": ["github"],
+      "publish": [
+        "github"
+      ],
       "icon": "app/assets/icon.ico"
     },
     "linux": {
-      "target": [
-        "AppImage",
-        "deb",
-        "rpm",
-        "tar.gz"
-      ],
-      "icon": "app/assets/icon.png"
+      "target": "deb",
+      "icon": "app/assets/icon.png",
+      "maintainer": "gblain03@hotmail.com",
+      "publish": [
+        "github"
+      ]
     },
     "publish": [
       {
         "provider": "github",
-        "owner": "Blain354",
+        "owner": "MEDomics-UdeS",
         "releaseType": "draft"
       }
     ]
@@ -49,11 +58,11 @@
   "scripts": {
     "dev": "nextron",
     "build": "nextron build",
-    "build:linux": "./build_preparation_linux.sh && nextron build --linux",
-    "build:win": ".\\build_preparation_win.bat && nextron build --win",
+    "build:linux": "bash ./utilScripts/build_preparation_linux.sh && nextron build --linux",
+    "build:win": ".\\utilScripts\\build_preparation_win.bat && nextron build --win",
     "build:mac": "nextron build --mac",
-    "publish:linux": "./build_preparation_linux.sh && nextron build --linux --publish always",
-    "publish:win": ".\\build_preparation_win.bat && nextron build --win --publish always",
+    "publish:linux": "bash ./utilScripts/build_preparation_linux.sh && nextron build --linux --publish always",
+    "publish:win": ".\\utilScripts\\build_preparation_win.bat && nextron build --win --publish always",
     "publish:mac": "nextron build --mac --publish always"
   },
   "dependencies": {

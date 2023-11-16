@@ -9,9 +9,9 @@ export const PORT_FINDING_METHOD = {
 }
 
 const config = {
-  runServerAutomatically: false,
+  runServerAutomatically: true,
   useReactDevTools: false,
-  condaEnv: "C:\\Users\\gblai\\anaconda3\\envs\\med\\python.exe",
+  condaEnv: "/home/local/USHERBROOKE/blag1201/anaconda3/envs/med/bin/python",
   defaultPort: 5550,
   serverChoice: SERVER_CHOICE.GO,
   portFindingMethod: PORT_FINDING_METHOD.FIX
