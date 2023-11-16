@@ -45,7 +45,6 @@ class MEDcohortFigureClass extends React.Component {
    */
   constructor(props) {
     super(props)
-    console.log("MEDcohortFigureClass", props)
     this.state = {
       jsonData: this.props.jsonData,
       selectedClass: undefined,
@@ -108,9 +107,6 @@ class MEDcohortFigureClass extends React.Component {
     // eslint-disable-next-line no-undef
     echarts.registerTheme("dark", require("../../../styles/input/medCohortFigureDark.json"))
 
-    if (this.chartRef.current !== null) {
-      console.log("REF", this.chartRef.current.getEchartsInstance())
-    }
     // Respond to changes in props or state
     if (prevProps.jsonData !== this.props.jsonData) {
       this.setState({ jsonData: this.props.jsonData }, () => {
@@ -123,7 +119,6 @@ class MEDcohortFigureClass extends React.Component {
     } else if (prevState.relativeTime !== this.state.relativeTime) {
       this.generateEchartsOptions()
     } else if (prevState.darkMode !== this.state.darkMode) {
-      console.log("darkMode", this.state.darkMode)
       this.generateEchartsOptions()
     } else if (prevProps.isExporting !== this.props.isExporting) {
       this.setState({ isWorking: this.props.isExporting })
@@ -183,7 +178,6 @@ class MEDcohortFigureClass extends React.Component {
 
     let earliestDate = findEarliestDate(timePoint)
     let latestDate = findLatestDate(timePoint)
-    console.log("earliestDate", earliestDate, "latestDate", latestDate, earliestDate === latestDate)
     if (this.state.relativeTime !== null) {
       earliestDate = earliestDate.valueOf() / (1000 * 60 * 60 * 24)
       latestDate = latestDate.valueOf() / (1000 * 60 * 60 * 24)
@@ -234,7 +228,6 @@ class MEDcohortFigureClass extends React.Component {
    * @returns {void}
    */
   handleTimePointClustersChange = (timePointClusters, echartsOptions) => {
-    console.log("timePointClusters", timePointClusters)
     let newShapes = []
     let length = timePointClusters.length
     timePointClusters.forEach((cluster, index) => {
@@ -282,7 +275,6 @@ class MEDcohortFigureClass extends React.Component {
     timePointClusters.forEach((cluster) => {
       newTimePoints.add(cluster.name)
     })
-    console.log("newTimePoints", newTimePoints)
     let newTimePointsArray = []
     newTimePoints.forEach((timePoint) => {
       newTimePointsArray.push({ label: timePoint, value: timePoint })
@@ -342,7 +334,6 @@ class MEDcohortFigureClass extends React.Component {
    * @returns {void}
    */
   handleSetTimePointByClass = () => {
-    console.log("selectedClassesToSetTimePoint", this.state.selectedClassesToSetTimePoint)
     let newJsonData = { ...this.state.jsonData }
     newJsonData.list_MEDprofile.forEach((profile) => {
       profile.list_MEDtab.forEach((tab) => {
@@ -505,7 +496,6 @@ class MEDcohortFigureClass extends React.Component {
       let profilAttributeTimeZero = this.getTimeZeroForClass(this.state.relativeTime, index)
       if (profilAttributeTimeZero === null && this.state.relativeTime !== null) {
         // If the time zero attribute is null and the relative time is not null, add the patient ID to the profiles to hide array
-        console.log("profilAttributeTimeZero", profile.PatientID, this.state.relativeTime, profilAttributeTimeZero, (profilAttributeTimeZero !== null && this.state.relativeTime !== null) || this.state.relativeTime === null)
         if (!((profilAttributeTimeZero !== null && this.state.relativeTime !== null) || this.state.relativeTime === null)) {
           profilesToHide.push(profile.PatientID)
         }
@@ -712,9 +702,6 @@ class MEDcohortFigureClass extends React.Component {
       let profile = newJsonData.list_MEDprofile[profileIndex]
       let selectedPoints = data.dataIndex
 
-      // Logs the selected data points and corresponding data for debugging purposes
-      console.log("selectedPoints", selectedPoints, profile, this.state.echartsOptions.series[seriesIndex])
-
       // If the profile is undefined, returns early
       if (profile === undefined) return
 
@@ -728,9 +715,6 @@ class MEDcohortFigureClass extends React.Component {
           onlySelectedData.push(dataPoint)
         }
       })
-
-      // Logs the filtered data for debugging purposes
-      console.log("onlySelectedData", onlySelectedData)
 
       // Initializes the patient global index
       let patientGlobalIndex = 0
@@ -784,7 +768,6 @@ class MEDcohortFigureClass extends React.Component {
     const { jsonData } = this.state
     let newJsonData = { ...jsonData }
     let timePointsData = {}
-    console.log("EXPORTING", newJsonData)
     // Loop through each profile and tab in the jsonData object
     newJsonData.list_MEDprofile.forEach((profile) => {
       profile.list_MEDtab.forEach((tab) => {
@@ -885,7 +868,6 @@ class MEDcohortFigureClass extends React.Component {
   timePointToCsv = (timePoint, timePointData, folderPath) => {
     // eslint-disable-next-line no-undef
     const dfd = require("danfojs-node")
-    console.log("timePointData", timePointData, dfd)
     if (timePointData === undefined) return
     if (Object.keys(timePointData).length >= 1) {
       // If there is at least one attribute
@@ -1001,7 +983,6 @@ class MEDcohortFigureClass extends React.Component {
                       </b>
                     </label>
                     {this.state.timePointClusters.map((cluster, clusterIndex) => {
-                      console.log("cluster", cluster)
                       return (
                         <>
                           <div key={"div" + clusterIndex} style={{ display: "flex", flexDirection: "row", alignContent: "center", alignItems: "flex-start", justifyContent: "center" }}>
@@ -1019,7 +1000,6 @@ class MEDcohortFigureClass extends React.Component {
                               onClick={() => {
                                 let newTimePoints = deepCopy(timePoints)
                                 let indexOfTimePoint = newTimePoints.findIndex((timePoint) => timePoint.value === cluster.name)
-                                console.log("indexOfTimePoint", indexOfTimePoint)
                                 if (indexOfTimePoint !== -1 && cluster.name !== 1) {
                                   newTimePoints.splice(indexOfTimePoint, 1)
                                 }
