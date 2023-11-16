@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 import React, { useEffect, useState } from "react"
 import { Image } from "primereact/image"
 import MedDataObject from "../../../workspace/medDataObject"

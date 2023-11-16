@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 import React, { useContext, useRef, useState, useEffect } from "react"
 import { Trash, BoxArrowUpRight, Eraser, FolderPlus, ArrowClockwise, EyeFill, EyeSlashFill } from "react-bootstrap-icons"
 import { Accordion, Stack } from "react-bootstrap"
@@ -104,6 +105,7 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
    */
   function onOpen(uuid) {
     let dataObjectUUID = uuid
+    // eslint-disable-next-line no-unused-vars
     let path = globalData[dataObjectUUID].path
     // NOOP
   }

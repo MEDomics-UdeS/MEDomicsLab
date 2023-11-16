@@ -1,4 +1,6 @@
-import * as React from "react"
+/* eslint-disable no-unused-vars */
+/* eslint-disable no-undef */
+import React from "react"
 import { Button } from "primereact/button"
 import { Menu, MenuItem, Intent, HotkeysTarget2, Divider, Collapse } from "@blueprintjs/core"
 import xlxs from "xlsx"
@@ -12,7 +14,6 @@ import { DataFrame, Utils as danfoUtils } from "danfojs-node"
 import { DataTablePopoverBP } from "./dataTablePopoverBPClass"
 import { deepCopy } from "../../utilities/staticFunctions"
 const dfUtils = new danfoUtils()
-// eslint-disable-next-line @typescript-eslint/no-var-requires
 
 export type CellLookup = (rowIndex: number, columnIndex: number) => any // function that returns the cell data
 export type SortCallback = (columnIndex: number, comparator: (a: any, b: any) => number, direction: boolean) => void // function that sorts the column

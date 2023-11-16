@@ -5,10 +5,56 @@
   "version": "0.1.0",
   "author": "MEDomicsLab Team",
   "main": "app/background.js",
+  "build": {
+    "appId": "com.medomicslab.medapp",
+    "productName": "MEDomicsLab",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "app/**/*",
+      "node_modules/**/*"
+    ],
+    "extends": null,
+    "mac": {
+      "category": "public.app-category.developer-tools",
+      "target": [
+        "dmg",
+        "zip"
+      ],
+      "icon": "app/assets/icon.icns"
+    },
+    "win": {
+      "target": "nsis",
+      "publish": ["github"],
+      "icon": "app/assets/icon.ico"
+    },
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb",
+        "rpm",
+        "tar.gz"
+      ],
+      "icon": "app/assets/icon.png"
+    },
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "Blain354",
+        "releaseType": "draft"
+      }
+    ]
+  },
   "scripts": {
     "dev": "nextron",
     "build": "nextron build",
-    "postinstall": "electron-builder install-app-deps"
+    "build:linux": "./build_preparation_linux.sh && nextron build --linux",
+    "build:win": ".\\build_preparation_win.bat && nextron build --win",
+    "build:mac": "nextron build --mac",
+    "publish:linux": "./build_preparation_linux.sh && nextron build --linux --publish always",
+    "publish:win": ".\\build_preparation_win.bat && nextron build --win --publish always",
+    "publish:mac": "nextron build --mac --publish always"
   },
   "dependencies": {
     "@blueprintjs/core": "^5.3.0",
@@ -76,6 +122,8 @@
     "zip-local": "^0.3.5"
   },
   "devDependencies": {
+    "@babel/eslint-parser": "^7.23.3",
+    "@next/eslint-plugin-next": "^14.0.2",
     "bootstrap": "^5.2.3",
     "bootswatch": "^5.2.3",
     "electron": "^21.4.4",

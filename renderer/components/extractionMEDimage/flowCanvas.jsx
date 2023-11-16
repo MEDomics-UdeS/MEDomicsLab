@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import React, { useState, useCallback, useMemo, useEffect, useContext } from "react"
 import { toast } from "react-toastify"
 
@@ -453,6 +454,7 @@ const FlowCanvas = ({ workflowType, setWorkflowType }) => {
         var formData = JSON.stringify({
           id: id,
           name: nodeName,
+          // eslint-disable-next-line camelcase
           json_scene: newFlow
         })
 

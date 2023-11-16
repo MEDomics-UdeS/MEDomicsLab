@@ -148,7 +148,7 @@ const ApplicationPage = ({ pageId }) => {
         }
         setLoader(false)
       },
-      (error) => {
+      () => {
         setPredictions(null)
         setLoader(false)
       }
