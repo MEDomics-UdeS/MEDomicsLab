@@ -29,6 +29,7 @@ import { Accordion, Stack } from "react-bootstrap"
 import { LayoutModelContext } from "./layoutContext"
 import { WorkspaceContext } from "../workspace/workspaceContext"
 import { requestBackend } from "../../utilities/requests"
+import medConfig, { SERVER_CHOICE } from "../../../medomics.dev"
 
 const LayoutManager = (props) => {
   const [activeSidebarItem, setActiveSidebarItem] = useState("home") // State to keep track of active nav item
@@ -50,7 +51,7 @@ const LayoutManager = (props) => {
 
   // This is a useEffect that will be called when the component is mounted to send a clearAll request to the backend
   useEffect(() => {
-    requestBackend(
+    if (SERVER_CHOICE.GO == medConfig.serverChoice) {requestBackend(
       port,
       "clearAll",
       { data: "clearAll" },
@@ -60,7 +61,7 @@ const LayoutManager = (props) => {
       (error) => {
         console.log("clearAll error:", error)
       }
-    )
+    )}
   }, [])
 
   // This is a callback that will be called when the user presses a key
