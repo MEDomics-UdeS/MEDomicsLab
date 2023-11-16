@@ -374,7 +374,9 @@ class MEDcohortFigureClass extends React.Component {
     let newEchartsOption = {
       // Set the title of the chart
       title: {
-        text: "MEDcohort"
+        text: "MEDcohort",
+        subtext: "MEDcohort visualization",
+        left: "center"
       },
       // Set the tooltip trigger
       tooltip: {
@@ -383,8 +385,8 @@ class MEDcohortFigureClass extends React.Component {
       // Set the grid layout
       grid: {
         left: "3%",
-        right: "4%",
-        bottom: "5%",
+        right: "120",
+        bottom: "70",
         containLabel: true
       },
       // Set the x-axis type based on the relativeTime state
@@ -393,7 +395,9 @@ class MEDcohortFigureClass extends React.Component {
           axisPointer: {
             snap: true
           },
-          type: (this.state.relativeTime !== null && "value") || "time"
+          type: (this.state.relativeTime !== null && "value") || "time",
+          axisLine: { onZero: false },
+          offset: 0
         }
       ],
       // Set the y-axis type and data
@@ -403,19 +407,48 @@ class MEDcohortFigureClass extends React.Component {
             snap: true
           },
           type: "category",
-          data: []
+          data: [],
+          min: 0
         }
       ],
       // Set the toolbox features
       toolbox: {
         feature: {
-          dataZoom: {
-            yAxisIndex: "none"
-          },
+          dataZoom: {},
           restore: {},
           saveAsImage: {}
         }
       },
+      // Set the data zoom options
+      dataZoom: [
+        {
+          type: "slider",
+          show: true,
+          xAxisIndex: [0],
+          start: "0%",
+          end: "100%"
+        },
+        {
+          type: "slider",
+          show: true,
+          yAxisIndex: [0],
+          start: "0%",
+          end: "100%"
+        },
+        {
+          type: "inside",
+          xAxisIndex: [0],
+          start: "0%",
+          end: "100%"
+        },
+        {
+          type: "inside",
+          yAxisIndex: [0],
+          start: "0%",
+          end: "100%"
+        }
+      ],
+
       // Set the brush options
       brush: {
         toolbox: ["lineX", "clear"],
@@ -438,23 +471,12 @@ class MEDcohortFigureClass extends React.Component {
         },
         type: "scroll",
         orient: "vertical",
-        right: 10,
+        right: 30,
         top: 50,
         bottom: "10%",
         padding: [150, 20],
         data: []
-      },
-      // Set the data zoom options
-      dataZoom: [
-        {
-          type: "inside",
-          bottom: 100
-        },
-        {
-          start: 1,
-          end: 200
-        }
-      ]
+      }
     }
 
     // Create sets to store patient names, inner y classes, and new classes
@@ -917,15 +939,13 @@ class MEDcohortFigureClass extends React.Component {
 
     return (
       <>
-        <Row style={{ width: "100%", justifyContent: "center" }}>
-          <Col lg={8} className="center">
-            <div className="MEDcohort-figure" style={{ display: "flex", flexDirection: "column", boxShadow: "2px 2px 4px rgba(0, 0, 0, 0.25)", borderRadius: " 1rem", padding: "0" }}>
-              {echartsOptions && <ReactECharts className="echarts-custom" ref={this.chartRef} option={newEchartsOption} theme={themeName} onEvents={{ brushselected: this.handleSelectData }} style={{ width: "100%", height: "100%" }} lazyUpdate={true} class={"echarts-scatter"} />}
-            </div>
+        <Row style={{ display: "flex", flexDirection: "row", width: "100%", height: "100%", justifyContent: "space-evenly", margin: "0rem" }}>
+          <Col lg={8} className="MEDcohort-figure center" style={{ display: "flex", flexDirection: "column", boxShadow: "2px 2px 4px rgba(0, 0, 0, 0.25)", borderRadius: " 1rem", padding: "0" }}>
+            {echartsOptions && <ReactECharts className="echarts-custom" ref={this.chartRef} option={newEchartsOption} theme={themeName} onEvents={{ brushselected: this.handleSelectData }} style={{ width: "100%", height: "100%" }} lazyUpdate={true} class={"echarts-scatter"} />}
           </Col>
 
           <Col lg={4} style={{ display: "flex", flexDirection: "column", justifyContent: "space-evenly" }}>
-            <Row className="justify-content-md-center medprofile-buttons" style={{ display: "flex", flexDirection: "row", alignContent: "center", alignItems: "center", width: "100%", justifyContent: "center", boxShadow: "2px 2px 4px rgba(0, 0, 0, 0.25)", padding: "1rem", borderRadius: "1rem" }}>
+            <Row className="justify-content-md-center medprofile-buttons" style={{ display: "flex", flexDirection: "row", alignContent: "center", alignItems: "center", width: "100%", justifyContent: "center", boxShadow: "2px 2px 4px rgba(0, 0, 0, 0.25)", padding: "1rem", borderRadius: "1rem", margin: "0.5rem" }}>
               <Col xxl="6" style={{ display: "flex", flexDirection: "row", justifyContent: "center", marginBottom: "1rem" }}>
                 <ToggleButton className="separate-toggle-button" checked={separateHorizontally} onChange={(e) => this.setState({ separateHorizontally: e.value })} onLabel="Overlap horizontally" offLabel="Separate horizontally" onIcon="pi pi-check" offIcon="pi pi-times" />
               </Col>
@@ -980,19 +1000,20 @@ class MEDcohortFigureClass extends React.Component {
                         <u>Time Points associated data</u>
                       </b>
                     </label>
-                    {this.state.timePointClusters.map((cluster) => {
+                    {this.state.timePointClusters.map((cluster, clusterIndex) => {
                       console.log("cluster", cluster)
                       return (
                         <>
-                          <div style={{ display: "flex", flexDirection: "row", alignContent: "center", alignItems: "flex-start", justifyContent: "center" }}>
-                            <h6 style={{ margin: "0" }}>{`T${cluster.name}`}</h6>
+                          <div key={"div" + clusterIndex} style={{ display: "flex", flexDirection: "row", alignContent: "center", alignItems: "flex-start", justifyContent: "center" }}>
+                            <h6 key={"h6" + clusterIndex} style={{ margin: "0" }}>{`T${cluster.name}`}</h6>
                             &nbsp;
-                            <p style={{ margin: "0", marginLeft: "0.5rem" }}>
+                            <p key={"p" + clusterIndex} style={{ margin: "0", marginLeft: "0.5rem" }}>
                               {" "}
                               {`Number of data points: `}
-                              <b> {`${cluster.x.length}`}</b>
+                              <b key={"b" + clusterIndex}> {`${cluster.x.length}`}</b>
                             </p>
                             <a
+                              key={"a" + clusterIndex}
                               value={cluster.name}
                               style={{ margin: "0", marginLeft: "0.5rem", cursor: "pointer" }}
                               onClick={() => {
@@ -1006,7 +1027,7 @@ class MEDcohortFigureClass extends React.Component {
                                 this.removeTimePointFromJsonData(cluster.name)
                               }}
                             >
-                              <XSquare size={20} />
+                              <XSquare key={"xsquare" + clusterIndex} size={20} />
                             </a>
                           </div>
                         </>
