@@ -10,3 +10,27 @@
   align-items: center;
   height: 100vh;
 }
+
+.separate-toggle-button {
+  display: flex;
+  flex-direction: row;
+  justify-content: center !important;
+  align-items: center !important;
+  align-content: center !important;
+}
+
+.separate-toggle-button span {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  align-content: center;
+
+  font-size: 0.9rem;
+  margin-inline: 0.1rem !important;
+  padding: 0rem !important;
+}
+
+.echarts-custom canvas {
+  border-radius: 0.5rem;
+  padding: 0rem;
+}
