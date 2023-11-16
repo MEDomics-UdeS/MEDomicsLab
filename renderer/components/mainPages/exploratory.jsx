@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 import React, { useState, useContext, useEffect } from "react"
 import ModulePage from "./moduleBasics/modulePage"
 import { Card } from "primereact/card"
@@ -428,7 +429,7 @@ const DTaleProcess = ({ uniqueId, pageId, port, setError, onDelete }) => {
           {serverPath && <Button onClick={() => handleOpenWebServer(serverPath, uniqueId)} className="btn btn-primary" label="Open D-Tale" icon="pi pi-table" iconPos="right" severity="success" />}
           <IoClose
             className="btn-close-output-card"
-            onClick={(e) => {
+            onClick={() => {
               onDelete(uniqueId)
               shutdownDTale(serverPath)
             }}

@@ -1,5 +1,3 @@
-import fs from "fs"
-
 export const SERVER_CHOICE = {
   FLASK: "Flask",
   GO: "Go"
@@ -11,10 +9,10 @@ export const PORT_FINDING_METHOD = {
 }
 
 const config = {
-  runServerAutomatically: true,
+  runServerAutomatically: false,
   useReactDevTools: false,
-  condaEnv: fs.readFileSync("./path2condaenv_toDeleteInProd.txt", "utf8").replace(/\s/g, ""),
-  defaultPort: 5000,
+  condaEnv: "C:\\Users\\gblai\\anaconda3\\envs\\med\\python.exe",
+  defaultPort: 5550,
   serverChoice: SERVER_CHOICE.GO,
   portFindingMethod: PORT_FINDING_METHOD.FIX
 }

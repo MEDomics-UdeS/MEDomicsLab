@@ -6,9 +6,9 @@ import threading
 import time
 from pathlib import Path
 import json
-
-sys.path.append(
-    str(Path(os.path.dirname(os.path.abspath(__file__))).parent.parent))
+#
+# sys.path.append(
+#     str(Path(os.path.dirname(os.path.abspath(__file__))).parent.parent))
 
 from utils.server_utils import go_print
 from utils.GoExecutionScript import GoExecutionScript, parse_arguments
@@ -115,5 +115,6 @@ def is_experiment_exist(id_):
     return os.path.exists('local_dir/MEDexperiment_' + id_ + '.medexp')
 
 
-run_experiment = GoExecScriptRunExperiment(json_params_dict, id_, True)
-run_experiment.start()
+if __name__ == '__main__':
+    run_experiment = GoExecScriptRunExperiment(json_params_dict, id_, True)
+    run_experiment.start()

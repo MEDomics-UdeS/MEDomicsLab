@@ -49,7 +49,7 @@ const WsSelect = ({ selectedPath, onChange, rootDir, acceptFolder = false, accep
 
   return (
     <Form.Select disabled={disabled} value={selectedPath && selectedPath.name} onChange={(e) => onChange(e, datasetList.find((dataset) => dataset.name == e.target.value).path)}>
-      {datasetList.map((dataset, index) => {
+      {datasetList.map((dataset) => {
         return (
           <option key={dataset.name} value={dataset.name}>
             {dataset.isFolder ? "📁 " : dataset.default ? "❌ " : "📄 "}

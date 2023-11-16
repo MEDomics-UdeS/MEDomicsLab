@@ -1,3 +1,7 @@
+/* eslint-disable no-unused-vars */
+/* eslint-disable no-undef */
+/* eslint-disable camelcase */
+
 import * as React from "react"
 import * as Prism from "prismjs"
 import { Action, Actions, BorderNode, CLASSES, DockLocation, DragDrop, DropInfo, IJsonTabNode, ILayoutProps, ITabRenderValues, ITabSetRenderValues, Layout, Model, Node, TabNode, TabSetNode } from "flexlayout-react"
@@ -615,16 +619,6 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
           return <InputPage pageId={config.uuid} configPath={config.path} />
         } else {
           return <InputPage pageId={"InputPage"} />
-        }
-      }
-    } else if (component === "evaluationPage") {
-      if (node.getExtraData().data == null) {
-        const config = node.getConfig()
-
-        if (config.path !== null) {
-          return <EvaluationPage pageId={config.uuid} configPath={config.path} />
-        } else {
-          return <EvaluationPage pageId={"ResultsPage"} />
         }
       }
     } else if (component === "iFramePage") {

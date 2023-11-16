@@ -140,6 +140,7 @@ dmypy.json
 
 # submodules
 /flask_server/submodules/MEDimage/*
+/flask_server/submodules/*
 
 
 # custom gitignore
@@ -150,7 +151,9 @@ dmypy.json
 *.idea
 /learning-tests-scene*
 flask_server/extraction_MEDimage/MEDimageApp/tmp/*
+renderer/public/pythonCode/MedLibs/MEDimageApp/tmp/*
 /flask_server/local_dir/*
+renderer/public/pythonCode/local_dir/*
 path2condaenv_toDeleteInProd.txt
 
 package-lock.json

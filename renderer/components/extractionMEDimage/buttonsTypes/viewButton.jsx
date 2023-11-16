@@ -31,6 +31,7 @@ const ViewButton = ({ id, data, type }) => {
       formData = {
         id: id,
         name: type,
+        // eslint-disable-next-line camelcase
         file_loaded: data.internal.settings.filepath
       }
     } else {

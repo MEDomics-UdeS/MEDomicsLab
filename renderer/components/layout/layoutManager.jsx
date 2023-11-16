@@ -33,10 +33,8 @@ const LayoutManager = (props) => {
   const [activeSidebarItem, setActiveSidebarItem] = useState("home") // State to keep track of active nav item
   const [workspaceIsSet, setWorkspaceIsSet] = useState(true) // State to keep track of active nav item
   const sidebarRef = useRef(null) // Reference to the sidebar object
-  const { port } = useContext(WorkspaceContext) // we get the port for server connexion
-
   const { developerMode } = useContext(LayoutModelContext)
-  const { workspace } = useContext(WorkspaceContext)
+  const { workspace, port } = useContext(WorkspaceContext)
 
   // This is a useEffect that will be called when the workspace change
   useEffect(() => {
@@ -49,18 +47,21 @@ const LayoutManager = (props) => {
 
   // This is a useEffect that will be called when the component is mounted to send a clearAll request to the backend
   useEffect(() => {
-    requestBackend(
-      port,
-      "clearAll",
-      { data: "clearAll" },
-      (data) => {
-        console.log("clearAll received data:", data)
-      },
-      (error) => {
-        console.log("clearAll error:", error)
+    console.log("port set to: ", port)
+    if(port){
+      requestBackend(
+        port,
+        "clearAll",
+        { data: "clearAll" },
+        (data) => {
+          console.log("clearAll received data:", data)
+        },
+        (error) => {
+          console.log("clearAll error:", error)
+        }
+        )
       }
-    )
-  }, [])
+  }, [port])
 
   // This is a callback that will be called when the user presses a key
   // It will check if the user pressed ctrl+b and if so, it will collapse or expand the sidebar

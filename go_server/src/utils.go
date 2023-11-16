@@ -144,17 +144,42 @@ func CreateHandleFunc(topic string, processRequest func(jsonConfig string, id st
 // StartPythonScripts starts the python script
 func StartPythonScripts(jsonParam string, filename string, id string) (string, error) {
 	log.Println("Starting python script: " + filename)
-	condaEnv := GetDotEnvVariable("CONDA_ENV")
+	runMode := GetDotEnvVariable("RUN_MODE")
+	if runMode == "" {
+		runMode = os.Args[2]
+	}
+	log.Println("Run mode: " + runMode)
 	cwd, err := os.Getwd()
 	if err != nil {
 		log.Println(err.Error())
 	}
-	log.Println("Conda env: " + condaEnv)
+	log.Println("filename: " + filename)
 	script, _ := filepath.Abs(filepath.Join(cwd, filename))
 	Mu.Lock()
-	Scripts[id] = ScriptInfo{
-		Cmd:      exec.Command(condaEnv, "-u", script, "--json-param", jsonParam, "--id", id),
-		Progress: "",
+	if runMode == "prod" {
+		prodDir := "C:/Users/gblai/Documents/github/forked/MEDomicsLab_fork/dist/win-unpacked/resources/app.asar/app"
+		//prodDir := os.Args[3]
+		filename = strings.ReplaceAll(filename, "/scripts", "")
+		filename = strings.ReplaceAll(filename, "../flask_server", "pythonCode/modules")
+		script, _ = filepath.Abs(filepath.Join(prodDir, filename))
+		test, _ := os.LookupEnv("MED_CONDA_ENV")
+		log.Println("Test: " + test)
+		condaEnv := os.Getenv("MED_CONDA_ENV")
+		test2 := os.Environ()
+		log.Println("Test2: " + strings.Join(test2, ",\n"))
+		log.Println("Conda env: " + condaEnv)
+		log.Println("running script in prod: " + script)
+		Scripts[id] = ScriptInfo{
+			Cmd:      exec.Command(condaEnv, "-u", script, "--json-param", jsonParam, "--id", id),
+			Progress: "",
+		}
+	} else {
+		condaEnv := GetDotEnvVariable("CONDA_ENV")
+		log.Println("Conda env: " + condaEnv)
+		Scripts[id] = ScriptInfo{
+			Cmd:      exec.Command(condaEnv, "-u", script, "--json-param", jsonParam, "--id", id),
+			Progress: "",
+		}
 	}
 	stdout, err := Scripts[id].Cmd.StdoutPipe()
 	Mu.Unlock()
@@ -173,8 +198,8 @@ func StartPythonScripts(jsonParam string, filename string, id string) (string, e
 	err = Scripts[id].Cmd.Start()
 	Mu.Unlock()
 	if err != nil {
-		log.Println("Error starting command " + script + " " + condaEnv)
-		log.Panicf(err.Error())
+		log.Println("Error starting command " + script)
+		return "", err
 	}
 	response := ""
 	go copyOutput(stdout, &response)

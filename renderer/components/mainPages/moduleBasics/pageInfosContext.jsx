@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 import React, { createContext, useState, useEffect } from "react"
 import { loadJsonPath } from "../../../utilities/fileManagementUtils"
 import { customZipFile2Object } from "../../../utilities/customZipFile"

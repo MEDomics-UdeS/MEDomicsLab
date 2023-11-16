@@ -139,7 +139,7 @@ function App() {
     hasBeenSet: false,
     workingDirectory: ""
   })
-  const [port, setPort] = useState(5000)
+  const [port, setPort] = useState()
 
   const [globalData, setGlobalData] = useState({})
 
@@ -170,6 +170,7 @@ function App() {
       if (workspaceObject !== data) {
         let workspace = { ...data }
         setWorkspaceObject(workspace)
+
       }
     })
 
@@ -187,6 +188,8 @@ function App() {
       console.log("toggleDarkMode")
       // setIsDarkMode(!isDarkMode)
     })
+
+    ipcRenderer.send("messageFromNext", "getFlaskPort")
   }, []) // Here, we specify that the hook should only be called at the launch of the app
 
   /**

@@ -232,7 +232,7 @@ const Input = ({ name, settingInfos, currentValue, onInputChange, disabled, setH
               <label className="custom-lbl">{name}</label>
               <Select
                 disabled={disabled}
-                options={Object.entries(settingInfos.choices).map(([option, tooltip]) => {
+                options={Object.entries(settingInfos.choices).map(([option]) => {
                   currentValue == undefined && (currentValue = [])
                   if (!currentValue.includes(option)) return createOption(option)
                 })}
