@@ -6,6 +6,7 @@ import (
 	Application "go_module/blueprints/application"
 	Evaluation "go_module/blueprints/evaluation"
 	Exploratory "go_module/blueprints/exploratory"
+	ExtractionTS "go_module/blueprints/extraction_ts"
 	Input "go_module/blueprints/input"
 	Learning "go_module/blueprints/learning"
 	Utils "go_module/src"
@@ -21,6 +22,7 @@ func main() {
 	Learning.AddHandleFunc()
 	Evaluation.AddHandleFunc()
 	Exploratory.AddHandleFunc()
+	ExtractionTS.AddHandleFunc()
 	Input.AddHandleFunc()
 	Application.AddHandleFunc()
 	Utils.CreateHandleFunc("get_server_health", handleGetServerHealth)
