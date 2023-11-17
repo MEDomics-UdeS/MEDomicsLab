@@ -45,7 +45,6 @@ class MEDcohortFigureClass extends React.Component {
    */
   constructor(props) {
     super(props)
-    console.log("MEDcohortFigureClass", props)
     this.state = {
       jsonData: this.props.jsonData,
       selectedClass: undefined,
@@ -108,9 +107,6 @@ class MEDcohortFigureClass extends React.Component {
     // eslint-disable-next-line no-undef
     echarts.registerTheme("dark", require("../../../styles/input/medCohortFigureDark.json"))
 
-    if (this.chartRef.current !== null) {
-      console.log("REF", this.chartRef.current.getEchartsInstance())
-    }
     // Respond to changes in props or state
     if (prevProps.jsonData !== this.props.jsonData) {
       this.setState({ jsonData: this.props.jsonData }, () => {
@@ -123,7 +119,6 @@ class MEDcohortFigureClass extends React.Component {
     } else if (prevState.relativeTime !== this.state.relativeTime) {
       this.generateEchartsOptions()
     } else if (prevState.darkMode !== this.state.darkMode) {
-      console.log("darkMode", this.state.darkMode)
       this.generateEchartsOptions()
     } else if (prevProps.isExporting !== this.props.isExporting) {
       this.setState({ isWorking: this.props.isExporting })
@@ -183,7 +178,6 @@ class MEDcohortFigureClass extends React.Component {
 
     let earliestDate = findEarliestDate(timePoint)
     let latestDate = findLatestDate(timePoint)
-    console.log("earliestDate", earliestDate, "latestDate", latestDate, earliestDate === latestDate)
     if (this.state.relativeTime !== null) {
       earliestDate = earliestDate.valueOf() / (1000 * 60 * 60 * 24)
       latestDate = latestDate.valueOf() / (1000 * 60 * 60 * 24)
@@ -234,7 +228,6 @@ class MEDcohortFigureClass extends React.Component {
    * @returns {void}
    */
   handleTimePointClustersChange = (timePointClusters, echartsOptions) => {
-    console.log("timePointClusters", timePointClusters)
     let newShapes = []
     let length = timePointClusters.length
     timePointClusters.forEach((cluster, index) => {
@@ -282,7 +275,6 @@ class MEDcohortFigureClass extends React.Component {
     timePointClusters.forEach((cluster) => {
       newTimePoints.add(cluster.name)
     })
-    console.log("newTimePoints", newTimePoints)
     let newTimePointsArray = []
     newTimePoints.forEach((timePoint) => {
       newTimePointsArray.push({ label: timePoint, value: timePoint })
@@ -342,7 +334,6 @@ class MEDcohortFigureClass extends React.Component {
    * @returns {void}
    */
   handleSetTimePointByClass = () => {
-    console.log("selectedClassesToSetTimePoint", this.state.selectedClassesToSetTimePoint)
     let newJsonData = { ...this.state.jsonData }
     newJsonData.list_MEDprofile.forEach((profile) => {
       profile.list_MEDtab.forEach((tab) => {
@@ -374,7 +365,9 @@ class MEDcohortFigureClass extends React.Component {
     let newEchartsOption = {
       // Set the title of the chart
       title: {
-        text: "MEDcohort"
+        text: "MEDcohort",
+        subtext: "MEDcohort visualization",
+        left: "center"
       },
       // Set the tooltip trigger
       tooltip: {
@@ -383,8 +376,8 @@ class MEDcohortFigureClass extends React.Component {
       // Set the grid layout
       grid: {
         left: "3%",
-        right: "4%",
-        bottom: "5%",
+        right: "120",
+        bottom: "70",
         containLabel: true
       },
       // Set the x-axis type based on the relativeTime state
@@ -393,7 +386,9 @@ class MEDcohortFigureClass extends React.Component {
           axisPointer: {
             snap: true
           },
-          type: (this.state.relativeTime !== null && "value") || "time"
+          type: (this.state.relativeTime !== null && "value") || "time",
+          axisLine: { onZero: false },
+          offset: 0
         }
       ],
       // Set the y-axis type and data
@@ -403,19 +398,48 @@ class MEDcohortFigureClass extends React.Component {
             snap: true
           },
           type: "category",
-          data: []
+          data: [],
+          min: 0
         }
       ],
       // Set the toolbox features
       toolbox: {
         feature: {
-          dataZoom: {
-            yAxisIndex: "none"
-          },
+          dataZoom: {},
           restore: {},
           saveAsImage: {}
         }
       },
+      // Set the data zoom options
+      dataZoom: [
+        {
+          type: "slider",
+          show: true,
+          xAxisIndex: [0],
+          start: "0%",
+          end: "100%"
+        },
+        {
+          type: "slider",
+          show: true,
+          yAxisIndex: [0],
+          start: "0%",
+          end: "100%"
+        },
+        {
+          type: "inside",
+          xAxisIndex: [0],
+          start: "0%",
+          end: "100%"
+        },
+        {
+          type: "inside",
+          yAxisIndex: [0],
+          start: "0%",
+          end: "100%"
+        }
+      ],
+
       // Set the brush options
       brush: {
         toolbox: ["lineX", "clear"],
@@ -438,23 +462,12 @@ class MEDcohortFigureClass extends React.Component {
         },
         type: "scroll",
         orient: "vertical",
-        right: 10,
+        right: 30,
         top: 50,
         bottom: "10%",
         padding: [150, 20],
         data: []
-      },
-      // Set the data zoom options
-      dataZoom: [
-        {
-          type: "inside",
-          bottom: 100
-        },
-        {
-          start: 1,
-          end: 200
-        }
-      ]
+      }
     }
 
     // Create sets to store patient names, inner y classes, and new classes
@@ -483,7 +496,6 @@ class MEDcohortFigureClass extends React.Component {
       let profilAttributeTimeZero = this.getTimeZeroForClass(this.state.relativeTime, index)
       if (profilAttributeTimeZero === null && this.state.relativeTime !== null) {
         // If the time zero attribute is null and the relative time is not null, add the patient ID to the profiles to hide array
-        console.log("profilAttributeTimeZero", profile.PatientID, this.state.relativeTime, profilAttributeTimeZero, (profilAttributeTimeZero !== null && this.state.relativeTime !== null) || this.state.relativeTime === null)
         if (!((profilAttributeTimeZero !== null && this.state.relativeTime !== null) || this.state.relativeTime === null)) {
           profilesToHide.push(profile.PatientID)
         }
@@ -690,9 +702,6 @@ class MEDcohortFigureClass extends React.Component {
       let profile = newJsonData.list_MEDprofile[profileIndex]
       let selectedPoints = data.dataIndex
 
-      // Logs the selected data points and corresponding data for debugging purposes
-      console.log("selectedPoints", selectedPoints, profile, this.state.echartsOptions.series[seriesIndex])
-
       // If the profile is undefined, returns early
       if (profile === undefined) return
 
@@ -706,9 +715,6 @@ class MEDcohortFigureClass extends React.Component {
           onlySelectedData.push(dataPoint)
         }
       })
-
-      // Logs the filtered data for debugging purposes
-      console.log("onlySelectedData", onlySelectedData)
 
       // Initializes the patient global index
       let patientGlobalIndex = 0
@@ -762,7 +768,6 @@ class MEDcohortFigureClass extends React.Component {
     const { jsonData } = this.state
     let newJsonData = { ...jsonData }
     let timePointsData = {}
-    console.log("EXPORTING", newJsonData)
     // Loop through each profile and tab in the jsonData object
     newJsonData.list_MEDprofile.forEach((profile) => {
       profile.list_MEDtab.forEach((tab) => {
@@ -863,7 +868,6 @@ class MEDcohortFigureClass extends React.Component {
   timePointToCsv = (timePoint, timePointData, folderPath) => {
     // eslint-disable-next-line no-undef
     const dfd = require("danfojs-node")
-    console.log("timePointData", timePointData, dfd)
     if (timePointData === undefined) return
     if (Object.keys(timePointData).length >= 1) {
       // If there is at least one attribute
@@ -917,15 +921,13 @@ class MEDcohortFigureClass extends React.Component {
 
     return (
       <>
-        <Row style={{ width: "100%", justifyContent: "center" }}>
-          <Col lg={8} className="center">
-            <div className="MEDcohort-figure" style={{ display: "flex", flexDirection: "column", boxShadow: "2px 2px 4px rgba(0, 0, 0, 0.25)", borderRadius: " 1rem", padding: "0" }}>
-              {echartsOptions && <ReactECharts className="echarts-custom" ref={this.chartRef} option={newEchartsOption} theme={themeName} onEvents={{ brushselected: this.handleSelectData }} style={{ width: "100%", height: "100%" }} lazyUpdate={true} class={"echarts-scatter"} />}
-            </div>
+        <Row style={{ display: "flex", flexDirection: "row", width: "100%", height: "100%", justifyContent: "space-evenly", margin: "0rem" }}>
+          <Col lg={8} className="MEDcohort-figure center" style={{ display: "flex", flexDirection: "column", boxShadow: "2px 2px 4px rgba(0, 0, 0, 0.25)", borderRadius: " 1rem", padding: "0" }}>
+            {echartsOptions && <ReactECharts className="echarts-custom" ref={this.chartRef} option={newEchartsOption} theme={themeName} onEvents={{ brushselected: this.handleSelectData }} style={{ width: "100%", height: "100%" }} lazyUpdate={true} class={"echarts-scatter"} />}
           </Col>
 
           <Col lg={4} style={{ display: "flex", flexDirection: "column", justifyContent: "space-evenly" }}>
-            <Row className="justify-content-md-center medprofile-buttons" style={{ display: "flex", flexDirection: "row", alignContent: "center", alignItems: "center", width: "100%", justifyContent: "center", boxShadow: "2px 2px 4px rgba(0, 0, 0, 0.25)", padding: "1rem", borderRadius: "1rem" }}>
+            <Row className="justify-content-md-center medprofile-buttons" style={{ display: "flex", flexDirection: "row", alignContent: "center", alignItems: "center", width: "100%", justifyContent: "center", boxShadow: "2px 2px 4px rgba(0, 0, 0, 0.25)", padding: "1rem", borderRadius: "1rem", margin: "0.5rem" }}>
               <Col xxl="6" style={{ display: "flex", flexDirection: "row", justifyContent: "center", marginBottom: "1rem" }}>
                 <ToggleButton className="separate-toggle-button" checked={separateHorizontally} onChange={(e) => this.setState({ separateHorizontally: e.value })} onLabel="Overlap horizontally" offLabel="Separate horizontally" onIcon="pi pi-check" offIcon="pi pi-times" />
               </Col>
@@ -980,25 +982,24 @@ class MEDcohortFigureClass extends React.Component {
                         <u>Time Points associated data</u>
                       </b>
                     </label>
-                    {this.state.timePointClusters.map((cluster) => {
-                      console.log("cluster", cluster)
+                    {this.state.timePointClusters.map((cluster, clusterIndex) => {
                       return (
                         <>
-                          <div style={{ display: "flex", flexDirection: "row", alignContent: "center", alignItems: "flex-start", justifyContent: "center" }}>
-                            <h6 style={{ margin: "0" }}>{`T${cluster.name}`}</h6>
+                          <div key={"div" + clusterIndex} style={{ display: "flex", flexDirection: "row", alignContent: "center", alignItems: "flex-start", justifyContent: "center" }}>
+                            <h6 key={"h6" + clusterIndex} style={{ margin: "0" }}>{`T${cluster.name}`}</h6>
                             &nbsp;
-                            <p style={{ margin: "0", marginLeft: "0.5rem" }}>
+                            <p key={"p" + clusterIndex} style={{ margin: "0", marginLeft: "0.5rem" }}>
                               {" "}
                               {`Number of data points: `}
-                              <b> {`${cluster.x.length}`}</b>
+                              <b key={"b" + clusterIndex}> {`${cluster.x.length}`}</b>
                             </p>
                             <a
+                              key={"a" + clusterIndex}
                               value={cluster.name}
                               style={{ margin: "0", marginLeft: "0.5rem", cursor: "pointer" }}
                               onClick={() => {
                                 let newTimePoints = deepCopy(timePoints)
                                 let indexOfTimePoint = newTimePoints.findIndex((timePoint) => timePoint.value === cluster.name)
-                                console.log("indexOfTimePoint", indexOfTimePoint)
                                 if (indexOfTimePoint !== -1 && cluster.name !== 1) {
                                   newTimePoints.splice(indexOfTimePoint, 1)
                                 }
@@ -1006,7 +1007,7 @@ class MEDcohortFigureClass extends React.Component {
                                 this.removeTimePointFromJsonData(cluster.name)
                               }}
                             >
-                              <XSquare size={20} />
+                              <XSquare key={"xsquare" + clusterIndex} size={20} />
                             </a>
                           </div>
                         </>
