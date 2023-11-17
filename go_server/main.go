@@ -6,6 +6,7 @@ import (
 	Application "go_module/blueprints/application"
 	Evaluation "go_module/blueprints/evaluation"
 	Exploratory "go_module/blueprints/exploratory"
+	ExtractionImage "go_module/blueprints/extraction_image"
 	ExtractionText "go_module/blueprints/extraction_text"
 	ExtractionTS "go_module/blueprints/extraction_ts"
 	Input "go_module/blueprints/input"
@@ -23,6 +24,7 @@ func main() {
 	Learning.AddHandleFunc()
 	Evaluation.AddHandleFunc()
 	Exploratory.AddHandleFunc()
+	ExtractionImage.AddHandleFunc()
 	ExtractionText.AddHandleFunc()
 	ExtractionTS.AddHandleFunc()
 	Input.AddHandleFunc()
