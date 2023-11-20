@@ -11,6 +11,7 @@ import (
 	ExtractionTS "go_module/blueprints/extraction_ts"
 	Input "go_module/blueprints/input"
 	Learning "go_module/blueprints/learning"
+	MEDprofiles "go_module/blueprints/MEDprofiles_"
 	Utils "go_module/src"
 	"log"
 	"net/http"
@@ -28,6 +29,7 @@ func main() {
 	ExtractionText.AddHandleFunc()
 	ExtractionTS.AddHandleFunc()
 	Input.AddHandleFunc()
+	MEDprofiles.AddHandleFunc()
 	Application.AddHandleFunc()
 	Utils.CreateHandleFunc("get_server_health", handleGetServerHealth)
 	Utils.CreateHandleFunc("removeId/", handleRemoveId)

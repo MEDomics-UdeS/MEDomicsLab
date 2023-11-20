@@ -25,8 +25,8 @@ func handleTSfreshExtraction(jsonConfig string, id string) (string, error) {
 	return response, nil
 }
 
-// handleProgress handles the request to get the progress of the experiment
-// It returns the progress of the experiment
+// handleProgress handles the request to get the progress of the execution
+// It returns the progress of the execution
 func handleProgress(jsonConfig string, id string) (string, error) {
 	Utils.Mu.Lock()
 	progress := Utils.Scripts[id].Progress

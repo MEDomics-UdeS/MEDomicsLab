@@ -1,6 +1,6 @@
 import ModulePage from "../../mainPages/moduleBasics/modulePage"
 import React, { useContext, useEffect, useState } from "react"
-import { requestJson } from "../../../utilities/requests"
+import { requestBackend } from "../../../utilities/requests"
 import { toast } from "react-toastify"
 import { WorkspaceContext } from "../../workspace/workspaceContext"
 import MEDcohortFigure from "./MEDcohortFigure"
@@ -24,18 +24,20 @@ const MEDprofilesViewer = ({ pageId, configPath = "", MEDclassesFolder, MEDprofi
   const [jsonFilePath, setJsonFilePath] = useState(null)
   const { port } = useContext(WorkspaceContext) // we get the port for server connexion
   const [jsonDataIsLoaded, setJsonDataIsLoaded] = useState(false)
+
   /**
    * @description
    * This function is called while the page elements are loaded in order
    * to load the MEDprofiles' data (ie. MEDcohort) as JSON data
    */
   const loadCohort = () => {
-    requestJson(
+    requestBackend(
       port,
-      "/MEDprofiles/load_pickle_cohort",
+      "/MEDprofiles/load_pickle_cohort/" + pageId,
       {
         MEDclassesFolder: MEDclassesFolder.path,
-        MEDprofilesBinaryFile: MEDprofilesBinaryFile.path
+        MEDprofilesBinaryFile: MEDprofilesBinaryFile.path,
+        pageId: pageId
       },
       (jsonResponse) => {
         console.log("received results:", jsonResponse)

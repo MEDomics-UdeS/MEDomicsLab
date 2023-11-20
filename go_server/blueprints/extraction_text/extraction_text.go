@@ -13,7 +13,7 @@ func AddHandleFunc() {
 	Utils.CreateHandleFunc(prePath+"/progress/", handleProgress)
 }
 
-// handleTSfreshExtraction handles the request to run a TSfresh extraction
+// handleBioBERTExtraction handles the request to run a BioBERT extraction
 // It returns the response from the python script
 func handleBioBERTExtraction(jsonConfig string, id string) (string, error) {
 	log.Println("Running BioBERT extraction", id)
@@ -25,8 +25,8 @@ func handleBioBERTExtraction(jsonConfig string, id string) (string, error) {
 	return response, nil
 }
 
-// handleProgress handles the request to get the progress of the experiment
-// It returns the progress of the experiment
+// handleProgress handles the request to get the progress of the execution
+// It returns the progress of the execution
 func handleProgress(jsonConfig string, id string) (string, error) {
 	Utils.Mu.Lock()
 	progress := Utils.Scripts[id].Progress
