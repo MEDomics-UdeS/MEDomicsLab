@@ -61,8 +61,8 @@ const MEDprofilesViewer = ({ pageId, configPath = "", MEDclassesFolder, MEDprofi
 
   return (
     <>
-      <h1 className="center">MEDprofiles Viewer</h1>
       <ModulePage pageId={pageId} configPath={configPath}>
+      <h1 className="center">MEDprofiles Viewer</h1>
         {!jsonDataIsLoaded && (
           <div className="centered-container">
             <ProgressSpinner />
