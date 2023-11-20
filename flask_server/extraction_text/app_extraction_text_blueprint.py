@@ -120,7 +120,7 @@ def get_biobert_embeddings_from_event_list(event_list, event_weights):
     return aggregated_embedding
 
 
-def generate_biobert_notes_embeddings(dataframe, frequency, column_id, column_weight, column_text, column_prefix, column_admission="", column_admission_time="", column_time=""):
+def generate_biobert_notes_embeddings(dataframe, frequency, column_id, column_weight, column_text, column_prefix, master_table_compatible, column_admission="", column_admission_time="", column_time=""):
     """
     Function generating notes embeddings from BioBERT pre-trained model.
 
@@ -130,6 +130,7 @@ def generate_biobert_notes_embeddings(dataframe, frequency, column_id, column_we
     :param column_weight: Column name in the dataframe containing weights of the text notes.
     :param column_text: Column name in the dataframe containing the text notes.
     :param column_prefix: Prefix to set to column in the returning dataframe.
+    :param master_table_compatible: Boolean telling if the returned dataframe format must be submaster table compatible.
     :param column_admission: Column name in the dataframe containing admission identifiers, may be null if frequency is not "Admission".
     :param column_admission_time: Column name in the dataframe containing admission time, may be null if frequency is not "Admission".
     :param column_time: Time column in the dataframe, may be null if frequency is not a hour range.
@@ -148,13 +149,20 @@ def generate_biobert_notes_embeddings(dataframe, frequency, column_id, column_we
             df_patient = dataframe.loc[dataframe[column_id] == patient_id]
             df_patient_embeddings = pd.DataFrame(
                 [get_biobert_embeddings_from_event_list(df_patient[column_text], df_patient[column_weight])])
+            # Insert Time if the format is submaster table compatible
+            if master_table_compatible:
+                df_patient_embeddings.insert(0, column_time, df_patient[column_time].iloc[0])
             # Insert patient_id in the dataframe
             df_patient_embeddings.insert(0, column_id, patient_id)
             df_notes_embeddings = pd.concat([df_notes_embeddings, df_patient_embeddings], ignore_index=True)
             progress += 1/len(set(dataframe[column_id]))*60
         # Rename columns
-        col_number = len(df_notes_embeddings.columns) - 1
-        df_notes_embeddings.columns = [column_id] + [column_prefix + str(i) for i in range(col_number)]
+        if master_table_compatible:
+            col_number = len(df_notes_embeddings.columns) - 2
+            df_notes_embeddings.columns = [column_id, column_time] + [column_prefix + str(i) for i in range(col_number)]
+        else:
+            col_number = len(df_notes_embeddings.columns) - 1
+            df_notes_embeddings.columns = [column_id] + [column_prefix + str(i) for i in range(col_number)]
 
     elif frequency == "Admission":
         # Iterate over patients
@@ -167,15 +175,20 @@ def generate_biobert_notes_embeddings(dataframe, frequency, column_id, column_we
                     [get_biobert_embeddings_from_event_list(df_admission[column_text], df_admission[column_weight])])
                 # Insert admission_time in the dataframe
                 df_admission_embeddings.insert(0, column_admission_time, df_admission[column_admission_time].iloc[0])
-                # Insert admission_id in the dataframe
-                df_admission_embeddings.insert(0, column_admission, admission_id)
+                # Insert admission_id in the dataframe if master_table_compatible is false
+                if not master_table_compatible:
+                    df_admission_embeddings.insert(0, column_admission, admission_id)
                 # Insert patient_id in the dataframe
                 df_admission_embeddings.insert(0, column_id, patient_id)
                 df_notes_embeddings = pd.concat([df_notes_embeddings, df_admission_embeddings], ignore_index=True)
             progress += 1/len(set(dataframe[column_id]))*60
         # Rename columns
-        col_number = len(df_notes_embeddings.columns) - 3
-        df_notes_embeddings.columns = [column_id, column_admission, column_admission_time] + [column_prefix + str(i) for i in range(col_number)]
+        if master_table_compatible:
+            col_number = len(df_notes_embeddings.columns) - 2
+            df_notes_embeddings.columns = [column_id, column_admission_time] + [column_prefix + str(i) for i in range(col_number)]
+        else:
+            col_number = len(df_notes_embeddings.columns) - 3
+            df_notes_embeddings.columns = [column_id, column_admission, column_admission_time] + [column_prefix + str(i) for i in range(col_number)]
 
     elif frequency == "Note":
         # Iterate over all the dataframe
@@ -206,8 +219,9 @@ def generate_biobert_notes_embeddings(dataframe, frequency, column_id, column_we
                 if len(df_time) > 0:
                     df_time_embeddings = pd.DataFrame(
                         [get_biobert_embeddings_from_event_list(df_time[column_text], df_time[column_weight])])
-                    # Insert time in the dataframe
-                    df_time_embeddings.insert(0, "end_date", end_date)
+                    # Insert time in the dataframe (only start date if master_table_compatible)
+                    if not master_table_compatible:
+                        df_time_embeddings.insert(0, "end_date", end_date)
                     df_time_embeddings.insert(0, "start_date", start_date)
                     # Insert patient_id in the dataframe
                     df_time_embeddings.insert(0, column_id, patient_id)
@@ -216,8 +230,12 @@ def generate_biobert_notes_embeddings(dataframe, frequency, column_id, column_we
                 end_date += frequency
             progress += 1/len(set(dataframe[column_id]))*60
         # Rename columns
-        col_number = len(df_notes_embeddings.columns) - 3
-        df_notes_embeddings.columns = [column_id, "start_date", "end_date"] + [column_prefix + str(i) for i in range(col_number)]
+        if master_table_compatible:
+            col_number = len(df_notes_embeddings.columns) - 2
+            df_notes_embeddings.columns = [column_id, "start_date"] + [column_prefix + str(i) for i in range(col_number)]
+        else:
+            col_number = len(df_notes_embeddings.columns) - 3
+            df_notes_embeddings.columns = [column_id, "start_date", "end_date"] + [column_prefix + str(i) for i in range(col_number)]
 
     return df_notes_embeddings
 
@@ -244,7 +262,7 @@ def BioBERT_extraction():
         # Set local variables
         json_config = get_json_from_request(request)
         selected_columns = json_config["relativeToExtractionType"]["selectedColumns"]
-        column_prefix = json_config["relativeToExtractionType"]["columnPrefix"]
+        column_prefix = json_config["relativeToExtractionType"]["columnPrefix"] + '_attr'
         columnKeys = [key for key in selected_columns]
         columnValues = []
         for key in columnKeys:
@@ -280,6 +298,7 @@ def BioBERT_extraction():
                                                                 selected_columns["notesWeight"], 
                                                                 selected_columns["notes"],
                                                                 column_prefix,
+                                                                json_config["relativeToExtractionType"]["masterTableCompatible"],
                                                                 selected_columns["admissionIdentifier"],
                                                                 selected_columns["admissionTime"],
                                                                 selected_columns["time"])
@@ -287,7 +306,10 @@ def BioBERT_extraction():
         # Save extracted features
         progress = 90
         step = "Save extracted features"
-        csv_result_path = os.path.join(str(Path(json_config["csvPath"]).parent.absolute()), json_config['filename'])
+        extracted_folder_path = os.path.join(str(Path(json_config["dataFolderPath"])), "extracted_features")
+        if not os.path.exists(extracted_folder_path):
+            os.makedirs(extracted_folder_path)
+        csv_result_path = os.path.join(extracted_folder_path, json_config['filename'])
         df_extracted_features.to_csv(csv_result_path, index=False)
         json_config["csv_result_path"] = csv_result_path
 

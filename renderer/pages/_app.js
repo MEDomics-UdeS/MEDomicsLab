@@ -39,6 +39,7 @@ import "../styles/globals.css"
 import "../styles/learning/learning.css"
 import "../styles/extraction/extractionMEDimage.css"
 import "../styles/extraction/extractionTabular.css"
+import "../styles/input/MEDprofiles.css"
 import "../styles/workspaceSidebar.css"
 import "../styles/iconSidebar.css"
 import "../styles/learning/sidebar.css"
@@ -218,13 +219,9 @@ function App() {
         let acceptedFiles = MedDataObject.setAcceptedFileTypes(dataObject, acceptedFileTypes)
         dataObject.setAcceptedFileTypes(acceptedFiles)
         if (child.children === undefined) {
-          console.log("File:", child)
           objectType = "file"
           childrenIDs = null
-        } else if (child.children.length == 0) {
-          console.log("Empty folder:", child)
-        } else {
-          console.log("Folder:", child)
+        } else if (child.children.length != 0) {
           let answer = recursivelyRecenseTheDirectory(child.children, objectUUID, newGlobalData, acceptedFiles)
           childrenIDs = answer.childrenIDsToReturn
         }

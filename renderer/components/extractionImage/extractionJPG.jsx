@@ -2,17 +2,20 @@ import Button from "react-bootstrap/Button"
 import { DataContext } from "../workspace/dataContext"
 import DataTableFromContext from "../mainPages/dataComponents/dataTableFromContext"
 import { Dropdown } from "primereact/dropdown"
+import { ErrorRequestContext } from "../generalPurpose/errorRequestContext"
 import ExtractionDenseNet from "./extractionTypes/extractionDenseNet"
 import { InputNumber } from "primereact/inputnumber"
+import { InputSwitch } from "primereact/inputswitch"
 import { InputText } from "primereact/inputtext"
 import MedDataObject from "../workspace/medDataObject"
 import { Message } from "primereact/message"
-import React, { useContext, useEffect, useState } from "react"
-import { requestJson } from "../../utilities/requests"
+import { PageInfosContext } from "../mainPages/moduleBasics/pageInfosContext"
 import ProgressBarRequests from "../generalPurpose/progressBarRequests"
+import { ProgressSpinner } from "primereact/progressspinner"
+import React, { useContext, useEffect, useState } from "react"
+import { requestBackend } from "../../utilities/requests"
 import { toast } from "react-toastify"
 import { WorkspaceContext } from "../workspace/workspaceContext"
-import { ErrorRequestContext } from "../generalPurpose/errorRequestContext"
 
 /**
  *
@@ -29,6 +32,7 @@ import { ErrorRequestContext } from "../generalPurpose/errorRequestContext"
 const ExtractionJPG = ({ extractionTypeList, serverUrl, defaultFilename }) => {
   const [csvResultPath, setCsvResultPath] = useState("") // csv path of extracted data
   const [dataFolderList, setDataFolderList] = useState([]) // list of the folder containing jpg data at a specified Depth
+  const [dataFolderPath, setDataFolderPath] = useState("") // DATA folder
   const [extractionFunction, setExtractionFunction] = useState(extractionTypeList[0] + "_extraction") // name of the function to use for extraction
   const [extractionJsonData, setExtractionJsonData] = useState({}) // json data depending on extractionType
   const [extractionProgress, setExtractionProgress] = useState(0) // advancement state in the extraction function
@@ -36,6 +40,7 @@ const ExtractionJPG = ({ extractionTypeList, serverUrl, defaultFilename }) => {
   const [extractionType, setExtractionType] = useState(extractionTypeList[0]) // extraction type
   const [filename, setFilename] = useState(defaultFilename) // name of the csv file containing extracted data
   const [folderDepth, setFolderDepth] = useState(1) // depth to consider when searching jpg data in folders
+  const [isLoadingDataset, setIsLoadingDataset] = useState(false) // boolean telling if the result dataset is loading
   const [isResultDatasetLoaded, setIsResultDatasetLoaded] = useState(false) // boolean set to false every time we reload an extracted data dataset
   const [optionsSelected, setOptionsSelected] = useState(true) // boolean set to true when the options seleted are convenient for extraction
   const [progress, setProgress] = useState({ now: 0, currentLabel: "" }) // progress bar state [now, currentLabel]
@@ -43,10 +48,29 @@ const ExtractionJPG = ({ extractionTypeList, serverUrl, defaultFilename }) => {
   const [running, setRunning] = useState(false) // boolean set to true when extraction is running
   const [selectedFolder, setSelectedFolder] = useState(null) // folder containing the data for extraction
   const [showProgressBar, setShowProgressBar] = useState(false) // wether to show or not the extraction progressbar
-  const { setError } = useContext(ErrorRequestContext)
+  const [viewResults, setViewResults] = useState(false) // Display result if true and results can be displayed
 
   const { globalData } = useContext(DataContext) // we get the global data from the context to retrieve the directory tree of the workspace, thus retrieving the data files
+  const { pageId } = useContext(PageInfosContext) // used to get the pageId
   const { port } = useContext(WorkspaceContext) // we get the port for server connexion
+  const { setError } = useContext(ErrorRequestContext) // used to diplay the errors
+
+  /**
+   *
+   * @param {DataContext} dataContext
+   *
+   * @description
+   * This functions returns the DATA folder path
+   *
+   */
+  function getDataFolderPath(dataContext) {
+    let keys = Object.keys(dataContext)
+    keys.forEach((key) => {
+      if (dataContext[key].type == "folder" && dataContext[key].name == "DATA" && dataContext[key].parentID == "UUID_ROOT") {
+        setDataFolderPath(dataContext[key].path)
+      }
+    })
+  }
 
   /**
    *
@@ -86,15 +110,18 @@ const ExtractionJPG = ({ extractionTypeList, serverUrl, defaultFilename }) => {
   const runExtraction = () => {
     setRunning(true)
     setShowProgressBar(true)
+    console.log(extractionJsonData)
     // Run extraction process
-    requestJson(
+    requestBackend(
       port,
-      serverUrl + extractionFunction,
+      serverUrl + extractionFunction + "/" + pageId,
       {
         relativeToExtractionType: extractionJsonData,
         depth: folderDepth,
         folderPath: selectedFolder?.path,
-        filename: filename
+        filename: filename,
+        dataFolderPath: dataFolderPath,
+        pageId: pageId
       },
       (jsonResponse) => {
         console.log("received results:", jsonResponse)
@@ -103,7 +130,9 @@ const ExtractionJPG = ({ extractionTypeList, serverUrl, defaultFilename }) => {
           setExtractionStep("Extracted Features Saved")
           MedDataObject.updateWorkspaceDataObject()
           setExtractionProgress(100)
+          setResultDataset(null)
           setIsResultDatasetLoaded(false)
+          setIsLoadingDataset(true)
         } else {
           toast.error(`Extraction failed: ${jsonResponse.error.message}`)
           setError(jsonResponse.error)
@@ -194,10 +223,13 @@ const ExtractionJPG = ({ extractionTypeList, serverUrl, defaultFilename }) => {
     setSelectedFolder(null)
   }, [folderDepth])
 
-  // Called when data in DataContext is updated, in order to updated resultDataset
+  // Called when data in DataContext is updated, in order to updated resultDataset and dataFolderPath
   useEffect(() => {
-    if (globalData !== undefined && csvResultPath !== "") {
-      findResultDataset(globalData, csvResultPath)
+    if (globalData !== undefined) {
+      getDataFolderPath(globalData)
+      if (csvResultPath !== "") {
+        findResultDataset(globalData, csvResultPath)
+      }
     }
   }, [globalData])
 
@@ -214,6 +246,7 @@ const ExtractionJPG = ({ extractionTypeList, serverUrl, defaultFilename }) => {
       setShowProgressBar(false)
       setExtractionProgress(0)
       setExtractionStep("")
+      setIsLoadingDataset(false)
     }
   }, [isResultDatasetLoaded])
 
@@ -244,7 +277,7 @@ const ExtractionJPG = ({ extractionTypeList, serverUrl, defaultFilename }) => {
             <div className="margin-top-15">
               <Dropdown value={extractionType} options={extractionTypeList} onChange={(event) => onChangeExtractionType(event.value)} />
             </div>
-            <div className="margin-top-15">{extractionType == "DenseNet" && <ExtractionDenseNet setExtractionJsonData={setExtractionJsonData} setOptionsSelected={setOptionsSelected} />}</div>
+            <div className="margin-top-15">{extractionType == "DenseNet" && <ExtractionDenseNet folderDepth={folderDepth} setExtractionJsonData={setExtractionJsonData} setOptionsSelected={setOptionsSelected} />}</div>
           </div>
         </div>
 
@@ -268,7 +301,7 @@ const ExtractionJPG = ({ extractionTypeList, serverUrl, defaultFilename }) => {
                 </div>
               </div>
             </div>
-            <div className="margin-top-30 extraction-progress">{showProgressBar && <ProgressBarRequests progressBarProps={{}} isUpdating={showProgressBar} setIsUpdating={setShowProgressBar} progress={progress} setProgress={setProgress} requestTopic={serverUrl + "progress"} />}</div>
+            <div className="margin-top-30 extraction-progress">{showProgressBar && <ProgressBarRequests progressBarProps={{}} isUpdating={showProgressBar} setIsUpdating={setShowProgressBar} progress={progress} setProgress={setProgress} requestTopic={serverUrl + "progress/" + pageId} />}</div>
           </div>
         </div>
 
@@ -277,7 +310,19 @@ const ExtractionJPG = ({ extractionTypeList, serverUrl, defaultFilename }) => {
           {/* Display extracted data */}
           <div className="center">
             <h2>Extracted data</h2>
-            {resultDataset ? <DataTableFromContext MedDataObject={resultDataset} tablePropsData={{ size: "small", paginator: true, rows: 5 }} isDatasetLoaded={isResultDatasetLoaded} setIsDatasetLoaded={setIsResultDatasetLoaded} /> : <p>Nothing to show, proceed to extraction first.</p>}
+            <div>
+              <p>Display result dataset &nbsp;</p>
+            </div>
+            <div className="margin-top-bottom-15 center">
+              <InputSwitch id="switch" checked={viewResults} onChange={(e) => setViewResults(e.value)} />
+            </div>
+            {viewResults == true && <div>{resultDataset ? <DataTableFromContext MedDataObject={resultDataset} tablePropsData={{ size: "small", paginator: true, rows: 5 }} isDatasetLoaded={isResultDatasetLoaded} setIsDatasetLoaded={setIsResultDatasetLoaded} /> : isLoadingDataset ? <ProgressSpinner /> : <p>Nothing to show, proceed to extraction first.</p>}</div>}
+            {resultDataset && (
+              <p>
+                Features saved under &quot;extracted_features/
+                {filename}&quot;.
+              </p>
+            )}
           </div>
         </div>
       </div>

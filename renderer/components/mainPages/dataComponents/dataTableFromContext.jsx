@@ -19,7 +19,7 @@ const DataTableFromContext = ({ MedDataObject, tablePropsData, tablePropsColumn,
   const [dataset, setDataset] = useState(MedDataObject.isLoaded ? MedDataObject.data : false)
 
   useEffect(() => {
-    if (MedDataObject !== undefined && MedDataObject !== null) {
+    if (MedDataObject !== undefined && MedDataObject !== null && MedDataObject.getUUID !== undefined) {
       if (isLoaded && MedDataObject.data && isDatasetLoaded != undefined && isDatasetLoaded == true) {
         console.log("was already loaded")
       } else {
@@ -46,7 +46,9 @@ const DataTableFromContext = ({ MedDataObject, tablePropsData, tablePropsColumn,
                   globalDataCopy[MedDataObject.getUUID()].isLoaded = true
                   setGlobalData(globalDataCopy)
                   setIsLoaded(true)
-                  setIsDatasetLoaded && setIsDatasetLoaded(true)
+                  if (setIsDatasetLoaded != undefined) {
+                    setIsDatasetLoaded(true)
+                  }
                 })
               }
             })

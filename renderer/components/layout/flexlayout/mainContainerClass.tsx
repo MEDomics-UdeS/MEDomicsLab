@@ -17,6 +17,7 @@ import ExtractionTextPage from "../../mainPages/extractionText"
 import ExtractionImagePage from "../../mainPages/extractionImage"
 import ExtractionMEDimagePage from "../../mainPages/extractionMEDimage"
 import ExtractionTSPage from "../../mainPages/extractionTS"
+import MEDprofilesViewer from "../../input/MEDprofiles/MEDprofilesViewer"
 import HomePage from "../../mainPages/home"
 import TerminalPage from "../../mainPages/terminal"
 import OutputPage from "../../mainPages/output"
@@ -675,6 +676,15 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
           return <ExtractionTextPage pageId={"ExtractionTextPage"} />
         }
       }
+    } else if (component === "MEDprofilesViewer") {
+      if (node.getExtraData().data == null) {
+        const config = node.getConfig()
+        if (config.path !== null) {
+          return <MEDprofilesViewer pageId={config.uuid} configPath={config.path} MEDclassesFolder={config?.MEDclassesFolder} MEDprofilesBinaryFile={config?.MEDprofilesBinaryFile} />
+        } else {
+          return <MEDprofilesViewer pageId={"MEDprofilesViewer"} MEDclassesFolder={config?.MEDclassesFolder} MEDprofilesBinaryFile={config?.MEDprofilesBinaryFile}/>
+        }
+      }
     } else if (component === "extractionImagePage") {
       if (node.getExtraData().data == null) {
         const config = node.getConfig()
@@ -842,6 +852,9 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
       }
       if (component === "extractionTSPage") {
         return <span style={{ marginRight: 3 }}>📈</span>
+      }
+      if (component === "MEDprofilesViewer") {
+        return <span style={{ marginRight: 3 }}>📊</span>
       }
       if (component === "terminal") {
         return <span style={{ marginRight: 3 }}>🖥️</span>

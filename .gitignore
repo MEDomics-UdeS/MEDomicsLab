@@ -140,6 +140,7 @@ dmypy.json
 
 # submodules
 /flask_server/submodules/MEDimage/*
+/flask_server/submodules/MEDprofiles/*
 
 
 # custom gitignore

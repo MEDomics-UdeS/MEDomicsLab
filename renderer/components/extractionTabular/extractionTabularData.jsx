@@ -3,15 +3,20 @@ import { DataContext } from "../workspace/dataContext"
 import { DataFrame } from "danfojs"
 import DataTableFromContext from "../mainPages/dataComponents/dataTableFromContext"
 import { Dropdown } from "primereact/dropdown"
+import { ErrorRequestContext } from "../generalPurpose/errorRequestContext"
 import ExtractionBioBERT from "./extractionTypes/extractionBioBERT"
 import ExtractionTSfresh from "./extractionTypes/extractionTSfresh"
+import { InputSwitch } from "primereact/inputswitch"
 import { InputText } from "primereact/inputtext"
 import MedDataObject from "../workspace/medDataObject"
+import { Message } from "primereact/message"
+import { PageInfosContext } from "../mainPages/moduleBasics/pageInfosContext"
+import { ProgressSpinner } from "primereact/progressspinner"
+import ProgressBarRequests from "../generalPurpose/progressBarRequests"
 import React, { useState, useEffect, useContext } from "react"
-import { requestJson } from "../../utilities/requests"
+import { requestBackend } from "../../utilities/requests"
 import { toast } from "react-toastify"
 import { WorkspaceContext } from "../workspace/workspaceContext"
-import ProgressBarRequests from "../generalPurpose/progressBarRequests"
 
 /**
  *
@@ -29,6 +34,7 @@ const ExtractionTabularData = ({ extractionTypeList, serverUrl, defaultFilename 
   const [areResultsLarge, setAreResultsLarge] = useState(false) // if the results are too large we don't display them
   const [csvPath, setCsvPath] = useState("") // csv path of data to extract
   const [csvResultPath, setCsvResultPath] = useState("") // csv path of extracted data
+  const [dataFolderPath, setDataFolderPath] = useState("") // DATA folder
   const [dataframe, setDataframe] = useState([]) // djanfo dataframe of data to extract
   const [datasetList, setDatasetList] = useState([]) // list of available datasets in DATA folder
   const [displayResults, setDisplayResults] = useState(true) // say if the result data may be displayed
@@ -39,14 +45,19 @@ const ExtractionTabularData = ({ extractionTypeList, serverUrl, defaultFilename 
   const [extractionType, setExtractionType] = useState(extractionTypeList[0]) // extraction type
   const [filename, setFilename] = useState(defaultFilename) // name of the csv file containing extracted data
   const [isDatasetLoaded, setIsDatasetLoaded] = useState(false) // boolean set to false every time we reload a dataset for data to extract
+  const [isLoadingDataset, setIsLoadingDataset] = useState(false) // boolean telling if the result dataset is loading
   const [isResultDatasetLoaded, setIsResultDatasetLoaded] = useState(false) // boolean set to false every time we reload an extracted data dataset
   const [mayProceed, setMayProceed] = useState(false) // boolean set to true if all informations about the extraction (depending on extractionType) have been completed
   const [progress, setProgress] = useState({ now: 0, currentLabel: "" }) // progress bar state [now, currentLabel]
   const [resultDataset, setResultDataset] = useState(null) // dataset of extracted data used to be display
   const [selectedDataset, setSelectedDataset] = useState(null) // dataset of data to extract used to be display
   const [showProgressBar, setShowProgressBar] = useState(false) // wether to show or not the extraction progressbar
+  const [viewResults, setViewResults] = useState(false) // Display result if true and results can be displayed
+
   const { globalData } = useContext(DataContext) // we get the global data from the context to retrieve the directory tree of the workspace, thus retrieving the data files
+  const { pageId } = useContext(PageInfosContext) // used to get the pageId
   const { port } = useContext(WorkspaceContext) // we get the port for server connexion
+  const { setError } = useContext(ErrorRequestContext) // used to diplay the errors
 
   /**
    *
@@ -65,6 +76,23 @@ const ExtractionTabularData = ({ extractionTypeList, serverUrl, defaultFilename 
       }
     })
     setDatasetList(datasetListToShow)
+  }
+
+  /**
+   *
+   * @param {DataContext} dataContext
+   *
+   * @description
+   * This functions returns the DATA folder path
+   *
+   */
+  function getDataFolderPath(dataContext) {
+    let keys = Object.keys(dataContext)
+    keys.forEach((key) => {
+      if (dataContext[key].type == "folder" && dataContext[key].name == "DATA" && dataContext[key].parentID == "UUID_ROOT") {
+        setDataFolderPath(dataContext[key].path)
+      }
+    })
   }
 
   /**
@@ -119,13 +147,15 @@ const ExtractionTabularData = ({ extractionTypeList, serverUrl, defaultFilename 
     setMayProceed(false)
     setShowProgressBar(true)
     // Run extraction process
-    requestJson(
+    requestBackend(
       port,
-      serverUrl + extractionFunction,
+      serverUrl + extractionFunction + "/" + pageId,
       {
         relativeToExtractionType: extractionJsonData,
         csvPath: csvPath,
-        filename: filename
+        filename: filename,
+        dataFolderPath: dataFolderPath,
+        pageId: pageId
       },
       (jsonResponse) => {
         console.log("received results:", jsonResponse)
@@ -133,13 +163,15 @@ const ExtractionTabularData = ({ extractionTypeList, serverUrl, defaultFilename 
           setCsvResultPath(jsonResponse["csv_result_path"])
           setExtractionStep("Extracted Features Saved")
           MedDataObject.updateWorkspaceDataObject()
+          setResultDataset(null)
           setExtractionProgress(100)
           setIsResultDatasetLoaded(false)
           setDisplayResults(areResultsLarge == false)
+          setIsLoadingDataset(true)
         } else {
           toast.error(`Extraction failed: ${jsonResponse.error.message}`)
+          setError(jsonResponse.error)
           setExtractionStep("")
-          setShowProgressBar(false)
         }
         setShowProgressBar(false)
         setMayProceed(true)
@@ -173,19 +205,27 @@ const ExtractionTabularData = ({ extractionTypeList, serverUrl, defaultFilename 
     }
   }, [datasetList])
 
-  // Called when data in DataContext is updated, in order to updated datasetList
+  // Called when data in DataContext is updated, in order to updated datasetList and DataFolderPath
   useEffect(() => {
     if (globalData !== undefined) {
       getDatasetListFromDataContext(globalData)
+      getDataFolderPath(globalData)
     }
   }, [globalData])
 
   // Called when isDatasetLoaded change, in order to update csvPath and dataframe.
   useEffect(() => {
+    console.log("selectedDataset", selectedDataset)
     if (selectedDataset && selectedDataset.data && selectedDataset.path) {
+      console.log("in if", selectedDataset.data)
       setCsvPath(selectedDataset.path)
       setDataframe(new DataFrame(selectedDataset.data))
+      setIsLoadingDataset(false)
     }
+  }, [isDatasetLoaded])
+
+  useEffect(() => {
+    console.log("dataframe in tab", isDatasetLoaded)
   }, [isDatasetLoaded])
 
   // Called when isDatasetLoaded change, in order to update the progressbar.
@@ -194,6 +234,7 @@ const ExtractionTabularData = ({ extractionTypeList, serverUrl, defaultFilename 
       setShowProgressBar(false)
       setExtractionProgress(0)
       setExtractionStep("")
+      setIsLoadingDataset(false)
     }
   }, [isResultDatasetLoaded, displayResults])
 
@@ -249,6 +290,7 @@ const ExtractionTabularData = ({ extractionTypeList, serverUrl, defaultFilename 
         <div className="center">
           {/* Features Extraction */}
           <h2>Extract features</h2>
+          {mayProceed == false && showProgressBar == false && <Message severity="warn" text="You must select convenient options for feature generation" />}
           <div className="margin-top-30">
             <div className="flex-container">
               <div>
@@ -263,23 +305,28 @@ const ExtractionTabularData = ({ extractionTypeList, serverUrl, defaultFilename 
               </div>
             </div>
           </div>
-          <div className="margin-top-30 extraction-progress">{showProgressBar && <ProgressBarRequests progressBarProps={{}} isUpdating={showProgressBar} setIsUpdating={setShowProgressBar} progress={progress} setProgress={setProgress} requestTopic={serverUrl + "progress"} />}</div>
+          <div className="margin-top-30 extraction-progress">{showProgressBar && <ProgressBarRequests progressBarProps={{}} isUpdating={showProgressBar} setIsUpdating={setShowProgressBar} progress={progress} setProgress={setProgress} requestTopic={serverUrl + "progress/" + pageId} />}</div>
         </div>
       </div>
 
       <hr></hr>
-      <div className="margin-top-bottom-15">
+      <div className="margin-top-bottom-15 center">
         {/* Display extracted data */}
-        <div className="center">
-          <h2>Extracted data</h2>
-          {!resultDataset && <p>Nothing to show, proceed to extraction first.</p>}
+        <h2>Extracted data</h2>
+        <div>
+          <p>Display result dataset &nbsp;</p>
         </div>
-        {resultDataset && displayResults == true && (
-          <div>
-            <DataTableFromContext MedDataObject={resultDataset} tablePropsData={{ size: "small", paginator: true, rows: 5 }} isDatasetLoaded={isResultDatasetLoaded} setIsDatasetLoaded={setIsResultDatasetLoaded} />
-          </div>
+        <div className="margin-top-bottom-15 center">
+          <InputSwitch id="switch" checked={viewResults} onChange={(e) => setViewResults(e.value)} />
+        </div>
+        {viewResults == true && displayResults == true && <div>{resultDataset ? <DataTableFromContext MedDataObject={resultDataset} tablePropsData={{ size: "small", paginator: true, rows: 5 }} isDatasetLoaded={isResultDatasetLoaded} setIsDatasetLoaded={setIsResultDatasetLoaded} /> : isLoadingDataset ? <ProgressSpinner /> : <p>Nothing to show, proceed to extraction first.</p>}</div>}
+        {viewResults == true && resultDataset && displayResults == false && <p>The result dataset is too large to be display here.</p>}
+        {resultDataset && (
+          <p>
+            Features saved under &quot;extracted_features/
+            {filename}&quot;.
+          </p>
         )}
-        {resultDataset && displayResults == false && <p>Features saved under {filename}. The result dataset is too large to be display here. </p>}
       </div>
     </div>
   )
