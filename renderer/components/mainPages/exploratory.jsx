@@ -96,7 +96,8 @@ const SweetViz = ({ pageId, port, setError }) => {
    */
   const generateReport = () => {
     // eslint-disable-next-line no-undef
-    const savingPath = Path.join(process.cwd(), "tmp", "SweetViz_report.html")
+    const basePath = process.env.NODE_ENV == "production" ? process.resourcesPath : process.cwd()
+    const savingPath = Path.join(basePath, "tmp", "SweetViz_report.html")
     setIsCalculating(true)
     setHtmlFilePath("")
     requestBackend(
@@ -217,6 +218,7 @@ const YDataProfiling = ({ pageId, port, setError }) => {
    * @returns
    */
   const handleOpenFile = (filePath) => () => {
+    console.log("open file", filePath)
     const medObj = new MedDataObject({ path: filePath, type: "html", name: "ydata-profiling-report.html", _UUID: "ydata-profiling-report" })
     dispatchLayout({ type: "openHtmlViewer", payload: medObj })
   }
@@ -227,6 +229,7 @@ const YDataProfiling = ({ pageId, port, setError }) => {
    * @returns
    */
   const handleDownloadFile = (filePath) => () => {
+    console.log("download file", filePath)
     downloadFilePath(filePath)
   }
 
@@ -235,7 +238,9 @@ const YDataProfiling = ({ pageId, port, setError }) => {
    */
   const generateReport = () => {
     // eslint-disable-next-line no-undef
-    const savingPath = Path.join(process.cwd(), "tmp", "ydata_report.html")
+    console.log("process.execPath", process.execPath)
+    const basePath = process.env.NODE_ENV == "production" ? process.resourcesPath : process.cwd()
+    const savingPath = Path.join(basePath, "tmp", "ydata_report.html")
     setIsCalculating(true)
     setHtmlFilePath("")
     requestBackend(
@@ -319,13 +324,13 @@ const YDataProfiling = ({ pageId, port, setError }) => {
 }
 
 /**
- * 
+ *
  * @param {String} uniqueId The unique id of the process
  * @param {String} pageId The page id
  * @param {Number} port The port of the backend
  * @param {Function} setError The function to set the error
  * @param {Function} onDelete The function to delete the process
- * 
+ *
  * @returns A card with the D-Tale module
  */
 const DTaleProcess = ({ uniqueId, pageId, port, setError, onDelete }) => {
@@ -338,9 +343,9 @@ const DTaleProcess = ({ uniqueId, pageId, port, setError, onDelete }) => {
   const [name, setName] = useState("")
 
   /**
-   * 
+   *
    * @param {String} serverPath The server path
-   * @description This function is used to shutdown the dtale server 
+   * @description This function is used to shutdown the dtale server
    */
   const shutdownDTale = (serverPath) => {
     console.log("shutting down dtale: ", serverPath)
@@ -404,7 +409,7 @@ const DTaleProcess = ({ uniqueId, pageId, port, setError, onDelete }) => {
   }
 
   /**
-   * 
+   *
    * @param {String} urlPath The url path to open
    * @param {String} uniqueId The unique id of the process
    */
@@ -463,8 +468,8 @@ const DTale = ({ pageId, port, setError }) => {
   }, [processes])
 
   /**
-   * 
-   * @param {String} uniqueId The unique id of the process 
+   *
+   * @param {String} uniqueId The unique id of the process
    */
   const onDelete = (uniqueId) => {
     console.log("deleting", uniqueId)

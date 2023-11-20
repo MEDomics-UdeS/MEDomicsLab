@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react"
 import Path from "path"
 import Iframe from "react-iframe"
-import fs from "fs"
+import { toLocalPath } from "../../utilities/fileManagementUtils"
 
 /**
  *
@@ -11,17 +11,11 @@ const HtmlViewer = ({ configPath }) => {
   const [localPath, setLocalPath] = useState(undefined)
 
   useEffect(() => {
-    return () => {
-      console.log("html viewer unmounted")
-      fs.unlinkSync("./renderer/public/tmp/" + Path.basename(configPath))
-    }
-  }, [])
-
-  useEffect(() => {
     console.log("html config", configPath)
     console.log(Path.basename(configPath))
-    fs.copyFileSync(configPath, "./renderer/public/tmp/" + Path.basename(configPath))
-    setLocalPath(Path.join("./tmp/" + Path.basename(configPath)))
+    toLocalPath(configPath).then((localPath) => {
+      setLocalPath(localPath)
+    })
   }, [configPath])
 
   return <>{localPath && <Iframe url={localPath} width="100%" height="100%" />}</>

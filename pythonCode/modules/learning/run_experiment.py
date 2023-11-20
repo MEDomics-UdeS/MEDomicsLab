@@ -85,7 +85,11 @@ def save_experiment(experiment: MEDexperimentLearning):
     """
     go_print("saving experiment")
     experiment.make_save_ready()
-    with open('local_dir/MEDexperiment_' + experiment.id + '.medexp', 'wb') as f:
+    basePath = str(Path(os.path.dirname(os.path.abspath(__file__))).parent.parent)
+    local_path = os.path.join(basePath, 'local_dir')
+    if not os.path.exists(local_path):
+        os.makedirs(local_path)
+    with open(os.path.join(local_path,'MEDexperiment_' + experiment.id + '.medexp'), 'wb') as f:
         pickle.dump(experiment, f)
         del experiment
 
@@ -97,7 +101,11 @@ def load_experiment(id_):
     Returns: the previously saved MEDexperiment
     """
     go_print("loading experiment")
-    with open('local_dir/MEDexperiment_' + id_ + '.medexp', 'rb') as f:
+    basePath = str(Path(os.path.dirname(os.path.abspath(__file__))).parent.parent)
+    local_path = os.path.join(basePath, 'local_dir')
+    if not os.path.exists(local_path):
+        os.makedirs(local_path)
+    with open(os.path.join(local_path,'MEDexperiment_' + id_ + '.medexp'), 'rb') as f:
         experiment = pickle.load(f)
         experiment.init_obj()
         return experiment
@@ -109,7 +117,11 @@ def is_experiment_exist(id_):
 
     Returns: the results of the pipeline execution
     """
-    return os.path.exists('local_dir/MEDexperiment_' + id_ + '.medexp')
+    basePath = str(Path(os.path.dirname(os.path.abspath(__file__))).parent.parent)
+    local_path = os.path.join(basePath, 'local_dir')
+    if not os.path.exists(local_path):
+        os.makedirs(local_path)
+    return os.path.exists(os.path.join(local_path,'MEDexperiment_' + id_ + '.medexp'))
 
 
 run_experiment = GoExecScriptRunExperiment(json_params_dict, id_, True)

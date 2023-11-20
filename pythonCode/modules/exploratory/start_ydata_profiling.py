@@ -48,6 +48,8 @@ class StartYDataProfiling(GoExecutionScript):
             final_report = dataset1_report.compare(dataset2_report)
 
         self.set_progress(label="Saving report", now=90)
+        if not os.path.exists(os.path.dirname(json_config['savingPath'])):
+            os.makedirs(os.path.dirname(json_config['savingPath']))
         final_report.to_file(json_config['savingPath'])
         self.results["savingPath"] = json_config['savingPath']
         self.set_progress(label="Done!", now=100)

@@ -48,6 +48,8 @@ class StartSweetviz(GoExecutionScript):
             final_report = sv.analyze(dataset1_df, target)
 
         self.set_progress(label="Saving report", now=90)
+        if not os.path.exists(os.path.dirname(json_config['savingPath'])):
+            os.makedirs(os.path.dirname(json_config['savingPath']))
         final_report.show_html(json_config['savingPath'], False, 'vertical' )
         self.results["savingPath"] = json_config['savingPath']
         return self.results

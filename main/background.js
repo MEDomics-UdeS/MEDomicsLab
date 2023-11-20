@@ -1,4 +1,4 @@
-import { app, ipcMain, Menu, dialog, BrowserWindow } from "electron"
+import { app, ipcMain, Menu, dialog, BrowserWindow, protocol } from "electron"
 import axios from "axios"
 import serve from "electron-serve"
 import { createWindow } from "./helpers"
@@ -24,6 +24,21 @@ if (isProd) {
 
 ;(async () => {
   await app.whenReady()
+
+  protocol.registerFileProtocol("local", (request, callback) => {
+    const url = request.url.replace(/^local:\/\//, "")
+    const decodedUrl = decodeURI(url)
+    try {
+      return callback(decodedUrl)
+    } catch (error) {
+      console.error("ERROR: registerLocalProtocol: Could not get file path:", error)
+    }
+  })
+
+  ipcMain.on("get-file-path", (event, configPath) => {
+    event.reply("get-file-path-reply", path.resolve(configPath))
+  })
+
   splashScreen = new BrowserWindow({
     icon: path.join(__dirname, "../resources/MEDomicsLabWithShadowNoText100.png"),
     width: 700,

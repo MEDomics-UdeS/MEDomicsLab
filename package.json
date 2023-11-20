@@ -8,6 +8,7 @@
   "build": {
     "appId": "com.medomicslab.medapp",
     "productName": "MEDomicsLab",
+    "artifactName": "${productName}-${version}-${os}.${ext}",
     "directories": {
       "output": "dist"
     },
@@ -18,14 +19,11 @@
     ],
     "extraResources": [
       "./pythonCode/**/*",
-      "!./pythonCode/venv/**/*",
-      "!./pythonCode/.idea/**/*",
-      "!*.git/**/*",
-      "./pythonEnv/*"
+      "./baseFiles/**/*"
     ],
     "asarUnpack": [
       "./pythonCode/**/*",
-      "./pythonEnv/*"
+      "./baseFiles/**/*"
     ],
     "extends": null,
     "mac": {

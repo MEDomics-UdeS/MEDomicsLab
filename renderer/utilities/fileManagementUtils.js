@@ -6,6 +6,22 @@ const { parse } = require("csv-parse")
 const dfd = require("danfojs")
 const dfdNode = require("danfojs-node")
 var Papa = require("papaparse")
+import { ipcRenderer } from "electron"
+
+/**
+ *
+ * @param {string} path path to the file
+ * @description This function takes a path, tells the main process to get the local path and returns the local path
+ * @returns {Promise} Promise that resolves to the file content
+ */
+const toLocalPath = (path) => {
+  return new Promise((resolve) => {
+    ipcRenderer.send("get-file-path", path)
+    ipcRenderer.on("get-file-path-reply", (event, filePath) => {
+      resolve(`local://${filePath}`)
+    })
+  })
+}
 
 /**
  *
@@ -212,23 +228,19 @@ const loadJsonSync = () => {
  * @description
  * This function takes a path and returns the json object
  */
-const loadJsonPath = (path) => {
+const loadJsonPath = (absPath) => {
   const fs = require("fs")
-  if (path == "") {
+  if (absPath == "") {
     console.log("path empty")
     return null
   }
   try {
-    const cwd = process.cwd()
-    let cwdSlashType = cwd.includes("/") ? "/" : "\\"
-    let cwdSlashTypeInv = cwdSlashType == "/" ? "\\" : "/"
-    path.charAt(0) == "." && (path = cwd + path.substring(1).replaceAll(cwdSlashTypeInv, cwdSlashType))
-    console.log("reading json file: " + path)
-    const data = fs.readFileSync(path)
+    console.log("reading json file: " + absPath)
+    const data = fs.readFileSync(absPath)
     const jsonData = JSON.parse(data)
     return jsonData
   } catch (error) {
-    toast.error("error reading json file: " + path + "\n" + error + "\n")
+    console.log("error reading json file: " + absPath + "\n" + error + "\n")
     return null
   }
 }
@@ -239,16 +251,11 @@ const loadJsonPath = (path) => {
  * @description
  * This function takes a path and returns the json object
  */
-const loadCSVPath = (path, whenLoaded) => {
+const loadCSVPath = (absPath, whenLoaded) => {
   const data = []
-  // get current working directory
-  const cwd = process.cwd()
-  let cwdSlashType = cwd.includes("/") ? "/" : "\\"
-  let cwdSlashTypeInv = cwdSlashType == "/" ? "\\" : "/"
-  Path.charAt(0) == "." && (path = cwd + path.substring(1).replaceAll(cwdSlashTypeInv, cwdSlashType))
-  console.log("reading csv file: " + path)
+  console.log("reading csv file: " + absPath)
   try {
-    fs.createReadStream(path)
+    fs.createReadStream(absPath)
       .pipe(
         parse({
           delimiter: ",",
@@ -408,4 +415,4 @@ const getFileReadingMethodFromExtension = {
   xlsx: (path, whenLoaded) => loadXLSXFromPath(path, whenLoaded)
 }
 
-export { downloadFile, downloadPath, downloadFilePath, loadFileFromPathSync, writeFile, writeJson, writeJsonSync, loadJson, loadJsonSync, loadJsonPath, loadCSVPath, loadCSVFromPath, createFolder, createFolderSync, loadJSONFromPath, loadXLSXFromPath, getFileReadingMethodFromExtension }
+export { toLocalPath, downloadFile, downloadPath, downloadFilePath, loadFileFromPathSync, writeFile, writeJson, writeJsonSync, loadJson, loadJsonSync, loadJsonPath, loadCSVPath, loadCSVFromPath, createFolder, createFolderSync, loadJSONFromPath, loadXLSXFromPath, getFileReadingMethodFromExtension }
