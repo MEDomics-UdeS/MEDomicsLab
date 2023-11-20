@@ -189,14 +189,8 @@ if (isProd) {
           console.log("__dirname: ", __dirname)
           console.log("app.getAppPath():", app.getAppPath())
           console.log("process.resourcesPath:", process.resourcesPath)
-          console.log("env", process.env)
           serverProcess = execFile(path.join(__dirname, `${process.platform == "win32" ? "server_go.exe" : "server_go"}`), [flaskPort, "prod", process.resourcesPath], {
             windowsHide: false
-            // env: {
-            //   ELECTRON_PORT: flaskPort,
-            //   ELECTRON_CONDA_ENV: MEDconfig.condaEnv,
-            //   ELECTRON_RUN_MODE: "prod"
-            // }
           })
           if (serverProcess) {
             serverProcess.stdout.on("data", function (data) {

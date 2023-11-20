@@ -155,7 +155,7 @@ renderer/public/pythonCode/MedLibs/MEDimageApp/tmp/*
 /flask_server/local_dir/*
 renderer/public/pythonCode/local_dir/*
 path2condaenv_toDeleteInProd.txt
-
+gh_token.txt
 package-lock.json
 
 !*.gitkeep

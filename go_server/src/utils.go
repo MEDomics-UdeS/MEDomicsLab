@@ -158,15 +158,14 @@ func StartPythonScripts(jsonParam string, filename string, id string) (string, e
 	condaEnv := GetDotEnvVariable("CONDA_ENV")
 	Mu.Lock()
 	if runMode == "prod" {
-		//prodDir := "C:/Users/gblai/Documents/github/forked/MEDomicsLab_fork/dist/win-unpacked/resources/app.asar/app"
 		prodDir := os.Args[3]
 		filename = strings.ReplaceAll(filename, "/scripts", "")
 		filename = strings.ReplaceAll(filename, "../flask_server", "pythonCode/modules")
 		script, _ = filepath.Abs(filepath.Join(prodDir, filename))
 		condaEnv = os.Getenv("MED_ENV")
+		log.Println("running script in prod: " + script)
 	}
 	log.Println("Conda env: " + condaEnv)
-	log.Println("running script in prod: " + script)
 	Scripts[id] = ScriptInfo{
 		Cmd:      exec.Command(condaEnv, "-u", script, "--json-param", jsonParam, "--id", id),
 		Progress: "",

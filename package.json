@@ -20,9 +20,13 @@
       "./pythonCode/**/*",
       "!./pythonCode/venv/**/*",
       "!./pythonCode/.idea/**/*",
-      "!*.git/**/*"
+      "!*.git/**/*",
+      "./pythonEnv/*"
     ],
-    "asarUnpack": "./pythonCode/**/*",
+    "asarUnpack": [
+      "./pythonCode/**/*",
+      "./pythonEnv/*"
+    ],
     "extends": null,
     "mac": {
       "category": "public.app-category.developer-tools",
@@ -34,18 +38,14 @@
     },
     "win": {
       "target": "nsis",
-      "publish": [
-        "github"
-      ],
       "icon": "app/assets/icon.ico"
     },
+    "nsis": {},
     "linux": {
       "target": "deb",
       "icon": "app/assets/icon.png",
       "maintainer": "gblain03@hotmail.com",
-      "publish": [
-        "github"
-      ]
+      "publish": "github"
     },
     "publish": [
       {
