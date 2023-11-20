@@ -44,6 +44,7 @@ const MEDprofilesPrepareData = () => {
   const [loadingSubMasterTables, setLoadingSubMasterTables] = useState(false) // boolean telling if the csv analyse for submaster is processing
   const [masterFilename, setMasterFilename] = useState("master_table.csv") // name under which the created master_table will be saved
   const [masterTableFileList, setMasterTableFileList] = useState([]) // list of csv data matching the "MasterTable" format
+  const [matchingIdColumns, setMatchingIdColumns] = useState(true) // boolean false if the selected submaster tables doesn't have the same id columns types
   const [MEDclassesFolderList, setMEDclassesFolderList] = useState([]) // list of the folder that may contain MEDclasses
   const [MEDprofilesFolderPath, setMEDprofilesFolderPath] = useState(null) // MEDprofiles folder path
   const [progress, setProgress] = useState({ now: 0, currentLabel: "" }) // progress bar state [now, currentLabel]
@@ -502,6 +503,8 @@ const MEDprofilesPrepareData = () => {
       setLoadingSubMasterTables(true)
       setSubMasterTableFileList([])
       setMasterTableFileList([])
+      setSelectedSubMasterTableFiles(null)
+      setSelectedMasterTable(null)
       getSubMasterTableFileList(dataFolder)
       getMasterTableFileList(dataFolder)
     } else {
@@ -544,6 +547,45 @@ const MEDprofilesPrepareData = () => {
     }
   }, [rootDataFolder])
 
+  // Called while selectedSubMasterTableFiles is updated in order to update matchingIdColumns
+  useEffect(() => {
+    if (selectedSubMasterTableFiles && selectedSubMasterTableFiles.length > 1) {
+      let idTypes = []
+      let keys = Object.keys(selectedSubMasterTableFiles)
+
+      // Load the CSV file in order to check if the data is matching the required format
+      const loadCSVFile = (MEDdata) => {
+        // Create a promise for each CSV file
+        return new Promise((resolve) => {
+          loadCSVPath(MEDdata.path, (data) => {
+            let dataframe = new DataFrame(data)
+            idTypes.push(dataframe.$dtypes[0])
+            resolve()
+          })
+        })
+      }
+
+      // Create a promises array for all the csv files
+      const promises = keys.map((key) => loadCSVFile(selectedSubMasterTableFiles[key]))
+
+      // Wait for all the csv files to have been examinated
+      Promise.all(promises)
+        .then(() => {
+          setMatchingIdColumns(idTypes.every((value) => value === idTypes[0]))
+          console.log(
+            "TYPES",
+            idTypes,
+            idTypes.every((value) => value === idTypes[0])
+          )
+        })
+        .catch((error) => {
+          toast.error("Error while loading MEDdata :", error)
+        })
+    } else {
+      setMatchingIdColumns(true)
+    }
+  }, [selectedSubMasterTableFiles])
+
   return (
     <>
       <div>
@@ -557,13 +599,14 @@ const MEDprofilesPrepareData = () => {
           <div className="align-center">
             <Message severity="info" text="Only the files matching the required format will be shown" />
           </div>
+          <div className="align-center">{!matchingIdColumns && <Message severity="warn" text="Your selected csv for master table creation contains different types for identifier columns" />}</div>
         </div>
         <div className="margin-top-15 flex-container">
           <div className="mergeToolMultiSelect flex-container">
             <div>{loadingSubMasterTables == true && <ProgressSpinner style={{ width: "40px", height: "40px" }} />}</div>
-            <div>{subMasterTableFileList?.length > 0 ? <MultiSelect style={{ width: "300px" }} value={selectedSubMasterTableFiles} onChange={(e) => setSelectedSubMasterTableFiles(e.value)} options={subMasterTableFileList} optionLabel="name" className="w-full md:w-14rem margintop8px" display="chip" placeholder="Select CSV files" /> : loadingSubMasterTables == true ? <MultiSelect placeholder="Loading..." disabled /> : <MultiSelect placeholder="No CSV files to show" disabled />}</div>
+            <div>{subMasterTableFileList?.length > 0 ? <MultiSelect style={{ maxWidth: "200px" }} value={selectedSubMasterTableFiles} onChange={(e) => setSelectedSubMasterTableFiles(e.value)} options={subMasterTableFileList} optionLabel="name" className="w-full md:w-14rem margintop8px" display="chip" placeholder="Select CSV files" /> : loadingSubMasterTables == true ? <MultiSelect placeholder="Loading..." disabled /> : <MultiSelect placeholder="No CSV files to show" disabled />}</div>
             <div>
-              <Button disabled={!selectedSubMasterTableFiles || selectedSubMasterTableFiles?.length < 1} onClick={createMasterTable}>
+              <Button disabled={!selectedSubMasterTableFiles || selectedSubMasterTableFiles?.length < 1 || !matchingIdColumns} onClick={createMasterTable}>
                 Create Master Table
               </Button>
             </div>

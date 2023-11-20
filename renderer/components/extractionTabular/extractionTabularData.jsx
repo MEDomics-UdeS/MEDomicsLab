@@ -6,6 +6,7 @@ import { Dropdown } from "primereact/dropdown"
 import { ErrorRequestContext } from "../generalPurpose/errorRequestContext"
 import ExtractionBioBERT from "./extractionTypes/extractionBioBERT"
 import ExtractionTSfresh from "./extractionTypes/extractionTSfresh"
+import { InputSwitch } from "primereact/inputswitch"
 import { InputText } from "primereact/inputtext"
 import MedDataObject from "../workspace/medDataObject"
 import { Message } from "primereact/message"
@@ -51,6 +52,7 @@ const ExtractionTabularData = ({ extractionTypeList, serverUrl, defaultFilename 
   const [resultDataset, setResultDataset] = useState(null) // dataset of extracted data used to be display
   const [selectedDataset, setSelectedDataset] = useState(null) // dataset of data to extract used to be display
   const [showProgressBar, setShowProgressBar] = useState(false) // wether to show or not the extraction progressbar
+  const [viewResults, setViewResults] = useState(false) // Display result if true and results can be displayed
 
   const { globalData } = useContext(DataContext) // we get the global data from the context to retrieve the directory tree of the workspace, thus retrieving the data files
   const { pageId } = useContext(PageInfosContext) // used to get the pageId
@@ -311,11 +313,18 @@ const ExtractionTabularData = ({ extractionTypeList, serverUrl, defaultFilename 
       <div className="margin-top-bottom-15 center">
         {/* Display extracted data */}
         <h2>Extracted data</h2>
-        {displayResults == true && <div>{resultDataset ? <DataTableFromContext MedDataObject={resultDataset} tablePropsData={{ size: "small", paginator: true, rows: 5 }} isDatasetLoaded={isResultDatasetLoaded} setIsDatasetLoaded={setIsResultDatasetLoaded} /> : isLoadingDataset ? <ProgressSpinner /> : <p>Nothing to show, proceed to extraction first.</p>}</div>}
-        {resultDataset && displayResults == false && (
+        <div>
+          <p>Display result dataset &nbsp;</p>
+        </div>
+        <div className="margin-top-bottom-15 center">
+          <InputSwitch id="switch" checked={viewResults} onChange={(e) => setViewResults(e.value)} />
+        </div>
+        {viewResults == true && displayResults == true && <div>{resultDataset ? <DataTableFromContext MedDataObject={resultDataset} tablePropsData={{ size: "small", paginator: true, rows: 5 }} isDatasetLoaded={isResultDatasetLoaded} setIsDatasetLoaded={setIsResultDatasetLoaded} /> : isLoadingDataset ? <ProgressSpinner /> : <p>Nothing to show, proceed to extraction first.</p>}</div>}
+        {viewResults == true && resultDataset && displayResults == false && <p>The result dataset is too large to be display here.</p>}
+        {resultDataset && (
           <p>
             Features saved under &quot;extracted_features/
-            {filename}&quot;. The result dataset is too large to be display here.{" "}
+            {filename}&quot;.
           </p>
         )}
       </div>
