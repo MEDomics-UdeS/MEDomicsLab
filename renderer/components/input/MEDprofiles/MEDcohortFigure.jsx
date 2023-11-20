@@ -383,6 +383,9 @@ class MEDcohortFigureClass extends React.Component {
       // Set the x-axis type based on the relativeTime state
       xAxis: [
         {
+          name: (this.state.relativeTime !== null && "Days") || "Date",
+          nameLocation: "center",
+          nameGap: 30,
           axisPointer: {
             snap: true
           },
