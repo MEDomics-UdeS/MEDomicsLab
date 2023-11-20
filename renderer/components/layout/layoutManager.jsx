@@ -51,7 +51,8 @@ const LayoutManager = (props) => {
 
   // This is a useEffect that will be called when the component is mounted to send a clearAll request to the backend
   useEffect(() => {
-    if (SERVER_CHOICE.GO == medConfig.serverChoice) {requestBackend(
+    if (SERVER_CHOICE.GO == medConfig.serverChoice) {
+      requestBackend(
       port,
       "clearAll",
       { data: "clearAll" },
