@@ -4,9 +4,9 @@ from pathlib import Path
 import json
 
 import pandas as pd
-#
-# sys.path.append(
-#     str(Path(os.path.dirname(os.path.abspath(__file__))).parent.parent))
+
+sys.path.append(
+    str(Path(os.path.dirname(os.path.abspath(__file__))).parent.parent))
 
 from utils.server_utils import go_print, get_model_from_medmodel, load_csv
 from utils.GoExecutionScript import GoExecutionScript, parse_arguments

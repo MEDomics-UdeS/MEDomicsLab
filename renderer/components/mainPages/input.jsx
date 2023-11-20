@@ -2,6 +2,7 @@ import React, { useState } from "react"
 import DatasetSelector from "./dataComponents/datasetSelector"
 import ModulePage from "./moduleBasics/modulePage"
 import { Accordion } from "react-bootstrap"
+import MEDprofilesPrepareData from "../input/MEDprofiles/MEDprofilesPrepareData"
 import MergeTool from "../input/mergeTool"
 import GroupingTool from "../input/groupingTool"
 import SimpleCleaningTool from "../input/simpleCleaningTool"
@@ -56,6 +57,12 @@ const InputPage = ({ pageId = "42", configPath = null }) => {
               <Accordion.Header>Subset creation tool</Accordion.Header>
               <Accordion.Body>
                 <SubsetCreationTool pageId={pageId} />
+              </Accordion.Body>
+            </Accordion.Item>
+            <Accordion.Item eventKey="6">
+              <Accordion.Header>MEDprofiles</Accordion.Header>
+              <Accordion.Body>
+                <MEDprofilesPrepareData />
               </Accordion.Body>
             </Accordion.Item>
           </Accordion>

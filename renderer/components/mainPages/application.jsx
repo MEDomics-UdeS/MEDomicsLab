@@ -17,6 +17,11 @@ import { Tag } from "primereact/tag"
 import { Tooltip } from "primereact/tooltip"
 import DataTableWrapper from "../dataTypeVisualisation/dataTableWrapper"
 
+/**
+ *
+ * @param {String} pageId The id of the page
+ * @returns {React.Component} The application page
+ */
 const ApplicationPage = ({ pageId }) => {
   const [chosenModel, setChosenModel] = useState("")
   const [modelMetadata, setModelMetadata] = useState(null)
@@ -148,7 +153,7 @@ const ApplicationPage = ({ pageId }) => {
         }
         setLoader(false)
       },
-      () => {
+      (error) => {
         setPredictions(null)
         setLoader(false)
       }

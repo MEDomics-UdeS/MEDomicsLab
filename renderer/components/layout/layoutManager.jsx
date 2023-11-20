@@ -8,6 +8,7 @@ import Learning from "../mainPages/learning"
 import ExtractionMEDimagePage from "../mainPages/extractionMEDimage"
 import ExtractionImagePage from "../mainPages/extractionImage"
 import ExtractionTextPage from "../mainPages/extractionText"
+import MEDprofilesViewer from "../input/MEDprofiles/MEDprofilesViewer"
 import ExtractionTSPage from "../mainPages/extractionTS"
 import ExploratoryPage from "../mainPages/exploratory"
 import ResultsPage from "../mainPages/results"
@@ -28,6 +29,7 @@ import { Accordion, Stack } from "react-bootstrap"
 import { LayoutModelContext } from "./layoutContext"
 import { WorkspaceContext } from "../workspace/workspaceContext"
 import { requestBackend } from "../../utilities/requests"
+import medConfig, { SERVER_CHOICE } from "../../../medomics.dev"
 
 const LayoutManager = (props) => {
   const [activeSidebarItem, setActiveSidebarItem] = useState("home") // State to keep track of active nav item
@@ -48,7 +50,7 @@ const LayoutManager = (props) => {
   // This is a useEffect that will be called when the component is mounted to send a clearAll request to the backend
   useEffect(() => {
     console.log("port set to: ", port)
-    if(port){
+    if (port) {
       requestBackend(
         port,
         "clearAll",
@@ -59,8 +61,8 @@ const LayoutManager = (props) => {
         (error) => {
           console.log("clearAll error:", error)
         }
-        )
-      }
+      )
+    }
   }, [port])
 
   // This is a callback that will be called when the user presses a key
@@ -118,6 +120,8 @@ const LayoutManager = (props) => {
           return <ExtractionTSPage pageId="456" />
         case "extractionImage":
           return <ExtractionImagePage pageId="678" />
+        case "MEDprofilesViewer":
+          return <MEDprofilesViewer pageId="72" />
         case "exploratory":
           return <ExploratoryPage />
         case "results":
@@ -155,6 +159,8 @@ const LayoutManager = (props) => {
         return <ExtractionSidebar />
       case "extractionMEDimage":
         return <FlowSceneSidebar type="extractionMEDimage" />
+      case "MEDprofilesViewer":
+        return <InputSidebar />
       case "evaluation":
         return <EvaluationSidebar />
 

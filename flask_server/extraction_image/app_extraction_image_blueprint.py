@@ -1,6 +1,8 @@
 import cv2
+import dask.dataframe as dd
 import os
 import pandas as pd
+import re
 import requests
 import skimage
 import torch
@@ -135,6 +137,8 @@ def DenseNet_extraction():
     progress = 0
     step = "Initialization"
 
+    json_config = get_json_from_request(request)
+
     try:
         # Set local variables
         json_config = get_json_from_request(request)
@@ -142,6 +146,16 @@ def DenseNet_extraction():
         depth = json_config["depth"]
         weights = json_config["relativeToExtractionType"]["selectedWeights"]
         features_to_generate = json_config["relativeToExtractionType"]["selectedFeaturesToGenerate"]
+        master_table_compatible = json_config["relativeToExtractionType"]["masterTableCompatible"]
+        patient_id_level = json_config["relativeToExtractionType"]["patientIdentifierLevel"]
+        column_prefix = json_config["relativeToExtractionType"]["columnPrefix"] + '_'
+        if master_table_compatible:
+            info_dataframe = json_config["relativeToExtractionType"]["selectedDataset"]
+            selected_columns = json_config["relativeToExtractionType"]["selectedColumns"]
+            filename_col = selected_columns["filename"]
+            date_col = selected_columns["date"]
+            df_info = dd.read_csv(info_dataframe).compute()
+            df_info = df_info[[filename_col, date_col]].rename(columns={filename_col: "filename"})
 
         data = pd.DataFrame()
 
@@ -168,23 +182,42 @@ def DenseNet_extraction():
                     if file.endswith(".jpg"):
                         data_img = root.split(os.sep)[-depth:]
                         data_img.append(file)
-                        print(os.path.join(root, file))
                         features = get_single_chest_xray_embeddings(os.path.join(root, file), weights)
                         data_img = pd.concat([pd.DataFrame(data_img), pd.DataFrame(features[0]), pd.DataFrame(features[1])], ignore_index=True)
                         data = pd.concat([data, pd.DataFrame(data_img).transpose()], ignore_index=True)
-                        progress += 1/nb_images*60
+                        progress += 1/nb_images*50
 
-        data.columns = ["level_" + str(i+1) for i in range(depth)] + ["filename"] + ["densefeatures_" + str(i) for i in range(len(features[0]))] + ["predictions_" + str(i) for i in range(len(features[1]))]
+        data.columns = ["level_" + str(i+1) for i in range(depth)] + ["filename"] + [column_prefix + "densefeatures_" + str(i) for i in range(len(features[0]))] + [column_prefix + "predictions_" + str(i) for i in range(len(features[1]))]
 
         if "denseFeatures" not in features_to_generate:
-            data.drop(["densefeatures_" + str(i) for i in range(len(features[0]))], axis=1, inplace=True)
+            data.drop([column_prefix + "densefeatures_" + str(i) for i in range(len(features[0]))], axis=1, inplace=True)
         elif "predictions" not in features_to_generate:
-            data.drop(["predictions_" + str(i) for i in range(len(features[1]))], axis=1, inplace=True)
+            data.drop([column_prefix + "predictions_" + str(i) for i in range(len(features[1]))], axis=1, inplace=True)
+
+        progress = 80
+        step = "Conversion into submaster table"
+        if master_table_compatible:
+            # Set the master compatible options
+            tmp = df_info.merge(data, on="filename", how='inner')
+            data = tmp
+            for i in range(1, depth + 1):
+                if i != patient_id_level:
+                    data.drop(["level_" + str(i)], axis=1, inplace=True)
+            data.drop(["filename"], axis=1, inplace=True)
+            columns = data.columns
+            new_columns = [columns[1]] + [columns[0]] + list(columns[2:])
+            data = data.reindex(columns=new_columns)
+            if json_config["relativeToExtractionType"]["parsePatientIdAsInt"]:
+                parsed_col = data[data.columns[0]].apply(lambda x: int(re.findall(r'\d+', x)[0]))
+                data[data.columns[0]] = parsed_col
 
         # Save extracted features
         progress = 90
         step = "Save extracted features"
-        csv_result_path = os.path.join(str(Path(json_config["folderPath"]).parent.absolute()), json_config['filename'])
+        extracted_folder_path = os.path.join(str(Path(json_config["dataFolderPath"])), "extracted_features")
+        if not os.path.exists(extracted_folder_path):
+            os.makedirs(extracted_folder_path)
+        csv_result_path = os.path.join(extracted_folder_path, json_config['filename'])
         data.to_csv(csv_result_path, index=False)
         json_config["csv_result_path"] = csv_result_path
 
