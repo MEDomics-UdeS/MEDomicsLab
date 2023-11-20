@@ -35,11 +35,7 @@ Finally, we also plan to have a Wrap-Up meeting related to the Testing Phase on 
 The participation in the Testing Phase will involve the use of data from the [MIMIC database](https://mimic.mit.edu/). We have already processed the MIMIC data for the purpose of the Testing Phase. To share this processed data with you, we need you to complete [the following](https://mimic.mit.edu/docs/gettingstarted/):
 * Become a [credential user of MIMIC](https://physionet.org/settings/credentialing/)
 * Complete the [CITI Course](https://physionet.org/about/citi-course/)
-* Sign the following Physionet data use agreements: 
-  a. [MIMIC-IV](https://physionet.org/sign-dua/mimiciv/2.2/)
-  b. [MIMIC-CXR](https://physionet.org/sign-dua/mimic-cxr/2.0.0/)
-  c. [MIMIC-IV-ED](https://physionet.org/sign-dua/mimic-iv-ed/2.2/)
-  d. [MIMIC-IV-Note](https://physionet.org/sign-dua/mimic-iv-note/2.2/)
+* Sign the following four Physionet data use agreements: (i) [MIMIC-IV](https://physionet.org/sign-dua/mimiciv/2.2/); (ii) [MIMIC-CXR](https://physionet.org/sign-dua/mimic-cxr/2.0.0/); (iii) [MIMIC-IV-ED](https://physionet.org/sign-dua/mimic-iv-ed/2.2/); and (iv) [MIMIC-IV-Note](https://physionet.org/sign-dua/mimic-iv-note/2.2/)
 * Send us the 5 forms (CITI Course certification + 4 signed data use agreements) to <medomics.info@gmail.com>
 
 This process related to accessing MIMIC data will take some time, but we assure you it will be worth it!
