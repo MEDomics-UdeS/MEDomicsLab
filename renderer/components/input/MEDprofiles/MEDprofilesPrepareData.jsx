@@ -10,10 +10,11 @@ import { loadCSVPath } from "../../../utilities/fileManagementUtils"
 import MedDataObject from "../../workspace/medDataObject"
 import { Message } from "primereact/message"
 import { MultiSelect } from "primereact/multiselect"
+import { PageInfosContext } from "../../mainPages/moduleBasics/pageInfosContext"
 import ProgressBarRequests from "../../generalPurpose/progressBarRequests"
 import { ProgressSpinner } from "primereact/progressspinner"
 import React, { useContext, useEffect, useState } from "react"
-import { requestJson } from "../../../utilities/requests"
+import { requestBackend } from "../../../utilities/requests"
 import { toast } from "react-toastify"
 import { WorkspaceContext } from "../../workspace/workspaceContext"
 
@@ -54,6 +55,7 @@ const MEDprofilesPrepareData = () => {
 
   const { dispatchLayout } = useContext(LayoutModelContext) // used to open the MEDprofiles Viewer tab
   const { globalData } = useContext(DataContext) // we get the global data from the context to retrieve the directory tree of the workspace, thus retrieving the data files
+  const { pageId } = useContext(PageInfosContext) // used to get the pageId
   const { port } = useContext(WorkspaceContext) // we get the port for server connexion
   const { setError } = useContext(ErrorRequestContext) // used to diplay the errors
 
@@ -330,13 +332,14 @@ const MEDprofilesPrepareData = () => {
       csvPaths.push(selectedSubMasterTableFiles[key].path)
     })
     // Run extraction process
-    requestJson(
+    requestBackend(
       port,
-      "/MEDprofiles/create_master_table",
+      "/MEDprofiles/create_master_table/" + pageId,
       {
         csvPaths: csvPaths,
         masterTableFolder: MEDprofilesFolderPath + MedDataObject.getPathSeparator() + "master_tables",
-        filename: masterFilename
+        filename: masterFilename,
+        pageId: pageId
       },
       (jsonResponse) => {
         console.log("received results:", jsonResponse)
@@ -362,12 +365,13 @@ const MEDprofilesPrepareData = () => {
   const createMEDclasses = () => {
     setCreatingMEDclasses(true)
     // Run extraction process
-    requestJson(
+    requestBackend(
       port,
-      "/MEDprofiles/create_MEDclasses",
+      "/MEDprofiles/create_MEDclasses/" + pageId,
       {
         masterTablePath: selectedMasterTable.path,
-        MEDprofilesFolderPath: MEDprofilesFolderPath
+        MEDprofilesFolderPath: MEDprofilesFolderPath,
+        pageId: pageId
       },
       (jsonResponse) => {
         console.log("received results:", jsonResponse)
@@ -394,11 +398,12 @@ const MEDprofilesPrepareData = () => {
    */
   const createMEDprofilesFolder = () => {
     // Run extraction process
-    requestJson(
+    requestBackend(
       port,
-      "/MEDprofiles/create_MEDprofiles_folder",
+      "/MEDprofiles/create_MEDprofiles_folder/" + pageId,
       {
-        rootDataFolder: rootDataFolder.path
+        rootDataFolder: rootDataFolder.path,
+        pageId: pageId
       },
       (jsonResponse) => {
         console.log("received results:", jsonResponse)
@@ -455,13 +460,14 @@ const MEDprofilesPrepareData = () => {
     setInstantiatingMEDprofiles(true)
     setShowProgressBar(true)
     // Run extraction process
-    requestJson(
+    requestBackend(
       port,
-      "/MEDprofiles/instantiate_MEDprofiles",
+      "/MEDprofiles/instantiate_MEDprofiles/" + pageId,
       {
         masterTablePath: selectedMasterTable.path,
         MEDprofilesFolderPath: MEDprofilesFolderPath,
-        filename: binaryFilename
+        filename: binaryFilename,
+        pageId: pageId
       },
       (jsonResponse) => {
         console.log("received results:", jsonResponse)
@@ -595,7 +601,7 @@ const MEDprofilesPrepareData = () => {
           </Button>
         </div>
       </div>
-      <div className="margin-top-15 extraction-progress">{showProgressBar && <ProgressBarRequests progressBarProps={{}} isUpdating={showProgressBar} setIsUpdating={setShowProgressBar} progress={progress} setProgress={setProgress} requestTopic={"/MEDprofiles/progress"} />}</div>
+      <div className="margin-top-15 extraction-progress">{showProgressBar && <ProgressBarRequests progressBarProps={{}} isUpdating={showProgressBar} setIsUpdating={setShowProgressBar} progress={progress} setProgress={setProgress} requestTopic={"/MEDprofiles/progress/" + pageId} />}</div>
       <hr></hr>
       <h5 className="margin-top-15 align-center">Visualize your MEDprofiles data</h5>
       <div className="margin-top-15 flex-container">

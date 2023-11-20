@@ -9,10 +9,11 @@ import ExtractionTSfresh from "./extractionTypes/extractionTSfresh"
 import { InputText } from "primereact/inputtext"
 import MedDataObject from "../workspace/medDataObject"
 import { Message } from "primereact/message"
+import { PageInfosContext } from "../mainPages/moduleBasics/pageInfosContext"
 import { ProgressSpinner } from "primereact/progressspinner"
 import ProgressBarRequests from "../generalPurpose/progressBarRequests"
 import React, { useState, useEffect, useContext } from "react"
-import { requestJson } from "../../utilities/requests"
+import { requestBackend } from "../../utilities/requests"
 import { toast } from "react-toastify"
 import { WorkspaceContext } from "../workspace/workspaceContext"
 
@@ -52,6 +53,7 @@ const ExtractionTabularData = ({ extractionTypeList, serverUrl, defaultFilename 
   const [showProgressBar, setShowProgressBar] = useState(false) // wether to show or not the extraction progressbar
 
   const { globalData } = useContext(DataContext) // we get the global data from the context to retrieve the directory tree of the workspace, thus retrieving the data files
+  const { pageId } = useContext(PageInfosContext) // used to get the pageId
   const { port } = useContext(WorkspaceContext) // we get the port for server connexion
   const { setError } = useContext(ErrorRequestContext) // used to diplay the errors
 
@@ -143,14 +145,15 @@ const ExtractionTabularData = ({ extractionTypeList, serverUrl, defaultFilename 
     setMayProceed(false)
     setShowProgressBar(true)
     // Run extraction process
-    requestJson(
+    requestBackend(
       port,
-      serverUrl + extractionFunction,
+      serverUrl + extractionFunction + "/" + pageId,
       {
         relativeToExtractionType: extractionJsonData,
         csvPath: csvPath,
         filename: filename,
-        dataFolderPath: dataFolderPath
+        dataFolderPath: dataFolderPath,
+        pageId: pageId
       },
       (jsonResponse) => {
         console.log("received results:", jsonResponse)
@@ -300,7 +303,7 @@ const ExtractionTabularData = ({ extractionTypeList, serverUrl, defaultFilename 
               </div>
             </div>
           </div>
-          <div className="margin-top-30 extraction-progress">{showProgressBar && <ProgressBarRequests progressBarProps={{}} isUpdating={showProgressBar} setIsUpdating={setShowProgressBar} progress={progress} setProgress={setProgress} requestTopic={serverUrl + "progress"} />}</div>
+          <div className="margin-top-30 extraction-progress">{showProgressBar && <ProgressBarRequests progressBarProps={{}} isUpdating={showProgressBar} setIsUpdating={setShowProgressBar} progress={progress} setProgress={setProgress} requestTopic={serverUrl + "progress/" + pageId} />}</div>
         </div>
       </div>
 
