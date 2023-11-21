@@ -12,7 +12,7 @@ During the Winter 2024 semester, the first Testing Phase of MEDomicsLab will tak
 
 ## Information for the Testing Phase of MEDomicsLab
 
-We anticipate that the participation to the Testing Phase will involve 1 hour of work per week for 17 consecutive weeks, starting January 15, 2024.
+We anticipate that the participation to the Testing Phase will involve 1 hour of work per week for 17 consecutive weeks, starting January 15, 2024. Please also note that no programming is involved and that the tutorials can be performed on a laptop.
 
 The schedule of the Testing Phase (2024) and the series of tutorials are planned as follows:
 * Step 1 - Install and Explore : Jan 15 – Jan 29
