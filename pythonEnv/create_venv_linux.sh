@@ -4,6 +4,8 @@ BLUE='\033[0;34m'         # Blue
 RED='\033[0;31m'          # Red
 NC='\033[0m'              # No Color
 
+parent_folder=$(dirname "$0")
+
 # Check if Python 3.9 is installed
 echo -e "${BLUE}Checking if Python 3.9 is installed...${NC}"
 if ! command -v python3.9 &> /dev/null
@@ -59,7 +61,7 @@ pip install --upgrade pip || { echo "Error upgrading pip."; exit 1; }
 pip --version || { echo "Error checking pip version."; exit 1; }
 # Install dependencies
 echo -e "${BLUE}Installing requirements from file...${NC}"
-pip install -r requirements.txt || { echo "Error installing dependencies. Checking if they are already installed..."; exit 1;}
+pip install -r $parent_folder/requirements.txt || { echo "Error installing dependencies. Checking if they are already installed..."; exit 1;}
 
 echo -e "${BLUE}Deactivating the virtual environment...${NC}"
 deactivate
