@@ -28,12 +28,6 @@ const InputSidebar = () => {
         >
           Input Module
         </p>
-        <DropzoneComponent>
-          <Button style={{ alignItems: "flex-end", marginInline: "2%" }}>
-            <Plus size={"2rem"} />
-          </Button>
-        </DropzoneComponent>
-
         <Accordion defaultActiveKey={["dirTree"]} alwaysOpen>
           <SidebarDirectoryTreeControlled />
         </Accordion>

@@ -67,7 +67,7 @@ if (isProd) {
     splashScreen.setAlwaysOnTop(true)
   })
 
-  const template = [
+  const menuTemplate = [
     {
       label: "File",
       submenu: [
@@ -126,12 +126,30 @@ if (isProd) {
       ]
     },
     {
-      label: "Hello From Electron!",
+      label: "Help",
       submenu: [
         {
-          label: "I have a custom handler",
+          label: "Report an issue",
           click() {
-            console.log("👋")
+            openWindowFromURL("https://forms.office.com/r/8tbTBHL4bv")
+          }
+        },
+        {
+          label: "Contact us",
+          click() {
+            openWindowFromURL("https://forms.office.com/r/Zr8xJbQs64")
+          }
+        },
+        {
+          label: "Join Us on Discord !",
+          click() {
+            openWindowFromURL("https://discord.gg/ZbaGj8E6mP")
+          }
+        },
+        {
+          label: "Documentation",
+          click() {
+            openWindowFromURL("https://medomics-udes.gitbook.io/medomicslab-docs")
           }
         },
         { type: "separator" },
@@ -214,7 +232,7 @@ if (isProd) {
         console.error(err)
       })
   }
-  const menu = Menu.buildFromTemplate(template)
+  const menu = Menu.buildFromTemplate(menuTemplate)
   Menu.setApplicationMenu(menu)
 
   ipcMain.on("messageFromNext", (event, data) => {
@@ -254,6 +272,7 @@ if (isProd) {
     console.log("toggleDarkMode")
     mainWindow.webContents.send("toggleDarkMode")
   })
+
   if (isProd) {
     await mainWindow.loadURL("app://./index.html")
   } else {
@@ -351,7 +370,7 @@ function setWorkingDirectory(event, mainWindow) {
 }
 
 function createWorkingDirectory() {
-  // See the workspace template in the repository
+  // See the workspace menuTemplate in the repository
   createFolder("DATA")
   createFolder("EXPERIMENTS")
 }
@@ -438,5 +457,21 @@ function findAvailablePort(startPort, endPort = 8000) {
       })
     }
     tryPort()
+  })
+}
+
+function openWindowFromURL(url) {
+  let window = new BrowserWindow({
+    icon: path.join(__dirname, "../resources/MEDomicsLabWithShadowNoText100.png"),
+    width: 700,
+    height: 700,
+    transparent: true,
+    center: true
+  })
+
+  window.loadURL(url)
+  window.once("ready-to-show", () => {
+    window.show()
+    window.focus()
   })
 }
