@@ -1,5 +1,4 @@
 import React, { useState } from "react"
-import DatasetSelector from "./dataComponents/datasetSelector"
 import ModulePage from "./moduleBasics/modulePage"
 import { Accordion } from "react-bootstrap"
 import MEDprofilesPrepareData from "../input/MEDprofiles/MEDprofilesPrepareData"

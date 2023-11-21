@@ -1,7 +1,5 @@
 import React, { useContext } from "react"
-import { Button, Stack, Accordion } from "react-bootstrap"
-import { Plus } from "react-bootstrap-icons"
-import DropzoneComponent from "../../../mainPages/dataComponents/dropzoneComponent"
+import { Stack, Accordion } from "react-bootstrap"
 import { WorkspaceContext } from "../../../workspace/workspaceContext"
 import SidebarDirectoryTreeControlled from "../directoryTree/sidebarDirectoryTreeControlled"
 
