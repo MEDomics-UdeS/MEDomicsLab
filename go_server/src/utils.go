@@ -12,8 +12,6 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
-
-	"github.com/joho/godotenv"
 )
 
 type ScriptInfo struct {
@@ -243,17 +241,10 @@ func ReadFile(filename string) string {
 
 // GetDotEnvVariable gets the variable from the .env.local file or from env variables set by client side
 func GetDotEnvVariable(key string) string {
-	err := godotenv.Load(".env.local")
-	if err != nil {
-		return ""
-	}
 	electronKey := "ELECTRON_" + key
 	if os.Getenv(electronKey) != "" {
 		return os.Getenv(electronKey)
 	} else {
-		if key == "CONDA_ENV" {
-			return ReadFile(os.Getenv(key))
-		}
 		return os.Getenv(key)
 	}
 }

@@ -175,13 +175,9 @@ if (isProd) {
       findAvailablePort(MEDconfig.defaultPort)
         .then((port) => {
           serverPort = port
-          serverProcess = execFile(`${process.platform == "win32" ? "main.exe" : "./main"}`, {
+          serverProcess = execFile(`${process.platform == "win32" ? "main.exe" : "./main"}`, [serverPort, "dev"], {
             windowsHide: false,
-            cwd: path.join(process.cwd(), "go_server"),
-            env: {
-              ELECTRON_PORT: serverPort,
-              ELECTRON_RUN_MODE: "dev"
-            }
+            cwd: path.join(process.cwd(), "go_server")
           })
           if (serverProcess) {
             serverProcess.stdout.on("data", function (data) {

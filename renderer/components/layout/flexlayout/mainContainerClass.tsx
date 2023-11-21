@@ -603,7 +603,7 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
           tablePropsColumn={{
             sortable: true
           }}
-          config={...config}
+          config={{...config}}
         />
       )
     } else if (component === "learningPage") {
