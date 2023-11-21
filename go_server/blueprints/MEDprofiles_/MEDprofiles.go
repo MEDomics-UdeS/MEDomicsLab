@@ -21,7 +21,7 @@ func AddHandleFunc() {
 // It returns the response from the python script
 func handleCreateMasterTable(jsonConfig string, id string) (string, error) {
 	log.Println("Running master table creation", id)
-	response, err := Utils.StartPythonScripts(jsonConfig, "../flask_server/MEDprofiles_/scripts/create_master_table.py", id)
+	response, err := Utils.StartPythonScripts(jsonConfig, "../pythonCode/modules/MEDprofiles_/create_master_table.py", id)
 	Utils.RemoveIdFromScripts(id)
 	if err != nil {
 		return "", err
@@ -33,7 +33,7 @@ func handleCreateMasterTable(jsonConfig string, id string) (string, error) {
 // It returns the response from the python script
 func handleCreateMEDclasses(jsonConfig string, id string) (string, error) {
 	log.Println("Running MEDclasses creation", id)
-	response, err := Utils.StartPythonScripts(jsonConfig, "../flask_server/MEDprofiles_/scripts/create_MEDclasses.py", id)
+	response, err := Utils.StartPythonScripts(jsonConfig, "../pythonCode/modules/MEDprofiles_/create_MEDclasses.py", id)
 	Utils.RemoveIdFromScripts(id)
 	if err != nil {
 		return "", err
@@ -45,7 +45,7 @@ func handleCreateMEDclasses(jsonConfig string, id string) (string, error) {
 // It returns the response from the python script
 func handleCreateMEDprofilesFolder(jsonConfig string, id string) (string, error) {
 	log.Println("Running MEDprofiles folder creation", id)
-	response, err := Utils.StartPythonScripts(jsonConfig, "../flask_server/MEDprofiles_/scripts/create_MEDprofiles_folder.py", id)
+	response, err := Utils.StartPythonScripts(jsonConfig, "../pythonCode/modules/MEDprofiles_/create_MEDprofiles_folder.py", id)
 	Utils.RemoveIdFromScripts(id)
 	if err != nil {
 		return "", err
@@ -57,7 +57,7 @@ func handleCreateMEDprofilesFolder(jsonConfig string, id string) (string, error)
 // It returns the response from the python script
 func handleCreateInstantiateMEDprofiles(jsonConfig string, id string) (string, error) {
 	log.Println("Running MEDprofiles data instantiation", id)
-	response, err := Utils.StartPythonScripts(jsonConfig, "../flask_server/MEDprofiles_/scripts/instantiate_MEDprofiles.py", id)
+	response, err := Utils.StartPythonScripts(jsonConfig, "../pythonCode/modules/MEDprofiles_/instantiate_MEDprofiles.py", id)
 	Utils.RemoveIdFromScripts(id)
 	if err != nil {
 		return "", err
@@ -69,7 +69,7 @@ func handleCreateInstantiateMEDprofiles(jsonConfig string, id string) (string, e
 // It returns the response from the python script
 func handleLoadPickleCohort(jsonConfig string, id string) (string, error) {
 	log.Println("Running loading pickle cohort", id)
-	response, err := Utils.StartPythonScripts(jsonConfig, "../flask_server/MEDprofiles_/scripts/load_pickle_cohort.py", id)
+	response, err := Utils.StartPythonScripts(jsonConfig, "../pythonCode/modules/MEDprofiles_/load_pickle_cohort.py", id)
 	Utils.RemoveIdFromScripts(id)
 	if err != nil {
 		return "", err

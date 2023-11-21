@@ -1,3 +1,4 @@
 sed -i "s/runServerAutomatically: false/runServerAutomatically: true/g" medomics.dev.js
 
-bash ./utilScripts/pack_auto_linux.sh
+parent_folder=$(dirname "$0")
+bash "$parent_folder/pack_GO.sh"

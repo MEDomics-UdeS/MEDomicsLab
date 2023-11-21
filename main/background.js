@@ -3,13 +3,13 @@ import axios from "axios"
 import serve from "electron-serve"
 import { createWindow } from "./helpers"
 import { installExtension, REACT_DEVELOPER_TOOLS } from "electron-extension-installer"
-import MEDconfig, { SERVER_CHOICE, PORT_FINDING_METHOD } from "../medomics.dev"
+import MEDconfig, { PORT_FINDING_METHOD } from "../medomics.dev"
 const fs = require("fs")
 var path = require("path")
 const dirTree = require("directory-tree")
 const { spawn, exec, execFile } = require("child_process")
 var serverProcess = null
-var flaskPort = MEDconfig.defaultPort
+var serverPort = MEDconfig.defaultPort
 var hasBeenSet = false
 
 const isProd = process.env.NODE_ENV === "production"
@@ -150,35 +150,21 @@ if (isProd) {
   // link: https://medium.com/red-buffer/integrating-python-flask-backend-with-electron-nodejs-frontend-8ac621d13f72
   console.log("running mode:", isProd ? "production" : "development")
   console.log(MEDconfig.runServerAutomatically ? "Server will start automatically here (in background of the application)" : "Server must be started manually")
-  MEDconfig.runServerAutomatically && console.log("Server type:", MEDconfig.serverChoice)
   if (MEDconfig.runServerAutomatically) {
     if (!isProd) {
       //**** DEVELOPMENT ****//
 
       findAvailablePort(MEDconfig.defaultPort)
         .then((port) => {
-          flaskPort = port
-          if (MEDconfig.serverChoice === SERVER_CHOICE.FLASK) {
-            serverProcess = spawn(MEDconfig.condaEnv, ["-m", "flask", "run"], {
-              cwd: path.join(process.cwd(), "flask_server"),
-              env: {
-                FLASK_APP: "server.py",
-                FLASK_RUN_PORT: flaskPort,
-                FLASK_ENV: "development",
-                FLASK_DEBUG: 0
-              }
-            })
-          } else if (MEDconfig.serverChoice === SERVER_CHOICE.GO) {
-            serverProcess = execFile(`${process.platform == "win32" ? "main.exe" : "./main"}`, {
-              windowsHide: false,
-              cwd: path.join(process.cwd(), "go_server"),
-              env: {
-                ELECTRON_PORT: flaskPort,
-                ELECTRON_CONDA_ENV: MEDconfig.condaEnv,
-                ELECTRON_RUN_MODE: "dev"
-              }
-            })
-          }
+          serverPort = port
+          serverProcess = execFile(`${process.platform == "win32" ? "main.exe" : "./main"}`, {
+            windowsHide: false,
+            cwd: path.join(process.cwd(), "go_server"),
+            env: {
+              ELECTRON_PORT: serverPort,
+              ELECTRON_RUN_MODE: "dev"
+            }
+          })
           if (serverProcess) {
             serverProcess.stdout.on("data", function (data) {
               console.log("data: ", data.toString("utf8"))
@@ -189,8 +175,6 @@ if (isProd) {
             serverProcess.on("close", (code) => {
               console.log(`server child process close all stdio with code ${code}`)
             })
-          } else {
-            throw new Error("You must choose a valid server in medomics.dev.js")
           }
         })
         .catch((err) => {
@@ -200,11 +184,8 @@ if (isProd) {
       //**** PRODUCTION ****//
       findAvailablePort(MEDconfig.defaultPort)
         .then((port) => {
-          flaskPort = port
-          console.log("__dirname: ", __dirname)
-          console.log("app.getAppPath():", app.getAppPath())
-          console.log("process.resourcesPath:", process.resourcesPath)
-          serverProcess = execFile(path.join(__dirname, `${process.platform == "win32" ? "server_go.exe" : "server_go"}`), [flaskPort, "prod", process.resourcesPath], {
+          serverPort = port
+          serverProcess = execFile(path.join(__dirname, `${process.platform == "win32" ? "server_go.exe" : "server_go"}`), [serverPort, "prod", process.resourcesPath], {
             windowsHide: false
           })
           if (serverProcess) {
@@ -217,8 +198,6 @@ if (isProd) {
             serverProcess.on("close", (code) => {
               console.log(`my server child process close all stdio with code ${code}`)
             })
-          } else {
-            throw new Error("You must choose a valid server in medomics.dev.js")
           }
         })
         .catch((err) => {
@@ -229,7 +208,7 @@ if (isProd) {
     //**** NO SERVER ****//
     findAvailablePort(MEDconfig.defaultPort)
       .then((port) => {
-        flaskPort = port
+        serverPort = port
       })
       .catch((err) => {
         console.error(err)
@@ -249,22 +228,22 @@ if (isProd) {
       event.reply("messageFromElectron", {
         workingDirectory: dirTree(app.getPath("sessionData")),
         hasBeenSet: hasBeenSet,
-        newPort: flaskPort
+        newPort: serverPort
       })
       event.reply("workingDirectorySet", {
         workingDirectory: dirTree(app.getPath("sessionData")),
         hasBeenSet: hasBeenSet,
-        newPort: flaskPort
+        newPort: serverPort
       })
     } else if (data === "updateWorkingDirectory") {
       event.reply("updateDirectory", {
         workingDirectory: dirTree(app.getPath("sessionData")),
         hasBeenSet: hasBeenSet,
-        newPort: flaskPort
+        newPort: serverPort
       }) // Sends the folder structure to Next.js
-    } else if (data === "getFlaskPort") {
-      event.reply("getFlaskPort", {
-        newPort: flaskPort
+    } else if (data === "getServerPort") {
+      event.reply("getServerPort", {
+        newPort: serverPort
       }) // Sends the folder structure to Next.js
     } else if (data === "requestAppExit") {
       app.exit()

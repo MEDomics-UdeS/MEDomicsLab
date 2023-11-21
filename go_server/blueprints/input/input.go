@@ -18,7 +18,7 @@ func AddHandleFunc() {
 // It returns the response from the python script
 func handleMerge(jsonConfig string, id string) (string, error) {
 	log.Println("Merging datasets...", id)
-	response, err := Utils.StartPythonScripts(jsonConfig, "../flask_server/input/scripts/merge.py", id)
+	response, err := Utils.StartPythonScripts(jsonConfig, "../pythonCode/modules/input/merge.py", id)
 	Utils.RemoveIdFromScripts(id)
 	if err != nil {
 		return "", err
@@ -31,7 +31,7 @@ func handleMerge(jsonConfig string, id string) (string, error) {
 // It returns the response from the python script
 func handleCreateHoldoutSet(jsonConfig string, id string) (string, error) {
 	log.Println("Creating holdout set...", id)
-	response, err := Utils.StartPythonScripts(jsonConfig, "../flask_server/input/scripts/create_holdout_set.py", id)
+	response, err := Utils.StartPythonScripts(jsonConfig, "../pythonCode/modules/input/create_holdout_set.py", id)
 	Utils.RemoveIdFromScripts(id)
 	if err != nil {
 		return "", err

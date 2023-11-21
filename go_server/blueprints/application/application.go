@@ -17,7 +17,7 @@ func AddHandleFunc() {
 // It returns the response from the python script
 func handlePredict(jsonConfig string, id string) (string, error) {
 	log.Println("Predict...", id)
-	response, err := Utils.StartPythonScripts(jsonConfig, "../flask_server/learning/scripts/predict.py", id)
+	response, err := Utils.StartPythonScripts(jsonConfig, "../pythonCode/modules/learning/predict.py", id)
 	Utils.RemoveIdFromScripts(id)
 	if err != nil {
 		return "", err

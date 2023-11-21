@@ -17,7 +17,7 @@ func AddHandleFunc() {
 // It returns the response from the python script
 func handleRunExperiment(jsonConfig string, id string) (string, error) {
 	log.Println("Running experiment...", id)
-	response, err := Utils.StartPythonScripts(jsonConfig, "../flask_server/learning/scripts/run_experiment.py", id)
+	response, err := Utils.StartPythonScripts(jsonConfig, "../pythonCode/modules/learning/run_experiment.py", id)
 	Utils.RemoveIdFromScripts(id)
 	if err != nil {
 		return "", err

@@ -10,7 +10,7 @@
     "productName": "MEDomicsLab",
     "artifactName": "${productName}-${version}-${os}.${ext}",
     "directories": {
-      "output": "dist"
+      "output": "build/dist"
     },
     "files": [
       "app/**/*",
@@ -19,11 +19,15 @@
     ],
     "extraResources": [
       "./pythonCode/**/*",
-      "./baseFiles/**/*"
+      "./baseFiles/**/*",
+      "installer.nsh",
+      "create_conda_env_win.bat"
     ],
     "asarUnpack": [
       "./pythonCode/**/*",
-      "./baseFiles/**/*"
+      "./baseFiles/**/*",
+      "build/installer.nsh",
+      "create_conda_env_win.bat"
     ],
     "extends": null,
     "mac": {
@@ -38,7 +42,9 @@
       "target": "nsis",
       "icon": "app/assets/icon.ico"
     },
-    "nsis": {},
+    "nsis": {
+      "include": "build/installer.nsh"
+    },
     "linux": {
       "target": "deb",
       "icon": "app/assets/icon.png",

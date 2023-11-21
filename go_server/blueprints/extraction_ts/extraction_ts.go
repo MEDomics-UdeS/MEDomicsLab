@@ -17,7 +17,7 @@ func AddHandleFunc() {
 // It returns the response from the python script
 func handleTSfreshExtraction(jsonConfig string, id string) (string, error) {
 	log.Println("Running TSfresh extraction", id)
-	response, err := Utils.StartPythonScripts(jsonConfig, "../flask_server/extraction_ts/scripts/TSfresh_extraction.py", id)
+	response, err := Utils.StartPythonScripts(jsonConfig, "../pythonCode/modules/extraction_ts/TSfresh_extraction.py", id)
 	Utils.RemoveIdFromScripts(id)
 	if err != nil {
 		return "", err

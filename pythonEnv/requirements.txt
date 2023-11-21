@@ -210,8 +210,6 @@ pydeck==0.8.1b0
 pydicom==1.2.2
 pydub==0.25.1
 Pygments==2.14.0
-pyinstaller==6.2.0
-pyinstaller-hooks-contrib==2023.10
 PyJWT==2.6.0
 pyod==1.1.0
 pyparsing==3.0.9
@@ -253,6 +251,7 @@ Send2Trash==1.8.2
 shap==0.41.0
 shellingham==1.5.4
 SimpleITK==2.2.0
+simplejson==3.19.2
 six==1.16.0
 sktime==0.21.1
 slicer==0.0.7

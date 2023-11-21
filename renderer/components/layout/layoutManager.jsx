@@ -29,7 +29,7 @@ import { Accordion, Stack } from "react-bootstrap"
 import { LayoutModelContext } from "./layoutContext"
 import { WorkspaceContext } from "../workspace/workspaceContext"
 import { requestBackend } from "../../utilities/requests"
-import medConfig, { SERVER_CHOICE } from "../../../medomics.dev"
+import { toast } from "react-toastify"
 
 const LayoutManager = (props) => {
   const [activeSidebarItem, setActiveSidebarItem] = useState("home") // State to keep track of active nav item
@@ -57,9 +57,11 @@ const LayoutManager = (props) => {
         { data: "clearAll" },
         (data) => {
           console.log("clearAll received data:", data)
+          toast.success("Go server is connected and ready !")
         },
         (error) => {
           console.log("clearAll error:", error)
+          toast.error("Go server is not connected !")
         }
       )
     }

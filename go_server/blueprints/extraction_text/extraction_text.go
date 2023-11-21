@@ -17,7 +17,7 @@ func AddHandleFunc() {
 // It returns the response from the python script
 func handleBioBERTExtraction(jsonConfig string, id string) (string, error) {
 	log.Println("Running BioBERT extraction", id)
-	response, err := Utils.StartPythonScripts(jsonConfig, "../flask_server/extraction_text/scripts/BioBERT_extraction.py", id)
+	response, err := Utils.StartPythonScripts(jsonConfig, "../pythonCode/modules/extraction_text/BioBERT_extraction.py", id)
 	Utils.RemoveIdFromScripts(id)
 	if err != nil {
 		return "", err

@@ -17,7 +17,7 @@ func AddHandleFunc() {
 // It returns the response from the python script
 func handleDenseNetExtraction(jsonConfig string, id string) (string, error) {
 	log.Println("Running DenseNet extraction", id)
-	response, err := Utils.StartPythonScripts(jsonConfig, "../flask_server/extraction_image/scripts/DenseNet_extraction.py", id)
+	response, err := Utils.StartPythonScripts(jsonConfig, "../pythonCode/modules/extraction_image/DenseNet_extraction.py", id)
 	Utils.RemoveIdFromScripts(id)
 	if err != nil {
 		return "", err

@@ -155,14 +155,12 @@ func StartPythonScripts(jsonParam string, filename string, id string) (string, e
 	}
 	log.Println("filename: " + filename)
 	script, _ := filepath.Abs(filepath.Join(cwd, filename))
-	condaEnv := GetDotEnvVariable("CONDA_ENV")
+	condaEnv := os.Getenv("MED_ENV")
 	Mu.Lock()
 	if runMode == "prod" {
 		prodDir := os.Args[3]
-		filename = strings.ReplaceAll(filename, "/scripts", "")
-		filename = strings.ReplaceAll(filename, "../flask_server", "pythonCode/modules")
+		filename = strings.ReplaceAll(filename, "..", "")
 		script, _ = filepath.Abs(filepath.Join(prodDir, filename))
-		condaEnv = os.Getenv("MED_ENV")
 		log.Println("running script in prod: " + script)
 	}
 	log.Println("Conda env: " + condaEnv)

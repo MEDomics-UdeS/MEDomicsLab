@@ -171,7 +171,6 @@ function App() {
       if (workspaceObject !== data) {
         let workspace = { ...data }
         setWorkspaceObject(workspace)
-
       }
     })
 
@@ -180,8 +179,8 @@ function App() {
       setWorkspaceObject(workspace)
     })
 
-    ipcRenderer.on("getFlaskPort", (event, data) => {
-      console.log("flask port update from Electron:", data)
+    ipcRenderer.on("getServerPort", (event, data) => {
+      console.log("server port update from Electron:", data)
       setPort(data.newPort)
     })
 
@@ -190,7 +189,7 @@ function App() {
       // setIsDarkMode(!isDarkMode)
     })
 
-    ipcRenderer.send("messageFromNext", "getFlaskPort")
+    ipcRenderer.send("messageFromNext", "getServerPort")
   }, []) // Here, we specify that the hook should only be called at the launch of the app
 
   /**
