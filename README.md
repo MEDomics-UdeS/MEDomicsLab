@@ -18,7 +18,7 @@ nvm use lts
 - [Go Setup here](./go_server/README.md) (Optional: useful for adding new features to the server)
 - Configure the **python environment** by executing :
   - Windows : `.\pythonEnv\create_conda_env_win.bat`
-  - Linux : `bash pythonEnv/create_conda_env_win.sh`
+  - Linux : `bash pythonEnv/create_venv_linux.sh`
 
 ## 4. initialize submodules
 
