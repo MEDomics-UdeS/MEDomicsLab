@@ -67,5 +67,5 @@ echo -e "${BLUE}Deactivating the virtual environment...${NC}"
 deactivate
 # Export virtual environment path to MED_ENV variable in ~/.bashrc
 echo -e "${BLUE}Exporting virtual environment path to MED_ENV variable in ~/.bashrc...${NC}"
-echo 'export MED_ENV="'$(pwd)'/venv"' >> ~/.bashrc
+echo 'export MED_ENV="'$(pwd)'/venv/bin/python"' >> ~/.bashrc
 source ~/.bashrc
