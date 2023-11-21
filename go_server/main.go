@@ -39,11 +39,7 @@ func main() {
 	// Here is where you start the server
 	c := cors.Default()
 	handler := c.Handler(http.DefaultServeMux)
-	port := Utils.GetDotEnvVariable("PORT")
-	if port == "" {
-		log.Println("PORT not found in .env file, using port from command line args:", os.Args[1])
-		port = os.Args[1]
-	}
+	port := os.Args[1]
 	log.Println("Server is listening on :" + port + "...")
 	err := http.ListenAndServe(":"+port, handler)
 	if err != nil {
