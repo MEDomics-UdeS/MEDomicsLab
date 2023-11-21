@@ -14,7 +14,7 @@ During the Winter 2024 semester, the first Testing Phase of MEDomicsLab will tak
 
 We anticipate that the participation to the Testing Phase will involve 1 hour of work per week for 17 consecutive weeks, starting January 15, 2024.
 
-The schedule of the Testing Phase (2024) is planned as follows:
+The schedule of the Testing Phase (2024) and the series of tutorials are planned as follows:
 * Step 1 - Install and Explore : Jan 15 – Jan 29
 * Step 2 - Extract Data: Jan 29 – Feb 12
 * Step 3 - Prepare ML tables: Feb 12 – Feb 26
