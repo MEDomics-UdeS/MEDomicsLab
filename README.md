@@ -1,29 +1,36 @@
+# MEDomicsLab - Develop branch 🛠️
+
+[![GitHub build](https://img.shields.io/github/workflow/status/MEDomics-UdeS/MEDomicsLab/Build%20and%20test%20electron%20app%20on%20push%20to%20develop%20branch)]()
+[![GitHub last commit](https://img.shields.io/github/last-commit/MEDomics-UdeS/MEDomicsLab)]()
+[![GitHub contributors](https://img.shields.io/github/contributors/MEDomics-UdeS/MEDomicsLab)]()
+[![GitHub issues](https://img.shields.io/github/issues/MEDomics-UdeS/MEDomicsLab)]()
+[![GitHub forks](https://img.shields.io/github/forks/MEDomics-UdeS/MEDomicsLab)]()
+[![GitHub stars](https://img.shields.io/github/stars/MEDomics-UdeS/MEDomicsLab)]()
+[![GitHub release](https://img.shields.io/github/release/MEDomics-UdeS/MEDomicsLab)]()
+[![GitHub license](https://img.shields.io/github/license/MEDomics-UdeS/MEDomicsLab)]()
+
+Here is the develop branch of the MEDomicsLab project. This branch is used to develop new features and fix bugs. The main branch is used to publish the latest stable version of the project. The develop branch is merged into the main branch when a new stable version is ready to be published.
+
+### Main documentation 👉 [here](https://medomics-udes.gitbook.io/medomicslab-docs/). 👈
+
+### Development documentation 👇
+
 # Getting started - Development
 
-## 1. Install nvm (Node Version Manager)
+This is considering that you are a developper and want to contribute to the project.
 
-Ubuntu : https://github.com/nvm-sh/nvm#installing-and-updating
+- I am a user and want to install the latest release: [Go here](https://medomics-udes.gitbook.io/medomicslab-docs/quick-start)
+- I am a developper and want to setup the project: [Go here](https://medomics-udes.gitbook.io/medomicslab-docs/contributing)
+- I am a developper and i already setup the required softwares: **You are at the right place !**
 
-Windows : https://github.com/coreybutler/nvm-windows
-
-## 2. Install npm and node.js
+## 1. Git clone the project
 
 ```
-nvm install lts # lts :Long Term Support
-nvm use lts
+git clone git@github.com:MEDomics-UdeS/MEDomicsLab.git      # via SSH (recommended)
+git clone https://github.com/MEDomics-UdeS/MEDomicsLab.git  # via HTTPS
 ```
 
-## 3. Setup server side
-
-- [Go Setup here](./go_server/README.md) (Optional: useful for adding new features to the server)
-- Configure the **python environment** by executing (you can run this once) :
-  - Windows : `.\pythonEnv\create_conda_env_win.bat`
-  - Linux : `bash pythonEnv/create_venv_linux.sh`
-- regenerating Go executable :
-  - Windows : `.\utilScripts\pack_GO.bat`
-  - Linux : `bash utilScripts/pack_GO.sh`
-
-## 4. initialize submodules
+## 2. Initialize submodules when cloning the project
 
 ```
 cd <.../MEDomicsLab/>
@@ -35,13 +42,40 @@ cd ../MEDprofiles
 git checkout fusion_MEDomicsLab
 ```
 
-## 5. Run the Electron app in development mode
+## 3. Be sure to have the npm packages installed
 
 ```
 cd <.../MEDomicsLab/>
 npm install
-npm run dev
 ```
+
+## 4. When you modify .go files, you need to rebuild the executable
+
+- You can do it manually by running `go build main.go` in the `go_server` folder
+- You can also use a script that you can run from the root folder of the project:
+  - Windows : `.\utilScripts\pack_GO.bat`
+  - Linux : `bash utilScripts/pack_GO.sh`
+
+## 5. Python environment
+
+The python environment is created automatically with the scripts in the `pythonEnv` folder.
+You have to run it manually by executing the following commands:
+
+- Windows : `.\pythonEnv\create_conda_env_win.bat`
+- Linux : `bash pythonEnv/create_venv_linux.sh`
+
+The script will create a conda environment named `med_conda_env` and install the required packages in it.
+
+When developping python code, you may need to install new packages. To do so, you can activate the environment and install the package with pip:
+
+```
+conda activate med_conda_env
+pip install <package_name>
+```
+
+## 6. Run the Electron app in development mode
+
+`npm run dev`
 
 ### Modify startup settings
 
@@ -62,34 +96,3 @@ const config = {
   portFindingMethod: PORT_FINDING_METHOD.FIX
 }
 ```
-
-# Getting started - Production
-
-At this step, you should have already completed the steps in the "Getting started - Development" section.
-
-## 1. Build the Electron app
-
-> Configuration can be found in package.json under key "build" and documention can be found here: https://www.electron.build/index.html
-
-#### 1.1. Build for Windows
-
-- Execute the following command: `npm run build:win`
-- The built app will be located in the `build/dist` folder
-
-[...TODO...]
-
-## 2. Publish the Electron app
-
-[...TODO...]
-
-# Getting started
-
-## 1. Install the latest release
-
-= insert latest release link here =
-
-## 2. Install the environment creation tool
-
-- Download the environment creation tool here: = insert latest release link here =
-- Extract the zip file
-- Run the executable by double clicking on it (.bat file for Windows, .sh file for Linux and Mac)
