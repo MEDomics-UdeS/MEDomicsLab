@@ -175,7 +175,7 @@ if (isProd) {
       findAvailablePort(MEDconfig.defaultPort)
         .then((port) => {
           serverPort = port
-          serverProcess = execFile(`${process.platform == "win32" ? "main.exe" : "./main"}`, [serverPort, "dev"], {
+          serverProcess = execFile(`${process.platform == "win32" ? "main.exe" : "./main"}`, [serverPort, "prod", process.cwd()], {
             windowsHide: false,
             cwd: path.join(process.cwd(), "go_server")
           })
