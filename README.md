@@ -19,9 +19,9 @@ Here is the develop branch of the MEDomicsLab project. This branch is used to de
 
 This is considering that you are a developper and want to contribute to the project.
 
-- I am a user and want to install the latest release: [Go here](https://medomics-udes.gitbook.io/medomicslab-docs/quick-start)
-- I am a developper and want to setup the project: [Go here](https://medomics-udes.gitbook.io/medomicslab-docs/contributing)
-- I am a developper and i already setup the required softwares: **You are at the right place !**
+- I am a **user** and want to **install** the latest release: [Go here](https://medomics-udes.gitbook.io/medomicslab-docs/quick-start)
+- I am a **developper** and want to **setup the project**: [Go here](https://medomics-udes.gitbook.io/medomicslab-docs/contributing)
+- I am a **developper** and i **already setup** the required softwares: **You are at the right place !**
 
 ## 1. Git clone the project
 
@@ -64,7 +64,7 @@ You have to run it manually by executing the following commands:
 - Windows : `.\pythonEnv\create_conda_env_win.bat`
 - Linux : `bash pythonEnv/create_venv_linux.sh`
 
-The script will create a conda environment named `med_conda_env` and install the required packages in it.
+The script will create a conda environment named `med_conda_env`, install the required packages in it and create an environment variable named `MED_ENV` that contains the path to the environment.
 
 When developping python code, you may need to install new packages. To do so, you can activate the environment and install the package with pip:
 
