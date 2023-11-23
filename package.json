@@ -48,8 +48,7 @@
     "linux": {
       "target": "deb",
       "icon": "app/assets/icon.png",
-      "maintainer": "gblain03@hotmail.com",
-      "publish": "github"
+      "maintainer": "medomicslab.udes@gmail.com"
     },
     "publish": [
       {

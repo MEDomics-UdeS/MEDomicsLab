@@ -199,7 +199,8 @@ if (isProd) {
       findAvailablePort(MEDconfig.defaultPort)
         .then((port) => {
           serverPort = port
-          serverProcess = execFile(path.join(__dirname, `${process.platform == "win32" ? "server_go.exe" : "server_go"}`), [serverPort, "prod", process.resourcesPath], {
+          console.log("_dirname: ", __dirname)
+          serverProcess = execFile(path.join(__dirname, `${process.platform == "win32" ? "server_go.exe" : "../resources/server_go"}`), [serverPort, "prod", process.resourcesPath], {
             windowsHide: false
           })
           if (serverProcess) {
