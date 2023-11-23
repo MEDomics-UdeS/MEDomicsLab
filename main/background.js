@@ -4,6 +4,7 @@ import serve from "electron-serve"
 import { createWindow } from "./helpers"
 import { installExtension, REACT_DEVELOPER_TOOLS } from "electron-extension-installer"
 import MEDconfig, { PORT_FINDING_METHOD } from "../medomics.dev"
+import { saveJSON, loadJSON } from "./helpers/datamanager"
 const fs = require("fs")
 var path = require("path")
 const dirTree = require("directory-tree")
@@ -11,7 +12,7 @@ const { spawn, exec, execFile } = require("child_process")
 var serverProcess = null
 var serverPort = MEDconfig.defaultPort
 var hasBeenSet = false
-
+var recentWorkspaces = {}
 const isProd = process.env.NODE_ENV === "production"
 
 let splashScreen // The splash screen is the window that is displayed while the application is loading
@@ -230,6 +231,15 @@ if (isProd) {
   }
   const menu = Menu.buildFromTemplate(menuTemplate)
   Menu.setApplicationMenu(menu)
+
+  ipcMain.on("getRecentWorkspaces", (event, data) => {
+    // Receives a message from Next.js
+    console.log("GetRecentWorkspaces : ", data)
+    if (data === "requestRecentWorkspaces") {
+      // If the message is "requestRecentWorkspaces", the function getRecentWorkspaces is called
+      getRecentWorkspaces(event, mainWindow)
+    }
+  })
 
   ipcMain.on("messageFromNext", (event, data) => {
     // Receives a message from Next.js
@@ -469,5 +479,71 @@ function openWindowFromURL(url) {
   window.once("ready-to-show", () => {
     window.show()
     window.focus()
+  })
+}
+
+/**
+ * Loads the recent workspaces
+ * @returns {Array} An array of workspaces
+ */
+function loadWorkspaces() {
+  const userDataPath = app.getPath("userData")
+  const workspaceFilePath = path.join(userDataPath, "workspaces.json")
+  if (fs.existsSync(workspaceFilePath)) {
+    const workspaces = JSON.parse(fs.readFileSync(workspaceFilePath, "utf8"))
+    // Sort workspaces by date, most recent first
+    return workspaces.sort((a, b) => new Date(b.last_time_it_was_opened) - new Date(a.last_time_it_was_opened))
+  } else {
+    return []
+  }
+}
+
+/**
+ * Saves the recent workspaces
+ * @param {Array} workspaces An array of workspaces
+ */
+function saveWorkspaces(workspaces) {
+  const userDataPath = app.getPath("userData")
+  const workspaceFilePath = path.join(userDataPath, "workspaces.json")
+  fs.writeFileSync(workspaceFilePath, JSON.stringify(workspaces))
+}
+
+/**
+ * Updates the recent workspaces
+ * @param {String} workspacePath The path of the workspace to update
+ */
+function updateWorkspace(workspacePath) {
+  const workspaces = loadWorkspaces()
+  const workspaceIndex = workspaces.findIndex((workspace) => workspace.path === workspacePath)
+  if (workspaceIndex !== -1) {
+    // Workspace exists, update it
+    workspaces[workspaceIndex].status = "opened"
+    workspaces[workspaceIndex].last_time_it_was_opened = new Date().toISOString()
+  } else {
+    // Workspace doesn't exist, add it
+    workspaces.push({
+      path: workspacePath,
+      status: "opened",
+      last_time_it_was_opened: new Date().toISOString()
+    })
+  }
+  saveWorkspaces(workspaces)
+}
+
+/**
+ * Generate recent workspaces options
+ */
+function getRecentWorkspaces(event, mainWindow) {
+  const workspaces = loadWorkspaces()
+  const recentWorkspaces = workspaces.filter((workspace) => workspace.status === "opened")
+  event.reply("recentWorkspaces", recentWorkspaces)
+  const recentWorkspacesOptions = recentWorkspaces.map((workspace) => {
+    return {
+      label: workspace.path,
+      click() {
+        updateWorkspace(workspace.path)
+        mainWindow.webContents.send("openWorkspace", workspace.path)
+      }
+    }
   })
 }
