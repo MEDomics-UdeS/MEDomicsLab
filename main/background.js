@@ -5,6 +5,7 @@ import { createWindow } from "./helpers"
 import { installExtension, REACT_DEVELOPER_TOOLS } from "electron-extension-installer"
 import MEDconfig, { PORT_FINDING_METHOD } from "../medomics.dev"
 import { saveJSON, loadJSON } from "./helpers/datamanager"
+import { main } from "@popperjs/core"
 const fs = require("fs")
 var path = require("path")
 const dirTree = require("directory-tree")
@@ -67,39 +68,12 @@ if (isProd) {
     splashScreen.focus()
     splashScreen.setAlwaysOnTop(true)
   })
-
+  const openRecentWorkspacesSubmenuOptions = getRecentWorkspacesOptions(null, mainWindow)
+  console.log("openRecentWorkspacesSubmenuOptions", openRecentWorkspacesSubmenuOptions)
   const menuTemplate = [
     {
       label: "File",
-      submenu: [
-        {
-          label: "New Experiment",
-          click() {
-            console.log("New expriment created")
-          }
-        },
-        {
-          label: "New Workspace",
-          click() {
-            console.log("New expriment created")
-          }
-        },
-        { type: "separator" },
-        {
-          label: "Open Experiment",
-          click() {
-            console.log("Open expriment")
-          }
-        },
-        {
-          label: "Open Workspace",
-          click() {
-            console.log("Workspace opened")
-          }
-        },
-        { type: "separator" },
-        { role: "quit" }
-      ]
+      submenu: [{ label: "Open recent", submenu: getRecentWorkspacesOptions(null, mainWindow) }, { type: "separator" }, { role: "quit" }]
     },
     {
       label: "Edit",
@@ -241,6 +215,16 @@ if (isProd) {
     }
   })
 
+  ipcMain.on("setWorkingDirectory", (event, data) => {
+    app.setPath("sessionData", data)
+    console.log("setWorkingDirectory : ", data)
+    event.reply("workingDirectorySet", {
+      workingDirectory: dirTree(app.getPath("sessionData")),
+      hasBeenSet: hasBeenSet,
+      newPort: serverPort
+    })
+  })
+
   ipcMain.on("messageFromNext", (event, data) => {
     // Receives a message from Next.js
     console.log("messageFromNext : ", data)
@@ -254,11 +238,15 @@ if (isProd) {
         hasBeenSet: hasBeenSet,
         newPort: serverPort
       })
+      updateWorkspace(app.getPath("sessionData"))
       event.reply("workingDirectorySet", {
         workingDirectory: dirTree(app.getPath("sessionData")),
         hasBeenSet: hasBeenSet,
         newPort: serverPort
       })
+    } else if (data === "getRecentWorkspaces") {
+      let recentWorkspaces = loadWorkspaces()
+      event.reply("recentWorkspaces", recentWorkspaces)
     } else if (data === "updateWorkingDirectory") {
       event.reply("updateDirectory", {
         workingDirectory: dirTree(app.getPath("sessionData")),
@@ -330,6 +318,8 @@ function setWorkingDirectory(event, mainWindow) {
                 // If the user clicks on "Yes"
                 console.log("Working directory set to " + file)
                 event.reply("messageFromElectron", "Working directory set to " + file)
+                // Add selected folder to the recent workspaces
+                updateWorkspace(file)
                 app.setPath("sessionData", file)
                 createWorkingDirectory()
                 hasBeenSet = true // The boolean hasBeenSet is set to true to indicate that the working directory has been set
@@ -359,6 +349,7 @@ function setWorkingDirectory(event, mainWindow) {
           console.log("Working directory set to " + file)
           event.reply("messageFromElectron", "Working directory set to " + file)
           app.setPath("sessionData", file)
+          updateWorkspace(file)
           createWorkingDirectory()
           hasBeenSet = true // The boolean hasBeenSet is set to true to indicate that the working directory has been set
           // This is the variable that controls the disabled/enabled state of the IconSidebar's buttons in Next.js
@@ -527,23 +518,34 @@ function updateWorkspace(workspacePath) {
       last_time_it_was_opened: new Date().toISOString()
     })
   }
+  app.setPath("sessionData", workspacePath)
   saveWorkspaces(workspaces)
 }
 
 /**
  * Generate recent workspaces options
  */
-function getRecentWorkspaces(event, mainWindow) {
-  const workspaces = loadWorkspaces()
+function getRecentWorkspacesOptions(event, mainWindow, workspacesArray = null) {
+  let workspaces
+  if (workspacesArray === null) {
+    workspaces = loadWorkspaces()
+  } else {
+    workspaces = workspacesArray
+  }
   const recentWorkspaces = workspaces.filter((workspace) => workspace.status === "opened")
-  event.reply("recentWorkspaces", recentWorkspaces)
+  if (event !== null) {
+    event.reply("recentWorkspaces", recentWorkspaces)
+  }
   const recentWorkspacesOptions = recentWorkspaces.map((workspace) => {
     return {
       label: workspace.path,
       click() {
         updateWorkspace(workspace.path)
-        mainWindow.webContents.send("openWorkspace", workspace.path)
+        let workspaceObject = { workingDirectory: dirTree(workspace.path), hasBeenSet: true, newPort: serverPort }
+
+        mainWindow.webContents.send("openWorkspace", workspaceObject)
       }
     }
   })
+  return recentWorkspacesOptions
 }

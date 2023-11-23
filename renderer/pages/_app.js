@@ -53,6 +53,7 @@ import "../styles/evaluation/evaluation.css"
 import "../styles/output.css"
 import "../styles/exploratory/exploratory.css"
 import "../styles/application/application.css"
+import { set } from "react-hook-form"
 
 /**
  * This is the main app component. It is the root component of the app.
@@ -140,6 +141,7 @@ function App() {
     hasBeenSet: false,
     workingDirectory: ""
   })
+  const [recentWorkspaces, setRecentWorkspaces] = useState([])
   const [port, setPort] = useState()
 
   const [globalData, setGlobalData] = useState({})
@@ -184,9 +186,20 @@ function App() {
       setPort(data.newPort)
     })
 
+    ipcRenderer.on("openWorkspace", (event, data) => {
+      console.log("openWorkspace from NEXT", data)
+      let workspace = { ...data }
+      setWorkspaceObject(workspace)
+    })
+
     ipcRenderer.on("toggleDarkMode", () => {
       console.log("toggleDarkMode")
       // setIsDarkMode(!isDarkMode)
+    })
+
+    ipcRenderer.on("recentWorkspaces", (event, data) => {
+      console.log("recentWorkspaces", data)
+      setRecentWorkspaces(data)
     })
 
     ipcRenderer.send("messageFromNext", "getServerPort")
@@ -457,7 +470,7 @@ function App() {
         <HotkeysProvider>
           <ActionContextProvider>
             <DataContextProvider globalData={globalData} setGlobalData={setGlobalData}>
-              <WorkspaceProvider workspace={workspaceObject} setWorkspace={setWorkspaceObject} port={port} setPort={setPort}>
+              <WorkspaceProvider workspace={workspaceObject} setWorkspace={setWorkspaceObject} port={port} setPort={setPort} recentWorkspaces={recentWorkspaces} setRecentWorkspaces={setRecentWorkspaces}>
                 <LayoutModelProvider // This is the LayoutContextProvider, which provides the layout model to all the children components of the LayoutManager
                   layoutModel={layoutModel}
                   setLayoutModel={setLayoutModel}
