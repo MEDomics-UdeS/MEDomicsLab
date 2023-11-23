@@ -1,4 +1,5 @@
 #!/bin/bash
+source ~/.bashrc
 eval "$(conda shell.bash hook)"
 echo "Checking if Conda is installed..."
 command -v conda >/dev/null 2>&1
@@ -12,7 +13,7 @@ if [ $? -ne 0 ]; then
 
     # Install Miniconda
     echo "Installing Miniconda..."
-    bash miniconda-installer.sh -b -p $HOME/miniconda3 || {
+    bash miniconda-installer.sh -u -b -p $HOME/miniconda3 || {
         echo "An error occurred while installing Miniconda."
         exit 1
     }
@@ -30,6 +31,10 @@ if [ $? -ne 0 ]; then
         echo "An error occurred while activating the base environment."
         exit 1
     }
+
+      # Initialize Conda
+    echo "Initializing Conda..."
+    conda init bash
 
 else
     # Conda is already installed, create a new environment and install packages
@@ -63,7 +68,7 @@ else
 fi
 
 # Activate the new environment
-echo "Activating the new environment..."
+echo "Activating the environment..."
 conda activate med_conda_env || {
     echo "An error occurred while activating the new environment."
     exit 1
@@ -85,10 +90,17 @@ conda deactivate || {
 
 # Export virtual environment path
 echo "Exporting virtual environment path..."
-echo "export MED_ENV=$HOME/$CONDA_TYPE/envs/med_conda_env/python" >> ~/.bashrc || {
-    echo "An error occurred while exporting the virtual environment path."
-    exit 1
-}
+if grep -q "export MED_ENV=" ~/.bashrc; then
+    sed -i "s|export MED_ENV=.*|export MED_ENV=$HOME/$CONDA_TYPE/envs/med_conda_env/python|" ~/.bashrc || {
+        echo "An error occurred while updating the virtual environment path."
+        exit 1
+    }
+else
+    echo "export MED_ENV=$HOME/$CONDA_TYPE/envs/med_conda_env/python" >> ~/.bashrc || {
+        echo "An error occurred while exporting the virtual environment path."
+        exit 1
+    }
+fi
 source ~/.bashrc
 
 echo "Done."
