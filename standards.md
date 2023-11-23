@@ -3,81 +3,50 @@
 ## Table of contents
 
 - [Recommended Software](#recommended-software)
-
 - [Project Repository Structure](#project-repository-structure)
-
 - [Style](#style)
-
 - [Naming Conventions](#naming-conventions)
-
 - [Components Structure](#components-structure)
-
 - [Type Hinting](#type-hinting)
-
 - [Syntax](#syntax)
-
 - [Documentation](#documentation)
-
 - [Python Coding Standard](#python-coding-standard)
 
 ## Recommended Software
 
-- Windows (10 /11 +), macOs (12 +), Linux (20.04 +)
-
-- [see electron app supported OS](https://www.electronjs.org/de/docs/latest/tutorial/unterst%C3%BCtzung#supported-versions)
-
+- Windows (10 /11 +), macOs (12 +), Linux (20.04 +) [see electron app supported OS](https://www.electronjs.org/de/docs/latest/tutorial/unterst%C3%BCtzung#supported-versions)
 - [Visual Studio Code](https://code.visualstudio.com/) extensions:
-
 - [prettier & eslint](https://marketplace.visualstudio.com/items?itemName=rvest.vs-code-prettier-eslint) - code formatter standardizer (see [syntax](#syntax))
-
-- framework used in the platform
-
-- [npmjs](https://www.npmjs.com/) - Library manager for javascript language
-
-- [Electron](https://www.electronjs.org/) - Web based programming for standalone app developpement
-
-- [Nextjs](https://nextjs.org/) - Abstraction of [React](https://react.dev) adding server side rendering and optimisations
-
-- [Flask](https://flask.palletsprojects.com/) - Python backend framework (used because it is lightweight and machine learning is mainly programmed in python)
+- Framework used in the platform
+  - [npmjs](https://www.npmjs.com/) - Library manager for javascript language
+  - [Electron](https://www.electronjs.org/) - Web based programming for standalone app developpement
+  - [Nextjs](https://nextjs.org/) - Abstraction of [React](https://react.dev) adding server side rendering and optimisations
+  - [Go](https://go.dev/) - Server side language
 
 ## Project Repository Structure
 
-| Folder | Description |
-
-| ------------- | ---------------------------------------------------------------------------------- |
-
-| /app | Electron files |
-
-| /flask_server | All server side, python/[flask](https://flask.palletsprojects.com/) related, files |
-
-| /flask_server | All server side, python/[flask](https://flask.palletsprojects.com/) related, files |
-
-| /local | Default local data storing |
-
-| /main | Electron related contents |
-
-| /node_modules | Contains saved libraries (created from `npm install`) |
-
-| /renderer | NextJs related content |
-
-| /ressources | Electron ressources (icons, etc.) |
-
-> Nextron automatically generated folders : /app, /main, /nodes_modules, /ressources, /renderer and /resources
-
-> Nextron automatically generated folders : /app, /main, /nodes_modules, /ressources, /renderer and /resources
+| Folder                              | Description                                           |
+| ----------------------------------- | ----------------------------------------------------- |
+| /app                                | Electron files                                        |
+| /baseFiles                          | Empty base files                                      |
+| /build                              | Contains distribution relative files                  |
+| [/go_server](./go_server/README.md) | Contains Go code acting as a server                   |
+| /main                               | Electron related contents                             |
+| /node_modules                       | Contains saved libraries (created from `npm install`) |
+| /pythonCode                         | Python code                                           |
+| /pythonEnv                          | Python virtual environment utils                      |
+| /renderer                           | NextJs related content                                |
+| /resources                          | NextJs ressources (icons, etc.)                       |
+| /utilScripts                        | NextJs ressources (icons, etc.)                       |
 
 ## Style
 
 - Use [css react modules](https://create-react-app.dev/docs/adding-a-css-modules-stylesheet/)
-
-- import order (\_app.js)
+- Import order (\_app.js)
 
 ```javascript
-
 import  'bootstrap/dist/css/bootstrap.min.css';
-
 import <all  other  global  css  libraries>
-
 ```
 
 ## Naming Conventions
@@ -85,29 +54,20 @@ import <all  other  global  css  libraries>
 ### Javascript/react
 
 - Component : PascalCase
-
 - Component file name : camelCase
-
 - Each file name should be the same as the component defined inside
-
 - Component creation : prioritize function implementation over class
 
 ```javascript
-
 export  default  const  myComponent = (someProps) =­> {
-
 return (<></>)
-
 }
-
 ```
 
 - Function creation: prioritize arrow implementation
 
 ```javascript
-
 const  myFct = (someParams) =­> {}
-
 ```
 
 > See [react naming convention](https://www.upbeatcode.com/react/react-naming-conventions/)
@@ -115,13 +75,12 @@ const  myFct = (someParams) =­> {}
 ## Components Structure
 
 ```bash
-
 components
 ├───dataTypeVisualisation
 │       dataTablePopoverBPClass.jsx
 │       dataTableWrapper.jsx
 │       dataTableWrapperBPClass.tsx
-│       
+│
 ├───evaluation
 │       dashboard.jsx
 │       evaluationPageContent.jsx
@@ -297,7 +256,6 @@ components
         dataContext.jsx
         medDataObject.js
         workspaceContext.jsx
-
 ```
 
 > To generate this : ` tree .\renderer\components\ /f`
@@ -311,10 +269,8 @@ components
 ### Installation
 
 - Install prettier and plugin (should be included in package.json so a `npm install` should do it)
-
   `npm install prettier
 eslint-plugin-prettier eslint-config-prettier`
-
 - Install [eslint](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint) and [prettier](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode) extensions
 - Open workspace settings
   - Can be accessed directly from this path: .vscode/settings.json
@@ -354,27 +310,18 @@ Eslint may triggered error displayed as a red underline so you can hover these c
 #### Docstring
 
 ```javascript
-
 /**
-
 * @param  {type}  someParams description
-
 * @return  {type} description
-
 * @description
-
 * functionnal description of the function/React object
-
 */
-
 const  myfct = (someParams) =­> {}
-
 ```
 
 #### Comments
 
 - Do not over detailed the code for readability
-
 - Comments are meant to help understand important or critical actions in code
 
 #### Documentation generation

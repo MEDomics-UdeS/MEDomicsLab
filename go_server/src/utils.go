@@ -12,8 +12,6 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
-
-	"github.com/joho/godotenv"
 )
 
 type ScriptInfo struct {
@@ -144,14 +142,26 @@ func CreateHandleFunc(topic string, processRequest func(jsonConfig string, id st
 // StartPythonScripts starts the python script
 func StartPythonScripts(jsonParam string, filename string, id string) (string, error) {
 	log.Println("Starting python script: " + filename)
-	condaEnv := GetDotEnvVariable("CONDA_ENV")
+	runMode := GetDotEnvVariable("RUN_MODE")
+	if runMode == "" {
+		runMode = os.Args[2]
+	}
+	log.Println("Run mode: " + runMode)
 	cwd, err := os.Getwd()
 	if err != nil {
 		log.Println(err.Error())
 	}
-	log.Println("Conda env: " + condaEnv)
+	log.Println("filename: " + filename)
 	script, _ := filepath.Abs(filepath.Join(cwd, filename))
+	condaEnv := os.Getenv("MED_ENV")
 	Mu.Lock()
+	if runMode == "prod" {
+		prodDir := os.Args[3]
+		filename = strings.ReplaceAll(filename, "..", "")
+		script, _ = filepath.Abs(filepath.Join(prodDir, filename))
+		log.Println("running script in prod: " + script)
+	}
+	log.Println("Conda env: " + condaEnv)
 	Scripts[id] = ScriptInfo{
 		Cmd:      exec.Command(condaEnv, "-u", script, "--json-param", jsonParam, "--id", id),
 		Progress: "",
@@ -173,8 +183,8 @@ func StartPythonScripts(jsonParam string, filename string, id string) (string, e
 	err = Scripts[id].Cmd.Start()
 	Mu.Unlock()
 	if err != nil {
-		log.Println("Error starting command " + script + " " + condaEnv)
-		log.Panicf(err.Error())
+		log.Println("Error starting command " + script)
+		return "", err
 	}
 	response := ""
 	go copyOutput(stdout, &response)
@@ -231,17 +241,10 @@ func ReadFile(filename string) string {
 
 // GetDotEnvVariable gets the variable from the .env.local file or from env variables set by client side
 func GetDotEnvVariable(key string) string {
-	err := godotenv.Load(".env.local")
-	if err != nil {
-		return ""
-	}
 	electronKey := "ELECTRON_" + key
 	if os.Getenv(electronKey) != "" {
 		return os.Getenv(electronKey)
 	} else {
-		if key == "CONDA_ENV" {
-			return ReadFile(os.Getenv(key))
-		}
 		return os.Getenv(key)
 	}
 }

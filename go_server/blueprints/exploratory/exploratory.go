@@ -19,7 +19,7 @@ func AddHandleFunc() {
 // It returns the response from the python script
 func handleStartSweetviz(jsonConfig string, id string) (string, error) {
 	log.Println("Start Sweetviz...", id)
-	response, err := Utils.StartPythonScripts(jsonConfig, "../flask_server/exploratory/scripts/start_sweetviz.py", id)
+	response, err := Utils.StartPythonScripts(jsonConfig, "../pythonCode/modules/exploratory/start_sweetviz.py", id)
 	Utils.RemoveIdFromScripts(id)
 	if err != nil {
 		return "", err
@@ -31,7 +31,7 @@ func handleStartSweetviz(jsonConfig string, id string) (string, error) {
 // It returns the response from the python script
 func handleStartYDataProfiling(jsonConfig string, id string) (string, error) {
 	log.Println("Start YData Profiling...", id)
-	response, err := Utils.StartPythonScripts(jsonConfig, "../flask_server/exploratory/scripts/start_ydata_profiling.py", id)
+	response, err := Utils.StartPythonScripts(jsonConfig, "../pythonCode/modules/exploratory/start_ydata_profiling.py", id)
 	Utils.RemoveIdFromScripts(id)
 	if err != nil {
 		return "", err
@@ -43,7 +43,7 @@ func handleStartYDataProfiling(jsonConfig string, id string) (string, error) {
 // It returns the response from the python script
 func handleStartDtale(jsonConfig string, id string) (string, error) {
 	log.Println("Start Dtale...", id)
-	response, err := Utils.StartPythonScripts(jsonConfig, "../flask_server/exploratory/scripts/start_dtale.py", id)
+	response, err := Utils.StartPythonScripts(jsonConfig, "../pythonCode/modules/exploratory/start_dtale.py", id)
 	Utils.RemoveIdFromScripts(id)
 	if err != nil {
 		return "", err

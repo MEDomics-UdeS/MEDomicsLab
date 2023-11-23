@@ -1,3 +1,6 @@
+/* eslint-disable no-unused-vars */
+/* eslint-disable no-undef */
+/* eslint-disable camelcase */
 import * as React from "react"
 import * as ReactDOM from "react-dom/client"
 import { DragDrop } from "flexlayout-react"

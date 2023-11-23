@@ -1,3 +1,5 @@
+/* eslint-disable no-unused-vars */
+/* eslint-disable no-undef */
 import React, { useContext, useState, useEffect } from "react"
 import { Row, Col } from "react-bootstrap"
 import { DataContext } from "../workspace/dataContext"

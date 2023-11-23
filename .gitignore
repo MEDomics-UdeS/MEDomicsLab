@@ -10,7 +10,6 @@ __pycache__/*
 # Distribution / packaging
 .Python
 .vscode/
-build/
 develop-eggs/
 dist/
 downloads/
@@ -144,16 +143,18 @@ dmypy.json
 
 
 # custom gitignore
-/tmp/*
-/test/*
+tmp
+test
 /flaskProject/static/tmp
 /renderer/public/tmp/*
 *.idea
 /learning-tests-scene*
 flask_server/extraction_MEDimage/MEDimageApp/tmp/*
+renderer/public/pythonCode/MedLibs/MEDimageApp/tmp/*
 /flask_server/local_dir/*
+renderer/public/pythonCode/local_dir/*
 path2condaenv_toDeleteInProd.txt
-
+gh_token.txt
 package-lock.json
 
 !*.gitkeep

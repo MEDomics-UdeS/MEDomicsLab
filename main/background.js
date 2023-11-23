@@ -1,15 +1,15 @@
-import { app, ipcMain, Menu, dialog, BrowserWindow } from "electron"
+import { app, ipcMain, Menu, dialog, BrowserWindow, protocol } from "electron"
 import axios from "axios"
 import serve from "electron-serve"
 import { createWindow } from "./helpers"
 import { installExtension, REACT_DEVELOPER_TOOLS } from "electron-extension-installer"
-import MEDconfig, { SERVER_CHOICE, PORT_FINDING_METHOD } from "../medomics.dev"
+import MEDconfig, { PORT_FINDING_METHOD } from "../medomics.dev"
 const fs = require("fs")
 var path = require("path")
 const dirTree = require("directory-tree")
 const { spawn, exec, execFile } = require("child_process")
 var serverProcess = null
-var flaskPort = MEDconfig.defaultPort
+var serverPort = MEDconfig.defaultPort
 var hasBeenSet = false
 
 const isProd = process.env.NODE_ENV === "production"
@@ -24,6 +24,21 @@ if (isProd) {
 
 ;(async () => {
   await app.whenReady()
+
+  protocol.registerFileProtocol("local", (request, callback) => {
+    const url = request.url.replace(/^local:\/\//, "")
+    const decodedUrl = decodeURI(url)
+    try {
+      return callback(decodedUrl)
+    } catch (error) {
+      console.error("ERROR: registerLocalProtocol: Could not get file path:", error)
+    }
+  })
+
+  ipcMain.on("get-file-path", (event, configPath) => {
+    event.reply("get-file-path-reply", path.resolve(configPath))
+  })
+
   splashScreen = new BrowserWindow({
     icon: path.join(__dirname, "../resources/MEDomicsLabWithShadowNoText100.png"),
     width: 700,
@@ -41,7 +56,11 @@ if (isProd) {
     show: false
   })
 
-  splashScreen.loadFile(path.join(__dirname, "../main/splash.html"))
+  if (isProd) {
+    splashScreen.loadFile(path.join(__dirname, "splash.html"))
+  } else {
+    splashScreen.loadFile(path.join(__dirname, "../main/splash.html"))
+  }
   splashScreen.once("ready-to-show", () => {
     splashScreen.show()
     splashScreen.focus()
@@ -129,35 +148,19 @@ if (isProd) {
   ]
 
   // link: https://medium.com/red-buffer/integrating-python-flask-backend-with-electron-nodejs-frontend-8ac621d13f72
+  console.log("running mode:", isProd ? "production" : "development")
   console.log(MEDconfig.runServerAutomatically ? "Server will start automatically here (in background of the application)" : "Server must be started manually")
-  MEDconfig.runServerAutomatically && console.log("Server type:", MEDconfig.serverChoice)
   if (MEDconfig.runServerAutomatically) {
     if (!isProd) {
       //**** DEVELOPMENT ****//
 
       findAvailablePort(MEDconfig.defaultPort)
         .then((port) => {
-          flaskPort = port
-          if (MEDconfig.serverChoice === SERVER_CHOICE.FLASK) {
-            serverProcess = spawn(MEDconfig.condaEnv, ["-m", "flask", "run"], {
-              cwd: path.join(process.cwd(), "flask_server"),
-              env: {
-                FLASK_APP: "server.py",
-                FLASK_RUN_PORT: flaskPort,
-                FLASK_ENV: "development",
-                FLASK_DEBUG: 0
-              }
-            })
-          } else if (MEDconfig.serverChoice === SERVER_CHOICE.GO) {
-            serverProcess = execFile(`${process.platform == "win32" ? "main.exe" : "./main"}`, {
-              windowsHide: false,
-              cwd: path.join(process.cwd(), "go_server"),
-              env: {
-                ELECTRON_PORT: flaskPort,
-                ELECTRON_CONDA_ENV: MEDconfig.condaEnv
-              }
-            })
-          }
+          serverPort = port
+          serverProcess = execFile(`${process.platform == "win32" ? "main.exe" : "./main"}`, [serverPort, "dev"], {
+            windowsHide: false,
+            cwd: path.join(process.cwd(), "go_server")
+          })
           if (serverProcess) {
             serverProcess.stdout.on("data", function (data) {
               console.log("data: ", data.toString("utf8"))
@@ -168,8 +171,6 @@ if (isProd) {
             serverProcess.on("close", (code) => {
               console.log(`server child process close all stdio with code ${code}`)
             })
-          } else {
-            throw new Error("You must choose a valid server in medomics.dev.js")
           }
         })
         .catch((err) => {
@@ -177,42 +178,34 @@ if (isProd) {
         })
     } else {
       //**** PRODUCTION ****//
-
-      let backend
-      backend = path.join(process.cwd(), "resources/backend/dist/app.exe")
-      var execfile = require("child_process").execFile
-      execfile(
-        backend,
-        {
-          windowsHide: true
-        },
-        (err, stdout, stderr) => {
-          if (err) {
-            console.log(err)
+      findAvailablePort(MEDconfig.defaultPort)
+        .then((port) => {
+          serverPort = port
+          console.log("_dirname: ", __dirname)
+          serverProcess = execFile(path.join(__dirname, `${process.platform == "win32" ? "server_go.exe" : "../resources/server_go"}`), [serverPort, "prod", process.resourcesPath], {
+            windowsHide: false
+          })
+          if (serverProcess) {
+            serverProcess.stdout.on("data", function (data) {
+              console.log("data: ", data.toString("utf8"))
+            })
+            serverProcess.stderr.on("data", (data) => {
+              console.log(`stderr: ${data}`)
+            })
+            serverProcess.on("close", (code) => {
+              console.log(`my server child process close all stdio with code ${code}`)
+            })
           }
-          if (stdout) {
-            console.log(stdout)
-          }
-          if (stderr) {
-            console.log(stderr)
-          }
-        }
-      )
-      const { exec } = require("child_process")
-      exec("taskkill /f /t /im app.exe", (err, stdout, stderr) => {
-        if (err) {
-          console.log(err)
-          return
-        }
-        console.log(`stdout: ${stdout}`)
-        console.log(`stderr: ${stderr}`)
-      })
+        })
+        .catch((err) => {
+          console.error(err)
+        })
     }
   } else {
     //**** NO SERVER ****//
     findAvailablePort(MEDconfig.defaultPort)
       .then((port) => {
-        flaskPort = port
+        serverPort = port
       })
       .catch((err) => {
         console.error(err)
@@ -231,20 +224,23 @@ if (isProd) {
       // If the message is "requestWorkingDirectory", the function getTheWorkingDirectoryStructure is called and the folder structure is returned to Next.js
       event.reply("messageFromElectron", {
         workingDirectory: dirTree(app.getPath("sessionData")),
-        hasBeenSet: hasBeenSet
+        hasBeenSet: hasBeenSet,
+        newPort: serverPort
       })
       event.reply("workingDirectorySet", {
         workingDirectory: dirTree(app.getPath("sessionData")),
-        hasBeenSet: hasBeenSet
+        hasBeenSet: hasBeenSet,
+        newPort: serverPort
       })
     } else if (data === "updateWorkingDirectory") {
       event.reply("updateDirectory", {
         workingDirectory: dirTree(app.getPath("sessionData")),
-        hasBeenSet: hasBeenSet
+        hasBeenSet: hasBeenSet,
+        newPort: serverPort
       }) // Sends the folder structure to Next.js
-    } else if (data === "getFlaskPort") {
-      event.reply("getFlaskPort", {
-        newPort: flaskPort
+    } else if (data === "getServerPort") {
+      event.reply("getServerPort", {
+        newPort: serverPort
       }) // Sends the folder structure to Next.js
     } else if (data === "requestAppExit") {
       app.exit()
@@ -391,7 +387,7 @@ ipcMain.handle("request", async (_, axios_request) => {
 app.on("window-all-closed", () => {
   app.quit()
   console.log("app quit")
-  if (!isProd && MEDconfig.runServerAutomatically) {
+  if (MEDconfig.runServerAutomatically) {
     serverProcess.kill()
     console.log("serverProcess killed")
   }

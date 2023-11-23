@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 import React, { useContext, useEffect, useState } from "react"
 import useInterval from "@khalidalansi/use-interval"
 import ModulePage from "./moduleBasics/modulePage"
@@ -152,7 +153,7 @@ const ActiveElement = ({ activeElement }) => {
               {metadata.name}
               <IoClose
                 className="btn-close-output-card"
-                onClick={(e) => {
+                onClick={() => {
                   let topic = "removeId/" + metadata.urlId
                   if (metadata.name == "D-Tale" && metadata.progress.web_server_url) {
                     topic = metadata.progress.web_server_url + "/shutdown"
@@ -255,7 +256,7 @@ const OutputPage = ({ pageId = "output", configPath = undefined }) => {
           })
           setActiveElements(activeElements)
         },
-        (error) => {
+        () => {
           setIsUpdating(false)
           setValue(options[1])
         }

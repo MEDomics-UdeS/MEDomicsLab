@@ -34,6 +34,7 @@ const FlowSceneSidebar = ({ type }) => {
   const [experimentList, setExperimentList] = useState([]) // We initialize the experiment list state to an empty array
   const [selectedItems, setSelectedItems] = useState([]) // We initialize the selected items state to an empty array
   const { globalData } = useContext(DataContext)
+  const isProd = process.env.NODE_ENV === "production"
 
   // We use the useEffect hook to update the experiment list state when the workspace changes
   useEffect(() => {
@@ -93,7 +94,7 @@ const FlowSceneSidebar = ({ type }) => {
    * @param {String} extension The extension of the scene
    */
   const createSceneContent = (path, sceneName, extension) => {
-    const emptyScene = loadJsonPath("./resources/emptyScene.json")
+    const emptyScene = loadJsonPath(isProd ? Path.join(process.resourcesPath, "baseFiles", "emptyScene.json") : "./baseFiles/emptyScene.json")
     MedDataObject.createEmptyFolderFSsync(sceneName, path).then(async (sceneFolderPath) => {
       // create folder models in the experiment folder
       typeInfo[type].extrenalFolders.forEach(async (folder) => {

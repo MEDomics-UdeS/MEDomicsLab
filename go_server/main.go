@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	MEDprofiles "go_module/blueprints/MEDprofiles_"
 	Application "go_module/blueprints/application"
 	Evaluation "go_module/blueprints/evaluation"
 	Exploratory "go_module/blueprints/exploratory"
@@ -11,10 +12,10 @@ import (
 	ExtractionTS "go_module/blueprints/extraction_ts"
 	Input "go_module/blueprints/input"
 	Learning "go_module/blueprints/learning"
-	MEDprofiles "go_module/blueprints/MEDprofiles_"
 	Utils "go_module/src"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/rs/cors"
 )
@@ -38,7 +39,7 @@ func main() {
 	// Here is where you start the server
 	c := cors.Default()
 	handler := c.Handler(http.DefaultServeMux)
-	port := Utils.GetDotEnvVariable("PORT")
+	port := os.Args[1]
 	log.Println("Server is listening on :" + port + "...")
 	err := http.ListenAndServe(":"+port, handler)
 	if err != nil {

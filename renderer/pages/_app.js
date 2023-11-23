@@ -140,7 +140,7 @@ function App() {
     hasBeenSet: false,
     workingDirectory: ""
   })
-  const [port, setPort] = useState(5000)
+  const [port, setPort] = useState()
 
   const [globalData, setGlobalData] = useState({})
 
@@ -179,8 +179,8 @@ function App() {
       setWorkspaceObject(workspace)
     })
 
-    ipcRenderer.on("getFlaskPort", (event, data) => {
-      console.log("flask port update from Electron:", data)
+    ipcRenderer.on("getServerPort", (event, data) => {
+      console.log("server port update from Electron:", data)
       setPort(data.newPort)
     })
 
@@ -188,6 +188,8 @@ function App() {
       console.log("toggleDarkMode")
       // setIsDarkMode(!isDarkMode)
     })
+
+    ipcRenderer.send("messageFromNext", "getServerPort")
   }, []) // Here, we specify that the hook should only be called at the launch of the app
 
   /**

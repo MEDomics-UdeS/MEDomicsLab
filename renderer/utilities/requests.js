@@ -1,7 +1,6 @@
 import { ipcRenderer } from "electron"
 import axios from "axios"
 import { toast } from "react-toastify"
-import MEDconfig, { SERVER_CHOICE } from "../../medomics.dev"
 
 /**
  *
@@ -12,11 +11,7 @@ import MEDconfig, { SERVER_CHOICE } from "../../medomics.dev"
  * @param {Function} onError executed when an error occurs
  */
 export const requestBackend = (port, topic, json2send, jsonReceivedCB, onError) => {
-  if (MEDconfig.serverChoice == SERVER_CHOICE.GO) {
-    axiosPostJsonGo(port, topic, json2send, jsonReceivedCB, onError)
-  } else if (MEDconfig.serverChoice == SERVER_CHOICE.FLASK) {
-    requestJson(port, topic, json2send, jsonReceivedCB, onError)
-  }
+  axiosPostJsonGo(port, topic, json2send, jsonReceivedCB, onError)
 }
 
 /**

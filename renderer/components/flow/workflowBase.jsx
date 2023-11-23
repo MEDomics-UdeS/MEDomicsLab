@@ -7,7 +7,6 @@ import { PageInfosContext } from "../mainPages/moduleBasics/pageInfosContext"
 import { FlowInfosContext } from "./context/flowInfosContext"
 import { FlowResultsContext } from "./context/flowResultsContext"
 import { getId, deepCopy } from "../../utilities/staticFunctions"
-import { ipcRenderer } from "electron"
 import { ToggleButton } from "primereact/togglebutton"
 import Row from "react-bootstrap/Row"
 import Col from "react-bootstrap/Col"
@@ -121,12 +120,6 @@ const WorkflowBase = ({ isGoodConnection, groupNodeHandlingDefault, onDeleteNode
       edges: edges
     })
   }, [nodes, edges])
-
-  // this useEffect is used to get the flask port from the main process
-  useEffect(() => {
-    console.log("send update flask port")
-    ipcRenderer.send("messageFromNext", "getFlaskPort")
-  }, [])
 
   // this useEffect is used to select the correct function to delete a node, either the default one or the one passed as props
   useEffect(() => {

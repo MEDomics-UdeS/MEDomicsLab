@@ -1,6 +1,8 @@
+/* eslint-disable no-undef */
 import React, { createContext, useState, useEffect } from "react"
 import { loadJsonPath } from "../../../utilities/fileManagementUtils"
 import { customZipFile2Object } from "../../../utilities/customZipFile"
+import Path from "path"
 
 // This context is used to store the pageInfos (id and config of the workflow)
 const PageInfosContext = createContext()
@@ -23,7 +25,8 @@ function PageInfosProvider({ children }) {
       const fs = require("fs")
       if (fs.existsSync(configPath)) {
         let config = {}
-        let extension = configPath.split(".")[configPath.split(".").length - 1]
+        let extension = Path.extname(configPath).slice(1)
+        console.log("extension", extension)
         if (ZipFileExtensions.includes(extension)) {
           customZipFile2Object(configPath)
             .then((content) => {

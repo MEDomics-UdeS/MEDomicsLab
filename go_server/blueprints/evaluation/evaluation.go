@@ -20,7 +20,7 @@ func AddHandleFunc() {
 // It returns the response from the python script
 func handleOpenDashboard(jsonConfig string, id string) (string, error) {
 	log.Println("Running dashboard...", id)
-	response, err := Utils.StartPythonScripts(jsonConfig, "../flask_server/evaluation/scripts/open_dashboard.py", id)
+	response, err := Utils.StartPythonScripts(jsonConfig, "../pythonCode/modules/evaluation/open_dashboard.py", id)
 	Utils.RemoveIdFromScripts(id)
 	if err != nil {
 		return "", err
@@ -57,7 +57,7 @@ func handleProgress(jsonConfig string, id string) (string, error) {
 // It returns the response from the python script
 func handlePredictTest(jsonConfig string, id string) (string, error) {
 	log.Println("Running predict test...", id)
-	response, err := Utils.StartPythonScripts(jsonConfig, "../flask_server/evaluation/scripts/predict_test.py", id)
+	response, err := Utils.StartPythonScripts(jsonConfig, "../pythonCode/modules/evaluation/predict_test.py", id)
 	if err != nil {
 		return "", err
 	}
