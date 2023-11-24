@@ -541,6 +541,10 @@ function updateWorkspace(workspacePath) {
 
 /**
  * Generate recent workspaces options
+ * @param {*} event The event
+ * @param {*} mainWindow The main window
+ * @param {*} workspacesArray The array of workspaces, if null, the function will load the workspaces
+ * @returns {Array} An array of recent workspaces options
  */
 function getRecentWorkspacesOptions(event, mainWindow, workspacesArray = null) {
   let workspaces
