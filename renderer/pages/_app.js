@@ -203,6 +203,8 @@ function App() {
     })
 
     ipcRenderer.send("messageFromNext", "getServerPort")
+
+    // ipcRenderer.send("messageFromNext", "getRecentWorkspaces")
   }, []) // Here, we specify that the hook should only be called at the launch of the app
 
   /**

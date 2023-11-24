@@ -220,7 +220,7 @@ if (isProd) {
     console.log("setWorkingDirectory : ", data)
     event.reply("workingDirectorySet", {
       workingDirectory: dirTree(app.getPath("sessionData")),
-      hasBeenSet: hasBeenSet,
+      hasBeenSet: true,
       newPort: serverPort
     })
   })
