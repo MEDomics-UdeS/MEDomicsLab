@@ -49,12 +49,13 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
    * @note - This function is called when the user presses a key.
    */
   const handleKeyPress = (event) => {
+    console.log("KEYPRESS", event)
     if (event.key === "Delete") {
       if (selectedItems.length > 0) {
         console.log("DELETE", selectedItems[0])
         selectedItems.forEach((item) => {
           onDelete(item)
-        })
+        }) 
       }
     } else if (event.code === "KeyC" && event.ctrlKey) {
       setCopiedItems(selectedItems)
@@ -69,6 +70,43 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
       }
     } else if (event.code === "KeyH" && event.ctrlKey) {
       setShowHiddenFiles(!showHiddenFiles)
+    }
+    // Add support for CMD on Mac
+    else if (event.code === "KeyC" && event.metaKey) {
+      setCopiedItems(selectedItems)
+    } else if (event.code === "KeyX" && event.metaKey) {
+      setCutItems(selectedItems)
+    } else if (event.code === "KeyV" && event.metaKey) {
+      if (copiedItems.length > 0) {
+        console.log("PASTE", copiedItems)
+        copiedItems.forEach((item) => {
+          onPaste(item, selectedItems[0])
+        })
+      }
+    } else if (event.code === "KeyH" && event.metaKey) {
+      setShowHiddenFiles(!showHiddenFiles)
+    }
+    // For mac, add Enter key to rename
+    // If os is mac and enter key is pressed
+    if (navigator.platform.indexOf("Mac") > -1) {
+      if (event.code === "Enter") {
+        console.log("ENTER", selectedItems[0], tree.current)
+        if (tree.current !== undefined) {
+          if (tree.current.isRenaming) {
+           tree.current.completeRenamingItem()  
+          } else {
+        event.preventDefault()
+        event.stopPropagation()
+        if (selectedItems.length ===1) {
+          console.log("RENAME", selectedItems[0])
+          tree.current.startRenamingItem(selectedItems[0])
+        }
+      }
+    }
+      } else if (event.code === "Backspace" && event.metaKey) {
+        console.log("BACKSPACE", selectedItems[0])
+        onDelete(selectedItems[0])
+      }
     }
   }
 
