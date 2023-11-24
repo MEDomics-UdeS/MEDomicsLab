@@ -202,11 +202,15 @@ if (isProd) {
           console.log("_dirname: ", __dirname)
           console.log("process.resourcesPath: ", process.resourcesPath)
           if(process.platform == "win32") {
-            serverProcess = execFile(path.join(__dirname, "server_go.exe"), [serverPort, "prod", process.resourcesPath], {
+            serverProcess = execFile(path.join(__dirname, "go_executables\\server_go.exe"), [serverPort, "prod", process.resourcesPath], {
               windowsHide: false
             })
-          } else {
-          serverProcess = execFile(path.join(process.resourcesPath, "server_go"), [serverPort, "prod", process.resourcesPath], {
+          } else if (process.platform == "linux") {
+          serverProcess = execFile(path.join(process.resourcesPath, "go_executables/server_go_linux"), [serverPort, "prod", process.resourcesPath], {
+            windowsHide: false
+          })
+        } else if (process.platform == "darwin") {
+          serverProcess = execFile(path.join(process.resourcesPath, "go_executables/server_go_mac"), [serverPort, "prod", process.resourcesPath], {
             windowsHide: false
           })
         }

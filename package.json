@@ -20,14 +20,14 @@
     "extraResources": [
       "./pythonCode/**/*",
       "./baseFiles/**/*",
-      "server_go",
+      "./go_executables/**/*",
       "installer.nsh",
       "create_conda_env_win.bat"
     ],
     "asarUnpack": [
       "./pythonCode/**/*",
       "./baseFiles/**/*",
-      "server_go",
+      "./go_executables/**/*",
       "build/installer.nsh",
       "create_conda_env_win.bat"
     ],
