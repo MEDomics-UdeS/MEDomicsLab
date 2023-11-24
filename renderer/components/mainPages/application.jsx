@@ -16,7 +16,7 @@ import { DataContext } from "../workspace/dataContext"
 import { Tag } from "primereact/tag"
 import { Tooltip } from "primereact/tooltip"
 import DataTableWrapper from "../dataTypeVisualisation/dataTableWrapper"
-import os from "os"
+
 /**
  *
  * @param {String} pageId The id of the page
