@@ -468,6 +468,11 @@ function findAvailablePort(startPort, endPort = 8000) {
   })
 }
 
+/**
+ * @description Open a new window from an URL
+ * @param {*} url The URL of the page to open
+ * @returns {BrowserWindow} The new window
+ */
 function openWindowFromURL(url) {
   let window = new BrowserWindow({
     icon: path.join(__dirname, "../resources/MEDomicsLabWithShadowNoText100.png"),
