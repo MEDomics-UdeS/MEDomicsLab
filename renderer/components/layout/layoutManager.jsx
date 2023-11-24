@@ -86,7 +86,6 @@ const LayoutManager = (props) => {
         sidebarRef.current.collapse()
       }
     }
-
   }, [])
 
   // This is a useEffect that will be called when a key is pressed
