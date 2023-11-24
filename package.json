@@ -34,10 +34,7 @@
     "extends": null,
     "mac": {
       "category": "public.app-category.developer-tools",
-      "target": [
-        "dmg"
-      ],
-      "icon": "app/assets/icon.icns"
+      "target": "dmg"
     },
     "win": {
       "target": "nsis",
