@@ -53,7 +53,6 @@ import "../styles/evaluation/evaluation.css"
 import "../styles/output.css"
 import "../styles/exploratory/exploratory.css"
 import "../styles/application/application.css"
-import { set } from "react-hook-form"
 
 /**
  * This is the main app component. It is the root component of the app.

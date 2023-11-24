@@ -1,4 +1,4 @@
-import React, { use, useContext, useEffect, useState } from "react"
+import React, { useContext, useEffect, useState } from "react"
 import Image from "next/image"
 import myimage from "../../../resources/medomics_transparent_bg.png"
 import { Button, Stack } from "react-bootstrap"
@@ -10,7 +10,7 @@ import { ipcRenderer } from "electron"
  * @returns the home page component
  */
 const HomePage = () => {
-  const { workspace, recentWorkspaces, setRecentWorkspaces } = useContext(WorkspaceContext)
+  const { workspace, recentWorkspaces } = useContext(WorkspaceContext)
   const [hasBeenSet, setHasBeenSet] = useState(workspace.hasBeenSet)
 
   async function handleWorkspaceChange() {
