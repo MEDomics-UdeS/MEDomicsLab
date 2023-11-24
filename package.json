@@ -20,23 +20,17 @@
     "extraResources": [
       "./pythonCode/**/*",
       "./baseFiles/**/*",
-      "installer.nsh",
-      "create_conda_env_win.bat"
+      "./go_executables/**/*"
     ],
     "asarUnpack": [
       "./pythonCode/**/*",
       "./baseFiles/**/*",
-      "build/installer.nsh",
-      "create_conda_env_win.bat"
+      "./go_executables/**/*"
     ],
     "extends": null,
     "mac": {
       "category": "public.app-category.developer-tools",
-      "target": [
-        "dmg",
-        "zip"
-      ],
-      "icon": "app/assets/icon.icns"
+      "target": "dmg"
     },
     "win": {
       "target": "nsis",
@@ -48,8 +42,7 @@
     "linux": {
       "target": "deb",
       "icon": "app/assets/icon.png",
-      "maintainer": "gblain03@hotmail.com",
-      "publish": "github"
+      "maintainer": "medomicslab.udes@gmail.com"
     },
     "publish": [
       {
@@ -64,7 +57,7 @@
     "build": "nextron build",
     "build:linux": "bash ./utilScripts/build_preparation_linux.sh && nextron build --linux",
     "build:win": ".\\utilScripts\\build_preparation_win.bat && nextron build --win",
-    "build:mac": "nextron build --mac",
+    "build:mac": "bash ./utilScripts/build_preparation_mac.sh && nextron build --mac",
     "publish:linux": "bash ./utilScripts/build_preparation_linux.sh && nextron build --linux --publish always",
     "publish:win": ".\\utilScripts\\build_preparation_win.bat && nextron build --win --publish always",
     "publish:mac": "nextron build --mac --publish always"

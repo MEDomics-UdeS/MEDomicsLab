@@ -150,7 +150,7 @@ if (isProd) {
       findAvailablePort(MEDconfig.defaultPort)
         .then((port) => {
           serverPort = port
-          serverProcess = execFile(`${process.platform == "win32" ? "main.exe" : "./main"}`, [serverPort, "dev"], {
+          serverProcess = execFile(`${process.platform == "win32" ? "main.exe" : "./main"}`, [serverPort, "prod", process.cwd()], {
             windowsHide: false,
             cwd: path.join(process.cwd(), "go_server")
           })
@@ -174,9 +174,21 @@ if (isProd) {
       findAvailablePort(MEDconfig.defaultPort)
         .then((port) => {
           serverPort = port
-          serverProcess = execFile(path.join(__dirname, `${process.platform == "win32" ? "server_go.exe" : "server_go"}`), [serverPort, "prod", process.resourcesPath], {
-            windowsHide: false
-          })
+          console.log("_dirname: ", __dirname)
+          console.log("process.resourcesPath: ", process.resourcesPath)
+          if (process.platform == "win32") {
+            serverProcess = execFile(path.join(process.resourcesPath, "go_executables\\server_go_win32.exe"), [serverPort, "prod", process.resourcesPath], {
+              windowsHide: false
+            })
+          } else if (process.platform == "linux") {
+            serverProcess = execFile(path.join(process.resourcesPath, "go_executables/server_go_linux"), [serverPort, "prod", process.resourcesPath], {
+              windowsHide: false
+            })
+          } else if (process.platform == "darwin") {
+            serverProcess = execFile(path.join(process.resourcesPath, "go_executables/server_go_mac"), [serverPort, "prod", process.resourcesPath], {
+              windowsHide: false
+            })
+          }
           if (serverProcess) {
             serverProcess.stdout.on("data", function (data) {
               console.log("data: ", data.toString("utf8"))
@@ -457,6 +469,11 @@ function findAvailablePort(startPort, endPort = 8000) {
   })
 }
 
+/**
+ * @description Open a new window from an URL
+ * @param {*} url The URL of the page to open
+ * @returns {BrowserWindow} The new window
+ */
 function openWindowFromURL(url) {
   let window = new BrowserWindow({
     icon: path.join(__dirname, "../resources/MEDomicsLabWithShadowNoText100.png"),

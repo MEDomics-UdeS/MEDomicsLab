@@ -36,6 +36,8 @@ func main() {
 	Utils.CreateHandleFunc("removeId/", handleRemoveId)
 	Utils.CreateHandleFunc("clearAll", handleClearAll)
 
+	condaEnv := os.Getenv("MED_ENV")
+	log.Println("Conda env: " + condaEnv)
 	// Here is where you start the server
 	c := cors.Default()
 	handler := c.Handler(http.DefaultServeMux)
@@ -46,6 +48,8 @@ func main() {
 		log.Println("Error starting server: ", err)
 		return
 	}
+
+
 }
 
 // handleGetServerHealth handles the request to get the server health

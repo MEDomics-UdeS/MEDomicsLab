@@ -463,7 +463,7 @@ function App() {
     <>
       <Head>
         <meta name="viewport" content="initial-scale=1.0, width=device-width" />
-        <title>MedomicsLab App</title>
+        <title>MEDomicsLab</title>
         {/* <script src="http://localhost:8097"></script> */}
         {/* Uncomment if you want to use React Dev tools */}
       </Head>

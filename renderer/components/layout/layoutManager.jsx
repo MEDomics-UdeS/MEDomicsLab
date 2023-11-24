@@ -30,6 +30,7 @@ import { LayoutModelContext } from "./layoutContext"
 import { WorkspaceContext } from "../workspace/workspaceContext"
 import { requestBackend } from "../../utilities/requests"
 import { toast } from "react-toastify"
+import os from "os"
 
 const LayoutManager = (props) => {
   const [activeSidebarItem, setActiveSidebarItem] = useState("home") // State to keep track of active nav item
@@ -71,6 +72,13 @@ const LayoutManager = (props) => {
   // It will check if the user pressed ctrl+b and if so, it will collapse or expand the sidebar
   const handleKeyPress = useCallback((event) => {
     if (event.ctrlKey && event.key === "b") {
+      let newShowSidebar = sidebarRef.current.getCollapsed()
+      if (newShowSidebar) {
+        sidebarRef.current.expand()
+      } else {
+        sidebarRef.current.collapse()
+      }
+    } else if (os.platform() === "darwin" && event.metaKey && event.key === "b") {
       let newShowSidebar = sidebarRef.current.getCollapsed()
       if (newShowSidebar) {
         sidebarRef.current.expand()
