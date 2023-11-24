@@ -140,10 +140,10 @@ function App() {
     hasBeenSet: false,
     workingDirectory: ""
   })
-  const [recentWorkspaces, setRecentWorkspaces] = useState([])
-  const [port, setPort] = useState()
+  const [recentWorkspaces, setRecentWorkspaces] = useState([]) // The list of recent workspaces
+  const [port, setPort] = useState() // The port of the server
 
-  const [globalData, setGlobalData] = useState({})
+  const [globalData, setGlobalData] = useState({}) // The global data object
 
   useEffect(() => {
     localStorage.clear()
