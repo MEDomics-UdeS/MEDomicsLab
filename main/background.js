@@ -200,9 +200,16 @@ if (isProd) {
         .then((port) => {
           serverPort = port
           console.log("_dirname: ", __dirname)
-          serverProcess = execFile(path.join(__dirname, `${process.platform == "win32" ? "server_go.exe" : "../resources/server_go"}`), [serverPort, "prod", process.resourcesPath], {
+          console.log("process.resourcesPath: ", process.resourcesPath)
+          if(process.platform == "win32") {
+            serverProcess = execFile(path.join(__dirname, "server_go.exe"), [serverPort, "prod", process.resourcesPath], {
+              windowsHide: false
+            })
+          } else {
+          serverProcess = execFile(path.join(process.resourcesPath, "server_go"), [serverPort, "prod", process.resourcesPath], {
             windowsHide: false
           })
+        }
           if (serverProcess) {
             serverProcess.stdout.on("data", function (data) {
               console.log("data: ", data.toString("utf8"))

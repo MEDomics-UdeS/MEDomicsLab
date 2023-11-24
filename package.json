@@ -20,12 +20,14 @@
     "extraResources": [
       "./pythonCode/**/*",
       "./baseFiles/**/*",
+      "server_go",
       "installer.nsh",
       "create_conda_env_win.bat"
     ],
     "asarUnpack": [
       "./pythonCode/**/*",
       "./baseFiles/**/*",
+      "server_go",
       "build/installer.nsh",
       "create_conda_env_win.bat"
     ],
@@ -33,8 +35,7 @@
     "mac": {
       "category": "public.app-category.developer-tools",
       "target": [
-        "dmg",
-        "zip"
+        "dmg"
       ],
       "icon": "app/assets/icon.icns"
     },
@@ -63,7 +64,7 @@
     "build": "nextron build",
     "build:linux": "bash ./utilScripts/build_preparation_linux.sh && nextron build --linux",
     "build:win": ".\\utilScripts\\build_preparation_win.bat && nextron build --win",
-    "build:mac": "nextron build --mac",
+    "build:mac": "bash ./utilScripts/build_preparation_mac.sh && nextron build --mac",
     "publish:linux": "bash ./utilScripts/build_preparation_linux.sh && nextron build --linux --publish always",
     "publish:win": ".\\utilScripts\\build_preparation_win.bat && nextron build --win --publish always",
     "publish:mac": "nextron build --mac --publish always"
