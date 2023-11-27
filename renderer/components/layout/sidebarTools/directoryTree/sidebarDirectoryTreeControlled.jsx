@@ -582,7 +582,6 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
       }
       if (medDataItem !== undefined && medDataItem.type !== undefined) {
         let itemIsFolder = medDataItem.type === "folder"
-        console.log("itemIsFolder", itemIsFolder)
         let ableToRename = !boolNameInArray(medDataItemName, namesYouCantRename)
         let treeItem = {
           index: key,
