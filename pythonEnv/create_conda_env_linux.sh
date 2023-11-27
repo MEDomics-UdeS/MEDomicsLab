@@ -1,6 +1,6 @@
 #!/bin/bash
 source ~/.bashrc
-eval "$(conda shell.bash hook)"
+#eval "$(conda shell.bash hook)"
 echo "Checking if Conda is installed..."
 command -v conda >/dev/null 2>&1
 if [ $? -ne 0 ]; then

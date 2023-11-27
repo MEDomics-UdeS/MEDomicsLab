@@ -62,7 +62,7 @@ The python environment is created automatically with the scripts in the `pythonE
 You have to run it manually by executing the following commands:
 
 - Windows : `.\pythonEnv\create_conda_env_win.bat`
-- Linux : `bash pythonEnv/create_venv_linux.sh`
+- Linux : `bash pythonEnv/create_conda_env_linux.sh`
 
 The script will create a conda environment named `med_conda_env`, install the required packages in it and create an environment variable named `MED_ENV` that contains the path to the environment.
 
