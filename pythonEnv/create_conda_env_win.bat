@@ -1,6 +1,5 @@
 @echo off
-setlocal enabledelayedexpansion
-
+setlocal 
 echo Checking if Conda is installed...
 where conda >nul 2>&1
 IF %ERRORLEVEL% NEQ 0 (
@@ -39,24 +38,6 @@ IF %ERRORLEVEL% NEQ 0 (
         exit /b 1
     )
 
-    REM Check if Miniconda3 is installed
-    IF EXIST "%USERPROFILE%\miniconda3" (
-        echo Miniconda3 is installed
-        set CONDA_TYPE=miniconda3
-    ) ELSE (
-        REM Check if Anaconda3 is installed
-        IF EXIST "%USERPROFILE%\anaconda3" (
-            echo Anaconda3 is installed
-            set CONDA_TYPE=anaconda3
-        ) ELSE (
-            REM Neither Anaconda3 nor Miniconda3 is installed
-
-            set CONDA_TYPE=unknown
-        )
-    )
-    echo Conda type : !CONDA_TYPE!
-
-
     REM Create a new environment
     echo Creating a new environment...
     conda create -n med_conda_env python=3.9 -y || (
@@ -89,11 +70,27 @@ IF %ERRORLEVEL% NEQ 0 (
         exit /b 1
     )
 
-    REM Export virtual environment path (Windows way)
-    echo Exporting virtual environment path...
-    setx MED_ENV %USERPROFILE%\!CONDA_TYPE\envs\med_conda_env\python.exe || (
-        echo An error occurred while exporting the virtual environment path.
-        exit /b 1
+    REM Check if Miniconda3 is installed
+    IF EXIST "%USERPROFILE%\miniconda3" (
+        REM Export virtual environment path (Windows way)
+        echo Exporting virtual environment path...
+        setx MED_ENV %USERPROFILE%\miniconda3\envs\med_conda_env\python.exe || (
+            echo An error occurred while exporting the virtual environment path.
+            exit /b 1
+        )
+    ) ELSE (
+        REM Check if Anaconda3 is installed
+        IF EXIST "%USERPROFILE%\anaconda3" (
+            REM Export virtual environment path (Windows way)
+            echo Exporting virtual environment path...
+            setx MED_ENV %USERPROFILE%\anaconda3\envs\med_conda_env\python.exe || (
+                echo An error occurred while exporting the virtual environment path.
+                exit /b 1
+            )
+        ) ELSE (
+            REM Neither Anaconda3 nor Miniconda3 is installed
+            echo No conda installed
+        )
     )
 
     echo Done.
@@ -104,22 +101,7 @@ IF %ERRORLEVEL% NEQ 0 (
     REM Replace <PYTHON_VERSION> with the desired Python version (e.g., 3.9)
     REM Replace <REQUIREMENTS_FILE> with the path to the requirements.txt file
 
-    REM Check if Miniconda3 is installed
-    IF EXIST "%USERPROFILE%\miniconda3" (
-        echo Miniconda3 is installed
-        set CONDA_TYPE=miniconda3
-    ) ELSE (
-        REM Check if Anaconda3 is installed
-        IF EXIST "%USERPROFILE%\anaconda3" (
-            echo Anaconda3 is installed
-            set CONDA_TYPE=anaconda3
-        ) ELSE (
-            REM Neither Anaconda3 nor Miniconda3 is installed
-
-            set CONDA_TYPE=unknown
-        )
-    )
-    echo Conda type : !CONDA_TYPE!
+   
 
     REM Activate the base environment
     echo Activating the base environment...
@@ -188,11 +170,27 @@ IF %ERRORLEVEL% NEQ 0 (
         exit /b 1
     )
 
-    REM Export virtual environment path (Windows way)
-    echo Exporting virtual environment path...
-    setx MED_ENV %USERPROFILE%\!CONDA_TYPE\envs\med_conda_env\python.exe || (
-        echo An error occurred while exporting the virtual environment path.
-        exit /b 1
+    REM Check if Miniconda3 is installed
+    IF EXIST "%USERPROFILE%\miniconda3" (
+        REM Export virtual environment path (Windows way)
+        echo Exporting virtual environment path...
+        setx MED_ENV %USERPROFILE%\miniconda3\envs\med_conda_env\python.exe || (
+            echo An error occurred while exporting the virtual environment path.
+            exit /b 1
+        )
+    ) ELSE (
+        REM Check if Anaconda3 is installed
+        IF EXIST "%USERPROFILE%\anaconda3" (
+            REM Export virtual environment path (Windows way)
+            echo Exporting virtual environment path...
+            setx MED_ENV %USERPROFILE%\anaconda3\envs\med_conda_env\python.exe || (
+                echo An error occurred while exporting the virtual environment path.
+                exit /b 1
+            )
+        ) ELSE (
+            REM Neither Anaconda3 nor Miniconda3 is installed
+            echo No conda installed
+        )
     )
 
     echo Done.
