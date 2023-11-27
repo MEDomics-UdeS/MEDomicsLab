@@ -1,5 +1,5 @@
 @echo off
-
+setlocal enabledelayedexpansion
 
 echo Checking if Conda is installed...
 where conda >nul 2>&1
@@ -39,6 +39,24 @@ IF %ERRORLEVEL% NEQ 0 (
         exit /b 1
     )
 
+    REM Check if Miniconda3 is installed
+    IF EXIST "%USERPROFILE%\miniconda3" (
+        echo Miniconda3 is installed
+        set CONDA_TYPE=miniconda3
+    ) ELSE (
+        REM Check if Anaconda3 is installed
+        IF EXIST "%USERPROFILE%\anaconda3" (
+            echo Anaconda3 is installed
+            set CONDA_TYPE=anaconda3
+        ) ELSE (
+            REM Neither Anaconda3 nor Miniconda3 is installed
+
+            set CONDA_TYPE=unknown
+        )
+    )
+    echo Conda type : !CONDA_TYPE!
+
+
     REM Create a new environment
     echo Creating a new environment...
     conda create -n med_conda_env python=3.9 -y || (
@@ -73,7 +91,7 @@ IF %ERRORLEVEL% NEQ 0 (
 
     REM Export virtual environment path (Windows way)
     echo Exporting virtual environment path...
-    setx MED_ENV %USERPROFILE%\miniconda3\envs\med_conda_env\python.exe || (
+    setx MED_ENV %USERPROFILE%\!CONDA_TYPE\envs\med_conda_env\python.exe || (
         echo An error occurred while exporting the virtual environment path.
         exit /b 1
     )
@@ -86,6 +104,23 @@ IF %ERRORLEVEL% NEQ 0 (
     REM Replace <PYTHON_VERSION> with the desired Python version (e.g., 3.9)
     REM Replace <REQUIREMENTS_FILE> with the path to the requirements.txt file
 
+    REM Check if Miniconda3 is installed
+    IF EXIST "%USERPROFILE%\miniconda3" (
+        echo Miniconda3 is installed
+        set CONDA_TYPE=miniconda3
+    ) ELSE (
+        REM Check if Anaconda3 is installed
+        IF EXIST "%USERPROFILE%\anaconda3" (
+            echo Anaconda3 is installed
+            set CONDA_TYPE=anaconda3
+        ) ELSE (
+            REM Neither Anaconda3 nor Miniconda3 is installed
+
+            set CONDA_TYPE=unknown
+        )
+    )
+    echo Conda type : !CONDA_TYPE!
+
     REM Activate the base environment
     echo Activating the base environment...
     conda activate base || (
@@ -93,11 +128,43 @@ IF %ERRORLEVEL% NEQ 0 (
         exit /b 1
     )
 
-    REM Create a new environment
-    echo Creating a new environment...
-    conda create -n med_conda_env python=3.9 -y || (
-        echo An error occurred while creating the new environment.
-        exit /b 1
+    REM Check if the new environment already exists
+    echo Checking if the new environment already exists...
+    conda info --envs | findstr /i med_conda_env >nul 2>&1
+    IF %ERRORLEVEL% EQU 0 (
+        REM The new environment already exists
+        echo The new environment already exists
+        REM Check if the python version is correct (e.g., 3.9), if not, delete the environment and create a new one
+        echo Checking Python 3.9 version:
+        python --version
+        IF %ERRORLEVEL% EQU 0 (
+            REM The python version is correct
+            echo The python version is correct.
+        ) ELSE (
+            REM The python version is incorrect
+            echo The python version is incorrect.
+            REM Delete the environment
+            echo Deleting the environment...
+            conda remove -n med_conda_env --all -y || (
+                echo An error occurred while deleting the environment.
+                exit /b 1
+            )
+            REM Create a new environment
+            echo Creating a new environment...
+            conda create -n med_conda_env python=3.9 -y || (
+                echo An error occurred while creating the new environment.
+                exit /b 1
+            )
+        )
+    ) ELSE (
+        REM The new environment does not exist
+        echo The new environment does not exist.
+        REM Create a new environment
+        echo Creating a new environment...
+        conda create -n med_conda_env python=3.9 -y || (
+            echo An error occurred while creating the new environment.
+            exit /b 1
+        )
     )
 
     REM Activate the new environment
@@ -106,6 +173,7 @@ IF %ERRORLEVEL% NEQ 0 (
         echo An error occurred while activating the new environment.
         exit /b 1
     )
+
 
     REM Install packages from requirements.txt
     echo Installing packages from requirements.txt...
@@ -122,7 +190,7 @@ IF %ERRORLEVEL% NEQ 0 (
 
     REM Export virtual environment path (Windows way)
     echo Exporting virtual environment path...
-    setx MED_ENV %USERPROFILE%\miniconda3\envs\med_conda_env\python.exe || (
+    setx MED_ENV %USERPROFILE%\!CONDA_TYPE\envs\med_conda_env\python.exe || (
         echo An error occurred while exporting the virtual environment path.
         exit /b 1
     )
