@@ -66,6 +66,7 @@ class ModelIO(Node):
                         to_write = {
                             "columns": self.global_config_json["columns"],
                             "target": self.global_config_json["target_column"],
+                            "steps": self.global_config_json["steps"],
                             "ml_type": self.global_config_json["MLType"]
                         }
                         json.dump(to_write, f)

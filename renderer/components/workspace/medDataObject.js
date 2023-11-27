@@ -42,7 +42,7 @@ export default class MedDataObject {
    * @param {Array<string>} [options.childrenIDs=[]] - The IDs of the child objects.
    * @param {Array<string>} [options.acceptedFileTypes] - The accepted file types for the data object.
    */
-  constructor({ originalName = "Unnamed", name = undefined, type = "", parentID = [], path = "", childrenIDs = [], _UUID = undefined, virtualPath = [], lastModified = Date(Date.now()), created = Date(Date.now()), metadata = {}, acceptedFileTypes = [], virtualTransformations = {}, relatedInformation = {} } = {}) {
+  constructor({ originalName = "Unnamed", name = undefined, type = "", parentID = [], path = "", childrenIDs = [], _UUID = undefined, virtualPath = [], lastModified = Date(Date.now()), created = Date(Date.now()), metadata = {}, acceptedFileTypes = [], virtualTransformations = {}, relatedInformation = {}, steps = [] } = {}) {
     this.originalName = originalName
     if (name === undefined) {
       this.name = originalName
@@ -76,6 +76,7 @@ export default class MedDataObject {
     this.objectType = ""
     this.virtualTransformations = virtualTransformations
     this.relatedInformation = relatedInformation
+    this.steps = steps
   }
 
   /**
@@ -95,6 +96,24 @@ export default class MedDataObject {
    */
   static isPathExists(path) {
     return fs.existsSync(path)
+  }
+
+  /**
+   * 
+   * @param {string} path The path to check. 
+   * @param {Object} globalData The global data context.
+   * @returns 
+   */
+  static getStepsFromPath(path, globalData) {
+    try {
+      let dataObject = MedDataObject.checkIfMedDataObjectInContextbyPath(path, globalData)
+      if (!dataObject) return null
+      return dataObject.getSteps()
+    } catch (error) {
+      console.error(error)
+      toast.error("Error getting steps from path")
+      return null
+    }
   }
 
   /**
@@ -1238,6 +1257,25 @@ export default class MedDataObject {
   }
 
   /**
+   * 
+   * @param {string} type The type of the step to add: refer to the dataStepsUtils.jsx
+   * @param {Object} execSettings The settings of the step to add: refer to the dataStepsUtils.jsx
+   */
+  addStep(type, execSettings) {
+    !this.steps && (this.steps = [])
+    this.steps.push({ type: type, execSettings: execSettings })
+    this.lastModified = Date(Date.now())
+  }
+
+  /**
+   * 
+   * @returns {Array} - The steps of the `MedDataObject` instance.
+   */
+  getSteps() {
+    return this.steps
+  }
+
+  /**
    * Applies all the data modifications in the data modification queue of the `MedDataObject` instance to its data.
    */
   applyDataModifications() {
@@ -1253,6 +1291,13 @@ export default class MedDataObject {
    */
   getUUID() {
     return this._UUID
+  }
+
+  /**
+   * Sets the UUID of the `MedDataObject` instance to the provided `newUUID`.
+   */
+  setUUID(newUUID) {
+    this._UUID = newUUID
   }
 
   /**
