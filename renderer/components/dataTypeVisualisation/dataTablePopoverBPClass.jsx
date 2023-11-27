@@ -70,7 +70,6 @@ const DataTablePopoverBP = (props) => {
    * @returns {Void}
    */
   const handleDataTypeChange = (e) => {
-    console.log("Data type changed", e.target.innerText)
     setSelectedType(e.target.innerText)
     changeTypeInGlobalData(e.target.innerText)
   }
@@ -139,9 +138,9 @@ const DataTablePopoverBP = (props) => {
     return []
   }
 
+  /** Hook called when the global data changes to get the registered name of the column in global data */
   useEffect(() => {
-    let name = getColumnNameFromIndex(props.index)
-    console.log("Name", name, props.columnName, name === props.columnName)
+    let name = getColumnNameFromIndex(props.getReorderedIndex(props.index))
     setColumnName(name)
   }, [globalData])
 
@@ -180,11 +179,11 @@ const DataTablePopoverBP = (props) => {
   }, [])
 
   useEffect(() => {
-    let newIndex = props.getReorderedIndex(props.index)
-    let name = getColumnNameFromIndex(newIndex)
-    setColumnName(name)
+    let newIndex = props.getReorderedIndex(props.index) // Get the new index of the column
+    let name = getColumnNameFromIndex(newIndex) // Get the name of the column
+    setColumnName(name) // Set the name of the column
 
-    setSelectedType(getTypeInGlobalData())
+    setSelectedType(getTypeInGlobalData()) // Set the selected type to the type of the column
     let globalDataCopy = { ...globalData }
     if (globalDataCopy[props.config.uuid]) {
       let tags = globalDataCopy[props.config.uuid].getColumnsTag()
