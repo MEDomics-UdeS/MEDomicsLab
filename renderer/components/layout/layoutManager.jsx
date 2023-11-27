@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback, useRef, useContext } from "react"
 import { PanelGroup, Panel, PanelResizeHandle } from "react-resizable-panels"
+import Image from "next/image"
 import resizable from "../../styles/resizable.module.css"
 import IconSidebar from "../layout/iconSidebar"
 import Home from "../mainPages/home"
@@ -188,6 +189,62 @@ const LayoutManager = (props) => {
     }
   }
 
+  // START - QUEBEC FLAG DISPLAY
+  const [quebecFlagDisplay, setQuebecFlagDisplay] = useState(false)
+  const [quebecFlagDisplayHeight, setQuebecFlagDisplayHeight] = useState("0px")
+  const [quebecFlagZIndex, setQuebecFlagZIndex] = useState(-1)
+  let globalVar = true
+  let sequence = []
+
+  // handle hiding and showing the quebec flag
+  const handleQuebecFlagDisplay = () => {
+    globalVar = !globalVar
+    setQuebecFlagDisplay(!globalVar)
+    if (!globalVar) {
+      setQuebecFlagDisplayHeight("100%")
+      setQuebecFlagZIndex(1000)
+    } else {
+      // wait 4s before hiding the flag
+      setTimeout(() => {
+        setQuebecFlagDisplayHeight("0px")
+        setQuebecFlagZIndex(-1)
+      }, 4000)
+    }
+  }
+  //  handle when user press ctrl+m+e+d
+  const handleKeyDown = (event) => {
+    if (event.key == "Control") {
+      sequence = ["Control"]
+    } else if (event.key == "m" && sequence[0] == "Control") {
+      sequence = ["Control", "m"]
+    } else if (event.key == "e" && sequence[1] == "m") {
+      sequence = ["Control", "m", "e"]
+    } else if (event.key == "d" && sequence[2] == "e") {
+      handleQuebecFlagDisplay()
+      sequence = []
+    } else {
+      sequence = []
+    }
+  }
+  // handle when user release ctrl
+  const handleKeyUp = (event) => {
+    if (event.key == "Control") {
+      sequence = []
+    }
+  }
+  // This is a useEffect that will be called when a key is pressed
+  useEffect(() => {
+    // attach the event listener
+    document.addEventListener("keydown", handleKeyDown)
+    document.addEventListener("keyup", handleKeyUp)
+    // remove the event listener
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown)
+      document.removeEventListener("keyup", handleKeyUp)
+    }
+  }, [])
+  // END - QUEBEC FLAG DISPLAY
+
   return (
     <>
       <div style={{ height: "100%", display: "flex", width: "100%" }}>
@@ -206,6 +263,9 @@ const LayoutManager = (props) => {
               {renderContentComponent({ props })} {/* Render content component based on activeNavItem state */}
             </Panel>
           </PanelGroup>
+          <div className="quebec-flag-div">
+            <Image className="quebec-flag" src="/images/QUEBEC-FLAG.jpg" alt="Quebec flag" width="750" height="500" style={{ opacity: quebecFlagDisplay ? "1" : "0", height: quebecFlagDisplayHeight, zIndex: quebecFlagZIndex }} />
+          </div>
         </div>
       </div>
     </>
