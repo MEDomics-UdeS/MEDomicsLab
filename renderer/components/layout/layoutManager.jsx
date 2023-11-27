@@ -213,17 +213,34 @@ const LayoutManager = (props) => {
   }
   //  handle when user press ctrl+m+e+d
   const handleKeyDown = (event) => {
-    if (event.key == "Control") {
-      sequence = ["Control"]
-    } else if (event.key == "m" && sequence[0] == "Control") {
-      sequence = ["Control", "m"]
-    } else if (event.key == "e" && sequence[1] == "m") {
-      sequence = ["Control", "m", "e"]
-    } else if (event.key == "d" && sequence[2] == "e") {
-      handleQuebecFlagDisplay()
-      sequence = []
+    if (os.platform() !== "darwin") {
+      // if not mac
+      if (event.key == "Control") {
+        sequence = ["Control"]
+      } else if (event.key == "m" && sequence[0] == "Control") {
+        sequence = ["Control", "m"]
+      } else if (event.key == "e" && sequence[1] == "m") {
+        sequence = ["Control", "m", "e"]
+      } else if (event.key == "d" && sequence[2] == "e") {
+        handleQuebecFlagDisplay()
+        sequence = []
+      } else {
+        sequence = []
+      }
     } else {
-      sequence = []
+      // if macOS
+      if (event.key == "Meta") {
+        sequence = ["Meta"]
+      } else if (event.key == "m" && sequence[0] == "Meta") {
+        sequence = ["Meta", "m"]
+      } else if (event.key == "e" && sequence[1] == "m") {
+        sequence = ["Meta", "m", "e"]
+      } else if (event.key == "d" && sequence[2] == "e") {
+        handleQuebecFlagDisplay()
+        sequence = []
+      } else {
+        sequence = []
+      }
     }
   }
   // handle when user release ctrl
