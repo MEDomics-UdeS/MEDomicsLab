@@ -574,7 +574,7 @@ export default class MedDataObject {
   static getPathSeparator() {
     if (process.platform === "win32") {
       return "\\"
-    } else if (typeof process !== "undefined" && process.platform === "linux") {
+    } else if (typeof process !== "undefined" && process.platform !== "win32") {
       return "/"
     }
   }
@@ -1359,7 +1359,7 @@ function getPathSeparator() {
   let process = require("process")
   if (process.platform === "win32") {
     return "\\"
-  } else if (typeof process !== "undefined" && process.platform === "linux") {
+  } else if (typeof process !== "undefined" && process.platform !== "win32") {
     return "/"
   }
 }

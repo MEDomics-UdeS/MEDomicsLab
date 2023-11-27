@@ -73,7 +73,7 @@ IF %ERRORLEVEL% NEQ 0 (
 
     REM Export virtual environment path (Windows way)
     echo Exporting virtual environment path...
-    setx MED_ENV %USERPROFILE%\miniconda3\envs\med_conda_env || (
+    setx MED_ENV %USERPROFILE%\miniconda3\envs\med_conda_env\python.exe || (
         echo An error occurred while exporting the virtual environment path.
         exit /b 1
     )

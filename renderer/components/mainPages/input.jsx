@@ -1,5 +1,4 @@
 import React, { useState } from "react"
-import DatasetSelector from "./dataComponents/datasetSelector"
 import ModulePage from "./moduleBasics/modulePage"
 import { Accordion } from "react-bootstrap"
 import MEDprofilesPrepareData from "../input/MEDprofiles/MEDprofilesPrepareData"
@@ -22,13 +21,7 @@ const InputPage = ({ pageId = "42", configPath = null }) => {
       <ModulePage pageId={pageId} configPath={configPath} shadow>
         <h1>INPUT MODULE</h1>
         <div className="input-page">
-          <Accordion className="card-accordion" defaultActiveKey={["0"]} alwaysOpen>
-            <Accordion.Item eventKey="0">
-              <Accordion.Header>Dataset selector</Accordion.Header>
-              <Accordion.Body>
-                <DatasetSelector multiSelect={true} />
-              </Accordion.Body>
-            </Accordion.Item>
+          <Accordion className="card-accordion" defaultActiveKey={["1"]} alwaysOpen>
             <Accordion.Item eventKey="1">
               <Accordion.Header>Merge tool</Accordion.Header>
               <Accordion.Body>

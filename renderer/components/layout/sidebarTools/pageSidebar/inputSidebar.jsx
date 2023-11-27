@@ -1,7 +1,5 @@
 import React, { useContext } from "react"
-import { Button, Stack, Accordion } from "react-bootstrap"
-import { Plus } from "react-bootstrap-icons"
-import DropzoneComponent from "../../../mainPages/dataComponents/dropzoneComponent"
+import { Stack, Accordion } from "react-bootstrap"
 import { WorkspaceContext } from "../../../workspace/workspaceContext"
 import SidebarDirectoryTreeControlled from "../directoryTree/sidebarDirectoryTreeControlled"
 
@@ -28,12 +26,6 @@ const InputSidebar = () => {
         >
           Input Module
         </p>
-        <DropzoneComponent>
-          <Button style={{ alignItems: "flex-end", marginInline: "2%" }}>
-            <Plus size={"2rem"} />
-          </Button>
-        </DropzoneComponent>
-
         <Accordion defaultActiveKey={["dirTree"]} alwaysOpen>
           <SidebarDirectoryTreeControlled />
         </Accordion>

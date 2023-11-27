@@ -4,6 +4,8 @@ import serve from "electron-serve"
 import { createWindow } from "./helpers"
 import { installExtension, REACT_DEVELOPER_TOOLS } from "electron-extension-installer"
 import MEDconfig, { PORT_FINDING_METHOD } from "../medomics.dev"
+import { saveJSON, loadJSON } from "./helpers/datamanager"
+import { main } from "@popperjs/core"
 const fs = require("fs")
 var path = require("path")
 const dirTree = require("directory-tree")
@@ -11,7 +13,7 @@ const { spawn, exec, execFile } = require("child_process")
 var serverProcess = null
 var serverPort = MEDconfig.defaultPort
 var hasBeenSet = false
-
+var recentWorkspaces = {}
 const isProd = process.env.NODE_ENV === "production"
 
 let splashScreen // The splash screen is the window that is displayed while the application is loading
@@ -66,39 +68,12 @@ if (isProd) {
     splashScreen.focus()
     splashScreen.setAlwaysOnTop(true)
   })
-
-  const template = [
+  const openRecentWorkspacesSubmenuOptions = getRecentWorkspacesOptions(null, mainWindow)
+  console.log("openRecentWorkspacesSubmenuOptions", openRecentWorkspacesSubmenuOptions)
+  const menuTemplate = [
     {
       label: "File",
-      submenu: [
-        {
-          label: "New Experiment",
-          click() {
-            console.log("New expriment created")
-          }
-        },
-        {
-          label: "New Workspace",
-          click() {
-            console.log("New expriment created")
-          }
-        },
-        { type: "separator" },
-        {
-          label: "Open Experiment",
-          click() {
-            console.log("Open expriment")
-          }
-        },
-        {
-          label: "Open Workspace",
-          click() {
-            console.log("Workspace opened")
-          }
-        },
-        { type: "separator" },
-        { role: "quit" }
-      ]
+      submenu: [{ label: "Open recent", submenu: getRecentWorkspacesOptions(null, mainWindow) }, { type: "separator" }, { role: "quit" }]
     },
     {
       label: "Edit",
@@ -126,12 +101,30 @@ if (isProd) {
       ]
     },
     {
-      label: "Hello From Electron!",
+      label: "Help",
       submenu: [
         {
-          label: "I have a custom handler",
+          label: "Report an issue",
           click() {
-            console.log("👋")
+            openWindowFromURL("https://forms.office.com/r/8tbTBHL4bv")
+          }
+        },
+        {
+          label: "Contact us",
+          click() {
+            openWindowFromURL("https://forms.office.com/r/Zr8xJbQs64")
+          }
+        },
+        {
+          label: "Join Us on Discord !",
+          click() {
+            openWindowFromURL("https://discord.gg/ZbaGj8E6mP")
+          }
+        },
+        {
+          label: "Documentation",
+          click() {
+            openWindowFromURL("https://medomics-udes.gitbook.io/medomicslab-docs")
           }
         },
         { type: "separator" },
@@ -157,7 +150,7 @@ if (isProd) {
       findAvailablePort(MEDconfig.defaultPort)
         .then((port) => {
           serverPort = port
-          serverProcess = execFile(`${process.platform == "win32" ? "main.exe" : "./main"}`, [serverPort, "dev"], {
+          serverProcess = execFile(`${process.platform == "win32" ? "main.exe" : "./main"}`, [serverPort, "prod", process.cwd()], {
             windowsHide: false,
             cwd: path.join(process.cwd(), "go_server")
           })
@@ -182,9 +175,20 @@ if (isProd) {
         .then((port) => {
           serverPort = port
           console.log("_dirname: ", __dirname)
-          serverProcess = execFile(path.join(__dirname, `${process.platform == "win32" ? "server_go.exe" : "../resources/server_go"}`), [serverPort, "prod", process.resourcesPath], {
-            windowsHide: false
-          })
+          console.log("process.resourcesPath: ", process.resourcesPath)
+          if (process.platform == "win32") {
+            serverProcess = execFile(path.join(process.resourcesPath, "go_executables\\server_go_win32.exe"), [serverPort, "prod", process.resourcesPath], {
+              windowsHide: false
+            })
+          } else if (process.platform == "linux") {
+            serverProcess = execFile(path.join(process.resourcesPath, "go_executables/server_go_linux"), [serverPort, "prod", process.resourcesPath], {
+              windowsHide: false
+            })
+          } else if (process.platform == "darwin") {
+            serverProcess = execFile(path.join(process.resourcesPath, "go_executables/server_go_mac"), [serverPort, "prod", process.resourcesPath], {
+              windowsHide: false
+            })
+          }
           if (serverProcess) {
             serverProcess.stdout.on("data", function (data) {
               console.log("data: ", data.toString("utf8"))
@@ -211,8 +215,28 @@ if (isProd) {
         console.error(err)
       })
   }
-  const menu = Menu.buildFromTemplate(template)
+  const menu = Menu.buildFromTemplate(menuTemplate)
   Menu.setApplicationMenu(menu)
+
+  ipcMain.on("getRecentWorkspaces", (event, data) => {
+    // Receives a message from Next.js
+    console.log("GetRecentWorkspaces : ", data)
+    if (data === "requestRecentWorkspaces") {
+      // If the message is "requestRecentWorkspaces", the function getRecentWorkspaces is called
+      getRecentWorkspaces(event, mainWindow)
+    }
+  })
+
+  ipcMain.on("setWorkingDirectory", (event, data) => {
+    app.setPath("sessionData", data)
+    console.log("setWorkingDirectory : ", data)
+    hasBeenSet = true
+    event.reply("workingDirectorySet", {
+      workingDirectory: dirTree(app.getPath("sessionData")),
+      hasBeenSet: true,
+      newPort: serverPort
+    })
+  })
 
   ipcMain.on("messageFromNext", (event, data) => {
     // Receives a message from Next.js
@@ -227,11 +251,15 @@ if (isProd) {
         hasBeenSet: hasBeenSet,
         newPort: serverPort
       })
+      updateWorkspace(app.getPath("sessionData"))
       event.reply("workingDirectorySet", {
         workingDirectory: dirTree(app.getPath("sessionData")),
         hasBeenSet: hasBeenSet,
         newPort: serverPort
       })
+    } else if (data === "getRecentWorkspaces") {
+      let recentWorkspaces = loadWorkspaces()
+      event.reply("recentWorkspaces", recentWorkspaces)
     } else if (data === "updateWorkingDirectory") {
       event.reply("updateDirectory", {
         workingDirectory: dirTree(app.getPath("sessionData")),
@@ -251,6 +279,7 @@ if (isProd) {
     console.log("toggleDarkMode")
     mainWindow.webContents.send("toggleDarkMode")
   })
+
   if (isProd) {
     await mainWindow.loadURL("app://./index.html")
   } else {
@@ -302,6 +331,8 @@ function setWorkingDirectory(event, mainWindow) {
                 // If the user clicks on "Yes"
                 console.log("Working directory set to " + file)
                 event.reply("messageFromElectron", "Working directory set to " + file)
+                // Add selected folder to the recent workspaces
+                updateWorkspace(file)
                 app.setPath("sessionData", file)
                 createWorkingDirectory()
                 hasBeenSet = true // The boolean hasBeenSet is set to true to indicate that the working directory has been set
@@ -331,6 +362,7 @@ function setWorkingDirectory(event, mainWindow) {
           console.log("Working directory set to " + file)
           event.reply("messageFromElectron", "Working directory set to " + file)
           app.setPath("sessionData", file)
+          updateWorkspace(file)
           createWorkingDirectory()
           hasBeenSet = true // The boolean hasBeenSet is set to true to indicate that the working directory has been set
           // This is the variable that controls the disabled/enabled state of the IconSidebar's buttons in Next.js
@@ -348,7 +380,7 @@ function setWorkingDirectory(event, mainWindow) {
 }
 
 function createWorkingDirectory() {
-  // See the workspace template in the repository
+  // See the workspace menuTemplate in the repository
   createFolder("DATA")
   createFolder("EXPERIMENTS")
 }
@@ -436,4 +468,106 @@ function findAvailablePort(startPort, endPort = 8000) {
     }
     tryPort()
   })
+}
+
+/**
+ * @description Open a new window from an URL
+ * @param {*} url The URL of the page to open
+ * @returns {BrowserWindow} The new window
+ */
+function openWindowFromURL(url) {
+  let window = new BrowserWindow({
+    icon: path.join(__dirname, "../resources/MEDomicsLabWithShadowNoText100.png"),
+    width: 700,
+    height: 700,
+    transparent: true,
+    center: true
+  })
+
+  window.loadURL(url)
+  window.once("ready-to-show", () => {
+    window.show()
+    window.focus()
+  })
+}
+
+/**
+ * Loads the recent workspaces
+ * @returns {Array} An array of workspaces
+ */
+function loadWorkspaces() {
+  const userDataPath = app.getPath("userData")
+  const workspaceFilePath = path.join(userDataPath, "workspaces.json")
+  if (fs.existsSync(workspaceFilePath)) {
+    const workspaces = JSON.parse(fs.readFileSync(workspaceFilePath, "utf8"))
+    // Sort workspaces by date, most recent first
+    return workspaces.sort((a, b) => new Date(b.last_time_it_was_opened) - new Date(a.last_time_it_was_opened))
+  } else {
+    return []
+  }
+}
+
+/**
+ * Saves the recent workspaces
+ * @param {Array} workspaces An array of workspaces
+ */
+function saveWorkspaces(workspaces) {
+  const userDataPath = app.getPath("userData")
+  const workspaceFilePath = path.join(userDataPath, "workspaces.json")
+  fs.writeFileSync(workspaceFilePath, JSON.stringify(workspaces))
+}
+
+/**
+ * Updates the recent workspaces
+ * @param {String} workspacePath The path of the workspace to update
+ */
+function updateWorkspace(workspacePath) {
+  const workspaces = loadWorkspaces()
+  const workspaceIndex = workspaces.findIndex((workspace) => workspace.path === workspacePath)
+  if (workspaceIndex !== -1) {
+    // Workspace exists, update it
+    workspaces[workspaceIndex].status = "opened"
+    workspaces[workspaceIndex].last_time_it_was_opened = new Date().toISOString()
+  } else {
+    // Workspace doesn't exist, add it
+    workspaces.push({
+      path: workspacePath,
+      status: "opened",
+      last_time_it_was_opened: new Date().toISOString()
+    })
+  }
+  app.setPath("sessionData", workspacePath)
+  saveWorkspaces(workspaces)
+}
+
+/**
+ * Generate recent workspaces options
+ * @param {*} event The event
+ * @param {*} mainWindow The main window
+ * @param {*} workspacesArray The array of workspaces, if null, the function will load the workspaces
+ * @returns {Array} An array of recent workspaces options
+ */
+function getRecentWorkspacesOptions(event, mainWindow, workspacesArray = null) {
+  let workspaces
+  if (workspacesArray === null) {
+    workspaces = loadWorkspaces()
+  } else {
+    workspaces = workspacesArray
+  }
+  const recentWorkspaces = workspaces.filter((workspace) => workspace.status === "opened")
+  if (event !== null) {
+    event.reply("recentWorkspaces", recentWorkspaces)
+  }
+  const recentWorkspacesOptions = recentWorkspaces.map((workspace) => {
+    return {
+      label: workspace.path,
+      click() {
+        updateWorkspace(workspace.path)
+        let workspaceObject = { workingDirectory: dirTree(workspace.path), hasBeenSet: true, newPort: serverPort }
+        hasBeenSet = true
+        mainWindow.webContents.send("openWorkspace", workspaceObject)
+      }
+    }
+  })
+  return recentWorkspacesOptions
 }

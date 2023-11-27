@@ -95,7 +95,6 @@ const IconSidebar = ({ onSidebarItemSelect }) => {
         {/* ------------------------------------------- Tooltips ----------------------------------------- */}
         <Tooltip target=".homeNavIcon" {...delayOptions} className="tooltip-icon-sidebar" />
         <Tooltip target=".explorerNav" {...delayOptions} className="tooltip-icon-sidebar" />
-        <Tooltip target=".searchNav" {...delayOptions} className="tooltip-icon-sidebar" />
         <Tooltip target=".inputNav" {...delayOptions} className="tooltip-icon-sidebar" />
         <Tooltip target=".extractionNav" {...delayOptions} className="tooltip-icon-sidebar" data-pr-disabled={extractionBtnstate} />
         <Tooltip target=".exploratoryNav" {...delayOptions} className="tooltip-icon-sidebar" />
@@ -103,7 +102,6 @@ const IconSidebar = ({ onSidebarItemSelect }) => {
         <Tooltip target=".resultsNav" {...delayOptions} className="tooltip-icon-sidebar" />
         <Tooltip target=".evaluationNav" {...delayOptions} className="tooltip-icon-sidebar" />
         <Tooltip target=".applicationNav" {...delayOptions} className="tooltip-icon-sidebar" />
-        <Tooltip target=".layoutTestNav" {...delayOptions} className="tooltip-icon-sidebar" />
         <Tooltip target=".ext-MEDimg-btn" {...delayOptions} className="tooltip-icon-sidebar" />
         <Tooltip target=".ext-text-btn" {...delayOptions} className="tooltip-icon-sidebar" />
         <Tooltip target=".ext-ts-btn" {...delayOptions} className="tooltip-icon-sidebar" />
@@ -120,10 +118,6 @@ const IconSidebar = ({ onSidebarItemSelect }) => {
 
           <Nav.Link className="explorerNav btnSidebar" data-pr-at="right center" data-pr-tooltip="Explorer" data-pr-my="left center" eventKey="explorer" data-tooltip-id="tooltip-explorer" onClick={(event) => handleClick(event, "explorer")}>
             <Files size={"1.25rem"} width={"100%"} height={"100%"} style={{ scale: "0.65" }} />
-          </Nav.Link>
-
-          <Nav.Link className="searchNav btnSidebar" data-pr-at="right center" data-pr-tooltip="Search" data-pr-my="left center" eventKey="search" data-tooltip-id="tooltip-search" onClick={(event) => handleClick(event, "search")} disabled={disabledIcon}>
-            <Search size={"1.25rem"} width={"100%"} height={"100%"} style={{ scale: "0.65" }} />
           </Nav.Link>
 
           <NavDropdown.Divider className="icon-sidebar-divider" style={{ height: "3rem" }} />
@@ -262,19 +256,7 @@ const IconSidebar = ({ onSidebarItemSelect }) => {
           {/* div that puts the buttons to the bottom of the sidebar*/}
           <div className="d-flex icon-sidebar-divider" style={{ flexGrow: "1" }}></div>
 
-          <Nav.Link className="layoutTestNav btnSidebar" data-pr-at="right center" data-pr-my="left center" data-pr-tooltip="Layout Test" eventKey="LayoutTest" data-tooltip-id="tooltip-layoutTest" onClick={(event) => handleClick(event, "layoutTest")}>
-            <BandaidFill size={"1.25rem"} width={"100%"} height={"100%"} style={{ scale: "0.65" }} />
-          </Nav.Link>
-
           <div className="d-flex icon-sidebar-divider" style={{ flexGrow: "1" }}></div>
-
-          <NavDropdown className="settingsNav btnSidebar" onClick={handleNavClick} title={<Gear size={"1.25rem"} width={"100%"} height={"100%"} style={{ scale: "0.75" }} />}>
-            <NavDropdown.Item className="developerModeNav" data-pr-at="right center" data-pr-my="left center" data-pr-tooltip="Developer Mode" href="#/action-1" onClick={(event) => handleToggleDeveloperMode(event)}>
-              Toggle developer mode <b>({developerModeNav ? "ON" : "OFF"})</b>
-            </NavDropdown.Item>
-            <NavDropdown.Item href="#/action-2">Help</NavDropdown.Item>
-            <NavDropdown.Item href="#/action-3">About</NavDropdown.Item>
-          </NavDropdown>
         </Nav>
         {/* ------------------------------------------- END ICON NAVBAR ----------------------------------------- */}
       </div>

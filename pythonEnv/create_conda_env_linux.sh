@@ -91,12 +91,12 @@ conda deactivate || {
 # Export virtual environment path
 echo "Exporting virtual environment path..."
 if grep -q "export MED_ENV=" ~/.bashrc; then
-    sed -i "s|export MED_ENV=.*|export MED_ENV=$HOME/$CONDA_TYPE/envs/med_conda_env/python|" ~/.bashrc || {
+    sed -i "s|export MED_ENV=.*|export MED_ENV=$HOME/$CONDA_TYPE/envs/med_conda_env/bin/python|" ~/.bashrc || {
         echo "An error occurred while updating the virtual environment path."
         exit 1
     }
 else
-    echo "export MED_ENV=$HOME/$CONDA_TYPE/envs/med_conda_env/python" >> ~/.bashrc || {
+    echo "export MED_ENV=$HOME/$CONDA_TYPE/envs/med_conda_env/bin/python" >> ~/.bashrc || {
         echo "An error occurred while exporting the virtual environment path."
         exit 1
     }

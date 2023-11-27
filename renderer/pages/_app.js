@@ -140,9 +140,10 @@ function App() {
     hasBeenSet: false,
     workingDirectory: ""
   })
-  const [port, setPort] = useState()
+  const [recentWorkspaces, setRecentWorkspaces] = useState([]) // The list of recent workspaces
+  const [port, setPort] = useState() // The port of the server
 
-  const [globalData, setGlobalData] = useState({})
+  const [globalData, setGlobalData] = useState({}) // The global data object
 
   useEffect(() => {
     localStorage.clear()
@@ -184,12 +185,25 @@ function App() {
       setPort(data.newPort)
     })
 
+    ipcRenderer.on("openWorkspace", (event, data) => {
+      console.log("openWorkspace from NEXT", data)
+      let workspace = { ...data }
+      setWorkspaceObject(workspace)
+    })
+
     ipcRenderer.on("toggleDarkMode", () => {
       console.log("toggleDarkMode")
       // setIsDarkMode(!isDarkMode)
     })
 
+    ipcRenderer.on("recentWorkspaces", (event, data) => {
+      console.log("recentWorkspaces", data)
+      setRecentWorkspaces(data)
+    })
+
     ipcRenderer.send("messageFromNext", "getServerPort")
+
+    // ipcRenderer.send("messageFromNext", "getRecentWorkspaces")
   }, []) // Here, we specify that the hook should only be called at the launch of the app
 
   /**
@@ -449,7 +463,7 @@ function App() {
     <>
       <Head>
         <meta name="viewport" content="initial-scale=1.0, width=device-width" />
-        <title>MedomicsLab App</title>
+        <title>MEDomicsLab</title>
         {/* <script src="http://localhost:8097"></script> */}
         {/* Uncomment if you want to use React Dev tools */}
       </Head>
@@ -457,7 +471,7 @@ function App() {
         <HotkeysProvider>
           <ActionContextProvider>
             <DataContextProvider globalData={globalData} setGlobalData={setGlobalData}>
-              <WorkspaceProvider workspace={workspaceObject} setWorkspace={setWorkspaceObject} port={port} setPort={setPort}>
+              <WorkspaceProvider workspace={workspaceObject} setWorkspace={setWorkspaceObject} port={port} setPort={setPort} recentWorkspaces={recentWorkspaces} setRecentWorkspaces={setRecentWorkspaces}>
                 <LayoutModelProvider // This is the LayoutContextProvider, which provides the layout model to all the children components of the LayoutManager
                   layoutModel={layoutModel}
                   setLayoutModel={setLayoutModel}
