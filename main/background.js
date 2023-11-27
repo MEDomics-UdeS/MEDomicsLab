@@ -230,6 +230,7 @@ if (isProd) {
   ipcMain.on("setWorkingDirectory", (event, data) => {
     app.setPath("sessionData", data)
     console.log("setWorkingDirectory : ", data)
+    hasBeenSet = true
     event.reply("workingDirectorySet", {
       workingDirectory: dirTree(app.getPath("sessionData")),
       hasBeenSet: true,
@@ -563,7 +564,7 @@ function getRecentWorkspacesOptions(event, mainWindow, workspacesArray = null) {
       click() {
         updateWorkspace(workspace.path)
         let workspaceObject = { workingDirectory: dirTree(workspace.path), hasBeenSet: true, newPort: serverPort }
-
+        hasBeenSet = true
         mainWindow.webContents.send("openWorkspace", workspaceObject)
       }
     }
