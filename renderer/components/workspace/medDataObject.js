@@ -1238,7 +1238,6 @@ export default class MedDataObject {
         }
         // this.metadata.columnsTag[columnName] = tags
         for (let tag of tags) {
-          console.log("tag: ", tag, this.metadata.tagsDict[tag])
           if (tag !== "") {
             if (this.metadata.tagsDict[tag] === undefined || this.metadata.tagsDict[tag] === null) {
               this.metadata.tagsDict[tag] = { color: generateRandomColor(), fontColor: "white" }
