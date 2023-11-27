@@ -20,6 +20,7 @@ const dfUtils = new danfoUtils()
  * @param {Array} props.category - The category of the column
  * @param {Function} props.filterColumn - The function to filter the column
  * @param {Function} props.filterValue - The filter value
+ * @param {Function} props.getReorderedIndex - The function to get the reordered index
  * @returns {JSX.Element}
  */
 const DataTablePopoverBP = (props) => {
@@ -179,6 +180,10 @@ const DataTablePopoverBP = (props) => {
   }, [])
 
   useEffect(() => {
+    let newIndex = props.getReorderedIndex(props.index)
+    let name = getColumnNameFromIndex(newIndex)
+    setColumnName(name)
+
     setSelectedType(getTypeInGlobalData())
     let globalDataCopy = { ...globalData }
     if (globalDataCopy[props.config.uuid]) {
@@ -186,7 +191,7 @@ const DataTablePopoverBP = (props) => {
       if (tags) {
         let tagsDict = tags.tagsDict
         let columnsTag = tags.columnsTag
-        let columnTag = columnsTag[columnName]
+        let columnTag = columnsTag[name]
         let columnTagToSet = {}
         if (columnTag) {
           columnTag.forEach((tag) => {

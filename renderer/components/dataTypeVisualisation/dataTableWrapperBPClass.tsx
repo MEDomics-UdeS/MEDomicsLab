@@ -1,3 +1,5 @@
+/* eslint-disable no-undef */
+/* eslint-disable no-unused-vars */
 import * as React from "react"
 import { Button } from "primereact/button"
 import { Menu, MenuItem, Intent, HotkeysTarget2, Divider, Collapse } from "@blueprintjs/core"
@@ -12,7 +14,6 @@ import { DataFrame, Utils as danfoUtils } from "danfojs-node"
 import { DataTablePopoverBP } from "./dataTablePopoverBPClass"
 import { deepCopy } from "../../utilities/staticFunctions"
 const dfUtils = new danfoUtils()
-// eslint-disable-next-line @typescript-eslint/no-var-requires
 
 export type CellLookup = (rowIndex: number, columnIndex: number) => any // function that returns the cell data
 export type SortCallback = (columnIndex: number, comparator: (a: any, b: any) => number, direction: boolean) => void // function that sorts the column
@@ -22,7 +23,7 @@ export type getName = (columnIndex: number) => string // function that returns t
 
 export interface SortableColumn {
   // interface for the sortable column
-  getColumn(getCellRenderer: CellLookup, getCellData: CellLookup, sortColumn: SortCallback, filterColumn: FilterCallback, nameRenderer: nameRenderer, colName: getName, getFilterValue: getName, freezeColumn: any, isFrozen: any): JSX.Element
+  getColumn(getCellRenderer: CellLookup, getCellData: CellLookup, sortColumn: SortCallback, filterColumn: FilterCallback, nameRenderer: nameRenderer, colName: getName, getFilterValue: getName, freezeColumn: any, isFrozen: any, getReorderedIndex: (number: number) => number): JSX.Element
 }
 
 /**
@@ -55,7 +56,7 @@ abstract class AbstractSortableColumn implements SortableColumn {
    * @param filterColumn - function that filters the column
    * @returns JSX.Element - column
    */
-  public getColumn(getCellRenderer: CellLookup, getCellData: CellLookup, sortColumn: SortCallback, filterColumn: FilterCallback, nameRenderer: nameRenderer, getName: getName, getFilterValue: getName, freezeColumn: any, getIsFrozen: any) {
+  public getColumn(getCellRenderer: CellLookup, getCellData: CellLookup, sortColumn: SortCallback, filterColumn: FilterCallback, nameRenderer: nameRenderer, getName: getName, getFilterValue: getName, freezeColumn: any, getIsFrozen: any, getReorderedIndex: (number: number) => any) {
     const menuRenderer = this.renderMenu.bind(this, sortColumn, freezeColumn, getIsFrozen) // bind the sortColumn function to the menuRenderer
     // const filterThisColumn = (filterValue: string) => filterColumn(this.index, filterValue) // bind the filterColumn function to the filterThisColumn function
     const columnHeaderCellRenderer = () => (
@@ -67,6 +68,7 @@ abstract class AbstractSortableColumn implements SortableColumn {
           category={this.category}
           columnName={this.name}
           index={this.index}
+          getReorderedIndex={getReorderedIndex}
           filterColumn={filterColumn}
           filterValue={getFilterValue}
         />
@@ -685,6 +687,19 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
   }
 
   /**
+   * @description This function returns the corrected column index
+   * @param columnIndex - column index
+   * @returns correctedColumnIndex - corrected column index
+   */
+  public getCorrectedColumnIndex(columnIndex: number) {
+    if (this.state === undefined) {
+      return columnIndex
+    } else {
+      return this.state.columnIndexMap[columnIndex]
+    }
+  }
+
+  /**
    * @description This is the render function of the DataTableWrapperBPClass class
    * @returns void
    */
@@ -698,7 +713,7 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
     const columns = this.state.columns.map(
       (
         col // get the columns
-      ) => col.getColumn(this.getCellRenderer, this.getCellData, this.sortColumn, this.filterColumn, this.getColumnNameRenderer, this.getColumnNameFromColumnIndex, this.getFilterValue, this.freezeColumn, this.getIsFrozen)
+      ) => col.getColumn(this.getCellRenderer, this.getCellData, this.sortColumn, this.filterColumn, this.getColumnNameRenderer, this.getColumnNameFromColumnIndex, this.getFilterValue, this.freezeColumn, this.getIsFrozen, this.getCorrectedColumnIndex)
     )
 
     const numFrozenColumns = this.state.frozenColumns.length

@@ -49,13 +49,12 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
    * @note - This function is called when the user presses a key.
    */
   const handleKeyPress = (event) => {
-    console.log("KEYPRESS", event)
     if (event.key === "Delete") {
       if (selectedItems.length > 0) {
         console.log("DELETE", selectedItems[0])
         selectedItems.forEach((item) => {
           onDelete(item)
-        }) 
+        })
       }
     } else if (event.code === "KeyC" && event.ctrlKey) {
       setCopiedItems(selectedItems)
@@ -93,16 +92,16 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
         console.log("ENTER", selectedItems[0], tree.current)
         if (tree.current !== undefined) {
           if (tree.current.isRenaming) {
-           tree.current.completeRenamingItem()  
+            tree.current.completeRenamingItem()
           } else {
-        event.preventDefault()
-        event.stopPropagation()
-        if (selectedItems.length ===1) {
-          console.log("RENAME", selectedItems[0])
-          tree.current.startRenamingItem(selectedItems[0])
+            event.preventDefault()
+            event.stopPropagation()
+            if (selectedItems.length === 1) {
+              console.log("RENAME", selectedItems[0])
+              tree.current.startRenamingItem(selectedItems[0])
+            }
+          }
         }
-      }
-    }
       } else if (event.code === "Backspace" && event.metaKey) {
         console.log("BACKSPACE", selectedItems[0])
         onDelete(selectedItems[0])
@@ -307,7 +306,7 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
         dispatchLayout({ type: "openHtmlViewer", payload: item })
       } else if (item.type == "txt") {
         dispatchLayout({ type: "openInTextEditor", payload: item })
-      }  else if (item.type == "medmodel") {
+      } else if (item.type == "medmodel") {
         dispatchLayout({ type: "openInModelViewer", payload: item })
       } else {
         console.log("DBCLICKED", event, item)
