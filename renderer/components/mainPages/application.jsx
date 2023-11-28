@@ -8,7 +8,6 @@ import { useContext } from "react"
 import { WorkspaceContext } from "../workspace/workspaceContext"
 import { ErrorRequestContext } from "../generalPurpose/errorRequestContext"
 import { LoaderContext } from "../generalPurpose/loaderContext"
-import Image from "next/image"
 import { ToggleButton } from "primereact/togglebutton"
 import MedDataObject from "../workspace/medDataObject"
 import { customZipFile2Object } from "../../utilities/customZipFile"
@@ -31,8 +30,6 @@ const ApplicationPage = ({ pageId }) => {
   const { port } = useContext(WorkspaceContext)
   const { setError } = useContext(ErrorRequestContext)
   const { setLoader } = useContext(LoaderContext)
-  const [quebecFlagDisplay, setQuebecFlagDisplay] = useState(false)
-  const [quebecFlagDisplayHeight, setQuebecFlagDisplayHeight] = useState("0px")
   const [inputTypeChecked, setInputTypeChecked] = useState(false)
   const [chosenDataset, setChosenDataset] = useState(null)
   const { globalData, setGlobalData } = useContext(DataContext)
@@ -68,57 +65,6 @@ const ApplicationPage = ({ pageId }) => {
       setIsValid2Predict(isValid)
     }
   }, [inputsData])
-
-  // START - QUEBEC FLAG DISPLAY
-  let globalVar = true
-  let sequence = []
-
-  // handle hiding and showing the quebec flag
-  const handleQuebecFlagDisplay = () => {
-    globalVar = !globalVar
-    setQuebecFlagDisplay(!globalVar)
-    if (!globalVar) {
-      setQuebecFlagDisplayHeight("100%")
-    } else {
-      // wait 4s before hiding the flag
-      setTimeout(() => {
-        setQuebecFlagDisplayHeight("0px")
-      }, 4000)
-    }
-  }
-  //  handle when user press ctrl+m+e+d
-  const handleKeyDown = (event) => {
-    if (event.key == "Control") {
-      sequence = ["Control"]
-    } else if (event.key == "m" && sequence[0] == "Control") {
-      sequence = ["Control", "m"]
-    } else if (event.key == "e" && sequence[1] == "m") {
-      sequence = ["Control", "m", "e"]
-    } else if (event.key == "d" && sequence[2] == "e") {
-      handleQuebecFlagDisplay()
-      sequence = []
-    } else {
-      sequence = []
-    }
-  }
-  // handle when user release ctrl
-  const handleKeyUp = (event) => {
-    if (event.key == "Control") {
-      sequence = []
-    }
-  }
-  // This is a useEffect that will be called when a key is pressed
-  useEffect(() => {
-    // attach the event listener
-    document.addEventListener("keydown", handleKeyDown)
-    document.addEventListener("keyup", handleKeyUp)
-    // remove the event listener
-    return () => {
-      document.removeEventListener("keydown", handleKeyDown)
-      document.removeEventListener("keyup", handleKeyUp)
-    }
-  }, [])
-  // END - QUEBEC FLAG DISPLAY
 
   const handleInputUpdate = (inputUpdate) => {
     console.log("inputUpdate", inputUpdate)
@@ -374,7 +320,6 @@ const ApplicationPage = ({ pageId }) => {
             )}
           </>
         )}
-        <Image className="quebec-flag" src="/images/QUEBEC-FLAG.jpg" alt="Quebec flag" width="750" height="500" style={{ opacity: quebecFlagDisplay ? "1" : "0", height: quebecFlagDisplayHeight }} />
       </Stack>
     </>
   )
