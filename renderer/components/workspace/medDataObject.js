@@ -740,7 +740,7 @@ export default class MedDataObject {
       newDataObject.name = newNameFound
 
       newDataObject.lastModified = Date(Date.now())
-      newDataObject.path = this.adaptPathToOS(newParentObjectPath + "\\" + newDataObject.name)
+      newDataObject.path = newParentObjectPath + this.getPathSeparator() + newDataObject.name
 
       console.log("newDataObject.path: ", { newDataObject })
       newDataObject.name = newNameFound
