@@ -16,7 +16,6 @@ import { DataContext } from "../workspace/dataContext"
 import { Tag } from "primereact/tag"
 import { Tooltip } from "primereact/tooltip"
 import DataTableWrapper from "../dataTypeVisualisation/dataTableWrapper"
-import { pipeStep } from "../../workspace/dataStepsUtils"
 
 const Entry = ({ pageId, setRequestSettings, chosenModel, modelMetadata, updateWarnings, mode, setMode, setIsValid2Predict, inputsData, setInputsData }) => {
   const [inputTypeChecked, setInputTypeChecked] = useState(false)
