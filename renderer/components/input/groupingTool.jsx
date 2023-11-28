@@ -137,7 +137,6 @@ const GroupingTool = ({ pageId = "42-grouping", configPath = null }) => {
     let newTags = { ...tagsPresentInSelectedDatasets }
     let newTagsDict = { ...tagsDict }
     tagsToAdd.forEach((tag) => {
-      // newTagsDict = addTagToTagsDict(tag, generateRandomColor(), newTagsDict)
       if (newTags[tag]) {
         newTags[tag] = [...newTags[tag], ...tagsToAdd]
       } else {
@@ -484,18 +483,6 @@ const GroupingTool = ({ pageId = "42-grouping", configPath = null }) => {
         resolveMaster(res) // We resolve the master promise which can be used to chain other promises after the update of the nodes
       })
     })
-  }
-
-  /**
-   * Generate tags dict with colors to save in the datasets metadata
-   * @returns {object} - Tags dict with colors
-   */
-  const generateTagsDictWithColors = () => {
-    let tagsDictWithColors = {}
-    Object.keys(tagsDict).forEach((tag) => {
-      tagsDictWithColors[tag] = { color: tagsDict[tag].color, fontColor: tagsDict[tag].fontColor }
-    })
-    return tagsDictWithColors
   }
 
   /**

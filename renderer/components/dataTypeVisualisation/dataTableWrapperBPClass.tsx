@@ -625,6 +625,11 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
     this.props.setGlobalData(globalDataCopy)
   }
 
+  /**
+   * Returns the dataframe with the new column names
+   * @param df - dataframe
+   * @returns dataframe - dataframe with the new column names
+   */
   private addTagsToData = (df: DataFrame) => {
     let tags = this.props.globalData[this.props.config.uuid].getColumnsTag()
     let tagsDict = tags.tagsDict
