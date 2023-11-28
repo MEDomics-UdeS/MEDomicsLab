@@ -1,6 +1,6 @@
-/* eslint-disable no-unused-vars */
 /* eslint-disable no-undef */
-import React from "react"
+/* eslint-disable no-unused-vars */
+import * as React from "react"
 import { Button } from "primereact/button"
 import { Menu, MenuItem, Intent, HotkeysTarget2, Divider, Collapse } from "@blueprintjs/core"
 import xlxs from "xlsx"
@@ -23,7 +23,7 @@ export type getName = (columnIndex: number) => string // function that returns t
 
 export interface SortableColumn {
   // interface for the sortable column
-  getColumn(getCellRenderer: CellLookup, getCellData: CellLookup, sortColumn: SortCallback, filterColumn: FilterCallback, nameRenderer: nameRenderer, colName: getName, getFilterValue: getName, freezeColumn: any, isFrozen: any): JSX.Element
+  getColumn(getCellRenderer: CellLookup, getCellData: CellLookup, sortColumn: SortCallback, filterColumn: FilterCallback, nameRenderer: nameRenderer, colName: getName, getFilterValue: getName, freezeColumn: any, isFrozen: any, getReorderedIndex: (number: number) => number): JSX.Element
 }
 
 /**
@@ -56,7 +56,7 @@ abstract class AbstractSortableColumn implements SortableColumn {
    * @param filterColumn - function that filters the column
    * @returns JSX.Element - column
    */
-  public getColumn(getCellRenderer: CellLookup, getCellData: CellLookup, sortColumn: SortCallback, filterColumn: FilterCallback, nameRenderer: nameRenderer, getName: getName, getFilterValue: getName, freezeColumn: any, getIsFrozen: any) {
+  public getColumn(getCellRenderer: CellLookup, getCellData: CellLookup, sortColumn: SortCallback, filterColumn: FilterCallback, nameRenderer: nameRenderer, getName: getName, getFilterValue: getName, freezeColumn: any, getIsFrozen: any, getReorderedIndex: (number: number) => any) {
     const menuRenderer = this.renderMenu.bind(this, sortColumn, freezeColumn, getIsFrozen) // bind the sortColumn function to the menuRenderer
     // const filterThisColumn = (filterValue: string) => filterColumn(this.index, filterValue) // bind the filterColumn function to the filterThisColumn function
     const columnHeaderCellRenderer = () => (
@@ -68,6 +68,7 @@ abstract class AbstractSortableColumn implements SortableColumn {
           category={this.category}
           columnName={this.name}
           index={this.index}
+          getReorderedIndex={getReorderedIndex}
           filterColumn={filterColumn}
           filterValue={getFilterValue}
         />
@@ -385,15 +386,23 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
    * @param event - event
    * @param data - data to be exported
    */
-  public async exportToCSV(event: React.MouseEvent<HTMLButtonElement, MouseEvent>, data: any, filePath?: string) {
-    data = this.getModifiedData(data) // get the modified data
+  public async exportToCSV(event: React.MouseEvent<HTMLButtonElement, MouseEvent>, data: any, filePath?: string, df?: DataFrame) {
     let csvContentHeader = "data:text/csv;charset=utf-8,"
     let csvContent = ""
-    let headers = Object.keys(data[0])
+    let headers, firstRow
     // let firstRow = headers.join(",")
-    let firstRow = this.state.newColumnNames.join(",")
-    csvContent += firstRow + "\r\n"
     let length = data.length
+    if (!df) {
+      headers = Object.keys(data[0])
+      firstRow = this.state.newColumnNames.join(",")
+      csvContent += firstRow + "\r\n"
+    } else {
+      headers = df.$columns
+      firstRow = df.$columns.join(",")
+      csvContent += firstRow + "\r\n"
+      data = dfd.toJSON(df)
+    }
+    data = this.getModifiedData(data) // get the modified data
     data.forEach(function (rowArray: { [x: string]: string }, rowindex: number) {
       let rowToPush = ""
       headers.forEach((header, index) => {
@@ -591,6 +600,56 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
       }
     })
     df.rename(columnsRenamingMap, { inplace: true })
+    // Rename the metadata
+    let globalDataCopy = { ...this.props.globalData }
+    let medObject = globalDataCopy[this.props.config.uuid]
+    medObject.setData(df)
+    Object.keys(columnsRenamingMap).forEach((key) => {
+      if (medObject.metadata.columns.includes(key)) {
+        medObject.metadata.columns[medObject.metadata.columns.indexOf(key)] = columnsRenamingMap[key]
+        console.log("COLUMN TAG")
+      }
+      if (medObject.metadata.columnsTag[key]) {
+        console.log("COLUMN TAG")
+        medObject.metadata.columnsTag[columnsRenamingMap[key]] = medObject.metadata.columnsTag[key]
+        delete medObject.metadata.columnsTag[key]
+      }
+      if (medObject.metadata.columnsInfo[key]) {
+        console.log("COLUMN TAG")
+        medObject.metadata.columnsInfo[columnsRenamingMap[key]] = medObject.metadata.columnsInfo[key]
+        delete medObject.metadata.columnsInfo[key]
+      }
+    })
+    console.log("globalDataCopy", globalDataCopy, this.props)
+    globalDataCopy[this.props.config.uuid] = medObject
+    this.props.setGlobalData(globalDataCopy)
+  }
+
+  /**
+   * Returns the dataframe with the new column names
+   * @param df - dataframe
+   * @returns dataframe - dataframe with the new column names
+   */
+  private addTagsToData = (df: DataFrame) => {
+    let tags = this.props.globalData[this.props.config.uuid].getColumnsTag()
+    let tagsDict = tags.tagsDict
+    let columnsTag = tags.columnsTag
+    let columnsNames = df.$columns
+    let columnsNamesRenamingMap = {}
+    columnsNames.forEach((columnName, index) => {
+      let completeColumnName = columnName
+      if (columnsTag[columnName]) {
+        completeColumnName = columnsTag[columnName].join("_|_") + "_|_" + columnName
+      }
+      if (completeColumnName !== columnName) {
+        columnsNamesRenamingMap[columnName] = completeColumnName
+      }
+    })
+    let finalDf = df
+    if (Object.keys(columnsNamesRenamingMap).length > 0) {
+      finalDf = df.rename(columnsNamesRenamingMap, { inplace: false })
+    }
+    return finalDf
   }
 
   /**
@@ -603,9 +662,11 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
     data = this.getModifiedData(data)
     let df = new dfd.DataFrame(data)
     this.saveColumnsNewNames(df)
+    let finalDf = this.addTagsToData(df)
+    let finalData = dfd.toJSON(finalDf)
     if (this.state.config.extension === "csv") {
       try {
-        await this.exportToCSV(event, data, this.state.config.path)
+        await this.exportToCSV(event, [], this.state.config.path, finalDf)
       } catch (e) {
         // No operation
       } finally {
@@ -631,6 +692,19 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
   }
 
   /**
+   * @description This function returns the corrected column index
+   * @param columnIndex - column index
+   * @returns correctedColumnIndex - corrected column index
+   */
+  public getCorrectedColumnIndex(columnIndex: number) {
+    if (this.state === undefined) {
+      return columnIndex
+    } else {
+      return this.state.columnIndexMap[columnIndex]
+    }
+  }
+
+  /**
    * @description This is the render function of the DataTableWrapperBPClass class
    * @returns void
    */
@@ -644,7 +718,7 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
     const columns = this.state.columns.map(
       (
         col // get the columns
-      ) => col.getColumn(this.getCellRenderer, this.getCellData, this.sortColumn, this.filterColumn, this.getColumnNameRenderer, this.getColumnNameFromColumnIndex, this.getFilterValue, this.freezeColumn, this.getIsFrozen)
+      ) => col.getColumn(this.getCellRenderer, this.getCellData, this.sortColumn, this.filterColumn, this.getColumnNameRenderer, this.getColumnNameFromColumnIndex, this.getFilterValue, this.freezeColumn, this.getIsFrozen, this.getCorrectedColumnIndex)
     )
 
     const numFrozenColumns = this.state.frozenColumns.length

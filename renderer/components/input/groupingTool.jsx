@@ -137,7 +137,6 @@ const GroupingTool = ({ pageId = "42-grouping", configPath = null }) => {
     let newTags = { ...tagsPresentInSelectedDatasets }
     let newTagsDict = { ...tagsDict }
     tagsToAdd.forEach((tag) => {
-      // newTagsDict = addTagToTagsDict(tag, generateRandomColor(), newTagsDict)
       if (newTags[tag]) {
         newTags[tag] = [...newTags[tag], ...tagsToAdd]
       } else {
@@ -251,7 +250,7 @@ const GroupingTool = ({ pageId = "42-grouping", configPath = null }) => {
    * @summary This function is used to identify the column key to dataset key
    */
   const identifyColumnKeyToDatasetKey = (columnKey) => {
-    let columnKeySplitted = columnKey.split("_|_")
+    let columnKeySplitted = columnKey.split("_@_")
     if (columnKeySplitted.length === 2) {
       let column = columnKeySplitted[0]
       let datasetKey = columnKeySplitted[1]
@@ -435,6 +434,7 @@ const GroupingTool = ({ pageId = "42-grouping", configPath = null }) => {
                 let datasetKey = childKeys.datasetKey // We get the dataset key
                 if (datasetsConcerned.includes(datasetKey)) {
                   // If the dataset key is in the list of the selected datasets
+                  console.log("datasetKey", datasetKey)
                   let columnsToCheck = columnsConcerned[datasetKey] // We get the columns to check
                   if (columnsToCheck.includes(column)) {
                     // If the column is in the list of the columns to check
@@ -483,18 +483,6 @@ const GroupingTool = ({ pageId = "42-grouping", configPath = null }) => {
         resolveMaster(res) // We resolve the master promise which can be used to chain other promises after the update of the nodes
       })
     })
-  }
-
-  /**
-   * Generate tags dict with colors to save in the datasets metadata
-   * @returns {object} - Tags dict with colors
-   */
-  const generateTagsDictWithColors = () => {
-    let tagsDictWithColors = {}
-    Object.keys(tagsDict).forEach((tag) => {
-      tagsDictWithColors[tag] = { color: tagsDict[tag].color, fontColor: tagsDict[tag].fontColor }
-    })
-    return tagsDictWithColors
   }
 
   /**
@@ -609,22 +597,6 @@ const GroupingTool = ({ pageId = "42-grouping", configPath = null }) => {
   }
 
   /**
-   * Function to update the tags dictionnary in all the selected datasets
-   */
-  const updateTagsDictInAllSelectedDatasets = () => {
-    let newGlobalData = { ...globalData }
-    let newTagsDict = generateTagsDictWithColors()
-    Object.keys(selectedDatasets).forEach((key) => {
-      let dataset = newGlobalData[key]
-      if (dataset) {
-        dataset.metadata.tagsDict = newTagsDict
-        newGlobalData[key] = dataset
-      }
-    })
-    setGlobalData(newGlobalData)
-  }
-
-  /**
    * Function to update the tags dict with the tags already present in the selected datasets
    * @returns {void}
    */
@@ -700,8 +672,8 @@ const GroupingTool = ({ pageId = "42-grouping", configPath = null }) => {
       let datasetChildren = [] // We create a new dataset children array
       if (dataset) {
         // If the dataset exists
-        let columnsTag = getColumnsTagging(globalData[key]) // We get the columns tagging
         getColumnsFromPromise(globalData[key]).then((columns) => {
+          let columnsTag = getColumnsTagging(globalData[key]) // We get the columns tagging
           // We get the columns from the promise
           columns.forEach((column) => {
             // We iterate through the columns
@@ -717,10 +689,10 @@ const GroupingTool = ({ pageId = "42-grouping", configPath = null }) => {
                 }
               })
               addTagsToTagsAlreadyInSelectedDatasets(tagsToAdd) // We add the tags to the tags already in the selected datasets
-              datasetChildren.push({ key: column + "_|_" + key, label: column, value: column, checked: true, partialChecked: false, tags: columnsTag[column] })
+              datasetChildren.push({ key: column + "_@_" + key, label: column, value: column, checked: true, partialChecked: false, tags: columnsTag[column] })
             } else {
               // If the column is not tagged
-              datasetChildren.push({ key: column + "_|_" + key, label: column, value: column, checked: true, partialChecked: false, tags: [] })
+              datasetChildren.push({ key: column + "_@_" + key, label: column, value: column, checked: true, partialChecked: false, tags: [] })
             }
           })
         })
@@ -728,7 +700,7 @@ const GroupingTool = ({ pageId = "42-grouping", configPath = null }) => {
       newNodes.push({ key: key, label: dataset.name, value: dataset.name, children: datasetChildren, checked: false, partialChecked: false }) // We push the dataset to the nodes
     })
     setNodes(newNodes) // We update the nodes
-  }, [selectedDatasets])
+  }, [selectedDatasets, globalData])
 
   /**
    * Function that is called when the tags present in selected datasets are updated
@@ -747,15 +719,6 @@ const GroupingTool = ({ pageId = "42-grouping", configPath = null }) => {
   useEffect(() => {
     updateTagsPresentInSelectedDatasets()
   }, [selectedDatasets])
-
-  /**
-   * Function that is called when tags dict is updated
-   * @returns {void}
-   * @summary This function is used to update the tags dict of every selected dataset when the tags dict is updated
-   */
-  useEffect(() => {
-    updateTagsDictInAllSelectedDatasets()
-  }, [tagsDict])
 
   return (
     <>

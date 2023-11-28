@@ -35,8 +35,12 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
   const [isAccordionShowing, setIsAccordionShowing] = useState(true) // This state is used to know if the accordion is collapsed or not
   const { globalData, setGlobalData } = useContext(DataContext) // We get the global data from the context to retrieve the directory tree of the workspace, thus retrieving the data files
   const { dispatchLayout, developerMode } = useContext(LayoutModelContext)
-
+  const [isDialogShowing, setIsDialogShowing] = useState(false) // This state is used to know if the dialog is showing or not
   const [dirTree, setDirTree] = useState({}) // We get the directory tree from the workspace
+
+  useEffect(() => {
+    console.log("isDialogShowing", isDialogShowing)
+  }, [isDialogShowing])
 
   useEffect(() => {
     console.log("selectedItems", selectedItems)
@@ -50,7 +54,6 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
    * @note - This function is called when the user presses a key.
    */
   const handleKeyPress = (event) => {
-    console.log("KEYPRESS", event)
     if (event.key === "Delete") {
       if (selectedItems.length > 0) {
         console.log("DELETE", selectedItems[0])
@@ -90,7 +93,8 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
     // For mac, add Enter key to rename
     // If os is mac and enter key is pressed
     if (navigator.platform.indexOf("Mac") > -1) {
-      if (event.code === "Enter") {
+      if (event.code === "Enter" && !isDialogShowing) {
+        // We check if the dialog is showing to avoid renaming when the user is in the process of deleting a file
         console.log("ENTER", selectedItems[0], tree.current)
         if (tree.current !== undefined) {
           if (tree.current.isRenaming) {
@@ -199,10 +203,12 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
       toast.error(`Error: ${globalData[uuid].name} cannot be deleted`)
       return
     } else {
+      setIsDialogShowing(true)
       confirmDialog({
         message: `Are you sure you want to delete ${globalData[uuid].name}?`,
         header: "Delete Confirmation",
         icon: "pi pi-info-circle",
+        closable: false,
         accept: () => {
           // If the user confirms the deletion, we delete the `MedDataObject` with the current name and update the `globalData` object.
           let globalDataCopy = { ...globalData }
@@ -210,10 +216,12 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
           setGlobalData(globalDataCopy)
           toast.success(`Deleted ${globalData[uuid].name}`)
           MedDataObject.updateWorkspaceDataObject(300)
+          setIsDialogShowing(false)
         },
         reject: () => {
           // If the user cancels the deletion, we do nothing.
           toast.info("Delete cancelled")
+          setIsDialogShowing(false)
         }
       })
     }
@@ -583,7 +591,6 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
       }
       if (medDataItem !== undefined && medDataItem.type !== undefined) {
         let itemIsFolder = medDataItem.type === "folder"
-        console.log("itemIsFolder", itemIsFolder)
         let ableToRename = !boolNameInArray(medDataItemName, namesYouCantRename)
         let treeItem = {
           index: key,

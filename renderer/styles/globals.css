@@ -436,6 +436,10 @@ body {
   transition: opacity 3s ease-in-out;
   opacity: 0;
   border-radius: 2rem;
+  position: absolute;
+  top: 0px;
+  left: 50%;
+  transform: translate(-50%, 0%);
   box-shadow:
     4px 7px 8px 0.25rem rgb(39 39 39 / 70%),
     0px 0px 7px 0.1rem rgb(39 39 39 / 55%);

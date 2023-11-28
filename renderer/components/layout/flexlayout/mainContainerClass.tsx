@@ -577,10 +577,10 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
           const { globalData, setGlobalData } = this.props as DataContextType
           let globalDataCopy = globalData
           if (globalDataCopy[config.uuid] !== undefined) {
-            globalDataCopy[config.uuid].data = new dfd.DataFrame(data)
+            globalDataCopy[config.uuid].setData(new dfd.DataFrame(data))
             setGlobalData(globalDataCopy)
           }
-          node.getExtraData().data = data
+          node.getExtraData().data = dfd.toJSON(globalDataCopy[config.uuid].data, { format: "column" })
         }
         let extension = config.extension
         if (extension === undefined) {
@@ -592,19 +592,23 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
         else if (extension === "xlsx") loadXLSXFromPath(config.path, whenDataLoaded)
       }
       return (
-        <DataTableWrapperBPClass
-          data={node.getExtraData().data}
-          tablePropsData={{
-            paginator: true,
-            rows: 10,
-            scrollable: true,
-            scrollHeight: "400px"
-          }}
-          tablePropsColumn={{
-            sortable: true
-          }}
-          config={{...config}}
-        />
+        <>
+          <DataTableWrapperBPClass
+            data={node.getExtraData().data}
+            tablePropsData={{
+              paginator: true,
+              rows: 10,
+              scrollable: true,
+              scrollHeight: "400px"
+            }}
+            tablePropsColumn={{
+              sortable: true
+            }}
+            config={...config}
+            globalData={this.props.globalData}
+            setGlobalData={this.props.setGlobalData}
+          />
+        </>
       )
     } else if (component === "learningPage") {
       if (node.getExtraData().data == null) {
@@ -676,7 +680,7 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
         if (config.path !== null) {
           return <MEDprofilesViewer pageId={config.uuid} configPath={config.path} MEDclassesFolder={config?.MEDclassesFolder} MEDprofilesBinaryFile={config?.MEDprofilesBinaryFile} />
         } else {
-          return <MEDprofilesViewer pageId={"MEDprofilesViewer"} MEDclassesFolder={config?.MEDclassesFolder} MEDprofilesBinaryFile={config?.MEDprofilesBinaryFile}/>
+          return <MEDprofilesViewer pageId={"MEDprofilesViewer"} MEDclassesFolder={config?.MEDclassesFolder} MEDprofilesBinaryFile={config?.MEDprofilesBinaryFile} />
         }
       }
     } else if (component === "extractionImagePage") {
