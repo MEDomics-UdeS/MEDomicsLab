@@ -10,6 +10,7 @@ import { LayoutModelContext } from "../../layoutContext"
 import { useContextMenu, Menu, Item, Submenu } from "react-contexify"
 import renderItem from "./renderItem"
 import { Tooltip } from "primereact/tooltip"
+import { confirmDialog } from "primereact/confirmdialog"
 
 /**
  * @description - This component is the sidebar tools component that will be used in the sidebar component
@@ -34,8 +35,12 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
   const [isAccordionShowing, setIsAccordionShowing] = useState(true) // This state is used to know if the accordion is collapsed or not
   const { globalData, setGlobalData } = useContext(DataContext) // We get the global data from the context to retrieve the directory tree of the workspace, thus retrieving the data files
   const { dispatchLayout, developerMode } = useContext(LayoutModelContext)
-
+  const [isDialogShowing, setIsDialogShowing] = useState(false) // This state is used to know if the dialog is showing or not
   const [dirTree, setDirTree] = useState({}) // We get the directory tree from the workspace
+
+  useEffect(() => {
+    console.log("isDialogShowing", isDialogShowing)
+  }, [isDialogShowing])
 
   useEffect(() => {
     console.log("selectedItems", selectedItems)
@@ -49,13 +54,12 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
    * @note - This function is called when the user presses a key.
    */
   const handleKeyPress = (event) => {
-    console.log("KEYPRESS", event)
     if (event.key === "Delete") {
       if (selectedItems.length > 0) {
         console.log("DELETE", selectedItems[0])
         selectedItems.forEach((item) => {
           onDelete(item)
-        }) 
+        })
       }
     } else if (event.code === "KeyC" && event.ctrlKey) {
       setCopiedItems(selectedItems)
@@ -89,20 +93,21 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
     // For mac, add Enter key to rename
     // If os is mac and enter key is pressed
     if (navigator.platform.indexOf("Mac") > -1) {
-      if (event.code === "Enter") {
+      if (event.code === "Enter" && !isDialogShowing) {
+        // We check if the dialog is showing to avoid renaming when the user is in the process of deleting a file
         console.log("ENTER", selectedItems[0], tree.current)
         if (tree.current !== undefined) {
           if (tree.current.isRenaming) {
-           tree.current.completeRenamingItem()  
+            tree.current.completeRenamingItem()
           } else {
-        event.preventDefault()
-        event.stopPropagation()
-        if (selectedItems.length ===1) {
-          console.log("RENAME", selectedItems[0])
-          tree.current.startRenamingItem(selectedItems[0])
+            event.preventDefault()
+            event.stopPropagation()
+            if (selectedItems.length === 1) {
+              console.log("RENAME", selectedItems[0])
+              tree.current.startRenamingItem(selectedItems[0])
+            }
+          }
         }
-      }
-    }
       } else if (event.code === "Backspace" && event.metaKey) {
         console.log("BACKSPACE", selectedItems[0])
         onDelete(selectedItems[0])
@@ -198,12 +203,27 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
       toast.error(`Error: ${globalData[uuid].name} cannot be deleted`)
       return
     } else {
-      // Delete the `MedDataObject` with the current name from the `globalData` object.
-      let globalDataCopy = { ...globalData }
-      globalDataCopy = MedDataObject.delete(globalDataCopy[uuid], globalData, dispatchLayout)
-      setGlobalData(globalDataCopy)
-      toast.success(`Deleted ${globalData[uuid].name}`)
-      MedDataObject.updateWorkspaceDataObject(300)
+      setIsDialogShowing(true)
+      confirmDialog({
+        message: `Are you sure you want to delete ${globalData[uuid].name}?`,
+        header: "Delete Confirmation",
+        icon: "pi pi-info-circle",
+        closable: false,
+        accept: () => {
+          // If the user confirms the deletion, we delete the `MedDataObject` with the current name and update the `globalData` object.
+          let globalDataCopy = { ...globalData }
+          globalDataCopy = MedDataObject.delete(globalDataCopy[uuid], globalData, dispatchLayout)
+          setGlobalData(globalDataCopy)
+          toast.success(`Deleted ${globalData[uuid].name}`)
+          MedDataObject.updateWorkspaceDataObject(300)
+          setIsDialogShowing(false)
+        },
+        reject: () => {
+          // If the user cancels the deletion, we do nothing.
+          toast.info("Delete cancelled")
+          setIsDialogShowing(false)
+        }
+      })
     }
   }
 
@@ -307,7 +327,7 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
         dispatchLayout({ type: "openHtmlViewer", payload: item })
       } else if (item.type == "txt") {
         dispatchLayout({ type: "openInTextEditor", payload: item })
-      }  else if (item.type == "medmodel") {
+      } else if (item.type == "medmodel") {
         dispatchLayout({ type: "openInModelViewer", payload: item })
       } else {
         console.log("DBCLICKED", event, item)
@@ -529,10 +549,12 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
     let files = []
     array.forEach((item) => {
       if (dataContextObject[item] !== undefined) {
-        if (dataContextObject[item].type == "folder") {
-          folders.push(item)
-        } else {
-          files.push(item)
+        if (!dataContextObject[item].name.startsWith(".") || showHiddenFiles) {
+          if (dataContextObject[item].type == "folder") {
+            folders.push(item)
+          } else {
+            files.push(item)
+          }
         }
       }
     })
@@ -546,33 +568,48 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
    */
   function fromJSONtoTree(medDataContext) {
     const treeToSend = {}
-    const namesYouCantRename = ["UUID_ROOT", "DATA", "EXPERIMENTS"] // These names cannot be renamed
+    const namesYouCantRename = ["UUID_ROOT", "DATA", "EXPERIMENTS", ".medomics"] // These names cannot be renamed
 
     Object.keys(medDataContext).forEach((key) => {
       let medDataItem = medDataContext[key]
       let medDataItemName = medDataItem.name
       if (showHiddenFiles == false) {
-        if (medDataItemName.startsWith(".")) {
+        // Check if the name starts with a dot
+        let nameStartsWithDot = medDataItemName.startsWith(".")
+        let parentNameStartsWithDot = false
+        if (medDataItem.parentID !== undefined) {
+          let parentID = medDataItem.parentID
+          let parentObject = medDataContext[parentID]
+          if (parentObject !== undefined) {
+            let parentName = parentObject.name
+            parentNameStartsWithDot = parentName.startsWith(".")
+          }
+        }
+        if (nameStartsWithDot || parentNameStartsWithDot) {
           return
         }
       }
-      let itemIsFolder = medDataItem.type === "folder"
-      let ableToRename = !boolNameInArray(medDataItemName, namesYouCantRename)
-      let treeItem = {
-        index: key,
-        isFolder: itemIsFolder,
-        UUID: key,
-        name: medDataItemName,
-        type: medDataItem.extension,
-        path: medDataItem.path,
-        acceptedFiles: medDataItem.acceptedFileTypes,
-        children: medDataItem.childrenIDs ? reorderArrayOfFoldersAndFiles(medDataItem.childrenIDs, medDataContext) : [],
-        data: medDataItemName,
-        canRename: ableToRename
-      }
-      treeToSend[key] = treeItem
-      if (medDataItem.parentID && medDataItem.parentID.length == 0) {
-        treeToSend.root.children.push(key)
+      if (medDataItem !== undefined && medDataItem.type !== undefined) {
+        let itemIsFolder = medDataItem.type === "folder"
+        console.log("itemIsFolder", itemIsFolder)
+        let ableToRename = !boolNameInArray(medDataItemName, namesYouCantRename)
+        let treeItem = {
+          index: key,
+          isFolder: itemIsFolder,
+          UUID: key,
+          name: medDataItemName,
+          type: medDataItem.extension,
+          path: medDataItem.path,
+          acceptedFiles: medDataItem.acceptedFileTypes,
+          children: medDataItem.childrenIDs ? reorderArrayOfFoldersAndFiles(medDataItem.childrenIDs, medDataContext) : [],
+          data: medDataItemName,
+          canRename: ableToRename,
+          canMove: ableToRename
+        }
+        treeToSend[key] = treeItem
+        if (medDataItem.parentID && medDataItem.parentID.length == 0) {
+          treeToSend.root.children.push(key)
+        }
       }
     })
 
