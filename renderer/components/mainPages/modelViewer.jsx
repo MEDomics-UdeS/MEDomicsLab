@@ -28,6 +28,12 @@ const ModelViewer = () => {
           </ul>
           <h3>Model target</h3>
           <p>{config.target}</p>
+          <h3>Preprocess steps</h3>
+          <ol>
+            {config.steps.map((step, i) => (
+              <li key={i}>{step.type}</li>
+            ))}
+          </ol>
           <h3>Machine learning type</h3>
           <p>{config.ml_type}</p>
         </>

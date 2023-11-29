@@ -17,6 +17,149 @@ import { Tooltip } from "primereact/tooltip"
 import DataTableWrapper from "../dataTypeVisualisation/dataTableWrapper"
 
 /**
+ * 
+ * @param {string} pageId The id of the page
+ * @param {function} setRequestSettings The function to set the request settings
+ * @param {Object} chosenModel The chosen model
+ * @param {Object} modelMetadata The metadata of the chosen model
+ * @param {function} updateWarnings The function to update the warnings
+ * @param {string} mode The mode of the entry
+ * @param {function} setMode The function to set the mode
+ * @param {function} setIsValid2Predict The function to set the isValid2Predict
+ * @param {Object} inputsData The inputs data
+ * @param {function} setInputsData The function to set the inputs data
+ * 
+ * @returns {React.Component} The entry component 
+ */
+const Entry = ({ pageId, setRequestSettings, chosenModel, modelMetadata, updateWarnings, mode, setMode, setIsValid2Predict, inputsData, setInputsData }) => {
+  const [inputTypeChecked, setInputTypeChecked] = useState(false)
+  const [chosenDataset, setChosenDataset] = useState(null)
+  const [datasetHasWarning, setDatasetHasWarning] = useState({ state: true, tooltip: "No dataset selected" })
+  const [isColsValid, setIsColsValid] = useState(false)
+
+  // when the inputs data change, update the isValid2Predict
+  useEffect(() => {
+    if (modelMetadata) {
+      let columns = modelMetadata.columns
+      let isValid = true
+      console.log("inputsData", inputsData, columns)
+
+      columns.forEach((columnName) => {
+        if (columnName != modelMetadata.target) {
+          if (inputsData[columnName]) {
+            if (typeof inputsData[columnName] == "object") {
+              if (!inputsData[columnName][0]) {
+                isValid = false
+              }
+            }
+          } else {
+            isValid = false
+          }
+        }
+      })
+      setIsColsValid(isValid)
+    }
+  }, [inputsData])
+
+  // when the chosen dataset changes, update the warnings
+  useEffect(() => {
+    console.log("chosenDataset", chosenDataset)
+    updateWarnings(chosenDataset, setDatasetHasWarning)
+  }, [chosenDataset])
+
+  // when inputTypeChecked changes, update the mode
+  useEffect(() => {
+    setMode(inputTypeChecked ? "table" : "unique")
+    inputTypeChecked ? setIsValid2Predict(!datasetHasWarning.state) : setIsValid2Predict(isColsValid)
+  }, [inputTypeChecked])
+
+  // when the datasetHasWarning changes, update the isValid2Predict
+  useEffect(() => {
+    mode == "table" && setIsValid2Predict(!datasetHasWarning.state)
+  }, [datasetHasWarning])
+
+  // when the isColsValid changes, update the isValid2Predict
+  useEffect(() => {
+    console.log("isColsValid", isColsValid, "mode", mode)
+    mode == "unique" && setIsValid2Predict(isColsValid)
+  }, [isColsValid])
+
+  // when the chosen model changes, update the model metadata
+  useEffect(() => {
+    console.log("chosenModel", chosenModel)
+    setInputsData({})
+    updateWarnings(chosenDataset, setDatasetHasWarning)
+  }, [chosenModel])
+
+  // when the inputs data change, update the request settings
+  useEffect(() => {
+    setRequestSettings({
+      model: chosenModel,
+      dataset: chosenDataset,
+      data: inputsData,
+      type: mode
+    })
+  }, [chosenModel, chosenDataset, inputsData, mode])
+
+  /**
+   *
+   * @param {Object} inputUpdate The input update
+   */
+  const handleInputUpdate = (inputUpdate) => {
+    console.log("inputUpdate", inputUpdate)
+    let newInputsData = { ...inputsData }
+    newInputsData[inputUpdate.name] = [inputUpdate.value]
+    setInputsData(newInputsData)
+  }
+
+  /**
+   *
+   * @param {Object} inputUpdate The input update
+   */
+  const onDatasetChange = (inputUpdate) => {
+    console.log("inputUpdate", inputUpdate)
+    setChosenDataset(inputUpdate.value)
+  }
+
+  return (
+    <>
+      <ToggleButton onLabel="File entry" offLabel="Columns entry" onIcon="pi pi-file-import" offIcon="pi pi-th-large" checked={inputTypeChecked} onChange={(e) => setInputTypeChecked(e.value)} />
+      {!inputTypeChecked ? (
+        <div className="columns-filling">
+          {modelMetadata.columns.map((columnName, index) => {
+            if (columnName != modelMetadata.target) {
+              return <Input key={index} name={columnName} settingInfos={{ type: "string", tooltip: "" }} currentValue={inputsData[columnName] ? inputsData[columnName] : ""} onInputChange={handleInputUpdate} />
+            }
+          })}
+        </div>
+      ) : (
+        <div className="data-input-tag-right">
+          {datasetHasWarning.state && (
+            <>
+              <Tag className={`app-dataset-warning-tag-${pageId}`} icon="pi pi-exclamation-triangle" severity="warning" value="" rounded data-pr-position="bottom" data-pr-showdelay={200} />
+              <Tooltip target={`.app-dataset-warning-tag-${pageId}`} autoHide={false}>
+                <span>{datasetHasWarning.tooltip}</span>
+              </Tooltip>
+            </>
+          )}
+          <Input
+            name="files"
+            settingInfos={{
+              type: "data-input",
+              tooltip: "<p>Specify a data file (csv)</p>"
+            }}
+            currentValue={chosenDataset || {}}
+            onInputChange={onDatasetChange}
+            setHasWarning={setDatasetHasWarning}
+          />
+        </div>
+      )}
+    </>
+  )
+}
+
+
+/**
  *
  * @param {String} pageId The id of the page
  * @returns {React.Component} The application page
@@ -30,12 +173,11 @@ const ApplicationPage = ({ pageId }) => {
   const { port } = useContext(WorkspaceContext)
   const { setError } = useContext(ErrorRequestContext)
   const { setLoader } = useContext(LoaderContext)
-  const [inputTypeChecked, setInputTypeChecked] = useState(false)
-  const [chosenDataset, setChosenDataset] = useState(null)
   const { globalData, setGlobalData } = useContext(DataContext)
-  const [datasetHasWarning, setDatasetHasWarning] = useState({ state: true, tooltip: "No dataset selected" })
   const [modelHasWarning, setModelHasWarning] = useState({ state: true, tooltip: "No model selected" })
   const [predictionsColumns, setPredictionsColumns] = useState([])
+  const [mode, setMode] = useState("unique")
+  const [requestSettings, setRequestSettings] = useState({})
 
   // when the chosen model changes, update the model metadata
   useEffect(() => {
@@ -44,51 +186,17 @@ const ApplicationPage = ({ pageId }) => {
     updateWarnings()
   }, [chosenModel])
 
-  // when the chosen dataset changes, update the warnings
-  useEffect(() => {
-    console.log("chosenDataset", chosenDataset)
-    updateWarnings()
-  }, [chosenDataset])
-
-  // when the inputs data change, update the isValid2Predict
-  useEffect(() => {
-    if (modelMetadata) {
-      let columns = modelMetadata.columns
-      let isValid = true
-      columns.forEach((columnName) => {
-        if (columnName != modelMetadata.target) {
-          if (!inputsData[columnName]) {
-            isValid = false
-          }
-        }
-      })
-      setIsValid2Predict(isValid)
-    }
-  }, [inputsData])
-
-  const handleInputUpdate = (inputUpdate) => {
-    console.log("inputUpdate", inputUpdate)
-    let newInputsData = { ...inputsData }
-    newInputsData[inputUpdate.name] = [inputUpdate.value]
-    setInputsData(newInputsData)
-  }
-
   /**
    *
    * @param {String} type The type of prediction to do
    */
-  const handlePredictClick = (type) => {
+  const handlePredictClick = () => {
     console.log("inputsData", inputsData)
     setLoader(true)
     requestBackend(
       port,
       "application/predict/" + pageId,
-      {
-        model: chosenModel,
-        dataset: chosenDataset,
-        data: inputsData,
-        type: type
-      },
+      requestSettings,
       (response) => {
         console.log("response", response)
         if (response.error) {
@@ -106,14 +214,6 @@ const ApplicationPage = ({ pageId }) => {
     )
   }
 
-  /**
-   *
-   * @param {Object} inputUpdate The input update
-   */
-  const onDatasetChange = (inputUpdate) => {
-    console.log("inputUpdate", inputUpdate)
-    setChosenDataset(inputUpdate.value)
-  }
 
   // when predictions change, update the columns
   useEffect(() => {
@@ -139,7 +239,7 @@ const ApplicationPage = ({ pageId }) => {
   /**
    * @description - This function is used to update the warnings
    */
-  const updateWarnings = async () => {
+  const updateWarnings = async (chosenDataset, setDatasetHasWarning) => {
     console.log("updateWarnings")
     setPredictions(null)
 
@@ -198,10 +298,7 @@ const ApplicationPage = ({ pageId }) => {
       if (modelDataObject) {
         console.log("model columns already loaded ?", modelDataObject.metadata.content)
         if (!modelDataObject.metadata.content) {
-          console.log("flag1 - true")
           if (!chosenModel.metadata) {
-            console.log("flag2 - true")
-
             try {
               customZipFile2Object(chosenModel.path)
                 .then((content) => {
@@ -220,8 +317,6 @@ const ApplicationPage = ({ pageId }) => {
               console.log("error", error)
             }
           } else {
-            console.log("flag2 - false")
-
             modelDataObject.metadata.content = chosenModel.metadata
             setGlobalData({ ...globalData })
             let modelData = chosenModel.metadata.columns
@@ -254,69 +349,20 @@ const ApplicationPage = ({ pageId }) => {
         </div>
         {modelMetadata && (
           <>
-            <ToggleButton onLabel="File entry" offLabel="Columns entry" onIcon="pi pi-file-import" offIcon="pi pi-th-large" checked={inputTypeChecked} onChange={(e) => setInputTypeChecked(e.value)} />
-            {!inputTypeChecked ? (
-              <div className="columns-filling">
-                {modelMetadata.columns.map((columnName, index) => {
-                  if (columnName != modelMetadata.target) {
-                    return <Input key={index} name={columnName} settingInfos={{ type: "string", tooltip: "" }} currentValue={inputsData[columnName] ? inputsData[columnName] : ""} onInputChange={handleInputUpdate} />
-                  }
-                })}
-              </div>
-            ) : (
-              <div className="data-input-tag-right">
-                {datasetHasWarning.state && (
-                  <>
-                    <Tag className={`app-dataset-warning-tag-${pageId}`} icon="pi pi-exclamation-triangle" severity="warning" value="" rounded data-pr-position="bottom" data-pr-showdelay={200} />
-                    <Tooltip target={`.app-dataset-warning-tag-${pageId}`} autoHide={false}>
-                      <span>{datasetHasWarning.tooltip}</span>
-                    </Tooltip>
-                  </>
-                )}
-                <Input
-                  name="files"
-                  settingInfos={{
-                    type: "data-input",
-                    tooltip: "<p>Specify a data file (csv)</p>"
-                  }}
-                  currentValue={chosenDataset || {}}
-                  onInputChange={onDatasetChange}
-                  setHasWarning={setDatasetHasWarning}
-                />
-              </div>
-            )}
-            {!inputTypeChecked ? (
-              <Row className="predictions-row">
-                <Col md>
-                  <Button label="Predict" outlined severity="success" onClick={() => handlePredictClick("unique")} disabled={!isValid2Predict} />
-                </Col>
-                <Col md>
-                  <div className="pred-text" style={{ opacity: predictions && predictions.prediction ? "1" : "0.5" }}>
-                    <h4>
-                      {modelMetadata.target}: {predictions && predictions.prediction ? predictions.prediction : "NaN"}
-                    </h4>
-                  </div>
-                </Col>
-              </Row>
-            ) : (
-              <>
-                {/* <div className="div-predictions-file"> */}
-                <Button label="Predict" outlined severity="success" onClick={() => handlePredictClick("table")} disabled={datasetHasWarning.state || modelHasWarning.state} />
-                {predictions && predictions.resultDataset && (
-                  <DataTableWrapper
-                    data={predictions.resultDataset}
-                    tablePropsData={{
-                      scrollable: true,
-                      scrollHeight: "flex",
-                      size: "small",
-                      paginator: true,
-                      rows: 10
-                    }}
-                    columns={predictionsColumns}
-                  />
-                )}
-                {/* </div> */}
-              </>
+            <Entry pageId={pageId} setRequestSettings={setRequestSettings} chosenModel={chosenModel} modelMetadata={modelMetadata} updateWarnings={updateWarnings} mode={mode} setMode={setMode} setIsValid2Predict={setIsValid2Predict} inputsData={inputsData} setInputsData={setInputsData} />
+            <Button label="Predict" outlined severity="success" onClick={() => handlePredictClick()} disabled={!isValid2Predict} />
+            {predictions && predictions.resultDataset && (
+              <DataTableWrapper
+                data={predictions.resultDataset}
+                tablePropsData={{
+                  scrollable: true,
+                  scrollHeight: "flex",
+                  size: "small",
+                  paginator: true,
+                  rows: 10
+                }}
+                columns={predictionsColumns}
+              />
             )}
           </>
         )}
@@ -325,6 +371,13 @@ const ApplicationPage = ({ pageId }) => {
   )
 }
 
+/**
+ * 
+ * @param {string} pageId The id of the page
+ * @param {string} configPath The path of the config file
+ *  
+ * @returns {React.Component} The application page with module page
+ */
 const ApplicationPageWithModulePage = ({ pageId = "application-456", configPath = null }) => {
   return (
     <>

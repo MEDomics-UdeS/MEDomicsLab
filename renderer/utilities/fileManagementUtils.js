@@ -50,13 +50,14 @@ const downloadFile = (exportObj, exportName) => {
  * This function takes a path and downloads the file
  */
 const downloadFilePath = (path) => {
-  fs.copyFileSync(path, "./renderer/public/tmp/" + Path.basename(path))
-  var downloadAnchorNode = document.createElement("a")
-  downloadAnchorNode.setAttribute("href", "./tmp/" + Path.basename(path))
-  downloadAnchorNode.setAttribute("download", Path.basename(path))
-  document.body.appendChild(downloadAnchorNode) // required for firefox
-  downloadAnchorNode.click()
-  downloadAnchorNode.remove()
+  toLocalPath(path).then((localPath) => {
+    var downloadAnchorNode = document.createElement("a")
+    downloadAnchorNode.setAttribute("href", "./tmp/" + Path.basename(localPath))
+    downloadAnchorNode.setAttribute("download", Path.basename(localPath))
+    document.body.appendChild(downloadAnchorNode) // required for firefox
+    downloadAnchorNode.click()
+    downloadAnchorNode.remove()
+  })
 }
 
 /**

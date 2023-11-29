@@ -182,7 +182,7 @@ const SweetViz = ({ pageId, port, setError }) => {
             </div>
           </div>
         )}
-        {isCalculating && !htmlFilePath && <ProgressBarRequests delayMS={100} progressBarProps={{ animated: true, variant: "success" }} isUpdating={isCalculating} setIsUpdating={setIsCalculating} progress={progress} setProgress={setProgress} requestTopic={"exploratory/progress/" + pageId} />}
+        {isCalculating && !htmlFilePath && <ProgressBarRequests delayMS={500} progressBarProps={{ animated: true, variant: "success" }} isUpdating={isCalculating} setIsUpdating={setIsCalculating} progress={progress} setProgress={setProgress} requestTopic={"exploratory/progress/" + pageId} />}
         {htmlFilePath && (
           <div className="finish-btn-group">
             <Button onClick={handleOpenFile(htmlFilePath)} className="btn btn-primary" label="Open generated file" icon="pi pi-chart-bar" iconPos="right" severity="success" />
@@ -311,7 +311,7 @@ const YDataProfiling = ({ pageId, port, setError }) => {
             </div>
           </div>
         )}
-        {isCalculating && !htmlFilePath && <ProgressBarRequests delayMS={100} progressBarProps={{ animated: true, variant: "success" }} isUpdating={isCalculating} setIsUpdating={setIsCalculating} progress={progress} setProgress={setProgress} requestTopic={"exploratory/progress/" + pageId} />}
+        {isCalculating && !htmlFilePath && <ProgressBarRequests delayMS={500} progressBarProps={{ animated: true, variant: "success" }} isUpdating={isCalculating} setIsUpdating={setIsCalculating} progress={progress} setProgress={setProgress} requestTopic={"exploratory/progress/" + pageId} />}
         {htmlFilePath && (
           <div className="finish-btn-group">
             <Button onClick={handleOpenFile(htmlFilePath)} className="btn btn-primary" label="Open generated file" icon="pi pi-chart-bar" iconPos="right" severity="success" />

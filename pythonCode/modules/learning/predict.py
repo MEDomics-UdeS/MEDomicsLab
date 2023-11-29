@@ -36,13 +36,13 @@ class GoExecScriptPredict(GoExecutionScript):
             dataset_original = load_csv(json_config['dataset']['path'], model_infos['metadata']['target'])
             dataset = dataset_original.drop(columns=[model_infos['metadata']['target']])
             y_pred = model.predict(dataset)
-            dataset[str("pred_"+model_infos['metadata']['target'])] = y_pred
-            self.results = {"resultDataset": dataset.to_dict(orient='records')}
         else:
             data = json_config['data']
-            data_df = pd.DataFrame(data)
-            y_pred = model.predict(data_df)
-            self.results = {"prediction": str(y_pred[0])}
+            dataset = pd.DataFrame(data)
+            y_pred = model.predict(dataset)
+
+        dataset[str("pred_" + model_infos['metadata']['target'])] = y_pred
+        self.results = {"resultDataset": dataset.to_dict(orient='records')}
         return self.results
 
 
