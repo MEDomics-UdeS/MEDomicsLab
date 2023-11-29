@@ -16,6 +16,21 @@ import { Tag } from "primereact/tag"
 import { Tooltip } from "primereact/tooltip"
 import DataTableWrapper from "../dataTypeVisualisation/dataTableWrapper"
 
+/**
+ * 
+ * @param {string} pageId The id of the page
+ * @param {function} setRequestSettings The function to set the request settings
+ * @param {Object} chosenModel The chosen model
+ * @param {Object} modelMetadata The metadata of the chosen model
+ * @param {function} updateWarnings The function to update the warnings
+ * @param {string} mode The mode of the entry
+ * @param {function} setMode The function to set the mode
+ * @param {function} setIsValid2Predict The function to set the isValid2Predict
+ * @param {Object} inputsData The inputs data
+ * @param {function} setInputsData The function to set the inputs data
+ * 
+ * @returns {React.Component} The entry component 
+ */
 const Entry = ({ pageId, setRequestSettings, chosenModel, modelMetadata, updateWarnings, mode, setMode, setIsValid2Predict, inputsData, setInputsData }) => {
   const [inputTypeChecked, setInputTypeChecked] = useState(false)
   const [chosenDataset, setChosenDataset] = useState(null)
@@ -52,15 +67,18 @@ const Entry = ({ pageId, setRequestSettings, chosenModel, modelMetadata, updateW
     updateWarnings(chosenDataset, setDatasetHasWarning)
   }, [chosenDataset])
 
+  // when inputTypeChecked changes, update the mode
   useEffect(() => {
     setMode(inputTypeChecked ? "table" : "unique")
     inputTypeChecked ? setIsValid2Predict(!datasetHasWarning.state) : setIsValid2Predict(isColsValid)
   }, [inputTypeChecked])
 
+  // when the datasetHasWarning changes, update the isValid2Predict
   useEffect(() => {
     mode == "table" && setIsValid2Predict(!datasetHasWarning.state)
   }, [datasetHasWarning])
 
+  // when the isColsValid changes, update the isValid2Predict
   useEffect(() => {
     console.log("isColsValid", isColsValid, "mode", mode)
     mode == "unique" && setIsValid2Predict(isColsValid)
@@ -73,6 +91,7 @@ const Entry = ({ pageId, setRequestSettings, chosenModel, modelMetadata, updateW
     updateWarnings(chosenDataset, setDatasetHasWarning)
   }, [chosenModel])
 
+  // when the inputs data change, update the request settings
   useEffect(() => {
     setRequestSettings({
       model: chosenModel,
@@ -166,10 +185,6 @@ const ApplicationPage = ({ pageId }) => {
     chosenModel && setModelMetadata(chosenModel.metadata)
     updateWarnings()
   }, [chosenModel])
-
-  useEffect(() => {
-    console.log("isValid2Predict", isValid2Predict)
-  }, [isValid2Predict])
 
   /**
    *
@@ -356,6 +371,13 @@ const ApplicationPage = ({ pageId }) => {
   )
 }
 
+/**
+ * 
+ * @param {string} pageId The id of the page
+ * @param {string} configPath The path of the config file
+ *  
+ * @returns {React.Component} The application page with module page
+ */
 const ApplicationPageWithModulePage = ({ pageId = "application-456", configPath = null }) => {
   return (
     <>
