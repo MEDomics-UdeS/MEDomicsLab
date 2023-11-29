@@ -2,7 +2,7 @@
   "private": true,
   "name": "medapp",
   "description": "MEDomicsLab application",
-  "version": "0.1.0",
+  "version": "0.0.1",
   "author": "MEDomicsLab Team",
   "main": "app/background.js",
   "build": {
@@ -20,7 +20,10 @@
     "extraResources": [
       "./pythonCode/**/*",
       "./baseFiles/**/*",
-      "./go_executables/**/*"
+      "./go_executables/**/*",
+      "!./pythonCode/venv/**/*",
+      "!./pythonCode/.idea/**/*",
+      "!*.git/**/*"
     ],
     "asarUnpack": [
       "./pythonCode/**/*",
@@ -42,13 +45,7 @@
       "icon": "app/assets/icon.png",
       "maintainer": "medomicslab.udes@gmail.com"
     },
-    "publish": [
-      {
-        "provider": "github",
-        "owner": "MEDomics-UdeS",
-        "releaseType": "draft"
-      }
-    ]
+    "publish": null
   },
   "scripts": {
     "dev": "nextron",
