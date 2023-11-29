@@ -2,7 +2,7 @@ name: Full build and publish with versioning
 on:
   push:
     tags:
-      - "*" #0.0.1-alpha Push events to matching *, i.e. v1.0, v20.15.10
+      - "v*" # Push events to matching v*, i.e. v1.0, v20.15.10
 permissions:
   contents: write
 jobs:
