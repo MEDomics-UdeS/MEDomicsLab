@@ -36,9 +36,7 @@
       "target": "nsis",
       "icon": "app/assets/icon.ico"
     },
-    "nsis": {
-      "include": "build/installer.nsh"
-    },
+    "nsis": {},
     "linux": {
       "target": "deb",
       "icon": "app/assets/icon.png",
