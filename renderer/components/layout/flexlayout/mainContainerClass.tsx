@@ -604,7 +604,7 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
             tablePropsColumn={{
               sortable: true
             }}
-            config={...config}
+            config={{ ...config }}
             globalData={this.props.globalData}
             setGlobalData={this.props.setGlobalData}
           />
