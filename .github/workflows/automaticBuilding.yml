@@ -45,15 +45,12 @@ jobs:
       - name: Build for Windows
         run: npm run build:win
 
-      - name: Print folder structure
-        run: ls -R
-
       - name: Get tag name
         id: get-tag
         shell: bash
         run: |
           VERSION=${GITHUB_REF/refs\/tags\//}
-          echo "::set-output name=VERSION::$VERSION"
+          echo "::set-output name=VERSION::${VERSION#v}"
 
       - name: Archive Windows
         uses: actions/upload-artifact@v3
@@ -101,14 +98,11 @@ jobs:
       - name: Build for Linux
         run: npm run build:linux
 
-      - name: Print folder structure
-        run: ls -R
-
       - name: Get tag name
         id: get-tag
         run: |
           VERSION=${GITHUB_REF/refs\/tags\//}
-          echo "::set-output name=VERSION::$VERSION"
+          echo "::set-output name=VERSION::${VERSION#v}"
 
       - name: Archive Linux
         uses: actions/upload-artifact@v3
@@ -214,10 +208,7 @@ jobs:
         id: get-tag
         run: |
           VERSION=${GITHUB_REF/refs\/tags\//}
-          echo "::set-output name=VERSION::$VERSION"
-
-      - name: Print folder structure
-        run: ls -R
+          echo "::set-output name=VERSION::${VERSION#v}"
 
       - name: Archive Mac
         uses: actions/upload-artifact@v3
@@ -253,10 +244,6 @@ jobs:
       - name: Install zip
         run: sudo apt-get install zip
 
-      - name: Get folder structure
-        run: |
-          ls -R
-
       - name: Move files out of pythonEnv - to root
         run: |
           mv ./pythonEnv/requirements.txt ./requirements.txt
@@ -277,7 +264,7 @@ jobs:
         id: get-tag
         run: |
           VERSION=${GITHUB_REF/refs\/tags\//}
-          echo "::set-output name=VERSION::$VERSION"
+          echo "::set-output name=VERSION::${VERSION#v}"
 
       - name: Publish to GitHub
         uses: softprops/action-gh-release@v1
