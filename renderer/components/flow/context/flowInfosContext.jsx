@@ -14,6 +14,7 @@ function FlowInfosProvider({ children }) {
   const [flowContentExportable, setFlowContentExportable] = useState({}) // Initial state
   const [experimentName, setExperimentName] = useState(null) // Initial state
   const [sceneName, setSceneName] = useState(null) // Initial state
+  const [canRun, setCanRun] = useState(false) // Initial state
 
   // This function is used to update the flowInfos (id and type of the workflow)
   const updateFlowInfos = (newInfo) => {
@@ -23,6 +24,14 @@ function FlowInfosProvider({ children }) {
   // This function is used to update the flowContent (all the pipelines informations )
   const updateFlowContent = (newInfo) => {
     setFlowContent({ ...newInfo })
+    // set canRun to true if no Node has a warning at data.internal.hasWarning
+    let canRun = true
+    newInfo.nodes.forEach((node) => {
+      if (node.data.internal.hasWarning.state) {
+        canRun = false
+      }
+    })
+    setCanRun(canRun)
   }
 
   return (
@@ -41,7 +50,9 @@ function FlowInfosProvider({ children }) {
         sceneName,
         setSceneName,
         flowContentExportable,
-        setFlowContentExportable
+        setFlowContentExportable,
+        canRun,
+        setCanRun
       }}
     >
       {children}

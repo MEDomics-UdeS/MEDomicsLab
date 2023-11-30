@@ -15,6 +15,7 @@ import * as Icon from "react-bootstrap-icons"
 import { WorkspaceContext, EXPERIMENTS } from "../../workspace/workspaceContext"
 import { loadJsonPath } from "../../../utilities/fileManagementUtils"
 import process from "process"
+import Path from "path"
 
 /**
  *
@@ -129,6 +130,7 @@ const PipelinesResults = ({ pipelines, selectionMode, flowContent }) => {
 
   const [accordionActiveIndexStore, setAccordionActiveIndexStore] = useState([])
   const [accordionActiveIndex, setAccordionActiveIndex] = useState([])
+  const isProd = process.env.NODE_ENV === "production"
 
   //when the selectionMode change, reset the selectedResultsId and the accordionActiveIndex
   useEffect(() => {
@@ -228,7 +230,7 @@ const PipelinesResults = ({ pipelines, selectionMode, flowContent }) => {
       const createNoteBookDoc = (code, imports) => {
         let newLineChar = process.platform === "linux" ? "\n" : ""
         let notebook = loadJsonPath([getBasePath(EXPERIMENTS), experimentName, sceneName, "notebooks", pipeline.map((id) => getName(id)).join("-")].join(MedDataObject.getPathSeparator()) + ".ipynb")
-        notebook = notebook ? deepCopy(notebook) : deepCopy(loadJsonPath("./resources/emptyNotebook.ipynb"))
+        notebook = notebook ? deepCopy(notebook) : deepCopy(loadJsonPath(isProd ? Path.join(process.resourcesPath, "baseFiles", "emptyNotebook.ipynb") : "./baseFiles/emptyNotebook.ipynb"))
         notebook.cells = []
         let lastType = "md"
         // This function is used to add a code cell to the notebook

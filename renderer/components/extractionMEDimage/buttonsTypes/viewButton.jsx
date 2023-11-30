@@ -2,7 +2,7 @@ import React, { useContext } from "react"
 import Button from "react-bootstrap/Button"
 import { requestJson } from "../../../utilities/requests"
 import { WorkspaceContext } from "../../workspace/workspaceContext"
-import { ErrorRequestContext } from "../../flow/context/errorRequestContext"
+import { ErrorRequestContext } from "../../generalPurpose/errorRequestContext"
 
 /**
  * @param {string} id id of the node
@@ -31,6 +31,7 @@ const ViewButton = ({ id, data, type }) => {
       formData = {
         id: id,
         name: type,
+        // eslint-disable-next-line camelcase
         file_loaded: data.internal.settings.filepath
       }
     } else {

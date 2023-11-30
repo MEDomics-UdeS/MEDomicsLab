@@ -1,3 +1,4 @@
+/* eslint-disable camelcase */
 import React, { useState, useEffect, useCallback, useContext } from "react"
 import Node from "../../flow/node"
 import ViewButton from "../buttonsTypes/viewButton"

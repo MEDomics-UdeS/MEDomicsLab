@@ -44,8 +44,7 @@ const implementedTypesDescription = [
   },
   {
     type: "list-multiple",
-    description:
-      "for list input (form select of all the options, multiple selection possible)",
+    description: "for list input (form select of all the options, multiple selection possible)",
     default: () => {
       return []
     }
@@ -70,6 +69,16 @@ const implementedTypesDescription = [
     default: () => {
       return []
     }
+  },
+  {
+    type: "data-input",
+    description: "for data input (file upload)",
+    default: { name: "No selection", path: "" }
+  },
+  {
+    type: "models-input",
+    description: "for data input (file upload)",
+    default: { name: "No selection", path: "" }
   }
 ]
 

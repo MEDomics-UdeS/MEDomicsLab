@@ -19,7 +19,7 @@ const WorkspaceContext = createContext(null)
  * @summary The workspace object is the object that contains the workspace information. It is an object that contains the following properties:'hasBeenSet' and 'workspaceObject'.
  *          The 'hasBeenSet' property is a boolean that indicates if the workspace has been set. The 'workspaceObject' property is the workspace containing information about all the files and folders in the workspace.
  */
-function WorkspaceProvider({ workspace, setWorkspace, port, setPort, children }) {
+function WorkspaceProvider({ workspace, setWorkspace, port, setPort, recentWorkspaces, setRecentWorkspaces, children }) {
   /**
    *
    * @param {string} name The name of the folder to get the path of
@@ -37,9 +37,9 @@ function WorkspaceProvider({ workspace, setWorkspace, port, setPort, children })
   }
   return (
     <>
-      <WorkspaceContext.Provider value={{ workspace, setWorkspace, port, setPort, getBasePath }}>{children}</WorkspaceContext.Provider>
+      <WorkspaceContext.Provider value={{ workspace, setWorkspace, port, setPort, recentWorkspaces, setRecentWorkspaces, getBasePath }}>{children}</WorkspaceContext.Provider>
     </>
   )
 }
 
-export { WorkspaceContext, WorkspaceProvider, DATA, EXPERIMENTS}
+export { WorkspaceContext, WorkspaceProvider, DATA, EXPERIMENTS }

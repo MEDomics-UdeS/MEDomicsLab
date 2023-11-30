@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import React, { useState, useEffect, useContext } from "react"
 import { Offcanvas, Container, Alert } from "react-bootstrap"
 import TreeMenu from "react-simple-tree-menu"
@@ -13,7 +14,7 @@ import GroupNode from "../../flow/groupNode"
  * This component is used to display a extractionNode node.
  * It uses the GroupNode structure in /flow to display the node that contains a subflow.
  */
-const extractionNode = ({ id, data }) => {
+const ExtractionNode = ({ id, data }) => {
   const [showOffCanvas, setShowOffCanvas] = useState(false) // used to display the offcanvas
   const handleOffCanvasClose = () => setShowOffCanvas(false) // used to close the offcanvas
   const handleOffCanvasShow = () => setShowOffCanvas(true) // used to show the offcanvas
@@ -140,4 +141,4 @@ const extractionNode = ({ id, data }) => {
     </>
   )
 }
-export default extractionNode
+export default ExtractionNode

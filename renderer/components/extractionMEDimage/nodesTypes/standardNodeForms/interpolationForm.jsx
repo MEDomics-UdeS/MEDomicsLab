@@ -1,3 +1,4 @@
+/* eslint-disable camelcase */
 import React from "react"
 import { Form, Row, Col } from "react-bootstrap"
 import DocLink from "../../docLink"

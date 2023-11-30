@@ -1,3 +1,5 @@
+/* eslint-disable camelcase */
+/* eslint-disable no-unused-vars */
 import React, { useCallback } from "react"
 import { Form, Row, Col } from "react-bootstrap"
 import DocLink from "../../docLink"

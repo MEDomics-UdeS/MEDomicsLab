@@ -1,3 +1,6 @@
+/* eslint-disable no-unused-vars */
+/* eslint-disable no-undef */
+/* eslint-disable camelcase */
 import * as React from "react"
 import { useCallback, useEffect, useRef, useState } from "react"
 import { Actions, IJsonTabNode, ILayoutProps, Layout, TabNode } from "flexlayout-react"

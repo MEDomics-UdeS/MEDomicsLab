@@ -1,5 +1,5 @@
 import React, { useContext } from "react"
-import { ErrorRequestContext } from "./context/errorRequestContext"
+import { ErrorRequestContext } from "../generalPurpose/errorRequestContext"
 import { Dialog } from "primereact/dialog"
 import { Button } from "primereact/button"
 import { Row, Col } from "react-bootstrap"

@@ -1,0 +1,53 @@
+.columns-filling {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: center;
+  border-bottom: var(--bs-border-width) solid;
+  border-color: rgb(0, 0, 0, 0.25);
+}
+
+.columns-filling > * {
+  margin: 0rem 0.25rem 0.5rem 0.25rem;
+}
+
+.predictions-row {
+  width: 100%;
+}
+
+.predictions-row > .col-md > * {
+  width: 100%;
+}
+
+.pred-text {
+  height: 100%;
+  justify-content: space-around;
+  display: flex;
+  flex-direction: row;
+  text-align: center;
+  align-items: center;
+  transition: opacity 0.5s ease-in-out;
+}
+
+.pred-text > * {
+  margin: 0;
+  padding: 0;
+}
+
+.data-input-tag-right > .p-tag {
+  height: 2rem;
+  width: 2rem;
+  position: absolute;
+  right: 1rem;
+  translate: -200% 40%;
+  z-index: 3;
+}
+
+.data-input-tag-right > .p-tag > .p-icon {
+  height: 1.5rem;
+  width: 1.5rem;
+}
+
+.div-predictions-file > .p-button {
+  width: 100%;
+}
