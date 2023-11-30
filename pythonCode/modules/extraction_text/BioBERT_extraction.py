@@ -264,6 +264,7 @@ class GoExecScriptBioBERTExtraction(GoExecutionScript):
         # Set local variables
         selected_columns = json_config["relativeToExtractionType"]["selectedColumns"]
         column_prefix = json_config["relativeToExtractionType"]["columnPrefix"] + '_attr'
+        biobert_path = json_config["relativeToExtractionType"]["biobertPath"]
         columnKeys = [key for key in selected_columns]
         columnValues = []
         for key in columnKeys:
@@ -274,7 +275,7 @@ class GoExecScriptBioBERTExtraction(GoExecutionScript):
             frequency = datetime.timedelta(hours=json_config["relativeToExtractionType"]["hourRange"])
 
         # Set biobert parameters
-        self.BIOBERT_PATH =  os.path.join(str(Path(json_config["csvPath"]).parent.absolute()), "pretrained_bert_tf", "biobert_pretrain_output_all_notes_150000")
+        self.BIOBERT_PATH =  biobert_path
         self.BIOBERT_TOKENIZER = AutoTokenizer.from_pretrained(self.BIOBERT_PATH)
         self.BIOBERT_MODEL = AutoModel.from_pretrained(self.BIOBERT_PATH)
 
