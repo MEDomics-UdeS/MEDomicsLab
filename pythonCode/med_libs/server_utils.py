@@ -90,7 +90,7 @@ def get_model_from_medmodel(medmodel_path: str) -> sklearn.base.BaseEstimator:
         This function is used to get the model from a medmodel
     """
     import joblib
-    from utils.CustomZipFile import CustomZipFile
+    from .CustomZipFile import CustomZipFile
 
     cust_zip_file_model = CustomZipFile(".medmodel")
 
