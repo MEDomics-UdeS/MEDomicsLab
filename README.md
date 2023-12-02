@@ -54,7 +54,8 @@ npm install
 - You can do it manually by running `go build main.go` in the `go_server` folder
 - You can also use a script that you can run from the root folder of the project:
   - Windows : `.\utilScripts\pack_GO.bat`
-  - Linux : `bash utilScripts/pack_GO.sh`
+  - Linux : `bash utilScripts/pack_GO_linux.sh`
+  - MacOS : `bash utilScripts/pack_GO_mac.sh`
 
 ## 5. Python environment
 

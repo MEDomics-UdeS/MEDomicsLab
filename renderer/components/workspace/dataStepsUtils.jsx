@@ -28,6 +28,7 @@ export const pipeStep = {
       console.log("executing... ", "TS", settings)
     },
     display: (settings) => {
+      console.log("displaying... ", "TS", settings)
       return <div>TS</div>
     }
   },
@@ -36,6 +37,7 @@ export const pipeStep = {
       console.log("executing... ", "IMAGE", settings)
     },
     display: (settings) => {
+      console.log("displaying... ", "IMAGE", settings)
       return <div>IMAGE</div>
     }
   },
@@ -44,6 +46,7 @@ export const pipeStep = {
       console.log("executing... ", "TEXT", settings)
     },
     display: (settings) => {
+      console.log("displaying... ", "TEXT", settings)
       return <div>TEXT</div>
     }
   },
@@ -52,6 +55,7 @@ export const pipeStep = {
       console.log("executing... ", "MASTERTABLE", settings)
     },
     display: (settings) => {
+      console.log("displaying... ", "MASTERTABLE", settings)
       return <div>MASTERTABLE</div>
     }
   },
@@ -60,6 +64,7 @@ export const pipeStep = {
       console.log("executing... ", "COLRENAME", settings)
     },
     display: (settings) => {
+      console.log("displaying... ", "COLRENAME", settings)
       return <div>COLRENAME</div>
     }
   },
@@ -68,6 +73,7 @@ export const pipeStep = {
       console.log("executing... ", "COLDROP", settings)
     },
     display: (settings) => {
+      console.log("displaying... ", "COLDROP", settings)
       return <div>COLDROP</div>
     }
   }
