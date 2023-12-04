@@ -275,7 +275,7 @@ const ExtractionJPG = ({ extractionTypeList, serverUrl, defaultFilename }) => {
                 </div>
                 <div>
                   {/* Button activated only if all necessary columns have been selected */}
-                  <Button disabled={running == true || optionsSelected == false || !selectedFolder} onClick={runExtraction}>
+                  <Button disabled={running == true || optionsSelected == false || fileList.length == 0} onClick={runExtraction}>
                     Extract Data
                   </Button>
                 </div>
