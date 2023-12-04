@@ -276,8 +276,6 @@ jobs:
             ./MEDomicsLab-PythonEnv-win.zip
             ./MEDomicsLab-PythonEnv-linux.zip
             ./MEDomicsLab-PythonEnv-mac.zip
-
-          tag_name: full-${{ github.ref }}
           name: MEDomicsLab-${{ env.VERSION }}
           body: |
             MEDomicsLab-${{ env.VERSION }}
