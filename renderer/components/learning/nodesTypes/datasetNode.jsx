@@ -108,7 +108,9 @@ const DatasetNode = ({ id, data }) => {
     if (inputUpdate.value.path != "") {
       setLoader(true)
       let { columnsArray, columnsObject } = await MedDataObject.getColumnsFromPath(inputUpdate.value.path, globalData, setGlobalData)
+      let steps = await MedDataObject.getStepsFromPath(inputUpdate.value.path, globalData, setGlobalData)
       setLoader(false)
+      steps && (data.internal.settings.steps = steps)
       data.internal.settings.columns = columnsObject
       data.internal.settings.target = columnsArray[columnsArray.length - 1]
     } else {
