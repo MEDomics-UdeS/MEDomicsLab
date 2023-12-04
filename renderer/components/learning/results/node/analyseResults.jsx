@@ -47,31 +47,34 @@ const AnalyseResults = ({ selectedResults }) => {
     if (imagesInfos.length != 0) {
       console.log("imagesInfos", imagesInfos)
       let zipPath = imagesInfos[0].path.split(MedDataObject.getPathSeparator() + "tmp" + MedDataObject.getPathSeparator())[0]
-      let images = []
       console.log("zipPath", zipPath)
       modifyZipFileSync(zipPath + ".medml", () => {
-        const addImage = (modelName, path) => {
-          return new Promise((resolve) => {
-            getLocalImageSync(path).then((imageUrl) => {
-              images.push(
-                <div key={modelName}>
-                  <Image src={imageUrl} alt="Image" height="250" indicatorIcon={<h5>{modelName}</h5>} preview downloadable />
-                </div>
-              )
-              resolve()
-            })
-          })
-        }
         return new Promise((resolve) => {
-          let chain = Promise.resolve()
-          for (let { modelName, path } of imagesInfos) {
-            console.log("path", path)
-            chain = chain.then(() => addImage(modelName, path))
-          }
-          resolve()
+          let promises = imagesInfos.map(({ modelName, path }) => {
+            console.log("path", path);
+            return getLocalImageSync(path).then((imageUrl) => {
+              return {
+                key: modelName,
+                imageUrl: imageUrl
+              };
+            });
+          });
+          Promise.all(promises)
+            .then((results) => {
+                let images = results.map(({ key, imageUrl }) => (
+                  <div key={key}>
+                      <Image src={imageUrl} alt="Image" height="250" indicatorIcon={<h5>{key}</h5>} preview downloadable />
+                  </div>
+                ));
+              setImages(images);
+            })
+            .catch((error) => {
+                console.log(error);
+            });
+            resolve();
         })
       }).then(() => {
-        setImages(images)
+        console.log("finishing")
       })
     }
   }
