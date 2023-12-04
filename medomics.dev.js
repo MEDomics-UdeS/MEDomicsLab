@@ -7,7 +7,7 @@ const config = {
   runServerAutomatically: true,
   useReactDevTools: false,
   defaultPort: 5000,
-  portFindingMethod: PORT_FINDING_METHOD.FIX
+  portFindingMethod: PORT_FINDING_METHOD.FIX,
 }
 
 export default config

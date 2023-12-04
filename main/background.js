@@ -441,6 +441,34 @@ function findAvailablePort(startPort, endPort = 8000) {
   return new Promise((resolve, reject) => {
     let port = startPort
     function tryPort() {
+      if (platform == "darwin") {
+        exec(`lsof -i:${port}`, (err, stdout, stderr) => {
+          if (err) {
+            console.log(`Port ${port} is available !`)
+            resolve(port)
+          } else {
+            if (killProcess) {
+              exec("kill -9 $(lsof -t -i:" + port + ")", (err, stdout, stderr) => {
+                if (!err) {
+                  console.log("Previous server instance was killed successfully")
+                  console.log(`Port ${port} is now available !`)
+                  resolve(port)
+                }
+                stdout && console.log(stdout)(stderr) && console.log(stderr)
+              }
+              )
+            } else {
+              port++
+              if (port > endPort) {
+                reject("No available port")
+              }
+              tryPort()
+            }
+          }
+        
+      }) 
+     } 
+     else { 
       exec(`netstat ${platform == "win32" ? "-ano | find" : "-ltnup | grep"} ":${port}"`, (err, stdout, stderr) => {
         if (err) {
           console.log(`Port ${port} is available !`)
@@ -465,6 +493,7 @@ function findAvailablePort(startPort, endPort = 8000) {
           }
         }
       })
+    }
     }
     tryPort()
   })
