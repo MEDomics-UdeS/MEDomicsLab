@@ -1,4 +1,4 @@
-import Button from "react-bootstrap/Button"
+import { Button } from "primereact/button"
 import { DataContext } from "../workspace/dataContext"
 import DataTableFromContext from "../mainPages/dataComponents/dataTableFromContext"
 import { Dropdown } from "primereact/dropdown"
@@ -12,7 +12,7 @@ import { Message } from "primereact/message"
 import { PageInfosContext } from "../mainPages/moduleBasics/pageInfosContext"
 import ProgressBarRequests from "../generalPurpose/progressBarRequests"
 import { ProgressSpinner } from "primereact/progressspinner"
-import React, { useContext, useEffect, useState } from "react"
+import React, { useContext, useEffect, useRef, useState } from "react"
 import { requestBackend } from "../../utilities/requests"
 import { toast } from "react-toastify"
 import { WorkspaceContext } from "../workspace/workspaceContext"
@@ -31,15 +31,16 @@ import { WorkspaceContext } from "../workspace/workspaceContext"
  */
 const ExtractionJPG = ({ extractionTypeList, serverUrl, defaultFilename }) => {
   const [csvResultPath, setCsvResultPath] = useState("") // csv path of extracted data
-  const [dataFolderList, setDataFolderList] = useState([]) // list of the folder containing jpg data at a specified Depth
   const [dataFolderPath, setDataFolderPath] = useState("") // DATA folder
   const [extractionFunction, setExtractionFunction] = useState(extractionTypeList[0] + "_extraction") // name of the function to use for extraction
   const [extractionJsonData, setExtractionJsonData] = useState({}) // json data depending on extractionType
   const [extractionProgress, setExtractionProgress] = useState(0) // advancement state in the extraction function
   const [extractionStep, setExtractionStep] = useState("") // current step in the extraction function
   const [extractionType, setExtractionType] = useState(extractionTypeList[0]) // extraction type
+  const [fileList, setFileList] = useState([])
   const [filename, setFilename] = useState(defaultFilename) // name of the csv file containing extracted data
   const [folderDepth, setFolderDepth] = useState(1) // depth to consider when searching jpg data in folders
+  const inputFolderRef = useRef(null)
   const [isLoadingDataset, setIsLoadingDataset] = useState(false) // boolean telling if the result dataset is loading
   const [isResultDatasetLoaded, setIsResultDatasetLoaded] = useState(false) // boolean set to false every time we reload an extracted data dataset
   const [optionsSelected, setOptionsSelected] = useState(true) // boolean set to true when the options seleted are convenient for extraction
@@ -155,46 +156,6 @@ const ExtractionJPG = ({ extractionTypeList, serverUrl, defaultFilename }) => {
   /**
    *
    * @param {DataContext} dataContext
-   * @param {number} depth
-   *
-   * @description
-   * This functions get folder containing JGP files at depth.
-   *
-   */
-  function findFoldersWithJPGFilesAtDepth(dataContext, depth) {
-    function findFoldersRecursively(item, currentDepth) {
-      const foldersWithMatchingFiles = []
-
-      if (item?.type && item.type === "folder") {
-        if (currentDepth === depth) {
-          // Look for matching files in this folder
-          const containsMatchingFile = item.childrenIDs.some((childId) => dataContext[childId]?.type && dataContext[childId].type === "file" && dataContext[childId].extension === "jpg")
-          if (containsMatchingFile) {
-            foldersWithMatchingFiles.push(item)
-          }
-        } else {
-          // Look in subfolders
-          for (const childId of item.childrenIDs) {
-            const childFolder = dataContext[childId]
-            const childFolders = findFoldersRecursively(childFolder, currentDepth + 1)
-            if (childFolders.length > 0) {
-              // The subfolder contains matching files
-              foldersWithMatchingFiles.push(item)
-              break
-            }
-          }
-        }
-      }
-      return foldersWithMatchingFiles
-    }
-    const topLevelFolders = Object.keys(dataContext).map((key) => dataContext[key])
-    const foldersWithMatchingFiles = topLevelFolders.flatMap((item) => findFoldersRecursively(item, 0))
-    setDataFolderList(foldersWithMatchingFiles)
-  }
-
-  /**
-   *
-   * @param {DataContext} dataContext
    * @param {String} csvPath
    *
    * @description
@@ -210,6 +171,42 @@ const ExtractionJPG = ({ extractionTypeList, serverUrl, defaultFilename }) => {
     })
   }
 
+  /**
+   *
+   * @param {Event} event
+   *
+   * @description
+   * Called while the user select a folder to import in order to get
+   * JPG data and folder depth
+   */
+  function handleSelectedFolder(event) {
+    let error = false
+    let depth = null
+    let files = event.target.files
+    let jpgFiles = []
+    let keys = Object.keys(files)
+    keys.forEach((key) => {
+      if (files[key].type == "image/jpeg") {
+        jpgFiles.push(files[key].path)
+        // Check if all the images are at the same folder depth
+        if (depth != null) {
+          if (depth != files[key].webkitRelativePath.match(/\//g).length) {
+            error = true
+          }
+        } else {
+          depth = files[key].webkitRelativePath.match(/\//g).length
+        }
+      }
+    })
+    if (error == false && depth != null) {
+      setFileList(jpgFiles)
+      setFolderDepth(depth - 1)
+      toast.success("Data successfully imported")
+    } else {
+      toast.error("All your JPG files must be placed at the same folder level")
+    }
+  }
+
   // Called while progress is updated
   useEffect(() => {
     setProgress({
@@ -217,11 +214,6 @@ const ExtractionJPG = ({ extractionTypeList, serverUrl, defaultFilename }) => {
       currentLabel: extractionStep
     })
   }, [extractionStep, extractionProgress])
-
-  // Set selected folder to null when folderDepth is updated
-  useEffect(() => {
-    setSelectedFolder(null)
-  }, [folderDepth])
 
   // Called when data in DataContext is updated, in order to updated resultDataset and dataFolderPath
   useEffect(() => {
@@ -232,13 +224,6 @@ const ExtractionJPG = ({ extractionTypeList, serverUrl, defaultFilename }) => {
       }
     }
   }, [globalData])
-
-  // Called when data in DataContext is updated, in order to update dataFolderList
-  useEffect(() => {
-    if (globalData !== undefined) {
-      findFoldersWithJPGFilesAtDepth(globalData, folderDepth)
-    }
-  }, [globalData, folderDepth])
 
   // Called when isDatasetLoaded change, in order to update the progressbar.
   useEffect(() => {
@@ -257,16 +242,11 @@ const ExtractionJPG = ({ extractionTypeList, serverUrl, defaultFilename }) => {
           {/* Select JPG data */}
           <h2>Select JPG data</h2>
           <Message severity="info" text="Your JPG data must be a folder containing one folder by patient" />
-          <div className="flex-container margin-top-15">
-            <div>
-              Folder Depth : &nbsp;
-              <InputNumber value={folderDepth} onValueChange={(e) => setFolderDepth(e.value)} size={1} showButtons min={1} />
-            </div>
-            <div>
-              Folder for extraction : &nbsp;
-              {dataFolderList.length > 0 ? <Dropdown value={selectedFolder} options={dataFolderList} optionLabel="name" onChange={(event) => setSelectedFolder(event.value)} placeholder="Select a Folder" /> : <Dropdown placeholder="No folder to show" disabled />}
-            </div>
+          <div className="margin-top-15 margin-bottom-15">
+            <input ref={inputFolderRef} directory="" webkitdirectory="" type="file" accept="image/jpeg" onChange={handleSelectedFolder} hidden />
+            <Button label="Select your data folder" onClick={() => inputFolderRef.current.click()} />
           </div>
+          {fileList.length > 0 ? <Message severity="success" text="Data successfully imported" /> : <Message severity="warn" text="No data imported" />}
         </div>
 
         <hr></hr>
