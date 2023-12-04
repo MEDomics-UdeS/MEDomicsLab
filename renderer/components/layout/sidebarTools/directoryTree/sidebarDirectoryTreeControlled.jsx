@@ -845,23 +845,7 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
           </Item>
           <Item id="openInJupyter" onClick={
             () => {
-              const { shell } = require('electron');
-              const childProcess = require('child_process');
-
-              // Start Jupyter server
-              let jupyterServer = childProcess.spawn('jupyter', ['notebook', '--no-browser', '--port', '9999'], {
-                detached: true,
-                stdio: 'ignore'
-              });
-
-              // Open .ipynb file in Jupyter notebook
-              let openInJupyter = () => {
-                let filePath = globalData[selectedItems[0]].path;
-                let notebookUrl = `http://localhost:9999/notebooks/${filePath}`;
-                shell.openExternal(notebookUrl);
-              };
-
-              openInJupyter();
+              console.log("OPEN IN JUPYTER")
             }
           }>
             Jupyter Notebook
