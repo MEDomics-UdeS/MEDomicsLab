@@ -156,5 +156,6 @@ renderer/public/pythonCode/local_dir/*
 path2condaenv_toDeleteInProd.txt
 gh_token.txt
 package-lock.json
+pythonCode/local_dir/*
 
 !*.gitkeep

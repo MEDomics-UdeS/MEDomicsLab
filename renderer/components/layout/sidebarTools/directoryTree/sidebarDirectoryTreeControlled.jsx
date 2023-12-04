@@ -843,7 +843,11 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
           <Item id="openInCodeEditor" onClick={handleContextMenuAction}>
             Code editor (default)
           </Item>
-          <Item id="openInJupyter" onClick={handleContextMenuAction}>
+          <Item id="openInJupyter" onClick={
+            () => {
+              console.log("OPEN IN JUPYTER")
+            }
+          }>
             Jupyter Notebook
           </Item>
           <Item id="openInVSCode" onClick={() => require("electron").shell.openPath(globalData[selectedItems[0]].path)}>
