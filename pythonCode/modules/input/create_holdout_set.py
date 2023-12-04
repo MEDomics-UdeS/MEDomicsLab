@@ -104,7 +104,6 @@ class GoExecScriptCreateHoldoutSet(GoExecutionScript):
         # Create the holdout set
         progress += progress_step
         self.set_progress(now=progress, label="Creating holdout set")
-        
 
         if (shuffle_bool):
             train_set, holdout_set = train_test_split(df_cleaned, test_size=holdout_size, random_state=random_state,
