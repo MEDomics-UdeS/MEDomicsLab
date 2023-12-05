@@ -9,8 +9,22 @@ var prePath = "extraction_image"
 
 // AddHandleFunc adds the specific module handle function to the server
 func AddHandleFunc() {
+	Utils.CreateHandleFunc(prePath+"/initialize_DenseNet_extraction/", handleInitializeDenseNetExtraction)
 	Utils.CreateHandleFunc(prePath+"/DenseNet_extraction/", handleDenseNetExtraction)
+	Utils.CreateHandleFunc(prePath+"/to_master_DenseNet_extraction/", handleToMasterDenseNetExtraction)
 	Utils.CreateHandleFunc(prePath+"/progress/", handleProgress)
+}
+
+// handleInitializeDenseNetExtraction handles the request to run the DenseNet extraction initialization
+// It returns the response from the python script
+func handleInitializeDenseNetExtraction(jsonConfig string, id string) (string, error) {
+	log.Println("Running Initialize DenseNet extraction", id)
+	response, err := Utils.StartPythonScripts(jsonConfig, "../pythonCode/modules/extraction_image/initialize_DenseNet_extraction.py", id)
+	Utils.RemoveIdFromScripts(id)
+	if err != nil {
+		return "", err
+	}
+	return response, nil
 }
 
 // handleDenseNetExtraction handles the request to run a DenseNet extraction
@@ -18,6 +32,18 @@ func AddHandleFunc() {
 func handleDenseNetExtraction(jsonConfig string, id string) (string, error) {
 	log.Println("Running DenseNet extraction", id)
 	response, err := Utils.StartPythonScripts(jsonConfig, "../pythonCode/modules/extraction_image/DenseNet_extraction.py", id)
+	Utils.RemoveIdFromScripts(id)
+	if err != nil {
+		return "", err
+	}
+	return response, nil
+}
+
+// handleToMasterDenseNetExtraction handles the request to run master table format from DenseNet extracted data
+// It returns the response from the python script
+func handleToMasterDenseNetExtraction(jsonConfig string, id string) (string, error) {
+	log.Println("Running DenseNet extraction", id)
+	response, err := Utils.StartPythonScripts(jsonConfig, "../pythonCode/modules/extraction_image/to_master_DenseNet_extraction.py", id)
 	Utils.RemoveIdFromScripts(id)
 	if err != nil {
 		return "", err

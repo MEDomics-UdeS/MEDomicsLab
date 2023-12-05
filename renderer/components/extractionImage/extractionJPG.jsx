@@ -4,13 +4,12 @@ import DataTableFromContext from "../mainPages/dataComponents/dataTableFromConte
 import { Dropdown } from "primereact/dropdown"
 import { ErrorRequestContext } from "../generalPurpose/errorRequestContext"
 import ExtractionDenseNet from "./extractionTypes/extractionDenseNet"
-import { InputNumber } from "primereact/inputnumber"
 import { InputSwitch } from "primereact/inputswitch"
 import { InputText } from "primereact/inputtext"
 import MedDataObject from "../workspace/medDataObject"
 import { Message } from "primereact/message"
 import { PageInfosContext } from "../mainPages/moduleBasics/pageInfosContext"
-import ProgressBarRequests from "../generalPurpose/progressBarRequests"
+import ProgressBar from "react-bootstrap/ProgressBar"
 import { ProgressSpinner } from "primereact/progressspinner"
 import React, { useContext, useEffect, useRef, useState } from "react"
 import { requestBackend } from "../../utilities/requests"
@@ -32,22 +31,23 @@ import { WorkspaceContext } from "../workspace/workspaceContext"
 const ExtractionJPG = ({ extractionTypeList, serverUrl, defaultFilename }) => {
   const [csvResultPath, setCsvResultPath] = useState("") // csv path of extracted data
   const [dataFolderPath, setDataFolderPath] = useState("") // DATA folder
+  const [extractionInitializeFunction, setExtractionInitializeFunction] = useState("initialize_" + extractionTypeList[0] + "_extraction") // name of the function to use for extraction initialization
   const [extractionFunction, setExtractionFunction] = useState(extractionTypeList[0] + "_extraction") // name of the function to use for extraction
+  const [extractionToMasterFunction, setExtractionToMasterFunction] = useState("to_master_" + extractionTypeList[0] + "_extraction") // name of the function to use to format extraction data to submastertable
   const [extractionJsonData, setExtractionJsonData] = useState({}) // json data depending on extractionType
   const [extractionProgress, setExtractionProgress] = useState(0) // advancement state in the extraction function
   const [extractionStep, setExtractionStep] = useState("") // current step in the extraction function
   const [extractionType, setExtractionType] = useState(extractionTypeList[0]) // extraction type
   const [fileList, setFileList] = useState([])
   const [filename, setFilename] = useState(defaultFilename) // name of the csv file containing extracted data
+  const [filenameSavedFeatures, setFilenameSavedFeatures] = useState(null) // name of the csv file containing extracted data
   const [folderDepth, setFolderDepth] = useState(1) // depth to consider when searching jpg data in folders
   const inputFolderRef = useRef(null)
   const [isLoadingDataset, setIsLoadingDataset] = useState(false) // boolean telling if the result dataset is loading
   const [isResultDatasetLoaded, setIsResultDatasetLoaded] = useState(false) // boolean set to false every time we reload an extracted data dataset
   const [optionsSelected, setOptionsSelected] = useState(true) // boolean set to true when the options seleted are convenient for extraction
-  const [progress, setProgress] = useState({ now: 0, currentLabel: "" }) // progress bar state [now, currentLabel]
   const [resultDataset, setResultDataset] = useState(null) // dataset of extracted data used to be display
   const [running, setRunning] = useState(false) // boolean set to true when extraction is running
-  const [selectedFolder, setSelectedFolder] = useState(null) // folder containing the data for extraction
   const [showProgressBar, setShowProgressBar] = useState(false) // wether to show or not the extraction progressbar
   const [viewResults, setViewResults] = useState(false) // Display result if true and results can be displayed
 
@@ -99,6 +99,8 @@ const ExtractionJPG = ({ extractionTypeList, serverUrl, defaultFilename }) => {
   const onChangeExtractionType = (value) => {
     setExtractionType(value)
     setExtractionFunction(value + "_extraction")
+    setExtractionInitializeFunction("initialize_" + value + "_extraction")
+    setExtractionToMasterFunction("to_master_" + value + "_extraction")
   }
 
   /**
@@ -108,7 +110,7 @@ const ExtractionJPG = ({ extractionTypeList, serverUrl, defaultFilename }) => {
    * Update the progress bar depending on the extraction execution.
    *
    */
-  const runExtraction = () => {
+  /*   const runExtraction = () => {
     setRunning(true)
     setShowProgressBar(true)
     console.log(extractionJsonData)
@@ -151,6 +153,139 @@ const ExtractionJPG = ({ extractionTypeList, serverUrl, defaultFilename }) => {
         setShowProgressBar(false)
       }
     )
+  } */
+
+  /**
+   * @description
+   * Run the initialization process for the specified extraction type
+   *
+   * @returns jsonResponse
+   */
+  async function initializeExtraction() {
+    return new Promise((resolve, reject) => {
+      requestBackend(
+        port,
+        serverUrl + extractionInitializeFunction + "/" + pageId,
+        {
+          relativeToExtractionType: extractionJsonData,
+          dataFolderPath: dataFolderPath
+        },
+        (response) => resolve(response),
+        (error) => reject(error)
+      )
+    })
+  }
+
+  /**
+   * @description
+   * Extract data image by image depending on the extraction type specified.
+   * Update the progress bar.
+   *
+   * @returns extractedData
+   */
+  async function extractDataFromFileList() {
+    let extractedData = []
+    let progress = 10
+    for (const filePath of fileList) {
+      try {
+        const jsonResponse = await new Promise((resolve, reject) => {
+          progress += (1 / fileList.length) * 80
+          setExtractionProgress(progress.toFixed(2))
+          requestBackend(
+            port,
+            serverUrl + extractionFunction + "/" + pageId,
+            {
+              relativeToExtractionType: extractionJsonData,
+              depth: folderDepth,
+              filePath: filePath,
+              dataFolderPath: dataFolderPath,
+              pageId: pageId
+            },
+            (response) => resolve(response),
+            (error) => reject(error)
+          )
+        })
+        if (!jsonResponse.error) {
+          extractedData.push(jsonResponse["extracted_features"])
+        } else {
+          toast.error(`Extraction failed: ${jsonResponse.error.message}`)
+          setError(jsonResponse.error)
+        }
+      } catch (err) {
+        console.error(err)
+        toast.error(`Extraction failed: ${err}`)
+      }
+    }
+    return extractedData
+  }
+
+  /**
+   *
+   * @param {*} extractedFeaturesPath
+   * @returns
+   */
+  async function formatAsMasterTable(extractedFeaturesPath) {
+    return new Promise((resolve, reject) => {
+      requestBackend(
+        port,
+        serverUrl + extractionToMasterFunction + "/" + pageId,
+        {
+          depth: folderDepth,
+          relativeToExtractionType: extractionJsonData,
+          extractedFeaturesPath: extractedFeaturesPath
+        },
+        (response) => resolve(response),
+        (error) => reject(error)
+      )
+    })
+  }
+
+  /**
+   *
+   * @description
+   * Run extraction main function.
+   *
+   */
+  const runExtraction = async () => {
+    setRunning(true)
+    setShowProgressBar(true)
+    setExtractionProgress(0)
+    setExtractionStep("Initialization")
+    // Initialize extraction process
+    let jsonInitialization = await initializeExtraction()
+    setExtractionProgress(10)
+    setExtractionStep("Extracting data")
+    if (!jsonInitialization.error) {
+      // Extract data
+      const dfd = require("danfojs-node")
+      let extractedData = await extractDataFromFileList()
+      let dataframe = new dfd.DataFrame(extractedData)
+      let extractedFeaturesPath = jsonInitialization["extracted_folder_path"] + MedDataObject.getPathSeparator() + filename
+      dfd.toCSV(dataframe, { filePath: extractedFeaturesPath })
+      if (extractionJsonData["masterTableCompatible"]) {
+        setExtractionStep("Format data as master table")
+        let jsonFormat = await formatAsMasterTable(extractedFeaturesPath)
+        if (jsonFormat.error) {
+          toast.error(`Extraction failed: ${jsonFormat.error.message}`)
+          setError(jsonFormat.error)
+        }
+      }
+      setCsvResultPath(extractedFeaturesPath)
+      setFilenameSavedFeatures(filename)
+      setExtractionStep("Extracted Features Saved")
+      MedDataObject.updateWorkspaceDataObject()
+      setExtractionProgress(100)
+      setResultDataset(null)
+      setIsResultDatasetLoaded(false)
+      setIsLoadingDataset(true)
+    } else {
+      toast.error(`Extraction failed: ${jsonInitialization.error.message}`)
+      setError(jsonInitialization.error)
+    }
+    setExtractionProgress(100)
+    setExtractionStep("")
+    setShowProgressBar(false)
+    setRunning(false)
   }
 
   /**
@@ -206,14 +341,6 @@ const ExtractionJPG = ({ extractionTypeList, serverUrl, defaultFilename }) => {
       toast.error("All your JPG files must be placed at the same folder level")
     }
   }
-
-  // Called while progress is updated
-  useEffect(() => {
-    setProgress({
-      now: extractionProgress,
-      currentLabel: extractionStep
-    })
-  }, [extractionStep, extractionProgress])
 
   // Called when data in DataContext is updated, in order to updated resultDataset and dataFolderPath
   useEffect(() => {
@@ -281,7 +408,14 @@ const ExtractionJPG = ({ extractionTypeList, serverUrl, defaultFilename }) => {
                 </div>
               </div>
             </div>
-            <div className="margin-top-30 extraction-progress">{showProgressBar && <ProgressBarRequests progressBarProps={{}} isUpdating={showProgressBar} setIsUpdating={setShowProgressBar} progress={progress} setProgress={setProgress} requestTopic={serverUrl + "progress/" + pageId} />}</div>
+            <div className="margin-top-30 extraction-progress">
+              {showProgressBar && (
+                <div className="progress-bar-requests">
+                  <label>{extractionStep}</label>
+                  <ProgressBar now={extractionProgress} label={`${extractionProgress}%`} />
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
@@ -300,7 +434,7 @@ const ExtractionJPG = ({ extractionTypeList, serverUrl, defaultFilename }) => {
             {resultDataset && (
               <p>
                 Features saved under &quot;extracted_features/
-                {filename}&quot;.
+                {filenameSavedFeatures}&quot;.
               </p>
             )}
           </div>
