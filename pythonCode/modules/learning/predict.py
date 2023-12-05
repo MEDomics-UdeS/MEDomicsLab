@@ -32,10 +32,11 @@ class GoExecScriptPredict(GoExecutionScript):
         go_print(json.dumps(json_config, indent=4))
         model_infos = json_config['model']
         model = get_model_from_medmodel(model_infos['path'])
-
         if json_config['type'] == "table":
-            dataset_original = load_csv(json_config['dataset']['path'], model_infos['metadata']['target'])
-            dataset = dataset_original.drop(columns=[model_infos['metadata']['target']])
+            dataset_original = pd.read_csv(json_config['dataset']['path'])
+            if model_infos['metadata']['target'] in dataset_original.columns:
+                dataset_original = dataset_original.drop(columns=[model_infos['metadata']['target']])
+            dataset = dataset_original.copy()
             y_pred = model.predict(dataset)
         else:
             data = json_config['data']
