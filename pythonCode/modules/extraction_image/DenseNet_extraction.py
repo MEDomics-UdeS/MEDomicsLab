@@ -17,7 +17,7 @@ from med_libs.server_utils import go_print
 from med_libs.GoExecutionScript import GoExecutionScript, parse_arguments
 
 json_params_dict, id_ = parse_arguments()
-go_print("running script.py:" + id_)
+#go_print("running script.py:" + id_)
 
 
 class GoExecScriptDenseNetExtraction(GoExecutionScript):
@@ -108,7 +108,7 @@ class GoExecScriptDenseNetExtraction(GoExecutionScript):
         Returns: self.results : dict containing data relative to extraction.
 
         """
-        go_print(json.dumps(json_config, indent=4))
+        #go_print(json.dumps(json_config, indent=4))
         # Set local variables
         file_path_list = json_config["filePathList"]
         csv_result_path = json_config["csvResultsPath"]

@@ -134,7 +134,7 @@ const ExtractionJPG = ({ extractionTypeList, serverUrl, defaultFilename }) => {
    */
   async function extractDataFromFileList(csvResultsPath) {
     let progress = 10
-    let chunkSize = 50
+    let chunkSize = 100
     let chunks = []
     for (let i = 0; i < fileList.length; i += chunkSize) {
       const chunk = fileList.slice(i, i + chunkSize)
