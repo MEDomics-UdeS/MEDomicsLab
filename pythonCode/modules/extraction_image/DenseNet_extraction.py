@@ -2,6 +2,7 @@ import cv2
 import dask.dataframe as dd
 import json
 import os
+import pandas as pd
 import skimage
 import sys
 import torch
@@ -109,36 +110,47 @@ class GoExecScriptDenseNetExtraction(GoExecutionScript):
         """
         go_print(json.dumps(json_config, indent=4))
         # Set local variables
-        #folder_path = json_config["folderPath"]
-        filePath = json_config["filePath"]
+        file_path_list = json_config["filePathList"]
+        csv_result_path = json_config["csvResultsPath"]
         depth = json_config["depth"]
         weights = json_config["relativeToExtractionType"]["selectedWeights"]
         features_to_generate = json_config["relativeToExtractionType"]["selectedFeaturesToGenerate"]
         column_prefix = json_config["relativeToExtractionType"]["columnPrefix"] + '_'
 
         # Proceed to the image extraction
-        extracted_data = {}
+        extracted_data = []
 
-        # Get filename and folder infos
-        path_list = filePath.split(os.sep)[-(depth + 1):]
-        for i in range(len(path_list) - 1):
-            extracted_data["level_" + str(i + 1)] = path_list[i]
-        extracted_data["filename"] = path_list[-1]
+        for file in file_path_list:
+            
+            patient_extracted_data = {}
 
-        # Get densefeatures and predictions
-        densefeatures, predictions = self.get_single_chest_xray_embeddings(filePath, weights)
+            # Get filename and folder infos
+            path_list = file.split(os.sep)[-(depth + 1):]
+            for i in range(len(path_list) - 1):
+                patient_extracted_data["level_" + str(i + 1)] = path_list[i]
+            patient_extracted_data["filename"] = path_list[-1]
 
-        # Convert types
-        densefeatures = densefeatures.astype("float64")
-        predictions = predictions.astype("float64")
-        if "denseFeatures" in features_to_generate:
-            for i in range(len(densefeatures)):
-                extracted_data[column_prefix + "densefeatures_" + str(i)] = densefeatures[i]
-        if "predictions" in features_to_generate:
-            for i in range(len(predictions)):
-                extracted_data[column_prefix + "predictions_" + str(i)] = predictions[i]
+            # Get densefeatures and predictions
+            densefeatures, predictions = self.get_single_chest_xray_embeddings(file, weights)
 
-        json_config["extracted_features"] = extracted_data
+            # Convert types
+            if "denseFeatures" in features_to_generate:
+                for i in range(len(densefeatures)):
+                    patient_extracted_data[column_prefix + "densefeatures_" + str(i)] = densefeatures[i]
+            if "predictions" in features_to_generate:
+                for i in range(len(predictions)):
+                    patient_extracted_data[column_prefix + "predictions_" + str(i)] = predictions[i]
+
+            extracted_data.append(patient_extracted_data)
+
+        # Save data
+        if os.path.getsize(csv_result_path) > 1:
+            all_extracted_data = pd.read_csv(csv_result_path)
+        else:
+            all_extracted_data = pd.DataFrame([])
+        all_extracted_data = pd.concat([all_extracted_data, pd.DataFrame(extracted_data)], ignore_index=True)
+        all_extracted_data.to_csv(csv_result_path, index=False)
+
         self.results = json_config
 
         return self.results

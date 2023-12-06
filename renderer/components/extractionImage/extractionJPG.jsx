@@ -38,11 +38,11 @@ const ExtractionJPG = ({ extractionTypeList, serverUrl, defaultFilename }) => {
   const [extractionProgress, setExtractionProgress] = useState(0) // advancement state in the extraction function
   const [extractionStep, setExtractionStep] = useState("") // current step in the extraction function
   const [extractionType, setExtractionType] = useState(extractionTypeList[0]) // extraction type
-  const [fileList, setFileList] = useState([])
+  const [fileList, setFileList] = useState([]) // list of the images files to extract data from
   const [filename, setFilename] = useState(defaultFilename) // name of the csv file containing extracted data
   const [filenameSavedFeatures, setFilenameSavedFeatures] = useState(null) // name of the csv file containing extracted data
   const [folderDepth, setFolderDepth] = useState(1) // depth to consider when searching jpg data in folders
-  const inputFolderRef = useRef(null)
+  const inputFolderRef = useRef(null) // used to select images folder
   const [isLoadingDataset, setIsLoadingDataset] = useState(false) // boolean telling if the result dataset is loading
   const [isResultDatasetLoaded, setIsResultDatasetLoaded] = useState(false) // boolean set to false every time we reload an extracted data dataset
   const [optionsSelected, setOptionsSelected] = useState(true) // boolean set to true when the options seleted are convenient for extraction
@@ -104,58 +104,6 @@ const ExtractionJPG = ({ extractionTypeList, serverUrl, defaultFilename }) => {
   }
 
   /**
-   *
-   * @description
-   * Run extraction depending on the choosen extraction type, on the mentionned url server.
-   * Update the progress bar depending on the extraction execution.
-   *
-   */
-  /*   const runExtraction = () => {
-    setRunning(true)
-    setShowProgressBar(true)
-    console.log(extractionJsonData)
-    // Run extraction process
-    requestBackend(
-      port,
-      serverUrl + extractionFunction + "/" + pageId,
-      {
-        relativeToExtractionType: extractionJsonData,
-        depth: folderDepth,
-        folderPath: selectedFolder?.path,
-        filename: filename,
-        dataFolderPath: dataFolderPath,
-        pageId: pageId
-      },
-      (jsonResponse) => {
-        console.log("received results:", jsonResponse)
-        if (!jsonResponse.error) {
-          setCsvResultPath(jsonResponse["csv_result_path"])
-          setExtractionStep("Extracted Features Saved")
-          MedDataObject.updateWorkspaceDataObject()
-          setExtractionProgress(100)
-          setResultDataset(null)
-          setIsResultDatasetLoaded(false)
-          setIsLoadingDataset(true)
-        } else {
-          toast.error(`Extraction failed: ${jsonResponse.error.message}`)
-          setError(jsonResponse.error)
-          setExtractionStep("")
-          setShowProgressBar(false)
-        }
-        setShowProgressBar(false)
-        setRunning(false)
-      },
-      function (err) {
-        console.error(err)
-        toast.error(`Extraction failed: ${err}`)
-        setExtractionStep("")
-        setRunning(false)
-        setShowProgressBar(false)
-      }
-    )
-  } */
-
-  /**
    * @description
    * Run the initialization process for the specified extraction type
    *
@@ -168,7 +116,8 @@ const ExtractionJPG = ({ extractionTypeList, serverUrl, defaultFilename }) => {
         serverUrl + extractionInitializeFunction + "/" + pageId,
         {
           relativeToExtractionType: extractionJsonData,
-          dataFolderPath: dataFolderPath
+          dataFolderPath: dataFolderPath,
+          filename: filename
         },
         (response) => resolve(response),
         (error) => reject(error)
@@ -183,13 +132,18 @@ const ExtractionJPG = ({ extractionTypeList, serverUrl, defaultFilename }) => {
    *
    * @returns extractedData
    */
-  async function extractDataFromFileList() {
-    let extractedData = []
+  async function extractDataFromFileList(csvResultsPath) {
     let progress = 10
-    for (const filePath of fileList) {
+    let chunkSize = 50
+    let chunks = []
+    for (let i = 0; i < fileList.length; i += chunkSize) {
+      const chunk = fileList.slice(i, i + chunkSize)
+      chunks.push(chunk)
+    }
+    for (const subList of chunks) {
       try {
         const jsonResponse = await new Promise((resolve, reject) => {
-          progress += (1 / fileList.length) * 80
+          progress += (1 / chunks.length) * 80
           setExtractionProgress(progress.toFixed(2))
           requestBackend(
             port,
@@ -197,26 +151,24 @@ const ExtractionJPG = ({ extractionTypeList, serverUrl, defaultFilename }) => {
             {
               relativeToExtractionType: extractionJsonData,
               depth: folderDepth,
-              filePath: filePath,
-              dataFolderPath: dataFolderPath,
+              filePathList: subList,
+              csvResultsPath: csvResultsPath,
               pageId: pageId
             },
             (response) => resolve(response),
             (error) => reject(error)
           )
         })
-        if (!jsonResponse.error) {
-          extractedData.push(jsonResponse["extracted_features"])
-        } else {
+        if (jsonResponse.error) {
           toast.error(`Extraction failed: ${jsonResponse.error.message}`)
           setError(jsonResponse.error)
         }
       } catch (err) {
         console.error(err)
         toast.error(`Extraction failed: ${err}`)
+        return
       }
     }
-    return extractedData
   }
 
   /**
@@ -224,7 +176,7 @@ const ExtractionJPG = ({ extractionTypeList, serverUrl, defaultFilename }) => {
    * @param {*} extractedFeaturesPath
    * @returns
    */
-  async function formatAsMasterTable(extractedFeaturesPath) {
+  async function formatAsMasterTable(csvResultsPath) {
     return new Promise((resolve, reject) => {
       requestBackend(
         port,
@@ -232,7 +184,7 @@ const ExtractionJPG = ({ extractionTypeList, serverUrl, defaultFilename }) => {
         {
           depth: folderDepth,
           relativeToExtractionType: extractionJsonData,
-          extractedFeaturesPath: extractedFeaturesPath
+          csvResultsPath: csvResultsPath
         },
         (response) => resolve(response),
         (error) => reject(error)
@@ -257,20 +209,18 @@ const ExtractionJPG = ({ extractionTypeList, serverUrl, defaultFilename }) => {
     setExtractionStep("Extracting data")
     if (!jsonInitialization.error) {
       // Extract data
-      const dfd = require("danfojs-node")
-      let extractedData = await extractDataFromFileList()
-      let dataframe = new dfd.DataFrame(extractedData)
-      let extractedFeaturesPath = jsonInitialization["extracted_folder_path"] + MedDataObject.getPathSeparator() + filename
-      dfd.toCSV(dataframe, { filePath: extractedFeaturesPath })
+      //const dfd = require("danfojs-node")
+      let csvResultsPath = jsonInitialization["csv_result_path"]
+      await extractDataFromFileList(csvResultsPath)
       if (extractionJsonData["masterTableCompatible"]) {
         setExtractionStep("Format data as master table")
-        let jsonFormat = await formatAsMasterTable(extractedFeaturesPath)
+        let jsonFormat = await formatAsMasterTable(csvResultsPath)
         if (jsonFormat.error) {
           toast.error(`Extraction failed: ${jsonFormat.error.message}`)
           setError(jsonFormat.error)
         }
       }
-      setCsvResultPath(extractedFeaturesPath)
+      setCsvResultPath(csvResultsPath)
       setFilenameSavedFeatures(filename)
       setExtractionStep("Extracted Features Saved")
       MedDataObject.updateWorkspaceDataObject()

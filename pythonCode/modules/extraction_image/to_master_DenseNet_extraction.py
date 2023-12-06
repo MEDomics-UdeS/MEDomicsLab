@@ -38,7 +38,7 @@ class GoExecScriptToMasterDenseNetExtraction(GoExecutionScript):
         
         # Initialize data
         depth = json_config["depth"]
-        extracted_data_file = json_config["extractedFeaturesPath"]
+        extracted_data_file = json_config["csvResultsPath"]
         patient_id_level = json_config["relativeToExtractionType"]["patientIdentifierLevel"]
         info_dataframe = json_config["relativeToExtractionType"]["selectedDataset"]
         selected_columns = json_config["relativeToExtractionType"]["selectedColumns"]

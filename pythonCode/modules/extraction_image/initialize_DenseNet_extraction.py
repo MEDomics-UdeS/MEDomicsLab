@@ -1,5 +1,6 @@
 import json
 import os
+import pandas as pd
 import requests
 import sys
 
@@ -80,8 +81,15 @@ class GoExecScriptInitializeDenseNetExtraction(GoExecutionScript):
         extracted_folder_path = os.path.join(str(Path(data_folder_path)), "extracted_features")
         if not os.path.exists(extracted_folder_path):
             os.makedirs(extracted_folder_path)
-        json_config["extracted_folder_path"] = extracted_folder_path
 
+        # Create csv file for data
+        results_filename = json_config["filename"]
+        csv_path = os.path.join(extracted_folder_path, str(Path(results_filename)))
+        df = pd.DataFrame([])
+        df.to_csv(csv_path, index=False)
+
+        # Save csv result path
+        json_config["csv_result_path"] = csv_path
         self.results = json_config
 
         return self.results
