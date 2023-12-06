@@ -249,7 +249,7 @@ jobs:
           mv ./pythonEnv/requirements.txt ./requirements.txt
           mv ./pythonEnv/create_conda_env_win.bat ./create_conda_env_win.bat
           mv ./pythonEnv/create_conda_env_linux.sh ./create_conda_env_linux.sh
-          mv ./pythonEnv/create_conda_env_mac.sh ./create_conda_env_mac_yml.sh
+          mv ./pythonEnv/create_conda_env_mac_yml.sh ./create_conda_env_mac.sh
           ls -R
 
       - name: zip Windows
