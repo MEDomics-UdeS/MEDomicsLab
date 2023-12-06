@@ -5,6 +5,7 @@ import numpy as np
 import os
 import pandas as pd
 import sys
+import torch
 from pathlib import Path
 from transformers import AutoTokenizer, AutoModel
 
@@ -33,6 +34,8 @@ class GoExecScriptBioBERTExtraction(GoExecutionScript):
         self.BIOBERT_PATH =  ""
         self.BIOBERT_TOKENIZER = None
         self.BIOBERT_MODEL = None
+        print("Here 0 \n")
+        print('json_params')
 
 
     def split_note_document(self, text, min_length=15):
@@ -273,10 +276,15 @@ class GoExecScriptBioBERTExtraction(GoExecutionScript):
         if frequency == "HourRange":
             frequency = datetime.timedelta(hours=json_config["relativeToExtractionType"]["hourRange"])
 
+        print("Here 1 \n")
         # Set biobert parameters
         self.BIOBERT_PATH =  os.path.join(str(Path(json_config["csvPath"]).parent.absolute()), "pretrained_bert_tf", "biobert_pretrain_output_all_notes_150000")
+        print("Here 2 \n")
         self.BIOBERT_TOKENIZER = AutoTokenizer.from_pretrained(self.BIOBERT_PATH)
+        print("Here 3 \n")
+        print('self.BIOBERT_PATH')
         self.BIOBERT_MODEL = AutoModel.from_pretrained(self.BIOBERT_PATH)
+        print("Here 4 \n")
 
         # Read extraction data
         self.set_progress(label="Read Data", now=10)
