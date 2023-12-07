@@ -127,7 +127,7 @@ const ExtractionJPG = ({ extractionTypeList, serverUrl, defaultFilename }) => {
 
   /**
    * @description
-   * Extract data image by image depending on the extraction type specified.
+   * Extract image data by batch depending on the extraction type specified.
    * Update the progress bar.
    *
    * @returns extractedData
@@ -174,7 +174,10 @@ const ExtractionJPG = ({ extractionTypeList, serverUrl, defaultFilename }) => {
   /**
    *
    * @param {*} extractedFeaturesPath
-   * @returns
+   * @description
+   * Format the extracted features as submaster table
+   *
+   * @returns jsonResponse
    */
   async function formatAsMasterTable(csvResultsPath) {
     return new Promise((resolve, reject) => {
@@ -209,11 +212,11 @@ const ExtractionJPG = ({ extractionTypeList, serverUrl, defaultFilename }) => {
     setExtractionStep("Extracting data")
     if (!jsonInitialization.error) {
       // Extract data
-      //const dfd = require("danfojs-node")
       let csvResultsPath = jsonInitialization["csv_result_path"]
       await extractDataFromFileList(csvResultsPath)
       if (extractionJsonData["masterTableCompatible"]) {
         setExtractionStep("Format data as master table")
+        setExtractionProgress(95)
         let jsonFormat = await formatAsMasterTable(csvResultsPath)
         if (jsonFormat.error) {
           toast.error(`Extraction failed: ${jsonFormat.error.message}`)
