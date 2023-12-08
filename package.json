@@ -2,7 +2,7 @@
   "private": true,
   "name": "medapp",
   "description": "MEDomicsLab application",
-  "version": "0.1.0",
+  "version": "0.0.1",
   "author": "MEDomicsLab Team",
   "main": "app/background.js",
   "build": {
@@ -20,7 +20,10 @@
     "extraResources": [
       "./pythonCode/**/*",
       "./baseFiles/**/*",
-      "./go_executables/**/*"
+      "./go_executables/**/*",
+      "!./pythonCode/venv/**/*",
+      "!./pythonCode/.idea/**/*",
+      "!*.git/**/*"
     ],
     "asarUnpack": [
       "./pythonCode/**/*",
@@ -36,21 +39,13 @@
       "target": "nsis",
       "icon": "app/assets/icon.ico"
     },
-    "nsis": {
-      "include": "build/installer.nsh"
-    },
+    "nsis": {},
     "linux": {
       "target": "deb",
       "icon": "app/assets/icon.png",
       "maintainer": "medomicslab.udes@gmail.com"
     },
-    "publish": [
-      {
-        "provider": "github",
-        "owner": "MEDomics-UdeS",
-        "releaseType": "draft"
-      }
-    ]
+    "publish": null
   },
   "scripts": {
     "dev": "nextron",
@@ -96,6 +91,7 @@
     "html-react-parser": "^3.0.12",
     "install": "^0.13.0",
     "interweave": "^13.1.0",
+    "ipynb-editor": "^1.1.0",
     "jimp": "^0.22.10",
     "jquery-csv": "^1.0.21",
     "prettier": "^3.0.3",
@@ -112,6 +108,7 @@
     "react-hook-form": "^7.47.0",
     "react-icons": "^4.11.0",
     "react-iframe": "^1.8.5",
+    "react-ipynb-renderer": "^2.1.3",
     "react-loading": "^2.0.3",
     "react-native-uuid": "^2.0.1",
     "react-plotly.js": "^2.6.0",

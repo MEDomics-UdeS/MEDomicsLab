@@ -33,6 +33,7 @@ import ZoomPanPinchComponent from "./zoomPanPinchComponent"
 import DataTableWrapperBPClass from "../../dataTypeVisualisation/dataTableWrapperBPClass"
 import HtmlViewer from "../../mainPages/htmlViewer"
 import ModelViewer from "../../mainPages/modelViewer"
+import NotebookEditor from "../../mainPages/notebookEditor"
 import Iframe from "react-iframe"
 
 var fields = ["Name", "Field1", "Field2", "Field3", "Field4", "Field5"]
@@ -604,7 +605,7 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
             tablePropsColumn={{
               sortable: true
             }}
-            config={...config}
+            config={{ ...config }}
             globalData={this.props.globalData}
             setGlobalData={this.props.setGlobalData}
           />
@@ -748,6 +749,12 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
         const config = node.getConfig()
         console.log("config", config)
         return <Iframe url={config.path} width="100%" height="100%" />
+      }
+    } else if (component === "codeEditor") {
+      if (node.getExtraData().data == null) {
+        const config = node.getConfig()
+        console.log("config", config)
+        return <NotebookEditor url={config.path}/>
       }
     } else if (component !== "") {
       if (node.getExtraData().data == null) {
