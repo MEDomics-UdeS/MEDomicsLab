@@ -144,7 +144,7 @@ class GoExecScriptDenseNetExtraction(GoExecutionScript):
             extracted_data.append(patient_extracted_data)
 
         # Save data
-        if os.path.getsize(csv_result_path) > 1:
+        if os.path.getsize(csv_result_path) > 2:
             all_extracted_data = pd.read_csv(csv_result_path)
         else:
             all_extracted_data = pd.DataFrame([])

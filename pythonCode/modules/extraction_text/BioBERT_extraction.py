@@ -274,7 +274,7 @@ class GoExecScriptBioBERTExtraction(GoExecutionScript):
                                                                 selected_columns["time"])
 
         # Save extracted features
-        if os.path.getsize(csv_result_path) > 1:
+        if os.path.getsize(csv_result_path) > 2:
             all_extracted_data = pd.read_csv(csv_result_path)
         else:
             all_extracted_data = pd.DataFrame([])

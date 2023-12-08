@@ -35,10 +35,14 @@ class GoExecScriptToMasterBioBERTExtraction(GoExecutionScript):
         """
         go_print(json.dumps(json_config, indent=4))
 
+        # Check if the process is necessary
+        frequency = json_config["relativeToExtractionType"]["frequency"]
+        if frequency != "Patient" and frequency != "Admission" and frequency != "HourRange":
+            return self.results
+
         # Initialize data
         extracted_data_file = json_config["csvResultsPath"]
         extracted_data = pd.read_csv(extracted_data_file)
-        frequency = json_config["relativeToExtractionType"]["frequency"]
         selected_columns = json_config["relativeToExtractionType"]["selectedColumns"]
 
         # Set master table format depending on frequency (for notes there is nothing to do)
