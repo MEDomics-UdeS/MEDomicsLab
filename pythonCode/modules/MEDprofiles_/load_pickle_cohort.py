@@ -58,9 +58,14 @@ class GoExecLoadPickleCohort(GoExecutionScript):
         import MEDclasses as medclasses_module
 
         # Load the pickle file
+        MEDprofile_list = []
         data_file = open(MEDprofiles_bin_path, 'rb')
-        MEDprofile_list = pickle.load(data_file)
-        data_file.close()
+        while True:
+            try:
+                MEDprofile_list += pickle.load(data_file)
+            except EOFError:
+                data_file.close()
+                break
 
         # Get the cohort
         cohort = medclasses_module.MEDcohort(list_MEDprofile=MEDprofile_list)

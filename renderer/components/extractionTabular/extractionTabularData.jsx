@@ -181,6 +181,7 @@ const ExtractionTabularData = ({ extractionTypeList, serverUrl, defaultFilename 
       try {
         const jsonResponse = await new Promise((resolve, reject) => {
           progress += (1 / chunks.length) * 80
+          console.log(subList)
           setExtractionProgress(progress.toFixed(2))
           requestBackend(
             port,

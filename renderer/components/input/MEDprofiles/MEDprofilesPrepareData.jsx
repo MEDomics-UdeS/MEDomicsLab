@@ -11,7 +11,7 @@ import MedDataObject from "../../workspace/medDataObject"
 import { Message } from "primereact/message"
 import { MultiSelect } from "primereact/multiselect"
 import { PageInfosContext } from "../../mainPages/moduleBasics/pageInfosContext"
-import ProgressBarRequests from "../../generalPurpose/progressBarRequests"
+import ProgressBar from "react-bootstrap/ProgressBar"
 import { ProgressSpinner } from "primereact/progressspinner"
 import React, { useContext, useEffect, useState } from "react"
 import { requestBackend } from "../../../utilities/requests"
@@ -47,7 +47,8 @@ const MEDprofilesPrepareData = () => {
   const [matchingIdColumns, setMatchingIdColumns] = useState(true) // boolean false if the selected submaster tables doesn't have the same id columns types
   const [MEDclassesFolderList, setMEDclassesFolderList] = useState([]) // list of the folder that may contain MEDclasses
   const [MEDprofilesFolderPath, setMEDprofilesFolderPath] = useState(null) // MEDprofiles folder path
-  const [progress, setProgress] = useState({ now: 0, currentLabel: "" }) // progress bar state [now, currentLabel]
+  const [progressNumber, setProgressNumber] = useState(0) // Progress number
+  const [progressStep, setProgressStep] = useState("") // Progress step
   const [rootDataFolder, setRootDataFolder] = useState(null) // DATA folder
   const [selectedMasterTable, setSelectedMasterTable] = useState(null) // dataset of data to extract used to be display
   const [selectedSubMasterTableFiles, setSelectedSubMasterTableFiles] = useState(null) // selected csv for master table creation
@@ -455,40 +456,98 @@ const MEDprofilesPrepareData = () => {
 
   /**
    * @description
-   * This function calls the instantiate_MEDprofiles method in the MEDprofiles server
+   * Run the initialization process for MEDprofiles instantiation.
+   * Allows to create the binary file and to get the patient list.
+   * @returns jsonResponse
    */
-  const instantiateMEDprofiles = () => {
-    setInstantiatingMEDprofiles(true)
-    setShowProgressBar(true)
-    // Run extraction process
-    requestBackend(
-      port,
-      "/MEDprofiles/instantiate_MEDprofiles/" + pageId,
-      {
-        masterTablePath: selectedMasterTable.path,
-        MEDprofilesFolderPath: MEDprofilesFolderPath,
-        filename: binaryFilename,
-        pageId: pageId
-      },
-      (jsonResponse) => {
-        console.log("received results:", jsonResponse)
-        if (!jsonResponse.error) {
-          MedDataObject.updateWorkspaceDataObject()
-          setGeneratedMEDprofilesFilePath(jsonResponse["generated_file_path"])
-        } else {
+  async function initializeMEDprofilesInstantiation() {
+    return new Promise((resolve, reject) => {
+      requestBackend(
+        port,
+        "/MEDprofiles/initialize_MEDprofiles_instantiation/" + pageId,
+        {
+          masterTablePath: selectedMasterTable.path,
+          MEDprofilesFolderPath: MEDprofilesFolderPath,
+          filename: binaryFilename,
+          pageId: pageId
+        },
+        (response) => resolve(response),
+        (error) => reject(error)
+      )
+    })
+  }
+
+  /**
+   * @description
+   * Extract text notes by batch depending on the extraction type specified.
+   * Update the progress bar.
+   *
+   * @returns extractedData
+   */
+  async function runMEDprofilesInstantiation(processingList, destinationFile) {
+    let progress = 10
+    let chunkSize = 25
+    let chunks = []
+    for (let i = 0; i < processingList.length; i += chunkSize) {
+      const chunk = processingList.slice(i, i + chunkSize)
+      chunks.push(chunk)
+    }
+    for (const subList of chunks) {
+      try {
+        const jsonResponse = await new Promise((resolve, reject) => {
+          progress += (1 / chunks.length) * 80
+          setProgressNumber(progress.toFixed(2))
+          requestBackend(
+            port,
+            "/MEDprofiles/instantiate_MEDprofiles/" + pageId,
+            {
+              masterTablePath: selectedMasterTable.path,
+              MEDprofilesFolderPath: MEDprofilesFolderPath,
+              destinationFile: destinationFile,
+              patientList: subList,
+              pageId: pageId
+            },
+            (response) => resolve(response),
+            (error) => reject(error)
+          )
+        })
+        if (jsonResponse.error) {
           toast.error(`Instantiation failed: ${jsonResponse.error.message}`)
           setError(jsonResponse.error)
         }
-        setShowProgressBar(false)
-        setInstantiatingMEDprofiles(false)
-      },
-      function (err) {
+      } catch (err) {
         console.error(err)
         toast.error(`Instantiation failed: ${err}`)
-        setShowProgressBar(false)
-        setInstantiatingMEDprofiles(false)
+        return
       }
-    )
+    }
+  }
+
+  /**
+   * @description
+   * This function calls the instantiate_MEDprofiles method in the MEDprofiles server
+   */
+  const instantiateMEDprofiles = async () => {
+    setInstantiatingMEDprofiles(true)
+    setShowProgressBar(true)
+    setProgressNumber(0)
+    setProgressStep("Initialization")
+    // Initialize instantiation process
+    let jsonInitialization = await initializeMEDprofilesInstantiation()
+    // Run MEDprofiles instantiation process
+    setProgressStep("Instantiating data")
+    if (!jsonInitialization.error) {
+      let processingList = jsonInitialization["patient_list"]
+      let destinationFile = jsonInitialization["destination_file"]
+      await runMEDprofilesInstantiation(processingList, destinationFile)
+      MedDataObject.updateWorkspaceDataObject()
+      setGeneratedMEDprofilesFilePath(destinationFile)
+    } else {
+      toast.error(`Instantiation failed: ${jsonInitialization.error.message}`)
+      setError(jsonInitialization.error)
+    }
+    setShowProgressBar(false)
+    setInstantiatingMEDprofiles(false)
   }
 
   // Look of items in the MEDclasses DataView
@@ -644,7 +703,14 @@ const MEDprofilesPrepareData = () => {
           </Button>
         </div>
       </div>
-      <div className="margin-top-15 extraction-progress">{showProgressBar && <ProgressBarRequests progressBarProps={{}} isUpdating={showProgressBar} setIsUpdating={setShowProgressBar} progress={progress} setProgress={setProgress} requestTopic={"/MEDprofiles/progress/" + pageId} />}</div>
+      <div className="margin-top-15 extraction-progress">
+        {showProgressBar && (
+          <div className="progress-bar-requests">
+            <label>{progressStep}</label>
+            <ProgressBar now={progressNumber} label={`${progressNumber}%`} />
+          </div>
+        )}
+      </div>
       <hr></hr>
       <h5 className="margin-top-15 align-center">Visualize your MEDprofiles data</h5>
       <div className="margin-top-15 flex-container">
