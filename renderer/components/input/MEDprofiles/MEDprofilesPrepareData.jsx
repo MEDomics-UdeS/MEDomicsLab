@@ -661,9 +661,9 @@ const MEDprofilesPrepareData = () => {
           <div className="align-center">{!matchingIdColumns && <Message severity="warn" text="Your selected csv for master table creation contains different types for identifier columns" />}</div>
         </div>
         <div className="margin-top-15 flex-container">
-          <div className="mergeToolMultiSelect flex-container">
-            <div>{loadingSubMasterTables == true && <ProgressSpinner style={{ width: "40px", height: "40px" }} />}</div>
-            <div>{subMasterTableFileList?.length > 0 ? <MultiSelect style={{ maxWidth: "200px" }} value={selectedSubMasterTableFiles} onChange={(e) => setSelectedSubMasterTableFiles(e.value)} options={subMasterTableFileList} optionLabel="name" className="w-full md:w-14rem margintop8px" display="chip" placeholder="Select CSV files" /> : loadingSubMasterTables == true ? <MultiSelect placeholder="Loading..." disabled /> : <MultiSelect placeholder="No CSV files to show" disabled />}</div>
+          <div className="mergeToolMultiSelect">
+            {loadingSubMasterTables == true && <ProgressSpinner style={{ width: "40px", height: "40px" }} />}
+            {subMasterTableFileList?.length > 0 ? <MultiSelect style={{ maxWidth: "200px" }} value={selectedSubMasterTableFiles} onChange={(e) => setSelectedSubMasterTableFiles(e.value)} options={subMasterTableFileList} optionLabel="name" className="w-full md:w-14rem margintop8px" display="chip" placeholder="Select CSV files" /> : loadingSubMasterTables == true ? <MultiSelect placeholder="Loading..." disabled /> : <MultiSelect placeholder="No CSV files to show" disabled />}
             <div>
               <Button disabled={!selectedSubMasterTableFiles || selectedSubMasterTableFiles?.length < 1 || !matchingIdColumns} onClick={createMasterTable}>
                 Create Master Table
