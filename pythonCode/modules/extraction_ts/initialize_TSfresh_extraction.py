@@ -42,8 +42,10 @@ class GoExecScriptInitializeTSfreshExtraction(GoExecutionScript):
         # Get list for processing the extraction into batch
         extraction_frequency = json_config["relativeToExtractionType"]["frequency"]
         if extraction_frequency == "Admission":
+            df_ts = df_ts.dropna(subset=[selected_columns["patientIdentifier"], selected_columns["admissionIdentifier"]])
             json_config["processing_list"] = df_ts[[selected_columns["patientIdentifier"], selected_columns["admissionIdentifier"]]].drop_duplicates().values.tolist()
         else:
+            df_ts = df_ts.dropna(subset=[selected_columns["patientIdentifier"]])
             json_config["processing_list"] = list(set(df_ts[selected_columns["patientIdentifier"]]))
         
         # Create folder for extracted features if not exists
