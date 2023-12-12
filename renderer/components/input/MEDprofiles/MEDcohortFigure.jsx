@@ -15,6 +15,8 @@ import MedDataObject from "../../workspace/medDataObject"
 import { toast } from "react-toastify"
 import { confirmDialog } from "primereact/confirmdialog"
 import { Spinner } from "react-bootstrap"
+import { Checkbox } from "primereact/checkbox"
+import * as dfd from "danfojs-node"
 
 /**
  * @class MEDcohortFigureClass
@@ -42,6 +44,8 @@ class MEDcohortFigureClass extends React.Component {
    * @property {Boolean} this.state.echartsOptions - Echarts options to be displayed in the figure.
    * @property {Boolean} this.state.layout - Layout to be displayed in the figure.
    * @property {Boolean} this.state.darkMode - If true, the figure will be displayed in dark mode.
+   * @property {Boolean} this.state.mergeTimePoints - If true, the time points will be merged.
+   * @property {String} this.state.selectedMergingMethod - Method to be used to merge the time points.
    */
   constructor(props) {
     super(props)
@@ -61,10 +65,23 @@ class MEDcohortFigureClass extends React.Component {
       echartsOptions: null,
       classes: new Set(),
       darkMode: false,
-      isWorking: false
+      isWorking: false,
+      mergeTimePoints: false,
+      selectedMergingMethod: "mean"
     }
     this.chartRef = React.createRef()
   }
+
+  mergingMethodsOptions = [
+    { label: "Mean", value: "mean" },
+    { label: "Median", value: "median" },
+    { label: "Min", value: "min" },
+    { label: "Max", value: "max" },
+    { label: "Sum", value: "sum" },
+    { label: "First", value: "first" },
+    { label: "Last", value: "last" },
+    { label: "Mode", value: "mode" }
+  ]
 
   /**
    * Invoked immediately after a component is mounted
@@ -862,6 +879,153 @@ class MEDcohortFigureClass extends React.Component {
   }
 
   /**
+   * This method returns the median of an array.
+   * @param {Array} arr - The array to calculate the median from.
+   * @returns {number} - The median of the array.
+   */
+  median(arr) {
+    if (!Array.isArray(arr) || arr.length === 0) {
+      return null
+    }
+    arr.sort((a, b) => a - b)
+    const half = Math.floor(arr.length / 2)
+    if (arr.length % 2) {
+      return arr[half]
+    }
+    return (arr[half - 1] + arr[half]) / 2.0
+  }
+
+  /**
+   * This method returns the sum of an array.
+   * @param {Array} arr - The array to calculate the sum from.
+   * @returns {number} - The sum of the array.
+   */
+  sum(arr) {
+    if (!Array.isArray(arr) || arr.length === 0) {
+      return null
+    }
+    return arr.reduce((a, b) => a + b, 0)
+  }
+
+  /**
+   * This method returns the first element of an array. If the element is undefined, it returns the next element.
+   * @param {Array} arr - The array to get the first element from.
+   * @returns {number} - The first element of the array.
+   * @description This method is recursive.
+   */
+  first(arr) {
+    if (!Array.isArray(arr) || arr.length === 0) {
+      return null
+    }
+    let first = arr.shift()
+    if (first === undefined && arr.length !== 0) {
+      return this.first(arr)
+    }
+    return first
+  }
+
+  /**
+   * This method returns the last element of an array. If the element is undefined, it returns the previous element.
+   * @param {Array} arr - The array to get the last element from.
+   * @returns {number} - The last element of the array.
+   * @description This method is recursive.
+   */
+  last(arr) {
+    if (!Array.isArray(arr) || arr.length === 0) {
+      return null
+    }
+    let last = arr.pop()
+    if (last === undefined && arr.length !== 0) {
+      return this.last(arr)
+    }
+    return last
+  }
+
+  /**
+   * This method returns the mode of an array.
+   * @param {Array} arr - The array to get the mode from.
+   * @returns {number} - The mode of the array.
+   */
+  mode(arr) {
+    if (!Array.isArray(arr) || arr.length === 0) {
+      return null
+    }
+    let modeMap = {}
+    let maxEl = arr[0],
+      maxCount = 1
+    for (let i = 0; i < arr.length; i++) {
+      let el = arr[i]
+      if (modeMap[el] === null) {
+        modeMap[el] = 1
+      } else {
+        modeMap[el]++
+      }
+      if (modeMap[el] > maxCount) {
+        maxEl = el
+        maxCount = modeMap[el]
+      }
+    }
+    return maxEl
+  }
+
+  /**
+   * Merging the data by patient ID and time point into a single row with the selected method.
+   * @param {Object} timePointData - The data for a given time point.
+   * @returns {Object} - The merged data.
+   */
+  mergeTimePointData = (timePointData) => {
+    // Apply the merging method to the time points data
+    let dfTimePointsDataMerged = timePointData.groupby(["ID"])
+    if (dfTimePointsDataMerged === undefined) return
+    let patientIds = Object.keys(dfTimePointsDataMerged.keyToValue)
+    let newData = {}
+    patientIds.forEach((patientId) => {
+      let patientData = dfTimePointsDataMerged.getGroup([patientId])
+      let selectedMethod = this.state.selectedMergingMethod
+      let droppedColumns = ["Class", "Date"]
+      patientData = patientData.drop({ columns: droppedColumns })
+      patientData = patientData.applyMap((value) => parseFloat(value))
+      switch (selectedMethod) {
+        case "mean": {
+          patientData = patientData.mean({ axis: 0 })
+          break
+        }
+        case "median":
+          patientData = patientData.apply(this.median, { axis: 0 })
+          break
+        case "max":
+          patientData = patientData.max({ axis: 0 })
+          break
+        case "min":
+          patientData = patientData.min({ axis: 0 })
+          break
+        case "sum":
+          patientData = patientData.drop({ columns: ["ID"] })
+          patientData = patientData.sum({ axis: 0 })
+          patientData = new dfd.Series([patientId], { index: ["ID"] }).append(patientData.values, patientData.index)
+          break
+        case "first":
+          patientData = patientData.apply(this.first, { axis: 0 })
+          break
+        case "last":
+          patientData = patientData.apply(this.last, { axis: 0 })
+
+          break
+        case "mode":
+          patientData = patientData.apply(this.mode, { axis: 0 })
+          break
+        default:
+          patientData = patientData.mean({ axis: 0 })
+          break
+      }
+      let patientDf = new dfd.DataFrame([patientData.values], { columns: patientData.index })
+
+      newData[patientId] = patientDf
+    })
+    return newData
+  }
+
+  /**
    * This function exports the data for a given time point to a CSV file.
    * @param {number} timePoint - The time point to export.
    * @param {Object} timePointData - The data for the time point.
@@ -890,6 +1054,11 @@ class MEDcohortFigureClass extends React.Component {
       })
 
       let dfData = dfd.concat({ dfList: dfList, axis: 0 }) // Concatenate the dataframes
+      if (this.state.mergeTimePoints !== false) {
+        // If the merge time points option is selected
+        let mergedDfData = this.mergeTimePointData(dfData)
+        dfData = new dfd.concat({ dfList: Object.values(mergedDfData), axis: 0 })
+      }
       let filePath = folderPath + "T" + timePoint + ".csv" // Create the file path
       try {
         // Save the data to a CSV file
@@ -921,6 +1090,7 @@ class MEDcohortFigureClass extends React.Component {
     if (this.state.darkMode === true) {
       themeName = "dark"
     }
+    console.log("danfojs", dfd)
 
     return (
       <>
@@ -937,7 +1107,7 @@ class MEDcohortFigureClass extends React.Component {
               <Col xxl="6" style={{ display: "flex", flexDirection: "row", justifyContent: "center", marginBottom: "1rem" }}>
                 <ToggleButton className="separate-toggle-button" checked={separateVertically} onChange={(e) => this.setState({ separateVertically: e.value })} onLabel="Overlap vertically" offLabel="Separate vertically" onIcon="pi pi-check" offIcon="pi pi-times" />
               </Col>
-              <Col style={{ display: "flex", flexDirection: "column", justifyContent: "center" }}>
+              <Col style={{ display: "flex", flexDirection: "column", justifyContent: "center", marginBottom: "1rem" }}>
                 <label htmlFor="dd-city">Select the class for relative time</label>
                 <Col style={{ display: "flex", flexDirection: "row", justifyContent: "center", marginTop: "0rem" }}>
                   <div style={{ width: "100%" }} className="p-inputgroup ">
@@ -959,7 +1129,7 @@ class MEDcohortFigureClass extends React.Component {
                   </div>
                 </Col>
               </Col>
-              <Col style={{ display: "flex", flexDirection: "column", justifyContent: "center", marginTop: "1rem" }}>
+              <Col style={{ display: "flex", flexDirection: "column", justifyContent: "center", marginBottom: "1rem" }}>
                 <label htmlFor="dd-city">Set time points to selected data points</label>
                 <Col style={{ display: "flex", flexDirection: "row", justifyContent: "center", marginTop: "0rem" }}>
                   <div style={{ width: "100%" }} className="p-inputgroup ">
@@ -968,7 +1138,7 @@ class MEDcohortFigureClass extends React.Component {
                   </div>
                 </Col>
               </Col>
-              <Col style={{ display: "flex", flexDirection: "column", justifyContent: "center", marginTop: "1rem" }}>
+              <Col style={{ display: "flex", flexDirection: "column", justifyContent: "center", marginBottom: "1rem" }}>
                 <label htmlFor="dd-city">Set time points by classes</label>
                 <Col style={{ display: "flex", flexDirection: "row", justifyContent: "center", marginTop: "0rem" }}>
                   <div style={{ width: "100%" }} className="p-inputgroup ">
@@ -1020,6 +1190,29 @@ class MEDcohortFigureClass extends React.Component {
                 )}
               </Col>{" "}
               &nbsp;
+              <Col style={{ display: "flex", flexDirection: "row", justifyContent: "center", marginTop: "1rem", alignItems: "center", flex: "unset", marginBottom: "1rem" }}>
+                <Checkbox
+                  label="Merge time points by patient"
+                  inputId="merge-time-points"
+                  checked={this.state.mergeTimePoints?.checked || false}
+                  disabled={timePoints.length <= 1 || this.state.isWorking}
+                  onChange={(e) => {
+                    console.log("e", e.checked)
+                    this.setState({ mergeTimePoints: { checked: e.checked } })
+                  }}
+                />
+                <label htmlFor="merge-time-points" style={{ marginLeft: "1rem" }} disabled={timePoints.length <= 1 || this.state.isWorking}>
+                  <strong>Merge time points by patient</strong>
+                </label>
+              </Col>
+              <Col style={{ display: "flex", flexDirection: "column", justifyContent: "center", marginBottom: "1rem" }}>
+                <label htmlFor="dd-city">Set merging method for timepoints</label>
+                <Col style={{ display: "flex", flexDirection: "row", justifyContent: "center", marginTop: "0rem" }}>
+                  <div style={{ width: "100%" }} className="p-inputgroup ">
+                    <Dropdown className="medcohort-drop" disabled={timePoints.length <= 1 || this.state.isWorking} value={this.state.selectedMergingMethod} options={this.mergingMethodsOptions} onChange={(e) => this.setState({ selectedMergingMethod: e.value })} />
+                  </div>
+                </Col>
+              </Col>
               <Col style={{ display: "flex", flexDirection: "column", justifyContent: "center", marginTop: "1rem", alignItems: "flex-start", flex: "unset" }}>
                 <Button
                   label={
