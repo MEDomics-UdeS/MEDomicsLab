@@ -1,6 +1,6 @@
 import Button from "react-bootstrap/Button"
 import { DataContext } from "../../workspace/dataContext"
-import { DataFrame, Series } from "danfojs"
+import { DataFrame } from "danfojs"
 import { DataView } from "primereact/dataview"
 import { Dropdown } from "primereact/dropdown"
 import { ErrorRequestContext } from "../../generalPurpose/errorRequestContext"
@@ -29,10 +29,11 @@ import { WorkspaceContext } from "../../workspace/workspaceContext"
  *
  */
 const MEDprofilesPrepareData = () => {
-  const [creatingMEDclasses, setCreatingMEDclasses] = useState(false) // boolean telling if the process of MEDclasses creation is running
-  const [dataFolder, setDataFolder] = useState(null) // folder where the csv files will be examinated and where the MEDprofiles data will be saved
   const [binaryFileList, setBinaryFileList] = useState([]) // list of available binary files
   const [binaryFilename, setBinaryFilename] = useState("MEDprofiles_bin.pkl") // name under which the MEDprofiles binary file will be saved
+  const [creatingMEDclasses, setCreatingMEDclasses] = useState(false) // boolean telling if the process of MEDclasses creation is running
+  const [csvPathsList, setCsvPathsList] = useState([]) // list of csv paths in data folder
+  const [dataFolder, setDataFolder] = useState(null) // folder where the csv files will be examinated and where the MEDprofiles data will be saved
   const [folderList, setFolderList] = useState([]) // list of available folders in DATA folder
   const [generatedClassesFolder, setGeneratedClassesFolder] = useState(null) // folder containing the generated MEDclasses
   const [generatedClassesFolderPath, setGeneratedClassesFolderPath] = useState(null) // path of the folder containing the generated MEDclasses
@@ -93,6 +94,21 @@ const MEDprofilesPrepareData = () => {
 
   /**
    * @description
+   * This functions get all binary files from the DataContext DATA folder and update binaryFileList.
+   */
+  function getCsvPathList() {
+    let keys = Object.keys(globalData)
+    let tmpList = []
+    keys.forEach((key) => {
+      if (globalData[key].path.includes(dataFolder.path) && globalData[key].type == "file" && globalData[key].extension == "csv") {
+        tmpList.push(globalData[key].path)
+      }
+    })
+    setCsvPathsList(tmpList)
+  }
+
+  /**
+   * @description
    * This functions get all the MEDclasses folders from the DataContext DATA folder and update MEDclassesFolderList.
    */
   function getMEDclassesFolderList() {
@@ -127,6 +143,27 @@ const MEDprofilesPrepareData = () => {
 
   /**
    *
+   * @param {List[String]} pathList
+   * @param {Function} setter
+   *
+   * @description
+   * This functions is called when csvFilePaths matching
+   * master and submaster format have been returned.
+   *
+   */
+  function getListOfGeneratedElement(pathList, setter) {
+    let keys = Object.keys(globalData)
+    let tmpList = []
+    keys.forEach((key) => {
+      if (pathList.includes(globalData[key].path)) {
+        tmpList.push(globalData[key])
+      }
+    })
+    setter(tmpList)
+  }
+
+  /**
+   *
    * @param {MedDataObject} folder
    *
    * @description
@@ -134,7 +171,7 @@ const MEDprofilesPrepareData = () => {
    * to obtain the csv files matching the MasterTableFormat.
    *
    */
-  function getMasterTableFileList(folder) {
+  /*function getMasterTableFileList(folder) {
     const keys = Object.keys(globalData)
     const matchingDatasetList = []
 
@@ -244,7 +281,7 @@ const MEDprofilesPrepareData = () => {
       .catch((error) => {
         toast.error("Error while loading MEDdata :", error)
       })
-  }
+  }*/
 
   /**
    *
@@ -255,7 +292,7 @@ const MEDprofilesPrepareData = () => {
    * to obtain the csv files matching the subMasterTableFormat.
    *
    */
-  function getSubMasterTableFileList(folder) {
+  /*function getSubMasterTableFileList(folder) {
     const keys = Object.keys(globalData)
     const matchingDatasetList = []
 
@@ -312,7 +349,7 @@ const MEDprofilesPrepareData = () => {
       .catch((error) => {
         toast.error("Error while loading MEDdata :", error)
       })
-  }
+  }*/
 
   /**
    * @description
@@ -320,6 +357,36 @@ const MEDprofilesPrepareData = () => {
    */
   function openMEDprofilesViewer() {
     dispatchLayout({ type: `openMEDprofilesViewerModule`, payload: { pageId: "MEDprofilesViewer", MEDclassesFolder: generatedClassesFolder, MEDprofilesBinaryFile: generatedMEDprofilesFile } })
+  }
+
+  /**
+   *
+   * @param {String} name
+   *
+   * @description
+   * Called when the user change the name under which the master table
+   * file will be saved.
+   *
+   */
+  const handleMasterFilenameChange = (name) => {
+    if (name.match("^[a-zA-Z0-9_]+.csv$") != null) {
+      setMasterFilename(name)
+    }
+  }
+
+  /**
+   *
+   * @param {String} name
+   *
+   * @description
+   * Called when the user change the name under which the master table
+   * file will be saved.
+   *
+   */
+  const handleBinaryFilenameChange = (name) => {
+    if (name.match("^[a-zA-Z0-9_]+.pkl$") != null) {
+      setBinaryFilename(name)
+    }
   }
 
   /**
@@ -425,33 +492,36 @@ const MEDprofilesPrepareData = () => {
   }
 
   /**
-   *
-   * @param {String} name
-   *
    * @description
-   * Called when the user change the name under which the master table
-   * file will be saved.
-   *
+   * This function calls the get_master_csv method in the MEDprofiles server
+   * It updates list of masterTableFileList and submasterTableFileList
    */
-  const handleMasterFilenameChange = (name) => {
-    if (name.match("^[a-zA-Z0-9_]+.csv$") != null) {
-      setMasterFilename(name)
-    }
-  }
-
-  /**
-   *
-   * @param {String} name
-   *
-   * @description
-   * Called when the user change the name under which the master table
-   * file will be saved.
-   *
-   */
-  const handleBinaryFilenameChange = (name) => {
-    if (name.match("^[a-zA-Z0-9_]+.pkl$") != null) {
-      setBinaryFilename(name)
-    }
+  const getMasterSubMasterCsv = () => {
+    // Run extraction process
+    requestBackend(
+      port,
+      "/MEDprofiles/get_master_csv/" + pageId,
+      {
+        csvPaths: csvPathsList,
+        pageId: pageId
+      },
+      (jsonResponse) => {
+        console.log("received results:", jsonResponse)
+        if (!jsonResponse.error) {
+          getListOfGeneratedElement(jsonResponse["master_csv"], setMasterTableFileList)
+          getListOfGeneratedElement(jsonResponse["submaster_csv"], setSubMasterTableFileList)
+          setLoadingMasterTables(false)
+          setLoadingSubMasterTables(false)
+        } else {
+          toast.error(`Loading csv matching formats failed: ${jsonResponse.error.message}`)
+          setError(jsonResponse.error)
+        }
+      },
+      function (err) {
+        console.error(err)
+        toast.error(`Loading csv matching formats failed: ${err}`)
+      }
+    )
   }
 
   /**
@@ -555,6 +625,16 @@ const MEDprofilesPrepareData = () => {
     return <div>{globalData[element]?.nameWithoutExtension}</div>
   }
 
+  // Called when csvPathsList is updated, in order to load the matching files for submastertable and mastertable
+  useEffect(() => {
+    if (csvPathsList.length > 0) {
+      getMasterSubMasterCsv()
+    } else {
+      setLoadingMasterTables(false)
+      setLoadingSubMasterTables(false)
+    }
+  }, [csvPathsList])
+
   // Called when dataFolder is updated, in order to load the matching files for submastertable and mastertable
   useEffect(() => {
     if (dataFolder !== null) {
@@ -564,8 +644,9 @@ const MEDprofilesPrepareData = () => {
       setMasterTableFileList([])
       setSelectedSubMasterTableFiles(null)
       setSelectedMasterTable(null)
-      getSubMasterTableFileList(dataFolder)
-      getMasterTableFileList(dataFolder)
+      getCsvPathList()
+      //getSubMasterTableFileList(dataFolder)
+      //getMasterTableFileList(dataFolder)
     } else {
       setSelectedSubMasterTableFiles(null)
       setSelectedMasterTable(null)
