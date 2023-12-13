@@ -5,7 +5,7 @@ import numpy as np
 import os
 import pandas as pd
 import sys
-import torch
+import torch # Necessary to avoid a bug with transformers
 from pathlib import Path
 from transformers import AutoTokenizer, AutoModel
 

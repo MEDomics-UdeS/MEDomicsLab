@@ -75,7 +75,6 @@ export const axiosPostJsonGo = async (port, topic, json2send, jsonReceivedCB, on
     const response = await axios.post(url, { message: JSON.stringify(json2send) }, { headers: { "Content-Type": "application/json" } })
     if (response.data.type == "toParse") {
       let cleanResponse = {}
-      console.log('response.data.response_message', response.data.response_message)
       try {
         cleanResponse = JSON.parse(nanToNull(response.data.response_message))
       } catch (error) {
@@ -149,7 +148,6 @@ const parsingCleaning = (response) => {
   return response.substring(response.indexOf("{"), response.lastIndexOf("}") + 1)
 }
 
-
 /**
  * Change all NaN values in a json to null
  * @param {Object} json
@@ -158,5 +156,5 @@ const parsingCleaning = (response) => {
 export const nanToNull = (json) => {
   let jsonStr = json
   jsonStr = jsonStr.replaceAll("NaN", "null")
-return jsonStr
+  return jsonStr
 }
