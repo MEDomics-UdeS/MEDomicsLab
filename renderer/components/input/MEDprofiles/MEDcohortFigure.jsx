@@ -1160,7 +1160,7 @@ class MEDcohortFigureClass extends React.Component {
                         <>
                           <div key={"div" + clusterIndex} style={{ display: "flex", flexDirection: "row", alignContent: "center", alignItems: "flex-start", justifyContent: "center" }}>
                             <h6 key={"h6" + clusterIndex} style={{ margin: "0" }}>{`T${cluster.name}`}</h6>
-                            &nbsp;
+
                             <p key={"p" + clusterIndex} style={{ margin: "0", marginLeft: "0.5rem" }}>
                               {" "}
                               {`Number of data points: `}
