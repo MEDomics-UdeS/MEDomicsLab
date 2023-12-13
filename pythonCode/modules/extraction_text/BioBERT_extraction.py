@@ -34,8 +34,7 @@ class GoExecScriptBioBERTExtraction(GoExecutionScript):
         self.BIOBERT_PATH =  ""
         self.BIOBERT_TOKENIZER = None
         self.BIOBERT_MODEL = None
-        print("Here 0 \n")
-        print('json_params')
+
 
 
     def split_note_document(self, text, min_length=15):
