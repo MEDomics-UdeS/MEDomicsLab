@@ -146,7 +146,7 @@ function App() {
   const [globalData, setGlobalData] = useState({}) // The global data object
 
   useEffect(() => {
-    // localStorage.clear()
+    localStorage.clear()
   }, [])
 
   useEffect(() => {
