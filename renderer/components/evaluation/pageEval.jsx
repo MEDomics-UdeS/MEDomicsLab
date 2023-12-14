@@ -123,11 +123,11 @@ const PageEval = ({ run, pageId, config, setChosenModel, updateConfigClick, setC
           console.log("closeDashboard received data:", data)
           setIsDashboardUpdating(true)
           console.log("starting dashboard...")
-
+          // TODO: @NicoLongfield - Let choose sample size
           requestBackend(
             port,
             "evaluation/open_dashboard/dashboard/" + pageId,
-            { pageId: pageId, model: config.model, dataset: config.dataset, sampleSizeFrac: 0.01, dashboardName: config.model.name.split(".")[0], modelObjPath: modelObjCopies.dashboard },
+            { pageId: pageId, model: config.model, dataset: config.dataset, sampleSizeFrac: 0.9, dashboardName: config.model.name.split(".")[0], modelObjPath: modelObjCopies.dashboard },
             (data) => {
               console.log("openDashboard received data:", data)
               setIsDashboardUpdating(false)

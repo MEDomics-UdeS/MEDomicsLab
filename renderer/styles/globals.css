@@ -444,3 +444,7 @@ body {
     4px 7px 8px 0.25rem rgb(39 39 39 / 70%),
     0px 0px 7px 0.1rem rgb(39 39 39 / 55%);
 }
+
+label[disabled] {
+  color: #00000080 !important;
+}

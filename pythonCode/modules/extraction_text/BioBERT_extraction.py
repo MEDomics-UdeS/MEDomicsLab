@@ -5,6 +5,7 @@ import numpy as np
 import os
 import pandas as pd
 import sys
+import torch # Necessary to avoid a bug with transformers
 from pathlib import Path
 from transformers import AutoTokenizer, AutoModel
 
@@ -32,6 +33,7 @@ class GoExecScriptBioBERTExtraction(GoExecutionScript):
         self.BIOBERT_PATH =  ""
         self.BIOBERT_TOKENIZER = None
         self.BIOBERT_MODEL = None
+
 
 
     def split_note_document(self, text, min_length=15):
