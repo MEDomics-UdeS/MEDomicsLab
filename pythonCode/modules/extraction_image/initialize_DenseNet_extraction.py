@@ -51,6 +51,8 @@ class GoExecScriptInitializeDenseNetExtraction(GoExecutionScript):
             return
         weights_filename = os.path.basename(url)
         weights_storage_folder = os.path.expanduser(os.path.join("~", ".torchxrayvision", "models_data"))
+        if not os.path.exists(weights_storage_folder):
+            os.makedirs(weights_storage_folder)
         weights_filename_local = os.path.expanduser(os.path.join(weights_storage_folder, weights_filename))
         with open(weights_filename_local, 'wb') as f:
             response = requests.get(url, stream=True)
