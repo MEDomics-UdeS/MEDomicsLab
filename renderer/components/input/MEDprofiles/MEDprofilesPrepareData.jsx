@@ -542,7 +542,7 @@ const MEDprofilesPrepareData = () => {
       <div>
         <div className="margin-top-15 centered-container">
           <h5>Select the location of your master table data folder &nbsp;</h5>
-          <div className="margin-top-15">{folderList.length > 0 ? <Dropdown value={dataFolder} options={folderList} filter optionLabel="name" onChange={(event) => setDataFolder(event.value)} placeholder="Select a folder" /> : <Dropdown placeholder="No folder to show" disabled />}</div>
+          <div className="margin-top-15">{folderList.length > 0 ? <Dropdown value={dataFolder} options={folderList} filter optionLabel="name" onChange={(event) => setDataFolder(event.value)} placeholder="Select a folder" disabled={loadingMasterTables || loadingSubMasterTables} /> : <Dropdown placeholder="No folder to show" disabled />}</div>
         </div>
         <hr></hr>
         <div className="margin-top-15">
