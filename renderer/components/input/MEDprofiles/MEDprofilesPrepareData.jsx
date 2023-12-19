@@ -1,6 +1,6 @@
 import Button from "react-bootstrap/Button"
 import { DataContext } from "../../workspace/dataContext"
-import { DataFrame, Series } from "danfojs"
+import { DataFrame } from "danfojs"
 import { DataView } from "primereact/dataview"
 import { Dropdown } from "primereact/dropdown"
 import { ErrorRequestContext } from "../../generalPurpose/errorRequestContext"
@@ -11,7 +11,7 @@ import MedDataObject from "../../workspace/medDataObject"
 import { Message } from "primereact/message"
 import { MultiSelect } from "primereact/multiselect"
 import { PageInfosContext } from "../../mainPages/moduleBasics/pageInfosContext"
-import ProgressBarRequests from "../../generalPurpose/progressBarRequests"
+import ProgressBar from "react-bootstrap/ProgressBar"
 import { ProgressSpinner } from "primereact/progressspinner"
 import React, { useContext, useEffect, useState } from "react"
 import { requestBackend } from "../../../utilities/requests"
@@ -29,10 +29,11 @@ import { WorkspaceContext } from "../../workspace/workspaceContext"
  *
  */
 const MEDprofilesPrepareData = () => {
-  const [creatingMEDclasses, setCreatingMEDclasses] = useState(false) // boolean telling if the process of MEDclasses creation is running
-  const [dataFolder, setDataFolder] = useState(null) // folder where the csv files will be examinated and where the MEDprofiles data will be saved
   const [binaryFileList, setBinaryFileList] = useState([]) // list of available binary files
   const [binaryFilename, setBinaryFilename] = useState("MEDprofiles_bin.pkl") // name under which the MEDprofiles binary file will be saved
+  const [creatingMEDclasses, setCreatingMEDclasses] = useState(false) // boolean telling if the process of MEDclasses creation is running
+  const [csvPathsList, setCsvPathsList] = useState([]) // list of csv paths in data folder
+  const [dataFolder, setDataFolder] = useState(null) // folder where the csv files will be examinated and where the MEDprofiles data will be saved
   const [folderList, setFolderList] = useState([]) // list of available folders in DATA folder
   const [generatedClassesFolder, setGeneratedClassesFolder] = useState(null) // folder containing the generated MEDclasses
   const [generatedClassesFolderPath, setGeneratedClassesFolderPath] = useState(null) // path of the folder containing the generated MEDclasses
@@ -47,7 +48,8 @@ const MEDprofilesPrepareData = () => {
   const [matchingIdColumns, setMatchingIdColumns] = useState(true) // boolean false if the selected submaster tables doesn't have the same id columns types
   const [MEDclassesFolderList, setMEDclassesFolderList] = useState([]) // list of the folder that may contain MEDclasses
   const [MEDprofilesFolderPath, setMEDprofilesFolderPath] = useState(null) // MEDprofiles folder path
-  const [progress, setProgress] = useState({ now: 0, currentLabel: "" }) // progress bar state [now, currentLabel]
+  const [progressNumber, setProgressNumber] = useState(0) // Progress number
+  const [progressStep, setProgressStep] = useState("") // Progress step
   const [rootDataFolder, setRootDataFolder] = useState(null) // DATA folder
   const [selectedMasterTable, setSelectedMasterTable] = useState(null) // dataset of data to extract used to be display
   const [selectedSubMasterTableFiles, setSelectedSubMasterTableFiles] = useState(null) // selected csv for master table creation
@@ -92,6 +94,21 @@ const MEDprofilesPrepareData = () => {
 
   /**
    * @description
+   * This functions get all binary files from the DataContext DATA folder and update binaryFileList.
+   */
+  function getCsvPathList() {
+    let keys = Object.keys(globalData)
+    let tmpList = []
+    keys.forEach((key) => {
+      if (globalData[key].path.includes(dataFolder.path) && globalData[key].type == "file" && globalData[key].extension == "csv") {
+        tmpList.push(globalData[key].path)
+      }
+    })
+    setCsvPathsList(tmpList)
+  }
+
+  /**
+   * @description
    * This functions get all the MEDclasses folders from the DataContext DATA folder and update MEDclassesFolderList.
    */
   function getMEDclassesFolderList() {
@@ -126,191 +143,23 @@ const MEDprofilesPrepareData = () => {
 
   /**
    *
-   * @param {MedDataObject} folder
+   * @param {List[String]} pathList
+   * @param {Function} setter
    *
    * @description
-   * This function is called when the datafolder is updated in order
-   * to obtain the csv files matching the MasterTableFormat.
+   * This functions is called when csvFilePaths matching
+   * master and submaster format have been returned.
    *
    */
-  function getMasterTableFileList(folder) {
-    const keys = Object.keys(globalData)
-    const matchingDatasetList = []
-
-    // The column names must be 'PatientID', 'Date', 'Time_point' and the others must contains '_'
-    const columnsMatchingFormat = (dataframe) => {
-      if (dataframe.$columns[0] != "PatientID" || dataframe.$columns[1] != "Date" || dataframe.$columns[2] != "Time_point") {
-        return false
+  function getListOfGeneratedElement(pathList, setter) {
+    let keys = Object.keys(globalData)
+    let tmpList = []
+    keys.forEach((key) => {
+      if (pathList.includes(globalData[key].path)) {
+        tmpList.push(globalData[key])
       }
-      for (let i = 3; i < dataframe.$columns.length; i++) {
-        if (!dataframe.$columns[i].includes("_")) {
-          return false
-        }
-      }
-      return true
-    }
-
-    // The 1st line (after columns) must contains 'string' or 'num' at 1st position, 'datetime.date' at 2nd and 'num' in all others
-    const firstLineMatchingFormat = (dataframe) => {
-      let firstLine = dataframe.$data[0]
-      if ((firstLine[0] != "string" && firstLine[0] != "num") || firstLine[1] != "datetime.date") {
-        return false
-      }
-      for (let i = 2; i < firstLine.length; i++) {
-        if (firstLine[i] != "num") {
-          return false
-        }
-      }
-      return true
-    }
-
-    // The first column (removing 1st line) must contains str or int
-    const firstColumnMatchingFormat = (dataframe) => {
-      let copy = [...dataframe.$dataIncolumnFormat[0]]
-      copy.shift()
-      let column = new Series(copy)
-      if (column.$dtypes.length == 1 && (column.$dtypes[0] == "int32" || column.$dtypes[0] == "int64" || (column.$dtypes[0] == "string" && column.dt.$dateObjectArray[0] == "Invalid Date"))) {
-        return true
-      }
-      return false
-    }
-
-    // The second column (removing 1st line) must contains datetime values
-    const secondColumnMatchingFormat = (dataframe) => {
-      let copy = [...dataframe.$dataIncolumnFormat[1]]
-      copy.shift()
-      let column = new Series(copy)
-      if (column.$dtypes.length == 1 && column.$dtypes[0] == "string" && column.dt.$dateObjectArray[0] != "Invalid Date") {
-        return true
-      }
-      return false
-    }
-
-    // The third column (removing 1st line) must contains null or int values
-    const thirdColumnMatchingFormat = (dataframe) => {
-      let copy = [...dataframe.$dataIncolumnFormat[2]]
-      copy.shift()
-      let column = new Series(copy)
-      if (column.$dtypes.length == 1 && (column.$dtypes[0] == "int32" || column.$dtypes[0] == "int64")) {
-        return true
-      }
-      return false
-    }
-
-    // The others columns (removing 1st line) must contains num values
-    const allNumericValues = (dataframe) => {
-      let copy = [...dataframe.$data]
-      copy.shift()
-      let data = new DataFrame(copy)
-      for (let i = 3; i < data.$dtypes.length; i++) {
-        const columnType = data.$dtypes[i]
-        if (columnType != "int32" && columnType != "int64" && columnType != "float32" && columnType != "float64") {
-          return false
-        }
-      }
-      return true
-    }
-
-    // Load the CSV file in order to check if the data is matching the required format
-    const loadCSVFile = (MEDdata) => {
-      // Create a promise for each CSV file
-      return new Promise((resolve) => {
-        loadCSVPath(MEDdata.path, (data) => {
-          let dataframe = new DataFrame(data)
-          // The dataframe must contain at least 3 columns and respect the format for each column as specified in the checking functions
-          if (dataframe.$columns.length > 3 && columnsMatchingFormat(dataframe) && firstLineMatchingFormat(dataframe) && firstColumnMatchingFormat(dataframe) && secondColumnMatchingFormat(dataframe) && thirdColumnMatchingFormat(dataframe) && allNumericValues(dataframe)) {
-            matchingDatasetList.push(MEDdata)
-          }
-          resolve()
-        })
-      })
-    }
-
-    // Create a promises array for all the csv files
-    const promises = keys
-      .filter((key) => {
-        const item = globalData[key]
-        return item.type !== "folder" && item.path.includes(folder.path) && item.extension === "csv"
-      })
-      .map((key) => loadCSVFile(globalData[key]))
-
-    // Wait for all the csv files to have been examinated
-    Promise.all(promises)
-      .then(() => {
-        setMasterTableFileList(matchingDatasetList)
-        setLoadingMasterTables(false)
-      })
-      .catch((error) => {
-        toast.error("Error while loading MEDdata :", error)
-      })
-  }
-
-  /**
-   *
-   * @param {MedDataObject} folder
-   *
-   * @description
-   * This function is called when the dataFolder is updated in order
-   * to obtain the csv files matching the subMasterTableFormat.
-   *
-   */
-  function getSubMasterTableFileList(folder) {
-    const keys = Object.keys(globalData)
-    const matchingDatasetList = []
-
-    // Load the CSV file in order to check if the data is matching the required format
-    const loadCSVFile = (MEDdata) => {
-      // The first column must be identifiers
-      const firstColumnMatchingFormat = (dataframe) => {
-        return dataframe.$dtypes[0] == "int32" || dataframe.$dtypes[0] == "int64" || (dataframe.$dtypes[0] == "string" && dataframe[dataframe.$columns[0]].dt.$dateObjectArray[0] == "Invalid Date")
-      }
-
-      // The second column must be date
-      const secondColumnMatchingFormat = (dataframe) => {
-        return dataframe.$dtypes[1] == "string" && dataframe[dataframe.$columns[1]].dt.$dateObjectArray[0] != "Invalid Date"
-      }
-
-      // All the others columns must be numerical features and their columns names must respect the format className_attributeName
-      const allOtherColumnsAreNumerical = (dataframe) => {
-        for (let i = 2; i < dataframe.$columns.length; i++) {
-          const columnType = dataframe.$dtypes[i]
-          if ((columnType != "int32" && columnType != "int64" && columnType != "float32" && columnType != "float64") || !dataframe.$columns[i].includes("_")) {
-            return false
-          }
-        }
-        return true
-      }
-
-      // Create a promise for each CSV file
-      return new Promise((resolve) => {
-        loadCSVPath(MEDdata.path, (data) => {
-          let dataframe = new DataFrame(data)
-          // The dataframe must contain at least 3 columns and respect the format for each column as specified in the checking functions
-          if (dataframe.$columns.length > 2 && firstColumnMatchingFormat(dataframe) && secondColumnMatchingFormat(dataframe) && allOtherColumnsAreNumerical(dataframe)) {
-            matchingDatasetList.push(MEDdata)
-          }
-          resolve()
-        })
-      })
-    }
-
-    // Create a promises array for all the csv files
-    const promises = keys
-      .filter((key) => {
-        const item = globalData[key]
-        return item.type !== "folder" && item.path.includes(folder.path) && item.extension === "csv"
-      })
-      .map((key) => loadCSVFile(globalData[key]))
-
-    // Wait for all the csv files to have been examinated
-    Promise.all(promises)
-      .then(() => {
-        setSubMasterTableFileList(matchingDatasetList)
-        setLoadingSubMasterTables(false)
-      })
-      .catch((error) => {
-        toast.error("Error while loading MEDdata :", error)
-      })
+    })
+    setter(tmpList)
   }
 
   /**
@@ -319,6 +168,36 @@ const MEDprofilesPrepareData = () => {
    */
   function openMEDprofilesViewer() {
     dispatchLayout({ type: `openMEDprofilesViewerModule`, payload: { pageId: "MEDprofilesViewer", MEDclassesFolder: generatedClassesFolder, MEDprofilesBinaryFile: generatedMEDprofilesFile } })
+  }
+
+  /**
+   *
+   * @param {String} name
+   *
+   * @description
+   * Called when the user change the name under which the master table
+   * file will be saved.
+   *
+   */
+  const handleMasterFilenameChange = (name) => {
+    if (name.match("^[a-zA-Z0-9_]+.csv$") != null) {
+      setMasterFilename(name)
+    }
+  }
+
+  /**
+   *
+   * @param {String} name
+   *
+   * @description
+   * Called when the user change the name under which the master table
+   * file will be saved.
+   *
+   */
+  const handleBinaryFilenameChange = (name) => {
+    if (name.match("^[a-zA-Z0-9_]+.pkl$") != null) {
+      setBinaryFilename(name)
+    }
   }
 
   /**
@@ -424,32 +303,104 @@ const MEDprofilesPrepareData = () => {
   }
 
   /**
-   *
-   * @param {String} name
-   *
    * @description
-   * Called when the user change the name under which the master table
-   * file will be saved.
-   *
+   * This function calls the get_master_csv method in the MEDprofiles server
+   * It updates list of masterTableFileList and submasterTableFileList
    */
-  const handleMasterFilenameChange = (name) => {
-    if (name.match("^[a-zA-Z0-9_]+.csv$") != null) {
-      setMasterFilename(name)
-    }
+  const getMasterSubMasterCsv = () => {
+    // Run extraction process
+    requestBackend(
+      port,
+      "/MEDprofiles/get_master_csv/" + pageId,
+      {
+        csvPaths: csvPathsList,
+        pageId: pageId
+      },
+      (jsonResponse) => {
+        console.log("received results:", jsonResponse)
+        if (!jsonResponse.error) {
+          getListOfGeneratedElement(jsonResponse["master_csv"], setMasterTableFileList)
+          getListOfGeneratedElement(jsonResponse["submaster_csv"], setSubMasterTableFileList)
+          setLoadingMasterTables(false)
+          setLoadingSubMasterTables(false)
+        } else {
+          toast.error(`Loading csv matching formats failed: ${jsonResponse.error.message}`)
+          setError(jsonResponse.error)
+        }
+      },
+      function (err) {
+        console.error(err)
+        toast.error(`Loading csv matching formats failed: ${err}`)
+      }
+    )
   }
 
   /**
-   *
-   * @param {String} name
-   *
    * @description
-   * Called when the user change the name under which the master table
-   * file will be saved.
-   *
+   * Run the initialization process for MEDprofiles instantiation.
+   * Allows to create the binary file and to get the patient list.
+   * @returns jsonResponse
    */
-  const handleBinaryFilenameChange = (name) => {
-    if (name.match("^[a-zA-Z0-9_]+.pkl$") != null) {
-      setBinaryFilename(name)
+  async function initializeMEDprofilesInstantiation() {
+    return new Promise((resolve, reject) => {
+      requestBackend(
+        port,
+        "/MEDprofiles/initialize_MEDprofiles_instantiation/" + pageId,
+        {
+          masterTablePath: selectedMasterTable.path,
+          MEDprofilesFolderPath: MEDprofilesFolderPath,
+          filename: binaryFilename,
+          pageId: pageId
+        },
+        (response) => resolve(response),
+        (error) => reject(error)
+      )
+    })
+  }
+
+  /**
+   * @description
+   * Extract text notes by batch depending on the extraction type specified.
+   * Update the progress bar.
+   *
+   * @returns extractedData
+   */
+  async function runMEDprofilesInstantiation(processingList, destinationFile) {
+    let progress = 10
+    let chunkSize = 25
+    let chunks = []
+    for (let i = 0; i < processingList.length; i += chunkSize) {
+      const chunk = processingList.slice(i, i + chunkSize)
+      chunks.push(chunk)
+    }
+    for (const subList of chunks) {
+      try {
+        const jsonResponse = await new Promise((resolve, reject) => {
+          progress += (1 / chunks.length) * 80
+          setProgressNumber(progress.toFixed(2))
+          requestBackend(
+            port,
+            "/MEDprofiles/instantiate_MEDprofiles/" + pageId,
+            {
+              masterTablePath: selectedMasterTable.path,
+              MEDprofilesFolderPath: MEDprofilesFolderPath,
+              destinationFile: destinationFile,
+              patientList: subList,
+              pageId: pageId
+            },
+            (response) => resolve(response),
+            (error) => reject(error)
+          )
+        })
+        if (jsonResponse.error) {
+          toast.error(`Instantiation failed: ${jsonResponse.error.message}`)
+          setError(jsonResponse.error)
+        }
+      } catch (err) {
+        console.error(err)
+        toast.error(`Instantiation failed: ${err}`)
+        return
+      }
     }
   }
 
@@ -457,44 +408,43 @@ const MEDprofilesPrepareData = () => {
    * @description
    * This function calls the instantiate_MEDprofiles method in the MEDprofiles server
    */
-  const instantiateMEDprofiles = () => {
+  const instantiateMEDprofiles = async () => {
     setInstantiatingMEDprofiles(true)
     setShowProgressBar(true)
-    // Run extraction process
-    requestBackend(
-      port,
-      "/MEDprofiles/instantiate_MEDprofiles/" + pageId,
-      {
-        masterTablePath: selectedMasterTable.path,
-        MEDprofilesFolderPath: MEDprofilesFolderPath,
-        filename: binaryFilename,
-        pageId: pageId
-      },
-      (jsonResponse) => {
-        console.log("received results:", jsonResponse)
-        if (!jsonResponse.error) {
-          MedDataObject.updateWorkspaceDataObject()
-          setGeneratedMEDprofilesFilePath(jsonResponse["generated_file_path"])
-        } else {
-          toast.error(`Instantiation failed: ${jsonResponse.error.message}`)
-          setError(jsonResponse.error)
-        }
-        setShowProgressBar(false)
-        setInstantiatingMEDprofiles(false)
-      },
-      function (err) {
-        console.error(err)
-        toast.error(`Instantiation failed: ${err}`)
-        setShowProgressBar(false)
-        setInstantiatingMEDprofiles(false)
-      }
-    )
+    setProgressNumber(0)
+    setProgressStep("Initialization")
+    // Initialize instantiation process
+    let jsonInitialization = await initializeMEDprofilesInstantiation()
+    // Run MEDprofiles instantiation process
+    setProgressStep("Instantiating data")
+    if (!jsonInitialization.error) {
+      let processingList = jsonInitialization["patient_list"]
+      let destinationFile = jsonInitialization["destination_file"]
+      await runMEDprofilesInstantiation(processingList, destinationFile)
+      MedDataObject.updateWorkspaceDataObject()
+      setGeneratedMEDprofilesFilePath(destinationFile)
+    } else {
+      toast.error(`Instantiation failed: ${jsonInitialization.error.message}`)
+      setError(jsonInitialization.error)
+    }
+    setShowProgressBar(false)
+    setInstantiatingMEDprofiles(false)
   }
 
   // Look of items in the MEDclasses DataView
   const MEDclassesDisplay = (element) => {
     return <div>{globalData[element]?.nameWithoutExtension}</div>
   }
+
+  // Called when csvPathsList is updated, in order to load the matching files for submastertable and mastertable
+  useEffect(() => {
+    if (csvPathsList.length > 0) {
+      getMasterSubMasterCsv()
+    } else {
+      setLoadingMasterTables(false)
+      setLoadingSubMasterTables(false)
+    }
+  }, [csvPathsList])
 
   // Called when dataFolder is updated, in order to load the matching files for submastertable and mastertable
   useEffect(() => {
@@ -505,8 +455,9 @@ const MEDprofilesPrepareData = () => {
       setMasterTableFileList([])
       setSelectedSubMasterTableFiles(null)
       setSelectedMasterTable(null)
-      getSubMasterTableFileList(dataFolder)
-      getMasterTableFileList(dataFolder)
+      getCsvPathList()
+      //getSubMasterTableFileList(dataFolder)
+      //getMasterTableFileList(dataFolder)
     } else {
       setSelectedSubMasterTableFiles(null)
       setSelectedMasterTable(null)
@@ -591,7 +542,7 @@ const MEDprofilesPrepareData = () => {
       <div>
         <div className="margin-top-15 centered-container">
           <h5>Select the location of your master table data folder &nbsp;</h5>
-          <div className="margin-top-15">{folderList.length > 0 ? <Dropdown value={dataFolder} options={folderList} filter optionLabel="name" onChange={(event) => setDataFolder(event.value)} placeholder="Select a folder" /> : <Dropdown placeholder="No folder to show" disabled />}</div>
+          <div className="margin-top-15">{folderList.length > 0 ? <Dropdown value={dataFolder} options={folderList} filter optionLabel="name" onChange={(event) => setDataFolder(event.value)} placeholder="Select a folder" disabled={loadingMasterTables || loadingSubMasterTables} /> : <Dropdown placeholder="No folder to show" disabled />}</div>
         </div>
         <hr></hr>
         <div className="margin-top-15">
@@ -602,9 +553,9 @@ const MEDprofilesPrepareData = () => {
           <div className="align-center">{!matchingIdColumns && <Message severity="warn" text="Your selected csv for master table creation contains different types for identifier columns" />}</div>
         </div>
         <div className="margin-top-15 flex-container">
-          <div className="mergeToolMultiSelect flex-container">
-            <div>{loadingSubMasterTables == true && <ProgressSpinner style={{ width: "40px", height: "40px" }} />}</div>
-            <div>{subMasterTableFileList?.length > 0 ? <MultiSelect style={{ maxWidth: "200px" }} value={selectedSubMasterTableFiles} onChange={(e) => setSelectedSubMasterTableFiles(e.value)} options={subMasterTableFileList} optionLabel="name" className="w-full md:w-14rem margintop8px" display="chip" placeholder="Select CSV files" /> : loadingSubMasterTables == true ? <MultiSelect placeholder="Loading..." disabled /> : <MultiSelect placeholder="No CSV files to show" disabled />}</div>
+          <div className="mergeToolMultiSelect">
+            {loadingSubMasterTables == true && <ProgressSpinner style={{ width: "40px", height: "40px" }} />}
+            {subMasterTableFileList?.length > 0 ? <MultiSelect style={{ maxWidth: "200px" }} value={selectedSubMasterTableFiles} onChange={(e) => setSelectedSubMasterTableFiles(e.value)} options={subMasterTableFileList} optionLabel="name" className="w-full md:w-14rem margintop8px" display="chip" placeholder="Select CSV files" /> : loadingSubMasterTables == true ? <MultiSelect placeholder="Loading..." disabled /> : <MultiSelect placeholder="No CSV files to show" disabled />}
             <div>
               <Button disabled={!selectedSubMasterTableFiles || selectedSubMasterTableFiles?.length < 1 || !matchingIdColumns} onClick={createMasterTable}>
                 Create Master Table
@@ -644,7 +595,14 @@ const MEDprofilesPrepareData = () => {
           </Button>
         </div>
       </div>
-      <div className="margin-top-15 extraction-progress">{showProgressBar && <ProgressBarRequests progressBarProps={{}} isUpdating={showProgressBar} setIsUpdating={setShowProgressBar} progress={progress} setProgress={setProgress} requestTopic={"/MEDprofiles/progress/" + pageId} />}</div>
+      <div className="margin-top-15 extraction-progress">
+        {showProgressBar && (
+          <div className="progress-bar-requests">
+            <label>{progressStep}</label>
+            <ProgressBar now={progressNumber} label={`${progressNumber}%`} />
+          </div>
+        )}
+      </div>
       <hr></hr>
       <h5 className="margin-top-15 align-center">Visualize your MEDprofiles data</h5>
       <div className="margin-top-15 flex-container">

@@ -20,7 +20,7 @@ sys.path.append(SUBMODULE_DIR)
 import submodules.MEDprofiles.MEDprofiles as MEDprofiles
 
 json_params_dict, id_ = parse_arguments()
-go_print("running script.py:" + id_)
+#go_print("running script.py:" + id_)
 
 
 class GoExecInstantiateMEDprofiles(GoExecutionScript):
@@ -35,12 +35,6 @@ class GoExecInstantiateMEDprofiles(GoExecutionScript):
     def __init__(self, json_params: dict, _id: str = None, isProgressInThread: bool = True):
         super().__init__(json_params, _id)
         self.results = {"data": "nothing to return"}
-        self._progress["type"] = "process"
-        self._progress_update_frequency_HZ = 1.0
-        if isProgressInThread:
-            self.progress_thread = threading.Thread(target=self._update_progress_periodically, args=())
-            self.progress_thread.daemon = True
-            self.progress_thread.start()
 
     def _custom_process(self, json_config: dict) -> dict:
         """
@@ -48,37 +42,24 @@ class GoExecInstantiateMEDprofiles(GoExecutionScript):
         specified by a json request.
         Use the instantiate_data_from_master_table.main function from the MEDprofiles submodule. 
 
-        Returns: self.results : dict containing the json request and the genrated binary file path.
+        Returns: self.results : dict containing the json request and the generated binary file path.
         """
-        go_print(json.dumps(json_config, indent=4))
+        #go_print(json.dumps(json_config, indent=4))
         
         # Set local variables
-        self.set_progress(label="Data Instantiation", now=0)
         master_table_path = json_config["masterTablePath"]
         MEDprofiles_folder = json_config["MEDprofilesFolderPath"]
-        filename = json_config["filename"]
-        destination_file = os.path.join(MEDprofiles_folder, filename)
+        #filename = json_config["filename"]
+        #destination_file = os.path.join(MEDprofiles_folder, filename)
+        destination_file = json_config["destinationFile"]
+        patient_list = json_config["patientList"]
         MEDclasses_module = os.path.join(MEDprofiles_folder, "MEDclasses")
         if MEDclasses_module not in sys.path:
             sys.path.append(MEDclasses_module)
 
-        MEDprofiles.src.back.instantiate_data_from_master_table.main(master_table_path, destination_file)
-        json_config["generated_file_path"] = destination_file
+        MEDprofiles.src.back.instantiate_data_from_master_table.main(master_table_path, destination_file, patient_list)
+        #json_config["generated_file_path"] = destination_file
         return self.results
-    
-    def update_progress(self):
-        """
-        This function is used to update the progress of the data instantiation.
-        It is called periodically by the thread self.progress_thread
-        """
-        progress = MEDprofiles.src.back.instantiate_data_from_master_table.get_progress()
-        self.set_progress(now=round(progress, 2))
-
-    def _update_progress_periodically(self):
-        while True:
-            self.update_progress()
-            self.push_progress()
-            time.sleep(1.0 / self._progress_update_frequency_HZ)
 
 
 script = GoExecInstantiateMEDprofiles(json_params_dict, id_)
