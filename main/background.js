@@ -17,6 +17,14 @@ var recentWorkspaces = {}
 const isProd = process.env.NODE_ENV === "production"
 var serverIsRunning = false
 let splashScreen // The splash screen is the window that is displayed while the application is loading
+var mainWindow // The main window is the window of the application
+const originalConsoleLog = console.log
+console.log = function (message) {
+  originalConsoleLog(message)
+  if (mainWindow !== undefined) {
+    mainWindow.webContents.send("log", message)
+  }
+}
 
 if (isProd) {
   serve({ directory: "app" })
@@ -33,6 +41,7 @@ if (isProd) {
     try {
       return callback(decodedUrl)
     } catch (error) {
+      // log(["ERROR: registerLocalProtocol: Could not get file path:", error])
       console.error("ERROR: registerLocalProtocol: Could not get file path:", error)
     }
   })
@@ -52,7 +61,7 @@ if (isProd) {
     show: true
   })
 
-  const mainWindow = createWindow("main", {
+  mainWindow = createWindow("main", {
     width: 1500,
     height: 1000,
     show: false
@@ -69,6 +78,7 @@ if (isProd) {
     splashScreen.setAlwaysOnTop(true)
   })
   const openRecentWorkspacesSubmenuOptions = getRecentWorkspacesOptions(null, mainWindow)
+  // log(["openRecentWorkspacesSubmenuOptions", openRecentWorkspacesSubmenuOptions])
   console.log("openRecentWorkspacesSubmenuOptions", openRecentWorkspacesSubmenuOptions)
   const menuTemplate = [
     {
@@ -88,13 +98,17 @@ if (isProd) {
         {
           role: "preferences",
           label: "Preferences",
-          click() {
+          click: () => {
             console.log("👋")
           },
           submenu: [
             {
               label: "Toggle dark mode",
               click: () => app.emit("toggleDarkMode")
+            },
+            {
+              label: "Tests",
+              click: () => app.emit("tests")
             }
           ]
         }
@@ -205,6 +219,7 @@ if (isProd) {
           if (serverProcess) {
             serverProcess.stdout.on("data", function (data) {
               console.log("data: ", data.toString("utf8"))
+              
             })
             serverProcess.stderr.on("data", (data) => {
               console.log(`stderr: ${data}`)
@@ -338,13 +353,22 @@ if (isProd) {
    * @returns {String} The path to the python executable
    */
   ipcMain.handle("open-dialog-exe", async (event, data) => {
+    if (process.platform !== "win32") {
+      const { filePaths } = await dialog.showOpenDialog({
+        title: "Select the path to the python executable",
+        properties: ["openFile"],
+        filters: [{ name: "Python Executable", extensions: ["*"] }]
+      })
+      return filePaths[0]
+    } else {
     const { filePaths } = await dialog.showOpenDialog({
       title: "Select the path to the python executable",
       properties: ["openFile"],
       filters: [{ name: "Executable", extensions: ["exe"] }]
     })
     return filePaths[0]
-  })
+  }
+})
 
   ipcMain.on("messageFromNext", (event, data) => {
     // Receives a message from Next.js
@@ -387,6 +411,10 @@ if (isProd) {
     console.log("toggleDarkMode")
     mainWindow.webContents.send("toggleDarkMode")
   })
+  
+  app.on("tests", () => {
+    console.log("tests")
+  })
 
   if (isProd) {
     await mainWindow.loadURL("app://./index.html")
@@ -400,6 +428,15 @@ if (isProd) {
   mainWindow.maximize()
   mainWindow.show()
 })()
+
+
+// function sendToRenderer(key, data, mainWindow = mainWindow) {
+//   mainWindow.webContents.send(key, data)
+// }
+
+// function log(data, mainWindow = mainWindow) {
+//   sendToRenderer("log", data, mainWindow)
+// }
 
 /**
  * @description Set the working directory
@@ -640,6 +677,7 @@ function loadWorkspaces() {
     return []
   }
 }
+
 
 /**
  * Saves the recent workspaces

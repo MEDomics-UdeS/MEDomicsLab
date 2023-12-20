@@ -201,6 +201,10 @@ function App() {
       setRecentWorkspaces(data)
     })
 
+    ipcRenderer.on("log", (event, data) => {
+      console.log("log", data)
+    })
+
     ipcRenderer.send("messageFromNext", "getServerPort")
 
     // ipcRenderer.send("messageFromNext", "getRecentWorkspaces")
