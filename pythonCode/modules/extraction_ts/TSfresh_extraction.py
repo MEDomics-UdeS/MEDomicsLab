@@ -147,7 +147,7 @@ class GoExecScriptTSfreshExtraction(GoExecutionScript):
         columnKeys = [key for key in selected_columns]
         columnValues = []
         for key in columnKeys:
-            if selected_columns[key] != "":
+            if selected_columns[key] != "" and selected_columns[key] not in columnValues:
                 columnValues.append(selected_columns[key])
         frequency = json_config["relativeToExtractionType"]["frequency"]
         if frequency == "HourRange":

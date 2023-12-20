@@ -245,7 +245,7 @@ class GoExecScriptBioBERTExtraction(GoExecutionScript):
         columnKeys = [key for key in selected_columns]
         columnValues = []
         for key in columnKeys:
-            if selected_columns[key] != "":
+            if selected_columns[key] != "" and selected_columns[key] not in columnValues:
                 columnValues.append(selected_columns[key])
         frequency = json_config["relativeToExtractionType"]["frequency"]
         if frequency == "HourRange":
@@ -261,7 +261,7 @@ class GoExecScriptBioBERTExtraction(GoExecutionScript):
         df_notes = df_notes[columnValues]
 
         # Pre-processing on data
-        if selected_columns["time"] != "":
+        if selected_columns["time"] != "" and selected_columns[key] not in columnValues:
             df_notes = df_notes.astype({selected_columns["time"] : "datetime64[ns]"})
         df_notes = df_notes.dropna(subset=columnValues).compute()
 
