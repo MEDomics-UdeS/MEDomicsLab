@@ -6,6 +6,7 @@ import { installExtension, REACT_DEVELOPER_TOOLS } from "electron-extension-inst
 import MEDconfig, { PORT_FINDING_METHOD } from "../medomics.dev"
 import { saveJSON, loadJSON } from "./helpers/datamanager"
 import { main } from "@popperjs/core"
+const os = require("os")
 const fs = require("fs")
 var path = require("path")
 const dirTree = require("directory-tree")
@@ -106,10 +107,6 @@ if (isProd) {
               label: "Toggle dark mode",
               click: () => app.emit("toggleDarkMode")
             },
-            {
-              label: "Tests",
-              click: () => app.emit("tests")
-            }
           ]
         }
       ]
@@ -190,6 +187,8 @@ if (isProd) {
     } else {
       //**** PRODUCTION ****//
       let args = [serverPort, "prod", process.resourcesPath]
+      // Get the temporary directory path
+      args.push(os.tmpdir())
       if (condaPath !== null) {
         args.push(condaPath)
       }
@@ -411,10 +410,6 @@ if (isProd) {
     console.log("toggleDarkMode")
     mainWindow.webContents.send("toggleDarkMode")
   })
-  
-  app.on("tests", () => {
-    console.log("tests")
-  })
 
   if (isProd) {
     await mainWindow.loadURL("app://./index.html")
@@ -429,14 +424,6 @@ if (isProd) {
   mainWindow.show()
 })()
 
-
-// function sendToRenderer(key, data, mainWindow = mainWindow) {
-//   mainWindow.webContents.send(key, data)
-// }
-
-// function log(data, mainWindow = mainWindow) {
-//   sendToRenderer("log", data, mainWindow)
-// }
 
 /**
  * @description Set the working directory

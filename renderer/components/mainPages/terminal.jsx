@@ -1,9 +1,6 @@
 import React, { useState, useEffect, useRef } from "react"
 import { ipcRenderer } from "electron"
 import ModulePage from "./moduleBasics/modulePage"
-// import { Terminal } from "primereact/terminal"
-// import { TerminalService } from "primereact/terminal"
-// import {WebLinksAddon} from "xterm-addon-web-links"
 
 const TerminalPage = ({ pageId = "terminal", configPath = undefined }) => {
   const [terminalData, setTerminalData] = useState([])

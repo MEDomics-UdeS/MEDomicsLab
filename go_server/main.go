@@ -43,13 +43,14 @@ func main() {
 		log.Println("Argument " + fmt.Sprint(i) + ": " + os.Args[i])
 	}
 
-	if len(os.Args) == 5 {
-		condaEnv = os.Args[4]
+	if len(os.Args) == 6 {
+		condaEnv = os.Args[5]
 	} 
 	
-
+	
 	log.Println("Conda env: " + condaEnv)
 	os.Setenv("MED_ENV", condaEnv)
+	os.Setenv("MED_TMP", os.Args[4])
 	// Here is where you start the server
 	c := cors.Default()
 	handler := c.Handler(http.DefaultServeMux)
