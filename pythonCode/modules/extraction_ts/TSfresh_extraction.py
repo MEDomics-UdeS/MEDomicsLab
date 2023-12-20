@@ -70,8 +70,6 @@ class GoExecScriptTSfreshExtraction(GoExecutionScript):
                 columns = list(df_patient_embeddings.columns)
                 new_columns = [column_prefix + col for col in columns]
                 df_patient_embeddings.columns = new_columns
-                # Insert time in the dataframe
-                df_patient_embeddings.insert(0, column_time, df_patient[column_time].iloc[0])
                 # Insert patient_id in the dataframe
                 df_patient_embeddings.insert(0, column_id, patient_id)
                 df_ts_embeddings = pd.concat([df_ts_embeddings, df_patient_embeddings], ignore_index=True)
@@ -119,7 +117,7 @@ class GoExecScriptTSfreshExtraction(GoExecutionScript):
                         columns = list(df_time_embeddings.columns)
                         new_columns = [column_prefix + col for col in columns]
                         df_time_embeddings.columns = new_columns
-                        # Insert time in the dataframe (only start_date if the dataframe must respect submaster table format)
+                        # Insert time in the dataframe
                         df_time_embeddings.insert(0, "end_date", end_date)
                         df_time_embeddings.insert(0, "start_date", start_date)
                         # Insert patient_id in the dataframe

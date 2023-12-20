@@ -126,7 +126,10 @@ const ExtractionBioBERT = ({ dataframe, setExtractionJsonData, setMayProceed }) 
    *
    */
   useEffect(() => {
-    if (frequency == "Patient") {
+    if (frequency == "Patient" && masterTableCompatible) {
+      setMayProceed(biobertPath && selectedColumns.patientIdentifier !== "" && selectedColumns.notes !== "" && selectedColumns.time !== "")
+      setExtractionJsonData({ biobertPath: biobertPath, selectedColumns: selectedColumns, columnPrefix: columnPrefix, frequency: frequency, masterTableCompatible: masterTableCompatible })
+    } else if (frequency == "Patient") {
       setMayProceed(biobertPath && selectedColumns.patientIdentifier !== "" && selectedColumns.notes !== "")
       setExtractionJsonData({ biobertPath: biobertPath, selectedColumns: selectedColumns, columnPrefix: columnPrefix, frequency: frequency, masterTableCompatible: masterTableCompatible })
     } else if (frequency == "Admission") {
@@ -135,8 +138,11 @@ const ExtractionBioBERT = ({ dataframe, setExtractionJsonData, setMayProceed }) 
     } else if (frequency == "HourRange") {
       setMayProceed(biobertPath && selectedColumns.patientIdentifier !== "" && selectedColumns.notes !== "" && selectedColumns.time !== "")
       setExtractionJsonData({ biobertPath: biobertPath, selectedColumns: selectedColumns, columnPrefix: columnPrefix, frequency: frequency, hourRange: hourRange, masterTableCompatible: masterTableCompatible })
-    } else if (frequency == "Note") {
+    } else if (frequency == "Note" && masterTableCompatible) {
       setMayProceed(biobertPath && selectedColumns.patientIdentifier !== "" && selectedColumns.notes !== "" && selectedColumns.time !== "")
+      setExtractionJsonData({ biobertPath: biobertPath, selectedColumns: selectedColumns, columnPrefix: columnPrefix, frequency: frequency, masterTableCompatible: masterTableCompatible })
+    } else if (frequency == "Note") {
+      setMayProceed(biobertPath && selectedColumns.patientIdentifier !== "" && selectedColumns.notes !== "")
       setExtractionJsonData({ biobertPath: biobertPath, selectedColumns: selectedColumns, columnPrefix: columnPrefix, frequency: frequency, masterTableCompatible: masterTableCompatible })
     }
   }, [selectedColumns, frequency, hourRange, masterTableCompatible, columnPrefix])
@@ -199,7 +205,7 @@ const ExtractionBioBERT = ({ dataframe, setExtractionJsonData, setMayProceed }) 
             </Card>
           </div>
           <div className="margin-top-30">
-            <InputSwitch inputId="masterTableCompatible" disabled={frequency === "Note"} checked={masterTableCompatible} onChange={(e) => setMasterTableCompatible(e.value)} tooltip="The master table format may contain less columns in order to enter the MEDprofiles' process." />
+            <InputSwitch inputId="masterTableCompatible" checked={masterTableCompatible} onChange={(e) => setMasterTableCompatible(e.value)} tooltip="The master table format may contain less columns in order to enter the MEDprofiles' process." />
             <label htmlFor="masterTableCompatible">&nbsp; Master Table Compatible &nbsp;</label>
           </div>
         </div>
@@ -228,7 +234,7 @@ const ExtractionBioBERT = ({ dataframe, setExtractionJsonData, setMayProceed }) 
               </div>
             </div>
           )}
-          {(frequency == "HourRange" || frequency == "Note" || (frequency == "Patient" && masterTableCompatible)) && (
+          {(frequency == "HourRange" || (frequency == "Note" && masterTableCompatible) || (frequency == "Patient" && masterTableCompatible)) && (
             <div className="margin-top-15">
               Time : &nbsp;
               {dataframe.$data ? <Dropdown value={selectedColumns.time} onChange={(event) => handleColumnSelect("time", event)} options={dataframe.$columns.filter((column, index) => dataframe.$dtypes[index] == "string" && dataframe[column].dt.$dateObjectArray[0] != "Invalid Date")} placeholder="Time" /> : <Dropdown placeholder="Time" disabled />}

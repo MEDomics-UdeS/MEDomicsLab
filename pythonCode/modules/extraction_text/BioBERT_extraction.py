@@ -191,14 +191,12 @@ class GoExecScriptBioBERTExtraction(GoExecutionScript):
                 df_row = pd.DataFrame(row).transpose()
                 df_row_embeddings = pd.DataFrame(
                     [self.get_biobert_embeddings_from_event_list(df_row[column_text])])
-                # Insert time in the dataframe
-                df_row_embeddings.insert(0, column_time, df_row[column_time].item())
                 # Insert patient_id in the dataframe
                 df_row_embeddings.insert(0, column_id, df_row[column_id].item())
                 df_notes_embeddings = pd.concat([df_notes_embeddings, df_row_embeddings], ignore_index=True)
             # Rename columns
-            col_number = len(df_notes_embeddings.columns) - 2
-            df_notes_embeddings.columns = [column_id, column_time] + [column_prefix + str(i) for i in range(col_number)]
+            col_number = len(df_notes_embeddings.columns) - 1
+            df_notes_embeddings.columns = [column_id] + [column_prefix + str(i) for i in range(col_number)]
 
         elif column_time != "":
             # Iterate over patients
