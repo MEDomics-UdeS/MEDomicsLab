@@ -1,4 +1,4 @@
-import { app, ipcMain, Menu, dialog, BrowserWindow, protocol } from "electron"
+import { app, ipcMain, Menu, dialog, BrowserWindow, protocol, nativeTheme } from "electron"
 import axios from "axios"
 import serve from "electron-serve"
 import { createWindow } from "./helpers"
@@ -15,7 +15,7 @@ var serverPort = MEDconfig.defaultPort
 var hasBeenSet = false
 var recentWorkspaces = {}
 const isProd = process.env.NODE_ENV === "production"
-
+var serverIsRunning = false
 let splashScreen // The splash screen is the window that is displayed while the application is loading
 
 if (isProd) {
@@ -140,17 +140,20 @@ if (isProd) {
     }
   ]
 
-  // link: https://medium.com/red-buffer/integrating-python-flask-backend-with-electron-nodejs-frontend-8ac621d13f72
-  console.log("running mode:", isProd ? "production" : "development")
-  console.log(MEDconfig.runServerAutomatically ? "Server will start automatically here (in background of the application)" : "Server must be started manually")
-  if (MEDconfig.runServerAutomatically) {
+  //**** SERVER ****//
+  function runServer(condaPath = null) {
     if (!isProd) {
       //**** DEVELOPMENT ****//
+      let args = [serverPort, "prod", process.cwd()]
+      if (condaPath !== null) {
+        args.push(condaPath)
+      }
 
       findAvailablePort(MEDconfig.defaultPort)
         .then((port) => {
           serverPort = port
-          serverProcess = execFile(`${process.platform == "win32" ? "main.exe" : "./main"}`, [serverPort, "prod", process.cwd()], {
+          serverIsRunning = true
+          serverProcess = execFile(`${process.platform == "win32" ? "main.exe" : "./main"}`, args, {
             windowsHide: false,
             cwd: path.join(process.cwd(), "go_server")
           })
@@ -162,6 +165,7 @@ if (isProd) {
               console.log(`stderr: ${data}`)
             })
             serverProcess.on("close", (code) => {
+              serverIsRunning = false
               console.log(`server child process close all stdio with code ${code}`)
             })
           }
@@ -171,23 +175,32 @@ if (isProd) {
         })
     } else {
       //**** PRODUCTION ****//
+      let args = [serverPort, "prod", process.resourcesPath]
+      if (condaPath !== null) {
+        args.push(condaPath)
+      }
+
       findAvailablePort(MEDconfig.defaultPort)
         .then((port) => {
           serverPort = port
           console.log("_dirname: ", __dirname)
           console.log("process.resourcesPath: ", process.resourcesPath)
+
           if (process.platform == "win32") {
-            serverProcess = execFile(path.join(process.resourcesPath, "go_executables\\server_go_win32.exe"), [serverPort, "prod", process.resourcesPath], {
+            serverProcess = execFile(path.join(process.resourcesPath, "go_executables\\server_go_win32.exe"), args, {
               windowsHide: false
             })
+            serverIsRunning = true
           } else if (process.platform == "linux") {
-            serverProcess = execFile(path.join(process.resourcesPath, "go_executables/server_go_linux"), [serverPort, "prod", process.resourcesPath], {
+            serverProcess = execFile(path.join(process.resourcesPath, "go_executables/server_go_linux"), args, {
               windowsHide: false
             })
+            serverIsRunning = true
           } else if (process.platform == "darwin") {
-            serverProcess = execFile(path.join(process.resourcesPath, "go_executables/server_go_mac"), [serverPort, "prod", process.resourcesPath], {
+            serverProcess = execFile(path.join(process.resourcesPath, "go_executables/server_go_mac"), args, {
               windowsHide: false
             })
+            serverIsRunning = true
           }
           if (serverProcess) {
             serverProcess.stdout.on("data", function (data) {
@@ -195,8 +208,10 @@ if (isProd) {
             })
             serverProcess.stderr.on("data", (data) => {
               console.log(`stderr: ${data}`)
+              serverIsRunning = true
             })
             serverProcess.on("close", (code) => {
+              serverIsRunning = false
               console.log(`my server child process close all stdio with code ${code}`)
             })
           }
@@ -205,6 +220,14 @@ if (isProd) {
           console.error(err)
         })
     }
+    return serverIsRunning
+  }
+
+  // link: https://medium.com/red-buffer/integrating-python-flask-backend-with-electron-nodejs-frontend-8ac621d13f72
+  console.log("running mode:", isProd ? "production" : "development")
+  console.log(MEDconfig.runServerAutomatically ? "Server will start automatically here (in background of the application)" : "Server must be started manually")
+  if (MEDconfig.runServerAutomatically) {
+    runServer()
   } else {
     //**** NO SERVER ****//
     findAvailablePort(MEDconfig.defaultPort)
@@ -236,6 +259,91 @@ if (isProd) {
       hasBeenSet: true,
       newPort: serverPort
     })
+  })
+
+  /**
+   * @description Returns the settings
+   * @returns {Object} The settings
+   * @summary Returns the settings from the settings file if it exists, otherwise returns an empty object
+   */
+  ipcMain.handle("get-settings", async () => {
+    const userDataPath = app.getPath("userData")
+    const settingsFilePath = path.join(userDataPath, "settings.json")
+    if (fs.existsSync(settingsFilePath)) {
+      const settings = JSON.parse(fs.readFileSync(settingsFilePath, "utf8"))
+      return settings
+    } else {
+      return {}
+    }
+  })
+
+  /**
+   * @description Saves the settings
+   * @param {*} event The event
+   * @param {*} settings The settings to save
+   */
+  ipcMain.on("save-settings", async (_event, settings) => {
+    const userDataPath = app.getPath("userData")
+    const settingsFilePath = path.join(userDataPath, "settings.json")
+    console.log("settings to save : ", settingsFilePath, settings)
+    fs.writeFileSync(settingsFilePath, JSON.stringify(settings))
+  })
+
+  /**
+   * @description Returns the server status
+   * @returns {Boolean} True if the server is running, false otherwise
+   */
+  ipcMain.handle("server-is-running", async () => {
+    return serverIsRunning
+  })
+
+  /**
+   * @description Kills the server
+   * @returns {Boolean} True if the server was killed successfully, false otherwise
+   * @summary Kills the server if it is running
+   */
+  ipcMain.handle("kill-server", async () => {
+    if (serverProcess) {
+      let success = await serverProcess.kill()
+      serverIsRunning = false
+      return success
+    } else {
+      return null
+    }
+  })
+
+  /**
+   * @description Starts the server
+   * @param {*} event The event
+   * @param {*} condaPath The path to the python executable (optional) - If null, the default python executable will be used (see environment variables MED_ENV)
+   * @returns {Boolean} True if the server is running, false otherwise
+   */
+  ipcMain.handle("start-server", async (_event, condaPath = null) => {
+    console.log("CONDA PATH: ", condaPath)
+    if (serverProcess) {
+      // kill the server if it is already running
+      serverProcess.kill()
+    }
+    if (MEDconfig.runServerAutomatically) {
+      let success = runServer(condaPath)
+      return success
+    }
+    return serverIsRunning
+  })
+
+  /**
+   * @description Opens the dialog to select the python executable path and returns the path to Next.js
+   * @param {*} event
+   * @param {*} data
+   * @returns {String} The path to the python executable
+   */
+  ipcMain.handle("open-dialog-exe", async (event, data) => {
+    const { filePaths } = await dialog.showOpenDialog({
+      title: "Select the path to the python executable",
+      properties: ["openFile"],
+      filters: [{ name: "Executable", extensions: ["exe"] }]
+    })
+    return filePaths[0]
   })
 
   ipcMain.on("messageFromNext", (event, data) => {
@@ -455,8 +563,7 @@ function findAvailablePort(startPort, endPort = 8000) {
                   resolve(port)
                 }
                 stdout && console.log(stdout)(stderr) && console.log(stderr)
-              }
-              )
+              })
             } else {
               port++
               if (port > endPort) {
@@ -465,35 +572,33 @@ function findAvailablePort(startPort, endPort = 8000) {
               tryPort()
             }
           }
-        
-      }) 
-     } 
-     else { 
-      exec(`netstat ${platform == "win32" ? "-ano | find" : "-ltnup | grep"} ":${port}"`, (err, stdout, stderr) => {
-        if (err) {
-          console.log(`Port ${port} is available !`)
-          resolve(port)
-        } else {
-          if (killProcess) {
-            let PID = stdout.trim().split(/\s+/)[stdout.trim().split(/\s+/).length - 1].split("/")[0]
-            exec(`${platform == "win32" ? "taskkill /f /t /pid" : "kill"} ${PID}`, (err, stdout, stderr) => {
-              if (!err) {
-                console.log("Previous server instance was killed successfully")
-                console.log(`Port ${port} is now available !`)
-                resolve(port)
-              }
-              stdout && console.log(stdout)(stderr) && console.log(stderr)
-            })
+        })
+      } else {
+        exec(`netstat ${platform == "win32" ? "-ano | find" : "-ltnup | grep"} ":${port}"`, (err, stdout, stderr) => {
+          if (err) {
+            console.log(`Port ${port} is available !`)
+            resolve(port)
           } else {
-            port++
-            if (port > endPort) {
-              reject("No available port")
+            if (killProcess) {
+              let PID = stdout.trim().split(/\s+/)[stdout.trim().split(/\s+/).length - 1].split("/")[0]
+              exec(`${platform == "win32" ? "taskkill /f /t /pid" : "kill"} ${PID}`, (err, stdout, stderr) => {
+                if (!err) {
+                  console.log("Previous server instance was killed successfully")
+                  console.log(`Port ${port} is now available !`)
+                  resolve(port)
+                }
+                stdout && console.log(stdout)(stderr) && console.log(stderr)
+              })
+            } else {
+              port++
+              if (port > endPort) {
+                reject("No available port")
+              }
+              tryPort()
             }
-            tryPort()
           }
-        }
-      })
-    }
+        })
+      }
     }
     tryPort()
   })

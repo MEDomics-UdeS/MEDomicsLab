@@ -34,7 +34,7 @@
 }
 
 .p-tabview-nav-link {
-  padding: 1rem !important;
+  padding: 1rem;
   align-self: center;
 }
 
@@ -544,4 +544,20 @@
 
 .datatable-tags .custom-token {
   padding: 0.05rem 0.1rem !important;
+}
+
+.settingsTab .p-tabview-nav-link {
+  padding: 0.65rem !important;
+}
+
+.settingsTab .p-tabview-nav li.p-highlight .p-tabview-nav-link {
+  padding: 0.65rem !important;
+
+  background: #ffffff !important;
+  border-color: #095899 !important;
+  color: #095899 !important;
+}
+
+.settingsTab .p-tabview-nav .p-tabview-ink-bar {
+  background: #095899 !important;
 }
