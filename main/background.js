@@ -159,27 +159,17 @@ if (isProd) {
   //******* PYTHON ENVIRONMENT *******//
   function getPythonEnvironment() {
     // Returns the python environment
-    console.log("getPythonEnvironment: ", process.env.MED_ENV)
     let pythonEnvironment = process.env.MED_ENV2
-    console.log(process.env.MED_ENV)
     if (pythonEnvironment === undefined) {
       let userPath = process.env.HOME
-      console.log(String(userPath))
       let anacondaPath = getCondaPath(userPath)
-      console.log(anacondaPath)
       if (anacondaPath !== null) {
         // If a python environment is found, the path to the python executable is returned
-        console.log("Base conda environment found: ", anacondaPath)
-        console.log(anacondaPath)
-        console.log(checkCondaEnvs(anacondaPath))
         if (checkCondaEnvs(anacondaPath).includes(medCondaEnv)) {
-          console.log("med_conda_env found")
           pythonEnvironment = getThePythonExecutablePath(anacondaPath, medCondaEnv)
         }
       }
     }
-    console.log("pythonEnvironment: ")
-    console.log(pythonEnvironment)
     return pythonEnvironment
   }
 
@@ -280,8 +270,13 @@ if (isProd) {
   //**** SERVER ****//
   function runServer(condaPath = null) {
     // Runs the server
-    console.log("runServer")
-    console.log(getPythonEnvironment())
+
+    pythonEnvironment = getPythonEnvironment()
+    if (process.platform == "darwin" && condaPath === null) {
+      condaPath = pythonEnvironment
+    }
+      
+
     if (!isProd) {
       //**** DEVELOPMENT ****//
       let args = [serverPort, "prod", process.cwd()]
