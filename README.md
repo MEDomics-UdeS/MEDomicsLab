@@ -15,16 +15,16 @@ During the Winter 2024 semester, the first Testing Phase of MEDomicsLab will tak
 We anticipate that the participation to the Testing Phase will involve 1 hour of work per week for 17 consecutive weeks, starting January 15, 2024. Please also note that no programming is involved and that the tutorials can be performed on a laptop.
 
 The schedule of the Testing Phase (2024) and the series of tutorials are planned as follows:
-* Step 1 - Install and Explore : Jan 15 – Jan 29
-* Step 2 - Extract Data: Jan 29 – Feb 12
-* Step 3 - Prepare ML tables: Feb 12 – Feb 26
-* Step 4 - Explore Data: Feb 26 – Mar 11
-* Step 5 - Create Model: Mar 11 – Mar 25
-* Step 6 - Evaluate Model: Mar 25 – Apr 8
-* Step 7 - Apply and Deploy Model: Apr 8 – Apr 22 
-* Step 8 - Challenge: Apr 22 – May 13
+* [Step 1 - Install and Explore](https://medomics-udes.gitbook.io/medomicslab-docs/test-with-mimic/step-1) : Jan 15 – Jan 29
+* [Step 2 - Extract Data](https://medomics-udes.gitbook.io/medomicslab-docs/test-with-mimic/step-2): Jan 29 – Feb 12
+* [Step 3 - Prepare ML tables](https://medomics-udes.gitbook.io/medomicslab-docs/test-with-mimic/step-3): Feb 12 – Feb 26
+* [Step 4 - Explore Data](https://medomics-udes.gitbook.io/medomicslab-docs/test-with-mimic/step-4): Feb 26 – Mar 11
+* [Step 5 - Create Model](https://medomics-udes.gitbook.io/medomicslab-docs/test-with-mimic/step-5): Mar 11 – Mar 25
+* [Step 6 - Evaluate Model](https://medomics-udes.gitbook.io/medomicslab-docs/test-with-mimic/step-6): Mar 25 – Apr 8
+* [Step 7 - Apply and Deploy Model](https://medomics-udes.gitbook.io/medomicslab-docs/test-with-mimic/step-7): Apr 8 – Apr 22 
+* [Step 8 - Challenge](https://medomics-udes.gitbook.io/medomicslab-docs/test-with-mimic/step-8): Apr 22 – May 13
 
-Please also note that an **Information Session** about the Testing Phase is scheduled on **December 15, 2023 at 10AM to 12PM Eastern Time**. You do not have to attend that Information Session to participate to the Testing Phase (the meeting will be recorded), but we encourage you to be there if you can. 
+Please note that an **Information Session** about the Testing Phase was held on December 15, 2023. You can find the recording of the session here: [Information Session](https://youtu.be/BG4BkqZDk-Y?si=cm6JjXUogLPM9uOg). 
 
 As part of the Testing Phase, we will also host online Q&A sessions to answer your questions. These sessions are planned for every Friday from January 12 to May 10, 10-11AM Eastern Time.
 
@@ -39,6 +39,8 @@ The participation in the Testing Phase will involve the use of data from the [MI
 * Send us the 5 forms (CITI Course certification + 4 signed data use agreements) to <medomics.info@gmail.com>
 
 This process related to accessing MIMIC data will take some time, but we assure you it will be worth it!
+
+We also created a video to help you with this process : [Access MIMIC data](https://youtu.be/dfZhM4YjTTs?si=JnFxYB4IaITehW6P).
 
 ## Contact
 
