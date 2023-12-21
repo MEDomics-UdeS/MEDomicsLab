@@ -35,10 +35,8 @@ class GoExecScriptToMasterBioBERTExtraction(GoExecutionScript):
         """
         go_print(json.dumps(json_config, indent=4))
 
-        # Check if the process is necessary
+        # Get frequency
         frequency = json_config["relativeToExtractionType"]["frequency"]
-        if frequency != "Patient" and frequency != "Admission" and frequency != "HourRange":
-            return self.results
 
         # Initialize data
         extracted_data_file = json_config["csvResultsPath"]
@@ -46,12 +44,13 @@ class GoExecScriptToMasterBioBERTExtraction(GoExecutionScript):
         selected_columns = json_config["relativeToExtractionType"]["selectedColumns"]
 
         # Set master table format depending on frequency (for notes there is nothing to do)
-        if frequency == "Patient":
+        if frequency == "Patient" or frequency == "Note":
             df_notes = pd.read_csv(json_config["csvPath"])
             df_notes[selected_columns["time"]] = pd.to_datetime(df_notes[selected_columns["time"]])
             df_notes = df_notes[[selected_columns["patientIdentifier"], selected_columns["time"]]]
-            idx_min_date = df_notes.groupby(selected_columns["patientIdentifier"])[selected_columns["time"]].idxmin()
-            df_notes = df_notes.loc[idx_min_date]
+            if frequency == "Patient":
+                idx_min_date = df_notes.groupby(selected_columns["patientIdentifier"])[selected_columns["time"]].idxmin()
+                df_notes = df_notes.loc[idx_min_date]
             df_tmp = extracted_data.merge(df_notes, on=[selected_columns["patientIdentifier"]])
             extracted_data.insert(1, selected_columns["time"], df_tmp[selected_columns["time"]])
         elif frequency == "Admission":

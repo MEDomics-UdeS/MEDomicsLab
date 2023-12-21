@@ -191,14 +191,12 @@ class GoExecScriptBioBERTExtraction(GoExecutionScript):
                 df_row = pd.DataFrame(row).transpose()
                 df_row_embeddings = pd.DataFrame(
                     [self.get_biobert_embeddings_from_event_list(df_row[column_text])])
-                # Insert time in the dataframe
-                df_row_embeddings.insert(0, column_time, df_row[column_time].item())
                 # Insert patient_id in the dataframe
                 df_row_embeddings.insert(0, column_id, df_row[column_id].item())
                 df_notes_embeddings = pd.concat([df_notes_embeddings, df_row_embeddings], ignore_index=True)
             # Rename columns
-            col_number = len(df_notes_embeddings.columns) - 2
-            df_notes_embeddings.columns = [column_id, column_time] + [column_prefix + str(i) for i in range(col_number)]
+            col_number = len(df_notes_embeddings.columns) - 1
+            df_notes_embeddings.columns = [column_id] + [column_prefix + str(i) for i in range(col_number)]
 
         elif column_time != "":
             # Iterate over patients
@@ -245,7 +243,7 @@ class GoExecScriptBioBERTExtraction(GoExecutionScript):
         columnKeys = [key for key in selected_columns]
         columnValues = []
         for key in columnKeys:
-            if selected_columns[key] != "":
+            if selected_columns[key] != "" and selected_columns[key] not in columnValues:
                 columnValues.append(selected_columns[key])
         frequency = json_config["relativeToExtractionType"]["frequency"]
         if frequency == "HourRange":
@@ -261,7 +259,7 @@ class GoExecScriptBioBERTExtraction(GoExecutionScript):
         df_notes = df_notes[columnValues]
 
         # Pre-processing on data
-        if selected_columns["time"] != "":
+        if selected_columns["time"] != "" and selected_columns[key] not in columnValues:
             df_notes = df_notes.astype({selected_columns["time"] : "datetime64[ns]"})
         df_notes = df_notes.dropna(subset=columnValues).compute()
 
