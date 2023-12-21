@@ -12,11 +12,16 @@ import { InputText } from "primereact/inputtext"
  * @returns {JSX.Element} Settings page
  */
 const SettingsPage = () => {
-  const [settings, setSettings] = useState(null)
-  const [serverIsRunning, setServerIsRunning] = useState(false)
-  const [activeIndex, setActiveIndex] = useState(0)
-  const [condaPath, setCondaPath] = useState("")
+  const [settings, setSettings] = useState(null) // Settings object
+  const [serverIsRunning, setServerIsRunning] = useState(false) // Boolean to know if the server is running
+  const [activeIndex, setActiveIndex] = useState(0) // Index of the active tab
+  const [condaPath, setCondaPath] = useState("") // Path to the conda environment
 
+  /**
+   * Get the settings from the main process
+   * if the conda path is defined in the settings, set it
+   * Check if the server is running and set the state
+   */
   useEffect(() => {
     ipcRenderer.invoke("get-settings").then((receivedSettings) => {
       console.log("received settings", receivedSettings)
@@ -31,17 +36,24 @@ const SettingsPage = () => {
     })
   }, [])
 
+  /**
+   * Save the settings in the main process
+   * @param {Object} newSettings - New settings object
+   * @returns {void}
+   * Creates a timeout to avoid too many calls to the server when the user is typing
+   * The timeout is cleared and reset every time the user types
+   */
   const saveSettings = (newSettings) => {
-    // Creates a timeout to avoid too many calls to the server when the user is typing
-    // The timeout is cleared and reset every time the user types
     clearTimeout(window.saveSettingsTimeout)
     window.saveSettingsTimeout = setTimeout(() => {
       ipcRenderer.send("save-settings", newSettings)
     }, 1000)
   }
 
+  /**
+   * Check if the server is running every 5 seconds
+   */
   useEffect(() => {
-    // Check if the server is running every 5 seconds
     const interval = setInterval(() => {
       ipcRenderer.invoke("server-is-running").then((status) => {
         setServerIsRunning(status)

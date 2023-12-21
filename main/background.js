@@ -21,8 +21,14 @@ let splashScreen // The splash screen is the window that is displayed while the 
 var mainWindow // The main window is the window of the application
 const medCondaEnv = "med_conda_env"
 var pythonEnvironment = null
+
 //**** LOG ****// This is used to send the console.log messages to the main window
 const originalConsoleLog = console.log
+/**
+ * @description Sends the console.log messages to the main window
+ * @param {*} message The message to send
+ * @summary We redefine the console.log function to send the messages to the main window
+ */
 console.log = function (message) {
   try {
     originalConsoleLog(message)
@@ -275,7 +281,6 @@ if (isProd) {
     if (process.platform == "darwin" && condaPath === null) {
       condaPath = pythonEnvironment
     }
-      
 
     if (!isProd) {
       //**** DEVELOPMENT ****//
