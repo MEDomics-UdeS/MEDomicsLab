@@ -42,6 +42,11 @@ This process related to accessing MIMIC data will take some time, but we assure 
 
 We also created a video to help you with this process : [Access MIMIC data](https://youtu.be/dfZhM4YjTTs?si=JnFxYB4IaITehW6P).
 
+## Important Links
+
+- [MEDomicsLab Documentation](https://medomics-udes.gitbook.io/medomicslab-docs/)
+- [MEDomicsLab Discord](https://discord.gg/ZbaGj8E6mP)
+
 ## Contact
 
 For any question, please contact <medomics.info@gmail.com>.
