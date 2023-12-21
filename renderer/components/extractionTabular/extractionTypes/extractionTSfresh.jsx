@@ -122,8 +122,11 @@ const ExtractionTSfresh = ({ dataframe, setExtractionJsonData, setMayProceed, se
    *
    */
   useEffect(() => {
-    if (frequency == "Patient") {
+    if (frequency == "Patient" && masterTableCompatible) {
       setMayProceed(selectedColumns.patientIdentifier !== "" && selectedColumns.time !== "" && selectedColumns.measuredItemIdentifier !== "" && selectedColumns.measurementWeight !== "" && selectedColumns.measurementValue !== "")
+      setExtractionJsonData({ columnPrefix: columnPrefix, selectedColumns: selectedColumns, featuresOption: featuresOption, frequency: frequency, masterTableCompatible: masterTableCompatible })
+    } else if (frequency == "Patient") {
+      setMayProceed(selectedColumns.patientIdentifier !== "" && selectedColumns.measuredItemIdentifier !== "" && selectedColumns.measurementWeight !== "" && selectedColumns.measurementValue !== "")
       setExtractionJsonData({ columnPrefix: columnPrefix, selectedColumns: selectedColumns, featuresOption: featuresOption, frequency: frequency, masterTableCompatible: masterTableCompatible })
     } else if (frequency == "Admission") {
       setMayProceed(selectedColumns.patientIdentifier !== "" && selectedColumns.admissionIdentifier !== "" && selectedColumns.admissionTime !== "" && selectedColumns.measuredItemIdentifier !== "" && selectedColumns.measurementWeight !== "" && selectedColumns.measurementValue !== "")
@@ -167,7 +170,7 @@ const ExtractionTSfresh = ({ dataframe, setExtractionJsonData, setMayProceed, se
               {frequency == "HourRange" && <InputNumber value={hourRange} onValueChange={(e) => setHourRange(e.value)} size={1} showButtons min={1} />}
             </div>
             <div className="margin-top-30">
-              <InputSwitch inputId="masterTableCompatible" disabled={frequency === "Patient"} checked={masterTableCompatible} onChange={(e) => setMasterTableCompatible(e.value)} tooltip="The master table format may contain less columns in order to enter the MEDprofiles' process." />
+              <InputSwitch inputId="masterTableCompatible" checked={masterTableCompatible} onChange={(e) => setMasterTableCompatible(e.value)} tooltip="The master table format may contain less columns in order to enter the MEDprofiles' process." />
               <label htmlFor="masterTableCompatible">&nbsp; Master Table Compatible &nbsp;</label>
             </div>
           </div>
@@ -197,7 +200,7 @@ const ExtractionTSfresh = ({ dataframe, setExtractionJsonData, setMayProceed, se
               </div>
             </div>
           )}
-          {frequency != "Admission" && (
+          {((frequency == "Patient" && masterTableCompatible) || frequency == "HourRange") && (
             <div className="margin-top-15">
               Time : &nbsp;
               {dataframe.$data ? <Dropdown value={selectedColumns.time} onChange={(event) => handleColumnSelect("time", event)} options={dataframe.$columns.filter((column, index) => dataframe.$dtypes[index] == "string" && dataframe[column].dt.$dateObjectArray[0] != "Invalid Date")} placeholder="Time" /> : <Dropdown placeholder="Time" disabled />}

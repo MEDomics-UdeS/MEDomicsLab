@@ -1,3 +1,4 @@
+import dask.dataframe as dd
 import json
 import os
 import pandas as pd
@@ -35,10 +36,8 @@ class GoExecScriptToMasterTSfreshExtraction(GoExecutionScript):
         """
         go_print(json.dumps(json_config, indent=4))
 
-        # Check if the process is necessary
+        # Get frequency
         frequency = json_config["relativeToExtractionType"]["frequency"]
-        if frequency != "Admission" and frequency != "HourRange":
-            return self.results
         
         # Initialize data
         extracted_data_file = json_config["csvResultsPath"]
@@ -48,6 +47,14 @@ class GoExecScriptToMasterTSfreshExtraction(GoExecutionScript):
         # Set master table format depending on frequency (for notes there is nothing to do)
         if frequency == "Admission":
             extracted_data.drop(columns=[selected_columns["admissionIdentifier"]], inplace=True)
+        elif frequency == "Patient":
+            df_ts = pd.read_csv(json_config["csvPath"])
+            df_ts[selected_columns["time"]] = pd.to_datetime(df_ts[selected_columns["time"]])
+            df_ts = df_ts[[selected_columns["patientIdentifier"], selected_columns["time"]]]
+            idx_min_date = df_ts.groupby(selected_columns["patientIdentifier"])[selected_columns["time"]].idxmin()
+            df_ts = df_ts.loc[idx_min_date]
+            df_tmp = extracted_data.merge(df_ts, on=[selected_columns["patientIdentifier"]])
+            extracted_data.insert(1, selected_columns["time"], df_tmp[selected_columns["time"]])
         elif frequency == "HourRange":
             extracted_data.drop(columns=["end_date"], inplace=True)
 
