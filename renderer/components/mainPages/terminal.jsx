@@ -17,13 +17,13 @@ const TerminalPage = ({ pageId = "terminal", configPath = undefined }) => {
   useEffect(() => {
     ipcRenderer.removeAllListeners("log")
     ipcRenderer.on("log", (event, data) => {
-      let newData = [new Date().toLocaleTimeString(), data]
-      let newTerminalData = [...terminalData, newData]
-      // Limits the amount of data stored in the terminal to 1000
-      if (newTerminalData.length > 1000) {
-        newTerminalData.shift()
-      }
-      setTerminalData(newTerminalData)
+      setTerminalData((terminalData) => {
+        let newData = [...terminalData, [new Date().toLocaleTimeString(), data]]
+        if (newData.length > 100) {
+          newData.shift()
+        }
+        return newData
+      })
     })
   }, [])
 
@@ -57,7 +57,7 @@ const TerminalPage = ({ pageId = "terminal", configPath = undefined }) => {
           <Col style={{ backgroundColor: "#1f1f1f", position: "relative", top: "-50px", padding: "1rem 1rem" }}>
             {terminalData.map((data, index) => (
               <h6 key={index} style={{ color: "white" }}>
-                <b style={{ color: "aliceblue" }}>{data[0]}:</b> {data[1]}
+                <b style={{ color: "#007bff" }}>{data[0]}:</b> {data[1]}
               </h6>
             ))}
           </Col>

@@ -19,7 +19,8 @@ const isProd = process.env.NODE_ENV === "production"
 var serverIsRunning = false
 let splashScreen // The splash screen is the window that is displayed while the application is loading
 var mainWindow // The main window is the window of the application
-
+const medCondaEnv = "med_conda_env"
+var pythonEnvironment = null
 //**** LOG ****// This is used to send the console.log messages to the main window
 const originalConsoleLog = console.log
 console.log = function (message) {
@@ -48,7 +49,6 @@ if (isProd) {
     try {
       return callback(decodedUrl)
     } catch (error) {
-      // log(["ERROR: registerLocalProtocol: Could not get file path:", error])
       console.error("ERROR: registerLocalProtocol: Could not get file path:", error)
     }
   })
@@ -85,7 +85,6 @@ if (isProd) {
     splashScreen.setAlwaysOnTop(true)
   })
   const openRecentWorkspacesSubmenuOptions = getRecentWorkspacesOptions(null, mainWindow)
-  // log(["openRecentWorkspacesSubmenuOptions", openRecentWorkspacesSubmenuOptions])
   console.log("openRecentWorkspacesSubmenuOptions", openRecentWorkspacesSubmenuOptions)
   const menuTemplate = [
     {
@@ -157,8 +156,132 @@ if (isProd) {
     }
   ]
 
+  //******* PYTHON ENVIRONMENT *******//
+  function getPythonEnvironment() {
+    // Returns the python environment
+    console.log("getPythonEnvironment: ", process.env.MED_ENV)
+    let pythonEnvironment = process.env.MED_ENV2
+    console.log(process.env.MED_ENV)
+    if (pythonEnvironment === undefined) {
+      let userPath = process.env.HOME
+      console.log(String(userPath))
+      let anacondaPath = getCondaPath(userPath)
+      console.log(anacondaPath)
+      if (anacondaPath !== null) {
+        // If a python environment is found, the path to the python executable is returned
+        console.log("Base conda environment found: ", anacondaPath)
+        console.log(anacondaPath)
+        console.log(checkCondaEnvs(anacondaPath))
+        if (checkCondaEnvs(anacondaPath).includes(medCondaEnv)) {
+          console.log("med_conda_env found")
+          pythonEnvironment = getThePythonExecutablePath(anacondaPath, medCondaEnv)
+        }
+      }
+    }
+    console.log("pythonEnvironment: ")
+    console.log(pythonEnvironment)
+    return pythonEnvironment
+  }
+
+  /**
+   * @description Returns the path to the conda directory
+   * @param {String} parentPath The path to the parent directory
+   * @returns {String} The path to the conda directory
+   */
+  function getCondaPath(parentPath) {
+    let condaPath = null
+    const possibleCondaPaths = ["anaconda3", "miniconda3", "anaconda", "miniconda", "Anaconda3", "Miniconda3", "Anaconda", "Miniconda"]
+    condaPath = checkDirectories(parentPath, possibleCondaPaths)
+    if (condaPath === null) {
+      if (process.platform !== "win32") {
+        let condaPathTemp = path.join(parentPath, "opt")
+        condaPath = checkDirectories(condaPathTemp, possibleCondaPaths)
+        if (condaPath === null) {
+          condaPathTemp = path.join(parentPath, "bin")
+          condaPath = checkDirectories(condaPathTemp, possibleCondaPaths)
+        }
+      } else {
+        parentPath = "C:\\"
+        let condaPathTemp = path.join(parentPath, "ProgramData")
+        condaPath = checkDirectories(condaPathTemp, possibleCondaPaths)
+        if (condaPath === null) {
+          condaPathTemp = path.join(parentPath, "Program Files")
+          condaPath = checkDirectories(condaPathTemp, possibleCondaPaths)
+          if (condaPath === null) {
+            condaPathTemp = path.join(parentPath, "Program Files (x86)")
+            condaPath = checkDirectories(condaPathTemp, possibleCondaPaths)
+          }
+        }
+      }
+      if (condaPath === null) {
+        console.log("No conda environment found")
+        dialog.showMessageBoxSync({
+          type: "error",
+          title: "No conda environment found",
+          message: "No conda environment found. Please install anaconda or miniconda and try again."
+        })
+      }
+    }
+    return condaPath
+  }
+
+  /**
+   * Checks if a list of directories exists from a parent directory
+   * @param {String} parentPath The path to the parent directory
+   * @param {Array} directories The list of directories to check
+   * @returns {String} The path to the directory that exists
+   */
+  function checkDirectories(parentPath, directories) {
+    let directoryPath = null
+    directories.forEach((directory) => {
+      if (directoryPath === null) {
+        let directoryPathTemp = path.join(parentPath, directory)
+        console.log("directoryPathTemp: ", directoryPathTemp)
+        if (fs.existsSync(directoryPathTemp)) {
+          console.log("directoryPathTemp EXISTS: ", directoryPathTemp)
+          directoryPath = directoryPathTemp
+        }
+      }
+    })
+    return directoryPath
+  }
+
+  /**
+   * @description Returns the condas environments
+   * @param {String} condaPath The path to the conda environment
+   * @returns {Array} The condas environments
+   */
+  function checkCondaEnvs(condaPath) {
+    let envsPath = path.join(condaPath, "envs")
+    let envs = []
+    if (fs.existsSync(envsPath)) {
+      envs = fs.readdirSync(envsPath)
+    }
+    return envs
+  }
+
+  /**
+   * @description Returns the path to the python executable
+   * @param {String} condaPath The path to the conda environment
+   * @param {String} envName The name of the conda environment
+   * @returns {String} The path to the python executable
+   */
+  function getThePythonExecutablePath(condaPath, envName) {
+    // Returns the path to the python executable
+    let pythonExecutablePath = null
+    if (process.platform == "win32") {
+      pythonExecutablePath = path.join(condaPath, "envs", envName, "python.exe")
+    } else {
+      pythonExecutablePath = path.join(condaPath, "envs", envName, "bin", "python")
+    }
+    return pythonExecutablePath
+  }
+
   //**** SERVER ****//
   function runServer(condaPath = null) {
+    // Runs the server
+    console.log("runServer")
+    console.log(getPythonEnvironment())
     if (!isProd) {
       //**** DEVELOPMENT ****//
       let args = [serverPort, "prod", process.cwd()]
