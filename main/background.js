@@ -19,11 +19,17 @@ const isProd = process.env.NODE_ENV === "production"
 var serverIsRunning = false
 let splashScreen // The splash screen is the window that is displayed while the application is loading
 var mainWindow // The main window is the window of the application
+
+//**** LOG ****// This is used to send the console.log messages to the main window
 const originalConsoleLog = console.log
 console.log = function (message) {
-  originalConsoleLog(message)
-  if (mainWindow !== undefined) {
-    mainWindow.webContents.send("log", message)
+  try {
+    originalConsoleLog(message)
+    if (mainWindow !== undefined) {
+      mainWindow.webContents.send("log", message)
+    }
+  } catch (error) {
+    console.error(error)
   }
 }
 
@@ -106,7 +112,7 @@ if (isProd) {
             {
               label: "Toggle dark mode",
               click: () => app.emit("toggleDarkMode")
-            },
+            }
           ]
         }
       ]
@@ -156,6 +162,9 @@ if (isProd) {
     if (!isProd) {
       //**** DEVELOPMENT ****//
       let args = [serverPort, "prod", process.cwd()]
+      // Get the temporary directory path
+      args.push(os.tmpdir())
+
       if (condaPath !== null) {
         args.push(condaPath)
       }
@@ -218,7 +227,6 @@ if (isProd) {
           if (serverProcess) {
             serverProcess.stdout.on("data", function (data) {
               console.log("data: ", data.toString("utf8"))
-              
             })
             serverProcess.stderr.on("data", (data) => {
               console.log(`stderr: ${data}`)
@@ -360,14 +368,14 @@ if (isProd) {
       })
       return filePaths[0]
     } else {
-    const { filePaths } = await dialog.showOpenDialog({
-      title: "Select the path to the python executable",
-      properties: ["openFile"],
-      filters: [{ name: "Executable", extensions: ["exe"] }]
-    })
-    return filePaths[0]
-  }
-})
+      const { filePaths } = await dialog.showOpenDialog({
+        title: "Select the path to the python executable",
+        properties: ["openFile"],
+        filters: [{ name: "Executable", extensions: ["exe"] }]
+      })
+      return filePaths[0]
+    }
+  })
 
   ipcMain.on("messageFromNext", (event, data) => {
     // Receives a message from Next.js
@@ -423,7 +431,6 @@ if (isProd) {
   mainWindow.maximize()
   mainWindow.show()
 })()
-
 
 /**
  * @description Set the working directory
@@ -549,12 +556,17 @@ ipcMain.handle("request", async (_, axios_request) => {
 })
 
 app.on("window-all-closed", () => {
-  app.quit()
   console.log("app quit")
   if (MEDconfig.runServerAutomatically) {
-    serverProcess.kill()
-    console.log("serverProcess killed")
+    try {
+      // Check if the serverProcess has the kill method
+      serverProcess.kill()
+      console.log("serverProcess killed")
+    } catch (error) {
+      console.log("serverProcess already killed")
+    }
   }
+  app.quit()
 })
 
 if (MEDconfig.useReactDevTools) {
@@ -664,7 +676,6 @@ function loadWorkspaces() {
     return []
   }
 }
-
 
 /**
  * Saves the recent workspaces
