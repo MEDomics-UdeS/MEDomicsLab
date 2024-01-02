@@ -1,16 +1,44 @@
 #!/bin/bash
+# Check if .zshrc exists, if not create it
+echo "Checking if .zshrc exists..."
+if [ ! -f ~/.zshrc ]; then
+    echo "Creating .zshrc..."
+    touch ~/.zshrc || {
+        echo "An error occurred while creating .zshrc."
+        exit 1
+    }
+fi
 source ~/.zshrc
 eval "$(conda shell.bash hook)"
 echo "Checking if Conda is installed..."
 command -v conda >/dev/null 2>&1
 if [ $? -ne 0 ]; then
-    # Download Miniconda installer
-    echo "Downloading Miniconda installer..."
-    wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda-installer.sh || {
-        echo "An error occurred while downloading the Miniconda installer."
-        exit 1
-    }
+    # Conda is not installed, install Miniconda
+    echo "Conda is not installed."
+    
+    # Check CPU architecture and download the appropriate Miniconda installer
+    echo "Checking CPU architecture..."
+    if [ $(uname -m) == "arm64" ]; then
+        # ARM architecture
+        echo "ARM architecture detected."
+        # Download Miniconda installer with curl
+        echo "Downloading Miniconda installer..."
+        curl -o miniconda-installer.sh https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-arm64.sh || {
+            echo "An error occurred while downloading the Miniconda installer."
+            exit 1
+        }
+    else
+        # Intel architecture
+        echo "Intel architecture detected."
+        # Download Miniconda installer with curl
+        echo "Downloading Miniconda installer..."
+        curl -o miniconda-installer.sh https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-x86_64.sh || {
+            echo "An error occurred while downloading the Miniconda installer."
+            exit 1
+        }
+    fi
 
+    
     # Install Miniconda
     echo "Installing Miniconda..."
     bash miniconda-installer.sh -u -b -p $HOME/miniconda3 || {
