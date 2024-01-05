@@ -122,6 +122,9 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
         case "openMEDprofilesViewerModule":
           return openMEDprofilesViewer(action)
 
+        case "openSettings":
+          return openGeneric(action, "Settings", "Settings")
+
         case "add":
           return add(action)
         case "remove":
@@ -280,7 +283,7 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
    * @summary Function that adds a tab of the Extraction Text Module to the layout model
    * @params {Object} action - The action passed on by the dispatchLayout function
    */
-   const openMEDprofilesViewer = (action) => {
+  const openMEDprofilesViewer = (action) => {
     let type = "MEDprofiles Viewer"
     let component = "MEDprofilesViewer"
 
@@ -292,7 +295,7 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
         name: type,
         id: component,
         component: component,
-        config: { path: null, uuid: id, extension: type, MEDclassesFolder: action.payload.MEDclassesFolder, MEDprofilesBinaryFile: action.payload.MEDprofilesBinaryFile  },
+        config: { path: null, uuid: id, extension: type, MEDclassesFolder: action.payload.MEDclassesFolder, MEDprofilesBinaryFile: action.payload.MEDprofilesBinaryFile }
       }
       let layoutRequestQueueCopy = [...layoutRequestQueue]
       layoutRequestQueueCopy.push({ type: "ADD_TAB", payload: newChild })

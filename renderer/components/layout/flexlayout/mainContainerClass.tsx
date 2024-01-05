@@ -26,6 +26,7 @@ import HomePage from "../../mainPages/home"
 import TerminalPage from "../../mainPages/terminal"
 import OutputPage from "../../mainPages/output"
 import ApplicationPage from "../../mainPages/application"
+import SettingsPage from "../../mainPages/settings"
 import ModulePage from "../../mainPages/moduleBasics/modulePage"
 import * as Icons from "react-bootstrap-icons"
 import Image from "next/image"
@@ -754,8 +755,10 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
       if (node.getExtraData().data == null) {
         const config = node.getConfig()
         console.log("config", config)
-        return <NotebookEditor url={config.path}/>
+        return <NotebookEditor url={config.path} />
       }
+    } else if (component === "Settings") {
+      return <SettingsPage />
     } else if (component !== "") {
       if (node.getExtraData().data == null) {
         const config = node.getConfig()
@@ -869,6 +872,9 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
       }
       if (component === "applicationPage") {
         return <span style={{ marginRight: 3 }}>📦</span>
+      }
+      if (component === "Settings") {
+        return <span style={{ marginRight: 3 }}>⚙️</span>
       }
     }
   }

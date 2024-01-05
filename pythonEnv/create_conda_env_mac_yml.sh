@@ -1,15 +1,42 @@
 #!/bin/bash
+# Check if .zshrc exists, if not create it
+echo "Checking if .zshrc exists..."
+if [ ! -f ~/.zshrc ]; then
+    echo "Creating .zshrc..."
+    touch ~/.zshrc || {
+        echo "An error occurred while creating .zshrc."
+        exit 1
+    }
+fi
 source ~/.zshrc
 eval "$(conda shell.bash hook)"
 echo "Checking if Conda is installed..."
 command -v conda >/dev/null 2>&1
 if [ $? -ne 0 ]; then
-    # Download Miniconda installer
-    echo "Downloading Miniconda installer..."
-    wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda-installer.sh || {
-        echo "An error occurred while downloading the Miniconda installer."
-        exit 1
-    }
+    # Conda is not installed, install Miniconda
+    echo "Conda is not installed."
+
+    # Check CPU architecture and download the appropriate Miniconda installer
+    echo "Checking CPU architecture..."
+    if [ $(uname -m) == "arm64" ]; then
+        # ARM architecture
+        echo "ARM architecture detected."
+        # Download Miniconda installer with curl
+        echo "Downloading Miniconda installer..."
+        curl -o miniconda-installer.sh https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-arm64.sh || {
+            echo "An error occurred while downloading the Miniconda installer."
+            exit 1
+        }
+    else
+        # Intel architecture
+        echo "Intel architecture detected."
+        # Download Miniconda installer with curl
+        echo "Downloading Miniconda installer..."
+        curl -o miniconda-installer.sh https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-x86_64.sh || {
+            echo "An error occurred while downloading the Miniconda installer."
+            exit 1
+        }
+    fi
 
     # Install Miniconda
     echo "Installing Miniconda..."
@@ -32,7 +59,7 @@ if [ $? -ne 0 ]; then
         exit 1
     }
 
-      # Initialize Conda
+    # Initialize Conda
     echo "Initializing Conda..."
     conda init bash
 
@@ -49,7 +76,6 @@ else
         exit 1
     }
 
-    
 fi
 
 CONDA_TYPE=$(conda info | grep -i 'package cache' | awk -F'/' '{print $(NF-1)}')
@@ -81,27 +107,42 @@ xcode-select --install || {
 }
 
 # Check if homebrew is installed
-if command -v brew &> /dev/null; then
+if command -v brew &>/dev/null; then
     echo "Homebrew is already installed."
 else
     echo "Homebrew is not installed."
     # Install homebrew
     echo "Installing homebrew..."
     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" || {
-    echo "An error occurred while installing homebrew."
-    exit 1
+        echo "An error occurred while installing homebrew."
+        exit 1
     }
     # Add homebrew to PATH in .zprofile and .bash_profile
     echo "Adding homebrew to PATH..."
-    echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> /Users/med/.zprofile || {
-        echo "An error occurred while adding homebrew to PATH."
-        exit 1
-    }
+    if grep -q "eval \"\$\(\/opt\/homebrew\/bin\/brew shellenv\)\"" ~/.zshrc; then
+        # Replace the existing homebrew PATH in ~/.zshrc with the new one
+        sed -i '' "s|eval \"\$\(\/opt\/homebrew\/bin\/brew shellenv\)|eval \"\$\(\/opt\/homebrew\/bin\/brew shellenv\)|" ~/.zshrc || {
+            echo "An error occurred while replacing the homebrew PATH in ~/.zshrc."
+            exit 1
+        }
+    else
+        echo "eval \"\$\(\/opt\/homebrew\/bin\/brew shellenv\)\"" >>~/.zshrc || {
+            echo "An error occurred while adding homebrew to PATH."
+            exit 1
+        }
+    fi
     eval "$(/opt/homebrew/bin/brew shellenv)" || {
         echo "An error occurred while adding homebrew to PATH."
         exit 1
     }
 fi
+
+# Source .zshrc to update the PATH
+echo "Sourcing .zshrc..."
+source ~/.zshrc || {
+    echo "An error occurred while sourcing .zshrc."
+    exit 1
+}
 
 # Install libomp
 echo "Installing libomp..."
@@ -135,12 +176,12 @@ conda deactivate || {
 echo "Exporting virtual environment path..."
 if grep -q "export MED_ENV=" ~/.zshrc; then
     # Replace the existing MED_ENV environment variable in ~/.zshrc with the new one
-        sed -i '' "s|export MED_ENV=.*|export MED_ENV=$HOME/opt/$CONDA_TYPE/envs/med_conda_env/bin/python|" ~/.zshrc || {
+    sed -i '' "s|export MED_ENV=.*|export MED_ENV=$HOME/opt/$CONDA_TYPE/envs/med_conda_env/bin/python|" ~/.zshrc || {
         echo "An error occurred while replacing the virtual environment path in ~/.zshrc."
         exit 1
     }
 else
-    echo "export MED_ENV=$HOME/opt/$CONDA_TYPE/envs/med_conda_env/bin/python" >> ~/.zshrc || {
+    echo "export MED_ENV=$HOME/opt/$CONDA_TYPE/envs/med_conda_env/bin/python" >>~/.zshrc || {
         echo "An error occurred while exporting the virtual environment path."
         exit 1
     }

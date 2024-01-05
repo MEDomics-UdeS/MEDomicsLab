@@ -135,7 +135,9 @@ class GoExecutionScript(ABC):
 
         """
         to_send = json.dumps(response)
-        file_path = os.path.join(os.getcwd(), "temp_requests.txt")
+        file_path = os.path.expanduser(os.path.join(os.environ.get("MED_TMP", "~"),"temp_requests.txt")) # Before was -> file_path = os.path.join(os.getcwd(), "temp_requests.txt")
+        # Fixing the permission denied error on Mac
+        go_print("FILE PATH: " + file_path)
         f = open(file_path, "w")
         f.write(to_send)
         f.close()

@@ -256,7 +256,10 @@ const IconSidebar = ({ onSidebarItemSelect }) => {
           {/* div that puts the buttons to the bottom of the sidebar*/}
           <div className="d-flex icon-sidebar-divider" style={{ flexGrow: "1" }}></div>
 
-          <div className="d-flex icon-sidebar-divider" style={{ flexGrow: "1" }}></div>
+          {/* ------------------------------------------- SETTINGS BUTTON ----------------------------------------- */}
+          <Nav.Link className="settingsNav btnSidebar" data-pr-at="right center" data-pr-my="left center" data-pr-tooltip="Settings" eventKey="settings" data-tooltip-id="tooltip-settings" onClick={() => dispatchLayout({ type: `openSettings`, payload: { pageId: "Settings" } })} disabled={disabledIcon}>
+            <Gear size={"1.25rem"} width={"100%"} height={"100%"} style={{ scale: "0.65" }} />
+          </Nav.Link>
         </Nav>
         {/* ------------------------------------------- END ICON NAVBAR ----------------------------------------- */}
       </div>
