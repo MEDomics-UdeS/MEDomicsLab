@@ -165,7 +165,7 @@ if (isProd) {
   //******* PYTHON ENVIRONMENT *******//
   function getPythonEnvironment() {
     // Returns the python environment
-    let pythonEnvironment = process.env.MED_ENV2
+    let pythonEnvironment = process.env.MED_ENV
     if (pythonEnvironment === undefined) {
       let userPath = process.env.HOME
       let anacondaPath = getCondaPath(userPath)
