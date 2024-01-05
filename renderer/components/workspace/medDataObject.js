@@ -230,6 +230,7 @@ export default class MedDataObject {
   static setAcceptedFileTypes(dataObject, acceptedFileTypes) {
     let acceptedFileTypesToReturn = acceptedFileTypes
     if (dataObject.name === "DATA") {
+      acceptedFileTypesToReturn = undefined
       // Default accepted file types for the DATA folder
     }
     return acceptedFileTypesToReturn
