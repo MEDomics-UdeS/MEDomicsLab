@@ -103,10 +103,10 @@ const ExtractionTabularData = ({ extractionTypeList, serverUrl, defaultFilename 
    *
    */
   async function datasetSelected(dataset) {
-    dataset.data = await dataset.loadDataFromDisk()
+    let data = await dataset.loadDataFromDisk()
     setSelectedDataset(dataset)
     setCsvPath(dataset.path)
-    setDataframe(dataset.data)
+    setDataframe(data)
   }
 
   /**
