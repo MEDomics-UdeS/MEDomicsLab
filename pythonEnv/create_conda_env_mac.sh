@@ -124,11 +124,18 @@ pip install -r requirements_mac.txt || {
     exit 1
 }
 
-# Install xcode command line tools
-echo "Installing xcode command line tools..."
-xcode-select --install || {
-    echo "An error occurred while installing xcode command line tools."
-}
+# Check if xcode command line tools are installed
+if xcode-select -p &>/dev/null; then
+    echo "Xcode command line tools are already installed."
+else
+    echo "Xcode command line tools are not installed."
+    # Install xcode command line tools
+    echo "Installing xcode command line tools..."
+    xcode-select --install || {
+        echo "An error occurred while installing xcode command line tools."
+    }
+fi
+
 
 # Check if homebrew is installed
 if command -v brew &>/dev/null; then
@@ -164,14 +171,20 @@ fi
 # Source .zshrc to update the PATH
 echo "Sourcing .zshrc..."
 source ~/.zshrc || {
-    echo "An error occurred while sourcing .zshrc."
-    exit 1
+    # Source .bash_profile to update the PATH
 }
 
 # Install libomp
 echo "Installing libomp..."
 brew install libomp || {
     echo "An error occurred while installing libomp."
+    exit 1
+}
+
+# Install cmake
+echo "Installing cmake..."
+brew install cmake || {
+    echo "An error occurred while installing cmake."
     exit 1
 }
 
@@ -188,6 +201,21 @@ brew install opencv || {
     echo "An error occurred while installing opencv with homebrew."
     exit 1
 }
+
+# Install xgboost without binary
+echo "Installing xgboost..."
+pip install xgboost --no-binary xgboost -v || {
+    echo "An error occurred while installing xgboost."
+    exit 1
+}
+
+# Install lightgbm with conda
+echo "Installing lightgbm..."
+conda install lightgbm || {
+    echo "An error occurred while installing lightgbm."
+    exit 1
+}
+
 
 # Deactivate the new environment
 echo "Deactivating the new environment..."
