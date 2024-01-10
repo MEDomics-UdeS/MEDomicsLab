@@ -266,7 +266,8 @@ jobs:
         run: zip -r MEDomicsLab-PythonEnv-linux.zip ./requirements.txt ./create_conda_env_linux.sh
 
       - name: zip Mac
-        run: zip -r MEDomicsLab-PythonEnv-mac.zip ./conda_env_osx64.yml ./create_conda_env_mac_yml.sh ./create_conda_env_mac.sh ./requirements_mac.txt
+        run: zip -r MEDomicsLab-PythonEnv-mac.zip ./create_conda_env_mac.sh ./requirements_mac.txt
+
       - name: Get tag name
         id: get-tag
         run: |
