@@ -7,6 +7,7 @@ import GroupingTool from "../input/groupingTool"
 import SimpleCleaningTool from "../input/simpleCleaningTool"
 import HoldOutSetCreationTool from "../input/holdOutSetCreationTool"
 import SubsetCreationTool from "../input/subsetCreationTool"
+import FeatureReductionTool from "../input/featuresReduction/featuresReductionTool"
 
 /**
  * @description - This component is the input page of the application
@@ -53,6 +54,12 @@ const InputPage = ({ pageId = "42", configPath = null }) => {
               </Accordion.Body>
             </Accordion.Item>
             <Accordion.Item eventKey="6">
+              <Accordion.Header>Feature Reduction Tool</Accordion.Header>
+              <Accordion.Body>
+                <FeatureReductionTool pageId={pageId} />
+              </Accordion.Body>
+            </Accordion.Item>
+            <Accordion.Item eventKey="7">
               <Accordion.Header>MEDprofiles</Accordion.Header>
               <Accordion.Body>
                 <MEDprofilesPrepareData />

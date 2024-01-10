@@ -11,6 +11,7 @@ var prePath = "input"
 func AddHandleFunc() {
 	Utils.CreateHandleFunc(prePath+"/merge_datasets/", handleMerge)
 	Utils.CreateHandleFunc(prePath+"/create_holdout_set/", handleCreateHoldoutSet)
+	Utils.CreateHandleFunc(prePath+"/compute_eigenvalues/", handleComputeEigenvalues)
 	Utils.CreateHandleFunc(prePath+"/progress/", handleProgress)
 }
 
@@ -32,6 +33,19 @@ func handleMerge(jsonConfig string, id string) (string, error) {
 func handleCreateHoldoutSet(jsonConfig string, id string) (string, error) {
 	log.Println("Creating holdout set...", id)
 	response, err := Utils.StartPythonScripts(jsonConfig, "../pythonCode/modules/input/create_holdout_set.py", id)
+	Utils.RemoveIdFromScripts(id)
+	if err != nil {
+		return "", err
+	}
+	return response, nil
+}
+
+
+// handleComputeEigenvalues handles the request to compute the eigenvalues
+// It returns the response from the python script
+func handleComputeEigenvalues(jsonConfig string, id string) (string, error) {
+	log.Println("Compute Eigenvalues", id)
+	response, err := Utils.StartPythonScripts(jsonConfig, "../pythonCode/modules/input/compute_eigenvalues.py", id)
 	Utils.RemoveIdFromScripts(id)
 	if err != nil {
 		return "", err
