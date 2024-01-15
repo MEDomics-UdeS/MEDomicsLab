@@ -1,4 +1,4 @@
-import { app, ipcMain, Menu, dialog, BrowserWindow, protocol } from "electron"
+import { app, ipcMain, Menu, dialog, BrowserWindow, protocol, nativeTheme } from "electron"
 import axios from "axios"
 import serve from "electron-serve"
 import { createWindow } from "./helpers"
@@ -6,6 +6,7 @@ import { installExtension, REACT_DEVELOPER_TOOLS } from "electron-extension-inst
 import MEDconfig, { PORT_FINDING_METHOD } from "../medomics.dev"
 import { saveJSON, loadJSON } from "./helpers/datamanager"
 import { main } from "@popperjs/core"
+const os = require("os")
 const fs = require("fs")
 var path = require("path")
 const dirTree = require("directory-tree")
@@ -15,8 +16,29 @@ var serverPort = MEDconfig.defaultPort
 var hasBeenSet = false
 var recentWorkspaces = {}
 const isProd = process.env.NODE_ENV === "production"
-
+var serverIsRunning = false
 let splashScreen // The splash screen is the window that is displayed while the application is loading
+var mainWindow // The main window is the window of the application
+const medCondaEnv = "med_conda_env"
+var pythonEnvironment = null
+
+//**** LOG ****// This is used to send the console.log messages to the main window
+const originalConsoleLog = console.log
+/**
+ * @description Sends the console.log messages to the main window
+ * @param {*} message The message to send
+ * @summary We redefine the console.log function to send the messages to the main window
+ */
+console.log = function (message) {
+  try {
+    originalConsoleLog(message)
+    if (mainWindow !== undefined) {
+      mainWindow.webContents.send("log", message)
+    }
+  } catch (error) {
+    console.error(error)
+  }
+}
 
 if (isProd) {
   serve({ directory: "app" })
@@ -52,7 +74,7 @@ if (isProd) {
     show: true
   })
 
-  const mainWindow = createWindow("main", {
+  mainWindow = createWindow("main", {
     width: 1500,
     height: 1000,
     show: false
@@ -88,7 +110,7 @@ if (isProd) {
         {
           role: "preferences",
           label: "Preferences",
-          click() {
+          click: () => {
             console.log("👋")
           },
           submenu: [
@@ -140,17 +162,141 @@ if (isProd) {
     }
   ]
 
-  // link: https://medium.com/red-buffer/integrating-python-flask-backend-with-electron-nodejs-frontend-8ac621d13f72
-  console.log("running mode:", isProd ? "production" : "development")
-  console.log(MEDconfig.runServerAutomatically ? "Server will start automatically here (in background of the application)" : "Server must be started manually")
-  if (MEDconfig.runServerAutomatically) {
+  //******* PYTHON ENVIRONMENT *******//
+  function getPythonEnvironment() {
+    // Returns the python environment
+    let pythonEnvironment = process.env.MED_ENV
+    if (pythonEnvironment === undefined) {
+      let userPath = process.env.HOME
+      let anacondaPath = getCondaPath(userPath)
+      if (anacondaPath !== null) {
+        // If a python environment is found, the path to the python executable is returned
+        if (checkCondaEnvs(anacondaPath).includes(medCondaEnv)) {
+          pythonEnvironment = getThePythonExecutablePath(anacondaPath, medCondaEnv)
+        }
+      }
+    }
+    return pythonEnvironment
+  }
+
+  /**
+   * @description Returns the path to the conda directory
+   * @param {String} parentPath The path to the parent directory
+   * @returns {String} The path to the conda directory
+   */
+  function getCondaPath(parentPath) {
+    let condaPath = null
+    const possibleCondaPaths = ["anaconda3", "miniconda3", "anaconda", "miniconda", "Anaconda3", "Miniconda3", "Anaconda", "Miniconda"]
+    condaPath = checkDirectories(parentPath, possibleCondaPaths)
+    if (condaPath === null) {
+      if (process.platform !== "win32") {
+        let condaPathTemp = path.join(parentPath, "opt")
+        condaPath = checkDirectories(condaPathTemp, possibleCondaPaths)
+        if (condaPath === null) {
+          condaPathTemp = path.join(parentPath, "bin")
+          condaPath = checkDirectories(condaPathTemp, possibleCondaPaths)
+        }
+      } else {
+        parentPath = "C:\\"
+        let condaPathTemp = path.join(parentPath, "ProgramData")
+        condaPath = checkDirectories(condaPathTemp, possibleCondaPaths)
+        if (condaPath === null) {
+          condaPathTemp = path.join(parentPath, "Program Files")
+          condaPath = checkDirectories(condaPathTemp, possibleCondaPaths)
+          if (condaPath === null) {
+            condaPathTemp = path.join(parentPath, "Program Files (x86)")
+            condaPath = checkDirectories(condaPathTemp, possibleCondaPaths)
+          }
+        }
+      }
+      if (condaPath === null) {
+        console.log("No conda environment found")
+        dialog.showMessageBoxSync({
+          type: "error",
+          title: "No conda environment found",
+          message: "No conda environment found. Please install anaconda or miniconda and try again."
+        })
+      }
+    }
+    return condaPath
+  }
+
+  /**
+   * Checks if a list of directories exists from a parent directory
+   * @param {String} parentPath The path to the parent directory
+   * @param {Array} directories The list of directories to check
+   * @returns {String} The path to the directory that exists
+   */
+  function checkDirectories(parentPath, directories) {
+    let directoryPath = null
+    directories.forEach((directory) => {
+      if (directoryPath === null) {
+        let directoryPathTemp = path.join(parentPath, directory)
+        console.log("directoryPathTemp: ", directoryPathTemp)
+        if (fs.existsSync(directoryPathTemp)) {
+          console.log("directoryPathTemp EXISTS: ", directoryPathTemp)
+          directoryPath = directoryPathTemp
+        }
+      }
+    })
+    return directoryPath
+  }
+
+  /**
+   * @description Returns the condas environments
+   * @param {String} condaPath The path to the conda environment
+   * @returns {Array} The condas environments
+   */
+  function checkCondaEnvs(condaPath) {
+    let envsPath = path.join(condaPath, "envs")
+    let envs = []
+    if (fs.existsSync(envsPath)) {
+      envs = fs.readdirSync(envsPath)
+    }
+    return envs
+  }
+
+  /**
+   * @description Returns the path to the python executable
+   * @param {String} condaPath The path to the conda environment
+   * @param {String} envName The name of the conda environment
+   * @returns {String} The path to the python executable
+   */
+  function getThePythonExecutablePath(condaPath, envName) {
+    // Returns the path to the python executable
+    let pythonExecutablePath = null
+    if (process.platform == "win32") {
+      pythonExecutablePath = path.join(condaPath, "envs", envName, "python.exe")
+    } else {
+      pythonExecutablePath = path.join(condaPath, "envs", envName, "bin", "python")
+    }
+    return pythonExecutablePath
+  }
+
+  //**** SERVER ****//
+  function runServer(condaPath = null) {
+    // Runs the server
+
+    pythonEnvironment = getPythonEnvironment()
+    if (process.platform == "darwin" && condaPath === null) {
+      condaPath = pythonEnvironment
+    }
+
     if (!isProd) {
       //**** DEVELOPMENT ****//
+      let args = [serverPort, "prod", process.cwd()]
+      // Get the temporary directory path
+      args.push(os.tmpdir())
+
+      if (condaPath !== null) {
+        args.push(condaPath)
+      }
 
       findAvailablePort(MEDconfig.defaultPort)
         .then((port) => {
           serverPort = port
-          serverProcess = execFile(`${process.platform == "win32" ? "main.exe" : "./main"}`, [serverPort, "prod", process.cwd()], {
+          serverIsRunning = true
+          serverProcess = execFile(`${process.platform == "win32" ? "main.exe" : "./main"}`, args, {
             windowsHide: false,
             cwd: path.join(process.cwd(), "go_server")
           })
@@ -162,6 +308,7 @@ if (isProd) {
               console.log(`stderr: ${data}`)
             })
             serverProcess.on("close", (code) => {
+              serverIsRunning = false
               console.log(`server child process close all stdio with code ${code}`)
             })
           }
@@ -171,23 +318,34 @@ if (isProd) {
         })
     } else {
       //**** PRODUCTION ****//
+      let args = [serverPort, "prod", process.resourcesPath]
+      // Get the temporary directory path
+      args.push(os.tmpdir())
+      if (condaPath !== null) {
+        args.push(condaPath)
+      }
+
       findAvailablePort(MEDconfig.defaultPort)
         .then((port) => {
           serverPort = port
           console.log("_dirname: ", __dirname)
           console.log("process.resourcesPath: ", process.resourcesPath)
+
           if (process.platform == "win32") {
-            serverProcess = execFile(path.join(process.resourcesPath, "go_executables\\server_go_win32.exe"), [serverPort, "prod", process.resourcesPath], {
+            serverProcess = execFile(path.join(process.resourcesPath, "go_executables\\server_go_win32.exe"), args, {
               windowsHide: false
             })
+            serverIsRunning = true
           } else if (process.platform == "linux") {
-            serverProcess = execFile(path.join(process.resourcesPath, "go_executables/server_go_linux"), [serverPort, "prod", process.resourcesPath], {
+            serverProcess = execFile(path.join(process.resourcesPath, "go_executables/server_go_linux"), args, {
               windowsHide: false
             })
+            serverIsRunning = true
           } else if (process.platform == "darwin") {
-            serverProcess = execFile(path.join(process.resourcesPath, "go_executables/server_go_mac"), [serverPort, "prod", process.resourcesPath], {
+            serverProcess = execFile(path.join(process.resourcesPath, "go_executables/server_go_mac"), args, {
               windowsHide: false
             })
+            serverIsRunning = true
           }
           if (serverProcess) {
             serverProcess.stdout.on("data", function (data) {
@@ -195,8 +353,10 @@ if (isProd) {
             })
             serverProcess.stderr.on("data", (data) => {
               console.log(`stderr: ${data}`)
+              serverIsRunning = true
             })
             serverProcess.on("close", (code) => {
+              serverIsRunning = false
               console.log(`my server child process close all stdio with code ${code}`)
             })
           }
@@ -205,6 +365,14 @@ if (isProd) {
           console.error(err)
         })
     }
+    return serverIsRunning
+  }
+
+  // link: https://medium.com/red-buffer/integrating-python-flask-backend-with-electron-nodejs-frontend-8ac621d13f72
+  console.log("running mode:", isProd ? "production" : "development")
+  console.log(MEDconfig.runServerAutomatically ? "Server will start automatically here (in background of the application)" : "Server must be started manually")
+  if (MEDconfig.runServerAutomatically) {
+    runServer()
   } else {
     //**** NO SERVER ****//
     findAvailablePort(MEDconfig.defaultPort)
@@ -236,6 +404,100 @@ if (isProd) {
       hasBeenSet: true,
       newPort: serverPort
     })
+  })
+
+  /**
+   * @description Returns the settings
+   * @returns {Object} The settings
+   * @summary Returns the settings from the settings file if it exists, otherwise returns an empty object
+   */
+  ipcMain.handle("get-settings", async () => {
+    const userDataPath = app.getPath("userData")
+    const settingsFilePath = path.join(userDataPath, "settings.json")
+    if (fs.existsSync(settingsFilePath)) {
+      const settings = JSON.parse(fs.readFileSync(settingsFilePath, "utf8"))
+      return settings
+    } else {
+      return {}
+    }
+  })
+
+  /**
+   * @description Saves the settings
+   * @param {*} event The event
+   * @param {*} settings The settings to save
+   */
+  ipcMain.on("save-settings", async (_event, settings) => {
+    const userDataPath = app.getPath("userData")
+    const settingsFilePath = path.join(userDataPath, "settings.json")
+    console.log("settings to save : ", settingsFilePath, settings)
+    fs.writeFileSync(settingsFilePath, JSON.stringify(settings))
+  })
+
+  /**
+   * @description Returns the server status
+   * @returns {Boolean} True if the server is running, false otherwise
+   */
+  ipcMain.handle("server-is-running", async () => {
+    return serverIsRunning
+  })
+
+  /**
+   * @description Kills the server
+   * @returns {Boolean} True if the server was killed successfully, false otherwise
+   * @summary Kills the server if it is running
+   */
+  ipcMain.handle("kill-server", async () => {
+    if (serverProcess) {
+      let success = await serverProcess.kill()
+      serverIsRunning = false
+      return success
+    } else {
+      return null
+    }
+  })
+
+  /**
+   * @description Starts the server
+   * @param {*} event The event
+   * @param {*} condaPath The path to the python executable (optional) - If null, the default python executable will be used (see environment variables MED_ENV)
+   * @returns {Boolean} True if the server is running, false otherwise
+   */
+  ipcMain.handle("start-server", async (_event, condaPath = null) => {
+    console.log("CONDA PATH: ", condaPath)
+    if (serverProcess) {
+      // kill the server if it is already running
+      serverProcess.kill()
+    }
+    if (MEDconfig.runServerAutomatically) {
+      let success = runServer(condaPath)
+      return success
+    }
+    return serverIsRunning
+  })
+
+  /**
+   * @description Opens the dialog to select the python executable path and returns the path to Next.js
+   * @param {*} event
+   * @param {*} data
+   * @returns {String} The path to the python executable
+   */
+  ipcMain.handle("open-dialog-exe", async (event, data) => {
+    if (process.platform !== "win32") {
+      const { filePaths } = await dialog.showOpenDialog({
+        title: "Select the path to the python executable",
+        properties: ["openFile"],
+        filters: [{ name: "Python Executable", extensions: ["*"] }]
+      })
+      return filePaths[0]
+    } else {
+      const { filePaths } = await dialog.showOpenDialog({
+        title: "Select the path to the python executable",
+        properties: ["openFile"],
+        filters: [{ name: "Executable", extensions: ["exe"] }]
+      })
+      return filePaths[0]
+    }
   })
 
   ipcMain.on("messageFromNext", (event, data) => {
@@ -417,12 +679,17 @@ ipcMain.handle("request", async (_, axios_request) => {
 })
 
 app.on("window-all-closed", () => {
-  app.quit()
   console.log("app quit")
   if (MEDconfig.runServerAutomatically) {
-    serverProcess.kill()
-    console.log("serverProcess killed")
+    try {
+      // Check if the serverProcess has the kill method
+      serverProcess.kill()
+      console.log("serverProcess killed")
+    } catch (error) {
+      console.log("serverProcess already killed")
+    }
   }
+  app.quit()
 })
 
 if (MEDconfig.useReactDevTools) {
@@ -455,8 +722,7 @@ function findAvailablePort(startPort, endPort = 8000) {
                   resolve(port)
                 }
                 stdout && console.log(stdout)(stderr) && console.log(stderr)
-              }
-              )
+              })
             } else {
               port++
               if (port > endPort) {
@@ -465,35 +731,33 @@ function findAvailablePort(startPort, endPort = 8000) {
               tryPort()
             }
           }
-        
-      }) 
-     } 
-     else { 
-      exec(`netstat ${platform == "win32" ? "-ano | find" : "-ltnup | grep"} ":${port}"`, (err, stdout, stderr) => {
-        if (err) {
-          console.log(`Port ${port} is available !`)
-          resolve(port)
-        } else {
-          if (killProcess) {
-            let PID = stdout.trim().split(/\s+/)[stdout.trim().split(/\s+/).length - 1].split("/")[0]
-            exec(`${platform == "win32" ? "taskkill /f /t /pid" : "kill"} ${PID}`, (err, stdout, stderr) => {
-              if (!err) {
-                console.log("Previous server instance was killed successfully")
-                console.log(`Port ${port} is now available !`)
-                resolve(port)
-              }
-              stdout && console.log(stdout)(stderr) && console.log(stderr)
-            })
+        })
+      } else {
+        exec(`netstat ${platform == "win32" ? "-ano | find" : "-ltnup | grep"} ":${port}"`, (err, stdout, stderr) => {
+          if (err) {
+            console.log(`Port ${port} is available !`)
+            resolve(port)
           } else {
-            port++
-            if (port > endPort) {
-              reject("No available port")
+            if (killProcess) {
+              let PID = stdout.trim().split(/\s+/)[stdout.trim().split(/\s+/).length - 1].split("/")[0]
+              exec(`${platform == "win32" ? "taskkill /f /t /pid" : "kill"} ${PID}`, (err, stdout, stderr) => {
+                if (!err) {
+                  console.log("Previous server instance was killed successfully")
+                  console.log(`Port ${port} is now available !`)
+                  resolve(port)
+                }
+                stdout && console.log(stdout)(stderr) && console.log(stderr)
+              })
+            } else {
+              port++
+              if (port > endPort) {
+                reject("No available port")
+              }
+              tryPort()
             }
-            tryPort()
           }
-        }
-      })
-    }
+        })
+      }
     }
     tryPort()
   })
