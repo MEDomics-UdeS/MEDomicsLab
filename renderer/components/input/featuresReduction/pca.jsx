@@ -132,7 +132,13 @@ const PCA = () => {
         console.log("received results:", jsonResponse)
         if (!jsonResponse.error) {
           let data = jsonResponse["explained_var"]
-          setExplainedVar(data.map((value, index) => ({ index: index + 1, value })))
+          if (data.length > 0) {
+            if (typeof data[0] != "number") {
+              setExplainedVar(data.map((value, index) => ({ index: index + 1, value: value.real + "i + " + value.imaginary + "j" })))
+            } else {
+              setExplainedVar(data.map((value, index) => ({ index: index + 1, value })))
+            }
+          }
         } else {
           toast.error(`Computation failed: ${jsonResponse.error.message}`)
           setError(jsonResponse.error)

@@ -67,9 +67,14 @@ class GoExecScriptComputeEigenvalues(GoExecutionScript):
         # Sort the eigenvalues in descending order
         eigenvalues = eigenvalues[idx]
         explained_var = np.cumsum(eigenvalues) / np.sum(eigenvalues)
+        if np.iscomplexobj(explained_var):
+            tmp = [{"real": np.real(x), 'imaginary': np.imag(x)} for x in explained_var]
+            explained_var = tmp
+        else:
+            explained_var = explained_var.tolist()
 
         # Get results
-        json_config["explained_var"] = explained_var.tolist()
+        json_config["explained_var"] = explained_var
         self.results = json_config
 
         return self.results
