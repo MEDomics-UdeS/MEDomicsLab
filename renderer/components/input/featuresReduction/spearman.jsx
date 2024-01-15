@@ -18,8 +18,8 @@ import MedDataObject from "../../workspace/medDataObject"
 const Spearman = () => {
   const [dataframe, setDataframe] = useState([]) // djanfo dataframe of data to apply Spearman on
   const [datasetList, setDatasetList] = useState([]) // list of available datasets in DATA folder
-  const [explainedVar, setExplainedVar] = useState([]) // ordered list of the computed explainedVar from the eigenvalues with their index
-  const explainedVarColumns = [
+  const [correlations, setCorrelations] = useState([]) // ordered list of dict of the computed correlations
+  const correlationsColumns = [
     { field: "index", header: "Column Name" },
     { field: "value", header: "Correlation with target" }
   ]
@@ -30,7 +30,7 @@ const Spearman = () => {
   const [resultsPath, setResultsPath] = useState(null) // path of the computed PCA dataset
   const [selectedColumns, setSelectedColumns] = useState([]) // columns to apply PCA on
   const [selectedDataset, setSelectedDataset] = useState(null) // dataset in which we want to apply Spearman
-  const [selectedSpearmanRow, setSelectedSpearmanRow] = useState(null) // row selected in the datatable for the number of columns to keep
+  const [selectedSpearmanRows, setSelectedSpearmanRows] = useState([]) // rows selected in the datatable for the columns to keep
   const [selectedTarget, setSelectedTarget] = useState(null) // target column for Spearman
 
   const { globalData } = useContext(DataContext) // we get the global data from the context to retrieve the directory tree of the workspace, thus retrieving the data files
@@ -106,17 +106,23 @@ const Spearman = () => {
   const computeCorrelations = () => {
     requestBackend(
       port,
-      "/input/compute_eigenvalues/" + pageId,
+      "/input/compute_correlations/" + pageId,
       {
         csvPath: selectedDataset.path,
         columns: selectedColumns,
+        target: selectedTarget,
         pageId: pageId
       },
       (jsonResponse) => {
         console.log("received results:", jsonResponse)
         if (!jsonResponse.error) {
-          let data = jsonResponse["explained_var"]
-          setExplainedVar(data.map((value, index) => ({ index: index + 1, value })))
+          let data = jsonResponse["correlations"]
+          setCorrelations(
+            Object.keys(data).map((key) => ({
+              index: key,
+              value: data[key]
+            }))
+          )
         } else {
           toast.error(`Computation failed: ${jsonResponse.error.message}`)
           setError(jsonResponse.error)
@@ -131,18 +137,20 @@ const Spearman = () => {
 
   /**
    * @description
-   * Call the server to compute pca
+   * Call the server to compute Spearman
    */
   const computeSpearman = () => {
     requestBackend(
       port,
-      "/input/compute_pca/" + pageId,
+      "/input/compute_spearman/" + pageId,
       {
         csvPath: selectedDataset.path,
-        columns: selectedColumns,
-        nComponents: selectedSpearmanRow.index,
+        selectedColumns: selectedColumns,
+        selectedSpearmanRows: selectedSpearmanRows,
+        selectedTarget: selectedTarget,
         dataFolderPath: dataFolderPath,
         keepUnselectedColumns: keepUnselectedColumns,
+        keepTarget: keepTarget,
         resultsFilename: spearmanFilename,
         pageId: pageId
       },
@@ -165,18 +173,18 @@ const Spearman = () => {
 
   // Called when selected columns is updated, in order to update explained var
   useEffect(() => {
-    setExplainedVar([])
+    setCorrelations([])
   }, [selectedColumns])
 
   // Called when explained var is updated, in order to update selected Spearman row
   useEffect(() => {
-    setSelectedSpearmanRow(null)
-  }, [explainedVar])
+    setSelectedSpearmanRows([])
+  }, [correlations])
 
   // Called when the PCA form is updated in order to update result path
   useEffect(() => {
     setResultsPath(null)
-  }, [selectedDataset, selectedColumns, explainedVar, keepUnselectedColumns, spearmanFilename])
+  }, [selectedDataset, selectedColumns, correlations, keepUnselectedColumns, spearmanFilename])
 
   // Called when data in DataContext is updated, in order to update datasetList
   useEffect(() => {
@@ -207,7 +215,7 @@ const Spearman = () => {
       </div>
       <div className="margin-top-15 center">
         {/* Compute eigenvalues */}
-        <Button disabled={selectedColumns.length < 1} onClick={computeCorrelations}>
+        <Button disabled={selectedColumns.length < 1 || !selectedTarget} onClick={computeCorrelations}>
           Compute correlations
         </Button>
       </div>
@@ -216,8 +224,9 @@ const Spearman = () => {
         {/* Display explained variance and select number of principal components */}
         <b>Select columns to keep</b>
         <div className="margin-top-15 maxwidth-80 mx-auto">
-          <DataTable value={explainedVar} size={"small"} selectionMode="single" selection={selectedSpearmanRow} onSelectionChange={(e) => setSelectedSpearmanRow(e.value)} paginator rows={3}>
-            {explainedVarColumns.map((col) => (
+          <DataTable value={correlations} size={"small"} selectionMode="checkbox" selection={selectedSpearmanRows} onSelectionChange={(e) => setSelectedSpearmanRows(e.value)} paginator rows={3}>
+            <Column selectionMode="multiple"></Column>
+            {correlationsColumns.map((col) => (
               <Column key={col.field} field={col.field} header={col.header} />
             ))}
           </DataTable>
@@ -242,7 +251,7 @@ const Spearman = () => {
           <InputText value={spearmanFilename} onChange={(e) => handleFilenameChange(e.target.value)} />
         </div>
         <div>
-          <Button disabled={!selectedSpearmanRow} onClick={computeSpearman}>
+          <Button disabled={selectedSpearmanRows.length < 1} onClick={computeSpearman}>
             Compute Spearman dataset
           </Button>
         </div>

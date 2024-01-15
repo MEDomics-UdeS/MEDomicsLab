@@ -13,6 +13,8 @@ func AddHandleFunc() {
 	Utils.CreateHandleFunc(prePath+"/create_holdout_set/", handleCreateHoldoutSet)
 	Utils.CreateHandleFunc(prePath+"/compute_eigenvalues/", handleComputeEigenvalues)
 	Utils.CreateHandleFunc(prePath+"/compute_pca/", handleComputePCA)
+	Utils.CreateHandleFunc(prePath+"/compute_correlations/", handleComputeCorrelations)
+	Utils.CreateHandleFunc(prePath+"/compute_spearman/", handleComputeSpearman)
 	Utils.CreateHandleFunc(prePath+"/progress/", handleProgress)
 }
 
@@ -67,6 +69,29 @@ func handleComputePCA(jsonConfig string, id string) (string, error) {
 	return response, nil
 }
 
+// handleComputeCorrelations handles the request to compute correlations
+// It returns the response from the python script
+func handleComputeCorrelations(jsonConfig string, id string) (string, error) {
+	log.Println("Compute Correlations", id)
+	response, err := Utils.StartPythonScripts(jsonConfig, "../pythonCode/modules/input/compute_correlations.py", id)
+	Utils.RemoveIdFromScripts(id)
+	if err != nil {
+		return "", err
+	}
+	return response, nil
+}
+
+// handleComputeSpearman handles the request to compute Spearman
+// It returns the response from the python script
+func handleComputeSpearman(jsonConfig string, id string) (string, error) {
+	log.Println("Compute Spearman", id)
+	response, err := Utils.StartPythonScripts(jsonConfig, "../pythonCode/modules/input/compute_spearman.py", id)
+	Utils.RemoveIdFromScripts(id)
+	if err != nil {
+		return "", err
+	}
+	return response, nil
+}
 
 // handleProgress handles the request to get the progress of the experiment
 // It returns the progress of the experiment
