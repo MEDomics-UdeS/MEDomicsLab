@@ -15,6 +15,9 @@ import { WorkspaceContext } from "../../workspace/workspaceContext"
 import { InputText } from "primereact/inputtext"
 import MedDataObject from "../../workspace/medDataObject"
 
+/**
+ * Component that renders the Spearman feature reduction creation tool
+ */
 const Spearman = () => {
   const [dataframe, setDataframe] = useState([]) // djanfo dataframe of data to apply Spearman on
   const [datasetList, setDatasetList] = useState([]) // list of available datasets in DATA folder

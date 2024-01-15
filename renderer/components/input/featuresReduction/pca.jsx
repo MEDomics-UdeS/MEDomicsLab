@@ -15,6 +15,9 @@ import { WorkspaceContext } from "../../workspace/workspaceContext"
 import { InputText } from "primereact/inputtext"
 import MedDataObject from "../../workspace/medDataObject"
 
+/**
+ * Component that renders the PCA feature reduction tool
+ */
 const PCA = () => {
   const [columnPrefix, setColumnPrefix] = useState("pca") // column prefix to set in the generated dataframe from PCA
   const [dataframe, setDataframe] = useState([]) // djanfo dataframe of data to apply PCA on
