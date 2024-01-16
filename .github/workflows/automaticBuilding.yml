@@ -115,8 +115,8 @@ jobs:
       - name: Archive Linux
         uses: actions/upload-artifact@v3
         with:
-          name: linux-built
-          path: ./build/dist/MEDomicsLab-${{ env.VERSION }}-linux.deb
+          name: linux-built-ubuntu20
+          path: ./build/dist/MEDomicsLab-${{ env.VERSION }}-ubuntu20.deb
         env:
           VERSION: ${{ steps.get-tag.outputs.VERSION }}
 
@@ -300,10 +300,15 @@ jobs:
         with:
           name: windows-built
 
-      - name: Download Linux
+      - name: Download Linux Ubuntu20
         uses: actions/download-artifact@v3
         with:
-          name: linux-built
+          name: linux-built-ubuntu20
+
+      - name: Download Linux Ubuntu22
+        uses: actions/download-artifact@v3
+        with:
+          name: linux-built-ubuntu22
 
       - name: Download Mac
         uses: actions/download-artifact@v3
