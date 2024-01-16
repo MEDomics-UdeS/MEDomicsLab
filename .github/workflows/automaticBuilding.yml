@@ -109,7 +109,9 @@ jobs:
       
       - name: Rename Linux
         run: mv ./build/dist/MEDomicsLab-${{ env.VERSION }}-linux.deb ./build/dist/MEDomicsLab-${{ env.VERSION }}-ubuntu20.deb
-
+        env:
+          VERSION: ${{ steps.get-tag.outputs.VERSION }}
+          
       - name: Archive Linux
         uses: actions/upload-artifact@v3
         with:
@@ -167,6 +169,8 @@ jobs:
 
       - name: Rename Linux
         run: mv ./build/dist/MEDomicsLab-${{ env.VERSION }}-linux.deb ./build/dist/MEDomicsLab-${{ env.VERSION }}-ubuntu22.deb
+        env:
+          VERSION: ${{ steps.get-tag.outputs.VERSION }}
 
       - name: Archive Linux
         uses: actions/upload-artifact@v3
