@@ -61,7 +61,7 @@ jobs:
         env:
           VERSION: ${{ steps.get-tag.outputs.VERSION }}
 
-  build-linux:
+  build-linux-ubuntu20:
     runs-on: ubuntu-20.04
 
     steps:
@@ -106,6 +106,9 @@ jobs:
         run: |
           VERSION=${GITHUB_REF/refs\/tags\//}
           echo "::set-output name=VERSION::${VERSION#v}"
+      
+      - name: Rename Linux
+        run: mv ./build/dist/MEDomicsLab-${{ env.VERSION }}-linux.deb ./build/dist/MEDomicsLab-${{ env.VERSION }}-ubuntu20.deb
 
       - name: Archive Linux
         uses: actions/upload-artifact@v3
@@ -115,6 +118,64 @@ jobs:
         env:
           VERSION: ${{ steps.get-tag.outputs.VERSION }}
 
+
+  build-linux-ubuntu22:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18.13
+
+      - name: Get tag name
+        run: |
+          VERSION=${GITHUB_REF/refs\/tags\//}
+          NEW_VERSION="${VERSION}"
+          node -p "let pkg=require('./package.json'); pkg.version='$NEW_VERSION'; require('fs').writeFileSync('package.json', JSON.stringify(pkg, null, 2));"
+
+      - name: Print package.json
+        run: cat package.json
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Setup Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: 1.21
+
+      - name: Build go
+        run: |
+          cd go_server
+          go build main.go 
+          cd ..
+
+      - name: Build for Linux
+        run: npm run build:linux
+
+      - name: Get tag name
+        id: get-tag
+        run: |
+          VERSION=${GITHUB_REF/refs\/tags\//}
+          echo "::set-output name=VERSION::${VERSION#v}"
+
+      - name: Rename Linux
+        run: mv ./build/dist/MEDomicsLab-${{ env.VERSION }}-linux.deb ./build/dist/MEDomicsLab-${{ env.VERSION }}-ubuntu22.deb
+
+      - name: Archive Linux
+        uses: actions/upload-artifact@v3
+        with:
+          name: linux-built-ubuntu22
+          path: ./build/dist/MEDomicsLab-${{ env.VERSION }}-ubuntu22.deb
+        env:
+          VERSION: ${{ steps.get-tag.outputs.VERSION }}
+        
   build-mac:
     runs-on: macos-latest
 
@@ -224,7 +285,7 @@ jobs:
 
   # Publish to GitHub
   publish:
-    needs: [build-windows, build-linux, build-mac]
+    needs: [build-windows, build-linux-ubuntu22, build-linux-ubuntu20, build-mac]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -278,7 +339,8 @@ jobs:
         with:
           files: |
             ./MEDomicsLab-${{ env.VERSION }}-win.exe
-            ./MEDomicsLab-${{ env.VERSION }}-linux.deb
+            ./MEDomicsLab-${{ env.VERSION }}-ubuntu22.deb
+            ./MEDomicsLab-${{ env.VERSION }}-ubuntu20.deb
             ./MEDomicsLab-${{ env.VERSION }}-mac.dmg
             ./MEDomicsLab-PythonEnv-win.zip
             ./MEDomicsLab-PythonEnv-linux.zip
