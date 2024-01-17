@@ -278,8 +278,11 @@ if (isProd) {
     // Runs the server
 
     pythonEnvironment = getPythonEnvironment()
-    if (process.platform == "darwin" && condaPath === null) {
+    if (process.platform !== "win32" && condaPath === null) {
       condaPath = pythonEnvironment
+      if (pythonEnvironment !== undefined) {
+        condaPath = pythonEnvironment
+      }
     }
 
     if (!isProd) {

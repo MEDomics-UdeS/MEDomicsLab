@@ -1,6 +1,6 @@
 {
   "private": true,
-  "name": "medapp",
+  "name": "medomicslab-application",
   "description": "MEDomicsLab application",
   "version": "0.0.1",
   "author": "MEDomicsLab Team",
