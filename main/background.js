@@ -5,7 +5,7 @@ import { createWindow } from "./helpers"
 import { installExtension, REACT_DEVELOPER_TOOLS } from "electron-extension-installer"
 import MEDconfig, { PORT_FINDING_METHOD } from "../medomics.dev"
 import { saveJSON, loadJSON } from "./helpers/datamanager"
-import { main } from "@popperjs/core"
+
 const os = require("os")
 const fs = require("fs")
 var path = require("path")
@@ -29,11 +29,11 @@ const originalConsoleLog = console.log
  * @param {*} message The message to send
  * @summary We redefine the console.log function to send the messages to the main window
  */
-console.log = function (message) {
+console.log = function () {
   try {
-    originalConsoleLog(message)
+    originalConsoleLog(...arguments)
     if (mainWindow !== undefined) {
-      mainWindow.webContents.send("log", message)
+      mainWindow.webContents.send("log", Array.from(arguments))
     }
   } catch (error) {
     console.error(error)
@@ -797,16 +797,17 @@ function loadWorkspaces() {
   if (fs.existsSync(workspaceFilePath)) {
     const workspaces = JSON.parse(fs.readFileSync(workspaceFilePath, "utf8"))
     // Sort workspaces by date, most recent first
-    // let sortedWorkspaces = workspaces.sort((a, b) => new Date(b.last_time_it_was_opened) - new Date(a.last_time_it_was_opened))
-    return workspaces.sort((a, b) => new Date(b.last_time_it_was_opened) - new Date(a.last_time_it_was_opened))
-    // // Check if the workspaces still exist
-    // let workspacesThatStillExist = []
-    // sortedWorkspaces.forEach((workspace) => {
-    //   if (fs.existsSync(workspace.path)) {
-    //     workspacesThatStillExist.push(workspace)
-    //   }
-    // })
-    // return workspacesThatStillExist
+    let sortedWorkspaces = workspaces.sort((a, b) => new Date(b.last_time_it_was_opened) - new Date(a.last_time_it_was_opened))
+    // Check if the workspaces still exist
+    let workspacesThatStillExist = []
+    sortedWorkspaces.forEach((workspace) => {
+      if (fs.existsSync(workspace.path)) {
+        workspacesThatStillExist.push(workspace)
+      } else {
+        console.log("Workspace does not exist anymore: ", workspace.path)
+      }
+    })
+    return workspacesThatStillExist
   } else {
     return []
   }
