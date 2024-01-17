@@ -12,6 +12,8 @@ func AddHandleFunc() {
 	Utils.CreateHandleFunc(prePath+"/create_master_table/", handleCreateMasterTable)
 	Utils.CreateHandleFunc(prePath+"/create_MEDclasses/", handleCreateMEDclasses)
 	Utils.CreateHandleFunc(prePath+"/create_MEDprofiles_folder/", handleCreateMEDprofilesFolder)
+	Utils.CreateHandleFunc(prePath+"/get_master_csv/", handleGetMasterCsv)
+	Utils.CreateHandleFunc(prePath+"/initialize_MEDprofiles_instantiation/", handleCreateInitializeMEDprofilesInstantiation)
 	Utils.CreateHandleFunc(prePath+"/instantiate_MEDprofiles/", handleCreateInstantiateMEDprofiles)
 	Utils.CreateHandleFunc(prePath+"/load_pickle_cohort/", handleLoadPickleCohort)
 	Utils.CreateHandleFunc(prePath+"/progress/", handleProgress)
@@ -46,6 +48,30 @@ func handleCreateMEDclasses(jsonConfig string, id string) (string, error) {
 func handleCreateMEDprofilesFolder(jsonConfig string, id string) (string, error) {
 	log.Println("Running MEDprofiles folder creation", id)
 	response, err := Utils.StartPythonScripts(jsonConfig, "../pythonCode/modules/MEDprofiles_/create_MEDprofiles_folder.py", id)
+	Utils.RemoveIdFromScripts(id)
+	if err != nil {
+		return "", err
+	}
+	return response, nil
+}
+
+// handleGetMasterCsv handles the request to get master csvs files
+// It returns the response from the python script
+func handleGetMasterCsv(jsonConfig string, id string) (string, error) {
+	log.Println("Running get master csv", id)
+	response, err := Utils.StartPythonScripts(jsonConfig, "../pythonCode/modules/MEDprofiles_/get_master_csv.py", id)
+	Utils.RemoveIdFromScripts(id)
+	if err != nil {
+		return "", err
+	}
+	return response, nil
+}
+
+// handleCreateInstantiateMEDprofiles handles the request to initialize the MEDprofiles instantiation
+// It returns the response from the python script
+func handleCreateInitializeMEDprofilesInstantiation(jsonConfig string, id string) (string, error) {
+	log.Println("Running MEDprofiles data instantiation initialization", id)
+	response, err := Utils.StartPythonScripts(jsonConfig, "../pythonCode/modules/MEDprofiles_/initialize_MEDprofiles_instantiation.py", id)
 	Utils.RemoveIdFromScripts(id)
 	if err != nil {
 		return "", err

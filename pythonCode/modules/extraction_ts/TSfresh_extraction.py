@@ -30,13 +30,13 @@ class GoExecScriptTSfreshExtraction(GoExecutionScript):
     def __init__(self, json_params: dict, _id: str = None):
         super().__init__(json_params, _id)
         self.results = {"data": "nothing to return"}
-        self._progress["type"] = "process"
 
-    def generate_TSfresh_embeddings(self, dataframe, frequency, column_id, column_weight, column_kind, column_value, default_fc_parameters, master_table_compatible, column_prefix, column_admission="", column_admission_time="", column_time=""):
+    def generate_TSfresh_embeddings(self, dataframe, identifiers_list, frequency, column_id, column_weight, column_kind, column_value, default_fc_parameters, master_table_compatible, column_prefix, column_admission="", column_admission_time="", column_time=""):
         """
         Function generating TSfresh embeddings for time series.
 
         :param dataframe: Pandas dataframe containing necessary data to proceed.
+        :param identifiers_list: List of identifiers in order to proceed by batch.
         :param frequency: May be "Patient" "Admission" or a timedelta range, depending on the desired type of extraction.
         :param column_id: Column name in the dataframe containing patient identifiers.
         :param column_weight: Column name in the dataframe containing weights of the time series.
@@ -58,53 +58,47 @@ class GoExecScriptTSfreshExtraction(GoExecutionScript):
 
         if frequency == "Patient":
             # Iterate over patients
-            for patient_id in set(dataframe[column_id]):
+            for patient_id in identifiers_list:
                 df_patient = dataframe.loc[dataframe[column_id] == patient_id]
                 df_patient_embeddings = extract_features(df_patient, column_id=column_id, 
                                                         column_sort=column_weight, 
                                                         column_kind=column_kind, 
                                                         column_value=column_value,
+                                                        disable_progressbar=True,
                                                         default_fc_parameters=default_fc_parameters, n_jobs=0)
                 # Add prefix to extracted columns
                 columns = list(df_patient_embeddings.columns)
                 new_columns = [column_prefix + col for col in columns]
                 df_patient_embeddings.columns = new_columns
-                # Insert time in the dataframe
-                df_patient_embeddings.insert(0, column_time, df_patient[column_time].iloc[0])
                 # Insert patient_id in the dataframe
                 df_patient_embeddings.insert(0, column_id, patient_id)
                 df_ts_embeddings = pd.concat([df_ts_embeddings, df_patient_embeddings], ignore_index=True)
-                self.set_progress(now = round(self._progress["now"] + 1/len(set(dataframe[column_id]))*60, 2))
 
         elif frequency == "Admission":
-            # Iterate over patients
-            for patient_id in set(dataframe[column_id]):
-                df_patient = dataframe.loc[dataframe[column_id] == patient_id]
-                # Iterate over admissions
-                for admission_id in set(df_patient[column_admission]):
-                    df_admission = df_patient.loc[df_patient[column_admission] == admission_id]
-                    df_admission_embeddings = extract_features(df_admission, column_id=column_id, 
-                                                            column_sort=column_weight, 
-                                                            column_kind=column_kind, 
-                                                            column_value=column_value,
-                                                            default_fc_parameters=default_fc_parameters, n_jobs=0)
-                    # Add prefix to extracted columns
-                    columns = list(df_admission_embeddings.columns)
-                    new_columns = [column_prefix + col for col in columns]
-                    df_admission_embeddings.columns = new_columns
-                    # Insert admission_time in the dataframe
-                    df_admission_embeddings.insert(0, column_admission_time, df_admission[column_admission_time].iloc[0])
-                    # Insert admission_id in the dataframe (except if the dataframe must respect submaster table format)
-                    if not master_table_compatible:
-                        df_admission_embeddings.insert(0, column_admission, admission_id)
-                    # Insert patient_id in the dataframe
-                    df_admission_embeddings.insert(0, column_id, patient_id)
-                    df_ts_embeddings = pd.concat([df_ts_embeddings, df_admission_embeddings], ignore_index=True)
-                self.set_progress(now = round(self._progress["now"] + 1/len(set(dataframe[column_id]))*60, 2)) 
+            # Iterate over combinations of [patients, admissions]
+            for identifiers in identifiers_list:
+                df_admission = pd.DataFrame(dataframe.loc[(dataframe[column_id] == identifiers[0]) & (dataframe[column_admission] == identifiers[1])])
+                df_admission_embeddings = extract_features(df_admission, column_id=column_id, 
+                                                        column_sort=column_weight, 
+                                                        column_kind=column_kind, 
+                                                        column_value=column_value,
+                                                        disable_progressbar=True,
+                                                        default_fc_parameters=default_fc_parameters, n_jobs=0)
+                # Add prefix to extracted columns
+                columns = list(df_admission_embeddings.columns)
+                new_columns = [column_prefix + col for col in columns]
+                df_admission_embeddings.columns = new_columns
+                # Insert admission_time in the dataframe
+                df_admission_embeddings.insert(0, column_admission_time, df_admission[column_admission_time].iloc[0])
+                # Insert admission_id in the dataframe (except if the dataframe must respect submaster table format)
+                df_admission_embeddings.insert(0, column_admission, identifiers[1])
+                # Insert patient_id in the dataframe
+                df_admission_embeddings.insert(0, column_id, identifiers[0])
+                df_ts_embeddings = pd.concat([df_ts_embeddings, df_admission_embeddings], ignore_index=True)
         
         elif column_time != "":
             # Iterate over patients
-            for patient_id in set(dataframe[column_id]):
+            for patient_id in identifiers_list:
                 df_patient = dataframe.loc[dataframe[column_id] == patient_id].sort_values(by=[column_time])
                 # Iterate over time
                 start_date = df_patient[column_time].iloc[0]
@@ -117,21 +111,20 @@ class GoExecScriptTSfreshExtraction(GoExecutionScript):
                                                             column_sort=column_weight, 
                                                             column_kind=column_kind, 
                                                             column_value=column_value,
+                                                            disable_progressbar=True,
                                                             default_fc_parameters=default_fc_parameters,n_jobs=0)
                         # Add prefix to extracted columns
                         columns = list(df_time_embeddings.columns)
                         new_columns = [column_prefix + col for col in columns]
                         df_time_embeddings.columns = new_columns
-                        # Insert time in the dataframe (only start_date if the dataframe must respect submaster table format)
-                        if not master_table_compatible:
-                            df_time_embeddings.insert(0, "end_date", end_date)
+                        # Insert time in the dataframe
+                        df_time_embeddings.insert(0, "end_date", end_date)
                         df_time_embeddings.insert(0, "start_date", start_date)
                         # Insert patient_id in the dataframe
                         df_time_embeddings.insert(0, column_id, patient_id)
                         df_ts_embeddings = pd.concat([df_ts_embeddings, df_time_embeddings], ignore_index=True)
                     start_date += frequency
                     end_date += frequency
-                self.set_progress(now = round(self._progress["now"] + 1/len(set(dataframe[column_id]))*60, 2))
 
         return df_ts_embeddings
 
@@ -142,32 +135,32 @@ class GoExecScriptTSfreshExtraction(GoExecutionScript):
         Returns: self.results : dict containing data relative to extraction.
 
         """
-        go_print(json.dumps(json_config, indent=4))
+        #go_print(json.dumps(json_config, indent=4))
+
         # Set local variables
+        identifiers_list = json_config["identifiersList"]
+        csv_result_path = json_config["csvResultsPath"]
         selected_columns = json_config["relativeToExtractionType"]["selectedColumns"]
         column_prefix = json_config["relativeToExtractionType"]["columnPrefix"] + '_attr_'
         columnKeys = [key for key in selected_columns]
         columnValues = []
         for key in columnKeys:
-            if selected_columns[key] != "":
+            if selected_columns[key] != "" and selected_columns[key] not in columnValues:
                 columnValues.append(selected_columns[key])
         frequency = json_config["relativeToExtractionType"]["frequency"]
         if frequency == "HourRange":
             frequency = datetime.timedelta(hours=json_config["relativeToExtractionType"]["hourRange"])
 
         # Read extraction data
-        self.set_progress(label="Read Data", now=10)
         df_ts = dd.read_csv(json_config["csvPath"], dtype={selected_columns["measurementValue"]: 'float64'})
         df_ts = df_ts[columnValues]
 
         # Pre-processing on data
-        self.set_progress(label="Pre-processing data", now=20)
         if selected_columns["time"] != "":
                 df_ts = df_ts.astype({selected_columns["time"] : "datetime64[ns]"})
         df_ts = df_ts.dropna(subset=columnValues).compute()
 
         # Feature extraction
-        self.set_progress(label="Feature Extraction", now=30)
         if json_config["relativeToExtractionType"]["featuresOption"] == "Efficient":
             settings = EfficientFCParameters()
         elif json_config["relativeToExtractionType"]["featuresOption"] == "Minimal":
@@ -175,7 +168,8 @@ class GoExecScriptTSfreshExtraction(GoExecutionScript):
         else:
             settings = ComprehensiveFCParameters()
 
-        df_extracted_features = self.generate_TSfresh_embeddings(df_ts, frequency, selected_columns["patientIdentifier"], 
+        df_extracted_features = self.generate_TSfresh_embeddings(df_ts, identifiers_list, frequency, 
+                                                                 selected_columns["patientIdentifier"], 
                                                             selected_columns["measurementWeight"], 
                                                             selected_columns["measuredItemIdentifier"], 
                                                             selected_columns["measurementValue"], settings,
@@ -185,14 +179,15 @@ class GoExecScriptTSfreshExtraction(GoExecutionScript):
                                                             selected_columns["admissionTime"],
                                                             selected_columns["time"])
         # Save extracted features
-        self.set_progress(label="Save extracted features", now=90)
-        extracted_folder_path = os.path.join(str(Path(json_config["dataFolderPath"])), "extracted_features")
-        if not os.path.exists(extracted_folder_path):
-            os.makedirs(extracted_folder_path)
-        csv_result_path = os.path.join(extracted_folder_path, json_config['filename'])
-        df_extracted_features.to_csv(csv_result_path, index=False)
-        json_config["csv_result_path"] = csv_result_path
+        if os.path.getsize(csv_result_path) > 2:
+            all_extracted_data = pd.read_csv(csv_result_path)
+        else:
+            all_extracted_data = pd.DataFrame([])
+        all_extracted_data = pd.concat([all_extracted_data, pd.DataFrame(df_extracted_features)], ignore_index=True)
+        all_extracted_data.to_csv(csv_result_path, index=False)
+
         self.results = json_config
+
         return self.results
 
 

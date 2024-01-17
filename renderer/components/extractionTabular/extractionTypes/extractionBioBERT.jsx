@@ -23,17 +23,16 @@ import React, { useContext, useEffect, useState } from "react"
  *
  */
 const ExtractionBioBERT = ({ dataframe, setExtractionJsonData, setMayProceed }) => {
+  const [biobertPath, setBiobertPath] = useState(null) // path to the BioBERT pretrained model
   const [columnPrefix, setColumnPrefix] = useState("notes") // column prefix to set in the generated dataframe from extracted features
   const [frequency, setFrequency] = useState("Note") // frequency choosen for the features generation
   const [hourRange, setHourRange] = useState(24) // hour range in which to generated the features if the frequency is "Hour"
-  const [isModelAvailable, setIsModelAvailable] = useState(false) // boolean set to false if the specified pre-trained model is not located in the DATA folder
   const [masterTableCompatible, setMasterTableCompatible] = useState(true) // boolean set to true if the extracted features dataset must respect the submaster table format
   const [selectedColumns, setSelectedColumns] = useState({
     // columns names for feature extraction matching a required type
     patientIdentifier: "",
     admissionIdentifier: "",
     admissionTime: "",
-    notesWeight: "",
     notes: "",
     time: ""
   })
@@ -114,7 +113,7 @@ const ExtractionBioBERT = ({ dataframe, setExtractionJsonData, setMayProceed }) 
     let keys = Object.keys(dataContext)
     keys.forEach((key) => {
       if (dataContext[key].name !== "config.json" && dataContext[key].path.includes("DATA") && dataContext[key].path.includes("pretrained_bert_tf") && dataContext[key].path.includes("biobert_pretrain_output_all_notes_150000")) {
-        setIsModelAvailable(true)
+        setBiobertPath(dataContext[key].path)
       }
     })
   }
@@ -127,18 +126,24 @@ const ExtractionBioBERT = ({ dataframe, setExtractionJsonData, setMayProceed }) 
    *
    */
   useEffect(() => {
-    if (frequency == "Patient") {
-      setMayProceed(isModelAvailable == true && selectedColumns.patientIdentifier !== "" && selectedColumns.notesWeight !== "" && selectedColumns.notes !== "")
-      setExtractionJsonData({ selectedColumns: selectedColumns, columnPrefix: columnPrefix, frequency: frequency, masterTableCompatible: masterTableCompatible })
+    if (frequency == "Patient" && masterTableCompatible) {
+      setMayProceed(biobertPath && selectedColumns.patientIdentifier !== "" && selectedColumns.notes !== "" && selectedColumns.time !== "")
+      setExtractionJsonData({ biobertPath: biobertPath, selectedColumns: selectedColumns, columnPrefix: columnPrefix, frequency: frequency, masterTableCompatible: masterTableCompatible })
+    } else if (frequency == "Patient") {
+      setMayProceed(biobertPath && selectedColumns.patientIdentifier !== "" && selectedColumns.notes !== "")
+      setExtractionJsonData({ biobertPath: biobertPath, selectedColumns: selectedColumns, columnPrefix: columnPrefix, frequency: frequency, masterTableCompatible: masterTableCompatible })
     } else if (frequency == "Admission") {
-      setMayProceed(isModelAvailable == true && selectedColumns.patientIdentifier !== "" && selectedColumns.notesWeight !== "" && selectedColumns.notes !== "" && selectedColumns.admissionIdentifier !== "" && selectedColumns.admissionTime !== "")
-      setExtractionJsonData({ selectedColumns: selectedColumns, columnPrefix: columnPrefix, frequency: frequency, masterTableCompatible: masterTableCompatible })
+      setMayProceed(biobertPath && selectedColumns.patientIdentifier !== "" && selectedColumns.notes !== "" && selectedColumns.admissionIdentifier !== "" && selectedColumns.admissionTime !== "")
+      setExtractionJsonData({ biobertPath: biobertPath, selectedColumns: selectedColumns, columnPrefix: columnPrefix, frequency: frequency, masterTableCompatible: masterTableCompatible })
     } else if (frequency == "HourRange") {
-      setMayProceed(isModelAvailable == true && selectedColumns.patientIdentifier !== "" && selectedColumns.notesWeight !== "" && selectedColumns.notes !== "" && selectedColumns.time !== "")
-      setExtractionJsonData({ selectedColumns: selectedColumns, columnPrefix: columnPrefix, frequency: frequency, hourRange: hourRange, masterTableCompatible: masterTableCompatible })
+      setMayProceed(biobertPath && selectedColumns.patientIdentifier !== "" && selectedColumns.notes !== "" && selectedColumns.time !== "")
+      setExtractionJsonData({ biobertPath: biobertPath, selectedColumns: selectedColumns, columnPrefix: columnPrefix, frequency: frequency, hourRange: hourRange, masterTableCompatible: masterTableCompatible })
+    } else if (frequency == "Note" && masterTableCompatible) {
+      setMayProceed(biobertPath && selectedColumns.patientIdentifier !== "" && selectedColumns.notes !== "" && selectedColumns.time !== "")
+      setExtractionJsonData({ biobertPath: biobertPath, selectedColumns: selectedColumns, columnPrefix: columnPrefix, frequency: frequency, masterTableCompatible: masterTableCompatible })
     } else if (frequency == "Note") {
-      setMayProceed(isModelAvailable == true && selectedColumns.patientIdentifier !== "" && selectedColumns.notes !== "" && selectedColumns.time !== "")
-      setExtractionJsonData({ selectedColumns: selectedColumns, columnPrefix: columnPrefix, frequency: frequency, masterTableCompatible: masterTableCompatible })
+      setMayProceed(biobertPath && selectedColumns.patientIdentifier !== "" && selectedColumns.notes !== "")
+      setExtractionJsonData({ biobertPath: biobertPath, selectedColumns: selectedColumns, columnPrefix: columnPrefix, frequency: frequency, masterTableCompatible: masterTableCompatible })
     }
   }, [selectedColumns, frequency, hourRange, masterTableCompatible, columnPrefix])
 
@@ -200,7 +205,7 @@ const ExtractionBioBERT = ({ dataframe, setExtractionJsonData, setMayProceed }) 
             </Card>
           </div>
           <div className="margin-top-30">
-            <InputSwitch inputId="masterTableCompatible" disabled={frequency === "Note"} checked={masterTableCompatible} onChange={(e) => setMasterTableCompatible(e.value)} tooltip="The master table format may contain less columns in order to enter the MEDprofiles' process." />
+            <InputSwitch inputId="masterTableCompatible" checked={masterTableCompatible} onChange={(e) => setMasterTableCompatible(e.value)} tooltip="The master table format may contain less columns in order to enter the MEDprofiles' process." />
             <label htmlFor="masterTableCompatible">&nbsp; Master Table Compatible &nbsp;</label>
           </div>
         </div>
@@ -229,16 +234,10 @@ const ExtractionBioBERT = ({ dataframe, setExtractionJsonData, setMayProceed }) 
               </div>
             </div>
           )}
-          {(frequency == "HourRange" || frequency == "Note" || (frequency == "Patient" && masterTableCompatible)) && (
+          {(frequency == "HourRange" || (frequency == "Note" && masterTableCompatible) || (frequency == "Patient" && masterTableCompatible)) && (
             <div className="margin-top-15">
               Time : &nbsp;
               {dataframe.$data ? <Dropdown value={selectedColumns.time} onChange={(event) => handleColumnSelect("time", event)} options={dataframe.$columns.filter((column, index) => dataframe.$dtypes[index] == "string" && dataframe[column].dt.$dateObjectArray[0] != "Invalid Date")} placeholder="Time" /> : <Dropdown placeholder="Time" disabled />}
-            </div>
-          )}
-          {frequency != "Note" && (
-            <div className="margin-top-15">
-              Notes Weight : &nbsp;
-              {dataframe.$data ? <Dropdown value={selectedColumns.notesWeight} onChange={(event) => handleColumnSelect("notesWeight", event)} options={dataframe.$columns.filter((column, index) => dataframe.$dtypes[index] == "int32" || dataframe.$dtypes[index] == "float32" || (dataframe.$dtypes[index] == "string" && dataframe[column].dt.$dateObjectArray[0] != "Invalid Date"))} placeholder="Notes Weight" /> : <Dropdown placeholder="Notes Weight" disabled />}
             </div>
           )}
           <div className="margin-top-15">
@@ -262,7 +261,7 @@ const ExtractionBioBERT = ({ dataframe, setExtractionJsonData, setMayProceed }) 
 
   return (
     <>
-      <div>{isModelAvailable == false && <Message severity="warn" text="You must have download the pretrained_bert_tf folder in workspace DATA to proceed" />}</div>
+      <div>{!biobertPath && <Message severity="warn" text="You must have download the pretrained_bert_tf folder in workspace DATA to proceed" />}</div>
       <Carousel value={carouselItems} numVisible={1} numScroll={1} responsiveOptions={responsiveOptions} itemTemplate={carouselTemplate} />
     </>
   )

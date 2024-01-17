@@ -100,10 +100,10 @@ export default class MedDataObject {
   }
 
   /**
-   * 
-   * @param {string} path The path to check. 
+   *
+   * @param {string} path The path to check.
    * @param {Object} globalData The global data context.
-   * @returns 
+   * @returns
    */
   static getStepsFromPath(path, globalData) {
     try {
@@ -230,13 +230,8 @@ export default class MedDataObject {
   static setAcceptedFileTypes(dataObject, acceptedFileTypes) {
     let acceptedFileTypesToReturn = acceptedFileTypes
     if (dataObject.name === "DATA") {
-      acceptedFileTypesToReturn = {
-        "text/csv": [],
-        "application/json": [],
-        "text/plain": [],
-        "application/pdf": [],
-        "application/medomics": []
-      }
+      acceptedFileTypesToReturn = undefined
+      // Default accepted file types for the DATA folder
     }
     return acceptedFileTypesToReturn
   }
@@ -1235,6 +1230,7 @@ export default class MedDataObject {
    */
   automaticTaggingOfColumns(columns) {
     let newColumns = []
+    let setOfColumns = new Set()
     for (let column of columns) {
       let tags = column.split("_|_")
       if (tags.length > 1) {
@@ -1245,6 +1241,11 @@ export default class MedDataObject {
           this.metadata.tagsDict = {}
         }
         let columnName = tags.pop()
+
+        if (setOfColumns.has(columnName)) {
+          let newColumnName = this.returnNameNotInSet(columnName, setOfColumns)
+          columnName = newColumnName
+        }
         if (this.metadata.columnsTag[columnName] === undefined) {
           this.metadata.columnsTag[columnName] = tags
         }
@@ -1263,14 +1264,37 @@ export default class MedDataObject {
             }
           }
         }
+        setOfColumns.add(columnName)
         newColumns.push(columnName)
       } else {
+        setOfColumns.add(column)
         newColumns.push(column)
       }
     }
     this.metadata.columns = newColumns
     this.renameColumnsWithoutTags()
     return newColumns
+  }
+
+  /**
+   * Iteratively search for a new name by increasing the index added to the name until a name not present in the set of names is found
+   * @param {string} name - The name to check.
+   * @param {Set} setOfNames - The set of names to check against.
+   * @returns {string} - The new name.
+   */
+  returnNameNotInSet(name, setOfNames) {
+    let nameFound = false
+    let index = 1
+    let nameToReturn = name
+    while (!nameFound) {
+      if (setOfNames.has(nameToReturn)) {
+        nameToReturn = name + "_(" + index++ + ")"
+        index++
+      } else {
+        nameFound = true
+      }
+    }
+    return nameToReturn
   }
 
   /**
@@ -1283,7 +1307,12 @@ export default class MedDataObject {
         let columnsRenaming = {}
         this.data.$columns.forEach((column, index) => {
           if (column.includes("_|_")) {
-            columnsRenaming[column] = this.metadata.columns[index]
+            // Handle the case where the column name is already present in the columns renaming dictionary
+            if (columnsRenaming[column] === undefined) {
+              columnsRenaming[column] = this.metadata.columns[index]
+            } else {
+              toast.warning("Duplicate column name found (while removing column names): " + column)
+            }
           }
         })
         this.data.rename(columnsRenaming, { inplace: true })
@@ -1368,7 +1397,7 @@ export default class MedDataObject {
   }
 
   /**
-   * 
+   *
    * @param {string} type The type of the step to add: refer to the dataStepsUtils.jsx
    * @param {Object} execSettings The settings of the step to add: refer to the dataStepsUtils.jsx
    */
@@ -1379,7 +1408,7 @@ export default class MedDataObject {
   }
 
   /**
-   * 
+   *
    * @returns {Array} - The steps of the `MedDataObject` instance.
    */
   getSteps() {
