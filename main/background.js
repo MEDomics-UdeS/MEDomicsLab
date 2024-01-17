@@ -394,7 +394,7 @@ if (isProd) {
     console.log("GetRecentWorkspaces : ", data)
     if (data === "requestRecentWorkspaces") {
       // If the message is "requestRecentWorkspaces", the function getRecentWorkspaces is called
-      getRecentWorkspaces(event, mainWindow)
+      getRecentWorkspacesOptions(event, mainWindow)
     }
   })
 
@@ -797,7 +797,16 @@ function loadWorkspaces() {
   if (fs.existsSync(workspaceFilePath)) {
     const workspaces = JSON.parse(fs.readFileSync(workspaceFilePath, "utf8"))
     // Sort workspaces by date, most recent first
+    // let sortedWorkspaces = workspaces.sort((a, b) => new Date(b.last_time_it_was_opened) - new Date(a.last_time_it_was_opened))
     return workspaces.sort((a, b) => new Date(b.last_time_it_was_opened) - new Date(a.last_time_it_was_opened))
+    // // Check if the workspaces still exist
+    // let workspacesThatStillExist = []
+    // sortedWorkspaces.forEach((workspace) => {
+    //   if (fs.existsSync(workspace.path)) {
+    //     workspacesThatStillExist.push(workspace)
+    //   }
+    // })
+    // return workspacesThatStillExist
   } else {
     return []
   }
