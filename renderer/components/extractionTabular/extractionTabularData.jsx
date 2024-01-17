@@ -1,6 +1,5 @@
 import { Button } from "primereact/button"
 import { DataContext } from "../workspace/dataContext"
-import { DataFrame } from "danfojs"
 import DataTableFromContext from "../mainPages/dataComponents/dataTableFromContext"
 import { Dropdown } from "primereact/dropdown"
 import { ErrorRequestContext } from "../generalPurpose/errorRequestContext"
@@ -46,14 +45,13 @@ const ExtractionTabularData = ({ extractionTypeList, serverUrl, defaultFilename 
   const [extractionType, setExtractionType] = useState(extractionTypeList[0]) // extraction type
   const [filename, setFilename] = useState(defaultFilename) // name of the csv file containing extracted data
   const [filenameSavedFeatures, setFilenameSavedFeatures] = useState(null) // name of the csv file containing extracted data
-  const [isDatasetLoaded, setIsDatasetLoaded] = useState(false) // boolean set to false every time we reload a dataset for data to extract
   const [isLoadingDataset, setIsLoadingDataset] = useState(false) // boolean telling if the result dataset is loading
-  const [isResultDatasetLoaded, setIsResultDatasetLoaded] = useState(false) // boolean set to false every time we reload an extracted data dataset
   const [mayProceed, setMayProceed] = useState(false) // boolean set to true if all informations about the extraction (depending on extractionType) have been completed
   const [resultDataset, setResultDataset] = useState(null) // dataset of extracted data used to be display
   const [selectedDataset, setSelectedDataset] = useState(null) // dataset of data to extract used to be display
   const [showProgressBar, setShowProgressBar] = useState(false) // wether to show or not the extraction progressbar
   const [viewResults, setViewResults] = useState(false) // Display result if true and results can be displayed
+  const [viewOriginalData, setViewOriginalData] = useState(false) // Display selected dataset if true and results can be displayed
 
   const { globalData } = useContext(DataContext) // we get the global data from the context to retrieve the directory tree of the workspace, thus retrieving the data files
   const { pageId } = useContext(PageInfosContext) // used to get the pageId
@@ -104,9 +102,11 @@ const ExtractionTabularData = ({ extractionTypeList, serverUrl, defaultFilename 
    * Called when the user select a dataset.
    *
    */
-  const datasetSelected = (dataset) => {
+  async function datasetSelected(dataset) {
+    let data = await dataset.loadDataFromDisk()
     setSelectedDataset(dataset)
-    setIsDatasetLoaded(false)
+    setCsvPath(dataset.path)
+    setDataframe(data)
   }
 
   /**
@@ -267,7 +267,6 @@ const ExtractionTabularData = ({ extractionTypeList, serverUrl, defaultFilename 
       MedDataObject.updateWorkspaceDataObject()
       setExtractionProgress(100)
       setResultDataset(null)
-      setIsResultDatasetLoaded(false)
       setIsLoadingDataset(true)
     } else {
       toast.error(`Extraction failed: ${jsonInitialization.error.message}`)
@@ -298,26 +297,6 @@ const ExtractionTabularData = ({ extractionTypeList, serverUrl, defaultFilename 
     }
   }, [globalData])
 
-  // Called when isDatasetLoaded change, in order to update csvPath and dataframe.
-  useEffect(() => {
-    console.log("selectedDataset", selectedDataset)
-    if (selectedDataset && selectedDataset.data && selectedDataset.path) {
-      setCsvPath(selectedDataset.path)
-      setDataframe(new DataFrame(selectedDataset.data))
-      setIsLoadingDataset(false)
-    }
-  }, [isDatasetLoaded])
-
-  // Called when isDatasetLoaded change, in order to update the progressbar.
-  useEffect(() => {
-    if (isResultDatasetLoaded == true) {
-      setShowProgressBar(false)
-      setExtractionProgress(0)
-      setExtractionStep("")
-      setIsLoadingDataset(false)
-    }
-  }, [isResultDatasetLoaded])
-
   return (
     <div>
       <hr></hr>
@@ -334,20 +313,29 @@ const ExtractionTabularData = ({ extractionTypeList, serverUrl, defaultFilename 
         {/* Display selected data */}
         <div className="center">
           <h2>Selected data</h2>
-          {!selectedDataset && <p>Nothing to show, select a CSV file first.</p>}
-        </div>
-        {selectedDataset && (
           <div>
-            <DataTableFromContext
-              MedDataObject={selectedDataset}
-              tablePropsData={{ size: "small", paginator: true, rows: 5 }}
-              tablePropsColumn={{
-                sortable: true
-              }}
-              setIsDatasetLoaded={setIsDatasetLoaded}
-            />
+            <p>Display result dataset &nbsp;</p>
           </div>
-        )}
+          <div className="margin-top-bottom-15 center">
+            <InputSwitch id="switch" checked={viewOriginalData} onChange={(e) => setViewOriginalData(e.value)} />
+          </div>
+        </div>
+        {viewOriginalData &&
+          (selectedDataset ? (
+            <div>
+              <DataTableFromContext
+                MedDataObject={selectedDataset}
+                tablePropsData={{ size: "small", paginator: true, rows: 5 }}
+                tablePropsColumn={{
+                  sortable: true
+                }}
+              />
+            </div>
+          ) : (
+            <div className="center">
+              <p>Nothing to show, select a CSV file first.</p>
+            </div>
+          ))}
       </div>
 
       <hr></hr>
@@ -406,7 +394,7 @@ const ExtractionTabularData = ({ extractionTypeList, serverUrl, defaultFilename 
         <div className="margin-top-bottom-15 center">
           <InputSwitch id="switch" checked={viewResults} onChange={(e) => setViewResults(e.value)} />
         </div>
-        {viewResults == true && areResultsLarge == false && <div>{resultDataset ? <DataTableFromContext MedDataObject={resultDataset} tablePropsData={{ size: "small", paginator: true, rows: 5 }} isDatasetLoaded={isResultDatasetLoaded} setIsDatasetLoaded={setIsResultDatasetLoaded} /> : isLoadingDataset ? <ProgressSpinner /> : <p>Nothing to show, proceed to extraction first.</p>}</div>}
+        {viewResults == true && areResultsLarge == false && <div>{resultDataset ? <DataTableFromContext MedDataObject={resultDataset} tablePropsData={{ size: "small", paginator: true, rows: 5 }} /> : isLoadingDataset ? <ProgressSpinner /> : <p>Nothing to show, proceed to extraction first.</p>}</div>}
         {viewResults == true && resultDataset && areResultsLarge == true && <p>The result dataset is too large to be display here.</p>}
         {resultDataset && (
           <p>

@@ -133,7 +133,7 @@ class GoExecScriptBioBERTExtraction(GoExecutionScript):
         return aggregated_embedding
 
 
-    def generate_biobert_notes_embeddings(self, dataframe, identifiers_list, frequency, column_id, column_text, column_prefix, master_table_compatible, column_admission="", column_admission_time="", column_time=""):
+    def generate_biobert_notes_embeddings(self, dataframe, identifiers_list, frequency, column_id, column_text, column_prefix, column_admission="", column_admission_time="", column_time=""):
         """
         Function generating notes embeddings from BioBERT pre-trained model.
 
@@ -143,7 +143,6 @@ class GoExecScriptBioBERTExtraction(GoExecutionScript):
         :param column_id: Column name in the dataframe containing patient identifiers.
         :param column_text: Column name in the dataframe containing the text notes.
         :param column_prefix: Prefix to set to column in the returning dataframe.
-        :param master_table_compatible: Boolean telling if the returned dataframe format must be submaster table compatible.
         :param column_admission: Column name in the dataframe containing admission identifiers, may be null if frequency is not "Admission".
         :param column_admission_time: Column name in the dataframe containing admission time, may be null if frequency is not "Admission".
         :param column_time: Time column in the dataframe, may be null if frequency is not a hour range.
@@ -193,10 +192,12 @@ class GoExecScriptBioBERTExtraction(GoExecutionScript):
                     [self.get_biobert_embeddings_from_event_list(df_row[column_text])])
                 # Insert patient_id in the dataframe
                 df_row_embeddings.insert(0, column_id, df_row[column_id].item())
+                # Insert index in the dataframe
+                df_row_embeddings.insert(0, "index", df_row["index"].item())
                 df_notes_embeddings = pd.concat([df_notes_embeddings, df_row_embeddings], ignore_index=True)
             # Rename columns
-            col_number = len(df_notes_embeddings.columns) - 1
-            df_notes_embeddings.columns = [column_id] + [column_prefix + str(i) for i in range(col_number)]
+            col_number = len(df_notes_embeddings.columns) - 2
+            df_notes_embeddings.columns = ["index", column_id] + [column_prefix + str(i) for i in range(col_number)]
 
         elif column_time != "":
             # Iterate over patients
@@ -262,16 +263,21 @@ class GoExecScriptBioBERTExtraction(GoExecutionScript):
         if selected_columns["time"] != "" and selected_columns[key] not in columnValues:
             df_notes = df_notes.astype({selected_columns["time"] : "datetime64[ns]"})
         df_notes = df_notes.dropna(subset=columnValues).compute()
+        if  frequency == "Note":
+            df_notes['index'] = df_notes.index
 
         # Feature extraction
         df_extracted_features = self.generate_biobert_notes_embeddings(df_notes, identifiers_list, frequency,
                                                                 selected_columns["patientIdentifier"], 
                                                                 selected_columns["notes"],
                                                                 column_prefix,
-                                                                json_config["relativeToExtractionType"]["masterTableCompatible"],
                                                                 selected_columns["admissionIdentifier"],
                                                                 selected_columns["admissionTime"],
                                                                 selected_columns["time"])
+        
+        # Post-process on data
+        if not json_config["relativeToExtractionType"]["masterTableCompatible"] and frequency == "Note":
+            df_extracted_features.drop(["index"], axis=1, inplace=True)
 
         # Save extracted features
         if os.path.getsize(csv_result_path) > 2:

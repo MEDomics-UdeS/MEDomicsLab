@@ -72,6 +72,14 @@ body {
   justify-content: space-around;
 }
 
+.flex-container-wrap {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
 .html-body {
   display: flex;
   flex-direction: column;
@@ -168,6 +176,10 @@ a {
 
 .margin-left-10 {
   margin-left: 10px;
+}
+
+.maxwidth-80 {
+  max-width: 80%;
 }
 
 .text-left {

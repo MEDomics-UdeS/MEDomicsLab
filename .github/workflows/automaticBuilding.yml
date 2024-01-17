@@ -61,7 +61,7 @@ jobs:
         env:
           VERSION: ${{ steps.get-tag.outputs.VERSION }}
 
-  build-linux:
+  build-linux-ubuntu:
     runs-on: ubuntu-20.04
 
     steps:
@@ -106,15 +106,21 @@ jobs:
         run: |
           VERSION=${GITHUB_REF/refs\/tags\//}
           echo "::set-output name=VERSION::${VERSION#v}"
-
+            
+      - name: Rename Linux
+        run: mv ./build/dist/MEDomicsLab-${{ env.VERSION }}-linux.deb ./build/dist/MEDomicsLab-${{ env.VERSION }}-ubuntu.deb
+        env:
+          VERSION: ${{ steps.get-tag.outputs.VERSION }}
+  
       - name: Archive Linux
         uses: actions/upload-artifact@v3
         with:
-          name: linux-built
-          path: ./build/dist/MEDomicsLab-${{ env.VERSION }}-linux.deb
+          name: linux-built-ubuntu
+          path: ./build/dist/MEDomicsLab-${{ env.VERSION }}-ubuntu.deb
         env:
           VERSION: ${{ steps.get-tag.outputs.VERSION }}
 
+        
   build-mac:
     runs-on: macos-latest
 
@@ -224,7 +230,7 @@ jobs:
 
   # Publish to GitHub
   publish:
-    needs: [build-windows, build-linux, build-mac]
+    needs: [build-windows, build-linux-ubuntu, build-mac]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -235,10 +241,10 @@ jobs:
         with:
           name: windows-built
 
-      - name: Download Linux
+      - name: Download Linux Ubuntu
         uses: actions/download-artifact@v3
         with:
-          name: linux-built
+          name: linux-built-ubuntu
 
       - name: Download Mac
         uses: actions/download-artifact@v3
@@ -278,7 +284,7 @@ jobs:
         with:
           files: |
             ./MEDomicsLab-${{ env.VERSION }}-win.exe
-            ./MEDomicsLab-${{ env.VERSION }}-linux.deb
+            ./MEDomicsLab-${{ env.VERSION }}-ubuntu.deb
             ./MEDomicsLab-${{ env.VERSION }}-mac.dmg
             ./MEDomicsLab-PythonEnv-win.zip
             ./MEDomicsLab-PythonEnv-linux.zip

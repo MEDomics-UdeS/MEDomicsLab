@@ -299,6 +299,19 @@ const loadCSVFromPath = (path, whenLoaded) => {
         }
       })
       let columns = array.shift()
+      // Check if the number of columns corresponds to the number of column names\
+      if (columns.length !== array[0].length) {
+        console.warn("Number of columns does not match the number of column names")
+        if (columns.length > array[0].length) {
+          console.warn("Removing extra column names")
+          // Check if there are empty column names and remove them
+          let emptyColumns = columns.filter((column) => column === "")
+          if (emptyColumns.length > 0) {
+            console.warn("Removing empty column names")
+            columns = columns.filter((column) => column !== "")
+          }
+        }
+      }
       let df = new dfd.DataFrame(array, { columns: columns })
       df.drop(removeEmptyRows(df, 5))
       let dfJSON = dfd.toJSON(df)

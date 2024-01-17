@@ -7,6 +7,7 @@ import GroupingTool from "../input/groupingTool"
 import SimpleCleaningTool from "../input/simpleCleaningTool"
 import HoldOutSetCreationTool from "../input/holdOutSetCreationTool"
 import SubsetCreationTool from "../input/subsetCreationTool"
+import FeatureReductionTool from "../input/featuresReduction/featuresReductionTool"
 
 /**
  * @description - This component is the input page of the application
@@ -35,24 +36,30 @@ const InputPage = ({ pageId = "42", configPath = null }) => {
               </Accordion.Body>
             </Accordion.Item>
             <Accordion.Item eventKey="3">
-              <Accordion.Header>Simple cleaning tool</Accordion.Header>
+              <Accordion.Header>Simple Cleaning tool</Accordion.Header>
               <Accordion.Body>
                 <SimpleCleaningTool pageId={pageId} />
               </Accordion.Body>
             </Accordion.Item>
             <Accordion.Item eventKey="4">
-              <Accordion.Header>Holdout set creation tool</Accordion.Header>
+              <Accordion.Header>Holdout Set Creation tool</Accordion.Header>
               <Accordion.Body>
                 <HoldOutSetCreationTool pageId={pageId} />
               </Accordion.Body>
             </Accordion.Item>
             <Accordion.Item eventKey="5">
-              <Accordion.Header>Subset creation tool</Accordion.Header>
+              <Accordion.Header>Subset Creation tool</Accordion.Header>
               <Accordion.Body>
                 <SubsetCreationTool pageId={pageId} />
               </Accordion.Body>
             </Accordion.Item>
             <Accordion.Item eventKey="6">
+              <Accordion.Header>Feature Reduction tool</Accordion.Header>
+              <Accordion.Body>
+                <FeatureReductionTool pageId={pageId} />
+              </Accordion.Body>
+            </Accordion.Item>
+            <Accordion.Item eventKey="7">
               <Accordion.Header>MEDprofiles</Accordion.Header>
               <Accordion.Body>
                 <MEDprofilesPrepareData />

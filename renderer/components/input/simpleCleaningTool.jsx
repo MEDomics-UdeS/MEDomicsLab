@@ -114,10 +114,22 @@ const SimpleCleaningTool = ({ pageId = "inputModule", configPath = "" }) => {
    * @returns {Promise} - The promise of the data
    */
   const getData = () => {
-    return new Promise((resolve) => {
+    function formatNaN(x) {
+      if (x == "NaN") {
+        return NaN
+      }
+      return x
+    }
+    const loadData = new Promise((resolve) => {
       let data = selectedDataset.loadDataFromDisk()
       resolve(data)
     })
+    const formatData = loadData.then((data) => {
+      data.applyMap(formatNaN, { inplace: true })
+      console.log("DATA0", data)
+      return data
+    })
+    return formatData
   }
 
   /**
@@ -163,21 +175,19 @@ const SimpleCleaningTool = ({ pageId = "inputModule", configPath = "" }) => {
    */
   useEffect(() => {
     if (selectedDataset !== null && selectedDataset !== undefined) {
-      if (selectedDataset !== null || selectedDataset !== undefined) {
-        getData().then((data) => {
-          let infos = getInfos(data)
-          let newColumnsInfos = []
-          data.$columns.forEach((column, index) => {
-            newColumnsInfos.push({ label: column, value: infos.columnsCount[index], percentage: (infos.columnsCount[index] / infos.rowsLength) * 100 })
-          })
-          setSelectedDatasetColumnsInfos(newColumnsInfos)
-          let newRowsInfos = []
-          infos.rowsCount.forEach((row, index) => {
-            newRowsInfos.push({ label: index, value: row, percentage: (row / infos.columnsLength) * 100 })
-          })
-          setRowsInfos(newRowsInfos)
+      getData().then((data) => {
+        let infos = getInfos(data)
+        let newColumnsInfos = []
+        data.$columns.forEach((column, index) => {
+          newColumnsInfos.push({ label: column, value: infos.columnsCount[index], percentage: (infos.columnsCount[index] / infos.rowsLength) * 100 })
         })
-      }
+        setSelectedDatasetColumnsInfos(newColumnsInfos)
+        let newRowsInfos = []
+        infos.rowsCount.forEach((row, index) => {
+          newRowsInfos.push({ label: index, value: row, percentage: (row / infos.columnsLength) * 100 })
+        })
+        setRowsInfos(newRowsInfos)
+      })
       setNewDatasetExtension(selectedDataset.extension)
       setNewDatasetName(selectedDataset.nameWithoutExtension + "_clean")
       setNewLocalDatasetExtension(selectedDataset.extension)

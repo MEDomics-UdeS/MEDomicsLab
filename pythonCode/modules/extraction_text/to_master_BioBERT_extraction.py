@@ -44,14 +44,21 @@ class GoExecScriptToMasterBioBERTExtraction(GoExecutionScript):
         selected_columns = json_config["relativeToExtractionType"]["selectedColumns"]
 
         # Set master table format depending on frequency (for notes there is nothing to do)
-        if frequency == "Patient" or frequency == "Note":
+        if frequency == "Patient":
             df_notes = pd.read_csv(json_config["csvPath"])
             df_notes[selected_columns["time"]] = pd.to_datetime(df_notes[selected_columns["time"]])
             df_notes = df_notes[[selected_columns["patientIdentifier"], selected_columns["time"]]]
-            if frequency == "Patient":
-                idx_min_date = df_notes.groupby(selected_columns["patientIdentifier"])[selected_columns["time"]].idxmin()
-                df_notes = df_notes.loc[idx_min_date]
+            idx_min_date = df_notes.groupby(selected_columns["patientIdentifier"])[selected_columns["time"]].idxmin()
+            df_notes = df_notes.loc[idx_min_date]
             df_tmp = extracted_data.merge(df_notes, on=[selected_columns["patientIdentifier"]])
+            extracted_data.insert(1, selected_columns["time"], df_tmp[selected_columns["time"]])
+        if frequency == "Note":
+            df_notes = pd.read_csv(json_config["csvPath"])
+            df_notes[selected_columns["time"]] = pd.to_datetime(df_notes[selected_columns["time"]])
+            df_notes["index"] = df_notes.index
+            df_notes = df_notes[["index", selected_columns["patientIdentifier"], selected_columns["time"]]]
+            df_tmp = extracted_data.merge(df_notes, on=["index", selected_columns["patientIdentifier"]])
+            extracted_data.drop(["index"], axis=1, inplace=True)
             extracted_data.insert(1, selected_columns["time"], df_tmp[selected_columns["time"]])
         elif frequency == "Admission":
             extracted_data.drop(columns=[selected_columns["admissionIdentifier"]], inplace=True)
