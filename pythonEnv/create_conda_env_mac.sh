@@ -85,6 +85,12 @@ else
 
 fi
 
+# Install xcode command line tools
+echo "Installing xcode command line tools..."
+xcode-select --install || {
+    echo "An error occurred while installing xcode command line tools."
+}
+
 CONDA_TYPE=$(conda info | grep -i 'package cache' | awk -F'/' '{print $(NF-1)}')
 echo "Conda type: $CONDA_TYPE"
 
@@ -131,11 +137,6 @@ pip install -r requirements_mac.txt || {
     exit 1
 }
 
-# Install xcode command line tools
-echo "Installing xcode command line tools..."
-xcode-select --install || {
-    echo "An error occurred while installing xcode command line tools."
-}
 
 # Check if homebrew is installed
 if command -v brew &>/dev/null; then
