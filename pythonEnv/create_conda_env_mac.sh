@@ -68,6 +68,13 @@ else
     # Replace <ENV_NAME> with the desired environment name (e.g., med_conda_env)
     # Replace <PYTHON_VERSION> with the desired Python version (e.g., 3.9)
     # Replace <requirements_FILE> with the path to the requirements.txt file
+    echo "Conda is already installed."
+    # Update Conda
+    echo "Updating Conda..."
+    conda update -n base -c defaults conda || {
+        echo "An error occurred while updating Conda."
+        exit 1
+    }
 
     # Activate the base environment
     echo "Activating the base environment..."
