@@ -677,7 +677,14 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
           </Stack>
         </Accordion.Header>
         <Accordion.Body className="sidebar-acc-body" onEnter={() => setIsAccordionShowing(true)} onExit={() => setIsAccordionShowing(false)}>
-          <div className="directory-tree" onMouseEnter={() => setIsHovering(true)} onMouseLeave={() => setIsHovering(false)}>
+          <div
+            className="directory-tree"
+            onMouseEnter={() => setIsHovering(true)}
+            onMouseLeave={() => setIsHovering(false)}
+            onBlur={() => {
+              setSelectedItems([])
+            }}
+          >
             <ControlledTreeEnvironment
               ref={environment}
               items={dirTree}
@@ -843,11 +850,12 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
           <Item id="openInCodeEditor" onClick={handleContextMenuAction}>
             Code editor (default)
           </Item>
-          <Item id="openInJupyter" onClick={
-            () => {
+          <Item
+            id="openInJupyter"
+            onClick={() => {
               console.log("OPEN IN JUPYTER")
-            }
-          }>
+            }}
+          >
             Jupyter Notebook
           </Item>
           <Item id="openInVSCode" onClick={() => require("electron").shell.openPath(globalData[selectedItems[0]].path)}>

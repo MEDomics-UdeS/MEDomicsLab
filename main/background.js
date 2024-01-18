@@ -33,7 +33,7 @@ console.log = function () {
   try {
     originalConsoleLog(...arguments)
     if (mainWindow !== undefined) {
-      mainWindow.webContents.send("log", Array.from(arguments))
+      mainWindow.webContents.send("log", ...arguments)
     }
   } catch (error) {
     console.error(error)

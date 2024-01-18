@@ -87,7 +87,7 @@ if conda env list | grep -q 'med_conda_env '; then
 else
     # Create a new environment
     echo "Creating a new environment..."
-    conda env create -n med_conda_env python==3.9 || {
+    conda create --name med_conda_env python=3.9 || {
         echo "An error occurred while creating the new environment."
         exit 1
     }
