@@ -18,7 +18,7 @@ if [ $? -ne 0 ]; then
 
     # Check CPU architecture and download the appropriate Miniconda installer
     echo "Checking CPU architecture..."
-    if [ $(uname -m) == "arm64" ]; then
+    if [ $(uname -m) = "arm64" ]; then
         # ARM architecture
         echo "ARM architecture detected."
         # Download Miniconda installer with curl
@@ -94,7 +94,7 @@ if conda env list | grep -q 'med_conda_env '; then
 else
     # Create a new environment
     echo "Creating a new environment..."
-    conda create --name med_conda_env python=3.9 || {
+    conda create --name med_conda_env python=3.9 -y || {
         echo "An error occurred while creating the new environment."
         exit 1
     }
@@ -119,7 +119,7 @@ echo "Installing packages..."
 
 # Install PyCaret with conda
 echo "Installing PyCaret with conda..."
-conda install pycaret || {
+conda install pycaret -y || {
     echo "An error occurred while installing PyCaret with conda."
     exit 1
 }
