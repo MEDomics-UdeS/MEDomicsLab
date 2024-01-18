@@ -82,8 +82,10 @@ def handle_tags_in_dataframe(df: pd.DataFrame):
             df.rename(columns={col: tags[-1]}, inplace=True)
             tags_dict[tags[-1]] = tags[:-1]
 
-    print("HERE", tags_dict, df.columns)
-    return df, tags_dict
+    if len(tags_dict) == 0:
+        return df, None
+    else:
+        return df, tags_dict
 
 def add_tags_to_column_names(df: pd.DataFrame, tags_dict: dict):
     """
