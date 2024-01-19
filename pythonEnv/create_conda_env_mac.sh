@@ -69,9 +69,44 @@ else
     # Replace <PYTHON_VERSION> with the desired Python version (e.g., 3.9)
     # Replace <requirements_FILE> with the path to the requirements.txt file
     echo "Conda is already installed."
+
+    # Check if anaconda or miniconda is installed with homebrew
+    if command -v brew &>/dev/null; then
+        echo "Homebrew is already installed."
+        if brew list --formula | grep -q 'anaconda'; then
+            echo "Anaconda is already installed with homebrew."
+            # Update Anaconda
+            echo "Updating Anaconda..."
+            brew upgrade anaconda || {
+                echo "An error occurred while updating Anaconda."
+                exit 1
+            }
+        fi
+        # Check if miniconda is installed with homebrew
+        if brew list --formula | grep -q 'miniconda'; then
+            echo "Miniconda is already installed with homebrew."
+            # Update Miniconda
+            echo "Updating Miniconda..."
+            brew upgrade miniconda || {
+                echo "An error occurred while updating Miniconda."
+                exit 1
+            }
+        fi
+        # Check if miniforge is installed with homebrew
+        if brew list --formula | grep -q 'miniforge'; then
+            echo "Miniforge is already installed with homebrew."
+            # Update Miniforge
+            echo "Updating Miniforge..."
+            brew upgrade miniforge || {
+                echo "An error occurred while updating Miniforge."
+                exit 1
+            }
+        fi
+    fi
+
     # Update Conda
     echo "Updating Conda..."
-    conda update -n base -c defaults conda || {
+    conda update -n base -c defaults conda -y || {
         echo "An error occurred while updating Conda."
         exit 1
     }
@@ -180,13 +215,6 @@ source ~/.zshrc || {
 echo "Installing libomp..."
 brew install libomp || {
     echo "An error occurred while installing libomp."
-    exit 1
-}
-
-# Install miniforge
-echo "Installing miniforge..."
-brew install miniforge || {
-    echo "An error occurred while installing miniforge."
     exit 1
 }
 
