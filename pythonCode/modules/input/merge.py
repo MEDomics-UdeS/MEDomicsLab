@@ -56,7 +56,8 @@ class GoExecScriptMerge(GoExecutionScript):
         first_dataset = load_data_file(first_dataset_path, first_dataset_extension)
         first_dataset, first_dataset_tags = handle_tags_in_dataframe(first_dataset)
         first_dataset = first_dataset[first_dataset_selected_columns]
-        tags.update(first_dataset_tags)
+        if first_dataset_tags != None:
+            tags.update(first_dataset_tags)
         for dataset in payload.keys():
             if (dataset == "0"):
                 continue
@@ -86,9 +87,8 @@ class GoExecScriptMerge(GoExecutionScript):
                 new_dataframe = new_dataframe[dataset_selected_columns]
                 self.set_progress(now=progress, label="Merging with " + dataset_name)
                 progress += progress_step
-
                 # Check if the new dataframe has tags
-                if len(new_dataframe_tags) > 0:
+                if new_dataframe_tags != None:
                     # Check if the column names of the new dataframe are already present in the first dataset
                     first_dataset_columns = first_dataset.columns
                     intersection = collections.Counter(first_dataset_columns) & collections.Counter(new_dataframe.columns)
@@ -106,7 +106,8 @@ class GoExecScriptMerge(GoExecutionScript):
                     new_dataframe, how=dataset_merge_type, on=dataset_merge_on)
 
                 # Update the tags
-                tags.update(new_dataframe_tags)
+                if new_dataframe_tags != None:
+                    tags.update(new_dataframe_tags)
 
 
 
