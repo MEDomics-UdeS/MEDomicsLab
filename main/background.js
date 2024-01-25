@@ -209,7 +209,11 @@ if (isProd) {
           }
         }
       }
-      if (condaPath === null) {
+      if (process.platform == "darwin" && condaPath === null) {
+        parentPath = "/opt/homebrew"
+        condaPath = checkDirectories(parentPath, possibleCondaPaths)
+      }
+      if (condaPath === null && process.platform !== "darwin") {
         console.log("No conda environment found")
         dialog.showMessageBoxSync({
           type: "error",
