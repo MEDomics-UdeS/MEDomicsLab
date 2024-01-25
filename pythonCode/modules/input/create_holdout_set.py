@@ -117,7 +117,7 @@ class GoExecScriptCreateHoldoutSet(GoExecutionScript):
         progress += progress_step
         self.set_progress(now=progress, label="Saving the datasets with " + final_name )
 
-        save_dataframe(final_dataset_path+"train_"+final_name,
+        save_dataframe(final_dataset_path+"learning_"+final_name,
                     final_dataset_extension, train_set, tags=tags)
         save_dataframe(final_dataset_path+"holdout_"+final_name,
                     final_dataset_extension, holdout_set, tags=tags)
