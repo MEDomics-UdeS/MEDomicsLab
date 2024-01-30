@@ -37,13 +37,13 @@ class StartYDataProfiling(GoExecutionScript):
         self.set_progress(label="Loading dataset", now=20)
         dataset1_df = pd.read_csv(dataset1)
         self.set_progress(label="Calculating report", now=35)
-        dataset1_report = ProfileReport(dataset1_df, title=json_config['mainDataset']['name'].split(".")[0].capitalize())
+        dataset1_report = ProfileReport(dataset1_df, title=json_config['mainDataset']['name'].split(".")[0].capitalize(), minimal=True)
         final_report = dataset1_report
         if dataset2 != "":
             self.set_progress(label="Loading dataset", now=50)
             dataset2_df = pd.read_csv(dataset2['path'])
             self.set_progress(label="Calculating report", now=60)
-            dataset2_report = ProfileReport(dataset2_df, title=json_config['compDataset']['name'].split(".")[0].capitalize())
+            dataset2_report = ProfileReport(dataset2_df, title=json_config['compDataset']['name'].split(".")[0].capitalize(), minimal=True)
             self.set_progress(label="Comparing reports", now=75)
             final_report = dataset1_report.compare(dataset2_report)
 
