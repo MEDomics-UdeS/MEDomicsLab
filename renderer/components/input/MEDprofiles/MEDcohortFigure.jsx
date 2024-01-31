@@ -269,7 +269,7 @@ class MEDcohortFigureClass extends React.Component {
       }
     }
     newTimePoints.sort((a, b) => (a.value > b.value ? 1 : -1))
-    this.setState({ timePoints: newTimePoints, shapes: newShapes })
+    this.setState({ timePoint: newTimePoints[newTimePoints.length - 1]["value"], timePoints: newTimePoints, shapes: newShapes })
   }
 
   /**
@@ -631,6 +631,14 @@ class MEDcohortFigureClass extends React.Component {
     // Create a copy of the jsonData state variable
     let newJsonData = { ...this.state.jsonData }
 
+    // Get time points to decrease
+    let toDecrease = []
+    if (timePoint < this.state.shapes.length) {
+      for (let i = timePoint + 1; i < this.state.shapes.length + 1; i++) {
+        toDecrease.push(i)
+      }
+    }
+
     // Loop through each profile and tab in the jsonData
     newJsonData.list_MEDprofile.forEach((profile) => {
       profile.list_MEDtab.forEach((tab) => {
@@ -641,6 +649,16 @@ class MEDcohortFigureClass extends React.Component {
         if (tab.Time_point.includes(parseInt(timePoint))) {
           let timePointIndex = tab.Time_point.findIndex((timePointElement) => timePointElement === timePoint)
           tab.Time_point.splice(timePointIndex, 1)
+        }
+
+        // If there are time points to decrease, decrease them
+        if (toDecrease.length > 0) {
+          toDecrease.forEach((value) => {
+            if (tab.Time_point.includes(parseInt(value))) {
+              let timePointIndex = tab.Time_point.findIndex((timePointElement) => timePointElement === value)
+              tab.Time_point[timePointIndex] = value - 1
+            }
+          })
         }
       })
     })
@@ -654,6 +672,15 @@ class MEDcohortFigureClass extends React.Component {
       if (shape.name === `T${timePoint}`) {
         let shapeIndex = newShapes.findIndex((shapeElement) => shapeElement.name === `T${timePoint}`)
         newShapes.splice(shapeIndex, 1)
+      }
+      // If there are time points to decrease, decrease them
+      if (toDecrease.length > 0) {
+        toDecrease.forEach((value) => {
+          if (shape.name === `T${value}`) {
+            let shapeIndex = newShapes.findIndex((shapeElement) => shapeElement.name === `T${value}`)
+            newShapes[shapeIndex].name = `T${value - 1}`
+          }
+        })
       }
     })
 
@@ -1124,6 +1151,7 @@ class MEDcohortFigureClass extends React.Component {
                           this.setState({ relativeTime: null })
                         }
                       }}
+                      disabled={!selectedClass}
                       style={{ borderRadius: "0 4px 4px 0", padding: "0rem", minWidth: "3rem" }}
                     />
                   </div>
@@ -1143,7 +1171,7 @@ class MEDcohortFigureClass extends React.Component {
                 <Col style={{ display: "flex", flexDirection: "row", justifyContent: "center", marginTop: "0rem" }}>
                   <div style={{ width: "100%" }} className="p-inputgroup ">
                     <MultiSelect className="medcohort-drop" value={selectedClassesToSetTimePoint} options={this.getClassesOptions()} onChange={(e) => this.setState({ selectedClassesToSetTimePoint: e.value })} />
-                    <Button className="separate-toggle-button" style={{ borderRadius: "0 4px 4px 0", padding: "0rem", minWidth: "3rem" }} onClick={this.handleSetTimePointByClass} label={`Set T${timePoint}`} />
+                    <Button className="separate-toggle-button" style={{ borderRadius: "0 4px 4px 0", padding: "0rem", minWidth: "3rem" }} onClick={this.handleSetTimePointByClass} disabled={!selectedClassesToSetTimePoint || selectedClassesToSetTimePoint.length < 1} label={`Set T${timePoint}`} />
                   </div>
                 </Col>
               </Col>
