@@ -1117,7 +1117,6 @@ class MEDcohortFigureClass extends React.Component {
     if (this.state.darkMode === true) {
       themeName = "dark"
     }
-    console.log("danfojs", dfd)
 
     return (
       <>
