@@ -583,6 +583,17 @@ const GroupingTool = ({ pageId = "42-grouping", configPath = null }) => {
   }
 
   /**
+   * 
+   */
+  const onColumnToggle = (event) => {
+    let selectedColumns = event.value;
+    let orderedSelectedColumns = columns.filter((col) => selectedColumns.some((sCol) => sCol.field === col.field));
+
+    setVisibleColumns(orderedSelectedColumns);
+};
+
+
+  /**
    * Template for the chips being shown in the input field of the multiselect
    * @param {object} option - Option
    * @returns {JSX.Element} - JSX element - chip template

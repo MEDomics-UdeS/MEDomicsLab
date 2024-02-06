@@ -6,6 +6,7 @@ import { TabView, TabPanel } from "primereact/tabview"
 import { Col } from "react-bootstrap"
 import { Check2Circle, Folder2Open, XCircleFill } from "react-bootstrap-icons"
 import { InputText } from "primereact/inputtext"
+import { InputNumber } from "primereact/inputnumber"
 
 /**
  * Settings page
@@ -16,6 +17,7 @@ const SettingsPage = () => {
   const [serverIsRunning, setServerIsRunning] = useState(false) // Boolean to know if the server is running
   const [activeIndex, setActiveIndex] = useState(0) // Index of the active tab
   const [condaPath, setCondaPath] = useState("") // Path to the conda environment
+  const [seed, setSeed] = useState(54288) // Seed for random number generation
 
   /**
    * Get the settings from the main process
@@ -28,6 +30,9 @@ const SettingsPage = () => {
       setSettings(receivedSettings)
       if (receivedSettings?.condaPath) {
         setCondaPath(receivedSettings?.condaPath)
+      }
+      if (receivedSettings?.seed) {
+        setSeed(receivedSettings?.seed)
       }
     })
     ipcRenderer.invoke("server-is-running").then((status) => {
@@ -127,6 +132,20 @@ const SettingsPage = () => {
                     >
                       <Folder2Open size="30" style={{ marginLeft: "0rem" }} />
                     </a>
+                  </Col>
+                </Col>
+                <Col xs={12} md={12} style={{ display: "flex", flexDirection: "row", justifyContent: "flex-start", alignItems: "center", flexWrap: "wrap", marginTop: ".75rem" }}>
+                  <Col xs={12} md="auto" style={{ display: "flex", flexDirection: "row", justifyContent: "flex-start", alignItems: "center", flexWrap: "wrap" }}>
+                    <h5>General Seed for Random Number Generation: </h5>
+                  </Col>
+                  <Col xs={12} md="auto" style={{ display: "flex", flexDirection: "row", justifyContent: "flex-start", alignItems: "center", flexWrap: "nowrap", flexGrow: "1" }}>
+                    <InputNumber
+                      style={{ marginInline: "0.5rem", width: "90%" }}
+                      value={seed}
+                      onChange={(e) => {
+                        saveSettings({ ...settings, seed: e.target.value })
+                      }}
+                    />
                   </Col>
                 </Col>
               </Col>
