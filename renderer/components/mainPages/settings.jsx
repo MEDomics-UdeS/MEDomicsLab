@@ -143,7 +143,7 @@ const SettingsPage = () => {
                       style={{ marginInline: "0.5rem", width: "90%" }}
                       value={seed}
                       onChange={(e) => {
-                        saveSettings({ ...settings, seed: e.target.value })
+                        saveSettings({ ...settings, seed: e.value })
                       }}
                     />
                   </Col>
