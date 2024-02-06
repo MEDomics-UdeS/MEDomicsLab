@@ -21,7 +21,7 @@ const dfd = require("danfojs-node")
  * @param {String} props.configPath - The path of the config file
  */
 // eslint-disable-next-line no-unused-vars
-const DeleteColumnsTool = ({ pageId = "inputModule", configPath = "" }) => {
+const TransformColumnsTool = ({ pageId = "inputModule", configPath = "" }) => {
   const { globalData } = useContext(DataContext) // The global data object
   const [listOfDatasets, setListOfDatasets] = useState([]) // The list of datasets
   const [selectedDataset, setSelectedDataset] = useState(null) // The selected dataset
@@ -40,6 +40,13 @@ const DeleteColumnsTool = ({ pageId = "inputModule", configPath = "" }) => {
   const [selectedColumns, setSelectedColumns] = useState([]) // The selected columns
   const [selectedColumnsOptions, setSelectedColumnsOptions] = useState([]) // The selected columns options
   const [visibleColumns, setVisibleColumns] = useState([])
+
+  const [transformType, setTransformType] = useState("binary") // The type of transformation
+
+  const transformOptions = [
+    { label: "Binary : NaN values become 0, non-NaN values become 1", value: "binary_0_1" },
+    { label: "NaN to 0 : NaN values become 0, non-NaN values stay the same", value: "nan_to_zero" }
+  ]
 
   /**
    * To handle the change in the selected dataset, and update the columns options
@@ -140,7 +147,6 @@ const DeleteColumnsTool = ({ pageId = "inputModule", configPath = "" }) => {
       if (selectedDataset !== null || selectedDataset !== undefined) {
         getData().then((data) => {
           data = cleanDataset(data)
-
           let columns = data.columns
           setDf(data)
           let jsonData = dfd.toJSON(data)
@@ -163,6 +169,8 @@ const DeleteColumnsTool = ({ pageId = "inputModule", configPath = "" }) => {
   /**
    * To save the filtered dataset
    * @param {Object} newData - The new data
+   * @param {Boolean} overwrite - True if the dataset should be overwritten, false otherwise
+   * @param {Boolean} local - True if the dataset is called from the overlaypanel (will use newLocalDatasetName and newLocalDatasetExtension instead of newDatasetName and newDatasetExtension), false otherwise
    */
   const saveFilteredDataset = (newData) => {
     if (newData.length !== dataset.length && newData !== null && newData !== undefined && newData.length !== 0) {
@@ -172,6 +180,7 @@ const DeleteColumnsTool = ({ pageId = "inputModule", configPath = "" }) => {
         extension: newDatasetExtension
       })
       MedDataObject.updateWorkspaceDataObject()
+      setSelectedDataset(null)
     } else {
       toast.error("Filtered data is not valid")
     }
@@ -208,7 +217,7 @@ const DeleteColumnsTool = ({ pageId = "inputModule", configPath = "" }) => {
       <div className="table-header" style={{ display: "flex", justifyContent: "flex-start", alignItems: "center" }}>
         {/* Add a label for the multiselect : Toggle columns */}
         <label htmlFor="toggleColumns" className="p-checkbox-label" style={{ marginLeft: "0.5rem" }}>
-          Select the columns to keep: &nbsp;
+          Select the columns to transform: &nbsp;
         </label>
         {/* Add the multiselect to select the columns to display */}
         <MultiSelect
@@ -223,7 +232,7 @@ const DeleteColumnsTool = ({ pageId = "inputModule", configPath = "" }) => {
             setSelectedColumnsOptions(e.value)
           }}
           optionLabel="name"
-          placeholder="Select columns to display"
+          placeholder="Select columns to transform"
           display="chip"
           style={{ maxWidth: "50%" }}
         />
@@ -254,8 +263,9 @@ const DeleteColumnsTool = ({ pageId = "inputModule", configPath = "" }) => {
    * @returns {string} - The capitalized string
    */
   function generateHeader(string) {
+    let style = selectedColumnsOptions.includes(string) ? { display: "flex", alignSelf: "center" } : { display: "flex", alignSelf: "center", color: "var(--text-color-secondary)" }
     let header = (
-      <div className="flex align-items-center" style={{ display: "flex", alignSelf: "center", flexGrow: "1" }}>
+      <div className="flex align-items-center" style={style}>
         {/* <label htmlFor={string} className="p-checkbox-label" style={{ marginLeft: "0.5rem" }}> */}
         {string[0].toUpperCase() + string.slice(1)}
         {/* </label> */}
@@ -306,7 +316,7 @@ const DeleteColumnsTool = ({ pageId = "inputModule", configPath = "" }) => {
 
           <Row style={{ display: "flex", justifyContent: "space-evenly", flexDirection: "row", marginTop: "0.5rem" }}>
             <DataTable ref={opTab} size={"small"} header={renderHeader()} paginator={true} value={dataset ? dataset : null} globalFilterFields={selectedDatasetColumns} rows={5} rowsPerPageOptions={[5, 10, 25, 50]} className="p-datatable-striped p-datatable-gridlines" removableSort={true}>
-              {selectedDatasetColumns.length > 0 && visibleColumns.map((column) => <Column key={column.name + "index"} {...getColumnOptions(column.name)} dataType={getColumnDataType(column.name)} field={String(column.name)} header={generateHeader(column.name)} style={{ minWidth: "5rem" }}></Column>)}
+              {selectedDatasetColumns.length > 0 && selectedColumns.map((column) => <Column key={column.name + "index"} {...getColumnOptions(column.name)} dataType={getColumnDataType(column.name)} field={String(column.name)} header={generateHeader(column.name)} style={{ minWidth: "5rem" }}></Column>)}
             </DataTable>
           </Row>
           <Row
@@ -324,6 +334,22 @@ const DeleteColumnsTool = ({ pageId = "inputModule", configPath = "" }) => {
               Columns selected : <b>{visibleColumns.length}</b>&nbsp; of &nbsp;
               <b>{selectedColumns ? selectedColumns.length : 0}</b>
             </h6>
+          </Row>
+          <Row
+            className={"card"}
+            style={{
+              display: "flex",
+              justifyContent: "space-evenly",
+              flexDirection: "row",
+              marginTop: "0.5rem",
+              backgroundColor: "transparent",
+              padding: "0.5rem"
+            }}
+          >
+            <label>
+              <strong>Choose the type of transformation</strong>
+            </label>
+            <Dropdown value={transformType} options={transformOptions} onChange={(e) => setTransformType(e.target.value)} placeholder="Select the type of transformation" />
           </Row>
           <Row
             className={"card"}
@@ -375,13 +401,18 @@ const DeleteColumnsTool = ({ pageId = "inputModule", configPath = "" }) => {
             </Col>
             <Col>
               <Button
-                label="Create subset from selected columns"
+                label="Create subset with the transformed columns"
                 disabled={checkIfNameAlreadyUsed(newDatasetName + "." + newDatasetExtension) || selectedDataset === null || selectedDataset === undefined || newDatasetName.length === 0}
                 onClick={() => {
-                  // Get the columns to drop
-                  // Compare the selected columns with the visible columns [a, b, c, d] [a, c] => [b, d]
-                  let columnsToDrop = selectedColumns.filter((col) => !visibleColumns.some((vCol) => vCol.name === col.name)).map((col) => col.name)
-                  let newData = df.drop({ columns: columnsToDrop })
+                  let newData = df.copy()
+                  let columnsToTransform = selectedColumnsOptions
+                  columnsToTransform.forEach((column) => {
+                    if (transformType === "binary_0_1") {
+                      newData[column] = newData[column].apply((x) => (x === null || x === undefined || x === "NaN" ? 0 : 1))
+                    } else if (transformType === "nan_to_zero") {
+                      newData[column] = newData[column].apply((x) => (x === null || x === undefined || x === "NaN" ? 0 : x))
+                    }
+                  })
                   saveFilteredDataset(newData)
                 }}
               />
@@ -394,4 +425,4 @@ const DeleteColumnsTool = ({ pageId = "inputModule", configPath = "" }) => {
   )
 }
 
-export default DeleteColumnsTool
+export default TransformColumnsTool
