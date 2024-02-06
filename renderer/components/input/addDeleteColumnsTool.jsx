@@ -44,7 +44,6 @@ const AddDeleteColumnsTool = ({ pageId = "inputModule", configPath = "" }) => {
   const [selectedDatasetColumns, setSelectedDatasetColumns] = useState([]) // The columns infos of the selected dataset
   const opTab = React.useRef(null)
   const [dataset, setDataset] = useState(null) // The dataset to drop
-  const [filteredData, setFilteredData] = useState([]) // The filtered data
   const [df, setDf] = useState(null) // The dataframe
   const [columnTypes, setColumnTypes] = useState({}) // The column types
   const [selectedColumns, setSelectedColumns] = useState([]) // The selected columns
@@ -206,7 +205,7 @@ const AddDeleteColumnsTool = ({ pageId = "inputModule", configPath = "" }) => {
   const saveFilteredDataset = (newData) => {
     if (newData.length !== dataset.length && newData !== null && newData !== undefined && newData.length !== 0) {
       MedDataObject.saveDatasetToDisk({
-        data: newData,
+        df: newData,
         filePath: getParentIDfolderPath(selectedDataset) + newDatasetName + "." + newDatasetExtension,
         extension: newDatasetExtension
       })
@@ -420,8 +419,12 @@ const AddDeleteColumnsTool = ({ pageId = "inputModule", configPath = "" }) => {
                 label="Create subset from selected columns"
                 disabled={checkIfNameAlreadyUsed(newDatasetName + "." + newDatasetExtension) || selectedDataset === null || selectedDataset === undefined || newDatasetName.length === 0}
                 onClick={() => {
-                  // dropAll(false)
-                  saveFilteredDataset(filteredData)
+                  // Get the columns to drop
+                  // Compare the selected columns with the visible columns [a, b, c, d] [a, c] => [b, d]
+                  let columnsToDrop = selectedColumns.filter((col) => !visibleColumns.some((vCol) => vCol.name === col.name)).map((col) => col.name)
+                  let newData = df.drop({ columns: columnsToDrop })
+                  console.log("newData", newData)
+                  saveFilteredDataset(newData)
                 }}
               />
             </Col>
