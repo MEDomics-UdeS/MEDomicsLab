@@ -171,6 +171,7 @@ if (isProd) {
     let userDataPath = app.getPath("userData")
     let settingsFilePath = path.join(userDataPath, "settings.json")
     let settingsFound = fs.existsSync(settingsFilePath)
+    let settings = {}
     if (settingsFound) {
       let settings = JSON.parse(fs.readFileSync(settingsFilePath, "utf8"))
       // Check if the conda environment is defined in the settings file
@@ -195,7 +196,7 @@ if (isProd) {
     if (pythonEnvironment !== undefined && pythonEnvironment !== null) {
       if (settingsFound && settings.condaPath === undefined) {
         settings.condaPath = pythonEnvironment
-        saveJSON(settingsFilePath, settings)
+        fs.writeFileSync(settingsFilePath, JSON.stringify(settings))
       }
     }
     return pythonEnvironment
