@@ -7,19 +7,14 @@ import { Button } from "primereact/button"
 import { Dropdown } from "primereact/dropdown"
 import MedDataObject from "../workspace/medDataObject"
 import { InputText } from "primereact/inputtext"
-import { InputNumber } from "primereact/inputnumber"
 import ProgressBarRequests from "../generalPurpose/progressBarRequests"
 import { DataTable } from "primereact/datatable"
 import { Column } from "@blueprintjs/table"
 import { OverlayPanel } from "primereact/overlaypanel"
 import { toast } from "react-toastify"
-import { FilterMatchMode, FilterOperator } from "primereact/api"
 import { MultiSelect } from "primereact/multiselect"
-import { Utils as danfoUtils } from "danfojs-node"
-import { Checkbox } from "primereact/checkbox"
 
 const dfd = require("danfojs-node")
-const dfdUtils = new danfoUtils()
 
 /**
  * Component that renders the holdout set creation tool
@@ -28,7 +23,7 @@ const dfdUtils = new danfoUtils()
  * @param {String} props.configPath - The path of the config file
  */
 // eslint-disable-next-line no-unused-vars
-const AddDeleteColumnsTool = ({ pageId = "inputModule", configPath = "" }) => {
+const DeleteColumnsTool = ({ pageId = "inputModule", configPath = "" }) => {
   const { globalData } = useContext(DataContext) // The global data object
   const [listOfDatasets, setListOfDatasets] = useState([]) // The list of datasets
   const [selectedDataset, setSelectedDataset] = useState(null) // The selected dataset
@@ -472,4 +467,4 @@ const AddDeleteColumnsTool = ({ pageId = "inputModule", configPath = "" }) => {
   )
 }
 
-export default AddDeleteColumnsTool
+export default DeleteColumnsTool

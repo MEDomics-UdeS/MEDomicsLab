@@ -8,7 +8,7 @@ import SimpleCleaningTool from "../input/simpleCleaningTool"
 import HoldOutSetCreationTool from "../input/holdOutSetCreationTool"
 import SubsetCreationTool from "../input/subsetCreationTool"
 import FeatureReductionTool from "../input/featuresReduction/featuresReductionTool"
-import AddDeleteColumnsTool from "../input/addDeleteColumnsTool"
+import DeleteColumnsTool from "../input/deleteColumnsTool"
 /**
  * @description - This component is the input page of the application
  * @returns the input page component
@@ -54,9 +54,9 @@ const InputPage = ({ pageId = "42", configPath = null }) => {
               </Accordion.Body>
             </Accordion.Item>
             <Accordion.Item eventKey="6">
-              <Accordion.Header>Add/Delete Columns</Accordion.Header>
+              <Accordion.Header>Delete Columns</Accordion.Header>
               <Accordion.Body>
-                <AddDeleteColumnsTool pageId={pageId} />
+                <DeleteColumnsTool pageId={pageId} />
               </Accordion.Body>
             </Accordion.Item>
             <Accordion.Item eventKey="7">
