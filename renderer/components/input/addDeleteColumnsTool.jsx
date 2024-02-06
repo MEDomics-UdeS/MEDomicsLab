@@ -16,7 +16,7 @@ import { toast } from "react-toastify"
 import { FilterMatchMode, FilterOperator } from "primereact/api"
 import { MultiSelect } from "primereact/multiselect"
 import { Utils as danfoUtils } from "danfojs-node"
-import { Checkbox } from 'primereact/checkbox';
+import { Checkbox } from "primereact/checkbox"
 
 const dfd = require("danfojs-node")
 const dfdUtils = new danfoUtils()
@@ -32,26 +32,24 @@ const AddDeleteColumnsTool = ({ pageId = "inputModule", configPath = "" }) => {
   const { globalData } = useContext(DataContext) // The global data object
   const [listOfDatasets, setListOfDatasets] = useState([]) // The list of datasets
   const [selectedDataset, setSelectedDataset] = useState(null) // The selected dataset
+
   const [newDatasetName, setNewDatasetName] = useState("") // The name of the new dataset
   const [newDatasetExtension, setNewDatasetExtension] = useState(".csv") // The extension of the new dataset
-  const [progress, setProgress] = useState({ now: 0, currentLabel: "" }) // The progress of the holdout set creation
-  const [isProgressUpdating, setIsProgressUpdating] = useState(false) // To check if the progress is updating
-  const [selectedDatasetColumns, setSelectedDatasetColumns] = useState([]) // The columns infos of the selected dataset
-  const [columnsToDrop, setColumnsToDrop] = useState([]) // The columns to drop
-  const [rowsToDrop, setRowsToDrop] = useState([]) // The rows to drop
   const [newLocalDatasetName, setNewLocalDatasetName] = useState("") // The name of the new dataset
   const [newLocalDatasetExtension, setNewLocalDatasetExtension] = useState(".csv") // The extension of the new dataset
+
+  const [progress, setProgress] = useState({ now: 0, currentLabel: "" }) // The progress of the holdout set creation
+  const [isProgressUpdating, setIsProgressUpdating] = useState(false) // To check if the progress is updating
+
+  const [selectedDatasetColumns, setSelectedDatasetColumns] = useState([]) // The columns infos of the selected dataset
   const opTab = React.useRef(null)
   const [dataset, setDataset] = useState(null) // The dataset to drop
-  const [globalFilterValue, setGlobalFilterValue] = useState("") // The global filter value
-  const [filters, setFilters] = useState({}) // The filters
   const [filteredData, setFilteredData] = useState([]) // The filtered data
   const [df, setDf] = useState(null) // The dataframe
   const [columnTypes, setColumnTypes] = useState({}) // The column types
-  const [columnsCheckedDict, setColumnsCheckedDict] = useState({}) // The columns dict
   const [selectedColumns, setSelectedColumns] = useState([]) // The selected columns
   const [selectedColumnsOptions, setSelectedColumnsOptions] = useState([]) // The selected columns options
-  const filterDisplay = "menu"
+  const [visibleColumns, setVisibleColumns] = useState([])
 
   /**
    * To handle the change in the selected dataset, and update the columns options
@@ -139,27 +137,6 @@ const AddDeleteColumnsTool = ({ pageId = "inputModule", configPath = "" }) => {
   }
 
   /**
-   * This function initializes the filters
-   * @returns {Void}
-   */
-  const initFilters = () => {
-    let newFilters = {}
-    newFilters["global"] = { value: "", matchMode: "contains" }
-
-    Object.keys(columnTypes).forEach((column) => {
-      if (columnTypes[column] === "category") {
-        newFilters[column] = { value: "", matchMode: FilterMatchMode.IN }
-      } else if (columnTypes[column] === "int32" || columnTypes[column] === "float32") {
-        newFilters[column] = { operator: FilterOperator.AND, constraints: [{ value: "", matchMode: FilterMatchMode.EQUALS }] }
-      } else if (columnTypes[column] === "string") {
-        newFilters[column] = { operator: FilterOperator.AND, constraints: [{ value: "", matchMode: FilterMatchMode.STARTS_WITH }] }
-      }
-    })
-
-    setFilters(newFilters)
-  }
-
-  /**
    * Clean the dataset
    * @param {DanfoJS.DataFrame} data - The data
    * @returns {DanfoJS.DataFrame} - The cleaned dataset
@@ -204,22 +181,19 @@ const AddDeleteColumnsTool = ({ pageId = "inputModule", configPath = "" }) => {
           let jsonData = dfd.toJSON(data)
           setDataset(jsonData)
           setSelectedDatasetColumns(columns)
-          setSelectedColumnsOptions(columns)
-          let newColumns = {}
           let newSelectedColumns = []
           columns.forEach((column) => {
-            newColumns[column] = true
             newSelectedColumns.push({ name: column, value: column })
           })
+          setSelectedColumnsOptions(columns)
           setSelectedColumns(newSelectedColumns)
-          setColumnsCheckedDict(newColumns)
-          
+          setVisibleColumns(newSelectedColumns)
         })
       }
       setNewDatasetExtension(selectedDataset.extension)
-      setNewDatasetName(selectedDataset.nameWithoutExtension + "_filtered")
+      setNewDatasetName(selectedDataset.nameWithoutExtension + "_modified")
       setNewLocalDatasetExtension(selectedDataset.extension)
-      setNewLocalDatasetName(selectedDataset.nameWithoutExtension + "_filtered")
+      setNewLocalDatasetName(selectedDataset.nameWithoutExtension + "_modified")
     }
   }, [selectedDataset])
 
@@ -231,7 +205,11 @@ const AddDeleteColumnsTool = ({ pageId = "inputModule", configPath = "" }) => {
    */
   const saveFilteredDataset = (newData) => {
     if (newData.length !== dataset.length && newData !== null && newData !== undefined && newData.length !== 0) {
-      MedDataObject.saveDatasetToDisk({ data: newData, filePath: getParentIDfolderPath(selectedDataset) + newDatasetName + "." + newDatasetExtension, extension: newDatasetExtension })
+      MedDataObject.saveDatasetToDisk({
+        data: newData,
+        filePath: getParentIDfolderPath(selectedDataset) + newDatasetName + "." + newDatasetExtension,
+        extension: newDatasetExtension
+      })
       MedDataObject.updateWorkspaceDataObject()
     } else {
       toast.error("Filtered data is not valid")
@@ -264,54 +242,36 @@ const AddDeleteColumnsTool = ({ pageId = "inputModule", configPath = "" }) => {
     return parentPath + separator
   }
 
-  const clearFilter = () => {
-    setGlobalFilterValue("")
-    initFilters()
-    setFilteredData(dataset)
-  }
-
-
-
-  useEffect(() => {
-    let newFilters = { ...filters }
-    if (globalFilterValue.length !== 0) {
-      newFilters["global"].value = globalFilterValue
-    }
-    setFilters(newFilters)
-  }, [globalFilterValue])
-
   const renderHeader = () => {
+    console.log("selectedColumns", selectedColumns, visibleColumns)
     return (
-      <div className="table-header" style={{display:"flex", justifyContent:"space-between"}}>
-          <MultiSelect
-            value={selectedColumnsOptions}
-            options={selectedColumns}
-            onChange={(e) => {
-              opTab.current.filter(e.value, "field", "in")
-              console.log(e.value)
-              setSelectedColumnsOptions(e.value)
-            }}
-            optionLabel="name"
-            placeholder="Select columns to display"
-            display="chip"
-            style={{ maxWidth:"50%"}}
-          />
-        <Button icon="pi pi-filter-slash" className="p-mr-2" outlined label="Clear" onClick={clearFilter} />
-        <span className="p-input-icon-left">
-          <i className="pi pi-search" />
-          <InputText
-            type="search"
-            onChange={(e) => {
-              setGlobalFilterValue(e.target.value)
-            }}
-            placeholder="Global Search"
-          />
-        </span>
+      <div className="table-header" style={{ display: "flex", justifyContent: "flex-start", alignItems: "center" }}>
+        {/* Add a label for the multiselect : Toggle columns */}
+        <label htmlFor="toggleColumns" className="p-checkbox-label" style={{ marginLeft: "0.5rem" }}>
+          Select the columns to keep: &nbsp;
+        </label>
+        {/* Add the multiselect to select the columns to display */}
+        <MultiSelect
+          value={selectedColumnsOptions}
+          options={selectedColumns}
+          onChange={(e) => {
+            let newSelectedColumns = e.value.map((value) => {
+              return { name: value, value: value }
+            })
+            let orderedSelectedColumns = selectedColumns.filter((col) => newSelectedColumns.some((sCol) => sCol.value === col.value))
+            console.log("orderedSelectedColumns", orderedSelectedColumns)
+            setVisibleColumns(orderedSelectedColumns)
+            console.log("e.value", e.value)
+            setSelectedColumnsOptions(e.value)
+          }}
+          optionLabel="name"
+          placeholder="Select columns to display"
+          display="chip"
+          style={{ maxWidth: "50%" }}
+        />
       </div>
     )
   }
-
-  const header = renderHeader()
 
   /**
    * This hook is used to update the column types
@@ -331,108 +291,19 @@ const AddDeleteColumnsTool = ({ pageId = "inputModule", configPath = "" }) => {
   }, [df])
 
   /**
-   * The filters are initialized when the column types are updated
-   */
-  useEffect(() => {
-    initFilters()
-  }, [columnTypes])
-
-  /**
-   * This function is used to render the category filter template
-   * @param {Object} options - The options
-   * @returns {Object} - The filter template
-   */
-  const categoryFilterTemplate = (options) => {
-    let onChangeFunc = (e) => {
-      options.filterCallback(e.value)
-    }
-    if (filterDisplay === "row") {
-      onChangeFunc = (e) => {
-        options.filterApplyCallback(e.value)
-      }
-    }
-
-    let colData = df.$getColumnData(options.field).$data
-    let uniqueValues = dfdUtils.unique(colData)
-    let newOptions = []
-    uniqueValues.forEach((value) => {
-      newOptions.push({ name: value, value: value })
-    })
-    return <MultiSelect value={options.value} options={newOptions} onChange={onChangeFunc} optionLabel="name" placeholder={`Search by ${options.field}`} className="p-column-filter" maxSelectedLabels={1} />
-  }
-
-  /**
-   * This function is used to render the number filter template
-   * @param {Object} options - The options
-   * @returns {Object} - The filter template
-   */
-  const numberFilterTemplate = (options) => {
-    let onChangeFunc = (e) => {
-      options.filterCallback(e.value, options.index)
-    }
-    if (filterDisplay === "row") {
-      onChangeFunc = (e) => {
-        options.filterApplyCallback(e.value, options.index)
-      }
-    }
-    return <InputNumber value={options.value} onChange={onChangeFunc} placeholder={`Search by ${options.field}`} locale="en-US" />
-  }
-
-  /**
-   * This function is used to render the string filter template
-   * @param {Object} options - The options
-   * @returns {Object} - The filter template
-   */
-  const stringFilterTemplate = (options) => {
-    let onChangeFunc = (e) => {
-      options.filterCallback(e.target.value, options.index)
-    }
-    if (filterDisplay === "row") {
-      onChangeFunc = (e) => {
-        options.filterApplyCallback(e.target.value, options.field)
-      }
-    }
-    return <InputText type="search" value={options.value} placeholder={`Search by ${options.field}`} onChange={onChangeFunc} />
-  }
-
-  /**
-   * This function is used to render the filter template
-   * @param {number} index - The index of the column
-   * @returns {Object} - The filter template
-   */
-  const filterTemplateRenderer = (index) => {
-    let columnType = columnTypes[selectedDatasetColumns[index]]
-    if (columnType === "category") {
-      return categoryFilterTemplate
-    } else if (columnType === "int32" || columnType === "float32") {
-      return numberFilterTemplate
-    } else if (columnType === "string") {
-      return stringFilterTemplate
-    }
-  }
-
-  /**
    * This function is used to capitalize the first letter of a string
    * @param {string} string - The string to capitalize
    * @returns {string} - The capitalized string
    */
   function generateHeader(string) {
-    let header = 
-    <div className="flex align-items-center" style={{display:"flex"}}>
-      {/* <Checkbox
-        inputId={string}
-        checked={columnsCheckedDict[string] === true}
-        onChange={(e) => {
-          console.log(e)
-          let newColumnsCheckedDict = { ...columnsCheckedDict }
-          newColumnsCheckedDict[string] = !newColumnsCheckedDict[string]
-          setColumnsCheckedDict(newColumnsCheckedDict)
+    let header = (
+      <div className="flex align-items-center" style={{ display: "flex", alignSelf: "center", flexGrow: "1" }}>
+        {/* <label htmlFor={string} className="p-checkbox-label" style={{ marginLeft: "0.5rem" }}> */}
+        {string[0].toUpperCase() + string.slice(1)}
+        {/* </label> */}
+      </div>
+    )
 
-        }}
-      /> */}
-      <label htmlFor={string} className="p-checkbox-label" style={{marginLeft:"0.5rem"}}>{string[0].toUpperCase() + string.slice(1)}</label>
-    </div>
-      
     return header
   }
 
@@ -471,43 +342,52 @@ const AddDeleteColumnsTool = ({ pageId = "inputModule", configPath = "" }) => {
     <>
       <Row className="simple-cleaning-set">
         <Col>
-          <h6>Select the dataset you want to clean</h6>
+          <h6>Select the dataset</h6>
           {/* Dropdown to select the first dataset */}
           <Dropdown options={listOfDatasets} optionLabel="name" optionValue="key" className="w-100" value={selectedDataset ? selectedDataset.getUUID() : null} onChange={handleSelectedDatasetChange}></Dropdown>
 
           <Row style={{ display: "flex", justifyContent: "space-evenly", flexDirection: "row", marginTop: "0.5rem" }}>
-            <DataTable
-              ref={opTab}
-              onValueChange={(e) => {
-                setFilteredData(e)
-              }}
-              filterDisplay={filterDisplay}
-              size={"small"}
-              header={header}
-              paginator={true}
-              filters={filters}
-              value={dataset ? dataset : null}
-              // globalFilterFields={selectedDatasetColumns}
-              rows={5}
-              rowsPerPageOptions={[5, 10, 25, 50]}
-              className="p-datatable-striped p-datatable-gridlines"
-              removableSort={true}
-            >
-              {selectedDatasetColumns.length > 0 && 
-              // Filter the columns to display only the selected ones
-              // selectedDatasetColumns.map((column, index) => <Column key={column} {...getColumnOptions(column)} dataType={getColumnDataType(column)} field={String(column)} sortable filterPlaceholder={`Search by ${column}`} filterElement={filterTemplateRenderer(index)} filter header={generateHeader(column)} style={{ minWidth: "5rem" }}></Column>)}
-              selectedColumnsOptions.map((column, index) => <Column key={column} {...getColumnOptions(column)} dataType={getColumnDataType(column)} field={String(column)} sortable filterPlaceholder={`Search by ${column}`} filterElement={filterTemplateRenderer(index)} filter header={generateHeader(column)} style={{ minWidth: "5rem" }}></Column>)}
-              {/* selectedColumns.map((column, index) => <Column key={column.name} {...getColumnOptions(column.name)} dataType={getColumnDataType(column.name)} field={String(column.name)} sortable filterPlaceholder={`Search by ${column.name}`} filterElement={filterTemplateRenderer(index)} filter header={generateHeader(column.name)} style={{ minWidth: "5rem" }}></Column>)}  */}
-              </DataTable>
+            <DataTable ref={opTab} size={"small"} header={renderHeader()} paginator={true} value={dataset ? dataset : null} globalFilterFields={selectedDatasetColumns} rows={5} rowsPerPageOptions={[5, 10, 25, 50]} className="p-datatable-striped p-datatable-gridlines" removableSort={true}>
+              {selectedDatasetColumns.length > 0 && visibleColumns.map((column, index) => <Column key={column.name + "index"} {...getColumnOptions(column.name)} dataType={getColumnDataType(column.name)} field={String(column.name)} header={generateHeader(column.name)} style={{ minWidth: "5rem" }}></Column>)}
+            </DataTable>
           </Row>
-          <Row className={"card"} style={{ display: "flex", justifyContent: "space-evenly", flexDirection: "row", marginTop: "0.5rem", backgroundColor: "transparent", padding: "0.5rem" }}>
+          <Row
+            className={"card"}
+            style={{
+              display: "flex",
+              justifyContent: "space-evenly",
+              flexDirection: "row",
+              marginTop: "0.5rem",
+              backgroundColor: "transparent",
+              padding: "0.5rem"
+            }}
+          >
             <h6>
-              Rows selected : <b>{filteredData.length}</b>&nbsp; of &nbsp;
-              <b>{dataset ? dataset.length : 0}</b>
+              Columns selected : <b>{visibleColumns.length}</b>&nbsp; of &nbsp;
+              <b>{selectedColumns ? selectedColumns.length : 0}</b>
             </h6>
           </Row>
-          <Row className={"card"} style={{ display: "flex", justifyContent: "space-evenly", flexDirection: "row", marginTop: "0.5rem", backgroundColor: "transparent", padding: "0.5rem" }}>
-            <Col style={{ display: "flex", flexDirection: "row", justifyContent: "center", flexGrow: 0, alignItems: "center" }} xs>
+          <Row
+            className={"card"}
+            style={{
+              display: "flex",
+              justifyContent: "space-evenly",
+              flexDirection: "row",
+              marginTop: "0.5rem",
+              backgroundColor: "transparent",
+              padding: "0.5rem"
+            }}
+          >
+            <Col
+              style={{
+                display: "flex",
+                flexDirection: "row",
+                justifyContent: "center",
+                flexGrow: 0,
+                alignItems: "center"
+              }}
+              xs
+            >
               <div className="p-input-group flex-1 dataset-name " style={{ display: "flex", flexDirection: "row" }}>
                 <InputText
                   className={`${checkIfNameAlreadyUsed(newDatasetName + "." + newDatasetExtension) || newDatasetName.length === 0 ? "p-invalid" : ""}`}
@@ -537,7 +417,7 @@ const AddDeleteColumnsTool = ({ pageId = "inputModule", configPath = "" }) => {
             </Col>
             <Col>
               <Button
-                label="Create subset from filtered rows"
+                label="Create subset from selected columns"
                 disabled={checkIfNameAlreadyUsed(newDatasetName + "." + newDatasetExtension) || selectedDataset === null || selectedDataset === undefined || newDatasetName.length === 0}
                 onClick={() => {
                   // dropAll(false)
