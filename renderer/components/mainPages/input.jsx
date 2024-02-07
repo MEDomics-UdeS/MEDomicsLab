@@ -8,7 +8,8 @@ import SimpleCleaningTool from "../input/simpleCleaningTool"
 import HoldOutSetCreationTool from "../input/holdOutSetCreationTool"
 import SubsetCreationTool from "../input/subsetCreationTool"
 import FeatureReductionTool from "../input/featuresReduction/featuresReductionTool"
-
+import DeleteColumnsTool from "../input/deleteColumnsTool"
+import TransformColumnsTool from "../input/transformColumnsTool"
 /**
  * @description - This component is the input page of the application
  * @returns the input page component
@@ -54,12 +55,24 @@ const InputPage = ({ pageId = "42", configPath = null }) => {
               </Accordion.Body>
             </Accordion.Item>
             <Accordion.Item eventKey="6">
+              <Accordion.Header>Delete Columns tool</Accordion.Header>
+              <Accordion.Body>
+                <DeleteColumnsTool pageId={pageId} />
+              </Accordion.Body>
+            </Accordion.Item>
+            <Accordion.Item eventKey="transformColumns">
+              <Accordion.Header>Transform Columns tool</Accordion.Header>
+              <Accordion.Body>
+                <TransformColumnsTool pageId={pageId} />
+              </Accordion.Body>
+            </Accordion.Item>
+            <Accordion.Item eventKey="7">
               <Accordion.Header>Feature Reduction tool</Accordion.Header>
               <Accordion.Body>
                 <FeatureReductionTool pageId={pageId} />
               </Accordion.Body>
             </Accordion.Item>
-            <Accordion.Item eventKey="7">
+            <Accordion.Item eventKey="8">
               <Accordion.Header>MEDprofiles</Accordion.Header>
               <Accordion.Body>
                 <MEDprofilesPrepareData />

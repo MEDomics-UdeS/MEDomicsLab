@@ -1,5 +1,6 @@
 import { MultiSelect } from "primereact/multiselect"
 import React, { useContext, useState, useEffect } from "react"
+import { ipcRenderer } from "electron"
 import { Row, Col } from "react-bootstrap"
 import { Checkbox } from "primereact/checkbox"
 import { WorkspaceContext } from "../workspace/workspaceContext"
@@ -37,7 +38,7 @@ const HoldOutSetCreationTool = ({ pageId = "inputModule", configPath = "" }) => 
   const [progress, setProgress] = useState({ now: 0, currentLabel: "" }) // The progress of the holdout set creation
   const [isProgressUpdating, setIsProgressUpdating] = useState(false) // To check if the progress is updating
   const [nanMethod, setNaNMethod] = useState("drop") // The NaN method to use
-
+  const [seed, setSeed] = useState(54288) // The seed for the random number generation
   const nanMethods = ["drop", "bfill", "ffill"] // The NaN methods
 
   /**
@@ -68,6 +69,19 @@ const HoldOutSetCreationTool = ({ pageId = "inputModule", configPath = "" }) => 
     }
     setSelectedDatasetColumns(columnsOptions)
   }
+
+  /**
+   * Get the settings from the main process to retrieve the seed number
+   * @returns {Void}
+   */
+  useEffect(() => {
+    ipcRenderer.invoke("get-settings").then((receivedSettings) => {
+      console.log("received settings", receivedSettings)
+      if (receivedSettings?.seed) {
+        setSeed(receivedSettings?.seed)
+      }
+    })
+  }, [])
 
   /**
    * To clean the string
@@ -183,7 +197,7 @@ const HoldOutSetCreationTool = ({ pageId = "inputModule", configPath = "" }) => 
     JSONToSend.payload["stratify"] = options.stratify
     JSONToSend.payload["columnsToStratifyWith"] = selectedColumns
     JSONToSend.payload["nanMethod"] = "drop"
-    JSONToSend.payload["randomState"] = 54288
+    JSONToSend.payload["randomState"] = seed
     newDatasetObject.relatedInformation = JSONToSend
     console.log("JSONToSend", JSONToSend)
     requestBackend(
@@ -249,6 +263,24 @@ const HoldOutSetCreationTool = ({ pageId = "inputModule", configPath = "" }) => 
             Select the column(s) (It should be a categorical variable){" "}
           </h6>
           <MultiSelect className="w-100 " options={selectedDatasetColumns} display="chip" optionLabel="label" value={selectedColumns} onChange={handleColumnSelection} disabled={!options.stratify}></MultiSelect>
+          <Col style={{ display: "flex", justifyContent: "normal", flexDirection: "row", marginTop: "0.5rem", alignContent: "center", alignItems: "center" }}>
+            <label htmlFor="seed" className="font-bold block mb-2">
+              Seed for random number generation
+            </label>
+            <InputNumber
+              value={seed}
+              inputId="seed"
+              onChange={(e) => {
+                setSeed(e.value)
+              }}
+              mode="decimal"
+              showButtons
+              min={0}
+              max={100000}
+              size={2}
+              style={{ marginLeft: "1rem" }}
+            />
+          </Col>
         </Col>
         <Col>
           <p>Holdout set creation tool</p>
