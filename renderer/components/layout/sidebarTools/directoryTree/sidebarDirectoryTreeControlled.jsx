@@ -621,7 +621,6 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
    * @returns {void}
    */
   function handleSelectedItemsBlur(event) {
-    console.log("handleSelectedItemsBlur", event)
     if (!evaluateIfTargetIsAChild(event, "directory-tree-container")) {
       setSelectedItems([])
     }
