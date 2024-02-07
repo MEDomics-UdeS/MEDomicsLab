@@ -166,14 +166,37 @@ if (isProd) {
   function getPythonEnvironment() {
     // Returns the python environment
     let pythonEnvironment = process.env.MED_ENV
+
+    // Retrieve the path to the conda environment from the settings file
+    let userDataPath = app.getPath("userData")
+    let settingsFilePath = path.join(userDataPath, "settings.json")
+    let settingsFound = fs.existsSync(settingsFilePath)
+    let settings = {}
+    if (settingsFound) {
+      let settings = JSON.parse(fs.readFileSync(settingsFilePath, "utf8"))
+      // Check if the conda environment is defined in the settings file
+      if (settings.condaPath !== undefined) {
+        pythonEnvironment = settings.condaPath
+      }
+    }
+
     if (pythonEnvironment === undefined) {
-      let userPath = process.env.HOME
-      let anacondaPath = getCondaPath(userPath)
-      if (anacondaPath !== null) {
-        // If a python environment is found, the path to the python executable is returned
-        if (checkCondaEnvs(anacondaPath).includes(medCondaEnv)) {
-          pythonEnvironment = getThePythonExecutablePath(anacondaPath, medCondaEnv)
+      if (pythonEnvironment === undefined || pythonEnvironment === null) {
+        let userPath = process.env.HOME
+        let anacondaPath = getCondaPath(userPath)
+        if (anacondaPath !== null) {
+          // If a python environment is found, the path to the python executable is returned
+          if (checkCondaEnvs(anacondaPath).includes(medCondaEnv)) {
+            pythonEnvironment = getThePythonExecutablePath(anacondaPath, medCondaEnv)
+          }
         }
+      }
+    }
+    // If the python environment is found, the conda path is saved in the settings file if it is not already defined
+    if (pythonEnvironment !== undefined && pythonEnvironment !== null) {
+      if (settingsFound && settings.condaPath === undefined) {
+        settings.condaPath = pythonEnvironment
+        fs.writeFileSync(settingsFilePath, JSON.stringify(settings))
       }
     }
     return pythonEnvironment
