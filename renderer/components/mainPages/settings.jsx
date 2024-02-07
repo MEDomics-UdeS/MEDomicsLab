@@ -84,7 +84,7 @@ const SettingsPage = () => {
                         console.log("server is running", status)
                       })
                     }}
-                    style={{ backgroundColor: serverIsRunning ? "grey" : "#54a559", borderColor: serverIsRunning ? "grey" : "#54a559" }}
+                    style={{ backgroundColor: serverIsRunning ? "grey" : "#54a559", borderColor: serverIsRunning ? "grey" : "#54a559", marginRight: "1rem"}}
                     disabled={serverIsRunning}
                   />
                   <Button

@@ -24,7 +24,7 @@ import { LoaderContext } from "../../generalPurpose/loaderContext"
  */
 const DatasetNode = ({ id, data }) => {
   const [modalShow, setModalShow] = useState(false) // state of the modal
-  const [selection, setSelection] = useState(data.internal.selection)
+  const [selection, setSelection] = useState("medomics") // state of the selection (medomics or custom
   const { updateNode } = useContext(FlowFunctionsContext)
   const { globalData, setGlobalData } = useContext(DataContext)
   const { setLoader } = useContext(LoaderContext)
@@ -123,6 +123,38 @@ const DatasetNode = ({ id, data }) => {
     })
   }
 
+  const onMultipleFilesChange = async (inputUpdate) => {
+    console.log("inputUpdate-multiple", inputUpdate)
+    data.internal.settings[inputUpdate.name] = inputUpdate.value
+    data.internal.settings.tags = []
+    if (inputUpdate.value.length > 0 && inputUpdate.value[0].path != "") {
+      setLoader(true)
+      let { columnsArray, columnsObject } = await MedDataObject.getColumnsFromPath(inputUpdate.value[0].path, globalData, setGlobalData)
+      let steps = await MedDataObject.getStepsFromPath(inputUpdate.value[0].path, globalData, setGlobalData)
+      setLoader(false)
+      steps && (data.internal.settings.steps = steps)
+      data.internal.settings.columns = columnsObject
+      data.internal.settings.target = columnsArray[columnsArray.length - 1]
+    } else {
+      delete data.internal.settings.target
+      delete data.internal.settings.columns
+      delete data.internal.settings.tags
+    }
+    updateNode({
+      id: id,
+      updatedData: data.internal
+    })
+  }
+
+  const onMultipleTagsChange = async (inputUpdate) => {
+    console.log("inputUpdate-multiple", inputUpdate)
+    data.internal.settings[inputUpdate.name] = inputUpdate.value
+    updateNode({
+      id: id,
+      updatedData: data.internal
+    })
+  }
+
   return (
     <>
       {/* build on top of the Node component */}
@@ -167,7 +199,49 @@ const DatasetNode = ({ id, data }) => {
               {(() => {
                 switch (data.internal.selection) {
                   case "medomics":
-                    return <></>
+                    return (
+                      <>
+                        <Input
+                          key={"files"}
+                          name="files"
+                          settingInfos={{
+                            type: "data-input-multiple",
+                            tooltip: "<p>Specify a data file (xlsx, csv, json)</p>",
+                          }}
+                          currentValue={data.internal.settings.files || null}
+                          onInputChange={onMultipleFilesChange}
+                          setHasWarning={handleWarning}
+                        />
+
+                        <Input
+                          key={"tags"}
+                          name="tags"
+                          settingInfos={{
+                            type: "tags-input-multiple",
+                            tooltip: "<p>Specify a data file (xlsx, csv, json)</p>",
+                            selectedDatasets: data.internal.settings.files
+                          }}
+                          currentValue={data.internal.settings.tags || []}
+                          onInputChange={onMultipleTagsChange}
+                          setHasWarning={handleWarning}
+                        />
+
+                        <Input
+                          disabled={data.internal.settings.files && data.internal.settings.files.path == ""}
+                          name="target"
+                          currentValue={data.internal.settings.target}
+                          settingInfos={{
+                            type: "list",
+                            tooltip: "<p>Specify the column name of the target variable</p>",
+                            choices: data.internal.settings.columns || {}
+                          }}
+                          onInputChange={onInputChange}
+                          customProps={{
+                            filter: true
+                          }}
+                        />
+                      </>
+                    )
                   case "custom":
                     return (
                       <>

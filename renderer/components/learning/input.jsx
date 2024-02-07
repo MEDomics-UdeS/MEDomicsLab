@@ -7,10 +7,13 @@ import { toast } from "react-toastify" // https://www.npmjs.com/package/react-to
 import { Tooltip } from "react-tooltip"
 import { Markup } from "interweave"
 import WsSelect from "../mainPages/dataComponents/wsSelect"
+import WsSelectMultiple from "../mainPages/dataComponents/wsSelectMultiple"
+import TagsSelectMultiple from "../mainPages/dataComponents/tagsSelectMultiple"
 import { customZipFile2Object } from "../../utilities/customZipFile"
 import { DataContext } from "../workspace/dataContext"
 import MedDataObject from "../workspace/medDataObject"
 import { Dropdown } from "primereact/dropdown"
+import { MultiSelect } from "primereact/multiselect"
 
 /**
  *
@@ -35,7 +38,7 @@ const createOption = (label) => ({
  * This component is used to display a Input component.
  * it handles multiple types of input and format them to be similar
  */
-const Input = ({ name, settingInfos, currentValue, onInputChange, disabled, setHasWarning = () => {}, customProps }) => {
+const Input = ({ name, settingInfos, currentValue, onInputChange, disabled, setHasWarning = () => {}, customProps}) => {
   const [inputUpdate, setInputUpdate] = useState({})
   const [inputValue, setInputValue] = useState("")
   const { globalData, setGlobalData } = useContext(DataContext)
@@ -228,7 +231,7 @@ const Input = ({ name, settingInfos, currentValue, onInputChange, disabled, setH
       case "list-multiple":
         return (
           <>
-            <div id={name} className="list-multiple">
+            {/* <div id={name} className="list-multiple">
               <label className="custom-lbl">{name}</label>
               <Select
                 disabled={disabled}
@@ -249,8 +252,36 @@ const Input = ({ name, settingInfos, currentValue, onInputChange, disabled, setH
                 isSearchable
                 isCreatable={false}
               />
-            </div>
+            </div> */}
+
+            <MultiSelect 
+            key={name}
+            disabled={disabled}
+              value={currentValue ? currentValue.value : []}
+              onChange={(newValue) =>
+                setInputUpdate({
+                  name: name,
+                  value: newValue,
+                  type: settingInfos.type
+                })
+              } 
+              options={
+                Object.entries(currentValue).map(([option]) => {
+                  return {
+                    label: option,
+                    value: option
+                  }
+                })
+              } 
+              optionLabel="name" 
+              display="chip"
+              className="w-full md:w-20rem" 
+            />
+
             {createTooltip(settingInfos.tooltip, name)}
+
+
+
           </>
         )
       // for range input
@@ -353,6 +384,59 @@ const Input = ({ name, settingInfos, currentValue, onInputChange, disabled, setH
             {createTooltip(settingInfos.tooltip, name)}
           </>
         )
+
+        case "data-input-multiple":
+          console.log("currentValue", currentValue)
+          console.log("settingInfos", settingInfos)
+          console.log("name", name)
+          return (
+            <>
+                <WsSelectMultiple
+                  key={name}
+                  rootDir="learning"
+                  placeholder={name}
+                  disabled={disabled}
+                  selectedPaths={currentValue}
+                  acceptedExtensions={["csv"]}
+                  acceptFolder= {settingInfos.acceptFolder? settingInfos.acceptFolder : false}
+                  onChange={(value) => {
+                    console.log("e", value)
+                    if (value.length === 0) {
+                      setHasWarning({ state: true, tooltip: <p>No file(s) selected</p> })
+                    } else {
+                      setHasWarning({ state: false })
+                    }
+                    setInputUpdate({
+                      name: name,
+                      value: value,
+                      type: settingInfos.type
+                    })
+                  }}
+                />
+              {createTooltip(settingInfos.tooltip, name)}
+            </>
+          )
+        case "tags-input-multiple":
+          return (
+            <>
+                <TagsSelectMultiple
+                  key={name}
+                  placeholder={name}
+                  disabled={!settingInfos.selectedDatasets}
+                  selectedTags={currentValue}
+                  selectedDatasets={settingInfos.selectedDatasets}
+                  onChange={(value) => {
+                    console.log("e", value)
+                    setInputUpdate({
+                      name: name,
+                      value: value,
+                      type: settingInfos.type
+                    })
+                  }}
+                />
+              {createTooltip(settingInfos.tooltip, name)}
+            </>
+          )
 
       case "models-input":
         return (

@@ -76,9 +76,19 @@ const implementedTypesDescription = [
     default: { name: "No selection", path: "" }
   },
   {
+    type: "data-input-multiple",
+    description: "for data input (file upload)",
+    default: []
+  },
+  {
     type: "models-input",
     description: "for data input (file upload)",
     default: { name: "No selection", path: "" }
+  },
+  {
+    type: "tags-input-multiple",
+    description: "for tags input",
+    default: []
   }
 ]
 
