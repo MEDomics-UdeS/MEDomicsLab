@@ -99,7 +99,7 @@ const SimpleCleaningTool = ({ pageId = "inputModule", configPath = "" }) => {
    * @returns {Object} - The infos
    * @returns {Number} - The infos.columnsLength - The number of columns
    * @returns {Number} - The infos.rowsLength - The number of rows
-   * @returns {Array} - The infos.rowsCount - The number of non-NaN values per row
+   * @returns {Array} - The infos.rowsCount - The number of valid values per row
    */
   const getInfos = (data) => {
     let infos = { columnsLength: data.shape[1], rowsLength: data.shape[0] }
@@ -302,12 +302,12 @@ const SimpleCleaningTool = ({ pageId = "inputModule", configPath = "" }) => {
           <Row style={{ display: "flex", justifyContent: "space-evenly", flexDirection: "row", marginTop: "0.5rem" }}>
             <DataTable size={"small"} paginator={true} value={selectedDatasetColumnsInfos} rowClassName={columnClass} rows={5} rowsPerPageOptions={[5, 10, 25, 50]} className="p-datatable-striped p-datatable-gridlines">
               <Column field="label" header={`Column (${selectedDatasetColumnsInfos.length})`} sortable></Column>
-              <Column field="value" header="Number of non-NaN" sortable></Column>
+              <Column field="value" header="Number of Empty/NaN values" sortable></Column>
               <Column
                 field="percentage"
                 header={
                   <>
-                    % of non-NaN <b style={{ color: "var(--red-300)" }}>({columnsToDrop.length})</b>
+                    % of NaN <b style={{ color: "var(--red-300)" }}>({columnsToDrop.length})</b>
                   </>
                 }
                 body={percentageTemplate}
@@ -322,7 +322,7 @@ const SimpleCleaningTool = ({ pageId = "inputModule", configPath = "" }) => {
                 field="percentage"
                 header={
                   <>
-                    % of non-NaN <b style={{ color: "var(--red-300)" }}>({rowsToDrop.length})</b>
+                    % of valid values <b style={{ color: "var(--red-300)" }}>({rowsToDrop.length})</b>
                   </>
                 }
                 body={percentageTemplate}
@@ -334,7 +334,7 @@ const SimpleCleaningTool = ({ pageId = "inputModule", configPath = "" }) => {
             <Col className="align-items-center " style={{ display: "flex" }}>
               <label htmlFor="minmax-buttons" className="font-bold block mb-2">
                 <h6>
-                  Column threshold of NaN values (%) <b style={{ color: "var(--red-300)" }}>({columnsToDrop.length})</b>
+                  Maximum percentage of empty/NaN values for each column (%) <b style={{ color: "var(--red-300)" }}>({columnsToDrop.length})</b>
                 </h6>
               </label>
             </Col>
@@ -394,7 +394,7 @@ const SimpleCleaningTool = ({ pageId = "inputModule", configPath = "" }) => {
             <Col className="align-items-center " style={{ display: "flex" }}>
               <label htmlFor="minmax-buttons" className="font-bold block mb-2">
                 <h6>
-                  Row threshold of NaN values (%) <b style={{ color: "var(--red-300)" }}>({rowsToDrop.length})</b>
+                Maximum percentage of Empty/NaN values for each row (%) <b style={{ color: "var(--red-300)" }}>({rowsToDrop.length})</b>
                 </h6>
               </label>
             </Col>

@@ -44,8 +44,8 @@ const TransformColumnsTool = ({ pageId = "inputModule", configPath = "" }) => {
   const [transformType, setTransformType] = useState("binary") // The type of transformation
 
   const transformOptions = [
-    { label: "Binary : NaN values become 0, non-NaN values become 1", value: "binary_0_1" },
-    { label: "NaN to 0 : NaN values become 0, non-NaN values stay the same", value: "nan_to_zero" }
+    { label: "Binary : Empty/NaN values become 0, valid values become 1", value: "binary_0_1" },
+    { label: "Empty/NaN to 0 : Empty/NaN values become 0, valid values stay the same", value: "nan_to_zero" }
   ]
 
   /**
