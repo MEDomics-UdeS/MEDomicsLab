@@ -27,6 +27,7 @@ const ExtractionBioBERT = ({ dataframe, setExtractionJsonData, setMayProceed }) 
   const [biobertPath, setBiobertPath] = useState(null) // path to the BioBERT pretrained model
   const [columnPrefix, setColumnPrefix] = useState("notes") // column prefix to set in the generated dataframe from extracted features
   const [typesNotNa, setTypesNotNa] = useState([]) // dataframes dtypes if we remove NaN values
+  const [isDate, setIsDate] = useState([]) // true if first not na value of a column is date
   const [frequency, setFrequency] = useState("Note") // frequency choosen for the features generation
   const [hourRange, setHourRange] = useState(24) // hour range in which to generated the features if the frequency is "Hour"
   const [masterTableCompatible, setMasterTableCompatible] = useState(true) // boolean set to true if the extracted features dataset must respect the submaster table format
@@ -163,12 +164,19 @@ const ExtractionBioBERT = ({ dataframe, setExtractionJsonData, setMayProceed }) 
     console.log("dataframe:", dataframe)
     if (dataframe && dataframe.$columns) {
       let types = []
+      let dates = []
       Object.keys(dataframe.$columns).forEach((column) => {
         let series = new Series(dataframe.$dataIncolumnFormat[column])
         let notNaSeries = series.dropNa()
         types.push(notNaSeries.$dtypes[0])
+        if (notNaSeries.$dtypes[0] == "string" && notNaSeries.dt.$dateObjectArray[0] != "Invalid Date") {
+          dates.push(true)
+        } else {
+          dates.push(false)
+        }
       })
       setTypesNotNa(types)
+      setIsDate(dates)
     }
   }, [dataframe])
 
@@ -238,29 +246,29 @@ const ExtractionBioBERT = ({ dataframe, setExtractionJsonData, setMayProceed }) 
           <hr></hr>
           <div className="margin-top-15">
             Patient Identifier : &nbsp;
-            {dataframe && dataframe.$data ? <Dropdown value={selectedColumns.patientIdentifier} onChange={(event) => handleColumnSelect("patientIdentifier", event)} options={dataframe.$columns.filter((column, index) => typesNotNa[index] == "int32" || (typesNotNa[index] == "string" && dataframe[column].dt.$dateObjectArray[0] == "Invalid Date"))} placeholder="Patient Identifier" /> : <Dropdown placeholder="Patient Identifier" disabled />}
+            {dataframe && dataframe.$data ? <Dropdown value={selectedColumns.patientIdentifier} onChange={(event) => handleColumnSelect("patientIdentifier", event)} options={dataframe.$columns.filter((column, index) => typesNotNa[index] == "int32" || (typesNotNa[index] == "string" && isDate[index] == false))} placeholder="Patient Identifier" /> : <Dropdown placeholder="Patient Identifier" disabled />}
           </div>
           {frequency == "Admission" && (
             <div>
               <div className="margin-top-15">
                 Admission Identifier : &nbsp;
-                {dataframe && dataframe.$data ? <Dropdown value={selectedColumns.admissionIdentifier} onChange={(event) => handleColumnSelect("admissionIdentifier", event)} options={dataframe.$columns.filter((column, index) => typesNotNa[index] == "int32" || (typesNotNa[index] == "string" && dataframe[column].dt.$dateObjectArray[0] == "Invalid Date"))} placeholder="Admission Identifier" /> : <Dropdown placeholder="Admission Identifier" disabled />}
+                {dataframe && dataframe.$data ? <Dropdown value={selectedColumns.admissionIdentifier} onChange={(event) => handleColumnSelect("admissionIdentifier", event)} options={dataframe.$columns.filter((column, index) => typesNotNa[index] == "int32" || (typesNotNa[index] == "string" && isDate[index] == false))} placeholder="Admission Identifier" /> : <Dropdown placeholder="Admission Identifier" disabled />}
               </div>
               <div className="margin-top-15">
                 Admission Time : &nbsp;
-                {dataframe && dataframe.$data ? <Dropdown value={selectedColumns.admissionTime} onChange={(event) => handleColumnSelect("admissionTime", event)} options={dataframe.$columns.filter((column, index) => typesNotNa[index] == "string" && dataframe[column].dt.$dateObjectArray[0] != "Invalid Date")} placeholder="Admission Time" /> : <Dropdown placeholder="Admission Time" disabled />}
+                {dataframe && dataframe.$data ? <Dropdown value={selectedColumns.admissionTime} onChange={(event) => handleColumnSelect("admissionTime", event)} options={dataframe.$columns.filter((column, index) => typesNotNa[index] == "string" && isDate[index] == true)} placeholder="Admission Time" /> : <Dropdown placeholder="Admission Time" disabled />}
               </div>
             </div>
           )}
           {(frequency == "HourRange" || (frequency == "Note" && masterTableCompatible) || (frequency == "Patient" && masterTableCompatible)) && (
             <div className="margin-top-15">
               Time : &nbsp;
-              {dataframe.$data ? <Dropdown value={selectedColumns.time} onChange={(event) => handleColumnSelect("time", event)} options={dataframe.$columns.filter((column, index) => typesNotNa[index] == "string" && dataframe[column].dt.$dateObjectArray[0] != "Invalid Date")} placeholder="Time" /> : <Dropdown placeholder="Time" disabled />}
+              {dataframe.$data ? <Dropdown value={selectedColumns.time} onChange={(event) => handleColumnSelect("time", event)} options={dataframe.$columns.filter((column, index) => typesNotNa[index] == "string" && isDate[index] == true)} placeholder="Time" /> : <Dropdown placeholder="Time" disabled />}
             </div>
           )}
           <div className="margin-top-15">
             Notes : &nbsp;
-            {dataframe.$data ? <Dropdown value={selectedColumns.notes} onChange={(event) => handleColumnSelect("notes", event)} options={dataframe.$columns.filter((column, index) => typesNotNa[index] == "string" && dataframe[column].dt.$dateObjectArray[0] == "Invalid Date")} placeholder="Notes" /> : <Dropdown placeholder="Notes" disabled />}
+            {dataframe.$data ? <Dropdown value={selectedColumns.notes} onChange={(event) => handleColumnSelect("notes", event)} options={dataframe.$columns.filter((column, index) => typesNotNa[index] == "string" && isDate[index] == false)} placeholder="Notes" /> : <Dropdown placeholder="Notes" disabled />}
           </div>
         </div>
       )
