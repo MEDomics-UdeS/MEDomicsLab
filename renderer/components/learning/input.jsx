@@ -14,6 +14,7 @@ import { DataContext } from "../workspace/dataContext"
 import MedDataObject from "../workspace/medDataObject"
 import { Dropdown } from "primereact/dropdown"
 import { MultiSelect } from "primereact/multiselect"
+import VarsSelectMultiple from "../mainPages/dataComponents/varsSelectMultiple"
 
 /**
  *
@@ -437,6 +438,28 @@ const Input = ({ name, settingInfos, currentValue, onInputChange, disabled, setH
               {createTooltip(settingInfos.tooltip, name)}
             </>
           )
+        case "variables-input-multiple":
+        return (
+          <>
+              <VarsSelectMultiple
+                key={name}
+                placeholder={name}
+                disabled={!settingInfos.selectedDatasets}
+                selectedTags={settingInfos.selectedTags}
+                selectedDatasets={settingInfos.selectedDatasets}
+                selectedVars={currentValue}
+                onChange={(value) => {
+                  console.log("e", value)
+                  setInputUpdate({
+                    name: name,
+                    value: value,
+                    type: settingInfos.type
+                  })
+                }}
+              />
+            {createTooltip(settingInfos.tooltip, name)}
+          </>
+        )
 
       case "models-input":
         return (

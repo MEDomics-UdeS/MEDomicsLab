@@ -1,19 +1,23 @@
-import React, { useState, useEffect, useContext } from "react"
-import { DataContext } from "../../workspace/dataContext"
-import { Form } from "react-bootstrap"
+import React, { useState, useEffect } from "react"
 import { MultiSelect } from 'primereact/multiselect';
 
 /**
- * @typedef {React.FunctionComponent} WsSelectMultiple
- * @description This component is used to select a data file from the workspace (DataContext). The data file is then used in the flow.
- * @params props.selectedPath - The path of the selected data file
+ * @typedef {React.FunctionComponent} TagsSelectMultiple
+ * @description This component is used to select a tag from the selected datasets
+ * @params props.selectedTags - The selected tags
  * @params props.onChange - The function to call when the selected data file changes
- * @params props.name - The name of the component
+ * @params props.selectedDatasets - The selected datasets
+ * @params props.disabled - If the component is disabled
+ * @params props.placeholder - The placeholder of the component
+ * @returns {React.FunctionComponent} The TagsSelectMultiple component
  */
 const TagsSelectMultiple = ({ key, onChange, selectedTags, selectedDatasets, disabled, placeholder }) => {
   const [tagsList, setTagsList] = useState([])
   const [localTags, setLocalTags] = useState([])
 
+  /**
+   * @description This useEffect is used to set the localTags when the component is mounted
+   */
   useEffect(() => {
     console.log(selectedTags)
     if(selectedTags !== undefined && Array.isArray(selectedTags)) {
@@ -21,8 +25,7 @@ const TagsSelectMultiple = ({ key, onChange, selectedTags, selectedDatasets, dis
     }
   }, [selectedTags])
 
-
-
+  
   /**
    * @description This useEffect is used to generate the dataset list from the global data context if it's defined
    * @returns {void} calls the generateDatasetListFromDataContext function
@@ -49,7 +52,6 @@ const TagsSelectMultiple = ({ key, onChange, selectedTags, selectedDatasets, dis
 return (
   <>
     {
-      
       <MultiSelect
         key={key}
         disabled={tagsList.length == 0 || disabled}

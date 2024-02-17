@@ -123,22 +123,44 @@ const DatasetNode = ({ id, data }) => {
     })
   }
 
+  /**
+   * 
+   * @param {Object} inputUpdate The input update
+   * 
+   * @description
+   * This function is used to update the node internal data when the files input changes. 
+   */
   const onMultipleFilesChange = async (inputUpdate) => {
     console.log("inputUpdate-multiple", inputUpdate)
     data.internal.settings[inputUpdate.name] = inputUpdate.value
     data.internal.settings.tags = []
-    if (inputUpdate.value.length > 0 && inputUpdate.value[0].path != "") {
-      setLoader(true)
-      let { columnsArray, columnsObject } = await MedDataObject.getColumnsFromPath(inputUpdate.value[0].path, globalData, setGlobalData)
-      let steps = await MedDataObject.getStepsFromPath(inputUpdate.value[0].path, globalData, setGlobalData)
-      setLoader(false)
-      steps && (data.internal.settings.steps = steps)
-      data.internal.settings.columns = columnsObject
-      data.internal.settings.target = columnsArray[columnsArray.length - 1]
+    if (inputUpdate.value.length > 0) {
+      data.internal.settings.multipleColumns = []
+      inputUpdate.value.forEach(
+        async (inputUpdateValue) => {
+          if(inputUpdateValue.path != "") {
+            setLoader(true)
+            let { columnsArray, columnsObject } = await MedDataObject.getColumnsFromPath(inputUpdateValue.path, globalData, setGlobalData)
+            let steps = await MedDataObject.getStepsFromPath(inputUpdateValue.path, globalData, setGlobalData)
+            setLoader(false)
+            let timePrefix = inputUpdateValue.name.split("_")[0]
+            steps && (data.internal.settings.steps = steps)
+            data.internal.settings.columns = columnsObject
+            columnsObject = Object.keys(columnsObject).reduce((acc, key) => {
+              acc[timePrefix + "_" + key] = timePrefix + "_" + columnsObject[key]
+              return acc
+            }, {})
+            console.log("columnsObject", columnsObject)
+            let lastMultipleColumns = data.internal.settings.multipleColumns ? data.internal.settings.multipleColumns : []
+            data.internal.settings.multipleColumns = { ...lastMultipleColumns, ...columnsObject}
+            data.internal.settings.target = columnsArray[columnsArray.length - 1]
+          }
+        })
     } else {
       delete data.internal.settings.target
       delete data.internal.settings.columns
       delete data.internal.settings.tags
+      delete data.internal.settings.multipleColumns
     }
     updateNode({
       id: id,
@@ -146,6 +168,13 @@ const DatasetNode = ({ id, data }) => {
     })
   }
 
+  /**
+   * 
+   * @param {Object} inputUpdate The input update
+   * 
+   * @description
+   * This function is used to update the node internal data when the tags input changes.
+   */
   const onMultipleTagsChange = async (inputUpdate) => {
     console.log("inputUpdate-multiple", inputUpdate)
     data.internal.settings[inputUpdate.name] = inputUpdate.value
@@ -222,6 +251,20 @@ const DatasetNode = ({ id, data }) => {
                             selectedDatasets: data.internal.settings.files
                           }}
                           currentValue={data.internal.settings.tags || []}
+                          onInputChange={onMultipleTagsChange}
+                          setHasWarning={handleWarning}
+                        />
+
+                        <Input
+                          key={"variables"}
+                          name="variables"
+                          settingInfos={{
+                            type: "variables-input-multiple",
+                            tooltip: "<p>Specify a data file (xlsx, csv, json)</p>",
+                            selectedDatasets: data.internal.settings.files,
+                            selectedTags: data.internal.settings.tags
+                          }}
+                          currentValue={data.internal.settings.variables || []}
                           onInputChange={onMultipleTagsChange}
                           setHasWarning={handleWarning}
                         />

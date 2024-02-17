@@ -89,6 +89,11 @@ const implementedTypesDescription = [
     type: "tags-input-multiple",
     description: "for tags input",
     default: []
+  },
+  {
+    type: "variables-input-multiple",
+    description: "for variables input",
+    default: []
   }
 ]
 

@@ -68,12 +68,12 @@ class Dataset(Node):
                 df = pd.read_csv(file['path'], sep=',', encoding='utf-8')
                 df_list.append(df)
 
-            self.df = self.combine_df_timepoint_tags(df_list, self.settings['tags'])
+            self.df = self.combine_df_timepoint_tags(df_list, self.settings['tags'], self.settings['variables'])
 
         self._info_for_next_node['target'] = self.settings['target']
         return {}
 
-    def combine_df_timepoint_tags(self, df_list, tags_list) -> pd.DataFrame:
+    def combine_df_timepoint_tags(self, df_list, tags_list, vars_list) -> pd.DataFrame:
         """
         This function is used to combine the dataframes.
         Args:
@@ -91,7 +91,7 @@ class Dataset(Node):
         self.CodeHandler.add_line("code", f"target = '{target}'")
         # for each dataframe, add a suffix to the columns
         for i, df in enumerate(df_list):
-            suffix = f'_TP{i + 1}'
+            suffix = f'_T{i + 1}'
             new_columns = [f'{col}{suffix}' for col in df.columns[1:-1]]
             df.columns = [first_col] + new_columns + [target]
         self.CodeHandler.add_line("code", f"# for each dataframe, add a suffix to their columns")
@@ -114,19 +114,32 @@ class Dataset(Node):
         # drop all columns not containing tags from tags list
         cols_2_keep = [first_col, target]
         for col in df_merged.columns:
-            col_split = col.split('_')
-            for col_tag in col_split:
-                if col_tag in tags_list:
-                    cols_2_keep.append(col)
+            if col in cols_2_keep:
+                continue
+            tags_section = col.split('_|_')[0]
+            col_name = col.split('_|_')[1]
+            if col_name in vars_list:
+                cols_2_keep.append(col)
+            else:
+                for col_tag in tags_section.split('_'):
+                    if col_tag in tags_list:
+                        cols_2_keep.append(col)
         df_merged = df_merged[cols_2_keep]
-        self.CodeHandler.add_line("code", "# Drop all columns not containing tags from tags list")
+        self.CodeHandler.add_line("code", "# Drop all columns not containing tags from tags list and columns (variables) from vars list")
         self.CodeHandler.add_line("code", f"tags_list = {tags_list}")
+        self.CodeHandler.add_line("code", f"vars_list = {vars_list}")
         self.CodeHandler.add_line("code", "cols_2_keep = [first_col, target]")
         self.CodeHandler.add_line("code", "for col in df_merged.columns:")
-        self.CodeHandler.add_line("code", "col_split = col.split('_')", indent=1)
-        self.CodeHandler.add_line("code", "for col_tag in col_split:", indent=1)
-        self.CodeHandler.add_line("code", "if col_tag in tags_list:", indent=2)
-        self.CodeHandler.add_line("code", "cols_2_keep.append(col)", indent=3)
+        self.CodeHandler.add_line("code", "if col in cols_2_keep:", indent=1)
+        self.CodeHandler.add_line("code", "continue", indent=2)
+        self.CodeHandler.add_line("code", "tags_section = col.split('_|_')[0]", indent=1)
+        self.CodeHandler.add_line("code", "col_name = col.split('_|_')[1]", indent=1)
+        self.CodeHandler.add_line("code", "if col_name in vars_list:", indent=1)
+        self.CodeHandler.add_line("code", "cols_2_keep.append(col)", indent=2)
+        self.CodeHandler.add_line("code", "else:", indent=1)
+        self.CodeHandler.add_line("code", "for col_tag in tags_section.split('_'):", indent=2)
+        self.CodeHandler.add_line("code", "if col_tag in tags_list:", indent=3)
+        self.CodeHandler.add_line("code", "cols_2_keep.append(col)", indent=4)
         self.CodeHandler.add_line("code", "df_merged = df_merged[cols_2_keep]")
         self.CodeHandler.add_seperator()
 

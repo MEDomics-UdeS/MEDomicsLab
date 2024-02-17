@@ -100,6 +100,10 @@ class MEDexperimentLearning(MEDexperiment):
             del kwargs['columns']
         if 'steps' in kwargs:
             del kwargs['steps']
+        if 'multipleColumns' in kwargs:
+            del kwargs['multipleColumns']
+        if 'variables' in kwargs:
+            del kwargs['variables']
 
         if 'use_gpu' in kwargs:
             if kwargs['use_gpu'] == "True":
