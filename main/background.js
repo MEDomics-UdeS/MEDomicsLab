@@ -91,7 +91,7 @@ if (isProd) {
     splashScreen.setAlwaysOnTop(true)
   })
   const openRecentWorkspacesSubmenuOptions = getRecentWorkspacesOptions(null, mainWindow)
-  console.log("openRecentWorkspacesSubmenuOptions", openRecentWorkspacesSubmenuOptions)
+  console.log("openRecentWorkspacesSubmenuOptions", JSON.stringify(openRecentWorkspacesSubmenuOptions, null, 2))
   const menuTemplate = [
     {
       label: "File",
