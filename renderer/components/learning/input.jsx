@@ -232,29 +232,6 @@ const Input = ({ name, settingInfos, currentValue, onInputChange, disabled, setH
       case "list-multiple":
         return (
           <>
-            {/* <div id={name} className="list-multiple">
-              <label className="custom-lbl">{name}</label>
-              <Select
-                disabled={disabled}
-                options={Object.entries(settingInfos.choices).map(([option]) => {
-                  currentValue == undefined && (currentValue = [])
-                  if (!currentValue.includes(option)) return createOption(option)
-                })}
-                value={currentValue}
-                onChange={(newValue) =>
-                  setInputUpdate({
-                    name: name,
-                    value: newValue,
-                    type: settingInfos.type
-                  })
-                }
-                isMulti
-                isClearable
-                isSearchable
-                isCreatable={false}
-              />
-            </div> */}
-
             <MultiSelect 
             key={name}
             disabled={disabled}
