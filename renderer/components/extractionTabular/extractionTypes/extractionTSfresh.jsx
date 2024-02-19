@@ -22,6 +22,7 @@ import { Series } from "danfojs"
 const ExtractionTSfresh = ({ dataframe, setExtractionJsonData, setMayProceed, setAreResultsLarge }) => {
   const [columnPrefix, setColumnPrefix] = useState("ts") // column prefix to set in the generated dataframe from extracted features
   const [typesNotNa, setTypesNotNa] = useState([]) // dataframes dtypes if we remove NaN values
+  const [isDate, setIsDate] = useState([]) // true if first not na value of a column is date
   const [featuresOption, setFeaturesOption] = useState("Minimal") // features generation option
   const [frequency, setFrequency] = useState("Admission") // frequency choosen for the features generation
   const [hourRange, setHourRange] = useState(24) // hour range in which to generated the features if the frequency is "Hour"
@@ -113,18 +114,25 @@ const ExtractionTSfresh = ({ dataframe, setExtractionJsonData, setMayProceed, se
   }, [featuresOption])
 
   /**
-   * Used to get types of columns from the dataframe without NaN values
+   * Used to get types from the dataframe without NaN values
    */
   useEffect(() => {
     console.log("dataframe:", dataframe)
     if (dataframe && dataframe.$columns) {
       let types = []
+      let dates = []
       Object.keys(dataframe.$columns).forEach((column) => {
         let series = new Series(dataframe.$dataIncolumnFormat[column])
         let notNaSeries = series.dropNa()
         types.push(notNaSeries.$dtypes[0])
+        if (notNaSeries.$dtypes[0] == "string" && notNaSeries.dt.$dateObjectArray[0] != "Invalid Date") {
+          dates.push(true)
+        } else {
+          dates.push(false)
+        }
       })
       setTypesNotNa(types)
+      setIsDate(dates)
     }
   }, [dataframe])
 
@@ -200,33 +208,33 @@ const ExtractionTSfresh = ({ dataframe, setExtractionJsonData, setMayProceed, se
           <hr></hr>
           <div className="margin-top-15">
             Patient Identifier : &nbsp;
-            {dataframe && dataframe.$data && typesNotNa.length > 0 ? <Dropdown value={selectedColumns.patientIdentifier} onChange={(event) => handleColumnSelect("patientIdentifier", event)} options={dataframe.$columns.filter((column, index) => typesNotNa[index] == "int32" || (typesNotNa[index] == "string" && dataframe[column].dt.$dateObjectArray[0] == "Invalid Date"))} placeholder="Patient Identifier" /> : <Dropdown placeholder="Patient Identifier" disabled />}
+            {dataframe && dataframe.$data && typesNotNa.length > 0 ? <Dropdown value={selectedColumns.patientIdentifier} onChange={(event) => handleColumnSelect("patientIdentifier", event)} options={dataframe.$columns.filter((column, index) => typesNotNa[index] == "int32" || (typesNotNa[index] == "string" && isDate[index] == false))} placeholder="Patient Identifier" /> : <Dropdown placeholder="Patient Identifier" disabled />}
           </div>
           {frequency == "Admission" && (
             <div>
               <div className="margin-top-15">
                 Admission Identifier : &nbsp;
-                {dataframe && dataframe.$data && typesNotNa.length > 0 ? <Dropdown value={selectedColumns.admissionIdentifier} onChange={(event) => handleColumnSelect("admissionIdentifier", event)} options={dataframe.$columns.filter((column, index) => typesNotNa[index] == "int32" || (typesNotNa[index] == "string" && dataframe[column].dt.$dateObjectArray[0] == "Invalid Date"))} placeholder="Admission Identifier" /> : <Dropdown placeholder="Admission Identifier" disabled />}
+                {dataframe && dataframe.$data && typesNotNa.length > 0 ? <Dropdown value={selectedColumns.admissionIdentifier} onChange={(event) => handleColumnSelect("admissionIdentifier", event)} options={dataframe.$columns.filter((column, index) => typesNotNa[index] == "int32" || (typesNotNa[index] == "string" && isDate[index] == false))} placeholder="Admission Identifier" /> : <Dropdown placeholder="Admission Identifier" disabled />}
               </div>
               <div className="margin-top-15">
                 Admission Time : &nbsp;
-                {dataframe && dataframe.$data && typesNotNa.length > 0 ? <Dropdown value={selectedColumns.admissionTime} onChange={(event) => handleColumnSelect("admissionTime", event)} options={dataframe.$columns.filter((column, index) => typesNotNa[index] == "string" && dataframe[column].dt.$dateObjectArray[0] != "Invalid Date")} placeholder="Admission Time" /> : <Dropdown placeholder="Admission Time" disabled />}
+                {dataframe && dataframe.$data && typesNotNa.length > 0 ? <Dropdown value={selectedColumns.admissionTime} onChange={(event) => handleColumnSelect("admissionTime", event)} options={dataframe.$columns.filter((column, index) => typesNotNa[index] == "string" && isDate[index] == true)} placeholder="Admission Time" /> : <Dropdown placeholder="Admission Time" disabled />}
               </div>
             </div>
           )}
           {((frequency == "Patient" && masterTableCompatible) || frequency == "HourRange") && (
             <div className="margin-top-15">
               Time : &nbsp;
-              {dataframe && dataframe.$data && typesNotNa.length > 0 ? <Dropdown value={selectedColumns.time} onChange={(event) => handleColumnSelect("time", event)} options={dataframe.$columns.filter((column, index) => typesNotNa[index] == "string" && dataframe[column].dt.$dateObjectArray[0] != "Invalid Date")} placeholder="Time" /> : <Dropdown placeholder="Time" disabled />}
+              {dataframe && dataframe.$data && typesNotNa.length > 0 ? <Dropdown value={selectedColumns.time} onChange={(event) => handleColumnSelect("time", event)} options={dataframe.$columns.filter((column, index) => typesNotNa[index] == "string" && isDate[index] == true)} placeholder="Time" /> : <Dropdown placeholder="Time" disabled />}
             </div>
           )}
           <div className="margin-top-15">
             Measured Item Identifier : &nbsp;
-            {dataframe && dataframe.$data && typesNotNa.length > 0 ? <Dropdown value={selectedColumns.measuredItemIdentifier} onChange={(event) => handleColumnSelect("measuredItemIdentifier", event)} options={dataframe.$columns.filter((column, index) => typesNotNa[index] == "int32" || (typesNotNa[index] == "string" && dataframe[column].dt.$dateObjectArray[0] == "Invalid Date"))} placeholder="Measured Item Identifier" /> : <Dropdown placeholder="Measured Item Identifier" disabled />}
+            {dataframe && dataframe.$data && typesNotNa.length > 0 ? <Dropdown value={selectedColumns.measuredItemIdentifier} onChange={(event) => handleColumnSelect("measuredItemIdentifier", event)} options={dataframe.$columns.filter((column, index) => typesNotNa[index] == "int32" || (typesNotNa[index] == "string" && isDate[index] == false))} placeholder="Measured Item Identifier" /> : <Dropdown placeholder="Measured Item Identifier" disabled />}
           </div>
           <div className="margin-top-15">
             Measurement Datetime or Weight : &nbsp;
-            {dataframe && dataframe.$data && typesNotNa.length > 0 ? <Dropdown value={selectedColumns.measurementWeight} onChange={(event) => handleColumnSelect("measurementWeight", event)} options={dataframe.$columns.filter((column, index) => typesNotNa[index] == "int32" || typesNotNa[index] == "float32" || (typesNotNa[index] == "string" && dataframe[column].dt.$dateObjectArray[0] != "Invalid Date"))} placeholder="Measurement Datetime or Weight" /> : <Dropdown placeholder="Measurement Datetime or Weight" disabled />}
+            {dataframe && dataframe.$data && typesNotNa.length > 0 ? <Dropdown value={selectedColumns.measurementWeight} onChange={(event) => handleColumnSelect("measurementWeight", event)} options={dataframe.$columns.filter((column, index) => typesNotNa[index] == "int32" || typesNotNa[index] == "float32" || (typesNotNa[index] == "string" && isDate[index] == true))} placeholder="Measurement Datetime or Weight" /> : <Dropdown placeholder="Measurement Datetime or Weight" disabled />}
           </div>
           <div className="margin-top-15">
             Measurement value : &nbsp;

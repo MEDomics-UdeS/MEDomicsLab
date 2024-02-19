@@ -30,7 +30,8 @@ class GoExecScriptRunExperiment(GoExecutionScript):
 
     def __init__(self, json_params: dict, _id: str = None, isProgressInThread: bool = False):
         super().__init__(json_params, _id)
-        self.storing_mode = USE_SAVE_FOR_EXPERIMENTS_STORING
+        self.storing_mode = USE_RAM_FOR_EXPERIMENTS_STORING
+        # self.storing_mode = USE_SAVE_FOR_EXPERIMENTS_STORING
         self.current_experiment = None
         self._progress["type"] = "process"
         self._progress_update_frequency_HZ = 1.0
@@ -46,17 +47,20 @@ class GoExecScriptRunExperiment(GoExecutionScript):
         go_print(json.dumps(json_config, indent=4))
         scene_id = json_config['pageId']
         # check if experiment already exists
-        exp_already_exists = is_experiment_exist(scene_id)
-        # create experiment or load it
-        if not exp_already_exists:
-            self.current_experiment = MEDexperimentLearning(json_config)
+        if self.storing_mode == USE_SAVE_FOR_EXPERIMENTS_STORING:
+            # create experiment or load it
+            if is_experiment_exist(scene_id):
+                self.current_experiment = load_experiment(scene_id)
+                self.current_experiment.update(json_config)
+            else:
+                self.current_experiment = MEDexperimentLearning(json_config)
         else:
-            self.current_experiment = load_experiment(scene_id)
-            self.current_experiment.update(json_config)
+            self.current_experiment = MEDexperimentLearning(json_config)
         self.current_experiment.start()
         results_pipeline = self.current_experiment.get_results()
-        self.current_experiment.set_progress(label='Saving the experiment')
-        save_experiment(self.current_experiment)
+        if self.storing_mode == USE_SAVE_FOR_EXPERIMENTS_STORING:
+            self.current_experiment.set_progress(label='Saving the experiment')
+            save_experiment(self.current_experiment)
         return results_pipeline
 
     def update_progress(self):

@@ -8,13 +8,16 @@ from typing import Union
 import sys
 import os
 from pathlib import Path
+
+from ...server_utils import go_print
+
 sys.path.append(str(Path(os.path.dirname(os.path.abspath(__file__))).parent))
 from utils.loading import Loader
 
 
 DATAFRAME_LIKE = Union[dict, list, tuple, np.ndarray, pd.DataFrame]
 TARGET_LIKE = Union[int, str, list, tuple, np.ndarray, pd.Series]
-FOLDER, FILE, INPUT = 1, 2, 3
+FOLDER, FILE, FILES = 1, 2, 3
 
 
 class Dataset(Node):
@@ -34,30 +37,112 @@ class Dataset(Node):
         self.entry_file_type = None
         self.dfs_combinations = None
         self.output_dataset = {}
-        self.settings['files'] = self.settings['files']['path']
+        # check if files is a list or a dict
+        if isinstance(self.settings['files'], dict):
+            self.settings['files'] = self.settings['files']['path']
+            self.entry_file_type = FOLDER if os.path.isdir(self.settings['files']) else FILE
+        else:
+            if isinstance(self.settings['files'], list):
+                self.entry_file_type = FILES
 
     def _execute(self, experiment: dict = None, **kwargs) -> json:
         """
         This function is used to execute the node.
         """
-        if self.settings['files'] != '':
-            self.entry_file_type = FOLDER if os.path.isdir(
-                self.settings['files']) else FILE
-            if self.entry_file_type == FOLDER:
-                self.load_csv_in_folder(self.settings['files'])
-                self.dfs_combinations = self._merge_dfs(self.settings['time-point'],
-                                                        self.settings['split_experiment_by_institutions'])
-            else:
-                self.df = pd.read_csv(
-                    self.settings['files'], sep=',', encoding='utf-8')
-                self.CodeHandler.add_line(
-                    "code", f"df = pd.read_csv({json.dumps(self.settings['files'])}, sep=',', encoding='utf-8')")
-                self.CodeHandler.add_seperator()
-        else:
-            self.entry_file_type = INPUT
-            self.df = self.global_config_json['dfs_from_input'][self.settings['filesFromInput']]
+        if self.entry_file_type == FOLDER:
+            self.load_csv_in_folder(self.settings['files'])
+            self.dfs_combinations = self._merge_dfs(self.settings['time-point'],
+                                                    self.settings['split_experiment_by_institutions'])
+        elif self.entry_file_type == FILE:
+            self.df = pd.read_csv(self.settings['files'], sep=',', encoding='utf-8')
+            self.CodeHandler.add_line(
+                "code", f"df = pd.read_csv({json.dumps(self.settings['files'])}, sep=',', encoding='utf-8')")
+            self.CodeHandler.add_seperator()
+        elif self.entry_file_type == FILES:
+            df_list = []
+            self.CodeHandler.add_line("code", f"df_path_list = {str([d['path'] for d in self.settings['files']])}")
+            self.CodeHandler.add_line("code", "df_list = []")
+            self.CodeHandler.add_line("code", "for file_path in df_path_list:")
+            self.CodeHandler.add_line("code", "df_list.append(pd.read_csv(file_path, sep=',', encoding='utf-8'))", indent=1)
+            for file in self.settings['files']:
+                df = pd.read_csv(file['path'], sep=',', encoding='utf-8')
+                df_list.append(df)
+
+            self.df = self.combine_df_timepoint_tags(df_list, self.settings['tags'], self.settings['variables'])
+
         self._info_for_next_node['target'] = self.settings['target']
         return {}
+
+    def combine_df_timepoint_tags(self, df_list, tags_list, vars_list) -> pd.DataFrame:
+        """
+        This function is used to combine the dataframes.
+        Args:
+            df_list: list of dataframes
+            tags_list: list of tags
+
+        Returns: the combined dataframe
+
+        """
+        # first column should be the ID
+        first_col = df_list[0].columns[0]
+        self.CodeHandler.add_line("code", f"first_col = '{first_col}'")
+        # last column should be the target
+        target = self.settings['target']
+        self.CodeHandler.add_line("code", f"target = '{target}'")
+        # for each dataframe, add a suffix to the columns
+        for i, df in enumerate(df_list):
+            # remove target column from list of columns df.columns
+            suffix = f'_T{i + 1}'
+            df.columns = [f'{col}{suffix}' if col != target and col != first_col else col for col in df.columns]
+        self.CodeHandler.add_line("code", f"# for each dataframe, add a suffix to their columns")
+        self.CodeHandler.add_line("code", f"for i, df in enumerate(df_list):")
+        self.CodeHandler.add_line("code", "suffix = f'_T{i + 1}'", indent=1)
+        self.CodeHandler.add_line("code", "df.columns = [f'{col}{suffix}' if col != target and col != first_col else col for col in df.columns]", indent=1)
+        self.CodeHandler.add_seperator()
+
+        # merge the dataframes on the first column and the target
+        df_merged: pd.DataFrame = df_list[0]
+        for i in range(len(df_list) - 1):
+            df_merged = df_merged.merge(df_list[i + 1], on=[first_col, target], how='outer')
+        self.CodeHandler.add_line("code", "# merge the dataframes on the first column and the target")
+        self.CodeHandler.add_line("code", "df_merged = df_list[0]")
+        self.CodeHandler.add_line("code", "for i in range(len(df_list) - 1):")
+        self.CodeHandler.add_line("code", "df_merged = df_merged.merge(df_list[i + 1], on=[first_col, target], how='outer')", indent=1)
+        self.CodeHandler.add_seperator()
+
+        # drop all columns not containing tags from tags list
+        cols_2_keep = [first_col, target]
+        for col in df_merged.columns:
+            if col in cols_2_keep:
+                continue
+            tags_section = col.split('_|_')[0]
+            col_name = col.split('_|_')[1]
+            if col_name in vars_list:
+                cols_2_keep.append(col)
+            else:
+                for col_tag in tags_section.split('_'):
+                    if col_tag in tags_list:
+                        cols_2_keep.append(col)
+        df_merged = df_merged[cols_2_keep]
+        self.CodeHandler.add_line("code", "# Drop all columns not containing tags from tags list and columns (variables) from vars list")
+        self.CodeHandler.add_line("code", f"tags_list = {tags_list}")
+        self.CodeHandler.add_line("code", f"vars_list = {vars_list}")
+        self.CodeHandler.add_line("code", "cols_2_keep = [first_col, target]")
+        self.CodeHandler.add_line("code", "for col in df_merged.columns:")
+        self.CodeHandler.add_line("code", "if col in cols_2_keep:", indent=1)
+        self.CodeHandler.add_line("code", "continue", indent=2)
+        self.CodeHandler.add_line("code", "tags_section = col.split('_|_')[0]", indent=1)
+        self.CodeHandler.add_line("code", "col_name = col.split('_|_')[1]", indent=1)
+        self.CodeHandler.add_line("code", "if col_name in vars_list:", indent=1)
+        self.CodeHandler.add_line("code", "cols_2_keep.append(col)", indent=2)
+        self.CodeHandler.add_line("code", "else:", indent=1)
+        self.CodeHandler.add_line("code", "for col_tag in tags_section.split('_'):", indent=2)
+        self.CodeHandler.add_line("code", "if col_tag in tags_list:", indent=3)
+        self.CodeHandler.add_line("code", "cols_2_keep.append(col)", indent=4)
+        self.CodeHandler.add_line("code", "df_merged = df_merged[cols_2_keep]")
+        self.CodeHandler.add_seperator()
+
+        return df_merged
 
     def load_csv_in_folder(self, folder_name: str) -> None:
         """

@@ -1188,7 +1188,7 @@ export default class MedDataObject {
   async getColumns(path) {
     let newColumns = []
     const data = await MedDataObject.loadTableFromDisk(path)
-    console.log("data: ", data)
+    console.log("data-*--------------------: ", data)
     if (data.$columns) {
       newColumns = data.$columns
       this.metadata.columns = newColumns

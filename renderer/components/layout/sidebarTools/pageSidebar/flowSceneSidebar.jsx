@@ -6,7 +6,6 @@ import { loadJsonPath } from "../../../../utilities/fileManagementUtils"
 import { Accordion } from "react-bootstrap"
 import MedDataObject from "../../../workspace/medDataObject"
 import { DataContext, UUID_ROOT } from "../../../workspace/dataContext"
-import { toast } from "react-toastify"
 import { createZipFileSync } from "../../../../utilities/customZipFile"
 import Path from "path"
 import { sceneDescription as learningSceneDescription } from "../../../../public/setupVariables/learningNodesParams"
@@ -32,20 +31,20 @@ const typeInfo = {
 const FlowSceneSidebar = ({ type }) => {
   const { workspace } = useContext(WorkspaceContext) // We get the workspace from the context to retrieve the directory tree of the workspace, thus retrieving the data files
   const [experimentList, setExperimentList] = useState([]) // We initialize the experiment list state to an empty array
-  const [selectedItems, setSelectedItems] = useState([]) // We initialize the selected items state to an empty array
   const { globalData } = useContext(DataContext)
   const isProd = process.env.NODE_ENV === "production"
 
   // We use the useEffect hook to update the experiment list state when the workspace changes
   useEffect(() => {
     let experimentList = []
-    if (globalData && selectedItems && globalData[selectedItems[0]] && globalData[selectedItems[0]].childrenIDs) {
-      globalData[selectedItems[0]].childrenIDs.forEach((childId) => {
+    let expFolderUUID = MedDataObject.checkIfMedDataObjectInContextbyName(EXPERIMENTS, globalData, UUID_ROOT)
+    if (globalData && expFolderUUID && globalData[expFolderUUID] && globalData[expFolderUUID].childrenIDs) {
+      globalData[expFolderUUID].childrenIDs.forEach((childId) => {
         experimentList.push(globalData[childId].name)
       })
     }
     setExperimentList(experimentList)
-  }, [workspace, selectedItems, globalData[selectedItems[0]]]) // We log the workspace when it changes
+  }, [workspace, globalData]) // We log the workspace when it changes
 
   const checkIsNameValid = (name) => {
     return name != "" && !experimentList.includes(name) && !name.includes(" ")
@@ -58,33 +57,7 @@ const FlowSceneSidebar = ({ type }) => {
    */
   const createEmptyScene = async (name) => {
     let path = Path.join(globalData[UUID_ROOT].path, EXPERIMENTS)
-    console.log("path", path)
-    if (selectedItems.length == 0 || selectedItems[0] == undefined) {
-      toast.error("Please select the EXPERIMENT folder to create the scene in")
-    } else {
-      if (globalData[selectedItems[0]] == undefined) {
-        toast.error("The selected folder does not exist")
-        return
-      } else if (globalData[selectedItems[0]].parentID == undefined) {
-        toast.error("The selected folder does not have a parent")
-        return
-      } else {
-        // if the selected folder is the EXPERIMENT folder
-        if (globalData[selectedItems[0]].parentID == MedDataObject.checkIfMedDataObjectInContextbyPath(path, globalData).getUUID()) {
-          if (globalData[selectedItems[0]].type == "folder") {
-            path = globalData[selectedItems[0]].path
-          } else {
-            path = globalData[globalData[selectedItems[0]].parentID].path
-          }
-          createSceneContent(path, name, typeInfo[type].extension)
-        } else {
-          MedDataObject.createEmptyFolderFSsync("experiment", path).then((folderPath) => {
-            console.log("folderPath", folderPath)
-            createSceneContent(folderPath, name, typeInfo[type].extension)
-          })
-        }
-      }
-    }
+    createSceneContent(path, name, typeInfo[type].extension)
   }
 
   /**
@@ -130,7 +103,7 @@ const FlowSceneSidebar = ({ type }) => {
         <FileCreationBtn label="Create scene" piIcon="pi-plus" createEmptyFile={createEmptyScene} checkIsNameValid={checkIsNameValid} />
 
         <Accordion defaultActiveKey={["dirTree"]} alwaysOpen>
-          <SidebarDirectoryTreeControlled setExternalSelectedItems={setSelectedItems} />
+          <SidebarDirectoryTreeControlled />
         </Accordion>
       </Stack>
     </>
