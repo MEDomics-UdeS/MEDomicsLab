@@ -24,31 +24,21 @@ const typeInfo = {
 const EvaluationSidebar = () => {
   const { workspace } = useContext(WorkspaceContext) // We get the workspace from the context to retrieve the directory tree of the workspace, thus retrieving the data files
   const [experimentList, setExperimentList] = useState([]) // We initialize the experiment list state to an empty array
-  const [selectedItems, setSelectedItems] = useState([]) // We initialize the selected items state to an empty array
   const { globalData } = useContext(DataContext)
 
   // We use the useEffect hook to update the experiment list state when the workspace changes
   useEffect(() => {
     let experimentList = []
     if (globalData) {
-      let element = null
-      console.log("selectedItems", selectedItems)
-      if (globalData[selectedItems[0]]) {
-        if (selectedItems.length == 0 || selectedItems[0] == undefined) {
-          element = globalData["UUID_ROOT"]
-        } else {
-          element = globalData[selectedItems[0]].type != "folder" ? globalData[globalData[selectedItems[0]].parentID] : globalData[selectedItems[0]]
+      let element = globalData["UUID_ROOT"]
+      element.childrenIDs.forEach((childID) => {
+        if (globalData[childID].type == "file" && globalData[childID].extension == typeInfo.extension) {
+          experimentList.push(globalData[childID].name.replace("." + typeInfo.extension, ""))
         }
-        console.log("element", element)
-        element.childrenIDs.forEach((childID) => {
-          if (globalData[childID].type == "file" && globalData[childID].extension == typeInfo.extension) {
-            experimentList.push(globalData[childID].name.replace("." + typeInfo.extension, ""))
-          }
-        })
-      }
+      })
     }
     setExperimentList(experimentList)
-  }, [workspace, selectedItems, globalData]) // We log the workspace when it changes
+  }, [workspace, globalData]) // We log the workspace when it changes
 
   const checkIsNameValid = (name) => {
     return name != "" && !experimentList.includes(name) && !name.includes(" ")
@@ -59,14 +49,7 @@ const EvaluationSidebar = () => {
    * @description - This function is used to create an empty scene
    */
   const createEmptyScene = async (name) => {
-    console.log("selectedItems", selectedItems)
-    let path = ""
-    if (selectedItems.length == 0 || selectedItems[0] == undefined || globalData[selectedItems[0]] == undefined) {
-      path = globalData["UUID_ROOT"].path
-    } else {
-      // if the selected folder is the EXPERIMENT folder
-      path = globalData[selectedItems[0]].type != "folder" ? globalData[globalData[selectedItems[0]].parentID].path : globalData[selectedItems[0]].path
-    }
+    let path = globalData["UUID_ROOT"].path
     await createSceneContent(path, name, typeInfo.extension)
   }
 
@@ -94,7 +77,8 @@ const EvaluationSidebar = () => {
    * @description - This function is used to handle the click on the create scene button
    */
   const handleClick = () => {
-    setSelectedItems([...selectedItems])
+    // setSelectedItems([...selectedItems])
+    console.log("eval clicked")
   }
 
   return (
@@ -114,7 +98,7 @@ const EvaluationSidebar = () => {
         <FileCreationBtn label="Create evaluation page" piIcon="pi-plus" createEmptyFile={createEmptyScene} checkIsNameValid={checkIsNameValid} handleClickCreateScene={handleClick} />
 
         <Accordion defaultActiveKey={["dirTree"]} alwaysOpen>
-          <SidebarDirectoryTreeControlled setExternalSelectedItems={setSelectedItems} />
+          <SidebarDirectoryTreeControlled/>
         </Accordion>
       </Stack>
     </>

@@ -15,6 +15,7 @@ import { DataContext } from "../workspace/dataContext"
 import { Tag } from "primereact/tag"
 import { Tooltip } from "primereact/tooltip"
 import DataTableWrapper from "../dataTypeVisualisation/dataTableWrapper"
+import { deepCopy } from "../../utilities/staticFunctions"
 
 /**
  * 
@@ -265,6 +266,7 @@ const ApplicationPage = ({ pageId }) => {
                       <p>Needed columns:</p>
                       <ul>
                         {modelData.map((col) => {
+
                           return <li key={col}>{col}</li>
                         })}
                       </ul>
@@ -306,7 +308,7 @@ const ApplicationPage = ({ pageId }) => {
                   if (content && Object.keys(content).length > 0) {
                     modelDataObject.metadata.content = content
                     setGlobalData({ ...globalData })
-                    let modelData = content.columns
+                    let modelData = deepCopy(content.columns).filter((col) => col != content.target)
                     checkWarnings(columnsArray, modelData)
                   }
                 })
@@ -319,13 +321,13 @@ const ApplicationPage = ({ pageId }) => {
           } else {
             modelDataObject.metadata.content = chosenModel.metadata
             setGlobalData({ ...globalData })
-            let modelData = chosenModel.metadata.columns
+            let modelData = deepCopy(chosenModel.metadata.columns).filter((col) => col != chosenModel.metadata.target)
             checkWarnings(columnsArray, modelData)
           }
         } else {
           console.log("flag1 - false")
 
-          let modelData = modelDataObject.metadata.content.columns
+          let modelData = deepCopy(modelDataObject.metadata.content.columns).filter((col) => col != modelDataObject.metadata.content.target)  
           checkWarnings(columnsArray, modelData)
         }
         console.log("modelDataObject.metadata.content", modelDataObject.metadata.content)

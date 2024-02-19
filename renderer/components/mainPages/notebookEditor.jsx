@@ -8,7 +8,7 @@ import React from 'react';
 const NotebookEditor = ({ url }) => {
     // Your component logic here
     return <>
-        Not implemented yet {url}
+        Not implemented yet, {url}
     </>
 };
 

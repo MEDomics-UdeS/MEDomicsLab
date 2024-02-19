@@ -86,6 +86,8 @@ class MEDexperimentLearning(MEDexperiment):
         df = node.df.copy()
         if 'files' in kwargs:
             del kwargs['files']
+        if 'tags' in kwargs:
+            del kwargs['tags']
         if 'time-point' in kwargs:
             del kwargs['time-point']
         if 'split_experiment_by_institutions' in kwargs:
@@ -98,6 +100,16 @@ class MEDexperimentLearning(MEDexperiment):
             del kwargs['columns']
         if 'steps' in kwargs:
             del kwargs['steps']
+        if 'multipleColumns' in kwargs:
+            del kwargs['multipleColumns']
+        if 'variables' in kwargs:
+            del kwargs['variables']
+
+        if 'use_gpu' in kwargs:
+            if kwargs['use_gpu'] == "True":
+                kwargs['use_gpu'] = True
+            elif kwargs['use_gpu'] == "False":
+                kwargs['use_gpu'] = False
 
         # add the imports
         node.CodeHandler.add_import("import numpy as np")
@@ -115,15 +127,10 @@ class MEDexperimentLearning(MEDexperiment):
         # df[kwargs['target']].notna() --> keep only the rows where the target is not null
         # df[df[kwargs['target']].notna()] --> keep only the rows where the target is not null
         temp_df = df[df[kwargs['target']].notna()]
-        node.CodeHandler.add_line(
-            "code", f"temp_df = df[df['{kwargs['target']}'].notna()]")
-        node.CodeHandler.add_line("code", f"nan_value = float('NaN')")
+        node.CodeHandler.add_line("code", f"temp_df = df[df['{kwargs['target']}'].notna()]")
         temp_df.replace("", float("NaN"), inplace=True)
-        node.CodeHandler.add_line(
-            "code", f"temp_df.replace('', nan_value, inplace=True)")
         temp_df.dropna(how='all', axis=1, inplace=True)
-        node.CodeHandler.add_line(
-            "code", f"temp_df.dropna(how='all', axis=1, inplace=True)")
+        node.CodeHandler.add_line("code", f"temp_df.dropna(how='all', axis=1, inplace=True)")
         medml_logger = MEDml_logger()
 
         # setup the experiment

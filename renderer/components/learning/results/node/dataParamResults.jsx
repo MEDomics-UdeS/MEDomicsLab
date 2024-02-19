@@ -1,6 +1,7 @@
 import React from "react"
 import Parameters from "../utilities/parameters"
 import DataTablePath from "../utilities/dataTablePath"
+import DataTable from "../../../dataTypeVisualisation/dataTableWrapper"
 import { Accordion, AccordionTab } from "primereact/accordion"
 
 /**
@@ -9,6 +10,31 @@ import { Accordion, AccordionTab } from "primereact/accordion"
  * @returns {JSX.Element} The DataParamResults component
  */
 const DataParamResults = ({ selectedResults }) => {
+
+  const generateDataTables = (data) => {
+    console.log(data)
+    console.log(data.paths[0])
+    if (typeof data.paths[0] !== "string") {
+      let jsonTable = JSON.parse(data.table)
+      console.log(jsonTable)
+      return <DataTable
+        data={jsonTable}
+        tablePropsData={{
+          paginator: true,
+          rows: 10,
+          scrollable: true,
+          scrollHeight: "400px",
+          size: "small"
+        }}
+        tablePropsColumn={{
+          sortable: true
+        }}
+      />
+    } else {
+      return <DataTablePath path={data.paths[0]} />
+    }
+  }
+
   return (
     <>
       <Accordion multiple className="data-param-results-accordion">
@@ -25,7 +51,9 @@ const DataParamResults = ({ selectedResults }) => {
         </AccordionTab>
         <AccordionTab header="Data">
           <div className="card">
-            <DataTablePath path={selectedResults.data.paths[0]} />
+            {
+              generateDataTables(selectedResults.data)
+            }
           </div>
         </AccordionTab>
       </Accordion>
