@@ -92,16 +92,12 @@ class Dataset(Node):
         # for each dataframe, add a suffix to the columns
         for i, df in enumerate(df_list):
             # remove target column from list of columns df.columns
-            df_tmp = df.drop(columns=[first_col, target])
             suffix = f'_T{i + 1}'
-            new_columns = [f'{col}{suffix}' for col in df_tmp.columns]
-            df.columns = [first_col] + new_columns + [target]
+            df.columns = [f'{col}{suffix}' if col != target and col != first_col else col for col in df.columns]
         self.CodeHandler.add_line("code", f"# for each dataframe, add a suffix to their columns")
         self.CodeHandler.add_line("code", f"for i, df in enumerate(df_list):")
-        self.CodeHandler.add_line("code", "df = df.drop(columns=[first_col, target])", indent=1)
-        self.CodeHandler.add_line("code", "suffix = f'_TP{i + 1}'", indent=1)
-        self.CodeHandler.add_line("code", "new_columns = [f'{col}{suffix}' for col in df.columns]", indent=1)
-        self.CodeHandler.add_line("code", "df.columns = [first_col] + new_columns + [target]", indent=1)
+        self.CodeHandler.add_line("code", "suffix = f'_T{i + 1}'", indent=1)
+        self.CodeHandler.add_line("code", "df.columns = [f'{col}{suffix}' if col != target and col != first_col else col for col in df.columns]", indent=1)
         self.CodeHandler.add_seperator()
 
         # merge the dataframes on the first column and the target
