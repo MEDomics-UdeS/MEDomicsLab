@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useContext } from "react"
 import { DataContext } from "../../workspace/dataContext"
 import { Form } from "react-bootstrap"
-import { MultiSelect } from 'primereact/multiselect';
 
 /**
  * @typedef {React.FunctionComponent} WsSelect
@@ -52,23 +51,22 @@ const WsSelect = ({ selectedPath, onChange, rootDir, acceptFolder = false, accep
     }
   }, [globalData])
 
-return (
-  <>
-    {
-      <Form.Select disabled={disabled} value={selectedPath && selectedPath.name} onChange={(e) => onChange(e, datasetList.find((dataset) => dataset.name == e.target.value).path)}>
-        {datasetList.map((dataset) => {
-          return (
-            <option key={dataset.name} value={dataset.name}>
-              {dataset.isFolder ? "📁 " : dataset.default ? "❌ " : "📄 "}
-              {dataset.name}
-            </option>
-          )
-        })}
-      </Form.Select>
-    }
-  </>
-)
-    
+  return (
+    <>
+      {
+        <Form.Select disabled={disabled} value={selectedPath && selectedPath.name} onChange={(e) => onChange(e, datasetList.find((dataset) => dataset.name == e.target.value).path)}>
+          {datasetList.map((dataset) => {
+            return (
+              <option key={dataset.name} value={dataset.name}>
+                {dataset.isFolder ? "📁 " : dataset.default ? "❌ " : "📄 "}
+                {dataset.name}
+              </option>
+            )
+          })}
+        </Form.Select>
+      }
+    </>
+  )
 }
 
 export default WsSelect
