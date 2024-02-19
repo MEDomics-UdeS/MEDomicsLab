@@ -14,6 +14,21 @@ const WsSelectMultiple = ({ key, selectedPaths, onChange, rootDir, acceptFolder 
   const { globalData } = useContext(DataContext) // We get the global data from the context to retrieve the directory tree of the workspace, thus retrieving the data files
   const [datasetList, setDatasetList] = useState([])
 
+
+    /**
+   * Get the columns from a promise
+   * @param {object} dataObject - Data object
+   * @returns {array} - Columns
+   * @summary This function is used to get the columns from a promise - async function
+   */
+    async function getColumnsFromPromise(dataObject) {
+      let promise = new Promise((resolve) => {
+        resolve(dataObject.getColumnsOfTheDataObjectIfItIsATable())
+      })
+      let columns = await promise
+      return columns
+    }
+
   /**
    * @description This useEffect is used to generate the dataset list from the global data context if it's defined
    * @returns {void} calls the generateDatasetListFromDataContext function
@@ -31,13 +46,19 @@ const WsSelectMultiple = ({ key, selectedPaths, onChange, rootDir, acceptFolder 
               if (!(!acceptFolder && globalData[uuid].type == "folder")) {
                 if (acceptedExtensions.includes("all") || acceptedExtensions.includes(globalData[uuid].extension)) {
                   console.log("dataset",globalData[uuid])
-                  let columnsTag = deepCopy(globalData[uuid].metadata.columnsTag)
-                  let timePrefix = globalData[uuid].originalName.split("_")[0]
-                  columnsTag = Object.keys(columnsTag).reduce((acc, key) => {
-                    acc[timePrefix + "_" + key] = columnsTag[key]
-                    return acc
-                  }, {})
-                  datasetListToShow.push({ name: globalData[uuid].name, path: globalData[uuid].path, tags: Object.keys(globalData[uuid].metadata.tagsDict), columnsTags: globalData[uuid].metadata.columnsTag})
+                  if(!globalData[uuid].metadata.columnsTag){
+                    getColumnsFromPromise(globalData[uuid]).then((columns) => {
+                      console.log("columns",columns)
+                    })
+                  } else {
+                    let columnsTag = deepCopy(globalData[uuid].metadata.columnsTag)
+                    let timePrefix = globalData[uuid].originalName.split("_")[0]
+                    columnsTag = Object.keys(columnsTag).reduce((acc, key) => {
+                      acc[timePrefix + "_" + key] = columnsTag[key]
+                      return acc
+                    }, {})
+                    datasetListToShow.push({ name: globalData[uuid].name, path: globalData[uuid].path, tags: Object.keys(globalData[uuid].metadata.tagsDict), columnsTags: globalData[uuid].metadata.columnsTag})
+                  }
                 }
               }
             }
