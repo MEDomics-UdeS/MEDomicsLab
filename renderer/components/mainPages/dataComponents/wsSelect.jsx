@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useContext } from "react"
 import { DataContext } from "../../workspace/dataContext"
 import { Form } from "react-bootstrap"
+import { MultiSelect } from 'primereact/multiselect';
 
 /**
  * @typedef {React.FunctionComponent} WsSelect
@@ -12,6 +13,10 @@ import { Form } from "react-bootstrap"
 const WsSelect = ({ selectedPath, onChange, rootDir, acceptFolder = false, acceptedExtensions = ["all"], disabled }) => {
   const { globalData } = useContext(DataContext) // We get the global data from the context to retrieve the directory tree of the workspace, thus retrieving the data files
   const [datasetList, setDatasetList] = useState([])
+
+  useEffect(() => {
+    console.log(datasetList)
+  }, [datasetList])
 
   /**
    * @description This useEffect is used to generate the dataset list from the global data context if it's defined
@@ -47,18 +52,23 @@ const WsSelect = ({ selectedPath, onChange, rootDir, acceptFolder = false, accep
     }
   }, [globalData])
 
-  return (
-    <Form.Select disabled={disabled} value={selectedPath && selectedPath.name} onChange={(e) => onChange(e, datasetList.find((dataset) => dataset.name == e.target.value).path)}>
-      {datasetList.map((dataset) => {
-        return (
-          <option key={dataset.name} value={dataset.name}>
-            {dataset.isFolder ? "📁 " : dataset.default ? "❌ " : "📄 "}
-            {dataset.name}
-          </option>
-        )
-      })}
-    </Form.Select>
-  )
+return (
+  <>
+    {
+      <Form.Select disabled={disabled} value={selectedPath && selectedPath.name} onChange={(e) => onChange(e, datasetList.find((dataset) => dataset.name == e.target.value).path)}>
+        {datasetList.map((dataset) => {
+          return (
+            <option key={dataset.name} value={dataset.name}>
+              {dataset.isFolder ? "📁 " : dataset.default ? "❌ " : "📄 "}
+              {dataset.name}
+            </option>
+          )
+        })}
+      </Form.Select>
+    }
+  </>
+)
+    
 }
 
 export default WsSelect

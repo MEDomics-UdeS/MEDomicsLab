@@ -17,7 +17,7 @@ function FlowResultsProvider({ children }) {
   const [showResultsPane, setShowResultsPane] = useState(false) // Initial state
   const [isResults, setIsResults] = useState(false) // Initial state
   const [selectedResultsId, setSelectedResultsId] = useState(null) // Initial state
-  const { sceneName, experimentName } = useContext(FlowInfosContext)
+  const { sceneName } = useContext(FlowInfosContext)
   const { getBasePath, workspace } = useContext(WorkspaceContext)
 
   // This function is used to update the flowResults
@@ -30,8 +30,8 @@ function FlowResultsProvider({ children }) {
     if (isValidFormat(newResults)) {
       setFlowResults({ ...newResults })
       setIsResults(true)
-      if (workspace.hasBeenSet && experimentName && sceneName) {
-        MedDataObject.writeFileSync(newResults, [getBasePath(EXPERIMENTS), experimentName, sceneName], sceneName, "medmlres").then((res) => {
+      if (workspace.hasBeenSet && sceneName) {
+        MedDataObject.writeFileSync(newResults, [getBasePath(EXPERIMENTS), sceneName], sceneName, "medmlres").then((res) => {
           console.log("res", res)
           toast.success("Results generated and saved !")
           MedDataObject.updateWorkspaceDataObject()
