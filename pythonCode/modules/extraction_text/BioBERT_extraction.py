@@ -170,15 +170,16 @@ class GoExecScriptBioBERTExtraction(GoExecutionScript):
             # Iterate over combinations of [patients, admissions]
             for identifiers in identifiers_list:
                 df_admission = pd.DataFrame(dataframe.loc[(dataframe[column_id] == identifiers[0]) & (dataframe[column_admission] == identifiers[1])])
-                df_admission_embeddings = pd.DataFrame(
-                    [self.get_biobert_embeddings_from_event_list(df_admission[column_text])])
-                # Insert admission_time in the dataframe
-                df_admission_embeddings.insert(0, column_admission_time, df_admission[column_admission_time].iloc[0])
-                # Insert admission_id in the dataframe if master_table_compatible is false
-                df_admission_embeddings.insert(0, column_admission, identifiers[1])
-                # Insert patient_id in the dataframe
-                df_admission_embeddings.insert(0, column_id, identifiers[0])
-                df_notes_embeddings = pd.concat([df_notes_embeddings, df_admission_embeddings], ignore_index=True)
+                if len(df_admission) > 0:
+                    df_admission_embeddings = pd.DataFrame(
+                        [self.get_biobert_embeddings_from_event_list(df_admission[column_text])])
+                    # Insert admission_time in the dataframe
+                    df_admission_embeddings.insert(0, column_admission_time, df_admission[column_admission_time].iloc[0])
+                    # Insert admission_id in the dataframe if master_table_compatible is false
+                    df_admission_embeddings.insert(0, column_admission, identifiers[1])
+                    # Insert patient_id in the dataframe
+                    df_admission_embeddings.insert(0, column_id, identifiers[0])
+                    df_notes_embeddings = pd.concat([df_notes_embeddings, df_admission_embeddings], ignore_index=True)
             # Rename columns
             col_number = len(df_notes_embeddings.columns) - 3
             df_notes_embeddings.columns = [column_id, column_admission, column_admission_time] + [column_prefix + str(i) for i in range(col_number)]
@@ -203,23 +204,24 @@ class GoExecScriptBioBERTExtraction(GoExecutionScript):
             # Iterate over patients
             for patient_id in identifiers_list:
                 df_patient = pd.DataFrame(dataframe.loc[dataframe[column_id] == patient_id]).sort_values(by=[column_time])
-                # Iterate over time
-                start_date = df_patient[column_time].iloc[0]
-                end_date = start_date + frequency
-                last_date = df_patient[column_time].iloc[-1]
-                while start_date <= last_date:
-                    df_time = pd.DataFrame(df_patient[(df_patient[column_time] >= start_date) & (df_patient[column_time] < end_date)])
-                    if len(df_time) > 0:
-                        df_time_embeddings = pd.DataFrame(
-                            [self.get_biobert_embeddings_from_event_list(df_time[column_text])])
-                        # Insert time in the dataframe (only start date if master_table_compatible)
-                        df_time_embeddings.insert(0, "end_date", end_date)
-                        df_time_embeddings.insert(0, "start_date", start_date)
-                        # Insert patient_id in the dataframe
-                        df_time_embeddings.insert(0, column_id, patient_id)
-                        df_notes_embeddings = pd.concat([df_notes_embeddings, df_time_embeddings], ignore_index=True)
-                    start_date += frequency
-                    end_date += frequency
+                if len(df_patient) > 0:
+                    # Iterate over time
+                    start_date = df_patient[column_time].iloc[0]
+                    end_date = start_date + frequency
+                    last_date = df_patient[column_time].iloc[-1]
+                    while start_date <= last_date:
+                        df_time = pd.DataFrame(df_patient[(df_patient[column_time] >= start_date) & (df_patient[column_time] < end_date)])
+                        if len(df_time) > 0:
+                            df_time_embeddings = pd.DataFrame(
+                                [self.get_biobert_embeddings_from_event_list(df_time[column_text])])
+                            # Insert time in the dataframe (only start date if master_table_compatible)
+                            df_time_embeddings.insert(0, "end_date", end_date)
+                            df_time_embeddings.insert(0, "start_date", start_date)
+                            # Insert patient_id in the dataframe
+                            df_time_embeddings.insert(0, column_id, patient_id)
+                            df_notes_embeddings = pd.concat([df_notes_embeddings, df_time_embeddings], ignore_index=True)
+                        start_date += frequency
+                        end_date += frequency
             # Rename columns
             col_number = len(df_notes_embeddings.columns) - 3
             df_notes_embeddings.columns = [column_id, "start_date", "end_date"] + [column_prefix + str(i) for i in range(col_number)]
@@ -260,7 +262,7 @@ class GoExecScriptBioBERTExtraction(GoExecutionScript):
         df_notes = df_notes[columnValues]
 
         # Pre-processing on data
-        if selected_columns["time"] != "" and selected_columns[key] not in columnValues:
+        if selected_columns["time"] != "":
             df_notes = df_notes.astype({selected_columns["time"] : "datetime64[ns]"})
         df_notes = df_notes.dropna(subset=columnValues).compute()
         if  frequency == "Note":

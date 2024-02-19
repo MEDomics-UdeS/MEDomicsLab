@@ -78,53 +78,55 @@ class GoExecScriptTSfreshExtraction(GoExecutionScript):
             # Iterate over combinations of [patients, admissions]
             for identifiers in identifiers_list:
                 df_admission = pd.DataFrame(dataframe.loc[(dataframe[column_id] == identifiers[0]) & (dataframe[column_admission] == identifiers[1])])
-                df_admission_embeddings = extract_features(df_admission, column_id=column_id, 
-                                                        column_sort=column_weight, 
-                                                        column_kind=column_kind, 
-                                                        column_value=column_value,
-                                                        disable_progressbar=True,
-                                                        default_fc_parameters=default_fc_parameters, n_jobs=0)
-                # Add prefix to extracted columns
-                columns = list(df_admission_embeddings.columns)
-                new_columns = [column_prefix + col for col in columns]
-                df_admission_embeddings.columns = new_columns
-                # Insert admission_time in the dataframe
-                df_admission_embeddings.insert(0, column_admission_time, df_admission[column_admission_time].iloc[0])
-                # Insert admission_id in the dataframe (except if the dataframe must respect submaster table format)
-                df_admission_embeddings.insert(0, column_admission, identifiers[1])
-                # Insert patient_id in the dataframe
-                df_admission_embeddings.insert(0, column_id, identifiers[0])
-                df_ts_embeddings = pd.concat([df_ts_embeddings, df_admission_embeddings], ignore_index=True)
+                if len(df_admission) > 0:
+                    df_admission_embeddings = extract_features(df_admission, column_id=column_id, 
+                                                            column_sort=column_weight, 
+                                                            column_kind=column_kind, 
+                                                            column_value=column_value,
+                                                            disable_progressbar=True,
+                                                            default_fc_parameters=default_fc_parameters, n_jobs=0)
+                    # Add prefix to extracted columns
+                    columns = list(df_admission_embeddings.columns)
+                    new_columns = [column_prefix + col for col in columns]
+                    df_admission_embeddings.columns = new_columns
+                    # Insert admission_time in the dataframe
+                    df_admission_embeddings.insert(0, column_admission_time, df_admission[column_admission_time].iloc[0])
+                    # Insert admission_id in the dataframe (except if the dataframe must respect submaster table format)
+                    df_admission_embeddings.insert(0, column_admission, identifiers[1])
+                    # Insert patient_id in the dataframe
+                    df_admission_embeddings.insert(0, column_id, identifiers[0])
+                    df_ts_embeddings = pd.concat([df_ts_embeddings, df_admission_embeddings], ignore_index=True)
         
         elif column_time != "":
             # Iterate over patients
             for patient_id in identifiers_list:
                 df_patient = dataframe.loc[dataframe[column_id] == patient_id].sort_values(by=[column_time])
-                # Iterate over time
-                start_date = df_patient[column_time].iloc[0]
-                end_date = start_date + frequency
-                last_date = df_patient[column_time].iloc[-1]
-                while start_date <= last_date:
-                    df_time = df_patient[(df_patient[column_time] >= start_date) & (df_patient[column_time] < end_date)]
-                    if len(df_time) > 0:
-                        df_time_embeddings = extract_features(df_time, column_id=column_id, 
-                                                            column_sort=column_weight, 
-                                                            column_kind=column_kind, 
-                                                            column_value=column_value,
-                                                            disable_progressbar=True,
-                                                            default_fc_parameters=default_fc_parameters,n_jobs=0)
-                        # Add prefix to extracted columns
-                        columns = list(df_time_embeddings.columns)
-                        new_columns = [column_prefix + col for col in columns]
-                        df_time_embeddings.columns = new_columns
-                        # Insert time in the dataframe
-                        df_time_embeddings.insert(0, "end_date", end_date)
-                        df_time_embeddings.insert(0, "start_date", start_date)
-                        # Insert patient_id in the dataframe
-                        df_time_embeddings.insert(0, column_id, patient_id)
-                        df_ts_embeddings = pd.concat([df_ts_embeddings, df_time_embeddings], ignore_index=True)
-                    start_date += frequency
-                    end_date += frequency
+                if len(df_patient) > 0:
+                    # Iterate over time
+                    start_date = df_patient[column_time].iloc[0]
+                    end_date = start_date + frequency
+                    last_date = df_patient[column_time].iloc[-1]
+                    while start_date <= last_date:
+                        df_time = df_patient[(df_patient[column_time] >= start_date) & (df_patient[column_time] < end_date)]
+                        if len(df_time) > 0:
+                            df_time_embeddings = extract_features(df_time, column_id=column_id, 
+                                                                column_sort=column_weight, 
+                                                                column_kind=column_kind, 
+                                                                column_value=column_value,
+                                                                disable_progressbar=True,
+                                                                default_fc_parameters=default_fc_parameters,n_jobs=0)
+                            # Add prefix to extracted columns
+                            columns = list(df_time_embeddings.columns)
+                            new_columns = [column_prefix + col for col in columns]
+                            df_time_embeddings.columns = new_columns
+                            # Insert time in the dataframe
+                            df_time_embeddings.insert(0, "end_date", end_date)
+                            df_time_embeddings.insert(0, "start_date", start_date)
+                            # Insert patient_id in the dataframe
+                            df_time_embeddings.insert(0, column_id, patient_id)
+                            df_ts_embeddings = pd.concat([df_ts_embeddings, df_time_embeddings], ignore_index=True)
+                        start_date += frequency
+                        end_date += frequency
 
         return df_ts_embeddings
 
