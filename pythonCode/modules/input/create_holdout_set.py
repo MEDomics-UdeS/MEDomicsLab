@@ -7,7 +7,7 @@ from pathlib import Path
 import os
 sys.path.append(
     str(Path(os.path.dirname(os.path.abspath(__file__))).parent.parent))
-from med_libs.input_utils.dataframe_utilities import load_data_file, save_dataframe, assert_no_nan_values_for_each_column
+from med_libs.input_utils.dataframe_utilities import load_data_file, save_dataframe, assert_no_nan_values_for_each_column, handle_tags_in_dataframe
 from med_libs.GoExecutionScript import GoExecutionScript, parse_arguments
 from med_libs.server_utils import go_print
 
@@ -71,6 +71,7 @@ class GoExecScriptCreateHoldoutSet(GoExecutionScript):
         self.set_progress(now=progress, label="Initialisation : Loading the dataset")
         
         main_dataset = load_data_file(main_dataset_path, main_dataset_extension)
+        main_dataset, tags = handle_tags_in_dataframe(main_dataset)
         progress += progress_step
         self.set_progress(now=progress, label="Initialisation : Creating stratifying subset")
         
@@ -116,10 +117,10 @@ class GoExecScriptCreateHoldoutSet(GoExecutionScript):
         progress += progress_step
         self.set_progress(now=progress, label="Saving the datasets with " + final_name )
 
-        save_dataframe(final_dataset_path+"train_"+final_name,
-                    final_dataset_extension, train_set)
+        save_dataframe(final_dataset_path+"learning_"+final_name,
+                    final_dataset_extension, train_set, tags=tags)
         save_dataframe(final_dataset_path+"holdout_"+final_name,
-                    final_dataset_extension, holdout_set)
+                    final_dataset_extension, holdout_set, tags=tags)
         self.set_progress(now=100, label="Done, saving the file at " + final_dataset_path)
 
         json_config["final_path"] = final_dataset_path

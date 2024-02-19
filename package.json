@@ -48,7 +48,7 @@
     "publish": null
   },
   "scripts": {
-    "dev": "nextron --renderer-port 7878",
+    "dev": "nextron",
     "build": "nextron build",
     "build:linux": "bash ./utilScripts/build_preparation_linux.sh && nextron build --linux",
     "build:win": ".\\utilScripts\\build_preparation_win.bat && nextron build --win",

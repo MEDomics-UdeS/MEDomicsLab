@@ -5,7 +5,7 @@ import { createWindow } from "./helpers"
 import { installExtension, REACT_DEVELOPER_TOOLS } from "electron-extension-installer"
 import MEDconfig, { PORT_FINDING_METHOD } from "../medomics.dev"
 import { saveJSON, loadJSON } from "./helpers/datamanager"
-import { main } from "@popperjs/core"
+
 const os = require("os")
 const fs = require("fs")
 var path = require("path")
@@ -29,11 +29,11 @@ const originalConsoleLog = console.log
  * @param {*} message The message to send
  * @summary We redefine the console.log function to send the messages to the main window
  */
-console.log = function (message) {
+console.log = function () {
   try {
-    originalConsoleLog(message)
+    originalConsoleLog(...arguments)
     if (mainWindow !== undefined) {
-      mainWindow.webContents.send("log", message)
+      mainWindow.webContents.send("log", ...arguments)
     }
   } catch (error) {
     console.error(error)
@@ -166,14 +166,37 @@ if (isProd) {
   function getPythonEnvironment() {
     // Returns the python environment
     let pythonEnvironment = process.env.MED_ENV
+
+    // Retrieve the path to the conda environment from the settings file
+    let userDataPath = app.getPath("userData")
+    let settingsFilePath = path.join(userDataPath, "settings.json")
+    let settingsFound = fs.existsSync(settingsFilePath)
+    let settings = {}
+    if (settingsFound) {
+      let settings = JSON.parse(fs.readFileSync(settingsFilePath, "utf8"))
+      // Check if the conda environment is defined in the settings file
+      if (settings.condaPath !== undefined) {
+        pythonEnvironment = settings.condaPath
+      }
+    }
+
     if (pythonEnvironment === undefined) {
-      let userPath = process.env.HOME
-      let anacondaPath = getCondaPath(userPath)
-      if (anacondaPath !== null) {
-        // If a python environment is found, the path to the python executable is returned
-        if (checkCondaEnvs(anacondaPath).includes(medCondaEnv)) {
-          pythonEnvironment = getThePythonExecutablePath(anacondaPath, medCondaEnv)
+      if (pythonEnvironment === undefined || pythonEnvironment === null) {
+        let userPath = process.env.HOME
+        let anacondaPath = getCondaPath(userPath)
+        if (anacondaPath !== null) {
+          // If a python environment is found, the path to the python executable is returned
+          if (checkCondaEnvs(anacondaPath).includes(medCondaEnv)) {
+            pythonEnvironment = getThePythonExecutablePath(anacondaPath, medCondaEnv)
+          }
         }
+      }
+    }
+    // If the python environment is found, the conda path is saved in the settings file if it is not already defined
+    if (pythonEnvironment !== undefined && pythonEnvironment !== null) {
+      if (settingsFound && settings.condaPath === undefined) {
+        settings.condaPath = pythonEnvironment
+        fs.writeFileSync(settingsFilePath, JSON.stringify(settings))
       }
     }
     return pythonEnvironment
@@ -209,7 +232,11 @@ if (isProd) {
           }
         }
       }
-      if (condaPath === null) {
+      if (process.platform == "darwin" && condaPath === null) {
+        parentPath = "/opt/homebrew"
+        condaPath = checkDirectories(parentPath, possibleCondaPaths)
+      }
+      if (condaPath === null && process.platform !== "darwin") {
         console.log("No conda environment found")
         dialog.showMessageBoxSync({
           type: "error",
@@ -394,7 +421,7 @@ if (isProd) {
     console.log("GetRecentWorkspaces : ", data)
     if (data === "requestRecentWorkspaces") {
       // If the message is "requestRecentWorkspaces", the function getRecentWorkspaces is called
-      getRecentWorkspaces(event, mainWindow)
+      getRecentWorkspacesOptions(event, mainWindow)
     }
   })
 
@@ -797,7 +824,17 @@ function loadWorkspaces() {
   if (fs.existsSync(workspaceFilePath)) {
     const workspaces = JSON.parse(fs.readFileSync(workspaceFilePath, "utf8"))
     // Sort workspaces by date, most recent first
-    return workspaces.sort((a, b) => new Date(b.last_time_it_was_opened) - new Date(a.last_time_it_was_opened))
+    let sortedWorkspaces = workspaces.sort((a, b) => new Date(b.last_time_it_was_opened) - new Date(a.last_time_it_was_opened))
+    // Check if the workspaces still exist
+    let workspacesThatStillExist = []
+    sortedWorkspaces.forEach((workspace) => {
+      if (fs.existsSync(workspace.path)) {
+        workspacesThatStillExist.push(workspace)
+      } else {
+        console.log("Workspace does not exist anymore: ", workspace.path)
+      }
+    })
+    return workspacesThatStillExist
   } else {
     return []
   }

@@ -18,7 +18,7 @@ if [ $? -ne 0 ]; then
 
     # Check CPU architecture and download the appropriate Miniconda installer
     echo "Checking CPU architecture..."
-    if [ $(uname -m) == "arm64" ]; then
+    if [ $(uname -m) = "arm64" ]; then
         # ARM architecture
         echo "ARM architecture detected."
         # Download Miniconda installer with curl
@@ -68,6 +68,48 @@ else
     # Replace <ENV_NAME> with the desired environment name (e.g., med_conda_env)
     # Replace <PYTHON_VERSION> with the desired Python version (e.g., 3.9)
     # Replace <requirements_FILE> with the path to the requirements.txt file
+    echo "Conda is already installed."
+
+    # Check if anaconda or miniconda is installed with homebrew
+    if command -v brew &>/dev/null; then
+        echo "Homebrew is already installed."
+        if brew list --formula | grep -q 'anaconda'; then
+            echo "Anaconda is already installed with homebrew."
+            # Update Anaconda
+            echo "Updating Anaconda..."
+            brew upgrade anaconda || {
+                echo "An error occurred while updating Anaconda."
+                exit 1
+            }
+        fi
+        # Check if miniconda is installed with homebrew
+        if brew list --formula | grep -q 'miniconda'; then
+            echo "Miniconda is already installed with homebrew."
+            # Update Miniconda
+            echo "Updating Miniconda..."
+            brew upgrade miniconda || {
+                echo "An error occurred while updating Miniconda."
+                exit 1
+            }
+        fi
+        # Check if miniforge is installed with homebrew
+        if brew list --formula | grep -q 'miniforge'; then
+            echo "Miniforge is already installed with homebrew."
+            # Update Miniforge
+            echo "Updating Miniforge..."
+            brew upgrade miniforge || {
+                echo "An error occurred while updating Miniforge."
+                exit 1
+            }
+        fi
+    fi
+
+    # Update Conda
+    echo "Updating Conda..."
+    conda update -n base -c defaults conda -y || {
+        echo "An error occurred while updating Conda."
+        exit 1
+    }
 
     # Activate the base environment
     echo "Activating the base environment..."
@@ -78,6 +120,12 @@ else
 
 fi
 
+# Install xcode command line tools
+echo "Installing xcode command line tools..."
+xcode-select --install || {
+    echo "An error occurred while installing xcode command line tools."
+}
+
 CONDA_TYPE=$(conda info | grep -i 'package cache' | awk -F'/' '{print $(NF-1)}')
 echo "Conda type: $CONDA_TYPE"
 
@@ -87,7 +135,7 @@ if conda env list | grep -q 'med_conda_env '; then
 else
     # Create a new environment
     echo "Creating a new environment..."
-    conda env create -n med_conda_env python==3.9 || {
+    conda create --name med_conda_env python=3.9 -y || {
         echo "An error occurred while creating the new environment."
         exit 1
     }
@@ -112,7 +160,7 @@ echo "Installing packages..."
 
 # Install PyCaret with conda
 echo "Installing PyCaret with conda..."
-conda install pycaret || {
+conda install pycaret -y || {
     echo "An error occurred while installing PyCaret with conda."
     exit 1
 }
@@ -124,11 +172,6 @@ pip install -r requirements_mac.txt || {
     exit 1
 }
 
-# Install xcode command line tools
-echo "Installing xcode command line tools..."
-xcode-select --install || {
-    echo "An error occurred while installing xcode command line tools."
-}
 
 # Check if homebrew is installed
 if command -v brew &>/dev/null; then
@@ -172,13 +215,6 @@ source ~/.zshrc || {
 echo "Installing libomp..."
 brew install libomp || {
     echo "An error occurred while installing libomp."
-    exit 1
-}
-
-# Install miniforge
-echo "Installing miniforge..."
-brew install miniforge || {
-    echo "An error occurred while installing miniforge."
     exit 1
 }
 

@@ -616,6 +616,27 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
   }
 
   /**
+   * This function handles the blur event on the selected items.
+   * @param {Object} event - The blur event
+   * @returns {void}
+   */
+  function handleSelectedItemsBlur(event) {
+    if (!evaluateIfTargetIsAChild(event, "directory-tree-container")) {
+      setSelectedItems([])
+    }
+  }
+
+  /**
+   * Add event listener to handle if the user clicks outside the directory tree and, if so, deselect the selected items.
+   */
+  useEffect(() => {
+    document.addEventListener("click", handleSelectedItemsBlur)
+    return () => {
+      document.removeEventListener("click", handleSelectedItemsBlur)
+    }
+  }, [])
+
+  /**
    * This useEffect hook updates the directory tree when the global data changes.
    */
   useEffect(() => {
@@ -627,378 +648,401 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
 
   const delayOptions = { showDelay: 750, hideDelay: 0 }
 
+  /**
+   * Function to evaluate if the target of an event is a child of a given id
+   * @param {Object} event - The event
+   * @param {string} id - The id of the parent
+   * @returns {boolean} - True if the target is a child of the given id, false otherwise
+   */
+  function evaluateIfTargetIsAChild(event, id) {
+    let target = event.target
+    let parent = target.parentElement
+    let isChild = false
+    while (parent !== null) {
+      if (parent.id === id) {
+        isChild = true
+        break
+      }
+      parent = parent.parentElement
+    }
+    return isChild
+  }
+
   return (
     <>
-      <Tooltip className="tooltip-small" target=".add-folder-icon" {...delayOptions} />
-      <Tooltip className="tooltip-small" target=".refresh-icon" {...delayOptions} />
-      <Tooltip className="tooltip-small" target=".context-menu-icon" {...delayOptions} />
-      <Accordion.Item eventKey="dirTree">
-        <Accordion.Header onClick={() => MedDataObject.updateWorkspaceDataObject()}>
-          <Stack direction="horizontal" style={{ flexGrow: "1" }}>
-            <p>
-              <strong>WORKSPACE</strong>
-            </p>
-            <div style={{ flexGrow: "5" }} />
+      <div id="directory-tree-container" className="directory-tree-container">
+        <Tooltip className="tooltip-small" target=".add-folder-icon" {...delayOptions} />
+        <Tooltip className="tooltip-small" target=".refresh-icon" {...delayOptions} />
+        <Tooltip className="tooltip-small" target=".context-menu-icon" {...delayOptions} />
+        <Accordion.Item eventKey="dirTree">
+          <Accordion.Header onClick={() => MedDataObject.updateWorkspaceDataObject()}>
+            <Stack direction="horizontal" style={{ flexGrow: "1" }}>
+              <p>
+                <strong>WORKSPACE</strong>
+              </p>
+              <div style={{ flexGrow: "5" }} />
 
-            {
-              isAccordionShowing && (
-                <>
-                  <a
-                    onClick={(e) => {
-                      e.preventDefault()
-                      e.stopPropagation()
-                      createFolder(selectedItems)
-                    }}
-                  >
-                    <FolderPlus size={"1rem"} className="context-menu-icon add-folder-icon" data-pr-at="right bottom" data-pr-tooltip="New Folder" data-pr-my="left top" />
-                  </a>
-                  <a
-                    onClick={(e) => {
-                      e.preventDefault()
-                      e.stopPropagation()
-                      MedDataObject.updateWorkspaceDataObject()
-                    }}
-                  >
-                    <ArrowClockwise size={"1rem"} className="context-menu-icon refresh-icon" data-pr-at="right bottom" data-pr-tooltip="Refresh" data-pr-my="left top" />
-                  </a>
-                  <a
-                    onClick={(e) => {
-                      e.preventDefault()
-                      e.stopPropagation()
-                      setShowHiddenFiles(!showHiddenFiles)
-                    }}
-                  >
-                    {showHiddenFiles && <EyeFill size={"1rem"} className="context-menu-icon refresh-icon" data-pr-at="right bottom" data-pr-tooltip="Hide hidden files" data-pr-my="left top" />}
-                    {!showHiddenFiles && <EyeSlashFill size={"1rem"} className="context-menu-icon refresh-icon" data-pr-at="right bottom" data-pr-tooltip="Show hidden files" data-pr-my="left top" />}
-                  </a>
-                </>
-              ) /* We display the add folder icon only if the mouse is hovering the directory tree and if the accordion is not collapsed*/
-            }
-          </Stack>
-        </Accordion.Header>
-        <Accordion.Body className="sidebar-acc-body" onEnter={() => setIsAccordionShowing(true)} onExit={() => setIsAccordionShowing(false)}>
-          <div className="directory-tree" onMouseEnter={() => setIsHovering(true)} onMouseLeave={() => setIsHovering(false)}>
-            <ControlledTreeEnvironment
-              ref={environment}
-              items={dirTree}
-              renderItem={(json) =>
-                renderItem(json, {
-                  show,
-                  MENU_ID,
-                  displayMenu,
-                  isHovering,
-                  onDBClickItem,
-                  setSelectedItems
-                })
+              {
+                isAccordionShowing && (
+                  <>
+                    <a
+                      onClick={(e) => {
+                        e.preventDefault()
+                        e.stopPropagation()
+                        createFolder(selectedItems)
+                      }}
+                    >
+                      <FolderPlus size={"1rem"} className="context-menu-icon add-folder-icon" data-pr-at="right bottom" data-pr-tooltip="New Folder" data-pr-my="left top" />
+                    </a>
+                    <a
+                      onClick={(e) => {
+                        e.preventDefault()
+                        e.stopPropagation()
+                        MedDataObject.updateWorkspaceDataObject()
+                      }}
+                    >
+                      <ArrowClockwise size={"1rem"} className="context-menu-icon refresh-icon" data-pr-at="right bottom" data-pr-tooltip="Refresh" data-pr-my="left top" />
+                    </a>
+                    <a
+                      onClick={(e) => {
+                        e.preventDefault()
+                        e.stopPropagation()
+                        setShowHiddenFiles(!showHiddenFiles)
+                      }}
+                    >
+                      {showHiddenFiles && <EyeFill size={"1rem"} className="context-menu-icon refresh-icon" data-pr-at="right bottom" data-pr-tooltip="Hide hidden files" data-pr-my="left top" />}
+                      {!showHiddenFiles && <EyeSlashFill size={"1rem"} className="context-menu-icon refresh-icon" data-pr-at="right bottom" data-pr-tooltip="Show hidden files" data-pr-my="left top" />}
+                    </a>
+                  </>
+                ) /* We display the add folder icon only if the mouse is hovering the directory tree and if the accordion is not collapsed*/
               }
-              getItemTitle={(item) => item.data}
-              viewState={{
-                ["tree-2"]: {
-                  focusedItem,
-                  expandedItems,
-                  selectedItems
+            </Stack>
+          </Accordion.Header>
+          <Accordion.Body className="sidebar-acc-body" onEnter={() => setIsAccordionShowing(true)} onExit={() => setIsAccordionShowing(false)}>
+            <div className="directory-tree" onMouseEnter={() => setIsHovering(true)} onMouseLeave={() => setIsHovering(false)}>
+              <ControlledTreeEnvironment
+                ref={environment}
+                items={dirTree}
+                renderItem={(json) =>
+                  renderItem(json, {
+                    show,
+                    MENU_ID,
+                    displayMenu,
+                    isHovering,
+                    onDBClickItem,
+                    setSelectedItems
+                  })
                 }
-              }}
-              onFocusItem={(item) => setFocusedItem(item.index)}
-              onExpandItem={(item) => setExpandedItems([...expandedItems, item.index])}
-              onCollapseItem={(item) => setExpandedItems(expandedItems.filter((expandedItemIndex) => expandedItemIndex !== item.index))}
-              onSelectItems={(items) => setSelectedItems(items)}
-              canReorderItems={true}
-              canDropOnFolder={true}
-              canRename={true}
-              canDragAndDrop={true}
-              onRenameItem={handleNameChange}
-              onDrop={onDrop}
-              isHovering={isHovering}
-            >
-              <Tree treeId="tree-2" rootItem="UUID_ROOT" treeLabel="Tree Example" ref={tree} />
-            </ControlledTreeEnvironment>
-          </div>
-        </Accordion.Body>
-      </Accordion.Item>
+                getItemTitle={(item) => item.data}
+                viewState={{
+                  ["tree-2"]: {
+                    focusedItem,
+                    expandedItems,
+                    selectedItems
+                  }
+                }}
+                onFocusItem={(item) => setFocusedItem(item.index)}
+                onExpandItem={(item) => setExpandedItems([...expandedItems, item.index])}
+                onCollapseItem={(item) => setExpandedItems(expandedItems.filter((expandedItemIndex) => expandedItemIndex !== item.index))}
+                onSelectItems={(items) => setSelectedItems(items)}
+                canReorderItems={true}
+                canDropOnFolder={true}
+                canRename={true}
+                canDragAndDrop={true}
+                onRenameItem={handleNameChange}
+                onDrop={onDrop}
+                isHovering={isHovering}
+              >
+                <Tree treeId="tree-2" rootItem="UUID_ROOT" treeLabel="Tree Example" ref={tree} />
+              </ControlledTreeEnvironment>
+            </div>
+          </Accordion.Body>
+        </Accordion.Item>
 
-      <Menu id={"MENU_JSON"}>
-        <Submenu
-          className="context-submenu"
-          label={
-            <>
-              <BoxArrowUpRight size={"1rem"} className="context-menu-icon" />
-              Open in...
-            </>
-          }
-        >
-          <Item id="openInJSONViewer" onClick={handleContextMenuAction}>
-            JSON Viewer (default)
-          </Item>
-          <Item id="openInDataTableViewer" onClick={handleContextMenuAction}>
-            DataTable Viewer
-          </Item>
-          <Item id="openInDtale" onClick={handleContextMenuAction}>
-            D-Tale
-          </Item>
-          <Item id="openInPandasProfiling" onClick={handleContextMenuAction}>
-            PandasProfiling
-          </Item>
-        </Submenu>
-        <Item id="revealInFileExplorer" onClick={handleContextMenuAction}>
-          {/* <BoxArrowUpRight size={"1rem"} className="context-menu-icon" /> */}
-          Reveal in File Explorer
-        </Item>
-        <Item id="rename" onClick={handleContextMenuAction}>
-          <Eraser size={"1rem"} className="context-menu-icon" />
-          Rename
-        </Item>
-        <Item id="delete" onClick={handleContextMenuAction}>
-          <Trash size={"1rem"} className="context-menu-icon" />
-          Delete
-        </Item>
-      </Menu>
-      <Menu id={"MENU_DATA"}>
-        <Submenu
-          className="context-submenu"
-          label={
-            <>
-              <BoxArrowUpRight size={"1rem"} className="context-menu-icon" />
-              Open in...
-            </>
-          }
-        >
-          <Item id="openInDataTableViewer" onClick={handleContextMenuAction}>
-            DataTable Viewer (default)
-          </Item>
-          <Item id="openInDtale" onClick={handleContextMenuAction}>
-            D-Tale
-          </Item>
-          <Item id="openInPandasProfiling" onClick={handleContextMenuAction}>
-            PandasProfiling
-          </Item>
-        </Submenu>
-        <Item id="revealInFileExplorer" onClick={handleContextMenuAction}>
-          {/* <BoxArrowUpRight size={"1rem"} className="context-menu-icon" /> */}
-          Reveal in File Explorer
-        </Item>
-        <Item id="rename" onClick={handleContextMenuAction}>
-          <Eraser size={"1rem"} className="context-menu-icon" />
-          Rename
-        </Item>
-        <Item id="delete" onClick={handleContextMenuAction}>
-          <Trash size={"1rem"} className="context-menu-icon" />
-          Delete
-        </Item>
-      </Menu>
-
-      <Menu id={"MENU_MEDML"}>
-        <Submenu
-          className="context-submenu"
-          label={
-            <>
-              <BoxArrowUpRight size={"1rem"} className="context-menu-icon" />
-              Open in...
-            </>
-          }
-        >
-          <Item id="openLearningModule" onClick={handleContextMenuAction}>
-            Learning module (default)
-          </Item>
-        </Submenu>
-        <Item id="revealInFileExplorer" onClick={handleContextMenuAction}>
-          {/* <BoxArrowUpRight size={"1rem"} className="context-menu-icon" /> */}
-          Reveal in File Explorer
-        </Item>
-        <Item id="rename" onClick={handleContextMenuAction}>
-          <Eraser size={"1rem"} className="context-menu-icon" />
-          Rename
-        </Item>
-        <Item id="delete" onClick={handleContextMenuAction}>
-          <Trash size={"1rem"} className="context-menu-icon" />
-          Delete
-        </Item>
-      </Menu>
-
-      <Menu id="MENU_FOLDER">
-        <Item id="revealInFileExplorer" onClick={handleContextMenuAction}>
-          {/* <BoxArrowUpRight size={"1rem"} className="context-menu-icon" /> */}
-          Reveal in File Explorer
-        </Item>
-        <Item id="rename" onClick={handleContextMenuAction}>
-          <Eraser size={"1rem"} className="context-menu-icon" />
-          Rename
-        </Item>
-        <Item id="delete" onClick={handleContextMenuAction}>
-          <Trash size={"1rem"} className="context-menu-icon" />
-          Delete
-        </Item>
-      </Menu>
-
-      <Menu id="MENU_CODE">
-        <Submenu
-          className="context-submenu"
-          label={
-            <>
-              <BoxArrowUpRight size={"1rem"} className="context-menu-icon" />
-              Open in...
-            </>
-          }
-        >
-          <Item id="openInCodeEditor" onClick={handleContextMenuAction}>
-            Code editor (default)
-          </Item>
-          <Item id="openInJupyter" onClick={
-            () => {
-              console.log("OPEN IN JUPYTER")
+        <Menu id={"MENU_JSON"}>
+          <Submenu
+            className="context-submenu"
+            label={
+              <>
+                <BoxArrowUpRight size={"1rem"} className="context-menu-icon" />
+                Open in...
+              </>
             }
-          }>
-            Jupyter Notebook
-          </Item>
-          <Item id="openInVSCode" onClick={() => require("electron").shell.openPath(globalData[selectedItems[0]].path)}>
+          >
+            <Item id="openInJSONViewer" onClick={handleContextMenuAction}>
+              JSON Viewer (default)
+            </Item>
+            <Item id="openInDataTableViewer" onClick={handleContextMenuAction}>
+              DataTable Viewer
+            </Item>
+            <Item id="openInDtale" onClick={handleContextMenuAction}>
+              D-Tale
+            </Item>
+            <Item id="openInPandasProfiling" onClick={handleContextMenuAction}>
+              PandasProfiling
+            </Item>
+          </Submenu>
+          <Item id="revealInFileExplorer" onClick={handleContextMenuAction}>
             {/* <BoxArrowUpRight size={"1rem"} className="context-menu-icon" /> */}
-            VSCode
+            Reveal in File Explorer
           </Item>
-        </Submenu>
-        <Item id="revealInFileExplorer" onClick={handleContextMenuAction}>
-          {/* <BoxArrowUpRight size={"1rem"} className="context-menu-icon" /> */}
-          Reveal in File Explorer
-        </Item>
-        <Item id="rename" onClick={handleContextMenuAction}>
-          <Eraser size={"1rem"} className="context-menu-icon" />
-          Rename
-        </Item>
-        <Item id="delete" onClick={handleContextMenuAction}>
-          <Trash size={"1rem"} className="context-menu-icon" />
-          Delete
-        </Item>
-      </Menu>
+          <Item id="rename" onClick={handleContextMenuAction}>
+            <Eraser size={"1rem"} className="context-menu-icon" />
+            Rename
+          </Item>
+          <Item id="delete" onClick={handleContextMenuAction}>
+            <Trash size={"1rem"} className="context-menu-icon" />
+            Delete
+          </Item>
+        </Menu>
+        <Menu id={"MENU_DATA"}>
+          <Submenu
+            className="context-submenu"
+            label={
+              <>
+                <BoxArrowUpRight size={"1rem"} className="context-menu-icon" />
+                Open in...
+              </>
+            }
+          >
+            <Item id="openInDataTableViewer" onClick={handleContextMenuAction}>
+              DataTable Viewer (default)
+            </Item>
+            <Item id="openInDtale" onClick={handleContextMenuAction}>
+              D-Tale
+            </Item>
+            <Item id="openInPandasProfiling" onClick={handleContextMenuAction}>
+              PandasProfiling
+            </Item>
+          </Submenu>
+          <Item id="revealInFileExplorer" onClick={handleContextMenuAction}>
+            {/* <BoxArrowUpRight size={"1rem"} className="context-menu-icon" /> */}
+            Reveal in File Explorer
+          </Item>
+          <Item id="rename" onClick={handleContextMenuAction}>
+            <Eraser size={"1rem"} className="context-menu-icon" />
+            Rename
+          </Item>
+          <Item id="delete" onClick={handleContextMenuAction}>
+            <Trash size={"1rem"} className="context-menu-icon" />
+            Delete
+          </Item>
+        </Menu>
 
-      <Menu id="MENU_IMAGE">
-        <Submenu
-          className="context-submenu"
-          label={
-            <>
-              <BoxArrowUpRight size={"1rem"} className="context-menu-icon" />
-              Open in...
-            </>
-          }
-        >
-          <Item id="openInImageViewer" onClick={handleContextMenuAction}>
-            Image viewer (default)
+        <Menu id={"MENU_MEDML"}>
+          <Submenu
+            className="context-submenu"
+            label={
+              <>
+                <BoxArrowUpRight size={"1rem"} className="context-menu-icon" />
+                Open in...
+              </>
+            }
+          >
+            <Item id="openLearningModule" onClick={handleContextMenuAction}>
+              Learning module (default)
+            </Item>
+          </Submenu>
+          <Item id="revealInFileExplorer" onClick={handleContextMenuAction}>
+            {/* <BoxArrowUpRight size={"1rem"} className="context-menu-icon" /> */}
+            Reveal in File Explorer
           </Item>
-        </Submenu>
-        <Item id="revealInFileExplorer" onClick={handleContextMenuAction}>
-          {/* <BoxArrowUpRight size={"1rem"} className="context-menu-icon" /> */}
-          Reveal in File Explorer
-        </Item>
-        <Item id="rename" onClick={handleContextMenuAction}>
-          <Eraser size={"1rem"} className="context-menu-icon" />
-          Rename
-        </Item>
-        <Item id="delete" onClick={handleContextMenuAction}>
-          <Trash size={"1rem"} className="context-menu-icon" />
-          Delete
-        </Item>
-      </Menu>
+          <Item id="rename" onClick={handleContextMenuAction}>
+            <Eraser size={"1rem"} className="context-menu-icon" />
+            Rename
+          </Item>
+          <Item id="delete" onClick={handleContextMenuAction}>
+            <Trash size={"1rem"} className="context-menu-icon" />
+            Delete
+          </Item>
+        </Menu>
 
-      <Menu id="MENU_PDF">
-        <Submenu
-          className="context-submenu"
-          label={
-            <>
-              <BoxArrowUpRight size={"1rem"} className="context-menu-icon" />
-              Open in...
-            </>
-          }
-        >
-          <Item id="openInPDFViewer" onClick={handleContextMenuAction}>
-            PDF viewer (default)
+        <Menu id="MENU_FOLDER">
+          <Item id="revealInFileExplorer" onClick={handleContextMenuAction}>
+            {/* <BoxArrowUpRight size={"1rem"} className="context-menu-icon" /> */}
+            Reveal in File Explorer
           </Item>
-        </Submenu>
-        <Item id="revealInFileExplorer" onClick={handleContextMenuAction}>
-          {/* <BoxArrowUpRight size={"1rem"} className="context-menu-icon" /> */}
-          Reveal in File Explorer
-        </Item>
-        <Item id="rename" onClick={handleContextMenuAction}>
-          <Eraser size={"1rem"} className="context-menu-icon" />
-          Rename
-        </Item>
-        <Item id="delete" onClick={handleContextMenuAction}>
-          <Trash size={"1rem"} className="context-menu-icon" />
-          Delete
-        </Item>
-      </Menu>
+          <Item id="rename" onClick={handleContextMenuAction}>
+            <Eraser size={"1rem"} className="context-menu-icon" />
+            Rename
+          </Item>
+          <Item id="delete" onClick={handleContextMenuAction}>
+            <Trash size={"1rem"} className="context-menu-icon" />
+            Delete
+          </Item>
+        </Menu>
 
-      <Menu id="MENU_TEXT">
-        <Submenu
-          className="context-submenu"
-          label={
-            <>
-              <BoxArrowUpRight size={"1rem"} className="context-menu-icon" />
-              Open in...
-            </>
-          }
-        >
-          <Item>Text editor (default)</Item>
-        </Submenu>
-        <Item id="revealInFileExplorer" onClick={handleContextMenuAction}>
-          {/* <BoxArrowUpRight size={"1rem"} className="context-menu-icon" /> */}
-          Reveal in File Explorer
-        </Item>
-        <Item id="rename" onClick={handleContextMenuAction}>
-          <Eraser size={"1rem"} className="context-menu-icon" />
-          Rename
-        </Item>
-        <Item id="delete" onClick={handleContextMenuAction}>
-          <Trash size={"1rem"} className="context-menu-icon" />
-          Delete
-        </Item>
-      </Menu>
+        <Menu id="MENU_CODE">
+          <Submenu
+            className="context-submenu"
+            label={
+              <>
+                <BoxArrowUpRight size={"1rem"} className="context-menu-icon" />
+                Open in...
+              </>
+            }
+          >
+            <Item id="openInCodeEditor" onClick={handleContextMenuAction}>
+              Code editor (default)
+            </Item>
+            <Item
+              id="openInJupyter"
+              onClick={() => {
+                console.log("OPEN IN JUPYTER")
+              }}
+            >
+              Jupyter Notebook
+            </Item>
+            <Item id="openInVSCode" onClick={() => require("electron").shell.openPath(globalData[selectedItems[0]].path)}>
+              {/* <BoxArrowUpRight size={"1rem"} className="context-menu-icon" /> */}
+              VSCode
+            </Item>
+          </Submenu>
+          <Item id="revealInFileExplorer" onClick={handleContextMenuAction}>
+            {/* <BoxArrowUpRight size={"1rem"} className="context-menu-icon" /> */}
+            Reveal in File Explorer
+          </Item>
+          <Item id="rename" onClick={handleContextMenuAction}>
+            <Eraser size={"1rem"} className="context-menu-icon" />
+            Rename
+          </Item>
+          <Item id="delete" onClick={handleContextMenuAction}>
+            <Trash size={"1rem"} className="context-menu-icon" />
+            Delete
+          </Item>
+        </Menu>
 
-      <Menu id="MENU_MODEL">
-        <Submenu
-          className="context-submenu"
-          label={
-            <>
-              <BoxArrowUpRight size={"1rem"} className="context-menu-icon" />
-              Open in...
-            </>
-          }
-        >
-          <Item id="openInModelViewer" onClick={handleContextMenuAction}>
-            Model viewer (default)
+        <Menu id="MENU_IMAGE">
+          <Submenu
+            className="context-submenu"
+            label={
+              <>
+                <BoxArrowUpRight size={"1rem"} className="context-menu-icon" />
+                Open in...
+              </>
+            }
+          >
+            <Item id="openInImageViewer" onClick={handleContextMenuAction}>
+              Image viewer (default)
+            </Item>
+          </Submenu>
+          <Item id="revealInFileExplorer" onClick={handleContextMenuAction}>
+            {/* <BoxArrowUpRight size={"1rem"} className="context-menu-icon" /> */}
+            Reveal in File Explorer
           </Item>
-          <Item id="openInEvaluationModule" onClick={handleContextMenuAction}>
-            Evaluation Module
+          <Item id="rename" onClick={handleContextMenuAction}>
+            <Eraser size={"1rem"} className="context-menu-icon" />
+            Rename
           </Item>
-          <Item id="openInApplicationModule" onClick={handleContextMenuAction}>
-            Application Module
+          <Item id="delete" onClick={handleContextMenuAction}>
+            <Trash size={"1rem"} className="context-menu-icon" />
+            Delete
           </Item>
-        </Submenu>
-        <Item id="revealInFileExplorer" onClick={handleContextMenuAction}>
-          {/* <BoxArrowUpRight size={"1rem"} className="context-menu-icon" /> */}
-          Reveal in File Explorer
-        </Item>
-        <Item id="rename" onClick={handleContextMenuAction}>
-          <Eraser size={"1rem"} className="context-menu-icon" />
-          Rename
-        </Item>
-        <Item id="delete" onClick={handleContextMenuAction}>
-          <Trash size={"1rem"} className="context-menu-icon" />
-          Delete
-        </Item>
-      </Menu>
+        </Menu>
 
-      <Menu id="MENU_DEFAULT">
-        <Item id="revealInFileExplorer" onClick={handleContextMenuAction}>
-          {/* <BoxArrowUpRight size={"1rem"} className="context-menu-icon" /> */}
-          Reveal in File Explorer
-        </Item>
-        <Item id="rename" onClick={handleContextMenuAction}>
-          <Eraser size={"1rem"} className="context-menu-icon" />
-          Rename
-        </Item>
-        <Item id="delete" onClick={handleContextMenuAction}>
-          <Trash size={"1rem"} className="context-menu-icon" />
-          Delete
-        </Item>
-      </Menu>
+        <Menu id="MENU_PDF">
+          <Submenu
+            className="context-submenu"
+            label={
+              <>
+                <BoxArrowUpRight size={"1rem"} className="context-menu-icon" />
+                Open in...
+              </>
+            }
+          >
+            <Item id="openInPDFViewer" onClick={handleContextMenuAction}>
+              PDF viewer (default)
+            </Item>
+          </Submenu>
+          <Item id="revealInFileExplorer" onClick={handleContextMenuAction}>
+            {/* <BoxArrowUpRight size={"1rem"} className="context-menu-icon" /> */}
+            Reveal in File Explorer
+          </Item>
+          <Item id="rename" onClick={handleContextMenuAction}>
+            <Eraser size={"1rem"} className="context-menu-icon" />
+            Rename
+          </Item>
+          <Item id="delete" onClick={handleContextMenuAction}>
+            <Trash size={"1rem"} className="context-menu-icon" />
+            Delete
+          </Item>
+        </Menu>
+
+        <Menu id="MENU_TEXT">
+          <Submenu
+            className="context-submenu"
+            label={
+              <>
+                <BoxArrowUpRight size={"1rem"} className="context-menu-icon" />
+                Open in...
+              </>
+            }
+          >
+            <Item>Text editor (default)</Item>
+          </Submenu>
+          <Item id="revealInFileExplorer" onClick={handleContextMenuAction}>
+            {/* <BoxArrowUpRight size={"1rem"} className="context-menu-icon" /> */}
+            Reveal in File Explorer
+          </Item>
+          <Item id="rename" onClick={handleContextMenuAction}>
+            <Eraser size={"1rem"} className="context-menu-icon" />
+            Rename
+          </Item>
+          <Item id="delete" onClick={handleContextMenuAction}>
+            <Trash size={"1rem"} className="context-menu-icon" />
+            Delete
+          </Item>
+        </Menu>
+
+        <Menu id="MENU_MODEL">
+          <Submenu
+            className="context-submenu"
+            label={
+              <>
+                <BoxArrowUpRight size={"1rem"} className="context-menu-icon" />
+                Open in...
+              </>
+            }
+          >
+            <Item id="openInModelViewer" onClick={handleContextMenuAction}>
+              Model viewer (default)
+            </Item>
+            <Item id="openInEvaluationModule" onClick={handleContextMenuAction}>
+              Evaluation Module
+            </Item>
+            <Item id="openInApplicationModule" onClick={handleContextMenuAction}>
+              Application Module
+            </Item>
+          </Submenu>
+          <Item id="revealInFileExplorer" onClick={handleContextMenuAction}>
+            {/* <BoxArrowUpRight size={"1rem"} className="context-menu-icon" /> */}
+            Reveal in File Explorer
+          </Item>
+          <Item id="rename" onClick={handleContextMenuAction}>
+            <Eraser size={"1rem"} className="context-menu-icon" />
+            Rename
+          </Item>
+          <Item id="delete" onClick={handleContextMenuAction}>
+            <Trash size={"1rem"} className="context-menu-icon" />
+            Delete
+          </Item>
+        </Menu>
+
+        <Menu id="MENU_DEFAULT">
+          <Item id="revealInFileExplorer" onClick={handleContextMenuAction}>
+            {/* <BoxArrowUpRight size={"1rem"} className="context-menu-icon" /> */}
+            Reveal in File Explorer
+          </Item>
+          <Item id="rename" onClick={handleContextMenuAction}>
+            <Eraser size={"1rem"} className="context-menu-icon" />
+            Rename
+          </Item>
+          <Item id="delete" onClick={handleContextMenuAction}>
+            <Trash size={"1rem"} className="context-menu-icon" />
+            Delete
+          </Item>
+        </Menu>
+      </div>
     </>
   )
 }
