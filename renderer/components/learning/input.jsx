@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useContext } from "react"
 import CreatableSelect from "react-select/creatable" // https://react-select.com/creatable
-import Select from "react-select"
 import FloatingLabel from "react-bootstrap/FloatingLabel"
 import Form from "react-bootstrap/Form"
 import { toast } from "react-toastify" // https://www.npmjs.com/package/react-toastify
@@ -39,7 +38,7 @@ const createOption = (label) => ({
  * This component is used to display a Input component.
  * it handles multiple types of input and format them to be similar
  */
-const Input = ({ name, settingInfos, currentValue, onInputChange, disabled, setHasWarning = () => {}, customProps}) => {
+const Input = ({ name, settingInfos, currentValue, onInputChange, disabled, setHasWarning = () => {}, customProps }) => {
   const [inputUpdate, setInputUpdate] = useState({})
   const [inputValue, setInputValue] = useState("")
   const { globalData, setGlobalData } = useContext(DataContext)
@@ -232,9 +231,9 @@ const Input = ({ name, settingInfos, currentValue, onInputChange, disabled, setH
       case "list-multiple":
         return (
           <>
-            <MultiSelect 
-            key={name}
-            disabled={disabled}
+            <MultiSelect
+              key={name}
+              disabled={disabled}
               value={currentValue ? currentValue.value : []}
               onChange={(newValue) =>
                 setInputUpdate({
@@ -242,24 +241,19 @@ const Input = ({ name, settingInfos, currentValue, onInputChange, disabled, setH
                   value: newValue,
                   type: settingInfos.type
                 })
-              } 
-              options={
-                Object.entries(currentValue).map(([option]) => {
-                  return {
-                    label: option,
-                    value: option
-                  }
-                })
-              } 
-              optionLabel="name" 
+              }
+              options={Object.entries(currentValue).map(([option]) => {
+                return {
+                  label: option,
+                  value: option
+                }
+              })}
+              optionLabel="name"
               display="chip"
-              className="w-full md:w-20rem" 
+              className="w-full md:w-20rem"
             />
 
             {createTooltip(settingInfos.tooltip, name)}
-
-
-
           </>
         )
       // for range input
@@ -343,7 +337,7 @@ const Input = ({ name, settingInfos, currentValue, onInputChange, disabled, setH
                 disabled={disabled}
                 selectedPath={currentValue}
                 acceptedExtensions={["csv"]}
-                acceptFolder= {settingInfos.acceptFolder? settingInfos.acceptFolder : false}
+                acceptFolder={settingInfos.acceptFolder ? settingInfos.acceptFolder : false}
                 onChange={(e, path) => {
                   console.log("e", e, path)
                   if (path == "") {
@@ -363,77 +357,77 @@ const Input = ({ name, settingInfos, currentValue, onInputChange, disabled, setH
           </>
         )
 
-        case "data-input-multiple":
-          console.log("currentValue", currentValue)
-          console.log("settingInfos", settingInfos)
-          console.log("name", name)
-          return (
-            <>
-                <WsSelectMultiple
-                  key={name}
-                  rootDir="learning"
-                  placeholder={name}
-                  disabled={disabled}
-                  selectedPaths={currentValue}
-                  acceptedExtensions={["csv"]}
-                  acceptFolder= {settingInfos.acceptFolder? settingInfos.acceptFolder : false}
-                  onChange={(value) => {
-                    console.log("e", value)
-                    if (value.length === 0) {
-                      setHasWarning({ state: true, tooltip: <p>No file(s) selected</p> })
-                    } else {
-                      setHasWarning({ state: false })
-                    }
-                    setInputUpdate({
-                      name: name,
-                      value: value,
-                      type: settingInfos.type
-                    })
-                  }}
-                />
-              {createTooltip(settingInfos.tooltip, name)}
-            </>
-          )
-        case "tags-input-multiple":
-          return (
-            <>
-                <TagsSelectMultiple
-                  key={name}
-                  placeholder={name}
-                  disabled={!settingInfos.selectedDatasets}
-                  selectedTags={currentValue}
-                  selectedDatasets={settingInfos.selectedDatasets}
-                  onChange={(value) => {
-                    console.log("e", value)
-                    setInputUpdate({
-                      name: name,
-                      value: value,
-                      type: settingInfos.type
-                    })
-                  }}
-                />
-              {createTooltip(settingInfos.tooltip, name)}
-            </>
-          )
-        case "variables-input-multiple":
+      case "data-input-multiple":
+        console.log("currentValue", currentValue)
+        console.log("settingInfos", settingInfos)
+        console.log("name", name)
         return (
           <>
-              <VarsSelectMultiple
-                key={name}
-                placeholder={name}
-                disabled={!settingInfos.selectedDatasets}
-                selectedTags={settingInfos.selectedTags}
-                selectedDatasets={settingInfos.selectedDatasets}
-                selectedVars={currentValue}
-                onChange={(value) => {
-                  console.log("e", value)
-                  setInputUpdate({
-                    name: name,
-                    value: value,
-                    type: settingInfos.type
-                  })
-                }}
-              />
+            <WsSelectMultiple
+              key={name}
+              rootDir="learning"
+              placeholder={name}
+              disabled={disabled}
+              selectedPaths={currentValue}
+              acceptedExtensions={["csv"]}
+              acceptFolder={settingInfos.acceptFolder ? settingInfos.acceptFolder : false}
+              onChange={(value) => {
+                console.log("e", value)
+                if (value.length === 0) {
+                  setHasWarning({ state: true, tooltip: <p>No file(s) selected</p> })
+                } else {
+                  setHasWarning({ state: false })
+                }
+                setInputUpdate({
+                  name: name,
+                  value: value,
+                  type: settingInfos.type
+                })
+              }}
+            />
+            {createTooltip(settingInfos.tooltip, name)}
+          </>
+        )
+      case "tags-input-multiple":
+        return (
+          <>
+            <TagsSelectMultiple
+              key={name}
+              placeholder={name}
+              disabled={!settingInfos.selectedDatasets}
+              selectedTags={currentValue}
+              selectedDatasets={settingInfos.selectedDatasets}
+              onChange={(value) => {
+                console.log("e", value)
+                setInputUpdate({
+                  name: name,
+                  value: value,
+                  type: settingInfos.type
+                })
+              }}
+            />
+            {createTooltip(settingInfos.tooltip, name)}
+          </>
+        )
+      case "variables-input-multiple":
+        return (
+          <>
+            <VarsSelectMultiple
+              key={name}
+              placeholder={name}
+              disabled={!settingInfos.selectedDatasets}
+              selectedTags={settingInfos.selectedTags}
+              selectedDatasets={settingInfos.selectedDatasets}
+              selectedVars={currentValue}
+              onChange={(value) => {
+                console.log("e", value)
+                setInputUpdate({
+                  name: name,
+                  value: value,
+                  type: settingInfos.type
+                })
+              }}
+            />
             {createTooltip(settingInfos.tooltip, name)}
           </>
         )
