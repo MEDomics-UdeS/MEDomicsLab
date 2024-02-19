@@ -12,7 +12,6 @@ function FlowInfosProvider({ children }) {
   const [showAvailableNodes, setShowAvailableNodes] = useState(false) // Initial state
   const [flowContent, setFlowContent] = useState({}) // Initial state
   const [flowContentExportable, setFlowContentExportable] = useState({}) // Initial state
-  const [experimentName, setExperimentName] = useState(null) // Initial state
   const [sceneName, setSceneName] = useState(null) // Initial state
   const [canRun, setCanRun] = useState(false) // Initial state
 
@@ -45,8 +44,6 @@ function FlowInfosProvider({ children }) {
         updateFlowContent,
         showAvailableNodes,
         setShowAvailableNodes,
-        experimentName,
-        setExperimentName,
         sceneName,
         setSceneName,
         flowContentExportable,
