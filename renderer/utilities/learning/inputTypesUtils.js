@@ -94,6 +94,11 @@ const implementedTypesDescription = [
     type: "variables-input-multiple",
     description: "for variables input",
     default: []
+  },
+  {
+    type: "str or None",
+    description: "for str or None input",
+    default: ""
   }
 ]
 

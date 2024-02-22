@@ -314,7 +314,7 @@ if (isProd) {
 
     if (!isProd) {
       //**** DEVELOPMENT ****//
-      let args = [serverPort, "prod", process.cwd()]
+      let args = [serverPort, "dev", process.cwd()]
       // Get the temporary directory path
       args.push(os.tmpdir())
 
