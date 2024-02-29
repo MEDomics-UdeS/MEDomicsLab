@@ -98,6 +98,7 @@ const Input = ({ name, settingInfos, currentValue, onInputChange, disabled, setH
         }
       }
       onInputChange(inputUpdate)
+      console.log("HERE", inputUpdate)
     }
   }, [inputUpdate])
 
@@ -146,7 +147,7 @@ const Input = ({ name, settingInfos, currentValue, onInputChange, disabled, setH
                 onChange={(e) =>
                   setInputUpdate({
                     name: name,
-                    value: e.target.value,
+                    value: parseInt(e.target.value),
                     type: settingInfos.type
                   })
                 }
@@ -167,7 +168,7 @@ const Input = ({ name, settingInfos, currentValue, onInputChange, disabled, setH
                 onChange={(e) =>
                   setInputUpdate({
                     name: name,
-                    value: e.target.value,
+                    value: parseFloat(e.target.value),
                     type: settingInfos.type
                   })
                 }
