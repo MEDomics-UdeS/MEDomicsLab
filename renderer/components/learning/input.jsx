@@ -98,7 +98,6 @@ const Input = ({ name, settingInfos, currentValue, onInputChange, disabled, setH
         }
       }
       onInputChange(inputUpdate)
-      console.log("HERE", inputUpdate)
     }
   }, [inputUpdate])
 
@@ -164,6 +163,7 @@ const Input = ({ name, settingInfos, currentValue, onInputChange, disabled, setH
               <Form.Control
                 disabled={disabled}
                 type="number"
+                step="0.1"
                 defaultValue={currentValue}
                 onChange={(e) =>
                   setInputUpdate({
