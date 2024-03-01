@@ -79,6 +79,7 @@ const Input = ({ name, settingInfos, currentValue, onInputChange, disabled, setH
   // execute this when an input is updated
   // it also verify if the input is correct
   useEffect(() => {
+    console.log("changed", inputUpdate)
     if (inputUpdate.name != undefined) {
       if (inputUpdate.type == "int") {
         let regexPattern = /^-?[0-9]+$/
@@ -193,6 +194,7 @@ const Input = ({ name, settingInfos, currentValue, onInputChange, disabled, setH
                   })
                 }
               >
+                <option value="" hidden></option>
                 <option value="True">True</option>
                 <option value="False">False</option>
               </Form.Select>

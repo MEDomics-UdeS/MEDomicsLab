@@ -154,6 +154,7 @@ class MEDexperimentLearning(MEDexperiment):
             "paths": node.get_path_list(),
         }
         node._info_for_next_node['dataset'] = dataset_metaData['dataset']
+        node._info_for_next_node['setup_settings'] = kwargs
         return {
             'pycaret_exp': pycaret_exp,
             'medml_logger': medml_logger,
