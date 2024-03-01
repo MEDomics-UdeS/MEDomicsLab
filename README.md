@@ -19,9 +19,9 @@ The schedule of the Testing Phase (2024) and the series of tutorials are planned
 * [Step 2 - Extract Data](https://medomics-udes.gitbook.io/medomicslab-docs/test-with-mimic/step-2): Jan 29 – Feb 12
 * [Step 3 - Prepare ML tables](https://medomics-udes.gitbook.io/medomicslab-docs/test-with-mimic/step-3): Feb 12 – Feb 26
 * [Step 4 - Explore Data](https://medomics-udes.gitbook.io/medomicslab-docs/test-with-mimic/step-4): Feb 26 – Mar 11
-* [Step 5 - Create Model](https://medomics-udes.gitbook.io/medomicslab-docs/test-with-mimic/step-5): Mar 11 – Mar 25
-* [Step 6 - Evaluate Model](https://medomics-udes.gitbook.io/medomicslab-docs/test-with-mimic/step-6): Mar 25 – Apr 8
-* [Step 7 - Apply and Deploy Model](https://medomics-udes.gitbook.io/medomicslab-docs/test-with-mimic/step-7): Apr 8 – Apr 22 
+* [Step 5 - Vacations](https://medomics-udes.gitbook.io/medomicslab-docs/test-with-mimic/step-5): Mar 11 – Mar 25
+* [Step 6 - Create Model](https://medomics-udes.gitbook.io/medomicslab-docs/test-with-mimic/step-6): Mar 25 – Apr 8
+* [Step 7 - Evaluate & Apply Model](https://medomics-udes.gitbook.io/medomicslab-docs/test-with-mimic/step-7): Apr 8 – Apr 22 
 * [Step 8 - Challenge](https://medomics-udes.gitbook.io/medomicslab-docs/test-with-mimic/step-8): Apr 22 – May 13
 
 Please note that an **Information Session** about the Testing Phase was held on December 15, 2023. You can find the recording of the session here: [Information Session](https://youtu.be/BG4BkqZDk-Y?si=cm6JjXUogLPM9uOg). 
