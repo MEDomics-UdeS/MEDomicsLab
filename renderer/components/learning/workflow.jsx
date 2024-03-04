@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useMemo, useEffect, useContext } from "react"
+import { ipcRenderer } from "electron"
 import { toast } from "react-toastify"
 import Form from "react-bootstrap/Form"
 import { useNodesState, useEdgesState, useReactFlow, addEdge } from "reactflow"
@@ -32,6 +33,7 @@ import nodesParams from "../../public/setupVariables/allNodesParams"
 import { removeDuplicates, deepCopy } from "../../utilities/staticFunctions"
 import { defaultValueFromType } from "../../utilities/learning/inputTypesUtils.js"
 import { FlowInfosContext } from "../flow/context/flowInfosContext.jsx"
+import Path from "path"
 
 const staticNodesParams = nodesParams // represents static nodes parameters
 
@@ -502,6 +504,80 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
   )
 
   /**
+   * Get the byte size of the json object
+   * @param {Object} json json object
+   * @param {String} sizeType type of the size (bytes, kb, mb)
+   * @returns {Number} byte size of the json object
+   */
+  const getByteSize = (json, sizeType) => {
+    if (sizeType == undefined) {
+      sizeType = "bytes"
+    }
+    if (json != null && json != undefined) {
+      let size = new Blob([JSON.stringify(json)]).size
+      if (sizeType == "bytes") {
+        return size
+      } else if (sizeType == "kb") {
+        return size / 1024
+      } else if (sizeType == "mb") {
+        return size / 1024 / 1024
+      }
+    }
+  }
+
+  /**
+   * Request the backend to run the experiment
+   * @param {Number} port port of the backend
+   * @param {Object} flow json object of the workflow
+   * @param {Boolean} isValid boolean to know if the workflow is valid
+   * @returns {Object} results of the experiment
+   */
+  function requestBackendRunExperiment(port, flow, isValid) {
+    if (isValid) {
+      console.log("sended flow", flow)
+      console.log("port", port)
+      setIsProgressUpdating(true)
+      requestBackend(
+        port,
+        "/learning/run_experiment/" + pageId,
+        flow,
+        (jsonResponse) => {
+          console.log("received results:", jsonResponse)
+          if (!jsonResponse.error) {
+            updateFlowResults(jsonResponse)
+            setProgress({
+              now: 100,
+              currentLabel: "Done!"
+            })
+            setIsProgressUpdating(false)
+          } else {
+            setProgress({
+              now: 0,
+              currentLabel: ""
+            })
+            setIsProgressUpdating(false)
+            toast.error("Error detected while running the experiment")
+            console.log("error", jsonResponse.error)
+            setError(jsonResponse.error)
+          }
+        },
+        (error) => {
+          setProgress({
+            now: 0,
+            currentLabel: ""
+          })
+          setIsProgressUpdating(false)
+          toast.error("Error detected while running the experiment")
+          console.log("error", error)
+          setError(error)
+        }
+      )
+    } else {
+      toast.warn("Workflow is not valid, maybe some default values are not set")
+    }
+  }
+
+  /**
    * execute the whole workflow
    */
   const onRun = useCallback(
@@ -515,47 +591,21 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
 
         let { newflow, isValid } = cleanJson2Send(flow, up2Id)
         flow = newflow
-        if (isValid) {
-          console.log("sended flow", flow)
-          console.log("port", port)
-          setIsProgressUpdating(true)
-          requestBackend(
-            port,
-            "/learning/run_experiment/" + pageId,
-            flow,
-            (jsonResponse) => {
-              console.log("received results:", jsonResponse)
-              if (!jsonResponse.error) {
-                updateFlowResults(jsonResponse)
-                setProgress({
-                  now: 100,
-                  currentLabel: "Done!"
-                })
-                setIsProgressUpdating(false)
-              } else {
-                setProgress({
-                  now: 0,
-                  currentLabel: ""
-                })
-                setIsProgressUpdating(false)
-                toast.error("Error detected while running the experiment")
-                console.log("error", jsonResponse.error)
-                setError(jsonResponse.error)
-              }
-            },
-            (error) => {
-              setProgress({
-                now: 0,
-                currentLabel: ""
-              })
-              setIsProgressUpdating(false)
-              toast.error("Error detected while running the experiment")
-              console.log("error", error)
-              setError(error)
-            }
-          )
+        // If the workflow size is too big, we need to put it in a file and send it to the server
+        // This is because the server can't handle big json objects
+        if (getByteSize(flow, "bytes") > 25000) {
+          console.log("JSON config object is too big to be sent to the server. It will be saved in a file and sent to the server.")
+          // Get the temporary directory
+          ipcRenderer.invoke("appGetPath", "temp").then((tmpDirectory) => {
+            // Save the workflow in a file
+            MedDataObject.writeFileSync(flow, tmpDirectory, pageId, "json")
+            // Change the flow to the path of the file
+            let newPath = Path.join(tmpDirectory, pageId + ".json")
+            flow = { temp: newPath }
+            requestBackendRunExperiment(port, flow, isValid)
+          })
         } else {
-          toast.warn("Workflow is not valid, maybe some default values are not set")
+          requestBackendRunExperiment(port, flow, isValid)
         }
       } else {
         toast.warn("react flow instance not found")
