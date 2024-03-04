@@ -437,6 +437,15 @@ if (isProd) {
   })
 
   /**
+   * @description Returns the path of the specified directory of the app
+   * @param {String} path The path to get
+   * @returns {Promise<String>} The path of the specified directory of the app
+   */
+  ipcMain.handle("appGetPath", async (_event, path) => {
+    return app.getPath(path)
+  })
+
+  /**
    * @description Returns the settings
    * @returns {Object} The settings
    * @summary Returns the settings from the settings file if it exists, otherwise returns an empty object
