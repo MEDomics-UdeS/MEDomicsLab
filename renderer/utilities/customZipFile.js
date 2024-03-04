@@ -230,7 +230,7 @@ export default class CustomZipFile {
   createZipSync(
     path = "default",
     customActions = () => {
-      return new Promise((resolve, reject) => {
+      return new Promise((resolve) => {
         console.log("No default custom actions")
         resolve()
       })
@@ -241,7 +241,7 @@ export default class CustomZipFile {
       this.handleInputPath(path)
       console.log("createZipSync", this._cwd, this.fileExtension)
 
-      return new Promise((resolve, reject) => {
+      return new Promise((resolve) => {
         // create an empty folder (temporary)
         createFolderSync(this._cwd).then(async () => {
           // add custom file/folder inside
@@ -282,7 +282,7 @@ export default class CustomZipFile {
               .then(async () => {
                 customActions(this._cwd)
                   .then((returnValue) => {
-                    this.zipDirectory(this._cwd)
+                    this.zipDirectoryPromise(this._cwd)
                       .then(() => {
                         resolve(returnValue)
                       })
@@ -353,6 +353,34 @@ export default class CustomZipFile {
   }
 
   /**
+   * Zip directory promise
+   * @param {String} sourceDir /some/folder/to/compress
+   * @returns {Promise}
+   */
+  zipDirectoryPromise(sourceDir) {
+    return new Promise((resolve, reject) => {
+      // Use the async method to zip the folder and convert the extension of the zip file
+      if (fs.existsSync(sourceDir)) {
+        zipper.zip(sourceDir, (err, zipped) => {
+          if (!err) {
+            zipped.save(sourceDir + ".zip", (error) => {
+              if (error) {
+                reject(error)
+              } else {
+                this.convertExtensionPromise(sourceDir + ".zip").then(() => {
+                  resolve()
+                })
+              }
+            })
+          }
+        })
+      } else {
+        toast.error("The folder does not exist: " + sourceDir)
+      }
+    })
+  }
+
+  /**
    *
    * @param {String} sourceDir /path/to/file.zip
    * @param {String} outPath /path/to/extracted/folder
@@ -367,6 +395,43 @@ export default class CustomZipFile {
         .catch((err) => {
           reject(err)
         })
+    })
+  }
+
+  /**
+   * Convert extension asynchronously
+   * @param {String} zipPath /path/to/file.zip
+   * @returns {Promise}
+   */
+  convertExtensionPromise(zipPath) {
+    let extensionPath = zipPath.replace(".zip", this.fileExtension)
+    let folderPath = zipPath.replace(".zip", "")
+
+    return new Promise((resolve, reject) => {
+      try {
+        // rename the zip file to have the custom extension
+        if (fs.existsSync(zipPath)) {
+          fs.renameSync(zipPath, extensionPath)
+        }
+        if (fs.existsSync(folderPath)) {
+          fs.rmdirSync(
+            folderPath,
+            {
+              recursive: true
+            },
+            (error) => {
+              if (error) {
+                console.log({ ERROR: error })
+              } else {
+                resolve(extensionPath)
+              }
+            }
+          )
+        }
+        resolve()
+      } catch (err) {
+        reject(err)
+      }
     })
   }
 
