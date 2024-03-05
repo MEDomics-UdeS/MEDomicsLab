@@ -158,6 +158,7 @@ class MEDexperimentLearning(MEDexperiment):
         return {
             'pycaret_exp': pycaret_exp,
             'medml_logger': medml_logger,
+            'df': temp_df
         }
 
     def _make_save_ready_rec(self, next_nodes: dict):

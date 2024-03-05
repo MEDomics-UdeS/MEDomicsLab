@@ -34,11 +34,12 @@ class Clean(Node):
         print()
         print(Fore.BLUE + "=== cleaning === " +
               Fore.YELLOW + f"({self.username})" + f"({self.settings})" + Fore.RESET)
+
         medml_logger = MEDml_logger()
         pycaret_exp = create_pycaret_exp(
             ml_type=self.global_config_json['MLType'])
         pycaret_exp.setup(
-            data=kwargs['dataset'],
+            data=experiment['df'],
             **kwargs["setup_settings"],
             log_experiment=medml_logger,
             log_plots=True,
@@ -50,10 +51,10 @@ class Clean(Node):
             "code", f"pycaret_exp = {self.global_config_json['MLType'].capitalize()}Experiment()")
         if len(self.settings.keys()) > 0:
             self.CodeHandler.add_line(
-                "code", f"pycaret_exp.setup(data=dataset, {self.CodeHandler.convert_dict_to_params(setup_settings)}, {self.CodeHandler.convert_dict_to_params(self.settings)})")
+                "code", f"pycaret_exp.setup(data=temp_df, {self.CodeHandler.convert_dict_to_params(setup_settings)}, {self.CodeHandler.convert_dict_to_params(self.settings)})")
         else:
             self.CodeHandler.add_line(
-                "code", f"pycaret_exp.setup(data=dataset, {self.CodeHandler.convert_dict_to_params(setup_settings)})")
+                "code", f"pycaret_exp.setup(data=temp_df, {self.CodeHandler.convert_dict_to_params(setup_settings)})")
         self.CodeHandler.add_line(
             "code", f"dataset = pycaret_exp.get_config('X').join(pycaret_exp.get_config('y'))")
         return {
