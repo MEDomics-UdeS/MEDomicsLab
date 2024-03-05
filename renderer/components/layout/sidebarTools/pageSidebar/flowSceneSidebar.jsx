@@ -40,7 +40,9 @@ const FlowSceneSidebar = ({ type }) => {
     let expFolderUUID = MedDataObject.checkIfMedDataObjectInContextbyName(EXPERIMENTS, globalData, UUID_ROOT)
     if (globalData && expFolderUUID && globalData[expFolderUUID] && globalData[expFolderUUID].childrenIDs) {
       globalData[expFolderUUID].childrenIDs.forEach((childId) => {
-        experimentList.push(globalData[childId].name)
+        if (globalData[childId] && globalData[childId].name) {
+          experimentList.push(globalData[childId].name)
+        }
       })
     }
     setExperimentList(experimentList)
