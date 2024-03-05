@@ -27,8 +27,8 @@ pip install -r requirements.txt
 4. Run the script with the following command for general settings generation:
 
 ```bash
-python settings_generator.py --mltype classification --path <absolute_path_to_the_folder_where_the_settings_will_be_generated>
-python settings_generator.py --mltype regression --path <absolute_path_to_the_folder_where_the_settings_will_be_generated>
+python settings_generator.py --ml_type classification --save_path <absolute_path_to_the_folder_where_the_settings_will_be_generated>
+python settings_generator.py --ml_type regression --save_path <absolute_path_to_the_folder_where_the_settings_will_be_generated>
 ```
 
 > Note: the mltype can be either "classification" or "regression"
