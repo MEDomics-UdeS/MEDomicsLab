@@ -111,6 +111,11 @@ const classificationSettings = {
                 "type": "string",
                 "tooltip": "<dl >\n<dt>Algorithm for feature selection. Choose from:</dt><dd><ul >\n<li><p>\u2018univariate\u2019: Uses sklearn\u2019s SelectKBest.</p></li>\n<li><p>\u2018classic\u2019: Uses sklearn\u2019s SelectFromModel.</p></li>\n<li><p>\u2018sequential\u2019: Uses sklearn\u2019s SequentialFeatureSelector.</p></li>\n</ul>\n</dd>\n</dl>\n",
                 "default_val": "classic"
+            },
+            "n_features_to_select": {
+                "type": "float",
+                "tooltip": "<p>The maximum number of features to select with feature_selection. If &lt;1,\nit\u2019s the fraction of starting features. Note that this parameter doesn\u2019t\ntake features in ignore_features or keep_features into account\nwhen counting.</p>\n",
+                "default_val": "0.2"
             }
         },
         "code": ""
@@ -241,11 +246,6 @@ const classificationSettings = {
                 "type": "string",
                 "tooltip": "<p>Estimator with which to perform class balancing. Choose from the name\nof an <cite>imblearn</cite> estimator, or a custom instance of such. Ignored when\n<cite>fix_imbalance=False</cite>.</p>\n",
                 "default_val": "\u201cSMOTE\u201d"
-            },
-            "n_features_to_select": {
-                "type": "float",
-                "tooltip": "<p>The maximum number of features to select with feature_selection. If &lt;1,\nit\u2019s the fraction of starting features. Note that this parameter doesn\u2019t\ntake features in ignore_features or keep_features into account\nwhen counting.</p>\n",
-                "default_val": "0.2"
             },
             "custom_pipeline": {
                 "type": "list of (str, transformer), dict or Pipeline",

@@ -46,14 +46,16 @@ class Clean(Node):
             **self.settings
         )
         setup_settings = kwargs["setup_settings"]
+        self.CodeHandler.add_line(
+            "code", f"pycaret_exp = {self.global_config_json['MLType'].capitalize()}Experiment()")
         if len(self.settings.keys()) > 0:
             self.CodeHandler.add_line(
-                "code", f"ml_obj = pycaret_exp.setup(data=dataset, {self.CodeHandler.convert_dict_to_params(setup_settings)}, {self.CodeHandler.convert_dict_to_params(self.settings)})")
+                "code", f"pycaret_exp.setup(data=dataset, {self.CodeHandler.convert_dict_to_params(setup_settings)}, {self.CodeHandler.convert_dict_to_params(self.settings)})")
         else:
             self.CodeHandler.add_line(
-                "code", f"ml_obj = pycaret_exp.setup(data=dataset, {self.CodeHandler.convert_dict_to_params(setup_settings)})")
+                "code", f"pycaret_exp.setup(data=dataset, {self.CodeHandler.convert_dict_to_params(setup_settings)})")
         self.CodeHandler.add_line(
-            "code", f"dataset = ml_obj.get_config('X').join(ml_obj.get_config('y'))")
+            "code", f"dataset = pycaret_exp.get_config('X').join(pycaret_exp.get_config('y'))")
         return {
             "experiment": {
             'pycaret_exp': pycaret_exp,

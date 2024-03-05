@@ -14,6 +14,7 @@ import MedDataObject from "../workspace/medDataObject"
 import { Dropdown } from "primereact/dropdown"
 import { MultiSelect } from "primereact/multiselect"
 import VarsSelectMultiple from "../mainPages/dataComponents/varsSelectMultiple"
+import { Message } from "primereact/message"
 
 /**
  *
@@ -79,7 +80,6 @@ const Input = ({ name, settingInfos, currentValue, onInputChange, disabled, setH
   // execute this when an input is updated
   // it also verify if the input is correct
   useEffect(() => {
-    console.log("changed", inputUpdate)
     if (inputUpdate.name != undefined) {
       if (inputUpdate.type == "int") {
         let regexPattern = /^-?[0-9]+$/
@@ -456,6 +456,8 @@ const Input = ({ name, settingInfos, currentValue, onInputChange, disabled, setH
                   type: settingInfos.type
                 })
               }}
+              setHasWarning={setHasWarning}
+              whenEmpty={<Message severity="warn" text="No file(s) found in the workspace under '/learning' folder" />}
             />
             {createTooltip(settingInfos.tooltip, name)}
           </>

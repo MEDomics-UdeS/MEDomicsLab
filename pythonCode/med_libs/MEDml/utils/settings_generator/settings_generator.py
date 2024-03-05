@@ -15,14 +15,14 @@ from collections.abc import MutableMapping
 # python scripts arguments
 import argparse
 parser = argparse.ArgumentParser(description='Script so useful.')
-parser.add_argument("--mlType", type=str, default="classification",
+parser.add_argument("--ml_type", type=str, default="classification",
                     help="machine learning type to generate settings for (classification or regression)")
-parser.add_argument("--path", type=str, default=".",
+parser.add_argument("--save_path", type=str, default=".",
                     help="path to save the settings file to")
 args = parser.parse_args()
 
 # SETUP VARIABLES
-ml_type = args.mlType
+ml_type = args.ml_type
 
 browser = webdriver.Chrome()
 browser.get(f"https://pycaret.readthedocs.io/en/latest/api/{ml_type}.html")
@@ -114,6 +114,8 @@ nodes_options = {
                  "feature_selection",
                  "feature_selection_estimator",
                  "feature_selection_method",
+                 "n_features_to_select",
+                 "feature_selection_estimator"
                  # "fix_imbalance",
                  # "fix_imbalance_method",
                  ],
@@ -499,7 +501,7 @@ possible_settings = delete_keys_from_dict(
 type_list = get_type_list(possible_settings)
 
 
-with open(f"{args.path}/{ml_type}Settings.js", 'w') as f:
+with open(f"{args.save_path}/{ml_type}Settings.js", 'w') as f:
     f.write("/* eslint-disable */\n")
     f.write(
         f"const {ml_type}Settings = {json.dumps(possible_settings, indent=4)}; \n export default {ml_type}Settings;")
