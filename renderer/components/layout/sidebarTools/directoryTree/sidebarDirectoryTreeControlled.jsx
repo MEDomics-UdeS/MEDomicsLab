@@ -43,7 +43,6 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
   }, [isDialogShowing])
 
   useEffect(() => {
-    console.log("selectedItems", selectedItems)
     setExternalSelectedItems && setExternalSelectedItems(selectedItems)
   }, [selectedItems])
 
