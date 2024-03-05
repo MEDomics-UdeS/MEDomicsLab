@@ -202,6 +202,75 @@ const Input = ({ name, settingInfos, currentValue, onInputChange, disabled, setH
             {createTooltip(settingInfos.tooltip, name)}
           </>
         )
+
+      case "bool-int-str":
+      return (
+        <>
+          <FloatingLabel id={name} controlId={name} label={name} className=" input-hov">
+              <Form.Control
+                disabled={disabled}
+                type="text"
+                defaultValue={currentValue}
+                onChange={(e) =>
+                  {
+                    let value = '';
+                    if(/^-?[0-9]+$/.test(e.target.value)){
+                      value = parseInt(e.target.value)
+                    } else {
+                      value = e.target.value
+                    }
+                    console.log("value", value)
+                    setInputUpdate({
+                      name: name,
+                      value: value,
+                      type: settingInfos.type
+                    })
+                  }
+                }
+              />
+            </FloatingLabel>
+          {createTooltip(settingInfos.tooltip, name)}
+        </>
+      )
+      case "int-float-str":
+      return (
+        <>
+          <FloatingLabel controlId={name} label={name} className=" input-hov">
+            <Form.Select
+              disabled={disabled}
+              defaultValue={currentValue}
+              onChange={(e) =>
+                {
+                  // check if the value is a float or an int or a string
+                  let value = ''
+                  if(/^-?[0-9]+$/.test(e.target.value)){
+                    // int
+                    value = parseInt(e.target.value)
+                  } else if (/^-?[0-9]*[.][0-9]+$/.test(e.target.value)) {
+                    // float
+                    value = parseFloat(e.target.value)
+                  } else {
+                    // string
+                    value = e.target.value
+                  }
+
+
+                  setInputUpdate({
+                    name: name,
+                    value: value,
+                    type: settingInfos.type
+                  })
+                }
+              }
+            >
+              <option value="" hidden></option>
+              <option value="True">True</option>
+              <option value="False">False</option>
+            </Form.Select>
+          </FloatingLabel>
+          {createTooltip(settingInfos.tooltip, name)}
+        </>
+      )
       // for list input (form select of all the options)
       case "list":
         return (

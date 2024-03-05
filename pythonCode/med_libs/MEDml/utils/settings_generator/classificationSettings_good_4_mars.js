@@ -3,7 +3,7 @@ const classificationSettings = {
     "clean": {
         "options": {
             "imputation_type": {
-                "type": "string",
+                "type": "str or None",
                 "tooltip": "<p>The type of imputation to use. Can be either \u2018simple\u2019 or \u2018iterative\u2019.\nIf None, no imputation of missing values is performed.</p>\n",
                 "default_val": "simple"
             },
@@ -33,7 +33,7 @@ const classificationSettings = {
                 "default_val": "lightgbm"
             },
             "numeric_imputation": {
-                "type": "int-float-str",
+                "type": "int",
                 "tooltip": "<p>Imputing strategy for numerical columns. Ignored when imputation_type= iterative. Choose from:</p>\n<blockquote>\n<div><ul >\n<li><p>\u201cdrop\u201d: Drop rows containing missing values.</p></li>\n<li><p>\u201cmean\u201d: Impute with mean of column.</p></li>\n<li><p>\u201cmedian\u201d: Impute with median of column.</p></li>\n<li><p>\u201cmode\u201d: Impute with most frequent value.</p></li>\n<li><p>\u201cknn\u201d: Impute using a K-Nearest Neighbors approach.</p></li>\n<li><p>int or float: Impute with provided numerical value.</p></li>\n</ul>\n</div></blockquote>\n",
                 "default_val": "mean"
             },
@@ -63,7 +63,7 @@ const classificationSettings = {
                 "default_val": "linear"
             },
             "pca_components": {
-                "type": "int-float-str",
+                "type": "int",
                 "tooltip": "<dl >\n<dt>Number of components to keep. This parameter is ignored when <cite>pca=False</cite>.</dt><dd><ul >\n<li><p>If None: All components are kept.</p></li>\n<li><p>If int: Absolute number of components.</p></li>\n<li><dl >\n<dt>If float: Such an amount that the variance that needs to be explained</dt><dd><p>is greater than the percentage specified by <cite>n_components</cite>.\nValue should lie between 0 and 1 (ony for pca_method=\u2019linear\u2019).</p>\n</dd>\n</dl>\n</li>\n<li><p>If \u201cmle\u201d: Minka\u2019s MLE is used to guess the dimension (ony for pca_method=\u2019linear\u2019).</p></li>\n</ul>\n</dd>\n</dl>\n",
                 "default_val": "None"
             },
@@ -113,17 +113,17 @@ const classificationSettings = {
                 "default_val": "classic"
             }
         },
-        "code": ""
+        "code": "\ndef clean_data(Dataset, node_settings):\n    # do yo things here\n    return Dataset_cleaned\n        "
     },
     "dataset": {
         "options": {
             "data_func": {
-                "type": "data-function",
+                "type": "Callable[[]",
                 "tooltip": "<p>The function that generate data (the dataframe-like input). This\nis useful when the dataset is large, and you need parallel operations\nsuch as compare_models. It can avoid broadcasting large dataset\nfrom driver to workers. Notice one and only one of data and\ndata_func must be set.</p>\n",
                 "default_val": ""
             },
             "index": {
-                "type": "bool-int-str",
+                "type": "bool",
                 "tooltip": "<dl >\n<dt>Handle indices in the <cite>data</cite> dataframe.</dt><dd><ul >\n<li><p>If False: Reset to RangeIndex.</p></li>\n<li><p>If True: Keep the provided index.</p></li>\n<li><p>If int: Position of the column to use as index.</p></li>\n<li><p>If str: Name of the column to use as index.</p></li>\n<li><p>If sequence: Array with shape=(n_samples,) to use as index.</p></li>\n</ul>\n</dd>\n</dl>\n",
                 "default_val": "True"
             },
@@ -248,7 +248,7 @@ const classificationSettings = {
                 "default_val": "0.2"
             },
             "custom_pipeline": {
-                "type": "list of (str, transformer), dict or Pipeline",
+                "type": "list of (str",
                 "tooltip": "<p>Addidiotnal custom transformers. If passed, they are applied to the\npipeline last, after all the build-in transformers.</p>\n",
                 "default_val": "None"
             },
@@ -338,7 +338,7 @@ const classificationSettings = {
                 "default_val": "False"
             },
             "engine": {
-                "type": "Optional[Dict[str, str]] = None",
+                "type": "Optional[Dict[str",
                 "tooltip": "<p>The execution engines to use for the models in the form of a dict\nof <cite>model_id: engine</cite> - e.g. for Logistic Regression (\u201clr\u201d, users can\nswitch between \u201csklearn\u201d and \u201csklearnex\u201d by specifying\n<cite>engine={\u201clr\u201d: \u201csklearnex\u201d}</cite></p>\n",
                 "default_val": ""
             },
@@ -348,7 +348,7 @@ const classificationSettings = {
                 "default_val": "True"
             },
             "memory": {
-                "type": "str, bool or Memory",
+                "type": "string",
                 "tooltip": "<dl >\n<dt>Used to cache the fitted transformers of the pipeline.</dt><dd><p>If False: No caching is performed.\nIf True: A default temp directory is used.\nIf str: Path to the caching directory.</p>\n</dd>\n</dl>\n",
                 "default_val": "rue"
             },
@@ -373,8 +373,12 @@ const classificationSettings = {
                 "tooltip": "<p>Set this to true for analysis by institutions</p>"
             }
         },
-        "code": "",
+        "code": "\n        \n        ",
         "default": {
+            "target": {
+                "type": "string",
+                "tooltip": "<p>If int or str, respectivcely index or name of the target column in data.\nThe default value selects the last column in the dataset. If sequence,\nit should have shape (n_samples,). The target can be either binary or\nmulticlass.</p>\n"
+            },
             "files": {
                 "type": "data-input",
                 "tooltip": "<p>Specify path to csv file or to medomics folder</p>"
@@ -390,7 +394,7 @@ const classificationSettings = {
             "calibrate_model"
         ],
         "options": {},
-        "code": ""
+        "code": "optimise_model(model, node_settings):"
     },
     "compare_models": {
         "options": {
@@ -485,7 +489,7 @@ const classificationSettings = {
                 "default_val": "None"
             },
             "engine": {
-                "type": "Optional[Dict[str, str]] = None",
+                "type": "Optional[Dict[str",
                 "tooltip": "<p>The execution engines to use for the models in the form of a dict\nof <cite>model_id: engine</cite> - e.g. for Logistic Regression (\u201clr\u201d, users can\nswitch between \u201csklearn\u201d and \u201csklearnex\u201d by specifying\n<cite>engine={\u201clr\u201d: \u201csklearnex\u201d}</cite></p>\n",
                 "default_val": ""
             },
@@ -495,7 +499,7 @@ const classificationSettings = {
                 "default_val": "True"
             }
         },
-        "code": " "
+        "code": "\ncompare_models(node_settings)\n        "
     },
     "create_model": {
         "options": {
@@ -550,7 +554,7 @@ const classificationSettings = {
                 "default_val": "False"
             }
         },
-        "code": "",
+        "code": "\ncreate_model(node_settings)\n        ",
         "default": {}
     },
     "analyze": {

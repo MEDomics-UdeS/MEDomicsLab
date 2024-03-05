@@ -99,7 +99,18 @@ const implementedTypesDescription = [
     type: "str or None",
     description: "for str or None input",
     default: ""
+  },
+  {
+    type: "bool-int-str",
+    description: "bool-int-str",
+    default: ""
+  },
+  {
+    type: "int-float-str",
+    description: "int-float-str",
+    default: ""
   }
+
 ]
 
 // this object is used to get the default value and implemeted types of possible settings
