@@ -32,7 +32,7 @@ import { ErrorRequestContext } from "../generalPurpose/errorRequestContext"
  *
  * @returns the evaluation page content
  */
-const PageEval = ({ run, pageId, config, setChosenModel, updateConfigClick, setChosenDataset, modelHasWarning, setModelHasWarning, datasetHasWarning, setDatasetHasWarning }) => {
+const PageEval = ({ run, pageId, config, setChosenModel, updateConfigClick, setChosenDataset, modelHasWarning, setModelHasWarning, datasetHasWarning, setDatasetHasWarning, useMedStandard }) => {
   const evaluationHeaderPanelRef = useRef(null)
   const [showHeader, setShowHeader] = useState(true)
   const [isDashboardUpdating, setIsDashboardUpdating] = useState(false)
@@ -95,7 +95,7 @@ const PageEval = ({ run, pageId, config, setChosenModel, updateConfigClick, setC
       requestBackend(
         port,
         "evaluation/predict_test/predict/" + pageId,
-        { pageId: pageId, model: config.model, dataset: config.dataset, modelObjPath: modelObjCopies.predict },
+        { pageId: pageId, model: config.model, dataset: config.dataset, modelObjPath: modelObjCopies.predict, useMedStandard: useMedStandard},
         (data) => {
           setIsPredictUpdating(false)
           if (data.error) {
@@ -127,7 +127,7 @@ const PageEval = ({ run, pageId, config, setChosenModel, updateConfigClick, setC
           requestBackend(
             port,
             "evaluation/open_dashboard/dashboard/" + pageId,
-            { pageId: pageId, model: config.model, dataset: config.dataset, sampleSizeFrac: 0.9, dashboardName: config.model.name.split(".")[0], modelObjPath: modelObjCopies.dashboard },
+            { pageId: pageId, model: config.model, dataset: config.dataset, sampleSizeFrac: 0.01, dashboardName: config.model.name.split(".")[0], modelObjPath: modelObjCopies.dashboard, useMedStandard: useMedStandard },
             (data) => {
               console.log("openDashboard received data:", data)
               setIsDashboardUpdating(false)
@@ -246,7 +246,7 @@ const PageEval = ({ run, pageId, config, setChosenModel, updateConfigClick, setC
     <div className="evaluation-content">
       <PanelGroup style={{ height: "100%", display: "flex", flexGrow: 1 }} direction="vertical" id={pageId}>
         {/* Panel is used to create the flow, used to be able to resize it on drag */}
-        <Panel order={1} ref={evaluationHeaderPanelRef} id={`eval-header-${pageId}`} defaultSize={10} minSize={10} maxSize={10} collapsible={true} collapsibleSize={10} className="smooth-transition evaluation-header-parent">
+        {!useMedStandard && <><Panel order={1} ref={evaluationHeaderPanelRef} id={`eval-header-${pageId}`} defaultSize={10} minSize={10} maxSize={10} collapsible={true} collapsibleSize={10} className="smooth-transition evaluation-header-parent">
           <div className="evaluation-header">
             <PiFlaskFill style={{ height: "4rem", width: "4rem", color: "rgb(0, 50, 200, 0.8)" }} />
             <div style={{ width: "20rem" }}>
@@ -274,14 +274,18 @@ const PageEval = ({ run, pageId, config, setChosenModel, updateConfigClick, setC
             <Button style={{ width: "15rem" }} label="Update evaluation" icon="pi pi-refresh" iconPos="right" disabled={modelHasWarning.state || datasetHasWarning.state} onClick={updateConfigClick} />
           </div>
         </Panel>
-        <PanelResizeHandle />
+        <PanelResizeHandle /></>}
         {/* Panel is used to create the results pane, used to be able to resize it on drag */}
         <Panel id={`eval-body-${pageId}`} minSize={30} order={2} collapsible={true} collapsibleSize={10} className="eval-body">
-          <Button className={`btn-show-header ${showHeader ? "opened" : "closed"}`} onClick={() => setShowHeader(!showHeader)}>
-            <hr />
-            <i className="pi pi-chevron-down"></i>
-            <hr />
-          </Button>
+          {
+            !useMedStandard && 
+            <Button className={`btn-show-header ${showHeader ? "opened" : "closed"}`} onClick={() => setShowHeader(!showHeader)}>
+              <hr />
+              <i className="pi pi-chevron-down"></i>
+              <hr />
+            </Button>
+          }
+          
           <div className="eval-body-content">
             <TabView renderActiveOnly={false}>
               <TabPanel key="Predict" header="Predict/Test">

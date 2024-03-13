@@ -45,7 +45,7 @@ const EvaluationPageContent = () => {
     if (config) {
       if (Object.keys(config).length > 0) {
         console.log("config in if", Object.keys(config).length)
-        updateWarnings()
+        updateWarnings(config.useMedStandard)
       }
     } else {
       let newConfig = {}
@@ -101,7 +101,7 @@ const EvaluationPageContent = () => {
   /**
    * @description - This function is used to update the warnings
    */
-  const updateWarnings = async () => {
+  const updateWarnings = async (useMedStandard) => {
     console.log("updateWarnings")
 
     /**
@@ -110,8 +110,14 @@ const EvaluationPageContent = () => {
      * @param {Array} modelData An array of the required columns of the model
      */
     const checkWarnings = (columnsArray, modelData) => {
-      let datasetColsString = JSON.stringify(columnsArray)
-      let modelColsString = JSON.stringify(modelData)
+      // sort the arrays alphabetically and numerically
+      // columnsArray.sort()
+      // modelData.sort()
+      console.log("columnsArray", columnsArray)
+      let datasetColsString = JSON.stringify(columnsArray.sort())
+      let modelColsString = JSON.stringify(modelData.sort())
+      console.log("datasetColsString", datasetColsString)
+      console.log("modelColsString", modelColsString)
       if (datasetColsString !== modelColsString && modelData && columnsArray) {
         setDatasetHasWarning({
           state: true,
@@ -146,13 +152,41 @@ const EvaluationPageContent = () => {
         })
       } else {
         setModelHasWarning({ state: false, tooltip: "" })
+        setDatasetHasWarning({ state: false, tooltip: "" })
       }
     }
 
     if (config && config.model && config.dataset && Object.keys(config.model).length > 0 && Object.keys(config.dataset).length > 0 && config.model.name != "No selection" && config.dataset.name != "No selection") {
       //   getting colummns of the dataset
+      let columnsArray_ = []
       setLoader(true)
-      let { columnsArray } = await MedDataObject.getColumnsFromPath(config.dataset.path, globalData, setGlobalData)
+      if (useMedStandard) {
+        console.log("dataset infos", config.dataset)
+        let selectedDatasets = config.dataset.selectedDatasets
+        let selectedTags = config.dataset.selectedTags
+        let selectedVariables = config.dataset.selectedVariables
+        columnsArray_ = ["subject_id", "target"]
+        selectedDatasets.forEach((dataset) => {
+          console.log("dataset", dataset)
+          let prefixTx = dataset.name.split("_")[0]
+          // let columns = ["subject_id"]
+          let columns = []
+          Object.entries(dataset.columnsTags).forEach(([columnName, tags]) => {
+            if (selectedVariables.includes(columnName + "_" + prefixTx) && tags.some(tag => selectedTags.includes(tag))) {
+              let newName = tags.join("_") + "_|_" + columnName + "_" + prefixTx
+              columns.push(newName);
+            }
+          });
+          columnsArray_ = columnsArray_.concat(columns)
+        })
+        console.log("columnsArray", columnsArray_)
+        // var { columnsArray } = await MedDataObject.getColumnsFromPath(config.dataset.path, globalData, setGlobalData, useMedStandard)
+
+      } else {
+
+        let { columnsArray } = await MedDataObject.getColumnsFromPath(config.dataset.path, globalData, setGlobalData)
+        columnsArray_ = columnsArray
+      }
       setLoader(false)
       //   getting colummns of the model
       let modelDataObject = await MedDataObject.getObjectByPathSync(config.model.path, globalData)
@@ -171,7 +205,8 @@ const EvaluationPageContent = () => {
                     modelDataObject.metadata.content = content
                     setGlobalData({ ...globalData })
                     let modelData = content.columns
-                    checkWarnings(columnsArray, modelData)
+                    
+                    checkWarnings(columnsArray_, modelData)
                   }
                 })
                 .catch((error) => {
@@ -186,13 +221,13 @@ const EvaluationPageContent = () => {
             modelDataObject.metadata.content = config.model.metadata
             setGlobalData({ ...globalData })
             let modelData = config.model.metadata.columns
-            checkWarnings(columnsArray, modelData)
+            checkWarnings(columnsArray_, modelData)
           }
         } else {
           console.log("flag1 - false")
 
           let modelData = modelDataObject.metadata.content.columns
-          checkWarnings(columnsArray, modelData)
+          checkWarnings(columnsArray_, modelData)
         }
         console.log("modelDataObject.metadata.content", modelDataObject.metadata.content)
       }
@@ -206,9 +241,9 @@ const EvaluationPageContent = () => {
   const getEvaluationStep = () => {
     console.log("initializing evaluation step:", config, "mode:", config.isSet)
     if (config.isSet) {
-      return <PageEval run={run} pageId={pageId} config={config} updateWarnings={updateWarnings} setDatasetHasWarning={setDatasetHasWarning} datasetHasWarning={datasetHasWarning} setModelHasWarning={setModelHasWarning} modelHasWarning={modelHasWarning} updateConfigClick={updateConfigClick} setChosenModel={setChosenModel} setChosenDataset={setChosenDataset} />
+      return <PageEval useMedStandard={config.useMedStandard} run={run} pageId={pageId} config={config} updateWarnings={updateWarnings} setDatasetHasWarning={setDatasetHasWarning} datasetHasWarning={datasetHasWarning} setModelHasWarning={setModelHasWarning} modelHasWarning={modelHasWarning} updateConfigClick={updateConfigClick} setChosenModel={setChosenModel} setChosenDataset={setChosenDataset} />
     } else {
-      return <PageConfig run={run} pageId={pageId} config={config} updateWarnings={updateWarnings} setDatasetHasWarning={setDatasetHasWarning} datasetHasWarning={datasetHasWarning} setModelHasWarning={setModelHasWarning} modelHasWarning={modelHasWarning} updateConfigClick={updateConfigClick} setChosenModel={setChosenModel} setChosenDataset={setChosenDataset} />
+      return <PageConfig useMedStandard={config.useMedStandard} run={run} pageId={pageId} config={config} updateWarnings={updateWarnings} setDatasetHasWarning={setDatasetHasWarning} datasetHasWarning={datasetHasWarning} setModelHasWarning={setModelHasWarning} modelHasWarning={modelHasWarning} updateConfigClick={updateConfigClick} setChosenModel={setChosenModel} setChosenDataset={setChosenDataset} />
     }
   }
 

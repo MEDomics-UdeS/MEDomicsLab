@@ -6,7 +6,7 @@ import sys
 from pathlib import Path
 sys.path.append(
     str(Path(os.path.dirname(os.path.abspath(__file__))).parent.parent))
-from med_libs.server_utils import go_print, load_csv, get_model_from_path
+from med_libs.server_utils import go_print, load_csv, get_model_from_path, load_med_standard_data
 from med_libs.GoExecutionScript import GoExecutionScript, parse_arguments
 
 json_params_dict, id_ = parse_arguments()
@@ -35,14 +35,17 @@ class GoExecScriptPredictTest(GoExecutionScript):
         model_infos = json_config['model']
         ml_type = model_infos['metadata']['ml_type']
         dataset_infos = json_config['dataset']
-        dataset_path = dataset_infos['path']
         self.set_progress(label="Loading the model", now=10)
         pickle_path = json_config['modelObjPath']
         model = get_model_from_path(pickle_path)
         os.remove(pickle_path)
         go_print(f"model loaded: {model}")
         self.set_progress(label="Loading the dataset", now=20)
-        dataset = load_csv(dataset_path, model_infos['metadata']['target'])
+        use_med_standard = json_config['useMedStandard']
+        if use_med_standard:
+            dataset = load_med_standard_data(dataset_infos['selectedDatasets'], dataset_infos['selectedTags'], dataset_infos['selectedVariables'], model_infos['metadata']['target'])
+        else:
+            dataset = load_csv(dataset_infos['path'], model_infos['metadata']['target'])
 
         # caluclate the predictions
         self.set_progress(label="Setting up the experiment", now=30)

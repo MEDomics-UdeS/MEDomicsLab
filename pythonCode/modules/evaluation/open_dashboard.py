@@ -7,7 +7,7 @@ import sys
 from pathlib import Path
 sys.path.append(
     str(Path(os.path.dirname(os.path.abspath(__file__))).parent.parent))
-from med_libs.server_utils import go_print, find_next_available_port, load_csv, get_model_from_path, is_port_in_use
+from med_libs.server_utils import go_print, find_next_available_port, load_csv, get_model_from_path, is_port_in_use, load_med_standard_data
 from med_libs.GoExecutionScript import GoExecutionScript, parse_arguments
 from med_libs.CustomZipFile import CustomZipFile
 
@@ -46,15 +46,18 @@ class GoExecScriptOpenDashboard(GoExecutionScript):
         ml_type = model_infos['metadata']['ml_type']
         dashboard_name = json_config['dashboardName']
         dataset_infos = json_config['dataset']
-        dataset_path = dataset_infos['path']
         sample_size = json_config['sampleSizeFrac']
         pickle_path = json_config['modelObjPath']
         self.model = get_model_from_path(pickle_path)
         os.remove(pickle_path)
 
         go_print(f"model loaded: {self.model}")
-
-        temp_df = load_csv(dataset_path, model_infos['metadata']['target'])
+        use_med_standard = json_config['useMedStandard']
+        if use_med_standard:
+            temp_df = load_med_standard_data(dataset_infos['selectedDatasets'], dataset_infos['selectedTags'],
+                                         dataset_infos['selectedVariables'], model_infos['metadata']['target'])
+        else:
+            temp_df = load_csv(dataset_infos['path'], model_infos['metadata']['target'])
         if sample_size < 1:
             temp_df = temp_df.sample(frac=sample_size)
 

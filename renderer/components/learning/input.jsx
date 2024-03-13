@@ -437,7 +437,7 @@ const Input = ({ name, settingInfos, currentValue, onInputChange, disabled, setH
           <>
             <WsSelectMultiple
               key={name}
-              rootDir="learning"
+              rootDir={["learning", "holdout"]}
               placeholder={name}
               disabled={disabled}
               selectedPaths={currentValue}

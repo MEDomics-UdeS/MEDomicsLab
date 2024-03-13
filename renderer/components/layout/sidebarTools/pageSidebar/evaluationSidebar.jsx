@@ -48,9 +48,9 @@ const EvaluationSidebar = () => {
    * @param {String} name The name of the scene
    * @description - This function is used to create an empty scene
    */
-  const createEmptyScene = async (name) => {
+  const createEmptyScene = async (name, useMedStandard = null) => {
     let path = globalData["UUID_ROOT"].path
-    await createSceneContent(path, name, typeInfo.extension)
+    await createSceneContent(path, name, typeInfo.extension, useMedStandard)
   }
 
   /**
@@ -59,8 +59,8 @@ const EvaluationSidebar = () => {
    * @param {String} sceneName The name of the scene
    * @param {String} extension The extension of the scene
    */
-  const createSceneContent = async (path, sceneName, extension) => {
-    const emptyScene = {}
+  const createSceneContent = async (path, sceneName, extension, useMedStandard) => {
+    const emptyScene = {'useMedStandard': useMedStandard}
     // create custom zip file
     console.log("zipFilePath", Path.join(path, sceneName + "." + extension))
     await createZipFileSync(Path.join(path, sceneName + "." + extension), async (path) => {
@@ -95,7 +95,7 @@ const EvaluationSidebar = () => {
         >
           {typeInfo.title} Module
         </p>
-        <FileCreationBtn label="Create evaluation page" piIcon="pi-plus" createEmptyFile={createEmptyScene} checkIsNameValid={checkIsNameValid} handleClickCreateScene={handleClick} />
+        <FileCreationBtn hasMedStandrad label="Create evaluation page" piIcon="pi-plus" createEmptyFile={createEmptyScene} checkIsNameValid={checkIsNameValid} handleClickCreateScene={handleClick} />
 
         <Accordion defaultActiveKey={["dirTree"]} alwaysOpen>
           <SidebarDirectoryTreeControlled/>
