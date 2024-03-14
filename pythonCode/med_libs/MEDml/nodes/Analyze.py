@@ -51,8 +51,8 @@ class Analyze(Node):
             "code", f"pycaret_exp.{selection}(model, {self.CodeHandler.convert_dict_to_params(print_settings)})", 1)
         for model in kwargs['models']:
             model = format_model(model)
-            return_value = getattr(
-                experiment['pycaret_exp'], selection)(model, **settings)
+            os.chdir(self.global_config_json['paths']['ws'])
+            return_value = getattr(experiment['pycaret_exp'], selection)(model, **settings)
 
             if 'save' in settings and settings['save'] and return_value is not None:
                 return_path = return_value

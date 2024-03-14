@@ -44,6 +44,13 @@ class GoExecScriptRunExperiment(GoExecutionScript):
         """
         This function is the main script of the pipeline execution
         """
+        # If the json_config is too large, it will be saved in a file and the path will be sent instead
+        if not 'pageId' in json_config and 'temp' in json_config:
+            path_to_load = json_config["temp"]
+            with open(path_to_load, 'r') as f:
+                json_config = json.load(f)
+            os.remove(path_to_load)
+            
         go_print(json.dumps(json_config, indent=4))
         scene_id = json_config['pageId']
         # check if experiment already exists

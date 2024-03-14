@@ -16,13 +16,17 @@ const Parameters = ({ params, tableProps, columnNames }) => {
   const [data, setData] = useState([])
   const [selectedRows, setSelectedRows] = useState([])
   useEffect(() => {
-    console.log("params", params)
     if (params) {
       let dataList = []
       Object.keys(params).forEach((key) => {
+        let value = params[key]
+        // For array values
+        if (Array.isArray(value)) {
+          value = JSON.stringify(value)
+        }
         dataList.push({
           param: key,
-          Value: params[key] != null ? params[key] : "null"
+          Value: value != null ? value : "null"
         })
       })
       setData(dataList)

@@ -640,3 +640,8 @@ path {
     0px 0px 3px 2px rgb(0 0 0 / 12%);
   border-radius: 0.5rem;
 }
+
+.modal-settings-chooser .modal-body {
+  max-height: 70vh;
+  overflow-y: auto;
+}

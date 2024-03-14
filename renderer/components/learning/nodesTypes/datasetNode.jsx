@@ -24,7 +24,7 @@ import { LoaderContext } from "../../generalPurpose/loaderContext"
  */
 const DatasetNode = ({ id, data }) => {
   const [modalShow, setModalShow] = useState(false) // state of the modal
-  const [selection, setSelection] = useState("medomics") // state of the selection (medomics or custom
+  const [selection, setSelection] = useState(data.internal.selection || "medomics") // state of the selection (medomics or custom
   const { updateNode } = useContext(FlowFunctionsContext)
   const { globalData, setGlobalData } = useContext(DataContext)
   const { setLoader } = useContext(LoaderContext)
@@ -124,11 +124,11 @@ const DatasetNode = ({ id, data }) => {
   }
 
   /**
-   * 
+   *
    * @param {Object} inputUpdate The input update
-   * 
+   *
    * @description
-   * This function is used to update the node internal data when the files input changes. 
+   * This function is used to update the node internal data when the files input changes.
    */
   const onMultipleFilesChange = async (inputUpdate) => {
     console.log("inputUpdate-multiple", inputUpdate)
@@ -136,26 +136,25 @@ const DatasetNode = ({ id, data }) => {
     data.internal.settings.tags = []
     if (inputUpdate.value.length > 0) {
       data.internal.settings.multipleColumns = []
-      inputUpdate.value.forEach(
-        async (inputUpdateValue) => {
-          if(inputUpdateValue.path != "") {
-            setLoader(true)
-            let { columnsArray, columnsObject } = await MedDataObject.getColumnsFromPath(inputUpdateValue.path, globalData, setGlobalData)
-            let steps = await MedDataObject.getStepsFromPath(inputUpdateValue.path, globalData, setGlobalData)
-            setLoader(false)
-            let timePrefix = inputUpdateValue.name.split("_")[0]
-            steps && (data.internal.settings.steps = steps)
-            data.internal.settings.columns = columnsObject
-            columnsObject = Object.keys(columnsObject).reduce((acc, key) => {
-              acc[timePrefix + "_" + key] = timePrefix + "_" + columnsObject[key]
-              return acc
-            }, {})
-            console.log("columnsObject", columnsObject)
-            let lastMultipleColumns = data.internal.settings.multipleColumns ? data.internal.settings.multipleColumns : []
-            data.internal.settings.multipleColumns = { ...lastMultipleColumns, ...columnsObject}
-            data.internal.settings.target = columnsArray[columnsArray.length - 1]
-          }
-        })
+      inputUpdate.value.forEach(async (inputUpdateValue) => {
+        if (inputUpdateValue.path != "") {
+          setLoader(true)
+          let { columnsArray, columnsObject } = await MedDataObject.getColumnsFromPath(inputUpdateValue.path, globalData, setGlobalData)
+          let steps = await MedDataObject.getStepsFromPath(inputUpdateValue.path, globalData, setGlobalData)
+          setLoader(false)
+          let timePrefix = inputUpdateValue.name.split("_")[0]
+          steps && (data.internal.settings.steps = steps)
+          data.internal.settings.columns = columnsObject
+          columnsObject = Object.keys(columnsObject).reduce((acc, key) => {
+            acc[timePrefix + "_" + key] = timePrefix + "_" + columnsObject[key]
+            return acc
+          }, {})
+          console.log("columnsObject", columnsObject)
+          let lastMultipleColumns = data.internal.settings.multipleColumns ? data.internal.settings.multipleColumns : []
+          data.internal.settings.multipleColumns = { ...lastMultipleColumns, ...columnsObject }
+          data.internal.settings.target = columnsArray[columnsArray.length - 1]
+        }
+      })
     } else {
       delete data.internal.settings.target
       delete data.internal.settings.columns
@@ -169,9 +168,9 @@ const DatasetNode = ({ id, data }) => {
   }
 
   /**
-   * 
+   *
    * @param {Object} inputUpdate The input update
-   * 
+   *
    * @description
    * This function is used to update the node internal data when the tags input changes.
    */
@@ -235,7 +234,7 @@ const DatasetNode = ({ id, data }) => {
                           name="files"
                           settingInfos={{
                             type: "data-input-multiple",
-                            tooltip: "<p>Specify a data file (xlsx, csv, json)</p>",
+                            tooltip: "<p>Specify a data file (xlsx, csv, json)</p>"
                           }}
                           currentValue={data.internal.settings.files || null}
                           onInputChange={onMultipleFilesChange}

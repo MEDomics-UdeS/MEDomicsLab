@@ -58,15 +58,55 @@ class Dataset(Node):
             self.CodeHandler.add_line(
                 "code", f"df = pd.read_csv({json.dumps(self.settings['files'])}, sep=',', encoding='utf-8')")
             self.CodeHandler.add_seperator()
-        elif self.entry_file_type == FILES:
-            df_list = []
+        elif self.entry_file_type == FILES: # Time points detection and add _T{X} suffix to columns
+            df_dict = {} # dict containing time points to their associated files
+            df_path_list = [file['path'] for file in self.settings['files']]
+            df_name_list = [file['name'] for file in self.settings['files']]
+            for i, name in enumerate(df_name_list): # if the filename not contains T+number we don't keep it, else we associate it to his time point number
+                number = ''
+                T_in_name = False
+                for char in name:
+                    if char == 'T':
+                        T_in_name=True
+                    elif T_in_name and char.isdigit():
+                        number += char
+                    elif T_in_name:
+                        break
+                if len(number) > 0:
+                    df_dict['_T' + number] = pd.read_csv(df_path_list[i], sep=',', encoding='utf-8')
+            first_col = df_dict['_T' + number].columns[0]
+            target = self.settings['target']
+
+            # for each dataframe, add a suffix to their columns
+            for key in df_dict:
+                df_dict[key].columns = [f'{col}{key}' if col != target and col != first_col else col for col in df_dict[key].columns]
+
+            sorted_keys = sorted(df_dict.keys(), key=lambda x: int(x.split('_T')[1]))
+            df_list = [df_dict[key] for key in sorted_keys]
+
             self.CodeHandler.add_line("code", f"df_path_list = {str([d['path'] for d in self.settings['files']])}")
-            self.CodeHandler.add_line("code", "df_list = []")
-            self.CodeHandler.add_line("code", "for file_path in df_path_list:")
-            self.CodeHandler.add_line("code", "df_list.append(pd.read_csv(file_path, sep=',', encoding='utf-8'))", indent=1)
-            for file in self.settings['files']:
-                df = pd.read_csv(file['path'], sep=',', encoding='utf-8')
-                df_list.append(df)
+            self.CodeHandler.add_line("code", f"df_name_list = {str([d['name'] for d in self.settings['files']])}")
+            self.CodeHandler.add_line("code", "df_dict = {} # dict containing time points to their associated files")
+            self.CodeHandler.add_line("code", "for i, name in enumerate(df_name_list): # if the filename not contains T+number we don't keep it, else we associate it to his time point number")
+            self.CodeHandler.add_line("code", "number = ''", indent=1)
+            self.CodeHandler.add_line("code", "T_in_name = False", indent=1)
+            self.CodeHandler.add_line("code", "for char in name:", indent=1)
+            self.CodeHandler.add_line("code", "if char == 'T':", indent=2)
+            self.CodeHandler.add_line("code", "T_in_name=True", indent=3)
+            self.CodeHandler.add_line("code", "elif T_in_name and char.isdigit():", indent=2)
+            self.CodeHandler.add_line("code", "number += char", indent=3)
+            self.CodeHandler.add_line("code", "elif T_in_name:", indent=2)
+            self.CodeHandler.add_line("code", "break", indent=3)
+            self.CodeHandler.add_line("code", "if len(number) > 0:", indent=1)
+            self.CodeHandler.add_line("code", "df_dict['_T' + number] = pd.read_csv(df_path_list[i], sep=',', encoding='utf-8')", indent=2)
+            self.CodeHandler.add_line("code", f"first_col = '{first_col}'")
+            self.CodeHandler.add_line("code", f"target = '{target}'")
+            self.CodeHandler.add_line("code", "# for each dataframe, add a suffix to their columns")
+            self.CodeHandler.add_line("code", "for key in df_dict:")
+            self.CodeHandler.add_line("code", "df_dict[key].columns = [f'{col}{key}' if col != target and col != first_col else col for col in df_dict[key].columns]", indent=1)
+            self.CodeHandler.add_line("code", "sorted_keys = sorted(df_dict.keys(), key=lambda x: int(x.split('_T')[1]))")
+            self.CodeHandler.add_line("code", "df_list = [df_dict[key] for key in sorted_keys]")
+            self.CodeHandler.add_seperator()
 
             self.df = self.combine_df_timepoint_tags(df_list, self.settings['tags'], self.settings['variables'])
 
@@ -85,20 +125,8 @@ class Dataset(Node):
         """
         # first column should be the ID
         first_col = df_list[0].columns[0]
-        self.CodeHandler.add_line("code", f"first_col = '{first_col}'")
         # last column should be the target
         target = self.settings['target']
-        self.CodeHandler.add_line("code", f"target = '{target}'")
-        # for each dataframe, add a suffix to the columns
-        for i, df in enumerate(df_list):
-            # remove target column from list of columns df.columns
-            suffix = f'_T{i + 1}'
-            df.columns = [f'{col}{suffix}' if col != target and col != first_col else col for col in df.columns]
-        self.CodeHandler.add_line("code", f"# for each dataframe, add a suffix to their columns")
-        self.CodeHandler.add_line("code", f"for i, df in enumerate(df_list):")
-        self.CodeHandler.add_line("code", "suffix = f'_T{i + 1}'", indent=1)
-        self.CodeHandler.add_line("code", "df.columns = [f'{col}{suffix}' if col != target and col != first_col else col for col in df.columns]", indent=1)
-        self.CodeHandler.add_seperator()
 
         # merge the dataframes on the first column and the target
         df_merged: pd.DataFrame = df_list[0]
@@ -115,14 +143,9 @@ class Dataset(Node):
         for col in df_merged.columns:
             if col in cols_2_keep:
                 continue
-            tags_section = col.split('_|_')[0]
             col_name = col.split('_|_')[1]
             if col_name in vars_list:
                 cols_2_keep.append(col)
-            else:
-                for col_tag in tags_section.split('_'):
-                    if col_tag in tags_list:
-                        cols_2_keep.append(col)
         df_merged = df_merged[cols_2_keep]
         self.CodeHandler.add_line("code", "# Drop all columns not containing tags from tags list and columns (variables) from vars list")
         self.CodeHandler.add_line("code", f"tags_list = {tags_list}")
@@ -131,15 +154,10 @@ class Dataset(Node):
         self.CodeHandler.add_line("code", "for col in df_merged.columns:")
         self.CodeHandler.add_line("code", "if col in cols_2_keep:", indent=1)
         self.CodeHandler.add_line("code", "continue", indent=2)
-        self.CodeHandler.add_line("code", "tags_section = col.split('_|_')[0]", indent=1)
         self.CodeHandler.add_line("code", "col_name = col.split('_|_')[1]", indent=1)
         self.CodeHandler.add_line("code", "if col_name in vars_list:", indent=1)
         self.CodeHandler.add_line("code", "cols_2_keep.append(col)", indent=2)
-        self.CodeHandler.add_line("code", "else:", indent=1)
-        self.CodeHandler.add_line("code", "for col_tag in tags_section.split('_'):", indent=2)
-        self.CodeHandler.add_line("code", "if col_tag in tags_list:", indent=3)
-        self.CodeHandler.add_line("code", "cols_2_keep.append(col)", indent=4)
-        self.CodeHandler.add_line("code", "df_merged = df_merged[cols_2_keep]")
+        self.CodeHandler.add_line("code", "df = df_merged[cols_2_keep]")
         self.CodeHandler.add_seperator()
 
         return df_merged

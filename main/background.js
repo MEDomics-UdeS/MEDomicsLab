@@ -314,7 +314,7 @@ if (isProd) {
 
     if (!isProd) {
       //**** DEVELOPMENT ****//
-      let args = [serverPort, "prod", process.cwd()]
+      let args = [serverPort, "dev", process.cwd()]
       // Get the temporary directory path
       args.push(os.tmpdir())
 
@@ -434,6 +434,15 @@ if (isProd) {
       hasBeenSet: true,
       newPort: serverPort
     })
+  })
+
+  /**
+   * @description Returns the path of the specified directory of the app
+   * @param {String} path The path to get
+   * @returns {Promise<String>} The path of the specified directory of the app
+   */
+  ipcMain.handle("appGetPath", async (_event, path) => {
+    return app.getPath(path)
   })
 
   /**

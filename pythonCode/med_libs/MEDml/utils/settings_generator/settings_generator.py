@@ -15,14 +15,14 @@ from collections.abc import MutableMapping
 # python scripts arguments
 import argparse
 parser = argparse.ArgumentParser(description='Script so useful.')
-parser.add_argument("--mlType", type=str, default="regression",
+parser.add_argument("--ml_type", type=str, default="classification",
                     help="machine learning type to generate settings for (classification or regression)")
-parser.add_argument("--path", type=str, default=".",
+parser.add_argument("--save_path", type=str, default=".",
                     help="path to save the settings file to")
 args = parser.parse_args()
 
 # SETUP VARIABLES
-ml_type = args.mlType
+ml_type = args.ml_type
 
 browser = webdriver.Chrome()
 browser.get(f"https://pycaret.readthedocs.io/en/latest/api/{ml_type}.html")
@@ -35,32 +35,59 @@ estimators_names = ['estimator', 'meta_model',
 
 types_conversion = {
     'str': 'string',
+    'str or None': 'string',
     'list of str': 'custom-list',
     'int or float': 'float',
     'list or list of list': 'custom-list',
     'list': 'custom-list',
     'bool or list': 'bool',
+    'bool': 'bool',
+    'int': 'int',
+    'float': 'float',
+    'str or int': 'string-int',
     'str or sklearn CV generator object': 'string',
-    'bool or str': 'list',
+    'bool or str': 'string',
     'list of str or scikit-learn compatible object': 'list-multiple',
+    'list of scikit-learn compatible objects': 'list-multiple',
     'int or scikit-learn compatible CV generator': 'int',
     'str or scikit-learn compatible object': 'list',
     'scikit-learn compatible object': 'list',
     'dictionary': 'dict',
+    'dict': 'dict',
     'integer': 'int',
     'dataframe-like = None': 'dataframe',
     'dataframe-like or None': 'dataframe',
     'str or sklearn estimator': 'string',
     'float or None': 'float',
     'dict or None': 'dict',
+    'bool, int, str or sequence': 'bool-int-str',
     'str or imblearn estimator': 'string',
     'str or array-like': 'string',
     'bool or str or object': 'string',
-    'bool or in': 'int',
+    'bool or int': 'int',
     'integer or scikit-learn compatible CV generator': 'int',
     'int or scikit-learn compatible CV generator': 'int',
     'pd.DataFrame': 'dataframe',
     'pandas.DataFrame': 'dataframe',
+    'int, float or str': 'int-float-str',
+    'int, float, str or None': 'int-float-str',
+    'string or bool': 'string',
+    'bool or in': 'int',
+    'int, str or sequence': 'int-str',
+    'str or array-like, with shape (n_samples,)': 'string',
+    # not handled
+    '': '',
+    'Callable[[], DATAFRAME_LIKE] = None': 'data-function',
+    'category-encoders estimator': 'category-encoders estimator',
+    'list of (str, transformer), dict or Pipeline': 'list of (str, transformer), dict or Pipeline',
+    'bool or str or BaseLogger or list of str or BaseLogger': 'bool or str or BaseLogger or list of str or BaseLogger',
+    'bool or str or logging.Logger': 'bool or str or logging.Logger',
+    'Optional[Dict[str, str]] = None': 'Optional[Dict[str, str]] = None',
+    'str, bool or Memory': 'str, bool or Memory',
+    'pycaret.internal.parallel.parallel_backend.ParallelBackend': 'pycaret.internal.parallel.parallel_backend.ParallelBackend',
+    'object': 'object',
+    'Optional[str] = None': 'Optional[str] = None',
+
 }
 
 nodes_options = {
@@ -87,20 +114,16 @@ nodes_options = {
                  "feature_selection",
                  "feature_selection_estimator",
                  "feature_selection_method",
+                 "n_features_to_select",
+                 "feature_selection_estimator"
                  # "fix_imbalance",
                  # "fix_imbalance_method",
                  ],
-        "code": """
-def clean_data(Dataset, node_settings):
-    # do yo things here
-    return Dataset_cleaned
-        """
+        "code": """"""
     },
     'dataset': {
         "info": [],
-        "code": """
-        
-        """
+        "code": """"""
     },
     'optimize': {
         "info": [
@@ -110,19 +133,15 @@ def clean_data(Dataset, node_settings):
             ('stack_models', 'classification regression'),
             ('calibrate_model', 'classification')
         ],
-        "code": """optimise_model(model, node_settings):"""
+        "code": """"""
     },
     'compare_models': {
         "info": ['compare_models'],
-        "code": """
-compare_models(node_settings)
-        """
+        "code": """ """
     },
     'create_model': {
         "info": ['create_model'],
-        "code": """
-create_model(node_settings)
-        """
+        "code": """"""
     },
     'model': {
         "info": [],
@@ -253,13 +272,20 @@ def convert_to_medomics_standards(settings: dict, types_conv: dict, nodes_includ
     standard_settings['save_model']['options'] = settings['save_model']['options']
     standard_settings['save_model']['code'] = nodes_include['save_model']['code']
 
+    # print(json.dumps(standard_settings, indent=4))
+
     # SETTINGS types CONVERSION
     for node, node_info in standard_settings.items():
         if 'options' in node_info.keys():
+            # print(node, node_info.keys())
             for option, option_info in node_info['options'].items():
+                print(node, option, end=": ")
+                print(types_conv[option_info['type']])
                 if option_info['type'] in types_conv.keys():
                     standard_settings[node]['options'][option]['type'] = types_conv[option_info['type']]
                     if standard_settings[node]['options'][option]['type'] == "list" or standard_settings[node]['options'][option]['type'] == "list-multiple":
+                        # print(option)
+                        # print(json.dumps(options_choices, indent=4))
                         if option in estimators_names:
                             standard_settings[node]['options'][option]['choices'] = options_choices['estimators']
                         else:
@@ -267,6 +293,8 @@ def convert_to_medomics_standards(settings: dict, types_conv: dict, nodes_includ
         else:
             for subnode, subnode_info in node_info.items():
                 for option, option_info in subnode_info['options'].items():
+                    print(node, option, end=": ")
+                    print(types_conv[option_info['type']])
                     if option_info['type'] in types_conv.keys():
                         standard_settings[node][subnode]['options'][option]['type'] = types_conv[option_info['type']]
                         if standard_settings[node][subnode]['options'][option]['type'] == "list" or standard_settings[node][subnode]['options'][option]['type'] == "list-multiple":
@@ -301,6 +329,9 @@ def specific_case(dict_settings: dict) -> dict:
         "type": "models-input",
         "tooltip": "<p>Choose a model from the MODELS folder</p>"
     }
+
+    dict_settings['dataset']['options']['use_gpu']['type'] = "list"
+    dict_settings['dataset']['options']['use_gpu']['choices'] = options_choices['use_gpu']
 
     if ml_type == "classification":
         del dict_settings['dataset']['options']['data']
@@ -422,19 +453,25 @@ for func in py_functions:
             try:
                 name_text = new_declaration.split(':')
                 name = name_text[0]
-                type = name_text[1].split(',')[0][1:]
+                type = ''
 
                 classification[func_name]['options'][name] = {}
                 classification[func_name]['options'][name]['type'] = type
-                classification[func_name]['options'][name]['tooltip'] = clean_tooltip(
-                    description)
+                classification[func_name]['options'][name]['tooltip'] = clean_tooltip(description)
 
-                default_val_index = new_declaration.find('default')
+                param_infos = name_text[1]
+                default_val_index = param_infos.find('default')
                 if default_val_index != -1:
-                    default_val = new_declaration[new_declaration.find(
-                        '=', default_val_index)+2:]
-                    classification[func_name]['options'][name]['default_val'] = default_val.replace(
-                        '’', '').replace('‘', '')
+
+                    default_val = param_infos[param_infos.find('=', default_val_index)+2:]
+                    classification[func_name]['options'][name]['default_val'] = default_val.replace('’', '').replace('‘', '')
+                    param_infos = param_infos[:default_val_index]
+
+                if param_infos[-2] == ',':
+                    param_infos = param_infos[:-2]
+
+                type = param_infos[1:]
+                classification[func_name]['options'][name]['type'] = type
 
                 if func_name == "create_model" and name == "estimator":
                     estimators_list = description.find_elements(
@@ -464,7 +501,7 @@ possible_settings = delete_keys_from_dict(
 type_list = get_type_list(possible_settings)
 
 
-with open(f"{args.path}/{ml_type}Settings.js", 'w') as f:
+with open(f"{args.save_path}/{ml_type}Settings.js", 'w') as f:
     f.write("/* eslint-disable */\n")
     f.write(
         f"const {ml_type}Settings = {json.dumps(possible_settings, indent=4)}; \n export default {ml_type}Settings;")
