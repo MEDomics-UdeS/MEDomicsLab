@@ -95,7 +95,7 @@ const PageEval = ({ run, pageId, config, setChosenModel, updateConfigClick, setC
       requestBackend(
         port,
         "evaluation/predict_test/predict/" + pageId,
-        { pageId: pageId, model: config.model, dataset: config.dataset, modelObjPath: modelObjCopies.predict, useMedStandard: useMedStandard},
+        { pageId: pageId, model: config.model, dataset: config.dataset, modelObjPath: modelObjCopies.predict, useMedStandard: useMedStandard },
         (data) => {
           setIsPredictUpdating(false)
           if (data.error) {
@@ -127,7 +127,15 @@ const PageEval = ({ run, pageId, config, setChosenModel, updateConfigClick, setC
           requestBackend(
             port,
             "evaluation/open_dashboard/dashboard/" + pageId,
-            { pageId: pageId, model: config.model, dataset: config.dataset, sampleSizeFrac: 1, dashboardName: config.model.name.split(".")[0], modelObjPath: modelObjCopies.dashboard, useMedStandard: useMedStandard },
+            {
+              pageId: pageId,
+              model: config.model,
+              dataset: config.dataset,
+              sampleSizeFrac: 1,
+              dashboardName: config.model.name.split(".")[0],
+              modelObjPath: modelObjCopies.dashboard,
+              useMedStandard: useMedStandard
+            },
             (data) => {
               console.log("openDashboard received data:", data)
               setIsDashboardUpdating(false)
@@ -246,46 +254,78 @@ const PageEval = ({ run, pageId, config, setChosenModel, updateConfigClick, setC
     <div className="evaluation-content">
       <PanelGroup style={{ height: "100%", display: "flex", flexGrow: 1 }} direction="vertical" id={pageId}>
         {/* Panel is used to create the flow, used to be able to resize it on drag */}
-        {!useMedStandard && <><Panel order={1} ref={evaluationHeaderPanelRef} id={`eval-header-${pageId}`} defaultSize={10} minSize={10} maxSize={10} collapsible={true} collapsibleSize={10} className="smooth-transition evaluation-header-parent">
-          <div className="evaluation-header">
-            <PiFlaskFill style={{ height: "4rem", width: "4rem", color: "rgb(0, 50, 200, 0.8)" }} />
-            <div style={{ width: "20rem" }}>
-              {modelHasWarning.state && (
-                <>
-                  <Tag className={`model-warning-tag-${pageId}`} icon="pi pi-exclamation-triangle" severity="warning" value="" rounded data-pr-position="bottom" data-pr-showdelay={200} />
-                  <Tooltip target={`.model-warning-tag-${pageId}`} autoHide={false}>
-                    <span>{modelHasWarning.tooltip}</span>
-                  </Tooltip>
-                </>
-              )}
-              <Input name="Choose model to evaluate" settingInfos={{ type: "models-input", tooltip: "" }} currentValue={config.model} onInputChange={(data) => setChosenModel(data.value)} setHasWarning={setModelHasWarning} />
-            </div>
-            <div style={{ width: "20rem" }}>
-              {datasetHasWarning.state && (
-                <>
-                  <Tag className={`dataset-warning-tag-${pageId}`} icon="pi pi-exclamation-triangle" severity="warning" value="" rounded data-pr-position="bottom" data-pr-showdelay={200} />
-                  <Tooltip target={`.dataset-warning-tag-${pageId}`} autoHide={false}>
-                    <span>{datasetHasWarning.tooltip}</span>
-                  </Tooltip>
-                </>
-              )}
-              <Input name="Choose dataset" settingInfos={{ type: "data-input", tooltip: "" }} currentValue={config.dataset} onInputChange={(data) => setChosenDataset(data.value)} setHasWarning={setDatasetHasWarning} />
-            </div>
-            <Button style={{ width: "15rem" }} label="Update evaluation" icon="pi pi-refresh" iconPos="right" disabled={modelHasWarning.state || datasetHasWarning.state} onClick={updateConfigClick} />
-          </div>
-        </Panel>
-        <PanelResizeHandle /></>}
+        {!useMedStandard && (
+          <>
+            <Panel
+              order={1}
+              ref={evaluationHeaderPanelRef}
+              id={`eval-header-${pageId}`}
+              defaultSize={10}
+              minSize={10}
+              maxSize={10}
+              collapsible={true}
+              collapsibleSize={10}
+              className="smooth-transition evaluation-header-parent"
+            >
+              <div className="evaluation-header">
+                <PiFlaskFill style={{ height: "4rem", width: "4rem", color: "rgb(0, 50, 200, 0.8)" }} />
+                <div style={{ width: "20rem" }}>
+                  {modelHasWarning.state && (
+                    <>
+                      <Tag className={`model-warning-tag-${pageId}`} icon="pi pi-exclamation-triangle" severity="warning" value="" rounded data-pr-position="bottom" data-pr-showdelay={200} />
+                      <Tooltip target={`.model-warning-tag-${pageId}`} autoHide={false}>
+                        <span>{modelHasWarning.tooltip}</span>
+                      </Tooltip>
+                    </>
+                  )}
+                  <Input
+                    name="Choose model to evaluate"
+                    settingInfos={{ type: "models-input", tooltip: "" }}
+                    currentValue={config.model}
+                    onInputChange={(data) => setChosenModel(data.value)}
+                    setHasWarning={setModelHasWarning}
+                  />
+                </div>
+                <div style={{ width: "20rem" }}>
+                  {datasetHasWarning.state && (
+                    <>
+                      <Tag className={`dataset-warning-tag-${pageId}`} icon="pi pi-exclamation-triangle" severity="warning" value="" rounded data-pr-position="bottom" data-pr-showdelay={200} />
+                      <Tooltip target={`.dataset-warning-tag-${pageId}`} autoHide={false}>
+                        <span>{datasetHasWarning.tooltip}</span>
+                      </Tooltip>
+                    </>
+                  )}
+                  <Input
+                    name="Choose dataset"
+                    settingInfos={{ type: "data-input", tooltip: "" }}
+                    currentValue={config.dataset}
+                    onInputChange={(data) => setChosenDataset(data.value)}
+                    setHasWarning={setDatasetHasWarning}
+                  />
+                </div>
+                <Button
+                  style={{ width: "15rem" }}
+                  label="Update evaluation"
+                  icon="pi pi-refresh"
+                  iconPos="right"
+                  disabled={modelHasWarning.state || datasetHasWarning.state}
+                  onClick={updateConfigClick}
+                />
+              </div>
+            </Panel>
+            <PanelResizeHandle />
+          </>
+        )}
         {/* Panel is used to create the results pane, used to be able to resize it on drag */}
         <Panel id={`eval-body-${pageId}`} minSize={30} order={2} collapsible={true} collapsibleSize={10} className="eval-body">
-          {
-            !useMedStandard && 
+          {!useMedStandard && (
             <Button className={`btn-show-header ${showHeader ? "opened" : "closed"}`} onClick={() => setShowHeader(!showHeader)}>
               <hr />
               <i className="pi pi-chevron-down"></i>
               <hr />
             </Button>
-          }
-          
+          )}
+
           <div className="eval-body-content">
             <TabView renderActiveOnly={false}>
               <TabPanel key="Predict" header="Predict/Test">

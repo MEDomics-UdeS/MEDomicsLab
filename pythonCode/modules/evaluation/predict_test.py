@@ -55,7 +55,7 @@ class GoExecScriptPredictTest(GoExecutionScript):
         self.set_progress(label="Loading the dataset", now=20)
         use_med_standard = json_config['useMedStandard']
         if use_med_standard:
-            dataset = load_med_standard_data(dataset_infos['selectedDatasets'], dataset_infos['selectedTags'], dataset_infos['selectedVariables'], model_infos['metadata']['target'])
+            dataset = load_med_standard_data(dataset_infos['selectedDatasets'], model_infos['metadata']['selectedTags'], model_infos['metadata']['selectedVariables'], model_infos['metadata']['target'])
         else:
             dataset = load_csv(dataset_infos['path'], model_infos['metadata']['target'])
 
