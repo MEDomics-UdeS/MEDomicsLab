@@ -54,8 +54,8 @@ class GoExecScriptOpenDashboard(GoExecutionScript):
         go_print(f"model loaded: {self.model}")
         use_med_standard = json_config['useMedStandard']
         if use_med_standard:
-            temp_df = load_med_standard_data(dataset_infos['selectedDatasets'], dataset_infos['selectedTags'],
-                                         dataset_infos['selectedVariables'], model_infos['metadata']['target'])
+            temp_df = load_med_standard_data(dataset_infos['selectedDatasets'], model_infos['metadata']['selectedTags'],
+                                         model_infos['metadata']['selectedVariables'], model_infos['metadata']['target'])
         else:
             temp_df = load_csv(dataset_infos['path'], model_infos['metadata']['target'])
         if sample_size < 1:

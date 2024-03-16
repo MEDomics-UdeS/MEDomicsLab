@@ -106,40 +106,80 @@ const EvaluationPageContent = () => {
 
     /**
      *
-     * @param {Array} columnsArray An array of the columns of the dataset
+     * @param {Array} datasetData An array of the columns of the dataset
      * @param {Array} modelData An array of the required columns of the model
      */
-    const checkWarnings = (columnsArray, modelData) => {
+    const checkWarnings = async (datasetData, modelData, useMedStandard) => {
       // sort the arrays alphabetically and numerically
-      // columnsArray.sort()
-      // modelData.sort()
-      console.log("columnsArray", columnsArray)
-      let datasetColsString = JSON.stringify(columnsArray.sort())
-      let modelColsString = JSON.stringify(modelData.sort())
-      console.log("datasetColsString", datasetColsString)
-      console.log("modelColsString", modelColsString)
-      if (datasetColsString !== modelColsString && modelData && columnsArray) {
-        setDatasetHasWarning({
-          state: true,
-          tooltip: (
-            <>
+      let isValid = true
+      let modelCols = modelData.columns
+
+      let columnsArray_ = []
+      let selectedDatasetsTx = []
+      let modelDatasetsTx = []
+
+      if (useMedStandard) {
+        console.log("dataset infos", datasetData)
+        console.log("model infos", modelData)
+
+        let selectedDatasets = datasetData.selectedDatasets
+        let wantedTags = modelData.selectedTags
+        let wantedVariables = modelData.selectedVariables
+        console.log("wantedTags", wantedTags)
+        console.log("wantedVariables", wantedVariables)
+
+        // getting a list of unique values ot T1, T2, ... representing selected datasets time points
+        wantedVariables.forEach((wantedVariable) => {
+          // getting last element of split list
+          let datasetTx = wantedVariable.split("_")[wantedVariable.split("_").length - 1]
+          // let datasetTx = wantedVariable.split("_")[-1]
+          !modelDatasetsTx.includes(datasetTx) && modelDatasetsTx.push(datasetTx)
+        })
+
+        // verify if selected datasets are the wanted combinations of Tx
+
+        selectedDatasets.forEach((dataset) => {
+          let datasetTx = dataset.name.split("_")[0]
+          !selectedDatasetsTx.includes(datasetTx) && selectedDatasetsTx.push(datasetTx)
+        })
+
+        console.log("modelDatasetsTx", modelDatasetsTx)
+        console.log("selectedDatasetsTx", selectedDatasetsTx)
+        var isValidDatasetsSelected = modelDatasetsTx.sort().join(",") == selectedDatasetsTx.sort().join(",")
+        console.log("isValid", isValid)
+      } else {
+        let { columnsArray } = await MedDataObject.getColumnsFromPath(config.dataset.path, globalData, setGlobalData)
+        columnsArray_ = columnsArray
+        let datasetColsString = JSON.stringify(columnsArray.sort())
+        let modelColsString = JSON.stringify(modelCols.sort())
+        console.log("datasetColsString", datasetColsString)
+        console.log("modelColsString", modelColsString)
+        isValid = !(datasetColsString !== modelColsString && modelCols && columnsArray)
+      }
+      setLoader(false)
+
+      if (!isValid || !isValidDatasetsSelected) {
+        if (!isValidDatasetsSelected) {
+          setDatasetHasWarning({
+            state: true,
+            tooltip: (
               <div className="evaluation-tooltip">
                 <h4>This dataset does not respect the model format</h4>
-                {/* here is a list of the needed columns */}
+                <p>You chose a wrong combination of timepoints (Tx)</p>
                 <div style={{ maxHeight: "400px", overflowY: "auto", overflowX: "hidden" }}>
                   <Row>
                     <Col>
-                      <p>Needed columns:</p>
+                      <p>Needed timepoints:</p>
                       <ul>
-                        {modelData.map((col) => {
+                        {modelDatasetsTx.sort().map((col) => {
                           return <li key={col}>{col}</li>
                         })}
                       </ul>
                     </Col>
                     <Col>
-                      <p>Received columns:</p>
+                      <p>Received timepoints:</p>
                       <ul>
-                        {columnsArray.map((col) => {
+                        {selectedDatasetsTx.sort().map((col) => {
                           return <li key={col}>{col}</li>
                         })}
                       </ul>
@@ -147,47 +187,87 @@ const EvaluationPageContent = () => {
                   </Row>
                 </div>
               </div>
-            </>
-          )
-        })
+            )
+          })
+        } else {
+          setDatasetHasWarning({
+            state: true,
+            tooltip: (
+              <>
+                <div className="evaluation-tooltip">
+                  <h4>This dataset does not respect the model format</h4>
+                  {/* here is a list of the needed columns */}
+                  <div style={{ maxHeight: "400px", overflowY: "auto", overflowX: "hidden" }}>
+                    <Row>
+                      <Col>
+                        <p>Needed columns:</p>
+                        <ul>
+                          {modelCols.map((col) => {
+                            return <li key={col}>{col}</li>
+                          })}
+                        </ul>
+                      </Col>
+                      <Col>
+                        <p>Received columns:</p>
+                        <ul>
+                          {columnsArray_.map((col) => {
+                            return <li key={col}>{col}</li>
+                          })}
+                        </ul>
+                      </Col>
+                    </Row>
+                  </div>
+                </div>
+              </>
+            )
+          })
+        }
       } else {
         setModelHasWarning({ state: false, tooltip: "" })
         setDatasetHasWarning({ state: false, tooltip: "" })
       }
     }
 
-    if (config && config.model && config.dataset && Object.keys(config.model).length > 0 && Object.keys(config.dataset).length > 0 && config.model.name != "No selection" && config.dataset.name != "No selection") {
+    if (
+      config &&
+      config.model &&
+      config.dataset &&
+      Object.keys(config.model).length > 0 &&
+      Object.keys(config.dataset).length > 0 &&
+      config.model.name != "No selection" &&
+      config.dataset.name != "No selection"
+    ) {
       //   getting colummns of the dataset
-      let columnsArray_ = []
-      setLoader(true)
-      if (useMedStandard) {
-        console.log("dataset infos", config.dataset)
-        let selectedDatasets = config.dataset.selectedDatasets
-        let selectedTags = config.dataset.selectedTags
-        let selectedVariables = config.dataset.selectedVariables
-        columnsArray_ = ["subject_id", "target"]
-        selectedDatasets.forEach((dataset) => {
-          console.log("dataset", dataset)
-          let prefixTx = dataset.name.split("_")[0]
-          // let columns = ["subject_id"]
-          let columns = []
-          Object.entries(dataset.columnsTags).forEach(([columnName, tags]) => {
-            if (selectedVariables.includes(columnName + "_" + prefixTx) && tags.some(tag => selectedTags.includes(tag))) {
-              let newName = tags.join("_") + "_|_" + columnName + "_" + prefixTx
-              columns.push(newName);
-            }
-          });
-          columnsArray_ = columnsArray_.concat(columns)
-        })
-        console.log("columnsArray", columnsArray_)
-        // var { columnsArray } = await MedDataObject.getColumnsFromPath(config.dataset.path, globalData, setGlobalData, useMedStandard)
+      // let columnsArray_ = []
+      // setLoader(true)
+      // if (useMedStandard) {
+      //   console.log("dataset infos", config.dataset)
+      //   let selectedDatasets = config.dataset.selectedDatasets
+      //   let selectedTags = config.dataset.selectedTags
+      //   let selectedVariables = config.dataset.selectedVariables
+      //   columnsArray_ = ["subject_id", "target"]
+      //   selectedDatasets.forEach((dataset) => {
+      //     console.log("dataset", dataset)
+      //     let prefixTx = dataset.name.split("_")[0]
+      //     // let columns = ["subject_id"]
+      //     let columns = []
+      //     Object.entries(dataset.columnsTags).forEach(([columnName, tags]) => {
+      //       if (selectedVariables.includes(columnName + "_" + prefixTx) && tags.some(tag => selectedTags.includes(tag))) {
+      //         let newName = tags.join("_") + "_|_" + columnName + "_" + prefixTx
+      //         columns.push(newName);
+      //       }
+      //     });
+      //     columnsArray_ = columnsArray_.concat(columns)
+      //   })
+      //   console.log("columnsArray", columnsArray_)
+      //   // var { columnsArray } = await MedDataObject.getColumnsFromPath(config.dataset.path, globalData, setGlobalData, useMedStandard)
 
-      } else {
+      // } else {
 
-        let { columnsArray } = await MedDataObject.getColumnsFromPath(config.dataset.path, globalData, setGlobalData)
-        columnsArray_ = columnsArray
-      }
-      setLoader(false)
+      //   let { columnsArray } = await MedDataObject.getColumnsFromPath(config.dataset.path, globalData, setGlobalData)
+      //   columnsArray_ = columnsArray
+      // }
+      // setLoader(false)
       //   getting colummns of the model
       let modelDataObject = await MedDataObject.getObjectByPathSync(config.model.path, globalData)
       if (modelDataObject) {
@@ -199,14 +279,12 @@ const EvaluationPageContent = () => {
 
             try {
               customZipFile2Object(config.model.path)
-                .then((content) => {
+                .then(async (content) => {
                   console.log("finish customZipFile2Object", content)
                   if (content && Object.keys(content).length > 0) {
                     modelDataObject.metadata.content = content
                     setGlobalData({ ...globalData })
-                    let modelData = content.columns
-                    
-                    checkWarnings(columnsArray_, modelData)
+                    await checkWarnings(config.dataset, content, useMedStandard)
                   }
                 })
                 .catch((error) => {
@@ -220,14 +298,14 @@ const EvaluationPageContent = () => {
 
             modelDataObject.metadata.content = config.model.metadata
             setGlobalData({ ...globalData })
-            let modelData = config.model.metadata.columns
-            checkWarnings(columnsArray_, modelData)
+            let modelData = config.model.metadata
+            await checkWarnings(config.dataset, modelData, useMedStandard)
           }
         } else {
           console.log("flag1 - false")
 
-          let modelData = modelDataObject.metadata.content.columns
-          checkWarnings(columnsArray_, modelData)
+          let modelData = modelDataObject.metadata.content
+          await checkWarnings(config.dataset, modelData, useMedStandard)
         }
         console.log("modelDataObject.metadata.content", modelDataObject.metadata.content)
       }
@@ -241,9 +319,39 @@ const EvaluationPageContent = () => {
   const getEvaluationStep = () => {
     console.log("initializing evaluation step:", config, "mode:", config.isSet)
     if (config.isSet) {
-      return <PageEval useMedStandard={config.useMedStandard} run={run} pageId={pageId} config={config} updateWarnings={updateWarnings} setDatasetHasWarning={setDatasetHasWarning} datasetHasWarning={datasetHasWarning} setModelHasWarning={setModelHasWarning} modelHasWarning={modelHasWarning} updateConfigClick={updateConfigClick} setChosenModel={setChosenModel} setChosenDataset={setChosenDataset} />
+      return (
+        <PageEval
+          useMedStandard={config.useMedStandard}
+          run={run}
+          pageId={pageId}
+          config={config}
+          updateWarnings={updateWarnings}
+          setDatasetHasWarning={setDatasetHasWarning}
+          datasetHasWarning={datasetHasWarning}
+          setModelHasWarning={setModelHasWarning}
+          modelHasWarning={modelHasWarning}
+          updateConfigClick={updateConfigClick}
+          setChosenModel={setChosenModel}
+          setChosenDataset={setChosenDataset}
+        />
+      )
     } else {
-      return <PageConfig useMedStandard={config.useMedStandard} run={run} pageId={pageId} config={config} updateWarnings={updateWarnings} setDatasetHasWarning={setDatasetHasWarning} datasetHasWarning={datasetHasWarning} setModelHasWarning={setModelHasWarning} modelHasWarning={modelHasWarning} updateConfigClick={updateConfigClick} setChosenModel={setChosenModel} setChosenDataset={setChosenDataset} />
+      return (
+        <PageConfig
+          useMedStandard={config.useMedStandard}
+          run={run}
+          pageId={pageId}
+          config={config}
+          updateWarnings={updateWarnings}
+          setDatasetHasWarning={setDatasetHasWarning}
+          datasetHasWarning={datasetHasWarning}
+          setModelHasWarning={setModelHasWarning}
+          modelHasWarning={modelHasWarning}
+          updateConfigClick={updateConfigClick}
+          setChosenModel={setChosenModel}
+          setChosenDataset={setChosenDataset}
+        />
+      )
     }
   }
 
