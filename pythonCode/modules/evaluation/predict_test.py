@@ -43,13 +43,16 @@ class GoExecScriptPredictTest(GoExecutionScript):
 
         
         columns_to_keep = None
-        # Get the feature names from the model
+        # if model.__class__.__name__ != 'LGBMClassifier':
+            # Get the feature names from the model
         if dir(model).__contains__('feature_names_in_'):
             columns_to_keep = model.__getattribute__('feature_names_in_').tolist()
-            # Add the target to the columns to keep
-            columns_to_keep.append(model_infos['metadata']['target'])
-            # Keep only the columns that are in the model
-            
+        
+        if dir(model).__contains__('feature_name_') and columns_to_keep is None:
+            columns_to_keep = model.__getattribute__('feature_name_')
+        
+                
+
         go_print(f"MODEL NAME: {model.__class__.__name__}")
         
         self.set_progress(label="Loading the dataset", now=20)
@@ -60,9 +63,12 @@ class GoExecScriptPredictTest(GoExecutionScript):
             dataset = load_csv(dataset_infos['path'], model_infos['metadata']['target'])
 
         if columns_to_keep is not None:
+            # Add the target to the columns to keep if it's not already there
+            if model_infos['metadata']['target'] not in columns_to_keep:
+                columns_to_keep.append(model_infos['metadata']['target'])
             dataset = dataset[columns_to_keep]
 
-        # caluclate the predictions
+        # calculate the predictions
         self.set_progress(label="Setting up the experiment", now=30)
         exp = None
         if ml_type == 'regression':

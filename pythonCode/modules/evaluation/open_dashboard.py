@@ -25,7 +25,8 @@ CLASSIFIER_NOT_SUPPORTING_NAN = [
     "QuadraticDiscriminantAnalysis", 
     "AdaBoostClassifier",
     "GradientBoostingClassifier",
-    "LinearDiscriminantAnalysis"
+    "LinearDiscriminantAnalysis",
+    "ExtraTreesClassifier",
     ]
 import numpy as np
 import types 
@@ -67,7 +68,7 @@ class GoExecScriptOpenDashboard(GoExecutionScript):
         """
         This function is the main script opening the dashboard
         """
-        # go_print(json.dumps(json_config, indent=4))
+        go_print(json.dumps(json_config, indent=4))
         model_infos = json_config['model']
         ml_type = model_infos['metadata']['ml_type']
         dashboard_name = json_config['dashboardName']
@@ -82,9 +83,9 @@ class GoExecScriptOpenDashboard(GoExecutionScript):
         # Get the feature names from the model
         if dir(self.model).__contains__('feature_names_in_'):
             columns_to_keep = self.model.__getattribute__('feature_names_in_').tolist()
-            # Add the target to the columns to keep
-            columns_to_keep.append(model_infos['metadata']['target'])
-            # Keep only the columns that are in the model
+
+        if dir(self.model).__contains__('feature_name_') and columns_to_keep is None:
+            columns_to_keep = self.model.__getattribute__('feature_name_')
             
         use_med_standard = json_config['useMedStandard']
         if use_med_standard:
@@ -106,9 +107,10 @@ class GoExecScriptOpenDashboard(GoExecutionScript):
             # temp_df.fillna(temp_df.mean(), inplace=True)
             temp_df.dropna(how='any', inplace=True)
 
-        # Remove the rows with missing values
-        # temp_df.dropna(inplace=True)
-        if columns_to_keep is not None:        
+        if columns_to_keep is not None:
+            # Add the target to the columns to keep if it's not already there
+            if model_infos['metadata']['target'] not in columns_to_keep:
+                columns_to_keep.append(model_infos['metadata']['target'])        
             # Keep only the columns that are in the model
             temp_df = temp_df[columns_to_keep]     
 
