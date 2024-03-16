@@ -28,6 +28,9 @@ CLASSIFIER_NOT_SUPPORTING_NAN = [
     "LinearDiscriminantAnalysis",
     "ExtraTreesClassifier",
     ]
+
+REGRESSOR_NOT_SUPPORTING_NAN = [] # TODO: add regressors not supporting nan
+    
 import numpy as np
 import types 
 def predict_proba(self, X):
