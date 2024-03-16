@@ -127,7 +127,7 @@ const PageEval = ({ run, pageId, config, setChosenModel, updateConfigClick, setC
           requestBackend(
             port,
             "evaluation/open_dashboard/dashboard/" + pageId,
-            { pageId: pageId, model: config.model, dataset: config.dataset, sampleSizeFrac: 0.01, dashboardName: config.model.name.split(".")[0], modelObjPath: modelObjCopies.dashboard, useMedStandard: useMedStandard },
+            { pageId: pageId, model: config.model, dataset: config.dataset, sampleSizeFrac: 1, dashboardName: config.model.name.split(".")[0], modelObjPath: modelObjCopies.dashboard, useMedStandard: useMedStandard },
             (data) => {
               console.log("openDashboard received data:", data)
               setIsDashboardUpdating(false)

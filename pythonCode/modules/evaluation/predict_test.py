@@ -31,7 +31,7 @@ class GoExecScriptPredictTest(GoExecutionScript):
         """
         This function is the main script of the execution of the process from Go
         """
-        go_print(json.dumps(json_config, indent=4))
+        # go_print(json.dumps(json_config, indent=4))
         model_infos = json_config['model']
         ml_type = model_infos['metadata']['ml_type']
         dataset_infos = json_config['dataset']
@@ -40,12 +40,27 @@ class GoExecScriptPredictTest(GoExecutionScript):
         model = get_model_from_path(pickle_path)
         os.remove(pickle_path)
         go_print(f"model loaded: {model}")
+
+        
+        columns_to_keep = None
+        # Get the feature names from the model
+        if dir(model).__contains__('feature_names_in_'):
+            columns_to_keep = model.__getattribute__('feature_names_in_').tolist()
+            # Add the target to the columns to keep
+            columns_to_keep.append(model_infos['metadata']['target'])
+            # Keep only the columns that are in the model
+            
+        go_print(f"MODEL NAME: {model.__class__.__name__}")
+        
         self.set_progress(label="Loading the dataset", now=20)
         use_med_standard = json_config['useMedStandard']
         if use_med_standard:
             dataset = load_med_standard_data(dataset_infos['selectedDatasets'], dataset_infos['selectedTags'], dataset_infos['selectedVariables'], model_infos['metadata']['target'])
         else:
             dataset = load_csv(dataset_infos['path'], model_infos['metadata']['target'])
+
+        if columns_to_keep is not None:
+            dataset = dataset[columns_to_keep]
 
         # caluclate the predictions
         self.set_progress(label="Setting up the experiment", now=30)
