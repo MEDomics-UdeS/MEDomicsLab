@@ -237,38 +237,6 @@ const EvaluationPageContent = () => {
       config.model.name != "No selection" &&
       config.dataset.name != "No selection"
     ) {
-      //   getting colummns of the dataset
-      // let columnsArray_ = []
-      // setLoader(true)
-      // if (useMedStandard) {
-      //   console.log("dataset infos", config.dataset)
-      //   let selectedDatasets = config.dataset.selectedDatasets
-      //   let selectedTags = config.dataset.selectedTags
-      //   let selectedVariables = config.dataset.selectedVariables
-      //   columnsArray_ = ["subject_id", "target"]
-      //   selectedDatasets.forEach((dataset) => {
-      //     console.log("dataset", dataset)
-      //     let prefixTx = dataset.name.split("_")[0]
-      //     // let columns = ["subject_id"]
-      //     let columns = []
-      //     Object.entries(dataset.columnsTags).forEach(([columnName, tags]) => {
-      //       if (selectedVariables.includes(columnName + "_" + prefixTx) && tags.some(tag => selectedTags.includes(tag))) {
-      //         let newName = tags.join("_") + "_|_" + columnName + "_" + prefixTx
-      //         columns.push(newName);
-      //       }
-      //     });
-      //     columnsArray_ = columnsArray_.concat(columns)
-      //   })
-      //   console.log("columnsArray", columnsArray_)
-      //   // var { columnsArray } = await MedDataObject.getColumnsFromPath(config.dataset.path, globalData, setGlobalData, useMedStandard)
-
-      // } else {
-
-      //   let { columnsArray } = await MedDataObject.getColumnsFromPath(config.dataset.path, globalData, setGlobalData)
-      //   columnsArray_ = columnsArray
-      // }
-      // setLoader(false)
-      //   getting colummns of the model
       let modelDataObject = await MedDataObject.getObjectByPathSync(config.model.path, globalData)
       if (modelDataObject) {
         console.log("model columns already loaded ?", modelDataObject.metadata.content)
