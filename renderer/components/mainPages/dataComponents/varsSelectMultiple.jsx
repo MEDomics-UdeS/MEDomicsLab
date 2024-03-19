@@ -40,6 +40,7 @@ const VarsSelectMultiple = ({ key, onChange, selectedVars, selectedTags, selecte
    * @description This function is used to update the localVars and call the onChange function
    */
   const updateCurrentVars = useCallback((newVars) => {
+    console.log("selectedVars", selectedVars)
     let newLocalVars = selectedVars.filter((localVar) => {
       return newVars.map((varToShow) => varToShow.value).includes(localVar)
     })

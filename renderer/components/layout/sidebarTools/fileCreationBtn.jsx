@@ -2,6 +2,7 @@ import React, { useRef, useState, useEffect } from "react"
 import { Button } from "primereact/button"
 import { InputText } from "primereact/inputtext"
 import { OverlayPanel } from "primereact/overlaypanel"
+import { InputSwitch } from 'primereact/inputswitch';
 
 /**
  *
@@ -14,11 +15,12 @@ import { OverlayPanel } from "primereact/overlaypanel"
  * @description - This component is used to create a file in the sidebar
  * @returns - A button to create a file
  */
-const FileCreationBtn = ({ createEmptyFile, label = "Create Page", piIcon = "pi-plus", handleClickCreateScene, checkIsNameValid }) => {
+const FileCreationBtn = ({ createEmptyFile, label = "Create Page", piIcon = "pi-plus", handleClickCreateScene, checkIsNameValid, hasMedStandrad }) => {
   const createSceneRef = useRef(null)
   const [btnCreateSceneState, setBtnCreateSceneState] = useState(false)
   const [sceneName, setSceneName] = useState("") // We initialize the experiment name state to an empty string
   const [showErrorMessage, setShowErrorMessage] = useState(false) // We initialize the create experiment error message state to an empty string
+  const [useMedStandard, setUseMedStandard] = useState(false)
 
   // We use the useEffect hook to update the create experiment error message state when the experiment name changes
   useEffect(() => {
@@ -60,7 +62,7 @@ const FileCreationBtn = ({ createEmptyFile, label = "Create Page", piIcon = "pi-
    */
   const handleFileCreation = (e) => {
     createSceneRef.current.toggle(e)
-    createEmptyFile(sceneName)
+    createEmptyFile(sceneName, useMedStandard)
   }
 
   /**
@@ -71,7 +73,7 @@ const FileCreationBtn = ({ createEmptyFile, label = "Create Page", piIcon = "pi-
     if (e.key === "Enter") {
       if (defaultCheckIsNameValid(sceneName)) {
         createSceneRef.current.toggle(e)
-        createEmptyFile(sceneName)
+        createEmptyFile(sceneName, useMedStandard)
       }
     }
   }
@@ -94,6 +96,15 @@ const FileCreationBtn = ({ createEmptyFile, label = "Create Page", piIcon = "pi-
               <small id="name-msg" className="text-red">
                 {showErrorMessage ? "Page name is empty, contains spaces or already exists" : ""}
               </small>
+              {
+                hasMedStandrad &&
+                <div>
+                  <div className="p-field-checkbox">
+                    <label htmlFor="medStandard">MEDomicsLab Standard</label>
+                    <InputSwitch id="medStandard" checked={useMedStandard} onChange={(e) => setUseMedStandard(e.value)} />
+                  </div>
+                </div>
+              }
             </div>
 
             <hr className="solid" />

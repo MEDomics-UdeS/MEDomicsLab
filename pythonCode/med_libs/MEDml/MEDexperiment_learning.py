@@ -149,6 +149,11 @@ class MEDexperimentLearning(MEDexperiment):
             temp_df.columns.values.tolist()))
         self.global_json_config["target_column"] = kwargs['target']
         self.global_json_config["steps"] = node.settings['steps']
+        if 'tags' in node.settings:
+            self.global_json_config["selectedTags"] = node.settings['tags']
+        if 'variables' in node.settings:
+            self.global_json_config["selectedVariables"] = node.settings['variables']
+        self.global_json_config["steps"] = node.settings['steps']
         self.pipelines_objects[node.id]['results']['data'] = {
             "table": dataset_metaData['dataset'].to_json(orient='records'),
             "paths": node.get_path_list(),

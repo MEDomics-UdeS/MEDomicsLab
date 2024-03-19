@@ -41,7 +41,7 @@ const WsSelectMultiple = ({ key, selectedPaths, onChange, rootDir, acceptFolder 
         // in this case, we want to show only the files in the selected root directory
         if (rootDir != undefined) {
           if (globalData[globalData[uuid].parentID]) {
-            if (globalData[globalData[uuid].parentID].name == rootDir || globalData[globalData[uuid].parentID].originalName == rootDir) {
+            if (rootDir.includes(globalData[globalData[uuid].parentID].name) || rootDir.includes(globalData[globalData[uuid].parentID].originalName)) {
               if (!(!acceptFolder && globalData[uuid].type == "folder")) {
                 if (acceptedExtensions.includes("all") || acceptedExtensions.includes(globalData[uuid].extension)) {
                   console.log("dataset", globalData[uuid])
