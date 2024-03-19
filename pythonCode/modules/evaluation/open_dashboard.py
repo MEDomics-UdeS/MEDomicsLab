@@ -7,9 +7,39 @@ import sys
 from pathlib import Path
 sys.path.append(
     str(Path(os.path.dirname(os.path.abspath(__file__))).parent.parent))
-from med_libs.server_utils import go_print, find_next_available_port, load_csv, get_model_from_path, is_port_in_use
+from med_libs.server_utils import go_print, find_next_available_port, load_csv, get_model_from_path, is_port_in_use, load_med_standard_data
 from med_libs.GoExecutionScript import GoExecutionScript, parse_arguments
 from med_libs.CustomZipFile import CustomZipFile
+
+CLASSIFIER_NOT_SUPPORTING_NAN = [
+    "LogisticRegression",
+    "KNeighborsClassifier",
+    "GaussianNB",
+    "DecisionTreeClassifier",
+    "SGDClassifier",
+    "SVC",
+    "GaussianProcessClassifier",
+    "MLPClassifier",
+    "RidgeClassifier",
+    "RandomForestClassifier",
+    "QuadraticDiscriminantAnalysis", 
+    "AdaBoostClassifier",
+    "GradientBoostingClassifier",
+    "LinearDiscriminantAnalysis",
+    "ExtraTreesClassifier",
+    ]
+
+REGRESSOR_NOT_SUPPORTING_NAN = [] # TODO: add regressors not supporting nan
+    
+import numpy as np
+import types 
+def predict_proba(self, X):
+    pred = self.predict(X)
+    return np.array([1-pred, pred]).T 
+
+
+
+
 
 json_params_dict, id_ = parse_arguments()
 
@@ -46,17 +76,46 @@ class GoExecScriptOpenDashboard(GoExecutionScript):
         ml_type = model_infos['metadata']['ml_type']
         dashboard_name = json_config['dashboardName']
         dataset_infos = json_config['dataset']
-        dataset_path = dataset_infos['path']
         sample_size = json_config['sampleSizeFrac']
         pickle_path = json_config['modelObjPath']
         self.model = get_model_from_path(pickle_path)
         os.remove(pickle_path)
 
         go_print(f"model loaded: {self.model}")
+        columns_to_keep = None
+        # Get the feature names from the model
+        if dir(self.model).__contains__('feature_names_in_'):
+            columns_to_keep = self.model.__getattribute__('feature_names_in_').tolist()
 
-        temp_df = load_csv(dataset_path, model_infos['metadata']['target'])
+        if dir(self.model).__contains__('feature_name_') and columns_to_keep is None:
+            columns_to_keep = self.model.__getattribute__('feature_name_')
+            
+        use_med_standard = json_config['useMedStandard']
+        if use_med_standard:
+            temp_df = load_med_standard_data(dataset_infos['selectedDatasets'], model_infos['metadata']['selectedTags'],
+                                         model_infos['metadata']['selectedVariables'], model_infos['metadata']['target'])
+        else:
+            temp_df = load_csv(dataset_infos['path'], model_infos['metadata']['target'])
         if sample_size < 1:
             temp_df = temp_df.sample(frac=sample_size)
+
+        go_print(f"MODEL NAME: {self.model.__class__.__name__}")
+        # Monkey patch the predict_proba method for the SGDClassifier
+        # "SGDClassifier" and self.model.__class__.__name__ == "SGDClassifier" RidgeClassifier
+        if ml_type == "classification" and not hasattr(self.model, "predict_proba"):
+            self.model.predict_proba = types.MethodType(predict_proba, self.model)
+
+        # If the model does not support nan values, we remove the rows with missing values (model is not in the list of models supporting nan)
+        if ml_type == "classification" and self.model.__class__.__name__ in CLASSIFIER_NOT_SUPPORTING_NAN:
+            # temp_df.fillna(temp_df.mean(), inplace=True)
+            temp_df.dropna(how='any', inplace=True)
+
+        if columns_to_keep is not None:
+            # Add the target to the columns to keep if it's not already there
+            if model_infos['metadata']['target'] not in columns_to_keep:
+                columns_to_keep.append(model_infos['metadata']['target'])        
+            # Keep only the columns that are in the model
+            temp_df = temp_df[columns_to_keep]     
 
         X_test = temp_df.drop(columns=model_infos['metadata']['target'])
         y_test = temp_df[model_infos['metadata']['target']]

@@ -63,13 +63,16 @@ class ModelIO(Node):
                         "code", f"pycaret_exp.save_model(model, {self.CodeHandler.convert_dict_to_params(settings_copy)})", 1)
                     model_path = os.path.join(path, "metadata.json")
                     with open(model_path, 'w') as f:
-                        to_write = {
-                            "columns": self.global_config_json["columns"],
-                            "target": self.global_config_json["target_column"],
-                            "steps": self.global_config_json["steps"],
-                            "ml_type": self.global_config_json["MLType"]
-                        }
-                        json.dump(to_write, f)
+                        to_write = {"columns": self.global_config_json["columns"],
+                                    "target": self.global_config_json["target_column"],
+                                    "steps": self.global_config_json["steps"],
+                                    "ml_type": self.global_config_json["MLType"]
+                                    }
+                        if 'selectedTags' in self.global_config_json:
+                            to_write['selectedTags'] = self.global_config_json['selectedTags']
+                        if 'selectedVariables' in self.global_config_json:
+                            to_write['selectedVariables'] = self.global_config_json['selectedVariables']
+                        json.dump(to_write, f, indent=4)
 
                 self.CustZipFileModel.create_zip(new_path, add_model_to_zip)
 

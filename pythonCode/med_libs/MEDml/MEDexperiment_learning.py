@@ -149,14 +149,21 @@ class MEDexperimentLearning(MEDexperiment):
             temp_df.columns.values.tolist()))
         self.global_json_config["target_column"] = kwargs['target']
         self.global_json_config["steps"] = node.settings['steps']
+        if 'tags' in node.settings:
+            self.global_json_config["selectedTags"] = node.settings['tags']
+        if 'variables' in node.settings:
+            self.global_json_config["selectedVariables"] = node.settings['variables']
+        self.global_json_config["steps"] = node.settings['steps']
         self.pipelines_objects[node.id]['results']['data'] = {
             "table": dataset_metaData['dataset'].to_json(orient='records'),
             "paths": node.get_path_list(),
         }
         node._info_for_next_node['dataset'] = dataset_metaData['dataset']
+        node._info_for_next_node['setup_settings'] = kwargs
         return {
             'pycaret_exp': pycaret_exp,
             'medml_logger': medml_logger,
+            'df': temp_df
         }
 
     def _make_save_ready_rec(self, next_nodes: dict):

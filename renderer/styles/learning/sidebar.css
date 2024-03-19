@@ -49,6 +49,16 @@
   margin-top: 2rem;
 }
 
+.create-scene-overlayPanel-body .p-field-checkbox {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0 0.5rem;
+  width: 100%;
+  margin-top: 0.25rem;
+  margin-bottom: 0.25rem;
+}
+
 .button-group {
   display: flex;
   flex-direction: row;
