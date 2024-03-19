@@ -2,6 +2,7 @@ import copy
 import pandas as pd
 import numpy as np
 import json
+import os
 from .NodeObj import Node
 from typing import Union
 from colorama import Fore
@@ -42,6 +43,7 @@ class ModelHandler(Node):
         trained_models = None
         trained_models_json = {}
         settings = copy.deepcopy(self.settings)
+        os.chdir(self.global_config_json['paths']['ws'])
         if self.type == 'compare_models':
             models = experiment['pycaret_exp'].compare_models(**settings)
             print(models)

@@ -256,6 +256,7 @@ class MEDexperiment(ABC):
 
                 node_info = next_nodes[current_node_id]
                 experiment = self.copy_experiment(experiment)
+                exp_to_return = experiment
                 node = node_info['obj']
                 self._progress['currentLabel'] = node.username
                 if not node.has_run() or prev_node.has_changed():
@@ -263,9 +264,16 @@ class MEDexperiment(ABC):
                         'prev_node_id': prev_node.id,
                         'data': node.execute(experiment, **prev_node.get_info_for_next_node()),
                     }
-                    self.modify_node_info(node_info, node, experiment)
+                    # Clean node return experiment
+                    if "experiment" in node_info['results']['data']:
+                        new_experiment = node_info['results']['data']['experiment']
+                        self.modify_node_info(node_info, node, new_experiment)
+                        node_info['experiment'] = new_experiment
+                        exp_to_return = new_experiment
 
-                    node_info['experiment'] = experiment
+                    else:
+                        self.modify_node_info(node_info, node, experiment)
+                        node_info['experiment'] = experiment
                 else:
                     print(
                         f"already run {node.username} -----------------------------------------------------------------------------")
@@ -283,7 +291,7 @@ class MEDexperiment(ABC):
                     next_nodes_to_execute=next_nodes_id_json,
                     next_nodes=node_info['next_nodes'],
                     results=results[current_node_id]['next_nodes'],
-                    experiment=experiment
+                    experiment=exp_to_return
                 )
                 print(f'flag-{node.username}')
 

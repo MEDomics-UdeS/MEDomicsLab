@@ -29,7 +29,6 @@ const AnalyseResults = ({ selectedResults }) => {
     if (selectedResults.data) {
       let imagesInfos = []
       Object.entries(selectedResults.data).forEach(([modelName, path]) => {
-        console.log("path", path)
         imagesInfos.push({ modelName: modelName, path: path })
       })
       createImages(imagesInfos)
@@ -45,36 +44,33 @@ const AnalyseResults = ({ selectedResults }) => {
    */
   const createImages = (imagesInfos) => {
     if (imagesInfos.length != 0) {
-      console.log("imagesInfos", imagesInfos)
       let zipPath = imagesInfos[0].path.split(MedDataObject.getPathSeparator() + "tmp" + MedDataObject.getPathSeparator())[0]
-      console.log("zipPath", zipPath)
       modifyZipFileSync(zipPath + ".medml", () => {
         return new Promise((resolve) => {
           let promises = imagesInfos.map(({ modelName, path }) => {
-            console.log("path", path);
             return getLocalImageSync(path).then((imageUrl) => {
               return {
                 key: modelName,
                 imageUrl: imageUrl
-              };
-            });
-          });
+              }
+            })
+          })
           Promise.all(promises)
             .then((results) => {
-                let images = results.map(({ key, imageUrl }) => (
-                  <div key={key}>
-                      <Image src={imageUrl} alt="Image" height="250" indicatorIcon={<h5>{key}</h5>} preview downloadable />
-                  </div>
-                ));
-              setImages(images);
+              let images = results.map(({ key, imageUrl }) => (
+                <div key={key}>
+                  <Image src={imageUrl} alt="Image" height="250" indicatorIcon={<h5>{key}</h5>} preview downloadable />
+                </div>
+              ))
+              setImages(images)
             })
             .catch((error) => {
-                console.log(error);
-            });
-            resolve();
+              console.log(error)
+            })
+          resolve()
         })
       }).then(() => {
-        console.log("finishing")
+        // No operation needed, there for debugging purposes
       })
     }
   }

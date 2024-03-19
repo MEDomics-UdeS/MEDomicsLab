@@ -228,7 +228,7 @@ const PipelinesResults = ({ pipelines, selectionMode, flowContent }) => {
        * It first loads the existing notebook or get an empty one and then fills it with the code and the imports.
        */
       const createNoteBookDoc = (code, imports) => {
-        let newLineChar = process.platform === "linux" ? "\n" : ""
+        let newLineChar = "\n" // before was process.platform === "linux" ? "\n" : ""
         let notebook = loadJsonPath([getBasePath(EXPERIMENTS), sceneName, "notebooks", pipeline.map((id) => getName(id)).join("-")].join(MedDataObject.getPathSeparator()) + ".ipynb")
         notebook = notebook ? deepCopy(notebook) : deepCopy(loadJsonPath(isProd ? Path.join(process.resourcesPath, "baseFiles", "emptyNotebook.ipynb") : "./baseFiles/emptyNotebook.ipynb"))
         notebook.cells = []
