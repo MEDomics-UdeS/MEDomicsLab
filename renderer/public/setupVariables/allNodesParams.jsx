@@ -1,4 +1,5 @@
 import learningNodesParams from "./learningNodesParams"
+import learningMEDimageNodesParams from "./learningMEDimageNodesParams"
 import optimizeNodesParams from "./optimizeNodesParams"
 import extractionMEDimageNodesParams from "./extractionMEDimageNodesParams"
 import featuresNodesParams from "./featuresNodesParams"
@@ -7,6 +8,7 @@ import featuresNodesParams from "./featuresNodesParams"
 
 const nodesParams = {
   learning: learningNodesParams,
+  learningMEDimage: learningMEDimageNodesParams,
   optimize: optimizeNodesParams,
   extraction: extractionMEDimageNodesParams,
   features: featuresNodesParams

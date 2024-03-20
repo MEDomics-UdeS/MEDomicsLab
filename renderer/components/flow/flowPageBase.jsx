@@ -9,6 +9,7 @@ import { PageInfosContext } from "../mainPages/moduleBasics/pageInfosContext"
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels"
 import { WorkspaceContext, EXPERIMENTS } from "../workspace/workspaceContext"
 import ResultsPane from "./results/resultsPane"
+import ResultsPaneMEDimage from "./results/resultsPaneMEDimage"
 import MedDataObject from "../workspace/medDataObject"
 import { loadJsonPath } from "../../utilities/fileManagementUtils"
 
@@ -21,7 +22,7 @@ import { loadJsonPath } from "../../utilities/fileManagementUtils"
  * @description This component is the base for all the flow pages. It contains the sidebar, the flow and the results pane.
  *
  */
-const FlowPageBaseWithFlowInfos = ({ children, workflowType, id, ExtraPages=null, reload, setReload }) => {
+const FlowPageBaseWithFlowInfos = ({ children, workflowType, id, LearningMEDimage=false, ExtraPages=null, reload, setReload }) => {
   // here is the use of the context to update the flowInfos
   const [isDragging, setIsDragging] = useState(false)
   const { updateFlowInfos, showAvailableNodes, setExperimentName, setSceneName } = useContext(FlowInfosContext)
@@ -123,7 +124,9 @@ const FlowPageBaseWithFlowInfos = ({ children, workflowType, id, ExtraPages=null
                 size > 5 ? setShowResultsPane(true) : setShowResultsPane(false)
               }}
             >
-              <ResultsPane />
+            <>
+            {LearningMEDimage ? (<ResultsPaneMEDimage />) : (<ResultsPane />)}
+            </>
             </Panel>
           </PanelGroup>
         </Panel>

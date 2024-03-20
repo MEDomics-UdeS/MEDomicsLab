@@ -4,6 +4,8 @@ import * as Icon from "react-bootstrap-icons"
 import { TfiSave } from "react-icons/tfi"
 import { PiDownload } from "react-icons/pi"
 import { AiOutlineImport } from "react-icons/ai"
+import { Tooltip } from 'primereact/tooltip';
+
 
 /**
  *
@@ -12,11 +14,11 @@ import { AiOutlineImport } from "react-icons/ai"
  * @example
  * <BtnDiv buttonsList={[{type: 'clear', onClick: () => {}}]}/>
  */
-const BtnDiv = ({ buttonsList }) => {
+const BtnDiv = ({ buttonsList, op }) => {
   return (
     <>
       {buttonsList.map((button) => {
-        return buttonType[button.type](button.onClick)
+        return buttonType[button.type](button.onClick, op)
       })}
     </>
   )
@@ -50,9 +52,18 @@ const buttonType = {
   },
   load: (onLoad) => {
     return (
-      <Button key="load" variant="outline margin-left-10 padding-5" onClick={onLoad}>
+      <>
+      <Tooltip key="loadTip" target=".loadBtn"/>
+      <Button 
+        key="load"
+        className="loadBtn"
+        data-pr-tooltip="Load a new learning workflow"
+        data-pr-position="left"
+        variant="outline-secondary margin-left-10 padding-5" 
+        onClick={onLoad}>
         <AiOutlineImport style={{ width: "30px", height: "auto" }} />
       </Button>
+      </>
     )
   },
   run: (onRun) => {
@@ -68,5 +79,41 @@ const buttonType = {
         <Icon.Backspace width="30px" height="30px" />
       </Button>
     )
-  }
+  },
+  export: (onExport, op) => {
+    return (
+      <>
+      <Tooltip target=".saveBtn"/>
+      <Button 
+        key="export" 
+        className="saveBtn" 
+        data-pr-tooltip="Export settings for batch extraction"
+        data-pr-position="bottom"
+        variant="outline margin-left-10 padding-5" 
+        onClick={(e) =>
+          {
+            onExport;
+            op.current.toggle(e)
+          }}>
+          <i className="pi pi-file-export" style={{ fontSize: '1.8rem' }}></i>
+      </Button>
+      </>
+    )
+  },
+  loadDeafult: (onLoadDeafult) => {
+    return (
+      <>
+      <Tooltip key="loadDeafultTip" target=".loadDeafultBtn"/>
+      <Button 
+        key="loadDeafult"
+        className="loadDeafultBtn"
+        data-pr-tooltip="Load default learning workflow"
+        data-pr-position="left"
+        variant="outline-info uccess margin-left-10 padding-5" 
+        onClick={onLoadDeafult}>
+          <AiOutlineImport style={{ width: "30px", height: "auto" }} />
+      </Button>
+      </>
+    )
+  },
 }

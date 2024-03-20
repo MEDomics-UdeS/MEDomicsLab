@@ -47,19 +47,6 @@ const nodesParams = {
       defaultSettings: extractionMEDimageDefaultSettings.interpolation
     }
   },
-  filter: {
-    type: "filterNode",
-    classes: "object filter view run",
-    nbInput: 1,
-    nbOutput: 1,
-    input: ["segmentation_data", "re_segmentation_data"],
-    output: ["filter_data"],
-    img: "filter.svg",
-    title: "Filter",
-    possibleSettings: {
-      defaultSettings: extractionMEDimageDefaultSettings.filter
-    }
-  },
   re_segmentation: {
     type: "standardNode",
     classes: "object re_segmentation view run",
@@ -71,6 +58,19 @@ const nodesParams = {
     title: "Re-Segmentation",
     possibleSettings: {
       defaultSettings: extractionMEDimageDefaultSettings.re_segmentation
+    }
+  },
+  filter: {
+    type: "filterNode",
+    classes: "object filter view run",
+    nbInput: 1,
+    nbOutput: 1,
+    input: ["segmentation_data", "re_segmentation_data"],
+    output: ["filter_data"],
+    img: "filter.svg",
+    title: "Filter",
+    possibleSettings: {
+      defaultSettings: extractionMEDimageDefaultSettings.filter
     }
   },
   roi_extraction: {

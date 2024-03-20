@@ -146,6 +146,13 @@ const FlowSceneSidebar = ({ type }) => {
     dispatchLayout({ type: `openBatchExtractor`, payload: { pageId: "BatchExtractorPage" } })
  }
 
+ /**
+   * 
+  */
+ const handleOpenDataManager = () => {
+  dispatchLayout({ type: `openDataManager`, payload: { pageId: "DataManagerPage" } })
+}
+
   /**
    *
    * @param {Event} e - The event passed on by the create scene button
@@ -179,9 +186,13 @@ const FlowSceneSidebar = ({ type }) => {
           <Button className={`btn-sidebar`} onClick={handleOpenBatchExtractor}>
             BatchExtractor
           </Button>
-        )
-          
-        }
+        )}
+
+        {type === "extractionMEDimage" && (
+          <Button className={`btn-sidebar`} onClick={handleOpenDataManager}>
+            DataManager
+          </Button>
+        )}
 
         <Accordion defaultActiveKey={["dirTree"]} alwaysOpen>
           <SidebarDirectoryTreeControlled setExternalSelectedItems={setSelectedItems} setExternalDBClick={setDbSelectedItem} />

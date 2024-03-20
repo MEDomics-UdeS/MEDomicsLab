@@ -68,7 +68,7 @@ const Handlers = ({ id, setupParam, tooltipBy="node" }) => {
 	return (
 		<>
 			{/* We create a handler for each input of the node. */}
-			{[...Array(setupParam["nbInput"])].map((x, i) => (
+			{setupParam !== null && ([...Array(setupParam["nbInput"])].map((x, i) => (
 				<div key={`left-${i}_${id}`}>
 					<Handle
 						id={`${i}_${id}`}
@@ -86,9 +86,9 @@ const Handlers = ({ id, setupParam, tooltipBy="node" }) => {
 						{createTooltip("input")}
 					</Tooltip>
 				</div>
-			))}
+			)))}
 			{/* We create a handler for each output of the node. */}
-			{[...Array(setupParam["nbOutput"])].map((x, i) => (
+			{setupParam !== null && ([...Array(setupParam["nbOutput"])].map((x, i) => (
 				<div key={`right-${i}_${id}`}>
 					<Handle
 						id={`${i}_${id}`}
@@ -106,7 +106,7 @@ const Handlers = ({ id, setupParam, tooltipBy="node" }) => {
 						{createTooltip("output")}
 					</Tooltip>
 				</div>
-			))}
+			)))}
 		</>
 	);
 };

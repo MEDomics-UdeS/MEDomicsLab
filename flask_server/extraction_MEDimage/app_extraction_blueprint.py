@@ -10,19 +10,22 @@ Uses the "Plotly" library for 3D volume visualization: https://plotly.com/python
 @Date: 09/09/2022
 """
 import copy
-import shutil
+import json
 import os
-import sys
-from pathlib import Path
 import pickle
 import pprint
-from copy import deepcopy
-import json
+import shutil
+import sys
 import traceback
+from copy import deepcopy
+from pathlib import Path
+
 import numpy as np
-from flask import Flask, jsonify, redirect, render_template, request, Blueprint, url_for, make_response, Response
-from werkzeug.utils import secure_filename
+import pandas as pd
+from flask import (Blueprint, Flask, Response, jsonify, make_response,
+                   redirect, render_template, request, url_for)
 from utils.server_utils import get_json_from_request, get_response_from_error
+from werkzeug.utils import secure_filename
 
 MODULE_DIR = str(Path(os.path.dirname(os.path.abspath(__file__))).parent / 'submodules' / 'MEDimage')
 sys.path.append(MODULE_DIR)
@@ -33,10 +36,10 @@ sys.path.append(SUBMODULE_DIR)
 pp = pprint.PrettyPrinter(indent=4, compact=True, width=40,
                           sort_dicts=False)  # allow pretty print of datatypes in console
 
-## Importation du submodule MEDimage
-import submodules.MEDimage.MEDimage as MEDimage
 import extraction_MEDimage.MEDimageApp.utils as utils
 import ray
+
+import submodules.MEDimage.MEDimage as MEDimage
 
 # Global variables
 cwd = os.getcwd()
@@ -656,6 +659,7 @@ def execute_pips(pips, json_scene):
                                     mask_int=last_feat_roi.data,  # roi_obj_morph.data,
                                     mask_morph=roi_morph.data,  # roi_obj_morph.data,
                                     res=MEDimg.params.process.scale_non_text,
+                                    intensity_type=MEDimg.params.process.intensity_type
                                 )
 
                             else:
@@ -678,7 +682,7 @@ def execute_pips(pips, json_scene):
 
                             print("---> morph features extracted")
                         except Exception as e:
-                            print(f"PROBLEM WITH COMPUTATION OF MORPHOLOGICAL FEATURES {e}")
+                            return {"error": f"PROBLEM WITH COMPUTATION OF MORPHOLOGICAL FEATURES {str(e)}"}
 
                     # LOCAL INTENSITY
                     elif feature_name == "local_intensity":
@@ -700,7 +704,8 @@ def execute_pips(pips, json_scene):
                                 features = MEDimage.biomarkers.local_intensity.extract_all(
                                     img_obj=last_feat_vol.data,  # vol_obj
                                     roi_obj=last_feat_roi.data,  # roi_obj_int
-                                    res=MEDimg.params.process.scale_non_text
+                                    res=MEDimg.params.process.scale_non_text,
+                                    intensity_type=MEDimg.params.process.intensity_type
                                     # TODO: missing parameter that is automatically set to false
                                 )
                             else:
@@ -720,7 +725,7 @@ def execute_pips(pips, json_scene):
                                     feature_name_convention = "Floc_" + str(features_to_extract[i])
                                     features[feature_name_convention] = local_vars.get("result")
                         except Exception as e:
-                            print(f'PROBLEM WITH COMPUTATION OF LOCAL INTENSITY FEATURES {e}')
+                            return {"error": f"PROBLEM WITH COMPUTATION OF LOCAL INTENSITY FEATURES {str(e)}"}
 
                         print("---> local_intensity features extracted")
 
@@ -742,6 +747,7 @@ def execute_pips(pips, json_scene):
                             if features_to_extract[0] == "extract_all":
                                 features = MEDimage.biomarkers.stats.extract_all(
                                     vol=last_feat_vol,  # vol_int_re
+                                    intensity_type=MEDimg.params.process.intensity_type
                                 )
                             else:
                                 # If only some features need to be extracted, use the name of the feature to build
@@ -758,7 +764,7 @@ def execute_pips(pips, json_scene):
                                     feature_name_convention = "Fstat_" + str(features_to_extract[i])
                                     features[feature_name_convention] = local_vars.get("result")
                         except Exception as e:
-                            print(f'PROBLEM WITH COMPUTATION OF STATISTICAL FEATURES {e}')
+                            return {"error": f"PROBLEM WITH COMPUTATION OF STATISTICAL FEATURES {str(e)}"}
 
                         print("---> stats features extracted")
 
@@ -808,7 +814,7 @@ def execute_pips(pips, json_scene):
                                     feature_name_convention = "Fih_" + str(features_to_extract[i])
                                     features[feature_name_convention] = local_vars.get("result")
                         except Exception as e:
-                            print(f'PROBLEM WITH COMPUTATION OF INTENSITY HISTOGRAM FEATURES {e}')
+                            return {"error": f"PROBLEM WITH COMPUTATION OF INTENSITY HISTOGRAM FEATURES {str(e)}"}
 
                         print("---> intensity_histogram features extracted")
 
@@ -868,7 +874,7 @@ def execute_pips(pips, json_scene):
                                     feature_name_convention = "F" + feature_name + "_" + str(features_to_extract[i])
                                     features[feature_name_convention] = local_vars.get("result")
                         except Exception as e:
-                            print(f'PROBLEM WITH COMPUTATION OF INTENSITY VOLUME HISTOGRAM FEATURES {e}')
+                            return {"error": f"PROBLEM WITH COMPUTATION OF INTENSITY VOLUME HISTOGRAM FEATURES {str(e)}"}
 
                         print("---> ivh features extracted")
 
@@ -906,7 +912,7 @@ def execute_pips(pips, json_scene):
 
                             print("---> glcm features extracted")
                         except Exception as e:
-                            print(f'PROBLEM WITH COMPUTATION OF GLCM FEATURES {e}')
+                            return {"error": f"PROBLEM WITH COMPUTATION OF GLCM FEATURES {str(e)}"}
 
                     # GLRLM
                     elif feature_name == "glrlm":
@@ -947,7 +953,7 @@ def execute_pips(pips, json_scene):
 
                             print("---> glrlm features extracted")
                         except Exception as e:
-                            print(f'PROBLEM WITH COMPUTATION OF GLRLM FEATURES {e}')
+                            return {"error": f"PROBLEM WITH COMPUTATION OF GLRLM FEATURES {str(e)}"}
 
                     # GLSZM
                     elif feature_name == "glszm":
@@ -984,7 +990,7 @@ def execute_pips(pips, json_scene):
 
                             print("---> glszm features extracted")
                         except Exception as e:
-                            print(f'PROBLEM WITH COMPUTATION OF GLSZM FEATURES {e}')
+                            return {"error": f"PROBLEM WITH COMPUTATION OF GLSZM FEATURES {str(e)}"}
 
                     # GLDZM
                     elif feature_name == "gldzm":
@@ -1023,7 +1029,7 @@ def execute_pips(pips, json_scene):
 
                             print("---> gldzm features extracted")
                         except Exception as e:
-                            print(f'PROBLEM WITH COMPUTATION OF GLDZM FEATURES {e}')
+                            return {"error": f"PROBLEM WITH COMPUTATION OF GLDZM FEATURES {str(e)}"}
 
                     # NGTDM
                     elif feature_name == "ngtdm":
@@ -1062,7 +1068,7 @@ def execute_pips(pips, json_scene):
 
                             print("---> ngtdm features extracted")
                         except Exception as e:
-                            print(f'PROBLEM WITH COMPUTATION OF NGTDM FEATURES {e}')
+                            return {"error": f"PROBLEM WITH COMPUTATION OF NGTDM FEATURES {str(e)}"}
 
                     # NGLDM
                     elif feature_name == "ngldm":
@@ -1099,7 +1105,7 @@ def execute_pips(pips, json_scene):
 
                             print("---> ngldm features extracted")
                         except Exception as e:
-                            print(f'PROBLEM WITH COMPUTATION OF NGLDM FEATURES {e}')
+                            return {"error": f"PROBLEM WITH COMPUTATION OF NGLDM FEATURES {str(e)}"}
 
                     # FEATURE NOT FOUND
                     else:
@@ -1137,6 +1143,288 @@ def execute_pips(pips, json_scene):
 
     return pips_res
 
+# Run DataManager
+@app_extraction_MEDimage.route('/run/dm', methods=['GET', 'POST'])
+def RunDM():
+    if request.method == 'POST':
+        data = request.get_json()
+        keys = list(data.keys())
+        data = data[keys[0]]
+
+    # Retrieve data from json request
+    if "pathDicoms" in data.keys() and data["pathDicoms"] != "":
+        path_to_dicoms = Path(data["pathDicoms"])
+    else:
+        path_to_dicoms = None
+    if "pathNiftis" in data.keys() and data["pathNiftis"] != "":
+        path_to_niftis = Path(data["pathNiftis"])
+    else:
+        path_to_niftis = None
+    if "pathSave" in data.keys() and data["pathSave"] != "":
+        path_save = Path(data["pathSave"])
+    if "pathCSV" in data.keys() and data["pathCSV"] != "":
+        path_csv = Path(data["pathCSV"])
+    else:
+        path_csv = None
+    if "save" in data.keys():
+        save = data["save"]
+    if "nBatch" in data.keys():
+        n_batch = data["nBatch"]
+
+    # Check if at least one path to data is given
+    if not ("pathDicoms" in data.keys() and data["pathDicoms"] != "") and not (
+            "pathNiftis" in data.keys() and data["pathNiftis"] != ""):
+        print("No path to data given")
+        return Response("No path to data given! At least DICOM or NIFTI path must be given.", status=400)
+    
+     # Init DataManager instance
+    dm = MEDimage.wrangling.DataManager(
+        path_to_dicoms=path_to_dicoms,
+        path_to_niftis=path_to_niftis,
+        path_save=path_save,
+        path_csv=path_csv,
+        save=save, 
+        n_batch=n_batch)
+
+    # Run the DataManager
+    if path_to_dicoms is not None and path_to_niftis is None:
+        dm.process_all_dicoms()
+    elif path_to_dicoms is None and path_to_niftis is not None:
+        dm.process_all_niftis()
+    else:
+        dm.process_all()
+    
+    # Return success message
+    summary = dm.summarize(return_summary=True).to_dict()
+    
+    # Get the number of rows
+    num_rows = len(summary["count"])
+
+    # Create a list of objects in the desired format
+    result = []
+    for i in range(num_rows):
+        obj = {
+            "count": summary["count"][i],
+            "institution": summary["institution"][i],
+            "roi_type": summary["roi_type"][i],
+            "scan_type": summary["scan_type"][i],
+            "study": summary["study"][i]
+        }
+        result.append(obj)
+
+    return jsonify(result)
+
+# Run Radiomics pre-checks
+@app_extraction_MEDimage.route('/run/dm/prechecks', methods=['GET', 'POST'])
+def RunPreChecks():
+    if request.method == 'POST':
+        data = request.get_json()
+        keys = list(data.keys())
+        data = data[keys[0]]
+
+    # Retrieve data from json request
+    if "pathDicoms" in data.keys() and data["pathDicoms"] != "":
+        path_to_dicoms = Path(data["pathDicoms"])
+    else:
+        path_to_dicoms = None
+    if "pathNiftis" in data.keys() and data["pathNiftis"] != "":
+        path_to_niftis = Path(data["pathNiftis"])
+    else:
+        path_to_niftis = None
+    if "pathSave" in data.keys() and data["pathSave"] != "":
+        path_save = Path(data["pathSave"])
+    if "pathCSV" in data.keys() and data["pathCSV"] != "":
+        path_csv = Path(data["pathCSV"])
+    else:
+        path_csv = None
+    if "save" in data.keys():
+        save = data["save"]
+    if "nBatch" in data.keys():
+        n_batch = data["nBatch"]
+    if "wildcards_dimensions" in data.keys():
+        wildcards_dimensions = data["wildcards_dimensions"]
+    else:
+        wildcards_dimensions = None
+    if "wildcards_window" in data.keys():
+        wildcards_window = data["wildcards_window"]
+    else:
+        wildcards_window = None
+    
+    # Check if wildcards are given
+    if not wildcards_dimensions and not wildcards_window:
+        return Response("No wildcards given! both wildcard for dimensions and for window must be given.", status=400)
+    
+    # path save (TODO: find another work-around)
+    path_save_checks = Path.cwd() / "renderer/public/images"
+
+    # Init DataManager instance
+    dm = MEDimage.wrangling.DataManager(
+        path_to_dicoms=path_to_dicoms,
+        path_to_niftis=path_to_niftis,
+        path_save=path_save,
+        path_csv=path_csv,
+        path_save_checks=path_save_checks,
+        save=save, 
+        n_batch=n_batch)
+
+    # Run the DataManager
+    dm.pre_radiomics_checks(
+        path_data=path_save,
+        wildcards_dimensions=wildcards_dimensions, 
+        wildcards_window=wildcards_window, 
+        path_csv=path_csv,
+        save=True)
+
+    # Get pre-checks images
+    # Find all png files in path
+    list_png = list((path_save_checks / 'checks').glob('*.png'))
+    list_titles = [png.name for png in list_png]
+    list_png = [str(png) for png in list_png]
+    url_list = ['.' + png.split('public')[-1].replace('\\', '/') for png in list_png]
+    
+    # Return success message
+    return jsonify({"url_list": url_list, "list_titles": list_titles, "message": "Pre-checks done successfully."}) 
+
+# Get extraction settings
+@app_extraction_MEDimage.route('/get/json', methods=['GET', 'POST'])
+def getExtractionParams():
+    # Get path
+    if request.method == 'POST':
+        path_settings = request.get_json()
+        keys = list(path_settings.keys())
+        path_settings = path_settings[keys[0]]['selectedSettingsFile']
+    try:
+        settings_dict = json.load(open(path_settings, 'r'))
+    except Exception as e:
+        return {"error": f"PROBLEM WITH LOADING SETTINGS {str(e)}"}
+
+    return jsonify(settings_dict)
+
+# Save extraction settings
+@app_extraction_MEDimage.route('/save/json', methods=['GET', 'POST'])
+def saveExtractionParams():
+    # Get path
+    if request.method == 'POST':
+        settings = request.get_json()
+        keys = list(settings.keys())
+        path_save = settings[keys[0]]['pathSettings']
+        settings = settings[keys[0]]['settings']
+    try:
+        json.dump(settings, open(path_save, 'w'), indent=4)
+    except Exception as e:
+        return {"error": f"PROBLEM WITH SAVING SETTINGS {str(e)}"}
+
+    return jsonify("Settings saved successfully.")
+
+# Run BatchExtractor
+@app_extraction_MEDimage.route('/count/be', methods=['GET', 'POST'])
+def RunBECount():
+    if request.method == 'POST':
+        data = request.get_json()
+        keys = list(data.keys())
+        data = data[keys[0]]
+
+    # Retrieve data from json request
+    if "path_read" in data.keys() and data["path_read"] != "":
+        path_read = Path(data["path_read"])
+    else:
+        return Response("No path to data given!", status=400)
+    if "path_csv" in data.keys() and data["path_csv"] != "":
+        path_csv = Path(data["path_csv"])
+    else:
+        return Response("No path to csv given!", status=400)
+    if "path_params" in data.keys() and data["path_params"] != "":
+        path_params = Path(data["path_params"])
+    else:
+        return Response("No path to params given!", status=400)
+    if "path_save" in data.keys() and data["path_save"] != "":
+        path_save = Path(data["path_save"])
+    else:
+        path_save = None
+
+    # CSV file path process
+    if str(path_csv).endswith('.csv'):
+        path_csv = path_csv.parent
+    
+    # Load params
+    with open(path_params, 'r') as f:
+        params = json.load(f)
+    
+    # Load csv and count scans
+    tabel_roi = pd.read_csv(path_csv / ('roiNames_' + params["roi_type_labels"][0] + '.csv'))
+    tabel_roi['under'] = '_'
+    tabel_roi['dot'] = '.'
+    tabel_roi['npy'] = '.npy'
+    name_patients = (pd.Series(
+        tabel_roi[['PatientID', 'under', 'under',
+                'ImagingScanName',
+                'dot',
+                'ImagingModality',
+                'npy']].fillna('').values.tolist()).str.join('')).tolist()
+    
+    
+    # Count scans in path read
+    list_scans = [scan.name for scan in list(path_read.glob('*.npy'))]
+    list_scans_unique = [name_patient for name_patient in name_patients if name_patient in list_scans]
+    n_scans = len(list_scans_unique)
+
+    if type(params["roi_types"]) is list:
+        roi_label = params["roi_types"][0]
+    else:
+        roi_label = params["roi_types"]
+    folder_save_path = path_save / f'features({roi_label})'
+    
+    return jsonify({"n_scans": n_scans, "folder_save_path": str(folder_save_path)})
+
+# Run BatchExtractor
+@app_extraction_MEDimage.route('/run/be', methods=['GET', 'POST'])
+def RunBE():
+    if request.method == 'POST':
+        data = request.get_json()
+        keys = list(data.keys())
+        data = data[keys[0]]
+
+    # Retrieve data from json request
+    if "path_read" in data.keys() and data["path_read"] != "":
+        path_read = Path(data["path_read"])
+    else:
+        path_read = None
+    if "path_save" in data.keys() and data["path_save"] != "":
+        path_save = Path(data["path_save"])
+    if "path_csv" in data.keys() and data["path_csv"] != "":
+        path_csv = Path(data["path_csv"])
+    else:
+        path_csv = None
+    if "path_params" in data.keys() and data["path_params"] != "":
+        path_params = Path(data["path_params"])
+    else:
+        path_params = None
+    if "n_batch" in data.keys():
+        n_batch = data["n_batch"]
+
+    # CSV file path process
+    if 'csv' in path_csv.name:
+        path_csv = path_csv.parent
+    
+    # Check if at least one path to data is given
+    if not ("path_read" in data.keys() and data["path_read"] != "") and not (
+            "path_params" in data.keys() and data["path_params"] != "") and not (
+            "path_csv" in data.keys() and data["path_csv"] != ""):
+        print("Multiple arguments missing")
+        return Response("Path read, settings, csv and save must be given.", status=400)
+    
+     # Init BatchExtractor instance
+    be = MEDimage.biomarkers.BatchExtractor(
+        path_read=path_read,
+        path_csv=path_csv,
+        path_params=path_params,
+        path_save=path_save,
+        n_batch=n_batch)
+
+    # Run the BatchExtractor
+    be.compute_radiomics()
+    
+    return Response("Successfuly extracted features from batch", status=200)
 
 # Upload file in Input Object node
 @app_extraction_MEDimage.route('/upload', methods=['GET', 'POST'])

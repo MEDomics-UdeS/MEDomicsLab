@@ -10,7 +10,7 @@ import { Tooltip } from 'primereact/tooltip';
 import { TreeTable } from 'primereact/treetable';
 import { Column } from 'primereact/column';
 import { Dialog } from 'primereact/dialog';
-import { TabView, TabPanel } from 'primereact/tabview';
+import SettingsEditor from "./dataComponents/settingsEditor";
 
 /**
  * @param {Object} nodeForm form associated to the discretization node
@@ -21,7 +21,7 @@ import { TabView, TabPanel } from 'primereact/tabview';
  * @description
  * This component is used to display a InputForm.
  */
-const BatchExtractor = ({ pageId, configPath = "" , reload, setReload }) => {
+const BatchExtractor = ({ pageId, configPath = "" }) => {
   const { port } = useContext(WorkspaceContext); // Get the port of the backend
   const [progress, setProgress] = useState(0);
   const [refreshEnabled, setRefreshEnabled] = useState(false); // A boolean variable to control refresh
@@ -30,24 +30,14 @@ const BatchExtractor = ({ pageId, configPath = "" , reload, setReload }) => {
   const [selectedNBatch, setSelectedNBatch] = useState(12);
   const [selectedCSVFile, setSelectedCSVFile] = useState('');
   const [selectedSettingsFile, setSelectedSettingsFile] = useState('');
+  const [settings, setSettings] = useState({}); // Settings of the node
   const [nscans, setNscans] = useState(0); // Number of scans to be processed
   const [saveFolder, setSaveFolder] = useState(''); // Path of the folder where the results are saved
   const [showRadiomicsResults, setShowRadiomicsResults] = useState(false) // used to display the extraction results
   const [showEdit, setShowEdit] = useState(false) // used to display the extraction results
   const [nodes, setNodes] = useState([]);
-  
-  let temp = [{
-    data: {
-      modality: 'Documents',
-      roi: '75kb',
-      space: 'Folder'
-  },
-  }];
-  const fs = require('fs');
 
-  const handleGoBackClick = () => {
-    setReload(!reload);
-  };
+  const fs = require('fs');
 
   const handleReadFolderChange = (event) => {
     var fileList = event.target.files
@@ -120,6 +110,9 @@ const BatchExtractor = ({ pageId, configPath = "" , reload, setReload }) => {
   };
 
   const handleShowResultsClick = () => {
+    if (nodes.length === 0 && saveFolder !== '') {
+      fillNodesData(saveFolder);
+    }
     setShowRadiomicsResults(true)
   }
 
@@ -176,7 +169,34 @@ const BatchExtractor = ({ pageId, configPath = "" , reload, setReload }) => {
   }
 
   const handleEditClick = () => {
-    setShowEdit(true)
+    // Make a POST request to the backend API
+    if(Object.keys(settings).length === 0){
+      requestJson(
+        port, 
+        '/extraction_MEDimage/get/json', 
+        {selectedSettingsFile}, 
+        (response) => {
+          // Handle the response from the backend if needed
+          console.log('Response from backend:', response);
+
+          // set settings
+          setSettings(response);
+
+          // show edit dialog
+          setShowEdit(true);
+
+          // toast message
+          toast.success('Settings loaded!');
+        },
+        function (error) {
+          console.error('Error:', error);
+          toast.error('Error: ' + error);
+          setShowEdit(false);
+        }
+      );
+  } else {
+    setShowEdit(true);
+  }
   }
 
   const handleOpenFolderClick = () => {
@@ -198,36 +218,46 @@ const BatchExtractor = ({ pageId, configPath = "" , reload, setReload }) => {
       n_batch: parseInt(selectedNBatch),
     };
 
+    console.log("requestData", requestData);
+
     // Make a POST request to the backend API
-    requestJson(port, '/extraction_img/count/be', requestData, (response) => {
-      // Handle the response from the backend if needed
-      setNscans(response.n_scans);
-      setSaveFolder(response.folder_save_path);
-      // fill nodes data
-      if (saveFolder !== null) {
-       fillNodesData(saveFolder);
-      }        
-      // Handle errors if the request fails
-      (error) => {
-        console.error('Error:', error);
-        toast.error('Error: ' + error)
+    requestJson(
+      port, 
+      '/extraction_MEDimage/count/be', 
+      requestData, 
+      (response) => {
+        // Handle the response from the backend if needed
+        setNscans(response.n_scans);
+        setSaveFolder(response.folder_save_path);
+      },
+      function (err) {
+        console.error('Error:', err);
+        toast.error('Error: ' + err)
         setRefreshEnabled(false);
-      }
-    });
+      });
 
     // Make a POST request to the backend API to run BatchExtractor
-    requestJson(port, '/extraction_img/run/be', requestData, (response) => {
-      // Handle the response from the backend if needed
-      console.log('Response from backend:', response);
-      toast.success('Finished extraction!')
-      setRefreshEnabled(false);
+    requestJson(
+      port, 
+      '/extraction_MEDimage/run/be', 
+      requestData, 
+      (response) => {
+        // Handle the response from the backend if needed
+        console.log('Response from backend:', response);
+        toast.success('Finished extraction!');
+        setRefreshEnabled(false);
+        // fill nodes data
+        if (saveFolder !== '') {
+          console.log("saveFolder filling nodes", saveFolder);
+          fillNodesData(saveFolder);
+        };
+      },
       // Handle errors if the request fails
-      (error) => {       
-       setRefreshEnabled(false);
-       console.error('Error:', error);
-       toast.error('Error: ' + error)
-      }
-    });
+      function (error) {       
+        setRefreshEnabled(false);
+        console.error('Error:', error);
+        toast.error('Error: ' + error)
+      });
   };
 
   // Function to fetch and update data (your front-end function)
@@ -278,31 +308,7 @@ const BatchExtractor = ({ pageId, configPath = "" , reload, setReload }) => {
   const renderEdit = () => {
     if (selectedSettingsFile && showEdit) {
       return (
-        <Dialog
-          header="Edit extraction options"
-          visible={showEdit}
-          style={{ width: '50vw' }}
-          position={'right'}
-          onHide={() => setShowEdit(false)}
-        >
-          <TabView>
-            <TabPanel header="MR-scan">
-                <p className="m-0">
-                    MR - À implémenter
-                </p>
-            </TabPanel>
-            <TabPanel header="CT-scan">
-                <p className="m-0">
-                CT - À implémenter
-                </p>
-            </TabPanel>
-            <TabPanel header="PET-scan">
-                <p className="m-0">
-                PET - À implémenter
-                </p>
-            </TabPanel>
-          </TabView>
-        </Dialog>
+        <SettingsEditor showEdit={showEdit} setShowEdit={setShowEdit} settings={settings} pathSettings={selectedSettingsFile}/>
       )
     }
   }
@@ -317,6 +323,7 @@ const BatchExtractor = ({ pageId, configPath = "" , reload, setReload }) => {
     // Check if data.internal.settings.results is available
     if (showRadiomicsResults){
       if (saveFolder){
+        console.log("saveFolder", saveFolder);
         return (  
         <Dialog 
           header="Radiomics extraction results (CSV files)" 
@@ -362,18 +369,6 @@ const BatchExtractor = ({ pageId, configPath = "" , reload, setReload }) => {
       {renderResults()}
       {renderEdit()}
     <div>
-    <div data-bs-theme="blue" className='bg-blue p-2'>
-      <Button 
-        icon="pi pi-chevron-left" 
-        className="d-inline-flex align-items-center" 
-        onClick={handleGoBackClick}  
-        outlined severity="danger" 
-        aria-label="Cancel" 
-        tooltip="Go back to extraction menu" 
-        tooltipOptions={{ position: 'right' }} 
-      />
-    </div>
-    
     <Card className="text-center">
       <Card.Body>
         <Card.Header>
@@ -446,10 +441,10 @@ const BatchExtractor = ({ pageId, configPath = "" , reload, setReload }) => {
         <Tooltip target=".csv-file"/>
         <Form.Label 
           className="csv-file" 
-          data-pr-tooltip="CSV file containing the scans to use for radiomics features extraction with their corresponding ROIs (Regions of Interest)"
+          data-pr-tooltip="Path to the CSV file containing the scans to use for radiomics features extraction with their corresponding ROIs (Regions of Interest)"
           data-pr-position="bottom"
           htmlFor="file">
-            CSV File
+            Path to CSV File
         </Form.Label>
           <Col style={{ width: "150px" }}>
             <Form.Group controlId="enterFile">
@@ -552,7 +547,7 @@ const BatchExtractor = ({ pageId, configPath = "" , reload, setReload }) => {
     {(progress === 0) && (refreshEnabled) &&(
       <Card>
         <Card.Body>
-        <div className="panel-bottom-center">
+        <div className="progress-bar-requests">
           <label>Processing</label>
             <ProgressBar animated striped variant="danger" now={100} label={'Preparing data...'} />
         </div>
@@ -562,7 +557,7 @@ const BatchExtractor = ({ pageId, configPath = "" , reload, setReload }) => {
     {progress !== 0 && progress !== 100 && (
       <Card>
         <Card.Body>
-          <div className="panel-bottom-center">
+          <div className="progress-bar-requests">
             <label>Extracting features</label>
               <ProgressBar animated striped variant="info" now={progress} label={`${progress}%`} />
           </div>
@@ -573,7 +568,7 @@ const BatchExtractor = ({ pageId, configPath = "" , reload, setReload }) => {
       {progress === 100 && (
       <Card>
         <Card.Body>
-          <div className="panel-bottom-center">
+          <div className="progress-bar-requests">
             <label>Done!</label>
               <ProgressBar animated striped variant="success" now={progress} label={`${progress}%`} />
           </div>

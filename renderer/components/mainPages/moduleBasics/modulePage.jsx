@@ -23,7 +23,7 @@ const ModulePageWithProvider = ({ children, pageId, configPath = "" }) => {
   const [config, setConfig] = useState({})
 
   useEffect(() => {
-    if (configPath !== "" && configPath !== undefined) {
+    if (configPath !== "" && configPath !== undefined && configPath !== null) {
       let config = {}
       let extension = configPath.split(".")[configPath.split(".").length - 1]
       if (ZipFileExtensions.includes(extension)) {

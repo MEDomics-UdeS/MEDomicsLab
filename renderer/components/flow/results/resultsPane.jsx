@@ -135,7 +135,7 @@ const ResultsPane = () => {
 
     Object.keys(graph).forEach((id) => {
       let sourceNode = flowContent.nodes.find((node) => node.id == id)
-      if (sourceNode.data.setupParam.classes.split(" ").includes("startNode")) {
+      if (sourceNode.data.setupParam !== null && sourceNode.data.setupParam.classes.split(" ").includes("startNode")) {
         explore(id, [id])
       }
     })

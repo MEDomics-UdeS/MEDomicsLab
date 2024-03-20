@@ -6,6 +6,7 @@ import Home from "../mainPages/home"
 import Input from "../mainPages/input"
 import Learning from "../mainPages/learning"
 import ExtractionMEDimagePage from "../mainPages/extractionMEDimage"
+import LearningMEDimagePage from "../mainPages/learningMEDimage"
 import ExtractionImagePage from "../mainPages/extractionImage"
 import ExtractionTextPage from "../mainPages/extractionText"
 import ExtractionTSPage from "../mainPages/extractionTS"
@@ -83,6 +84,8 @@ const LayoutManager = (props) => {
           return <Learning pageId="123" />
         case "extractionMEDimage":
           return <ExtractionMEDimagePage pageId="1234" />
+        case "learningMEDimage":
+          return <LearningMEDimagePage pageId="4321" />
         case "extractionText":
           return <ExtractionTextPage pageId="4567" />
         case "extractionTS":

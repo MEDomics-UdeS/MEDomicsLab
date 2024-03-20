@@ -148,21 +148,21 @@ const SegmentationNode = ({ id, data, type }) => {
                             <th scope="col">ROI name</th>
                             <th scope="col">
                               <img
-                                src="/icon/extraction_img/plus-circle.svg"
+                                src="/icon/extraction/plus-circle.svg"
                                 className="segmentationSymbols"
                                 alt="Add ROI"
                               />
                             </th>
                             <th scope="col">
                               <img
-                                src="/icon/extraction_img/minus-circle.svg"
+                                src="/icon/extraction/minus-circle.svg"
                                 className="segmentationSymbols"
                                 alt="Subtract ROI"
                               />
                             </th>
                             <th scope="col">
                               <img
-                                src="/icon/extraction_img/slash.svg"
+                                src="/icon/extraction/slash.svg"
                                 className="segmentationSymbols"
                                 alt="Unused ROI"
                               />

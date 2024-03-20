@@ -119,6 +119,10 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
           return openExtractionText(action)
         case "openExtractionImageModule":
           return openExtractionImage(action)
+        case "openLearningMEDimageModule":
+          return openLearningMEDimage(action)
+        case "openDataManager":
+          return openGeneric(action, "Data Manager", "DataManager")
         case "openBatchExtractor":
           return openGeneric(action, "Batch Extractor", "BatchExtractor")
 
@@ -168,7 +172,7 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
       layoutRequestQueueCopy.push({ type: "ADD_TAB", payload: newChild })
       setLayoutRequestQueue(layoutRequestQueueCopy)
 
-      if (component == "learningPage" || component == "extractionMEDimagePage") {
+      if (component == "learningPage" || component == "extractionMEDimagePage" || component == "LearningMEDimagePage") {
         const nextlayoutModel = { ...layoutModel }
         // To add a new child to the layout model, we need to add it to the children array (layoutModel.layout.children[x].children)
         // ****IMPORTANT**** For the hook to work, we need to create a new array and not modify the existing one
@@ -274,6 +278,14 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
    */
   const openExtractionImage = (action) => {
     openGeneric(action, "Extraction Image", "extractionImagePage")
+  }
+
+  /**
+   * @summary Function that adds a tab of the Learning MEDimage Module to the layout model
+   * @params {Object} action - The action passed on by the dispatchLayout function
+   */
+  const openLearningMEDimage = (action) => {
+    openGeneric(action, "Learning MEDimage", "learningMEDimagePage")
   }
 
   /**

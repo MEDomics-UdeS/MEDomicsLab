@@ -40,7 +40,7 @@ const extractionFeatures = {
       peak_local: "Local intensity peak"
     }
   },
-  is_stat: {
+  stats: {
     MEDimageName: "stats",
     associatedFeatures: {
       cov: "Coefficient of variation",

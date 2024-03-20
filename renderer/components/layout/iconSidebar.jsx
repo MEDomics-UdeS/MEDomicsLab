@@ -7,7 +7,7 @@ import { Tooltip } from "primereact/tooltip"
 import { LayoutModelContext } from "./layoutContext"
 import { PiFlaskFill } from "react-icons/pi"
 import { VscGraph } from "react-icons/vsc"
-import { FaMagnifyingGlassChart } from "react-icons/fa6"
+import { FaMagnifyingGlassChart, FaHeadSideVirus } from "react-icons/fa6"
 import { LuNetwork } from "react-icons/lu"
 import { Button } from "primereact/button"
 import { TbFileExport } from "react-icons/tb"
@@ -97,6 +97,7 @@ const IconSidebar = ({ onSidebarItemSelect }) => {
         <Tooltip target=".searchNav" {...delayOptions} className="tooltip-icon-sidebar" />
         <Tooltip target=".inputNav" {...delayOptions} className="tooltip-icon-sidebar" />
         <Tooltip target=".extractionNav" {...delayOptions} className="tooltip-icon-sidebar" data-pr-disabled={extractionBtnstate} />
+        <Tooltip target=".classificationNav" {...delayOptions} className="tooltip-icon-sidebar" />
         <Tooltip target=".exploratoryNav" {...delayOptions} className="tooltip-icon-sidebar" />
         <Tooltip target=".learningNav" {...delayOptions} className="tooltip-icon-sidebar" />
         <Tooltip target=".resultsNav" {...delayOptions} className="tooltip-icon-sidebar" />
@@ -223,6 +224,11 @@ const IconSidebar = ({ onSidebarItemSelect }) => {
                     onAuxClick={(event) => handleRightClick(event, "ExtractionImage")}
                   />
                 </div>
+              </Nav.Link>
+
+              <Nav.Link className="classificationNav btnSidebar align-center" data-pr-at="right center" data-pr-my="left center" data-pr-tooltip="Learning MEDimage" eventKey="Learning-MEDimage" data-tooltip-id="tooltip-Learning-MEDimage" onAuxClick={(event) => handleRightClick(event, "learningMEDimage")} onClick={(event) => handleClick(event, "learningMEDimage")} disabled={disabledIcon}>
+                {" "}
+                <FaHeadSideVirus style={{ height: "1.7rem", width: "auto" }} />
               </Nav.Link>
 
               <Nav.Link className="exploratoryNav btnSidebar align-center" data-pr-at="right center" data-pr-my="left center" data-pr-tooltip="Exploratory" eventKey="exploratory" data-tooltip-id="tooltip-exploratory" onAuxClick={(event) => handleRightClick(event, "Exploratory")} onClick={(event) => handleClick(event, "exploratory")} disabled={disabledIcon}>

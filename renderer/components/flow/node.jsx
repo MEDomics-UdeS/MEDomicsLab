@@ -119,7 +119,7 @@ const NodeObject = ({ id, data, nodeSpecific, nodeBody, defaultSettings, onClick
                 />
 
                 {/* if the node is a run node (by checking setupParam classes), a button to run the node is displayed*/}
-                {data.setupParam.classes.split(" ").includes("run") && (
+                {data.setupParam!== null && data.setupParam.classes.split(" ").includes("run") && (
                   <>
                     <BsPlay
                       className="btn-run-node"

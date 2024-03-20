@@ -58,15 +58,17 @@ const extractionNode = ({ id, data }) => {
   const convertDataToNodes = (data) => {
     const nodes = []
     Object.keys(data).forEach((key) => {
-      const node = { key, label: key }
-      const value = data[key]
-      if (typeof value === "object" && value !== null) {
-        node.nodes = convertDataToNodes(value)
-      } else {
-        // Add the value to the node if it is not an object
-        node.label = `${key} : ${value}`
+      if (key !== "contextChecked"){
+        const node = { key, label: key }
+        const value = data[key]
+        if (typeof value === "object" && value !== null) {
+          node.nodes = convertDataToNodes(value)
+        } else {
+          // Add the value to the node if it is not an object
+          node.label = `${key} : ${value}`
+        }
+        nodes.push(node)
       }
-      nodes.push(node)
     })
     return nodes
   }
@@ -79,10 +81,7 @@ const extractionNode = ({ id, data }) => {
    */
   const renderTree = () => {
     // Check if data.internal.settings.results is available
-    if (
-      data.internal.results &&
-      Object.keys(data.internal.results).length !== 0
-    ) {
+    if (data.internal.results && Object.keys(data.internal.results).length > 1) {
       const nodes = convertDataToNodes(data.internal.results)
 
       return (
@@ -107,17 +106,17 @@ const extractionNode = ({ id, data }) => {
 
   return (
     <>
+      <button
+        className="small-results-button"
+        onClick={handleOffCanvasShow}
+      >
+        Show Results
+      </button>
       <GroupNode
-        id={id}
+        id={showOffCanvas ? "MAIN" : id}
         data={data}
         nodeBody={
           <>
-            <button
-              className="small-results-button"
-              onClick={handleOffCanvasShow}
-            >
-              Show Results
-            </button>
             {/* offcanvas of the node (panel coming from right when a node is clicked )*/}
             <Container>
               <Offcanvas

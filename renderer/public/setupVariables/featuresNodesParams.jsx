@@ -24,7 +24,7 @@ const nodesParams = {
     title: "LI",
     possibleSettings: { defaultSettings: extractionMEDimageFeatures.li }
   },
-  is_stat: {
+  stats: {
     type: "featuresNode",
     classes: "object ntf statistical",
     nbInput: 0,
@@ -33,7 +33,7 @@ const nodesParams = {
     output: [],
     img: "features.svg",
     title: "IS, STAT",
-    possibleSettings: { defaultSettings: extractionMEDimageFeatures.is_stat }
+    possibleSettings: { defaultSettings: extractionMEDimageFeatures.stats }
   },
   ih: {
     type: "featuresNode",

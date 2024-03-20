@@ -1,3 +1,5 @@
+import defaultBatchSettings from "./defaultBatchSettings"
+
 const fs = require("fs")
 const path = require("path")
 const { parse } = require("csv-parse")
@@ -24,6 +26,59 @@ const downloadFile = (exportObj, exportName) => {
   downloadAnchorNode.remove()
 }
 
+// Function to update the pre-defined dictionary
+function updateDictionary(predefined, user) {
+  for (const [key, value] of Object.entries(predefined)) {
+    if (typeof value === 'object' && !Array.isArray(value) && !(key in user)) {
+      // Recursive call for nested dictionaries
+      if (predefined[key] && typeof predefined[key] === 'object' && !Array.isArray(predefined[key])) {
+        predefined[key] = updateDictionary(predefined[key], user);
+      }
+    } else if (key in user) {
+      // Update value only for non-nested keys that exist in the pre-defined dictionary
+      if (typeof user[key] === 'object' && !Array.isArray(user[key])) {
+        predefined[key] = updateDictionary(predefined[key], user[key]);
+      } else if (user[key]) {
+        predefined[key] = user[key];
+      }
+    }
+  }
+  return predefined;
+}
+
+/**
+ * @param {Object} exportObj object to be exported
+ * @param {String} exportName name of the exported file
+*/
+const processBatchSettings = (exportObj, selectedModalities, exportName) => {
+  let batchSettings = defaultBatchSettings;
+  let i = 0;
+  while (i < selectedModalities.length) {
+    console.log("selectedModalities[i].name", selectedModalities[i].name);
+    if (selectedModalities[i].name == "MR") {
+      exportObj.nodes.forEach((node) => {
+        batchSettings.imParamMR = updateDictionary(batchSettings.imParamMR, node.data.internal.settings);
+      });
+    } else if (selectedModalities[i].name == "CT") {
+      exportObj.nodes.forEach((node) => {
+        batchSettings.imParamCT = updateDictionary(batchSettings.imParamCT, node.data.internal.settings);
+      });
+    } else if (selectedModalities[i].name == "PET") {
+      exportObj.nodes.forEach((node) => {
+        batchSettings.imParamPET = updateDictionary(batchSettings.imParamPET, node.data.internal.settings);
+      });
+    }
+    console.log("batchSettings", batchSettings);
+    i++;
+  }
+  var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(batchSettings, null, 2))
+  var downloadAnchorNode = document.createElement("a")
+  downloadAnchorNode.setAttribute("href", dataStr)
+  downloadAnchorNode.setAttribute("download", exportName)
+  document.body.appendChild(downloadAnchorNode) // required for firefox
+  downloadAnchorNode.click()
+  downloadAnchorNode.remove()
+}
 /**
  *
  * @param {Object} exportObj object to be exported
@@ -308,4 +363,4 @@ const loadXLSXFromPath = async (filePath, whenLoaded) => {
   whenLoaded(dfJSON)
 }
 
-export { downloadFile, downloadPath, loadFileFromPathSync, writeFile, loadJson, loadJsonSync, loadJsonPath, loadCSVPath, loadCSVFromPath, createFolder, createFolderSync, loadJSONFromPath, loadXLSXFromPath }
+export { downloadFile, processBatchSettings, downloadPath, loadFileFromPathSync, writeFile, loadJson, loadJsonSync, loadJsonPath, loadCSVPath, loadCSVFromPath, createFolder, createFolderSync, loadJSONFromPath, loadXLSXFromPath }

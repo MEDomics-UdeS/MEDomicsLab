@@ -98,7 +98,7 @@ const InputForm = ({ nodeForm, changeNodeForm, enableView }) => {
   return (
     <Form method="post" encType="multipart/form-data" className="inputFile">
       <Row className="form-group-box">
-        <Form.Label htmlFor="file">MEDImage Object (.npy)</Form.Label>
+        <Form.Label htmlFor="file">MEDscan Object (.npy)</Form.Label>
         <Col style={{ width: "150px" }}>
           <Form.Group controlId="enterFile">
             <Form.Control name="file" type="file" accept=".npy" onChange={handleFileChange} />

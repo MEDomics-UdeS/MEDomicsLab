@@ -30,7 +30,7 @@ const onDragStart = (event, node) => {
  * This component is used to display the nodes available in the sidebar.
  *
  */
-const SidebarAvailableNodes = ({ title, sidebarType, ExtraPages, reload, setReload }) => {
+const SidebarAvailableNodes = ({ title, sidebarType }) => {
   return (
     <>
       <div className="available-nodes-panel-container ">

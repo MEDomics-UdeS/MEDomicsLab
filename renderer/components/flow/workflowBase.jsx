@@ -413,6 +413,7 @@ const WorkflowBase = ({ isGoodConnection, groupNodeHandlingDefault, onDeleteNode
     (event) => {
       event.preventDefault()
       // get the node type from the dataTransfer set by the onDragStart function at sidebarAvailableNodes.jsx
+      let Continue = true
       let node = null
       try {
         node = JSON.parse(event.dataTransfer.getData("application/reactflow"))
@@ -424,7 +425,19 @@ const WorkflowBase = ({ isGoodConnection, groupNodeHandlingDefault, onDeleteNode
       if (node) {
         const { nodeType } = node
 
-        if (nodeType in nodeTypes) {
+        let currentFlow = JSON.parse(JSON.stringify(reactFlowInstance.toObject()))
+        
+        // Check if there is more than one Analyze node
+        if (currentFlow.nodes.length > 0) {
+          currentFlow.nodes.map((tempNode) => {
+            if (tempNode.name === "Analyze" && node.name === "Analyze") {
+              toast.error("You cannot add more than one Analyze node")
+              Continue = false
+            }
+          })
+        }
+
+        if (nodeType in nodeTypes && Continue) {
           console.log(pageId)
           let flowWindow = document.getElementById(pageId).getBoundingClientRect()
           const position = reactFlowInstance.project({

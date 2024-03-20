@@ -2,7 +2,7 @@ import React, { useState, useCallback, useMemo, useEffect, useContext } from "re
 import { toast } from "react-toastify"
 
 // Import utilities
-import { loadJsonSync, downloadFile } from "../../utilities/fileManagementUtils"
+import { loadJsonSync, downloadFile, processBatchSettings } from "../../utilities/fileManagementUtils"
 import { requestJson } from "../../utilities/requests"
 
 // Workflow imports
@@ -28,6 +28,12 @@ import BtnDiv from "../flow/btnDiv"
 // Static functions used in the workflow
 import { mergeWithoutDuplicates, deepCopy } from "../../utilities/staticFunctions"
 
+// Useful libraries
+import { SelectButton } from "primereact/selectbutton"
+import { useRef } from "react";
+import { OverlayPanel } from 'primereact/overlaypanel';
+import { Button } from 'primereact/button';
+
 // Static nodes parameters
 const staticNodesParams = nodesParams
 
@@ -51,6 +57,13 @@ const FlowCanvas = ({ workflowType, setWorkflowType }) => {
   const { groupNodeId, changeSubFlow, updateNode } = useContext(FlowFunctionsContext)
   const { port } = useContext(WorkspaceContext)
   const { setError } = useContext(ErrorRequestContext)
+  const op = useRef(null);
+  const modalities = [
+    {name : "MR"},
+    {name : "CT"},
+    {name : "PET"}
+  ];
+  const [selectedModalities, setSelectModalities] = useState([]);
 
   // Hook executed upon modification of edges to verify the connections between input and segmentation nodes
   useEffect(() => {
@@ -450,11 +463,11 @@ const FlowCanvas = ({ workflowType, setWorkflowType }) => {
         let nodeName = newFlow.drawflow.Home.data[id] ? newFlow.drawflow.Home.data[id].name : "extraction"
 
         // POST request to /extraction_MEDimage/run for the current node by sending form_data
-        var formData = JSON.stringify({
+        let formData = {
           id: id,
           name: nodeName,
           json_scene: newFlow
-        })
+        }
 
         requestJson(port, "/extraction_MEDimage/run", formData, (response) => {
           if (response.error) {
@@ -657,6 +670,27 @@ const FlowCanvas = ({ workflowType, setWorkflowType }) => {
 
   /**
    * @description
+   * Export the settings of the workflow as a json file for batch extraction
+  */
+ const onExport = useCallback(() => {
+  if (reactFlowInstance && nodes.length > 0) {
+    const flow = JSON.parse(JSON.stringify(reactFlowInstance.toObject()))
+    flow.nodes.forEach((node) => {
+      node.data.setupParam = null
+      // Set enableView to false because only the scene is saved
+      // and importing it back would not reload the volumes that
+      // were loaded in the viewer
+      node.data.enableView = false
+    })
+    processBatchSettings(flow, selectedModalities, "extraction_settings.json")
+    //downloadFile(flow, "experiment.json")
+  } else {
+    // Warn the user if there is no workflow to save
+    toast.warn("No workflow to export!")
+  }}, [reactFlowInstance, nodes])
+
+  /**
+   * @description
    * Set the subflow id to null to go back to the main workflow
    */
   const onBack = useCallback(() => {
@@ -733,9 +767,22 @@ const FlowCanvas = ({ workflowType, setWorkflowType }) => {
                     { type: "run", onClick: onRun },
                     { type: "clear", onClick: onClear },
                     { type: "save", onClick: onSave },
-                    { type: "load", onClick: onLoad }
+                    { type: "load", onClick: onLoad },
+                    { type: "export", onClick: onExport}
                   ]}
+                  op={op}
                 />
+                  <OverlayPanel showCloseIcon ref={op}>
+                    <div className="card flex flex-wrap justify-content-center gap-3">
+                    <SelectButton
+                      value={selectedModalities} 
+                      onChange={(e) => setSelectModalities(e.value)} 
+                      optionLabel="name" 
+                      options={modalities} 
+                      multiple />
+                    <Button onClick={onExport} label="Export"/>
+                    </div>
+                  </OverlayPanel>
               </>
             ) : (
               <BtnDiv buttonsList={[{ type: "back", onClick: onBack }]} />

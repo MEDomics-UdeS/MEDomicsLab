@@ -22,7 +22,7 @@ import { Tooltip } from 'primereact/tooltip';
  * @description
  * This component is used to display a InputForm.
  */
-const DataManager = ({ reload, setReload }) => {
+const DataManager = ({ pageId, configPath = "" , reload, setReload }) => {
   const { port } = useContext(WorkspaceContext)
   const [progress, setProgress] = useState(0);
   const [refreshEnabled, setRefreshEnabled] = useState(false); // A boolean variable to control refresh
@@ -46,10 +46,6 @@ const DataManager = ({ reload, setReload }) => {
   const handleOffCanvasShow = () => setShowOffCanvas(true) // used to show the offcanvas
 
   const [preChecksImages, setPreChecksImages] = useState([]) // used to display the offcanvas
-
-  const handleGoBackClick = () => {
-    setReload(!reload);
-  };
 
   const handleDcmFolderChange = (event) => {
     var fileList = event.target.files
@@ -354,7 +350,7 @@ const DataManager = ({ reload, setReload }) => {
       nBatch: parseInt(selectedNBatch),
     };
     // Make a POST request to the backend API
-    requestJson(port, '/extraction_img/run/dm', requestData, (response) => {
+    requestJson(port, '/extraction_MEDimage/run/dm', requestData, (response) => {
 
       // Handle the response from the backend if needed
       console.log('Response from backend:', response);
@@ -400,7 +396,9 @@ const DataManager = ({ reload, setReload }) => {
     }
 
     //Check if npy folder is defined
-    if (selectedNpyFolder === '' || selectedSaveFolder) {
+    if (selectedNpyFolder === null && selectedSaveFolder === null) {
+      console.log(selectedNpyFolder);
+      console.log(selectedSaveFolder);
       toast.error('Please select a npy folder');
       return;
     }
@@ -421,7 +419,7 @@ const DataManager = ({ reload, setReload }) => {
     };
     console.log("requestData: ", requestData);
     // Make a POST request to the backend API
-    requestJson(port, '/extraction_img/run/dm/prechecks', requestData, (response) => {
+    requestJson(port, '/extraction_MEDimage/run/dm/prechecks', requestData, (response) => {
       // Handle the response from the backend if needed
       console.log('Response from backend:', response);
       toast.success('Pre-checks done!')
@@ -562,19 +560,8 @@ const DataManager = ({ reload, setReload }) => {
 
   return (
     <>
-    <ModulePage pageId="dataManager-id">
+    <ModulePage pageId={pageId} configPath={configPath}>
     <div>
-    <div data-bs-theme="blue" className='bg-blue p-2'>
-      <Button 
-        icon="pi pi-chevron-left" 
-        className="d-inline-flex align-items-center" 
-        onClick={handleGoBackClick}  
-        outlined severity="danger" 
-        aria-label="Cancel" 
-        tooltip="Go back to extraction menu" 
-        tooltipOptions={{ position: 'right' }} 
-      />
-    </div>
     <Card>
       <Card.Body>
         <Card.Header>
@@ -734,14 +721,14 @@ const DataManager = ({ reload, setReload }) => {
         )}
         <Row className="text-center">
           {(progress === 0) && (refreshEnabled) &&(
-            <div className="panel-bottom-center">
-                <ProgressBar animated striped variant="danger" now={100} label="Reading data and associating RT objects to imaging volumes"/>
+            <div className="progress-bar-requests">
+                <ProgressBar animated striped variant="danger" now={100} label="Reading data and associating mask objects to imaging volumes"/>
             </div>)}
-          {progress !== 0 && progress !== 100 &&(<div className="panel-bottom-center">
+          {progress !== 0 && progress !== 100 &&(<div className="progress-bar-requests">
                 <label>Processing</label>
                 <ProgressBar animated striped variant="info" now={progress} label={`${progress}%`} />
             </div>)}
-          {progress === 100 &&(<div className="panel-bottom-center">
+          {progress === 100 &&(<div className="progress-bar-requests">
               <label>Done!</label>
               <ProgressBar animated striped variant="success" now={progress} label={`${progress}%`} />
           </div>)}

@@ -61,7 +61,7 @@ const ReSegmentationForm = ({ nodeForm, changeNodeForm, data }) => {
       />
 
       <Form.Group>
-        <Form.Label>Range (HU):</Form.Label>
+        <Form.Label>Range:</Form.Label>
         <Row>
           <Col>
             <Form.Label>Min range</Form.Label>

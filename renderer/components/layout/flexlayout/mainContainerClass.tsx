@@ -17,7 +17,9 @@ import EvaluationPage from "../../mainPages/evaluation"
 import ExtractionTextPage from "../../mainPages/extractionText"
 import ExtractionImagePage from "../../mainPages/extractionImage"
 import ExtractionMEDimagePage from "../../mainPages/extractionMEDimage"
-import BatchExtractor from "../../mainPages/batchExtractor"
+import LearningMEDimagePage from "../../mainPages/learningMEDimage"
+import DataManager from "../../mainPages/datamanager"
+import BatchExtractor from "../../mainPages/batchextractor"
 import ExtractionTSPage from "../../mainPages/extractionTS"
 import HomePage from "../../mainPages/home"
 import TerminalPage from "../../mainPages/terminal"
@@ -689,6 +691,12 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
           return <ExtractionMEDimagePage pageId={"ExtractionMEDimagePage"} />
         }
       }
+    } else if (component === "learningMEDimage") {
+      if (node.getExtraData().data == null) {
+        const config = node.getConfig()
+
+        return <LearningMEDimagePage pageId={config.uuid} configPath={config.path} />
+      }
     } else if (component === "BatchExtractor") {
       if (node.getExtraData().data == null) {
         const config = node.getConfig()
@@ -698,7 +706,16 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
           return <BatchExtractor pageId={"BatchExtractorPage"} />
         }
       }
-    } else if (component === "extractionTSPage") {
+    } else if (component === "DataManager") {
+      if (node.getExtraData().data == null) {
+        const config = node.getConfig()
+        if (config.path !== null) {
+          return <DataManager pageId={config.uuid} configPath={config.path} />
+        } else {
+          return <DataManager pageId={"DataManagerPage"} />
+        }
+      }
+    }else if (component === "extractionTSPage") {
       if (node.getExtraData().data == null) {
         const config = node.getConfig()
         if (config.path !== null) {

@@ -14,12 +14,12 @@ import Node from "./node"
  * A GroupNode is a node that contains a subflow, so it handles a click that change the active display subflow.
  * It does not implement a Node because it does not need to have access to an offcanvas
  */
-const GroupNode = ({ id, data }) => {
+const GroupNode = ({ id, data, nodeBody }) => {
   const { changeSubFlow } = useContext(FlowFunctionsContext) // used to get the functions to change the subflow, run the node and delete the node
 
   return (
     <>
-      <Node id={id} data={data} onClickCustom={() => changeSubFlow(id)} isGroupNode />
+      <Node id={id} data={data} nodeBody={nodeBody} onClickCustom={() => changeSubFlow(id)} isGroupNode />
     </>
   )
 }
