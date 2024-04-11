@@ -204,46 +204,43 @@ const Input = ({ name, settingInfos, currentValue, onInputChange, disabled, setH
         )
 
       case "bool-int-str":
-      return (
-        <>
-          <FloatingLabel id={name} controlId={name} label={name} className=" input-hov">
+        return (
+          <>
+            <FloatingLabel id={name} controlId={name} label={name} className=" input-hov">
               <Form.Control
                 disabled={disabled}
                 type="text"
                 defaultValue={currentValue}
-                onChange={(e) =>
-                  {
-                    let value = '';
-                    if(/^-?[0-9]+$/.test(e.target.value)){
-                      value = parseInt(e.target.value)
-                    } else {
-                      value = e.target.value
-                    }
-                    console.log("value", value)
-                    setInputUpdate({
-                      name: name,
-                      value: value,
-                      type: settingInfos.type
-                    })
+                onChange={(e) => {
+                  let value = ""
+                  if (/^-?[0-9]+$/.test(e.target.value)) {
+                    value = parseInt(e.target.value)
+                  } else {
+                    value = e.target.value
                   }
-                }
+                  console.log("value", value)
+                  setInputUpdate({
+                    name: name,
+                    value: value,
+                    type: settingInfos.type
+                  })
+                }}
               />
             </FloatingLabel>
-          {createTooltip(settingInfos.tooltip, name)}
-        </>
-      )
+            {createTooltip(settingInfos.tooltip, name)}
+          </>
+        )
       case "int-float-str":
-      return (
-        <>
-          <FloatingLabel controlId={name} label={name} className=" input-hov">
-            <Form.Select
-              disabled={disabled}
-              defaultValue={currentValue}
-              onChange={(e) =>
-                {
+        return (
+          <>
+            <FloatingLabel controlId={name} label={name} className=" input-hov">
+              <Form.Select
+                disabled={disabled}
+                defaultValue={currentValue}
+                onChange={(e) => {
                   // check if the value is a float or an int or a string
-                  let value = ''
-                  if(/^-?[0-9]+$/.test(e.target.value)){
+                  let value = ""
+                  if (/^-?[0-9]+$/.test(e.target.value)) {
                     // int
                     value = parseInt(e.target.value)
                   } else if (/^-?[0-9]*[.][0-9]+$/.test(e.target.value)) {
@@ -254,23 +251,21 @@ const Input = ({ name, settingInfos, currentValue, onInputChange, disabled, setH
                     value = e.target.value
                   }
 
-
                   setInputUpdate({
                     name: name,
                     value: value,
                     type: settingInfos.type
                   })
-                }
-              }
-            >
-              <option value="" hidden></option>
-              <option value="True">True</option>
-              <option value="False">False</option>
-            </Form.Select>
-          </FloatingLabel>
-          {createTooltip(settingInfos.tooltip, name)}
-        </>
-      )
+                }}
+              >
+                <option value="" hidden></option>
+                <option value="True">True</option>
+                <option value="False">False</option>
+              </Form.Select>
+            </FloatingLabel>
+            {createTooltip(settingInfos.tooltip, name)}
+          </>
+        )
       // for list input (form select of all the options)
       case "list":
         return (
@@ -442,6 +437,7 @@ const Input = ({ name, settingInfos, currentValue, onInputChange, disabled, setH
               disabled={disabled}
               selectedPaths={currentValue}
               acceptedExtensions={["csv"]}
+              matchRegex={new RegExp("T[0-9]*_(w+)?")}
               acceptFolder={settingInfos.acceptFolder ? settingInfos.acceptFolder : false}
               onChange={(value) => {
                 console.log("e", value)
@@ -457,7 +453,7 @@ const Input = ({ name, settingInfos, currentValue, onInputChange, disabled, setH
                 })
               }}
               setHasWarning={setHasWarning}
-              whenEmpty={<Message severity="warn" text="No file(s) found in the workspace under '/learning' folder" />}
+              whenEmpty={<Message severity="warn" text="No file(s) found in the workspace under '/learning' folder containing 'TX_' prefix (X is a number)" />}
             />
             {createTooltip(settingInfos.tooltip, name)}
           </>
