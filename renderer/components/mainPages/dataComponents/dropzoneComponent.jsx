@@ -4,6 +4,7 @@ import fs from "fs"
 import { WorkspaceContext } from "../../workspace/workspaceContext"
 import MedDataObject from "../../workspace/medDataObject"
 import { toast } from "react-toastify"
+import { getDroppedOrSelectedFiles } from "html5-file-selector"
 
 /**
  * @typedef {React.FunctionComponent} DropzoneComponent
@@ -27,8 +28,25 @@ export default function DropzoneComponent({ children, item = undefined, ...props
     }
   }
 
+  /**
+   * Splits the provided `string` at the last occurrence of the provided `separator`.
+   * @param {string} string - The string to split.
+   * @param {string} separator - The separator to split the string at.
+   * @returns {Array} - An array containing the first elements of the split string and the last element of the split string.
+   */
+  function splitStringAtTheLastSeparator(string, separator) {
+    let splitString = string.split(separator)
+    let lastElement = splitString.pop()
+    let firstElements = splitString.join(separator)
+    return [firstElements, lastElement]
+  }
+
+  async function myCustomFileGetter(event) {
+    return await getDroppedOrSelectedFiles(event)
+  }
+
   const onDrop = useCallback((acceptedFiles, fileRejections, event) => {
-    console.log("event", event)
+    console.log("event", event, acceptedFiles)
     event.stopPropagation()
     const reader = new FileReader()
 
@@ -37,20 +55,27 @@ export default function DropzoneComponent({ children, item = undefined, ...props
     reader.onload = () => {
       acceptedFiles.forEach((file) => {
         console.log("file", file)
-        fs.copyFile(file.path, `${directoryPath}/${file["name"]}`, (err) => {
-          if (err) {
-            console.error("Error copying file:", err)
-          } else {
-            console.log("File copied successfully")
-          }
-        })
+        if (file.fileObject) {
+          let firstElements = splitStringAtTheLastSeparator(file.fullPath, "/")[0]
+          console.log("HERE", file.fullPath, firstElements)
+          MedDataObject.createFolderFromPath(`${directoryPath}/${firstElements}`)
+          fs.copyFile(file.fileObject.path, `${directoryPath}/${file.fullPath}`, (err) => {
+            if (err) {
+              console.error("Error copying file:", err)
+            } else {
+              console.log("File copied successfully")
+            }
+          })
+        }
       })
     }
 
     // read file contents
     acceptedFiles.forEach((file) => {
-      reader.readAsBinaryString(file)
-      MedDataObject.updateWorkspaceDataObject()
+      if (file.fileObject) {
+        reader.readAsBinaryString(file.fileObject)
+        MedDataObject.updateWorkspaceDataObject()
+      }
     })
   }, [])
 
@@ -71,6 +96,7 @@ export default function DropzoneComponent({ children, item = undefined, ...props
    * @see SidebarDirectoryTreeControlled - "../../layout/sidebarTools/sidebarDirectoryTreeControlled.jsx" This component is used in the SidebarDirectoryTreeControlled component
    */
   const { getRootProps, getInputProps, isFocused, isDragAccept, isDragReject } = useDropzone({
+    //getFilesFromEvent: (event) => myCustomFileGetter(event),
     onDrop,
     onDropRejected: useCallback((fileRejections) => {
       console.log("fileRejections", fileRejections)

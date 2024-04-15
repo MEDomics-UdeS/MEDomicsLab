@@ -43,7 +43,23 @@ export default class MedDataObject {
    * @param {Array<string>} [options.childrenIDs=[]] - The IDs of the child objects.
    * @param {Array<string>} [options.acceptedFileTypes] - The accepted file types for the data object.
    */
-  constructor({ originalName = "Unnamed", name = undefined, type = "", parentID = [], path = "", childrenIDs = [], _UUID = undefined, virtualPath = [], lastModified = Date(Date.now()), created = Date(Date.now()), metadata = {}, acceptedFileTypes = [], virtualTransformations = {}, relatedInformation = {}, steps = [] } = {}) {
+  constructor({
+    originalName = "Unnamed",
+    name = undefined,
+    type = "",
+    parentID = [],
+    path = "",
+    childrenIDs = [],
+    _UUID = undefined,
+    virtualPath = [],
+    lastModified = Date(Date.now()),
+    created = Date(Date.now()),
+    metadata = {},
+    acceptedFileTypes = [],
+    virtualTransformations = {},
+    relatedInformation = {},
+    steps = []
+  } = {}) {
     this.originalName = originalName
     if (name === undefined) {
       this.name = originalName
@@ -1032,6 +1048,11 @@ export default class MedDataObject {
    * @README - This function is not implemented yet. Acts as a placeholder for future development.
    */
   static saveDataObject() {}
+
+  static getPathToLastElement(path) {
+    let separator = getPathSeparator()
+    return splitStringAtTheLastSeparator(path, separator)[0]
+  }
 
   /**
    * Changes the name and path of the `MedDataObject` instance to the provided `newName`.
