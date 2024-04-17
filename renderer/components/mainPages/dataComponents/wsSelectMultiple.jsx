@@ -10,7 +10,19 @@ import { deepCopy } from "../../../utilities/staticFunctions"
  * @params props.onChange - The function to call when the selected data file changes
  * @params props.name - The name of the component
  */
-const WsSelectMultiple = ({ key, selectedPaths, onChange, rootDir, acceptFolder = false, acceptedExtensions = ["all"], disabled, placeholder, whenEmpty = null, setHasWarning = null }) => {
+const WsSelectMultiple = ({
+  key,
+  selectedPaths,
+  onChange,
+  rootDir,
+  acceptFolder = false,
+  acceptedExtensions = ["all"],
+  matchRegex = null,
+  disabled,
+  placeholder,
+  whenEmpty = null,
+  setHasWarning = null
+}) => {
   const { globalData } = useContext(DataContext) // We get the global data from the context to retrieve the directory tree of the workspace, thus retrieving the data files
   const [datasetList, setDatasetList] = useState([])
 
@@ -44,24 +56,26 @@ const WsSelectMultiple = ({ key, selectedPaths, onChange, rootDir, acceptFolder 
             if (rootDir.includes(globalData[globalData[uuid].parentID].name) || rootDir.includes(globalData[globalData[uuid].parentID].originalName)) {
               if (!(!acceptFolder && globalData[uuid].type == "folder")) {
                 if (acceptedExtensions.includes("all") || acceptedExtensions.includes(globalData[uuid].extension)) {
-                  console.log("dataset", globalData[uuid])
-                  if (!globalData[uuid].metadata.columnsTag) {
-                    getColumnsFromPromise(globalData[uuid]).then((columns) => {
-                      console.log("columns", columns)
-                    })
-                  } else {
-                    let columnsTag = deepCopy(globalData[uuid].metadata.columnsTag)
-                    let timePrefix = globalData[uuid].originalName.split("_")[0]
-                    columnsTag = Object.keys(columnsTag).reduce((acc, key) => {
-                      acc[timePrefix + "_" + key] = columnsTag[key]
-                      return acc
-                    }, {})
-                    datasetListToShow.push({
-                      name: globalData[uuid].name,
-                      path: globalData[uuid].path,
-                      tags: Object.keys(globalData[uuid].metadata.tagsDict),
-                      columnsTags: globalData[uuid].metadata.columnsTag
-                    })
+                  if (!matchRegex || matchRegex.test(globalData[uuid].nameWithoutExtension)) {
+                    console.log("dataset", globalData[uuid])
+                    if (!globalData[uuid].metadata.columnsTag) {
+                      getColumnsFromPromise(globalData[uuid]).then((columns) => {
+                        console.log("columns", columns)
+                      })
+                    } else {
+                      let columnsTag = deepCopy(globalData[uuid].metadata.columnsTag)
+                      let timePrefix = globalData[uuid].originalName.split("_")[0]
+                      columnsTag = Object.keys(columnsTag).reduce((acc, key) => {
+                        acc[timePrefix + "_" + key] = columnsTag[key]
+                        return acc
+                      }, {})
+                      datasetListToShow.push({
+                        name: globalData[uuid].name,
+                        path: globalData[uuid].path,
+                        tags: Object.keys(globalData[uuid].metadata.tagsDict),
+                        columnsTags: globalData[uuid].metadata.columnsTag
+                      })
+                    }
                   }
                 }
               }
