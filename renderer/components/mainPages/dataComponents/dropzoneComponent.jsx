@@ -58,12 +58,43 @@ export default function DropzoneComponent({ children, item = undefined, setIsDro
    */
   async function myCustomFileGetter(event) {
     const fileObjects = []
+    const newDirectoriesNames = {}
+    const newFilesNames = {}
     let files = await getDroppedOrSelectedFiles(event)
     files.forEach((file) => {
       let fileObject = file.fileObject
-      Object.defineProperty(fileObject, "fullPath", { value: file.fullPath })
+      let fullPath = file.fullPath
+      let splittedPath = fullPath.split("/")
+      console.log("splitted path", splittedPath)
+      if (splittedPath.length > 2) {
+        // If we drop a folder
+        // Check if the name of the folder to drop is not already in the directory
+        let newName = MedDataObject.getNewNameForFolder({ name: splittedPath[1], folderPath: directoryPath + MedDataObject.getPathSeparator() })
+        if (newName != splittedPath[1]) {
+          newDirectoriesNames[splittedPath[1]] = newName
+          splittedPath[1] = newName
+          fullPath = splittedPath.join(MedDataObject.getPathSeparator())
+        }
+      } else {
+        // If we drop a file
+        // Check if the name of the file to drop is not already in the directory
+        let extension = splitStringAtTheLastSeparator(fileObject.name, ".")[1]
+        let newName = MedDataObject.getNewNameForFile({ name: fileObject.name, folderPath: directoryPath + MedDataObject.getPathSeparator(), extension: extension })
+        if (newName != fileObject.name) {
+          newFilesNames[fileObject.name] = newName
+          fullPath = fullPath.replace(fileObject.name, newName)
+        }
+      }
+      Object.defineProperty(fileObject, "fullPath", { value: fullPath })
       fileObjects.push(fileObject)
     })
+    // Set toast warnings if some names have been changed
+    for (const [oldName, newName] of Object.entries(newDirectoriesNames)) {
+      toast.warning(`Dropped directory ${oldName} renamed to ${newName}`)
+    }
+    for (const [oldName, newName] of Object.entries(newFilesNames)) {
+      toast.warning(`Dropped file ${oldName} renamed to ${newName}`)
+    }
     return fileObjects
   }
 
@@ -74,9 +105,6 @@ export default function DropzoneComponent({ children, item = undefined, setIsDro
     console.log("accepted files", acceptedFiles)
     if (acceptedFiles && acceptedFiles.length > 0) {
       acceptedFiles.forEach((file) => {
-        const reader = new FileReader()
-        reader.onabort = () => console.log("file reading was aborted")
-        reader.onerror = () => console.log("file reading failed")
         let firstElements = splitStringAtTheLastSeparator(file.fullPath, "/")[0]
         MedDataObject.createFolderFromPath(`${directoryPath}/${firstElements}`)
         fs.copyFile(file.path, `${directoryPath}/${file.fullPath}`, (err) => {
@@ -87,6 +115,7 @@ export default function DropzoneComponent({ children, item = undefined, setIsDro
           }
         })
       })
+      console.log("UPDATE")
       MedDataObject.updateWorkspaceDataObject()
     }
     setIsDropping(false)
