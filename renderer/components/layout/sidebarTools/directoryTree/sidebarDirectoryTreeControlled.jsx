@@ -37,6 +37,7 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
   const { dispatchLayout, developerMode } = useContext(LayoutModelContext)
   const [isDialogShowing, setIsDialogShowing] = useState(false) // This state is used to know if the dialog is showing or not
   const [dirTree, setDirTree] = useState({}) // We get the directory tree from the workspace
+  const [isDropping, setIsDropping] = useState(false) // Set if the item is getting dropped something in (for elements outside of the tree)
 
   useEffect(() => {
     console.log("isDialogShowing", isDialogShowing)
@@ -710,7 +711,9 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
                       }}
                     >
                       {showHiddenFiles && <EyeFill size={"1rem"} className="context-menu-icon refresh-icon" data-pr-at="right bottom" data-pr-tooltip="Hide hidden files" data-pr-my="left top" />}
-                      {!showHiddenFiles && <EyeSlashFill size={"1rem"} className="context-menu-icon refresh-icon" data-pr-at="right bottom" data-pr-tooltip="Show hidden files" data-pr-my="left top" />}
+                      {!showHiddenFiles && (
+                        <EyeSlashFill size={"1rem"} className="context-menu-icon refresh-icon" data-pr-at="right bottom" data-pr-tooltip="Show hidden files" data-pr-my="left top" />
+                      )}
                     </a>
                   </>
                 ) /* We display the add folder icon only if the mouse is hovering the directory tree and if the accordion is not collapsed*/
@@ -729,7 +732,9 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
                     displayMenu,
                     isHovering,
                     onDBClickItem,
-                    setSelectedItems
+                    setSelectedItems,
+                    setIsDropping,
+                    isDropping
                   })
                 }
                 getItemTitle={(item) => item.data}

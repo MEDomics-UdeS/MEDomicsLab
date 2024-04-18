@@ -13,7 +13,7 @@ import { getDroppedOrSelectedFiles } from "html5-file-selector"
  * @summary This component is used to upload files to the workspace. It is used in the InputSidebar.
  * @todo Add the functionality to upload more file types than just CSV files
  */
-export default function DropzoneComponent({ children, item = undefined, ...props }) {
+export default function DropzoneComponent({ children, item = undefined, setIsDropping, ...props }) {
   const [style, setStyle] = useState({
     display: "block",
     position: "relative",
@@ -72,7 +72,6 @@ export default function DropzoneComponent({ children, item = undefined, ...props
    */
   const onDrop = useCallback((acceptedFiles) => {
     console.log("accepted files", acceptedFiles)
-
     if (acceptedFiles && acceptedFiles.length > 0) {
       acceptedFiles.forEach((file) => {
         const reader = new FileReader()
@@ -90,6 +89,7 @@ export default function DropzoneComponent({ children, item = undefined, ...props
       })
       MedDataObject.updateWorkspaceDataObject()
     }
+    setIsDropping(false)
     setStyle({ ...style, ...baseStyle })
   }, [])
 
@@ -109,7 +109,21 @@ export default function DropzoneComponent({ children, item = undefined, ...props
         toast.error("File type not accepted in this folder")
       }
     })
+    setIsDropping(false)
   }, [])
+
+  // Event handler for dropzone hover
+  const onDragOver = (event) => {
+    event.preventDefault()
+    setIsDropping(true)
+    setStyle({ ...style, ...focusStyle })
+  }
+  // Event handler for dropzone hover leave
+  const onDragLeave = (event) => {
+    event.preventDefault()
+    setIsDropping(false)
+    setStyle({ ...style, ...baseStyle })
+  }
 
   /**
    * @description - This is the useDropzone hook that is used to create the dropzone component
@@ -124,6 +138,8 @@ export default function DropzoneComponent({ children, item = undefined, ...props
     onDrop,
     onDropRejected,
     getFilesFromEvent: (event) => myCustomFileGetter(event),
+    onDragOver,
+    onDragLeave,
     noClick: props.noClick || false,
     accept: acceptedFiles ? acceptedFiles : undefined,
     noDragEventsBubbling: true
@@ -143,21 +159,9 @@ export default function DropzoneComponent({ children, item = undefined, ...props
     borderColor: "#FFFFFF"
   }
 
-  // Event handler for dropzone hover
-  const onDragOver = (event) => {
-    event.preventDefault()
-    event.stopPropagation()
-    setStyle({ ...style, ...focusStyle })
-  }
-
-  // Event handler for dropzone hover leave
-  const onDragLeave = () => {
-    setStyle({ ...style, ...baseStyle })
-  }
-
   return (
     <div style={{ display: "block" }}>
-      <div className="directory-tree-dropzone" {...getRootProps({ style })} onDragOver={onDragOver} onDragLeave={onDragLeave}>
+      <div className="directory-tree-dropzone" {...getRootProps({ style })}>
         <input {...getInputProps()} />
         {children}
       </div>

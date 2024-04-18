@@ -92,51 +92,124 @@ const cx = (...classNames) => classNames.filter((cn) => !!cn).join(" ")
  */
 const renderItem = ({ item, depth, children, title, context, arrow }, additionalParams) => {
   const InteractiveComponent = context.isRenaming ? "div" : "button"
-
   const type = context.isRenaming ? undefined : "button"
+
+  const folderItemContent = (
+    <li
+      {...context.itemContainerWithChildrenProps}
+      className={cx(
+        "rct-tree-item-li",
+        item.isFolder && "rct-tree-item-li-isFolder",
+        context.isSelected && "rct-tree-item-li-selected",
+        context.isExpanded && "rct-tree-item-li-expanded",
+        context.isFocused && "rct-tree-item-li-focused",
+        context.isDraggingOver && "rct-tree-item-li-dragging-over",
+        context.isSearchMatching && "rct-tree-item-li-search-match"
+      )}
+    >
+      <div
+        {...context.itemContainerWithoutChildrenProps}
+        style={{ paddingLeft: `${(depth + 1) * 12}px` }}
+        className={cx(
+          "rct-tree-item-title-container",
+          item.isFolder && "rct-tree-item-title-container-isFolder",
+          context.isSelected && "rct-tree-item-title-container-selected",
+          context.isExpanded && "rct-tree-item-title-container-expanded",
+          context.isFocused && "rct-tree-item-title-container-focused",
+          context.isDraggingOver && "rct-tree-item-title-container-dragging-over",
+          context.isSearchMatching && "rct-tree-item-title-container-search-match"
+        )}
+      >
+        <div
+          className="folder-bracket"
+          style={{ left: `${(depth + 1) * 12 + 8}px`, backgroundColor: `${additionalParams.isHovering ? "" : "#ffffff00"}`, width: "1px", transition: "all 0.5s ease-in-out" }}
+        ></div>
+        {arrow}
+        <InteractiveComponent
+          type={type}
+          {...context.interactiveElementProps}
+          className={cx(
+            "rct-tree-item-button",
+            item.isFolder && "rct-tree-item-button-isFolder",
+            context.isSelected && "rct-tree-item-button-selected",
+            context.isExpanded && "rct-tree-item-button-expanded",
+            context.isFocused && "rct-tree-item-button-focused",
+            context.isDraggingOver && "rct-tree-item-button-dragging-over",
+            context.isSearchMatching && "rct-tree-item-button-search-match"
+          )}
+          data={item}
+          onContextMenu={(e) => {
+            console.log("onContextMenu", item.index, e, additionalParams, item)
+            // additionalParams.setSelectedItems([item.UUID])
+            additionalParams.displayMenu(e, item)
+          }}
+        >
+          <div>
+            {iconExtension.folder(context.isExpanded)}
+            <span className="label">{title}</span>
+          </div>
+        </InteractiveComponent>
+      </div>
+      {children}
+    </li>
+  )
 
   return (
     <>
       {/* If the item is a folder, we render it as a dropzone */}
       {item.isFolder && (
         <>
-          <DropzoneComponent className="sidebar-dropzone-dirtree" item={item} noClick={true}>
-            <li {...context.itemContainerWithChildrenProps} className={cx("rct-tree-item-li", item.isFolder && "rct-tree-item-li-isFolder", context.isSelected && "rct-tree-item-li-selected", context.isExpanded && "rct-tree-item-li-expanded", context.isFocused && "rct-tree-item-li-focused", context.isDraggingOver && "rct-tree-item-li-dragging-over", context.isSearchMatching && "rct-tree-item-li-search-match")}>
-              <div {...context.itemContainerWithoutChildrenProps} style={{ paddingLeft: `${(depth + 1) * 12}px` }} className={cx("rct-tree-item-title-container", item.isFolder && "rct-tree-item-title-container-isFolder", context.isSelected && "rct-tree-item-title-container-selected", context.isExpanded && "rct-tree-item-title-container-expanded", context.isFocused && "rct-tree-item-title-container-focused", context.isDraggingOver && "rct-tree-item-title-container-dragging-over", context.isSearchMatching && "rct-tree-item-title-container-search-match")}>
-                <div className="folder-bracket" style={{ left: `${(depth + 1) * 12 + 8}px`, backgroundColor: `${additionalParams.isHovering ? "" : "#ffffff00"}`, width: "1px", transition: "all 0.5s ease-in-out" }}></div>
-                {arrow}
-                <InteractiveComponent
-                  type={type}
-                  {...context.interactiveElementProps}
-                  className={cx("rct-tree-item-button", item.isFolder && "rct-tree-item-button-isFolder", context.isSelected && "rct-tree-item-button-selected", context.isExpanded && "rct-tree-item-button-expanded", context.isFocused && "rct-tree-item-button-focused", context.isDraggingOver && "rct-tree-item-button-dragging-over", context.isSearchMatching && "rct-tree-item-button-search-match")}
-                  data={item}
-                  onContextMenu={(e) => {
-                    console.log("onContextMenu", item.index, e, additionalParams, item)
-                    // additionalParams.setSelectedItems([item.UUID])
-                    additionalParams.displayMenu(e, item)
-                  }}
-                >
-                  <div>
-                    {iconExtension.folder(context.isExpanded)}
-                    <span className="label">{title}</span>
-                  </div>
-                </InteractiveComponent>
-              </div>
-              {children}
-            </li>
-          </DropzoneComponent>
+          {additionalParams.isHovering && !additionalParams.isDropping ? (
+            <div className="sidebar-dropzone-dirtree">{folderItemContent}</div>
+          ) : (
+            <DropzoneComponent className="sidebar-dropzone-dirtree" item={item} noClick={true} setIsDropping={additionalParams.setIsDropping}>
+              {folderItemContent}
+            </DropzoneComponent>
+          )}
         </>
       )}
       {!item.isFolder && (
         <>
-          <li {...context.itemContainerWithChildrenProps} className={cx("rct-tree-item-li", item.isFolder && "rct-tree-item-li-isFolder", context.isSelected && "rct-tree-item-li-selected", context.isExpanded && "rct-tree-item-li-expanded", context.isFocused && "rct-tree-item-li-focused", context.isDraggingOver && "rct-tree-item-li-dragging-over", context.isSearchMatching && "rct-tree-item-li-search-match")}>
-            <div {...context.itemContainerWithoutChildrenProps} style={{ paddingLeft: `${(depth + 1) * 10}px` }} className={cx("rct-tree-item-title-container", item.isFolder && "rct-tree-item-title-container-isFolder", context.isSelected && "rct-tree-item-title-container-selected", context.isExpanded && "rct-tree-item-title-container-expanded", context.isFocused && "rct-tree-item-title-container-focused", context.isDraggingOver && "rct-tree-item-title-container-dragging-over", context.isSearchMatching && "rct-tree-item-title-container-search-match")}>
+          <li
+            {...context.itemContainerWithChildrenProps}
+            className={cx(
+              "rct-tree-item-li",
+              item.isFolder && "rct-tree-item-li-isFolder",
+              context.isSelected && "rct-tree-item-li-selected",
+              context.isExpanded && "rct-tree-item-li-expanded",
+              context.isFocused && "rct-tree-item-li-focused",
+              context.isDraggingOver && "rct-tree-item-li-dragging-over",
+              context.isSearchMatching && "rct-tree-item-li-search-match"
+            )}
+          >
+            <div
+              {...context.itemContainerWithoutChildrenProps}
+              style={{ paddingLeft: `${(depth + 1) * 10}px` }}
+              className={cx(
+                "rct-tree-item-title-container",
+                item.isFolder && "rct-tree-item-title-container-isFolder",
+                context.isSelected && "rct-tree-item-title-container-selected",
+                context.isExpanded && "rct-tree-item-title-container-expanded",
+                context.isFocused && "rct-tree-item-title-container-focused",
+                context.isDraggingOver && "rct-tree-item-title-container-dragging-over",
+                context.isSearchMatching && "rct-tree-item-title-container-search-match"
+              )}
+            >
               {/* {arrow} */}
 
               <InteractiveComponent
                 type={type}
                 {...context.interactiveElementProps}
-                className={cx("rct-tree-item-button", item.isFolder && "rct-tree-item-button-isFolder", context.isSelected && "rct-tree-item-button-selected", context.isExpanded && "rct-tree-item-button-expanded", context.isFocused && "rct-tree-item-button-focused", context.isDraggingOver && "rct-tree-item-button-dragging-over", context.isSearchMatching && "rct-tree-item-button-search-match", !item.isFolder && "rct-tree-item-isNotFolder")}
+                className={cx(
+                  "rct-tree-item-button",
+                  item.isFolder && "rct-tree-item-button-isFolder",
+                  context.isSelected && "rct-tree-item-button-selected",
+                  context.isExpanded && "rct-tree-item-button-expanded",
+                  context.isFocused && "rct-tree-item-button-focused",
+                  context.isDraggingOver && "rct-tree-item-button-dragging-over",
+                  context.isSearchMatching && "rct-tree-item-button-search-match",
+                  !item.isFolder && "rct-tree-item-isNotFolder"
+                )}
                 data={item}
                 onContextMenu={(e) => {
                   console.log("onContextMenu", title)
