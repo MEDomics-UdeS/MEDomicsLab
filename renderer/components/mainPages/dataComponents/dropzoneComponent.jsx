@@ -69,17 +69,17 @@ export default function DropzoneComponent({ children, item = undefined, setIsDro
       if (splittedPath.length > 2) {
         // If we drop a folder
         // Check if the name of the folder to drop is not already in the directory
-        let newName = MedDataObject.getNewNameForFolder({ name: splittedPath[1], folderPath: directoryPath + MedDataObject.getPathSeparator() })
+        let newName = MedDataObject.getNewNameForFolder({ name: splittedPath[1], folderPath: directoryPath + "/" })
         if (newName != splittedPath[1]) {
           newDirectoriesNames[splittedPath[1]] = newName
           splittedPath[1] = newName
-          fullPath = splittedPath.join(MedDataObject.getPathSeparator())
+          fullPath = splittedPath.join("/")
         }
       } else {
         // If we drop a file
         // Check if the name of the file to drop is not already in the directory
         let extension = splitStringAtTheLastSeparator(fileObject.name, ".")[1]
-        let newName = MedDataObject.getNewNameForFile({ name: fileObject.name, folderPath: directoryPath + MedDataObject.getPathSeparator(), extension: extension })
+        let newName = MedDataObject.getNewNameForFile({ name: fileObject.name, folderPath: directoryPath + "/", extension: extension })
         if (newName != fileObject.name) {
           newFilesNames[fileObject.name] = newName
           fullPath = fullPath.replace(fileObject.name, newName)
