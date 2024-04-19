@@ -1048,11 +1048,6 @@ export default class MedDataObject {
    */
   static saveDataObject() {}
 
-  static getPathToLastElement(path) {
-    let separator = getPathSeparator()
-    return splitStringAtTheLastSeparator(path, separator)[0]
-  }
-
   /**
    * Changes the name and path of the `MedDataObject` instance to the provided `newName`.
    * @param {string} newName - The new name for the `MedDataObject` instance.
