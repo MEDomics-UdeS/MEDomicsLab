@@ -3,6 +3,7 @@ import * as fs from "fs-extra"
 import { toast } from "react-toastify"
 import { ipcRenderer } from "electron"
 import process from "process"
+import { generateRandomColor } from "../input/taggingUtils"
 
 /**
  * Represents a data object in the workspace.
@@ -25,6 +26,9 @@ import process from "process"
  * @property {Number} size - The size of the data object.
  * @property {Object} metadata - The metadata of the data object.
  * @property {Array} acceptedFileTypes - The accepted file types for the data object.
+ * @property {string} objectType - The object type of the data object.
+ * @property {Array} virtualTransformations - The virtual transformations of the data object.
+ * @property {Array} relatedInformation - The related information of the data object.
  */
 export default class MedDataObject {
   /**
@@ -39,7 +43,7 @@ export default class MedDataObject {
    * @param {Array<string>} [options.childrenIDs=[]] - The IDs of the child objects.
    * @param {Array<string>} [options.acceptedFileTypes] - The accepted file types for the data object.
    */
-  constructor({ originalName = "Unnamed", name = undefined, type = "", parentID = [], path = "", childrenIDs = [], _UUID = undefined } = {}) {
+  constructor({ originalName = "Unnamed", name = undefined, type = "", parentID = [], path = "", childrenIDs = [], _UUID = undefined, virtualPath = [], lastModified = Date(Date.now()), created = Date(Date.now()), metadata = {}, acceptedFileTypes = [], virtualTransformations = {}, relatedInformation = {}, steps = [] } = {}) {
     this.originalName = originalName
     if (name === undefined) {
       this.name = originalName
@@ -51,26 +55,35 @@ export default class MedDataObject {
     this.extension = splitStringAtTheLastSeparator(this.name, ".")[0].length > 0 ? splitStringAtTheLastSeparator(this.name, ".")[1] : ""
     this.type = type
     this.path = path
-    this.virtualPath = []
+    this.virtualPath = virtualPath
 
     if (_UUID === undefined) {
       this._UUID = randomUUID()
     } else {
       this._UUID = _UUID
     }
+    this.UUID = this._UUID
     this.parentID = parentID
     this.childrenIDs = childrenIDs
 
-    this.lastModified = Date(Date.now())
-    this.created = Date(Date.now())
+    this.lastModified = lastModified
+    this.created = created
     this.dataLoaded = false
     this.data = null
     this.dataModificationQueue = []
     this.size = 0
-    this.metadata = {}
-    this.acceptedFileTypes = []
+    this.metadata = metadata
+    this.acceptedFileTypes = acceptedFileTypes
+    this.objectType = ""
+    this.virtualTransformations = virtualTransformations
+    this.relatedInformation = relatedInformation
+    this.steps = steps
   }
 
+  /**
+   * Creates a folder in the file system if it does not exist.
+   * @param {string} path - The path of the folder to create.
+   */
   static createFolderFromPath(path) {
     if (!fs.existsSync(path)) {
       fs.mkdirSync(path, { recursive: true })
@@ -84,6 +97,24 @@ export default class MedDataObject {
    */
   static isPathExists(path) {
     return fs.existsSync(path)
+  }
+
+  /**
+   *
+   * @param {string} path The path to check.
+   * @param {Object} globalData The global data context.
+   * @returns
+   */
+  static getStepsFromPath(path, globalData) {
+    try {
+      let dataObject = MedDataObject.checkIfMedDataObjectInContextbyPath(path, globalData)
+      if (!dataObject) return null
+      return dataObject.getSteps()
+    } catch (error) {
+      console.error(error)
+      toast.error("Error getting steps from path")
+      return null
+    }
   }
 
   /**
@@ -125,10 +156,10 @@ export default class MedDataObject {
     let newPath = typeof path === "string" ? path : path.join(getPathSeparator())
     const pathToCreate = `${newPath}${getPathSeparator()}${name}.${extension}`
     if (!fs.existsSync(newPath)) {
-      this.createFolderFSsync(newPath).then((newPath) => {
+      this.createFolderFSsync(newPath).then(() => {
         let convertedExportObj = typeof exportObj === "string" ? exportObj : JSON.stringify(exportObj, null, 2)
         const fsPromises = fs.promises
-        this.updateWorkspaceDataObject(1000)
+        // this.updateWorkspaceDataObject(1000)
         return new Promise((resolve) => {
           fsPromises
             .writeFile(pathToCreate, convertedExportObj)
@@ -199,13 +230,8 @@ export default class MedDataObject {
   static setAcceptedFileTypes(dataObject, acceptedFileTypes) {
     let acceptedFileTypesToReturn = acceptedFileTypes
     if (dataObject.name === "DATA") {
-      acceptedFileTypesToReturn = {
-        "text/csv": [],
-        "application/json": [],
-        "text/plain": [],
-        "application/pdf": [],
-        "application/medomics": []
-      }
+      acceptedFileTypesToReturn = undefined
+      // Default accepted file types for the DATA folder
     }
     return acceptedFileTypesToReturn
   }
@@ -255,6 +281,50 @@ export default class MedDataObject {
     })
 
     return dataObjectToReturn
+  }
+
+  /**
+   * Checks if a MED data object with the given path exists in the global data context.
+   * @param {string} dataObjectPath - The path of the MED data object to search for.
+   * @param {Object} globalDataContext - The global data context object to search in.
+   * @returns {Object|null} - The MED data object if found, otherwise null.
+   */
+  static getObjectByPathSync(dataObjectPath, globalDataContext) {
+    return new Promise((resolve) => {
+      let dataObjectList = globalDataContext
+      let dataObjectToReturn = null
+      let arrayObjectUUIDs = Object.keys(dataObjectList)
+      arrayObjectUUIDs.forEach((key) => {
+        let dataObject = dataObjectList[key]
+        if (dataObject.path === dataObjectPath) {
+          dataObjectToReturn = dataObject
+        }
+      })
+      resolve(dataObjectToReturn)
+    })
+  }
+
+  /**
+   * @param {string} filePath - The path to the file to load.
+   * @returns {Promise} - A promise that resolves to the data loaded from the file.
+   */
+  static loadTableFromDisk = async (filePath) => {
+    // eslint-disable-next-line no-undef
+    const Path = require("path")
+    let extension = Path.extname(filePath).slice(1)
+    console.log("extension: ", extension)
+    // let path = this.path
+    let data = undefined
+    // eslint-disable-next-line no-undef
+    const dfd = require("danfojs-node")
+    if (extension === "xlsx") {
+      data = await dfd.readExcel(filePath)
+    } else if (extension === "csv") {
+      data = await dfd.readCSV(filePath)
+    } else if (extension === "json") {
+      data = await dfd.readJSON(filePath)
+    }
+    return data
   }
 
   /**
@@ -323,6 +393,37 @@ export default class MedDataObject {
       return newPath
     }
     return newPath
+  }
+
+  /**
+   *
+   * @param {String} path A path to a MedDataObject
+   * @returns {Object, Object} - {columnsArray, columnsObject} - The columns of the data object if it is a table.
+   */
+  static getColumnsFromPath = async (path, globalData, setGlobalData = undefined) => {
+    try {
+      let dataObject = MedDataObject.checkIfMedDataObjectInContextbyPath(path, globalData)
+      let columnsArray = []
+      if (!dataObject) return { columnsArray: [], columnsObject: {} }
+      if (dataObject.metadata.columns) {
+        columnsArray = dataObject.metadata.columns
+      } else {
+        console.log("dataObject: ", dataObject)
+        columnsArray = await dataObject.getColumns(dataObject.path)
+        dataObject.metadata.columns = columnsArray
+        setGlobalData && setGlobalData({ ...globalData })
+      }
+      let columnsObject = {}
+      columnsArray.forEach((element) => {
+        columnsObject[element] = element
+      })
+
+      return { columnsArray: columnsArray, columnsObject: columnsObject }
+    } catch (error) {
+      console.error(error)
+      toast.error("Error getting columns from path")
+      return { columnsArray: [], columnsObject: {} }
+    }
   }
 
   /**
@@ -481,15 +582,23 @@ export default class MedDataObject {
     return dataObject
   }
 
+  /**
+   * Returns the path separator based on the operating system.
+   * @returns {string} - The path separator.
+   */
   static getPathSeparator() {
     if (process.platform === "win32") {
       return "\\"
-    } else if (typeof process !== "undefined" && process.platform === "linux") {
+    } else if (typeof process !== "undefined" && process.platform !== "win32") {
       return "/"
     }
   }
 
-  // static changeChildrenPaths(newParentPath, children, globalDataContext, setGlobalDataContext) {
+  /**
+   * Returns the names of the folders and files in the provided path.
+   * @param {string} path - The path to search in.
+   * @returns {Array} - The names of the folders and files in the provided path.
+   */
   static getNamesOfFolderAndFilesInPath(path) {
     // eslint-disable-next-line no-undef
     let fs = require("fs")
@@ -549,6 +658,12 @@ export default class MedDataObject {
     }
   }
 
+  /**
+   * This function returns a new name for a file or folder that is not in the provided list of names.
+   * @param {string} name - The name to check.
+   * @param {Array} names - The list of names to check against.
+   * @param {string} extension - The extension of the file to check.
+   */
   static returnNameNotInList(name, names, extension = undefined) {
     let nameFound = false
     let index = 0
@@ -566,6 +681,11 @@ export default class MedDataObject {
     return nameToReturn
   }
 
+  /**
+   * This function returns a new name for a  folder that is not in the provided list of names.
+   * @param {string} name - The name to check.
+   * @param {string} folderPath - The path of the folder to check.
+   */
   static getNewNameForFolder({ name, folderPath }) {
     let nameToReturn = name
     let names = this.getNamesOfFolderAndFilesInPath(folderPath)
@@ -573,6 +693,12 @@ export default class MedDataObject {
     return nameToReturn
   }
 
+  /**
+   * This function returns a new name for a file that is not in the provided list of names.
+   * @param {string} name - The name to check.
+   * @param {string} folderPath - The path of the folder to check.
+   * @param {string} extension - The extension of the file to check.
+   */
   static getNewNameForFile({ name, folderPath, extension }) {
     let nameToReturn = name
     let names = this.getNamesOfFolderAndFilesInPath(folderPath)
@@ -586,12 +712,24 @@ export default class MedDataObject {
     return nameToReturn
   }
 
+  /**
+   * This function returns the total path of a file or folder.
+   * @param {string} newName - The name of the file or folder.
+   * @param {string} parentPath - The path of the parent folder.
+   */
   static getTotalPath(newName, parentPath) {
     let separator = getPathSeparator()
     let totalPath = parentPath + separator + newName
     return totalPath
   }
 
+  /**
+   * This function moves a `MedDataObject` to a new folder.
+   * @param {Object} dataObject - The `MedDataObject` to move.
+   * @param {Object} newParentObject - The `MedDataObject` to move to.
+   * @param {Object} globalDataContext - The global data context object to search in.
+   * @param {function} setGlobalDataContext - The function to set the updated global data context.
+   */
   static move(dataObject, newParentObject, globalDataContext, setGlobalDataContext) {
     let newDataObject = dataObject
     let oldParentID = dataObject.parentID
@@ -616,7 +754,7 @@ export default class MedDataObject {
       newDataObject.name = newNameFound
 
       newDataObject.lastModified = Date(Date.now())
-      newDataObject.path = this.adaptPathToOS(newParentObjectPath + "\\" + newDataObject.name)
+      newDataObject.path = newParentObjectPath + this.getPathSeparator() + newDataObject.name
 
       console.log("newDataObject.path: ", { newDataObject })
       newDataObject.name = newNameFound
@@ -838,6 +976,57 @@ export default class MedDataObject {
   }
 
   /**
+   * This function saves the modified data in the format specified in the config and at the location specified in the config
+   * @param event - event
+   * @param data - data to be saved
+   * @returns void
+   */
+  static async saveDatasetToDisk({ data = undefined, df = undefined, filePath = undefined, extension = undefined }) {
+    // eslint-disable-next-line no-undef
+    const dfd = require("danfojs-node")
+    if (filePath === undefined || filePath === null || filePath === "") {
+      toast.error("No file path specified")
+      return
+    }
+    if (extension === undefined || extension === null || extension === "") {
+      toast.error("No file extension specified")
+      return
+    }
+    if (df === undefined && data !== undefined) {
+      df = new dfd.DataFrame(data)
+    } else if (df === undefined && data === undefined) {
+      toast.error("No data to save")
+      return
+    } else if (df !== undefined && data === undefined) {
+      // No operation
+    }
+    if (extension === "csv") {
+      try {
+        dfd.toCSV(df, { filePath: filePath })
+      } catch (e) {
+        // No operation
+      } finally {
+        toast.success("Data saved successfully", filePath)
+      }
+    } else if (extension === "json") {
+      try {
+        dfd.toJSON(df, { filePath: filePath })
+      } catch (e) {
+        // No operation
+      } finally {
+        toast.success("Data saved successfully", filePath)
+      }
+    } else if (extension === "xlsx") {
+      try {
+        dfd.toExcel(df, { filePath: filePath })
+      } catch (e) {
+        // No operation
+      } finally {
+        toast.success("Data saved successfully", filePath)
+      }
+    }
+  }
+  /**
    * Saves the provided `dataObject` instance to the file system.
    * @param {MedDataObject} dataObject - The `MedDataObject` instance to save.
    * @README - This function is not implemented yet. Acts as a placeholder for future development.
@@ -849,7 +1038,6 @@ export default class MedDataObject {
    * @param {string} newName - The new name for the `MedDataObject` instance.
    * @returns {MedDataObject} - The modified `MedDataObject` instance.
    */
-
   rename(newName) {
     this.name = newName
     let separator = getPathSeparator()
@@ -865,6 +1053,20 @@ export default class MedDataObject {
     this.path = newPath
     this.lastModified = Date(Date.now())
     return this
+  }
+
+  /**
+   * Returns the columns' tags of the `MedDataObject` instance and the tags dictionary (if any).
+   * @returns {Object, Object} - The columns' tags of the `MedDataObject` instance and the tags dictionary (if any).
+   */
+  getColumnsTag() {
+    if (this.metadata.columnsTag === undefined) {
+      this.metadata.columnsTag = {}
+    }
+    if (this.metadata.tagsDict === undefined) {
+      this.metadata.tagsDict = {}
+    }
+    return { columnsTag: this.metadata.columnsTag, tagsDict: this.metadata.tagsDict }
   }
 
   /**
@@ -949,12 +1151,205 @@ export default class MedDataObject {
   }
 
   /**
-   * Loads the data from the file associated with the `MedDataObject` instance.
+   * Save the data of the `MedDataObject` instance to the file associated with it.
    */
-  loadDataFromDisk() {
-    this.data = fs.readFileSync(this.path)
+  async saveData(df = undefined) {
+    MedDataObject.saveDatasetToDisk({ data: this.data, df: df, filePath: this.path, extension: this.extension })
+  }
+
+  /**
+   * GetsTheColumnsOfTheDataObjectIfItIsATable
+   * @returns {Array} - The columns of the data object if it is a table.
+   */
+  async getColumnsOfTheDataObjectIfItIsATable(filePath = undefined) {
+    console.log("this: ", this)
+    !filePath && (filePath = this.path)
+    let newColumns = []
+    if (this.dataLoaded && this.data.$columns) {
+      newColumns = this.data.$columns
+    } else if (this.metadata.columns) {
+      newColumns = await this.metadata.columns
+    } else {
+      const data = await this.loadDataFromDisk(this.path)
+      console.log("data: ", data)
+      if (data.$columns) {
+        newColumns = data.$columns
+        this.metadata.columns = newColumns
+        return this.automaticTaggingOfColumns(data.$columns)
+      }
+    }
+    return this.automaticTaggingOfColumns(newColumns)
+  }
+
+  /**
+   * GetsTheColumnsOfTheDataObjectIfItIsATable
+   * @returns {Array} - The columns of the data object if it is a table.
+   */
+  async getColumns(path) {
+    let newColumns = []
+    const data = await MedDataObject.loadTableFromDisk(path)
+    console.log("data-*--------------------: ", data)
+    if (data.$columns) {
+      newColumns = data.$columns
+      this.metadata.columns = newColumns
+    }
+    return this.automaticTaggingOfColumns(newColumns)
+  }
+
+  /**
+   * @param {string} filePath - The path to the file to load.
+   * @returns {Promise} - A promise that resolves to the data loaded from the file.
+   */
+  async loadDataFromDisk(filePath = undefined) {
+    if (!filePath) {
+      filePath = this.path
+    }
+    console.log("filePath: ", filePath)
+    // eslint-disable-next-line no-undef
+    const Path = require("path")
+    let extension = Path.extname(filePath).slice(1)
+    console.log("extension: ", extension)
+    let data = undefined
+    // eslint-disable-next-line no-undef
+    const dfd = require("danfojs-node")
+    if (extension === "xlsx") {
+      data = await dfd.readExcel(filePath)
+    } else if (extension === "csv") {
+      data = await dfd.readCSV(filePath)
+    } else if (extension === "json") {
+      data = await dfd.readJSON(filePath)
+    }
+
+    return data
+  }
+
+  /**
+   * Checks every columns if they are prefixed with some tags (split by _|_) and add the tags to the metadata
+   * @param {Array} columns - The columns of the data object.
+   * @returns {Array} - The columns of the data object with the tags added to the metadata.
+   */
+  automaticTaggingOfColumns(columns) {
+    let newColumns = []
+    let setOfColumns = new Set()
+    for (let column of columns) {
+      let tags = column.split("_|_")
+      if (tags.length > 1) {
+        if (this.metadata.columnsTag === undefined) {
+          this.metadata.columnsTag = {}
+        }
+        if (this.metadata.tagsDict === undefined) {
+          this.metadata.tagsDict = {}
+        }
+        let columnName = tags.pop()
+
+        if (setOfColumns.has(columnName)) {
+          let newColumnName = this.returnNameNotInSet(columnName, setOfColumns)
+          columnName = newColumnName
+        }
+        if (this.metadata.columnsTag[columnName] === undefined) {
+          this.metadata.columnsTag[columnName] = tags
+        }
+        for (let tag of tags) {
+          if (tag !== "") {
+            if (!this.metadata.columnsTag[columnName].includes(tag)) {
+              this.metadata.columnsTag[columnName].push(tag)
+            }
+          }
+        }
+        // this.metadata.columnsTag[columnName] = tags
+        for (let tag of tags) {
+          if (tag !== "") {
+            if (this.metadata.tagsDict[tag] === undefined || this.metadata.tagsDict[tag] === null) {
+              this.metadata.tagsDict[tag] = { color: generateRandomColor(), fontColor: "white" }
+            }
+          }
+        }
+        setOfColumns.add(columnName)
+        newColumns.push(columnName)
+      } else {
+        setOfColumns.add(column)
+        newColumns.push(column)
+      }
+    }
+    this.metadata.columns = newColumns
+    this.renameColumnsWithoutTags()
+    return newColumns
+  }
+
+  /**
+   * Iteratively search for a new name by increasing the index added to the name until a name not present in the set of names is found
+   * @param {string} name - The name to check.
+   * @param {Set} setOfNames - The set of names to check against.
+   * @returns {string} - The new name.
+   */
+  returnNameNotInSet(name, setOfNames) {
+    let nameFound = false
+    let index = 1
+    let nameToReturn = name
+    while (!nameFound) {
+      if (setOfNames.has(nameToReturn)) {
+        nameToReturn = name + "_(" + index++ + ")"
+        index++
+      } else {
+        nameFound = true
+      }
+    }
+    return nameToReturn
+  }
+
+  /**
+   * if this.data is a DanfoJS DataFrame, rename the columns without the tags
+   * @returns {void}
+   */
+  renameColumnsWithoutTags() {
+    if (this.data !== undefined && this.data !== null) {
+      if (this.data.$columns) {
+        let columnsRenaming = {}
+        this.data.$columns.forEach((column, index) => {
+          if (column.includes("_|_")) {
+            // Handle the case where the column name is already present in the columns renaming dictionary
+            if (columnsRenaming[column] === undefined) {
+              columnsRenaming[column] = this.metadata.columns[index]
+            } else {
+              toast.warning("Duplicate column name found (while removing column names): " + column)
+            }
+          }
+        })
+        this.data.rename(columnsRenaming, { inplace: true })
+      }
+    }
+  }
+
+  /**
+   * Export the tags into each column name
+   */
+  exportTagsToColumns() {
+    let newColumns = []
+    for (let column of this.columns) {
+      let tags = this.metadata.tags[column]
+      if (tags !== undefined) {
+        let newColumnName = tags.join("_|_") + "_|_" + column
+        newColumns.push(newColumnName)
+      } else {
+        newColumns.push(column)
+      }
+    }
+    this.metadata.columns = newColumns
+    return newColumns
+  }
+
+  /**
+   * Set the data of the `MedDataObject` instance and sets the metadata accordingly.
+   * @description - This function is called when the user loads a file into the workspace.
+   *  - The columns are extracted and the tags are added to the metadata.
+   */
+  setData(data) {
     this.dataLoaded = true
     this.lastModified = Date(Date.now())
+    if (data.$columns) {
+      this.data = data
+      this.metadata.columns = this.automaticTaggingOfColumns(data.$columns)
+    }
   }
 
   /**
@@ -1002,6 +1397,25 @@ export default class MedDataObject {
   }
 
   /**
+   *
+   * @param {string} type The type of the step to add: refer to the dataStepsUtils.jsx
+   * @param {Object} execSettings The settings of the step to add: refer to the dataStepsUtils.jsx
+   */
+  addStep(type, execSettings) {
+    !this.steps && (this.steps = [])
+    this.steps.push({ type: type, execSettings: execSettings })
+    this.lastModified = Date(Date.now())
+  }
+
+  /**
+   *
+   * @returns {Array} - The steps of the `MedDataObject` instance.
+   */
+  getSteps() {
+    return this.steps
+  }
+
+  /**
    * Applies all the data modifications in the data modification queue of the `MedDataObject` instance to its data.
    */
   applyDataModifications() {
@@ -1017,6 +1431,13 @@ export default class MedDataObject {
    */
   getUUID() {
     return this._UUID
+  }
+
+  /**
+   * Sets the UUID of the `MedDataObject` instance to the provided `newUUID`.
+   */
+  setUUID(newUUID) {
+    this._UUID = newUUID
   }
 
   /**
@@ -1114,17 +1535,26 @@ function splitStringAtTheLastSeparator(string, separator) {
   let firstElements = splitString.join(separator)
   return [firstElements, lastElement]
 }
-
+/**
+ * Returns the path separator based on the operating system.
+ * @returns {string} - The path separator.
+ */
 function getPathSeparator() {
   // eslint-disable-next-line no-undef
   let process = require("process")
   if (process.platform === "win32") {
     return "\\"
-  } else if (typeof process !== "undefined" && process.platform === "linux") {
+  } else if (typeof process !== "undefined" && process.platform !== "win32") {
     return "/"
   }
 }
 
+/**
+ * This function evaluates if a name is present in an array.
+ * @param {string} name - The name to check.
+ * @param {Array} array - The array to check against.
+ * @returns {Boolean} - `true` if the name is in the array, `false` otherwise.
+ */
 function boolNameInArray(name, array) {
   let nameInArray = false
   array.includes(name) ? (nameInArray = true) : (nameInArray = false)

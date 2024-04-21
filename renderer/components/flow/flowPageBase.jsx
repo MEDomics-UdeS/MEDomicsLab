@@ -25,7 +25,7 @@ import { loadJsonPath } from "../../utilities/fileManagementUtils"
 const FlowPageBaseWithFlowInfos = ({ children, workflowType, id, LearningMEDimage=false, ExtraPages=null, reload, setReload }) => {
   // here is the use of the context to update the flowInfos
   const [isDragging, setIsDragging] = useState(false)
-  const { updateFlowInfos, showAvailableNodes, setExperimentName, setSceneName } = useContext(FlowInfosContext)
+  const { updateFlowInfos, showAvailableNodes, setSceneName } = useContext(FlowInfosContext)
   const { showResultsPane, setShowResultsPane, updateFlowResults } = useContext(FlowResultsContext)
   const { configPath } = useContext(PageInfosContext)
   const { getBasePath } = useContext(WorkspaceContext)
@@ -45,12 +45,10 @@ const FlowPageBaseWithFlowInfos = ({ children, workflowType, id, LearningMEDimag
       let pathList = configPath.split(MedDataObject.getPathSeparator())
       let length = pathList.length
       let sceneName = pathList[length - 1].split(".")[0]
-      let experimentName = pathList[length - 3]
       setSceneName(sceneName)
-      setExperimentName(experimentName)
 
       // check if there are results for this scene
-      let path = [getBasePath(EXPERIMENTS), experimentName, sceneName, sceneName].join(MedDataObject.getPathSeparator()) + ".medmlres"
+      let path = [getBasePath(EXPERIMENTS), sceneName, sceneName].join(MedDataObject.getPathSeparator()) + ".medmlres"
       if (MedDataObject.isPathExists(path)) {
         let flowResults = loadJsonPath(path)
         updateFlowResults(flowResults)

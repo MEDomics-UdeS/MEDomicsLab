@@ -16,16 +16,12 @@ import pickle
 import pprint
 import shutil
 import sys
-import traceback
 from copy import deepcopy
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
-from flask import (Blueprint, Flask, Response, jsonify, make_response,
-                   redirect, render_template, request, url_for)
-from utils.server_utils import get_json_from_request, get_response_from_error
-from werkzeug.utils import secure_filename
+from flask import Blueprint, Response, jsonify, request
 
 MODULE_DIR = str(Path(os.path.dirname(os.path.abspath(__file__))).parent / 'submodules' / 'MEDimage')
 sys.path.append(MODULE_DIR)
@@ -33,13 +29,11 @@ sys.path.append(MODULE_DIR)
 SUBMODULE_DIR = str(Path(os.path.dirname(os.path.abspath(__file__))).parent.parent)
 sys.path.append(SUBMODULE_DIR)
 
-pp = pprint.PrettyPrinter(indent=4, compact=True, width=40,
-                          sort_dicts=False)  # allow pretty print of datatypes in console
+pp = pprint.PrettyPrinter(indent=4, compact=True, width=40, sort_dicts=False)  # allow pretty print of datatypes in console
 
-import extraction_MEDimage.MEDimageApp.utils as utils
 import ray
-
 import submodules.MEDimage.MEDimage as MEDimage
+import utils
 
 # Global variables
 cwd = os.getcwd()
@@ -1431,7 +1425,7 @@ def RunBE():
 def getUpload():  # Code selected from  https://flask.palletsprojects.com/en/2.2.x/patterns/fileuploads/
     try:
         up_file_infos = {}
-        data = get_json_from_request(request)
+        data = utils.get_json_from_request(request)
         print("received data from topic: /upload:")
         pp.pprint(data)
         print("request:")
@@ -1495,7 +1489,7 @@ def getUpload():  # Code selected from  https://flask.palletsprojects.com/en/2.2
         else:
             return {"error": {"toast": "The request method is not POST."}}
     except BaseException as e:
-        return get_response_from_error(e)
+        return utils.get_response_from_error(e)
 
 
 
@@ -1511,7 +1505,7 @@ def runAll():
 
         print("\nThe current loaded instances of MEDimage objects are :", MED_IMG_OBJ)
 
-        json_scene = get_json_from_request(request)
+        json_scene = utils.get_json_from_request(request)
         drawflow_scene = json_scene['drawflow']
 
         pips = []  # Initialize pipeline list
@@ -1539,14 +1533,14 @@ def runAll():
 
         return json_res  # return pipeline results in the form of a dict
     except BaseException as e:
-        return get_response_from_error(e)
+        return utils.get_response_from_error(e)
 
 
 # TODO : Verifier si le node peut bien etre execute
 @app_extraction_MEDimage.route('/run', methods=['GET', 'POST'])
 def run():
     try:
-        data = get_json_from_request(request)
+        data = utils.get_json_from_request(request)
         json_scene = data["json_scene"]
 
         start_id = data["id"]  # id of node where run button was clicked
@@ -1561,17 +1555,17 @@ def run():
 
         return json_res
     except BaseException as e:
-        return get_response_from_error(e)
+        return utils.get_response_from_error(e)
 
 
 # TODO : Verifier si fonctionne aussi pour d'autre types que des images IRM. (TEP devrait etre couleur, IRM et CT noir et blanc).
 @app_extraction_MEDimage.route('/view', methods=['GET', 'POST'])
 def get3DView():
     try:
-        data = get_json_from_request(request)
+        data = utils.get_json_from_request(request)
         print("User asked for view of : ", data)
 
         utils.image_viewer(MED_IMG_OBJ, data, RUNS)
         return Response("OK", status = 200)
     except BaseException as e:
-        return get_response_from_error(e)
+        return utils.get_response_from_error(e)

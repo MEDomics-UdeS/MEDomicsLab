@@ -19,6 +19,7 @@ const iconExtension = {
     </span>
   ),
   pdf: <span className="emoji">📕</span>,
+  html: <span className="emoji">🌐</span>,
   medomics: (
     <span>
       <Image src={medomicsImg} width={12} height={12} alt="medomics.svg" style={{ marginRight: "0.15rem" }} />
@@ -27,6 +28,8 @@ const iconExtension = {
   medml: <span className="emoji">🎯</span>,
   medimg: <span className="emoji">🩻</span>,
   medmlres: <span className="emoji">📊</span>,
+  medeval: <span className="emoji">🔬</span>,
+  zip: <span className="emoji">🔒</span>,
   medmodel: (
     <span>
       <PiGraph className="icon-offset" style={{ color: "#97edfb" }} />
@@ -101,16 +104,15 @@ const renderItem = ({ item, depth, children, title, context, arrow }, additional
             <li {...context.itemContainerWithChildrenProps} className={cx("rct-tree-item-li", item.isFolder && "rct-tree-item-li-isFolder", context.isSelected && "rct-tree-item-li-selected", context.isExpanded && "rct-tree-item-li-expanded", context.isFocused && "rct-tree-item-li-focused", context.isDraggingOver && "rct-tree-item-li-dragging-over", context.isSearchMatching && "rct-tree-item-li-search-match")}>
               <div {...context.itemContainerWithoutChildrenProps} style={{ paddingLeft: `${(depth + 1) * 12}px` }} className={cx("rct-tree-item-title-container", item.isFolder && "rct-tree-item-title-container-isFolder", context.isSelected && "rct-tree-item-title-container-selected", context.isExpanded && "rct-tree-item-title-container-expanded", context.isFocused && "rct-tree-item-title-container-focused", context.isDraggingOver && "rct-tree-item-title-container-dragging-over", context.isSearchMatching && "rct-tree-item-title-container-search-match")}>
                 <div className="folder-bracket" style={{ left: `${(depth + 1) * 12 + 8}px`, backgroundColor: `${additionalParams.isHovering ? "" : "#ffffff00"}`, width: "1px", transition: "all 0.5s ease-in-out" }}></div>
-
                 {arrow}
-
                 <InteractiveComponent
                   type={type}
                   {...context.interactiveElementProps}
                   className={cx("rct-tree-item-button", item.isFolder && "rct-tree-item-button-isFolder", context.isSelected && "rct-tree-item-button-selected", context.isExpanded && "rct-tree-item-button-expanded", context.isFocused && "rct-tree-item-button-focused", context.isDraggingOver && "rct-tree-item-button-dragging-over", context.isSearchMatching && "rct-tree-item-button-search-match")}
                   data={item}
                   onContextMenu={(e) => {
-                    console.log("onContextMenu", item.index)
+                    console.log("onContextMenu", item.index, e, additionalParams, item)
+                    // additionalParams.setSelectedItems([item.UUID])
                     additionalParams.displayMenu(e, item)
                   }}
                 >

@@ -15,6 +15,7 @@ import * as Icon from "react-bootstrap-icons"
 import { WorkspaceContext, EXPERIMENTS } from "../../workspace/workspaceContext"
 import { loadJsonPath } from "../../../utilities/fileManagementUtils"
 import process from "process"
+import Path from "path"
 
 /**
  *
@@ -125,10 +126,11 @@ const PipelineResult = ({ pipeline, selectionMode, flowContent }) => {
 const PipelinesResults = ({ pipelines, selectionMode, flowContent }) => {
   const { selectedResultsId, setSelectedResultsId, flowResults, showResultsPane, isResults } = useContext(FlowResultsContext)
   const { getBasePath } = useContext(WorkspaceContext)
-  const { sceneName, experimentName } = useContext(FlowInfosContext)
+  const { sceneName } = useContext(FlowInfosContext)
 
   const [accordionActiveIndexStore, setAccordionActiveIndexStore] = useState([])
   const [accordionActiveIndex, setAccordionActiveIndex] = useState([])
+  const isProd = process.env.NODE_ENV === "production"
 
   //when the selectionMode change, reset the selectedResultsId and the accordionActiveIndex
   useEffect(() => {
@@ -226,9 +228,9 @@ const PipelinesResults = ({ pipelines, selectionMode, flowContent }) => {
        * It first loads the existing notebook or get an empty one and then fills it with the code and the imports.
        */
       const createNoteBookDoc = (code, imports) => {
-        let newLineChar = process.platform === "linux" ? "\n" : ""
-        let notebook = loadJsonPath([getBasePath(EXPERIMENTS), experimentName, sceneName, "notebooks", pipeline.map((id) => getName(id)).join("-")].join(MedDataObject.getPathSeparator()) + ".ipynb")
-        notebook = notebook ? deepCopy(notebook) : deepCopy(loadJsonPath("./resources/emptyNotebook.ipynb"))
+        let newLineChar = "\n" // before was process.platform === "linux" ? "\n" : ""
+        let notebook = loadJsonPath([getBasePath(EXPERIMENTS), sceneName, "notebooks", pipeline.map((id) => getName(id)).join("-")].join(MedDataObject.getPathSeparator()) + ".ipynb")
+        notebook = notebook ? deepCopy(notebook) : deepCopy(loadJsonPath(isProd ? Path.join(process.resourcesPath, "baseFiles", "emptyNotebook.ipynb") : "./baseFiles/emptyNotebook.ipynb"))
         notebook.cells = []
         let lastType = "md"
         // This function is used to add a code cell to the notebook
@@ -265,7 +267,7 @@ const PipelinesResults = ({ pipelines, selectionMode, flowContent }) => {
           }
         }
         // HEADER
-        addMarkdown(["## Notebook automatically generated\n\n", "**Experiment:** " + experimentName + "\n\n", "**Scene:** " + sceneName + "\n\n", "**Pipeline:** " + pipeline.map((id) => getName(id)).join(" ➡️ ") + "\n\n", "**Date:** " + new Date().toLocaleString() + "\n\n"])
+        addMarkdown(["## Notebook automatically generated\n\n", "**Scene:** " + sceneName + "\n\n", "**Pipeline:** " + pipeline.map((id) => getName(id)).join(" ➡️ ") + "\n\n", "**Date:** " + new Date().toLocaleString() + "\n\n"])
         // IMPORTS
         addCode(imports.map((imp) => imp.content + newLineChar))
         // CODE
@@ -281,7 +283,7 @@ const PipelinesResults = ({ pipelines, selectionMode, flowContent }) => {
         })
         compileLines(linesOfSameType)
 
-        MedDataObject.writeFileSync(notebook, [getBasePath(EXPERIMENTS), experimentName, sceneName, "notebooks"], pipeline.map((id) => getName(id)).join("-"), "ipynb").then(() => {
+        MedDataObject.writeFileSync(notebook, [getBasePath(EXPERIMENTS), sceneName, "notebooks"], pipeline.map((id) => getName(id)).join("-"), "ipynb").then(() => {
           toast.success("Notebook generated and saved !")
         })
       }

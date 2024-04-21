@@ -1,3 +1,7 @@
+/* eslint-disable no-unused-vars */
+/* eslint-disable no-undef */
+/* eslint-disable camelcase */
+
 import * as React from "react"
 import * as Prism from "prismjs"
 import { Action, Actions, BorderNode, CLASSES, DockLocation, DragDrop, DropInfo, IJsonTabNode, ILayoutProps, ITabRenderValues, ITabSetRenderValues, Layout, Model, Node, TabNode, TabSetNode } from "flexlayout-react"
@@ -11,7 +15,6 @@ import { LayoutModelContext } from "../layoutContext"
 import { DataContext } from "../../workspace/dataContext"
 import MedDataObject from "../../workspace/medDataObject"
 import InputPage from "../../mainPages/input"
-import ResultsPage from "../../mainPages/results"
 import ExploratoryPage from "../../mainPages/exploratory"
 import EvaluationPage from "../../mainPages/evaluation"
 import ExtractionTextPage from "../../mainPages/extractionText"
@@ -21,18 +24,23 @@ import LearningMEDimagePage from "../../mainPages/learningMEDimage"
 import DataManager from "../../mainPages/datamanager"
 import BatchExtractor from "../../mainPages/batchextractor"
 import ExtractionTSPage from "../../mainPages/extractionTS"
+import MEDprofilesViewer from "../../input/MEDprofiles/MEDprofilesViewer"
 import HomePage from "../../mainPages/home"
 import TerminalPage from "../../mainPages/terminal"
 import OutputPage from "../../mainPages/output"
 import ApplicationPage from "../../mainPages/application"
+import SettingsPage from "../../mainPages/settings"
+import ModulePage from "../../mainPages/moduleBasics/modulePage"
 import * as Icons from "react-bootstrap-icons"
 import Image from "next/image"
 import ZoomPanPinchComponent from "./zoomPanPinchComponent"
 import DataTableWrapperBPClass from "../../dataTypeVisualisation/dataTableWrapperBPClass"
+import HtmlViewer from "../../mainPages/htmlViewer"
+import ModelViewer from "../../mainPages/modelViewer"
+import NotebookEditor from "../../mainPages/notebookEditor"
+import Iframe from "react-iframe"
 
 var fields = ["Name", "Field1", "Field2", "Field3", "Field4", "Field5"]
-
-const ContextExample = React.createContext("")
 
 interface LayoutContextType {
   layoutRequestQueue: any[]
@@ -561,7 +569,11 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
       }
       const jsonText = JSON.stringify(node.getExtraData().data, null, "\t")
       const html = Prism.highlight(jsonText, Prism.languages.javascript, "javascript")
-      return <pre style={{ tabSize: "20px" }} dangerouslySetInnerHTML={{ __html: html }} />
+      return (
+        <ModulePage pageId={"jsonViewer-" + config.path} configPath={config.path} shadow>
+          <pre style={{ tabSize: "20px" }} dangerouslySetInnerHTML={{ __html: html }} />
+        </ModulePage>
+      )
     } else if (component === "dataTable") {
       const config = node.getConfig()
       if (node.getExtraData().data == null) {
@@ -570,10 +582,10 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
           const { globalData, setGlobalData } = this.props as DataContextType
           let globalDataCopy = globalData
           if (globalDataCopy[config.uuid] !== undefined) {
-            globalDataCopy[config.uuid].data = new dfd.DataFrame(data)
+            globalDataCopy[config.uuid].setData(new dfd.DataFrame(data))
             setGlobalData(globalDataCopy)
           }
-          node.getExtraData().data = data
+          node.getExtraData().data = dfd.toJSON(globalDataCopy[config.uuid].data, { format: "column" })
         }
         let extension = config.extension
         if (extension === undefined) {
@@ -585,19 +597,23 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
         else if (extension === "xlsx") loadXLSXFromPath(config.path, whenDataLoaded)
       }
       return (
-        <DataTableWrapperBPClass
-          data={node.getExtraData().data}
-          tablePropsData={{
-            paginator: true,
-            rows: 10,
-            scrollable: true,
-            scrollHeight: "400px"
-          }}
-          tablePropsColumn={{
-            sortable: true
-          }}
-          config={...config}
-        />
+        <>
+          <DataTableWrapperBPClass
+            data={node.getExtraData().data}
+            tablePropsData={{
+              paginator: true,
+              rows: 10,
+              scrollable: true,
+              scrollHeight: "400px"
+            }}
+            tablePropsColumn={{
+              sortable: true
+            }}
+            config={{ ...config }}
+            globalData={this.props.globalData}
+            setGlobalData={this.props.setGlobalData}
+          />
+        </>
       )
     } else if (component === "learningPage") {
       if (node.getExtraData().data == null) {
@@ -613,16 +629,6 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
           return <InputPage pageId={config.uuid} configPath={config.path} />
         } else {
           return <InputPage pageId={"InputPage"} />
-        }
-      }
-    } else if (component === "resultsPage") {
-      if (node.getExtraData().data == null) {
-        const config = node.getConfig()
-
-        if (config.path !== null) {
-          return <ResultsPage pageId={config.uuid} configPath={config.path} />
-        } else {
-          return <ResultsPage pageId={"ResultsPage"} />
         }
       }
     } else if (component === "iFramePage") {
@@ -671,6 +677,15 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
           return <ExtractionTextPage pageId={config.uuid} configPath={config.path} />
         } else {
           return <ExtractionTextPage pageId={"ExtractionTextPage"} />
+        }
+      }
+    } else if (component === "MEDprofilesViewer") {
+      if (node.getExtraData().data == null) {
+        const config = node.getConfig()
+        if (config.path !== null) {
+          return <MEDprofilesViewer pageId={config.uuid} configPath={config.path} MEDclassesFolder={config?.MEDclassesFolder} MEDprofilesBinaryFile={config?.MEDprofilesBinaryFile} />
+        } else {
+          return <MEDprofilesViewer pageId={"MEDprofilesViewer"} MEDclassesFolder={config?.MEDclassesFolder} MEDprofilesBinaryFile={config?.MEDprofilesBinaryFile} />
         }
       }
     } else if (component === "extractionImagePage") {
@@ -745,6 +760,32 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
 
         return <OutputPage />
       }
+    } else if (component === "modelViewer") {
+      if (node.getExtraData().data == null) {
+        const config = node.getConfig()
+        console.log("config", config)
+        return <ModelViewer pageId={config.uuid} configPath={config.path} />
+      }
+    } else if (component === "htmlViewer") {
+      if (node.getExtraData().data == null) {
+        const config = node.getConfig()
+        console.log("config", config)
+        return <HtmlViewer configPath={config.path} />
+      }
+    } else if (component === "iframeViewer") {
+      if (node.getExtraData().data == null) {
+        const config = node.getConfig()
+        console.log("config", config)
+        return <Iframe url={config.path} width="100%" height="100%" />
+      }
+    } else if (component === "codeEditor") {
+      if (node.getExtraData().data == null) {
+        const config = node.getConfig()
+        console.log("config", config)
+        return <NotebookEditor url={config.path} />
+      }
+    } else if (component === "Settings") {
+      return <SettingsPage />
     } else if (component !== "") {
       if (node.getExtraData().data == null) {
         const config = node.getConfig()
@@ -839,13 +880,16 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
         return <span style={{ marginRight: 3 }}>📄</span>
       }
       if (component === "extractionImagePage") {
-        return <span style={{ marginRight: 3 }}>📄</span>
+        return <span style={{ marginRight: 3 }}>📷</span>
       }
       if (component === "extractionMEDimagePage") {
         return <span style={{ marginRight: 3 }}>📷</span>
       }
       if (component === "extractionTSPage") {
         return <span style={{ marginRight: 3 }}>📈</span>
+      }
+      if (component === "MEDprofilesViewer") {
+        return <span style={{ marginRight: 3 }}>📊</span>
       }
       if (component === "terminal") {
         return <span style={{ marginRight: 3 }}>🖥️</span>
@@ -855,6 +899,9 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
       }
       if (component === "applicationPage") {
         return <span style={{ marginRight: 3 }}>📦</span>
+      }
+      if (component === "Settings") {
+        return <span style={{ marginRight: 3 }}>⚙️</span>
       }
     }
   }

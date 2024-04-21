@@ -10,6 +10,8 @@ import { DataContextProvider } from "../components/workspace/dataContext"
 import MedDataObject from "../components/workspace/medDataObject"
 import { ActionContextProvider } from "../components/layout/actionContext"
 import { HotkeysProvider } from "@blueprintjs/core"
+import { ConfirmPopup } from "primereact/confirmpopup"
+import { ConfirmDialog } from "primereact/confirmdialog"
 
 // CSS
 import "bootstrap/dist/css/bootstrap.min.css"
@@ -37,6 +39,7 @@ import "../styles/globals.css"
 import "../styles/learning/learning.css"
 import "../styles/extraction/extractionMEDimage.css"
 import "../styles/extraction/extractionTabular.css"
+import "../styles/input/MEDprofiles.css"
 import "../styles/workspaceSidebar.css"
 import "../styles/iconSidebar.css"
 import "../styles/learning/sidebar.css"
@@ -45,6 +48,11 @@ import "../styles/sidebarTree.css"
 import "../styles/customPrimeReact.css"
 import "../styles/imageContainer.css"
 import "../styles/datatableWrapper.css"
+import "../styles/inputPage.css"
+import "../styles/evaluation/evaluation.css"
+import "../styles/output.css"
+import "../styles/exploratory/exploratory.css"
+import "../styles/application/application.css"
 
 /**
  * This is the main app component. It is the root component of the app.
@@ -118,6 +126,10 @@ function App() {
   }
 
   /**
+   * TODO : When changing the working directory, the global data should be cleared and the new working directory should be set
+   */
+
+  /**
    * This is the state for the layout model. It is passed to the LayoutContextProvider, which provides the layout model to all components.
    * @param {Object} layoutModel - The layout model for the LayoutContextProvider
    * @param {Function} setLayoutModel - The function to set the layout model for the LayoutContextProvider
@@ -128,9 +140,14 @@ function App() {
     hasBeenSet: false,
     workingDirectory: ""
   })
-  const [port, setPort] = useState(5000)
+  const [recentWorkspaces, setRecentWorkspaces] = useState([]) // The list of recent workspaces
+  const [port, setPort] = useState() // The port of the server
 
-  const [globalData, setGlobalData] = useState({})
+  const [globalData, setGlobalData] = useState({}) // The global data object
+
+  useEffect(() => {
+    localStorage.clear()
+  }, [])
 
   useEffect(() => {
     // This useEffect hook is called only once and it sets the ipcRenderer to listen for the "messageFromElectron" message from the main process
@@ -163,15 +180,37 @@ function App() {
       setWorkspaceObject(workspace)
     })
 
-    ipcRenderer.on("getFlaskPort", (event, data) => {
-      console.log("flask port update from Electron:", data)
+    ipcRenderer.on("getServerPort", (event, data) => {
+      console.log("server port update from Electron:", data)
       setPort(data.newPort)
+    })
+
+    ipcRenderer.on("openWorkspace", (event, data) => {
+      console.log("openWorkspace from NEXT", data)
+      let workspace = { ...data }
+      setWorkspaceObject(workspace)
     })
 
     ipcRenderer.on("toggleDarkMode", () => {
       console.log("toggleDarkMode")
       // setIsDarkMode(!isDarkMode)
     })
+
+    ipcRenderer.on("recentWorkspaces", (event, data) => {
+      console.log("recentWorkspaces", data)
+      setRecentWorkspaces(data)
+    })
+
+    /**
+     * This is to log messages from the main process in the console
+     */
+    ipcRenderer.on("log", (event, data) => {
+      console.log("log", data)
+    })
+
+    ipcRenderer.send("messageFromNext", "getServerPort")
+
+    // ipcRenderer.send("messageFromNext", "getRecentWorkspaces")
   }, []) // Here, we specify that the hook should only be called at the launch of the app
 
   /**
@@ -203,13 +242,9 @@ function App() {
         let acceptedFiles = MedDataObject.setAcceptedFileTypes(dataObject, acceptedFileTypes)
         dataObject.setAcceptedFileTypes(acceptedFiles)
         if (child.children === undefined) {
-          console.log("File:", child)
           objectType = "file"
           childrenIDs = null
-        } else if (child.children.length == 0) {
-          console.log("Empty folder:", child)
-        } else {
-          console.log("Folder:", child)
+        } else if (child.children.length != 0) {
           let answer = recursivelyRecenseTheDirectory(child.children, objectUUID, newGlobalData, acceptedFiles)
           childrenIDs = answer.childrenIDsToReturn
         }
@@ -232,33 +267,120 @@ function App() {
     return { childrenIDsToReturn: childrenIDsToReturn }
   }
 
+  /**
+   * Gets the children paths of the children passed as a parameter
+   * @param {Object} children - The children of the current directory
+   * @returns {Array} - The children paths of the current directory
+   * @description This function is used to recursively recense the directory tree and add the files and folders to the global data object
+   */
+  const getChildrenPaths = (children) => {
+    let childrenPaths = []
+    children.forEach((child) => {
+      childrenPaths.push(child.path)
+      if (child.children !== undefined) {
+        let answer = getChildrenPaths(child.children)
+        childrenPaths = childrenPaths.concat(answer)
+      }
+    })
+    return childrenPaths
+  }
+
+  /**
+   * Creates a list of files not found in the workspace
+   * @param {Object} currentWorkspace - The current workspace
+   * @param {Object} currentGlobalData - The current global data
+   * @returns {Array} - The list of files not found in the workspace
+   */
+  const createListOfFilesNotFoundInWorkspace = (currentWorkspace, currentGlobalData) => {
+    let listOfFilesNotFoundInWorkspace = []
+    let workspaceChildren = currentWorkspace.workingDirectory.children
+    let workspaceChildrenPaths = []
+    if (workspaceChildren !== undefined) {
+      workspaceChildrenPaths = getChildrenPaths(workspaceChildren)
+    } else {
+      return listOfFilesNotFoundInWorkspace
+    }
+
+    Object.keys(currentGlobalData).forEach((key) => {
+      let dataObject = currentGlobalData[key]
+      let filePath = dataObject.path
+      if (!workspaceChildrenPaths.includes(filePath)) {
+        listOfFilesNotFoundInWorkspace.push(dataObject._UUID)
+      }
+    })
+    return listOfFilesNotFoundInWorkspace
+  }
+
+  /**
+   * Cleans the global data from files and folders not found in the workspace
+   * @param {Object} workspace - The current workspace
+   * @param {Object} dataContext - The current global data
+   * @returns {Object} - The new global data
+   */
+  const cleanGlobalDataFromFilesNotFoundInWorkspace = (workspace, dataContext) => {
+    let newGlobalData = { ...dataContext }
+    let listOfFilesNotFoundInWorkspace = createListOfFilesNotFoundInWorkspace(workspace, dataContext)
+    console.log("listOfFilesNotFoundInWorkspace", listOfFilesNotFoundInWorkspace)
+    listOfFilesNotFoundInWorkspace.forEach((file) => {
+      if (newGlobalData[file] !== undefined && file !== "UUID_ROOT") delete newGlobalData[file]
+    })
+    return newGlobalData
+  }
+
+  /**
+   * Checks if a metadata file exists in the workspace
+   */
+  const checkIfMetadataFileExists = () => {
+    // Check if a file ending with .medomics exists in the workspace directory
+    let metadataFileExists = false
+    let workspaceChildren = workspaceObject.workingDirectory.children
+    workspaceChildren.forEach((child) => {
+      console.log("child", child)
+      if (child.name == ".medomics") {
+        metadataFileExists = true
+      }
+    })
+    return metadataFileExists
+  }
+
   // This useEffect hook is called whenever the `workspaceObject` state changes.
   useEffect(() => {
-    // Create a copy of the `globalData` state object.
-    let newGlobalData = { ...globalData }
-    // Check if the `workingDirectory` property of the `workspaceObject` has been set.
-    if (workspaceObject.hasBeenSet === true) {
-      // Loop through each child of the `workingDirectory`.
+    const updateGlobalData = async () => {
+      // Create a copy of the `globalData` state object.
+      let newGlobalData = { ...globalData }
+      // Check if the `workingDirectory` property of the `workspaceObject` has been set.
+      if (workspaceObject.hasBeenSet === true) {
+        // Loop through each child of the `workingDirectory`.
 
-      let rootChildren = workspaceObject.workingDirectory.children
-      let rootParentID = "UUID_ROOT"
-      let rootName = workspaceObject.workingDirectory.name
-      let rootPath = workspaceObject.workingDirectory.path
-      let rootType = "folder"
-      let rootChildrenIDs = recursivelyRecenseTheDirectory(rootChildren, rootParentID, newGlobalData).childrenIDsToReturn
+        let metadataFileExists = checkIfMetadataFileExists()
+        if (metadataFileExists && Object.keys(globalData).length == 0) {
+          // Load the global data from the metadata file
+          newGlobalData = await loadGlobalDataFromFile()
+        }
+        let rootChildren = workspaceObject.workingDirectory.children
+        let rootParentID = "UUID_ROOT"
+        let rootName = workspaceObject.workingDirectory.name
+        let rootPath = workspaceObject.workingDirectory.path
+        let rootType = "folder"
+        let rootChildrenIDs = recursivelyRecenseTheDirectory(rootChildren, rootParentID, newGlobalData).childrenIDsToReturn
 
-      let rootDataObject = new MedDataObject({
-        originalName: rootName,
-        path: rootPath,
-        parentID: rootParentID,
-        type: rootType,
-        childrenIDs: rootChildrenIDs,
-        _UUID: rootParentID
-      })
-      newGlobalData[rootParentID] = rootDataObject
+        let rootDataObject = new MedDataObject({
+          originalName: rootName,
+          path: rootPath,
+          parentID: rootParentID,
+          type: rootType,
+          childrenIDs: rootChildrenIDs,
+          _UUID: rootParentID
+        })
+        newGlobalData[rootParentID] = rootDataObject
+      }
+      // Clean the globalData from files & folders that are not in the workspace
+      newGlobalData = cleanGlobalDataFromFilesNotFoundInWorkspace(workspaceObject, newGlobalData)
+
+      // Update the `globalData` state object with the new `newGlobalData` object.
+      setGlobalData(newGlobalData)
     }
-    // Update the `globalData` state object with the new `newGlobalData` object.
-    setGlobalData(newGlobalData)
+    updateGlobalData()
   }, [workspaceObject])
 
   // This useEffect hook is called whenever the `workspaceObject` state changes.
@@ -266,9 +388,72 @@ function App() {
     console.log("workspaceObject changed", workspaceObject)
   }, [workspaceObject])
 
+  /**
+   * Function that saves a JSON Object to a file to a specified path
+   * @param {Object} objectToSave - The object to save
+   * @param {String} path - The path to save the object to
+   * @returns {Promise} - A promise that resolves when the object is saved
+   */
+  const saveObjectToFile = (objectToSave, path) => {
+    return new Promise((resolve, reject) => {
+      // eslint-disable-next-line no-undef
+      const fsx = require("fs-extra")
+      fsx.writeFile(path, JSON.stringify(objectToSave, null, 2), (err) => {
+        if (err) {
+          console.error(err)
+          reject(err)
+        }
+        resolve()
+      })
+    })
+  }
+
+  /**
+   * Parse the global data so that the objects are MedDataObjects
+   * @param {Object} globalData - The global data to parse
+   * @returns {Object} - The parsed global data
+   */
+  const parseGlobalData = (globalData) => {
+    let parsedGlobalData = {}
+    Object.keys(globalData).forEach((key) => {
+      let dataObject = globalData[key]
+      let parsedDataObject = new MedDataObject(dataObject)
+      parsedGlobalData[key] = parsedDataObject
+    })
+    return parsedGlobalData
+  }
+
+  /**
+   * Load the global data from a file
+   */
+  const loadGlobalDataFromFile = () => {
+    return new Promise((resolve, reject) => {
+      // eslint-disable-next-line no-undef
+      const fsx = require("fs-extra")
+      let path = workspaceObject.workingDirectory.path + "/.medomics"
+      fsx.readFile(path + "/globalData.json", "utf8", (err, data) => {
+        if (err) {
+          console.error(err)
+          reject(err)
+        }
+        resolve(parseGlobalData(JSON.parse(data)))
+      })
+    })
+  }
+
   // This useEffect hook is called whenever the `globalData` state changes.
   useEffect(() => {
     console.log("globalData changed", globalData)
+    // Save the global data to a file
+    if (workspaceObject.hasBeenSet === true) {
+      let path = workspaceObject.workingDirectory.path + "/.medomics"
+      // Check if the .medomics folder exists
+      // eslint-disable-next-line no-undef
+      const fsx = require("fs-extra")
+      fsx.ensureDirSync(workspaceObject.workingDirectory.path + "/.medomics")
+      // Save the global data to a file
+      saveObjectToFile(globalData, path + "/globalData.json")
+    }
   }, [globalData])
 
   // This useEffect hook is called whenever the `layoutModel` state changes.
@@ -285,7 +470,7 @@ function App() {
     <>
       <Head>
         <meta name="viewport" content="initial-scale=1.0, width=device-width" />
-        <title>MedomicsLab App</title>
+        <title>MEDomicsLab</title>
         {/* <script src="http://localhost:8097"></script> */}
         {/* Uncomment if you want to use React Dev tools */}
       </Head>
@@ -293,7 +478,7 @@ function App() {
         <HotkeysProvider>
           <ActionContextProvider>
             <DataContextProvider globalData={globalData} setGlobalData={setGlobalData}>
-              <WorkspaceProvider workspace={workspaceObject} setWorkspace={setWorkspaceObject} port={port} setPort={setPort}>
+              <WorkspaceProvider workspace={workspaceObject} setWorkspace={setWorkspaceObject} port={port} setPort={setPort} recentWorkspaces={recentWorkspaces} setRecentWorkspaces={setRecentWorkspaces}>
                 <LayoutModelProvider // This is the LayoutContextProvider, which provides the layout model to all the children components of the LayoutManager
                   layoutModel={layoutModel}
                   setLayoutModel={setLayoutModel}
@@ -307,6 +492,8 @@ function App() {
             </DataContextProvider>
           </ActionContextProvider>
         </HotkeysProvider>
+        <ConfirmPopup />
+        <ConfirmDialog />
         <ToastContainer // This is the ToastContainer, which is used to display toast notifications
           position="bottom-right"
           autoClose={2000}

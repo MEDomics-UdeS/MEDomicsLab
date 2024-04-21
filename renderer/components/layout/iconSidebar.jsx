@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import React, { useState, useContext, useEffect } from "react"
 import { Files, HouseFill, Gear, Server, Search, BandaidFill, Send } from "react-bootstrap-icons"
 import Nav from "react-bootstrap/Nav"
@@ -6,8 +7,7 @@ import { WorkspaceContext } from "../workspace/workspaceContext"
 import { Tooltip } from "primereact/tooltip"
 import { LayoutModelContext } from "./layoutContext"
 import { PiFlaskFill } from "react-icons/pi"
-import { VscGraph } from "react-icons/vsc"
-import { FaMagnifyingGlassChart, FaHeadSideVirus } from "react-icons/fa6"
+import { FaMagnifyingGlassChart } from "react-icons/fa6"
 import { LuNetwork } from "react-icons/lu"
 import { Button } from "primereact/button"
 import { TbFileExport } from "react-icons/tb"
@@ -31,7 +31,8 @@ const IconSidebar = ({ onSidebarItemSelect }) => {
 
   // default action to set developer mode to true
   useEffect(() => {
-    handleToggleDeveloperMode()
+    setDeveloperMode(true)
+    setDeveloperModeNav(true)
   }, [])
 
   /**
@@ -48,9 +49,9 @@ const IconSidebar = ({ onSidebarItemSelect }) => {
    * @param {Event} event
    * @param {string} name
    */
-  function handleRightClick(event, name) {
+  function handleDoubleClick(event, name) {
     event.stopPropagation()
-    console.log(`right clicked ${name}`, event, `open${name}Module`)
+    console.log(`Double clicked ${name}`, event, `open${name}Module`)
     dispatchLayout({ type: `open${name}Module`, payload: { pageId: name } })
   }
 
@@ -94,7 +95,6 @@ const IconSidebar = ({ onSidebarItemSelect }) => {
         {/* ------------------------------------------- Tooltips ----------------------------------------- */}
         <Tooltip target=".homeNavIcon" {...delayOptions} className="tooltip-icon-sidebar" />
         <Tooltip target=".explorerNav" {...delayOptions} className="tooltip-icon-sidebar" />
-        <Tooltip target=".searchNav" {...delayOptions} className="tooltip-icon-sidebar" />
         <Tooltip target=".inputNav" {...delayOptions} className="tooltip-icon-sidebar" />
         <Tooltip target=".extractionNav" {...delayOptions} className="tooltip-icon-sidebar" data-pr-disabled={extractionBtnstate} />
         <Tooltip target=".classificationNav" {...delayOptions} className="tooltip-icon-sidebar" />
@@ -103,7 +103,6 @@ const IconSidebar = ({ onSidebarItemSelect }) => {
         <Tooltip target=".resultsNav" {...delayOptions} className="tooltip-icon-sidebar" />
         <Tooltip target=".evaluationNav" {...delayOptions} className="tooltip-icon-sidebar" />
         <Tooltip target=".applicationNav" {...delayOptions} className="tooltip-icon-sidebar" />
-        <Tooltip target=".layoutTestNav" {...delayOptions} className="tooltip-icon-sidebar" />
         <Tooltip target=".ext-MEDimg-btn" {...delayOptions} className="tooltip-icon-sidebar" />
         <Tooltip target=".ext-text-btn" {...delayOptions} className="tooltip-icon-sidebar" />
         <Tooltip target=".ext-ts-btn" {...delayOptions} className="tooltip-icon-sidebar" />
@@ -114,7 +113,7 @@ const IconSidebar = ({ onSidebarItemSelect }) => {
         {/* ------------------------------------------- ICON NAVBAR ----------------------------------------- */}
 
         <Nav defaultActiveKey="/home" className="flex-column" style={{ width: "100%", height: "100%" }}>
-          <Nav.Link className="homeNavIcon btnSidebar" data-pr-at="right center" data-pr-tooltip="Home" data-pr-my="left center" href="#home" eventKey="home" data-tooltip-id="tooltip-home" onClick={(event) => handleClick(event, "home")} onAuxClick={(event) => handleRightClick(event, "Home")}>
+          <Nav.Link className="homeNavIcon btnSidebar" data-pr-at="right center" data-pr-tooltip="Home" data-pr-my="left center" href="#home" eventKey="home" data-tooltip-id="tooltip-home" onClick={(event) => handleClick(event, "home")} onDoubleClick={(event) => handleDoubleClick(event, "Home")}>
             <HouseFill size={"1.25rem"} width={"100%"} height={"100%"} style={{ scale: "0.65" }} />
           </Nav.Link>
 
@@ -122,14 +121,10 @@ const IconSidebar = ({ onSidebarItemSelect }) => {
             <Files size={"1.25rem"} width={"100%"} height={"100%"} style={{ scale: "0.65" }} />
           </Nav.Link>
 
-          <Nav.Link className="searchNav btnSidebar" data-pr-at="right center" data-pr-tooltip="Search" data-pr-my="left center" eventKey="search" data-tooltip-id="tooltip-search" onClick={(event) => handleClick(event, "search")} disabled={disabledIcon}>
-            <Search size={"1.25rem"} width={"100%"} height={"100%"} style={{ scale: "0.65" }} />
-          </Nav.Link>
-
           <NavDropdown.Divider className="icon-sidebar-divider" style={{ height: "3rem" }} />
           <div className="medomics-layer design">
             <div className="sidebar-icons">
-              <Nav.Link className="inputNav btnSidebar" data-pr-at="right center" data-pr-my="left center" data-pr-tooltip="Input" eventKey="input" data-tooltip-id="tooltip-input" onAuxClick={(event) => handleRightClick(event, "Input")} onClick={(event) => handleClick(event, "input")} disabled={disabledIcon}>
+              <Nav.Link className="inputNav btnSidebar" data-pr-at="right center" data-pr-my="left center" data-pr-tooltip="Input" eventKey="input" data-tooltip-id="tooltip-input" onDoubleClick={(event) => handleDoubleClick(event, "Input")} onClick={(event) => handleClick(event, "input")} disabled={disabledIcon}>
                 <Server size={"1.25rem"} width={"100%"} height={"100%"} style={{ scale: "0.65" }} />
               </Nav.Link>
 
@@ -141,7 +136,7 @@ const IconSidebar = ({ onSidebarItemSelect }) => {
                 data-pr-disabled={extractionBtnstate}
                 eventKey="extraction"
                 data-tooltip-id="tooltip-extraction"
-                onAuxClick={(event) => handleRightClick(event, "extraction")}
+                onDoubleClick={(event) => handleDoubleClick(event, "extraction")}
                 onClick={() => {
                   setExtractionBtnstate(!extractionBtnstate)
                 }}
@@ -167,13 +162,13 @@ const IconSidebar = ({ onSidebarItemSelect }) => {
                     data-pr-tooltip="MEDimage"
                     data-is-ext-btn
                     onClick={(event) => {
-                      console.log("clicked extraction image", event)
                       event.stopPropagation()
                       event.preventDefault()
-                      handleClick(event, "extractionMEDimage")
+                      handleDoubleClick(event, "ExtractionMEDimage")
+                      // handleClick(event, "extractionMEDimage")
                       setExtractionBtnstate(!extractionBtnstate)
                     }}
-                    onAuxClick={(event) => handleRightClick(event, "ExtractionMEDimage")}
+                    onDoubleClick={(event) => handleDoubleClick(event, "ExtractionMEDimage")}
                   />
                   <Button
                     className="ext-text-btn"
@@ -186,10 +181,10 @@ const IconSidebar = ({ onSidebarItemSelect }) => {
                       console.log("clicked extraction text", event)
                       event.stopPropagation()
                       event.preventDefault()
-                      handleClick(event, "extractionText")
                       setExtractionBtnstate(!extractionBtnstate)
+                      handleDoubleClick(event, "ExtractionText")
                     }}
-                    onAuxClick={(event) => handleRightClick(event, "ExtractionText")}
+                    onDoubleClick={(event) => handleDoubleClick(event, "ExtractionText")}
                   />
                   <Button
                     className="ext-ts-btn"
@@ -202,10 +197,11 @@ const IconSidebar = ({ onSidebarItemSelect }) => {
                       console.log("clicked extraction ts", event)
                       event.stopPropagation()
                       event.preventDefault()
-                      handleClick(event, "extractionTS")
+                      // handleClick(event, "extractionTS")
+                      handleDoubleClick(event, "ExtractionTS")
                       setExtractionBtnstate(!extractionBtnstate)
                     }}
-                    onAuxClick={(event) => handleRightClick(event, "ExtractionTS")}
+                    onDoubleClick={(event) => handleDoubleClick(event, "ExtractionTS")}
                   />
                   <Button
                     className="ext-img-btn"
@@ -218,10 +214,10 @@ const IconSidebar = ({ onSidebarItemSelect }) => {
                       console.log("clicked extraction image", event)
                       event.stopPropagation()
                       event.preventDefault()
-                      handleClick(event, "extractionImage")
+                      handleDoubleClick(event, "ExtractionImage")
                       setExtractionBtnstate(!extractionBtnstate)
                     }}
-                    onAuxClick={(event) => handleRightClick(event, "ExtractionImage")}
+                    onDoubleClick={(event) => handleDoubleClick(event, "ExtractionImage")}
                   />
                 </div>
               </Nav.Link>
@@ -231,7 +227,7 @@ const IconSidebar = ({ onSidebarItemSelect }) => {
                 <FaHeadSideVirus style={{ height: "1.7rem", width: "auto" }} />
               </Nav.Link>
 
-              <Nav.Link className="exploratoryNav btnSidebar align-center" data-pr-at="right center" data-pr-my="left center" data-pr-tooltip="Exploratory" eventKey="exploratory" data-tooltip-id="tooltip-exploratory" onAuxClick={(event) => handleRightClick(event, "Exploratory")} onClick={(event) => handleClick(event, "exploratory")} disabled={disabledIcon}>
+              <Nav.Link className="exploratoryNav btnSidebar align-center" data-pr-at="right center" data-pr-my="left center" data-pr-tooltip="Exploratory" eventKey="exploratory" data-tooltip-id="tooltip-exploratory" onDoubleClick={(event) => handleDoubleClick(event, "Exploratory")} onClick={(event) => handleClick(event, "exploratory")} disabled={disabledIcon}>
                 {" "}
                 <FaMagnifyingGlassChart style={{ height: "1.7rem", width: "auto" }} />
               </Nav.Link>
@@ -246,11 +242,7 @@ const IconSidebar = ({ onSidebarItemSelect }) => {
                 <LuNetwork style={{ height: "1.7rem", width: "auto", rotate: "-90deg" }} />
               </Nav.Link>
 
-              <Nav.Link className="resultsNav btnSidebar align-center" data-pr-at="right center" data-pr-my="left center" data-pr-tooltip="Results" eventKey="Results" onClick={(event) => handleClick(event, "results")} disabled={disabledIcon} onAuxClick={(event) => handleRightClick(event, "Results")}>
-                <VscGraph style={{ height: "1.7rem", width: "auto" }} />
-              </Nav.Link>
-
-              <Nav.Link className="evaluationNav btnSidebar align-center" data-pr-at="right center" data-pr-my="left center" data-pr-tooltip="Evaluation" eventKey="Evaluation" onClick={(event) => handleClick(event, "evaluation")} disabled={disabledIcon} onAuxClick={(event) => handleRightClick(event, "Evaluation")}>
+              <Nav.Link className="evaluationNav btnSidebar align-center" data-pr-at="right center" data-pr-my="left center" data-pr-tooltip="Evaluation" eventKey="Evaluation" onClick={(event) => handleClick(event, "evaluation")} disabled={disabledIcon}>
                 <PiFlaskFill style={{ height: "2.2rem", width: "auto" }} />
               </Nav.Link>
             </div>
@@ -260,7 +252,7 @@ const IconSidebar = ({ onSidebarItemSelect }) => {
 
           <div className="medomics-layer deployment">
             <div className="sidebar-icons">
-              <Nav.Link className="applicationNav btnSidebar" data-pr-at="right center" data-pr-my="left center" data-pr-tooltip="Application" eventKey="Application" data-tooltip-id="tooltip-application" onClick={(event) => handleClick(event, "application")} disabled={disabledIcon} onAuxClick={(event) => handleRightClick(event, "Application")}>
+              <Nav.Link className="applicationNav btnSidebar" data-pr-at="right center" data-pr-my="left center" data-pr-tooltip="Application" eventKey="Application" data-tooltip-id="tooltip-application" onClick={(event) => handleClick(event, "application")} disabled={disabledIcon} onDoubleClick={(event) => handleDoubleClick(event, "Application")}>
                 <Send size={"1.25rem"} width={"100%"} height={"100%"} style={{ scale: "0.65" }} />
               </Nav.Link>
             </div>
@@ -270,19 +262,10 @@ const IconSidebar = ({ onSidebarItemSelect }) => {
           {/* div that puts the buttons to the bottom of the sidebar*/}
           <div className="d-flex icon-sidebar-divider" style={{ flexGrow: "1" }}></div>
 
-          <Nav.Link className="layoutTestNav btnSidebar" data-pr-at="right center" data-pr-my="left center" data-pr-tooltip="Layout Test" eventKey="LayoutTest" data-tooltip-id="tooltip-layoutTest" onClick={(event) => handleClick(event, "layoutTest")}>
-            <BandaidFill size={"1.25rem"} width={"100%"} height={"100%"} style={{ scale: "0.65" }} />
+          {/* ------------------------------------------- SETTINGS BUTTON ----------------------------------------- */}
+          <Nav.Link className="settingsNav btnSidebar" data-pr-at="right center" data-pr-my="left center" data-pr-tooltip="Settings" eventKey="settings" data-tooltip-id="tooltip-settings" onClick={() => dispatchLayout({ type: `openSettings`, payload: { pageId: "Settings" } })} disabled={disabledIcon}>
+            <Gear size={"1.25rem"} width={"100%"} height={"100%"} style={{ scale: "0.65" }} />
           </Nav.Link>
-
-          <div className="d-flex icon-sidebar-divider" style={{ flexGrow: "1" }}></div>
-
-          <NavDropdown className="settingsNav btnSidebar" onClick={handleNavClick} title={<Gear size={"1.25rem"} width={"100%"} height={"100%"} style={{ scale: "0.75" }} />}>
-            <NavDropdown.Item className="developerModeNav" data-pr-at="right center" data-pr-my="left center" data-pr-tooltip="Developer Mode" href="#/action-1" onClick={(event) => handleToggleDeveloperMode(event)}>
-              Toggle developer mode
-            </NavDropdown.Item>
-            <NavDropdown.Item href="#/action-2">Help</NavDropdown.Item>
-            <NavDropdown.Item href="#/action-3">About</NavDropdown.Item>
-          </NavDropdown>
         </Nav>
         {/* ------------------------------------------- END ICON NAVBAR ----------------------------------------- */}
       </div>

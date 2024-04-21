@@ -1,38 +1,82 @@
-# Getting started
+# MEDomicsLab - Develop branch 🛠️
 
-## 1. Install nvm (Node Version Manager)
+[![GitHub build](https://img.shields.io/github/workflow/status/MEDomics-UdeS/MEDomicsLab/Build%20and%20test%20electron%20app%20on%20push%20to%20develop%20branch)]()
+[![GitHub last commit](https://img.shields.io/github/last-commit/MEDomics-UdeS/MEDomicsLab)]()
+[![GitHub contributors](https://img.shields.io/github/contributors/MEDomics-UdeS/MEDomicsLab)]()
+[![GitHub issues](https://img.shields.io/github/issues/MEDomics-UdeS/MEDomicsLab)]()
+[![GitHub forks](https://img.shields.io/github/forks/MEDomics-UdeS/MEDomicsLab)]()
+[![GitHub stars](https://img.shields.io/github/stars/MEDomics-UdeS/MEDomicsLab)]()
+[![GitHub release](https://img.shields.io/github/release/MEDomics-UdeS/MEDomicsLab)]()
+[![GitHub license](https://img.shields.io/github/license/MEDomics-UdeS/MEDomicsLab)]()
 
-Ubuntu : https://github.com/nvm-sh/nvm#installing-and-updating
+Here is the develop branch of the MEDomicsLab project. This branch is used to develop new features and fix bugs. The main branch is used to publish the latest stable version of the project. The develop branch is merged into the main branch when a new stable version is ready to be published.
 
-Windows : https://github.com/coreybutler/nvm-windows
+### Main documentation 👉 [here](https://medomics-udes.gitbook.io/medomicslab-docs/). 👈
 
-## 2. Install npm and node.js
+### Development documentation 👇
+
+# Getting started - Development
+
+This is considering that you are a developper and want to contribute to the project.
+
+- I am a **user** and want to **install** the latest release: [Go here](https://medomics-udes.gitbook.io/medomicslab-docs/quick-start)
+- I am a **developper** and want to **setup the project**: [Go here](https://medomics-udes.gitbook.io/medomicslab-docs/contributing)
+- I am a **developper** and i **already setup** the required softwares: **You are at the right place !**
+
+## 1. Git clone the project
 
 ```
-nvm install lts # lts :Long Term Support
-nvm use lts
+git clone git@github.com:MEDomics-UdeS/MEDomicsLab.git      # via SSH (recommended)
+git clone https://github.com/MEDomics-UdeS/MEDomicsLab.git  # via HTTPS
 ```
 
-## 3. Setup server side
-
-- [Flask Setup here](./flask_server/README.md)
-- [Go Setup here](./go_server/README.md) (Optional, in development)
-
-## 4. initialize submodules
+## 2. Initialize submodules when cloning the project
 
 ```
 cd <.../MEDomicsLab/>
 git submodule init
-git submodule update
+git submodule update --init --recursive --remote
+cd pythonCode/submodules/MEDimage
+git checkout dev_lab
+cd ../MEDprofiles
+git checkout fusion_MEDomicsLab
 ```
 
-## 5. Run the Electron app in development mode
+## 3. Be sure to have the npm packages installed
 
 ```
 cd <.../MEDomicsLab/>
 npm install
-npm run dev
 ```
+
+## 4. When you modify .go files, you need to rebuild the executable
+
+- You can do it manually by running `go build main.go` in the `go_server` folder
+- You can also use a script that you can run from the root folder of the project:
+  - Windows : `.\utilScripts\pack_GO.bat`
+  - Linux : `bash utilScripts/pack_GO_linux.sh`
+  - MacOS : `bash utilScripts/pack_GO_mac.sh`
+
+## 5. Python environment
+
+The python environment is created automatically with the scripts in the `pythonEnv` folder.
+You have to run it manually by executing the following commands:
+
+- Windows : `.\pythonEnv\create_conda_env_win.bat`
+- Linux : `bash pythonEnv/create_conda_env_linux.sh`
+
+The script will create a conda environment named `med_conda_env`, install the required packages in it and create an environment variable named `MED_ENV` that contains the path to the environment.
+
+When developping python code, you may need to install new packages. To do so, you can activate the environment and install the package with pip:
+
+```
+conda activate med_conda_env
+pip install <package_name>
+```
+
+## 6. Run the Electron app in development mode
+
+`npm run dev`
 
 ### Modify startup settings
 
@@ -45,35 +89,11 @@ const config = {
   runServerAutomatically: true,
   // If true, use the react dev tools
   useRactDevTools: false,
-  // the path to the conda environment to use for the server
-  condaEnv: fs.readFileSync("./path2condaenv_toDeleteInProd.txt", "utf8").replace(/\s/g, ""),
-  // the default port to use for the server
+  // the default port to use for the server, be sure that no programs use it by default
   defaultPort: 5000,
-  // Either "GO" or "FLASK" (case sensitive)
-  serverChoice: SERVER_CHOICE.GO,
   // Either "FIX" or "AVAILABLE" (case sensitive)
+  // FIX 		-­> if defaultPort is used, force terminate and use defaultPort
+  // AVAILABLE 	-> if defaultPort is used, iterate to find next available port
   portFindingMethod: PORT_FINDING_METHOD.FIX
 }
 ```
-
-# Current folder structure of the nextron project
-
-| Folder | Description |
-
-| ------------- | ---------------------------------------------------------------------------------- |
-
-| /app | Electron files |
-
-| /flask_server | All server side, python/[flask](https://flask.palletsprojects.com/) related, files |
-
-| /main | Electron related contents |
-
-| /node_modules | Contains saved libraries (created from `npm install`) |
-
-| /renderer | NextJs related content |
-
-| /ressources | Electron ressources (icons, etc.) |
-
-> Nextron automatically generated folders : /app, /main, /nodes_modules, /ressources, /renderer and /resources
-
-_package.json_ & _package-lock.json_ contain libraries informations from [Node.js](https://nodejs.org/en) (npm)

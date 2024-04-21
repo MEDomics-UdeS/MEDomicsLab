@@ -12,15 +12,15 @@ import Papa from "papaparse"
  * @param {Object} props - The props object
  *  @param {Object} props.keepOnlyFolder - The only parent folder to keep in the dataset selector
  */
-const DataTableFromContext = ({MedDataObject, tablePropsData, tablePropsColumn, isDatasetLoaded, setIsDatasetLoaded}) => {
-  const { globalData, setGlobalData } = useContext(DataContext) // We get the global data from the context to retrieve the directory tree of the workspace, thus retrieving the data files
+const DataTableFromContext = ({ MedDataObject, tablePropsData, tablePropsColumn, isDatasetLoaded, setIsDatasetLoaded }) => {
+  const { globalData, setGlobalData, copyGlobalDataSync } = useContext(DataContext) // We get the global data from the context to retrieve the directory tree of the workspace, thus retrieving the data files
   const [isLoaded, setIsLoaded] = useState(MedDataObject.isLoaded ? MedDataObject.isLoaded : false)
 
-  const [dataset, setDataset] = useState(MedDataObject.isLoaded ? MedDataObject.data: false)
+  const [dataset, setDataset] = useState(MedDataObject.isLoaded ? MedDataObject.data : false)
 
   useEffect(() => {
-    if (MedDataObject !== undefined && MedDataObject !== null) {
-      if (isLoaded && MedDataObject.data && (isDatasetLoaded!=undefined && isDatasetLoaded==true)) {
+    if (MedDataObject !== undefined && MedDataObject !== null && MedDataObject.getUUID !== undefined) {
+      if (isLoaded && MedDataObject.data && isDatasetLoaded != undefined && isDatasetLoaded == true) {
         console.log("was already loaded")
       } else {
         if (globalData !== undefined) {
@@ -41,15 +41,15 @@ const DataTableFromContext = ({MedDataObject, tablePropsData, tablePropsColumn, 
                 let df = new dfd.DataFrame(array, { columns: columns })
                 let dfJSON = dfd.toJSON(df)
                 setDataset(dfJSON)
-                let globalDataCopy = { ...globalData }
-                globalDataCopy[MedDataObject.getUUID()].data = dfJSON
-                globalDataCopy[MedDataObject.getUUID()].isLoaded = true
-                setGlobalData(globalDataCopy)
-                setIsLoaded(true)
-                if (setIsDatasetLoaded) {
-                  setIsDatasetLoaded(true)
-                }
-                
+                copyGlobalDataSync().then((globalDataCopy) => {
+                  globalDataCopy[MedDataObject.getUUID()].data = dfJSON
+                  globalDataCopy[MedDataObject.getUUID()].isLoaded = true
+                  setGlobalData(globalDataCopy)
+                  setIsLoaded(true)
+                  if (setIsDatasetLoaded != undefined) {
+                    setIsDatasetLoaded(true)
+                  }
+                })
               }
             })
           } else if (extension == "xlsx") {

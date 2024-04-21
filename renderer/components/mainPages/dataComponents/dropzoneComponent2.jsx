@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import React, { useCallback, useState, useContext } from "react"
 
 import { useDropzone } from "react-dropzone"

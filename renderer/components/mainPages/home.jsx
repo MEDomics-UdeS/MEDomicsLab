@@ -6,11 +6,11 @@ import { WorkspaceContext } from "../workspace/workspaceContext"
 import { ipcRenderer } from "electron"
 
 /**
- * 
+ *
  * @returns the home page component
  */
 const HomePage = () => {
-  const { workspace } = useContext(WorkspaceContext)
+  const { workspace, recentWorkspaces } = useContext(WorkspaceContext)
   const [hasBeenSet, setHasBeenSet] = useState(workspace.hasBeenSet)
 
   async function handleWorkspaceChange() {
@@ -25,6 +25,11 @@ const HomePage = () => {
       setHasBeenSet(false)
     }
   }, [workspace])
+
+  // We set the recent workspaces -> We send a message to the main process to get the recent workspaces, the workspace context will be updated by the main process in _app.js
+  useEffect(() => {
+    ipcRenderer.send("messageFromNext", "getRecentWorkspaces")
+  }, [])
 
   return (
     <>
@@ -42,6 +47,23 @@ const HomePage = () => {
               <Button onClick={handleWorkspaceChange} style={{ margin: "1rem" }}>
                 Set Workspace
               </Button>
+              <h5>Or open a recent workspace</h5>
+              <Stack direction="vertical" gap={0} style={{ padding: "0 0 0 0", alignContent: "center" }}>
+                {recentWorkspaces.map((workspace, index) => {
+                  if (index > 4) return
+                  return (
+                    <a
+                      key={index}
+                      onClick={() => {
+                        ipcRenderer.send("setWorkingDirectory", workspace.path)
+                      }}
+                      style={{ margin: "0rem", color: "var(--blue-600)" }}
+                    >
+                      <h6>{workspace.path}</h6>
+                    </a>
+                  )
+                })}
+              </Stack>
             </>
           ) : (
             <h5>Workspace is set to {workspace.workingDirectory.path}</h5>

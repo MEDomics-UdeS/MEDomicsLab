@@ -1,0 +1,92 @@
+.exploratory {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 100%;
+  padding: 1rem;
+}
+
+.exploratory > .p-card {
+  box-shadow:
+    2px 2px 3px -1px rgb(0 0 0 / 20%),
+    0 1px 1px 0 rgb(0 0 0 / 14%),
+    0px 0px 3px 2px rgb(0 0 0 / 12%);
+}
+
+.exploratory > .p-card .p-card-content {
+  padding: 0;
+}
+
+.exploratory > .p-card .p-card-body {
+  padding: 1rem;
+  padding-top: 0.25rem;
+}
+
+.data-with-warning .p-tag {
+  height: 2rem;
+  width: 2rem;
+  position: absolute;
+  translate: 500% 40%;
+  z-index: 3;
+}
+
+.data-with-warning .p-tag > .p-icon {
+  height: 1.5rem;
+  width: 1.5rem;
+}
+
+.input-btn-group {
+  display: flex;
+  flex-direction: row;
+  gap: 0.5rem;
+  width: 100%;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.input-btn-group .p-button {
+  width: 16.5rem;
+  height: 58px;
+}
+
+.input-btn-group > .form-floating {
+  flex-grow: 1;
+  height: 58px;
+}
+
+.p-button.add-compare {
+  width: 100%;
+  padding: 0.1rem;
+  background-color: #ffffff;
+  color: #495057;
+  border: 1px solid #ced4da;
+}
+
+.p-button.add-compare:hover {
+  width: 100%;
+  padding: 0.1rem;
+  background: #e9ecef;
+  border-color: #ced4da;
+  color: #495057;
+}
+
+/* primary blue */
+.p-button.add-compare:active {
+  width: 100%;
+  padding: 0.1rem;
+  background: #6366f1;
+  border-color: #6366f1;
+  color: #ffffff;
+}
+
+.finish-btn-group {
+  display: flex;
+  flex-direction: row;
+  gap: 0.5rem;
+  width: 100%;
+  align-items: stretch;
+  flex-wrap: wrap;
+  justify-content: center;
+  border-top: 1px solid #dee2e6;
+  padding-top: 0.5rem;
+}

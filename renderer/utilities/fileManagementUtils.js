@@ -1,11 +1,28 @@
 import defaultBatchSettings from "./defaultBatchSettings"
+import { toast } from "react-toastify"
 
 const fs = require("fs")
-const path = require("path")
+const Path = require("path")
 const { parse } = require("csv-parse")
 const dfd = require("danfojs")
 const dfdNode = require("danfojs-node")
 var Papa = require("papaparse")
+import { ipcRenderer } from "electron"
+
+/**
+ *
+ * @param {string} path path to the file
+ * @description This function takes a path, tells the main process to get the local path and returns the local path
+ * @returns {Promise} Promise that resolves to the file content
+ */
+const toLocalPath = (path) => {
+  return new Promise((resolve) => {
+    ipcRenderer.send("get-file-path", path)
+    ipcRenderer.on("get-file-path-reply", (event, filePath) => {
+      resolve(`local://${filePath}`)
+    })
+  })
+}
 
 /**
  *
@@ -81,6 +98,24 @@ const processBatchSettings = (exportObj, selectedModalities, exportName) => {
 }
 /**
  *
+ * @param {String} path path to the file
+ *
+ * @description
+ * This function takes a path and downloads the file
+ */
+const downloadFilePath = (path) => {
+  toLocalPath(path).then((localPath) => {
+    var downloadAnchorNode = document.createElement("a")
+    downloadAnchorNode.setAttribute("href", "./tmp/" + Path.basename(localPath))
+    downloadAnchorNode.setAttribute("download", Path.basename(localPath))
+    document.body.appendChild(downloadAnchorNode) // required for firefox
+    downloadAnchorNode.click()
+    downloadAnchorNode.remove()
+  })
+}
+
+/**
+ *
  * @param {Object} exportObj object to be exported
  * @param {String} exportName name of the exported file
  *
@@ -94,7 +129,7 @@ const downloadPath = (path) => {
     var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data, null, 2))
     var downloadAnchorNode = document.createElement("a")
     downloadAnchorNode.setAttribute("href", dataStr)
-    downloadAnchorNode.setAttribute("download", path.split("/").pop().split("\\").pop())
+    downloadAnchorNode.setAttribute("download", Path.split("/").pop().split("\\").pop())
     document.body.appendChild(downloadAnchorNode) // required for firefox
     downloadAnchorNode.click()
     downloadAnchorNode.remove()
@@ -140,6 +175,58 @@ const writeFile = (exportObj, path, name, extension) => {
       return console.log(err)
     }
     console.log("The file was saved!")
+  })
+}
+
+/**
+ *
+ * @param {Object} exportObj object to be exported
+ * @param {String} path path to the folder where the file will be saved
+ * @param {String} name name of the exported file
+ * @param {String} extension extension of the exported file (json or even custom (e.g. abc)))
+ *
+ * @description
+ * This function takes an object, a path and a name and saves the object as a json file with a custom extension
+ */
+const writeJson = (exportObj, path, name, extension = "json") => {
+  extension = extension.replace(".", "").toLowerCase()
+  let writePath = Path.join(path, name + "." + extension)
+  console.log("writing json file:", writePath)
+  fs.writeFile(writePath, JSON.stringify(exportObj, null, 2), function (err) {
+    if (err) {
+      return console.log(err)
+    }
+    console.log("The file was saved!")
+  })
+}
+
+/**
+ *
+ * @param {Object} exportObj object to be exported
+ * @param {String} path path to the folder where the file will be saved
+ * @param {String} name name of the exported file
+ * @param {String} extension extension of the exported file (json or even custom (e.g. abc)))
+ *
+ * @description
+ * This function takes an object, a path and a name and saves the object as a json file with a custom extension
+ */
+const writeJsonSync = (exportObj, path, name, extension = "json") => {
+  return new Promise((resolve, reject) => {
+    try {
+      extension = extension.replace(".", "").toLowerCase()
+      let writePath = Path.join(path, name + "." + extension)
+      console.log("writing json file:", writePath)
+      fs.writeFile(writePath, JSON.stringify(exportObj, null, 2), function (err) {
+        if (err) {
+          return console.log(err)
+        }
+        console.log("The file was saved!")
+        resolve(writePath)
+      })
+    } catch (error) {
+      toast.error("Error writing file: " + path + "\n" + error + "\n")
+      reject(error)
+    }
   })
 }
 
@@ -196,23 +283,19 @@ const loadJsonSync = () => {
  * @description
  * This function takes a path and returns the json object
  */
-const loadJsonPath = (path) => {
+const loadJsonPath = (absPath) => {
   const fs = require("fs")
-  if (path == "") {
+  if (absPath == "") {
     console.log("path empty")
     return null
   }
   try {
-    const cwd = process.cwd()
-    let cwdSlashType = cwd.includes("/") ? "/" : "\\"
-    let cwdSlashTypeInv = cwdSlashType == "/" ? "\\" : "/"
-    path.charAt(0) == "." && (path = cwd + path.substring(1).replaceAll(cwdSlashTypeInv, cwdSlashType))
-    console.log("reading json file: " + path)
-    const data = fs.readFileSync(path)
+    console.log("reading json file: " + absPath)
+    const data = fs.readFileSync(absPath)
     const jsonData = JSON.parse(data)
     return jsonData
   } catch (error) {
-    console.log("error reading json file: " + path + "\n" + error + "\n")
+    console.log("error reading json file: " + absPath + "\n" + error + "\n")
     return null
   }
 }
@@ -223,16 +306,11 @@ const loadJsonPath = (path) => {
  * @description
  * This function takes a path and returns the json object
  */
-const loadCSVPath = (path, whenLoaded) => {
+const loadCSVPath = (absPath, whenLoaded) => {
   const data = []
-  // get current working directory
-  const cwd = process.cwd()
-  let cwdSlashType = cwd.includes("/") ? "/" : "\\"
-  let cwdSlashTypeInv = cwdSlashType == "/" ? "\\" : "/"
-  path.charAt(0) == "." && (path = cwd + path.substring(1).replaceAll(cwdSlashTypeInv, cwdSlashType))
-  console.log("reading csv file: " + path)
+  console.log("reading csv file: " + absPath)
   try {
-    fs.createReadStream(path)
+    fs.createReadStream(absPath)
       .pipe(
         parse({
           delimiter: ",",
@@ -248,9 +326,6 @@ const loadCSVPath = (path, whenLoaded) => {
         console.log(error.message)
       })
       .on("end", function () {
-        // Here log the result array
-        console.log("parsed csv data:")
-        console.log(data)
         whenLoaded(data)
       })
   } catch (error) {
@@ -278,7 +353,21 @@ const loadCSVFromPath = (path, whenLoaded) => {
         }
       })
       let columns = array.shift()
+      // Check if the number of columns corresponds to the number of column names\
+      if (columns.length !== array[0].length) {
+        console.warn("Number of columns does not match the number of column names")
+        if (columns.length > array[0].length) {
+          console.warn("Removing extra column names")
+          // Check if there are empty column names and remove them
+          let emptyColumns = columns.filter((column) => column === "")
+          if (emptyColumns.length > 0) {
+            console.warn("Removing empty column names")
+            columns = columns.filter((column) => column !== "")
+          }
+        }
+      }
       let df = new dfd.DataFrame(array, { columns: columns })
+      df.drop(removeEmptyRows(df, 5))
       let dfJSON = dfd.toJSON(df)
       whenLoaded(dfJSON)
     }
@@ -286,13 +375,31 @@ const loadCSVFromPath = (path, whenLoaded) => {
 }
 
 /**
- *
+ * Check if the last rows of the dataframe are empty or undefined, and if so, remove them
+ * @param {Object} df dataframe
+ * @param {Number} numberOfRowToCheck number of rows to check
+ * @returns {Array} array of index to drop
+ */
+const removeEmptyRows = (df, numberOfRowToCheck) => {
+  let dfLastRows = df.tail(numberOfRowToCheck)
+  let dfColumnCount = df.$columns.length
+  let indexToDrop = []
+  let rowCounts = dfLastRows.count()
+  rowCounts.values.forEach((rowCount, index) => {
+    if (rowCount <= 1) {
+      indexToDrop.push(rowCounts.$index[index])
+    }
+  })
+  return { index: indexToDrop, inplace: true }
+}
+
+/**
  * @param {string} path_ path to the file
  * @param {string} folderName name of the folder to create
  */
 function createFolder(path_, folderName) {
   // Creates a folder in the working directory
-  const folderPath = path.join(path_, folderName)
+  const folderPath = Path.join(path_, folderName)
 
   fs.mkdir(folderPath, { recursive: true }, (err) => {
     if (err) {
@@ -339,6 +446,7 @@ const loadJSONFromPath = (path, whenLoaded) => {
       console.log("File read successfully")
       let result = JSON.parse(data)
       let df = new dfd.DataFrame(result)
+      df.drop(removeEmptyRows(df, 5))
       let dfJSON = dfd.toJSON(df)
       console.log("DFJSON", dfJSON)
       whenLoaded(dfJSON)
@@ -354,13 +462,22 @@ const loadJSONFromPath = (path, whenLoaded) => {
  */
 const loadXLSXFromPath = async (filePath, whenLoaded) => {
   let jsonPath = filePath
-  const path = require("path")
-  let finalPath = path.join(jsonPath)
+  let finalPath = Path.join(jsonPath)
   console.log("path", finalPath)
   let df = await dfdNode.readExcel(jsonPath)
   console.log("File read successfully")
+  df.drop(removeEmptyRows(df, 5))
   let dfJSON = dfd.toJSON(df)
   whenLoaded(dfJSON)
 }
 
-export { downloadFile, processBatchSettings, downloadPath, loadFileFromPathSync, writeFile, loadJson, loadJsonSync, loadJsonPath, loadCSVPath, loadCSVFromPath, createFolder, createFolderSync, loadJSONFromPath, loadXLSXFromPath }
+/**
+ * @description This Object get the reading method from the file extension
+ */
+const getFileReadingMethodFromExtension = {
+  json: (path) => loadJsonPath(path),
+  csv: (path, whenLoaded) => loadCSVPath(path, whenLoaded),
+  xlsx: (path, whenLoaded) => loadXLSXFromPath(path, whenLoaded)
+}
+
+export { toLocalPath, processBatchSettings, downloadFile, downloadPath, downloadFilePath, loadFileFromPathSync, writeFile, writeJson, writeJsonSync, loadJson, loadJsonSync, loadJsonPath, loadCSVPath, loadCSVFromPath, createFolder, createFolderSync, loadJSONFromPath, loadXLSXFromPath, getFileReadingMethodFromExtension }

@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import React, { useState, useCallback, useMemo, useEffect, useContext } from "react"
 import { toast } from "react-toastify"
 
@@ -10,7 +11,7 @@ import { useNodesState, useEdgesState, useReactFlow } from "reactflow"
 import WorkflowBase from "../flow/workflowBase"
 import { FlowFunctionsContext } from "../flow/context/flowFunctionsContext"
 import { WorkspaceContext } from "../workspace/workspaceContext"
-import { ErrorRequestContext } from "../flow/context/errorRequestContext"
+import { ErrorRequestContext } from "../generalPurpose/errorRequestContext"
 
 // Import node types
 import StandardNode from "./nodesTypes/standardNode"
@@ -466,6 +467,7 @@ const FlowCanvas = ({ workflowType, setWorkflowType }) => {
         let formData = {
           id: id,
           name: nodeName,
+          // eslint-disable-next-line camelcase
           json_scene: newFlow
         }
 

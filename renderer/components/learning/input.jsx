@@ -1,12 +1,20 @@
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, useContext } from "react"
 import CreatableSelect from "react-select/creatable" // https://react-select.com/creatable
-import Select from "react-select"
 import FloatingLabel from "react-bootstrap/FloatingLabel"
 import Form from "react-bootstrap/Form"
 import { toast } from "react-toastify" // https://www.npmjs.com/package/react-toastify
 import { Tooltip } from "react-tooltip"
 import { Markup } from "interweave"
 import WsSelect from "../mainPages/dataComponents/wsSelect"
+import WsSelectMultiple from "../mainPages/dataComponents/wsSelectMultiple"
+import TagsSelectMultiple from "../mainPages/dataComponents/tagsSelectMultiple"
+import { customZipFile2Object } from "../../utilities/customZipFile"
+import { DataContext } from "../workspace/dataContext"
+import MedDataObject from "../workspace/medDataObject"
+import { Dropdown } from "primereact/dropdown"
+import { MultiSelect } from "primereact/multiselect"
+import VarsSelectMultiple from "../mainPages/dataComponents/varsSelectMultiple"
+import { Message } from "primereact/message"
 
 /**
  *
@@ -24,17 +32,17 @@ const createOption = (label) => ({
 /**
  *
  * @param {string} name name of the setting
- * @param {object} settingInfos infos of the setting
- * @param {object} data data of the node
+ * @param {object} settingInfos infos of the setting ex: {type: "string", tooltip: "this is a tooltip"}
  * @returns {JSX.Element} A Input component
  *
  * @description
  * This component is used to display a Input component.
  * it handles multiple types of input and format them to be similar
  */
-const Input = ({ name, settingInfos, currentValue, onInputChange }) => {
+const Input = ({ name, settingInfos, currentValue, onInputChange, disabled, setHasWarning = () => {}, customProps }) => {
   const [inputUpdate, setInputUpdate] = useState({})
   const [inputValue, setInputValue] = useState("")
+  const { globalData, setGlobalData } = useContext(DataContext)
 
   /**
    *
@@ -112,6 +120,7 @@ const Input = ({ name, settingInfos, currentValue, onInputChange }) => {
           <>
             <FloatingLabel id={name} controlId={name} label={name} className=" input-hov">
               <Form.Control
+                disabled={disabled}
                 type="text"
                 defaultValue={currentValue}
                 onChange={(e) =>
@@ -132,12 +141,13 @@ const Input = ({ name, settingInfos, currentValue, onInputChange }) => {
           <>
             <FloatingLabel controlId={name} label={name} className=" input-hov">
               <Form.Control
+                disabled={disabled}
                 type="number"
                 defaultValue={currentValue}
                 onChange={(e) =>
                   setInputUpdate({
                     name: name,
-                    value: e.target.value,
+                    value: parseInt(e.target.value),
                     type: settingInfos.type
                   })
                 }
@@ -152,12 +162,14 @@ const Input = ({ name, settingInfos, currentValue, onInputChange }) => {
           <>
             <FloatingLabel controlId={name} label={name} className=" input-hov">
               <Form.Control
+                disabled={disabled}
                 type="number"
+                step="0.1"
                 defaultValue={currentValue}
                 onChange={(e) =>
                   setInputUpdate({
                     name: name,
-                    value: e.target.value,
+                    value: parseFloat(e.target.value),
                     type: settingInfos.type
                   })
                 }
@@ -172,6 +184,7 @@ const Input = ({ name, settingInfos, currentValue, onInputChange }) => {
           <>
             <FloatingLabel controlId={name} label={name} className=" input-hov">
               <Form.Select
+                disabled={disabled}
                 defaultValue={currentValue}
                 onChange={(e) =>
                   setInputUpdate({
@@ -181,6 +194,71 @@ const Input = ({ name, settingInfos, currentValue, onInputChange }) => {
                   })
                 }
               >
+                <option value="" hidden></option>
+                <option value="True">True</option>
+                <option value="False">False</option>
+              </Form.Select>
+            </FloatingLabel>
+            {createTooltip(settingInfos.tooltip, name)}
+          </>
+        )
+
+      case "bool-int-str":
+        return (
+          <>
+            <FloatingLabel id={name} controlId={name} label={name} className=" input-hov">
+              <Form.Control
+                disabled={disabled}
+                type="text"
+                defaultValue={currentValue}
+                onChange={(e) => {
+                  let value = ""
+                  if (/^-?[0-9]+$/.test(e.target.value)) {
+                    value = parseInt(e.target.value)
+                  } else {
+                    value = e.target.value
+                  }
+                  console.log("value", value)
+                  setInputUpdate({
+                    name: name,
+                    value: value,
+                    type: settingInfos.type
+                  })
+                }}
+              />
+            </FloatingLabel>
+            {createTooltip(settingInfos.tooltip, name)}
+          </>
+        )
+      case "int-float-str":
+        return (
+          <>
+            <FloatingLabel controlId={name} label={name} className=" input-hov">
+              <Form.Select
+                disabled={disabled}
+                defaultValue={currentValue}
+                onChange={(e) => {
+                  // check if the value is a float or an int or a string
+                  let value = ""
+                  if (/^-?[0-9]+$/.test(e.target.value)) {
+                    // int
+                    value = parseInt(e.target.value)
+                  } else if (/^-?[0-9]*[.][0-9]+$/.test(e.target.value)) {
+                    // float
+                    value = parseFloat(e.target.value)
+                  } else {
+                    // string
+                    value = e.target.value
+                  }
+
+                  setInputUpdate({
+                    name: name,
+                    value: value,
+                    type: settingInfos.type
+                  })
+                }}
+              >
+                <option value="" hidden></option>
                 <option value="True">True</option>
                 <option value="False">False</option>
               </Form.Select>
@@ -192,26 +270,26 @@ const Input = ({ name, settingInfos, currentValue, onInputChange }) => {
       case "list":
         return (
           <>
-            <FloatingLabel controlId={name} label={name} className=" input-hov">
-              <Form.Select
-                className=""
-                defaultValue={currentValue}
+            <FloatingLabel controlId={name} label={name} className="input-hov">
+              <Dropdown
+                className="form-select"
+                {...customProps}
+                disabled={disabled}
+                value={{ name: currentValue }}
                 onChange={(e) =>
                   setInputUpdate({
                     name: name,
-                    value: e.target.value,
+                    value: e.target.value.name,
                     type: settingInfos.type
                   })
                 }
-              >
-                {Object.entries(settingInfos.choices).map(([option, tooltip]) => {
-                  return (
-                    <option key={option} value={option}>
-                      {option}
-                    </option>
-                  )
+                options={Object.entries(settingInfos.choices).map(([option]) => {
+                  return {
+                    name: option
+                  }
                 })}
-              </Form.Select>
+                optionLabel="name"
+              />
             </FloatingLabel>
             {createTooltip(settingInfos.tooltip, name)}
           </>
@@ -220,29 +298,28 @@ const Input = ({ name, settingInfos, currentValue, onInputChange }) => {
       case "list-multiple":
         return (
           <>
-            <div id={name}>
-              <label className="custom-lbl">{name}</label>
-              <Select
-                options={Object.entries(settingInfos.choices).map(([option, tooltip]) => {
-                  currentValue == undefined && (currentValue = [])
-                  console.log("option", option)
-                  console.log("currentValue", currentValue)
-                  if (!currentValue.includes(option)) return createOption(option)
-                })}
-                value={currentValue}
-                onChange={(newValue) =>
-                  setInputUpdate({
-                    name: name,
-                    value: newValue,
-                    type: settingInfos.type
-                  })
+            <MultiSelect
+              key={name}
+              disabled={disabled}
+              value={currentValue ? currentValue.value : []}
+              onChange={(newValue) =>
+                setInputUpdate({
+                  name: name,
+                  value: newValue,
+                  type: settingInfos.type
+                })
+              }
+              options={Object.entries(currentValue).map(([option]) => {
+                return {
+                  label: option,
+                  value: option
                 }
-                isMulti
-                isClearable
-                isSearchable
-                isCreatable={false}
-              />
-            </div>
+              })}
+              optionLabel="name"
+              display="chip"
+              className="w-full md:w-20rem"
+            />
+
             {createTooltip(settingInfos.tooltip, name)}
           </>
         )
@@ -252,6 +329,7 @@ const Input = ({ name, settingInfos, currentValue, onInputChange }) => {
           <>
             <FloatingLabel controlId={name} label={name} className=" input-hov">
               <Form.Control
+                disabled={disabled}
                 type="range"
                 defaultValue={currentValue}
                 onChange={(e) =>
@@ -270,9 +348,10 @@ const Input = ({ name, settingInfos, currentValue, onInputChange }) => {
       case "custom-list":
         return (
           <>
-            <div id={name} style={{ height: "56px" }}>
+            <div id={name} style={{ height: "52px" }} className="custom-list">
               <label className="custom-lbl">{name}</label>
               <CreatableSelect
+                disabled={disabled}
                 components={{ DropdownIndicator: null }}
                 inputValue={inputValue}
                 isClearable
@@ -301,6 +380,7 @@ const Input = ({ name, settingInfos, currentValue, onInputChange }) => {
           <>
             <FloatingLabel controlId={name} label={name} className=" input-hov">
               <Form.Control
+                disabled={disabled}
                 type="text"
                 defaultValue={currentValue}
                 onChange={(e) =>
@@ -321,12 +401,17 @@ const Input = ({ name, settingInfos, currentValue, onInputChange }) => {
           <>
             <FloatingLabel id={name} controlId={name} label={name} className=" input-hov">
               <WsSelect
+                disabled={disabled}
                 selectedPath={currentValue}
-                rootDir="DATA"
-                acceptedExtensions={["csv", "xlsx"]}
-                acceptFolder
+                acceptedExtensions={["csv"]}
+                acceptFolder={settingInfos.acceptFolder ? settingInfos.acceptFolder : false}
                 onChange={(e, path) => {
                   console.log("e", e, path)
+                  if (path == "") {
+                    setHasWarning({ state: true, tooltip: <p>No file selected</p> })
+                  } else {
+                    setHasWarning({ state: false })
+                  }
                   setInputUpdate({
                     name: name,
                     value: { name: e.target.value, path: path },
@@ -335,6 +420,84 @@ const Input = ({ name, settingInfos, currentValue, onInputChange }) => {
                 }}
               />
             </FloatingLabel>
+            {createTooltip(settingInfos.tooltip, name)}
+          </>
+        )
+
+      case "data-input-multiple":
+        console.log("currentValue", currentValue)
+        console.log("settingInfos", settingInfos)
+        console.log("name", name)
+        return (
+          <>
+            <WsSelectMultiple
+              key={name}
+              rootDir={["learning", "holdout"]}
+              placeholder={name}
+              disabled={disabled}
+              selectedPaths={currentValue}
+              acceptedExtensions={["csv"]}
+              matchRegex={new RegExp("T[0-9]*_(w+)?")}
+              acceptFolder={settingInfos.acceptFolder ? settingInfos.acceptFolder : false}
+              onChange={(value) => {
+                console.log("e", value)
+                if (value.length === 0) {
+                  setHasWarning({ state: true, tooltip: <p>No file(s) selected</p> })
+                } else {
+                  setHasWarning({ state: false })
+                }
+                setInputUpdate({
+                  name: name,
+                  value: value,
+                  type: settingInfos.type
+                })
+              }}
+              setHasWarning={setHasWarning}
+              whenEmpty={<Message severity="warn" text="No file(s) found in the workspace under '/learning' folder containing 'TX_' prefix (X is a number)" />}
+            />
+            {createTooltip(settingInfos.tooltip, name)}
+          </>
+        )
+      case "tags-input-multiple":
+        return (
+          <>
+            <TagsSelectMultiple
+              key={name}
+              placeholder={name}
+              disabled={!settingInfos.selectedDatasets}
+              selectedTags={currentValue}
+              selectedDatasets={settingInfos.selectedDatasets}
+              onChange={(value) => {
+                console.log("e", value)
+                setInputUpdate({
+                  name: name,
+                  value: value,
+                  type: settingInfos.type
+                })
+              }}
+            />
+            {createTooltip(settingInfos.tooltip, name)}
+          </>
+        )
+      case "variables-input-multiple":
+        return (
+          <>
+            <VarsSelectMultiple
+              key={name}
+              placeholder={name}
+              disabled={!settingInfos.selectedDatasets}
+              selectedTags={settingInfos.selectedTags}
+              selectedDatasets={settingInfos.selectedDatasets}
+              selectedVars={currentValue}
+              onChange={(value) => {
+                console.log("e", value)
+                setInputUpdate({
+                  name: name,
+                  value: value,
+                  type: settingInfos.type
+                })
+              }}
+            />
             {createTooltip(settingInfos.tooltip, name)}
           </>
         )
@@ -353,6 +516,26 @@ const Input = ({ name, settingInfos, currentValue, onInputChange }) => {
                     value: { name: e.target.value, path: path },
                     type: settingInfos.type
                   })
+                  if (path != "") {
+                    customZipFile2Object(path)
+                      .then((content) => {
+                        setInputUpdate({
+                          name: name,
+                          value: { name: e.target.value, path: path, metadata: content.metadata },
+                          type: settingInfos.type
+                        })
+                        console.log("content", content)
+                        let modelDataObject = MedDataObject.checkIfMedDataObjectInContextbyPath(path, globalData)
+                        modelDataObject.metadata.content = content.metadata
+                        setGlobalData({ ...globalData })
+                      })
+                      .catch((error) => {
+                        console.log("error", error)
+                      })
+                    setHasWarning({ state: false })
+                  } else {
+                    setHasWarning({ state: true, tooltip: <p>No model selected</p> })
+                  }
                 }}
               />
             </FloatingLabel>
@@ -364,8 +547,9 @@ const Input = ({ name, settingInfos, currentValue, onInputChange }) => {
       default:
         return (
           <>
-            <FloatingLabel controlId={name} label={name} className=" input-hov">
+            <FloatingLabel controlId={name} label={name} className="input-hov">
               <Form.Control
+                disabled={disabled}
                 type="text"
                 defaultValue={currentValue}
                 onChange={(e) =>

@@ -2,7 +2,7 @@ import React, { useState, useCallback, useContext } from "react"
 import { Form, Row, Col, Button, Card } from "react-bootstrap"
 import { requestJson } from "../../../../utilities/requests"
 import { WorkspaceContext } from "../../../workspace/workspaceContext"
-import { ErrorRequestContext } from "../../../flow/context/errorRequestContext"
+import { ErrorRequestContext } from "../../../generalPurpose/errorRequestContext"
 
 /**
  * @param {Object} nodeForm form associated to the discretization node

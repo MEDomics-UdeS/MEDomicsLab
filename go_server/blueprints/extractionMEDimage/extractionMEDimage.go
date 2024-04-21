@@ -1,21 +1,23 @@
 package extractionMEDimage
 
 import (
-	Utils "go_module/utils"
+	Utils "go_module/src"
+	"log"
 )
 
-var prePath string = "extraction_MEDimage"
+var prePath = "extraction_MEDimage"
 
 // AddHandleFunc adds the specific module handle function to the server
 func AddHandleFunc() {
-	Utils.CreateHandleFunc(prePath+"/run_all", handleRunAll, true)
-	Utils.CreateHandleFunc(prePath+"/upload", handleGetUpload, true)
+	Utils.CreateHandleFunc(prePath+"/run_all", handleRunAll)
+	Utils.CreateHandleFunc(prePath+"/upload", handleGetUpload)
 }
 
 // handleRunAll handles the request to run extraction using all nodes
 // It returns the response from the python script
-func handleRunAll(jsonConfig string) (string, error) {
-	response, err := Utils.StartPythonScript(jsonConfig, "../flask_server/extraction_MEDimage/scripts/run_all_extraction.py")
+func handleRunAll(jsonConfig string, id string) (string, error) {
+	log.Println("Running all extraction MEDimage", id)
+	response, err := Utils.StartPythonScripts(jsonConfig, "../pythonCode/modules/extraction_MEDimage/run_all_extraction.py", id)
 	if err != nil {
 		return "", err
 	}
@@ -24,8 +26,9 @@ func handleRunAll(jsonConfig string) (string, error) {
 
 // handleGetUpload handles the request to run extraction using all nodes
 // It returns the response from the python script
-func handleGetUpload(jsonConfig string) (string, error) {
-	response, err := Utils.StartPythonScript(jsonConfig, "../flask_server/extraction_MEDimage/scripts/get_upload.py")
+func handleGetUpload(jsonConfig string, id string) (string, error) {
+	log.Println("Running get upload for MEDimage extraction", id)
+	response, err := Utils.StartPythonScripts(jsonConfig, "../pythonCode/modules/extraction_MEDimage/get_upload.py", id)
 	if err != nil {
 		return "", err
 	}

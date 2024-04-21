@@ -1,3 +1,4 @@
+/* eslint-disable camelcase */
 import React, { useState, useCallback, useContext } from "react"
 import Node from "../../flow/node"
 import { Form, Row, Col } from "react-bootstrap"

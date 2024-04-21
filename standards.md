@@ -3,81 +3,50 @@
 ## Table of contents
 
 - [Recommended Software](#recommended-software)
-
 - [Project Repository Structure](#project-repository-structure)
-
 - [Style](#style)
-
 - [Naming Conventions](#naming-conventions)
-
 - [Components Structure](#components-structure)
-
 - [Type Hinting](#type-hinting)
-
 - [Syntax](#syntax)
-
 - [Documentation](#documentation)
-
 - [Python Coding Standard](#python-coding-standard)
 
 ## Recommended Software
 
-- Windows (10 /11 +), macOs (12 +), Linux (20.04 +)
-
-- [see electron app supported OS](https://www.electronjs.org/de/docs/latest/tutorial/unterst%C3%BCtzung#supported-versions)
-
+- Windows (10 /11 +), macOs (12 +), Linux (20.04 +) [see electron app supported OS](https://www.electronjs.org/de/docs/latest/tutorial/unterst%C3%BCtzung#supported-versions)
 - [Visual Studio Code](https://code.visualstudio.com/) extensions:
-
 - [prettier & eslint](https://marketplace.visualstudio.com/items?itemName=rvest.vs-code-prettier-eslint) - code formatter standardizer (see [syntax](#syntax))
-
-- framework used in the platform
-
-- [npmjs](https://www.npmjs.com/) - Library manager for javascript language
-
-- [Electron](https://www.electronjs.org/) - Web based programming for standalone app developpement
-
-- [Nextjs](https://nextjs.org/) - Abstraction of [React](https://react.dev) adding server side rendering and optimisations
-
-- [Flask](https://flask.palletsprojects.com/) - Python backend framework (used because it is lightweight and machine learning is mainly programmed in python)
+- Framework used in the platform
+  - [npmjs](https://www.npmjs.com/) - Library manager for javascript language
+  - [Electron](https://www.electronjs.org/) - Web based programming for standalone app developpement
+  - [Nextjs](https://nextjs.org/) - Abstraction of [React](https://react.dev) adding server side rendering and optimisations
+  - [Go](https://go.dev/) - Server side language
 
 ## Project Repository Structure
 
-| Folder | Description |
-
-| ------------- | ---------------------------------------------------------------------------------- |
-
-| /app | Electron files |
-
-| /flask_server | All server side, python/[flask](https://flask.palletsprojects.com/) related, files |
-
-| /flask_server | All server side, python/[flask](https://flask.palletsprojects.com/) related, files |
-
-| /local | Default local data storing |
-
-| /main | Electron related contents |
-
-| /node_modules | Contains saved libraries (created from `npm install`) |
-
-| /renderer | NextJs related content |
-
-| /ressources | Electron ressources (icons, etc.) |
-
-> Nextron automatically generated folders : /app, /main, /nodes_modules, /ressources, /renderer and /resources
-
-> Nextron automatically generated folders : /app, /main, /nodes_modules, /ressources, /renderer and /resources
+| Folder                              | Description                                           |
+| ----------------------------------- | ----------------------------------------------------- |
+| /app                                | Electron files                                        |
+| /baseFiles                          | Empty base files                                      |
+| /build                              | Contains distribution relative files                  |
+| [/go_server](./go_server/README.md) | Contains Go code acting as a server                   |
+| /main                               | Electron related contents                             |
+| /node_modules                       | Contains saved libraries (created from `npm install`) |
+| /pythonCode                         | Python code                                           |
+| /pythonEnv                          | Python virtual environment utils                      |
+| /renderer                           | NextJs related content                                |
+| /resources                          | NextJs ressources (icons, etc.)                       |
+| /utilScripts                        | NextJs ressources (icons, etc.)                       |
 
 ## Style
 
 - Use [css react modules](https://create-react-app.dev/docs/adding-a-css-modules-stylesheet/)
-
-- import order (\_app.js)
+- Import order (\_app.js)
 
 ```javascript
-
 import  'bootstrap/dist/css/bootstrap.min.css';
-
 import <all  other  global  css  libraries>
-
 ```
 
 ## Naming Conventions
@@ -85,29 +54,20 @@ import <all  other  global  css  libraries>
 ### Javascript/react
 
 - Component : PascalCase
-
 - Component file name : camelCase
-
 - Each file name should be the same as the component defined inside
-
 - Component creation : prioritize function implementation over class
 
 ```javascript
-
 export  default  const  myComponent = (someProps) =­> {
-
 return (<></>)
-
 }
-
 ```
 
 - Function creation: prioritize arrow implementation
 
 ```javascript
-
 const  myFct = (someParams) =­> {}
-
 ```
 
 > See [react naming convention](https://www.upbeatcode.com/react/react-naming-conventions/)
@@ -115,59 +75,127 @@ const  myFct = (someParams) =­> {}
 ## Components Structure
 
 ```bash
-
 components
-
-│   navbar.jsx
+├───dataTypeVisualisation
+│       dataTablePopoverBPClass.jsx
+│       dataTableWrapper.jsx
+│       dataTableWrapperBPClass.tsx
 │
-├───extraction
-│   │   .gitkeep
+├───evaluation
+│       dashboard.jsx
+│       evaluationPageContent.jsx
+│       pageConfig.jsx
+│       pageEval.jsx
+│       predictPanel.jsx
+│
+├───extractionImage
+│   │   extractionJPG.jsx
+│   │
+│   └───extractionTypes
+│           extractionDenseNet.jsx
+│
+├───extractionMEDimage
+│   │   docLink.jsx
 │   │   flowCanvas.jsx
-│   │   sideBar.jsx
-│   │   utilityButtons.jsx
 │   │
 │   ├───buttonsTypes
-│   │       uploadButton.jsx
+│   │       resultsButton.jsx
 │   │       viewButton.jsx
 │   │
 │   └───nodesTypes
-│           groupNode.jsx
-│           inputNode.jsx
-│           standardNode.jsx
+│       │   extractionNode.jsx
+│       │   featuresNode.jsx
+│       │   filterNode.jsx
+│       │   segmentationNode.jsx
+│       │   standardNode.jsx
+│       │
+│       ├───filterTypes
+│       │       gaborFilter.jsx
+│       │       lawsFilter.jsx
+│       │       logFilter.jsx
+│       │       meanFilter.jsx
+│       │       waveletFilter.jsx
+│       │
+│       └───standardNodeForms
+│               discretizationForm.jsx
+│               inputForm.jsx
+│               interpolationForm.jsx
+│               reSegmentationForm.jsx
+│
+├───extractionTabular
+│   │   extractionTabularData.jsx
+│   │
+│   └───extractionTypes
+│           extractionBioBERT.jsx
+│           extractionTSfresh.jsx
 │
 ├───flow
-│   │   backdrop.jsx
 │   │   btnDiv.jsx
+│   │   codeEditor.jsx
+│   │   errorRequestDialog.jsx
 │   │   flowPageBase.jsx
 │   │   groupNode.jsx
 │   │   handlers.jsx
 │   │   node.jsx
-│   │   progressBarRequests.jsx
+│   │   nodeWrapperResults.jsx
 │   │   sidebarAvailableNodes.jsx
 │   │   workflowBase.jsx
 │   │
-│   └───context
-│           flowInfosContext.jsx
-│           offCanvasBackdropStyleContext.jsx
+│   ├───context
+│   │       flowFunctionsContext.jsx
+│   │       flowInfosContext.jsx
+│   │       flowResultsContext.jsx
+│   │
+│   └───results
+│           pipelinesResults.jsx
+│           resultsPane.jsx
+│
+├───generalPurpose
+│       errorRequestContext.jsx
+│       loaderContext.jsx
+│       progressBarRequests.jsx
+│
+├───input
+│       groupingTool.jsx
+│       holdOutSetCreationTool.jsx
+│       mergeTool.jsx
+│       simpleCleaningTool.jsx
+│       subsetCreationTool.jsx
 │
 ├───layout
+│   │   actionContext.jsx
 │   │   iconSidebar.jsx
 │   │   layoutContext.jsx
 │   │   layoutManager.jsx
-│   │   mainContainerFunctional.jsx
-│   │   WorkspaceSidebar.jsx
 │   │
-│   ├───flexlayoutComponents
-│   │       NewFeatures.jsx
-│   │       PopupMenu.jsx
-│   │       TabStorage.jsx
+│   ├───flexlayout
+│   │       mainContainerClass.tsx
+│   │       popout.html
+│   │       popupMenu.tsx
+│   │       simple.layout
+│   │       tabStorage.tsx
+│   │       utils.tsx
+│   │       zoomPanPinchComponent.jsx
 │   │
-│   └───SidebarTools
-│           components.jsx
-│           explorerSidebar.jsx
-│           homeSidebar.jsx
-│           layoutTestSidebar.jsx
-│           searchSidebar.jsx
+│   └───sidebarTools
+│       │   components.jsx
+│       │   fileCreationBtn.jsx
+│       │   recursiveChildrenTest.js
+│       │
+│       ├───directoryTree
+│       │       renderItem.js
+│       │       sidebarDirectoryTreeControlled.jsx
+│       │       workspaceDirectoryTree.jsx
+│       │
+│       └───pageSidebar
+│               evaluationSidebar.jsx
+│               explorerSidebar.jsx
+│               extractionSidebar.jsx
+│               flowSceneSidebar.jsx
+│               homeSidebar.jsx
+│               inputSidebar.jsx
+│               layoutTestSidebar.jsx
+│               searchSidebar.jsx
 │
 ├───learning
 │   │   checkOption.jsx
@@ -175,21 +203,59 @@ components
 │   │   modalSettingsChooser.jsx
 │   │   workflow.jsx
 │   │
-│   └───nodesTypes
-│           optimizeIO.jsx
-│           selectionNode.jsx
-│           standardNode.jsx
+│   ├───nodesTypes
+│   │       datasetNode.jsx
+│   │       loadModelNode.jsx
+│   │       optimizeIO.jsx
+│   │       selectionNode.jsx
+│   │       standardNode.jsx
+│   │
+│   └───results
+│       ├───node
+│       │       analyseResults.jsx
+│       │       dataParamResults.jsx
+│       │       modelsResults.jsx
+│       │       saveModelResults.jsx
+│       │
+│       └───utilities
+│               dataTablePath.jsx
+│               parameters.jsx
 │
-└───mainPages
-        application.jsx
-        discovery.jsx
-        extraction.jsx
-        home.jsx
-        input.jsx
-        layoutTest.jsx
-        learning.jsx
-        results.jsx
-
+├───mainPages
+│   │   application.jsx
+│   │   evaluation.jsx
+│   │   exploratory.jsx
+│   │   extractionImage.jsx
+│   │   extractionMEDimage.jsx
+│   │   extractionText.jsx
+│   │   extractionTS.jsx
+│   │   home.jsx
+│   │   htmlViewer.jsx
+│   │   input.jsx
+│   │   learning.jsx
+│   │   modelViewer.jsx
+│   │   output.jsx
+│   │   results.jsx
+│   │   terminal.jsx
+│   │   test.jsx
+│   │
+│   ├───dataComponents
+│   │       datasetSelector.jsx
+│   │       dataTableFromContext.jsx
+│   │       dataTableFromContextBP.jsx
+│   │       dropzoneComponent.jsx
+│   │       dropzoneComponent2.jsx
+│   │       listBoxSelector.jsx
+│   │       wsSelect.jsx
+│   │
+│   └───moduleBasics
+│           modulePage.jsx
+│           pageInfosContext.jsx
+│
+└───workspace
+        dataContext.jsx
+        medDataObject.js
+        workspaceContext.jsx
 ```
 
 > To generate this : ` tree .\renderer\components\ /f`
@@ -203,10 +269,8 @@ components
 ### Installation
 
 - Install prettier and plugin (should be included in package.json so a `npm install` should do it)
-
   `npm install prettier
 eslint-plugin-prettier eslint-config-prettier`
-
 - Install [eslint](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint) and [prettier](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode) extensions
 - Open workspace settings
   - Can be accessed directly from this path: .vscode/settings.json
@@ -246,27 +310,18 @@ Eslint may triggered error displayed as a red underline so you can hover these c
 #### Docstring
 
 ```javascript
-
 /**
-
 * @param  {type}  someParams description
-
 * @return  {type} description
-
 * @description
-
 * functionnal description of the function/React object
-
 */
-
 const  myfct = (someParams) =­> {}
-
 ```
 
 #### Comments
 
 - Do not over detailed the code for readability
-
 - Comments are meant to help understand important or critical actions in code
 
 #### Documentation generation

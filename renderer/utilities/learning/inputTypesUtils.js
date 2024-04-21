@@ -44,8 +44,7 @@ const implementedTypesDescription = [
   },
   {
     type: "list-multiple",
-    description:
-      "for list input (form select of all the options, multiple selection possible)",
+    description: "for list input (form select of all the options, multiple selection possible)",
     default: () => {
       return []
     }
@@ -70,7 +69,48 @@ const implementedTypesDescription = [
     default: () => {
       return []
     }
+  },
+  {
+    type: "data-input",
+    description: "for data input (file upload)",
+    default: { name: "No selection", path: "" }
+  },
+  {
+    type: "data-input-multiple",
+    description: "for data input (file upload)",
+    default: []
+  },
+  {
+    type: "models-input",
+    description: "for data input (file upload)",
+    default: { name: "No selection", path: "" }
+  },
+  {
+    type: "tags-input-multiple",
+    description: "for tags input",
+    default: []
+  },
+  {
+    type: "variables-input-multiple",
+    description: "for variables input",
+    default: []
+  },
+  {
+    type: "str or None",
+    description: "for str or None input",
+    default: ""
+  },
+  {
+    type: "bool-int-str",
+    description: "bool-int-str",
+    default: ""
+  },
+  {
+    type: "int-float-str",
+    description: "int-float-str",
+    default: ""
   }
+
 ]
 
 // this object is used to get the default value and implemeted types of possible settings

@@ -7,24 +7,17 @@ Uses the "Plotly" library for 3D volume visualization: https://plotly.com/python
 @email aitm2302@usherbrooke.ca
 @github https://github.com/mahdiall99
 """
-import copy
-import json
 import os
-import pickle
 import pprint
 import shutil
 import sys
 from copy import deepcopy
 from datetime import datetime
-from itertools import product
 from pathlib import Path
 
-import numpy as np
 import pandas as pd
-from flask import (Blueprint, Flask, Response, jsonify, make_response,
-                   redirect, render_template, request, url_for)
+from flask import Blueprint, render_template, request
 from numpyencoder import NumpyEncoder
-from werkzeug.utils import secure_filename
 
 MODULE_DIR = str(Path(os.path.dirname(os.path.abspath(__file__))).parent / 'submodules' / 'MEDimage')
 sys.path.append(MODULE_DIR)
@@ -33,13 +26,10 @@ SUBMODULE_DIR = str(Path(os.path.dirname(os.path.abspath(__file__))).parent.pare
 sys.path.append(SUBMODULE_DIR)
 
 pp = pprint.PrettyPrinter(width=1)  # allow pretty print of datatypes in console
-# Importation du submodule MEDimage
-#import Flask_server.submodules.MEDimage.MEDimage as MEDimage
-import MEDimage
-import ray
-import jupytext
 
-from . import utils
+import jupytext
+import MEDimage
+import utils
 
 # Global variables
 global learning_progress
