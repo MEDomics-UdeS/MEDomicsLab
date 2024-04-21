@@ -744,6 +744,7 @@ def execute_pips(pips, json_scene):
     results_avg = []
     analysis_dict = {}
     splitted_data = False
+    experiments_labels = []
 
     # ------------------------------------------ PIP EXECUTION ------------------------------------------
     for pip_idx, pip in enumerate(pips):
@@ -776,7 +777,6 @@ def execute_pips(pips, json_scene):
                 update_pip = False
                 pip_name_obj += node
                 id_obj = {}
-                output_obj = {}
                 id_obj["type"] = content["name"]
                 id_obj["settings"] = content["data"]
 
@@ -845,6 +845,8 @@ def execute_pips(pips, json_scene):
                             desing_settings['design'] = content["data"]
                             method_desing = desing_settings['design']['testSets'][0]
                             nb_split = desing_settings['design'][method_desing]['nSplits'] if 'nSplits' in desing_settings['design'][method_desing].keys() else 10
+                            experiment_label = experiment_label.split('_')[0] + "_" + experiment_label.split('_')[1] + "-" + pip_name +  "_" + "".join(experiment_label.split('_')[2:])
+                            experiments_labels.append(experiment_label)
 
                             # Initialize the DesignExperiment class
                             experiment = MEDimage.learning.DesignExperiment(path_study, path_settings, experiment_label)
@@ -1359,22 +1361,6 @@ def execute_pips(pips, json_scene):
             # Check if all the splits are done
             if designed_experiment and split_counter == len(paths_splits):
                 learning_progress = 100
-                break
-
-    # After all pips are executed, analyze both
-    # Find pips linked to analyze nodes
-    experiments_labels = []
-    for pip in pips:
-        have_analyze = True
-        for node in pip:
-            content = utils.get_node_content(node, json_scene)
-            if content["name"].lower() == "analyze":
-                have_analyze = True
-                break
-        for node in pip:
-            content = utils.get_node_content(node, json_scene)
-            if content["name"].lower() == "design" and have_analyze and content["data"]["expName"] not in experiments_labels:
-                experiments_labels.append(content["data"]["expName"])
                 break
     
     # Check
