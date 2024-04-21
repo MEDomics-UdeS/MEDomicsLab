@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	extractionMEDimage "go_module/blueprints/extractionMEDimage"
 	Learning "go_module/blueprints/learning"
 	LearningMEDimage "go_module/blueprints/learningMEDimage"
 	Utils "go_module/utils"
@@ -14,6 +15,7 @@ func main() {
 	// Here is where you add the handle functions to the server
 	Learning.AddHandleFunc()
 	LearningMEDimage.AddHandleFunc()
+	extractionMEDimage.AddHandleFunc()
 
 	// Here is where you start the server
 	c := cors.Default()
