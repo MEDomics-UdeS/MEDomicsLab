@@ -1,24 +1,20 @@
 import React, { useContext, useState, useEffect, useRef } from "react"
 import Card from "react-bootstrap/Card"
-import { Col, Row, Alert } from "react-bootstrap"
+import { Col, Row } from "react-bootstrap"
 import { toast } from "react-toastify"
 import { FlowResultsContext } from "../context/flowResultsContext"
 import { FlowInfosContext } from "../context/flowInfosContext"
-import { FlowFunctionsContext } from "../context/flowFunctionsContext"
 import { Button } from 'primereact/button';
 import { Accordion, AccordionTab } from 'primereact/accordion';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { Image } from 'primereact/image';
-import { Splitter, SplitterPanel } from 'primereact/splitter';
 import { Panel } from 'primereact/panel';
 import { OverlayPanel  } from 'primereact/overlaypanel';
 import { SelectButton } from "primereact/selectbutton"
 import { Message } from 'primereact/message';
 import { requestBackend } from "../../../utilities/requests"
 import { WorkspaceContext } from "../../workspace/workspaceContext"
-import { left } from "@popperjs/core"
-import { Object3D } from "three"
 
 
 /**
@@ -220,13 +216,11 @@ const ResultsPaneMEDimage = () => {
               </Accordion>
             );
           }
-          console.log("---TEST---")
           
           // Display the metrics in a table
           return (
-            console.log("tessssssttttttttt"),
             <Accordion>
-              <AccordionTab disabled={!isResults} key={`AccordionTab-${dataIdx}`} header={key}>
+              <AccordionTab disabled={!isResults} key={`AccordionTab-${dataIdx+index+1}`} header={key}>
                 <DataTable value={[values]}>
                   {keysList.map((key1, columnIndex) => (
                     <Column key={key1} field={key1} header={key1} style={columnIndex % 2 === 0 ? { backgroundColor: 'lightgray' } : { backgroundColor: 'lightblue' }}/>
