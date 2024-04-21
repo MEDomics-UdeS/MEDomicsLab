@@ -23,6 +23,7 @@ function TextureParams({ModSettings, activeIndex, setActiveIndex, discretisation
                 <Form.Label column>Type</Form.Label>
             </Form.Group>
             <Dropdown 
+                key={indexAlgo}
                 value={ModSettings.discretisation.texture.type[indexAlgo]}
                 options={discretisationAlgos}
                 optionLabel="name"
@@ -38,6 +39,7 @@ function TextureParams({ModSettings, activeIndex, setActiveIndex, discretisation
                 <Form.Label column>Value</Form.Label>
             </Form.Group>
             <InputNumber
+                key={indexAlgo}
                 style={{marginLeft: "1rem", width: "12rem"}}
                 id='valueTexture'
                 value={ModSettings.discretisation.texture.val[indexAlgo][indexVal]}
