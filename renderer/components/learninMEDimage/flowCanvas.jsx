@@ -16,7 +16,7 @@ import WorkflowBase from "../flow/workflowBase"
 import { FlowFunctionsContext } from "../flow/context/flowFunctionsContext"
 import { FlowResultsContext } from "../flow/context/flowResultsContext"
 import { WorkspaceContext } from "../workspace/workspaceContext"
-import { ErrorRequestContext } from "../flow/context/errorRequestContext"
+import { ErrorRequestContext } from "../generalPurpose/errorRequestContext.jsx"
 
 // Import node types
 import Split from "./nodes/Split"
