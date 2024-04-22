@@ -5,7 +5,7 @@ import MEDprofilesPrepareData from "../input/MEDprofiles/MEDprofilesPrepareData"
 import MergeTool from "../input/mergeTool"
 import GroupingTool from "../input/groupingTool"
 import SimpleCleaningTool from "../input/simpleCleaningTool"
-import HoldOutSetCreationTool from "../input/holdOutSetCreationTool"
+import HoldoutSetCreationTool from "../input/holdoutSetCreationTool"
 import SubsetCreationTool from "../input/subsetCreationTool"
 import FeatureReductionTool from "../input/featuresReduction/featuresReductionTool"
 import DeleteColumnsTool from "../input/deleteColumnsTool"
@@ -45,7 +45,7 @@ const InputPage = ({ pageId = "42", configPath = null }) => {
             <Accordion.Item eventKey="4">
               <Accordion.Header>Holdout Set Creation tool</Accordion.Header>
               <Accordion.Body>
-                <HoldOutSetCreationTool pageId={pageId} />
+                <HoldoutSetCreationTool pageId={pageId} />
               </Accordion.Body>
             </Accordion.Item>
             <Accordion.Item eventKey="5">
