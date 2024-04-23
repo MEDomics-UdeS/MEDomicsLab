@@ -14,6 +14,7 @@ import { toast } from "react-toastify"
 import { WorkspaceContext } from "../../workspace/workspaceContext"
 import { InputText } from "primereact/inputtext"
 import MedDataObject from "../../workspace/medDataObject"
+import SaveDataset from "../../generalPurpose/saveDataset"
 
 /**
  * Component that renders the PCA feature reduction tool
@@ -28,9 +29,9 @@ const PCA = () => {
     { field: "value", header: "Explained Variance" }
   ]
   const [dataFolderPath, setDataFolderPath] = useState("") // DATA folder
+  const [fileExtension, setFileExtension] = useState("csv") // on which extension to save the file
   const [keepUnselectedColumns, setKeepUnselectedColumns] = useState(false) // wether to merge unselected pca columns in the result dataset
-  const [PCAfilename, setPCAfilename] = useState("pca_dataset.csv") // name under which to save the computed PCA dataset
-  const [resultsPath, setResultsPath] = useState(null) // path of the computed PCA dataset
+  const [PCAfilename, setPCAfilename] = useState("") // name under which to save the computed PCA dataset
   const [selectedColumns, setSelectedColumns] = useState([]) // columns to apply PCA on
   const [selectedDataset, setSelectedDataset] = useState(null) // dataset in which we want to apply PCA
   const [selectedPCRow, setSelectedPCRow] = useState(null) // row selected in the datatable for the number of principal components
@@ -49,12 +50,19 @@ const PCA = () => {
   function getDatasetListFromDataContext() {
     let keys = Object.keys(globalData)
     let datasetListToShow = []
+    let isSelectedDatasetInList = false
     keys.forEach((key) => {
       if (globalData[key].type !== "folder" && globalData[key].extension == "csv") {
         datasetListToShow.push(globalData[key])
+        if (selectedDataset && selectedDataset.name == globalData[key].name) {
+          isSelectedDatasetInList = true
+        }
       }
     })
     setDatasetList(datasetListToShow)
+    if (!isSelectedDatasetInList) {
+      setSelectedDataset(null)
+    }
   }
 
   /**
@@ -83,21 +91,6 @@ const PCA = () => {
     let data = await dataset.loadDataFromDisk()
     setSelectedDataset(dataset)
     setDataframe(data)
-  }
-
-  /**
-   *
-   * @param {String} name
-   *
-   * @description
-   * Called when the user change the name under which the computed
-   * PCA dataset will be saved.
-   *
-   */
-  const handleFilenameChange = (name) => {
-    if (name.match("^[a-zA-Z0-9_]+.csv$") != null) {
-      setPCAfilename(name)
-    }
   }
 
   /**
@@ -154,8 +147,9 @@ const PCA = () => {
   /**
    * @description
    * Call the server to compute pca
+   * @param {Boolean} overwrite - True if the dataset should be overwritten, false otherwise
    */
-  const computePCA = () => {
+  const computePCA = (overwrite = false) => {
     requestBackend(
       port,
       "/input/compute_pca/" + pageId,
@@ -167,13 +161,18 @@ const PCA = () => {
         columnPrefix: columnPrefix,
         keepUnselectedColumns: keepUnselectedColumns,
         resultsFilename: PCAfilename,
+        fileExtension: fileExtension,
+        overwrite: overwrite,
         pageId: pageId
       },
       (jsonResponse) => {
         console.log("received results:", jsonResponse)
         if (!jsonResponse.error) {
-          setResultsPath(jsonResponse["results_path"])
           MedDataObject.updateWorkspaceDataObject()
+          if (overwrite) {
+            setSelectedDataset(null)
+          }
+          toast.success("Data saved under " + jsonResponse["results_path"])
         } else {
           toast.error(`Computation failed: ${jsonResponse.error.message}`)
           setError(jsonResponse.error)
@@ -186,6 +185,17 @@ const PCA = () => {
     )
   }
 
+  // Called when selectedDataset is updated, in order to update filename
+  useEffect(() => {
+    if (selectedDataset) {
+      setPCAfilename(selectedDataset.nameWithoutExtension + "_reduced_pca")
+    } else {
+      setPCAfilename("")
+      setSelectedColumns([])
+      setDataframe([])
+    }
+  }, [selectedDataset])
+
   // Called when selected columns is updated, in order to update explained var
   useEffect(() => {
     setExplainedVar([])
@@ -195,11 +205,6 @@ const PCA = () => {
   useEffect(() => {
     setSelectedPCRow(null)
   }, [explainedVar])
-
-  // Called when the PCA form is updated in order to update result path
-  useEffect(() => {
-    setResultsPath(null)
-  }, [selectedDataset, selectedColumns, explainedVar, keepUnselectedColumns, columnPrefix, PCAfilename])
 
   // Called when data in DataContext is updated, in order to update datasetList
   useEffect(() => {
@@ -214,13 +219,25 @@ const PCA = () => {
       <div className="margin-top-15 center">
         {/* Select CSV data */}
         <b>Select the data you want to apply PCA on</b>
-        <div className="margin-top-15">{datasetList.length > 0 ? <Dropdown value={selectedDataset} options={datasetList} optionLabel="name" onChange={(event) => datasetSelected(event.value)} placeholder="Select a dataset" /> : <Dropdown placeholder="No dataset to show" disabled />}</div>
+        <div className="margin-top-15">
+          {datasetList.length > 0 ? (
+            <Dropdown value={selectedDataset} options={datasetList} optionLabel="nameWithoutExtension" onChange={(event) => datasetSelected(event.value)} placeholder="Select a dataset" />
+          ) : (
+            <Dropdown placeholder="No dataset to show" disabled />
+          )}
+        </div>
       </div>
       <hr></hr>
       <div className="margin-top-15 center">
         {/* Select columns */}
         <b>Select the columns you want to apply PCA on</b>
-        <div className="margin-top-15">{dataframe && dataframe.$columns && dataframe.$columns.length > 0 ? <MultiSelect className="maxwidth-80" display="chip" value={selectedColumns} onChange={(e) => setSelectedColumns(e.value)} options={dataframe.$columns} placeholder="Select columns" /> : <MultiSelect placeholder="No columns to show" disabled />}</div>
+        <div className="margin-top-15">
+          {dataframe && dataframe.$columns && dataframe.$columns.length > 0 ? (
+            <MultiSelect className="maxwidth-80" display="chip" value={selectedColumns} onChange={(e) => setSelectedColumns(e.value)} options={dataframe.$columns} placeholder="Select columns" />
+          ) : (
+            <MultiSelect placeholder="No columns to show" disabled />
+          )}
+        </div>
       </div>
       <div className="margin-top-15 center">
         {/* Compute eigenvalues */}
@@ -251,25 +268,25 @@ const PCA = () => {
           <Checkbox onChange={(e) => setKeepUnselectedColumns(e.checked)} checked={keepUnselectedColumns}></Checkbox>
         </div>
         <div>
-          Save PCA dataset as : &nbsp;
-          <InputText value={PCAfilename} onChange={(e) => handleFilenameChange(e.target.value)} />
-        </div>
-        <div>
           {/* Text input for column names */}
           Column name prefix : &nbsp;
           <InputText value={columnPrefix} onChange={(e) => handleColumnPrefixChange(e.target.value)} />
         </div>
-        <div>
-          <Button disabled={!selectedPCRow} onClick={computePCA}>
-            Compute PCA dataset
-          </Button>
-        </div>
       </div>
-      {resultsPath && (
-        <div className="margin-top-15 center">
-          <Message severity="success" text={"Data saved under " + resultsPath} />
-        </div>
-      )}
+      <hr></hr>
+      <div className="flex-container">
+        <Message text="The Create option will save your dataset under DATA/reduced_features folder" />
+      </div>
+      <SaveDataset
+        newDatasetName={PCAfilename}
+        newDatasetExtension={fileExtension}
+        selectedDataset={selectedDataset}
+        setNewDatasetName={setPCAfilename}
+        setNewDatasetExtension={setFileExtension}
+        functionToExecute={computePCA}
+        enabled={selectedPCRow ? true : false}
+        pathToCheckInto={dataFolderPath + MedDataObject.getPathSeparator() + "reduced_features"}
+      />
       <hr></hr>
     </>
   )

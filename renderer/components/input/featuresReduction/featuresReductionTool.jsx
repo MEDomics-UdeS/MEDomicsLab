@@ -9,8 +9,7 @@ import { TabView, TabPanel } from "primereact/tabview"
  * @param {String} props.pageId - The id of the page
  * @param {String} props.configPath - The path of the config file
  */
-// eslint-disable-next-line no-unused-vars
-const FeatureReductionTool = ({ pageId = "inputModule", configPath = "" }) => {
+const FeatureReductionTool = () => {
   return (
     <>
       <TabView>

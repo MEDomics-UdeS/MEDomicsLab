@@ -45,6 +45,8 @@ class GoExecScriptComputePCA(GoExecutionScript):
         column_prefix = json_config["columnPrefix"]
         keep_unselected_columns = json_config["keepUnselectedColumns"]
         results_filename = json_config["resultsFilename"]
+        file_extension = json_config["fileExtension"]
+        overwrite = json_config["overwrite"]
 
         # Read data
         df = pd.read_csv(csv_path)
@@ -89,12 +91,16 @@ class GoExecScriptComputePCA(GoExecutionScript):
             unselected_columns = [x for x in df.columns if x not in columns]
             extracted_features_pca = pd.concat([df[unselected_columns], extracted_features_pca], axis=1)
 
-        # Create folder for reduced features if not exists
-        reduced_features_path = os.path.join(str(Path(data_folder_path)), "reduced_features")
-        if not os.path.exists(reduced_features_path):
-            os.makedirs(reduced_features_path)
-        json_config["reduced_features_path"] = reduced_features_path
-        results_path = os.path.join(reduced_features_path, results_filename)
+        # If overwrite option
+        if overwrite:
+            results_path = csv_path
+        # Else create folder for reduced features if not exists
+        else:
+            reduced_features_path = os.path.join(str(Path(data_folder_path)), "reduced_features")
+            if not os.path.exists(reduced_features_path):
+                os.makedirs(reduced_features_path)
+            json_config["reduced_features_path"] = reduced_features_path
+            results_path = os.path.join(reduced_features_path, results_filename + "." + file_extension)
         json_config["results_path"] = results_path
 
         # Save data

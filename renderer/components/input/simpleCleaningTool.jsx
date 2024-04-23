@@ -4,30 +4,23 @@ import { DataContext } from "../workspace/dataContext"
 import { Button } from "primereact/button"
 import { Dropdown } from "primereact/dropdown"
 import MedDataObject from "../workspace/medDataObject"
-import { InputText } from "primereact/inputtext"
 import { Slider } from "primereact/slider"
 import { InputNumber } from "primereact/inputnumber"
-import ProgressBarRequests from "../generalPurpose/progressBarRequests"
 import { DataTable } from "primereact/datatable"
 import { Column } from "@blueprintjs/table"
 import { Tag } from "primereact/tag"
 import { OverlayPanel } from "primereact/overlaypanel"
+import SaveDataset from "../generalPurpose/saveDataset"
 
 /**
  * Component that renders the holdout set creation tool
- * @param {Object} props
- * @param {String} props.pageId - The id of the page
- * @param {String} props.configPath - The path of the config file
  */
-// eslint-disable-next-line no-unused-vars
-const SimpleCleaningTool = ({ pageId = "inputModule", configPath = "" }) => {
+const SimpleCleaningTool = () => {
   const { globalData } = useContext(DataContext) // The global data object
   const [listOfDatasets, setListOfDatasets] = useState([]) // The list of datasets
   const [selectedDataset, setSelectedDataset] = useState(null) // The selected dataset
   const [newDatasetName, setNewDatasetName] = useState("") // The name of the new dataset
-  const [newDatasetExtension, setNewDatasetExtension] = useState(".csv") // The extension of the new dataset
-  const [progress, setProgress] = useState({ now: 0, currentLabel: "" }) // The progress of the holdout set creation
-  const [isProgressUpdating, setIsProgressUpdating] = useState(false) // To check if the progress is updating
+  const [newDatasetExtension, setNewDatasetExtension] = useState("csv") // The extension of the new dataset
   const [columnThreshold, setColumnThreshold] = useState(0) // The column threshold
   const [rowThreshold, setRowThreshold] = useState(0) // The row threshold
   const [selectedDatasetColumnsInfos, setSelectedDatasetColumnsInfos] = useState([]) // The columns infos of the selected dataset
@@ -35,7 +28,7 @@ const SimpleCleaningTool = ({ pageId = "inputModule", configPath = "" }) => {
   const [columnsToDrop, setColumnsToDrop] = useState([]) // The columns to drop
   const [rowsToDrop, setRowsToDrop] = useState([]) // The rows to drop
   const [newLocalDatasetName, setNewLocalDatasetName] = useState("") // The name of the new dataset
-  const [newLocalDatasetExtension, setNewLocalDatasetExtension] = useState(".csv") // The extension of the new dataset
+  const [newLocalDatasetExtension, setNewLocalDatasetExtension] = useState("csv") // The extension of the new dataset
   const [dropType, setDropType] = useState("columns") // The drop type [columns, rows
   const opCol = React.useRef(null)
 
@@ -59,31 +52,19 @@ const SimpleCleaningTool = ({ pageId = "inputModule", configPath = "" }) => {
    */
   const updateListOfDatasets = () => {
     let newDatasetList = []
+    let isSelectedDatasetInList = false
     Object.keys(globalData).forEach((key) => {
       if (globalData[key].extension === "csv") {
         newDatasetList.push({ name: globalData[key].name, object: globalData[key], key: key })
+        if (selectedDataset && selectedDataset.name == globalData[key].name) {
+          isSelectedDatasetInList = true
+        }
       }
     })
     setListOfDatasets(newDatasetList)
-  }
-
-  /**
-   * To check if the name is already used
-   * @param {String} name - The name to check
-   * @returns {Boolean} - True if the name is already used, false otherwise
-   */
-  const checkIfNameAlreadyUsed = (name) => {
-    let alreadyUsed = false
-    if (name.length > 0 && selectedDataset !== null && selectedDataset !== undefined) {
-      let newDatasetPathParent = globalData[selectedDataset.parentID].path
-      let pathToCheck = newDatasetPathParent + MedDataObject.getPathSeparator() + name
-      Object.entries(globalData).map((arr) => {
-        if (arr[1].path === pathToCheck) {
-          alreadyUsed = true
-        }
-      })
+    if (!isSelectedDatasetInList) {
+      setSelectedDataset(null)
     }
-    return alreadyUsed
   }
 
   /**
@@ -160,7 +141,6 @@ const SimpleCleaningTool = ({ pageId = "inputModule", configPath = "" }) => {
   /**
    * To drop all - the rows and the columns
    * @param {Boolean} overwrite - True if the dataset should be overwritten, false otherwise
-   * @returns {Void}
    */
   const dropAll = (overwrite) => {
     getData().then((data) => {
@@ -192,6 +172,13 @@ const SimpleCleaningTool = ({ pageId = "inputModule", configPath = "" }) => {
       setNewDatasetName(selectedDataset.nameWithoutExtension + "_clean")
       setNewLocalDatasetExtension(selectedDataset.extension)
       setNewLocalDatasetName(selectedDataset.nameWithoutExtension + "_clean")
+    } else {
+      setSelectedDatasetColumnsInfos([])
+      setRowsInfos([])
+      setNewDatasetExtension("csv")
+      setNewDatasetName("")
+      setNewLocalDatasetExtension("csv")
+      setNewLocalDatasetName("")
     }
   }, [selectedDataset])
 
@@ -241,7 +228,7 @@ const SimpleCleaningTool = ({ pageId = "inputModule", configPath = "" }) => {
    */
   const saveCleanDataset = (newData, overwrite = undefined, local = undefined) => {
     if (overwrite === true) {
-      selectedDataset.saveData(newData)
+      MedDataObject.saveDatasetToDisk({ df: newData, filePath: selectedDataset.path, extension: selectedDataset.extension })
       setSelectedDataset(null)
     } else {
       if (local === true) {
@@ -297,10 +284,25 @@ const SimpleCleaningTool = ({ pageId = "inputModule", configPath = "" }) => {
         <Col>
           <h6>Select the dataset you want to clean</h6>
           {/* Dropdown to select the first dataset */}
-          <Dropdown options={listOfDatasets} optionLabel="name" optionValue="key" className="w-100" value={selectedDataset ? selectedDataset.getUUID() : null} onChange={handleSelectedDatasetChange}></Dropdown>
+          <Dropdown
+            options={listOfDatasets}
+            optionLabel="name"
+            optionValue="key"
+            className="w-100"
+            value={selectedDataset ? selectedDataset.getUUID() : null}
+            onChange={handleSelectedDatasetChange}
+          ></Dropdown>
 
           <Row style={{ display: "flex", justifyContent: "space-evenly", flexDirection: "row", marginTop: "0.5rem" }}>
-            <DataTable size={"small"} paginator={true} value={selectedDatasetColumnsInfos} rowClassName={columnClass} rows={5} rowsPerPageOptions={[5, 10, 25, 50]} className="p-datatable-striped p-datatable-gridlines">
+            <DataTable
+              size={"small"}
+              paginator={true}
+              value={selectedDatasetColumnsInfos}
+              rowClassName={columnClass}
+              rows={5}
+              rowsPerPageOptions={[5, 10, 25, 50]}
+              className="p-datatable-striped p-datatable-gridlines"
+            >
               <Column field="label" header={`Column (${selectedDatasetColumnsInfos.length})`} sortable></Column>
               <Column field="value" header="Number of non-NaN" sortable></Column>
               <Column
@@ -315,7 +317,16 @@ const SimpleCleaningTool = ({ pageId = "inputModule", configPath = "" }) => {
               ></Column>
             </DataTable>
 
-            <DataTable size={"small"} paginator={true} value={rowsInfos} rowClassName={rowClass} rows={5} rowsPerPageOptions={[5, 10, 25, 50]} className="p-datatable-striped p-datatable-gridlines" style={{ marginTop: "0.5rem" }}>
+            <DataTable
+              size={"small"}
+              paginator={true}
+              value={rowsInfos}
+              rowClassName={rowClass}
+              rows={5}
+              rowsPerPageOptions={[5, 10, 25, 50]}
+              className="p-datatable-striped p-datatable-gridlines"
+              style={{ marginTop: "0.5rem" }}
+            >
               <Column field="label" header={`Row index (${rowsInfos.length})`} sortable></Column>
               <Column field="value" header="Number of non-NaN" sortable></Column>
               <Column
@@ -448,83 +459,26 @@ const SimpleCleaningTool = ({ pageId = "inputModule", configPath = "" }) => {
               </Col>
             </Row>
           </Row>
-          <Row className={"card"} style={{ display: "flex", justifyContent: "space-evenly", flexDirection: "row", marginTop: "0.5rem", backgroundColor: "transparent", padding: "0.5rem" }}>
-            <Col style={{ display: "flex", flexDirection: "row", justifyContent: "center", flexGrow: 0, alignItems: "center" }} xs>
-              <div className="p-input-group flex-1 dataset-name " style={{ display: "flex", flexDirection: "row" }}>
-                <InputText
-                  className={`${checkIfNameAlreadyUsed(newDatasetName + "." + newDatasetExtension) || newDatasetName.length === 0 ? "p-invalid" : ""}`}
-                  placeholder="Clean dataset name"
-                  keyfilter={"alphanum"}
-                  onChange={(e) => {
-                    setNewDatasetName(e.target.value)
-                  }}
-                  value={newDatasetName}
-                />
-                <span className="p-inputgroup-addon">
-                  <Dropdown
-                    className={`${checkIfNameAlreadyUsed(newDatasetName + "." + newDatasetExtension) ? "p-invalid" : ""}`}
-                    panelClassName="dataset-name"
-                    value={newDatasetExtension}
-                    options={[
-                      { label: ".csv", value: "csv" },
-                      { label: ".json", value: "json" },
-                      { label: ".xlsx", value: "xlsx" }
-                    ]}
-                    onChange={(e) => {
-                      setNewDatasetExtension(e.target.value)
-                    }}
-                  />
-                </span>
-              </div>
-            </Col>
-            <Col>
-              <Button
-                label="Create a clean copy"
-                disabled={checkIfNameAlreadyUsed(newDatasetName + "." + newDatasetExtension) || selectedDataset === null || selectedDataset === undefined || newDatasetName.length === 0}
-                onClick={() => {
-                  dropAll(false)
-                }}
-              />
-            </Col>
-          </Row>
+          <SaveDataset
+            newDatasetName={newDatasetName}
+            newDatasetExtension={newDatasetExtension}
+            selectedDataset={selectedDataset}
+            setNewDatasetName={setNewDatasetName}
+            setNewDatasetExtension={setNewDatasetExtension}
+            functionToExecute={dropAll}
+          />
         </Col>
-        <div className="progressBar-merge">{<ProgressBarRequests isUpdating={isProgressUpdating} setIsUpdating={setIsProgressUpdating} progress={progress} setProgress={setProgress} requestTopic={"input/progress/" + pageId} delayMS={50} />}</div>
       </Row>
       <OverlayPanel ref={opCol} showCloseIcon={true} dismissable={true} style={{ width: "auto" }}>
         Do you want to <b>overwrite</b> the dataset or <b>create a new one</b> ?
-        <div className="" style={{ display: "flex", flexDirection: "row", marginTop: "0.5rem" }}>
-          <Button size="small" severity={"danger"} label="Overwrite" onClick={() => dropRowsOrColumns(true)} style={{ alignContent: "center", alignSelf: "center", display: "flex", justifyContent: "center" }}></Button>
-
-          <div className="p-inputgroup flex-1" style={{ marginLeft: "1rem", alignContent: "center", alignItems: "center", display: "flex" }}>
-            <InputText
-              size={"small"}
-              className={`${checkIfNameAlreadyUsed(newLocalDatasetName + "." + newLocalDatasetExtension) ? "p-invalid" : ""}`}
-              placeholder="Clean dataset name"
-              keyfilter={"alphanum"}
-              value={newLocalDatasetName}
-              onChange={(e) => {
-                setNewLocalDatasetName(e.target.value)
-              }}
-              style={{ padding: "0.5rem", height: "2.5rem" }}
-            />
-            <Dropdown
-              className={`overlay-dropdown ${checkIfNameAlreadyUsed(newLocalDatasetName + "." + newLocalDatasetExtension) ? "p-invalid" : ""}`}
-              panelClassName="dataset-name"
-              value={newLocalDatasetExtension}
-              options={[
-                { label: ".csv", value: "csv" },
-                { label: ".json", value: "json" },
-                { label: ".xlsx", value: "xlsx" }
-              ]}
-              onChange={(e) => {
-                setNewLocalDatasetExtension(e.target.value)
-              }}
-              size={"small"}
-              style={{ padding: "0rem", height: "2.5rem", width: "0rem" }}
-            />
-            <Button size={"small"} label="New dataset" className="p-button-info" style={{ alignContent: "center", alignSelf: "center" }} onClick={() => dropRowsOrColumns(false)} />
-          </div>
-        </div>
+        <SaveDataset
+          newDatasetName={newLocalDatasetName}
+          newDatasetExtension={newLocalDatasetExtension}
+          selectedDataset={selectedDataset}
+          setNewDatasetName={setNewLocalDatasetName}
+          setNewDatasetExtension={setNewLocalDatasetExtension}
+          functionToExecute={dropRowsOrColumns}
+        />
       </OverlayPanel>
     </>
   )

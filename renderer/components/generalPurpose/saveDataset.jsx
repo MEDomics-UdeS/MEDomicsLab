@@ -7,7 +7,18 @@ import MedDataObject from "../workspace/medDataObject"
 import { DataContext } from "../workspace/dataContext"
 import { Message } from "primereact/message"
 
-const SaveDataset = ({ newDatasetName, newDatasetExtension, selectedDataset, setNewDatasetName, setNewDatasetExtension, functionToExecute, showExtensions = true, overwriteOption = true }) => {
+const SaveDataset = ({
+  newDatasetName,
+  newDatasetExtension,
+  selectedDataset,
+  setNewDatasetName,
+  setNewDatasetExtension,
+  functionToExecute,
+  showExtensions = true,
+  overwriteOption = true,
+  enabled = true,
+  pathToCheckInto = null
+}) => {
   const [nameAlreadyUsed, setNameAlreadyUsed] = useState(false) // True if the entered name for saving the dataset is already used
   const { globalData } = useContext(DataContext) // The global data object
 
@@ -18,9 +29,14 @@ const SaveDataset = ({ newDatasetName, newDatasetExtension, selectedDataset, set
    */
   const checkIfNameAlreadyUsed = (name) => {
     let alreadyUsed = false
-    if (newDatasetName.length > 0 && selectedDataset) {
-      let newDatasetPathParent = globalData[selectedDataset.parentID].path
-      let pathToCheck = newDatasetPathParent + MedDataObject.getPathSeparator() + name
+    if (newDatasetName?.length > 0 && selectedDataset) {
+      let pathToCheck = ""
+      if (pathToCheckInto) {
+        pathToCheck = pathToCheckInto + MedDataObject.getPathSeparator() + name
+      } else {
+        let newDatasetPathParent = globalData[selectedDataset.parentID].path
+        pathToCheck = newDatasetPathParent + MedDataObject.getPathSeparator() + name
+      }
       Object.entries(globalData).map((arr) => {
         if (arr[1].path === pathToCheck) {
           alreadyUsed = true
@@ -44,7 +60,7 @@ const SaveDataset = ({ newDatasetName, newDatasetExtension, selectedDataset, set
               label="Overwrite"
               severity={"danger"}
               size="small"
-              disabled={!selectedDataset}
+              disabled={!selectedDataset || !enabled}
               onClick={() => {
                 functionToExecute(true) // the function must have an overwrite option
               }}
@@ -83,7 +99,7 @@ const SaveDataset = ({ newDatasetName, newDatasetExtension, selectedDataset, set
           <Button
             label="Create"
             size="small"
-            disabled={nameAlreadyUsed || !selectedDataset || newDatasetName.length < 1}
+            disabled={nameAlreadyUsed || !selectedDataset || newDatasetName?.length < 1 || !enabled}
             onClick={() => {
               functionToExecute()
             }}

@@ -134,20 +134,25 @@ const SubsetCreationTool = () => {
    * Hook that is called when the selected dataset is updated to update the columns infos
    */
   useEffect(() => {
-    if (selectedDataset !== null && selectedDataset !== undefined) {
-      if (selectedDataset !== null || selectedDataset !== undefined) {
-        getData().then((data) => {
-          data = cleanDataset(data)
+    if (selectedDataset) {
+      getData().then((data) => {
+        data = cleanDataset(data)
 
-          let columns = data.columns
-          setDf(data)
-          let jsonData = dfd.toJSON(data)
-          setDataset(jsonData)
-          setSelectedDatasetColumns(columns)
-        })
-      }
+        let columns = data.columns
+        setDf(data)
+        let jsonData = dfd.toJSON(data)
+        setDataset(jsonData)
+        setSelectedDatasetColumns(columns)
+      })
       setNewDatasetExtension(selectedDataset.extension)
       setNewDatasetName(selectedDataset.nameWithoutExtension + "_filtered")
+    } else {
+      setDf(null)
+      setDataset(null)
+      setSelectedDatasetColumns([])
+      setNewDatasetExtension("csv")
+      setNewDatasetName("")
+      setFilteredData([])
     }
   }, [selectedDataset])
 
@@ -156,9 +161,10 @@ const SubsetCreationTool = () => {
    * @param {Boolean} overwrite - True if the dataset should be overwritten, false otherwise
    */
   const saveFilteredDataset = (overwrite = false) => {
-    if (filteredData.length !== dataset.length && filteredData !== null && filteredData !== undefined && filteredData.length !== 0) {
+    if (filteredData.length !== dataset.length && filteredData && filteredData.length > 0) {
       if (overwrite) {
         MedDataObject.saveDatasetToDisk({ data: filteredData, filePath: selectedDataset.path, extension: selectedDataset.extension })
+        setSelectedDataset(null)
       } else {
         MedDataObject.saveDatasetToDisk({ data: filteredData, filePath: getParentIDfolderPath(selectedDataset) + newDatasetName + "." + newDatasetExtension, extension: newDatasetExtension })
       }
