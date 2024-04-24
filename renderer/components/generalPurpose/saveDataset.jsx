@@ -7,6 +7,21 @@ import MedDataObject from "../workspace/medDataObject"
 import { DataContext } from "../workspace/dataContext"
 import { Message } from "primereact/message"
 
+/**
+ * Component for saving datasets with options to set name, extension, and overwrite existing datasets.
+ * @param {Object} props - Component props.
+ * @param {string} props.newDatasetName - The name of the new dataset.
+ * @param {string} props.newDatasetExtension - The extension of the new dataset.
+ * @param {Object} props.selectedDataset - The currently selected dataset object.
+ * @param {Function} props.setNewDatasetName - Function to set the new dataset name.
+ * @param {Function} props.setNewDatasetExtension - Function to set the new dataset extension.
+ * @param {Function} props.functionToExecute - Function to execute when creating or overwriting a dataset.
+ * @param {boolean} [props.showExtensions=true] - Whether to display file extensions in the input field.
+ * @param {boolean} [props.overwriteOption=true] - Whether to include an overwrite option button.
+ * @param {boolean} [props.enabled=true] - Whether the component is enabled or disabled.
+ * @param {string} [props.pathToCheckInto=null] - The path to check for existing dataset names.
+ * @returns {JSX.Element} - The SaveDataset component JSX.
+ */
 const SaveDataset = ({
   newDatasetName,
   newDatasetExtension,

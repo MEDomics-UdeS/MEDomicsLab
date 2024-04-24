@@ -8,6 +8,17 @@ import { Column } from "@blueprintjs/table"
 import { toast } from "react-toastify"
 import { MultiSelect } from "primereact/multiselect"
 import SaveDataset from "../generalPurpose/saveDataset"
+import {
+  cleanDataset,
+  generateHeader,
+  getColumnDataType,
+  getData,
+  getColumnOptions,
+  getParentIDfolderPath,
+  handleSelectedDatasetChange,
+  updateListOfDatasets,
+  updateTheColumnsTypes
+} from "./simpleToolsUtils"
 
 const dfd = require("danfojs-node")
 
@@ -32,90 +43,18 @@ const DeleteColumnsTool = () => {
   const [visibleColumns, setVisibleColumns] = useState([])
 
   /**
-   * To handle the change in the selected dataset, and update the columns options
-   * @param {Object} e - The event object
-   * @returns {Void}
-   */
-  const handleSelectedDatasetChange = async (e) => {
-    setSelectedDataset(globalData[e.target.value])
-  }
-
-  /**
-   * To update the list of datasets
-   * @returns {Void}
-   */
-  const updateListOfDatasets = () => {
-    let newDatasetList = []
-    let isSelectedDatasetInList = false
-    Object.keys(globalData).forEach((key) => {
-      if (globalData[key].extension === "csv") {
-        newDatasetList.push({ name: globalData[key].name, object: globalData[key], key: key })
-        if (selectedDataset && selectedDataset.name == globalData[key].name) {
-          isSelectedDatasetInList = true
-        }
-      }
-    })
-    setListOfDatasets(newDatasetList)
-    if (!isSelectedDatasetInList) {
-      setSelectedDataset(null)
-    }
-  }
-
-  /**
    * Hook that is called when the global data object is updated to update the list of datasets
    */
   useEffect(() => {
-    updateListOfDatasets()
+    updateListOfDatasets(globalData, selectedDataset, setListOfDatasets, setSelectedDataset)
   }, [globalData])
-
-  /**
-   * To get the data
-   * @returns {Promise} - The promise of the data
-   */
-  const getData = () => {
-    return new Promise((resolve) => {
-      let data = selectedDataset.loadDataFromDisk()
-      resolve(data)
-    })
-  }
-
-  /**
-   * Clean the dataset
-   * @param {DanfoJS.DataFrame} data - The data
-   * @returns {DanfoJS.DataFrame} - The cleaned dataset
-   */
-  const cleanDataset = (data) => {
-    if (data === null || data === undefined) {
-      return null
-    }
-
-    let newData = {}
-    let cleanedColumnNames = []
-    data.columns.forEach((column) => {
-      cleanedColumnNames.push(cleanString(column))
-    })
-
-    data.getColumnData.forEach((column, index) => {
-      let newColumn = []
-      column.forEach((value) => {
-        if (typeof value === "string") {
-          value = value.replace(/\s+/g, " ")
-          value = value.replace(/^[ '"]+|[ '"]+$|( ){2,}/g, "$1")
-        }
-        newColumn.push(value)
-      })
-      newData[cleanedColumnNames[index]] = newColumn
-    })
-    let df = new dfd.DataFrame(newData)
-    return df
-  }
 
   /**
    * Hook that is called when the selected dataset is updated to update the columns infos
    */
   useEffect(() => {
     if (selectedDataset) {
-      getData().then((data) => {
+      getData(selectedDataset).then((data) => {
         data = cleanDataset(data)
 
         let columns = data.columns
@@ -161,10 +100,11 @@ const DeleteColumnsTool = () => {
           filePath: selectedDataset.path,
           extension: selectedDataset.extension
         })
+        setSelectedDataset(null)
       } else {
         MedDataObject.saveDatasetToDisk({
           df: newData,
-          filePath: getParentIDfolderPath(selectedDataset) + newDatasetName + "." + newDatasetExtension,
+          filePath: getParentIDfolderPath(selectedDataset, globalData) + newDatasetName + "." + newDatasetExtension,
           extension: newDatasetExtension
         })
       }
@@ -173,32 +113,6 @@ const DeleteColumnsTool = () => {
       // As create/overwrite button are disabled while filtered data is null, the only error to throw here is when filteredData.length == dataset.length
       toast.error("No columns to delete")
     }
-  }
-
-  /**
-   * This function is used to clean a string
-   * @param {string} string - The string to clean
-   * @returns the cleaned string
-   * @summary This function is used to clean a string from spaces and quotes
-   */
-  const cleanString = (string) => {
-    if (string.includes(" ") || string.includes('"')) {
-      string = string.replaceAll(" ", "")
-      string = string.replaceAll('"', "")
-    }
-    return string
-  }
-
-  /**
-   * To get the parent ID folder path
-   * @param {Object} dataset - The dataset
-   * @returns {String} - The parent ID folder path with a trailing separator
-   */
-  const getParentIDfolderPath = (dataset) => {
-    let parentID = dataset.parentID
-    let parentPath = globalData[parentID].path
-    let separator = MedDataObject.getPathSeparator()
-    return parentPath + separator
   }
 
   const renderHeader = () => {
@@ -233,66 +147,8 @@ const DeleteColumnsTool = () => {
    * This hook is used to update the column types
    */
   useEffect(() => {
-    if (df !== null && df !== undefined) {
-      let newColumnTypes = {}
-      df.ctypes.$data.forEach((type, index) => {
-        if (df.nUnique(0).$data[index] < 10) {
-          // If the number of unique values is less than 10, then it is a category
-          type = "category"
-        }
-        newColumnTypes[df.columns[index]] = type
-      })
-      setColumnTypes(newColumnTypes)
-    }
+    updateTheColumnsTypes(df, setColumnTypes)
   }, [df])
-
-  /**
-   * This function is used to capitalize the first letter of a string
-   * @param {string} string - The string to capitalize
-   * @returns {string} - The capitalized string
-   */
-  function generateHeader(string) {
-    let header = (
-      <div className="flex align-items-center" style={{ display: "flex", alignSelf: "center", flexGrow: "1" }}>
-        {/* <label htmlFor={string} className="p-checkbox-label" style={{ marginLeft: "0.5rem" }}> */}
-        {string[0].toUpperCase() + string.slice(1)}
-        {/* </label> */}
-      </div>
-    )
-
-    return header
-  }
-
-  /**
-   * This function is used to get the column data type
-   * @param {string} column - The column
-   * @returns {string} - The column data type
-   */
-  function getColumnDataType(column) {
-    if (columnTypes[column] === "int32" || columnTypes[column] === "float32") {
-      return "numeric"
-    } else if (columnTypes[column] === "string") {
-      return "text"
-    } else if (columnTypes[column] === "category") {
-      return "category"
-    } else if (columnTypes[column] === "bool") {
-      return "boolean"
-    }
-  }
-
-  /**
-   * This function is used to get the column options according to the column type
-   * @param {string} column - The column
-   * @returns {Object} - The column options
-   */
-  const getColumnOptions = (column) => {
-    let optionsToReturn = { showFilterMatchModes: true, showFilterMenu: true }
-    if (columnTypes[column] === "category") {
-      optionsToReturn.showFilterMatchModes = false
-      optionsToReturn.showFilterMenu = true
-    }
-    return optionsToReturn
-  }
 
   return (
     <>
@@ -306,7 +162,7 @@ const DeleteColumnsTool = () => {
             optionValue="key"
             className="w-100"
             value={selectedDataset ? selectedDataset.getUUID() : null}
-            onChange={handleSelectedDatasetChange}
+            onChange={(e) => handleSelectedDatasetChange(e, setSelectedDataset, globalData)}
           ></Dropdown>
 
           <Row style={{ display: "flex", justifyContent: "space-evenly", flexDirection: "row", marginTop: "0.5rem" }}>
@@ -326,10 +182,10 @@ const DeleteColumnsTool = () => {
                 visibleColumns.map((column) => (
                   <Column
                     key={column.name + "index"}
-                    {...getColumnOptions(column.name)}
-                    dataType={getColumnDataType(column.name)}
+                    {...getColumnOptions(column.name, columnTypes)}
+                    dataType={getColumnDataType(column.name, columnTypes)}
                     field={String(column.name)}
-                    header={generateHeader(column.name)}
+                    header={generateHeader(column.name, selectedColumnsOptions)}
                     style={{ minWidth: "5rem" }}
                   ></Column>
                 ))}

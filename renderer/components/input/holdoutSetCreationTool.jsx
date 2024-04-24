@@ -16,6 +16,7 @@ import { toast } from "react-toastify"
 import { ErrorRequestContext } from "../generalPurpose/errorRequestContext"
 import SaveDataset from "../generalPurpose/saveDataset"
 import { Message } from "primereact/message"
+import { cleanString, updateListOfDatasets } from "./simpleToolsUtils"
 
 /**
  * Component that renders the holdout set creation tool
@@ -84,19 +85,6 @@ const HoldoutSetCreationTool = ({ pageId = "inputModule", configPath = "" }) => 
   }, [])
 
   /**
-   * To clean the string
-   * @param {String} string - The string to clean
-   * @returns {String} - The cleaned string
-   */
-  const cleanString = (string) => {
-    if (string.includes(" ") || string.includes('"')) {
-      string = string.replaceAll(" ", "")
-      string = string.replaceAll('"', "")
-    }
-    return string
-  }
-
-  /**
    * To generate the columns options from the columns
    * @param {Array} columns - The columns
    * @returns {Array} - The columns options
@@ -113,20 +101,6 @@ const HoldoutSetCreationTool = ({ pageId = "inputModule", configPath = "" }) => 
 
       return options
     }
-  }
-
-  /**
-   * To update the list of datasets
-   * @returns {Void}
-   */
-  const updateListOfDatasets = () => {
-    let newDatasetList = []
-    Object.keys(globalData).forEach((key) => {
-      if (globalData[key].extension === "csv") {
-        newDatasetList.push({ name: globalData[key].name, object: globalData[key], key: key })
-      }
-    })
-    setListOfDatasets(newDatasetList)
   }
 
   /**
@@ -148,7 +122,7 @@ const HoldoutSetCreationTool = ({ pageId = "inputModule", configPath = "" }) => 
    * Hook that is called when the global data object is updated to update the list of datasets
    */
   useEffect(() => {
-    updateListOfDatasets()
+    updateListOfDatasets(globalData, selectedDataset, setListOfDatasets, setSelectedDataset)
   }, [globalData])
 
   /**

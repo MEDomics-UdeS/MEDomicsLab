@@ -11,9 +11,10 @@ import { Column } from "@blueprintjs/table"
 import { Tag } from "primereact/tag"
 import { OverlayPanel } from "primereact/overlaypanel"
 import SaveDataset from "../generalPurpose/saveDataset"
+import { getParentIDfolderPath, updateListOfDatasets } from "./simpleToolsUtils"
 
 /**
- * Component that renders the holdout set creation tool
+ * Component that renders the simple cleaning tool
  */
 const SimpleCleaningTool = () => {
   const { globalData } = useContext(DataContext) // The global data object
@@ -47,31 +48,10 @@ const SimpleCleaningTool = () => {
   }
 
   /**
-   * To update the list of datasets
-   * @returns {Void}
-   */
-  const updateListOfDatasets = () => {
-    let newDatasetList = []
-    let isSelectedDatasetInList = false
-    Object.keys(globalData).forEach((key) => {
-      if (globalData[key].extension === "csv") {
-        newDatasetList.push({ name: globalData[key].name, object: globalData[key], key: key })
-        if (selectedDataset && selectedDataset.name == globalData[key].name) {
-          isSelectedDatasetInList = true
-        }
-      }
-    })
-    setListOfDatasets(newDatasetList)
-    if (!isSelectedDatasetInList) {
-      setSelectedDataset(null)
-    }
-  }
-
-  /**
    * Hook that is called when the global data object is updated to update the list of datasets
    */
   useEffect(() => {
-    updateListOfDatasets()
+    updateListOfDatasets(globalData, selectedDataset, setListOfDatasets, setSelectedDataset)
   }, [globalData])
 
   /**
@@ -232,24 +212,16 @@ const SimpleCleaningTool = () => {
       setSelectedDataset(null)
     } else {
       if (local === true) {
-        MedDataObject.saveDatasetToDisk({ df: newData, filePath: getParentIDfolderPath(selectedDataset) + newLocalDatasetName + "." + newLocalDatasetExtension, extension: newLocalDatasetExtension })
+        MedDataObject.saveDatasetToDisk({
+          df: newData,
+          filePath: getParentIDfolderPath(selectedDataset, globalData) + newLocalDatasetName + "." + newLocalDatasetExtension,
+          extension: newLocalDatasetExtension
+        })
       } else {
-        MedDataObject.saveDatasetToDisk({ df: newData, filePath: getParentIDfolderPath(selectedDataset) + newDatasetName + "." + newDatasetExtension, extension: newDatasetExtension })
+        MedDataObject.saveDatasetToDisk({ df: newData, filePath: getParentIDfolderPath(selectedDataset, globalData) + newDatasetName + "." + newDatasetExtension, extension: newDatasetExtension })
       }
     }
     MedDataObject.updateWorkspaceDataObject()
-  }
-
-  /**
-   * To get the parent ID folder path
-   * @param {Object} dataset - The dataset
-   * @returns {String} - The parent ID folder path with a trailing separator
-   */
-  const getParentIDfolderPath = (dataset) => {
-    let parentID = dataset.parentID
-    let parentPath = globalData[parentID].path
-    let separator = MedDataObject.getPathSeparator()
-    return parentPath + separator
   }
 
   /**

@@ -11,6 +11,7 @@ import MedDataObject from "../workspace/medDataObject"
 import ProgressBarRequests from "../generalPurpose/progressBarRequests"
 import { ErrorRequestContext } from "../generalPurpose/errorRequestContext"
 import SaveDataset from "../generalPurpose/saveDataset"
+import { cleanString, updateListOfDatasets } from "./simpleToolsUtils"
 
 /**
  * Merging tool
@@ -54,20 +55,6 @@ const MergeTool = ({ pageId = "42", configPath = null }) => {
     { label: "Outer", value: "outer" },
     { label: "Cross", value: "cross" }
   ]
-
-  /**
-   * @description - This is used to update the list of datasets from the global data object
-   * @returns nothing
-   */
-  const updateListOfDatasets = () => {
-    let newDatasetList = []
-    Object.keys(globalData).forEach((key) => {
-      if (globalData[key].extension === "csv") {
-        newDatasetList.push({ nameWithoutExtension: globalData[key].nameWithoutExtension, object: globalData[key], key: key })
-      }
-    })
-    setListOfDatasets(newDatasetList)
-  }
 
   /**
    * This is a hook that is called when the dictOfDatasets is updated
@@ -117,20 +104,6 @@ const MergeTool = ({ pageId = "42", configPath = null }) => {
     })
     let options = listOfDatasets.filter((dataset) => !alreadySelectedDatasets.includes(dataset.key))
     return options
-  }
-
-  /**
-   * This function is used to clean a string
-   * @param {string} string - The string to clean
-   * @returns the cleaned string
-   * @summary This function is used to clean a string from spaces and quotes
-   */
-  const cleanString = (string) => {
-    if (string.includes(" ") || string.includes('"')) {
-      string = string.replaceAll(" ", "")
-      string = string.replaceAll('"', "")
-    }
-    return string
   }
 
   /**
@@ -335,7 +308,7 @@ const MergeTool = ({ pageId = "42", configPath = null }) => {
    */
   useEffect(() => {
     if (globalData !== null) {
-      updateListOfDatasets()
+      updateListOfDatasets(globalData, firstSelectedDataset, setListOfDatasets, setFirstSelectedDataset)
     }
   }, [globalData])
 
