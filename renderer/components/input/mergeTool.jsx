@@ -228,11 +228,6 @@ const MergeTool = ({ pageId = "42", configPath = null }) => {
     } else {
       columnsToReturn = dictOfDatasets[0].selectedColumns
     }
-    if (mergeOn) {
-      if (!columnsToReturn.includes(dictOfDatasets[0].mergeOn)) {
-        columnsToReturn.push(dictOfDatasets[0].mergeOn)
-      }
-    }
     return columnsToReturn
   }
 
@@ -454,7 +449,7 @@ const MergeTool = ({ pageId = "42", configPath = null }) => {
           {Object.keys(dictOfDatasets).map((key) => {
             // We map the dict of datasets other than the first dataset
             if (key == "0") {
-              return <></>
+              return <React.Fragment key={key}></React.Fragment>
             }
 
             let dataset
