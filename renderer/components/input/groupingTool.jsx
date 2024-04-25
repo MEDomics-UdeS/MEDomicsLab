@@ -14,15 +14,15 @@ import { Tag } from "primereact/tag"
 import { ToggleButton } from "primereact/togglebutton"
 import { confirmDialog } from "primereact/confirmdialog"
 import { deepCopy } from "../../utilities/staticFunctions"
+import { cleanString } from "./simpleToolsUtils"
+import { generateRandomColor } from "./taggingUtils"
+
 /**
  * GroupingTool
- * @param {string} pageId
- * @param {string} configPath
  * @returns {JSX.Element}
  * @summary This component is used to group/tag the columns of selected datasets
  */
-// eslint-disable-next-line no-unused-vars
-const GroupingTool = ({ pageId = "42-grouping", configPath = null }) => {
+const GroupingTool = () => {
   const { globalData, setGlobalData } = useContext(DataContext) // Global data
   const firstMultiselect = useRef(null) // Reference to the first multiselect
   const secondMultiselect = useRef(null) // Reference to the second multiselect
@@ -56,26 +56,12 @@ const GroupingTool = ({ pageId = "42-grouping", configPath = null }) => {
   }
 
   /**
-   * Clean the string
-   * @param {string} string
-   * @returns {string}
-   * @summary This function is used to clean the string, replace the spaces and the quotes
-   */
-  const cleanString = (string) => {
-    if (string.includes(" ") || string.includes('"')) {
-      string = string.replaceAll(" ", "")
-      string = string.replaceAll('"', "")
-    }
-    return string
-  }
-
-  /**
    * Get the columns tagging
    * @param {object} dataObject - Data object
    * @returns  {object} - Columns tagging
    */
   function getColumnsTagging(dataObject) {
-    if (dataObject.metadata.columnsTag === null || dataObject.metadata.columnsTag === undefined) {
+    if (!dataObject?.metadata.columnsTag) {
       return {}
     } else {
       return dataObject.metadata.columnsTag
@@ -120,11 +106,15 @@ const GroupingTool = ({ pageId = "42-grouping", configPath = null }) => {
    * @summary This function is used to get the columns from a promise - async function
    */
   async function getColumnsFromPromise(dataObject) {
-    let promise = new Promise((resolve) => {
-      resolve(dataObject.getColumnsOfTheDataObjectIfItIsATable())
-    })
-    let columns = await promise
-    return columns
+    if (dataObject) {
+      let promise = new Promise((resolve) => {
+        resolve(dataObject.getColumnsOfTheDataObjectIfItIsATable())
+      })
+      let columns = await promise
+      return columns
+    } else {
+      return []
+    }
   }
 
   /**
@@ -145,16 +135,6 @@ const GroupingTool = ({ pageId = "42-grouping", configPath = null }) => {
     })
     setTagsDict(newTagsDict)
     setTagsPresentInSelectedDatasets(newTags)
-  }
-
-  /**
-   * Generate random color
-   * @returns {string} - Random color
-   * @summary This function is used to generate a random color
-   */
-  const generateRandomColor = () => {
-    let color = "#" + Math.floor(Math.random() * 16777215).toString(16)
-    return color
   }
 
   /**
@@ -941,7 +921,18 @@ const GroupingTool = ({ pageId = "42-grouping", configPath = null }) => {
           <Col md={4} style={{ display: "flex", flexDirection: "column", flexGrow: "1", alignItems: "start", justifyContent: "start", paddingInline: "0rem", marginInline: "0.5rem" }}>
             <h5>Columns</h5>
             {/* Tree select to select the columns */}
-            <TreeSelect className="small-token" nodeTemplate={columnSelectionTemplate} panelClassName="groupingToolTree" filter value={selectedNodes} options={nodes} metaKeySelection={false} selectionMode="checkbox" display="chip" onChange={(e) => setSelectedNodes(e.value)} />
+            <TreeSelect
+              className="small-token"
+              nodeTemplate={columnSelectionTemplate}
+              panelClassName="groupingToolTree"
+              filter
+              value={selectedNodes}
+              options={nodes}
+              metaKeySelection={false}
+              selectionMode="checkbox"
+              display="chip"
+              onChange={(e) => setSelectedNodes(e.value)}
+            />
           </Col>
           <Col lg={6} style={{ display: "flex", flexDirection: "column", flexGrow: "1", alignItems: "start", justifyContent: "start", paddingInline: "0rem" }}>
             <h5>Set/Modify Tag</h5>

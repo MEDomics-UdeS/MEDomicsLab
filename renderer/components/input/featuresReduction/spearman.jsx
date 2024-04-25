@@ -12,8 +12,8 @@ import { requestBackend } from "../../../utilities/requests"
 import { PageInfosContext } from "../../mainPages/moduleBasics/pageInfosContext"
 import { toast } from "react-toastify"
 import { WorkspaceContext } from "../../workspace/workspaceContext"
-import { InputText } from "primereact/inputtext"
 import MedDataObject from "../../workspace/medDataObject"
+import SaveDataset from "../../generalPurpose/saveDataset"
 
 /**
  * Component that renders the Spearman feature reduction creation tool
@@ -27,10 +27,10 @@ const Spearman = () => {
     { field: "value", header: "Correlation with target" }
   ]
   const [dataFolderPath, setDataFolderPath] = useState("") // DATA folder
+  const [fileExtension, setFileExtension] = useState("csv") // on which extension to save the file
   const [keepUnselectedColumns, setKeepUnselectedColumns] = useState(false) // wether to merge unselected pca columns in the result dataset
   const [keepTarget, setKeepTarget] = useState(false) // wether to merge target in the result dataset
-  const [spearmanFilename, setSpearmanFilename] = useState("spearman_dataset.csv") // name under which to save the computed PCA dataset
-  const [resultsPath, setResultsPath] = useState(null) // path of the computed PCA dataset
+  const [spearmanFilename, setSpearmanFilename] = useState("") // name under which to save the computed PCA dataset
   const [selectedColumns, setSelectedColumns] = useState([]) // columns to apply PCA on
   const [selectedDataset, setSelectedDataset] = useState(null) // dataset in which we want to apply Spearman
   const [selectedSpearmanRows, setSelectedSpearmanRows] = useState([]) // rows selected in the datatable for the columns to keep
@@ -50,12 +50,19 @@ const Spearman = () => {
   function getDatasetListFromDataContext() {
     let keys = Object.keys(globalData)
     let datasetListToShow = []
+    let isSelectedDatasetInList = false
     keys.forEach((key) => {
       if (globalData[key].type !== "folder" && globalData[key].extension == "csv") {
         datasetListToShow.push(globalData[key])
+        if (selectedDataset && selectedDataset.name == globalData[key].name) {
+          isSelectedDatasetInList = true
+        }
       }
     })
     setDatasetList(datasetListToShow)
+    if (!isSelectedDatasetInList) {
+      setSelectedDataset(null)
+    }
   }
 
   /**
@@ -84,21 +91,6 @@ const Spearman = () => {
     let data = await dataset.loadDataFromDisk()
     setSelectedDataset(dataset)
     setDataframe(data)
-  }
-
-  /**
-   *
-   * @param {String} name
-   *
-   * @description
-   * Called when the user change the name under which the computed
-   * PCA dataset will be saved.
-   *
-   */
-  const handleFilenameChange = (name) => {
-    if (name.match("^[a-zA-Z0-9_]+.csv$") != null) {
-      setSpearmanFilename(name)
-    }
   }
 
   /**
@@ -141,8 +133,9 @@ const Spearman = () => {
   /**
    * @description
    * Call the server to compute Spearman
+   * @param {Boolean} overwrite - True if the dataset should be overwritten, false otherwise
    */
-  const computeSpearman = () => {
+  const computeSpearman = (overwrite = false) => {
     requestBackend(
       port,
       "/input/compute_spearman/" + pageId,
@@ -155,13 +148,18 @@ const Spearman = () => {
         keepUnselectedColumns: keepUnselectedColumns,
         keepTarget: keepTarget,
         resultsFilename: spearmanFilename,
+        fileExtension: fileExtension,
+        overwrite: overwrite,
         pageId: pageId
       },
       (jsonResponse) => {
         console.log("received results:", jsonResponse)
         if (!jsonResponse.error) {
-          setResultsPath(jsonResponse["results_path"])
           MedDataObject.updateWorkspaceDataObject()
+          if (overwrite) {
+            setSelectedDataset(null)
+          }
+          toast.success("Data saved under " + jsonResponse["results_path"])
         } else {
           toast.error(`Computation failed: ${jsonResponse.error.message}`)
           setError(jsonResponse.error)
@@ -174,6 +172,18 @@ const Spearman = () => {
     )
   }
 
+  // Called when selectedDataset is updated, in order to update filename
+  useEffect(() => {
+    if (selectedDataset) {
+      setSpearmanFilename(selectedDataset.nameWithoutExtension + "_reduced_spearman")
+    } else {
+      setSpearmanFilename("")
+      setSelectedColumns([])
+      setSelectedTarget(null)
+      setDataframe([])
+    }
+  }, [selectedDataset])
+
   // Called when selected columns is updated, in order to update explained var
   useEffect(() => {
     setCorrelations([])
@@ -183,11 +193,6 @@ const Spearman = () => {
   useEffect(() => {
     setSelectedSpearmanRows([])
   }, [correlations])
-
-  // Called when the PCA form is updated in order to update result path
-  useEffect(() => {
-    setResultsPath(null)
-  }, [selectedDataset, selectedColumns, correlations, keepUnselectedColumns, spearmanFilename])
 
   // Called when data in DataContext is updated, in order to update datasetList
   useEffect(() => {
@@ -202,18 +207,36 @@ const Spearman = () => {
       <div className="margin-top-15 center">
         {/* Select CSV data */}
         <b>Select the data you want to apply Spearman on</b>
-        <div className="margin-top-15">{datasetList.length > 0 ? <Dropdown value={selectedDataset} options={datasetList} optionLabel="name" onChange={(event) => datasetSelected(event.value)} placeholder="Select a dataset" /> : <Dropdown placeholder="No dataset to show" disabled />}</div>
+        <div className="margin-top-15">
+          {datasetList.length > 0 ? (
+            <Dropdown value={selectedDataset} options={datasetList} optionLabel="nameWithoutExtension" onChange={(event) => datasetSelected(event.value)} placeholder="Select a dataset" />
+          ) : (
+            <Dropdown placeholder="No dataset to show" disabled />
+          )}
+        </div>
       </div>
       <hr></hr>
       <div className="margin-top-15 center">
         {/* Select columns */}
         <div>
           <b>Select the columns you want to apply Spearman on (without target)</b>
-          <div className="margin-top-15">{dataframe && dataframe.$columns && dataframe.$columns.length > 0 ? <MultiSelect className="maxwidth-80" display="chip" value={selectedColumns} onChange={(e) => setSelectedColumns(e.value)} options={dataframe.$columns} placeholder="Select columns" /> : <MultiSelect placeholder="No columns to show" disabled />}</div>
+          <div className="margin-top-15">
+            {dataframe && dataframe.$columns && dataframe.$columns.length > 0 ? (
+              <MultiSelect className="maxwidth-80" display="chip" value={selectedColumns} onChange={(e) => setSelectedColumns(e.value)} options={dataframe.$columns} placeholder="Select columns" />
+            ) : (
+              <MultiSelect placeholder="No columns to show" disabled />
+            )}
+          </div>
         </div>
         <div className="margin-top-15">
           <b>Select the target column</b>
-          <div className="margin-top-15">{dataframe && dataframe.$columns && dataframe.$columns.length > 0 ? <Dropdown value={selectedTarget} options={dataframe.$columns} onChange={(event) => setSelectedTarget(event.value)} placeholder="Select column" /> : <Dropdown placeholder="No columns to show" disabled />}</div>
+          <div className="margin-top-15">
+            {dataframe && dataframe.$columns && dataframe.$columns.length > 0 ? (
+              <Dropdown value={selectedTarget} options={dataframe.$columns} onChange={(event) => setSelectedTarget(event.value)} placeholder="Select column" />
+            ) : (
+              <Dropdown placeholder="No columns to show" disabled />
+            )}
+          </div>
         </div>
       </div>
       <div className="margin-top-15 center">
@@ -249,21 +272,21 @@ const Spearman = () => {
           Keep target in dataset &nbsp;
           <Checkbox onChange={(e) => setKeepTarget(e.checked)} checked={keepTarget}></Checkbox>
         </div>
-        <div>
-          Save Spearman dataset as : &nbsp;
-          <InputText value={spearmanFilename} onChange={(e) => handleFilenameChange(e.target.value)} />
-        </div>
-        <div>
-          <Button disabled={selectedSpearmanRows.length < 1} onClick={computeSpearman}>
-            Compute Spearman dataset
-          </Button>
-        </div>
       </div>
-      {resultsPath && (
-        <div className="margin-top-15 center">
-          <Message severity="success" text={"Data saved under " + resultsPath} />
-        </div>
-      )}
+      <hr></hr>
+      <div className="flex-container">
+        <Message text="The Create option will save your dataset under DATA/reduced_features folder" />
+      </div>
+      <SaveDataset
+        newDatasetName={spearmanFilename}
+        newDatasetExtension={fileExtension}
+        selectedDataset={selectedDataset}
+        setNewDatasetName={setSpearmanFilename}
+        setNewDatasetExtension={setFileExtension}
+        functionToExecute={computeSpearman}
+        enabled={selectedSpearmanRows.length > 0 ? true : false}
+        pathToCheckInto={dataFolderPath + MedDataObject.getPathSeparator() + "reduced_features"}
+      />
       <hr></hr>
     </>
   )

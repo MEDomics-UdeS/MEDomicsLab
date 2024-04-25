@@ -5,17 +5,18 @@ import { Row, Col } from "react-bootstrap"
 import { Checkbox } from "primereact/checkbox"
 import { WorkspaceContext } from "../workspace/workspaceContext"
 import { DataContext } from "../workspace/dataContext"
-import { Button } from "primereact/button"
 import { Tooltip } from "primereact/tooltip"
 import { Dropdown } from "primereact/dropdown"
 import MedDataObject from "../workspace/medDataObject"
-import { InputText } from "primereact/inputtext"
 import { Slider } from "primereact/slider"
 import { InputNumber } from "primereact/inputnumber"
 import { requestBackend } from "../../utilities/requests"
 import ProgressBarRequests from "../generalPurpose/progressBarRequests"
 import { toast } from "react-toastify"
 import { ErrorRequestContext } from "../generalPurpose/errorRequestContext"
+import SaveDataset from "../generalPurpose/saveDataset"
+import { Message } from "primereact/message"
+import { cleanString, updateListOfDatasets } from "./simpleToolsUtils"
 
 /**
  * Component that renders the holdout set creation tool
@@ -23,7 +24,7 @@ import { ErrorRequestContext } from "../generalPurpose/errorRequestContext"
  * @param {String} props.pageId - The id of the page
  * @param {String} props.configPath - The path of the config file
  */
-const HoldOutSetCreationTool = ({ pageId = "inputModule", configPath = "" }) => {
+const HoldoutSetCreationTool = ({ pageId = "inputModule", configPath = "" }) => {
   const { port } = useContext(WorkspaceContext) // The port
   const { setError } = useContext(ErrorRequestContext) // We get the setError function from the context
   const { globalData } = useContext(DataContext) // The global data object
@@ -34,7 +35,7 @@ const HoldOutSetCreationTool = ({ pageId = "inputModule", configPath = "" }) => 
   const [selectedDatasetColumns, setSelectedDatasetColumns] = useState([]) // The columns of the selected dataset
   const [holdoutSetSize, setHoldoutSetSize] = useState(20) // The size of the holdout set
   const [newDatasetName, setNewDatasetName] = useState("") // The name of the new dataset
-  const [newDatasetExtension, setNewDatasetExtension] = useState(".csv") // The extension of the new dataset
+  const [newDatasetExtension, setNewDatasetExtension] = useState("csv") // The extension of the new dataset
   const [progress, setProgress] = useState({ now: 0, currentLabel: "" }) // The progress of the holdout set creation
   const [isProgressUpdating, setIsProgressUpdating] = useState(false) // To check if the progress is updating
   const [nanMethod, setNaNMethod] = useState("drop") // The NaN method to use
@@ -84,19 +85,6 @@ const HoldOutSetCreationTool = ({ pageId = "inputModule", configPath = "" }) => 
   }, [])
 
   /**
-   * To clean the string
-   * @param {String} string - The string to clean
-   * @returns {String} - The cleaned string
-   */
-  const cleanString = (string) => {
-    if (string.includes(" ") || string.includes('"')) {
-      string = string.replaceAll(" ", "")
-      string = string.replaceAll('"', "")
-    }
-    return string
-  }
-
-  /**
    * To generate the columns options from the columns
    * @param {Array} columns - The columns
    * @returns {Array} - The columns options
@@ -116,20 +104,6 @@ const HoldOutSetCreationTool = ({ pageId = "inputModule", configPath = "" }) => 
   }
 
   /**
-   * To update the list of datasets
-   * @returns {Void}
-   */
-  const updateListOfDatasets = () => {
-    let newDatasetList = []
-    Object.keys(globalData).forEach((key) => {
-      if (globalData[key].extension === "csv") {
-        newDatasetList.push({ name: globalData[key].name, object: globalData[key], key: key })
-      }
-    })
-    setListOfDatasets(newDatasetList)
-  }
-
-  /**
    * To handle the change in the options
    * @param {Object} e - The event object
    * @returns {Void}
@@ -145,29 +119,10 @@ const HoldOutSetCreationTool = ({ pageId = "inputModule", configPath = "" }) => 
   }
 
   /**
-   * To check if the name is already used
-   * @param {String} name - The name to check
-   * @returns {Boolean} - True if the name is already used, false otherwise
-   */
-  const checkIfNameAlreadyUsed = (name) => {
-    let alreadyUsed = false
-    if (newDatasetName.length > 0 && selectedDataset !== null && selectedDataset !== undefined) {
-      let newDatasetPathParent = globalData[selectedDataset.parentID].path
-      let pathToCheck = newDatasetPathParent + MedDataObject.getPathSeparator() + name
-      Object.entries(globalData).map((arr) => {
-        if (arr[1].path === pathToCheck) {
-          alreadyUsed = true
-        }
-      })
-    }
-    return alreadyUsed
-  }
-
-  /**
    * Hook that is called when the global data object is updated to update the list of datasets
    */
   useEffect(() => {
-    updateListOfDatasets()
+    updateListOfDatasets(globalData, selectedDataset, setListOfDatasets, setSelectedDataset)
   }, [globalData])
 
   /**
@@ -177,7 +132,7 @@ const HoldOutSetCreationTool = ({ pageId = "inputModule", configPath = "" }) => 
    */
   const createHoldoutSet = async () => {
     let newDatasetPathParent = globalData[selectedDataset.parentID].path // The path of the parent of the new dataset
-    let datasetName = newDatasetName.length > 0 ? newDatasetName : "HoldoutDataset" // The name of the new dataset
+    let datasetName = newDatasetName // The name of the new dataset
     let newDatasetObject = new MedDataObject({
       // The new dataset object
       originalName: datasetName,
@@ -188,7 +143,14 @@ const HoldOutSetCreationTool = ({ pageId = "inputModule", configPath = "" }) => 
     })
     MedDataObject.createFolderFromPath(newDatasetObject.path)
 
-    let JSONToSend = { request: "createHoldoutSet", pageId: "inputModule", configPath: configPath, finalDatasetExtension: newDatasetExtension, finalDatasetPath: newDatasetObject.path + MedDataObject.getPathSeparator(), payload: {} }
+    let JSONToSend = {
+      request: "createHoldoutSet",
+      pageId: "inputModule",
+      configPath: configPath,
+      finalDatasetExtension: newDatasetExtension,
+      finalDatasetPath: newDatasetObject.path + MedDataObject.getPathSeparator(),
+      payload: {}
+    }
     JSONToSend.payload["name"] = selectedDataset.name
     JSONToSend.payload["extension"] = selectedDataset.extension
     JSONToSend.payload["datasetPath"] = selectedDataset.path
@@ -229,11 +191,21 @@ const HoldOutSetCreationTool = ({ pageId = "inputModule", configPath = "" }) => 
 
   return (
     <>
+      <div className="flex-container">
+        <Message text="This tool will create a folder containing your holdout and learning sets." />
+      </div>
       <Row className="holdout-set">
         <Col>
           <h6>Select the dataset you want to create the holdout set from</h6>
           {/* Dropdown to select the first dataset */}
-          <Dropdown options={listOfDatasets} optionLabel="name" optionValue="key" className="w-100" value={selectedDataset ? selectedDataset.getUUID() : null} onChange={handleSelectedDatasetChange}></Dropdown>
+          <Dropdown
+            options={listOfDatasets}
+            optionLabel="name"
+            optionValue="key"
+            className="w-100"
+            value={selectedDataset ? selectedDataset.getUUID() : null}
+            onChange={handleSelectedDatasetChange}
+          ></Dropdown>
 
           <Row style={{ display: "flex", justifyContent: "space-evenly", flexDirection: "row", marginTop: "0.5rem" }}>
             <Col className="align-items-center " style={{ display: "flex" }}>
@@ -243,7 +215,15 @@ const HoldOutSetCreationTool = ({ pageId = "inputModule", configPath = "" }) => 
               </label>
             </Col>
             <Col className="align-items-center " style={{ display: "flex" }}>
-              <Checkbox className="stratify-check" inputId=".stratify-check" name="stratify" value="stratify" checked={options.stratify === true} onChange={handleOptionsChange} disabled={!options.shuffle} />
+              <Checkbox
+                className="stratify-check"
+                inputId=".stratify-check"
+                name="stratify"
+                value="stratify"
+                checked={options.stratify === true}
+                onChange={handleOptionsChange}
+                disabled={!options.shuffle}
+              />
               <label htmlFor="stratify-check" className="stratify-check" aria-disabled={!options.shuffle}>
                 Stratify
               </label>
@@ -262,7 +242,15 @@ const HoldOutSetCreationTool = ({ pageId = "inputModule", configPath = "" }) => 
           <h6 className="stratify-check" style={{ marginTop: "0.5rem" }} aria-disabled={!options.stratify}>
             Select the column(s) (It should be a categorical variable){" "}
           </h6>
-          <MultiSelect className="w-100 " options={selectedDatasetColumns} display="chip" optionLabel="label" value={selectedColumns} onChange={handleColumnSelection} disabled={!options.stratify}></MultiSelect>
+          <MultiSelect
+            className="w-100 "
+            options={selectedDatasetColumns}
+            display="chip"
+            optionLabel="label"
+            value={selectedColumns}
+            onChange={handleColumnSelection}
+            disabled={!options.stratify}
+          ></MultiSelect>
           <Col style={{ display: "flex", justifyContent: "normal", flexDirection: "row", marginTop: "0.5rem", alignContent: "center", alignItems: "center" }}>
             <label htmlFor="seed" className="font-bold block mb-2">
               Seed for random number generation
@@ -283,7 +271,6 @@ const HoldOutSetCreationTool = ({ pageId = "inputModule", configPath = "" }) => 
           </Col>
         </Col>
         <Col>
-          <p>Holdout set creation tool</p>
           <Row style={{ display: "flex", justifyContent: "space-evenly", flexDirection: "row", marginTop: "0.5rem" }}>
             <label htmlFor="minmax-buttons" className="font-bold block mb-2">
               Holdout set size (%){" "}
@@ -330,52 +317,33 @@ const HoldOutSetCreationTool = ({ pageId = "inputModule", configPath = "" }) => 
                 />
               </Col>
             </Row>
-            <Row style={{ display: "flex", justifyContent: "space-evenly", flexDirection: "row", marginTop: "1rem", alignItems: "center" }}>
-              <Col style={{ display: "flex", flexDirection: "row", justifyContent: "center", flexGrow: 0, alignItems: "center" }} xs>
-                <div className="p-input-group flex-1 dataset-name " style={{ display: "flex", flexDirection: "row" }}>
-                  <InputText
-                    className={`${checkIfNameAlreadyUsed(newDatasetName + newDatasetExtension) ? "p-invalid" : ""}`}
-                    placeholder="Holdout set name"
-                    keyfilter={"alphanum"}
-                    onChange={(e) => {
-                      setNewDatasetName(e.target.value)
-                    }}
-                  />
-                  <span className="p-inputgroup-addon">
-                    <Dropdown
-                      className={`${checkIfNameAlreadyUsed(newDatasetName + newDatasetExtension) ? "p-invalid" : ""}`}
-                      panelClassName="dataset-name"
-                      value={newDatasetExtension}
-                      options={[
-                        { label: ".csv", value: ".csv" },
-                        { label: ".json", value: ".json" },
-                        { label: ".xlsx", value: ".xlsx" }
-                      ]}
-                      onChange={(e) => {
-                        setNewDatasetExtension(e.target.value)
-                      }}
-                    />
-                  </span>
-                </div>
-              </Col>
-              <Col>
-                <Button
-                  label="Create holdout set"
-                  disabled={checkIfNameAlreadyUsed(newDatasetName) || selectedDataset === null || selectedDataset === undefined}
-                  onClick={() => {
-                    console.log("CREATE HOLDOUT SET")
-
-                    createHoldoutSet()
-                  }}
-                />
-              </Col>
-            </Row>
+            <SaveDataset
+              newDatasetName={newDatasetName}
+              newDatasetExtension={newDatasetExtension}
+              selectedDataset={selectedDataset}
+              setNewDatasetName={setNewDatasetName}
+              setNewDatasetExtension={setNewDatasetExtension}
+              functionToExecute={createHoldoutSet}
+              showExtensions={false}
+              overwriteOption={false}
+            />
           </Row>
         </Col>
-        <div className="progressBar-merge">{<ProgressBarRequests isUpdating={isProgressUpdating} setIsUpdating={setIsProgressUpdating} progress={progress} setProgress={setProgress} requestTopic={"input/progress/" + pageId} delayMS={500} />}</div>
+        <div className="progressBar-merge">
+          {
+            <ProgressBarRequests
+              isUpdating={isProgressUpdating}
+              setIsUpdating={setIsProgressUpdating}
+              progress={progress}
+              setProgress={setProgress}
+              requestTopic={"input/progress/" + pageId}
+              delayMS={500}
+            />
+          }
+        </div>
       </Row>
     </>
   )
 }
 
-export default HoldOutSetCreationTool
+export default HoldoutSetCreationTool

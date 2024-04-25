@@ -31,11 +31,11 @@ def save_dataframe(path, extension, df, tags=None):
     """
     if tags is not None:
         df = add_tags_to_column_names(df, tags)
-    if extension == ".csv":
+    if extension == "csv":
         df.to_csv(path, index=False)
-    elif extension == ".xlsx":
+    elif extension == "xlsx":
         df.to_excel(path, index=False)
-    elif extension == ".json":
+    elif extension == "json":
         df.to_json(path, orient="records")
     else:
         print("Extension not supported, cannot save the file")
