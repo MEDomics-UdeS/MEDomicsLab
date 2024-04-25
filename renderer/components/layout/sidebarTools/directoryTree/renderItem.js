@@ -120,10 +120,13 @@ const renderItem = ({ item, depth, children, title, context, arrow }, additional
           context.isSearchMatching && "rct-tree-item-title-container-search-match"
         )}
       >
-        <div
-          className="folder-bracket"
-          style={{ left: `${(depth + 1) * 12 + 8}px`, backgroundColor: `${additionalParams.isHovering ? "" : "#ffffff00"}`, width: "1px", transition: "all 0.5s ease-in-out" }}
-        ></div>
+        {/* if folder is expanded, show the folder bracket */}
+        {/* {context.isExpanded && (
+          <div
+            className="folder-bracket"
+            style={{ left: `${(depth + 1) * 12 + 8}px`, backgroundColor: "", width: "1px", transition: "all 0.5s ease-in-out" }}
+          ></div>
+        )} */}
         {arrow}
         <InteractiveComponent
           type={type}
@@ -160,7 +163,7 @@ const renderItem = ({ item, depth, children, title, context, arrow }, additional
       {item.isFolder && (
         <>
           {additionalParams.isHovering && !additionalParams.isDropping ? (
-            <div className="sidebar-dropzone-dirtree">{folderItemContent}</div>
+            <div className="sidebar-dropzone-dirtree" style={{display:"block", boxSizing:"border-box"}}>{folderItemContent}</div>
           ) : (
             <DropzoneComponent className="sidebar-dropzone-dirtree" item={item} noClick={true} setIsDropping={additionalParams.setIsDropping}>
               {folderItemContent}
