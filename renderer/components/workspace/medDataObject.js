@@ -43,7 +43,23 @@ export default class MedDataObject {
    * @param {Array<string>} [options.childrenIDs=[]] - The IDs of the child objects.
    * @param {Array<string>} [options.acceptedFileTypes] - The accepted file types for the data object.
    */
-  constructor({ originalName = "Unnamed", name = undefined, type = "", parentID = [], path = "", childrenIDs = [], _UUID = undefined, virtualPath = [], lastModified = Date(Date.now()), created = Date(Date.now()), metadata = {}, acceptedFileTypes = [], virtualTransformations = {}, relatedInformation = {}, steps = [] } = {}) {
+  constructor({
+    originalName = "Unnamed",
+    name = undefined,
+    type = "",
+    parentID = [],
+    path = "",
+    childrenIDs = [],
+    _UUID = undefined,
+    virtualPath = [],
+    lastModified = Date(Date.now()),
+    created = Date(Date.now()),
+    metadata = {},
+    acceptedFileTypes = [],
+    virtualTransformations = {},
+    relatedInformation = {},
+    steps = []
+  } = {}) {
     this.originalName = originalName
     if (name === undefined) {
       this.name = originalName
@@ -735,7 +751,7 @@ export default class MedDataObject {
     let oldParentID = dataObject.parentID
     let newParentObjectPath = newParentObject.path
     let oldPath = dataObject.path
-    console.log("oldPath: " + oldPath)
+
     newDataObject.path = newParentObjectPath + this.getPathSeparator() + newDataObject.name
     let newNameFound = this.getNewName({
       dataObject: newDataObject,
@@ -743,20 +759,17 @@ export default class MedDataObject {
       globalDataContext: globalDataContext,
       parentID: newParentObject.getUUID()
     })
-    console.log("newNameFound: " + newNameFound)
 
     if (newNameFound !== "") {
       if (newNameFound !== dataObject.name) {
-        toast.warning("Data object moved to " + newNameFound + " because a data object with the same name already exists in the context")
-      } else {
-        toast.success("Data object moved to " + newNameFound)
+        console.log("newNameFound: " + newNameFound)
+        toast.warning("Data object renamed to " + newNameFound + " because a data object with the same name already exists in the context")
       }
       newDataObject.name = newNameFound
-
       newDataObject.lastModified = Date(Date.now())
       newDataObject.path = newParentObjectPath + this.getPathSeparator() + newDataObject.name
 
-      console.log("newDataObject.path: ", { newDataObject })
+      console.log("newDataObject: ", { newDataObject })
       newDataObject.name = newNameFound
       let dataObjectRenamed = newDataObject
       // Write data to file
@@ -764,6 +777,7 @@ export default class MedDataObject {
 
       fs.move(oldPath, newPath, () => {
         console.log(`Data object moved from ${oldPath} to ${newPath}`)
+        toast.success(`Data object moved from ${oldPath} to ${newPath}`)
       })
 
       let newGlobalData = { ...globalDataContext }
@@ -774,6 +788,7 @@ export default class MedDataObject {
 
       newGlobalData[dataObject.getUUID()] = dataObjectRenamed
       setGlobalDataContext(newGlobalData)
+      this.updateWorkspaceDataObject()
     }
   }
 
