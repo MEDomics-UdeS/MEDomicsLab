@@ -89,6 +89,7 @@
     "eslint-plugin-prettier": "^5.0.0",
     "flexlayout-react": "^0.7.7",
     "html-react-parser": "^3.0.12",
+    "html5-file-selector": "^2.1.0",
     "install": "^0.13.0",
     "interweave": "^13.1.0",
     "ipynb-editor": "^1.1.0",
