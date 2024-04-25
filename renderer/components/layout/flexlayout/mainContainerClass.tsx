@@ -4,7 +4,24 @@
 
 import * as React from "react"
 import * as Prism from "prismjs"
-import { Action, Actions, BorderNode, CLASSES, DockLocation, DragDrop, DropInfo, IJsonTabNode, ILayoutProps, ITabRenderValues, ITabSetRenderValues, Layout, Model, Node, TabNode, TabSetNode } from "flexlayout-react"
+import {
+  Action,
+  Actions,
+  BorderNode,
+  CLASSES,
+  DockLocation,
+  DragDrop,
+  DropInfo,
+  IJsonTabNode,
+  ILayoutProps,
+  ITabRenderValues,
+  ITabSetRenderValues,
+  Layout,
+  Model,
+  Node,
+  TabNode,
+  TabSetNode
+} from "flexlayout-react"
 import { showPopup } from "./popupMenu"
 import { TabStorage } from "./tabStorage"
 import { Utils } from "./utils"
@@ -21,6 +38,8 @@ import ExtractionTextPage from "../../mainPages/extractionText"
 import ExtractionImagePage from "../../mainPages/extractionImage"
 import ExtractionMEDimagePage from "../../mainPages/extractionMEDimage"
 import ExtractionTSPage from "../../mainPages/extractionTS"
+import MEDflPage from "../../mainPages/medfl"
+import MED3paPage from "../../mainPages/med3pa"
 import MEDprofilesViewer from "../../input/MEDprofiles/MEDprofilesViewer"
 import HomePage from "../../mainPages/home"
 import TerminalPage from "../../mainPages/terminal"
@@ -347,10 +366,17 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
       event.preventDefault()
       event.stopPropagation()
       console.log(node, event)
-      showPopup(node instanceof TabNode ? "Tab: " + node.getName() : "Type: " + node.getType(), this.layoutRef!.current!.getRootDiv(), event.clientX, event.clientY, ["Option 1", "Option 2"], (item: string | undefined) => {
-        console.log("selected: " + item)
-        this.showingPopupMenu = false
-      })
+      showPopup(
+        node instanceof TabNode ? "Tab: " + node.getName() : "Type: " + node.getType(),
+        this.layoutRef!.current!.getRootDiv(),
+        event.clientX,
+        event.clientY,
+        ["Option 1", "Option 2"],
+        (item: string | undefined) => {
+          console.log("selected: " + item)
+          this.showingPopupMenu = false
+        }
+      )
       this.showingPopupMenu = true
     }
   }
@@ -712,6 +738,24 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
           return <ExtractionTSPage pageId={"ExtractionTSPage"} />
         }
       }
+    } else if (component === "medflPage") {
+      if (node.getExtraData().data == null) {
+        const config = node.getConfig()
+        if (config.path !== null) {
+          return <MEDflPage pageId={config.uuid} configPath={config.path} />
+        } else {
+          return <MEDflPage pageId={"MEDflPage"} />
+        }
+      }
+    } else if (component === "med3paPage") {
+      if (node.getExtraData().data == null) {
+        const config = node.getConfig()
+        if (config.path !== null) {
+          return <MED3paPage pageId={config.uuid} configPath={config.path} />
+        } else {
+          return <MED3paPage pageId={"MED3paPage"} />
+        }
+      }
     } else if (component === "applicationPage") {
       if (node.getExtraData().data == null) {
         const config = node.getConfig()
@@ -860,6 +904,12 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
       }
       if (component === "extractionTSPage") {
         return <span style={{ marginRight: 3 }}>📈</span>
+      }
+      if (component === "medflPage") {
+        return <span style={{ marginRight: 3 }}>🌐</span>
+      }
+      if (component === "med3paPage") {
+        return <span style={{ marginRight: 3 }}>👥</span>
       }
       if (component === "MEDprofilesViewer") {
         return <span style={{ marginRight: 3 }}>📊</span>
