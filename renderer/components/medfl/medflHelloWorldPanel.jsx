@@ -13,9 +13,9 @@ import { toast } from "react-toastify"
  */
 const MEDflHelloWorldPanel = () => {
   const { pageId } = useContext(PageInfosContext) // we get the pageId to send to the server
-  const [progressValue, setProgressValue] = useState({now:0, currentLabel:""}) // we use this to store the progress value of the dashboard
+  const [progressValue, setProgressValue] = useState({ now: 0, currentLabel: "" }) // we use this to store the progress value of the dashboard
   const [isUpdating, setIsUpdating] = useState(false) // we use this to store the progress value of the dashboard
-  const { port } = useContext(WorkspaceContext) // The port 
+  const { port } = useContext(WorkspaceContext) // The port
   const { setError } = useContext(ErrorRequestContext) // We get the setError function from the context
 
   const [stringToSend, setStringToSend] = useState("Hello World from MEDfl frontend") // The string to send to the backend
@@ -57,11 +57,10 @@ const MEDflHelloWorldPanel = () => {
     )
   }
 
-
   return (
     <div>
       <h5>This is the MEDfl Hello World Panel</h5>
-      <div className="p-inputgroup flex-1 w-100" style={{ display: "flex", justifyContent: "center", alignItems: "center", maxWidth: "500px", marginTop:"1.25rem"}}>
+      <div className="p-inputgroup flex-1 w-100" style={{ display: "flex", justifyContent: "center", alignItems: "center", maxWidth: "500px", marginTop: "1.25rem" }}>
         <span className="p-float-label">
           <InputText id="MED3fl-input" value={stringToSend} onChange={(e) => setStringToSend(e.target.value)} />
           <label htmlFor="MED3fl-input">Enter a string to send to the backend</label>
@@ -69,17 +68,13 @@ const MEDflHelloWorldPanel = () => {
         <Button icon="pi pi-send" onClick={sendString} />
       </div>
 
-      
-
       {!isUpdating && progressValue.now != 100 ? (
         <></>
       ) : (
         <>
           <h5>Received response from backend: </h5>
-          <div>
-            {stringReceived}
-          </div>
-        <ProgressBarRequests isUpdating={isUpdating} setIsUpdating={setIsUpdating} progress={progressValue} setProgress={setProgressValue} requestTopic={"medfl/progress/" + pageId} delayMS={100}  />
+          <div>{stringReceived}</div>
+          <ProgressBarRequests isUpdating={isUpdating} setIsUpdating={setIsUpdating} progress={progressValue} setProgress={setProgressValue} requestTopic={"medfl/progress/" + pageId} />
         </>
       )}
     </div>
