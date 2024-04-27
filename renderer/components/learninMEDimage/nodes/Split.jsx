@@ -17,7 +17,7 @@ import { InputSwitch } from 'primereact/inputswitch';
  * This component is used to display a SegmentationNode node.
  * it handles the display of the node and the modal
  */
-const Design = ({ id, data, type }) => {  
+const Split = ({ id, data, type }) => {  
   const [reload, setReload] = useState(false);
 
   const handleCSVFileChange = (event) => {
@@ -161,4 +161,4 @@ const Design = ({ id, data, type }) => {
   )
 }
 
-export default Design
+export default Split
