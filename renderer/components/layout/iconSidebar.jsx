@@ -222,7 +222,7 @@ const IconSidebar = ({ onSidebarItemSelect }) => {
                 </div>
               </Nav.Link>
 
-              <Nav.Link className="classificationNav btnSidebar align-center" data-pr-at="right center" data-pr-my="left center" data-pr-tooltip="Learning MEDimage" eventKey="Learning-MEDimage" data-tooltip-id="tooltip-Learning-MEDimage" onAuxClick={(event) => handleRightClick(event, "learningMEDimage")} onClick={(event) => handleClick(event, "learningMEDimage")} disabled={disabledIcon}>
+              <Nav.Link className="classificationNav btnSidebar align-center" data-pr-at="right center" data-pr-my="left center" data-pr-tooltip="Learning MEDimage" eventKey="Learning-MEDimage" data-tooltip-id="tooltip-Learning-MEDimage" onDoubleClick={(event) => handleDoubleClick(event, "LearningMEDimage")} onClick={(event) => handleClick(event, "LearningMEDimage")} disabled={disabledIcon}>
                 {" "}
                 <FaHeadSideVirus style={{ height: "1.7rem", width: "auto" }} />
               </Nav.Link>

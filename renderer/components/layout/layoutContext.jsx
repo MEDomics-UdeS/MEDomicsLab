@@ -290,7 +290,7 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
    * @params {Object} action - The action passed on by the dispatchLayout function
    */
   const openLearningMEDimage = (action) => {
-    openGeneric(action, "Learning MEDimage", "learningMEDimagePage")
+    openGeneric(action, "Learning MEDimage", "LearningMEDimagePage")
   }
   /**
    * @summary Function that adds a tab of the Extraction Text Module to the layout model

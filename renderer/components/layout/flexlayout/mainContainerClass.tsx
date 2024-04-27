@@ -697,7 +697,7 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
           return <ExtractionImagePage pageId={"ExtractionImagePage"} />
         }
       }
-    } else if (component === "1") {
+    } else if (component === "extractionMEDimagePage") {
       if (node.getExtraData().data == null) {
         const config = node.getConfig()
         if (config.path !== null) {
@@ -706,7 +706,7 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
           return <ExtractionMEDimagePage pageId={"ExtractionMEDimagePage"} />
         }
       }
-    } else if (component === "learningMEDimage") {
+    } else if (component === "LearningMEDimagePage") {
       if (node.getExtraData().data == null) {
         const config = node.getConfig()
 
