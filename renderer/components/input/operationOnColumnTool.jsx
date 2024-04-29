@@ -11,6 +11,7 @@ import { toast } from "react-toastify"
 import SaveDataset from "../generalPurpose/saveDataset"
 import { InputSwitch } from "primereact/inputswitch"
 import { Message } from "primereact/message"
+import { Checkbox } from "primereact/checkbox"
 
 const dfd = require("danfojs-node")
 
@@ -20,6 +21,7 @@ const dfd = require("danfojs-node")
 const OperationOnColumnTool = ({ operationType }) => {
   const { globalData } = useContext(DataContext) // The global data object
   const [columnsAsFile, setColumnsAsFile] = useState(false) // True if we enter the columns to operate from a CSV file
+  const [exportColumns, setExportColumns] = useState(false) // Wether to export or not the selected columns into a CSV file
   const [listOfDatasets, setListOfDatasets] = useState([]) // The list of datasets
   const [listOfCsvColumns, setListOfCsvColumns] = useState([]) // The list of CSV files containing only columns
   const [matchingColumns, setMatchingColumns] = useState(true) // False if the csv columns file aren't in the selected dataset columns
@@ -57,7 +59,7 @@ const OperationOnColumnTool = ({ operationType }) => {
   useEffect(() => {
     async function areColumnsMatching() {
       let dataframe = cleanDataset(await dfd.readCSV(selectedDataset.path))
-      let columns = await dfd.readCSV(selectedCsvColumns.path, { header: false })
+      let columns = await dfd.readCSV(selectedCsvColumns.data.path, { header: selectedCsvColumns.header })
       let cleanedColumnNames = []
       columns.$data[0].forEach((column) => {
         cleanedColumnNames.push(cleanString(column))
@@ -143,9 +145,13 @@ const OperationOnColumnTool = ({ operationType }) => {
     let tmpList = []
     for (let key of keys) {
       if (globalData[key].type === "file" && globalData[key].extension === "csv") {
-        let data = await dfd.readCSV(globalData[key].path, { header: false })
-        if (data.$columns.length > 0 && data.$data.length === 1) {
-          tmpList.push(globalData[key])
+        let dataWithoutHeader = await dfd.readCSV(globalData[key].path, { header: false })
+        if (dataWithoutHeader.$columns.length > 0 && dataWithoutHeader.$data.length == 1) {
+          tmpList.push({ data: globalData[key], header: false })
+        }
+        let dataWithHeader = await dfd.readCSV(globalData[key].path)
+        if (dataWithHeader.$columns.length > 0 && dataWithHeader.$data.length == 1) {
+          tmpList.push({ data: globalData[key], header: true })
         }
       }
     }
@@ -166,7 +172,7 @@ const OperationOnColumnTool = ({ operationType }) => {
           </label>
           {/* If file we filter list of CSV files containing only columns else we display the dataset columns */}
           {columnsAsFile ? (
-            <Dropdown options={listOfCsvColumns} optionLabel="name" value={selectedCsvColumns} onChange={(e) => setSelectedCsvColumns(e.value)}></Dropdown>
+            <Dropdown options={listOfCsvColumns} optionLabel="data.name" value={selectedCsvColumns} onChange={(e) => setSelectedCsvColumns(e.value)}></Dropdown>
           ) : (
             <MultiSelect
               value={selectedColumnsOptions}
@@ -256,10 +262,22 @@ const OperationOnColumnTool = ({ operationType }) => {
           setSelectedDataset(null)
           setSelectedDataset(dataset)
         }
-
         MedDataObject.updateWorkspaceDataObject()
       } else {
         toast.error("Operation on column(s) failed")
+      }
+      // Export columns if asked
+      if (exportColumns && !columnsAsFile) {
+        let cols = []
+        visibleColumns.forEach((column) => {
+          cols.push(column.value)
+        })
+        MedDataObject.saveDatasetToDisk({
+          df: new dfd.DataFrame([cols]),
+          filePath: getParentIDfolderPath(selectedDataset, globalData) + selectedDataset.nameWithoutExtension + "_cols_to_operate" + "." + newDatasetExtension,
+          extension: newDatasetExtension
+        })
+        MedDataObject.updateWorkspaceDataObject()
       }
     })
   }
@@ -341,6 +359,12 @@ const OperationOnColumnTool = ({ operationType }) => {
           {!matchingColumns && (
             <div className="flex-container">
               <Message severity="error" text="The selected columns are not all present in the selected dataset." />
+            </div>
+          )}
+          {!columnsAsFile && (
+            <div style={{ marginTop: "0.5rem" }}>
+              Export selected columns as CSV file &nbsp;
+              <Checkbox onChange={(e) => setExportColumns(e.checked)} checked={exportColumns}></Checkbox>
             </div>
           )}
           <SaveDataset
