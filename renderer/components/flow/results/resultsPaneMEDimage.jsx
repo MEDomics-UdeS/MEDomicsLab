@@ -352,12 +352,18 @@ const ResultsPaneMEDimage = () => {
         <Card.Title>Plots</Card.Title>
           <Accordion>
             <AccordionTab disabled={!isResults} key={`AccordionTab-Figures`} header={"Compare Analysis Plots"}>
-              {(heatMap !== "") && (
+              {(heatMap === undefined || heatMap === "") && (
+                <div style={{ color: 'red' }}>No heatmap generated.</div>
+              )}
+              {(treePlot === undefined || treePlot === "") && (
+                <div style={{ color: 'red' }}>No tree plot generated.</div>
+              )}
+              {(heatMap !== undefined && heatMap !== "") && (
                 <Panel header="Heatmap" toggleable>
                   <Image key={"Heatmap"} src={heatMap} alt="Image" width="500" preview/>
                 </Panel>
               )}
-              {(treePlot !== "") && (
+              {(treePlot !== undefined && treePlot !== "") && (
                 <Panel header="Tree Plot" toggleable>
                   <Image key={"treePlot"} src={treePlot} alt="Image" width="500" preview/>
                 </Panel>
