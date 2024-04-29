@@ -5,20 +5,12 @@ import { DataTable } from "primereact/datatable"
 import { Column } from "@blueprintjs/table"
 import { MultiSelect } from "primereact/multiselect"
 import { DataContext } from "../workspace/dataContext"
-import {
-  cleanDataset,
-  generateHeader,
-  getColumnDataType,
-  getData,
-  getColumnOptions,
-  getParentIDfolderPath,
-  handleSelectedDatasetChange,
-  updateListOfDatasets,
-  updateTheColumnsTypes
-} from "./simpleToolsUtils"
+import { cleanDataset, cleanString, generateHeader, getColumnDataType, getData, getColumnOptions, getParentIDfolderPath, handleSelectedDatasetChange, updateListOfDatasets } from "./simpleToolsUtils"
 import MedDataObject from "../workspace/medDataObject"
 import { toast } from "react-toastify"
 import SaveDataset from "../generalPurpose/saveDataset"
+import { InputSwitch } from "primereact/inputswitch"
+import { Message } from "primereact/message"
 
 const dfd = require("danfojs-node")
 
@@ -27,17 +19,21 @@ const dfd = require("danfojs-node")
  */
 const OperationOnColumnTool = ({ operationType }) => {
   const { globalData } = useContext(DataContext) // The global data object
+  const [columnsAsFile, setColumnsAsFile] = useState(false) // True if we enter the columns to operate from a CSV file
   const [listOfDatasets, setListOfDatasets] = useState([]) // The list of datasets
-  const [selectedDataset, setSelectedDataset] = useState(null) // The selected dataset
+  const [listOfCsvColumns, setListOfCsvColumns] = useState([]) // The list of CSV files containing only columns
+  const [matchingColumns, setMatchingColumns] = useState(true) // False if the csv columns file aren't in the selected dataset columns
   const [newDatasetName, setNewDatasetName] = useState("") // The name of the new dataset
   const [newDatasetExtension, setNewDatasetExtension] = useState("csv") // The extension of the new dataset
   const [selectedDatasetColumns, setSelectedDatasetColumns] = useState([]) // The columns infos of the selected dataset
   const opTab = React.useRef(null)
   const [dataset, setDataset] = useState(null) // The dataset to drop
   const [df, setDf] = useState(null) // The dataframe
-  const [columnTypes, setColumnTypes] = useState({}) // The column types
+  const [columnTypes] = useState({}) // The column types
   const [selectedColumns, setSelectedColumns] = useState([]) // The selected columns
   const [selectedColumnsOptions, setSelectedColumnsOptions] = useState([]) // The selected columns options
+  const [selectedCsvColumns, setSelectedCsvColumns] = useState(null) // When selected columns to operate is a CSV file
+  const [selectedDataset, setSelectedDataset] = useState(null) // The selected dataset
   const [transformType, setTransformType] = useState("binary_0_1") // The type of transformation
   const [visibleColumns, setVisibleColumns] = useState([])
 
@@ -51,7 +47,47 @@ const OperationOnColumnTool = ({ operationType }) => {
    */
   useEffect(() => {
     updateListOfDatasets(globalData, selectedDataset, setListOfDatasets, setSelectedDataset)
+    getListOfCsvColumns()
   }, [globalData])
+
+  /**
+   * If selectedCsvColumns and selectedDataset are set this hook check
+   * if the 2 files are compatible and set an error message if it's not the case.
+   */
+  useEffect(() => {
+    async function areColumnsMatching() {
+      let dataframe = cleanDataset(await dfd.readCSV(selectedDataset.path))
+      let columns = await dfd.readCSV(selectedCsvColumns.path, { header: false })
+      let cleanedColumnNames = []
+      columns.$data[0].forEach((column) => {
+        cleanedColumnNames.push(cleanString(column))
+      })
+      columns = new dfd.DataFrame(cleanedColumnNames)
+      // check if columns are contained in dataframe
+      let matching = columns.$data.every((column) => dataframe.$columns.includes(column))
+      setMatchingColumns(matching)
+      let newSelectedColumns = []
+      let columnsOptions = []
+      if (matching) {
+        columns.$data.forEach((column) => {
+          newSelectedColumns.push({ name: column, value: column })
+          columnsOptions.push(column)
+        })
+      } else {
+        dataframe.$columns.forEach((column) => {
+          newSelectedColumns.push({ name: column, value: column })
+          columnsOptions.push(column)
+        })
+      }
+      setVisibleColumns(newSelectedColumns)
+      setSelectedColumnsOptions(columnsOptions)
+    }
+    if (selectedCsvColumns && selectedDataset) {
+      areColumnsMatching()
+    } else {
+      setMatchingColumns(true)
+    }
+  }, [selectedCsvColumns, selectedDataset])
 
   /**
    * Hook that is called when the selected dataset is updated to update the columns infos
@@ -59,61 +95,119 @@ const OperationOnColumnTool = ({ operationType }) => {
   useEffect(() => {
     if (selectedDataset) {
       getData(selectedDataset).then((data) => {
-        data = cleanDataset(data)
-
-        let columns = data.columns
-        setDf(data)
-        let jsonData = dfd.toJSON(data)
-        setDataset(jsonData)
-        setSelectedDatasetColumns(columns)
-        let newSelectedColumns = []
-        columns.forEach((column) => {
-          newSelectedColumns.push({ name: column, value: column })
-        })
-        setSelectedColumnsOptions(columns)
-        setSelectedColumns(newSelectedColumns)
-        setVisibleColumns(newSelectedColumns)
+        if (!data || data.$data.length == 0) {
+          toast.error("Invalid data selected")
+          reinitializeData()
+        } else {
+          data = cleanDataset(data)
+          let columns = data.columns
+          setDf(data)
+          let jsonData = dfd.toJSON(data)
+          setDataset(jsonData)
+          setSelectedDatasetColumns(columns)
+          let newSelectedColumns = []
+          columns.forEach((column) => {
+            newSelectedColumns.push({ name: column, value: column })
+          })
+          setSelectedColumnsOptions(columns)
+          setSelectedColumns(newSelectedColumns)
+          setVisibleColumns(newSelectedColumns)
+        }
       })
       setNewDatasetExtension(selectedDataset.extension)
       setNewDatasetName(selectedDataset.nameWithoutExtension + "_" + operationType + "_cols")
     } else {
-      setDf(null)
-      setDataset(null)
-      setSelectedDatasetColumns([])
-      setSelectedColumnsOptions([])
-      setSelectedColumns([])
-      setVisibleColumns([])
-      setNewDatasetExtension("csv")
-      setNewDatasetName("")
+      reinitializeData()
     }
   }, [selectedDataset])
 
+  /**
+   * Called to reinitialize data while overwriting the selectedDataset file or choosing an incompatible file to display
+   */
+  const reinitializeData = () => {
+    setDf(null)
+    setDataset(null)
+    setSelectedDatasetColumns([])
+    setSelectedColumnsOptions([])
+    setSelectedColumns([])
+    setVisibleColumns([])
+    setNewDatasetExtension("csv")
+    setNewDatasetName("")
+  }
+
+  /**
+   * Get list of CSV files that contains only columns
+   */
+  const getListOfCsvColumns = async () => {
+    let keys = Object.keys(globalData)
+    let tmpList = []
+    for (let key of keys) {
+      if (globalData[key].type === "file" && globalData[key].extension === "csv") {
+        let data = await dfd.readCSV(globalData[key].path, { header: false })
+        if (data.$columns.length > 0 && data.$data.length === 1) {
+          tmpList.push(globalData[key])
+        }
+      }
+    }
+    setListOfCsvColumns(tmpList)
+  }
+
+  /**
+   * Header of the displayed dataset, containing the tools for columns selection
+   */
   const renderHeader = () => {
     return (
-      <div className="table-header" style={{ display: "flex", justifyContent: "flex-start", alignItems: "center" }}>
-        {/* Add a label for the multiselect : Toggle columns */}
-        <label htmlFor="toggleColumns" className="p-checkbox-label" style={{ marginLeft: "0.5rem" }}>
-          {operationType == "delete" && <>Select the columns to keep: &nbsp;</>}
-          {operationType == "transform" && <>Select the columns to transform: &nbsp;</>}
-        </label>
-        {/* Add the multiselect to select the columns to display */}
-        <MultiSelect
-          value={selectedColumnsOptions}
-          options={selectedColumns}
-          onChange={(e) => {
-            let newSelectedColumns = e.value.map((value) => {
-              return { name: value, value: value }
-            })
-            let orderedSelectedColumns = selectedColumns.filter((col) => newSelectedColumns.some((sCol) => sCol.value === col.value))
-            setVisibleColumns(orderedSelectedColumns)
-            setSelectedColumnsOptions(e.value)
-          }}
-          optionLabel="name"
-          placeholder="Select columns to display"
-          display="chip"
-          style={{ maxWidth: "50%" }}
-        />
-      </div>
+      <Row className="table-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <Col>
+          {/* Add a label for columns selection */}
+          <label htmlFor="toggleColumns" className="p-checkbox-label" style={{ marginLeft: "0.5rem" }}>
+            {operationType == "delete" && <>Select the columns to keep: &nbsp;</>}
+            {operationType == "transform" && <>Select the columns to transform: &nbsp;</>}
+          </label>
+          {/* If file we filter list of CSV files containing only columns else we display the dataset columns */}
+          {columnsAsFile ? (
+            <Dropdown options={listOfCsvColumns} optionLabel="name" value={selectedCsvColumns} onChange={(e) => setSelectedCsvColumns(e.value)}></Dropdown>
+          ) : (
+            <MultiSelect
+              value={selectedColumnsOptions}
+              options={selectedColumns}
+              onChange={(e) => {
+                let newSelectedColumns = e.value.map((value) => {
+                  return { name: value, value: value }
+                })
+                let orderedSelectedColumns = selectedColumns.filter((col) => newSelectedColumns.some((sCol) => sCol.value === col.value))
+                setVisibleColumns(orderedSelectedColumns)
+                setSelectedColumnsOptions(e.value)
+              }}
+              optionLabel="name"
+              placeholder="Select columns to display"
+              display="chip"
+              style={{ maxWidth: "50%" }}
+            />
+          )}
+        </Col>
+        <Col>
+          <label htmlFor="toggleColumns" className="p-checkbox-label" style={{ marginLeft: "0.5rem" }}>
+            Enter columns as CSV file &nbsp;
+          </label>
+          <InputSwitch
+            checked={columnsAsFile}
+            onChange={(e) => {
+              if (df) {
+                let columns = df.columns
+                let newSelectedColumns = []
+                columns.forEach((column) => {
+                  newSelectedColumns.push({ name: column, value: column })
+                })
+                setSelectedColumnsOptions(columns)
+                setVisibleColumns(newSelectedColumns)
+              }
+              setSelectedCsvColumns(null)
+              setColumnsAsFile(e.value)
+            }}
+          />
+        </Col>
+      </Row>
     )
   }
 
@@ -122,52 +216,53 @@ const OperationOnColumnTool = ({ operationType }) => {
    * @param {Boolean} overwrite - True if the dataset should be overwritten, false otherwise
    */
   const saveFilteredDataset = (overwrite = false) => {
-    // Call the function depending on the operation type choosen
-    let newData = null
-    let columnsToOperate = []
-    if (operationType == "delete") {
-      columnsToOperate = selectedColumns.filter((col) => !visibleColumns.some((vCol) => vCol.name === col.name)).map((col) => col.name)
-      newData = df.drop({ columns: columnsToOperate })
-    } else if (operationType == "transform") {
-      newData = df.copy()
-      columnsToOperate = selectedColumns.filter((col) => visibleColumns.some((vCol) => vCol.name === col.name)).map((col) => col.name)
-      columnsToOperate.forEach((column) => {
-        if (transformType === "binary_0_1") {
-          newData[column] = newData[column].apply((x) => (x === null || x === undefined || x === "NaN" ? 0 : 1))
-        } else if (transformType === "nan_to_zero") {
-          newData[column] = newData[column].apply((x) => (x === null || x === undefined || x === "NaN" ? 0 : x))
-        }
-      })
-    }
-    // Save the data
-    if (newData?.$data?.length > 0 && newData?.$columns?.length > 0 && columnsToOperate.length > 0) {
-      if (overwrite) {
-        MedDataObject.saveDatasetToDisk({
-          df: newData,
-          filePath: selectedDataset.path,
-          extension: selectedDataset.extension
-        })
-        setSelectedDataset(null)
-      } else {
-        MedDataObject.saveDatasetToDisk({
-          df: newData,
-          filePath: getParentIDfolderPath(selectedDataset, globalData) + newDatasetName + "." + newDatasetExtension,
-          extension: newDatasetExtension
+    // Can't use df or df.copy() with transformed columns because all transformations are saved on the df
+    // and if we proceed to multiple calls of transform with the same df, the previous transformations are
+    // also present in the new transformations. So the solution for now is to load the data another time.
+    getData(selectedDataset).then((data) => {
+      let newData = cleanDataset(data)
+      let columnsToOperate = []
+      console.log("new", newData)
+      // Call the function depending on the operation type choosen
+      if (operationType == "delete") {
+        columnsToOperate = selectedColumns.filter((col) => !visibleColumns.some((vCol) => vCol.name === col.name)).map((col) => col.name)
+        newData = df.drop({ columns: columnsToOperate })
+      } else if (operationType == "transform") {
+        columnsToOperate = selectedColumns.filter((col) => visibleColumns.some((vCol) => vCol.name === col.name)).map((col) => col.name)
+        columnsToOperate.forEach((column) => {
+          if (transformType === "binary_0_1") {
+            newData[column] = newData[column].apply((x) => (x === null || x === undefined || x === "NaN" ? 0 : 1))
+          } else if (transformType === "nan_to_zero") {
+            newData[column] = newData[column].apply((x) => (x === null || x === undefined || x === "NaN" ? 0 : 1))
+          }
         })
       }
+      // Save the data
+      if (newData?.$data?.length > 0 && newData?.$columns?.length > 0 && columnsToOperate.length > 0) {
+        if (overwrite) {
+          MedDataObject.saveDatasetToDisk({
+            df: newData,
+            filePath: selectedDataset.path,
+            extension: selectedDataset.extension
+          })
+          setSelectedDataset(null)
+        } else {
+          MedDataObject.saveDatasetToDisk({
+            df: newData,
+            filePath: getParentIDfolderPath(selectedDataset, globalData) + newDatasetName + "." + newDatasetExtension,
+            extension: newDatasetExtension
+          })
+          let dataset = selectedDataset
+          setSelectedDataset(null)
+          setSelectedDataset(dataset)
+        }
 
-      MedDataObject.updateWorkspaceDataObject()
-    } else {
-      toast.error("Operation on column(s) failed")
-    }
+        MedDataObject.updateWorkspaceDataObject()
+      } else {
+        toast.error("Operation on column(s) failed")
+      }
+    })
   }
-
-  /**
-   * This hook is used to update the column types
-   */
-  useEffect(() => {
-    updateTheColumnsTypes(df, setColumnTypes)
-  }, [df])
 
   return (
     <>
@@ -183,7 +278,6 @@ const OperationOnColumnTool = ({ operationType }) => {
             value={selectedDataset ? selectedDataset.getUUID() : null}
             onChange={(e) => handleSelectedDatasetChange(e, setSelectedDataset, globalData)}
           ></Dropdown>
-
           <Row style={{ display: "flex", justifyContent: "space-evenly", flexDirection: "row", marginTop: "0.5rem" }}>
             <DataTable
               ref={opTab}
@@ -244,6 +338,11 @@ const OperationOnColumnTool = ({ operationType }) => {
               <Dropdown value={transformType} options={transformOptions} onChange={(e) => setTransformType(e.target.value)} placeholder="Select the type of transformation" />
             </Row>
           )}
+          {!matchingColumns && (
+            <div className="flex-container">
+              <Message severity="error" text="The selected columns are not all present in the selected dataset." />
+            </div>
+          )}
           <SaveDataset
             newDatasetName={newDatasetName}
             newDatasetExtension={newDatasetExtension}
@@ -251,6 +350,7 @@ const OperationOnColumnTool = ({ operationType }) => {
             setNewDatasetName={setNewDatasetName}
             setNewDatasetExtension={setNewDatasetExtension}
             functionToExecute={saveFilteredDataset}
+            enabled={matchingColumns}
           />
         </Col>
       </Row>

@@ -312,9 +312,21 @@ const loadCSVFromPath = (path, whenLoaded) => {
           }
         }
       }
-      let df = new dfd.DataFrame(array, { columns: columns })
-      df.drop(removeEmptyRows(df, 5))
-      let dfJSON = dfd.toJSON(df)
+      let df = null
+      let dfJSON = null
+      // Sometimes the df only contains the columns names and no data
+      if (columns.length !== array[0].length && array[0].length < 2) {
+        df = new dfd.DataFrame(columns)
+        let tmp = {}
+        df.$data.forEach((value, index) => {
+          tmp[index] = value
+        })
+        dfJSON = [tmp]
+      } else {
+        df = new dfd.DataFrame(array, { columns: columns })
+        df.drop(removeEmptyRows(df, 5))
+        dfJSON = dfd.toJSON(df)
+      }
       whenLoaded(dfJSON)
     }
   })
@@ -426,4 +438,23 @@ const getFileReadingMethodFromExtension = {
   xlsx: (path, whenLoaded) => loadXLSXFromPath(path, whenLoaded)
 }
 
-export { toLocalPath, downloadFile, downloadPath, downloadFilePath, loadFileFromPathSync, writeFile, writeJson, writeJsonSync, loadJson, loadJsonSync, loadJsonPath, loadCSVPath, loadCSVFromPath, createFolder, createFolderSync, loadJSONFromPath, loadXLSXFromPath, getFileReadingMethodFromExtension }
+export {
+  toLocalPath,
+  downloadFile,
+  downloadPath,
+  downloadFilePath,
+  loadFileFromPathSync,
+  writeFile,
+  writeJson,
+  writeJsonSync,
+  loadJson,
+  loadJsonSync,
+  loadJsonPath,
+  loadCSVPath,
+  loadCSVFromPath,
+  createFolder,
+  createFolderSync,
+  loadJSONFromPath,
+  loadXLSXFromPath,
+  getFileReadingMethodFromExtension
+}
