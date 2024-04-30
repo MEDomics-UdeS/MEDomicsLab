@@ -150,7 +150,7 @@ jobs:
       - name: Install Python 2.7
         uses: actions/setup-python@v2
         with:
-          python-version: 3.7.1
+          python-version: 3.7
       - name: Bash python 1st try
         run: |
           echo $PATH
