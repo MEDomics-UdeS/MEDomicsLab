@@ -22,6 +22,8 @@ import InputSidebar from "./sidebarTools/pageSidebar/inputSidebar"
 import FlowSceneSidebar from "./sidebarTools/pageSidebar/flowSceneSidebar"
 import ExtractionSidebar from "./sidebarTools/pageSidebar/extractionSidebar"
 import EvaluationSidebar from "./sidebarTools/pageSidebar/evaluationSidebar"
+import MEDflSidebar from "./sidebarTools/pageSidebar/medflSidebar"
+import MED3paSidebar from "./sidebarTools/pageSidebar/med3paSidebar"
 import { ipcRenderer } from "electron"
 import { MainContainer } from "./flexlayout/mainContainerClass"
 import EvaluationPage from "../mainPages/evaluation"
@@ -174,6 +176,10 @@ const LayoutManager = (props) => {
         return <InputSidebar />
       case "evaluation":
         return <EvaluationSidebar />
+      case "medfl":
+        return <MEDflSidebar />
+      case "med3pa":
+        return <MED3paSidebar />
 
       default:
         return (

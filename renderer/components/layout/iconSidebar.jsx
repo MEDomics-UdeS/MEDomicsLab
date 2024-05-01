@@ -12,7 +12,8 @@ import { LuNetwork } from "react-icons/lu"
 import { Button } from "primereact/button"
 import { TbFileExport } from "react-icons/tb"
 import { VscChromeClose } from "react-icons/vsc"
-
+import { PiGraphFill } from "react-icons/pi";
+import { MdOutlineGroups3 } from "react-icons/md";
 /**
  * @description Sidebar component containing icons for each page
  * @param {function} onSidebarItemSelect - function to handle sidebar item selection
@@ -106,7 +107,8 @@ const IconSidebar = ({ onSidebarItemSelect }) => {
         <Tooltip target=".ext-text-btn" {...delayOptions} className="tooltip-icon-sidebar" />
         <Tooltip target=".ext-ts-btn" {...delayOptions} className="tooltip-icon-sidebar" />
         <Tooltip target=".ext-img-btn" {...delayOptions} className="tooltip-icon-sidebar" />
-
+        <Tooltip target=".medflNav" {...delayOptions} className="tooltip-icon-sidebar" />
+        <Tooltip target=".med3paNav" {...delayOptions} className="tooltip-icon-sidebar" />
         {/* ------------------------------------------- END Tooltips ----------------------------------------- */}
 
         {/* ------------------------------------------- ICON NAVBAR ----------------------------------------- */}
@@ -236,9 +238,18 @@ const IconSidebar = ({ onSidebarItemSelect }) => {
                 <LuNetwork style={{ height: "1.7rem", width: "auto", rotate: "-90deg" }} />
               </Nav.Link>
 
+              <Nav.Link className="medflNav btnSidebar align-center" data-pr-at="right center" data-pr-my="left center" data-pr-tooltip="MEDfl" eventKey="MEDfl" onDoubleClick={(event) => handleDoubleClick(event, "MEDfl")} onClick={(event) => handleClick(event, "medfl")} disabled={disabledIcon}>
+                <PiGraphFill style={{ height: "2.2rem", width: "auto" }} />
+              </Nav.Link>
+
               <Nav.Link className="evaluationNav btnSidebar align-center" data-pr-at="right center" data-pr-my="left center" data-pr-tooltip="Evaluation" eventKey="Evaluation" onClick={(event) => handleClick(event, "evaluation")} disabled={disabledIcon}>
                 <PiFlaskFill style={{ height: "2.2rem", width: "auto" }} />
               </Nav.Link>
+
+              <Nav.Link className="med3paNav btnSidebar align-center" data-pr-at="right center" data-pr-my="left center" data-pr-tooltip="MED3pa" eventKey="MED3pa" onDoubleClick={(event) => handleDoubleClick(event, "MED3pa")} onClick={(event) => handleClick(event, "med3pa")} disabled={disabledIcon}>
+                <MdOutlineGroups3 style={{ height: "2.2rem", width: "auto" }} />
+              </Nav.Link>
+
             </div>
             <div className="medomics-layer-text">Development</div>
           </div>

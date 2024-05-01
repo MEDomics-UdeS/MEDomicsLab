@@ -121,7 +121,10 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
           return openExtractionImage(action)
         case "openMEDprofilesViewerModule":
           return openMEDprofilesViewer(action)
-
+        case "openMEDflModule":
+          return openMEDfl(action)
+        case "openMED3paModule":
+          return openMED3pa(action)
         case "openSettings":
           return openGeneric(action, "Settings", "Settings")
 
@@ -279,6 +282,22 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
     openGeneric(action, "Extraction Image", "extractionImagePage")
   }
 
+  /**
+   * @summary Function that adds a tab of the MEDfl Module to the layout model
+   * @params {Object} action - The action passed on by the dispatchLayout function
+   */
+  const openMEDfl = (action) => {
+    openGeneric(action, "MEDfl", "medflPage")
+  }
+
+    /**
+   * @summary Function that adds a tab of the MED3pa Module to the layout model
+   * @params {Object} action - The action passed on by the dispatchLayout function
+   */
+    const openMED3pa = (action) => {
+      openGeneric(action, "MED3pa", "med3paPage")
+    }
+  
   /**
    * @summary Function that adds a tab of the Extraction Text Module to the layout model
    * @params {Object} action - The action passed on by the dispatchLayout function
