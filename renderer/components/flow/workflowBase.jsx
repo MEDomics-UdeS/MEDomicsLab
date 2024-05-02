@@ -566,6 +566,7 @@ const WorkflowBase = ({ isGoodConnection, groupNodeHandlingDefault, onDeleteNode
 
   return (
     <div className="height-100 width-100">
+      
       {/* here is the reactflow component which handles a lot of features listed below */}
       <ReactFlow nodes={nodes} edges={edges} onNodesChange={onNodesChange} onEdgesChange={onEdgesChange} onInit={setReactFlowInstance} nodeTypes={nodeTypes} onNodeDrag={onNodeDrag} onConnect={onConnect} onDrop={onDrop} onDragOver={onDragOver} onEdgeUpdate={onEdgeUpdate} onEdgeUpdateStart={onEdgeUpdateStart} onEdgeUpdateEnd={onEdgeUpdateEnd} fitView>
         <Background />
