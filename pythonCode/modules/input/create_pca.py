@@ -14,7 +14,7 @@ go_print("running script.py:" + id_)
 
 
 
-class GoExecScriptComputePCA(GoExecutionScript):
+class GoExecScriptCreatePCA(GoExecutionScript):
     """
         This class is used to execute the merge script
 
@@ -47,6 +47,8 @@ class GoExecScriptComputePCA(GoExecutionScript):
         results_filename = json_config["resultsFilename"]
         file_extension = json_config["fileExtension"]
         overwrite = json_config["overwrite"]
+        export_transformation = json_config["exportTransformation"]
+        selected_dataset_name = json_config["selectedDatasetName"]
 
         # Read data
         df = pd.read_csv(csv_path)
@@ -91,19 +93,30 @@ class GoExecScriptComputePCA(GoExecutionScript):
             unselected_columns = [x for x in df.columns if x not in columns]
             extracted_features_pca = pd.concat([df[unselected_columns], extracted_features_pca], axis=1)
 
-        # If overwrite option
-        if overwrite:
-            results_path = csv_path
-        # Else create folder for reduced features if not exists
-        else:
+        
+        # Create folder for reduced features and transformations if not exists and is necessary
+        if not overwrite or export_transformation:
             reduced_features_path = os.path.join(str(Path(data_folder_path)), "reduced_features")
             if not os.path.exists(reduced_features_path):
                 os.makedirs(reduced_features_path)
             json_config["reduced_features_path"] = reduced_features_path
             results_path = os.path.join(reduced_features_path, results_filename + "." + file_extension)
-        json_config["results_path"] = results_path
+            # If export transformation option
+            if export_transformation:
+                transformations_path = os.path.join(reduced_features_path, "pca_transformations")
+                if not os.path.exists(transformations_path):
+                    os.makedirs(transformations_path)
+                pca_path = os.path.join(transformations_path, "pca_transformation_" + selected_dataset_name + "_" + str(n_components) + "." + file_extension)
+                # Save transformation
+                json_config["pca_path"] = pca_path
+                pca_component.to_csv(pca_path, index=False)
+
+        # If overwrite option
+        if overwrite:
+            results_path = csv_path
 
         # Save data
+        json_config["results_path"] = results_path
         extracted_features_pca.to_csv(results_path, index=False)
 
         # Get results
@@ -112,5 +125,5 @@ class GoExecScriptComputePCA(GoExecutionScript):
         return self.results
 
 
-script = GoExecScriptComputePCA(json_params_dict, id_)
+script = GoExecScriptCreatePCA(json_params_dict, id_)
 script.start()

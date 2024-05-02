@@ -17,18 +17,19 @@ import MedDataObject from "../../workspace/medDataObject"
 import SaveDataset from "../../generalPurpose/saveDataset"
 
 /**
- * Component that renders the PCA feature reduction tool
+ * Component that renders the CreatePCA feature reduction tool
  */
-const PCA = () => {
+const CreatePCA = () => {
   const [columnPrefix, setColumnPrefix] = useState("pca") // column prefix to set in the generated dataframe from PCA
   const [dataframe, setDataframe] = useState([]) // djanfo dataframe of data to apply PCA on
-  const [datasetList, setDatasetList] = useState([]) // list of available datasets in DATA folder
+  const [datasetList, setDatasetList] = useState([]) // list of available datasets
   const [explainedVar, setExplainedVar] = useState([]) // ordered list of the computed explainedVar from the eigenvalues with their index
   const explainedVarColumns = [
     { field: "index", header: "Number of Principal Components" },
     { field: "value", header: "Explained Variance" }
   ]
   const [dataFolderPath, setDataFolderPath] = useState("") // DATA folder
+  const [exportTransformation, setExportTransformation] = useState(false) // Wether to export the transformation or not
   const [fileExtension, setFileExtension] = useState("csv") // on which extension to save the file
   const [keepUnselectedColumns, setKeepUnselectedColumns] = useState(false) // wether to merge unselected pca columns in the result dataset
   const [PCAfilename, setPCAfilename] = useState("") // name under which to save the computed PCA dataset
@@ -149,10 +150,10 @@ const PCA = () => {
    * Call the server to compute pca
    * @param {Boolean} overwrite - True if the dataset should be overwritten, false otherwise
    */
-  const computePCA = (overwrite = false) => {
+  const applyPCA = (overwrite = false) => {
     requestBackend(
       port,
-      "/input/compute_pca/" + pageId,
+      "/input/apply_pca/" + pageId,
       {
         csvPath: selectedDataset.path,
         columns: selectedColumns,
@@ -163,7 +164,9 @@ const PCA = () => {
         resultsFilename: PCAfilename,
         fileExtension: fileExtension,
         overwrite: overwrite,
-        pageId: pageId
+        pageId: pageId,
+        exportTransformation: exportTransformation,
+        selectedDatasetName: selectedDataset.nameWithoutExtension
       },
       (jsonResponse) => {
         console.log("received results:", jsonResponse)
@@ -173,6 +176,9 @@ const PCA = () => {
             setSelectedDataset(null)
           }
           toast.success("Data saved under " + jsonResponse["results_path"])
+          if (jsonResponse["pca_path"]) {
+            toast.success("Transformation saved under " + jsonResponse["pca_path"])
+          }
         } else {
           toast.error(`Computation failed: ${jsonResponse.error.message}`)
           setError(jsonResponse.error)
@@ -268,11 +274,22 @@ const PCA = () => {
           <Checkbox onChange={(e) => setKeepUnselectedColumns(e.checked)} checked={keepUnselectedColumns}></Checkbox>
         </div>
         <div>
+          Export transformation &nbsp;
+          <Checkbox onChange={(e) => setExportTransformation(e.checked)} checked={exportTransformation}></Checkbox>
+        </div>
+        <div>
           {/* Text input for column names */}
           Column name prefix : &nbsp;
           <InputText value={columnPrefix} onChange={(e) => handleColumnPrefixChange(e.target.value)} />
         </div>
       </div>
+      {exportTransformation && selectedPCRow && selectedDataset && (
+        <div className="flex-container">
+          <Message
+            text={`The transformation will be saved under DATA/reduced_features/pca_tranformations/pca_transformation_${selectedDataset.nameWithoutExtension}_${selectedPCRow.index}.${fileExtension}`}
+          />
+        </div>
+      )}
       <hr></hr>
       <div className="flex-container">
         <Message text="The Create option will save your dataset under DATA/reduced_features folder" />
@@ -283,7 +300,7 @@ const PCA = () => {
         selectedDataset={selectedDataset}
         setNewDatasetName={setPCAfilename}
         setNewDatasetExtension={setFileExtension}
-        functionToExecute={computePCA}
+        functionToExecute={applyPCA}
         enabled={selectedPCRow ? true : false}
         pathToCheckInto={dataFolderPath + MedDataObject.getPathSeparator() + "reduced_features"}
       />
@@ -292,4 +309,4 @@ const PCA = () => {
   )
 }
 
-export default PCA
+export default CreatePCA
