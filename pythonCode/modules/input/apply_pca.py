@@ -48,8 +48,10 @@ class GoExecScriptApplyPCA(GoExecutionScript):
 
         # Read data
         df = pd.read_csv(selected_dataset_path)
-        df_filtered = df[[columns]]
+        df_filtered = df[columns]
         transformation = pd.read_csv(transformation_path)
+        transformation["index"] = columns
+        transformation.set_index("index", inplace=True)
         
         # Matrix multiplication or dot Product
         extracted_features_pca = df_filtered @ transformation

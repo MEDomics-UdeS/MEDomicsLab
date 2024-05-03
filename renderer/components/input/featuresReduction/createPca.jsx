@@ -153,7 +153,7 @@ const CreatePCA = () => {
   const applyPCA = (overwrite = false) => {
     requestBackend(
       port,
-      "/input/apply_pca/" + pageId,
+      "/input/create_pca/" + pageId,
       {
         csvPath: selectedDataset.path,
         columns: selectedColumns,

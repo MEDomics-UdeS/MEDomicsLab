@@ -84,7 +84,7 @@ class GoExecScriptCreatePCA(GoExecutionScript):
                                     index = filtered_columns,
                                     columns = [column_prefix + '_attr' + str(i) for i in range(n_components)]
                                     )
-        
+    
         # Matrix multiplication or dot Product
         extracted_features_pca = extracted_features @ pca_component
 

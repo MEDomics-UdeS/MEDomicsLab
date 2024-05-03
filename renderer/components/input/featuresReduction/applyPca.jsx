@@ -121,9 +121,10 @@ const ApplyPCA = () => {
   const computePCA = (overwrite = false) => {
     requestBackend(
       port,
-      "/input/create_pca/" + pageId,
+      "/input/apply_pca/" + pageId,
       {
-        csvPath: selectedDataset.path,
+        selectedDatasetPath: selectedDataset.path,
+        transformationPath: selectedTransformation.path,
         columns: selectedColumns,
         dataFolderPath: dataFolderPath,
         keepUnselectedColumns: keepUnselectedColumns,
@@ -141,9 +142,6 @@ const ApplyPCA = () => {
             setSelectedDataset(null)
           }
           toast.success("Data saved under " + jsonResponse["results_path"])
-          if (jsonResponse["pca_path"]) {
-            toast.success("Transformation saved under " + jsonResponse["pca_path"])
-          }
         } else {
           toast.error(`Computation failed: ${jsonResponse.error.message}`)
           setError(jsonResponse.error)
@@ -163,6 +161,17 @@ const ApplyPCA = () => {
       getDataFolderPath()
     }
   }, [globalData])
+
+  // Called when selectedDataset is updated, in order to update filename
+  useEffect(() => {
+    if (selectedDataset) {
+      setPCAfilename(selectedDataset.nameWithoutExtension + "_reduced_pca")
+    } else {
+      setPCAfilename("")
+      setSelectedColumns([])
+      setDataframe(null)
+    }
+  }, [selectedDataset])
 
   return (
     <>
@@ -223,13 +232,6 @@ const ApplyPCA = () => {
           <Checkbox onChange={(e) => setKeepUnselectedColumns(e.checked)} checked={keepUnselectedColumns}></Checkbox>
         </div>
       </div>
-      {selectedColumns.length > 0 && dfTransformation?.$dataIncolumnFormat && selectedColumns.length == dfTransformation.$dataIncolumnFormat[0].length && (
-        <div className="flex-container">
-          <Message
-            text={`The transformation will be saved under DATA/reduced_features/pca_tranformations/pca_transformation_${selectedDataset.nameWithoutExtension}_${selectedColumns.length}.${fileExtension}`}
-          />
-        </div>
-      )}
       <hr></hr>
       <div className="flex-container">
         <Message text="The Create option will save your dataset under DATA/reduced_features folder" />
@@ -241,7 +243,7 @@ const ApplyPCA = () => {
         setNewDatasetName={setPCAfilename}
         setNewDatasetExtension={setFileExtension}
         functionToExecute={computePCA}
-        enabled={selectedColumns.length > 0 && dfTransformation?.$dataIncolumnFormat && selectedColumns.length != dfTransformation.$dataIncolumnFormat[0].length ? true : false}
+        enabled={selectedColumns.length > 0 && dfTransformation?.$dataIncolumnFormat && selectedColumns.length == dfTransformation.$dataIncolumnFormat[0].length ? true : false}
         pathToCheckInto={dataFolderPath + MedDataObject.getPathSeparator() + "reduced_features"}
       />
       <hr></hr>
