@@ -8,7 +8,7 @@ const dfd = require("danfojs-node")
  * @returns {DanfoJS.DataFrame} - The cleaned dataset
  */
 const cleanDataset = (data) => {
-  if (data === null || data === undefined) {
+  if (data === null || data === undefined || data.$data.length == 0) {
     return null
   }
 

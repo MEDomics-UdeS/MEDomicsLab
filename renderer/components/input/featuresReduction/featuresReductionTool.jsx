@@ -1,5 +1,6 @@
 import React from "react"
-import PCA from "./pca"
+import CreatePCA from "./createPca"
+import ApplyPCA from "./applyPca"
 import Spearman from "./spearman"
 import { TabView, TabPanel } from "primereact/tabview"
 
@@ -14,7 +15,14 @@ const FeatureReductionTool = () => {
     <>
       <TabView>
         <TabPanel header="PCA">
-          <PCA />
+          <TabView>
+            <TabPanel header="Create PCA">
+              <CreatePCA />
+            </TabPanel>
+            <TabPanel header="Apply PCA">
+              <ApplyPCA />
+            </TabPanel>
+          </TabView>
         </TabPanel>
         <TabPanel header="Spearman">
           <Spearman />

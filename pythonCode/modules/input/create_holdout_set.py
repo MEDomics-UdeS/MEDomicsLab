@@ -85,13 +85,23 @@ class GoExecScriptCreateHoldoutSet(GoExecutionScript):
         # Clean the stratifying subset
         if stratify_bool:
             stratify = stratify.loc[:, columns_to_stratify_with]
-            assert_no_nan_values_for_each_column(stratify)
-            stratify = stratify.dropna(axis=0, how='any')
 
-        if stratify[columns_to_stratify_with].isnull().values.any() and len(columns_to_stratify_with) > 0 and stratify_bool:
+        if stratify[columns_to_stratify_with].isnull().values.any() and len(columns_to_stratify_with) > 0:
             if nan_method == 'drop':
-                df_cleaned = df_cleaned.dropna(
-                    subset=columns_to_stratify_with, axis=0)
+                df_cleaned = df_cleaned.dropna(subset=columns_to_stratify_with)
+            elif nan_method == "random":
+                for column in columns_to_stratify_with:
+                    df_cleaned.loc[:, column] = df_cleaned.loc[:, column].fillna(np.random.choice(df_cleaned.loc[:, column][~df_cleaned.loc[:, column].isna()]))
+            elif nan_method == "mean":
+                df_cleaned.loc[:, columns_to_stratify_with] = df_cleaned.loc[:, columns_to_stratify_with].fillna(df_cleaned.loc[:, columns_to_stratify_with].mean())
+            elif nan_method == "median":
+                df_cleaned.loc[:, columns_to_stratify_with] = df_cleaned.loc[:, columns_to_stratify_with].fillna(df_cleaned.loc[:, columns_to_stratify_with].median())
+            elif nan_method == "mode":
+                df_cleaned.loc[:, columns_to_stratify_with] = df_cleaned.loc[:, columns_to_stratify_with].fillna(df_cleaned.loc[:, columns_to_stratify_with].mode().iloc[0])
+            elif nan_method == "bfill":
+                df_cleaned.loc[:, columns_to_stratify_with] = df_cleaned.loc[:, columns_to_stratify_with].bfill()
+            elif nan_method == "ffill":
+                df_cleaned.loc[:, columns_to_stratify_with] = df_cleaned.loc[:, columns_to_stratify_with].ffill()
 
         holdout_set = {}
         train_set = {}

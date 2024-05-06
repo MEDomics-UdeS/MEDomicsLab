@@ -1021,7 +1021,7 @@ export default class MedDataObject {
       } catch (e) {
         // No operation
       } finally {
-        toast.success("Data saved successfully", filePath)
+        toast.success(`Data saved successfully: ${filePath}`)
       }
     } else if (extension === "json") {
       try {

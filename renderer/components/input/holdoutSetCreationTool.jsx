@@ -17,6 +17,7 @@ import { ErrorRequestContext } from "../generalPurpose/errorRequestContext"
 import SaveDataset from "../generalPurpose/saveDataset"
 import { Message } from "primereact/message"
 import { cleanString, updateListOfDatasets } from "./simpleToolsUtils"
+import { bottom } from "@popperjs/core"
 
 /**
  * Component that renders the holdout set creation tool
@@ -40,7 +41,7 @@ const HoldoutSetCreationTool = ({ pageId = "inputModule", configPath = "" }) => 
   const [isProgressUpdating, setIsProgressUpdating] = useState(false) // To check if the progress is updating
   const [nanMethod, setNaNMethod] = useState("drop") // The NaN method to use
   const [seed, setSeed] = useState(54288) // The seed for the random number generation
-  const nanMethods = ["drop", "bfill", "ffill"] // The NaN methods
+  const nanMethods = ["drop", "random", "mean", "median", "mode", "bfill", "ffill"] // The NaN methods
 
   /**
    * To handle the column selection
@@ -158,7 +159,7 @@ const HoldoutSetCreationTool = ({ pageId = "inputModule", configPath = "" }) => 
     JSONToSend.payload["shuffle"] = options.shuffle
     JSONToSend.payload["stratify"] = options.stratify
     JSONToSend.payload["columnsToStratifyWith"] = selectedColumns
-    JSONToSend.payload["nanMethod"] = "drop"
+    JSONToSend.payload["nanMethod"] = nanMethod
     JSONToSend.payload["randomState"] = seed
     newDatasetObject.relatedInformation = JSONToSend
     console.log("JSONToSend", JSONToSend)
@@ -303,14 +304,16 @@ const HoldoutSetCreationTool = ({ pageId = "inputModule", configPath = "" }) => 
             </Row>
             <Row style={{ display: "flex", justifyContent: "space-evenly", flexDirection: "row", marginTop: "0.5rem", alignContent: "center" }}>
               <Col style={{ display: "flex", flexDirection: "row", alignContent: "center", alignItems: "center" }}>
-                <label htmlFor="minmax-buttons" className="font-bold block mb-2">
-                  NaN method{" "}
+                <label htmlFor="nan-method" className="font-bold block mb-2">
+                  NaN method &nbsp;
                 </label>
-
                 <Dropdown
+                  inputId="nan-method"
                   className="w-100"
                   value={nanMethod}
                   options={nanMethods}
+                  tooltip="The NaN method only applies to the stratified columns"
+                  tooltipOptions={{ position: bottom }}
                   onChange={(e) => {
                     setNaNMethod(e.target.value)
                   }}

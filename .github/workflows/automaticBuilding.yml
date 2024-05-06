@@ -150,7 +150,7 @@ jobs:
       - name: Install Python 2.7
         uses: actions/setup-python@v2
         with:
-          python-version: 3.7
+          python-version: 3.9
       - name: Bash python 1st try
         run: |
           echo $PATH
@@ -209,6 +209,10 @@ jobs:
         run: |
           node -p "let pkg=require('./package.json'); pkg.version='${GITHUB_REF/refs\/tags\//}'; require('fs').writeFileSync('package.json', JSON.stringify(pkg, null, 2));"
           echo "Version updated to ${GITHUB_REF/refs\/tags\//}"
+
+      # Before building the app, allocate more memory to the shell
+      - name: Allocate more memory
+        run: export NODE_OPTIONS=--max-old-space-size=8192
 
       - name: Build for Mac
         run: npm run build:mac
