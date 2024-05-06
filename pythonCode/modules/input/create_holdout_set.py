@@ -85,8 +85,6 @@ class GoExecScriptCreateHoldoutSet(GoExecutionScript):
         # Clean the stratifying subset
         if stratify_bool:
             stratify = stratify.loc[:, columns_to_stratify_with]
-            #assert_no_nan_values_for_each_column(stratify)
-            #stratify = stratify.dropna(axis=0, how='any')
 
         if stratify[columns_to_stratify_with].isnull().values.any() and len(columns_to_stratify_with) > 0:
             if nan_method == 'drop':
