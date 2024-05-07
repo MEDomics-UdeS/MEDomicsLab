@@ -41,7 +41,7 @@ const HoldoutSetCreationTool = ({ pageId = "inputModule", configPath = "" }) => 
   const [isProgressUpdating, setIsProgressUpdating] = useState(false) // To check if the progress is updating
   const [nanMethod, setNaNMethod] = useState("drop") // The NaN method to use
   const [seed, setSeed] = useState(54288) // The seed for the random number generation
-  const nanMethods = ["drop", "random", "mean", "median", "mode", "bfill", "ffill"] // The NaN methods
+  const nanMethods = ["drop", "random fill", "mean fill", "median fill", "mode fill", "bfill", "ffill"] // The NaN methods
 
   /**
    * To handle the column selection

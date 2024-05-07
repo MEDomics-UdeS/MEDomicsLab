@@ -15,6 +15,9 @@ import { requestBackend } from "../../utilities/requests"
 import { WorkspaceContext } from "../workspace/workspaceContext"
 import { ErrorRequestContext } from "../generalPurpose/errorRequestContext"
 import { updateListOfDatasets } from "./simpleToolsUtils"
+import { SelectButton } from "primereact/selectbutton"
+import { Message } from "primereact/message"
+import { toast } from "react-toastify"
 
 /**
  * Component that renders the simple cleaning tool
@@ -37,7 +40,9 @@ const SimpleCleaningTool = ({ pageId = "inputModule" }) => {
   const [newLocalDatasetExtension, setNewLocalDatasetExtension] = useState("csv") // The extension of the new dataset
   const [cleanType, setCleanType] = useState("columns") // The clean type [columns, rows]
   const [cleanMethod, setCleanMethod] = useState("drop") // The selected clean method
-  const cleanMethods = ["drop", "random", "mean", "median", "mode", "bfill", "ffill"] // The cleaning methods
+  const [startWith, setStartWith] = useState("Columns") // Columns or rows
+  const [cleanConsidering, setCleanConsidering] = useState("Highlighted elements") // While proceeding in sequence, choose to clean using the highlighted elements or the thresholds
+  const cleanMethods = ["drop", "random fill", "mean fill", "median fill", "mode fill", "bfill", "ffill"] // The cleaning methods
   const opCol = React.useRef(null)
 
   /**
@@ -74,6 +79,7 @@ const SimpleCleaningTool = ({ pageId = "inputModule" }) => {
     infos.rowsCount = data.count().$data
 
     infos.columnsCount = data.count({ axis: 0 }).$data
+    infos.columnNames = data.$columns
     return infos
   }
 
@@ -94,7 +100,6 @@ const SimpleCleaningTool = ({ pageId = "inputModule" }) => {
     })
     const formatData = loadData.then((data) => {
       data.applyMap(formatNaN, { inplace: true })
-      console.log("DATA0", data)
       return data
     })
     return formatData
@@ -108,8 +113,8 @@ const SimpleCleaningTool = ({ pageId = "inputModule" }) => {
       getData().then((data) => {
         let infos = getInfos(data)
         let newColumnsInfos = []
-        infos.columnsCount.forEach((column) => {
-          newColumnsInfos.push({ label: column, value: infos.rowsLength - column, percentage: ((infos.rowsLength - column) / infos.rowsLength) * 100 })
+        infos.columnsCount.forEach((column, index) => {
+          newColumnsInfos.push({ label: infos.columnNames[index], value: infos.rowsLength - column, percentage: ((infos.rowsLength - column) / infos.rowsLength) * 100 })
         })
         setColumnsInfos(newColumnsInfos)
         let newRowsInfos = []
@@ -165,25 +170,48 @@ const SimpleCleaningTool = ({ pageId = "inputModule" }) => {
    * @param {boolean} overwrite wether to overwrite or not the csv file
    */
   const clean = (type, overwrite) => {
-    requestBackend(
-      port,
-      "/input/clean/" + pageId,
-      {
+    let jsonToSend = {}
+    if (type == "all") {
+      jsonToSend = {
         type: type,
-        overwrite: overwrite
-      },
-      (jsonResponse) => {
-        if (jsonResponse.error) {
-          if (typeof jsonResponse.error == "string") {
-            jsonResponse.error = JSON.parse(jsonResponse.error)
-          }
-          setError(jsonResponse.error)
-        } else {
-          console.log("jsonResponse", jsonResponse)
-          MedDataObject.updateWorkspaceDataObject()
-        }
+        cleanMethod: cleanMethod,
+        overwrite: overwrite,
+        path: selectedDataset.path,
+        startWith: startWith,
+        cleanConsidering: cleanConsidering,
+        rowThreshold: rowThreshold,
+        columnThreshold: columnThreshold,
+        rowsToClean: rowsToClean,
+        columnsToClean: columnsToClean,
+        newDatasetName: newDatasetName,
+        newDatasetExtension: newDatasetExtension
       }
-    )
+    } else {
+      jsonToSend = {
+        type: type,
+        cleanMethod: cleanMethod,
+        overwrite: overwrite,
+        path: selectedDataset.path,
+        rowThreshold: rowThreshold,
+        columnThreshold: columnThreshold,
+        rowsToClean: rowsToClean,
+        columnsToClean: columnsToClean,
+        newDatasetName: newLocalDatasetName,
+        newDatasetExtension: newLocalDatasetExtension
+      }
+    }
+    requestBackend(port, "/input/clean/" + pageId, jsonToSend, (jsonResponse) => {
+      if (jsonResponse.error) {
+        if (typeof jsonResponse.error == "string") {
+          jsonResponse.error = JSON.parse(jsonResponse.error)
+        }
+        setError(jsonResponse.error)
+      } else {
+        console.log("jsonResponse", jsonResponse)
+        MedDataObject.updateWorkspaceDataObject()
+        toast.success("DATA saved successfully under " + jsonResponse["result_path"])
+      }
+    })
   }
 
   /**
@@ -242,7 +270,7 @@ const SimpleCleaningTool = ({ pageId = "inputModule" }) => {
             value={selectedDataset ? selectedDataset.getUUID() : null}
             onChange={handleSelectedDatasetChange}
           ></Dropdown>
-
+          <hr></hr>
           <Row style={{ display: "flex", justifyContent: "space-evenly", flexDirection: "row", marginTop: "0.5rem" }}>
             <DataTable
               size={"small"}
@@ -291,14 +319,12 @@ const SimpleCleaningTool = ({ pageId = "inputModule" }) => {
               ></Column>
             </DataTable>
           </Row>
-
-          <Row style={{ display: "flex", justifyContent: "space-evenly", flexDirection: "row", marginTop: "0.5rem" }}>
-            <Col>
-              <b>Clean Method &nbsp;</b>
-              <Dropdown value={cleanMethod} onChange={(e) => setCleanMethod(e.value)} options={cleanMethods} />
-            </Col>
-          </Row>
-
+          <hr></hr>
+          <div style={{ display: "flex", marginTop: "0.5rem", alignContent: "center", alignItems: "center", justifyContent: "center" }}>
+            <h6>Clean Method &nbsp;</h6>
+            <Dropdown value={cleanMethod} onChange={(e) => setCleanMethod(e.value)} options={cleanMethods} />
+          </div>
+          <hr></hr>
           <Row className={"card"} style={{ display: "flex", justifyContent: "space-evenly", flexDirection: "row", marginTop: "0.5rem", backgroundColor: "transparent", padding: "0.5rem" }}>
             <Col className="align-items-center " style={{ display: "flex" }}>
               <label htmlFor="minmax-buttons" className="font-bold block mb-2">
@@ -417,6 +443,29 @@ const SimpleCleaningTool = ({ pageId = "inputModule" }) => {
               </Col>
             </Row>
           </Row>
+          <hr></hr>
+          <Message text="The following options are considered if you press the Create button while selecting both rows and columns to clean." style={{ display: "flex", alignItems: "center" }} />
+          <div style={{ display: "flex", marginTop: "0.5rem", alignContent: "center", alignItems: "center", justifyContent: "space-evenly" }}>
+            <div>
+              <h6>Begin cleaning with &nbsp;</h6>
+              <SelectButton
+                value={startWith}
+                onChange={(e) => setStartWith(e.value)}
+                options={["Columns", "Rows"]}
+                tooltip="The process will be executed sequently beginning by the selected option."
+              />
+            </div>
+            <div>
+              <h6>Clean considering &nbsp;</h6>
+              <SelectButton
+                value={cleanConsidering}
+                onChange={(e) => setCleanConsidering(e.value)}
+                options={["Highlighted elements", "Threshold"]}
+                tooltip={`Highlighted elements option will apply cleaning to all the highlighted elements, while the threshold will recalculate the elements to clean after processing ${startWith}.`}
+              />
+            </div>
+          </div>
+          <hr></hr>
           <SaveDataset
             newDatasetName={newDatasetName}
             newDatasetExtension={newDatasetExtension}

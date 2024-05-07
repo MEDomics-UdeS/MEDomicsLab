@@ -7,7 +7,7 @@ from pathlib import Path
 import os
 sys.path.append(
     str(Path(os.path.dirname(os.path.abspath(__file__))).parent.parent))
-from med_libs.input_utils.dataframe_utilities import load_data_file, save_dataframe, assert_no_nan_values_for_each_column, handle_tags_in_dataframe
+from med_libs.input_utils.dataframe_utilities import load_data_file, save_dataframe, assert_no_nan_values_for_each_column, handle_tags_in_dataframe, clean_columns
 from med_libs.GoExecutionScript import GoExecutionScript, parse_arguments
 from med_libs.server_utils import go_print
 
@@ -88,20 +88,9 @@ class GoExecScriptCreateHoldoutSet(GoExecutionScript):
 
         if stratify[columns_to_stratify_with].isnull().values.any() and len(columns_to_stratify_with) > 0:
             if nan_method == 'drop':
-                df_cleaned = df_cleaned.dropna(subset=columns_to_stratify_with)
-            elif nan_method == "random":
-                for column in columns_to_stratify_with:
-                    df_cleaned.loc[:, column] = df_cleaned.loc[:, column].fillna(np.random.choice(df_cleaned.loc[:, column][~df_cleaned.loc[:, column].isna()]))
-            elif nan_method == "mean":
-                df_cleaned.loc[:, columns_to_stratify_with] = df_cleaned.loc[:, columns_to_stratify_with].fillna(df_cleaned.loc[:, columns_to_stratify_with].mean())
-            elif nan_method == "median":
-                df_cleaned.loc[:, columns_to_stratify_with] = df_cleaned.loc[:, columns_to_stratify_with].fillna(df_cleaned.loc[:, columns_to_stratify_with].median())
-            elif nan_method == "mode":
-                df_cleaned.loc[:, columns_to_stratify_with] = df_cleaned.loc[:, columns_to_stratify_with].fillna(df_cleaned.loc[:, columns_to_stratify_with].mode().iloc[0])
-            elif nan_method == "bfill":
-                df_cleaned.loc[:, columns_to_stratify_with] = df_cleaned.loc[:, columns_to_stratify_with].bfill()
-            elif nan_method == "ffill":
-                df_cleaned.loc[:, columns_to_stratify_with] = df_cleaned.loc[:, columns_to_stratify_with].ffill()
+                df_cleaned = clean_columns(df_cleaned, columns_to_stratify_with, "drop empty")
+            else:
+                df_cleaned = clean_columns(df_cleaned, columns_to_stratify_with, nan_method)
 
         holdout_set = {}
         train_set = {}
