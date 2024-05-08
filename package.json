@@ -42,7 +42,7 @@
     "nsis": {},
     "linux": {
       "target": "deb",
-      "icon": "app/assets/icon.png",
+      "icon": "resources/icons",
       "maintainer": "medomicslab.udes@gmail.com"
     },
     "publish": null
