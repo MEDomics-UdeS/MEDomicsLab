@@ -39,9 +39,9 @@ const HoldoutSetCreationTool = ({ pageId = "inputModule", configPath = "" }) => 
   const [newDatasetExtension, setNewDatasetExtension] = useState("csv") // The extension of the new dataset
   const [progress, setProgress] = useState({ now: 0, currentLabel: "" }) // The progress of the holdout set creation
   const [isProgressUpdating, setIsProgressUpdating] = useState(false) // To check if the progress is updating
-  const [nanMethod, setNaNMethod] = useState("drop") // The NaN method to use
+  const [emptyCellsMethod, setEmptyCellsMethod] = useState("drop") // The NaN method to use
   const [seed, setSeed] = useState(54288) // The seed for the random number generation
-  const nanMethods = ["drop", "random fill", "mean fill", "median fill", "mode fill", "bfill", "ffill"] // The NaN methods
+  const emptyCellsMethods = ["drop", "random fill", "mean fill", "median fill", "mode fill", "bfill", "ffill"] // The NaN methods
 
   /**
    * To handle the column selection
@@ -159,7 +159,7 @@ const HoldoutSetCreationTool = ({ pageId = "inputModule", configPath = "" }) => 
     JSONToSend.payload["shuffle"] = options.shuffle
     JSONToSend.payload["stratify"] = options.stratify
     JSONToSend.payload["columnsToStratifyWith"] = selectedColumns
-    JSONToSend.payload["nanMethod"] = nanMethod
+    JSONToSend.payload["nanMethod"] = emptyCellsMethod
     JSONToSend.payload["randomState"] = seed
     newDatasetObject.relatedInformation = JSONToSend
     console.log("JSONToSend", JSONToSend)
@@ -192,8 +192,21 @@ const HoldoutSetCreationTool = ({ pageId = "inputModule", configPath = "" }) => 
 
   return (
     <>
-      <div className="flex-container">
-        <Message text="This tool will create a folder containing your holdout and learning sets." />
+      <div className="margin-top-15 margin-bottom-15 center">
+        <Message
+          content={
+            <div>
+              <i className="pi pi-info-circle" />
+              &nbsp; The Holdout Set Creation tool serves as a visual representation of the{" "}
+              <i>
+                <a href="https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.train_test_split.html" target="_blank">
+                  scikit-learn Python package's model_selection train_test_split function
+                </a>
+              </i>
+              . This tool will create a folder containing your holdout and learning sets.
+            </div>
+          }
+        />
       </div>
       <Row className="holdout-set">
         <Col>
@@ -305,17 +318,17 @@ const HoldoutSetCreationTool = ({ pageId = "inputModule", configPath = "" }) => 
             <Row style={{ display: "flex", justifyContent: "space-evenly", flexDirection: "row", marginTop: "0.5rem", alignContent: "center" }}>
               <Col style={{ display: "flex", flexDirection: "row", alignContent: "center", alignItems: "center" }}>
                 <label htmlFor="nan-method" className="font-bold block mb-2">
-                  NaN method &nbsp;
+                  Empty cells method &nbsp;
                 </label>
                 <Dropdown
                   inputId="nan-method"
                   className="w-100"
-                  value={nanMethod}
-                  options={nanMethods}
-                  tooltip="The NaN method only applies to the stratified columns"
+                  value={emptyCellsMethod}
+                  options={emptyCellsMethods}
+                  tooltip="The empty cells method only applies to the stratified columns"
                   tooltipOptions={{ position: bottom }}
                   onChange={(e) => {
-                    setNaNMethod(e.target.value)
+                    setEmptyCellsMethod(e.target.value)
                   }}
                 />
               </Col>

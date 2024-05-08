@@ -205,6 +205,10 @@ const Spearman = () => {
   return (
     <>
       <div className="margin-top-15 center">
+        <Message text="The Spearman tool enables you to compute correlations between columns in your data and a specified target. It also allows you to select columns to keep in your dataset based on the computed correlations." />
+      </div>
+      <hr></hr>
+      <div className="margin-top-15 center">
         {/* Select CSV data */}
         <b>Select the data you want to apply Spearman on</b>
         <div className="margin-top-15">

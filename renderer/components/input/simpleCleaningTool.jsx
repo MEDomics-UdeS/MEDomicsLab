@@ -258,6 +258,10 @@ const SimpleCleaningTool = ({ pageId = "inputModule" }) => {
 
   return (
     <>
+      <div className="margin-top-15 center">
+        <Message text="The Simple Cleaning tool assists in handling missing values within your datasets, whether by rows, columns, or both. It provides various methods such as dropping missing values or filling them in." />
+      </div>
+      <hr></hr>
       <Row className="simple-cleaning-set">
         <Col>
           <h6>Select the dataset you want to clean</h6>

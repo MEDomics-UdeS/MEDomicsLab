@@ -12,6 +12,7 @@ import ProgressBarRequests from "../generalPurpose/progressBarRequests"
 import { ErrorRequestContext } from "../generalPurpose/errorRequestContext"
 import SaveDataset from "../generalPurpose/saveDataset"
 import { cleanString, updateListOfDatasets } from "./simpleToolsUtils"
+import { Message } from "primereact/message"
 
 /**
  * Merging tool
@@ -309,6 +310,23 @@ const MergeTool = ({ pageId = "42", configPath = null }) => {
 
   return (
     <>
+      <div className="margin-top-15 margin-bottom-15 center">
+        <Message
+          content={
+            <div>
+              <i className="pi pi-info-circle" />
+              &nbsp; The Merge tool functions as a visual representation of the
+              <i>
+                <a href="https://pandas.pydata.org/docs/reference/api/pandas.merge.html" target="_blank">
+                  {" "}
+                  pandas Python library merge function
+                </a>
+              </i>
+              .
+            </div>
+          }
+        />
+      </div>
       <div className="mergeToolMultiSelect">
         <Row className="justify-content-center ">
           <Col

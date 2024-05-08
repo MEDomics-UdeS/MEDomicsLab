@@ -176,6 +176,10 @@ const ApplyPCA = () => {
   return (
     <>
       <div className="margin-top-15 center">
+        <Message text="This tool enables you to perform Principal Component Analysis (PCA) on your selected data using an existing PCA transformation (which you can create using the Create PCA tool)." />
+      </div>
+      <hr></hr>
+      <div className="margin-top-15 center">
         {/* Select CSV data */}
         <b>Select the transformation you want to apply</b>
         <div className="margin-top-15">
