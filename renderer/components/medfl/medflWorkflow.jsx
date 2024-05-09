@@ -1,13 +1,10 @@
-
 import React, { useState, useCallback, useMemo, useEffect, useContext } from "react"
 import { ipcRenderer } from "electron"
 import { toast } from "react-toastify"
-import Form from "react-bootstrap/Form"
 import { useNodesState, useEdgesState, useReactFlow, addEdge } from "reactflow"
 import WorkflowBase from "../flow/workflowBase"
 import { loadJsonSync } from "../../utilities/fileManagementUtils"
 import { requestBackend } from "../../utilities/requests"
-import EditableLabel from "react-simple-editlabel"
 import BtnDiv from "../flow/btnDiv"
 import ProgressBarRequests from "../generalPurpose/progressBarRequests"
 import { PageInfosContext } from "../mainPages/moduleBasics/pageInfosContext"
@@ -21,7 +18,6 @@ import { sceneDescription } from "../../public/setupVariables/learningNodesParam
 
 // here are the different types of nodes implemented in the workflow
 
-
 // here are the parameters of the nodes
 import nodesParams from "../../public/setupVariables/allNodesParams"
 
@@ -34,13 +30,18 @@ import StandardNode from "../learning/nodesTypes/standardNode.jsx"
 import SelectionNode from "../learning/nodesTypes/selectionNode.jsx"
 import GroupNode from "../flow/groupNode.jsx"
 import OptimizeIO from "../learning/nodesTypes/optimizeIO.jsx"
-import DatasetNode from "../learning/nodesTypes/datasetNode.jsx"
 import LoadModelNode from "../learning/nodesTypes/loadModelNode.jsx"
-import FlDatasetNode from "./nodesTypes/flDatasetNode.jsx"
 import NetworkNode from "./nodesTypes/networkNode.jsx"
 import FlClientNode from "./nodesTypes/flClientNode.jsx"
 import FlServerNode from "./nodesTypes/flServerNode.jsx"
 import FlSetupNode from "./nodesTypes/flSetupNode.jsx"
+import MasterDatasetNode from "./nodesTypes/masterDatasetNode.jsx"
+import FlDatasetNode from "./nodesTypes/flDatasetNode.jsx"
+import FlModelNode from "./nodesTypes/flModelNode.jsx"
+import FlOptimizeNode from "./nodesTypes/flOptimizeNode.jsx"
+import FlStrategyNode from "./nodesTypes/flStrategyNode.jsx"
+import FlPipelineNode from "./nodesTypes/flPipelineNode.jsx"
+import FlResultsNode from "./nodesTypes/flResultsNode.jsx"
 
 const staticNodesParams = nodesParams // represents static nodes parameters
 
@@ -82,16 +83,21 @@ const MedflWorkflow = ({ setWorkflowType, workflowType }) => {
       selectionNode: SelectionNode,
       groupNode: GroupNode,
       optimizeIO: OptimizeIO,
-      datasetNode: FlDatasetNode,
+      datasetNode: MasterDatasetNode,
       loadModelNode: LoadModelNode,
-      networkNode: NetworkNode, 
-      flClientNode : FlClientNode, 
-      flServerNode : FlServerNode, 
-      flSetupNode : FlSetupNode
+      networkNode: NetworkNode,
+      flClientNode: FlClientNode,
+      flServerNode: FlServerNode,
+      flSetupNode: FlSetupNode,
+      masterDatasetNode: FlDatasetNode,
+      flModelNode: FlModelNode,
+      flOptimizeNode: FlOptimizeNode,
+      flStrategyNode: FlStrategyNode,
+      flPipelineNode: FlPipelineNode,
+      flResultsNode: FlResultsNode
     }),
     []
   )
-
 
   // When config is changed, we update the workflow
   useEffect(() => {
@@ -245,7 +251,8 @@ const MedflWorkflow = ({ setWorkflowType, workflowType }) => {
         edge = {
           ...edge
         }
-        edge.hidden = nodes.find((node) => node.id === edge.source).data.internal.subflowId != activeSubflowId || nodes.find((node) => node.id === edge.target).data.internal.subflowId != activeSubflowId
+        edge.hidden =
+          nodes.find((node) => node.id === edge.source).data.internal.subflowId != activeSubflowId || nodes.find((node) => node.id === edge.target).data.internal.subflowId != activeSubflowId
         return edge
       })
     )
@@ -380,7 +387,7 @@ const MedflWorkflow = ({ setWorkflowType, workflowType }) => {
           if (!node.id.includes("opt")) {
             let subworkflowType = node.data.internal.subflowId != "MAIN" ? "flNetwork" : "fl"
             let setupParams = deepCopy(staticNodesParams[subworkflowType][node.data.internal.type])
-            setupParams.possibleSettings = setupParams["possibleSettings"]
+
             node.data.setupParam = setupParams
           }
         })
@@ -440,8 +447,7 @@ const MedflWorkflow = ({ setWorkflowType, workflowType }) => {
     let setupParams = {}
     if (!newNode.id.includes("opt")) {
       setupParams = deepCopy(staticNodesParams[workflowType][newNode.data.internal.type])
-      console.log("this is the setup" , staticNodesParams[workflowType])
-      setupParams.possibleSettings = setupParams["possibleSettings"]
+      console.log("this is the setup", staticNodesParams[workflowType])
     }
     newNode.id = `${newNode.id}${associatedNode ? `.${associatedNode}` : ""}` // if the node is a sub-group node, it has the id of the parent node seperated by a dot. useful when processing only ids
     newNode.hidden = newNode.type == "optimizeIO"
@@ -466,15 +472,6 @@ const MedflWorkflow = ({ setWorkflowType, workflowType }) => {
     newNode.data.internal.hasWarning = { state: false }
 
     return newNode
-  }
-
-  /**
-   *
-   * @param {function} createBaseNode function to create a base node. Useful to create automatically base nodes in the subflow
-   * @param {String} newId id of the parent node
-   */
-  const groupNodeHandlingDefault = (createBaseNode, newId) => {
-
   }
 
   /**
@@ -795,50 +792,11 @@ const MedflWorkflow = ({ setWorkflowType, workflowType }) => {
   }, [])
 
   /**
-   *
-   * @param {Event} e event object
-   *
-   * This function is called when the user changes the machine learning type
-   */
-  const handleMlTypeChanged = (e) => {
-    confirm("This action resets all node's setting.\nBe sure to save if you want to keep your changes") && setMLType(e.target.value)
-  }
-
-  /**
    * Set the subflow id to null to go back to the main workflow
    */
   const onBack = useCallback(() => {
     changeSubFlow("MAIN")
   }, [])
-
-  /**
-   *
-   * @param {String} value new value of the node name
-   *
-   * This function is called when the user changes the name of the node (focus out of the input).
-   * It checks if the name is over 15 characters and if it is, it displays a warning message.
-   * It then updates the name of the node by calling the updateNode function
-   * this function is specific to groupNodes
-   */
-  const newNameHasBeenWritten = (value) => {
-    let newName = value
-    if (value.length > 15) {
-      newName = value.substring(0, 15)
-      toast.warn("Node name cannot be over 15 characters. Only the first 15 characters will be saved.", {
-        position: "bottom-right",
-        autoClose: 2000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
-        theme: "light",
-        toastId: "customId"
-      })
-    }
-    let groupNode = nodes.find((node) => node.id === groupNodeId.id)
-    groupNode.data.internal.name = newName
-  }
 
   return (
     <>
@@ -859,7 +817,7 @@ const MedflWorkflow = ({ setWorkflowType, workflowType }) => {
         }}
         // optional props
         onDeleteNode={onDeleteNode}
-        groupNodeHandlingDefault={groupNodeHandlingDefault}
+        groupNodeHandlingDefault={() => {}}
         onNodeDrag={onNodeDrag}
         // reprensents the visual over the workflow
         uiTopRight={
@@ -874,38 +832,48 @@ const MedflWorkflow = ({ setWorkflowType, workflowType }) => {
                     { type: "load", onClick: onLoad }
                   ]}
                 />
-              </>)}
-
-
+              </>
+            )}
           </>
         }
-        uiTopCenter={<>
-          {workflowType == "flNetwork" && (
-            <>
-
-              <div>
-                {groupNodeId.id != "fl" && (
-                  <div className="subFlow-title">
-                    Network name
-
-                    <BtnDiv
-                      buttonsList={[
-                        {
-                          type: "back",
-                          onClick: onBack
-                        }
-                      ]}
-                    />
-                  </div>
-                )}
-              </div>
-            </>
-          )}</>}
-
+        uiTopCenter={
+          <>
+            {workflowType == "flNetwork" && (
+              <>
+                <div>
+                  {groupNodeId.id != "fl" && (
+                    <div className="subFlow-title">
+                      Network name
+                      <BtnDiv
+                        buttonsList={[
+                          {
+                            type: "back",
+                            onClick: onBack
+                          }
+                        ]}
+                      />
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
+          </>
+        }
         ui={
           <>
             {/* bottom center - progress bar */}
-            <div className="panel-bottom-center">{isProgressUpdating && <ProgressBarRequests progressBarProps={{ animated: true, variant: "success" }} isUpdating={isProgressUpdating} setIsUpdating={setIsProgressUpdating} progress={progress} setProgress={setProgress} requestTopic={"learning/progress/" + pageId} />}</div>
+            <div className="panel-bottom-center">
+              {isProgressUpdating && (
+                <ProgressBarRequests
+                  progressBarProps={{ animated: true, variant: "success" }}
+                  isUpdating={isProgressUpdating}
+                  setIsUpdating={setIsProgressUpdating}
+                  progress={progress}
+                  setProgress={setProgress}
+                  requestTopic={"learning/progress/" + pageId}
+                />
+              )}
+            </div>
           </>
         }
       />

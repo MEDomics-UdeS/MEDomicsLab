@@ -1,7 +1,3 @@
-import classificationSettings from "./possibleSettings/learning/classificationSettings";
-import regressionSettings from "./possibleSettings/learning/regressionSettings";
-import classificationModelsSettings from "./possibleSettings/learning/classificationModelSettings"
-import regressionModelsSettings from "./possibleSettings/learning/regressionModelSettings"
 import flSettings from "./possibleSettings/MEDfl/flSettings";
 
 /* eslint-disable */

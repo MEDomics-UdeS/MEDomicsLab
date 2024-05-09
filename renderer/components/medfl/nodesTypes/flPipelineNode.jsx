@@ -2,7 +2,7 @@ import React from "react"
 import Node from "../../flow/node"
 import FlInput from "../flInput"
 
-export default function FlDatasetNode({ id, data }) {
+export default function FlPipelineNode({ id, data }) {
   // context
 
   return (
@@ -19,22 +19,12 @@ export default function FlDatasetNode({ id, data }) {
         defaultSettings={
           <>
             <FlInput
-              name="Validation fraction"
+              name="Pipeline description"
               settingInfos={{
-                type: "float",
-                tooltip: "The validation fraction  refers to the proportion of data reserved for evaluating model performance during training, typically separate from both the training and test sets"
+                type: "string",
+                tooltip: "Specify the desription of the federated setup"
               }}
-              currentValue={10}
-              onInputChange={() => {}}
-              setHasWarning={() => {}}
-            />
-            <FlInput
-              name="Test fraction"
-              settingInfos={{
-                type: "float",
-                tooltip: "The Test fraction  refers to the proportion of data reserved for testing model performance for each node "
-              }}
-              currentValue={10}
+              currentValue={""}
               onInputChange={() => {}}
               setHasWarning={() => {}}
             />

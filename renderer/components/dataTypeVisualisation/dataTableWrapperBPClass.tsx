@@ -23,7 +23,18 @@ export type getName = (columnIndex: number) => string // function that returns t
 
 export interface SortableColumn {
   // interface for the sortable column
-  getColumn(getCellRenderer: CellLookup, getCellData: CellLookup, sortColumn: SortCallback, filterColumn: FilterCallback, nameRenderer: nameRenderer, colName: getName, getFilterValue: getName, freezeColumn: any, isFrozen: any, getReorderedIndex: (number: number) => number): JSX.Element
+  getColumn(
+    getCellRenderer: CellLookup,
+    getCellData: CellLookup,
+    sortColumn: SortCallback,
+    filterColumn: FilterCallback,
+    nameRenderer: nameRenderer,
+    colName: getName,
+    getFilterValue: getName,
+    freezeColumn: any,
+    isFrozen: any,
+    getReorderedIndex: (number: number) => number
+  ): JSX.Element
 }
 
 /**
@@ -56,7 +67,18 @@ abstract class AbstractSortableColumn implements SortableColumn {
    * @param filterColumn - function that filters the column
    * @returns JSX.Element - column
    */
-  public getColumn(getCellRenderer: CellLookup, getCellData: CellLookup, sortColumn: SortCallback, filterColumn: FilterCallback, nameRenderer: nameRenderer, getName: getName, getFilterValue: getName, freezeColumn: any, getIsFrozen: any, getReorderedIndex: (number: number) => any) {
+  public getColumn(
+    getCellRenderer: CellLookup,
+    getCellData: CellLookup,
+    sortColumn: SortCallback,
+    filterColumn: FilterCallback,
+    nameRenderer: nameRenderer,
+    getName: getName,
+    getFilterValue: getName,
+    freezeColumn: any,
+    getIsFrozen: any,
+    getReorderedIndex: (number: number) => any
+  ) {
     const menuRenderer = this.renderMenu.bind(this, sortColumn, freezeColumn, getIsFrozen) // bind the sortColumn function to the menuRenderer
     // const filterThisColumn = (filterValue: string) => filterColumn(this.index, filterValue) // bind the filterColumn function to the filterThisColumn function
     const columnHeaderCellRenderer = () => (
@@ -718,15 +740,34 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
     const columns = this.state.columns.map(
       (
         col // get the columns
-      ) => col.getColumn(this.getCellRenderer, this.getCellData, this.sortColumn, this.filterColumn, this.getColumnNameRenderer, this.getColumnNameFromColumnIndex, this.getFilterValue, this.freezeColumn, this.getIsFrozen, this.getCorrectedColumnIndex)
+      ) =>
+        col.getColumn(
+          this.getCellRenderer,
+          this.getCellData,
+          this.sortColumn,
+          this.filterColumn,
+          this.getColumnNameRenderer,
+          this.getColumnNameFromColumnIndex,
+          this.getFilterValue,
+          this.freezeColumn,
+          this.getIsFrozen,
+          this.getCorrectedColumnIndex
+        )
     )
 
     const numFrozenColumns = this.state.frozenColumns.length
 
     return (
       <div className="bp-datatable-wrapper">
-        <ChevronRight className={`bp-datatable-wrapper-options-icon ${this.state.options.isOpen ? "bp-datatable-wrapper-options-icon-open rotate-90-cw" : "bp-datatable-wrapper-options-icon-closed rotate--90-cw"}`} />
-        <div className="bp-datatable-wrapper-title" style={{ display: "flex", flexDirection: "horizontal" }} onMouseEnter={() => this.setState({ options: { ...this.state.options, isOpen: true } })} onMouseLeave={() => this.setState({ options: { ...this.state.options, isOpen: false } })}>
+        <ChevronRight
+          className={`bp-datatable-wrapper-options-icon ${this.state.options.isOpen ? "bp-datatable-wrapper-options-icon-open rotate-90-cw" : "bp-datatable-wrapper-options-icon-closed rotate--90-cw"}`}
+        />
+        <div
+          className="bp-datatable-wrapper-title"
+          style={{ display: "flex", flexDirection: "horizontal" }}
+          onMouseEnter={() => this.setState({ options: { ...this.state.options, isOpen: true } })}
+          onMouseLeave={() => this.setState({ options: { ...this.state.options, isOpen: false } })}
+        >
           <Collapse isOpen={this.state.options.isOpen}>
             <Stack direction="horizontal" gap={3} style={{ position: "relative", top: "-5px", right: "0px" }}>
               <Button
@@ -884,7 +925,15 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
       rowIndex = sortedRowIndex // if the sorted row index is not null, set the row index to the sorted row index
     }
 
-    return <EditableCell2 intent={this.state.sparseCellIntent[`${rowIndex}-${[this.state.columnIndexMap[columnIndex]]}`]} value={this.getCellData(rowIndex, columnIndex)} onCancel={this.cellValidator(rowIndex, columnIndex)} onChange={this.cellValidator(rowIndex, columnIndex)} onConfirm={this.cellSetter(rowIndex, columnIndex)}></EditableCell2>
+    return (
+      <EditableCell2
+        intent={this.state.sparseCellIntent[`${rowIndex}-${[this.state.columnIndexMap[columnIndex]]}`]}
+        value={this.getCellData(rowIndex, columnIndex)}
+        onCancel={this.cellValidator(rowIndex, columnIndex)}
+        onChange={this.cellValidator(rowIndex, columnIndex)}
+        onConfirm={this.cellSetter(rowIndex, columnIndex)}
+      ></EditableCell2>
+    )
   }
 
   /**
@@ -893,7 +942,15 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
    * @returns columnNameRenderer - column name renderer
    */
   private getColumnNameRenderer = (name: string, columnIndex: number) => {
-    return <EditableName index={columnIndex} name={this.getName(columnIndex)} onCancel={this.columnNameValidator(columnIndex)} onChange={this.columnNameValidator(columnIndex)} onConfirm={this.columnNameSetter(columnIndex)} />
+    return (
+      <EditableName
+        index={columnIndex}
+        name={this.getName(columnIndex)}
+        onCancel={this.columnNameValidator(columnIndex)}
+        onChange={this.columnNameValidator(columnIndex)}
+        onConfirm={this.columnNameSetter(columnIndex)}
+      />
+    )
   }
 
   /**
