@@ -16,7 +16,7 @@ go_print("running script.py:" + id_)
 
 class GoExecScriptClean(GoExecutionScript):
     """
-        This class is used to execute the merge script
+        This class is used to execute the clean script
 
         Args:
             json_params: The input json params
@@ -29,9 +29,8 @@ class GoExecScriptClean(GoExecutionScript):
 
     def _custom_process(self, json_config: dict) -> dict:
         """
-        This function is used to compute PCA from a dataset, 
-        a set of the dataset columns and a number of principal
-        components to keep.
+        This function is used to clean a dataset by removing rows or columns
+        with missing values.
 
         Args:
             json_config: The input json params
