@@ -115,7 +115,13 @@ const MEDprofilesPrepareData = () => {
     let keys = Object.keys(globalData)
     let folderListToShow = []
     keys.forEach((key) => {
-      if (globalData[key].type == "folder" && globalData[key].name == "MEDclasses" && globalData[key].path.includes("DATA") && globalData[key]?.parentID && globalData[globalData[key]?.parentID].name == "MEDclasses") {
+      if (
+        globalData[key].type == "folder" &&
+        globalData[key].name == "MEDclasses" &&
+        globalData[key].path.includes("DATA") &&
+        globalData[key]?.parentID &&
+        globalData[globalData[key]?.parentID].name == "MEDclasses"
+      ) {
         folderListToShow.push(globalData[key])
       }
     })
@@ -480,7 +486,13 @@ const MEDprofilesPrepareData = () => {
       }
       let keys = Object.keys(globalData)
       keys.forEach((key) => {
-        if (globalData[key].type == "folder" && globalData[key].name == "master_tables" && globalData[key].path?.includes("DATA") && globalData[key].path?.includes("MEDprofiles") && globalData[key].childrenIDs?.length > 0) {
+        if (
+          globalData[key].type == "folder" &&
+          globalData[key].name == "master_tables" &&
+          globalData[key].path?.includes("DATA") &&
+          globalData[key].path?.includes("MEDprofiles") &&
+          globalData[key].childrenIDs?.length > 0
+        ) {
           setDataFolder(globalData[key])
         } else if (dataFolder == null && globalData[key].type == "folder" && globalData[key].name == "extracted_features" && globalData[key].path?.includes("DATA")) {
           setDataFolder(globalData[key])
@@ -539,10 +551,41 @@ const MEDprofilesPrepareData = () => {
 
   return (
     <>
+      <div className="margin-top-15 margin-bottom-15 center">
+        <Message
+          content={
+            <div>
+              <i className="pi pi-info-circle" />
+              &nbsp; This tool is an implementation of the
+              <i>
+                <a href="https://github.com/MEDomics-UdeS/MEDprofiles" target="_blank">
+                  {" "}
+                  MEDprofiles package
+                </a>
+              </i>
+              .
+            </div>
+          }
+        />
+      </div>
       <div>
         <div className="margin-top-15 centered-container">
           <h5>Select the location of your master table data folder &nbsp;</h5>
-          <div className="margin-top-15">{folderList.length > 0 ? <Dropdown value={dataFolder} options={folderList} filter optionLabel="name" onChange={(event) => setDataFolder(event.value)} placeholder="Select a folder" disabled={loadingMasterTables || loadingSubMasterTables} /> : <Dropdown placeholder="No folder to show" disabled />}</div>
+          <div className="margin-top-15">
+            {folderList.length > 0 ? (
+              <Dropdown
+                value={dataFolder}
+                options={folderList}
+                filter
+                optionLabel="name"
+                onChange={(event) => setDataFolder(event.value)}
+                placeholder="Select a folder"
+                disabled={loadingMasterTables || loadingSubMasterTables}
+              />
+            ) : (
+              <Dropdown placeholder="No folder to show" disabled />
+            )}
+          </div>
         </div>
         <hr></hr>
         <div className="margin-top-15">
@@ -555,7 +598,22 @@ const MEDprofilesPrepareData = () => {
         <div className="margin-top-15 flex-container">
           <div className="mergeToolMultiSelect">
             {loadingSubMasterTables == true && <ProgressSpinner style={{ width: "40px", height: "40px" }} />}
-            {subMasterTableFileList?.length > 0 ? <MultiSelect style={{ maxWidth: "200px" }} value={selectedSubMasterTableFiles} onChange={(e) => setSelectedSubMasterTableFiles(e.value)} options={subMasterTableFileList} optionLabel="name" className="w-full md:w-14rem margintop8px" display="chip" placeholder="Select CSV files" /> : loadingSubMasterTables == true ? <MultiSelect placeholder="Loading..." disabled /> : <MultiSelect placeholder="No CSV files to show" disabled />}
+            {subMasterTableFileList?.length > 0 ? (
+              <MultiSelect
+                style={{ maxWidth: "200px" }}
+                value={selectedSubMasterTableFiles}
+                onChange={(e) => setSelectedSubMasterTableFiles(e.value)}
+                options={subMasterTableFileList}
+                optionLabel="name"
+                className="w-full md:w-14rem margintop8px"
+                display="chip"
+                placeholder="Select CSV files"
+              />
+            ) : loadingSubMasterTables == true ? (
+              <MultiSelect placeholder="Loading..." disabled />
+            ) : (
+              <MultiSelect placeholder="No CSV files to show" disabled />
+            )}
             <div>
               <Button disabled={!selectedSubMasterTableFiles || selectedSubMasterTableFiles?.length < 1 || !matchingIdColumns} onClick={createMasterTable}>
                 Create Master Table
@@ -568,7 +626,15 @@ const MEDprofilesPrepareData = () => {
           </div>
           <div className="vertical-divider"></div>
           <div>{loadingMasterTables == true && <ProgressSpinner style={{ width: "40px", height: "40px" }} />}</div>
-          <div>{masterTableFileList.length > 0 ? <Dropdown value={selectedMasterTable} options={masterTableFileList} optionLabel="name" onChange={(event) => setSelectedMasterTable(event.value)} placeholder="Select a master table" /> : loadingMasterTables == true ? <Dropdown placeholder="Loading..." disabled /> : <Dropdown placeholder="No CSV files to show" disabled />}</div>
+          <div>
+            {masterTableFileList.length > 0 ? (
+              <Dropdown value={selectedMasterTable} options={masterTableFileList} optionLabel="name" onChange={(event) => setSelectedMasterTable(event.value)} placeholder="Select a master table" />
+            ) : loadingMasterTables == true ? (
+              <Dropdown placeholder="Loading..." disabled />
+            ) : (
+              <Dropdown placeholder="No CSV files to show" disabled />
+            )}
+          </div>
         </div>
         <div className="margin-top-15">{generatedMasterPath && <>Master Table generated at : {generatedMasterPath}</>}</div>
       </div>
@@ -608,11 +674,33 @@ const MEDprofilesPrepareData = () => {
       <div className="margin-top-15 flex-container">
         <div>
           MEDclasses folder : &nbsp;
-          {MEDclassesFolderList.length > 0 ? <Dropdown style={{ width: "250px" }} value={generatedClassesFolder} options={MEDclassesFolderList} onChange={(event) => setGeneratedClassesFolder(event.value)} optionLabel="path" placeholder="Select your MEDclasses folder" /> : <Dropdown placeholder="No Folder to show" disabled />}
+          {MEDclassesFolderList.length > 0 ? (
+            <Dropdown
+              style={{ width: "250px" }}
+              value={generatedClassesFolder}
+              options={MEDclassesFolderList}
+              onChange={(event) => setGeneratedClassesFolder(event.value)}
+              optionLabel="path"
+              placeholder="Select your MEDclasses folder"
+            />
+          ) : (
+            <Dropdown placeholder="No Folder to show" disabled />
+          )}
         </div>
         <div>
           MEDprofiles binary file : &nbsp;
-          {binaryFileList.length > 0 ? <Dropdown style={{ width: "250px" }} value={generatedMEDprofilesFile} options={binaryFileList} onChange={(event) => setGeneratedMEDprofilesFile(event.value)} optionLabel="name" placeholder="Select your MEDprofiles binary file" /> : <Dropdown placeholder="No file to show" disabled />}
+          {binaryFileList.length > 0 ? (
+            <Dropdown
+              style={{ width: "250px" }}
+              value={generatedMEDprofilesFile}
+              options={binaryFileList}
+              onChange={(event) => setGeneratedMEDprofilesFile(event.value)}
+              optionLabel="name"
+              placeholder="Select your MEDprofiles binary file"
+            />
+          ) : (
+            <Dropdown placeholder="No file to show" disabled />
+          )}
         </div>
         <div>
           <Button disabled={!generatedClassesFolder || !generatedMEDprofilesFile} onClick={openMEDprofilesViewer}>

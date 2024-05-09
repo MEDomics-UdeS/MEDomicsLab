@@ -16,6 +16,7 @@ func AddHandleFunc() {
 	Utils.CreateHandleFunc(prePath+"/apply_pca/", handleApplyPCA)
 	Utils.CreateHandleFunc(prePath+"/compute_correlations/", handleComputeCorrelations)
 	Utils.CreateHandleFunc(prePath+"/compute_spearman/", handleComputeSpearman)
+	Utils.CreateHandleFunc(prePath+"/clean/", handleClean)
 	Utils.CreateHandleFunc(prePath+"/progress/", handleProgress)
 }
 
@@ -99,6 +100,18 @@ func handleComputeCorrelations(jsonConfig string, id string) (string, error) {
 func handleComputeSpearman(jsonConfig string, id string) (string, error) {
 	log.Println("Compute Spearman", id)
 	response, err := Utils.StartPythonScripts(jsonConfig, "../pythonCode/modules/input/compute_spearman.py", id)
+	Utils.RemoveIdFromScripts(id)
+	if err != nil {
+		return "", err
+	}
+	return response, nil
+}
+
+// handleClean handles the request to clean a dataset
+// It returns the response from the python script
+func handleClean(jsonConfig string, id string) (string, error) {
+	log.Println("Clean", id)
+	response, err := Utils.StartPythonScripts(jsonConfig, "../pythonCode/modules/input/clean.py", id)
 	Utils.RemoveIdFromScripts(id)
 	if err != nil {
 		return "", err

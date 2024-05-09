@@ -16,6 +16,7 @@ import { confirmDialog } from "primereact/confirmdialog"
 import { deepCopy } from "../../utilities/staticFunctions"
 import { cleanString } from "./simpleToolsUtils"
 import { generateRandomColor } from "./taggingUtils"
+import { Message } from "primereact/message"
 
 /**
  * GroupingTool
@@ -702,6 +703,9 @@ const GroupingTool = () => {
 
   return (
     <>
+      <div className="margin-top-15 margin-bottom-15 center">
+        <Message text="The Grouping/Tagging tool enables you to create and apply tags to dataset columns." />
+      </div>
       <div className="groupingTool mergeToolMultiSelect">
         {/* Merge tool multiselect is here to use the same class inheritance - CSS*/}
         <Row className="justify-content-center ">

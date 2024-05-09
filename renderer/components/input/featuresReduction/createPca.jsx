@@ -223,6 +223,10 @@ const CreatePCA = () => {
   return (
     <>
       <div className="margin-top-15 center">
+        <Message text="This tool enables you to perform Principal Component Analysis (PCA) on a dataset by computing the eigenvalues of the selected data and selecting a number of principal components to retain based on the eigenvalues. You can then apply the PCA transformation to your data and export it to apply it to another dataset if needed." />
+      </div>
+      <hr></hr>
+      <div className="margin-top-15 center">
         {/* Select CSV data */}
         <b>Select the data you want to apply PCA on</b>
         <div className="margin-top-15">

@@ -13,6 +13,7 @@ import { FilterMatchMode, FilterOperator } from "primereact/api"
 import { MultiSelect } from "primereact/multiselect"
 import { Utils as danfoUtils } from "danfojs-node"
 import SaveDataset from "../generalPurpose/saveDataset"
+import { Message } from "primereact/message"
 import { cleanDataset, getColumnDataType, getData, getColumnOptions, getParentIDfolderPath, handleSelectedDatasetChange, updateListOfDatasets, updateTheColumnsTypes } from "./simpleToolsUtils"
 
 const dfd = require("danfojs-node")
@@ -250,6 +251,9 @@ const SubsetCreationTool = () => {
 
   return (
     <>
+      <div className="margin-top-15 margin-bottom-15 center">
+        <Message text="The Subset Creation tool enables the creation of a subset of rows from a dataset by applying filters to columns." />
+      </div>
       <Row className="simple-cleaning-set">
         <Col>
           <h6>Select the dataset you want to clean</h6>

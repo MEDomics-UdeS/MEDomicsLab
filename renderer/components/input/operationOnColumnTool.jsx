@@ -40,8 +40,8 @@ const OperationOnColumnTool = ({ operationType }) => {
   const [visibleColumns, setVisibleColumns] = useState([])
 
   const transformOptions = [
-    { label: "Binary : NaN values become 0, non-NaN values become 1", value: "binary_0_1" },
-    { label: "NaN to 0 : NaN values become 0, non-NaN values stay the same", value: "nan_to_zero" }
+    { label: "Binary : Empty cells become 0, non-empty cells become 1", value: "binary_0_1" },
+    { label: "Empty to 0 : Empty cells become 0, non-empty cells stay the same", value: "nan_to_zero" }
   ]
 
   /**
@@ -198,6 +198,7 @@ const OperationOnColumnTool = ({ operationType }) => {
           </label>
           <InputSwitch
             checked={columnsAsFile}
+            tooltip="The CSV file must contain only one row, corresponding to the names of the columns you want to select."
             onChange={(e) => {
               if (df) {
                 let columns = df.columns
@@ -284,6 +285,16 @@ const OperationOnColumnTool = ({ operationType }) => {
 
   return (
     <>
+      {operationType == "transform" && (
+        <div className="margin-top-15 margin-bottom-15 center">
+          <Message text="The Transform Columns tool enables you to modify columns in a dataset, either by converting selected columns into binaries or by replacing missing cells with zeros." />
+        </div>
+      )}
+      {operationType == "delete" && (
+        <div className="margin-top-15 margin-bottom-15 center">
+          <Message text="The Delete Columns tool allows you to create a subset from a dataset by specifying the columns you want to retain." />
+        </div>
+      )}
       <Row className="simple-cleaning-set">
         <Col>
           <h6>Select the dataset</h6>
