@@ -74,7 +74,7 @@ const buttonType = {
   export: (onExport, disabled = false, op) => {
     return (
       <>
-      <Tooltip target=".saveBtn"/>
+      <Tooltip key="exportTip" target=".saveBtn"/>
       <Button 
         key="export" 
         className="saveBtn" 
