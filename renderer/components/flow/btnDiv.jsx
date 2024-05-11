@@ -18,7 +18,7 @@ const BtnDiv = ({ buttonsList, op }) => {
   return (
     <>
       {buttonsList.map((button) => {
-        return buttonType[button.type](button.onClick, button.disabled)
+        return buttonType[button.type](button.onClick, button.disabled, op)
       })}
     </>
   )
@@ -71,7 +71,7 @@ const buttonType = {
       </Button>
     )
   },
-  export: (onExport, op) => {
+  export: (onExport, disabled = false, op) => {
     return (
       <>
       <Tooltip target=".saveBtn"/>
@@ -81,6 +81,7 @@ const buttonType = {
         data-pr-tooltip="Export settings for batch extraction"
         data-pr-position="bottom"
         variant="outline margin-left-10 padding-5" 
+        disabled={disabled}
         onClick={(e) =>
           {
             onExport;
