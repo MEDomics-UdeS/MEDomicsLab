@@ -271,7 +271,7 @@ def image_viewer(medimage_list, data, runs):
                             vol = vol.data
                     else:
                         vol = runs[last_run][pip][id]['output']['vol']  # display VOL for others nodes
-                    print(type(runs[last_run][pip][id]['output']['vol']))
+
                     if type(vol) != np.ndarray:
                         vol = vol.data
 
