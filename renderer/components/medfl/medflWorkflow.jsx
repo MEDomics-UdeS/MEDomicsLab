@@ -69,6 +69,9 @@ const MedflWorkflow = ({ setWorkflowType, workflowType }) => {
     now: 0,
     currentLabel: ""
   })
+
+  const [flWorkflowSettings, setflWorkflowSettings] = useState({})
+
   const { groupNodeId, changeSubFlow, hasNewConnection } = useContext(FlowFunctionsContext)
   const { config, pageId, configPath } = useContext(PageInfosContext) // used to get the page infos such as id and config path
   const { updateFlowResults, isResults } = useContext(FlowResultsContext)
@@ -83,13 +86,13 @@ const MedflWorkflow = ({ setWorkflowType, workflowType }) => {
       selectionNode: SelectionNode,
       groupNode: GroupNode,
       optimizeIO: OptimizeIO,
-      datasetNode: MasterDatasetNode,
+      masterDatasetNode: MasterDatasetNode,
       loadModelNode: LoadModelNode,
       networkNode: NetworkNode,
       flClientNode: FlClientNode,
       flServerNode: FlServerNode,
       flSetupNode: FlSetupNode,
-      masterDatasetNode: FlDatasetNode,
+      flDatasetNode: FlDatasetNode,
       flModelNode: FlModelNode,
       flOptimizeNode: FlOptimizeNode,
       flStrategyNode: FlStrategyNode,
@@ -567,37 +570,53 @@ const MedflWorkflow = ({ setWorkflowType, workflowType }) => {
   }
 
   /**
+   * Get the fl workflow settings
+   */
+
+  const getFlSettings = (nodes) => {
+    nodes.map((node) => {
+      // DatasetNode
+      if (node.type === "masterDatasetNode") {
+        setflWorkflowSettings({
+          ...flWorkflowSettings,
+          masterDataset: node.data.internal.settings
+        })
+      }
+    })
+  }
+
+  /**
    * execute the whole workflow
    */
   const onRun = useCallback(
     (e, up2Id = undefined) => {
       if (reactFlowInstance) {
-        let flow = deepCopy(reactFlowInstance.toObject())
-        flow.MLType = MLType
-        flow.nodes.forEach((node) => {
-          node.data.setupParam = null
-        })
-
-        let { newflow, isValid } = cleanJson2Send(flow, up2Id)
-        flow = newflow
-        // If the workflow size is too big, we need to put it in a file and send it to the server
-        // This is because the server can't handle big json objects
-        if (getByteSize(flow, "bytes") > 25000) {
-          console.log("JSON config object is too big to be sent to the server. It will be saved in a file and sent to the server.")
-          // Get the temporary directory
-          ipcRenderer.invoke("appGetPath", "temp").then((tmpDirectory) => {
-            // Save the workflow in a file
-            MedDataObject.writeFileSync(flow, tmpDirectory, pageId, "json")
-            // Change the flow to the path of the file
-            let newPath = Path.join(tmpDirectory, pageId + ".json")
-            flow = { temp: newPath }
-            requestBackendRunExperiment(port, flow, isValid)
-          })
-        } else {
-          requestBackendRunExperiment(port, flow, isValid)
-        }
-      } else {
-        toast.warn("react flow instance not found")
+        getFlSettings(nodes)
+        //   let flow = deepCopy(reactFlowInstance.toObject())
+        //   flow.MLType = MLType
+        //   flow.nodes.forEach((node) => {
+        //     node.data.setupParam = null
+        //   })
+        //   let { newflow, isValid } = cleanJson2Send(flow, up2Id)
+        //   flow = newflow
+        //   // If the workflow size is too big, we need to put it in a file and send it to the server
+        //   // This is because the server can't handle big json objects
+        //   if (getByteSize(flow, "bytes") > 25000) {
+        //     console.log("JSON config object is too big to be sent to the server. It will be saved in a file and sent to the server.")
+        //     // Get the temporary directory
+        //     ipcRenderer.invoke("appGetPath", "temp").then((tmpDirectory) => {
+        //       // Save the workflow in a file
+        //       MedDataObject.writeFileSync(flow, tmpDirectory, pageId, "json")
+        //       // Change the flow to the path of the file
+        //       let newPath = Path.join(tmpDirectory, pageId + ".json")
+        //       flow = { temp: newPath }
+        //       requestBackendRunExperiment(port, flow, isValid)
+        //     })
+        //   } else {
+        //     requestBackendRunExperiment(port, flow, isValid)
+        //   }
+        // } else {
+        //   toast.warn("react flow instance not found")
       }
     },
     [reactFlowInstance, MLType, nodes, edges, intersections, configPath]

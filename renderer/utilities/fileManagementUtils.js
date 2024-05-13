@@ -426,4 +426,23 @@ const getFileReadingMethodFromExtension = {
   xlsx: (path, whenLoaded) => loadXLSXFromPath(path, whenLoaded)
 }
 
-export { toLocalPath, downloadFile, downloadPath, downloadFilePath, loadFileFromPathSync, writeFile, writeJson, writeJsonSync, loadJson, loadJsonSync, loadJsonPath, loadCSVPath, loadCSVFromPath, createFolder, createFolderSync, loadJSONFromPath, loadXLSXFromPath, getFileReadingMethodFromExtension }
+export {
+  toLocalPath,
+  downloadFile,
+  downloadPath,
+  downloadFilePath,
+  loadFileFromPathSync,
+  writeFile,
+  writeJson,
+  writeJsonSync,
+  loadJson,
+  loadJsonSync,
+  loadJsonPath,
+  loadCSVPath,
+  loadCSVFromPath,
+  createFolder,
+  createFolderSync,
+  loadJSONFromPath,
+  loadXLSXFromPath,
+  getFileReadingMethodFromExtension
+}

@@ -3,8 +3,8 @@ import flSettings from "./possibleSettings/MEDfl/flSettings"
 /* eslint-disable */
 const nodesParams = {
   dataset: {
-    type: "datasetNode",
-    classes: "object dataset run startNode",
+    type: "masterDatasetNode",
+    classes: "object dataset startNode",
     nbInput: 0,
     nbOutput: 1,
     input: [],
@@ -37,8 +37,8 @@ const nodesParams = {
     possibleSettings: {}
   },
   fl_dataset: {
-    type: "masterDatasetNode",
-    classes: "object dataset ",
+    type: "flDatasetNode",
+    classes: "object dataset",
     nbInput: 1,
     nbOutput: 1,
     input: ["fl_setup"],
@@ -84,7 +84,7 @@ const nodesParams = {
   },
   fl_pipeline: {
     type: "flPipelineNode",
-    classes: "object  run ",
+    classes: "object ",
     nbInput: 3,
     nbOutput: 1,
     input: ["fl_strategy", "model", "fl_dataset"],
@@ -95,11 +95,11 @@ const nodesParams = {
   },
   results: {
     type: "flResultsNode",
-    classes: "object dataset run startNode",
+    classes: "object dataset ",
     nbInput: 1,
-    nbOutput: 1,
+    nbOutput: 0,
     input: ["fl_pipeline"],
-    output: ["results"],
+    output: [""],
     img: "results.png",
     title: "Results",
     possibleSettings: {}

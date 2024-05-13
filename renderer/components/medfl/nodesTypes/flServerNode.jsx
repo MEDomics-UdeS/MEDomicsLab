@@ -1,7 +1,5 @@
 import React from "react"
 import Node from "../../flow/node"
-import { Button } from "react-bootstrap"
-import { PiEye } from "react-icons/pi"
 import FlInput from "../flInput"
 
 export default function FlServerNode({ id, data }) {
@@ -33,15 +31,7 @@ export default function FlServerNode({ id, data }) {
           </>
         }
         // node specific is the body of the node, so optional settings
-        nodeSpecific={
-          <>
-            <div className="center">
-              <Button icon={<PiEye size={"1.5rem"} />} variant="light" className="width-100 btn-contour">
-                View Server details
-              </Button>
-            </div>
-          </>
-        }
+        nodeSpecific={<></>}
       />
     </>
   )

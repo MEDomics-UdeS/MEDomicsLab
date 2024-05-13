@@ -619,6 +619,8 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
         else if (extension === "json") loadJSONFromPath(config.path, whenDataLoaded)
         else if (extension === "xlsx") loadXLSXFromPath(config.path, whenDataLoaded)
       }
+      console.log("this is the config", config)
+      console.log(node.getExtraData().data)
       return (
         <>
           <DataTableWrapperBPClass
