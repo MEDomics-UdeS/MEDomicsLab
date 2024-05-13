@@ -1,9 +1,25 @@
-import React from "react"
+import React, { useContext, useState } from "react"
 import Node from "../../flow/node"
 import FlInput from "../flInput"
+import { FlowFunctionsContext } from "../../flow/context/flowFunctionsContext"
 
 export default function FlSetupNode({ id, data }) {
   // context
+  const { updateNode } = useContext(FlowFunctionsContext)
+
+  // state
+  const [description, setDescription] = useState(data.internal.settings.description || "")
+
+  const onChangeRounds = (nodeType) => {
+    data.internal.settings.description = nodeType.value
+    setDescription(nodeType.value)
+
+    // Update the node
+    updateNode({
+      id: id,
+      updatedData: data.internal
+    })
+  }
 
   return (
     <>
@@ -24,8 +40,8 @@ export default function FlSetupNode({ id, data }) {
                 type: "string",
                 tooltip: "Specify the desription of the federated setup"
               }}
-              currentValue={""}
-              onInputChange={() => {}}
+              currentValue={description}
+              onInputChange={onChangeRounds}
               setHasWarning={() => {}}
             />
           </>

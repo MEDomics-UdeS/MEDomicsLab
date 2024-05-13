@@ -1,22 +1,60 @@
-import React, { useEffect, useState } from "react"
+import React, { useContext, useEffect, useState } from "react"
 import Node from "../../flow/node"
 import FlInput from "../flInput"
 import { Button, Form } from "react-bootstrap"
 import CodeEditor from "../../flow/codeEditor"
+import { FlowFunctionsContext } from "../../flow/context/flowFunctionsContext"
 
 const FlModelNode = ({ id, data }) => {
+  // context
+  const { updateNode } = useContext(FlowFunctionsContext)
+
   // states
-  const [tlActivated, setTLActivation] = useState("true")
-  const [noTlModel, setNoTLmodel] = useState("custom")
+  const [tlActivated, setTLActivation] = useState(data.internal.settings.activateTl || "true")
+  const [noTlModel, setNoTLmodel] = useState(data.internal.settings.noTlModelType || "custom")
 
   // Handle the Transfer Learning Activation change
   const onSelectionChange = (e) => {
     setTLActivation(e.target.value)
+
+    data.internal.settings.activateTl = e.target.value
+
+    // Update the node
+    updateNode({
+      id: id,
+      updatedData: data.internal
+    })
   }
 
   //Handle the model creation method change
   const onSelectMethodChange = (e) => {
     setNoTLmodel(e.target.value)
+
+    data.internal.settings.noTlModelType = e.target.value
+
+    // Update the node
+    updateNode({
+      id: id,
+      updatedData: data.internal
+    })
+  }
+
+  const onFilesChange = async (inputUpdate) => {
+    data.internal.settings[inputUpdate.name] = inputUpdate.value
+
+    updateNode({
+      id: id,
+      updatedData: data.internal
+    })
+  }
+
+  const onModelInputChange = (inputUpdate) => {
+    data.internal.settings[inputUpdate.name] = inputUpdate.value
+
+    updateNode({
+      id: id,
+      updatedData: data.internal
+    })
   }
 
   useEffect(() => {}, [tlActivated])
@@ -69,13 +107,13 @@ const FlModelNode = ({ id, data }) => {
                   return (
                     <>
                       <FlInput
-                        name="Select a model"
+                        name="file"
                         settingInfos={{
                           type: "data-input",
                           tooltip: "<p>Specify a data file (xlsx, csv, json)</p>"
                         }}
-                        currentValue={data.internal.settings.files || {}}
-                        onInputChange={() => {}}
+                        currentValue={data.internal.settings.file || {}}
+                        onInputChange={onFilesChange}
                         setHasWarning={() => {}}
                       />
                     </>
@@ -117,7 +155,7 @@ const FlModelNode = ({ id, data }) => {
                               choices: [{ name: "Binary classifier" }]
                             }}
                             currentValue={data.internal.settings.files || {}}
-                            onInputChange={() => {}}
+                            onInputChange={onModelInputChange}
                             setHasWarning={() => {}}
                           />
                           <FlInput
@@ -127,7 +165,7 @@ const FlModelNode = ({ id, data }) => {
                               tooltip: "<p>Specify the model type</p>"
                             }}
                             currentValue={{}}
-                            onInputChange={() => {}}
+                            onInputChange={onModelInputChange}
                             setHasWarning={() => {}}
                           />
                           <FlInput
@@ -137,7 +175,7 @@ const FlModelNode = ({ id, data }) => {
                               tooltip: "<p>Specify the model type</p>"
                             }}
                             currentValue={{}}
-                            onInputChange={() => {}}
+                            onInputChange={onModelInputChange}
                             setHasWarning={() => {}}
                           />
                           <FlInput
@@ -147,7 +185,7 @@ const FlModelNode = ({ id, data }) => {
                               tooltip: "<p>Specify the model type</p>"
                             }}
                             currentValue={{}}
-                            onInputChange={() => {}}
+                            onInputChange={onModelInputChange}
                             setHasWarning={() => {}}
                           />
                           <FlInput
@@ -158,7 +196,7 @@ const FlModelNode = ({ id, data }) => {
                               choices: [{ name: "ADAM" }]
                             }}
                             currentValue={data.internal.settings.files || {}}
-                            onInputChange={() => {}}
+                            onInputChange={onModelInputChange}
                             setHasWarning={() => {}}
                           />
                           <FlInput
@@ -168,7 +206,7 @@ const FlModelNode = ({ id, data }) => {
                               tooltip: "<p>Specify the model type</p>"
                             }}
                             currentValue={data.internal.settings.files || {}}
-                            onInputChange={() => {}}
+                            onInputChange={onModelInputChange}
                             setHasWarning={() => {}}
                           />
                           <Button>Create model</Button>

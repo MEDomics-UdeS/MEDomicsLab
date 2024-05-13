@@ -1,10 +1,25 @@
-import React from "react"
+import React, { useContext, useState } from "react"
 import Node from "../../flow/node"
 import FlInput from "../flInput"
+import { FlowFunctionsContext } from "../../flow/context/flowFunctionsContext"
 
 export default function FlServerNode({ id, data }) {
   // context
+  const { updateNode } = useContext(FlowFunctionsContext)
 
+  // state
+  const [nRounds, setNrounds] = useState(data.internal.settings.nRounds || null)
+
+  const onChangeRounds = (nodeType) => {
+    data.internal.settings.nRounds = nodeType.value
+    setNrounds(nodeType.value)
+
+    // Update the node
+    updateNode({
+      id: id,
+      updatedData: data.internal
+    })
+  }
   return (
     <>
       {/* build on top of the Node component */}
@@ -24,8 +39,8 @@ export default function FlServerNode({ id, data }) {
                 type: "int",
                 tooltip: "Specify the number of federated rounds"
               }}
-              currentValue={10}
-              onInputChange={() => {}}
+              currentValue={nRounds}
+              onInputChange={onChangeRounds}
               setHasWarning={() => {}}
             />
           </>
