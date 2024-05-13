@@ -1,3 +1,5 @@
+from med_libs.GoExecutionScript import GoExecutionScript, parse_arguments
+from med_libs.server_utils import go_print
 import os
 import json
 import sys
@@ -5,8 +7,6 @@ from pathlib import Path
 import time
 sys.path.append(
     str(Path(os.path.dirname(os.path.abspath(__file__))).parent.parent))
-from med_libs.server_utils import go_print
-from med_libs.GoExecutionScript import GoExecutionScript, parse_arguments
 
 json_params_dict, id_ = parse_arguments()
 go_print("running hello_world_medfl.py:" + id_)
@@ -30,15 +30,9 @@ class GoExecScriptHelloWorldFromMEDfl(GoExecutionScript):
         This function is the main script of the execution of the process from Go
         """
         string_received = json_config["stringFromFrontend"]
-        self.set_progress(label="Starting the Hello World", now=10)
-        time.sleep(2) # Add timeout to simulate a long process
-        self.set_progress(label="Setting up the Hello World", now=50)
-        time.sleep(2) # Add timeout to simulate a long process
-        self.set_progress(label="Printing...", now=70)
-        self.results = {"data": "Backend received: " + string_received, "stringFromBackend":"Hello World from MEDfl backend @ " + time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()) + " !"}
-        time.sleep(2) # Add timeout to simulate a long process
-        self.set_progress(label="Compiling the Hello World ...", now=80)
-        time.sleep(2)
+        self.results = {"data": "Backend received: " + string_received, "stringFromBackend":
+                        "Hello World from MEDfl backend @ " + time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()) + " !"}
+
         self.set_progress(label="Hello World is ready !", now=100)
         return self.results
 

@@ -2,7 +2,6 @@ import React, { useState } from "react"
 import ModulePage from "./moduleBasics/modulePage"
 import FlowPageBase from "../flow/flowPageBase"
 import MedflWorkflow from "../medfl/medflWorkflow"
-import { Button } from "react-bootstrap"
 import MedflWelcomePage from "../medfl/medflWelcomePage"
 
 const MEDflPage = ({ pageId, configPath = "" }) => {

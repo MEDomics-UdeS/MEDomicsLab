@@ -42,6 +42,8 @@ import FlOptimizeNode from "./nodesTypes/flOptimizeNode.jsx"
 import FlStrategyNode from "./nodesTypes/flStrategyNode.jsx"
 import FlPipelineNode from "./nodesTypes/flPipelineNode.jsx"
 import FlResultsNode from "./nodesTypes/flResultsNode.jsx"
+import { Button } from "react-bootstrap"
+import RunPipelineModal from "./runPipelineModal"
 
 const staticNodesParams = nodesParams // represents static nodes parameters
 
@@ -69,6 +71,9 @@ const MedflWorkflow = ({ setWorkflowType, workflowType }) => {
     now: 0,
     currentLabel: ""
   })
+
+  const [showRunModal, setRunModal] = useState(false)
+
   const { groupNodeId, changeSubFlow, hasNewConnection } = useContext(FlowFunctionsContext)
   const { config, pageId, configPath } = useContext(PageInfosContext) // used to get the page infos such as id and config path
   const { updateFlowResults, isResults } = useContext(FlowResultsContext)
@@ -272,17 +277,18 @@ const MedflWorkflow = ({ setWorkflowType, workflowType }) => {
       edges.forEach((edge) => {
         if (edge.source == node.id) {
           let targetNode = deepCopy(nodes.find((node) => node.id === edge.target))
-          if (targetNode.type != "groupNode") {
-            let subIdText = ""
-            let subflowId = targetNode.data.internal.subflowId
-            if (subflowId != "MAIN") {
-              subIdText = deepCopy(nodes.find((node) => node.id == subflowId)).data.internal.name + "."
-            }
-            children[targetNode.id] = {
-              label: subIdText + targetNode.data.internal.name,
-              nodes: createTreeFromNodesRec(targetNode)
-            }
+          // if (targetNode.type != "groupNode") {
+          let subIdText = ""
+          let subflowId = targetNode.data.internal.subflowId
+          if (subflowId != "MAIN") {
+            subIdText = deepCopy(nodes.find((node) => node.id == subflowId)).data.internal.name + "."
           }
+          children[targetNode.id] = {
+            id: targetNode.id,
+            label: subIdText + targetNode.data.internal.name,
+            nodes: createTreeFromNodesRec(targetNode)
+          }
+          // }
         }
       })
       return children
@@ -293,6 +299,7 @@ const MedflWorkflow = ({ setWorkflowType, workflowType }) => {
       let sourceNode = deepCopy(nodes.find((node) => node.id === edge.source))
       if (sourceNode.data.setupParam.classes.split(" ").includes("startNode")) {
         treeMenuData[sourceNode.id] = {
+          id: sourceNode.id,
           label: sourceNode.data.internal.name,
           nodes: createTreeFromNodesRec(sourceNode)
         }
@@ -483,11 +490,7 @@ const MedflWorkflow = ({ setWorkflowType, workflowType }) => {
    */
   const runNode = useCallback(
     (id) => {
-      if (id) {
-        console.log("run node", id)
-        console.log(reactFlowInstance)
-        onRun(null, id)
-      }
+      setRunModal(true)
     },
     [reactFlowInstance, MLType, nodes, edges, intersections]
   )
@@ -571,6 +574,9 @@ const MedflWorkflow = ({ setWorkflowType, workflowType }) => {
    */
   const onRun = useCallback(
     (e, up2Id = undefined) => {
+      console.log(nodes)
+      setRunModal(true)
+
       if (reactFlowInstance) {
         let flow = deepCopy(reactFlowInstance.toObject())
         flow.MLType = MLType
@@ -798,8 +804,61 @@ const MedflWorkflow = ({ setWorkflowType, workflowType }) => {
     changeSubFlow("MAIN")
   }, [])
 
+  const getConfigs = (tree, i, result = []) => {
+    let nodes = {}
+    Object.keys(tree)?.map((nod) => {
+      if (nodes[tree[nod].label]) {
+        nodes[tree[nod].label] = [...nodes[tree[nod].label], tree[nod]]
+      } else {
+        nodes[tree[nod].label] = [tree[nod]]
+      }
+    })
+
+    Object.keys(nodes).map((node) => {
+      let initArray = nodes[node]
+      initArray.map((ar, index) => {
+        if (i == 0) {
+          result.push({
+            [ar.label]: ar
+          })
+        } else {
+          if (index == 0) {
+            result[result.length - 1] = {
+              ...result[result.length - 1],
+              [ar.label]: ar
+            }
+          } else {
+            result.push({
+              ...result[result.length - 1],
+              [ar.label]: ar
+            })
+          }
+        }
+
+        result = getConfigs(ar.nodes, i + 1, result)
+      })
+    })
+
+    return result
+  }
+
   return (
     <>
+      <Button
+        onClick={() => {
+          console.log(treeData)
+        }}
+      >
+        Click me
+      </Button>
+      <RunPipelineModal
+        show={showRunModal}
+        onHide={() => {
+          setRunModal(false)
+        }}
+        configs={getConfigs(treeData, 0)}
+        nodes={nodes}
+      />
       <WorkflowBase
         // mandatory props
         mandatoryProps={{
