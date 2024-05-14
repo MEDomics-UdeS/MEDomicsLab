@@ -2,17 +2,18 @@
 /* eslint-disable no-unused-vars */
 import * as React from "react"
 import { Button } from "primereact/button"
-import { Menu, MenuItem, Intent, HotkeysTarget2, Divider, Collapse } from "@blueprintjs/core"
+import { Collapse, Divider, HotkeysTarget2, Intent, Menu, MenuItem } from "@blueprintjs/core"
 import xlxs from "xlsx"
-import { Column, ColumnHeaderCell, CopyCellsMenuItem, MenuContext, Table2, Utils, EditableCell2, EditableName } from "@blueprintjs/table"
+import { Column, ColumnHeaderCell, CopyCellsMenuItem, EditableCell2, EditableName, MenuContext, Table2, Utils } from "@blueprintjs/table"
 import { Stack } from "react-bootstrap"
 import { ChevronRight, FiletypeCsv, FiletypeJson, FiletypeXlsx } from "react-bootstrap-icons"
 import { PiFloppyDisk } from "react-icons/pi"
 import { toast } from "react-toastify"
-const dfd = require("danfojs-node")
 import { DataFrame, Utils as danfoUtils } from "danfojs-node"
 import { DataTablePopoverBP } from "./dataTablePopoverBPClass"
 import { deepCopy } from "../../utilities/staticFunctions"
+
+const dfd = require("danfojs-node")
 const dfUtils = new danfoUtils()
 
 export type CellLookup = (rowIndex: number, columnIndex: number) => any // function that returns the cell data
@@ -23,7 +24,18 @@ export type getName = (columnIndex: number) => string // function that returns t
 
 export interface SortableColumn {
   // interface for the sortable column
-  getColumn(getCellRenderer: CellLookup, getCellData: CellLookup, sortColumn: SortCallback, filterColumn: FilterCallback, nameRenderer: nameRenderer, colName: getName, getFilterValue: getName, freezeColumn: any, isFrozen: any, getReorderedIndex: (number: number) => number): JSX.Element
+  getColumn(
+    getCellRenderer: CellLookup,
+    getCellData: CellLookup,
+    sortColumn: SortCallback,
+    filterColumn: FilterCallback,
+    nameRenderer: nameRenderer,
+    colName: getName,
+    getFilterValue: getName,
+    freezeColumn: any,
+    isFrozen: any,
+    getReorderedIndex: (number: number) => number
+  ): JSX.Element
 }
 
 /**
@@ -56,7 +68,18 @@ abstract class AbstractSortableColumn implements SortableColumn {
    * @param filterColumn - function that filters the column
    * @returns JSX.Element - column
    */
-  public getColumn(getCellRenderer: CellLookup, getCellData: CellLookup, sortColumn: SortCallback, filterColumn: FilterCallback, nameRenderer: nameRenderer, getName: getName, getFilterValue: getName, freezeColumn: any, getIsFrozen: any, getReorderedIndex: (number: number) => any) {
+  public getColumn(
+    getCellRenderer: CellLookup,
+    getCellData: CellLookup,
+    sortColumn: SortCallback,
+    filterColumn: FilterCallback,
+    nameRenderer: nameRenderer,
+    getName: getName,
+    getFilterValue: getName,
+    freezeColumn: any,
+    getIsFrozen: any,
+    getReorderedIndex: (number: number) => any
+  ) {
     const menuRenderer = this.renderMenu.bind(this, sortColumn, freezeColumn, getIsFrozen) // bind the sortColumn function to the menuRenderer
     // const filterThisColumn = (filterValue: string) => filterColumn(this.index, filterValue) // bind the filterColumn function to the filterThisColumn function
     const columnHeaderCellRenderer = () => (
@@ -359,9 +382,9 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
   }
 
   /**
-   * @description This function returns the modified data with the sparse cell data
-   * @param data - data to be modified
-   * @returns modifiedData - modified data with the sparse cell data
+   * @description This function returns the modified data with updated values from sparseCellData
+   * @param data - original data
+   * @returns modifiedData - data with updated values from sparseCellData
    */
   public getModifiedData(data: any[]) {
     let modifiedData = []
@@ -659,8 +682,22 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
    * @returns void
    */
   public async saveData(event: React.MouseEvent<HTMLButtonElement, MouseEvent>, data: any) {
-    data = this.getModifiedData(data)
-    let df = new dfd.DataFrame(data)
+    const modifiedData = this.getModifiedData(data)
+    Object.keys(this.state.sparseCellData).forEach((dataKey: string) => {
+      const [rowIndex, columnIndex] = this.decoupleDataKey(dataKey)
+      modifiedData[rowIndex][this.state.columnsNames[columnIndex]] = this.state.sparseCellData[dataKey]
+    })
+
+    // Check if any value in modifiedData contains a comma, if yes, replace it with a point.
+    for (let i = 0; i < modifiedData.length; i++) {
+      for (let j = 0; j < this.state.columnsNames.length; j++) {
+        if (modifiedData[i][this.state.columnsNames[j]].includes(",")) {
+          modifiedData[i][this.state.columnsNames[j]] = modifiedData[i][this.state.columnsNames[j]].replace(",", ".")
+        }
+      }
+    }
+
+    let df = new dfd.DataFrame(modifiedData)
     this.saveColumnsNewNames(df)
     let finalDf = this.addTagsToData(df)
     let finalData = dfd.toJSON(finalDf)
@@ -718,15 +755,36 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
     const columns = this.state.columns.map(
       (
         col // get the columns
-      ) => col.getColumn(this.getCellRenderer, this.getCellData, this.sortColumn, this.filterColumn, this.getColumnNameRenderer, this.getColumnNameFromColumnIndex, this.getFilterValue, this.freezeColumn, this.getIsFrozen, this.getCorrectedColumnIndex)
+      ) =>
+        col.getColumn(
+          this.getCellRenderer,
+          this.getCellData,
+          this.sortColumn,
+          this.filterColumn,
+          this.getColumnNameRenderer,
+          this.getColumnNameFromColumnIndex,
+          this.getFilterValue,
+          this.freezeColumn,
+          this.getIsFrozen,
+          this.getCorrectedColumnIndex
+        )
     )
 
     const numFrozenColumns = this.state.frozenColumns.length
 
     return (
       <div className="bp-datatable-wrapper">
-        <ChevronRight className={`bp-datatable-wrapper-options-icon ${this.state.options.isOpen ? "bp-datatable-wrapper-options-icon-open rotate-90-cw" : "bp-datatable-wrapper-options-icon-closed rotate--90-cw"}`} />
-        <div className="bp-datatable-wrapper-title" style={{ display: "flex", flexDirection: "horizontal" }} onMouseEnter={() => this.setState({ options: { ...this.state.options, isOpen: true } })} onMouseLeave={() => this.setState({ options: { ...this.state.options, isOpen: false } })}>
+        <ChevronRight
+          className={`bp-datatable-wrapper-options-icon ${
+            this.state.options.isOpen ? "bp-datatable-wrapper-options-icon-open rotate-90-cw" : "bp-datatable-wrapper-options-icon-closed rotate--90-cw"
+          }`}
+        />
+        <div
+          className="bp-datatable-wrapper-title"
+          style={{ display: "flex", flexDirection: "horizontal" }}
+          onMouseEnter={() => this.setState({ options: { ...this.state.options, isOpen: true } })}
+          onMouseLeave={() => this.setState({ options: { ...this.state.options, isOpen: false } })}
+        >
           <Collapse isOpen={this.state.options.isOpen}>
             <Stack direction="horizontal" gap={3} style={{ position: "relative", top: "-5px", right: "0px" }}>
               <Button
@@ -884,7 +942,18 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
       rowIndex = sortedRowIndex // if the sorted row index is not null, set the row index to the sorted row index
     }
 
-    return <EditableCell2 intent={this.state.sparseCellIntent[`${rowIndex}-${[this.state.columnIndexMap[columnIndex]]}`]} value={this.getCellData(rowIndex, columnIndex)} onCancel={this.cellValidator(rowIndex, columnIndex)} onChange={this.cellValidator(rowIndex, columnIndex)} onConfirm={this.cellSetter(rowIndex, columnIndex)}></EditableCell2>
+    return (
+      <EditableCell2
+        intent={this.state.sparseCellIntent[`${rowIndex}-${[this.state.columnIndexMap[columnIndex]]}`]}
+        value={this.getCellData(rowIndex, columnIndex)}
+        onCancel={this.cellValidator(rowIndex, columnIndex)}
+        onChange={(newValue) => {
+          this.handleCellChange(rowIndex, columnIndex, newValue)
+          this.cellValidator(rowIndex, columnIndex)(newValue)
+        }}
+        onConfirm={this.cellSetter(rowIndex, columnIndex)}
+      ></EditableCell2>
+    )
   }
 
   /**
@@ -893,7 +962,15 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
    * @returns columnNameRenderer - column name renderer
    */
   private getColumnNameRenderer = (name: string, columnIndex: number) => {
-    return <EditableName index={columnIndex} name={this.getName(columnIndex)} onCancel={this.columnNameValidator(columnIndex)} onChange={this.columnNameValidator(columnIndex)} onConfirm={this.columnNameSetter(columnIndex)} />
+    return (
+      <EditableName
+        index={columnIndex}
+        name={this.getName(columnIndex)}
+        onCancel={this.columnNameValidator(columnIndex)}
+        onChange={this.columnNameValidator(columnIndex)}
+        onConfirm={this.columnNameSetter(columnIndex)}
+      />
+    )
   }
 
   /**
@@ -986,6 +1063,17 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
       const intent = this.isValidValue(value) ? null : Intent.DANGER
       this.setSparseState("sparseCellData", dataKey, value)
     }
+  }
+
+  /**
+   * @description Add event handlers to your table cells to detect modifications
+   * @param rowIndex - row index
+   * @param columnIndex  - column index
+   * @param newValue - new value
+   */
+  private handleCellChange = (rowIndex: number, columnIndex: number, newValue: string) => {
+    const dataKey = this.dataKey(rowIndex, columnIndex)
+    this.setSparseState("sparseCellData", dataKey, newValue)
   }
 
   /**
