@@ -574,7 +574,6 @@ const MedflWorkflow = ({ setWorkflowType, workflowType }) => {
    */
   const onRun = useCallback(
     (e, up2Id = undefined) => {
-      console.log(nodes)
       setRunModal(true)
 
       if (reactFlowInstance) {
@@ -846,7 +845,7 @@ const MedflWorkflow = ({ setWorkflowType, workflowType }) => {
     <>
       <Button
         onClick={() => {
-          console.log(treeData)
+          console.log(nodes)
         }}
       >
         Click me
