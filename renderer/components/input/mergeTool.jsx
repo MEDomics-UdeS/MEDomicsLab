@@ -28,7 +28,7 @@ const MergeTool = ({ pageId = "42", configPath = null }) => {
   const [dictOfDatasets, setDictOfDatasets] = useState({}) // The dict of datasets to show in the dropdown
   const { globalData } = useContext(DataContext) // We get the global data from the context to retrieve the directory tree of the workspace, thus retrieving the data files
   const [firstSelectedDataset, setFirstSelectedDataset] = useState(null) // The first selected dataset
-  const [mergeOn, setMergeOn] = useState(null) // The column to merge on
+  const [mergeOn, setMergeOn] = useState([]) // The column(s) to merge on
   const [inError, setInError] = useState(false) // If the merge tool is in error
   const [firstDatasetHasChanged, setFirstDatasetHasChanged] = useState(false) // If the first dataset has changed
   const firstMultiselect = useRef(null) // The ref of the first multiselect
@@ -44,8 +44,7 @@ const MergeTool = ({ pageId = "42", configPath = null }) => {
     EMPTY_DATASET: "The dataset is empty",
     NO_DATASET_SELECTED: "No dataset selected was selected",
     MERGE_TYPE_NOT_SELECTED: "The merge type was not selected",
-    MERGE_ON_NOT_SELECTED: "Merge on was not selected",
-    NO_COLUMNS_SELECTED: "No other columns than the merge on column were selected"
+    MERGE_ON_NOT_SELECTED: "Merge on was not selected"
   }
 
   const mergeOptions = [
@@ -73,13 +72,14 @@ const MergeTool = ({ pageId = "42", configPath = null }) => {
             let columnsOptions = generateColumnsOptionsFromColumns(columnsOriginal)
             newDictOfDatasets[key].options = columnsOptions
             if (key !== "0") {
-              if (dictOfDatasets[0].mergeOn) {
-                // Check if the mergeOn column is present in the dataset
-                if (!columnsOriginal.includes(dictOfDatasets[0].mergeOn)) {
-                  newDictOfDatasets[key].isValid = false
-                } else {
-                  newDictOfDatasets[key].isValid = true
-                }
+              if (dictOfDatasets[0].mergeOn.length > 0) {
+                // Check if the mergeOn columns are present in the dataset
+                newDictOfDatasets[key].isValid = true
+                mergeOn.forEach((column) => {
+                  if (!columnsOriginal.includes(column)) {
+                    newDictOfDatasets[key].isValid = false
+                  }
+                })
               }
             }
 
@@ -137,14 +137,16 @@ const MergeTool = ({ pageId = "42", configPath = null }) => {
     let dataset = dictOfDatasets[datasetKey]
     let newSelectedColumns = selectedColumns
 
-    if (mergeOn && datasetKey) {
+    if (mergeOn.length > 0 && datasetKey) {
       if (dataset && selectedColumns) {
         let options = Object.entries(dataset.options).map((arr) => arr[1].value)
-        if (!selectedColumns.includes(mergeOn)) {
-          if (options.includes(mergeOn)) {
-            newSelectedColumns.push(mergeOn)
+        mergeOn.forEach((column) => {
+          if (!selectedColumns.includes(column)) {
+            if (options.includes(column)) {
+              newSelectedColumns.push(column)
+            }
           }
-        }
+        })
       }
     }
 
@@ -161,7 +163,12 @@ const MergeTool = ({ pageId = "42", configPath = null }) => {
       let datasetToVerify = dictOfDatasets[key]
       if (datasetToVerify) {
         if (datasetToVerify.options !== null && datasetToVerify.options !== undefined) {
-          let isValid = datasetToVerify.options.map((option) => option.value).includes(mergeOn)
+          let isValid = true
+          mergeOn.forEach((column) => {
+            if (!datasetToVerify.options.map((option) => option.value).includes(column)) {
+              isValid = false
+            }
+          })
           let newDictOfDatasets = { ...dictOfDatasets }
           newDictOfDatasets[key].isValid = isValid
           setDictOfDatasets(newDictOfDatasets)
@@ -201,10 +208,7 @@ const MergeTool = ({ pageId = "42", configPath = null }) => {
             error.push([errorType.MERGE_TYPE_NOT_SELECTED, dictOfDatasets[key]])
           }
         }
-        if (dictOfDatasets[key].selectedColumns === null || dictOfDatasets[key].selectedColumns === undefined || dictOfDatasets[key].selectedColumns.length === 1) {
-          error.push([errorType.NO_COLUMNS_SELECTED, dictOfDatasets[key]])
-        }
-        if (dictOfDatasets[0].mergeOn === null || dictOfDatasets[0].mergeOn === undefined) {
+        if (dictOfDatasets[0].mergeOn.length < 1) {
           error.push([errorType.MERGE_ON_NOT_SELECTED, dictOfDatasets[key]])
         }
       }
@@ -364,7 +368,7 @@ const MergeTool = ({ pageId = "42", configPath = null }) => {
                     data: e.target.value,
                     nameWithoutExtension: globalData[e.target.value].nameWithoutExtension,
                     columns: globalData[e.target.value].getColumnsOfTheDataObjectIfItIsATable(),
-                    mergeOn: null
+                    mergeOn: []
                   } // We add the new first dataset
                   if (!dictOfDatasets[1] || Object.keys(dictOfDatasets[1]).length === 1) {
                     // If the second dataset is empty, we add a null value to the second dataset
@@ -390,7 +394,7 @@ const MergeTool = ({ pageId = "42", configPath = null }) => {
             }}
           >
             <span className="p-float-label" style={{ width: "100%" }}>
-              <Dropdown // The dropdown to select the merge on column
+              <MultiSelect // The multiselect to select the merge on column
                 disabled={dictOfDatasets[0] ? false : true}
                 filter
                 required={dictOfDatasets[0] ? true : false}
@@ -402,7 +406,7 @@ const MergeTool = ({ pageId = "42", configPath = null }) => {
                 options={dictOfDatasets[0] && dictOfDatasets[0].options ? dictOfDatasets[0].options : []}
                 label="Select the column to merge on"
                 placeholder="Merge on..."
-                style={dictOfDatasets[0] && dictOfDatasets[0].mergeOn ? { border: "1px solid #ced4da" } : { border: "1px solid green" }}
+                style={dictOfDatasets[0] && dictOfDatasets[0].mergeOn.length > 0 ? { border: "1px solid #ced4da" } : { border: "1px solid green" }}
                 onChange={(e) => {
                   let newDictOfDatasets = dictOfDatasets ? { ...dictOfDatasets } : {} // We create a new dict of datasets
                   newDictOfDatasets[0].mergeOn = e.target.value // We set the merge on column
@@ -431,10 +435,10 @@ const MergeTool = ({ pageId = "42", configPath = null }) => {
                 selectAll={true}
                 ref={firstMultiselect}
                 optionDisabled={(option) => {
-                  return option.value === mergeOn
+                  return mergeOn.includes(option.value)
                 }}
                 panelClassName="mergeToolMultiSelect"
-                disabled={firstSelectedDataset && mergeOn ? false : true}
+                disabled={firstSelectedDataset && mergeOn.length > 0 ? false : true}
                 className="w-full md:w-14rem  margintop8px "
                 filter
                 value={dictOfDatasets[0] && dictOfDatasets[0].options ? handleFirstDatasetChange() : null}
@@ -475,7 +479,7 @@ const MergeTool = ({ pageId = "42", configPath = null }) => {
               dataset = globalData[dictOfDatasets[key].data]
             }
             let isValid = true
-            if (dictOfDatasets[key] && dictOfDatasets[0].mergeOn) {
+            if (dictOfDatasets[key] && dictOfDatasets[0].mergeOn.length > 0) {
               if (dictOfDatasets[key].isValid !== undefined && dictOfDatasets[key].isValid !== null) {
                 isValid = dictOfDatasets[key].isValid
               }
@@ -560,7 +564,7 @@ const MergeTool = ({ pageId = "42", configPath = null }) => {
                       <MultiSelect
                         key={key + "multiselect1"}
                         optionDisabled={(option) => {
-                          return option.value === mergeOn
+                          return mergeOn.includes(option.value)
                         }}
                         panelClassName="mergeToolMultiSelect"
                         disabled={dataset ? false : true}
@@ -608,7 +612,7 @@ const MergeTool = ({ pageId = "42", configPath = null }) => {
                 <Row key={key + "lastRow"} className="justify-content-center">
                   {!isValid && (
                     <span key={key + "last_span"} style={{ color: "red", textAlign: "center" }}>
-                      The column to merge on <b>({dictOfDatasets[0].mergeOn})</b> is not present in this dataset
+                      Some columns to merge on are not present in this dataset.
                     </span>
                   )}
                 </Row>
@@ -636,7 +640,7 @@ const MergeTool = ({ pageId = "42", configPath = null }) => {
           setNewDatasetName={setNewDatasetName}
           setNewDatasetExtension={setNewDatasetExtension}
           functionToExecute={merge}
-          enabled={!inError && firstSelectedDataset && mergeOn && dictOfDatasets[1]}
+          enabled={!inError && firstSelectedDataset && mergeOn.length > 0 && dictOfDatasets[1]}
         />
         <div className="progressBar-merge">
           {
