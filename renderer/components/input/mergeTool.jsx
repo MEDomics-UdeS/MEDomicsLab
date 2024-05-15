@@ -406,7 +406,8 @@ const MergeTool = ({ pageId = "42", configPath = null }) => {
                 options={dictOfDatasets[0] && dictOfDatasets[0].options ? dictOfDatasets[0].options : []}
                 label="Select the column to merge on"
                 placeholder="Merge on..."
-                style={dictOfDatasets[0] && dictOfDatasets[0].mergeOn.length > 0 ? { border: "1px solid #ced4da" } : { border: "1px solid green" }}
+                display="chip"
+                style={dictOfDatasets[0] && dictOfDatasets[0].mergeOn.length > 0 ? { border: "1px solid #ced4da", width: "100%" } : { border: "1px solid green", width: "100%" }}
                 onChange={(e) => {
                   let newDictOfDatasets = dictOfDatasets ? { ...dictOfDatasets } : {} // We create a new dict of datasets
                   newDictOfDatasets[0].mergeOn = e.target.value // We set the merge on column
@@ -414,7 +415,7 @@ const MergeTool = ({ pageId = "42", configPath = null }) => {
                   setMergeOn(e.target.value) // We set the merge on column
                 }}
               />
-              <label htmlFor="in">Column to merge on</label>
+              <label htmlFor="in">Column(s) to merge on</label>
             </span>
           </Col>
           <Col
