@@ -244,6 +244,16 @@ const OperationOnColumnTool = ({ operationType }) => {
           }
         })
       }
+
+      // check each row of newData to add quotes to cells containing commas
+        newData.$data.forEach((row) => {
+            row.forEach((cell, index) => {
+                if (cell.toString().includes(",")) {
+                row[index] = `"${cell}"`
+                }
+            })
+        })
+
       // Save the data
       if (newData?.$data?.length > 0 && newData?.$columns?.length > 0 && columnsToOperate.length > 0) {
         if (overwrite) {

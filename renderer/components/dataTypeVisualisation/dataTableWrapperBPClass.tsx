@@ -682,20 +682,22 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
    * @returns void
    */
   public async saveData(event: React.MouseEvent<HTMLButtonElement, MouseEvent>, data: any) {
+    console.log("data", data)
     const modifiedData = this.getModifiedData(data)
+    console.log("modifiedData", modifiedData)
     Object.keys(this.state.sparseCellData).forEach((dataKey: string) => {
       const [rowIndex, columnIndex] = this.decoupleDataKey(dataKey)
       modifiedData[rowIndex][this.state.columnsNames[columnIndex]] = this.state.sparseCellData[dataKey]
     })
 
-    // Check if any value in modifiedData contains a comma, if yes, replace it with a point.
-    for (let i = 0; i < modifiedData.length; i++) {
-      for (let j = 0; j < this.state.columnsNames.length; j++) {
-        if (modifiedData[i][this.state.columnsNames[j]].includes(",")) {
-          modifiedData[i][this.state.columnsNames[j]] = modifiedData[i][this.state.columnsNames[j]].replace(",", ".")
+    // Check if any value in modifiedData contains a comma, if yes, make sure the whole thing is in double quotes.
+    modifiedData.forEach((row: { [x: string]: any }) => {
+      Object.keys(row).forEach((key) => {
+        if (row[key].toString().includes(",")) {
+          row[key] = '"' + row[key] + '"'
         }
-      }
-    }
+      })
+    })
 
     let df = new dfd.DataFrame(modifiedData)
     this.saveColumnsNewNames(df)
