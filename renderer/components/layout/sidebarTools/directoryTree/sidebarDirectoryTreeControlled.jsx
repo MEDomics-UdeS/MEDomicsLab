@@ -54,7 +54,7 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
    * @note - This function is called when the user presses a key.
    */
   const handleKeyPress = (event) => {
-    if (event.key === "Delete") {
+    if (event.key === "Delete" && tree.current.isRenaming === false) {
       if (selectedItems.length > 0) {
         console.log("DELETE", selectedItems[0])
         selectedItems.forEach((item) => {
@@ -481,7 +481,7 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
       toast.error("Error: Name cannot be empty")
       return
     } else if (medObject.name == newName) {
-      toast.error("Error: You really wanted to rename to the same name?")
+      toast.warning("Warning: Name is the same as before")
       return
     } else if (boolNameInArray(newName, namesYouCantRename)) {
       toast.error("Error: This name is reserved and cannot be used")
