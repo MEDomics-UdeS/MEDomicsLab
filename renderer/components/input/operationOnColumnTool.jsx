@@ -244,7 +244,6 @@ const OperationOnColumnTool = ({ operationType }) => {
           }
         })
       }
-
       // Save the data
       if (newData?.$data?.length > 0 && newData?.$columns?.length > 0 && columnsToOperate.length > 0) {
         if (overwrite) {
