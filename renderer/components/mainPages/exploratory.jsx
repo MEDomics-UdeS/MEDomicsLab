@@ -8,7 +8,7 @@ import { Tooltip } from "primereact/tooltip"
 import { Button } from "primereact/button"
 import { ToggleButton } from "primereact/togglebutton"
 import { requestBackend } from "../../utilities/requests"
-import { downloadFilePathSync } from "../../utilities/fileManagementUtils"
+import { downloadFilePath } from "../../utilities/fileManagementUtils"
 import { WorkspaceContext } from "../workspace/workspaceContext"
 import { DataContext } from "../workspace/dataContext"
 import { ErrorRequestContext } from "../generalPurpose/errorRequestContext"
@@ -88,7 +88,7 @@ const SweetViz = ({ pageId, port, setError }) => {
    * @returns The file path to download
    */
   const handleDownloadFile = (filePath) => () => {
-    downloadFilePathSync(filePath)
+    downloadFilePath(filePath)
   }
 
   /**
@@ -230,7 +230,7 @@ const YDataProfiling = ({ pageId, port, setError }) => {
    */
   const handleDownloadFile = (filePath) => () => {
     console.log("download file", filePath)
-    downloadFilePathSync(filePath)
+    downloadFilePath(filePath)
   }
 
   /**

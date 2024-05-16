@@ -42,30 +42,13 @@ const downloadFile = (exportObj, exportName) => {
   downloadAnchorNode.remove()
 }
 
-/**
- *
- * @param {String} path path to the file
- *
- * @description
- * This function takes a path and creates a download link for the html file to be downloaded
- */
-const downloadFilePath = (path) => {
-  var dataStr = "data:text/html;charset=utf-8," + encodeURIComponent(fs.readFileSync
-    (path))
-  var downloadAnchorNode = document.createElement("a")
-  downloadAnchorNode.setAttribute("href", dataStr)
-  downloadAnchorNode.setAttribute("download", path.split("/").pop().split("\\").pop())
-  document.body.appendChild(downloadAnchorNode) // required for firefox
-  downloadAnchorNode.click()
-  downloadAnchorNode.remove()  
-}
 
 /**
  * @description Fake download, only copy the file from the source to a destination set by the user in the dialog
  * @param {String} source Path to the file to be downloaded
  * @returns {Promise} Promise that resolves to the file content
  */
-const downloadFilePathSync = (source) => {
+const downloadFilePath = (source) => {
   return new Promise((resolve) => {
     ipcRenderer.invoke("appCopyFile", source).then((destination) => {
       resolve(destination)
@@ -456,7 +439,6 @@ export {
   downloadFile,
   downloadPath,
   downloadFilePath,
-  downloadFilePathSync,
   loadFileFromPathSync,
   writeFile,
   writeJson,
