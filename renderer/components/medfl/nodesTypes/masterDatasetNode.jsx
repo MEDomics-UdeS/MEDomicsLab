@@ -10,6 +10,7 @@ import MedDataObject from "../../workspace/medDataObject"
 import { LoaderContext } from "../../generalPurpose/loaderContext"
 import ModalSettingsChooser from "../../learning/modalSettingsChooser"
 import FlInput from "../flInput"
+import { loadCSVFromPath } from "../../../utilities/fileManagementUtils"
 
 export default function MasterDatasetNode({ id, data }) {
   const [modalShow, setModalShow] = useState(false) // state of the modal
@@ -89,6 +90,11 @@ export default function MasterDatasetNode({ id, data }) {
       id: id,
       updatedData: data.internal
     })
+
+    data.internal.settings.files &&
+      loadCSVFromPath(data.internal.settings.files.path, (data) => {
+        console.log(data)
+      })
   }
 
   return (

@@ -1,9 +1,21 @@
-import React from "react"
+import React, { useContext } from "react"
 import Node from "../../flow/node"
 import FlInput from "../flInput"
+import { FlowFunctionsContext } from "../../flow/context/flowFunctionsContext"
 
 export default function FlStrategyNode({ id, data }) {
   // context
+  // context
+  const { updateNode } = useContext(FlowFunctionsContext)
+
+  const onModelInputChange = (inputUpdate) => {
+    data.internal.settings[inputUpdate.name] = inputUpdate.value
+
+    updateNode({
+      id: id,
+      updatedData: data.internal
+    })
+  }
 
   return (
     <>
@@ -26,7 +38,7 @@ export default function FlStrategyNode({ id, data }) {
                 choices: [{ name: "FedAvg" }]
               }}
               currentValue={""}
-              onInputChange={() => {}}
+              onInputChange={onModelInputChange}
               setHasWarning={() => {}}
             />
 
@@ -37,7 +49,7 @@ export default function FlStrategyNode({ id, data }) {
                 tooltip: "Specify the desription of the federated setup"
               }}
               currentValue={""}
-              onInputChange={() => {}}
+              onInputChange={onModelInputChange}
               setHasWarning={() => {}}
             />
 
@@ -48,7 +60,7 @@ export default function FlStrategyNode({ id, data }) {
                 tooltip: "Specify the desription of the federated setup"
               }}
               currentValue={""}
-              onInputChange={() => {}}
+              onInputChange={onModelInputChange}
               setHasWarning={() => {}}
             />
 
@@ -59,7 +71,7 @@ export default function FlStrategyNode({ id, data }) {
                 tooltip: "Specify the desription of the federated setup"
               }}
               currentValue={""}
-              onInputChange={() => {}}
+              onInputChange={onModelInputChange}
               setHasWarning={() => {}}
             />
 
@@ -70,7 +82,7 @@ export default function FlStrategyNode({ id, data }) {
                 tooltip: "Specify the desription of the federated setup"
               }}
               currentValue={""}
-              onInputChange={() => {}}
+              onInputChange={onModelInputChange}
               setHasWarning={() => {}}
             />
 
@@ -81,7 +93,7 @@ export default function FlStrategyNode({ id, data }) {
                 tooltip: "Specify the desription of the federated setup"
               }}
               currentValue={""}
-              onInputChange={() => {}}
+              onInputChange={onModelInputChange}
               setHasWarning={() => {}}
             />
           </>

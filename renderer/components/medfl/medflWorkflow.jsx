@@ -44,6 +44,7 @@ import FlPipelineNode from "./nodesTypes/flPipelineNode.jsx"
 import FlResultsNode from "./nodesTypes/flResultsNode.jsx"
 import { Button } from "react-bootstrap"
 import RunPipelineModal from "./runPipelineModal"
+import FlConfigModal from "./flConfigModal"
 
 const staticNodesParams = nodesParams // represents static nodes parameters
 
@@ -72,7 +73,15 @@ const MedflWorkflow = ({ setWorkflowType, workflowType }) => {
     currentLabel: ""
   })
 
+  const [flWorkflowSettings, setflWorkflowSettings] = useState({})
   const [showRunModal, setRunModal] = useState(false)
+
+  const [progressValue, setProgressValue] = useState({ now: 0, currentLabel: "" }) // we use this to store the progress value of the dashboard
+  const [isUpdating, setIsUpdating] = useState(false) // we use this to store the progress value of the dashboard
+
+  const [stringReceived, setStringReceived] = useState("")
+
+  const [flConfigFile, setConfigFile] = useState(null)
 
   const { groupNodeId, changeSubFlow, hasNewConnection } = useContext(FlowFunctionsContext)
   const { config, pageId, configPath } = useContext(PageInfosContext) // used to get the page infos such as id and config path
@@ -88,13 +97,13 @@ const MedflWorkflow = ({ setWorkflowType, workflowType }) => {
       selectionNode: SelectionNode,
       groupNode: GroupNode,
       optimizeIO: OptimizeIO,
-      datasetNode: MasterDatasetNode,
+      masterDatasetNode: MasterDatasetNode,
       loadModelNode: LoadModelNode,
       networkNode: NetworkNode,
       flClientNode: FlClientNode,
       flServerNode: FlServerNode,
       flSetupNode: FlSetupNode,
-      masterDatasetNode: FlDatasetNode,
+      flDatasetNode: FlDatasetNode,
       flModelNode: FlModelNode,
       flOptimizeNode: FlOptimizeNode,
       flStrategyNode: FlStrategyNode,
@@ -490,7 +499,7 @@ const MedflWorkflow = ({ setWorkflowType, workflowType }) => {
    */
   const runNode = useCallback(
     (id) => {
-      setRunModal(true)
+      // setRunModal(true)
     },
     [reactFlowInstance, MLType, nodes, edges, intersections]
   )
@@ -570,6 +579,22 @@ const MedflWorkflow = ({ setWorkflowType, workflowType }) => {
   }
 
   /**
+   * Get the fl workflow settings
+   */
+
+  const getFlSettings = (nodes) => {
+    nodes.map((node) => {
+      // DatasetNode
+      if (node.type === "masterDatasetNode") {
+        setflWorkflowSettings({
+          ...flWorkflowSettings,
+          masterDataset: node.data.internal.settings
+        })
+      }
+    })
+  }
+
+  /**
    * execute the whole workflow
    */
   const onRun = useCallback(
@@ -577,32 +602,32 @@ const MedflWorkflow = ({ setWorkflowType, workflowType }) => {
       setRunModal(true)
 
       if (reactFlowInstance) {
-        let flow = deepCopy(reactFlowInstance.toObject())
-        flow.MLType = MLType
-        flow.nodes.forEach((node) => {
-          node.data.setupParam = null
-        })
-
-        let { newflow, isValid } = cleanJson2Send(flow, up2Id)
-        flow = newflow
-        // If the workflow size is too big, we need to put it in a file and send it to the server
-        // This is because the server can't handle big json objects
-        if (getByteSize(flow, "bytes") > 25000) {
-          console.log("JSON config object is too big to be sent to the server. It will be saved in a file and sent to the server.")
-          // Get the temporary directory
-          ipcRenderer.invoke("appGetPath", "temp").then((tmpDirectory) => {
-            // Save the workflow in a file
-            MedDataObject.writeFileSync(flow, tmpDirectory, pageId, "json")
-            // Change the flow to the path of the file
-            let newPath = Path.join(tmpDirectory, pageId + ".json")
-            flow = { temp: newPath }
-            requestBackendRunExperiment(port, flow, isValid)
-          })
-        } else {
-          requestBackendRunExperiment(port, flow, isValid)
-        }
-      } else {
-        toast.warn("react flow instance not found")
+        getFlSettings(nodes)
+        //   let flow = deepCopy(reactFlowInstance.toObject())
+        //   flow.MLType = MLType
+        //   flow.nodes.forEach((node) => {
+        //     node.data.setupParam = null
+        //   })
+        //   let { newflow, isValid } = cleanJson2Send(flow, up2Id)
+        //   flow = newflow
+        //   // If the workflow size is too big, we need to put it in a file and send it to the server
+        //   // This is because the server can't handle big json objects
+        //   if (getByteSize(flow, "bytes") > 25000) {
+        //     console.log("JSON config object is too big to be sent to the server. It will be saved in a file and sent to the server.")
+        //     // Get the temporary directory
+        //     ipcRenderer.invoke("appGetPath", "temp").then((tmpDirectory) => {
+        //       // Save the workflow in a file
+        //       MedDataObject.writeFileSync(flow, tmpDirectory, pageId, "json")
+        //       // Change the flow to the path of the file
+        //       let newPath = Path.join(tmpDirectory, pageId + ".json")
+        //       flow = { temp: newPath }
+        //       requestBackendRunExperiment(port, flow, isValid)
+        //     })
+        //   } else {
+        //     requestBackendRunExperiment(port, flow, isValid)
+        //   }
+        // } else {
+        //   toast.warn("react flow instance not found")
       }
     },
     [reactFlowInstance, MLType, nodes, edges, intersections, configPath]
@@ -841,22 +866,71 @@ const MedflWorkflow = ({ setWorkflowType, workflowType }) => {
     return result
   }
 
+  const runFlPipeline = (flConfig) => {
+    let JSONToSend = flConfig
+
+    setIsProgressUpdating(true)
+    setIsUpdating(true)
+
+    requestBackend(
+      // Send the request
+      port,
+      "/medfl/hello_world/" + pageId,
+      JSONToSend,
+      (jsonResponse) => {
+        if (jsonResponse.error) {
+          if (typeof jsonResponse.error == "string") {
+            jsonResponse.error = JSON.parse(jsonResponse.error)
+          }
+          setError(jsonResponse.error)
+        } else {
+          setIsUpdating(false) // Set the isUpdating to false
+          console.log("jsonResponse", jsonResponse)
+          setProgressValue({ now: 100, currentLabel: jsonResponse["data"] }) // Set the progress value to 100 and show the message that the backend received from the frontend
+          setStringReceived(jsonResponse["stringFromBackend"]) // Set the string received from the backend
+          toast.success("We recieved the config from the front end")
+          setRunModal(false)
+          setTimeout(() => {
+            setIsProgressUpdating(false)
+          }, 2000)
+        }
+      },
+      function (error) {
+        setIsUpdating(false)
+        setProgressValue({ now: 0, currentLabel: "Message sending failed ❌" })
+        toast.error("Sending failed", error)
+        console.log(error)
+      }
+    )
+  }
+
   return (
     <>
-      <Button
-        onClick={() => {
-          console.log(nodes)
+      {flConfigFile && (
+        <div style={{ display: "flex", justifyContent: "space-between", padding: 10 }}>
+          <div>Select a config file </div>
+          <div></div>
+        </div>
+      )}
+      {/* set the fl config file  */}
+
+      <FlConfigModal
+        show={!flConfigFile}
+        onHide={() => {
+          setConfigFile(true)
         }}
-      >
-        Click me
-      </Button>
+      />
+
+      {/* RUN the fl pipeline modal  */}
       <RunPipelineModal
         show={showRunModal}
         onHide={() => {
+          console.log(nodes)
           setRunModal(false)
         }}
         configs={getConfigs(treeData, 0)}
         nodes={nodes}
+        onRun={runFlPipeline}
       />
       <WorkflowBase
         // mandatory props
