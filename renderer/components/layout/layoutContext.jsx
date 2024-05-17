@@ -135,7 +135,7 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
         case "DELETE_DATA_OBJECT":
           return removeMedObject(action)
         default:
-          toast.error(`Unhandled action type: ${action.type}`)
+          console.warn(`Unhandled action type: ${action.type}`)
       }
     } else {
       toast.error("Developer mode is ON, please turn it OFF to use the application")
