@@ -42,22 +42,18 @@ const downloadFile = (exportObj, exportName) => {
   downloadAnchorNode.remove()
 }
 
+
 /**
- *
- * @param {String} path path to the file
- *
- * @description
- * This function takes a path and downloads the file
+ * @description Fake download, only copy the file from the source to a destination set by the user in the dialog
+ * @param {String} source Path to the file to be downloaded
+ * @returns {Promise} Promise that resolves to the file content
  */
-const downloadFilePath = (path) => {
-  toLocalPath(path).then((localPath) => {
-    var downloadAnchorNode = document.createElement("a")
-    downloadAnchorNode.setAttribute("href", "./tmp/" + Path.basename(localPath))
-    downloadAnchorNode.setAttribute("download", Path.basename(localPath))
-    document.body.appendChild(downloadAnchorNode) // required for firefox
-    downloadAnchorNode.click()
-    downloadAnchorNode.remove()
-  })
+const downloadFilePath = (source) => {
+  return new Promise((resolve) => {
+    ipcRenderer.invoke("appCopyFile", source).then((destination) => {
+      resolve(destination)
+    }
+    )})
 }
 
 /**

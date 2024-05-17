@@ -446,6 +446,26 @@ if (isProd) {
   })
 
   /**
+   * @description Copies the source file to the destination file set by the user in the dialog
+   * @param {String} source The source file to copy
+   * @param {String} defaultPath The default path to set in the dialog - If null, the default path will be the user's home directory
+   * @returns {Promise<String>} The destination file
+   */
+  ipcMain.handle("appCopyFile", async (_event, source) => {
+    // Get the filename from the source path
+    let filename = path.basename(source)
+    const { filePath } = await dialog.showSaveDialog({
+      title: "Save file",
+      defaultPath: filename.length > 0 ? filename : source,
+      filters: [{ name: "All Files", extensions: ["*"] }]
+    })
+    if (filePath) {
+      fs.copyFileSync(source, filePath)
+      return filePath
+    }
+  })
+
+  /**
    * @description Returns the settings
    * @returns {Object} The settings
    * @summary Returns the settings from the settings file if it exists, otherwise returns an empty object
