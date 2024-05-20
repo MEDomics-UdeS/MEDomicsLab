@@ -1074,7 +1074,7 @@ const renderParamsPanel = (activeIndex, setActiveIndex, setShowEdit, ModSettings
                     showButtons
                     min={0}
                     max={1}
-                    minFractionsDigits={1}
+                    minfractionsdigits={1}
                     maxFractionDigits={5}
                     incrementButtonClassName="p-button-info"
                     decrementButtonClassName='p-button-info' 
@@ -1316,6 +1316,7 @@ const renderParamsPanel = (activeIndex, setActiveIndex, setShowEdit, ModSettings
                     </Form.Label>
                     {ModSettings.discretisation.texture.type.map((algo, indexAlgo) => 
                         <TextureParams 
+                            key={indexAlgo}
                             ModSettings={ModSettings}
                             activeIndex={activeIndex}
                             setActiveIndex={setActiveIndex}
