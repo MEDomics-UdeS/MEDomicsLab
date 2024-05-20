@@ -1,23 +1,23 @@
-import React, { useState, useEffect, useContext, useRef } from "react"
+import { shell } from "electron"
 import { Card } from "primereact/card"
-import { toast } from "react-toastify" // https://www.npmjs.com/package/react-toastify
-import EditableLabel from "react-simple-editlabel"
-import Handlers from "./handlers"
-import { FlowInfosContext } from "./context/flowInfosContext"
-import { FlowFunctionsContext } from "./context/flowFunctionsContext"
-import { FlowResultsContext } from "./context/flowResultsContext"
-import * as Icon from "react-bootstrap-icons"
-import NodeWrapperResults from "./nodeWrapperResults"
 import { OverlayPanel } from "primereact/overlaypanel"
-import { Stack } from "react-bootstrap"
-import { IoClose } from "react-icons/io5"
-import { BsPlay } from "react-icons/bs"
+import { Tag } from "primereact/tag"
 import { Tooltip } from "primereact/tooltip"
+import React, { useContext, useEffect, useRef, useState } from "react"
+import { Stack } from "react-bootstrap"
+import * as Icon from "react-bootstrap-icons"
 import { AiOutlineInfoCircle } from "react-icons/ai"
+import { BsPlay } from "react-icons/bs"
+import { IoClose } from "react-icons/io5"
+import EditableLabel from "react-simple-editlabel"
+import { toast } from "react-toastify"; // https://www.npmjs.com/package/react-toastify
 import { defaultValueFromType } from "../../utilities/learning/inputTypesUtils"
 import { deepCopy } from "../../utilities/staticFunctions"
-import { Tag } from "primereact/tag"
-import { shell } from "electron"
+import { FlowFunctionsContext } from "./context/flowFunctionsContext"
+import { FlowInfosContext } from "./context/flowInfosContext"
+import { FlowResultsContext } from "./context/flowResultsContext"
+import Handlers from "./handlers"
+import NodeWrapperResults from "./nodeWrapperResults"
 // keep this import for the code editor (to be implemented)
 // import dynamic from "next/dynamic"
 // const CodeEditor = dynamic(() => import("./codeEditor"), {
@@ -249,5 +249,13 @@ export const updateHasWarning = (data) => {
         data.internal.hasWarning = { state: true, tooltip: <p>Please fill all the mandatory fields</p> }
       }
     })
+  }
+  // segmentation node check if ROI list is empty
+  if (data.setupParam.type === "segmentationNode") {
+    if (Object.keys(data.internal.settings.rois).length === 0) {
+      data.internal.hasWarning = { state: true, tooltip: <p>Upload an image and link an input node</p> }
+    } else if (data.internal.settings.rois_data === "") {
+      data.internal.hasWarning = { state: true, tooltip: <p>Select at least one ROI to analyze</p> }
+    }
   }
 }
