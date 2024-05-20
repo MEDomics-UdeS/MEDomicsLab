@@ -8,17 +8,14 @@ from pathlib import Path
 import pandas as pd
 from numpyencoder import NumpyEncoder
 
-MODULE_DIR = str(Path(os.path.dirname(os.path.abspath(__file__))).parent / 'submodules' / 'MEDimage')
-sys.path.append(MODULE_DIR)
-path = r"C:\Users\mehdi\Desktop\MEDomicsLab\MEDomicsLab\flask_server\submodules\MEDimage"
-SUBMODULE_DIR = str(Path(os.path.dirname(os.path.abspath(__file__))).parent.parent)
+SUBMODULE_DIR = str(Path(os.path.dirname(os.path.abspath(__file__))).parent.parent / 'submodules' / 'MEDimage')
 sys.path.append(SUBMODULE_DIR)
 
 pp = pprint.PrettyPrinter(width=1)  # allow pretty print of datatypes in console
 
 import MEDimage
 
-import utils
+from .utils import *
 
 
 class MEDimageLearning:
@@ -49,7 +46,7 @@ class MEDimageLearning:
         # ONE OUPUT CONNECTION
         elif len(node_content["outputs"]["output_1"]["connections"]) == 1:
             out_node_id = node_content["outputs"]["output_1"]["connections"][0]["node"]
-            out_node_content = utils.get_node_content(out_node_id, json_scene)
+            out_node_content = get_node_content(out_node_id, json_scene)
             print(out_node_content["name"])
             pip = self.generate_all_pips(out_node_id, out_node_content, pip, json_scene, pips, counter)
 
@@ -59,7 +56,7 @@ class MEDimageLearning:
             for connection in connections:
                 pip_copy = deepcopy(pip)  # Copy the current pip
                 out_node_id = connection["node"]  # Retrieve all nodes connected to the current node output
-                out_node_content = utils.get_node_content(out_node_id, json_scene)  # Retrieve all nodes content
+                out_node_content = get_node_content(out_node_id, json_scene)  # Retrieve all nodes content
                 print(out_node_content["name"])
                 pip_copy = self.generate_all_pips(out_node_id, out_node_content, pip_copy, json_scene, pips, counter)
 
@@ -82,6 +79,8 @@ class MEDimageLearning:
 
             pip_name = "pipeline" + str(pip_idx+1)
 
+            self.set_progress(now=0.0, label=f"Pipeline {pip_idx+1} execution")
+
             print("\n\n!!!!!!!!!!!!!!!!!! New pipeline execution !!!!!!!!!!!!!!!!!! \n --> Pip : ", pip)
 
             # Init object and variables for new pipeline
@@ -101,14 +100,13 @@ class MEDimageLearning:
             # ------------------------------------------ NODE EXECUTION ------------------------------------------
             while True:
                 for node in pip:
-                    content = utils.get_node_content(node, json_scene)
+                    content = get_node_content(node, json_scene)
                     print("\n\n\n///////////////// CURRENT NODE :", content["name"], "-", node, " /////////////////")
 
                     # Update RUNS dict for store instances and logs (xxx_obj)
                     update_pip = False
                     pip_name_obj += node
                     id_obj = {}
-                    output_obj = {}
                     id_obj["type"] = content["name"]
                     id_obj["settings"] = content["data"]
 
@@ -121,7 +119,6 @@ class MEDimageLearning:
                         print("\n********SPLIT execution********")
                         try:
                             if not splitted_data:
-                                learning_progress = 0
                                 # Retrieve data from json request
                                 if "path_outcome_file" in content["data"].keys() and content["data"]["path_outcome_file"] != "":
                                     path_outcome_file = Path(content["data"]["path_outcome_file"])
@@ -129,6 +126,8 @@ class MEDimageLearning:
                                     return {"error": "Split: Path to outcome file is not given!"}
                                 if "path_save_experiments" in content["data"].keys() and content["data"]["path_save_experiments"] != "":
                                     path_save_experiments = Path(content["data"]["path_save_experiments"])
+                                else:
+                                    return {"error":  "Split: Path to save experiments is not given!"}
                                 if "outcome_name" in content["data"].keys() and content["data"]["outcome_name"] != "":
                                     outcome_name = content["data"]["outcome_name"]
                                 else:
@@ -142,6 +141,9 @@ class MEDimageLearning:
                                 else:
                                     holdout_test = True
 
+                                # Reset progress
+                                self.set_progress(now=0.0, label=f"Pip {str(pip_idx+1)} | Spliting data")
+
                                 # Generate the machine learning experiment
                                 path_study, _ = MEDimage.learning.ml_utils.create_holdout_set(
                                     path_outcome_file=path_outcome_file,
@@ -149,7 +151,9 @@ class MEDimageLearning:
                                     outcome_name=outcome_name,
                                     method=method
                                 )
-                            splitted_data = True
+                                splitted_data = True
+                                self.set_progress(now=5)
+                                print("Split progress:", self._progress['now'])
                         except Exception as e:
                             return {"error": str(e)}
 
@@ -158,6 +162,7 @@ class MEDimageLearning:
                         print("\n********DESIGN execution********")
                         try:
                             if not designed_experiment:
+                                self.set_progress(label=f"Pip {str(pip_idx+1)} | Designing experiment")
                                 # Initialization
                                 path_settings = Path.cwd() / "flask_server" / "learning_MEDimage" / "settings"
                                 desing_settings = {}
@@ -191,7 +196,9 @@ class MEDimageLearning:
                                 # Set up the split counter
                                 split_counter = 0
                                 designed_experiment = True
-                                learning_progress += 1
+                                print("Progress", self._progress['now'])
+                                self.set_progress(now=10)
+                                print("Progress AFTER", self._progress['now'])
                         except Exception as e:
                             return {"error": str(e)}
 
@@ -203,6 +210,9 @@ class MEDimageLearning:
                             try:
                                 if not designed_experiment:
                                     return {"error":  "Data: Experiment must be designed first! Re-organize nodes."}
+                                
+                                # Update progress
+                                self.set_progress(label=f"Pip {str(pip_idx+1)} | Split {split_counter+1} | Loading data")
                                 
                                 # --> A. Initialization phase
                                 learner = MEDimage.learning.RadiomicsLearner(path_study=path_study, path_settings=Path.cwd(), experiment_label=experiment_label)
@@ -286,10 +296,12 @@ class MEDimageLearning:
                                     
                                     # Update
                                     loaded_data = True
+                                    print("len(paths_splits)", len(paths_splits))
+                                    print("Progress: ", self._progress['now'] + 100/len(paths_splits)/5)
+                                    self.set_progress(now=round(self._progress['now'] + 100/len(paths_splits)/5))
                                 # Clinical or other variables (For ex: Volume)
                                 else:
                                     return {"error":  "Variable type not implemented yet, only Radiomics variables are supported!"}
-                                learning_progress += 1
                             except Exception as e:
                                 return {"error": str(e)}
 
@@ -302,6 +314,9 @@ class MEDimageLearning:
                                     return {"error":  "Cleaning: Path to study is not given!"}
                                 if experiment_label is None:
                                     return {"error":  "Cleaning: Experiment label is not given!"}
+
+                                # Update progress
+                                self.set_progress(label=f"Pip {str(pip_idx+1)} | Split {split_counter+1} | Cleaning data")
 
                                 # Pre-processing
                                 for item in rad_var_struct['path'].values():
@@ -328,7 +343,9 @@ class MEDimageLearning:
                                 flags_preprocessing.append("var_datacleaning")
                                 flags_preprocessing_test.append("var_datacleaning")
                                 cleaned_data = True
-                                learning_progress += 1
+                                print("Pre Cleaning Progress", self._progress['now'])
+                                self.set_progress(now=round(self._progress['now'] + 100/len(paths_splits)/5))
+                                print("Post Cleaning Progress", self._progress['now'])
                             except Exception as e:
                                 return {"error": str(e)}
                         
@@ -341,6 +358,9 @@ class MEDimageLearning:
                                 else:
                                     normalization_method = ""
                                 
+                                # Update progress
+                                self.set_progress(label=f"Pip {str(pip_idx+1)} | Split {split_counter+1} | Normalizing data")
+
                                 # If there was no cleaning step, the data must be loaded
                                 if not cleaned_data:
                                     for item in rad_var_struct['path'].values():
@@ -372,8 +392,10 @@ class MEDimageLearning:
                                     else:
                                         return {"error":  f"Normalization: method {normalization_method} not implemented yet!"}
                                     
+                                print("Pre Normalization Progress", self._progress['now'])
+                                self.set_progress(now=round(self._progress['now'] + 100/len(paths_splits)/5))
+                                print("Post Normalization Progress", self._progress['now'])
                                 normalized_features = True
-                                learning_progress += 1
                             except Exception as e:
                                 return {"error": str(e)}
 
@@ -390,6 +412,9 @@ class MEDimageLearning:
                                         image_type = item['type']
                                         rad_table_learning = MEDimage.learning.ml_utils.get_radiomics_table(path_radiomics_csv, path_radiomics_txt, image_type, patient_ids)
                                         rad_tables_learning.append(rad_table_learning)
+
+                                # Update progress
+                                self.set_progress(label=f"Pip {str(pip_idx+1)} | Split {split_counter+1} | Reducing data")
 
                                 # Seperate training and testing data before feature set reduction
                                 rad_tables_testing = deepcopy(rad_tables_learning)
@@ -440,7 +465,9 @@ class MEDimageLearning:
                                 rad_tables_testing = MEDimage.learning.ml_utils.combine_rad_tables(rad_tables_testing)
                                 rad_tables_testing.Properties['userData']['flags_processing'] = flags_preprocessing_test
                                 reduced_features = True
-                                learning_progress += 1
+                                print("Pre Feature Reduction Progress", self._progress['now'])
+                                self.set_progress(now=round(self._progress['now'] + 100/len(paths_splits)/5))
+                                print("Post Feature Reduction Progress", self._progress['now'])
                             except Exception as e:
                                 return {"error": str(e)}
 
@@ -459,6 +486,9 @@ class MEDimageLearning:
                                         rad_table_learning = MEDimage.learning.ml_utils.get_radiomics_table(path_radiomics_csv, path_radiomics_txt, image_type, patient_ids)
                                         rad_tables_learning.append(rad_table_learning)
                                 
+                                # Update progress
+                                self.set_progress(label=f"Pip {str(pip_idx+1)} | Split {split_counter+1} | Model training")
+
                                 # Seperate training and testing if no feature set reduction step was performed
                                 if not reduced_features:
                                     rad_tables_testing = deepcopy(rad_tables_learning)
@@ -521,9 +551,6 @@ class MEDimageLearning:
                                     optimization_metric=optimization_metric,
                                     seed=seed
                                 )
-
-                                # Update progress
-                                learning_progress += 5
 
                                 # Saving the trained model using pickle
                                 if "nameSave" in content["data"][model_name].keys() and content["data"][model_name]["nameSave"] is not None:
@@ -605,13 +632,13 @@ class MEDimageLearning:
                                 # F. Saving the results dictionary
                                 MEDimage.utils.json_utils.save_json(path_results, run_results, cls=NumpyEncoder)
                                 saved_results = True
+                                print("Pre Model Training Progress", self._progress['now'])
+                                self.set_progress(now=round((split_counter+1) * (90 / len(paths_splits)) + 10))
+                                print("Post Model Training Progress", self._progress['now'])
 
                                 # Increment the split counter
                                 split_counter += 1
 
-                                # If progress is not a multiple of 10, make it a multiple of 10
-                                if learning_progress % 10 != 0:
-                                    learning_progress = int(learning_progress / 10) * 10
                             except Exception as e:
                                 return {"error": str(e)}
 
@@ -690,8 +717,10 @@ class MEDimageLearning:
                 
                 # Check if all the splits are done
                 if designed_experiment and split_counter == len(paths_splits):
-                    learning_progress = 100
                     break
+
+        # Update progress
+        self.set_progress(now=100, label="Done!")
 
         # After all pips are executed, analyze both
         # Find pips linked to analyze nodes
@@ -699,12 +728,12 @@ class MEDimageLearning:
         for pip in pips:
             have_analyze = True
             for node in pip:
-                content = utils.get_node_content(node, json_scene)
+                content = get_node_content(node, json_scene)
                 if content["name"].lower() == "analyze":
                     have_analyze = True
                     break
             for node in pip:
-                content = utils.get_node_content(node, json_scene)
+                content = get_node_content(node, json_scene)
                 if content["name"].lower() == "design" and have_analyze and content["data"]["expName"] not in experiments_labels:
                     experiments_labels.append(content["data"]["expName"])
                     break
@@ -719,7 +748,7 @@ class MEDimageLearning:
         figures_dict = {}
         for pip in pips:
             for node in pip:
-                content = utils.get_node_content(node, json_scene)
+                content = get_node_content(node, json_scene)
                 if content["name"].lower() == "analyze":
                     # --------------------------- ANALYSIS ---------------------------
                     # Initializing options
@@ -934,3 +963,28 @@ class MEDimageLearning:
             json_res["warning"] = warn_msg
 
         return json_res  # return pipeline results in the form of a dict
+    
+    def get_progress(self) -> dict:
+        """
+        Returns the progress of the pipeline execution.\n
+        self._progress is a dict containing the current node in execution and the current progress of all processed nodes.\n
+        this function is called by the frontend to update the progress bar continuously when the pipeline is running.
+
+        Returns:
+            dict: The progress of all pipelines execution.
+        """
+        return self._progress
+
+    def set_progress(self, now: int = -1, label: str = "same") -> None:
+        """
+        Sets the progress of the pipeline execution.
+
+        Args:
+            now (int, optional): The current progress. Defaults to 0.
+            label (str, optional): The current node in execution. Defaults to "".
+        """
+        if now == -1:
+            now = self._progress['now']
+        if label == "same":
+            label = self._progress['currentLabel']
+        self._progress = {'currentLabel': label, 'now': now}
