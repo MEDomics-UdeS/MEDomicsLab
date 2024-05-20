@@ -1,32 +1,29 @@
-import React, { useState, useCallback, useMemo, useEffect, useContext } from "react"
+import React, { useCallback, useContext, useEffect, useMemo, useState } from "react"
 import { toast } from "react-toastify"
 
 // Import utilities
+import { downloadFile, loadJsonSync, processBatchSettings } from "../../utilities/fileManagementUtils"
 import { requestBackend } from "../../utilities/requests"
-import { loadJsonSync, downloadFile, processBatchSettings } from "../../utilities/fileManagementUtils"
-import { requestJson } from "../../utilities/requests"
-import { PageInfosContext } from "../mainPages/moduleBasics/pageInfosContext"
 import ProgressBarRequests from "../generalPurpose/progressBarRequests"
-import useInterval from "@khalidalansi/use-interval"
 
 
 // Workflow imports
-import { useNodesState, useEdgesState, useReactFlow } from "reactflow"
-import WorkflowBase from "../flow/workflowBase"
+import { useEdgesState, useNodesState, useReactFlow } from "reactflow"
 import { FlowFunctionsContext } from "../flow/context/flowFunctionsContext"
 import { FlowResultsContext } from "../flow/context/flowResultsContext"
-import { WorkspaceContext } from "../workspace/workspaceContext"
+import WorkflowBase from "../flow/workflowBase"
 import { ErrorRequestContext } from "../generalPurpose/errorRequestContext.jsx"
+import { WorkspaceContext } from "../workspace/workspaceContext"
 
 // Import node types
-import Split from "./nodes/Split"
+import Analyze from "./nodes/Analyze"
 import Cleaning from "./nodes/Cleaning"
-import Design from "./nodes/Design"
 import Data from "./nodes/Data"
+import Design from "./nodes/Design"
+import FeatureReduction from "./nodes/FeatureReduction"
 import Normalization from "./nodes/Normalization"
 import RadiomicsLearner from "./nodes/RadiomicsLearner"
-import FeatureReduction from "./nodes/FeatureReduction"
-import Analyze from "./nodes/Analyze"
+import Split from "./nodes/Split"
 // Import node parameters
 import nodesParams from "../../public/setupVariables/allNodesParams"
 
@@ -34,11 +31,10 @@ import nodesParams from "../../public/setupVariables/allNodesParams"
 import BtnDiv from "../flow/btnDiv"
 
 // Static functions used in the workflow
-import { mergeWithoutDuplicates, deepCopy } from "../../utilities/staticFunctions"
+import { deepCopy } from "../../utilities/staticFunctions"
 
 // Useful libraries
-import { useRef } from "react";
-import ProgressBar from "react-bootstrap/ProgressBar"
+import { useRef } from "react"
 
 
 /**
@@ -57,7 +53,6 @@ const FlowCanvas = ({ workflowType, setWorkflowType }) => {
   const [nodeUpdate, setNodeUpdate] = useState({}) // nodeUpdate is used to update a node internal data
   const { setViewport } = useReactFlow() // setViewport is used to update the viewport of the workflow
   const [treeData, setTreeData] = useState({}) // treeData is used to set the data of the tree menu
-  const [results, setResults] = useState({}) // results is used to store radiomic features results
   const [isProgressUpdating, setIsProgressUpdating] = useState(false) // progress is used to store the progress of the workflow execution
   const [progress, setProgress] = useState({
     now: 0,
@@ -66,7 +61,7 @@ const FlowCanvas = ({ workflowType, setWorkflowType }) => {
   const [nSplits, setNSplits] = useState([]) // nSplits is used to store the number of splits to be done in the learning experiment
   const [resultsFolder, setResultsFolder] = useState([])   // resultsFolder is used to store the path to the machine learning results
   const [experiments, setExperiments] = useState([]) // experiments is used to store the experiments to be done in the learning experiment
-  const { config, pageId, configPath } = useContext(PageInfosContext) // used to get the page infos such as id and config path
+  const pageId = "learningMEDimage" // pageId is used to identify the page in the backend
   const { updateFlowResults, setIsResults, isResults } = useContext(FlowResultsContext)
   const delayMS = 400   // delay in ms between each request of the progress bar
   const { groupNodeId, changeSubFlow, updateNode } = useContext(FlowFunctionsContext)
@@ -275,6 +270,9 @@ const FlowCanvas = ({ workflowType, setWorkflowType }) => {
 
     // Used to enable the view button of a node (if it exists)
     newNode.data.internal.enableView = false
+
+    // Add warning to node
+    newNode.data.internal.hasWarning = { state: false }
 
     // Add dictionnary to put results in node data if the node is an extractionNode
     if (newNode.type === "extractionNode") {
@@ -606,7 +604,7 @@ const FlowCanvas = ({ workflowType, setWorkflowType }) => {
     }
   }
 
-  useEffect(() => {
+  /*useEffect(() => {
     if (isProgressUpdating) {
       // Call fetchData immediately when the component mounts
       fetchProgress();
@@ -621,7 +619,7 @@ const FlowCanvas = ({ workflowType, setWorkflowType }) => {
         clearInterval(intervalId);
       };
     } 
-  }, [isProgressUpdating]); // The empty dependency array ensures this effect runs only once when the component mounts
+  }, [isProgressUpdating]); // The empty dependency array ensures this effect runs only once when the component mounts*/
 
   /**
    * @description
@@ -704,12 +702,12 @@ const FlowCanvas = ({ workflowType, setWorkflowType }) => {
     setNSplits(nSplitsTemp)
 
     // Start progress bar
+    setProgress({now: 0, currentLabel: progress.currentLabel})
     setIsProgressUpdating(true)
     
     requestBackend(
       port,
-      "/learning_MEDimage/run_all",
-      null,
+      "/learning_MEDimage/run_all/" + pageId,
       newFlow,
       (response) => {
         console.log("received results:", response)
@@ -766,9 +764,16 @@ const FlowCanvas = ({ workflowType, setWorkflowType }) => {
           })
           toast.error(response.error)
           console.log("error", response.error)
-          setError({
-            "message": response.error
-          })
+          // check if error has message or not
+          if (response.error.message){
+            console.log("error message", response.error.message)
+            setError(response.error)
+          } else {
+            console.log("error no message", response.error)
+            setError({
+              "message": response.error
+            })
+          }
           setShowError(true)
         }
         },
@@ -1032,19 +1037,10 @@ const FlowCanvas = ({ workflowType, setWorkflowType }) => {
           </>
         }
         ui={
-          ((!isProgressUpdating && progress.now!==100) && 
-            <></>
-            ) || (
           <>
             {/* bottom center - progress bar */}
-            <div className="panel-bottom-center">
-              <div className="progress-bar-requests">
-                <label>{progress.currentLabel || ""}</label>
-                <ProgressBar animated={true} variant="success" now={progress.now} label={`${progress.now}%`} />
-              </div>
-            </div>
+            <div className="panel-bottom-center">{isProgressUpdating && <ProgressBarRequests progressBarProps={{ animated: true, variant: "success" }} isUpdating={isProgressUpdating} setIsUpdating={setIsProgressUpdating} progress={progress} setProgress={setProgress} requestTopic={"learning_MEDimage/progress/" + pageId} />}</div>
           </>
-          )
         }
       />
     </>
