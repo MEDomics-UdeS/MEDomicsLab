@@ -155,6 +155,22 @@ const IconSidebar = ({ onSidebarItemSelect }) => {
                 {extractionBtnstate ? <VscChromeClose style={{ height: "1.7rem", width: "auto" }} /> : <TbFileExport style={{ height: "1.7rem", width: "auto" }} />}
                 <div className={`btn-group-ext ${extractionBtnstate ? "clicked" : ""}`}>
                   <Button
+                    className="DataManager-btn"
+                    icon="pi pi-book"
+                    data-pr-at="right center"
+                    data-pr-my="left center"
+                    data-pr-tooltip="DataManager"
+                    data-is-ext-btn
+                    onClick={(event) => {
+                      event.stopPropagation()
+                      event.preventDefault()
+                      handleDoubleClick(event, "DataManager")
+                      // handleClick(event, "extractionMEDimage")
+                      setExtractionBtnstate(!extractionBtnstate)
+                    }}
+                    onDoubleClick={(event) => handleDoubleClick(event, "ExtractionMEDimage")}
+                  />
+                  <Button
                     className="ext-MEDimg-btn"
                     icon="pi pi-image"
                     data-pr-at="right center"
@@ -165,6 +181,22 @@ const IconSidebar = ({ onSidebarItemSelect }) => {
                       event.stopPropagation()
                       event.preventDefault()
                       handleDoubleClick(event, "ExtractionMEDimage")
+                      // handleClick(event, "extractionMEDimage")
+                      setExtractionBtnstate(!extractionBtnstate)
+                    }}
+                    onDoubleClick={(event) => handleDoubleClick(event, "ExtractionMEDimage")}
+                  />
+                  <Button
+                    className="BatchExtractor-btn"
+                    icon="pi pi-list"
+                    data-pr-at="right center"
+                    data-pr-my="left center"
+                    data-pr-tooltip="BatchExtractor"
+                    data-is-ext-btn
+                    onClick={(event) => {
+                      event.stopPropagation()
+                      event.preventDefault()
+                      handleDoubleClick(event, "BatchExtractor")
                       // handleClick(event, "extractionMEDimage")
                       setExtractionBtnstate(!extractionBtnstate)
                     }}

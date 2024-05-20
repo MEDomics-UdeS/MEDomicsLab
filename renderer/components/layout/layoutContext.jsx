@@ -121,9 +121,9 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
           return openExtractionImage(action)
         case "openLearningMEDimageModule":
           return openLearningMEDimage(action)
-        case "openDataManager":
+        case "openDataManagerModule":
           return openGeneric(action, "Data Manager", "DataManager")
-        case "openBatchExtractor":
+        case "openBatchExtractorModule":
           return openGeneric(action, "Batch Extractor", "BatchExtractor")
         case "openMEDprofilesViewerModule":
           return openMEDprofilesViewer(action)
