@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useCallback, useContext } from "react"
-import Node from "../../flow/node"
-import ViewButton from "../buttonsTypes/viewButton"
-import { Container, Row, Col, Table, Alert } from "react-bootstrap"
+import React, { useCallback, useContext, useEffect, useState } from "react"
+import { Alert, Col, Container, Row, Table } from "react-bootstrap"
 import { toast } from "react-toastify"
 import { FlowFunctionsContext } from "../../flow/context/flowFunctionsContext"
+import Node, { updateHasWarning } from "../../flow/node"
+import ViewButton from "../buttonsTypes/viewButton"
 
 /**
  * @param {string} id id of the node
@@ -32,6 +32,9 @@ const SegmentationNode = ({ id, data, type }) => {
       }
     }
     setSelectedRois(newSelectedRois)
+
+    // Update warning
+    updateHasWarning(data)
   }, [data.internal.settings.rois])
 
   /**
@@ -83,6 +86,8 @@ const SegmentationNode = ({ id, data, type }) => {
     if (shouldUpdateRois) {
       getRoisSelection() // Call getRoisSelection when shouldUpdateRois is true
       setShouldUpdateRois(false)
+      // Update warning
+      updateHasWarning(data)
     }
   }, [shouldUpdateRois])
 
