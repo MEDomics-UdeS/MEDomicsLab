@@ -1,19 +1,19 @@
-import { WorkspaceContext } from '../../workspace/workspaceContext';
+import { Button } from 'primereact/button';
+import { ConfirmPopup, confirmPopup } from 'primereact/confirmpopup';
 import { Dialog } from 'primereact/dialog';
-import { TabView, TabPanel } from 'primereact/tabview';
-import { Form, Row, Col } from "react-bootstrap"
-import { Tooltip } from 'primereact/tooltip';
-import { useState, useContext, useRef } from 'react';
+import { Dropdown } from 'primereact/dropdown';
 import { InputNumber } from 'primereact/inputnumber';
 import { InputSwitch } from 'primereact/inputswitch';
-import { Dropdown } from 'primereact/dropdown';
-import { Button } from 'primereact/button';
-import DocLink from '../../extractionMEDimage/docLink';
-import { ConfirmPopup, confirmPopup } from 'primereact/confirmpopup';
-import { toast } from 'react-toastify';
-import { requestJson } from '../../../utilities/requests';
-import { Toast } from 'primereact/toast';
 import { InputText } from 'primereact/inputtext';
+import { TabPanel, TabView } from 'primereact/tabview';
+import { Toast } from 'primereact/toast';
+import { Tooltip } from 'primereact/tooltip';
+import { useContext, useRef, useState } from 'react';
+import { Col, Form, Row } from "react-bootstrap";
+import { toast } from 'react-toastify';
+import { requestBackend } from '../../../utilities/requests';
+import DocLink from '../../extractionMEDimage/docLink';
+import { WorkspaceContext } from '../../workspace/workspaceContext';
 
 function TextureParams({ModSettings, activeIndex, setActiveIndex, discretisationAlgos, indexAlgo, indexVal}) {
     return (
@@ -764,6 +764,8 @@ const renderFiltering = (params, filter_type, activeIndex, setActiveIndex) => {
         </Form.Group>
         </Form.Group>
         )
+    } else {
+        return (<></>)
     }
 }
 /**
@@ -788,7 +790,8 @@ const renderParamsPanel = (activeIndex, setActiveIndex, setShowEdit, ModSettings
         { name: 'log' },
         { name: 'laws' },
         { name: 'gabor' },
-        { name: 'wavelet' }
+        { name: 'wavelet' },
+        { name: 'None' },
     ];
     const intensityTypes = [
         { name: 'arbitrary' },
@@ -1369,7 +1372,12 @@ const renderParamsPanel = (activeIndex, setActiveIndex, setShowEdit, ModSettings
                             placeholder={ModSettings.filter_type}
                             className="w-full md:w-14rem"
                             onChange={(event) => {
-                                ModSettings.filter_type = event.target.value.name;
+                                // check if "None" is selected
+                                if (event.target.value.name === "None"){
+                                    ModSettings.filter_type = "";
+                                } else {
+                                    ModSettings.filter_type = event.target.value.name;
+                                }
                                 setActiveIndex(!activeIndex);
                             }}/>
                     </Col>
@@ -1424,23 +1432,24 @@ const SettingsEditor = ({ showEdit, setShowEdit, settings, pathSettings}) => {
     const { port } = useContext(WorkspaceContext); // Get the port of the backend
     const accept = (settings) => {
         console.log("settings", settings);
-        requestJson(
+        requestBackend(
             port, 
-            '/extraction_MEDimage/save/json', 
+            '/extraction_MEDimage/run_all/be_save_json',
             {settings, pathSettings}, 
             (response) => {
-                // Handle the response from the backend if needed
-                console.log('Response from backend:', response);
-    
-                // toast message
-                toast.success('File saved successfully');
+                if (response.error) {
+                    console.error('Error:', response.error);
+                    toast.error('Error: ' + response.error);
+                } else {
+                    // Handle the response from the backend if needed
+                    console.log('Response from backend:', response);
+        
+                    // toast message
+                    toast.success('File saved successfully');
 
-                // Close the dialog
-                setShowEdit(false);
-            },
-            function (error) {
-                console.error('Error:', error);
-                toast.error('Error: ' + error);
+                    // Close the dialog
+                    setShowEdit(false);
+                }
             }
           );
     };
