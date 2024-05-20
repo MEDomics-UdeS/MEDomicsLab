@@ -251,7 +251,7 @@ def image_viewer(medimage_list, data, runs):
         mask = None
         last_run = list(runs)[-1]
         # 3D view created for each pip related to the view button clicked
-        for pip in runs[last_run]:
+        for pip_idx, pip in enumerate(runs[last_run]):
             for id in runs[last_run][pip]:
 
                 if (str(id) == str(data["id"])):
@@ -278,11 +278,11 @@ def image_viewer(medimage_list, data, runs):
                     # Figure title
                     fig_title = ""
                     if (runs[last_run][pip][id]["type"] == "filter"):
-                        fig_title = '3D Volume - Pipeline ' + pip + " - " + runs[last_run][pip][id]["settings"][
+                        fig_title = '3D Volume - Pipeline ' + str(pip_idx + 1) + " - " + runs[last_run][pip][id]["settings"][
                             "filter_type"] + \
                                     " " + runs[last_run][pip][id]["type"] + " output."
                     else:
-                        fig_title = '3D Volume - Pipeline ' + pip + " - " + runs[last_run][pip][id]["type"] + " output."
+                        fig_title = '3D Volume - Pipeline ' + str(pip_idx + 1) + " - " + runs[last_run][pip][id]["type"] + " output."
 
                     fig = Figure(vol, fig_title, mask)
                     fig.add_data()
