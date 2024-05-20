@@ -214,7 +214,7 @@ const Design = ({ id, data, type }) => {
             }
 
             {/* OTHER PARAMS IF SPLIT TYPE IS CV */}
-            {data.setupParam.possibleSettings.defaultSettings.testSets[0] === "cv" &&
+            {data.setupParam.possibleSettings.defaultSettings.testSets[0].toLowerCase() === "cv" &&
               <>
 
               {/* Number of splits */}
