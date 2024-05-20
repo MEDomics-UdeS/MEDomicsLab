@@ -1,11 +1,9 @@
-import React from "react"
-import Node from "../../flow/node"
-import { Form, Row, Col } from "react-bootstrap"
-import { InputText } from 'primereact/inputtext';
-import {useState} from 'react';
-import { Tooltip } from 'primereact/tooltip';
 import { Checkbox } from 'primereact/checkbox';
+import { Tooltip } from 'primereact/tooltip';
+import React, { useState } from "react";
+import { Col, Form, Row } from "react-bootstrap";
 import Card from 'react-bootstrap/Card';
+import Node from "../../flow/node";
 
 
 /**
@@ -67,7 +65,7 @@ const Data = ({ id, data, type }) => {
             <Row className="form-group-box">
             <Col>
             {/* nameType */}
-            <Form.Group controlId="nameType">
+            {/*<Form.Group controlId="nameType">
               <Tooltip target=".nameType"/>
               <Form.Label 
                   className="nameType" 
@@ -85,7 +83,7 @@ const Data = ({ id, data, type }) => {
                       setReload(!reload);
                     }}
                 />
-            </Form.Group>
+            </Form.Group>*/}
 
             {/* path features */}
             <Form.Group controlId="FeaturePath">
@@ -124,11 +122,8 @@ const Data = ({ id, data, type }) => {
                 <div key={file} style={{display: 'flex', justifyContent:'flex-start'}}>
                 <Checkbox
                   onChange={(event) => {
-                    console.log("event", event)
-                    console.log("file", file)
                     // check if the file is already in the list if yes remove it
                     if (data.internal.settings.featuresFiles.includes(file)) {
-                      console.log("remove")
                       data.internal.settings.featuresFiles.splice(data.internal.settings.featuresFiles.indexOf(file), 1);
                     } else {
                       data.internal.settings.featuresFiles.push(file);
