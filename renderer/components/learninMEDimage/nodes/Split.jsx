@@ -140,14 +140,14 @@ const Split = ({ id, data, type }) => {
                       Save Folder
               </Form.Label>
               <Col style={{ width: "300px" }}>
-                <Form.Group controlId="enterFile">
-                  <Form.Control
-                    name="saveFolder"
-                    type="file"
-                    webkitdirectory="true"
-                    directory="true"
-                    onChange={handleSaveFolderChange}
-                  />
+                <Form.Group controlId="enterFolder">
+                <input
+                  name="saveFolder"
+                  type="file"
+                  webkitdirectory="true"
+                  directory="true"
+                  onChange={handleSaveFolderChange}
+                />
                 </Form.Group>
               </Col>
               </Form.Group>
