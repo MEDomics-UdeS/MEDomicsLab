@@ -1,8 +1,9 @@
-import React, { useState, useCallback, useContext } from "react"
-import { Form, Row, Col, Button, Card } from "react-bootstrap"
-import { requestJson } from "../../../../utilities/requests"
-import { WorkspaceContext } from "../../../workspace/workspaceContext"
+import React, { useCallback, useContext, useState } from "react"
+import { Button, Card, Col, Form, Row } from "react-bootstrap"
+import { toast } from "react-toastify"
+import { requestBackend } from "../../../../utilities/requests"
 import { ErrorRequestContext } from "../../../generalPurpose/errorRequestContext"
+import { WorkspaceContext } from "../../../workspace/workspaceContext"
 
 /**
  * @param {Object} nodeForm form associated to the discretization node
@@ -17,7 +18,8 @@ const InputForm = ({ nodeForm, changeNodeForm, enableView }) => {
   // Hook to keep the path of the selected file before upload
   const [selectedFile, setSelectedFile] = useState("")
   const { port } = useContext(WorkspaceContext)
-  const { setError } = useContext(ErrorRequestContext)
+  const { setError, setShowError } = useContext(ErrorRequestContext)
+  const pageId = "extractionMEDimage" // pageId is used to identify the page in the backend
 
   /**
    * @param {Event} event event given change of the file in the form
@@ -69,27 +71,50 @@ const InputForm = ({ nodeForm, changeNodeForm, enableView }) => {
         // Create a new form with the path to the file to upload
         let formData = { file: selectedFile, type: fileType }
 
-        // POST request to /extraction_MEDimage/upload for current node by sending form data of node
-        requestJson(port, "/extraction_MEDimage/upload", formData, (response) => {
-          if (response.error) {
-            setError(response.error)
-            enableView(false)
-          } else {
-            // The response of the request should be the filename of the uploaded file, and
-            // the rois list for the image. Since the nodeForm was already updated with the user
-            // we only need to update the rois list
-            // Modify the event object
-            changeNodeForm({
-              target: { name: "rois", value: response.rois_list }
-            })
-            changeNodeForm({
-              target: { name: "filepath", value: response.name }
-            })
+        // POST request to /extraction_MEDimage/upload/ for current node by sending form data of node
+        requestBackend(
+          port, 
+          "/extraction_MEDimage/upload/" + pageId,
+          formData, 
+          (response) => {
+            console.log("response", response)
+            if (response.error) {
+              // show error message
+              toast.error(response.error)
+              console.log("error", response.error)
 
-            // Enable the view button
-            enableView(true)
+              // check if error has message or not
+              if (response.error.message){
+                console.log("error message", response.error.message)
+                setError(response.error)
+              } else {
+                console.log("error no message", response.error)
+                setError({
+                  "message": response.error
+                })
+              }
+              setShowError(true)
+            } else {
+              // The response of the request should be the filename of the uploaded file, and
+              // the rois list for the image. Since the nodeForm was already updated with the user
+              // we only need to update the rois list
+              // Modify the event object
+              console.log("response", response)
+              changeNodeForm({
+                target: { name: "rois", value: response.rois_list }
+              })
+              changeNodeForm({
+                target: { name: "filepath", value: response.name }
+              })
+
+              // Enable the view button
+              enableView(true)
+
+              // Toast success message
+              toast.success("File uploaded successfully")
+            }
           }
-        })
+        )
       }
     },
     [nodeForm, selectedFile, changeNodeForm]

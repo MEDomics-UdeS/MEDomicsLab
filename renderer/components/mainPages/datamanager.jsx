@@ -2,7 +2,7 @@ import { WorkspaceContext } from "../workspace/workspaceContext"
 import React, { useState, useEffect, useContext } from 'react';
 import {Row, Col, Card, Form, Offcanvas, Container, Alert} from 'react-bootstrap';
 import { toast } from 'react-toastify';
-import { requestJson } from "../../utilities/requests"
+import { requestBackend } from "../../utilities/requests";
 import { ProgressBar } from 'react-bootstrap';
 import Table from 'react-bootstrap/Table';
 import ModulePage from './moduleBasics/modulePage';
@@ -12,6 +12,8 @@ import { Dialog } from 'primereact/dialog';
 import { Galleria } from 'primereact/galleria';
 import { InputText } from 'primereact/inputtext';
 import { Tooltip } from 'primereact/tooltip';
+import { DataContext } from "../workspace/dataContext";
+
 
 /**
  * @param {Object} nodeForm form associated to the discretization node
@@ -22,8 +24,9 @@ import { Tooltip } from 'primereact/tooltip';
  * @description
  * This component is used to display a InputForm.
  */
-const DataManager = ({ pageId, configPath = "" , reload, setReload }) => {
+const DataManager = ({ pageId, configPath = "" }) => {
   const { port } = useContext(WorkspaceContext)
+  const { globalData, setGlobalData } = useContext(DataContext) // Get the workspace data
   const [progress, setProgress] = useState(0);
   const [refreshEnabled, setRefreshEnabled] = useState(false); // A boolean variable to control refresh
   const [refreshEnabledPreChecks, setRefreshEnabledPreChecks] = useState(false); // A boolean variable to control refresh for preChecks
@@ -278,7 +281,6 @@ const DataManager = ({ pageId, configPath = "" , reload, setReload }) => {
    * @description This function is used to render the tree menu of the extraction node.
   */
   const updateWildCards = (JsonData) => {
-    console.log("JsonData: ", JsonData);
     // Initialization
     let studies = new Array();
     let institutions = new Array();
@@ -305,7 +307,6 @@ const DataManager = ({ pageId, configPath = "" , reload, setReload }) => {
         return el != "";
       });
       institutions = institutions.map((value, key) => ({ label: value}));
-      console.log("institutions: ", institutions);
     } catch (error) {
       console.error('Error counting studies:', error);
     }
@@ -340,6 +341,7 @@ const DataManager = ({ pageId, configPath = "" , reload, setReload }) => {
     
     // Simulate page refresh
     setRefreshEnabled(true);
+    setProgress(0);
 
     // Create an object with the input values
     let requestData = {
@@ -349,32 +351,40 @@ const DataManager = ({ pageId, configPath = "" , reload, setReload }) => {
       save: selectedSave,
       nBatch: parseInt(selectedNBatch),
     };
+
     // Make a POST request to the backend API
-    requestJson(port, '/extraction_MEDimage/run/dm', requestData, (response) => {
+    requestBackend(
+      port, 
+      '/extraction_MEDimage/run_all/dm',
+      requestData, 
+      (response) => {
+        if (response.error) {
+          // Cancel the refresh
+          setRefreshEnabled(false);
+          
+          // show error message
+          toast.error(response.error)
+          console.log("error", response.error)
 
-      // Handle the response from the backend if needed
-      console.log('Response from backend:', response);
+        } else {
+          // Handle the response from the backend if needed
+          console.log('Response from backend:', response);
+          setRefreshEnabled(false);
+          setProgress(100);
 
-      // Update summary
-      setSummary(response);
+          // Update summary
+          setSummary(response);
 
-      // Update wildcards
-      updateWildCards(response);
+          // Update wildcards
+          updateWildCards(response);
 
-      // Update npy folder
-      setSelectedNpyFolder(selectedSaveFolder);
+          // Update npy folder
+          setSelectedNpyFolder(selectedSaveFolder);
 
-      toast.success('Data processed!')},
-
-      // Handle errors if the request fails
-      (error) => {
-        // Cancel the refresh
-        setRefreshEnabled(false);
-        
-        // Handle errors if the request fails
-        console.error('Error:', error);
-        toast.error('Error: ' + error)
-      })
+          toast.success('Data processed!')
+        }
+      }
+    )
   };
 
   /**
@@ -385,13 +395,10 @@ const DataManager = ({ pageId, configPath = "" , reload, setReload }) => {
     // Get the final wildcards
     let finalwildcard = null;
     if (!costumWildCard) {
-      console.log("no costum wildcard");
       finalwildcard = getFinalWildCards();
     } else if (!costumWildCard.endsWith('.npy')) {
-      console.log("costum wildcard");
       finalwildcard = costumWildCard + '.npy';
     } else {
-      console.log("costum wildcard with npy");
       finalwildcard = costumWildCard;
     }
 
@@ -410,7 +417,8 @@ const DataManager = ({ pageId, configPath = "" , reload, setReload }) => {
     let requestData = {
       pathDicoms: selectedDcmFolder,
       pathNiftis: selectedNiftiFolder,
-      pathSave: selectedSaveFolder ? selectedSaveFolder : selectedNpyFolder,
+      pathNpy: selectedSaveFolder ? selectedSaveFolder : selectedNpyFolder,
+      pathSave: globalData.UUID_ROOT.path,
       save: selectedSave,
       pathCSV: selectedCSVFile,
       wildcards_dimensions: finalwildcard,
@@ -418,25 +426,28 @@ const DataManager = ({ pageId, configPath = "" , reload, setReload }) => {
       nBatch: parseInt(selectedNBatch),
     };
     console.log("requestData: ", requestData);
+    
     // Make a POST request to the backend API
-    requestJson(port, '/extraction_MEDimage/run/dm/prechecks', requestData, (response) => {
-      // Handle the response from the backend if needed
-      console.log('Response from backend:', response);
-      toast.success('Pre-checks done!')
-      // refresh
-      setRefreshEnabledPreChecks(false);
-      // set images
-      let imagesPreCheck = new Array();
-      response["url_list"].map((value, key) => (imagesPreCheck.push({itemImageSrc: value, alt: response["list_titles"][key]})));
-      setPreChecksImages(imagesPreCheck);
-      },
-      (error) => {
-        // Handle errors if the request fails
-        // refresh
-        console.log("Error on response pre checks");
-        setRefreshEnabledPreChecks(false);
-        console.error('Error:', error);
-        toast.error('Error: ' + error)
+    requestBackend(
+      port, 
+      '/extraction_MEDimage/run_all/prechecks', 
+      requestData, (response) => {
+        if (response.error) {
+          // Handle errors if the request fails
+          console.log("Error on response pre checks")
+          setRefreshEnabledPreChecks(false)
+          toast.error('Error: ' + response.error)
+        } else {
+          // Handle the response from the backend if needed
+          console.log('Response from backend:', response);
+          toast.success('Pre-checks done!')
+          // refresh
+          setRefreshEnabledPreChecks(false);
+          // set images
+          let imagesPreCheck = new Array();
+          response["url_list"].map((value, key) => (imagesPreCheck.push({itemImageSrc: value, alt: response["list_titles"][key]})));
+          setPreChecksImages(imagesPreCheck);
+        }
       })
   };
 
@@ -461,7 +472,6 @@ const DataManager = ({ pageId, configPath = "" , reload, setReload }) => {
 
     if (newData === 100) {
       setRefreshEnabled(false);
-      console.log("Refresh is disabled");
     }
   };
 
@@ -870,6 +880,7 @@ const DataManager = ({ pageId, configPath = "" , reload, setReload }) => {
             icon="pi pi-play"
             raised
             rounded
+            loading={refreshEnabledPreChecks}
           />
         </Col>
         <Col>

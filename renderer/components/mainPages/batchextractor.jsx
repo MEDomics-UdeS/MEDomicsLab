@@ -1,16 +1,15 @@
-import { WorkspaceContext } from "../workspace/workspaceContext"
-import React, { useState, useEffect, useContext } from 'react';
-import {Row, Col, Card, Form, Alert} from 'react-bootstrap';
-import { toast } from 'react-toastify';
-import { requestJson } from "../../utilities/requests"
-import { ProgressBar } from 'react-bootstrap';
-import ModulePage from './moduleBasics/modulePage';
-import {Button} from 'primereact/button';
-import { Tooltip } from 'primereact/tooltip';
-import { TreeTable } from 'primereact/treetable';
+import { Button } from 'primereact/button';
 import { Column } from 'primereact/column';
 import { Dialog } from 'primereact/dialog';
+import { Tooltip } from 'primereact/tooltip';
+import { TreeTable } from 'primereact/treetable';
+import React, { useContext, useEffect, useState } from 'react';
+import { Alert, Card, Col, Form, ProgressBar, Row } from 'react-bootstrap';
+import { toast } from 'react-toastify';
+import { requestBackend } from "../../utilities/requests";
+import { WorkspaceContext } from "../workspace/workspaceContext";
 import SettingsEditor from "./dataComponents/settingsEditor";
+import ModulePage from './moduleBasics/modulePage';
 
 /**
  * @param {Object} nodeForm form associated to the discretization node
@@ -171,27 +170,29 @@ const BatchExtractor = ({ pageId, configPath = "" }) => {
   const handleEditClick = () => {
     // Make a POST request to the backend API
     if(Object.keys(settings).length === 0){
-      requestJson(
+      requestBackend(
         port, 
-        '/extraction_MEDimage/get/json', 
+        '/extraction_MEDimage/run_all/be_json', 
         {selectedSettingsFile}, 
         (response) => {
-          // Handle the response from the backend if needed
-          console.log('Response from backend:', response);
+          console.log("response", response);
+          if (response.error) {
+            console.error('Error:', response.error);
+            toast.error('Error: ' + response.error);
+            setShowEdit(false);
+          } else {
+            // Handle the response from the backend if needed
+            console.log('Response from backend:', response);
 
-          // set settings
-          setSettings(response);
+            // set settings
+            setSettings(response);
 
-          // show edit dialog
-          setShowEdit(true);
+            // show edit dialog
+            setShowEdit(true);
 
-          // toast message
-          toast.success('Settings loaded!');
-        },
-        function (error) {
-          console.error('Error:', error);
-          toast.error('Error: ' + error);
-          setShowEdit(false);
+            // toast message
+            toast.success('Settings loaded!');
+          }
         }
       );
   } else {
@@ -208,6 +209,7 @@ const BatchExtractor = ({ pageId, configPath = "" }) => {
 
     // Simulate page refresh
     setRefreshEnabled(true);
+    setProgress(0);
 
     // Create an object with the input values
     const requestData = {
@@ -221,42 +223,44 @@ const BatchExtractor = ({ pageId, configPath = "" }) => {
     console.log("requestData", requestData);
 
     // Make a POST request to the backend API
-    requestJson(
+    requestBackend(
       port, 
-      '/extraction_MEDimage/count/be', 
+      '/extraction_MEDimage/run_all/be_count', 
       requestData, 
       (response) => {
-        // Handle the response from the backend if needed
-        setNscans(response.n_scans);
-        setSaveFolder(response.folder_save_path);
-      },
-      function (err) {
-        console.error('Error:', err);
-        toast.error('Error: ' + err)
-        setRefreshEnabled(false);
-      });
+        if (response.error) {
+          console.error('Error:', response.error);
+          toast.error('Error: ' + response.error);
+          setRefreshEnabled(false);
+        } else {
+          // Handle the response from the backend if needed
+          setNscans(response.n_scans);
+          setSaveFolder(response.folder_save_path);
+          console.log('Response from backend:', response);
+        }
+      }
+    );
 
     // Make a POST request to the backend API to run BatchExtractor
-    requestJson(
+    requestBackend(
       port, 
-      '/extraction_MEDimage/run/be', 
+      '/extraction_MEDimage/run_all/be', 
       requestData, 
       (response) => {
-        // Handle the response from the backend if needed
-        console.log('Response from backend:', response);
-        toast.success('Finished extraction!');
-        setRefreshEnabled(false);
-        // fill nodes data
-        if (saveFolder !== '') {
-          console.log("saveFolder filling nodes", saveFolder);
-          fillNodesData(saveFolder);
-        };
-      },
-      // Handle errors if the request fails
-      function (error) {       
-        setRefreshEnabled(false);
-        console.error('Error:', error);
-        toast.error('Error: ' + error)
+        if (response.error) {
+          console.error('Error:', response.error);
+          toast.error('Error: ' + response.error);
+          setRefreshEnabled(false);
+        } else {
+          // Handle the response from the backend if needed
+          console.log('Response from backend:', response);
+          toast.success('Finished extraction!');
+          setRefreshEnabled(false);
+          // fill nodes data
+          if (saveFolder !== '') {
+            fillNodesData(saveFolder);
+          };
+        }
       });
   };
 
@@ -323,7 +327,6 @@ const BatchExtractor = ({ pageId, configPath = "" }) => {
     // Check if data.internal.settings.results is available
     if (showRadiomicsResults){
       if (saveFolder){
-        console.log("saveFolder", saveFolder);
         return (  
         <Dialog 
           header="Radiomics extraction results (CSV files)" 

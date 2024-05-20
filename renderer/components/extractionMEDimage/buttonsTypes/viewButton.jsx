@@ -1,8 +1,9 @@
 import React, { useContext } from "react"
 import Button from "react-bootstrap/Button"
-import { requestJson } from "../../../utilities/requests"
-import { WorkspaceContext } from "../../workspace/workspaceContext"
+import { toast } from "react-toastify"
+import { requestBackend } from "../../../utilities/requests"
 import { ErrorRequestContext } from "../../generalPurpose/errorRequestContext"
+import { WorkspaceContext } from "../../workspace/workspaceContext"
 
 /**
  * @param {string} id id of the node
@@ -15,7 +16,7 @@ import { ErrorRequestContext } from "../../generalPurpose/errorRequestContext"
  * The state of the button is determined by the enableView property of the node.
  */
 const ViewButton = ({ id, data, type }) => {
-  const { port } = useContext(WorkspaceContext)
+  const { port, setShowError } = useContext(WorkspaceContext)
   const { setError } = useContext(ErrorRequestContext)
 
   /**
@@ -27,7 +28,7 @@ const ViewButton = ({ id, data, type }) => {
 
     // Construction of form data to send to /extraction_MEDimage/view. If the node is input, the name of the file is needed
     let formData
-    if (type === "input") {
+    if (data.internal.settings.hasOwnProperty("filepath")) {
       formData = {
         id: id,
         name: type,
@@ -40,12 +41,28 @@ const ViewButton = ({ id, data, type }) => {
         name: type
       }
     }
-
-    requestJson(port, "/extraction_MEDimage/view", formData, (response) => {
+    
+    requestBackend(port, "/extraction_MEDimage/view/", formData, (response) => {
       if (response.error) {
-        setError(response.error)
+        toast.error(response.error)
+        console.log("error", response.error)
+
+        // check if error has message or not
+        if (response.error.message){
+          console.log("error message", response.error.message)
+          setError(response.error)
+        } else {
+          console.log("error no message", response.error)
+          setError({
+            "message": response.error
+          })
+        }
+        setShowError(true)
       } else {
         console.log(response)
+
+        // Toast success message
+        toast.success("Image displayed successfully")
       }
     })
   }
