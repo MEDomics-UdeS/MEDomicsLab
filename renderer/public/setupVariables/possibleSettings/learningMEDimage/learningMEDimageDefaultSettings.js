@@ -10,7 +10,7 @@ const learningMEDimageDefaultSettings = {
   // design
   design : {
     expName: "",
-    testSets: ["Random"],
+    testSets: ["cv"],
     Random: {
       method: "SubSampling",
       nSplits: 10,
@@ -64,7 +64,7 @@ const learningMEDimageDefaultSettings = {
         threshInterCorr: 0.7,
         minNfeatStable: 100,
         minNfeatInterCorr: 60,
-        minNfeat: 20,
+        minNfeat: 10,
         seed: 54288
     }
   },
