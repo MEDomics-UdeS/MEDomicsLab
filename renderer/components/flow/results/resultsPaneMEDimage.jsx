@@ -1,20 +1,20 @@
-import React, { useContext, useState, useEffect, useRef } from "react"
-import Card from "react-bootstrap/Card"
-import { Col, Row } from "react-bootstrap"
-import { toast } from "react-toastify"
-import { FlowResultsContext } from "../context/flowResultsContext"
-import { FlowInfosContext } from "../context/flowInfosContext"
-import { Button } from 'primereact/button';
-import { Accordion, AccordionTab } from 'primereact/accordion';
-import { DataTable } from 'primereact/datatable';
-import { Column } from 'primereact/column';
-import { Image } from 'primereact/image';
-import { Panel } from 'primereact/panel';
-import { OverlayPanel  } from 'primereact/overlaypanel';
+import { Accordion, AccordionTab } from 'primereact/accordion'
+import { Button } from 'primereact/button'
+import { Column } from 'primereact/column'
+import { DataTable } from 'primereact/datatable'
+import { Image } from 'primereact/image'
+import { Message } from 'primereact/message'
+import { OverlayPanel } from 'primereact/overlaypanel'
+import { Panel } from 'primereact/panel'
 import { SelectButton } from "primereact/selectbutton"
-import { Message } from 'primereact/message';
+import React, { useContext, useEffect, useRef, useState } from "react"
+import { Col, Row } from "react-bootstrap"
+import Card from "react-bootstrap/Card"
+import { toast } from "react-toastify"
 import { requestBackend } from "../../../utilities/requests"
 import { WorkspaceContext } from "../../workspace/workspaceContext"
+import { FlowInfosContext } from "../context/flowInfosContext"
+import { FlowResultsContext } from "../context/flowResultsContext"
 
 
 /**
@@ -477,7 +477,9 @@ const ResultsPaneMEDimage = () => {
           }
         }
       })
-      setHistogramImages(histograms)
+      if (histograms.length > 0){
+        setHistogramImages(histograms)
+      }
     }
   }, [flowContent])
 
