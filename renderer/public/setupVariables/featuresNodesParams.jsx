@@ -32,7 +32,7 @@ const nodesParams = {
     input: [],
     output: [],
     img: "features.svg",
-    title: "IS, STAT",
+    title: "STATS",
     possibleSettings: { defaultSettings: extractionMEDimageFeatures.stats }
   },
   ih: {
