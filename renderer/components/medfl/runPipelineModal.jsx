@@ -1,3 +1,4 @@
+import { Message } from "primereact/message"
 import React, { useEffect, useState } from "react"
 import { Button, Modal, Tab, Tabs } from "react-bootstrap"
 import { JsonView, allExpanded } from "react-json-view-lite"
@@ -146,7 +147,9 @@ const RunPipelineModal = ({ show, onHide, configs, nodes, onRun }) => {
               })}
             </Tabs>
           ) : (
-            <div className="text-center fs-3">You have no configurations !!</div>
+            <div className="text-center fs-3">
+              <Message severity="info" text="    You have no configurations !! " className="w-100   " />
+            </div>
           )}
         </Modal.Body>
         <Modal.Footer>

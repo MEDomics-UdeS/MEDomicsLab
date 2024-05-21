@@ -42,9 +42,10 @@ import FlOptimizeNode from "./nodesTypes/flOptimizeNode.jsx"
 import FlStrategyNode from "./nodesTypes/flStrategyNode.jsx"
 import FlPipelineNode from "./nodesTypes/flPipelineNode.jsx"
 import FlResultsNode from "./nodesTypes/flResultsNode.jsx"
-import { Button } from "react-bootstrap"
+import { Button } from "primereact/button"
 import RunPipelineModal from "./runPipelineModal"
 import FlConfigModal from "./flConfigModal"
+import DBCOnfigFileModal from "./dbCOnfigFileModal.jsx"
 
 const staticNodesParams = nodesParams // represents static nodes parameters
 
@@ -81,7 +82,9 @@ const MedflWorkflow = ({ setWorkflowType, workflowType }) => {
 
   const [stringReceived, setStringReceived] = useState("")
 
-  const [flConfigFile, setConfigFile] = useState(null)
+  const [flConfigFile, setConfigFile] = useState({ path: "" })
+  const [showDBconfigModal, setDBModal] = useState(false)
+  const [showConfigModal, setconfigModal] = useState(true)
 
   const { groupNodeId, changeSubFlow, hasNewConnection } = useContext(FlowFunctionsContext)
   const { config, pageId, configPath } = useContext(PageInfosContext) // used to get the page infos such as id and config path
@@ -906,18 +909,14 @@ const MedflWorkflow = ({ setWorkflowType, workflowType }) => {
 
   return (
     <>
-      {flConfigFile && (
-        <div style={{ display: "flex", justifyContent: "space-between", padding: 10 }}>
-          <div>Select a config file </div>
-          <div></div>
-        </div>
-      )}
+      {/* DB config modal */}
+      <DBCOnfigFileModal show={showDBconfigModal} onHide={() => setDBModal(false)} setFile={setConfigFile} configFile={flConfigFile} />
       {/* set the fl config file  */}
 
       <FlConfigModal
-        show={!flConfigFile}
+        show={showConfigModal}
         onHide={() => {
-          setConfigFile(true)
+          setconfigModal(false)
         }}
       />
 
@@ -951,6 +950,9 @@ const MedflWorkflow = ({ setWorkflowType, workflowType }) => {
         onDeleteNode={onDeleteNode}
         groupNodeHandlingDefault={() => {}}
         onNodeDrag={onNodeDrag}
+        uiTopLeft={
+          <Button onClick={() => setDBModal(true)} label="DB Config file" icon="pi pi-cog" severity="primary" outlined badge={flConfigFile?.path == "" ? "!" : ""} badgeClassName="p-badge-warning" />
+        }
         // reprensents the visual over the workflow
         uiTopRight={
           <>

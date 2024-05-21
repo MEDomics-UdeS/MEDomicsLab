@@ -10,7 +10,7 @@ export default function FlSetupNode({ id, data }) {
   // state
   const [description, setDescription] = useState(data.internal.settings.description || "")
 
-  const onChangeRounds = (nodeType) => {
+  const onChangeDescription = (nodeType) => {
     data.internal.settings.description = nodeType.value
     setDescription(nodeType.value)
 
@@ -41,7 +41,7 @@ export default function FlSetupNode({ id, data }) {
                 tooltip: "Specify the desription of the federated setup"
               }}
               currentValue={description}
-              onInputChange={onChangeRounds}
+              onInputChange={onChangeDescription}
               setHasWarning={() => {}}
             />
           </>
