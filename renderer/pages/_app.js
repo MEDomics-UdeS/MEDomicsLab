@@ -13,6 +13,8 @@ import { HotkeysProvider } from "@blueprintjs/core"
 import { ConfirmPopup } from "primereact/confirmpopup"
 import { ConfirmDialog } from "primereact/confirmdialog"
 
+import { MED3paContextProvider } from "../components/workspace/med3paContext"
+
 // CSS
 import "bootstrap/dist/css/bootstrap.min.css"
 // import 'bootswatch/dist/lux/bootstrap.min.css';
@@ -185,7 +187,7 @@ function App() {
       setPort(data.newPort)
     })
 
-    ipcRenderer.on("openWorkspace", (event, data) => {
+    ipcRenderer.on("openWorkspace", (event, data) => {MED3paContextProvider
       console.log("openWorkspace from NEXT", data)
       let workspace = { ...data }
       setWorkspaceObject(workspace)
@@ -476,6 +478,7 @@ function App() {
       </Head>
       <div style={{ height: "100%", width: "100%" }}>
         <HotkeysProvider>
+        <MED3paContextProvider>
           <ActionContextProvider>
             <DataContextProvider globalData={globalData} setGlobalData={setGlobalData}>
               <WorkspaceProvider workspace={workspaceObject} setWorkspace={setWorkspaceObject} port={port} setPort={setPort} recentWorkspaces={recentWorkspaces} setRecentWorkspaces={setRecentWorkspaces}>
@@ -491,6 +494,7 @@ function App() {
               </WorkspaceProvider>
             </DataContextProvider>
           </ActionContextProvider>
+          </MED3paContextProvider>
         </HotkeysProvider>
         <ConfirmPopup />
         <ConfirmDialog />
