@@ -57,7 +57,7 @@ export default function FlResultsNode({ id, data }) {
                 value={"compare"}
                 // selected={optionName === selection}
               >
-                Compare reults
+                Compare results
               </option>
             </Form.Select>
           </>

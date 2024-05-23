@@ -906,12 +906,12 @@ const MedflWorkflow = ({ setWorkflowType, workflowType }) => {
 
   return (
     <>
-      {flConfigFile && (
+      {/* {flConfigFile && (
         <div style={{ display: "flex", justifyContent: "space-between", padding: 10 }}>
           <div>Select a config file </div>
           <div></div>
         </div>
-      )}
+      )} */}
       {/* set the fl config file  */}
 
       <FlConfigModal
