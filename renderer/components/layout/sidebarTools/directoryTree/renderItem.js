@@ -30,11 +30,14 @@ const iconExtension = {
   medmlres: <span className="emoji">📊</span>,
   medeval: <span className="emoji">🔬</span>,
   zip: <span className="emoji">🔒</span>,
+  ini: <span className="emoji">⚙️ </span>,
+  pth: <span className="emoji">🧬 </span>,
   medmodel: (
     <span>
       <PiGraph className="icon-offset" style={{ color: "#97edfb" }} />
     </span>
   ),
+
   pkl: (
     <span>
       <PiGraph className="icon-offset" style={{ color: "#5b95ff" }} />
@@ -163,7 +166,9 @@ const renderItem = ({ item, depth, children, title, context, arrow }, additional
       {item.isFolder && (
         <>
           {additionalParams.isHovering && !additionalParams.isDropping ? (
-            <div className="sidebar-dropzone-dirtree" style={{display:"block", boxSizing:"border-box"}}>{folderItemContent}</div>
+            <div className="sidebar-dropzone-dirtree" style={{ display: "block", boxSizing: "border-box" }}>
+              {folderItemContent}
+            </div>
           ) : (
             <DropzoneComponent className="sidebar-dropzone-dirtree" item={item} noClick={true} setIsDropping={additionalParams.setIsDropping}>
               {folderItemContent}

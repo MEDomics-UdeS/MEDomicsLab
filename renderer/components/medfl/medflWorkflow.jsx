@@ -1,5 +1,4 @@
 import React, { useState, useCallback, useMemo, useEffect, useContext } from "react"
-import { ipcRenderer } from "electron"
 import { toast } from "react-toastify"
 import { useNodesState, useEdgesState, useReactFlow, addEdge } from "reactflow"
 import WorkflowBase from "../flow/workflowBase"
@@ -14,7 +13,6 @@ import { WorkspaceContext } from "../workspace/workspaceContext"
 import { ErrorRequestContext } from "../generalPurpose/errorRequestContext.jsx"
 import MedDataObject from "../workspace/medDataObject"
 import { modifyZipFileSync } from "../../utilities/customZipFile.js"
-import { sceneDescription } from "../../public/setupVariables/learningNodesParams.jsx"
 
 // here are the different types of nodes implemented in the workflow
 
@@ -25,7 +23,6 @@ import nodesParams from "../../public/setupVariables/allNodesParams"
 import { removeDuplicates, deepCopy } from "../../utilities/staticFunctions"
 import { defaultValueFromType } from "../../utilities/learning/inputTypesUtils.js"
 import { FlowInfosContext } from "../flow/context/flowInfosContext.jsx"
-import Path from "path"
 import StandardNode from "../learning/nodesTypes/standardNode.jsx"
 import SelectionNode from "../learning/nodesTypes/selectionNode.jsx"
 import GroupNode from "../flow/groupNode.jsx"
@@ -77,10 +74,7 @@ const MedflWorkflow = ({ setWorkflowType, workflowType }) => {
   const [flWorkflowSettings, setflWorkflowSettings] = useState({})
   const [showRunModal, setRunModal] = useState(false)
 
-  const [progressValue, setProgressValue] = useState({ now: 0, currentLabel: "" }) // we use this to store the progress value of the dashboard
   const [isUpdating, setIsUpdating] = useState(false) // we use this to store the progress value of the dashboard
-
-  const [stringReceived, setStringReceived] = useState("")
 
   const [flConfigFile, setConfigFile] = useState({ path: "" })
   const [showDBconfigModal, setDBModal] = useState(false)
@@ -503,6 +497,7 @@ const MedflWorkflow = ({ setWorkflowType, workflowType }) => {
   const runNode = useCallback(
     (id) => {
       // setRunModal(true)
+      console.log(id)
     },
     [reactFlowInstance, MLType, nodes, edges, intersections]
   )
@@ -513,73 +508,21 @@ const MedflWorkflow = ({ setWorkflowType, workflowType }) => {
    * @param {String} sizeType type of the size (bytes, kb, mb)
    * @returns {Number} byte size of the json object
    */
-  const getByteSize = (json, sizeType) => {
-    if (sizeType == undefined) {
-      sizeType = "bytes"
-    }
-    if (json != null && json != undefined) {
-      let size = new Blob([JSON.stringify(json)]).size
-      if (sizeType == "bytes") {
-        return size
-      } else if (sizeType == "kb") {
-        return size / 1024
-      } else if (sizeType == "mb") {
-        return size / 1024 / 1024
-      }
-    }
-  }
-
-  /**
-   * Request the backend to run the experiment
-   * @param {Number} port port of the backend
-   * @param {Object} flow json object of the workflow
-   * @param {Boolean} isValid boolean to know if the workflow is valid
-   * @returns {Object} results of the experiment
-   */
-  function requestBackendRunExperiment(port, flow, isValid) {
-    if (isValid) {
-      console.log("sended flow", flow)
-      console.log("port", port)
-      setIsProgressUpdating(true)
-      requestBackend(
-        port,
-        "/learning/run_experiment/" + pageId,
-        flow,
-        (jsonResponse) => {
-          console.log("received results:", jsonResponse)
-          if (!jsonResponse.error) {
-            updateFlowResults(jsonResponse)
-            setProgress({
-              now: 100,
-              currentLabel: "Done!"
-            })
-            setIsProgressUpdating(false)
-          } else {
-            setProgress({
-              now: 0,
-              currentLabel: ""
-            })
-            setIsProgressUpdating(false)
-            toast.error("Error detected while running the experiment")
-            console.log("error", jsonResponse.error)
-            setError(jsonResponse.error)
-          }
-        },
-        (error) => {
-          setProgress({
-            now: 0,
-            currentLabel: ""
-          })
-          setIsProgressUpdating(false)
-          toast.error("Error detected while running the experiment")
-          console.log("error", error)
-          setError(error)
-        }
-      )
-    } else {
-      toast.warn("Workflow is not valid, maybe some default values are not set")
-    }
-  }
+  // const getByteSize = (json, sizeType) => {
+  //   if (sizeType == undefined) {
+  //     sizeType = "bytes"
+  //   }
+  //   if (json != null && json != undefined) {
+  //     let size = new Blob([JSON.stringify(json)]).size
+  //     if (sizeType == "bytes") {
+  //       return size
+  //     } else if (sizeType == "kb") {
+  //       return size / 1024
+  //     } else if (sizeType == "mb") {
+  //       return size / 1024 / 1024
+  //     }
+  //   }
+  // }
 
   /**
    * Get the fl workflow settings
@@ -600,197 +543,13 @@ const MedflWorkflow = ({ setWorkflowType, workflowType }) => {
   /**
    * execute the whole workflow
    */
-  const onRun = useCallback(
-    (e, up2Id = undefined) => {
-      setRunModal(true)
+  const onRun = useCallback(() => {
+    setRunModal(true)
 
-      if (reactFlowInstance) {
-        getFlSettings(nodes)
-        //   let flow = deepCopy(reactFlowInstance.toObject())
-        //   flow.MLType = MLType
-        //   flow.nodes.forEach((node) => {
-        //     node.data.setupParam = null
-        //   })
-        //   let { newflow, isValid } = cleanJson2Send(flow, up2Id)
-        //   flow = newflow
-        //   // If the workflow size is too big, we need to put it in a file and send it to the server
-        //   // This is because the server can't handle big json objects
-        //   if (getByteSize(flow, "bytes") > 25000) {
-        //     console.log("JSON config object is too big to be sent to the server. It will be saved in a file and sent to the server.")
-        //     // Get the temporary directory
-        //     ipcRenderer.invoke("appGetPath", "temp").then((tmpDirectory) => {
-        //       // Save the workflow in a file
-        //       MedDataObject.writeFileSync(flow, tmpDirectory, pageId, "json")
-        //       // Change the flow to the path of the file
-        //       let newPath = Path.join(tmpDirectory, pageId + ".json")
-        //       flow = { temp: newPath }
-        //       requestBackendRunExperiment(port, flow, isValid)
-        //     })
-        //   } else {
-        //     requestBackendRunExperiment(port, flow, isValid)
-        //   }
-        // } else {
-        //   toast.warn("react flow instance not found")
-      }
-    },
-    [reactFlowInstance, MLType, nodes, edges, intersections, configPath]
-  )
-
-  /**
-   * @param {Object} json json object to clean
-   * @param {String} up2Id id of the node to run
-   * @returns {Object} cleaned json object
-   *
-   * This function cleans the json object to send to the server
-   * It removes the optimize nodes and the edges linked to them
-   * It also checks if the default values are set for each node
-   * It returns the cleaned json object and a boolean to know if the default values are set
-   */
-  const cleanJson2Send = useCallback(
-    (json, up2Id) => {
-      // function to check if default values are set
-      const checkDefaultValues = (node) => {
-        let isValid = true
-        if ("default" in node.data.setupParam.possibleSettings) {
-          Object.entries(node.data.setupParam.possibleSettings.default).map(([settingName, setting]) => {
-            console.log("settingName", settingName)
-            console.log("settings", node)
-            if (settingName in node.data.internal.settings) {
-              if (node.data.internal.settings[settingName] == defaultValueFromType[setting.type]) {
-                isValid = false
-              }
-            } else {
-              isValid = false
-            }
-          })
-        }
-        if (!isValid) {
-          toast.warn("Some default values are not set for node: " + node.data.internal.name + ".", {
-            position: "bottom-right",
-            autoClose: 2000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: true,
-            draggable: true,
-            progress: undefined,
-            theme: "light",
-            toastId: "customId"
-          })
-        }
-        return isValid
-      }
-
-      //clean recursive pipelines from treeData
-      let nbNodes2Run = 0
-      console.log("up2Id", up2Id)
-      let isValidDefault = true
-      const cleanTreeDataRec = (node) => {
-        let children = {}
-        Object.keys(node).forEach((key) => {
-          // check if node is a create model node
-          // n pipelines should be added according to model node inputs
-          let hasModels = false
-          let currentNode = nodes.find((node) => node.id === key)
-          let nodeType = currentNode.data.internal.type
-          let edgesCopy = deepCopy(edges)
-          if (nodeType == "train_model") {
-            edgesCopy = edgesCopy.filter((edge) => edge.target == currentNode.id)
-            edgesCopy = edgesCopy.reduce((acc, edge) => {
-              if (edge.target == currentNode.id) {
-                let sourceNode = nodes.find((node) => node.id == edge.source)
-                if (sourceNode.data.internal.type == "model") {
-                  acc.push(edge)
-                }
-              }
-              return acc
-            }, [])
-            hasModels = true
-          }
-
-          // refomat multiple list to backend to understand
-          if (nodeType == "compare_models") {
-            const reformatMultipleList = (list) => {
-              let newList = []
-              list.forEach((item) => {
-                newList.push(item.value)
-              })
-              return newList
-            }
-            let currentNodeCanModify = json.nodes.find((node) => node.id === key)
-            console.log(currentNodeCanModify)
-            if (currentNode.data.internal.settings.include) {
-              let reformattedList = reformatMultipleList(currentNode.data.internal.settings.include)
-              currentNodeCanModify.data.internal.settings.include = reformattedList
-            }
-            if (currentNode.data.internal.settings.exclude) {
-              let reformattedList = reformatMultipleList(currentNode.data.internal.settings.exclude)
-              currentNodeCanModify.data.internal.settings.exclude = reformattedList
-            }
-          }
-
-          // check if node has default values
-          isValidDefault = isValidDefault && checkDefaultValues(currentNode)
-
-          // if this is not a leaf, we need to go deeper
-          if (node[key].nodes != {}) {
-            // if this is a create model node, we need to add n pipelines
-            if (hasModels) {
-              edgesCopy.forEach((edge) => {
-                let id = key + "*" + edge.source
-                if (key != up2Id) {
-                  children[id] = cleanTreeDataRec(node[key].nodes)
-                } else {
-                  children[id] = {}
-                }
-              })
-              // if this is not a create model node, we continue normally
-            } else {
-              if (key != up2Id) {
-                children[key] = cleanTreeDataRec(node[key].nodes)
-              } else {
-                children[key] = {}
-              }
-            }
-            nbNodes2Run++
-          }
-        })
-        return children
-      }
-      console.log("treeData", treeData)
-      let recursivePipelines = cleanTreeDataRec(treeData)
-      console.log("recursivePipelines", recursivePipelines)
-
-      //clean flow
-      let newJson = {}
-      newJson.MLType = json.MLType
-      newJson.nodes = {}
-      let nodesCopy = deepCopy(json.nodes)
-      nodesCopy.forEach((node) => {
-        !node.id.includes("opt") && (newJson.nodes[node.id] = node)
-      })
-
-      newJson.pipelines = recursivePipelines
-      newJson.pageId = pageId
-      // eslint-disable-next-line camelcase
-      newJson.path_seperator = MedDataObject.getPathSeparator()
-      let scenePath = configPath.substring(0, configPath.lastIndexOf(newJson.path_seperator))
-      newJson.paths = {
-        ws: scenePath
-      }
-      newJson.internalPaths = {}
-      sceneDescription.extrenalFolders.forEach((folder) => {
-        newJson.paths[folder] = scenePath + newJson.path_seperator + folder
-      })
-      sceneDescription.internalFolders.forEach((folder) => {
-        newJson.internalPaths[folder] = configPath.split(".")[0] + newJson.path_seperator + folder
-      })
-      newJson.configPath = configPath
-      newJson.nbNodes2Run = nbNodes2Run + 1 // +1 because the results generation is a time consuming task
-
-      return { newflow: newJson, isValid: isValidDefault }
-    },
-    [reactFlowInstance, MLType, nodes, edges, intersections, treeData]
-  )
+    if (reactFlowInstance) {
+      getFlSettings(nodes)
+    }
+  }, [reactFlowInstance, MLType, nodes, edges, intersections, configPath])
 
   /**
    * save the workflow as a json file
@@ -869,16 +628,18 @@ const MedflWorkflow = ({ setWorkflowType, workflowType }) => {
     return result
   }
 
-  const runFlPipeline = (flConfig) => {
-    let JSONToSend = flConfig
+  const runFlPipeline = (flConfig, dbConfigfile) => {
+    let JSONToSend = { flConfig: flConfig, dbConfigfile: dbConfigfile }
 
     setIsProgressUpdating(true)
     setIsUpdating(true)
-
+    if (isUpdating) {
+      console.log("")
+    }
     requestBackend(
       // Send the request
       port,
-      "/medfl/hello_world/" + pageId,
+      "/medfl/run-pipeline/" + pageId,
       JSONToSend,
       (jsonResponse) => {
         if (jsonResponse.error) {
@@ -889,9 +650,8 @@ const MedflWorkflow = ({ setWorkflowType, workflowType }) => {
         } else {
           setIsUpdating(false) // Set the isUpdating to false
           console.log("jsonResponse", jsonResponse)
-          setProgressValue({ now: 100, currentLabel: jsonResponse["data"] }) // Set the progress value to 100 and show the message that the backend received from the frontend
-          setStringReceived(jsonResponse["stringFromBackend"]) // Set the string received from the backend
-          toast.success("We recieved the config from the front end")
+          toast.success(jsonResponse["stringFromBackend"])
+          updateFlowResults(jsonResponse["data"])
           setRunModal(false)
           setTimeout(() => {
             setIsProgressUpdating(false)
@@ -900,12 +660,55 @@ const MedflWorkflow = ({ setWorkflowType, workflowType }) => {
       },
       function (error) {
         setIsUpdating(false)
-        setProgressValue({ now: 0, currentLabel: "Message sending failed ❌" })
+        setProgress({ now: 0, currentLabel: "Message sending failed ❌" })
         toast.error("Sending failed", error)
         console.log(error)
       }
     )
   }
+
+  const setDBConfig = (filePath) => {
+    let JSONToSend = { path: filePath }
+
+    setIsProgressUpdating(true)
+    setIsUpdating(true)
+
+    requestBackend(
+      // Send the request
+      port,
+      "/medfl/config-db/" + pageId,
+      JSONToSend,
+      (jsonResponse) => {
+        if (jsonResponse.error) {
+          if (typeof jsonResponse.error == "string") {
+            jsonResponse.error = JSON.parse(jsonResponse.error)
+          }
+          setError(jsonResponse.error)
+        } else {
+          setIsUpdating(false) // Set the isUpdating to false
+          console.log("jsonResponse", jsonResponse)
+          setProgress({ now: 100, currentLabel: "Ceating the db config" }) // Set the progress value to 100 and show the message that the backend received from the frontend
+          toast.success(jsonResponse["stringFromBackend"])
+          setRunModal(false)
+          setTimeout(() => {
+            setIsProgressUpdating(false)
+          }, 2000)
+        }
+      },
+      function (error) {
+        setIsUpdating(false)
+        setProgress({ now: 0, currentLabel: "Message sending failed ❌" })
+        toast.error("Sending failed", error)
+        console.log(error)
+      }
+    )
+  }
+
+  useEffect(() => {
+    if (flConfigFile?.path != "") {
+      setDBConfig(flConfigFile?.path)
+    }
+  }, [flConfigFile?.path])
 
   return (
     <>
@@ -929,7 +732,10 @@ const MedflWorkflow = ({ setWorkflowType, workflowType }) => {
         }}
         configs={getConfigs(treeData, 0)}
         nodes={nodes}
-        onRun={runFlPipeline}
+        onRun={(flConfig) => {
+          setRunModal(false)
+          runFlPipeline(flConfig, flConfigFile?.path)
+        }}
       />
       <WorkflowBase
         // mandatory props

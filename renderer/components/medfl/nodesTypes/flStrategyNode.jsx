@@ -6,6 +6,27 @@ import { FlowFunctionsContext } from "../../flow/context/flowFunctionsContext"
 export default function FlStrategyNode({ id, data }) {
   // context
   // context
+  const AGGRERATION_ALGORITHMS = [
+    "Bulyan",
+    "DPFedAvgAdaptive",
+    "DPFedAvgFixed",
+    "FaultTolerantFedAvg",
+    "FedAdagrad",
+    "FedAdam",
+    "FedAvg",
+    "FedAvgAndroid",
+    "FedAvgM",
+    "FedMedian",
+    "FedOpt",
+    "FedProx",
+    "FedTrimmedAvg",
+    "FedXgbBagging",
+    "FedXgbCyclic",
+    "FedXgbNnAvg",
+    "FedYogi",
+    "Krum",
+    "QFedAvg"
+  ]
   const { updateNode } = useContext(FlowFunctionsContext)
 
   const onModelInputChange = (inputUpdate) => {
@@ -35,9 +56,11 @@ export default function FlStrategyNode({ id, data }) {
               settingInfos={{
                 type: "list",
                 tooltip: "Specify the desription of the federated setup",
-                choices: [{ name: "FedAvg" }]
+                choices: AGGRERATION_ALGORITHMS.map((algo) => {
+                  return { name: algo }
+                })
               }}
-              currentValue={""}
+              currentValue={data.internal.settings["Aggregation algorithm"]}
               onInputChange={onModelInputChange}
               setHasWarning={() => {}}
             />
@@ -48,7 +71,7 @@ export default function FlStrategyNode({ id, data }) {
                 type: "float",
                 tooltip: "Specify the desription of the federated setup"
               }}
-              currentValue={""}
+              currentValue={data.internal.settings["Evaluation fraction"]}
               onInputChange={onModelInputChange}
               setHasWarning={() => {}}
             />
@@ -59,7 +82,7 @@ export default function FlStrategyNode({ id, data }) {
                 type: "float",
                 tooltip: "Specify the desription of the federated setup"
               }}
-              currentValue={""}
+              currentValue={data.internal.settings["Training fraction"]}
               onInputChange={onModelInputChange}
               setHasWarning={() => {}}
             />
@@ -70,29 +93,29 @@ export default function FlStrategyNode({ id, data }) {
                 type: "int",
                 tooltip: "Specify the desription of the federated setup"
               }}
-              currentValue={""}
+              currentValue={data.internal.settings["Minimal used clients for evaluation"]}
               onInputChange={onModelInputChange}
               setHasWarning={() => {}}
             />
 
             <FlInput
-              name="Minimal used clients for training "
+              name="Minimal used clients for training"
               settingInfos={{
                 type: "int",
                 tooltip: "Specify the desription of the federated setup"
               }}
-              currentValue={""}
+              currentValue={data.internal.settings["Minimal used clients for training"]}
               onInputChange={onModelInputChange}
               setHasWarning={() => {}}
             />
 
             <FlInput
-              name="Minimal available clients "
+              name="Minimal available clients"
               settingInfos={{
                 type: "int",
                 tooltip: "Specify the desription of the federated setup"
               }}
-              currentValue={""}
+              currentValue={data.internal.settings["Minimal available clients"]}
               onInputChange={onModelInputChange}
               setHasWarning={() => {}}
             />

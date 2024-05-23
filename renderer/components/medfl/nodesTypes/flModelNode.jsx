@@ -115,6 +115,39 @@ const FlModelNode = ({ id, data }) => {
                         currentValue={data.internal.settings.file || {}}
                         onInputChange={onFilesChange}
                         setHasWarning={() => {}}
+                        acceptedExtensions={["pth"]}
+                      />
+                      <FlInput
+                        name="optimizer"
+                        settingInfos={{
+                          type: "list",
+                          tooltip: "<p>Specify a data file (xlsx, csv, json)</p>",
+                          choices: [{ name: "Adam" }, { name: "SGD" }, { name: "RMSprop" }]
+                        }}
+                        currentValue={data.internal.settings.optimizer || {}}
+                        onInputChange={onModelInputChange}
+                        setHasWarning={() => {}}
+                      />
+
+                      <FlInput
+                        name="learning rate"
+                        settingInfos={{
+                          type: "float",
+                          tooltip: "<p>Specify the model type</p>"
+                        }}
+                        currentValue={data.internal.settings["learning rate"] || {}}
+                        onInputChange={onModelInputChange}
+                        setHasWarning={() => {}}
+                      />
+                      <FlInput
+                        name="Threshold"
+                        settingInfos={{
+                          type: "float",
+                          tooltip: "<p>Specify the model type</p>"
+                        }}
+                        currentValue={data.internal.settings.Threshold || {}}
+                        onInputChange={onModelInputChange}
+                        setHasWarning={() => {}}
                       />
                     </>
                   )
@@ -154,27 +187,18 @@ const FlModelNode = ({ id, data }) => {
                               tooltip: "<p>Specify the model type</p>",
                               choices: [{ name: "Binary classifier" }]
                             }}
-                            currentValue={data.internal.settings.files || {}}
+                            currentValue={data.internal.settings["Model type"] || {}}
                             onInputChange={onModelInputChange}
                             setHasWarning={() => {}}
                           />
-                          <FlInput
-                            name="Input size"
-                            settingInfos={{
-                              type: "int",
-                              tooltip: "<p>Specify the model type</p>"
-                            }}
-                            currentValue={{}}
-                            onInputChange={onModelInputChange}
-                            setHasWarning={() => {}}
-                          />
+
                           <FlInput
                             name="Number of layers"
                             settingInfos={{
                               type: "int",
                               tooltip: "<p>Specify the model type</p>"
                             }}
-                            currentValue={{}}
+                            currentValue={data.internal.settings["Number of layers"] || {}}
                             onInputChange={onModelInputChange}
                             setHasWarning={() => {}}
                           />
@@ -184,18 +208,28 @@ const FlModelNode = ({ id, data }) => {
                               type: "int",
                               tooltip: "<p>Specify the model type</p>"
                             }}
-                            currentValue={{}}
+                            currentValue={data.internal.settings["Hidden size"] || {}}
                             onInputChange={onModelInputChange}
                             setHasWarning={() => {}}
                           />
                           <FlInput
-                            name="Optimizer"
+                            name="optimizer"
                             settingInfos={{
                               type: "list",
-                              tooltip: "<p>Specify the model type</p>",
-                              choices: [{ name: "ADAM" }]
+                              tooltip: "<p>Specify a data file (xlsx, csv, json)</p>",
+                              choices: [{ name: "Adam" }, { name: "SGD" }, { name: "RMSprop" }]
                             }}
-                            currentValue={data.internal.settings.files || {}}
+                            currentValue={data.internal.settings.optimizer || {}}
+                            onInputChange={onModelInputChange}
+                            setHasWarning={() => {}}
+                          />
+                          <FlInput
+                            name="learning rate"
+                            settingInfos={{
+                              type: "float",
+                              tooltip: "<p>Specify the model type</p>"
+                            }}
+                            currentValue={data.internal.settings["learning rate"] || {}}
                             onInputChange={onModelInputChange}
                             setHasWarning={() => {}}
                           />
@@ -205,7 +239,7 @@ const FlModelNode = ({ id, data }) => {
                               type: "float",
                               tooltip: "<p>Specify the model type</p>"
                             }}
-                            currentValue={data.internal.settings.files || {}}
+                            currentValue={data.internal.settings["Threshold"] || {}}
                             onInputChange={onModelInputChange}
                             setHasWarning={() => {}}
                           />
