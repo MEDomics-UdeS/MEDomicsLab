@@ -39,7 +39,10 @@ class GoExecScriptRunMEDimageMlExperiment(GoExecutionScript):
         self.current_experiment = MEDimageLearning(json_config)
         
         # Run all pipelines
-        results_pipeline = self.current_experiment.run_all()
+        if self._id.lower().startswith("generate_pips"):
+            results_pipeline = self.current_experiment.generate_notebooks()
+        else:
+            results_pipeline = self.current_experiment.run_all()
 
         return results_pipeline
     

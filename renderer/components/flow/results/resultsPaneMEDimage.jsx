@@ -88,16 +88,16 @@ const ResultsPaneMEDimage = () => {
     } else {
       // Process data
       let newFlow = processFlowData(flowContent)
+      console.log("newFlow sent to backend", newFlow)
       requestBackend(
         port,
-        "/learning_MEDimage/generate_pips",
-        null,
+        "/learning_MEDimage/run_all/generate_pips",
         newFlow,
         (response) => {
           console.log("received results:", response)
           if (!response.error) {
             console.log("Success response", response)
-            toast.success("Notebooks generated successfully")
+            toast.success("Notebook(s) generated successfully")
 
             // Open the notebook
             try{
@@ -210,7 +210,7 @@ const ResultsPaneMEDimage = () => {
           if (!values || keysList.length === 0 || (expNames.length > 0 && keysList.length === 1)){
             return (
               <Accordion>
-                <AccordionTab key={`AccordionTab-${index}`} header={key}>
+                <AccordionTab key={`AccordionTab-${index}-${dataIdx}`} header={key}>
                   <div style={{ color: 'red' }}>Warning: Values are empty or undefined.</div>
                 </AccordionTab>
               </Accordion>
@@ -353,10 +353,14 @@ const ResultsPaneMEDimage = () => {
           <Accordion>
             <AccordionTab disabled={!isResults} key={`AccordionTab-Figures`} header={"Compare Analysis Plots"}>
               {(heatMap === undefined || heatMap === "") && (
-                <div style={{ color: 'red' }}>No heatmap generated.</div>
+                <Panel header="Heatmap" toggleable>
+                  <div style={{ color: 'red' }}>No heatmap generated.</div>
+                </Panel>
               )}
               {(treePlot === undefined || treePlot === "") && (
-                <div style={{ color: 'red' }}>No tree plot generated.</div>
+                <Panel header="Tree Plot" toggleable>
+                  <div style={{ color: 'red' }}>No tree plot generated.</div>
+                </Panel>
               )}
               {(heatMap !== undefined && heatMap !== "") && (
                 <Panel header="Heatmap" toggleable>
@@ -508,7 +512,7 @@ const ResultsPaneMEDimage = () => {
               </div>
             </div>
             {/*Button to clean all results*/}
-            <Button 
+            {/*<Button 
                   severity="danger"
                   rounded 
                   text
@@ -516,7 +520,7 @@ const ResultsPaneMEDimage = () => {
                   icon="pi pi-trash"
                   onClick={() => cleanResults()} 
                   style={{ width: 'fit-content', margin: 'auto' }}
-                />
+              />*/}
             <Button icon="pi pi-times" rounded text raised severity="danger" aria-label="Cancel" onClick={handleClose}/>
           </Card.Header>
           <Card.Body>
