@@ -5,6 +5,7 @@ import { InputText } from 'primereact/inputtext';
 import {useState} from 'react';
 import { Tooltip } from 'primereact/tooltip';
 import { InputSwitch } from 'primereact/inputswitch';
+import { updateHasWarning } from "../../flow/node";
 
 
 /**
@@ -29,6 +30,8 @@ const Split = ({ id, data, type }) => {
     else {
       data.setupParam.possibleSettings.defaultSettings.path_outcome_file = event.target.files.path
     }
+    // Update node warnings
+    updateHasWarning(data)
     setReload(!reload);
   };
 
@@ -53,6 +56,8 @@ const Split = ({ id, data, type }) => {
       data.setupParam.possibleSettings.defaultSettings.path_save_experiments = event.target.files.path
       data.internal.settings.path_save_experiments = event.target.files.path
     }
+    // Update node warnings
+    updateHasWarning(data)
     setReload(!reload);
   };
 
@@ -84,6 +89,8 @@ const Split = ({ id, data, type }) => {
                     onChange={(event) => {
                       data.setupParam.possibleSettings.defaultSettings.outcome_name = event.target.value;
                       data.internal.settings.outcome_name = event.target.value;
+                      // Update node warnings
+                      updateHasWarning(data)
                       setReload(!reload);
                     }}
                 />
@@ -104,6 +111,8 @@ const Split = ({ id, data, type }) => {
                     onChange={(event) => {
                       data.setupParam.possibleSettings.defaultSettings.method = event.value ? 'random' : 'all_learn';
                         data.internal.settings.method = event.value ? 'random' : 'all_learn';
+                        // Update node warnings
+                        updateHasWarning(data);
                         setReload(!reload);
                     }}
                 />

@@ -5,6 +5,8 @@ import {useState} from 'react';
 import { Tooltip } from 'primereact/tooltip';
 import { Dropdown } from 'primereact/dropdown';
 import { InputNumber } from 'primereact/inputnumber';
+import { updateHasWarning } from "../../flow/node";
+
 
 /**
  * @param {string} id id of the node
@@ -46,7 +48,8 @@ const FeatureReduction = ({ id, data, type }) => {
                     value={data.setupParam.possibleSettings.defaultSettings.FDA.nSplits}
                     onValueChange={(event) => {
                       data.setupParam.possibleSettings.defaultSettings.FDA.nSplits = event.target.value;
-                        setReload(!reload);
+                      updateHasWarning(data);
+                      setReload(!reload);
                     }}
                     mode="decimal"
                     showButtons
@@ -74,6 +77,7 @@ const FeatureReduction = ({ id, data, type }) => {
                     placeholder={data.setupParam.possibleSettings.defaultSettings.FDA.corrType}
                     onChange={(event) => {
                       data.setupParam.possibleSettings.defaultSettings.FDA.corrType = event.target.value.name;
+                      updateHasWarning(data);
                       setReload(!reload);
                     }} 
                 />
@@ -94,7 +98,8 @@ const FeatureReduction = ({ id, data, type }) => {
                     value={data.setupParam.possibleSettings.defaultSettings.FDA.threshStableStart}
                     onValueChange={(event) => {
                       data.setupParam.possibleSettings.defaultSettings.FDA.threshStableStart = event.target.value;
-                        setReload(!reload);
+                      updateHasWarning(data);
+                      setReload(!reload);
                     }}
                     mode="decimal"
                     showButtons
@@ -121,7 +126,8 @@ const FeatureReduction = ({ id, data, type }) => {
                     value={data.setupParam.possibleSettings.defaultSettings.FDA.threshInterCorr}
                     onValueChange={(event) => {
                       data.setupParam.possibleSettings.defaultSettings.FDA.threshInterCorr = event.target.value;
-                        setReload(!reload);
+                      updateHasWarning(data);
+                      setReload(!reload);
                     }}
                     mode="decimal"
                     showButtons
@@ -144,7 +150,8 @@ const FeatureReduction = ({ id, data, type }) => {
                     value={data.setupParam.possibleSettings.defaultSettings.FDA.minNfeatStable}
                     onValueChange={(event) => {
                       data.setupParam.possibleSettings.defaultSettings.FDA.minNfeatStable = event.target.value;
-                        setReload(!reload);
+                      updateHasWarning(data);
+                      setReload(!reload);
                     }}
                     mode="decimal"
                     showButtons
@@ -166,7 +173,8 @@ const FeatureReduction = ({ id, data, type }) => {
                     value={data.setupParam.possibleSettings.defaultSettings.FDA.minNfeatInterCorr}
                     onValueChange={(event) => {
                       data.setupParam.possibleSettings.defaultSettings.FDA.minNfeatInterCorr = event.target.value;
-                        setReload(!reload);
+                      updateHasWarning(data);
+                      setReload(!reload);
                     }}
                     mode="decimal"
                     showButtons
@@ -192,7 +200,8 @@ const FeatureReduction = ({ id, data, type }) => {
                     value={data.setupParam.possibleSettings.defaultSettings.FDA.minNfeat}
                     onValueChange={(event) => {
                       data.setupParam.possibleSettings.defaultSettings.FDA.minNfeat = event.target.value;
-                        setReload(!reload);
+                      updateHasWarning(data);
+                      setReload(!reload);
                     }}
                     mode="decimal"
                     showButtons

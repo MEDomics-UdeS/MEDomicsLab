@@ -6,6 +6,7 @@ import {useState} from 'react';
 import { Tooltip } from 'primereact/tooltip';
 import { Dropdown } from 'primereact/dropdown';
 import { InputNumber } from 'primereact/inputnumber';
+import { updateHasWarning } from "../../flow/node";
 
 
 /**
@@ -50,6 +51,7 @@ const RadiomicsLearner = ({ id, data, type }) => {
                     onChange={(event) => {
                       data.setupParam.possibleSettings.defaultSettings.model = event.target.value.name;
                       data.internal.settings.model = event.target.value.name;
+                      updateHasWarning(data);
                       setReload(!reload);
                     }} 
                 />
@@ -71,6 +73,7 @@ const RadiomicsLearner = ({ id, data, type }) => {
                     onValueChange={(event) => {
                         data.setupParam.possibleSettings.defaultSettings.XGBoost.varImportanceThreshold = event.target.value;
                         data.internal.settings.XGBoost.varImportanceThreshold = event.target.value;
+                        updateHasWarning(data);
                         setReload(!reload);
                     }}
                     mode="decimal"
@@ -99,6 +102,7 @@ const RadiomicsLearner = ({ id, data, type }) => {
                     onValueChange={(event) => {
                         data.setupParam.possibleSettings.defaultSettings.optimalThreshold = event.target.value;
                         data.internal.settings.XGBoost.optimalThreshold = event.target.value;
+                        updateHasWarning(data);
                         setReload(!reload);
                     }}
                     mode="decimal"
@@ -121,6 +125,7 @@ const RadiomicsLearner = ({ id, data, type }) => {
                       Model's Save Name
               </Form.Label>
                 <InputText
+                    key="nameSaveModel"
                     style={{width: "300px"}}
                     value={data.setupParam.possibleSettings.defaultSettings.XGBoost.nameSave}
                     placeholder={data.setupParam.possibleSettings.defaultSettings.XGBoost.nameSave}
@@ -128,6 +133,7 @@ const RadiomicsLearner = ({ id, data, type }) => {
                       data.setupParam.possibleSettings.defaultSettings.XGBoost.nameSave = event.target.value;
                       console.log("data.internal.settings.XGBoost: ", data.internal.settings);
                       data.internal.settings.XGBoost.nameSave = event.target.value;
+                      updateHasWarning(data);
                       setReload(!reload);
                     }}
                 />
@@ -143,12 +149,14 @@ const RadiomicsLearner = ({ id, data, type }) => {
                       optimization Metric
               </Form.Label>
               <InputText
+                    key="optimizationMetric"
                     style={{width: "300px"}}
                     value={data.setupParam.possibleSettings.defaultSettings.XGBoost.optimizationMetric}
                     placeholder={data.setupParam.possibleSettings.defaultSettings.XGBoost.optimizationMetric}
                     onChange={(event) => {
-                      data.setupParam.possibleSettings.defaultSettings.XGBoost.optimizationMetric = event.target.value.name;
-                      data.internal.settings.XGBoost.optimizationMetric = event.target.value.name;
+                      data.setupParam.possibleSettings.defaultSettings.XGBoost.optimizationMetric = event.target.value;
+                      data.internal.settings.XGBoost.optimizationMetric = event.target.value;
+                      updateHasWarning(data);
                       setReload(!reload);
                     }} 
                 />
@@ -172,6 +180,7 @@ const RadiomicsLearner = ({ id, data, type }) => {
                     onChange={(event) => {
                       data.setupParam.possibleSettings.defaultSettings.XGBoost.method = event.target.value.name;
                       data.internal.settings.XGBoost.method = event.target.value.name;
+                      updateHasWarning(data);
                       setReload(!reload);
                     }} 
                 />
@@ -194,6 +203,7 @@ const RadiomicsLearner = ({ id, data, type }) => {
                     onValueChange={(event) => {
                         data.setupParam.possibleSettings.defaultSettings.XGBoost.seed = event.target.value;
                         data.internal.settings.XGBoost.seed = event.target.value;
+                        updateHasWarning(data);
                         setReload(!reload);
                     } }
                     mode="decimal"

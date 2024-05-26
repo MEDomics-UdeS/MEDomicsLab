@@ -258,4 +258,156 @@ export const updateHasWarning = (data) => {
       data.internal.hasWarning = { state: true, tooltip: <p>Select at least one ROI to analyze</p> }
     }
   }
+  // Split node check if all the mandatory fields are filled
+  if (data.setupParam.type === "Split") {
+    console.log("FOUND SPLIT NODE")
+    if (data.internal.settings.outcome_name === "") {
+      data.internal.hasWarning = { state: true, tooltip: <p>No outcome name is given!</p> }
+      return
+    } else if (data.internal.settings.path_outcome_file === "") {
+      data.internal.hasWarning = { state: true, tooltip: <p>No outcome file is given!</p> }
+      return
+    } else if (data.internal.settings.path_save_experiments === "") {
+      data.internal.hasWarning = { state: true, tooltip: <p>No save path is given!</p> }
+      return
+    } else {
+      data.internal.hasWarning = { state: false }
+      return
+    }
+  }
+  // Design node check if all the mandatory fields are filled
+  if (data.setupParam.type === "Design") {
+    if (data.internal.settings.expName === "") {
+      data.internal.hasWarning = { state: true, tooltip: <p>No experiment name is given!</p> }
+      return
+    } else if (data.internal.settings.testSets[0].toLowerCase() === "cv"){
+      if (data.internal.settings.cv.nSplits === null || data.internal.settings.cv.nSplits === "") {
+        data.internal.hasWarning = { state: true, tooltip: <p>No number of folds is given!</p> }
+        return
+      } else if (data.internal.settings.cv.seed === null || data.internal.settings.cv.seed === ""){
+        data.internal.hasWarning = { state: true, tooltip: <p>No seed is given!</p> }
+        return
+      } else if (data.internal.settings.cv.nSplits < 2) {
+        data.internal.hasWarning = { state: true, tooltip: <p>Number of folds must be at least 2!</p> }
+        return
+      } else {
+        data.internal.hasWarning = { state: false }
+        return
+      }
+    } else if (data.internal.settings.testSets[0].toLowerCase() === "random"){
+      if (data.internal.settings.Random.nSplits === null || data.internal.settings.Random.nSplits === "") {
+        data.internal.hasWarning = { state: true, tooltip: <p>No number of splits is given!</p> }
+        return
+      } else if (data.internal.settings.Random.seed === null || data.internal.settings.Random.seed === ""){
+        data.internal.hasWarning = { state: true, tooltip: <p>No seed is given!</p> }
+        return
+      } else if (data.internal.settings.Random.nSplits < 2) {
+        data.internal.hasWarning = { state: true, tooltip: <p>Number of splits must be at least 2!</p> }
+        return
+      } else if (data.internal.settings.Random.method === null || data.internal.settings.Random.method === ""){
+        data.internal.hasWarning = { state: true, tooltip: <p>No method is selected!</p> }
+        return
+      } else if (data.internal.settings.Random.testProportion === null || data.internal.settings.Random.testProportion === ""){
+        data.internal.hasWarning = { state: true, tooltip: <p>No test proportion is given!</p> }
+        return
+      } else if (data.internal.settings.Random.testProportion < 0 || data.internal.settings.Random.testProportion > 1){
+        data.internal.hasWarning = { state: true, tooltip: <p>Test proportion must be between 0 and 1!</p> }
+        return
+      } else {
+        data.internal.hasWarning = { state: false }
+        return
+      }
+    }
+    else {
+      data.internal.hasWarning = { state: false }
+      return
+    }
+  }
+  // Data node check if all the mandatory fields are filled
+  if (data.setupParam.type === "Data") {
+    if (data.internal.settings.featuresFiles.length === 0) {
+      data.internal.hasWarning = { state: true, tooltip: <p>No features file is given!</p> }
+      return
+    } else {
+      data.internal.hasWarning = { state: false }
+      return
+    }
+  }
+  // CLeaning node check if all the mandatory fields are filled
+  if (data.setupParam.type === "Cleaning") {
+    if (data.internal.settings.default.feature.continuous.covCutoff === null || data.internal.settings.default.feature.continuous.covCutoff === "") {
+      data.internal.hasWarning = { state: true, tooltip: <p>Minimum coefficient of variation cutoff is not given!</p> }
+      return
+    } else if (data.internal.settings.default.feature.continuous.missingCutoffpf === null || data.internal.settings.default.feature.continuous.missingCutoffpf === ""){
+      data.internal.hasWarning = { state: true, tooltip: <p>Missing samples cutoff per feature is not given!</p> }
+      return
+    } else if (data.internal.settings.default.feature.continuous.missingCutoffps === null || data.internal.settings.default.feature.continuous.missingCutoffps === ""){
+      data.internal.hasWarning = { state: true, tooltip: <p>Missing features cutoff per sample is not given!</p> }
+      return
+    } else {
+      data.internal.hasWarning = { state: false }
+      return
+    }
+  }
+  // Feature reduction node check if all the mandatory fields are filled
+  if (data.setupParam.type === "FeatureReduction") {
+    if (data.internal.settings.FDA.minNfeat === null || data.internal.settings.FDA.minNfeat === "") {
+      data.internal.hasWarning = { state: true, tooltip: <p>Final number of features is not given!</p> }
+      return
+    } else if (data.internal.settings.FDA.minNfeatInterCorr === null || data.internal.settings.FDA.minNfeatInterCorr === ""){
+      data.internal.hasWarning = { state: true, tooltip: <p>Minimum number of inter-correlated features is not given!</p> }
+      return
+    } else if (data.internal.settings.FDA.minNfeatStable === null || data.internal.settings.FDA.minNfeatStable === ""){
+      data.internal.hasWarning = { state: true, tooltip: <p>Minimum number of stable features is not given!</p> }
+      return
+    } else if (data.internal.settings.FDA.nSplits === null || data.internal.settings.FDA.nSplits === ""){
+      data.internal.hasWarning = { state: true, tooltip: <p>Number of splits is not given!</p> }
+      return
+    } else if (data.internal.settings.FDA.nSplits < 2){
+      data.internal.hasWarning = { state: true, tooltip: <p>Number of splits must be at least 2!</p> }
+      return
+    }else if (data.internal.settings.FDA.threshInterCorr === null || data.internal.settings.FDA.threshInterCorr === ""){
+      data.internal.hasWarning = { state: true, tooltip: <p>Threshold for inter-correlation is not given!</p> }
+      return
+    } else if (data.internal.settings.FDA.threshStableStart === null || data.internal.settings.FDA.threshStableStart === ""){
+      data.internal.hasWarning = { state: true, tooltip: <p>Threshold for stability is not given!</p> }
+      return
+    } else {
+      data.internal.hasWarning = { state: false }
+      return
+    }
+  }
+  // Radiomics Learner node check if all the mandatory fields are filled
+  if (data.setupParam.type === "RadiomicsLearner") {
+    if (data.internal.settings.XGBoost.nameSave === null || data.internal.settings.XGBoost.nameSave === "") {
+      data.internal.hasWarning = { state: true, tooltip: <p>Save name for the model is not given!</p> }
+      return
+    } else if (data.internal.settings.XGBoost.optimalThreshold === null || data.internal.settings.XGBoost.optimalThreshold === ""){
+      data.internal.hasWarning = { state: true, tooltip: <p>Model's optimal threshold is not given!</p> }
+      return
+    } else if (data.internal.settings.XGBoost.optimalThreshold < 0 || data.internal.settings.XGBoost.optimalThreshold > 1){
+      data.internal.hasWarning = { state: true, tooltip: <p>Model's optimal threshold must be between 0 and 1!</p> }
+      return
+    } else if (data.internal.settings.XGBoost.varImportanceThreshold === null || data.internal.settings.XGBoost.varImportanceThreshold === ""){
+      data.internal.hasWarning = { state: true, tooltip: <p>Varialble importance cut-off threshold is not given!</p> }
+      return
+    } else if (data.internal.settings.XGBoost.varImportanceThreshold < 0 || data.internal.settings.XGBoost.varImportanceThreshold > 1){
+      data.internal.hasWarning = { state: true, tooltip: <p>Varialble importance cut-off threshold must be between 0 and 1!</p> }
+      return
+    } else if (data.internal.settings.XGBoost.seed === null || data.internal.settings.XGBoost.seed === ""){
+      data.internal.hasWarning = { state: true, tooltip: <p>Seed for the random generator is not given!</p> }
+      return
+    } else if (data.internal.settings.XGBoost.method === "pycaret"){
+      if (data.internal.settings.XGBoost.optimizationMetric === null || data.internal.settings.XGBoost.optimizationMetric === "" || data.internal.settings.XGBoost.optimizationMetric === undefined){
+        data.internal.hasWarning = { state: true, tooltip: <p>Optimization metric is not given!</p> }
+        return
+      } else {
+        data.internal.hasWarning = { state: false }
+        return
+      }
+    } else {
+      data.internal.hasWarning = { state: false }
+      return
+    }
+  }
 }

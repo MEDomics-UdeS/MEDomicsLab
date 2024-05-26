@@ -7,7 +7,7 @@ import { Tooltip } from 'primereact/tooltip';
 import { Dropdown } from 'primereact/dropdown';
 import { InputNumber } from 'primereact/inputnumber';
 import { InputSwitch } from 'primereact/inputswitch';
-import { Button } from 'primereact/button';
+import { updateHasWarning } from "../../flow/node";
 
 
 /**
@@ -50,6 +50,7 @@ const Design = ({ id, data, type }) => {
                     onChange={(event) => {
                       data.setupParam.possibleSettings.defaultSettings.expName = event.target.value;
                       data.internal.settings.expName = event.target.value;
+                      updateHasWarning(data);
                       setReload(!reload);
                     }}
                 />
@@ -78,6 +79,7 @@ const Design = ({ id, data, type }) => {
                       data.setupParam.possibleSettings.defaultSettings.testSets[0] = event.target.value.name;
                       data.internal.settings.testSets[0] = event.target.value.name;
                       }
+                      updateHasWarning(data);
                       setReload(!reload);
                     }} 
                 />
@@ -104,6 +106,7 @@ const Design = ({ id, data, type }) => {
                     onChange={(event) => {
                       data.setupParam.possibleSettings.defaultSettings.Random.method = event.target.value.name;
                       data.internal.settings.Random.method = event.target.value.name;
+                      updateHasWarning(data);
                       setReload(!reload);
                     }} 
                         />
@@ -125,6 +128,7 @@ const Design = ({ id, data, type }) => {
                     onValueChange={(event) => {
                       data.setupParam.possibleSettings.defaultSettings.Random.nSplits = event.target.value;
                       data.internal.settings.Random.nSplits = event.target.value;
+                      updateHasWarning(data);
                       setReload(!reload);
                     }}
                     mode="decimal"
@@ -151,6 +155,7 @@ const Design = ({ id, data, type }) => {
                     onChange={(event) => {
                         data.setupParam.possibleSettings.defaultSettings.Random.stratifyInstitutions = event.target.value;
                         data.internal.settings.Random.stratifyInstitutions = event.target.value;
+                        updateHasWarning(data);
                         setReload(!reload);
                     }}
                 />
@@ -172,6 +177,7 @@ const Design = ({ id, data, type }) => {
                     onValueChange={(event) => {
                         data.setupParam.possibleSettings.defaultSettings.Random.testProportion = event.target.value;
                         data.internal.settings.Random.testProportion = event.target.value;
+                        updateHasWarning(data);
                         setReload(!reload);
                     } }
                     mode="decimal"
@@ -201,6 +207,7 @@ const Design = ({ id, data, type }) => {
                     onValueChange={(event) => {
                         data.setupParam.possibleSettings.defaultSettings.Random.seed = event.target.value;
                         data.internal.settings.Random.seed = event.target.value;
+                        updateHasWarning(data);
                         setReload(!reload);
                     } }
                     mode="decimal"
@@ -233,6 +240,7 @@ const Design = ({ id, data, type }) => {
                     onValueChange={(event) => {
                       data.setupParam.possibleSettings.defaultSettings.cv.nSplits = event.target.value;
                       data.internal.settings.cv.nSplits = event.target.value;
+                      updateHasWarning(data);
                       setReload(!reload);
                     }}
                     mode="decimal"
@@ -259,6 +267,7 @@ const Design = ({ id, data, type }) => {
                     onValueChange={(event) => {
                         data.setupParam.possibleSettings.defaultSettings.cv.seed = event.target.value;
                         data.internal.settings.cv.seed = event.target.value;
+                        updateHasWarning(data);
                         setReload(!reload);
                     } }
                     mode="decimal"

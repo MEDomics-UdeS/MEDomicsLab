@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { Col, Form, Row } from "react-bootstrap";
 import Card from 'react-bootstrap/Card';
 import Node from "../../flow/node";
+import { updateHasWarning } from "../../flow/node";
 
 
 /**
@@ -49,6 +50,7 @@ const Data = ({ id, data, type }) => {
         featuresFiles.push(files[i])
       }
     }
+    updateHasWarning(data);
     setReload(!reload);
   };
 
@@ -128,6 +130,7 @@ const Data = ({ id, data, type }) => {
                     } else {
                       data.internal.settings.featuresFiles.push(file);
                     }
+                    updateHasWarning(data);
                     setReload(!reload);
                   }}
                   checked={data.internal.settings.featuresFiles.includes(file)}

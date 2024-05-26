@@ -156,7 +156,7 @@ const Analyze = ({ id, data, type }) => {
                       <Tooltip target=".mainMetric"/>
                       <Form.Label 
                         className="mainMetric"
-                        data-pr-tooltip="It is recommended to add '_mean' to the metric name to get the mean of the metric over the splits."
+                        data-pr-tooltip="Add '_mean', '_std', etc. to the metric name to use the mean, std, etc. of the metric for the plot."
                         data-pr-position="bottom"
                       >
                         Main Heatmap Metric

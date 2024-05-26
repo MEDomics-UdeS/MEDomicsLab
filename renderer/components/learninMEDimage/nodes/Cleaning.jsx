@@ -5,6 +5,7 @@ import {useState} from 'react';
 import { Tooltip } from 'primereact/tooltip';
 import { Dropdown } from 'primereact/dropdown';
 import { InputNumber } from 'primereact/inputnumber';
+import { updateHasWarning } from "../../flow/node";
 
 
 /**
@@ -47,6 +48,7 @@ const Cleaning = ({ id, data, type }) => {
                     value={data.setupParam.possibleSettings.defaultSettings.default.feature.continuous.missingCutoffps}
                     onValueChange={(event) => {
                       data.setupParam.possibleSettings.defaultSettings.default.feature.continuous.missingCutoffps = event.target.value;
+                        updateHasWarning(data);
                         setReload(!reload);
                     }}
                     mode="decimal"
@@ -74,7 +76,8 @@ const Cleaning = ({ id, data, type }) => {
                     value={data.setupParam.possibleSettings.defaultSettings.default.feature.continuous.missingCutoffpf}
                     onValueChange={(event) => {
                       data.setupParam.possibleSettings.defaultSettings.default.feature.continuous.missingCutoffpf = event.target.value;
-                        setReload(!reload);
+                      updateHasWarning(data);
+                      setReload(!reload);
                     }}
                     mode="decimal"
                     showButtons
@@ -101,7 +104,8 @@ const Cleaning = ({ id, data, type }) => {
                     value={data.setupParam.possibleSettings.defaultSettings.default.feature.continuous.covCutoff}
                     onValueChange={(event) => {
                       data.setupParam.possibleSettings.defaultSettings.default.feature.continuous.covCutoff = event.target.value;
-                        setReload(!reload);
+                      updateHasWarning(data);
+                      setReload(!reload);
                     }}
                     mode="decimal"
                     showButtons
@@ -126,6 +130,7 @@ const Cleaning = ({ id, data, type }) => {
                     placeholder={data.setupParam.possibleSettings.defaultSettings.default.feature.continuous.imputation}
                     onChange={(event) => {
                       data.setupParam.possibleSettings.defaultSettings.default.feature.continuous.imputation = event.target.value.name;
+                      updateHasWarning(data);
                       setReload(!reload);
                     }} 
                 />
