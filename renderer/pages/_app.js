@@ -4,6 +4,7 @@ import Head from "next/head"
 import LayoutManager from "../components/layout/layoutManager"
 import { LayoutModelProvider } from "../components/layout/layoutContext"
 import { WorkspaceProvider } from "../components/workspace/workspaceContext"
+import { MongoDBProvider } from "../components/mongoDB/mongoDBContext"
 import { useEffect } from "react"
 import { ipcRenderer } from "electron"
 import { DataContextProvider } from "../components/workspace/dataContext"
@@ -140,7 +141,12 @@ function App() {
     hasBeenSet: false,
     workingDirectory: ""
   })
+  const [DBObject, setDBObject] = useState({
+    hasBeenSet: false,
+    workingDirectory: ""
+  })
   const [recentWorkspaces, setRecentWorkspaces] = useState([]) // The list of recent workspaces
+  const [recentDBs, setRecentDBs] = useState([])
   const [port, setPort] = useState() // The port of the server
 
   const [globalData, setGlobalData] = useState({}) // The global data object
@@ -175,9 +181,21 @@ function App() {
       }
     })
 
+    ipcRenderer.on("DBDirectorySet", (event, data) => {
+      if (DBObject !== data) {
+        let DB = { ...data }
+        setDBObject(DB)
+      }
+    })
+
     ipcRenderer.on("updateDirectory", (event, data) => {
       let workspace = { ...data }
       setWorkspaceObject(workspace)
+    })
+
+    ipcRenderer.on("updateDirectoryDB", (event, data) => {
+      let DB = { ...data }
+      setDBObject(DB)
     })
 
     ipcRenderer.on("getServerPort", (event, data) => {
@@ -191,6 +209,12 @@ function App() {
       setWorkspaceObject(workspace)
     })
 
+    ipcRenderer.on("openDB", (event, data) => {
+      console.log("openDB from NEXT", data)
+      let DB = { ...data }
+      setDBObject(DB)
+    })
+
     ipcRenderer.on("toggleDarkMode", () => {
       console.log("toggleDarkMode")
       // setIsDarkMode(!isDarkMode)
@@ -199,6 +223,11 @@ function App() {
     ipcRenderer.on("recentWorkspaces", (event, data) => {
       console.log("recentWorkspaces", data)
       setRecentWorkspaces(data)
+    })
+
+    ipcRenderer.on("recentDBs", (event, data) => {
+      console.log("recentDBs", data)
+      setRecentDBs(data)
     })
 
     /**
@@ -388,6 +417,11 @@ function App() {
     console.log("workspaceObject changed", workspaceObject)
   }, [workspaceObject])
 
+  // This useEffect hook is called whenever the `DBObject` state changes.
+  useEffect(() => {
+    console.log("DBObject changed", DBObject)
+  }, [DBObject])
+
   /**
    * Function that saves a JSON Object to a file to a specified path
    * @param {Object} objectToSave - The object to save
@@ -478,16 +512,25 @@ function App() {
         <HotkeysProvider>
           <ActionContextProvider>
             <DataContextProvider globalData={globalData} setGlobalData={setGlobalData}>
-              <WorkspaceProvider workspace={workspaceObject} setWorkspace={setWorkspaceObject} port={port} setPort={setPort} recentWorkspaces={recentWorkspaces} setRecentWorkspaces={setRecentWorkspaces}>
-                <LayoutModelProvider // This is the LayoutContextProvider, which provides the layout model to all the children components of the LayoutManager
-                  layoutModel={layoutModel}
-                  setLayoutModel={setLayoutModel}
-                >
-                  {/* This is the WorkspaceProvider, which provides the workspace model to all the children components of the LayoutManager */}
-                  {/* This is the LayoutContextProvider, which provides the layout model to all the children components of the LayoutManager */}
-                  <LayoutManager layout={initialLayout} />
-                  {/** We pass the initialLayout as a parameter */}
-                </LayoutModelProvider>
+              <WorkspaceProvider
+                workspace={workspaceObject}
+                setWorkspace={setWorkspaceObject}
+                port={port}
+                setPort={setPort}
+                recentWorkspaces={recentWorkspaces}
+                setRecentWorkspaces={setRecentWorkspaces}
+              >
+                <MongoDBProvider DB={DBObject} setDB={setDBObject} recentDBs={recentDBs} setRecentDBs={setRecentDBs}>
+                  <LayoutModelProvider // This is the LayoutContextProvider, which provides the layout model to all the children components of the LayoutManager
+                    layoutModel={layoutModel}
+                    setLayoutModel={setLayoutModel}
+                  >
+                    {/* This is the WorkspaceProvider, which provides the workspace model to all the children components of the LayoutManager */}
+                    {/* This is the LayoutContextProvider, which provides the layout model to all the children components of the LayoutManager */}
+                    <LayoutManager layout={initialLayout} />
+                    {/** We pass the initialLayout as a parameter */}
+                  </LayoutModelProvider>
+                </MongoDBProvider>
               </WorkspaceProvider>
             </DataContextProvider>
           </ActionContextProvider>

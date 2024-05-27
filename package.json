@@ -95,6 +95,7 @@
     "ipynb-editor": "^1.1.0",
     "jimp": "^0.22.10",
     "jquery-csv": "^1.0.21",
+    "mongodb": "^6.6.2",
     "prettier": "^3.0.3",
     "primeicons": "^6.0.1",
     "primereact": "^9.6.2",

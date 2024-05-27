@@ -3,6 +3,7 @@ import Image from "next/image"
 import myimage from "../../../resources/medomics_transparent_bg.png"
 import { Button, Stack } from "react-bootstrap"
 import { WorkspaceContext } from "../workspace/workspaceContext"
+import { MongoDBContext } from "../mongoDB/mongoDBContext"
 import { ipcRenderer } from "electron"
 
 /**
@@ -11,10 +12,16 @@ import { ipcRenderer } from "electron"
  */
 const HomePage = () => {
   const { workspace, recentWorkspaces } = useContext(WorkspaceContext)
+  const { DB, recentDBs } = useContext(MongoDBContext)
   const [hasBeenSet, setHasBeenSet] = useState(workspace.hasBeenSet)
+  const [DBSet, setDBSet] = useState(DB.hasBeenSet)
 
   async function handleWorkspaceChange() {
     ipcRenderer.send("messageFromNext", "requestDialogFolder")
+  }
+
+  async function handleDbChange() {
+    ipcRenderer.send("messageFromNext", "requestDBDialogFolder")
   }
 
   // We set the workspace hasBeenSet state
@@ -26,9 +33,19 @@ const HomePage = () => {
     }
   }, [workspace])
 
+  // We set the db hasBeenSet state
+  useEffect(() => {
+    if (DB.hasBeenSet == false) {
+      setDBSet(true)
+    } else {
+      setDBSet(false)
+    }
+  }, [DB])
+
   // We set the recent workspaces -> We send a message to the main process to get the recent workspaces, the workspace context will be updated by the main process in _app.js
   useEffect(() => {
     ipcRenderer.send("messageFromNext", "getRecentWorkspaces")
+    ipcRenderer.send("messageFromNext", "getRecentDBs")
   }, [])
 
   return (
@@ -67,6 +84,33 @@ const HomePage = () => {
             </>
           ) : (
             <h5>Workspace is set to {workspace.workingDirectory.path}</h5>
+          )}
+          {DBSet ? (
+            <>
+              <h5>Set up your database to get started</h5>
+              <Button onClick={handleDbChange} style={{ margin: "1rem" }}>
+                Set Database
+              </Button>
+              <h5>Or open a recent database</h5>
+              <Stack direction="vertical" gap={0} style={{ padding: "0 0 0 0", alignContent: "center" }}>
+                {recentDBs.map((DB, index) => {
+                  if (index > 4) return
+                  return (
+                    <a
+                      key={index}
+                      onClick={() => {
+                        ipcRenderer.send("setDBDirectory", DB.path)
+                      }}
+                      style={{ margin: "0rem", color: "var(--blue-600)" }}
+                    >
+                      <h6>{DB.path}</h6>
+                    </a>
+                  )
+                })}
+              </Stack>
+            </>
+          ) : (
+            <h5>Database is set to {DB.workingDirectory.path}</h5>
           )}
         </Stack>
       </div>

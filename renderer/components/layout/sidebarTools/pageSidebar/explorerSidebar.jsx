@@ -16,6 +16,14 @@ const ExplorerSidebar = () => {
     ipcRenderer.send("messageFromNext", "requestDialogFolder")
   }
 
+  /**
+   * @description - This function is called when the user clicks on the change database button
+   * @summary - This function sends a message to the main process (Electron) to open a dialog box to change the database
+   */
+  async function handleDatabaseChange() {
+    ipcRenderer.send("messageFromNext", "requestDBDialogFolder")
+  }
+
   return (
     <>
       <Stack direction="vertical" gap={0}>
@@ -42,6 +50,19 @@ const ExplorerSidebar = () => {
             </Accordion.Header>
             <Accordion.Body>
               <Button onClick={handleWorkspaceChange}>Change Workspace</Button>
+            </Accordion.Body>
+          </Accordion.Item>
+          <Accordion.Item eventKey="">
+            <Accordion.Header>
+              <Stack direction="horizontal" style={{ flexGrow: "1" }}>
+                <p style={{ marginBottom: "0px", paddingLeft: "1rem" }}>
+                  <strong>DATABASE</strong>
+                </p>
+                <div style={{ flexGrow: "10" }} />
+              </Stack>
+            </Accordion.Header>
+            <Accordion.Body>
+              <Button onClick={handleDatabaseChange}>Change Database</Button>
             </Accordion.Body>
           </Accordion.Item>
           <SidebarDirectoryTreeControlled />
