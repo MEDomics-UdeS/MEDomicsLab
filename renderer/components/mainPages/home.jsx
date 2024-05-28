@@ -99,22 +99,17 @@ const HomePage = () => {
               <h5>Or open an existing database</h5>
               <Stack direction="vertical" gap={0} style={{ padding: "0 0 0 0", alignContent: "center" }}>
                 {recentDBs.map((DB, index) => {
-                  {
-                    /*Return only non-default MongoDB databases */
-                  }
-                  if (DB != "admin" && DB != "local" && DB != "config") {
-                    return (
-                      <a
-                        key={index}
-                        onClick={() => {
-                          ipcRenderer.send("setDB", DB)
-                        }}
-                        style={{ margin: "0rem", color: "var(--blue-600)" }}
-                      >
-                        <h6>{DB}</h6>
-                      </a>
-                    )
-                  }
+                  return (
+                    <a
+                      key={index}
+                      onClick={() => {
+                        ipcRenderer.send("setDB", DB)
+                      }}
+                      style={{ margin: "0rem", color: "var(--blue-600)" }}
+                    >
+                      <h6>{DB}</h6>
+                    </a>
+                  )
                 })}
               </Stack>
             </>

@@ -1,11 +1,15 @@
-import React, { useContext } from "react"
+import React, { useContext, useState } from "react"
 import { Accordion, Button, Stack } from "react-bootstrap"
 import { ipcRenderer } from "electron"
 import SidebarDirectoryTreeControlled from "../directoryTree/sidebarDirectoryTreeControlled"
 import { DataContext } from "../../../workspace/dataContext"
+import { MongoDBContext } from "../../../mongoDB/mongoDBContext"
+import { ListBox } from "primereact/listbox"
 
 const ExplorerSidebar = () => {
   const { setGlobalData } = useContext(DataContext)
+  const { DB, recentDBs } = useContext(MongoDBContext)
+  const [selectedDB] = useState(DB.name)
 
   /**
    * @description - This function is called when the user clicks on the change workspace button
@@ -14,14 +18,6 @@ const ExplorerSidebar = () => {
   async function handleWorkspaceChange() {
     setGlobalData({})
     ipcRenderer.send("messageFromNext", "requestDialogFolder")
-  }
-
-  /**
-   * @description - This function is called when the user clicks on the change database button
-   * @summary - This function sends a message to the main process (Electron) to open a dialog box to change the database
-   */
-  async function handleDatabaseChange() {
-    ipcRenderer.send("messageFromNext", "requestDBDialogFolder")
   }
 
   return (
@@ -56,13 +52,13 @@ const ExplorerSidebar = () => {
             <Accordion.Header>
               <Stack direction="horizontal" style={{ flexGrow: "1" }}>
                 <p style={{ marginBottom: "0px", paddingLeft: "1rem" }}>
-                  <strong>DATABASE</strong>
+                  <strong>CHANGE DATABASE</strong>
                 </p>
                 <div style={{ flexGrow: "10" }} />
               </Stack>
             </Accordion.Header>
             <Accordion.Body>
-              <Button onClick={handleDatabaseChange}>Change Database</Button>
+              <ListBox value={selectedDB} onChange={(e) => ipcRenderer.send("messageFromNext", "handleDBChange", e.value)} options={recentDBs}></ListBox>
             </Accordion.Body>
           </Accordion.Item>
           <SidebarDirectoryTreeControlled />

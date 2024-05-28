@@ -191,11 +191,12 @@ function App() {
     })
 
     ipcRenderer.on("collections", (event, collections) => {
-      let treeData = collections.map((item) => ({
+      let treeCollections = collections.map((item) => ({
         key: item,
-        label: item
+        label: item,
+        icon: "pi pi-folder"
       }))
-      setDBData(treeData)
+      setDBData(treeCollections)
     })
 
     ipcRenderer.on("updateDirectory", (event, data) => {

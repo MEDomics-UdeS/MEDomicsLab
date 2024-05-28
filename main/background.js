@@ -600,13 +600,11 @@ if (isProd) {
         try {
           await client.connect()
           const db = client.db(args)
-          event.reply(
-            event.reply("DBSet", {
-              name: db.databaseName,
-              hasBeenSet: true,
-              newPort: serverPort
-            })
-          )
+          event.reply("DBSet", {
+            name: db.databaseName,
+            hasBeenSet: true,
+            newPort: serverPort
+          })
         } catch (error) {
           console.error(error)
         } finally {
@@ -626,10 +624,13 @@ if (isProd) {
           await client.connect()
           const adminDb = client.db("admin")
           const dbs = await adminDb.admin().listDatabases()
-          event.reply(
-            "recentDBs",
-            dbs.databases.map((db) => db.name)
-          )
+          const dbsNames = []
+          dbs.databases.forEach((db) => {
+            if (db.name != "admin" && db.name != "local" && db.name != "config") {
+              dbsNames.push(db.name)
+            }
+          })
+          event.reply("recentDBs", dbsNames)
         } catch (error) {
           console.error(error)
           event.reply("databases", [])

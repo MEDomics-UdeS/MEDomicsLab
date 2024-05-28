@@ -1,25 +1,15 @@
-import React, { useContext } from "react"
-import { Accordion, Stack } from "react-bootstrap"
+import React, { useContext, useEffect } from "react"
 import { Tree } from "primereact/tree"
 import { MongoDBContext } from "../../../mongoDB/mongoDBContext"
 
 const SidebarDBTree = () => {
-  const { DBData } = useContext(MongoDBContext)
+  const { DB, DBData } = useContext(MongoDBContext)
 
-  return (
-    <Accordion.Item eventKey="DBTree">
-      <Accordion.Header>
-        <Stack direction="horizontal" style={{ flexGrow: "1" }}>
-          <p>
-            <strong>DATABASE</strong>
-          </p>
-        </Stack>
-      </Accordion.Header>
-      <Accordion.Body>
-        <Tree value={DBData}></Tree>
-      </Accordion.Body>
-    </Accordion.Item>
-  )
+  useEffect(() => {
+    console.log("USE EFFECT ", DBData)
+  }, [DBData])
+
+  return <Tree value={[{ key: DB.name, label: DB.name, icon: "pi pi-database", children: DBData }]}></Tree>
 }
 
 export default SidebarDBTree
