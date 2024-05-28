@@ -2,10 +2,10 @@ import { React, createContext } from "react"
 
 const MongoDBContext = createContext(null)
 
-function MongoDBProvider({ children, DB, setDB, recentDBs, setRecentDBs }) {
+function MongoDBProvider({ children, DB, setDB, DBData, setDBData, recentDBs, setRecentDBs }) {
   return (
     <>
-      <MongoDBContext.Provider value={{ DB, setDB, recentDBs, setRecentDBs }}>{children}</MongoDBContext.Provider>
+      <MongoDBContext.Provider value={{ DB, setDB, DBData, setDBData, recentDBs, setRecentDBs }}>{children}</MongoDBContext.Provider>
     </>
   )
 }

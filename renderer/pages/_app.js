@@ -142,9 +142,11 @@ function App() {
     workingDirectory: ""
   })
   const [DBObject, setDBObject] = useState({
+    name: "",
     hasBeenSet: false,
     workingDirectory: ""
   })
+  const [DBData, setDBData] = useState([])
   const [recentWorkspaces, setRecentWorkspaces] = useState([]) // The list of recent workspaces
   const [recentDBs, setRecentDBs] = useState([])
   const [port, setPort] = useState() // The port of the server
@@ -181,21 +183,24 @@ function App() {
       }
     })
 
-    ipcRenderer.on("DBDirectorySet", (event, data) => {
+    ipcRenderer.on("DBSet", (event, data) => {
       if (DBObject !== data) {
         let DB = { ...data }
         setDBObject(DB)
       }
     })
 
+    ipcRenderer.on("collections", (event, collections) => {
+      let treeData = collections.map((item) => ({
+        key: item,
+        label: item
+      }))
+      setDBData(treeData)
+    })
+
     ipcRenderer.on("updateDirectory", (event, data) => {
       let workspace = { ...data }
       setWorkspaceObject(workspace)
-    })
-
-    ipcRenderer.on("updateDirectoryDB", (event, data) => {
-      let DB = { ...data }
-      setDBObject(DB)
     })
 
     ipcRenderer.on("getServerPort", (event, data) => {
@@ -207,12 +212,6 @@ function App() {
       console.log("openWorkspace from NEXT", data)
       let workspace = { ...data }
       setWorkspaceObject(workspace)
-    })
-
-    ipcRenderer.on("openDB", (event, data) => {
-      console.log("openDB from NEXT", data)
-      let DB = { ...data }
-      setDBObject(DB)
     })
 
     ipcRenderer.on("toggleDarkMode", () => {
@@ -235,6 +234,10 @@ function App() {
      */
     ipcRenderer.on("log", (event, data) => {
       console.log("log", data)
+    })
+
+    ipcRenderer.on("databases", (event, databases) => {
+      console.log("DATABASES", databases)
     })
 
     ipcRenderer.send("messageFromNext", "getServerPort")
@@ -420,6 +423,7 @@ function App() {
   // This useEffect hook is called whenever the `DBObject` state changes.
   useEffect(() => {
     console.log("DBObject changed", DBObject)
+    ipcRenderer.send("get-collections", DBObject.name)
   }, [DBObject])
 
   /**
@@ -520,7 +524,7 @@ function App() {
                 recentWorkspaces={recentWorkspaces}
                 setRecentWorkspaces={setRecentWorkspaces}
               >
-                <MongoDBProvider DB={DBObject} setDB={setDBObject} recentDBs={recentDBs} setRecentDBs={setRecentDBs}>
+                <MongoDBProvider DB={DBObject} setDB={setDBObject} DBData={DBData} setDBData={setDBData} recentDBs={recentDBs} setRecentDBs={setRecentDBs}>
                   <LayoutModelProvider // This is the LayoutContextProvider, which provides the layout model to all the children components of the LayoutManager
                     layoutModel={layoutModel}
                     setLayoutModel={setLayoutModel}

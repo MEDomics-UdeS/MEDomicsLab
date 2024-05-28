@@ -5,6 +5,8 @@ import { createWindow } from "./helpers"
 import { installExtension, REACT_DEVELOPER_TOOLS } from "electron-extension-installer"
 import MEDconfig, { PORT_FINDING_METHOD } from "../medomics.dev"
 
+const MongoClient = require("mongodb").MongoClient
+const mongoUrl = "mongodb://localhost:27017"
 const os = require("os")
 const fs = require("fs")
 var path = require("path")
@@ -424,15 +426,6 @@ if (isProd) {
     }
   })
 
-  ipcMain.on("getRecentDBs", (event, data) => {
-    // Receives a message from Next.js
-    console.log("GetRecentDBs : ", data)
-    if (data === "requestRecentDBs") {
-      // If the message is "requestRecentDBs", the function getRecentDBs is called
-      getRecentDBsOptions(event, mainWindow)
-    }
-  })
-
   ipcMain.on("setWorkingDirectory", (event, data) => {
     app.setPath("sessionData", data)
     console.log("setWorkingDirectory : ", data)
@@ -444,12 +437,9 @@ if (isProd) {
     })
   })
 
-  ipcMain.on("setDBDirectory", (event, data) => {
-    app.setPath("documents", data)
-    console.log("setDBDirectory : ", data)
-    hasBeenSet = true
-    event.reply("DBDirectorySet", {
-      workingDirectory: dirTree(app.getPath("documents")),
+  ipcMain.on("setDB", (event, data) => {
+    event.reply("DBSet", {
+      name: data,
       hasBeenSet: true,
       newPort: serverPort
     })
@@ -512,6 +502,23 @@ if (isProd) {
     fs.writeFileSync(settingsFilePath, JSON.stringify(settings))
   })
 
+  ipcMain.on("get-collections", async (event, dbName) => {
+    const client = new MongoClient(mongoUrl)
+    try {
+      await client.connect()
+      const db = client.db(dbName)
+      const collections = await db.listCollections().toArray()
+      event.reply(
+        "collections",
+        collections.map((coll) => coll.name)
+      )
+    } catch (error) {
+      console.error(error)
+      event.reply("collections", [])
+    } finally {
+      await client.close()
+    }
+  })
   /**
    * @description Returns the server status
    * @returns {Boolean} True if the server is running, false otherwise
@@ -578,33 +585,58 @@ if (isProd) {
     }
   })
 
-  ipcMain.on("messageFromNext", (event, data) => {
+  ipcMain.on("messageFromNext", (event, data, args) => {
     // Receives a message from Next.js
     console.log("messageFromNext : ", data)
     if (data === "requestDialogFolder") {
       // If the message is "requestDialogFolder", the function setWorkingDirectory is called
       setWorkingDirectory(event, mainWindow)
-    } else if (data == "requestDBDialogFolder") {
-      // If the message is "requestDBDialogFolder", the function setDBDirectory is called
-      setDBDirectory(event, mainWindow)
     } else if (data === "getRecentWorkspaces") {
       let recentWorkspaces = loadWorkspaces()
       event.reply("recentWorkspaces", recentWorkspaces)
-    } else if (data === "getRecentDBs") {
-      let recentDBs = loadDBs()
-      event.reply("recentDBs", recentDBs)
+    } else if (data === "handleDBChange") {
+      const client = new MongoClient(mongoUrl)
+      ;(async () => {
+        try {
+          await client.connect()
+          const db = client.db(args)
+          event.reply(
+            event.reply("DBSet", {
+              name: db.databaseName,
+              hasBeenSet: true,
+              newPort: serverPort
+            })
+          )
+        } catch (error) {
+          console.error(error)
+        } finally {
+          await client.close()
+        }
+      })()
     } else if (data === "updateWorkingDirectory") {
       event.reply("updateDirectory", {
         workingDirectory: dirTree(app.getPath("sessionData")),
         hasBeenSet: hasBeenSet,
         newPort: serverPort
       }) // Sends the folder structure to Next.js
-    } else if (data === "updateDBDirectory") {
-      event.reply("updateDirectoryDB", {
-        DBDirectory: dirTree(app.getPath("documents")),
-        hasBeenSet: hasBeenSet,
-        newPort: serverPort
-      }) // Sends the folder structure to Next.js
+    } else if (data === "get-databases") {
+      const client = new MongoClient(mongoUrl)
+      ;(async () => {
+        try {
+          await client.connect()
+          const adminDb = client.db("admin")
+          const dbs = await adminDb.admin().listDatabases()
+          event.reply(
+            "recentDBs",
+            dbs.databases.map((db) => db.name)
+          )
+        } catch (error) {
+          console.error(error)
+          event.reply("databases", [])
+        } finally {
+          await client.close()
+        }
+      })()
     } else if (data === "getServerPort") {
       event.reply("getServerPort", {
         newPort: serverPort
@@ -718,99 +750,10 @@ function setWorkingDirectory(event, mainWindow) {
     })
 }
 
-/**
- * @description Set the DB directory
- * @summary Opens the dialog to select the DB directory
- * @param {*} event
- * @param {*} mainWindow
- */
-function setDBDirectory(event, mainWindow) {
-  dialog
-    .showOpenDialog(mainWindow, {
-      // Opens the dialog to select the working directory (Select a folder window)
-      properties: ["openDirectory"]
-    })
-    .then((result) => {
-      if (result.canceled) {
-        // If the user cancels the dialog
-        console.log("Dialog was canceled")
-        event.reply("messageFromElectron", "Dialog was canceled")
-      } else {
-        const file = result.filePaths[0]
-        console.log(file)
-        if (dirTree(file).children.length > 0) {
-          // If the selected folder is not empty
-          console.log("Selected folder is not empty")
-          event.reply("messageFromElectron", "Selected folder is not empty")
-          // Open a dialog to ask the user if he wants to still use the selected folder as the working directory or if he wants to select another folder
-          dialog
-            .showMessageBox(mainWindow, {
-              type: "question",
-              buttons: ["Yes", "No"],
-              title: "Folder is not empty",
-              message: "The selected folder is not empty. Do you want to use this folder as the Database directory?"
-            })
-            .then((result) => {
-              if (result.response === 0) {
-                // If the user clicks on "Yes"
-                console.log("Database directory set to " + file)
-                event.reply("messageFromElectron", "Database directory set to " + file)
-                // Add selected folder to the recent workspaces
-                updateDB(file)
-                app.setPath("documents", file)
-                createDBDirectory()
-                hasBeenSet = true // The boolean hasBeenSet is set to true to indicate that the working directory has been set
-                // This is the variable that controls the disabled/enabled state of the IconSidebar's buttons in Next.js
-                event.reply("messageFromElectron", dirTree(file))
-                event.reply("DBDirectorySet", {
-                  workingDirectory: dirTree(file),
-                  hasBeenSet: hasBeenSet
-                })
-              } else if (result.response === 1) {
-                // If the user clicks on "No"
-                console.log("Dialog was canceled")
-                event.reply("messageFromElectron", "Dialog was canceled")
-              }
-            })
-        } else if (file === app.getPath("documents")) {
-          // If the working directory is already set to the selected folder
-          console.log("DB directory is already set to " + file)
-          event.reply("messageFromElectron", "DB directory is already set to " + file)
-          event.reply("DBDirectorySet", {
-            workingDirectory: dirTree(file),
-            hasBeenSet: hasBeenSet
-          })
-        } else {
-          // If the DB directory is not set to the selected folder
-          // The DB directory is set to the selected folder and the folder structure is returned to Next.js
-          console.log("Database directory set to " + file)
-          event.reply("messageFromElectron", "Database directory set to " + file)
-          app.setPath("documents", file)
-          updateDB(file)
-          createDBDirectory()
-          hasBeenSet = true // The boolean hasBeenSet is set to true to indicate that the working directory has been set
-          // This is the variable that controls the disabled/enabled state of the IconSidebar's buttons in Next.js
-          event.reply("messageFromElectron", dirTree(file))
-          event.reply("DBDirectorySet", {
-            DBDirectory: dirTree(file),
-            hasBeenSet: hasBeenSet
-          })
-        }
-      }
-    })
-    .catch((err) => {
-      console.log(err)
-    })
-}
-
 function createWorkingDirectory() {
   // See the workspace menuTemplate in the repository
   createFolder("DATA")
   createFolder("EXPERIMENTS")
-}
-
-function createDBDirectory() {
-  console.log("CREATE DB DIRECTORY")
 }
 
 function createFolder(folderString) {
@@ -977,32 +920,6 @@ function loadWorkspaces() {
 }
 
 /**
- * Loads the recent DBs
- * @returns {Array} An array of DBs
- */
-function loadDBs() {
-  const userDataPath = app.getPath("userData")
-  const DBsFilePath = path.join(userDataPath, "DBs.json")
-  if (fs.existsSync(DBsFilePath)) {
-    const DBs = JSON.parse(fs.readFileSync(DBsFilePath, "utf8"))
-    // Sort DBs by date, most recent first
-    let sortedDBs = DBs.sort((a, b) => new Date(b.last_time_it_was_opened) - new Date(a.last_time_it_was_opened))
-    // Check if the DB still exist
-    let DBsThatStillExist = []
-    sortedDBs.forEach((DB) => {
-      if (fs.existsSync(DB.path)) {
-        DBsThatStillExist.push(DB)
-      } else {
-        console.log("Database does not exist anymore: ", DB.path)
-      }
-    })
-    return DBsThatStillExist
-  } else {
-    return []
-  }
-}
-
-/**
  * Saves the recent workspaces
  * @param {Array} workspaces An array of workspaces
  */
@@ -1010,16 +927,6 @@ function saveWorkspaces(workspaces) {
   const userDataPath = app.getPath("userData")
   const workspaceFilePath = path.join(userDataPath, "workspaces.json")
   fs.writeFileSync(workspaceFilePath, JSON.stringify(workspaces))
-}
-
-/**
- * Saves the recent DBs
- * @param {Array} DBs An array of DB
- */
-function saveDBs(DBs) {
-  const userDataPath = app.getPath("userData")
-  const DBsFilePath = path.join(userDataPath, "DBs.json")
-  fs.writeFileSync(DBsFilePath, JSON.stringify(DBs))
 }
 
 /**
@@ -1043,29 +950,6 @@ function updateWorkspace(workspacePath) {
   }
   app.setPath("sessionData", workspacePath)
   saveWorkspaces(workspaces)
-}
-
-/**
- * Updates the recent DBs
- * @param {String} DBPath The path of the DB to update
- */
-function updateDB(DBPath) {
-  const DBs = loadDBs()
-  const DBIndex = DBs.findIndex((DB) => DB.path === DBPath)
-  if (DBIndex !== -1) {
-    // Workspace exists, update it
-    DBs[DBIndex].status = "opened"
-    DBs[DBIndex].last_time_it_was_opened = new Date().toISOString()
-  } else {
-    // Workspace doesn't exist, add it
-    DBs.push({
-      path: DBPath,
-      status: "opened",
-      last_time_it_was_opened: new Date().toISOString()
-    })
-  }
-  app.setPath("userData", DBPath)
-  saveDBs(DBs)
 }
 
 /**
@@ -1098,36 +982,4 @@ function getRecentWorkspacesOptions(event, mainWindow, workspacesArray = null) {
     }
   })
   return recentWorkspacesOptions
-}
-
-/**
- * Generate recent DBs options
- * @param {*} event The event
- * @param {*} mainWindow The main window
- * @param {*} workspacesArray The array of DBs, if null, the function will load the DBs
- * @returns {Array} An array of recent DBs options
- */
-function getRecentDBsOptions(event, mainWindow, DBsArray = null) {
-  let DBs
-  if (DBs === null) {
-    DBs = loadDBs()
-  } else {
-    DBs = DBsArray
-  }
-  const recentDBs = DBs.filter((DB) => DB.status === "opened")
-  if (event !== null) {
-    event.reply("recentDBs", recentDBs)
-  }
-  const recentDBsOptions = recentDBs.map((DB) => {
-    return {
-      label: DB.path,
-      click() {
-        updateDB(DB.path)
-        let DBObject = { workingDirectory: dirTree(DB.path), hasBeenSet: true, newPort: serverPort }
-        hasBeenSet = true
-        mainWindow.webContents.send("openDB", DBObject)
-      }
-    }
-  })
-  return recentDBsOptions
 }
