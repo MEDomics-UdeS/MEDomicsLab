@@ -143,8 +143,7 @@ function App() {
   })
   const [DBObject, setDBObject] = useState({
     name: "",
-    hasBeenSet: false,
-    workingDirectory: ""
+    hasBeenSet: false
   })
   const [DBData, setDBData] = useState([])
   const [recentWorkspaces, setRecentWorkspaces] = useState([]) // The list of recent workspaces
@@ -243,7 +242,10 @@ function App() {
 
     ipcRenderer.send("messageFromNext", "getServerPort")
 
-    // ipcRenderer.send("messageFromNext", "getRecentWorkspaces")
+    // Cleanup function to remove the event listener
+    return () => {
+      ipcRenderer.removeAllListeners("collections")
+    }
   }, []) // Here, we specify that the hook should only be called at the launch of the app
 
   /**

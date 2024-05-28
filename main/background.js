@@ -519,6 +519,25 @@ if (isProd) {
       await client.close()
     }
   })
+
+  ipcMain.on("upload-csv", (event, filePath, dbName) => {
+    const fileName = path.basename(filePath, path.extname(filePath))
+
+    const mongoImportCommand = `mongoimport --db ${dbName} --collection ${fileName} --type csv --file "${filePath}" --headerline`
+
+    exec(mongoImportCommand, (error, stdout, stderr) => {
+      if (error) {
+        console.error(`exec error: ${error}`)
+        return
+      }
+      console.log(`stdout: ${stdout}`)
+      console.error(`stderr: ${stderr}`)
+
+      // Notify the renderer process that the import was successful
+      event.reply("upload-csv-success", fileName)
+    })
+  })
+
   /**
    * @description Returns the server status
    * @returns {Boolean} True if the server is running, false otherwise
