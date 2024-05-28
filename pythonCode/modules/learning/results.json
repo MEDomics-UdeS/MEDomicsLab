@@ -1,0 +1,1573 @@
+{
+    "node_7ca364a2-3209-40a8-94c8-5d9da34a5ec4": {
+        "next_nodes": {
+            "node_5f6845c2-2d04-4017-b176-ef1da1b6fee3*node_6caabf1a-b27b-427e-a7ea-891378838348": {
+                "next_nodes": {
+                    "node_aee4f9f8-4f33-417c-ac2b-4713942f111b*node_663c2909-e423-4a1f-b4d6-3286a10ff512.node_5f6845c2-2d04-4017-b176-ef1da1b6fee3": {
+                        "next_nodes": {
+                            "node_8924ae1b-e583-4437-bb75-e491826fa708": {}
+                        },
+                        "results": {
+                            "prev_node_id": "node_5f6845c2-2d04-4017-b176-ef1da1b6fee3*node_6caabf1a-b27b-427e-a7ea-891378838348",
+                            "data": {
+                                "LogisticRegression": {
+                                    "penalty": "l2",
+                                    "dual": false,
+                                    "tol": 0.0001,
+                                    "C": 1.0,
+                                    "fit_intercept": true,
+                                    "intercept_scaling": 1,
+                                    "class_weight": null,
+                                    "random_state": 8275,
+                                    "solver": "lbfgs",
+                                    "max_iter": 1000,
+                                    "multi_class": "auto",
+                                    "verbose": 0,
+                                    "warm_start": false,
+                                    "n_jobs": null,
+                                    "l1_ratio": null,
+                                    "feature_names_in_": {
+                                        "0": "subject_id",
+                                        "1": "tslab_|_attr_Platelet_Count__mean_T1",
+                                        "2": "tslab_|_attr_Platelet_Count__minimum_T1"
+                                    },
+                                    "n_features_in_": 3,
+                                    "classes_": {
+                                        "0": 0,
+                                        "1": 1
+                                    },
+                                    "n_iter_": {
+                                        "0": 3
+                                    },
+                                    "coef_": {
+                                        "0": {
+                                            "0": 2.561162862592385e-09,
+                                            "1": -6.067883648214888e-12,
+                                            "2": -5.099161366334648e-12
+                                        }
+                                    },
+                                    "intercept_": {
+                                        "0": -1.849533935407466e-15
+                                    }
+                                }
+                            },
+                            "logs": {},
+                            "code": {
+                                "content": {
+                                    "0": {
+                                        "type": "md",
+                                        "content": "### This is Group models",
+                                        "indent": 0
+                                    }
+                                },
+                                "imports": {}
+                            }
+                        }
+                    },
+                    "node_a9f62f7f-e342-484a-bea1-491db9839b6d": {
+                        "next_nodes": {
+                            "node_8924ae1b-e583-4437-bb75-e491826fa708": {
+                                "next_nodes": {},
+                                "results": {
+                                    "prev_node_id": "node_a9f62f7f-e342-484a-bea1-491db9839b6d",
+                                    "data": {
+                                        "LogisticRegression": "C:\\Users\\gblai\\Documents\\github\\MEDomics\\WS_DEMO\\EXPERIMENTS\\test\\test\\tmp\\0-LogisticRegression.png"
+                                    },
+                                    "logs": {},
+                                    "code": {
+                                        "content": {
+                                            "0": {
+                                                "type": "md",
+                                                "content": "### This is Analyze",
+                                                "indent": 0
+                                            },
+                                            "1": {
+                                                "type": "code",
+                                                "content": "for model in trained_models:",
+                                                "indent": 0
+                                            },
+                                            "2": {
+                                                "type": "code",
+                                                "content": "    pycaret_exp.plot_model(model, plot='error', plot_kwargs={})",
+                                                "indent": 1
+                                            }
+                                        },
+                                        "imports": {}
+                                    }
+                                }
+                            }
+                        },
+                        "results": {
+                            "prev_node_id": "node_5f6845c2-2d04-4017-b176-ef1da1b6fee3*node_6caabf1a-b27b-427e-a7ea-891378838348",
+                            "data": {
+                                "LogisticRegression": {
+                                    "penalty": "l2",
+                                    "dual": false,
+                                    "tol": 0.0001,
+                                    "C": 1.895,
+                                    "fit_intercept": true,
+                                    "intercept_scaling": 1,
+                                    "class_weight": "balanced",
+                                    "random_state": 8275,
+                                    "solver": "lbfgs",
+                                    "max_iter": 1000,
+                                    "multi_class": "auto",
+                                    "verbose": 0,
+                                    "warm_start": false,
+                                    "n_jobs": null,
+                                    "l1_ratio": null,
+                                    "feature_names_in_": {
+                                        "0": "subject_id",
+                                        "1": "tslab_|_attr_Platelet_Count__mean_T1",
+                                        "2": "tslab_|_attr_Platelet_Count__minimum_T1"
+                                    },
+                                    "n_features_in_": 3,
+                                    "classes_": {
+                                        "0": 0,
+                                        "1": 1
+                                    },
+                                    "n_iter_": {
+                                        "0": 2
+                                    },
+                                    "coef_": {
+                                        "0": {
+                                            "0": 1.397959606398446e-09,
+                                            "1": -5.145212607736418e-13,
+                                            "2": -4.3323151983552267e-13
+                                        }
+                                    },
+                                    "intercept_": {
+                                        "0": -9.018803055892382e-17
+                                    }
+                                }
+                            },
+                            "logs": {
+                                "Logistic Regression": {
+                                    "params": {
+                                        "C": 1.895,
+                                        "class_weight": "balanced",
+                                        "dual": false,
+                                        "fit_intercept": true,
+                                        "intercept_scaling": 1,
+                                        "l1_ratio": null,
+                                        "max_iter": 1000,
+                                        "multi_class": "auto",
+                                        "n_jobs": null,
+                                        "penalty": "l2",
+                                        "random_state": 8275,
+                                        "solver": "lbfgs",
+                                        "tol": 0.0001,
+                                        "verbose": 0,
+                                        "warm_start": false
+                                    },
+                                    "metrics": {
+                                        "Accuracy": 0.5682,
+                                        "AUC": 0.6017,
+                                        "Recall": 0.9433,
+                                        "Prec.": 0.5519,
+                                        "F1": 0.6888,
+                                        "Kappa": 0.1184,
+                                        "MCC": 0.1239,
+                                        "TT": 0.01
+                                    }
+                                }
+                            },
+                            "code": {
+                                "content": {
+                                    "0": {
+                                        "type": "md",
+                                        "content": "### This is Tune model",
+                                        "indent": 0
+                                    },
+                                    "1": {
+                                        "type": "code",
+                                        "content": "trained_models_optimized = []",
+                                        "indent": 0
+                                    },
+                                    "2": {
+                                        "type": "code",
+                                        "content": "for model in trained_models:",
+                                        "indent": 0
+                                    },
+                                    "3": {
+                                        "type": "code",
+                                        "content": "    optimized_model = pycaret_exp.tune_model(model, )",
+                                        "indent": 1
+                                    },
+                                    "4": {
+                                        "type": "code",
+                                        "content": "    trained_models_optimized.append(optimized_model)",
+                                        "indent": 1
+                                    },
+                                    "5": {
+                                        "type": "code",
+                                        "content": "trained_models = trained_models_optimized",
+                                        "indent": 0
+                                    }
+                                },
+                                "imports": {}
+                            }
+                        }
+                    },
+                    "node_7055ab95-57fc-4223-8040-997c12e54d7a": {
+                        "next_nodes": {
+                            "node_a1df5f5b-5fe2-4037-ba3c-786b9997a499": {
+                                "next_nodes": {
+                                    "node_8924ae1b-e583-4437-bb75-e491826fa708": {
+                                        "next_nodes": {},
+                                        "results": {
+                                            "prev_node_id": "node_a1df5f5b-5fe2-4037-ba3c-786b9997a499",
+                                            "data": {
+                                                "VotingClassifier": "C:\\Users\\gblai\\Documents\\github\\MEDomics\\WS_DEMO\\EXPERIMENTS\\test\\test\\tmp\\1-VotingClassifier.png"
+                                            },
+                                            "logs": {},
+                                            "code": {
+                                                "content": {
+                                                    "0": {
+                                                        "type": "md",
+                                                        "content": "### This is Analyze",
+                                                        "indent": 0
+                                                    },
+                                                    "1": {
+                                                        "type": "code",
+                                                        "content": "for model in trained_models:",
+                                                        "indent": 0
+                                                    },
+                                                    "2": {
+                                                        "type": "code",
+                                                        "content": "    pycaret_exp.plot_model(model, plot='error', plot_kwargs={})",
+                                                        "indent": 1
+                                                    }
+                                                },
+                                                "imports": {}
+                                            }
+                                        }
+                                    }
+                                },
+                                "results": {
+                                    "prev_node_id": "node_7055ab95-57fc-4223-8040-997c12e54d7a",
+                                    "data": {
+                                        "VotingClassifier": {
+                                            "estimators": {},
+                                            "voting": "soft",
+                                            "weights": null,
+                                            "n_jobs": -1,
+                                            "flatten_transform": true,
+                                            "verbose": false,
+                                            "classes_": {
+                                                "0": 0,
+                                                "1": 1
+                                            },
+                                            "estimators_": {},
+                                            "named_estimators_": {},
+                                            "feature_names_in_": {
+                                                "0": "subject_id",
+                                                "1": "tslab_|_attr_Platelet_Count__mean_T1",
+                                                "2": "tslab_|_attr_Platelet_Count__minimum_T1"
+                                            }
+                                        }
+                                    },
+                                    "logs": {
+                                        "Voting Classifier": {
+                                            "params": {
+                                                "flatten_transform": true,
+                                                "n_jobs": -1,
+                                                "verbose": false,
+                                                "voting": "soft",
+                                                "weights": null,
+                                                "Logistic Regression__C": 1.0,
+                                                "Logistic Regression__class_weight": null,
+                                                "Logistic Regression__dual": false,
+                                                "Logistic Regression__fit_intercept": true,
+                                                "Logistic Regression__intercept_scaling": 1,
+                                                "Logistic Regression__l1_ratio": null,
+                                                "Logistic Regression__max_iter": 1000,
+                                                "Logistic Regression__multi_class": "auto",
+                                                "Logistic Regression__n_jobs": null,
+                                                "Logistic Regression__penalty": "l2",
+                                                "Logistic Regression__random_state": 8275,
+                                                "Logistic Regression__solver": "lbfgs",
+                                                "Logistic Regression__tol": 0.0001,
+                                                "Logistic Regression__verbose": 0,
+                                                "Logistic Regression__warm_start": false
+                                            },
+                                            "metrics": {
+                                                "Accuracy": 0.5227,
+                                                "AUC": 0.5483,
+                                                "Recall": 0.9833,
+                                                "Prec.": 0.5214,
+                                                "F1": 0.6759,
+                                                "Kappa": 0.0441,
+                                                "MCC": 0.0449,
+                                                "TT": 0.01
+                                            }
+                                        }
+                                    },
+                                    "code": {
+                                        "content": {
+                                            "0": {
+                                                "type": "md",
+                                                "content": "### This is Tune model",
+                                                "indent": 0
+                                            },
+                                            "1": {
+                                                "type": "code",
+                                                "content": "trained_models_optimized = []",
+                                                "indent": 0
+                                            },
+                                            "2": {
+                                                "type": "code",
+                                                "content": "for model in trained_models:",
+                                                "indent": 0
+                                            },
+                                            "3": {
+                                                "type": "code",
+                                                "content": "    optimized_model = pycaret_exp.tune_model(model, )",
+                                                "indent": 1
+                                            },
+                                            "4": {
+                                                "type": "code",
+                                                "content": "    trained_models_optimized.append(optimized_model)",
+                                                "indent": 1
+                                            },
+                                            "5": {
+                                                "type": "code",
+                                                "content": "trained_models = trained_models_optimized",
+                                                "indent": 0
+                                            }
+                                        },
+                                        "imports": {}
+                                    }
+                                }
+                            }
+                        },
+                        "results": {
+                            "prev_node_id": "node_5f6845c2-2d04-4017-b176-ef1da1b6fee3*node_6caabf1a-b27b-427e-a7ea-891378838348",
+                            "data": {
+                                "VotingClassifier": {
+                                    "estimators": {},
+                                    "voting": "soft",
+                                    "weights": null,
+                                    "n_jobs": -1,
+                                    "flatten_transform": true,
+                                    "verbose": false,
+                                    "classes_": {
+                                        "0": 0,
+                                        "1": 1
+                                    },
+                                    "estimators_": {},
+                                    "named_estimators_": {},
+                                    "feature_names_in_": {
+                                        "0": "subject_id",
+                                        "1": "tslab_|_attr_Platelet_Count__mean_T1",
+                                        "2": "tslab_|_attr_Platelet_Count__minimum_T1"
+                                    }
+                                }
+                            },
+                            "logs": {
+                                "Voting Classifier": {
+                                    "params": {
+                                        "flatten_transform": true,
+                                        "n_jobs": -1,
+                                        "verbose": false,
+                                        "voting": "soft",
+                                        "weights": null,
+                                        "Logistic Regression__C": 1.0,
+                                        "Logistic Regression__class_weight": null,
+                                        "Logistic Regression__dual": false,
+                                        "Logistic Regression__fit_intercept": true,
+                                        "Logistic Regression__intercept_scaling": 1,
+                                        "Logistic Regression__l1_ratio": null,
+                                        "Logistic Regression__max_iter": 1000,
+                                        "Logistic Regression__multi_class": "auto",
+                                        "Logistic Regression__n_jobs": null,
+                                        "Logistic Regression__penalty": "l2",
+                                        "Logistic Regression__random_state": 8275,
+                                        "Logistic Regression__solver": "lbfgs",
+                                        "Logistic Regression__tol": 0.0001,
+                                        "Logistic Regression__verbose": 0,
+                                        "Logistic Regression__warm_start": false
+                                    },
+                                    "metrics": {
+                                        "Accuracy": 0.5227,
+                                        "AUC": 0.5483,
+                                        "Recall": 0.9833,
+                                        "Prec.": 0.5214,
+                                        "F1": 0.6759,
+                                        "Kappa": 0.0441,
+                                        "MCC": 0.0449,
+                                        "TT": 0.01
+                                    }
+                                }
+                            },
+                            "code": {
+                                "content": {
+                                    "0": {
+                                        "type": "md",
+                                        "content": "### This is Blend models",
+                                        "indent": 0
+                                    },
+                                    "1": {
+                                        "type": "code",
+                                        "content": "    optimized_model = pycaret_exp.blend_models(trained_models, )",
+                                        "indent": 1
+                                    },
+                                    "2": {
+                                        "type": "code",
+                                        "content": "trained_models = trained_models_optimized",
+                                        "indent": 0
+                                    }
+                                },
+                                "imports": {}
+                            }
+                        }
+                    }
+                },
+                "results": {
+                    "prev_node_id": "node_7ca364a2-3209-40a8-94c8-5d9da34a5ec4",
+                    "data": {
+                        "LogisticRegression": {
+                            "penalty": "l2",
+                            "dual": false,
+                            "tol": 0.0001,
+                            "C": 1.0,
+                            "fit_intercept": true,
+                            "intercept_scaling": 1,
+                            "class_weight": null,
+                            "random_state": 8275,
+                            "solver": "lbfgs",
+                            "max_iter": 1000,
+                            "multi_class": "auto",
+                            "verbose": 0,
+                            "warm_start": false,
+                            "n_jobs": null,
+                            "l1_ratio": null,
+                            "feature_names_in_": {
+                                "0": "subject_id",
+                                "1": "tslab_|_attr_Platelet_Count__mean_T1",
+                                "2": "tslab_|_attr_Platelet_Count__minimum_T1"
+                            },
+                            "n_features_in_": 3,
+                            "classes_": {
+                                "0": 0,
+                                "1": 1
+                            },
+                            "n_iter_": {
+                                "0": 3
+                            },
+                            "coef_": {
+                                "0": {
+                                    "0": 2.561162862592385e-09,
+                                    "1": -6.067883648214888e-12,
+                                    "2": -5.099161366334648e-12
+                                }
+                            },
+                            "intercept_": {
+                                "0": -1.849533935407466e-15
+                            }
+                        }
+                    },
+                    "logs": {
+                        "Logistic Regression": {
+                            "params": {
+                                "C": 1.0,
+                                "class_weight": null,
+                                "dual": false,
+                                "fit_intercept": true,
+                                "intercept_scaling": 1,
+                                "l1_ratio": null,
+                                "max_iter": 1000,
+                                "multi_class": "auto",
+                                "n_jobs": null,
+                                "penalty": "l2",
+                                "random_state": 8275,
+                                "solver": "lbfgs",
+                                "tol": 0.0001,
+                                "verbose": 0,
+                                "warm_start": false
+                            },
+                            "metrics": {
+                                "Accuracy": 0.5227,
+                                "AUC": 0.5483,
+                                "Recall": 0.9833,
+                                "Prec.": 0.5214,
+                                "F1": 0.6759,
+                                "Kappa": 0.0441,
+                                "MCC": 0.0449,
+                                "TT": 0.0
+                            }
+                        }
+                    },
+                    "code": {
+                        "content": {
+                            "0": {
+                                "type": "md",
+                                "content": "### This is Train model 1",
+                                "indent": 0
+                            },
+                            "1": {
+                                "type": "code",
+                                "content": "trained_models = [pycaret_exp.create_model(estimator='lr')]",
+                                "indent": 0
+                            }
+                        },
+                        "imports": {}
+                    }
+                }
+            },
+            "node_663c2909-e423-4a1f-b4d6-3286a10ff512*node_00776cb8-8ca4-49e3-b11e-a72538cec68a": {
+                "next_nodes": {
+                    "node_aee4f9f8-4f33-417c-ac2b-4713942f111b*node_663c2909-e423-4a1f-b4d6-3286a10ff512.node_5f6845c2-2d04-4017-b176-ef1da1b6fee3": {
+                        "next_nodes": {
+                            "node_8924ae1b-e583-4437-bb75-e491826fa708": {
+                                "next_nodes": {},
+                                "results": {
+                                    "prev_node_id": "node_aee4f9f8-4f33-417c-ac2b-4713942f111b*node_663c2909-e423-4a1f-b4d6-3286a10ff512.node_5f6845c2-2d04-4017-b176-ef1da1b6fee3",
+                                    "data": {
+                                        "ExtraTreesClassifier": "C:\\Users\\gblai\\Documents\\github\\MEDomics\\WS_DEMO\\EXPERIMENTS\\test\\test\\tmp\\2-ExtraTreesClassifier.png"
+                                    },
+                                    "logs": {},
+                                    "code": {
+                                        "content": {
+                                            "0": {
+                                                "type": "md",
+                                                "content": "### This is Analyze",
+                                                "indent": 0
+                                            },
+                                            "1": {
+                                                "type": "code",
+                                                "content": "for model in trained_models:",
+                                                "indent": 0
+                                            },
+                                            "2": {
+                                                "type": "code",
+                                                "content": "    pycaret_exp.plot_model(model, plot='error', plot_kwargs={})",
+                                                "indent": 1
+                                            }
+                                        },
+                                        "imports": {}
+                                    }
+                                }
+                            }
+                        },
+                        "results": {
+                            "prev_node_id": "node_663c2909-e423-4a1f-b4d6-3286a10ff512*node_00776cb8-8ca4-49e3-b11e-a72538cec68a",
+                            "data": {
+                                "ExtraTreesClassifier": {
+                                    "n_estimators": 100,
+                                    "estimator_params": [
+                                        "criterion",
+                                        "max_depth",
+                                        "min_samples_split",
+                                        "min_samples_leaf",
+                                        "min_weight_fraction_leaf",
+                                        "max_features",
+                                        "max_leaf_nodes",
+                                        "min_impurity_decrease",
+                                        "random_state",
+                                        "ccp_alpha"
+                                    ],
+                                    "base_estimator": "deprecated",
+                                    "bootstrap": false,
+                                    "oob_score": false,
+                                    "n_jobs": -1,
+                                    "random_state": 8275,
+                                    "verbose": 0,
+                                    "warm_start": false,
+                                    "class_weight": null,
+                                    "max_samples": null,
+                                    "criterion": "gini",
+                                    "max_depth": null,
+                                    "min_samples_split": 2,
+                                    "min_samples_leaf": 1,
+                                    "min_weight_fraction_leaf": 0.0,
+                                    "max_features": "sqrt",
+                                    "max_leaf_nodes": null,
+                                    "min_impurity_decrease": 0.0,
+                                    "ccp_alpha": 0.0,
+                                    "feature_names_in_": {
+                                        "0": "subject_id",
+                                        "1": "tslab_|_attr_Platelet_Count__mean_T1",
+                                        "2": "tslab_|_attr_Platelet_Count__minimum_T1"
+                                    },
+                                    "n_features_in_": 3,
+                                    "n_outputs_": 1,
+                                    "classes_": {
+                                        "0": 0,
+                                        "1": 1
+                                    },
+                                    "n_classes_": 2,
+                                    "estimators_": {}
+                                }
+                            },
+                            "logs": {},
+                            "code": {
+                                "content": {
+                                    "0": {
+                                        "type": "md",
+                                        "content": "### This is Group models",
+                                        "indent": 0
+                                    }
+                                },
+                                "imports": {}
+                            }
+                        }
+                    },
+                    "node_a9f62f7f-e342-484a-bea1-491db9839b6d": {
+                        "next_nodes": {
+                            "node_8924ae1b-e583-4437-bb75-e491826fa708": {
+                                "next_nodes": {},
+                                "results": {
+                                    "prev_node_id": "node_a9f62f7f-e342-484a-bea1-491db9839b6d",
+                                    "data": {
+                                        "ExtraTreesClassifier": "C:\\Users\\gblai\\Documents\\github\\MEDomics\\WS_DEMO\\EXPERIMENTS\\test\\test\\tmp\\3-ExtraTreesClassifier.png"
+                                    },
+                                    "logs": {},
+                                    "code": {
+                                        "content": {
+                                            "0": {
+                                                "type": "md",
+                                                "content": "### This is Analyze",
+                                                "indent": 0
+                                            },
+                                            "1": {
+                                                "type": "code",
+                                                "content": "for model in trained_models:",
+                                                "indent": 0
+                                            },
+                                            "2": {
+                                                "type": "code",
+                                                "content": "    pycaret_exp.plot_model(model, plot='error', plot_kwargs={})",
+                                                "indent": 1
+                                            }
+                                        },
+                                        "imports": {}
+                                    }
+                                }
+                            }
+                        },
+                        "results": {
+                            "prev_node_id": "node_663c2909-e423-4a1f-b4d6-3286a10ff512*node_00776cb8-8ca4-49e3-b11e-a72538cec68a",
+                            "data": {
+                                "ExtraTreesClassifier": {
+                                    "n_estimators": 100,
+                                    "estimator_params": [
+                                        "criterion",
+                                        "max_depth",
+                                        "min_samples_split",
+                                        "min_samples_leaf",
+                                        "min_weight_fraction_leaf",
+                                        "max_features",
+                                        "max_leaf_nodes",
+                                        "min_impurity_decrease",
+                                        "random_state",
+                                        "ccp_alpha"
+                                    ],
+                                    "base_estimator": "deprecated",
+                                    "bootstrap": false,
+                                    "oob_score": false,
+                                    "n_jobs": -1,
+                                    "random_state": 8275,
+                                    "verbose": 0,
+                                    "warm_start": false,
+                                    "class_weight": null,
+                                    "max_samples": null,
+                                    "criterion": "gini",
+                                    "max_depth": null,
+                                    "min_samples_split": 2,
+                                    "min_samples_leaf": 1,
+                                    "min_weight_fraction_leaf": 0.0,
+                                    "max_features": "sqrt",
+                                    "max_leaf_nodes": null,
+                                    "min_impurity_decrease": 0.0,
+                                    "ccp_alpha": 0.0,
+                                    "feature_names_in_": {
+                                        "0": "subject_id",
+                                        "1": "tslab_|_attr_Platelet_Count__mean_T1",
+                                        "2": "tslab_|_attr_Platelet_Count__minimum_T1"
+                                    },
+                                    "n_features_in_": 3,
+                                    "n_outputs_": 1,
+                                    "classes_": {
+                                        "0": 0,
+                                        "1": 1
+                                    },
+                                    "n_classes_": 2,
+                                    "estimators_": {}
+                                }
+                            },
+                            "logs": {
+                                "Extra Trees Classifier": {
+                                    "params": {
+                                        "bootstrap": false,
+                                        "ccp_alpha": 0.0,
+                                        "class_weight": null,
+                                        "criterion": "gini",
+                                        "max_depth": null,
+                                        "max_features": "sqrt",
+                                        "max_leaf_nodes": null,
+                                        "max_samples": null,
+                                        "min_impurity_decrease": 0.0,
+                                        "min_samples_leaf": 1,
+                                        "min_samples_split": 2,
+                                        "min_weight_fraction_leaf": 0.0,
+                                        "n_estimators": 100,
+                                        "n_jobs": -1,
+                                        "oob_score": false,
+                                        "random_state": 8275,
+                                        "verbose": 0,
+                                        "warm_start": false
+                                    },
+                                    "metrics": {
+                                        "Accuracy": 0.6121,
+                                        "AUC": 0.6633,
+                                        "Recall": 0.5867,
+                                        "Prec.": 0.6181,
+                                        "F1": 0.5935,
+                                        "Kappa": 0.2208,
+                                        "MCC": 0.2298,
+                                        "TT": 0.12
+                                    }
+                                }
+                            },
+                            "code": {
+                                "content": {
+                                    "0": {
+                                        "type": "md",
+                                        "content": "### This is Tune model",
+                                        "indent": 0
+                                    },
+                                    "1": {
+                                        "type": "code",
+                                        "content": "trained_models_optimized = []",
+                                        "indent": 0
+                                    },
+                                    "2": {
+                                        "type": "code",
+                                        "content": "for model in trained_models:",
+                                        "indent": 0
+                                    },
+                                    "3": {
+                                        "type": "code",
+                                        "content": "    optimized_model = pycaret_exp.tune_model(model, )",
+                                        "indent": 1
+                                    },
+                                    "4": {
+                                        "type": "code",
+                                        "content": "    trained_models_optimized.append(optimized_model)",
+                                        "indent": 1
+                                    },
+                                    "5": {
+                                        "type": "code",
+                                        "content": "trained_models = trained_models_optimized",
+                                        "indent": 0
+                                    }
+                                },
+                                "imports": {}
+                            }
+                        }
+                    },
+                    "node_7055ab95-57fc-4223-8040-997c12e54d7a": {
+                        "next_nodes": {
+                            "node_a1df5f5b-5fe2-4037-ba3c-786b9997a499": {
+                                "next_nodes": {
+                                    "node_8924ae1b-e583-4437-bb75-e491826fa708": {
+                                        "next_nodes": {},
+                                        "results": {
+                                            "prev_node_id": "node_a1df5f5b-5fe2-4037-ba3c-786b9997a499",
+                                            "data": {
+                                                "VotingClassifier": "C:\\Users\\gblai\\Documents\\github\\MEDomics\\WS_DEMO\\EXPERIMENTS\\test\\test\\tmp\\4-VotingClassifier.png"
+                                            },
+                                            "logs": {},
+                                            "code": {
+                                                "content": {
+                                                    "0": {
+                                                        "type": "md",
+                                                        "content": "### This is Analyze",
+                                                        "indent": 0
+                                                    },
+                                                    "1": {
+                                                        "type": "code",
+                                                        "content": "for model in trained_models:",
+                                                        "indent": 0
+                                                    },
+                                                    "2": {
+                                                        "type": "code",
+                                                        "content": "    pycaret_exp.plot_model(model, plot='error', plot_kwargs={})",
+                                                        "indent": 1
+                                                    }
+                                                },
+                                                "imports": {}
+                                            }
+                                        }
+                                    }
+                                },
+                                "results": {
+                                    "prev_node_id": "node_7055ab95-57fc-4223-8040-997c12e54d7a",
+                                    "data": {
+                                        "VotingClassifier": {
+                                            "estimators": {},
+                                            "voting": "soft",
+                                            "weights": null,
+                                            "n_jobs": -1,
+                                            "flatten_transform": true,
+                                            "verbose": false,
+                                            "classes_": {
+                                                "0": 0,
+                                                "1": 1
+                                            },
+                                            "estimators_": {},
+                                            "named_estimators_": {},
+                                            "feature_names_in_": {
+                                                "0": "subject_id",
+                                                "1": "tslab_|_attr_Platelet_Count__mean_T1",
+                                                "2": "tslab_|_attr_Platelet_Count__minimum_T1"
+                                            }
+                                        }
+                                    },
+                                    "logs": {
+                                        "Voting Classifier": {
+                                            "params": {
+                                                "flatten_transform": true,
+                                                "n_jobs": -1,
+                                                "verbose": false,
+                                                "voting": "soft",
+                                                "weights": null,
+                                                "Extra Trees Classifier__bootstrap": false,
+                                                "Extra Trees Classifier__ccp_alpha": 0.0,
+                                                "Extra Trees Classifier__class_weight": null,
+                                                "Extra Trees Classifier__criterion": "gini",
+                                                "Extra Trees Classifier__max_depth": null,
+                                                "Extra Trees Classifier__max_features": "sqrt",
+                                                "Extra Trees Classifier__max_leaf_nodes": null,
+                                                "Extra Trees Classifier__max_samples": null,
+                                                "Extra Trees Classifier__min_impurity_decrease": 0.0,
+                                                "Extra Trees Classifier__min_samples_leaf": 1,
+                                                "Extra Trees Classifier__min_samples_split": 2,
+                                                "Extra Trees Classifier__min_weight_fraction_leaf": 0.0,
+                                                "Extra Trees Classifier__n_estimators": 100,
+                                                "Extra Trees Classifier__n_jobs": -1,
+                                                "Extra Trees Classifier__oob_score": false,
+                                                "Extra Trees Classifier__random_state": 8275,
+                                                "Extra Trees Classifier__verbose": 0,
+                                                "Extra Trees Classifier__warm_start": false
+                                            },
+                                            "metrics": {
+                                                "Accuracy": 0.6136,
+                                                "AUC": 0.6278,
+                                                "Recall": 0.5933,
+                                                "Prec.": 0.631,
+                                                "F1": 0.5872,
+                                                "Kappa": 0.2364,
+                                                "MCC": 0.2605,
+                                                "TT": 0.08
+                                            }
+                                        }
+                                    },
+                                    "code": {
+                                        "content": {
+                                            "0": {
+                                                "type": "md",
+                                                "content": "### This is Tune model",
+                                                "indent": 0
+                                            },
+                                            "1": {
+                                                "type": "code",
+                                                "content": "trained_models_optimized = []",
+                                                "indent": 0
+                                            },
+                                            "2": {
+                                                "type": "code",
+                                                "content": "for model in trained_models:",
+                                                "indent": 0
+                                            },
+                                            "3": {
+                                                "type": "code",
+                                                "content": "    optimized_model = pycaret_exp.tune_model(model, )",
+                                                "indent": 1
+                                            },
+                                            "4": {
+                                                "type": "code",
+                                                "content": "    trained_models_optimized.append(optimized_model)",
+                                                "indent": 1
+                                            },
+                                            "5": {
+                                                "type": "code",
+                                                "content": "trained_models = trained_models_optimized",
+                                                "indent": 0
+                                            }
+                                        },
+                                        "imports": {}
+                                    }
+                                }
+                            }
+                        },
+                        "results": {
+                            "prev_node_id": "node_663c2909-e423-4a1f-b4d6-3286a10ff512*node_00776cb8-8ca4-49e3-b11e-a72538cec68a",
+                            "data": {
+                                "VotingClassifier": {
+                                    "estimators": {},
+                                    "voting": "soft",
+                                    "weights": null,
+                                    "n_jobs": -1,
+                                    "flatten_transform": true,
+                                    "verbose": false,
+                                    "classes_": {
+                                        "0": 0,
+                                        "1": 1
+                                    },
+                                    "estimators_": {},
+                                    "named_estimators_": {},
+                                    "feature_names_in_": {
+                                        "0": "subject_id",
+                                        "1": "tslab_|_attr_Platelet_Count__mean_T1",
+                                        "2": "tslab_|_attr_Platelet_Count__minimum_T1"
+                                    }
+                                }
+                            },
+                            "logs": {
+                                "Voting Classifier": {
+                                    "params": {
+                                        "flatten_transform": true,
+                                        "n_jobs": -1,
+                                        "verbose": false,
+                                        "voting": "soft",
+                                        "weights": null,
+                                        "Extra Trees Classifier__bootstrap": false,
+                                        "Extra Trees Classifier__ccp_alpha": 0.0,
+                                        "Extra Trees Classifier__class_weight": null,
+                                        "Extra Trees Classifier__criterion": "gini",
+                                        "Extra Trees Classifier__max_depth": null,
+                                        "Extra Trees Classifier__max_features": "sqrt",
+                                        "Extra Trees Classifier__max_leaf_nodes": null,
+                                        "Extra Trees Classifier__max_samples": null,
+                                        "Extra Trees Classifier__min_impurity_decrease": 0.0,
+                                        "Extra Trees Classifier__min_samples_leaf": 1,
+                                        "Extra Trees Classifier__min_samples_split": 2,
+                                        "Extra Trees Classifier__min_weight_fraction_leaf": 0.0,
+                                        "Extra Trees Classifier__n_estimators": 100,
+                                        "Extra Trees Classifier__n_jobs": -1,
+                                        "Extra Trees Classifier__oob_score": false,
+                                        "Extra Trees Classifier__random_state": 8275,
+                                        "Extra Trees Classifier__verbose": 0,
+                                        "Extra Trees Classifier__warm_start": false
+                                    },
+                                    "metrics": {
+                                        "Accuracy": 0.6136,
+                                        "AUC": 0.6278,
+                                        "Recall": 0.5933,
+                                        "Prec.": 0.631,
+                                        "F1": 0.5872,
+                                        "Kappa": 0.2364,
+                                        "MCC": 0.2605,
+                                        "TT": 0.08
+                                    }
+                                }
+                            },
+                            "code": {
+                                "content": {
+                                    "0": {
+                                        "type": "md",
+                                        "content": "### This is Blend models",
+                                        "indent": 0
+                                    },
+                                    "1": {
+                                        "type": "code",
+                                        "content": "    optimized_model = pycaret_exp.blend_models(trained_models, )",
+                                        "indent": 1
+                                    },
+                                    "2": {
+                                        "type": "code",
+                                        "content": "trained_models = trained_models_optimized",
+                                        "indent": 0
+                                    }
+                                },
+                                "imports": {}
+                            }
+                        }
+                    }
+                },
+                "results": {
+                    "prev_node_id": "node_7ca364a2-3209-40a8-94c8-5d9da34a5ec4",
+                    "data": {
+                        "ExtraTreesClassifier": {
+                            "n_estimators": 100,
+                            "estimator_params": [
+                                "criterion",
+                                "max_depth",
+                                "min_samples_split",
+                                "min_samples_leaf",
+                                "min_weight_fraction_leaf",
+                                "max_features",
+                                "max_leaf_nodes",
+                                "min_impurity_decrease",
+                                "random_state",
+                                "ccp_alpha"
+                            ],
+                            "base_estimator": "deprecated",
+                            "bootstrap": false,
+                            "oob_score": false,
+                            "n_jobs": -1,
+                            "random_state": 8275,
+                            "verbose": 0,
+                            "warm_start": false,
+                            "class_weight": null,
+                            "max_samples": null,
+                            "criterion": "gini",
+                            "max_depth": null,
+                            "min_samples_split": 2,
+                            "min_samples_leaf": 1,
+                            "min_weight_fraction_leaf": 0.0,
+                            "max_features": "sqrt",
+                            "max_leaf_nodes": null,
+                            "min_impurity_decrease": 0.0,
+                            "ccp_alpha": 0.0,
+                            "feature_names_in_": {
+                                "0": "subject_id",
+                                "1": "tslab_|_attr_Platelet_Count__mean_T1",
+                                "2": "tslab_|_attr_Platelet_Count__minimum_T1"
+                            },
+                            "n_features_in_": 3,
+                            "n_outputs_": 1,
+                            "classes_": {
+                                "0": 0,
+                                "1": 1
+                            },
+                            "n_classes_": 2,
+                            "estimators_": {}
+                        }
+                    },
+                    "logs": {
+                        "Extra Trees Classifier": {
+                            "params": {
+                                "bootstrap": false,
+                                "ccp_alpha": 0.0,
+                                "class_weight": null,
+                                "criterion": "gini",
+                                "max_depth": null,
+                                "max_features": "sqrt",
+                                "max_leaf_nodes": null,
+                                "max_samples": null,
+                                "min_impurity_decrease": 0.0,
+                                "min_samples_leaf": 1,
+                                "min_samples_split": 2,
+                                "min_weight_fraction_leaf": 0.0,
+                                "n_estimators": 100,
+                                "n_jobs": -1,
+                                "oob_score": false,
+                                "random_state": 8275,
+                                "verbose": 0,
+                                "warm_start": false
+                            },
+                            "metrics": {
+                                "Accuracy": 0.6136,
+                                "AUC": 0.6278,
+                                "Recall": 0.5933,
+                                "Prec.": 0.631,
+                                "F1": 0.5872,
+                                "Kappa": 0.2364,
+                                "MCC": 0.2605,
+                                "TT": 0.07
+                            }
+                        }
+                    },
+                    "code": {
+                        "content": {
+                            "0": {
+                                "type": "md",
+                                "content": "### This is Train model 2",
+                                "indent": 0
+                            },
+                            "1": {
+                                "type": "code",
+                                "content": "trained_models = [pycaret_exp.create_model(estimator='et')]",
+                                "indent": 0
+                            }
+                        },
+                        "imports": {}
+                    }
+                }
+            }
+        },
+        "results": {
+            "prev_node_id": null,
+            "data": {
+                "table": "[{\"subject_id\":11300581,\"tslab_|_attr_Platelet_Count__mean_T1\":68.4054031372,\"tslab_|_attr_Platelet_Count__minimum_T1\":41.0,\"target\":1},{\"subject_id\":15506615,\"tslab_|_attr_Platelet_Count__mean_T1\":69.0,\"tslab_|_attr_Platelet_Count__minimum_T1\":65.5,\"target\":1},{\"subject_id\":12872916,\"tslab_|_attr_Platelet_Count__mean_T1\":88.25,\"tslab_|_attr_Platelet_Count__minimum_T1\":79.0,\"target\":1},{\"subject_id\":13625109,\"tslab_|_attr_Platelet_Count__mean_T1\":157.5,\"tslab_|_attr_Platelet_Count__minimum_T1\":148.0,\"target\":1},{\"subject_id\":16508412,\"tslab_|_attr_Platelet_Count__mean_T1\":110.75,\"tslab_|_attr_Platelet_Count__minimum_T1\":103.0,\"target\":1},{\"subject_id\":14497007,\"tslab_|_attr_Platelet_Count__mean_T1\":217.0,\"tslab_|_attr_Platelet_Count__minimum_T1\":187.0,\"target\":0},{\"subject_id\":15259244,\"tslab_|_attr_Platelet_Count__mean_T1\":217.5,\"tslab_|_attr_Platelet_Count__minimum_T1\":155.0,\"target\":1},{\"subject_id\":19970491,\"tslab_|_attr_Platelet_Count__mean_T1\":422.8636474609,\"tslab_|_attr_Platelet_Count__minimum_T1\":334.0,\"target\":0},{\"subject_id\":17349939,\"tslab_|_attr_Platelet_Count__mean_T1\":180.0,\"tslab_|_attr_Platelet_Count__minimum_T1\":180.0,\"target\":0},{\"subject_id\":11181460,\"tslab_|_attr_Platelet_Count__mean_T1\":289.0,\"tslab_|_attr_Platelet_Count__minimum_T1\":275.0,\"target\":0},{\"subject_id\":13282748,\"tslab_|_attr_Platelet_Count__mean_T1\":195.5,\"tslab_|_attr_Platelet_Count__minimum_T1\":164.0,\"target\":1},{\"subject_id\":10624517,\"tslab_|_attr_Platelet_Count__mean_T1\":230.1999969482,\"tslab_|_attr_Platelet_Count__minimum_T1\":182.0,\"target\":0},{\"subject_id\":10386925,\"tslab_|_attr_Platelet_Count__mean_T1\":391.0,\"tslab_|_attr_Platelet_Count__minimum_T1\":300.0,\"target\":1},{\"subject_id\":19523301,\"tslab_|_attr_Platelet_Count__mean_T1\":31.0,\"tslab_|_attr_Platelet_Count__minimum_T1\":26.0,\"target\":1},{\"subject_id\":18968631,\"tslab_|_attr_Platelet_Count__mean_T1\":300.7857055664,\"tslab_|_attr_Platelet_Count__minimum_T1\":209.0,\"target\":0},{\"subject_id\":19398915,\"tslab_|_attr_Platelet_Count__mean_T1\":55.0,\"tslab_|_attr_Platelet_Count__minimum_T1\":52.0,\"target\":0},{\"subject_id\":15239201,\"tslab_|_attr_Platelet_Count__mean_T1\":28.3333339691,\"tslab_|_attr_Platelet_Count__minimum_T1\":27.0,\"target\":1},{\"subject_id\":15606157,\"tslab_|_attr_Platelet_Count__mean_T1\":141.1428527832,\"tslab_|_attr_Platelet_Count__minimum_T1\":136.0,\"target\":0},{\"subject_id\":17037515,\"tslab_|_attr_Platelet_Count__mean_T1\":293.0,\"tslab_|_attr_Platelet_Count__minimum_T1\":272.0,\"target\":1},{\"subject_id\":16289699,\"tslab_|_attr_Platelet_Count__mean_T1\":113.1999969482,\"tslab_|_attr_Platelet_Count__minimum_T1\":103.0,\"target\":1},{\"subject_id\":16939306,\"tslab_|_attr_Platelet_Count__mean_T1\":101.0,\"tslab_|_attr_Platelet_Count__minimum_T1\":101.0,\"target\":1},{\"subject_id\":16609088,\"tslab_|_attr_Platelet_Count__mean_T1\":426.875,\"tslab_|_attr_Platelet_Count__minimum_T1\":344.0,\"target\":1},{\"subject_id\":19125187,\"tslab_|_attr_Platelet_Count__mean_T1\":69.8095245361,\"tslab_|_attr_Platelet_Count__minimum_T1\":47.0,\"target\":1},{\"subject_id\":11533366,\"tslab_|_attr_Platelet_Count__mean_T1\":324.75,\"tslab_|_attr_Platelet_Count__minimum_T1\":314.0,\"target\":0},{\"subject_id\":14677586,\"tslab_|_attr_Platelet_Count__mean_T1\":226.25,\"tslab_|_attr_Platelet_Count__minimum_T1\":110.0,\"target\":1},{\"subject_id\":12463286,\"tslab_|_attr_Platelet_Count__mean_T1\":150.5,\"tslab_|_attr_Platelet_Count__minimum_T1\":145.0,\"target\":0},{\"subject_id\":17914007,\"tslab_|_attr_Platelet_Count__mean_T1\":332.5,\"tslab_|_attr_Platelet_Count__minimum_T1\":212.0,\"target\":1},{\"subject_id\":10407730,\"tslab_|_attr_Platelet_Count__mean_T1\":133.5,\"tslab_|_attr_Platelet_Count__minimum_T1\":127.0,\"target\":0},{\"subject_id\":11012243,\"tslab_|_attr_Platelet_Count__mean_T1\":130.0,\"tslab_|_attr_Platelet_Count__minimum_T1\":130.0,\"target\":1},{\"subject_id\":19596157,\"tslab_|_attr_Platelet_Count__mean_T1\":59.8571434021,\"tslab_|_attr_Platelet_Count__minimum_T1\":49.0,\"target\":1},{\"subject_id\":14117743,\"tslab_|_attr_Platelet_Count__mean_T1\":124.0204086304,\"tslab_|_attr_Platelet_Count__minimum_T1\":17.0,\"target\":0},{\"subject_id\":12629893,\"tslab_|_attr_Platelet_Count__mean_T1\":362.3999938965,\"tslab_|_attr_Platelet_Count__minimum_T1\":297.0,\"target\":0},{\"subject_id\":13120648,\"tslab_|_attr_Platelet_Count__mean_T1\":70.4545440674,\"tslab_|_attr_Platelet_Count__minimum_T1\":19.0,\"target\":1},{\"subject_id\":17517983,\"tslab_|_attr_Platelet_Count__mean_T1\":230.8000030518,\"tslab_|_attr_Platelet_Count__minimum_T1\":215.0,\"target\":0},{\"subject_id\":13473495,\"tslab_|_attr_Platelet_Count__mean_T1\":119.25,\"tslab_|_attr_Platelet_Count__minimum_T1\":111.0,\"target\":1},{\"subject_id\":13648633,\"tslab_|_attr_Platelet_Count__mean_T1\":27.1612911224,\"tslab_|_attr_Platelet_Count__minimum_T1\":14.0,\"target\":1},{\"subject_id\":11388716,\"tslab_|_attr_Platelet_Count__mean_T1\":255.0,\"tslab_|_attr_Platelet_Count__minimum_T1\":206.0,\"target\":0},{\"subject_id\":13559141,\"tslab_|_attr_Platelet_Count__mean_T1\":null,\"tslab_|_attr_Platelet_Count__minimum_T1\":null,\"target\":1},{\"subject_id\":18991843,\"tslab_|_attr_Platelet_Count__mean_T1\":234.8039245605,\"tslab_|_attr_Platelet_Count__minimum_T1\":72.0,\"target\":1},{\"subject_id\":16529186,\"tslab_|_attr_Platelet_Count__mean_T1\":24.5897426605,\"tslab_|_attr_Platelet_Count__minimum_T1\":9.0,\"target\":1},{\"subject_id\":10213338,\"tslab_|_attr_Platelet_Count__mean_T1\":114.0,\"tslab_|_attr_Platelet_Count__minimum_T1\":114.0,\"target\":1},{\"subject_id\":19394614,\"tslab_|_attr_Platelet_Count__mean_T1\":143.0,\"tslab_|_attr_Platelet_Count__minimum_T1\":143.0,\"target\":0},{\"subject_id\":11666315,\"tslab_|_attr_Platelet_Count__mean_T1\":164.3333282471,\"tslab_|_attr_Platelet_Count__minimum_T1\":150.0,\"target\":0},{\"subject_id\":17069955,\"tslab_|_attr_Platelet_Count__mean_T1\":101.4000015259,\"tslab_|_attr_Platelet_Count__minimum_T1\":51.0,\"target\":0},{\"subject_id\":19372257,\"tslab_|_attr_Platelet_Count__mean_T1\":227.0,\"tslab_|_attr_Platelet_Count__minimum_T1\":161.0,\"target\":1},{\"subject_id\":12724735,\"tslab_|_attr_Platelet_Count__mean_T1\":185.0,\"tslab_|_attr_Platelet_Count__minimum_T1\":178.0,\"target\":0},{\"subject_id\":10900387,\"tslab_|_attr_Platelet_Count__mean_T1\":229.6666717529,\"tslab_|_attr_Platelet_Count__minimum_T1\":214.0,\"target\":0},{\"subject_id\":13785557,\"tslab_|_attr_Platelet_Count__mean_T1\":159.3076934814,\"tslab_|_attr_Platelet_Count__minimum_T1\":79.0,\"target\":0},{\"subject_id\":18551287,\"tslab_|_attr_Platelet_Count__mean_T1\":74.2045440674,\"tslab_|_attr_Platelet_Count__minimum_T1\":56.0,\"target\":1},{\"subject_id\":11761571,\"tslab_|_attr_Platelet_Count__mean_T1\":383.0,\"tslab_|_attr_Platelet_Count__minimum_T1\":383.0,\"target\":0},{\"subject_id\":11632236,\"tslab_|_attr_Platelet_Count__mean_T1\":154.5,\"tslab_|_attr_Platelet_Count__minimum_T1\":148.0,\"target\":0},{\"subject_id\":13413453,\"tslab_|_attr_Platelet_Count__mean_T1\":496.6363525391,\"tslab_|_attr_Platelet_Count__minimum_T1\":430.0,\"target\":0},{\"subject_id\":15934572,\"tslab_|_attr_Platelet_Count__mean_T1\":170.0,\"tslab_|_attr_Platelet_Count__minimum_T1\":153.0,\"target\":0},{\"subject_id\":13683698,\"tslab_|_attr_Platelet_Count__mean_T1\":261.8333435059,\"tslab_|_attr_Platelet_Count__minimum_T1\":245.0,\"target\":1},{\"subject_id\":17978114,\"tslab_|_attr_Platelet_Count__mean_T1\":160.2307739258,\"tslab_|_attr_Platelet_Count__minimum_T1\":115.0,\"target\":1},{\"subject_id\":18183841,\"tslab_|_attr_Platelet_Count__mean_T1\":201.7543792725,\"tslab_|_attr_Platelet_Count__minimum_T1\":40.0,\"target\":0},{\"subject_id\":17876390,\"tslab_|_attr_Platelet_Count__mean_T1\":81.0909118652,\"tslab_|_attr_Platelet_Count__minimum_T1\":68.0,\"target\":1},{\"subject_id\":15311382,\"tslab_|_attr_Platelet_Count__mean_T1\":64.5999984741,\"tslab_|_attr_Platelet_Count__minimum_T1\":30.0,\"target\":1},{\"subject_id\":12726753,\"tslab_|_attr_Platelet_Count__mean_T1\":46.5,\"tslab_|_attr_Platelet_Count__minimum_T1\":46.0,\"target\":1},{\"subject_id\":15416087,\"tslab_|_attr_Platelet_Count__mean_T1\":168.0,\"tslab_|_attr_Platelet_Count__minimum_T1\":156.0,\"target\":0},{\"subject_id\":17256511,\"tslab_|_attr_Platelet_Count__mean_T1\":163.4615325928,\"tslab_|_attr_Platelet_Count__minimum_T1\":142.0,\"target\":1},{\"subject_id\":19509298,\"tslab_|_attr_Platelet_Count__mean_T1\":249.6999969482,\"tslab_|_attr_Platelet_Count__minimum_T1\":217.0,\"target\":0},{\"subject_id\":15032392,\"tslab_|_attr_Platelet_Count__mean_T1\":110.8181838989,\"tslab_|_attr_Platelet_Count__minimum_T1\":44.0,\"target\":0},{\"subject_id\":13581129,\"tslab_|_attr_Platelet_Count__mean_T1\":149.0,\"tslab_|_attr_Platelet_Count__minimum_T1\":134.0,\"target\":0},{\"subject_id\":18539425,\"tslab_|_attr_Platelet_Count__mean_T1\":null,\"tslab_|_attr_Platelet_Count__minimum_T1\":null,\"target\":1},{\"subject_id\":16686303,\"tslab_|_attr_Platelet_Count__mean_T1\":271.7666625977,\"tslab_|_attr_Platelet_Count__minimum_T1\":178.0,\"target\":1},{\"subject_id\":17890530,\"tslab_|_attr_Platelet_Count__mean_T1\":411.7142944336,\"tslab_|_attr_Platelet_Count__minimum_T1\":369.0,\"target\":1},{\"subject_id\":11172056,\"tslab_|_attr_Platelet_Count__mean_T1\":152.8571472168,\"tslab_|_attr_Platelet_Count__minimum_T1\":146.0,\"target\":1},{\"subject_id\":16476559,\"tslab_|_attr_Platelet_Count__mean_T1\":173.0,\"tslab_|_attr_Platelet_Count__minimum_T1\":173.0,\"target\":0},{\"subject_id\":15565910,\"tslab_|_attr_Platelet_Count__mean_T1\":156.3333282471,\"tslab_|_attr_Platelet_Count__minimum_T1\":143.0,\"target\":0},{\"subject_id\":17047736,\"tslab_|_attr_Platelet_Count__mean_T1\":280.0,\"tslab_|_attr_Platelet_Count__minimum_T1\":280.0,\"target\":0},{\"subject_id\":15682814,\"tslab_|_attr_Platelet_Count__mean_T1\":183.2105255127,\"tslab_|_attr_Platelet_Count__minimum_T1\":117.0,\"target\":1},{\"subject_id\":17345538,\"tslab_|_attr_Platelet_Count__mean_T1\":213.0,\"tslab_|_attr_Platelet_Count__minimum_T1\":159.0,\"target\":0},{\"subject_id\":11581456,\"tslab_|_attr_Platelet_Count__mean_T1\":37.0,\"tslab_|_attr_Platelet_Count__minimum_T1\":36.0,\"target\":0},{\"subject_id\":19437648,\"tslab_|_attr_Platelet_Count__mean_T1\":127.0,\"tslab_|_attr_Platelet_Count__minimum_T1\":113.0,\"target\":0},{\"subject_id\":17409226,\"tslab_|_attr_Platelet_Count__mean_T1\":193.2142791748,\"tslab_|_attr_Platelet_Count__minimum_T1\":156.0,\"target\":0},{\"subject_id\":16388452,\"tslab_|_attr_Platelet_Count__mean_T1\":null,\"tslab_|_attr_Platelet_Count__minimum_T1\":null,\"target\":1},{\"subject_id\":10992814,\"tslab_|_attr_Platelet_Count__mean_T1\":359.200012207,\"tslab_|_attr_Platelet_Count__minimum_T1\":344.0,\"target\":0},{\"subject_id\":14809981,\"tslab_|_attr_Platelet_Count__mean_T1\":170.75,\"tslab_|_attr_Platelet_Count__minimum_T1\":160.0,\"target\":1},{\"subject_id\":12329981,\"tslab_|_attr_Platelet_Count__mean_T1\":42.0,\"tslab_|_attr_Platelet_Count__minimum_T1\":41.0,\"target\":1},{\"subject_id\":10763729,\"tslab_|_attr_Platelet_Count__mean_T1\":337.4285583496,\"tslab_|_attr_Platelet_Count__minimum_T1\":250.0,\"target\":0},{\"subject_id\":10224976,\"tslab_|_attr_Platelet_Count__mean_T1\":315.0,\"tslab_|_attr_Platelet_Count__minimum_T1\":299.0,\"target\":1},{\"subject_id\":11437346,\"tslab_|_attr_Platelet_Count__mean_T1\":273.8999938965,\"tslab_|_attr_Platelet_Count__minimum_T1\":56.0,\"target\":0},{\"subject_id\":18663142,\"tslab_|_attr_Platelet_Count__mean_T1\":73.3207550049,\"tslab_|_attr_Platelet_Count__minimum_T1\":38.0,\"target\":0},{\"subject_id\":10819468,\"tslab_|_attr_Platelet_Count__mean_T1\":49.3684196472,\"tslab_|_attr_Platelet_Count__minimum_T1\":27.0,\"target\":1},{\"subject_id\":13872997,\"tslab_|_attr_Platelet_Count__mean_T1\":78.5,\"tslab_|_attr_Platelet_Count__minimum_T1\":78.0,\"target\":0},{\"subject_id\":16674342,\"tslab_|_attr_Platelet_Count__mean_T1\":88.3846130371,\"tslab_|_attr_Platelet_Count__minimum_T1\":62.0,\"target\":0},{\"subject_id\":11269805,\"tslab_|_attr_Platelet_Count__mean_T1\":472.5882263184,\"tslab_|_attr_Platelet_Count__minimum_T1\":309.0,\"target\":0},{\"subject_id\":14642114,\"tslab_|_attr_Platelet_Count__mean_T1\":175.0,\"tslab_|_attr_Platelet_Count__minimum_T1\":167.0,\"target\":0},{\"subject_id\":17967161,\"tslab_|_attr_Platelet_Count__mean_T1\":135.1666717529,\"tslab_|_attr_Platelet_Count__minimum_T1\":120.0,\"target\":1},{\"subject_id\":14792425,\"tslab_|_attr_Platelet_Count__mean_T1\":166.6666717529,\"tslab_|_attr_Platelet_Count__minimum_T1\":114.0,\"target\":0},{\"subject_id\":16514153,\"tslab_|_attr_Platelet_Count__mean_T1\":219.2857208252,\"tslab_|_attr_Platelet_Count__minimum_T1\":199.0,\"target\":0},{\"subject_id\":13258755,\"tslab_|_attr_Platelet_Count__mean_T1\":323.8333435059,\"tslab_|_attr_Platelet_Count__minimum_T1\":278.0,\"target\":1},{\"subject_id\":17400716,\"tslab_|_attr_Platelet_Count__mean_T1\":178.9285736084,\"tslab_|_attr_Platelet_Count__minimum_T1\":123.0,\"target\":1},{\"subject_id\":12006266,\"tslab_|_attr_Platelet_Count__mean_T1\":116.8571395874,\"tslab_|_attr_Platelet_Count__minimum_T1\":100.0,\"target\":1},{\"subject_id\":15174548,\"tslab_|_attr_Platelet_Count__mean_T1\":119.0,\"tslab_|_attr_Platelet_Count__minimum_T1\":110.0,\"target\":1},{\"subject_id\":15699938,\"tslab_|_attr_Platelet_Count__mean_T1\":233.1428527832,\"tslab_|_attr_Platelet_Count__minimum_T1\":106.0,\"target\":1},{\"subject_id\":11885477,\"tslab_|_attr_Platelet_Count__mean_T1\":30.625,\"tslab_|_attr_Platelet_Count__minimum_T1\":20.0,\"target\":1},{\"subject_id\":16076182,\"tslab_|_attr_Platelet_Count__mean_T1\":169.5,\"tslab_|_attr_Platelet_Count__minimum_T1\":143.0,\"target\":1},{\"subject_id\":18256572,\"tslab_|_attr_Platelet_Count__mean_T1\":null,\"tslab_|_attr_Platelet_Count__minimum_T1\":null,\"target\":0},{\"subject_id\":19599279,\"tslab_|_attr_Platelet_Count__mean_T1\":172.111114502,\"tslab_|_attr_Platelet_Count__minimum_T1\":155.0,\"target\":1},{\"subject_id\":12637733,\"tslab_|_attr_Platelet_Count__mean_T1\":172.25,\"tslab_|_attr_Platelet_Count__minimum_T1\":92.0,\"target\":1},{\"subject_id\":10564151,\"tslab_|_attr_Platelet_Count__mean_T1\":86.0967712402,\"tslab_|_attr_Platelet_Count__minimum_T1\":13.0,\"target\":1},{\"subject_id\":16283494,\"tslab_|_attr_Platelet_Count__mean_T1\":349.1818237305,\"tslab_|_attr_Platelet_Count__minimum_T1\":222.0,\"target\":0},{\"subject_id\":13294123,\"tslab_|_attr_Platelet_Count__mean_T1\":114.3076934814,\"tslab_|_attr_Platelet_Count__minimum_T1\":90.0,\"target\":0},{\"subject_id\":17390272,\"tslab_|_attr_Platelet_Count__mean_T1\":191.875,\"tslab_|_attr_Platelet_Count__minimum_T1\":88.0,\"target\":0},{\"subject_id\":14045846,\"tslab_|_attr_Platelet_Count__mean_T1\":261.75,\"tslab_|_attr_Platelet_Count__minimum_T1\":52.0,\"target\":0},{\"subject_id\":15862493,\"tslab_|_attr_Platelet_Count__mean_T1\":194.0,\"tslab_|_attr_Platelet_Count__minimum_T1\":158.0,\"target\":0},{\"subject_id\":15211758,\"tslab_|_attr_Platelet_Count__mean_T1\":438.6666564941,\"tslab_|_attr_Platelet_Count__minimum_T1\":371.0,\"target\":0},{\"subject_id\":12384056,\"tslab_|_attr_Platelet_Count__mean_T1\":355.0,\"tslab_|_attr_Platelet_Count__minimum_T1\":353.0,\"target\":0},{\"subject_id\":16055653,\"tslab_|_attr_Platelet_Count__mean_T1\":304.0,\"tslab_|_attr_Platelet_Count__minimum_T1\":277.0,\"target\":1},{\"subject_id\":17517809,\"tslab_|_attr_Platelet_Count__mean_T1\":157.25,\"tslab_|_attr_Platelet_Count__minimum_T1\":127.0,\"target\":0},{\"subject_id\":13777833,\"tslab_|_attr_Platelet_Count__mean_T1\":181.5,\"tslab_|_attr_Platelet_Count__minimum_T1\":171.0,\"target\":1},{\"subject_id\":17105206,\"tslab_|_attr_Platelet_Count__mean_T1\":null,\"tslab_|_attr_Platelet_Count__minimum_T1\":null,\"target\":0},{\"subject_id\":16772702,\"tslab_|_attr_Platelet_Count__mean_T1\":177.0,\"tslab_|_attr_Platelet_Count__minimum_T1\":164.0,\"target\":1},{\"subject_id\":14150037,\"tslab_|_attr_Platelet_Count__mean_T1\":245.0,\"tslab_|_attr_Platelet_Count__minimum_T1\":245.0,\"target\":0},{\"subject_id\":19941474,\"tslab_|_attr_Platelet_Count__mean_T1\":286.1666564941,\"tslab_|_attr_Platelet_Count__minimum_T1\":251.0,\"target\":0},{\"subject_id\":14974683,\"tslab_|_attr_Platelet_Count__mean_T1\":54.8571434021,\"tslab_|_attr_Platelet_Count__minimum_T1\":43.0,\"target\":1},{\"subject_id\":13394703,\"tslab_|_attr_Platelet_Count__mean_T1\":null,\"tslab_|_attr_Platelet_Count__minimum_T1\":null,\"target\":0},{\"subject_id\":19865758,\"tslab_|_attr_Platelet_Count__mean_T1\":349.3999938965,\"tslab_|_attr_Platelet_Count__minimum_T1\":199.0,\"target\":0},{\"subject_id\":19336651,\"tslab_|_attr_Platelet_Count__mean_T1\":172.3333282471,\"tslab_|_attr_Platelet_Count__minimum_T1\":154.0,\"target\":0},{\"subject_id\":12683111,\"tslab_|_attr_Platelet_Count__mean_T1\":349.075012207,\"tslab_|_attr_Platelet_Count__minimum_T1\":71.0,\"target\":1},{\"subject_id\":18031120,\"tslab_|_attr_Platelet_Count__mean_T1\":288.9230651855,\"tslab_|_attr_Platelet_Count__minimum_T1\":212.0,\"target\":0},{\"subject_id\":10386562,\"tslab_|_attr_Platelet_Count__mean_T1\":167.0,\"tslab_|_attr_Platelet_Count__minimum_T1\":158.0,\"target\":0},{\"subject_id\":13870935,\"tslab_|_attr_Platelet_Count__mean_T1\":142.0,\"tslab_|_attr_Platelet_Count__minimum_T1\":131.0,\"target\":1},{\"subject_id\":12911421,\"tslab_|_attr_Platelet_Count__mean_T1\":155.6000061035,\"tslab_|_attr_Platelet_Count__minimum_T1\":109.0,\"target\":0},{\"subject_id\":11941410,\"tslab_|_attr_Platelet_Count__mean_T1\":230.8000030518,\"tslab_|_attr_Platelet_Count__minimum_T1\":168.0,\"target\":0},{\"subject_id\":17339765,\"tslab_|_attr_Platelet_Count__mean_T1\":14.3999996185,\"tslab_|_attr_Platelet_Count__minimum_T1\":11.0,\"target\":1},{\"subject_id\":15672432,\"tslab_|_attr_Platelet_Count__mean_T1\":148.0,\"tslab_|_attr_Platelet_Count__minimum_T1\":148.0,\"target\":0},{\"subject_id\":18148694,\"tslab_|_attr_Platelet_Count__mean_T1\":210.1851806641,\"tslab_|_attr_Platelet_Count__minimum_T1\":156.0,\"target\":0},{\"subject_id\":10258162,\"tslab_|_attr_Platelet_Count__mean_T1\":149.1578979492,\"tslab_|_attr_Platelet_Count__minimum_T1\":49.0,\"target\":1},{\"subject_id\":13273685,\"tslab_|_attr_Platelet_Count__mean_T1\":357.6666564941,\"tslab_|_attr_Platelet_Count__minimum_T1\":281.0,\"target\":0},{\"subject_id\":18013971,\"tslab_|_attr_Platelet_Count__mean_T1\":85.5999984741,\"tslab_|_attr_Platelet_Count__minimum_T1\":74.0,\"target\":0},{\"subject_id\":15378103,\"tslab_|_attr_Platelet_Count__mean_T1\":223.0,\"tslab_|_attr_Platelet_Count__minimum_T1\":194.0,\"target\":1},{\"subject_id\":17504528,\"tslab_|_attr_Platelet_Count__mean_T1\":220.3000030518,\"tslab_|_attr_Platelet_Count__minimum_T1\":84.0,\"target\":0},{\"subject_id\":16024297,\"tslab_|_attr_Platelet_Count__mean_T1\":111.555557251,\"tslab_|_attr_Platelet_Count__minimum_T1\":81.0,\"target\":0},{\"subject_id\":18376342,\"tslab_|_attr_Platelet_Count__mean_T1\":110.25,\"tslab_|_attr_Platelet_Count__minimum_T1\":106.0,\"target\":1},{\"subject_id\":14342692,\"tslab_|_attr_Platelet_Count__mean_T1\":null,\"tslab_|_attr_Platelet_Count__minimum_T1\":null,\"target\":0},{\"subject_id\":11619087,\"tslab_|_attr_Platelet_Count__mean_T1\":239.375,\"tslab_|_attr_Platelet_Count__minimum_T1\":179.0,\"target\":0},{\"subject_id\":15245319,\"tslab_|_attr_Platelet_Count__mean_T1\":263.3999938965,\"tslab_|_attr_Platelet_Count__minimum_T1\":235.0,\"target\":1},{\"subject_id\":19590098,\"tslab_|_attr_Platelet_Count__mean_T1\":130.8571472168,\"tslab_|_attr_Platelet_Count__minimum_T1\":104.0,\"target\":1},{\"subject_id\":18995174,\"tslab_|_attr_Platelet_Count__mean_T1\":230.0909118652,\"tslab_|_attr_Platelet_Count__minimum_T1\":212.0,\"target\":1},{\"subject_id\":10364180,\"tslab_|_attr_Platelet_Count__mean_T1\":590.5882568359,\"tslab_|_attr_Platelet_Count__minimum_T1\":474.0,\"target\":1},{\"subject_id\":13235049,\"tslab_|_attr_Platelet_Count__mean_T1\":60.75,\"tslab_|_attr_Platelet_Count__minimum_T1\":55.0,\"target\":1},{\"subject_id\":10337761,\"tslab_|_attr_Platelet_Count__mean_T1\":178.3999938965,\"tslab_|_attr_Platelet_Count__minimum_T1\":128.0,\"target\":1},{\"subject_id\":19695954,\"tslab_|_attr_Platelet_Count__mean_T1\":163.5,\"tslab_|_attr_Platelet_Count__minimum_T1\":160.0,\"target\":0},{\"subject_id\":14634306,\"tslab_|_attr_Platelet_Count__mean_T1\":311.5,\"tslab_|_attr_Platelet_Count__minimum_T1\":296.0,\"target\":0},{\"subject_id\":13263843,\"tslab_|_attr_Platelet_Count__mean_T1\":209.0,\"tslab_|_attr_Platelet_Count__minimum_T1\":209.0,\"target\":0},{\"subject_id\":14398566,\"tslab_|_attr_Platelet_Count__mean_T1\":98.625,\"tslab_|_attr_Platelet_Count__minimum_T1\":74.0,\"target\":0},{\"subject_id\":11262894,\"tslab_|_attr_Platelet_Count__mean_T1\":263.3999938965,\"tslab_|_attr_Platelet_Count__minimum_T1\":244.0,\"target\":1},{\"subject_id\":12227507,\"tslab_|_attr_Platelet_Count__mean_T1\":211.6000061035,\"tslab_|_attr_Platelet_Count__minimum_T1\":188.0,\"target\":1},{\"subject_id\":14021217,\"tslab_|_attr_Platelet_Count__mean_T1\":88.0,\"tslab_|_attr_Platelet_Count__minimum_T1\":82.0,\"target\":1},{\"subject_id\":14496767,\"tslab_|_attr_Platelet_Count__mean_T1\":347.6666564941,\"tslab_|_attr_Platelet_Count__minimum_T1\":320.0,\"target\":1},{\"subject_id\":14451001,\"tslab_|_attr_Platelet_Count__mean_T1\":245.0,\"tslab_|_attr_Platelet_Count__minimum_T1\":221.0,\"target\":1},{\"subject_id\":14950396,\"tslab_|_attr_Platelet_Count__mean_T1\":263.5,\"tslab_|_attr_Platelet_Count__minimum_T1\":248.0,\"target\":1},{\"subject_id\":14219343,\"tslab_|_attr_Platelet_Count__mean_T1\":91.8000030518,\"tslab_|_attr_Platelet_Count__minimum_T1\":73.0,\"target\":0},{\"subject_id\":11900721,\"tslab_|_attr_Platelet_Count__mean_T1\":null,\"tslab_|_attr_Platelet_Count__minimum_T1\":null,\"target\":1},{\"subject_id\":15263884,\"tslab_|_attr_Platelet_Count__mean_T1\":522.0908813477,\"tslab_|_attr_Platelet_Count__minimum_T1\":452.0,\"target\":1},{\"subject_id\":17460568,\"tslab_|_attr_Platelet_Count__mean_T1\":31.5,\"tslab_|_attr_Platelet_Count__minimum_T1\":23.0,\"target\":1}]",
+                "paths": {
+                    "0": {
+                        "0": {
+                            "name": "T1_learning.csv",
+                            "path": "C:\\Users\\gblai\\Documents\\github\\MEDomics\\WS_DEMO\\DATA\\learning\\T1_learning.csv",
+                            "tags": {
+                                "0": "tslab",
+                                "1": "nradiology",
+                                "2": "image",
+                                "3": "demographic",
+                                "4": "tschart",
+                                "5": "tsprocedure"
+                            },
+                            "columnsTags": {
+                                "attr_Platelet_Count__mean": {
+                                    "0": "tslab"
+                                },
+                                "attr_Platelet_Count__minimum": {
+                                    "0": "tslab"
+                                },
+                                "attr_Platelet_Count__root_mean_square": {
+                                    "0": "tslab"
+                                },
+                                "attr_Platelet_Count__median": {
+                                    "0": "tslab"
+                                },
+                                "attr_Platelet_Count__absolute_maximum": {
+                                    "0": "tslab"
+                                },
+                                "attr_Platelet_Count__maximum": {
+                                    "0": "tslab"
+                                },
+                                "attr_MCHC__absolute_maximum": {
+                                    "0": "tslab"
+                                },
+                                "attr_MCHC__maximum": {
+                                    "0": "tslab"
+                                },
+                                "attr_MCH__maximum": {
+                                    "0": "tslab"
+                                },
+                                "attr_MCH__absolute_maximum": {
+                                    "0": "tslab"
+                                },
+                                "attr0": {
+                                    "0": "nradiology"
+                                },
+                                "attr1": {
+                                    "0": "nradiology"
+                                },
+                                "attr2": {
+                                    "0": "nradiology"
+                                },
+                                "attr3": {
+                                    "0": "nradiology"
+                                },
+                                "attr4": {
+                                    "0": "nradiology"
+                                },
+                                "attr5": {
+                                    "0": "nradiology"
+                                },
+                                "attr6": {
+                                    "0": "nradiology"
+                                },
+                                "attr7": {
+                                    "0": "nradiology"
+                                },
+                                "attr8": {
+                                    "0": "nradiology"
+                                },
+                                "attr9": {
+                                    "0": "nradiology"
+                                },
+                                "attr0_(1)": {
+                                    "0": "image"
+                                },
+                                "attr1_(1)": {
+                                    "0": "image"
+                                },
+                                "attr2_(1)": {
+                                    "0": "image"
+                                },
+                                "attr3_(1)": {
+                                    "0": "image"
+                                },
+                                "attr4_(1)": {
+                                    "0": "image"
+                                },
+                                "attr5_(1)": {
+                                    "0": "image"
+                                },
+                                "attr6_(1)": {
+                                    "0": "image"
+                                },
+                                "attr7_(1)": {
+                                    "0": "image"
+                                },
+                                "attr8_(1)": {
+                                    "0": "image"
+                                },
+                                "attr9_(1)": {
+                                    "0": "image"
+                                },
+                                "anchor_age": {
+                                    "0": "demographic"
+                                },
+                                "gender_int": {
+                                    "0": "demographic"
+                                },
+                                "ethnicity_int": {
+                                    "0": "demographic"
+                                },
+                                "marital_status_int": {
+                                    "0": "demographic"
+                                },
+                                "language_int": {
+                                    "0": "demographic"
+                                },
+                                "insurance_int": {
+                                    "0": "demographic"
+                                },
+                                "attr_GCS_Eye_Opening__median": {
+                                    "0": "tschart"
+                                },
+                                "attr_GCS_Verbal_Response__median": {
+                                    "0": "tschart"
+                                },
+                                "attr_GCS_Motor_Response__median": {
+                                    "0": "tschart"
+                                },
+                                "attr_GCS_Motor_Response__mean": {
+                                    "0": "tschart"
+                                },
+                                "attr_GCS_Motor_Response__root_mean_square": {
+                                    "0": "tschart"
+                                },
+                                "attr_Heart_Rate__root_mean_square": {
+                                    "0": "tschart"
+                                },
+                                "attr_Heart_Rate__mean": {
+                                    "0": "tschart"
+                                },
+                                "attr_GCS_Motor_Response__minimum": {
+                                    "0": "tschart"
+                                },
+                                "attr_GCS_Eye_Opening__root_mean_square": {
+                                    "0": "tschart"
+                                },
+                                "attr_GCS_Eye_Opening__maximum": {
+                                    "0": "tschart"
+                                },
+                                "attr_EEG__sum_values": {
+                                    "0": "tsprocedure"
+                                },
+                                "attr_Dialysis_CRRT__absolute_maximum": {
+                                    "0": "tsprocedure"
+                                },
+                                "attr_Dialysis_CRRT__maximum": {
+                                    "0": "tsprocedure"
+                                },
+                                "attr_Dialysis_CRRT__median": {
+                                    "0": "tsprocedure"
+                                },
+                                "attr_Peritoneal_Dialysis__minimum": {
+                                    "0": "tsprocedure"
+                                },
+                                "attr_Dialysis_CRRT__root_mean_square": {
+                                    "0": "tsprocedure"
+                                },
+                                "attr_Dialysis_CRRT__mean": {
+                                    "0": "tsprocedure"
+                                },
+                                "attr_Peritoneal_Dialysis__length": {
+                                    "0": "tsprocedure"
+                                },
+                                "attr_Chest_Tube_Removed__length": {
+                                    "0": "tsprocedure"
+                                },
+                                "attr_Chest_Tube_Removed__sum_values": {
+                                    "0": "tsprocedure"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "code": {
+                "content": {
+                    "0": {
+                        "type": "md",
+                        "content": "### This is Dataset",
+                        "indent": 0
+                    },
+                    "1": {
+                        "type": "code",
+                        "content": "df_path_list = ['C:\\\\Users\\\\gblai\\\\Documents\\\\github\\\\MEDomics\\\\WS_DEMO\\\\DATA\\\\learning\\\\T1_learning.csv']",
+                        "indent": 0
+                    },
+                    "2": {
+                        "type": "code",
+                        "content": "df_name_list = ['T1_learning.csv']",
+                        "indent": 0
+                    },
+                    "3": {
+                        "type": "code",
+                        "content": "df_dict = {} # dict containing time points to their associated files",
+                        "indent": 0
+                    },
+                    "4": {
+                        "type": "code",
+                        "content": "for i, name in enumerate(df_name_list): # if the filename not contains T+number we don't keep it, else we associate it to his time point number",
+                        "indent": 0
+                    },
+                    "5": {
+                        "type": "code",
+                        "content": "    number = ''",
+                        "indent": 1
+                    },
+                    "6": {
+                        "type": "code",
+                        "content": "    T_in_name = False",
+                        "indent": 1
+                    },
+                    "7": {
+                        "type": "code",
+                        "content": "    for char in name:",
+                        "indent": 1
+                    },
+                    "8": {
+                        "type": "code",
+                        "content": "        if char == 'T':",
+                        "indent": 2
+                    },
+                    "9": {
+                        "type": "code",
+                        "content": "            T_in_name=True",
+                        "indent": 3
+                    },
+                    "10": {
+                        "type": "code",
+                        "content": "        elif T_in_name and char.isdigit():",
+                        "indent": 2
+                    },
+                    "11": {
+                        "type": "code",
+                        "content": "            number += char",
+                        "indent": 3
+                    },
+                    "12": {
+                        "type": "code",
+                        "content": "        elif T_in_name:",
+                        "indent": 2
+                    },
+                    "13": {
+                        "type": "code",
+                        "content": "            break",
+                        "indent": 3
+                    },
+                    "14": {
+                        "type": "code",
+                        "content": "    if len(number) > 0:",
+                        "indent": 1
+                    },
+                    "15": {
+                        "type": "code",
+                        "content": "        df_dict['_T' + number] = pd.read_csv(df_path_list[i], sep=',', encoding='utf-8')",
+                        "indent": 2
+                    },
+                    "16": {
+                        "type": "code",
+                        "content": "first_col = 'subject_id'",
+                        "indent": 0
+                    },
+                    "17": {
+                        "type": "code",
+                        "content": "target = 'target'",
+                        "indent": 0
+                    },
+                    "18": {
+                        "type": "code",
+                        "content": "# for each dataframe, add a suffix to their columns",
+                        "indent": 0
+                    },
+                    "19": {
+                        "type": "code",
+                        "content": "for key in df_dict:",
+                        "indent": 0
+                    },
+                    "20": {
+                        "type": "code",
+                        "content": "    df_dict[key].columns = [f'{col}{key}' if col != target and col != first_col else col for col in df_dict[key].columns]",
+                        "indent": 1
+                    },
+                    "21": {
+                        "type": "code",
+                        "content": "sorted_keys = sorted(df_dict.keys(), key=lambda x: int(x.split('_T')[1]))",
+                        "indent": 0
+                    },
+                    "22": {
+                        "type": "code",
+                        "content": "df_list = [df_dict[key] for key in sorted_keys]",
+                        "indent": 0
+                    },
+                    "23": {
+                        "type": "seperator",
+                        "content": "---------------------",
+                        "indent": 0
+                    },
+                    "24": {
+                        "type": "code",
+                        "content": "# merge the dataframes on the first column and the target",
+                        "indent": 0
+                    },
+                    "25": {
+                        "type": "code",
+                        "content": "df_merged = df_list[0]",
+                        "indent": 0
+                    },
+                    "26": {
+                        "type": "code",
+                        "content": "for i in range(len(df_list) - 1):",
+                        "indent": 0
+                    },
+                    "27": {
+                        "type": "code",
+                        "content": "    df_merged = df_merged.merge(df_list[i + 1], on=[first_col, target], how='outer')",
+                        "indent": 1
+                    },
+                    "28": {
+                        "type": "seperator",
+                        "content": "---------------------",
+                        "indent": 0
+                    },
+                    "29": {
+                        "type": "code",
+                        "content": "# Drop all columns not containing tags from tags list and columns (variables) from vars list",
+                        "indent": 0
+                    },
+                    "30": {
+                        "type": "code",
+                        "content": "tags_list = ['tslab']",
+                        "indent": 0
+                    },
+                    "31": {
+                        "type": "code",
+                        "content": "vars_list = ['attr_Platelet_Count__mean_T1', 'attr_Platelet_Count__minimum_T1']",
+                        "indent": 0
+                    },
+                    "32": {
+                        "type": "code",
+                        "content": "cols_2_keep = [first_col, target]",
+                        "indent": 0
+                    },
+                    "33": {
+                        "type": "code",
+                        "content": "for col in df_merged.columns:",
+                        "indent": 0
+                    },
+                    "34": {
+                        "type": "code",
+                        "content": "    if col in cols_2_keep:",
+                        "indent": 1
+                    },
+                    "35": {
+                        "type": "code",
+                        "content": "        continue",
+                        "indent": 2
+                    },
+                    "36": {
+                        "type": "code",
+                        "content": "    col_name = col.split('_|_')[1]",
+                        "indent": 1
+                    },
+                    "37": {
+                        "type": "code",
+                        "content": "    if col_name in vars_list:",
+                        "indent": 1
+                    },
+                    "38": {
+                        "type": "code",
+                        "content": "        cols_2_keep.append(col)",
+                        "indent": 2
+                    },
+                    "39": {
+                        "type": "code",
+                        "content": "df = df_merged[cols_2_keep]",
+                        "indent": 0
+                    },
+                    "40": {
+                        "type": "seperator",
+                        "content": "---------------------",
+                        "indent": 0
+                    },
+                    "41": {
+                        "type": "code",
+                        "content": "pycaret_exp = ClassificationExperiment()",
+                        "indent": 0
+                    },
+                    "42": {
+                        "type": "code",
+                        "content": "temp_df = df[df['target'].notna()]",
+                        "indent": 0
+                    },
+                    "43": {
+                        "type": "code",
+                        "content": "temp_df.dropna(how='all', axis=1, inplace=True)",
+                        "indent": 0
+                    },
+                    "44": {
+                        "type": "code",
+                        "content": "pycaret_exp.setup(temp_df, target='target')",
+                        "indent": 0
+                    },
+                    "45": {
+                        "type": "code",
+                        "content": "dataset = pycaret_exp.get_config('X').join(pycaret_exp.get_config('y'))",
+                        "indent": 0
+                    }
+                },
+                "imports": {
+                    "0": {
+                        "type": "code",
+                        "content": "import numpy as np",
+                        "indent": 0
+                    },
+                    "1": {
+                        "type": "code",
+                        "content": "import pandas as pd",
+                        "indent": 0
+                    },
+                    "2": {
+                        "type": "code",
+                        "content": "from pycaret.classification import *",
+                        "indent": 0
+                    }
+                }
+            },
+            "logs": {
+                "setup": {
+                    "params": {
+                        "Session id": 8275,
+                        "Target": "target",
+                        "Target type": "Binary",
+                        "Original data shape": [
+                            159,
+                            4
+                        ],
+                        "Transformed data shape": [
+                            159,
+                            4
+                        ],
+                        "Transformed train set shape": [
+                            111,
+                            4
+                        ],
+                        "Transformed test set shape": [
+                            48,
+                            4
+                        ],
+                        "Numeric features": 3,
+                        "Rows with missing values": "5.0%",
+                        "Preprocess": true,
+                        "Imputation type": "simple",
+                        "Numeric imputation": "mean",
+                        "Categorical imputation": "mode",
+                        "Fold Generator": "StratifiedKFold",
+                        "Fold Number": 10,
+                        "CPU Jobs": -1,
+                        "Use GPU": false,
+                        "Experiment Name": "clf-default-name",
+                        "USI": "73dd"
+                    }
+                }
+            }
+        }
+    }
+}
