@@ -1,7 +1,6 @@
 import React, { useState, useCallback, useMemo, useEffect, useContext } from "react"
 import { toast } from "react-toastify"
 import { useNodesState, useEdgesState, useReactFlow, addEdge } from "reactflow"
-import WorkflowBase from "../flow/workflowBase"
 import { loadJsonSync } from "../../utilities/fileManagementUtils"
 import { requestBackend } from "../../utilities/requests"
 import BtnDiv from "../flow/btnDiv"
@@ -43,6 +42,7 @@ import { Button } from "primereact/button"
 import RunPipelineModal from "./runPipelineModal"
 import FlConfigModal from "./flConfigModal"
 import DBCOnfigFileModal from "./dbCOnfigFileModal.jsx"
+import FlWorflowBase from "./flWorkflowBase.jsx"
 
 const staticNodesParams = nodesParams // represents static nodes parameters
 
@@ -651,7 +651,7 @@ const MedflWorkflow = ({ setWorkflowType, workflowType }) => {
           setIsUpdating(false) // Set the isUpdating to false
           console.log("jsonResponse", jsonResponse)
           toast.success(jsonResponse["stringFromBackend"])
-          updateFlowResults(jsonResponse["data"])
+          updateFlowResults(jsonResponse)
           setRunModal(false)
           setTimeout(() => {
             setIsProgressUpdating(false)
@@ -737,7 +737,7 @@ const MedflWorkflow = ({ setWorkflowType, workflowType }) => {
           runFlPipeline(flConfig, flConfigFile?.path)
         }}
       />
-      <WorkflowBase
+      <FlWorflowBase
         // mandatory props
         mandatoryProps={{
           reactFlowInstance: reactFlowInstance,

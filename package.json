@@ -103,6 +103,7 @@
     "react-bootstrap-icons": "^1.10.3",
     "react-bootstrap-sidebar-menu": "^2.0.3",
     "react-complex-tree": "^2.2.2",
+    "react-confusion-matrix": "^1.1.8",
     "react-contexify": "^6.0.0",
     "react-csv-reader": "^4.0.0",
     "react-dropzone": "^14.2.3",
