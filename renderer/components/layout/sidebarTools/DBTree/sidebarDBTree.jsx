@@ -14,8 +14,6 @@ const SidebarDBTree = () => {
     }
   }, [DBData, DB]);
 
-
-
   const mapDBDataToNodes = (data) => {
     return data.map(item => ({
       key: item.key,
@@ -26,7 +24,6 @@ const SidebarDBTree = () => {
   };
 
   const handleNodeSelect = (event) => {
-    console.log("Event:", event);
     ipcRenderer.send('get-collection-data', DB.name, event);
   };
 
