@@ -65,7 +65,7 @@ class Optimize(Node):
         self.CodeHandler.add_line(
             "code", f"trained_models = trained_models_optimized")
         trained_models_copy = trained_models.copy()
-        self._info_for_next_node = {'models': trained_models}
+        self._info_for_next_node = {'models': trained_models, 'id': self.id}
         for model in trained_models_copy:
             model_copy = copy.deepcopy(model)
             trained_models_json[model_copy.__class__.__name__] = model_copy.__dict__

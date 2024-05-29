@@ -92,7 +92,7 @@ class ModelIO(Node):
                     **settings_copy)
                 self.CodeHandler.add_line(
                     "code", f"pycaret_exp.load_model({self.CodeHandler.convert_dict_to_params(settings_copy)})")
-                self._info_for_next_node = {'models': [trained_model]}
+                self._info_for_next_node = {'models': [trained_model], 'id': self.id}
                 print('trained_model:', trained_model)
 
             self.CustZipFileModel.read_in_zip(

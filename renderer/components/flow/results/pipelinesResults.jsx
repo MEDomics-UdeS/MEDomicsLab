@@ -26,6 +26,9 @@ import Path from "path"
  */
 const checkIfObjectContainsId = (obj, id) => {
   let res = false
+  if (!obj) {
+    return res
+  }
   Object.keys(obj).forEach((key) => {
     if (key.includes(id)) {
       res = obj[key]
@@ -267,7 +270,12 @@ const PipelinesResults = ({ pipelines, selectionMode, flowContent }) => {
           }
         }
         // HEADER
-        addMarkdown(["## Notebook automatically generated\n\n", "**Scene:** " + sceneName + "\n\n", "**Pipeline:** " + pipeline.map((id) => getName(id)).join(" ➡️ ") + "\n\n", "**Date:** " + new Date().toLocaleString() + "\n\n"])
+        addMarkdown([
+          "## Notebook automatically generated\n\n",
+          "**Scene:** " + sceneName + "\n\n",
+          "**Pipeline:** " + pipeline.map((id) => getName(id)).join(" ➡️ ") + "\n\n",
+          "**Date:** " + new Date().toLocaleString() + "\n\n"
+        ])
         // IMPORTS
         addCode(imports.map((imp) => imp.content + newLineChar))
         // CODE
@@ -342,11 +350,26 @@ const PipelinesResults = ({ pipelines, selectionMode, flowContent }) => {
 
   return (
     <Accordion multiple activeIndex={accordionActiveIndex} onTabChange={(e) => setAccordionActiveIndex(e.index)} className="pipeline-results-accordion">
-      {pipelines.map((pipeline, index) => (
-        <AccordionTab disabled={!isResults} key={index} header={createTitleFromPipe(pipeline)}>
-          <PipelineResult key={index} pipeline={pipeline} selectionMode={selectionMode} flowContent={flowContent} />
-        </AccordionTab>
-      ))}
+      {pipelines.map((pipeline, index) => {
+        let curNode = deepCopy(flowResults)
+        let isValid = true
+        pipeline.map((id) => {
+          let nodeResults = checkIfObjectContainsId(curNode, id)
+          if (nodeResults) {
+            curNode = nodeResults.next_nodes
+            if (nodeResults.results && nodeResults.results.data && "prev_node_complete" in nodeResults.results.data) {
+              isValid = nodeResults.results.data.prev_node_complete
+            }
+          }
+        })
+        if (isValid) {
+          return (
+            <AccordionTab disabled={!isResults} key={index} header={createTitleFromPipe(pipeline)}>
+              <PipelineResult key={index} pipeline={pipeline} selectionMode={selectionMode} flowContent={flowContent} />
+            </AccordionTab>
+          )
+        }
+      })}
     </Accordion>
   )
 }

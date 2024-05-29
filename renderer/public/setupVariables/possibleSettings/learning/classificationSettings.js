@@ -730,6 +730,10 @@ const classificationSettings = {
             }
         }
     },
+    "group_models": {
+        "options": {},
+        "code": ""
+    },
     "tune_model": {
         "options": {
             "fold": {
