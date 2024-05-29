@@ -183,6 +183,10 @@ function App() {
       }
     })
 
+
+    /**
+     * IMPORTANT - Related to the MongoDB
+     */
     ipcRenderer.on("DBSet", (event, data) => {
       if (DBObject !== data) {
         let DB = { ...data }
@@ -194,9 +198,14 @@ function App() {
       let treeCollections = collections.map((item) => ({
         key: item,
         label: item,
-        icon: "pi pi-folder"
+        icon: "pi pi-folder",
       }))
       setDBData(treeCollections)
+    })
+
+    ipcRenderer.on("collection-data", (event, data) => {
+        console.log("collection-data", data)
+      // TODO: Handle the collection data
     })
 
     ipcRenderer.on("updateDirectory", (event, data) => {
