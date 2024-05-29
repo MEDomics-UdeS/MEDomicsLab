@@ -7,11 +7,6 @@ const SidebarDBTree = () => {
   const { DB, DBData } = useContext(MongoDBContext);
   const [treeData, setTreeData] = useState([]);
   const [selectedKey, setSelectedKey] = useState('');
-  const [DBObject, setDBObject] = useState({
-    name: "",
-    hasBeenSet: false,
-    workingDirectory: ""
-  })
 
   useEffect(() => {
     if (DBData) {
