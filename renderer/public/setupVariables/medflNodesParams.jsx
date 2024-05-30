@@ -92,18 +92,18 @@ const nodesParams = {
     img: "pipeline.png",
     title: "FL Pipeline",
     possibleSettings: {}
-  },
-  results: {
-    type: "flResultsNode",
-    classes: "object dataset ",
-    nbInput: 1,
-    nbOutput: 0,
-    input: ["fl_pipeline"],
-    output: [""],
-    img: "results.png",
-    title: "Results",
-    possibleSettings: {}
   }
+  // results: {
+  //   type: "flResultsNode",
+  //   classes: "object dataset ",
+  //   nbInput: 1,
+  //   nbOutput: 0,
+  //   input: ["fl_pipeline"],
+  //   output: [""],
+  //   img: "results.png",
+  //   title: "Results",
+  //   possibleSettings: {}
+  // }
 }
 
 export default nodesParams

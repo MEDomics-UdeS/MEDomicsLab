@@ -3,7 +3,6 @@ import React, { useContext, useEffect, useState } from "react"
 import { Button, Card } from "react-bootstrap"
 import * as Icon from "react-bootstrap-icons"
 import { FlowResultsContext } from "../flow/context/flowResultsContext"
-import { ConfusionMatrix } from "react-confusion-matrix"
 import FlInput from "./flInput"
 import { DataTable } from "primereact/datatable"
 import { Column } from "@blueprintjs/table"
@@ -30,31 +29,13 @@ export default function FlResultsPane() {
   const [selectedNode, setNode] = useState("Client 1")
 
   // context
-  const { isResults, flowResults } = useContext(FlowResultsContext) // used to update the flow infos
+  const { flowResults, setShowResultsPane } = useContext(FlowResultsContext) // used to update the flow infos
 
-  let res = {
-    data: {
-      results: [0.5599962207105064, 0.5599962207105064, 0.5599962207105064, 0.5599962207105064],
-      test_results: [
-        {
-          node_name: "Client 1",
-          classification_report:
-            "{'confusion matrix': {'TP': 17, 'FP': 7, 'FN': 161, 'TN': 890}, 'Accuracy': 0.844, 'Sensitivity/Recall': 0.096, 'Specificity': 0.992, 'PPV/Precision': 0.708, 'NPV': 0.847, 'F1-score': 0.168, 'False positive rate': 0.008, 'True positive rate': 0.096, 'auc': 0.5479313066025328}"
-        },
-        {
-          node_name: "Client 2",
-          classification_report:
-            "{'confusion matrix': {'TP': 13, 'FP': 3, 'FN': 167, 'TN': 892}, 'Accuracy': 0.842, 'Sensitivity/Recall': 0.072, 'Specificity': 0.997, 'PPV/Precision': 0.812, 'NPV': 0.842, 'F1-score': 0.133, 'False positive rate': 0.003, 'True positive rate': 0.072, 'auc': 0.5467349472377405}"
-        },
-        {
-          node_name: "Client 3",
-          classification_report:
-            "{'confusion matrix': {'TP': 68, 'FP': 28, 'FN': 859, 'TN': 4416}, 'Accuracy': 0.835, 'Sensitivity/Recall': 0.073, 'Specificity': 0.994, 'PPV/Precision': 0.708, 'NPV': 0.837, 'F1-score': 0.133, 'False positive rate': 0.006, 'True positive rate': 0.073, 'auc': 0.5393507797381679}"
-        }
-      ]
-    },
-    stringFromBackend: "The configuration is set up"
-  }
+  console.log("this is the flow results", flowResults)
+  let res = flowResults
+
+  const handleClose = () => setShowResultsPane(false)
+
   const getGlobalresults = () => {
     let results = res["data"]["test_results"]
 
@@ -167,15 +148,44 @@ export default function FlResultsPane() {
   }
 
   useEffect(() => {
-    if (resultsType == "Global results") {
-      setglobalflresults(getGlobalresults())
-    } else {
-      if (resultsType == "By node") {
-        setnodeflresults(getNodeResults(selectedNode))
+    if (res["data"]) {
+      if (resultsType == "Global results") {
+        setglobalflresults(getGlobalresults())
+      } else {
+        if (resultsType == "By node") {
+          setnodeflresults(getNodeResults(selectedNode))
+        }
       }
     }
   }, [resultsType, activeConfig, selectedNode])
 
+  if (!res["data"])
+    return (
+      <Card>
+        <Card.Header>
+          <div className="flex justify-content-center">
+            <div className="gap-3 results-header">
+              <div className="flex align-items-center">
+                <h5>FL Pipeline results</h5>
+              </div>
+            </div>
+          </div>
+          <Button variant="outline closeBtn closeBtn-resultsPane end-5" onClick={handleClose}>
+            <Icon.X width="30px" height="30px" />
+          </Button>
+        </Card.Header>
+        <div
+          style={{
+            padding: "150px",
+            textAlign: "center",
+            fontSize: "40px"
+          }}
+        >
+          {" "}
+          Results not available yet
+        </div>
+      </Card>
+    )
   return (
     <div>
       <Card>
@@ -187,7 +197,7 @@ export default function FlResultsPane() {
               </div>
             </div>
           </div>
-          <Button variant="outline closeBtn closeBtn-resultsPane end-5" onClick={() => {}}>
+          <Button variant="outline closeBtn closeBtn-resultsPane end-5" onClick={handleClose}>
             <Icon.X width="30px" height="30px" />
           </Button>
         </Card.Header>
@@ -226,7 +236,46 @@ export default function FlResultsPane() {
             <>
               <div style={{ marginTop: "30px" }}>
                 {globalflresults["confusionMatrix"] && (
-                  <ConfusionMatrix data={resultsType === "Global results" ? globalflresults["confusionMatrix"] : nodeflresults["confusionMatrix"]} labels={["True labels", "False labels"]} />
+                  <>
+                    <table className="table table-bordered w-50 mx-auto mt-5">
+                      <thead>
+                        <tr>
+                          <th></th>
+                          <th>Predicted Negative</th>
+                          <th>Predicted Positive</th>
+                        </tr>
+                      </thead>
+                      {resultsType === "Global results" ? (
+                        <tbody>
+                          <tr>
+                            <th>Actual Negative</th>
+
+                            <td>{globalflresults["confusionMatrix"][0][0]}</td>
+                            <td>{globalflresults["confusionMatrix"][0][1]}</td>
+                          </tr>
+                          <tr>
+                            <th>Actual Positive</th>
+                            <td>{globalflresults["confusionMatrix"][1][0]}</td>
+                            <td>{globalflresults["confusionMatrix"][1][1]}</td>
+                          </tr>
+                        </tbody>
+                      ) : (
+                        <tbody>
+                          <tr>
+                            <th>Actual Negative</th>
+
+                            <td>{nodeflresults["confusionMatrix"][0][0]}</td>
+                            <td>{nodeflresults["confusionMatrix"][0][1]}</td>
+                          </tr>
+                          <tr>
+                            <th>Actual Positive</th>
+                            <td>{nodeflresults["confusionMatrix"][1][0]}</td>
+                            <td>{nodeflresults["confusionMatrix"][1][1]}</td>
+                          </tr>
+                        </tbody>
+                      )}
+                    </table>
+                  </>
                 )}
               </div>
 
