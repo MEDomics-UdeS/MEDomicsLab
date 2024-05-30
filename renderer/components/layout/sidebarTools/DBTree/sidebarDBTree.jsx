@@ -3,6 +3,7 @@ import { Tree } from "primereact/tree"
 import { MongoDBContext } from "../../../mongoDB/mongoDBContext"
 import { ipcRenderer } from "electron"
 import { toast } from "react-toastify"
+import { Button } from "primereact/button"
 
 const SidebarDBTree = () => {
   const { DB, DBData } = useContext(MongoDBContext)
@@ -14,15 +15,22 @@ const SidebarDBTree = () => {
       ipcRenderer.send("get-collections", DB.name)
     }
 
+    const handleSecondUploadSuccess = (event, filename) => {
+      toast.success("Collection " + filename + " imported in chunks")
+      ipcRenderer.send("get-collections", DB.name)
+    }
+
     ipcRenderer.on("upload-file-success", handleUploadSuccess)
+    ipcRenderer.on("second-upload-file-success", handleSecondUploadSuccess)
 
     if (DBData) {
-      setTreeData([{ key: DB.name, label: DB.name, icon: "pi pi-database", children: mapDBDataToNodes(DBData) }])
+      setTreeData([{ key: DB.name, label: renderNodeLabel(DB.name), icon: "pi pi-database", children: mapDBDataToNodes(DBData), className: "db-node-main" }])
     }
 
     // Cleanup function to remove the event listener
     return () => {
       ipcRenderer.removeListener("upload-file-success", handleUploadSuccess)
+      ipcRenderer.removeListener("second-upload-file-success", handleSecondUploadSuccess)
     }
   }, [DBData, DB])
 
@@ -38,7 +46,8 @@ const SidebarDBTree = () => {
       key: item.key,
       label: item.label,
       icon: "pi pi-folder",
-      children: []
+      children: [],
+      className: "db-node-child"
     }))
   }
 
@@ -46,9 +55,18 @@ const SidebarDBTree = () => {
     ipcRenderer.send("get-collection-data", DB.name, event)
   }
 
+  const renderNodeLabel = (label) => {
+    return (
+      <div className="node-label">
+        {label}
+        <Button icon="pi pi-upload" className="p-button-text p-button-secondary p-button-sm" onClick={() => document.getElementById("file-input").click()} />
+        <input type="file" id="file-input" style={{ display: "none" }} accept=".csv, .tsv, .json, .jpg, .jpeg, .png, .gif, .bmp, .dcm" onChange={handleFileUpload} />
+      </div>
+    )
+  }
+
   return (
     <>
-      <input type="file" accept=".csv, .tsv, .json" onChange={handleFileUpload} />
       <Tree value={treeData} className="db-tree" selectionMode="single" onSelectionChange={(e) => handleNodeSelect(e.value)}></Tree>
     </>
   )

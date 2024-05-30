@@ -534,25 +534,48 @@ if (isProd) {
    * @param {String} dbName The name of the database
    */
   ipcMain.on("upload-file", (event, filePath, dbName) => {
-    const fileName = path.basename(filePath, path.extname(filePath))
-    const extension = path.extname(filePath).slice(1)
-    let mongoImportCommand = `mongoimport --db ${dbName} --collection ${fileName} --type ${extension} --file "${filePath}"`
-    if (extension == "csv") {
-      mongoImportCommand = `mongoimport --db ${dbName} --collection ${fileName} --type ${extension} --file "${filePath}" --headerline`
+    // Function for command execution
+    const execCmd = (cmd, replyStr, replyArg) => {
+      exec(cmd, (error, stdout, stderr) => {
+        if (error) {
+          console.error(`exec error: ${error}`)
+          return
+        }
+        console.log(`stdout: ${stdout}`)
+        console.error(`stderr: ${stderr}`)
+        // Notify the renderer process that the import was successful
+        event.reply(replyStr, replyArg)
+      })
     }
 
-    exec(mongoImportCommand, (error, stdout, stderr) => {
-      if (error) {
-        console.error(`exec error: ${error}`)
-        return
-      }
-      console.log(`stdout: ${stdout}`)
-      console.error(`stderr: ${stderr}`)
+    // File attributes
+    const fileName = path.basename(filePath, path.extname(filePath))
+    const extension = path.extname(filePath).slice(1)
+    const mongoFilesCommand = `mongofiles --db ${dbName} --prefix fs put "${filePath}"`
 
-      // Notify the renderer process that the import was successful
-      event.reply("upload-file-success", fileName)
-    })
+    // Deal with images
+    if (["jpg", "jpeg", "png", "gif", "bmp", "dicom"].includes(extension)) {
+      execCmd(mongoFilesCommand, "second-upload-file-success", fileName)
+    } else {
+      let mongoImportCommand = `mongoimport --db ${dbName} --collection ${fileName} --type ${extension} --file "${filePath}"`
+      if (extension == "csv") {
+        mongoImportCommand = `mongoimport --db ${dbName} --collection ${fileName} --type ${extension} --file "${filePath}" --headerline`
+      }
+      exec(mongoImportCommand, (error, stdout, stderr) => {
+        if (error) {
+          console.error(`exec error: ${error}`)
+          execCmd(mongoFilesCommand, "second-upload-file-success", fileName)
+          return
+        }
+        console.log(`stdout: ${stdout}`)
+        console.error(`stderr: ${stderr}`)
+
+        // Notify the renderer process that the import was successful
+        event.reply("upload-file-success", fileName)
+      })
+    }
   })
+
   /**
    * @description Gets the data of a collection
    * @param {*} event The event
