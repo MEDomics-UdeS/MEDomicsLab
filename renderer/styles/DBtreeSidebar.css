@@ -50,3 +50,11 @@
 .node-label .p-button:focus {
   background-color: #ffffff31 !important;
 }
+
+.db-tree .p-treenode-content.db-node-child .node-label .p-button {
+  visibility: hidden; /* Hide delete button on chil nodes by default */
+}
+
+.db-tree .p-treenode-content.db-node-child:hover .node-label .p-button {
+  visibility: visible; /* Show delete button on child nodes while hovering */
+}

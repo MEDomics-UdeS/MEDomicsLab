@@ -577,6 +577,27 @@ if (isProd) {
   })
 
   /**
+   * @description Delete a collection in the database
+   * @param {*} event
+   * @param {String} dbName Name of the database
+   * @param {String} collectionName Name of the collection to delete
+   */
+  ipcMain.on("delete-collection", async (event, dbName, collectionName) => {
+    const client = new MongoClient(mongoUrl)
+    try {
+      await client.connect()
+      const db = client.db(dbName)
+      await db.collection(collectionName).drop()
+      event.reply("delete-collection-success", collectionName)
+    } catch (error) {
+      console.error(`Error deleting collection: ${error}`)
+      event.reply("delete-collection-error", collectionName)
+    } finally {
+      await client.close()
+    }
+  })
+
+  /**
    * @description Gets the data of a collection
    * @param {*} event The event
    * @param {*} dbname The name of the database

@@ -20,8 +20,14 @@ const SidebarDBTree = () => {
       ipcRenderer.send("get-collections", DB.name)
     }
 
+    const handleDeleteSuccess = (event, collectionName) => {
+      toast.success("Collection " + collectionName + " deleted successfully")
+      ipcRenderer.send("get-collections", DB.name)
+    }
+
     ipcRenderer.on("upload-file-success", handleUploadSuccess)
     ipcRenderer.on("second-upload-file-success", handleSecondUploadSuccess)
+    ipcRenderer.on("delete-collection-success", handleDeleteSuccess)
 
     if (DBData) {
       setTreeData([{ key: DB.name, label: renderNodeLabel(DB.name), icon: "pi pi-database", children: mapDBDataToNodes(DBData), className: "db-node-main" }])
@@ -31,6 +37,7 @@ const SidebarDBTree = () => {
     return () => {
       ipcRenderer.removeListener("upload-file-success", handleUploadSuccess)
       ipcRenderer.removeListener("second-upload-file-success", handleSecondUploadSuccess)
+      ipcRenderer.removeListener("delete-collection-success", handleDeleteSuccess)
     }
   }, [DBData, DB])
 
@@ -41,10 +48,14 @@ const SidebarDBTree = () => {
     }
   }
 
+  const handleDeleteCollection = (collectionName) => {
+    ipcRenderer.send("delete-collection", DB.name, collectionName)
+  }
+
   const mapDBDataToNodes = (data) => {
     return data.map((item) => ({
       key: item.key,
-      label: item.label,
+      label: renderChildNodeLabel(item.label),
       icon: "pi pi-folder",
       children: [],
       className: "db-node-child"
@@ -61,6 +72,15 @@ const SidebarDBTree = () => {
         {label}
         <Button icon="pi pi-upload" className="p-button-text p-button-secondary p-button-sm" onClick={() => document.getElementById("file-input").click()} />
         <input type="file" id="file-input" style={{ display: "none" }} accept=".csv, .tsv, .json, .jpg, .jpeg, .png, .gif, .bmp, .dcm" onChange={handleFileUpload} />
+      </div>
+    )
+  }
+
+  const renderChildNodeLabel = (label) => {
+    return (
+      <div className="node-label">
+        {label}
+        <Button icon="pi pi-trash" className="p-button-text p-button-danger p-button-sm" onClick={() => handleDeleteCollection(label)} />
       </div>
     )
   }
