@@ -520,10 +520,13 @@ if (isProd) {
     }
   })
 
-  ipcMain.on("upload-csv", (event, filePath, dbName) => {
+  ipcMain.on("upload-file", (event, filePath, dbName) => {
     const fileName = path.basename(filePath, path.extname(filePath))
-
-    const mongoImportCommand = `mongoimport --db ${dbName} --collection ${fileName} --type csv --file "${filePath}" --headerline`
+    const extension = path.extname(filePath).slice(1)
+    let mongoImportCommand = `mongoimport --db ${dbName} --collection ${fileName} --type ${extension} --file "${filePath}"`
+    if (extension == "csv") {
+      mongoImportCommand = `mongoimport --db ${dbName} --collection ${fileName} --type ${extension} --file "${filePath}" --headerline`
+    }
 
     exec(mongoImportCommand, (error, stdout, stderr) => {
       if (error) {
@@ -534,7 +537,7 @@ if (isProd) {
       console.error(`stderr: ${stderr}`)
 
       // Notify the renderer process that the import was successful
-      event.reply("upload-csv-success", fileName)
+      event.reply("upload-file-success", fileName)
     })
   })
 

@@ -1,0 +1,18 @@
+.db-tree {
+  background-color: #353535;
+  border-color: #353535;
+  color: #ffffff;
+}
+
+.db-tree .p-tree-toggler:focus {
+  box-shadow: none !important;
+}
+
+.db-tree .p-tree-toggler:hover {
+  background-color: #ffffff31 !important;
+}
+
+.db-tree .p-treenode-content:focus {
+  box-shadow: none !important;
+  background-color: #ffffff31 !important;
+}

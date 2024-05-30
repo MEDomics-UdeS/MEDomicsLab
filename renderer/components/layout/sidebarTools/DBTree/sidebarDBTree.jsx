@@ -13,25 +13,25 @@ const SidebarDBTree = () => {
       ipcRenderer.send("get-collections", DB.name)
     }
 
-    ipcRenderer.on("upload-csv-success", handleUploadSuccess)
+    ipcRenderer.on("upload-file-success", handleUploadSuccess)
 
     // Cleanup function to remove the event listener
     return () => {
-      ipcRenderer.removeListener("upload-csv-success", handleUploadSuccess)
+      ipcRenderer.removeListener("upload-file-success", handleUploadSuccess)
     }
   }, [DB.name])
 
   const handleFileUpload = (event) => {
     const file = event.target.files[0]
     if (file) {
-      ipcRenderer.send("upload-csv", file.path, DB.name) // Send the file path and DB name to the main process
+      ipcRenderer.send("upload-file", file.path, DB.name) // Send the file path and DB name to the main process
     }
   }
 
   return (
     <>
-      <input type="file" accept=".csv" onChange={handleFileUpload} />
-      <Tree value={[{ key: DB.name, label: DB.name, icon: "pi pi-database", children: DBData }]}></Tree>
+      <input type="file" accept=".csv, .tsv, .json" onChange={handleFileUpload} />
+      <Tree className="db-tree" value={[{ key: DB.name, label: DB.name, icon: "pi pi-database", children: DBData }]}></Tree>
     </>
   )
 }
