@@ -502,6 +502,13 @@ if (isProd) {
     fs.writeFileSync(settingsFilePath, JSON.stringify(settings))
   })
 
+  /**
+   * @description Gets the collections of a database
+   * @param {*} event The event
+   * @param {*} dbName The name of the database
+   *
+   */
+
   ipcMain.on("get-collections", async (event, dbName) => {
     const client = new MongoClient(mongoUrl)
     try {
@@ -520,6 +527,12 @@ if (isProd) {
     }
   })
 
+  /**
+   * @description Upload CSV, TSV and JSON file into the Database
+   * @param {String} event The event
+   * @param {String} filePath Path of the file to import
+   * @param {String} dbName The name of the database
+   */
   ipcMain.on("upload-file", (event, filePath, dbName) => {
     const fileName = path.basename(filePath, path.extname(filePath))
     const extension = path.extname(filePath).slice(1)
@@ -539,6 +552,28 @@ if (isProd) {
       // Notify the renderer process that the import was successful
       event.reply("upload-file-success", fileName)
     })
+  })
+  /**
+   * @description Gets the data of a collection
+   * @param {*} event The event
+   * @param {*} dbname The name of the database
+   * @param {*} collectionName The name of the collection
+   */
+
+  ipcMain.on("get-collection-data", async (event, dbname, collectionName) => {
+    const client = new MongoClient(mongoUrl)
+    try {
+      await client.connect()
+      const db = client.db(dbname)
+      const collection = db.collection(collectionName)
+      const data = await collection.find({}).toArray()
+      event.reply("collection-data", data)
+    } catch (error) {
+      console.error(error)
+      event.reply("collection-data", [])
+    } finally {
+      await client.close()
+    }
   })
 
   /**
