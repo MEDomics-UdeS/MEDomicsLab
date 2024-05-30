@@ -98,7 +98,9 @@ class GoExecScriptRunPipelineFromMEDfl(GoExecutionScript):
             model = Model.load_model(json_config['flConfig'][0]['flModelNode']['file']['path'])
            
         else : 
-            pass
+            pass 
+
+        
         
 
         if json_config['flConfig'][0]['flModelNode']['optimizer'] == 'Adam':

@@ -13,6 +13,7 @@ func AddHandleFunc() {
 	Utils.CreateHandleFunc(prePath+"/progress/", handleProgress)
 	Utils.CreateHandleFunc(prePath+"/config-db/", handleConfigFlDb)
 	Utils.CreateHandleFunc(prePath+"/run-pipeline/", handleRunFlPipeline)
+	Utils.CreateHandleFunc(prePath+"/param-optim/", handleRunFlPipeline)
 }
 
 // handleStartSweetviz handles the request to run a sweetviz analysis
@@ -64,4 +65,17 @@ func handleRunFlPipeline(jsonConfig string, id string) (string, error) {
 	}
 	return response, nil
 }
+
+// handleRunFlPipeline handles the request to run the fl pipeline of MEDfl
+// It returns DB config 
+func handleOptimParams(jsonConfig string, id string) (string, error) {
+	log.Println("Setting FL pipeline...", id)
+	response, err := Utils.StartPythonScripts(jsonConfig, "../pythonCode/modules/medfl/run_fl_pipeline.py", id)
+	Utils.RemoveIdFromScripts(id)
+	if err != nil {
+		return "", err
+	}
+	return response, nil
+}
+
 
