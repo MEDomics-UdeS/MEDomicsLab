@@ -39,7 +39,7 @@ const createOption = (label) => ({
  * This component is used to display a Input component.
  * it handles multiple types of input and format them to be similar
  */
-const FlInput = ({ name, settingInfos, currentValue, onInputChange, disabled, setHasWarning = () => {}, customProps }) => {
+const FlInput = ({ name, settingInfos, currentValue, onInputChange, disabled, setHasWarning = () => {}, customProps, acceptedExtensions }) => {
   const [inputUpdate, setInputUpdate] = useState({})
   const [inputValue, setInputValue] = useState("")
   const { globalData, setGlobalData } = useContext(DataContext)
@@ -394,7 +394,7 @@ const FlInput = ({ name, settingInfos, currentValue, onInputChange, disabled, se
               <WsSelect
                 disabled={disabled}
                 selectedPath={currentValue}
-                acceptedExtensions={["csv"]}
+                acceptedExtensions={acceptedExtensions || ["csv"]}
                 acceptFolder={settingInfos.acceptFolder ? settingInfos.acceptFolder : false}
                 onChange={(e, path) => {
                   console.log("e", e, path)
@@ -427,7 +427,7 @@ const FlInput = ({ name, settingInfos, currentValue, onInputChange, disabled, se
               placeholder={name}
               disabled={disabled}
               selectedPaths={currentValue}
-              acceptedExtensions={["csv"]}
+              acceptedExtensions={acceptedExtensions || ["csv"]}
               matchRegex={new RegExp("T[0-9]*_(w+)?")}
               acceptFolder={settingInfos.acceptFolder ? settingInfos.acceptFolder : false}
               onChange={(value) => {

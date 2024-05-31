@@ -11,6 +11,8 @@ var prePath = "medfl"
 func AddHandleFunc() {
 	Utils.CreateHandleFunc(prePath+"/hello_world/", handleHelloWorld)
 	Utils.CreateHandleFunc(prePath+"/progress/", handleProgress)
+	Utils.CreateHandleFunc(prePath+"/config-db/", handleConfigFlDb)
+	Utils.CreateHandleFunc(prePath+"/run-pipeline/", handleRunFlPipeline)
 }
 
 // handleStartSweetviz handles the request to run a sweetviz analysis
@@ -37,3 +39,29 @@ func handleProgress(jsonConfig string, id string) (string, error) {
 		return "{\"now\":\"0\", \"currentLabel\":\"Warming up\"}", nil
 	}
 }
+
+
+// handleConfigFlDb handles the request to set the DB config of MEDfl
+// It returns DB config 
+func handleConfigFlDb(jsonConfig string, id string) (string, error) {
+	log.Println("Setting DB configuration of MEDfl...", id)
+	response, err := Utils.StartPythonScripts(jsonConfig, "../pythonCode/modules/medfl/fl_setDB_config.py", id)
+	Utils.RemoveIdFromScripts(id)
+	if err != nil {
+		return "", err
+	}
+	return response, nil
+}
+
+// handleRunFlPipeline handles the request to run the fl pipeline of MEDfl
+// It returns DB config 
+func handleRunFlPipeline(jsonConfig string, id string) (string, error) {
+	log.Println("Setting FL pipeline...", id)
+	response, err := Utils.StartPythonScripts(jsonConfig, "../pythonCode/modules/medfl/run_fl_pipeline.py", id)
+	Utils.RemoveIdFromScripts(id)
+	if err != nil {
+		return "", err
+	}
+	return response, nil
+}
+

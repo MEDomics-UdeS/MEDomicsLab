@@ -1,3 +1,4 @@
+import { Message } from "primereact/message"
 import React, { useEffect, useState } from "react"
 import { Button, Modal, Tab, Tabs } from "react-bootstrap"
 import { JsonView, allExpanded } from "react-json-view-lite"
@@ -13,7 +14,9 @@ const RunPipelineModal = ({ show, onHide, configs, nodes, onRun }) => {
       fullConfig[index] = {}
       Object.keys(config).map((key) => {
         let nodeId = config[key].id
-        fullConfig[index][key] = getNodeById(nodeId)
+        let [nodeData, nodeType] = getNodeById(nodeId)
+
+        fullConfig[index][nodeType == "groupNode" ? "Network" : nodeType] = nodeData
       })
     })
 
@@ -26,6 +29,7 @@ const RunPipelineModal = ({ show, onHide, configs, nodes, onRun }) => {
 
   const getNodeById = (id) => {
     let n
+    let nodeType
 
     nodes.forEach((node) => {
       if (node.id == id) {
@@ -92,18 +96,22 @@ const RunPipelineModal = ({ show, onHide, configs, nodes, onRun }) => {
           case "flModelNode":
             if (node.data.internal.settings.activateTl == "false") {
               delete node.data.internal.settings.file
+            } else {
+              delete node.data.internal.settings["Model type"]
+              delete node.data.internal.settings["Hidden size"]
+              delete node.data.internal.settings["Number of layers"]
             }
-            n = {
-              activateTl: node.data.internal.settings.activateTl,
-              noTlModelType: node.data.internal.settings.noTlModelType,
-              model: node.data.internal.settings.activateTl == "true" ? node.data.internal.settings.file : node.data.internal.settings
-            }
+            n = node.data.internal.settings
+
             break
           case "flStrategyNode":
             n = node.data.internal.settings
             break
           case "flPipelineNode":
-            n = node.data.internal.settings
+            n = {
+              name: node.data.internal.name,
+              description: node.data.internal.settings.description
+            }
             break
           default:
             n = {
@@ -112,10 +120,11 @@ const RunPipelineModal = ({ show, onHide, configs, nodes, onRun }) => {
             }
             break
         }
+        nodeType = node.type
       }
     })
 
-    return n
+    return [n, nodeType]
   }
 
   useEffect(() => {
@@ -146,7 +155,9 @@ const RunPipelineModal = ({ show, onHide, configs, nodes, onRun }) => {
               })}
             </Tabs>
           ) : (
-            <div className="text-center fs-3">You have no configurations !!</div>
+            <div className="text-center fs-3">
+              <Message severity="info" text="    You have no configurations !! " className="w-100   " />
+            </div>
           )}
         </Modal.Body>
         <Modal.Footer>

@@ -106,7 +106,7 @@ const NodeObject = ({ id, data, nodeSpecific, nodeBody, defaultSettings, onClick
         )}
         {/* here are the handlers (connection points)*/}
         <Handlers id={id} setupParam={data.setupParam} tooltipBy={data.tooltipBy} />
-        
+
         {/* here is the node (the Card element)*/}
         <Card
           key={id}
