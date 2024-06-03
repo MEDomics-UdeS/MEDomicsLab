@@ -97,6 +97,7 @@ function FlowFunctionsProvider({ children }) {
         groupNodeId,
         changeSubFlow,
         node2Run,
+        setNode2Run,
         runNode,
         node2Delete,
         onDeleteNode,

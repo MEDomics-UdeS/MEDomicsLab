@@ -53,7 +53,7 @@ const FlowCanvas = ({ workflowType, setWorkflowType }) => {
   const [nodes, setNodes, onNodesChange] = useNodesState([]) // nodes array, setNodes is used to update the nodes array, onNodesChange is a callback hook that is executed when the nodes array is changed
   const [edges, setEdges, onEdgesChange] = useEdgesState([]) // edges array, setEdges is used to update the edges array, onEdgesChange is a callback hook that is executed when the edges array is changed
   const [reactFlowInstance, setReactFlowInstance] = useState(null) // reactFlowInstance is used to get the reactFlowInstance object important for the reactFlow library
-  const [nodeUpdate, setNodeUpdate] = useState({}) // nodeUpdate is used to update a node internal data
+  const [nodeInternalUpdate, setNodeUpdate] = useState({}) // nodeUpdate is used to update a node internal data
   const { setViewport } = useReactFlow() // setViewport is used to update the viewport of the workflow
   const [treeData, setTreeData] = useState({}) // treeData is used to set the data of the tree menu
   const [isProgressUpdating, setIsProgressUpdating] = useState(false) // progress is used to store the progress of the workflow execution
@@ -61,7 +61,7 @@ const FlowCanvas = ({ workflowType, setWorkflowType }) => {
     now: 0,
     currentLabel: ""
   })
-  const { groupNodeId, changeSubFlow, updateNode } = useContext(FlowFunctionsContext)
+  const { groupNodeId, changeSubFlow, updateNode, setNode2Run, nodeUpdate } = useContext(FlowFunctionsContext)
   const { port } = useContext(WorkspaceContext)
   const { setError, setShowError } = useContext(ErrorRequestContext)
   const pageId = "extractionMEDimage" // pageId is used to identify the page in the backend
@@ -163,6 +163,29 @@ const FlowCanvas = ({ workflowType, setWorkflowType }) => {
     UpdateFilePath("roi_extraction", "discretization")
     
   }, [edges])
+
+  useEffect(() => {
+    // Check if there are any connections between an input and segmentation node
+    const inputSegmentationConnections = edges.filter((edge) => (nodes.find((node) => node.id === edge.source).data.internal.type === "input" && nodes.find((node) => node.id === edge.target).data.internal.type === "segmentation") || (nodes.find((node) => node.id === edge.source).data.internal.type === "segmentation" && nodes.find((node) => node.id === edge.target).data.internal.type === "inputNode"))
+    nodes.forEach((node) => {
+      if (node.data.internal.type === "segmentation" && inputSegmentationConnections.some((connection) => connection.target === node.id)) {
+        let inputNode = nodes.find((node) => node.data.internal.type === "input")
+        if (inputNode) {
+          let inputROIs = inputNode.data.internal.settings.rois
+          node.data.internal.settings.rois = inputROIs
+          setNodes((prevNodes) =>
+            prevNodes.map((n) => {
+              if (n.id === node.id) {
+                return node
+              }
+              return n
+            }
+          )
+        )
+      }
+    }
+    })
+  }, [nodeUpdate])
 
   // Declare node types using useMemo hook to avoid re-creating component types unnecessarily (memoize output)
   const nodeTypes = useMemo(
@@ -571,6 +594,9 @@ const FlowCanvas = ({ workflowType, setWorkflowType }) => {
                 toast.success("Node executed successfully")
                 console.log("Response from backend is: ", response)
 
+                // Update node 2 run
+                setNode2Run(null)
+
                 // Get all the nodes in the executed pipeline
                 let executedNodes = []
                 for (let files in response) {
@@ -884,7 +910,7 @@ const FlowCanvas = ({ workflowType, setWorkflowType }) => {
           onEdgesChange: onEdgesChange,
           onNodeDrag: onNodeDrag,
           runNode: runNode,
-          nodeUpdate: nodeUpdate,
+          nodeUpdate: nodeInternalUpdate,
           setNodeUpdate: setNodeUpdate
         }}
         // optional props
