@@ -1,37 +1,46 @@
-import React, { useContext, useEffect, useState } from "react"
-import { Tree } from "primereact/tree"
-import { MongoDBContext } from "../../../mongoDB/mongoDBContext"
-import { ipcRenderer } from "electron"
-import { toast } from "react-toastify"
+import React, { useContext, useEffect, useState } from "react";
+import { Tree } from "primereact/tree";
+import { DataTable } from "primereact/datatable";
+import { Column } from "primereact/column";
+import { MongoDBContext } from "../../../mongoDB/mongoDBContext";
+import { ipcRenderer } from "electron";
+import { toast } from "react-toastify";
 
 const SidebarDBTree = () => {
-  const { DB, DBData } = useContext(MongoDBContext)
-  const [treeData, setTreeData] = useState([])
+  const { DB, DBData, collectionData } = useContext(MongoDBContext);
+  const [treeData, setTreeData] = useState([]);
+  const [selectedCollectionData, setSelectedCollectionData] = useState([]);
 
   useEffect(() => {
     const handleUploadSuccess = (event, filename) => {
-      toast.success("Collection " + filename + " imported successfully")
-      ipcRenderer.send("get-collections", DB.name)
-    }
+      toast.success("Collection " + filename + " imported successfully");
+      ipcRenderer.send("get-collections", DB.name);
+    };
 
-    ipcRenderer.on("upload-file-success", handleUploadSuccess)
+    ipcRenderer.on("upload-file-success", handleUploadSuccess);
 
     if (DBData) {
-      setTreeData([{ key: DB.name, label: DB.name, icon: "pi pi-database", children: mapDBDataToNodes(DBData) }])
+      setTreeData([
+        { key: DB.name, label: DB.name, icon: "pi pi-database", children: mapDBDataToNodes(DBData) }
+      ]);
     }
 
     // Cleanup function to remove the event listener
     return () => {
-      ipcRenderer.removeListener("upload-file-success", handleUploadSuccess)
-    }
-  }, [DBData, DB])
+      ipcRenderer.removeListener("upload-file-success", handleUploadSuccess);
+    };
+  }, [DBData, DB]);
+
+  useEffect(() => {
+    console.log('collectionData changed inner child', collectionData)
+  }, [collectionData]);
 
   const handleFileUpload = (event) => {
-    const file = event.target.files[0]
+    const file = event.target.files[0];
     if (file) {
-      ipcRenderer.send("upload-file", file.path, DB.name) // Send the file path and DB name to the main process
+      ipcRenderer.send("upload-file", file.path, DB.name); // Send the file path and DB name to the main process
     }
-  }
+  };
 
   const mapDBDataToNodes = (data) => {
     return data.map((item) => ({
@@ -39,19 +48,28 @@ const SidebarDBTree = () => {
       label: item.label,
       icon: "pi pi-folder",
       children: []
-    }))
-  }
+    }));
+  };
 
   const handleNodeSelect = (event) => {
-    ipcRenderer.send("get-collection-data", DB.name, event)
-  }
+    ipcRenderer.send("get-collection-data", DB.name, event);
+  };
 
   return (
-    <>
-      <input type="file" accept=".csv, .tsv, .json" onChange={handleFileUpload} />
-      <Tree value={treeData} className="db-tree" selectionMode="single" onSelectionChange={(e) => handleNodeSelect(e.value)}></Tree>
-    </>
-  )
-}
+      <>
+        <input type="file" accept=".csv, .tsv, .json" onChange={handleFileUpload} />
+        <Tree
+            value={treeData}
+            className="db-tree"
+            selectionMode="single"
+            onSelectionChange={(e) => handleNodeSelect(e.value)}
+        />
+        {selectedCollectionData.length > 0 && ( // Render datatable only when collection data is available
+            <DataTable value={collectionData}>
+            </DataTable>
+        )}
+      </>
+  );
+};
 
-export default SidebarDBTree
+export default SidebarDBTree;

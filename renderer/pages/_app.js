@@ -1,11 +1,10 @@
 import { ToastContainer } from "react-toastify"
-import React, { useState } from "react"
+import React, {useEffect, useState} from "react"
 import Head from "next/head"
 import LayoutManager from "../components/layout/layoutManager"
 import { LayoutModelProvider } from "../components/layout/layoutContext"
 import { WorkspaceProvider } from "../components/workspace/workspaceContext"
 import { MongoDBProvider } from "../components/mongoDB/mongoDBContext"
-import { useEffect } from "react"
 import { ipcRenderer } from "electron"
 import { DataContextProvider } from "../components/workspace/dataContext"
 import MedDataObject from "../components/workspace/medDataObject"
@@ -146,6 +145,7 @@ function App() {
     name: "",
     hasBeenSet: false
   })
+  const [collectionData, setCollectionData] = useState([])
   const [DBData, setDBData] = useState([])
   const [recentWorkspaces, setRecentWorkspaces] = useState([]) // The list of recent workspaces
   const [recentDBs, setRecentDBs] = useState([])
@@ -183,7 +183,6 @@ function App() {
       }
     })
 
-
     /**
      * IMPORTANT - Related to the MongoDB
      */
@@ -204,8 +203,16 @@ function App() {
     })
 
     ipcRenderer.on("collection-data", (event, data) => {
-        console.log("collection-data", data)
-      // TODO: Handle the collection data
+        let collData = data.map((item) => {
+            let keys = Object.keys(item)
+            let values = Object.values(item)
+            let dataObject = {}
+            for (let i = 0; i < keys.length; i++) {
+              dataObject[keys[i]] = values[i]
+            }
+            return dataObject
+        })
+      setCollectionData(collData)
     })
 
     ipcRenderer.on("updateDirectory", (event, data) => {
@@ -537,7 +544,7 @@ function App() {
                 recentWorkspaces={recentWorkspaces}
                 setRecentWorkspaces={setRecentWorkspaces}
               >
-                <MongoDBProvider DB={DBObject} setDB={setDBObject} DBData={DBData} setDBData={setDBData} recentDBs={recentDBs} setRecentDBs={setRecentDBs}>
+                <MongoDBProvider DB={DBObject} setDB={setDBObject} DBData={DBData} setDBData={setDBData} recentDBs={recentDBs} setRecentDBs={setRecentDBs} setCollectionData={setCollectionData} collectionData={collectionData}>
                   <LayoutModelProvider // This is the LayoutContextProvider, which provides the layout model to all the children components of the LayoutManager
                     layoutModel={layoutModel}
                     setLayoutModel={setLayoutModel}
