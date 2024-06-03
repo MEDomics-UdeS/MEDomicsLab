@@ -17,24 +17,31 @@ import { set } from "react-hook-form"
  * @returns {JSX.Element} A JSX element containing the data table
  * @description This component is a wrapper for the primereact datatable. It is used to display data in a table.
  */
-const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, customGetColumnsFromData, columns }) => {
-  const [header, setHeader] = useState([])
-  const [rows, setRows] = useState([])
-  const [columsn, setColumns] = useState([{title: "title", props: {}}])
+const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, customGetColumnsFromData }) => {
+  const [columns, setColumns] = useState([{title: "title", props: {}}])
+    const [values, setValues] = useState([{value: "value", props: {}}])
 
   const { DB, DBData, collectionData } = useContext(MongoDBContext);
 
 
   useEffect(() => {
     console.log("data", collectionData)
-    if (collectionData != undefined) {
-        let keys = Object.keys(collectionData[0]) 
+    if (collectionData !== undefined) {
+        let keys = Object.keys(collectionData[0])
         console.log("keys", keys)
         let newColumns= []
         keys.forEach((key) => {
             newColumns.push({title: key, props: {}})
         })
+
+        let values = Object.values(collectionData[0])
+        console.log("values", values)
+        let newValues = []
+        values.forEach((value) => {
+            newValues.push({value: value, props: {}})
+        })
         setColumns(newColumns)
+        setValues(newValues)
     }
     }, [data])
 
@@ -42,39 +49,17 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, customGetColu
         console.log("Columns", columns)
     }, [columns])
 
-
-  /**
-   * @param {Object} data data to display in the table
-   * @returns {JSX.Element} A JSX element containing the columns of the data table according to primereact specifications
-   */
-  const getColumnsFromData = (data) => {
-    if (data.length > 0) {
-      // Depending of data type the process is different
-      if (Array.isArray(data[0])) {
-        // Case data is an array of arrays
-        let keys = Object.keys(data[0])
-        return keys.map((key) => {
-          return <Column key={key} field={key} header={data[0][key]} {...tablePropsColumn} />
-        })
-      } else {
-        // Case data is an array of dictionaries
-        return Object.keys(data[0]).map((key) => <Column key={key} field={key} header={key} {...tablePropsColumn} />)
-      }
-    }
-
-    return <></>
-  }
-
-  
+    useEffect(() => {
+        console.log("value", values)
+    }, [values]);
 
   return (
     <>
-      <h1>DataTableFromDB</h1>
-      <p>DB: {DB.name}</p>
-      
-      {/* <DataTable value={data} {...tablePropsData} size="small" scrollable height={"100%"} width={"100%"}>
-        
-      </DataTable> */}
+        <DataTable value={collectionData}>
+            {columns.map((column) => {
+                return <Column header={column.title} />
+            })}
+        </DataTable>
     </>
   )
 }
