@@ -84,6 +84,8 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
           return openInIFrame(action)
         case "openInDataTable":
           return openDataTable(action)
+        case "openInDataTableFromDBViewer":
+          return openDataTableFromDB(action)
         case "openInCodeEditor":
           return openCodeEditor(action)
         case "openInImageViewer":
@@ -152,6 +154,7 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
     layoutRequestQueueCopy.push(action)
     setLayoutRequestQueue(layoutRequestQueueCopy)
   }
+  
 
   /**
    * @summary Generic function that adds a tab with a medDataObject to the layout model
@@ -384,6 +387,14 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
    */
   const openDataTable = (action) => {
     openInDotDotDot(action, "dataTable")
+  }
+
+  /**
+   * @summary Function that adds a tab with a data table to the layout model
+   * @params {Object} action - The action passed on by the dispatchLayout function, it uses the payload in the action as a JSON object to add a tab containing a data table to the layout model
+   */
+  const openDataTableFromDB = (action) => {
+    openInDotDotDot(action, "dataTableFromDB")
   }
 
   /**

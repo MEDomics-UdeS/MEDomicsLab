@@ -219,7 +219,7 @@ const renderItem = ({ item, depth, children, title, context, arrow }, additional
                   additionalParams.displayMenu(e, item)
                 }}
                 onDoubleClick={(e) => {
-                  console.log("onDoubleClick", title)
+                  console.log("onDoubleClick", title, item)
                   additionalParams.onDBClickItem(e, item)
                 }}
               >

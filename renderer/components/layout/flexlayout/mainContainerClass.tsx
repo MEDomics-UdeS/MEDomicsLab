@@ -55,6 +55,7 @@ import HtmlViewer from "../../mainPages/htmlViewer"
 import ModelViewer from "../../mainPages/modelViewer"
 import NotebookEditor from "../../mainPages/notebookEditor"
 import Iframe from "react-iframe"
+import DataTableFromDB from "../../dbComponents/dataTableFromDB"
 
 var fields = ["Name", "Field1", "Field2", "Field3", "Field4", "Field5"]
 
@@ -636,6 +637,20 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
             globalData={this.props.globalData}
             setGlobalData={this.props.setGlobalData}
           />
+        </>
+      )
+    } else if (component === "dataTableFromDB") {
+      const config = node.getConfig()
+      if (node.getExtraData().data == null) {
+        const whenDataLoaded = (data) => {
+          node.getExtraData().data = data
+        }
+          // const { M, setGlobalData } = this.props as DataContextType
+        }
+      
+      return (
+        <>
+          <DataTableFromDB data={node.getConfig()} />
         </>
       )
     } else if (component === "learningPage") {
