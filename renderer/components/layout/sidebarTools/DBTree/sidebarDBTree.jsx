@@ -11,6 +11,7 @@ const SidebarDBTree = () => {
   const { DB, DBData, collectionData } = useContext(MongoDBContext);
   const [treeData, setTreeData] = useState([]);
   const { dispatchLayout, developerMode } = useContext(LayoutModelContext)
+
   const [selectedCollectionData, setSelectedCollectionData] = useState([]);
 
   useEffect(() => {
@@ -54,7 +55,7 @@ const SidebarDBTree = () => {
   };
 
   const handleNodeSelect = (event) => {
-    ipcRenderer.send("get-collection-data", DB.name, event);
+    // ipcRenderer.send("get-collection-data", DB.name, event);
     dispatchLayout({ type: "openInDataTableFromDBViewer", payload: {name: event, UUID: event, path: DB.name, uuid: event, extension: DB.name}})
   };
 

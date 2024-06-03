@@ -96,6 +96,7 @@
     "jimp": "^0.22.10",
     "jquery-csv": "^1.0.21",
     "mongodb": "^6.6.2",
+    "mongodb-client-encryption": "^6.0.1",
     "primeicons": "^6.0.1",
     "primereact": "^9.6.2",
     "prismjs": "^1.29.0",
