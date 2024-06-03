@@ -10,14 +10,27 @@ const SidebarDBTree = () => {
   const [treeData, setTreeData] = useState([])
 
   useEffect(() => {
-    const handleUploadSuccess = (event, filename) => {
+    const handleFileUploadSuccess = (event, filename) => {
       toast.success("Collection " + filename + " imported successfully")
       ipcRenderer.send("get-collections", DB.name)
     }
 
+    const handleFileUploadError = (event, filename) => {
+      toast.error("Failed to import " + filename)
+    }
+
     const handleSecondUploadSuccess = (event, filename) => {
-      toast.success("Collection " + filename + " imported in chunks")
+      toast.warn("Collection " + filename + " imported in chunks")
       ipcRenderer.send("get-collections", DB.name)
+    }
+
+    const handleFolderUploadSuccess = (event, collectionName) => {
+      toast.success("Collection " + collectionName + " imported successfully")
+      ipcRenderer.send("get-collections", DB.name)
+    }
+
+    const handleFolderUploadError = (event, collectionName) => {
+      toast.error("Failed to import " + collectionName)
     }
 
     const handleDeleteSuccess = (event, collectionName) => {
@@ -25,9 +38,17 @@ const SidebarDBTree = () => {
       ipcRenderer.send("get-collections", DB.name)
     }
 
-    ipcRenderer.on("upload-file-success", handleUploadSuccess)
+    const handleDeleteError = (event, collectionName) => {
+      toast.error("Failed to delete " + collectionName)
+    }
+
+    ipcRenderer.on("upload-file-success", handleFileUploadSuccess)
+    ipcRenderer.on("upload-file-error", handleFileUploadError)
     ipcRenderer.on("second-upload-file-success", handleSecondUploadSuccess)
+    ipcRenderer.on("upload-folder-success", handleFolderUploadSuccess)
+    ipcRenderer.on("upload-folder-error", handleFolderUploadError)
     ipcRenderer.on("delete-collection-success", handleDeleteSuccess)
+    ipcRenderer.on("delete-collection-error", handleDeleteError)
 
     if (DBData) {
       setTreeData([{ key: DB.name, label: renderNodeLabel(DB.name), icon: "pi pi-database", children: mapDBDataToNodes(DBData), className: "db-node-main" }])
@@ -35,17 +56,22 @@ const SidebarDBTree = () => {
 
     // Cleanup function to remove the event listener
     return () => {
-      ipcRenderer.removeListener("upload-file-success", handleUploadSuccess)
+      ipcRenderer.removeListener("upload-file-success", handleFileUploadSuccess)
+      ipcRenderer.removeListener("upload-file-error", handleFileUploadError)
       ipcRenderer.removeListener("second-upload-file-success", handleSecondUploadSuccess)
+      ipcRenderer.removeListener("upload-folder-success", handleFolderUploadSuccess)
+      ipcRenderer.removeListener("upload-folder-error", handleFolderUploadError)
       ipcRenderer.removeListener("delete-collection-success", handleDeleteSuccess)
+      ipcRenderer.removeListener("delete-collection-error", handleDeleteError)
     }
   }, [DBData, DB])
 
-  const handleFileUpload = (event) => {
-    const file = event.target.files[0]
-    if (file) {
-      ipcRenderer.send("upload-file", file.path, DB.name) // Send the file path and DB name to the main process
-    }
+  const handleFileUpload = () => {
+    ipcRenderer.send("upload-files", DB.name)
+  }
+
+  const handleFolderUpload = () => {
+    ipcRenderer.send("select-folder", DB.name) // Send a request to select a folder to the main process
   }
 
   const handleDeleteCollection = (collectionName) => {
@@ -70,8 +96,8 @@ const SidebarDBTree = () => {
     return (
       <div className="node-label">
         {label}
-        <Button icon="pi pi-upload" className="p-button-text p-button-secondary p-button-sm" onClick={() => document.getElementById("file-input").click()} />
-        <input type="file" id="file-input" style={{ display: "none" }} accept=".csv, .tsv, .json, .jpg, .jpeg, .png, .gif, .bmp, .dcm" onChange={handleFileUpload} />
+        <Button icon="pi pi-file-plus" className="p-button-text p-button-secondary p-button-sm" onClick={handleFileUpload} />
+        <Button icon="pi pi-folder-plus" className="p-button-text p-button-secondary p-button-sm" onClick={handleFolderUpload} />
       </div>
     )
   }

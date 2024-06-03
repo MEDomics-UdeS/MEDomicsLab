@@ -4,6 +4,7 @@ import serve from "electron-serve"
 import { createWindow } from "./helpers"
 import { installExtension, REACT_DEVELOPER_TOOLS } from "electron-extension-installer"
 import MEDconfig, { PORT_FINDING_METHOD } from "../medomics.dev"
+import { toast } from "react-toastify"
 
 const MongoClient = require("mongodb").MongoClient
 const mongoUrl = "mongodb://localhost:27017"
@@ -508,7 +509,6 @@ if (isProd) {
    * @param {*} dbName The name of the database
    *
    */
-
   ipcMain.on("get-collections", async (event, dbName) => {
     const client = new MongoClient(mongoUrl)
     try {
@@ -528,51 +528,134 @@ if (isProd) {
   })
 
   /**
-   * @description Upload CSV, TSV and JSON file into the Database
+   * @description Upload CSV, TSV, JSON files and images into the Database
    * @param {String} event The event
-   * @param {String} filePath Path of the file to import
    * @param {String} dbName The name of the database
    */
-  ipcMain.on("upload-file", (event, filePath, dbName) => {
-    // Function for command execution
-    const execCmd = (cmd, replyStr, replyArg) => {
-      exec(cmd, (error, stdout, stderr) => {
-        if (error) {
-          console.error(`exec error: ${error}`)
-          return
+  ipcMain.on("upload-files", async (event, dbName) => {
+    // Select file(s) to import
+    const result = await dialog.showOpenDialog({ properties: ["openFile", "multiSelections"] })
+
+    // Import all the selected files
+    if (result.filePaths && result.filePaths.length > 0) {
+      result.filePaths.forEach((filePath, index) => {
+        const fileName = path.basename(filePath, path.extname(filePath))
+        const extension = path.extname(filePath).slice(1)
+        let mongoImportCommand
+        let tempFilePath
+        let tempFileCreated = false
+
+        if (extension === "json") {
+          mongoImportCommand = `mongoimport --db ${dbName} --collection ${fileName} --type json --file "${filePath}" --jsonArray`
+        } else if (extension === "csv" || extension === "tsv") {
+          mongoImportCommand = `mongoimport --db ${dbName} --collection ${fileName} --type ${extension} --file "${filePath}" --headerline`
+        } else {
+          // Import images and other file types as paths
+          let imgInfos = {
+            path: filePath,
+            type: extension
+          }
+          let jsonImg = JSON.stringify([imgInfos])
+          tempFilePath = path.join(path.dirname(filePath), String("image_path_" + index + ".json"))
+          fs.writeFileSync(tempFilePath, jsonImg)
+          tempFileCreated = true
+          mongoImportCommand = `mongoimport --db ${dbName} --collection ${fileName} --type json --file "${tempFilePath}" --jsonArray`
         }
-        console.log(`stdout: ${stdout}`)
-        console.error(`stderr: ${stderr}`)
-        // Notify the renderer process that the import was successful
-        event.reply(replyStr, replyArg)
+
+        // Execute importation command
+        exec(mongoImportCommand, (error, stdout, stderr) => {
+          if (tempFileCreated) {
+            fs.unlinkSync(tempFilePath) // Delete temp file (only for images) after import
+          }
+          if (error) {
+            // Try import with mongofiles
+            if (extension === "csv" || extension === "tsv" || extension === "json") {
+              let secondChanceCmd = `mongofiles --db ${dbName} --prefix fs put "${filePath}"`
+              exec(secondChanceCmd, (error, stdout, stderr) => {
+                if (error) {
+                  // Error with second try
+                  console.error(`exec error: ${error}`)
+                  event.reply("upload-file-error", fileName)
+                  return
+                }
+                // Second try successful
+                console.log(`stdout: ${stdout}`)
+                console.error(`stderr: ${stderr}`)
+                event.reply("second-upload-file-success", fileName)
+              })
+            } else {
+              // Error while importing files other than json, csv & tsv
+              console.error(`exec error: ${error}`)
+              event.reply("upload-file-error", fileName)
+            }
+            return
+          }
+          // Import successful
+          console.log(`stdout: ${stdout}`)
+          console.error(`stderr: ${stderr}`)
+          event.reply("upload-file-success", fileName)
+        })
       })
     }
+  })
 
-    // File attributes
-    const fileName = path.basename(filePath, path.extname(filePath))
-    const extension = path.extname(filePath).slice(1)
-    const mongoFilesCommand = `mongofiles --db ${dbName} --prefix fs put "${filePath}"`
+  /**
+   * @description Upload a folder structure as collection into the Database
+   * @param {String} event The event
+   * @param {String} dbName The name of the database
+   */
+  ipcMain.on("select-folder", async (event, dbName) => {
+    const result = await dialog.showOpenDialog({ properties: ["openDirectory"] })
+    if (result.filePaths && result.filePaths.length > 0) {
+      const directoryPath = result.filePaths[0]
+      const collectionName = path.basename(directoryPath)
 
-    // Deal with images
-    if (["jpg", "jpeg", "png", "gif", "bmp", "dicom"].includes(extension)) {
-      execCmd(mongoFilesCommand, "second-upload-file-success", fileName)
-    } else {
-      let mongoImportCommand = `mongoimport --db ${dbName} --collection ${fileName} --type ${extension} --file "${filePath}"`
-      if (extension == "csv") {
-        mongoImportCommand = `mongoimport --db ${dbName} --collection ${fileName} --type ${extension} --file "${filePath}" --headerline`
+      const buildFolderStructure = (dirPath) => {
+        const folderStructure = {}
+        const items = fs.readdirSync(dirPath)
+
+        items.forEach((item) => {
+          const itemPath = path.join(dirPath, item)
+          const stats = fs.statSync(itemPath)
+
+          if (stats.isDirectory()) {
+            folderStructure[item] = buildFolderStructure(itemPath)
+          } else {
+            folderStructure[item] = {
+              path: itemPath,
+              type: path.extname(item).slice(1)
+            }
+          }
+        })
+
+        return folderStructure
       }
-      exec(mongoImportCommand, (error, stdout, stderr) => {
-        if (error) {
-          console.error(`exec error: ${error}`)
-          execCmd(mongoFilesCommand, "second-upload-file-success", fileName)
-          return
-        }
-        console.log(`stdout: ${stdout}`)
-        console.error(`stderr: ${stderr}`)
 
-        // Notify the renderer process that the import was successful
-        event.reply("upload-file-success", fileName)
-      })
+      try {
+        const folderStructure = [buildFolderStructure(directoryPath)]
+        const jsonStructure = JSON.stringify(folderStructure)
+
+        const tempFilePath = path.join(directoryPath, "folder_structure.json")
+        fs.writeFileSync(tempFilePath, jsonStructure)
+
+        const mongoImportCommand = `mongoimport --db ${dbName} --collection ${collectionName} --type json --file "${tempFilePath}" --jsonArray`
+
+        exec(mongoImportCommand, (error, stdout, stderr) => {
+          fs.unlinkSync(tempFilePath) // Delete temp file after import
+
+          if (error) {
+            console.error(`exec error: ${error}`)
+            event.reply("upload-folder-error", collectionName)
+            return
+          }
+          console.log(`stdout: ${stdout}`)
+          console.error(`stderr: ${stderr}`)
+          event.reply("upload-folder-success", collectionName)
+        })
+      } catch (err) {
+        console.error(`Error building folder structure: ${err}`)
+        event.reply("upload-folder-error", collectionName)
+      }
     }
   })
 

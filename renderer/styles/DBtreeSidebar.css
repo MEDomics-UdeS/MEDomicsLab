@@ -2,6 +2,11 @@
   background-color: #353535;
   border-color: #353535;
   color: #ffffff;
+  padding: 0px;
+}
+
+.db-tree .p-treenode-content {
+  padding: 0 !important;
 }
 
 .db-tree .p-tree-toggler:focus {
@@ -40,7 +45,12 @@
 }
 
 .node-label .p-button {
-  margin-left: 10px;
+  margin-left: 0;
+  padding: 5px;
+}
+
+.node-label .p-button:first-of-type {
+  margin-left: 5px;
 }
 
 .node-label .p-button:hover {
