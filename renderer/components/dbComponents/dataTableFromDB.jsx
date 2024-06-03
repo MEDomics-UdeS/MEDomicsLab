@@ -83,9 +83,6 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn }) => {
 
   return (
     <>
-      <h1>DataTableFromDB</h1>
-      <p>DB: {DB ? DB.name : "No DB context"}</p>
-
       {innerData.length === 0 && <p>No data available</p>}
       <DataTable value={innerData} size="small" scrollable height={"100%"} width={"100%"} paginator rows={5} rowsPerPageOptions={[5, 10, 25, 50]}  {...tablePropsData} >
         {columns.length > 0
