@@ -12,8 +12,6 @@ const SidebarDBTree = () => {
   const [treeData, setTreeData] = useState([]);
   const { dispatchLayout, developerMode } = useContext(LayoutModelContext)
 
-  const [selectedCollectionData, setSelectedCollectionData] = useState([]);
-
   useEffect(() => {
     const handleUploadSuccess = (event, filename) => {
       toast.success("Collection " + filename + " imported successfully");
@@ -55,7 +53,6 @@ const SidebarDBTree = () => {
   };
 
   const handleNodeSelect = (event) => {
-    // ipcRenderer.send("get-collection-data", DB.name, event);
     dispatchLayout({ type: "openInDataTableFromDBViewer", payload: {name: event, UUID: event, path: DB.name, uuid: event, extension: DB.name}})
   };
 
@@ -68,14 +65,9 @@ const SidebarDBTree = () => {
             selectionMode="single"
             onSelectionChange={(e) => {
               console.log('selected node', e.value)
-
               handleNodeSelect(e.value)
             }}
         />
-        {selectedCollectionData.length > 0 && ( // Render datatable only when collection data is available
-            <DataTable value={collectionData}>
-            </DataTable>
-        )}
       </>
   );
 };
