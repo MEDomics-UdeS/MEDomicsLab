@@ -219,7 +219,6 @@ class MEDimageExtraction:
     def generate_pipelines_from_node(self, id: str, node_content, pip):
         # -------------------------------------------------- NODE ADD ---------------------------------------------------
         pip.append(id)  # Current node added to pip
-        print("current pip", pip)
 
         # Specific cases with processing submodule jumps
         if (node_content["name"] == "input_processing"):
@@ -243,7 +242,6 @@ class MEDimageExtraction:
 
         # MORE ONE INPUT CONNECTION
         else:
-            print("MULTI input connections : ", len(node_content["inputs"]["input_1"]["connections"]))
             connections = node_content["inputs"]["input_1"]["connections"]  # input connections of last node added to pip
             tab_pip = []
             buff = deepcopy(pip)
@@ -345,12 +343,9 @@ class MEDimageExtraction:
                 if (content["name"] == "input"):
                     self.set_progress(now=0.0, label=f"Pip {idx_pip + 1} | Loading input")
                     print("\n********INPUT execution********")
-                    print("filename_loaded : ", filename_loaded)
-                    print("content data : ", content["data"]["filepath"])
 
                     # If new input computed
                     if (filename_loaded != content["data"]["filepath"]):
-                        print("scan res init")
                         scan_res = {}
                         filename_loaded = content["data"]["filepath"]
 
@@ -358,21 +353,16 @@ class MEDimageExtraction:
                     with open(UPLOAD_FOLDER / filename_loaded, 'rb') as f:
                         MEDimg = pickle.load(f)
                         MEDimg = MEDimage.MEDscan(MEDimg)
-                    print("---> Instance from \"", filename_loaded, "\" file loaded.")
 
                     scan_type = MEDimg.type
                     im_params = self.__update_pip_settings(pip, im_params, scan_type)
-                    #im_params['imParamMR']['reSeg']['range'] = [0, np.inf]
-                    print("---> Default params updatted with pipeline settings.")
                     MEDimage.MEDscan.init_params(MEDimg, im_params)
-                    print("---> New params loaded.")
 
                     # Update output infos for RUNS
                     update_pip = True
                     output_obj["MEDimg"] = MEDimg
                     id_obj["output"] = output_obj
                     self.set_progress(now=8.5/len(self.pipelines))
-                    print(" --> outputs updated.")
 
                 # SEGMENTATION
                 elif (content["name"] == "segmentation"):
@@ -442,7 +432,6 @@ class MEDimageExtraction:
                         roi_obj_s=last_roi_compute,  # roi_obj_init
                         box_string="full"
                     )
-                    print(" --> ", content["name"], " executed.")
 
                     # Update output infos
                     update_pip = True
@@ -450,7 +439,7 @@ class MEDimageExtraction:
                     output_obj["roi"] = roi_obj_morph
                     output_obj["roi_morph"] = roi_obj_morph
                     id_obj["output"] = output_obj
-                    print(" --> outputs updated.")
+
                     # Update settings infos pour json response
                     settings_res[content["name"]] = content["data"]
 
@@ -465,14 +454,12 @@ class MEDimageExtraction:
                     # Apply filter to the imaging volume
                     MEDimg.params.filter.filter_type = content["data"]["filter_type"] 
                     vol_obj_filter = MEDimage.filters.apply_filter(MEDimg, last_vol_compute)  # vol_obj_init
-                    print(" --> ", content["name"], " executed.")
 
                     # Update output infos
                     update_pip = True
                     output_obj["vol"] = vol_obj_filter
                     output_obj["roi"] = "empty"
                     id_obj["output"] = output_obj
-                    print(" --> outputs updated.")
                     
                     # Update settings infos pour json response
                     settings_res[content["name"]] = content["data"]
@@ -502,25 +489,20 @@ class MEDimageExtraction:
                         ),
                         roi_obj_int.data
                     ).astype(int)
-                    print(" --> ", content["name"], " executed.")
 
                     # Update output infos
                     update_pip = True
                     output_obj["vol"] = "empty"
                     output_obj["roi"] = roi_obj_int
                     id_obj["output"] = output_obj
-                    print(" --> outputs updated.")
 
                     # Update settings infos pour json response
                     # If re-segmentation is not serialized, change inf to string
                     if np.isinf(MEDimg.params.process.im_range[1]):
-                        print("inf to string 1")
                         content["data"]['range'][1] = "inf"
                     if np.isinf(MEDimg.params.process.im_range[0]):
-                        print("inf to string 0")
                         content["data"]['range'][0] = "inf"
                     settings_res[content["name"]] = content["data"]
-                    print(" --> settings updated.", content["data"])
 
                     # Update progress
                     self.set_progress(now=42.5/len(self.pipelines))
@@ -535,14 +517,12 @@ class MEDimageExtraction:
                         vol=last_vol_compute.data,  # vol_obj
                         roi=last_roi_compute.data  # roi_obj_int
                     )
-                    print(" -->", content["name"], " executed.")
 
                     # Update output infos
                     update_pip = True
                     output_obj["vol"] = vol_int_re
                     output_obj["roi"] = "empty"
                     id_obj["output"] = output_obj
-                    print(" --> outputs updated.")
 
                     # Update progress
                     self.set_progress(now=50/len(self.pipelines))
@@ -571,7 +551,7 @@ class MEDimageExtraction:
                     output_obj["vol"] = vol_quant_re  # temp : to change after new implementation of discretization node
                     output_obj["roi"] = "empty"
                     id_obj["output"] = output_obj
-                    print(" --> outputs updated.")
+
                     # Update settings infos for json response
                     settings_res[content["name"]] = content["data"]
 
@@ -671,13 +651,11 @@ class MEDimageExtraction:
                         
                     # Get IDs of nodes contained into feature node and extract all features selected in node
                     features_id = self.__get_features_list(content)
-                    print("features_id : ", features_id)
                     features_id = self.__sort_features_categories(features_id)
-                    print("features_id POST SORT /////////////////////////////: ", features_id)
                     for id in features_id:
                         feature_content = get_node_content(id, self.json_config)
                         feature_name = feature_content["name"]
-                        print("feature_name : /////////////////////////////:\n", feature_name)
+
                         # Get list of all features to extract
                         features_to_extract = feature_content["data"]["features"]
                         # Initialize features to put in dictionnary
@@ -742,7 +720,6 @@ class MEDimageExtraction:
                                         feature_name_convention = "F" + feature_name + "_" + str(features_to_extract[i])
                                         features[feature_name_convention] = local_vars.get("result")
 
-                                print("---> morph features extracted")
                             except Exception as e:
                                 return {"error": f"PROBLEM WITH COMPUTATION OF MORPHOLOGICAL FEATURES {str(e)}"}
 
@@ -1175,7 +1152,6 @@ class MEDimageExtraction:
             pips_obj[pip_name_obj] = pip_obj  # pips object update
         
         # Update RUNS dict
-        print("FINISHED ALL")
         self.runs[self.nb_runs] = pips_obj
 
         print("RUNS DICT : ", self.runs)
@@ -1278,7 +1254,6 @@ class MEDimageExtraction:
                 self.json_config = self.json_config["json_scene"]
             pip = self.generate_pipelines_from_node(str(start_id), get_node_content(start_id, self.json_config), pip)
 
-            print("The pipelines found ending with node ", start_id, " are ")
             json_res = self.execute_pips()
 
             return json_res
@@ -1632,4 +1607,4 @@ class MEDimageExtraction:
             now = self._progress['now']
         if label == "same":
             label = self._progress['currentLabel']
-        self._progress = {'currentLabel': label, 'now': now}   
+        self._progress = {'currentLabel': label, 'now': now}

@@ -41,7 +41,6 @@ class MEDimageLearning:
         # ---------------------------------------------- NEXT NODES COMPUTE ----------------------------------------------
         # NO OUPUT CONNECTION
         if not "output_1" in node_content["outputs"]:  # if no ouput connection
-            print(node_content["name"])
             pips.append(deepcopy(pip))  # Add the current pip to pips
             return pip
 
@@ -49,7 +48,6 @@ class MEDimageLearning:
         elif len(node_content["outputs"]["output_1"]["connections"]) == 1:
             out_node_id = node_content["outputs"]["output_1"]["connections"][0]["node"]
             out_node_content = get_node_content(out_node_id, json_scene)
-            print(out_node_content["name"])
             pip = self.generate_all_pips(out_node_id, out_node_content, pip, json_scene, pips, counter)
 
         # MORE ONE OUPUT CONNECTION
@@ -59,7 +57,6 @@ class MEDimageLearning:
                 pip_copy = deepcopy(pip)  # Copy the current pip
                 out_node_id = connection["node"]  # Retrieve all nodes connected to the current node output
                 out_node_content = get_node_content(out_node_id, json_scene)  # Retrieve all nodes content
-                print(out_node_content["name"])
                 pip_copy = self.generate_all_pips(out_node_id, out_node_content, pip_copy, json_scene, pips, counter)
 
         return pip
@@ -155,7 +152,6 @@ class MEDimageLearning:
                                 )
                                 splitted_data = True
                                 self.set_progress(now=5)
-                                print("Split progress:", self._progress['now'])
                         except Exception as e:
                             return {"error": str(e)}
 
@@ -198,9 +194,7 @@ class MEDimageLearning:
                                 # Set up the split counter
                                 split_counter = 0
                                 designed_experiment = True
-                                print("Progress", self._progress['now'])
                                 self.set_progress(now=10)
-                                print("Progress AFTER", self._progress['now'])
                         except Exception as e:
                             return {"error": str(e)}
 
@@ -298,8 +292,6 @@ class MEDimageLearning:
                                     
                                     # Update
                                     loaded_data = True
-                                    print("len(paths_splits)", len(paths_splits))
-                                    print("Progress: ", self._progress['now'] + 100/len(paths_splits)/5)
                                     self.set_progress(now=round(self._progress['now'] + 100/len(paths_splits)/5))
                                 # Clinical or other variables (For ex: Volume)
                                 else:
@@ -345,9 +337,7 @@ class MEDimageLearning:
                                 flags_preprocessing.append("var_datacleaning")
                                 flags_preprocessing_test.append("var_datacleaning")
                                 cleaned_data = True
-                                print("Pre Cleaning Progress", self._progress['now'])
                                 self.set_progress(now=round(self._progress['now'] + 100/len(paths_splits)/5))
-                                print("Post Cleaning Progress", self._progress['now'])
                             except Exception as e:
                                 return {"error": str(e)}
                         
@@ -394,9 +384,7 @@ class MEDimageLearning:
                                     else:
                                         return {"error":  f"Normalization: method {normalization_method} not implemented yet!"}
                                     
-                                print("Pre Normalization Progress", self._progress['now'])
                                 self.set_progress(now=round(self._progress['now'] + 100/len(paths_splits)/5))
-                                print("Post Normalization Progress", self._progress['now'])
                                 normalized_features = True
                             except Exception as e:
                                 return {"error": str(e)}
@@ -467,9 +455,7 @@ class MEDimageLearning:
                                 rad_tables_testing = MEDimage.learning.ml_utils.combine_rad_tables(rad_tables_testing)
                                 rad_tables_testing.Properties['userData']['flags_processing'] = flags_preprocessing_test
                                 reduced_features = True
-                                print("Pre Feature Reduction Progress", self._progress['now'])
                                 self.set_progress(now=round(self._progress['now'] + 100/len(paths_splits)/5))
-                                print("Post Feature Reduction Progress", self._progress['now'])
                             except Exception as e:
                                 return {"error": str(e)}
 
@@ -634,9 +620,7 @@ class MEDimageLearning:
                                 # F. Saving the results dictionary
                                 MEDimage.utils.json_utils.save_json(path_results, run_results, cls=NumpyEncoder)
                                 saved_results = True
-                                print("Pre Model Training Progress", self._progress['now'])
                                 self.set_progress(now=round((split_counter+1) * (90 / len(paths_splits)) + 10))
-                                print("Post Model Training Progress", self._progress['now'])
 
                                 # Increment the split counter
                                 split_counter += 1
