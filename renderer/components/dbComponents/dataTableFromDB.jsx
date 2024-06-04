@@ -3,13 +3,24 @@ import { MongoDBContext } from "../mongoDB/mongoDBContext";
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
 import { InputText } from "primereact/inputtext";
-import { Button } from "primereact/button"; // Import Button component
+import { Button } from "primereact/button";
 import { MongoClient, ObjectId } from "mongodb";
 const mongoUrl = "mongodb://127.0.0.1:27017";
 
 const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn }) => {
   const [innerData, setInnerData] = useState([]);
   const [columns, setColumns] = useState([]);
+  const [newColumnName, setNewColumnName] = useState("");
+  const [numRows, setNumRows] = useState("");
+  const [hoveredButton, setHoveredButton] = useState(null);
+  const deleteButtonStyle = (id) => ({
+    borderRadius: '10px',
+    backgroundColor: hoveredButton === id ? '#d32f2f' : '#f44336',
+    color: 'white',
+    border: 'none',
+    padding: '2px'
+  });
+
   const { DB } = useContext(MongoDBContext);
 
   const getDatabaseData = (dbname, collectionName) => {
@@ -86,6 +97,18 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn }) => {
     return null;
   };
 
+  const handleAddColumn = () => {
+    if (newColumnName !== "") {
+      const newColumn = { field: newColumnName, header: newColumnName };
+      setColumns([...columns, newColumn]);
+      const newInnerData = innerData.map(row => ({ ...row, [newColumn.field]: "" }));
+      setInnerData(newInnerData);
+      setNewColumnName("");
+    } else {
+      console.warn("New column name cannot be empty");
+    }
+  };
+
   const updateDatabaseData = async (
       dbname,
       collectionName,
@@ -134,7 +157,6 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn }) => {
       if (result.deletedCount === 0) {
         console.error("No documents were deleted");
       } else {
-        // If the deletion was successful, update the UI to reflect the change
         setInnerData(innerData.filter((item) => item._id !== id));
       }
     } catch (error) {
@@ -144,9 +166,43 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn }) => {
     }
   };
 
+  const insertDatabaseData = async (dbname, collectionName, data) => {
+    const client = new MongoClient(mongoUrl);
+    try {
+      await client.connect();
+      console.log("Connected to the server for insertion", dbname, collectionName);
+      const db = client.db(dbname);
+      const collection = db.collection(collectionName);
+      console.log(`Inserting document: ${JSON.stringify(data)}`);
+      const result = await collection.insertOne(data);
+      console.log("Insert result:", result);
+      return result.insertedId.toString();
+    } catch (error) {
+      console.error("Error inserting data:", error);
+    } finally {
+      await client.close();
+    }
+  };
+
   const onCellEditComplete = (e) => {
     let { rowData, newValue, field, originalEvent: event } = e;
-      rowData[field] = newValue;
+    rowData[field] = newValue;
+    if (!rowData._id) { // If _id is empty, this is a new row
+      console.log("Calling insertDatabaseData with:", {
+        dbname: data.path,
+        collectionName: data.uuid,
+        data: rowData,
+      });
+      insertDatabaseData(data.path, data.uuid, rowData)
+          .then((id) => {
+            console.log("Database inserted successfully");
+            rowData._id = id;
+            setInnerData([...innerData]);
+          })
+          .catch((error) => {
+            console.error("Failed to insert database:", error);
+          });
+    } else {
       console.log("Calling updateDatabaseData with:", {
         dbname: data.path,
         collectionName: data.uuid,
@@ -161,13 +217,12 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn }) => {
           .catch((error) => {
             console.error("Failed to update database:", error);
           });
+    }
   };
 
   const onDeleteRow = (rowData) => {
     const { _id } = rowData;
-
     console.log("Deleting row with _id:", _id);
-
     deleteDatabaseData(data.path, data.uuid, _id)
         .then(() => {
           console.log("Row deleted successfully");
@@ -175,6 +230,32 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn }) => {
         .catch((error) => {
           console.error("Failed to delete row:", error);
         });
+  };
+
+  const onDeleteColumn = async (field) => {
+    setColumns(columns.filter((column) => column.field !== field));
+    setInnerData(innerData.map((row) => {
+      const { [field]: _, ...rest } = row;
+      return rest;
+    }));
+
+    const client = new MongoClient(mongoUrl);
+    try {
+      await client.connect();
+      console.log("Connected to the server for column deletion", data.path, data.uuid);
+      const db = client.db(data.path);
+      const collection = db.collection(data.uuid);
+      console.log(`Deleting field ${field} from all documents`);
+      const result = await collection.updateMany({}, { $unset: { [field]: "" } });
+      console.log("Delete column result:", result);
+      if (result.modifiedCount === 0) {
+        console.error("No documents were updated");
+      }
+    } catch (error) {
+      console.error("Error deleting column:", error);
+    } finally {
+      await client.close();
+    }
   };
 
   const textEditor = (options) => {
@@ -188,44 +269,127 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn }) => {
     );
   };
 
+  const handleAddRow = () => {
+    const newRows = Array.from({ length: numRows }, () => {
+      const newRow = {};
+      columns.forEach((col) => (newRow[col.field] = ""));
+      return newRow;
+    });
+    setInnerData([...innerData, ...newRows]);
+  };
+
+  const refreshData = () => {
+    if (data && data.uuid && data.path) {
+      getDatabaseData(data.path, data.uuid)
+          .then((fetchedData) => {
+            let collData = fetchedData.map((item) => {
+              let keys = Object.keys(item);
+              let values = Object.values(item);
+              let dataObject = {};
+              for (let i = 0; i < keys.length; i++) {
+                dataObject[keys[i]] =
+                    keys[i] === "_id" ? item[keys[i]].toString() : values[i];
+              }
+              return dataObject;
+            });
+            setInnerData(collData);
+          })
+          .catch((error) => {
+            console.error("Failed to fetch data:", error);
+          });
+    } else {
+      console.warn("Invalid data prop:", data);
+    }
+  };
+
   return (
       <>
-        {innerData.length === 0 && <p>No data available</p>}
-        <DataTable
-            value={innerData}
-            editMode="cell"
-            size="small"
-            scrollable
-            height={"100%"}
-            width={"100%"}
-            paginator
-            rows={10}
-            rowsPerPageOptions={[10, 25, 50, 100]}
-            {...tablePropsData}
-        >
-          {/* Delete column */}
-          <Column
-              field="delete"
-              body={(rowData) => (
-                  <Button
-                      icon="pi pi-trash"
-                      className="p-button-rounded p-button-danger"
-                      onClick={() => onDeleteRow(rowData)}
-                  />
-              )}/>
-          {/* Columns rendering */}
-          {columns.length > 0
-              ? columns.map((col) => (
-                  <Column
-                      key={col.field}
-                      field={col.field}
-                      header={col.header}
-                      editor={(options) => textEditor(options)}
-                      onCellEditComplete={onCellEditComplete}
-                  />
-              ))
-              : getColumnsFromData(innerData)}
-        </DataTable>
+        {innerData.length === 0 ? (
+            <p style={{color: 'red', fontSize: '20px', textAlign: 'center', margin: '30px'}}>
+              No data found in {data.uuid}
+            </p>
+        ) : (
+            <DataTable
+                value={innerData}
+                editMode="cell"
+                size="small"
+                scrollable
+                height={"100%"}
+                width={"100%"}
+                paginator
+                rows={20}
+                rowsPerPageOptions={[10, 25, 50, 100]}
+                {...tablePropsData}
+                footer={
+                  <div style={{display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '5px'}}>
+                    <div style={{display: 'flex', alignItems: 'center', margin: '5px'}}>
+                      <InputText
+                          id="numRows"
+                          value={numRows}
+                          onChange={(e) => setNumRows(e.target.value)}
+                          style={{marginRight: '10px', width: '130px'}}
+                          placeholder="# of Rows"
+                      />
+                      <Button label="Add" onClick={handleAddRow}
+                              style={{width: '100px', marginRight: '20px'}}/> {/* Increased marginRight */}
+                    </div>
+                    <div style={{display: 'flex', alignItems: 'center', margin: '5px'}}>
+                      <InputText
+                          id="newColumnName"
+                          value={newColumnName}
+                          style={{marginRight: '10px', width: '130px'}}
+                          onChange={(e) => setNewColumnName(e.target.value)}
+                          placeholder="Column Name"
+                      />
+                      <Button label="Add" onClick={handleAddColumn} style={{width: '100px'}}/>
+                    </div>
+                    <div>
+                      <Button
+                          icon="pi pi-refresh"
+                          onClick={refreshData}
+                          style={{width: '50px', padding: '5px', marginLeft: '50px', backgroundColor: 'green', borderColor: 'green'}}
+                      />
+                    </div>
+                  </div>
+                }
+            >
+              {/* Delete column */}
+              <Column
+                  field="delete"
+                  body={(rowData) => (
+                      <Button
+                          icon="pi pi-trash"
+                          style={deleteButtonStyle(rowData._id)}
+                          onClick={() => onDeleteRow(rowData)}
+                          onMouseEnter={() => setHoveredButton(rowData._id)}
+                          onMouseLeave={() => setHoveredButton(null)}
+                      />
+                  )}/>
+              {/* Columns rendering */}
+              {columns.length > 0
+                  ? columns.map((col) => (
+                      <Column
+                          key={col.field}
+                          field={col.field}
+                          header={
+                            <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                              <Button
+                                  icon="pi pi-trash"
+                                  style={deleteButtonStyle(col.field)}
+                                  onClick={() => onDeleteColumn(col.field)}
+                                  onMouseEnter={() => setHoveredButton(col.field)}
+                                  onMouseLeave={() => setHoveredButton(null)}
+                              />
+                              {col.header}
+                            </div>
+                          }
+                          editor={(options) => textEditor(options)}
+                          onCellEditComplete={onCellEditComplete}
+                      />
+                  ))
+                  : getColumnsFromData(innerData)}
+            </DataTable>
+        )}
       </>
   );
 };
