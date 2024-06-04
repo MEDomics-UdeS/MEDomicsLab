@@ -1,29 +1,41 @@
-import React, { useEffect, useState, useContext } from "react";
-import { MongoDBContext } from "../mongoDB/mongoDBContext";
+import React, { useEffect, useState } from "react";
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
 import { InputText } from "primereact/inputtext";
 import { Button } from "primereact/button";
 import { MongoClient, ObjectId } from "mongodb";
+import {toast} from "react-toastify";
 const mongoUrl = "mongodb://127.0.0.1:27017";
 
+/**
+ * DataTableFromDB component
+ * @param data
+ * @param tablePropsData
+ * @param tablePropsColumn
+ * @returns {Element}
+ * @constructor
+ */
 const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn }) => {
   const [innerData, setInnerData] = useState([]);
   const [columns, setColumns] = useState([]);
   const [newColumnName, setNewColumnName] = useState("");
   const [numRows, setNumRows] = useState("");
   const [hoveredButton, setHoveredButton] = useState(null);
-  const deleteButtonStyle = (id) => ({
+
+  const isReadOnly = false; // true: Read-Only Mode, false: Edit-Mode
+
+  const buttonStyle = (id) => ({
     borderRadius: '10px',
     backgroundColor: hoveredButton === id ? '#d32f2f' : '#f44336',
     color: 'white',
     border: 'none',
-    padding: '2px'
+    padding: '2px',
+    opacity: isReadOnly ? 0.5 : 1,
+    cursor: isReadOnly ? 'not-allowed' : 'pointer'
   });
 
-  const { DB } = useContext(MongoDBContext);
-
-  const getDatabaseData = (dbname, collectionName) => {
+  // Fetch data from MongoDB
+  const getCollectionData = (dbname, collectionName) => {
     const client = new MongoClient(mongoUrl);
     return new Promise(async (resolve, reject) => {
       try {
@@ -42,10 +54,11 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn }) => {
     });
   };
 
+  // Fetch data from MongoDB on component mount
   useEffect(() => {
     if (data && data.uuid && data.path) {
       console.log("Fetching data with:", data);
-      getDatabaseData(data.path, data.uuid)
+      getCollectionData(data.path, data.uuid)
           .then((fetchedData) => {
             console.log("Fetched data:", fetchedData);
             let collData = fetchedData.map((item) => {
@@ -68,6 +81,7 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn }) => {
     }
   }, [data]);
 
+  // Update columns when innerData changes
   useEffect(() => {
     console.log("innerData updated:", innerData);
     if (innerData.length > 0) {
@@ -77,6 +91,7 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn }) => {
     }
   }, [innerData]);
 
+  // Log columns when updated
   useEffect(() => {
     console.log("columns updated:", columns);
   }, [columns]);
@@ -97,6 +112,7 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn }) => {
     return null;
   };
 
+  // Add a new column to the table
   const handleAddColumn = () => {
     if (newColumnName !== "") {
       const newColumn = { field: newColumnName, header: newColumnName };
@@ -104,11 +120,13 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn }) => {
       const newInnerData = innerData.map(row => ({ ...row, [newColumn.field]: "" }));
       setInnerData(newInnerData);
       setNewColumnName("");
+      toast.success("Column " + newColumnName + " added successfully")
     } else {
-      console.warn("New column name cannot be empty");
+      toast.warn("New column name cannot be empty");
     }
   };
 
+  // Update data in MongoDB
   const updateDatabaseData = async (
       dbname,
       collectionName,
@@ -140,6 +158,7 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn }) => {
     }
   };
 
+  // Delete data from MongoDB
   const deleteDatabaseData = async (dbname, collectionName, id) => {
     const client = new MongoClient(mongoUrl);
     try {
@@ -166,6 +185,7 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn }) => {
     }
   };
 
+  // Insert data into MongoDB
   const insertDatabaseData = async (dbname, collectionName, data) => {
     const client = new MongoClient(mongoUrl);
     try {
@@ -184,10 +204,11 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn }) => {
     }
   };
 
+  // Handle cell edit completion
   const onCellEditComplete = (e) => {
     let { rowData, newValue, field, originalEvent: event } = e;
     rowData[field] = newValue;
-    if (!rowData._id) { // If _id is empty, this is a new row
+    if (!rowData._id) {
       console.log("Calling insertDatabaseData with:", {
         dbname: data.path,
         collectionName: data.uuid,
@@ -220,7 +241,9 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn }) => {
     }
   };
 
+  // Handle row deletion
   const onDeleteRow = (rowData) => {
+    toast.success("Row " + rowData._id + " deleted successfully")
     const { _id } = rowData;
     console.log("Deleting row with _id:", _id);
     deleteDatabaseData(data.path, data.uuid, _id)
@@ -232,7 +255,9 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn }) => {
         });
   };
 
+  // Handle column deletion
   const onDeleteColumn = async (field) => {
+    toast.success("Column " + field + " deleted successfully")
     setColumns(columns.filter((column) => column.field !== field));
     setInnerData(innerData.map((row) => {
       const { [field]: _, ...rest } = row;
@@ -258,6 +283,7 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn }) => {
     }
   };
 
+  // Text editor for cell editing
   const textEditor = (options) => {
     return (
         <InputText
@@ -269,18 +295,25 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn }) => {
     );
   };
 
+  // Add a new row to the table
   const handleAddRow = () => {
+    if (!numRows || isNaN(numRows)) {
+      toast.warn("Please enter a valid number for # of rows");
+      return;
+    }
     const newRows = Array.from({ length: numRows }, () => {
       const newRow = {};
       columns.forEach((col) => (newRow[col.field] = ""));
       return newRow;
     });
     setInnerData([...innerData, ...newRows]);
+    toast.success(numRows + " rows added successfully");
   };
 
+  // Refresh data from MongoDB
   const refreshData = () => {
     if (data && data.uuid && data.path) {
-      getDatabaseData(data.path, data.uuid)
+      getCollectionData(data.path, data.uuid)
           .then((fetchedData) => {
             let collData = fetchedData.map((item) => {
               let keys = Object.keys(item);
@@ -293,6 +326,7 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn }) => {
               return dataObject;
             });
             setInnerData(collData);
+            toast.success("Data refreshed successfully")
           })
           .catch((error) => {
             console.error("Failed to fetch data:", error);
@@ -302,6 +336,7 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn }) => {
     }
   };
 
+  // Render the DataTable component
   return (
       <>
         {innerData.length === 0 ? (
@@ -311,80 +346,105 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn }) => {
         ) : (
             <DataTable
                 value={innerData}
-                editMode="cell"
+                editMode={!isReadOnly ? "cell" : undefined}
                 size="small"
                 scrollable
                 height={"100%"}
                 width={"100%"}
                 paginator
                 rows={20}
-                rowsPerPageOptions={[10, 25, 50, 100]}
+                rowsPerPageOptions={[20, 40, 80, 100]}
                 {...tablePropsData}
                 footer={
                   <div style={{display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '5px'}}>
-                    <div style={{display: 'flex', alignItems: 'center', margin: '5px'}}>
-                      <InputText
-                          id="numRows"
-                          value={numRows}
-                          onChange={(e) => setNumRows(e.target.value)}
-                          style={{marginRight: '10px', width: '130px'}}
-                          placeholder="# of Rows"
-                      />
-                      <Button label="Add" onClick={handleAddRow}
-                              style={{width: '100px', marginRight: '20px'}}/> {/* Increased marginRight */}
-                    </div>
-                    <div style={{display: 'flex', alignItems: 'center', margin: '5px'}}>
-                      <InputText
-                          id="newColumnName"
-                          value={newColumnName}
-                          style={{marginRight: '10px', width: '130px'}}
-                          onChange={(e) => setNewColumnName(e.target.value)}
-                          placeholder="Column Name"
-                      />
-                      <Button label="Add" onClick={handleAddColumn} style={{width: '100px'}}/>
-                    </div>
+                    {!isReadOnly && (
+                        <div style={{display: 'flex', alignItems: 'center', margin: '5px'}}>
+                          <InputText
+                              id="numRows"
+                              value={numRows}
+                              onChange={(e) => setNumRows(e.target.value)}
+                              style={{marginRight: '10px', width: '130px'}}
+                              placeholder="# of Rows"
+                          />
+                          <Button
+                              label="Add"
+                              onClick={handleAddRow}
+                              style={{
+                                width: '100px',
+                                marginRight: '20px',
+                              }}
+                          />
+                        </div>
+                    )}
+                    {!isReadOnly && (
+                        <div style={{display: 'flex', alignItems: 'center', margin: '5px'}}>
+                          <InputText
+                              id="newColumnName"
+                              value={newColumnName}
+                              style={{marginRight: '10px', width: '130px'}}
+                              onChange={(e) => setNewColumnName(e.target.value)}
+                              placeholder="Column Name"
+                          />
+                          <Button
+                              label="Add"
+                              onClick={handleAddColumn}
+                              style={{
+                                width: '100px',
+                              }}
+                          />
+                        </div>
+                    )}
                     <div>
                       <Button
                           icon="pi pi-refresh"
-                          onClick={refreshData}
-                          style={{width: '50px', padding: '5px', marginLeft: '50px', backgroundColor: 'green', borderColor: 'green'}}
+                          onClick={() => refreshData()}
+                          style={{
+                            width: '50px',
+                            padding: '5px',
+                            marginLeft: '50px',
+                            backgroundColor: 'green',
+                            borderColor: 'green',
+                          }}
                       />
                     </div>
                   </div>
                 }
             >
-              {/* Delete column */}
-              <Column
-                  field="delete"
-                  body={(rowData) => (
-                      <Button
-                          icon="pi pi-trash"
-                          style={deleteButtonStyle(rowData._id)}
-                          onClick={() => onDeleteRow(rowData)}
-                          onMouseEnter={() => setHoveredButton(rowData._id)}
-                          onMouseLeave={() => setHoveredButton(null)}
-                      />
-                  )}/>
-              {/* Columns rendering */}
+              {!isReadOnly && (
+                  <Column
+                      field="delete"
+                      body={(rowData) => (
+                          <Button
+                              icon="pi pi-trash"
+                              style={buttonStyle(rowData._id)}
+                              onClick={() => onDeleteRow(rowData)}
+                              onMouseEnter={() => setHoveredButton(rowData._id)}
+                              onMouseLeave={() => setHoveredButton(null)}
+                          />
+                      )}
+                  />
+              )}
               {columns.length > 0
                   ? columns.map((col) => (
                       <Column
                           key={col.field}
                           field={col.field}
                           header={
-                            <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                              <Button
-                                  icon="pi pi-trash"
-                                  style={deleteButtonStyle(col.field)}
-                                  onClick={() => onDeleteColumn(col.field)}
-                                  onMouseEnter={() => setHoveredButton(col.field)}
-                                  onMouseLeave={() => setHoveredButton(null)}
-                              />
+                            <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
+                              {!isReadOnly && (
+                                  <Button
+                                      icon="pi pi-trash"
+                                      style={buttonStyle(col.field)}
+                                      onClick={() => onDeleteColumn(col.field)}
+                                      onMouseEnter={() => setHoveredButton(col.field)}
+                                      onMouseLeave={() => setHoveredButton(null)}
+                                  />
+                              )}
                               {col.header}
                             </div>
                           }
-                          editor={(options) => textEditor(options)}
-                          onCellEditComplete={onCellEditComplete}
+                          editor={!isReadOnly ? (options) => textEditor(options) : undefined}
+                          onCellEditComplete={!isReadOnly ? onCellEditComplete : undefined}
                       />
                   ))
                   : getColumnsFromData(innerData)}
