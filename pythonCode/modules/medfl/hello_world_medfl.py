@@ -10,8 +10,7 @@ sys.path.append(
 from med_libs.GoExecutionScript import GoExecutionScript, parse_arguments
 from med_libs.server_utils import go_print
 
-#  MEDfl imports 
-import MEDfl
+
 
 
 json_params_dict, id_ = parse_arguments()

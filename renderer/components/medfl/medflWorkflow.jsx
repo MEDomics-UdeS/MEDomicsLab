@@ -1,7 +1,6 @@
 import React, { useState, useCallback, useMemo, useEffect, useContext } from "react"
 import { toast } from "react-toastify"
 import { useNodesState, useEdgesState, useReactFlow, addEdge } from "reactflow"
-import WorkflowBase from "../flow/workflowBase"
 import { loadJsonSync } from "../../utilities/fileManagementUtils"
 import { requestBackend } from "../../utilities/requests"
 import BtnDiv from "../flow/btnDiv"
@@ -43,6 +42,8 @@ import { Button } from "primereact/button"
 import RunPipelineModal from "./runPipelineModal"
 import FlConfigModal from "./flConfigModal"
 import DBCOnfigFileModal from "./dbCOnfigFileModal.jsx"
+import FlWorflowBase from "./flWorkflowBase.jsx"
+import OptimResultsModal from "./optimResultsModal"
 
 const staticNodesParams = nodesParams // represents static nodes parameters
 
@@ -80,6 +81,8 @@ const MedflWorkflow = ({ setWorkflowType, workflowType }) => {
   const [showDBconfigModal, setDBModal] = useState(false)
   const [showConfigModal, setconfigModal] = useState(true)
 
+  const [optimResults, setOptimResults] = useState(null)
+
   const { groupNodeId, changeSubFlow, hasNewConnection } = useContext(FlowFunctionsContext)
   const { config, pageId, configPath } = useContext(PageInfosContext) // used to get the page infos such as id and config path
   const { updateFlowResults, isResults } = useContext(FlowResultsContext)
@@ -87,6 +90,138 @@ const MedflWorkflow = ({ setWorkflowType, workflowType }) => {
   const { port } = useContext(WorkspaceContext)
   const { setError } = useContext(ErrorRequestContext)
 
+  const [allConfigResults, setAllresults] = useState([])
+
+  let ALL_CONFIGS = [
+    {
+      masterDatasetNode: {
+        name: "output_1.csv",
+        path: "C:\\Users\\HP User\\Desktop\\MEDomicsLab\\DATA\\output_1.csv",
+        target: "deceased"
+      },
+      Network: {
+        name: "Network",
+        clients: [
+          {
+            name: "Client",
+            type: "Test Node",
+            dataset: {
+              name: "output_1.csv",
+              path: "C:\\Users\\HP User\\Desktop\\MEDomicsLab\\DATA\\output_1.csv"
+            }
+          },
+          {
+            name: "Client",
+            type: "Train node",
+            dataset: {
+              name: "output_2.csv",
+              path: "C:\\Users\\HP User\\Desktop\\MEDomicsLab\\DATA\\output_2.csv"
+            }
+          }
+        ],
+        server: {
+          name: "FL Server"  , 
+          nRounds : 2 , 
+          activateDP:"Deactivate"
+        }
+      },
+      flSetupNode: {
+        name: "FL Setup",
+        description: "fsfsf"
+      },
+      flDatasetNode: {
+        name: "FL Dataset",
+        validationFraction: 0.1,
+        testFraction: 0
+      },
+      flPipelineNode: {
+        name: "FL Pipeline"  , 
+        description  : "fl pipeline"
+      },
+      flModelNode: {
+        activateTl: "true",
+        file: {
+          name: "grid_search_classifier.pth",
+          path: "C:\\Users\\HP User\\Desktop\\MEDomicsLab\\DATA\\grid_search_classifier.pth"
+        },
+        optimizer: "Adam",
+        "learning rate": 0.001,
+        Threshold: 0.1
+      },
+      flStrategyNode: {
+        "Aggregation algorithm": "FedYogi",
+        "Evaluation fraction": 1,
+        "Training fraction": 1,
+        "Minimal used clients for evaluation": 1,
+        "Minimal used clients for training": 1,
+        "Minimal available clients": 1
+      }
+    },
+    {
+      masterDatasetNode: {
+        name: "output_1.csv",
+        path: "C:\\Users\\HP User\\Desktop\\MEDomicsLab\\DATA\\output_1.csv",
+        target: "deceased"
+      },
+      Network: {
+        name: "Network",
+        clients: [
+          {
+            name: "Client",
+            type: "Test Node",
+            dataset: {
+              name: "output_1.csv",
+              path: "C:\\Users\\HP User\\Desktop\\MEDomicsLab\\DATA\\output_1.csv"
+            }
+          },
+          {
+            name: "Client",
+            type: "Train node",
+            dataset: {
+              name: "output_2.csv",
+              path: "C:\\Users\\HP User\\Desktop\\MEDomicsLab\\DATA\\output_2.csv"
+            }
+          }
+        ],
+        server: {
+          name: "FL Server" , 
+          nRounds : 2 , 
+          activateDP:"Deactivate"
+        }
+      },
+      flSetupNode: {
+        name: "FL Setup",
+        description: "fsfsf"
+      },
+      flDatasetNode: {
+        name: "FL Dataset",
+        validationFraction: 0.1,
+        testFraction: 0
+      },
+      flPipelineNode: {
+        name: "FL Pipeline" , 
+        description  : "fl pipeline"
+      },
+      flModelNode: {
+        activateTl: "true",
+        file: {
+          name: "grid_search_classifier.pth",
+          path: "C:\\Users\\HP User\\Desktop\\MEDomicsLab\\DATA\\grid_search_classifier.pth"
+        },
+        optimizer: "Adam",
+        "learning rate": 0.001,
+        Threshold: 0.1
+      },
+      flStrategyNode: {
+        "Aggregation algorithm": "FedAvg",
+        "Evaluation fraction": 1,
+        "Training fraction": 1,
+        "Minimal used clients for evaluation": 1,
+        "Minimal used clients for training": 1,
+        "Minimal available clients": 1
+      }
+    }
+  ]
   // declare node types using useMemo hook to avoid re-creating component types unnecessarily (it memorizes the output) https://www.w3schools.com/react/react_usememo.asp
   const nodeTypes = useMemo(
     () => ({
@@ -628,7 +763,9 @@ const MedflWorkflow = ({ setWorkflowType, workflowType }) => {
     return result
   }
 
-  const runFlPipeline = (flConfig, dbConfigfile) => {
+  const 
+  
+  runFlPipeline = (flConfig, dbConfigfile) => {
     let JSONToSend = { flConfig: flConfig, dbConfigfile: dbConfigfile }
 
     setIsProgressUpdating(true)
@@ -651,7 +788,8 @@ const MedflWorkflow = ({ setWorkflowType, workflowType }) => {
           setIsUpdating(false) // Set the isUpdating to false
           console.log("jsonResponse", jsonResponse)
           toast.success(jsonResponse["stringFromBackend"])
-          // updateFlowResults(jsonResponse["data"])
+          updateFlowResults(jsonResponse)
+          setAllresults([...allConfigResults, jsonResponse])
           setRunModal(false)
           setTimeout(() => {
             setIsProgressUpdating(false)
@@ -704,11 +842,95 @@ const MedflWorkflow = ({ setWorkflowType, workflowType }) => {
     )
   }
 
+  // optimise hyperparameters
+  const runFlOptimisation = (flConfig, dbConfigfile) => {
+    let optim_params
+
+    switch (flConfig[0]["flOptimizeNode"]["optimisation Type"]) {
+      case "optunaCentral":
+        optim_params = {
+          num_layers: { low: flConfig[0]["flOptimizeNode"]["Number of layers"]["Min"], high: flConfig[0]["flOptimizeNode"]["Number of layers"]["Max"] },
+          hidden_size: { low: flConfig[0]["flOptimizeNode"]["Hidden layers size"]["Min"], high: flConfig[0]["flOptimizeNode"]["Hidden layers size"]["Max"] },
+          num_epochs: { low: flConfig[0]["flOptimizeNode"]["Number of epochs"]["Min"], high: flConfig[0]["flOptimizeNode"]["Number of epochs"]["Max"] },
+          learning_rate: { low: flConfig[0]["flOptimizeNode"]["Learning rate"]["Min"], high: flConfig[0]["flOptimizeNode"]["Learning rate"]["Max"], log: true },
+          optimizer: flConfig[0]["flOptimizeNode"]["Optimiser"],
+          n_trials: flConfig[0]["flOptimizeNode"]["Number of trials"],
+          batch_size: { low: 8, high: 256 }
+        }
+        break
+
+      case "gridSearch":
+        optim_params = {
+          hidden_dim: flConfig[0]["flOptimizeNode"]["Hidden dimentions"].split(",").map(Number),
+          lr: flConfig[0]["flOptimizeNode"]["Learning rate"].split(",").map(Number),
+          pos_weight: [5],
+          max_epochs: flConfig[0]["flOptimizeNode"]["Max epochs"].split(",").map(Number)
+        }
+        break
+
+      default:
+        break
+    }
+
+    console.log("this is is the optim params", optim_params)
+
+    let JSONToSend = {
+      flConfig: {
+        dataset: flConfig[0]["masterDatasetNode"]["path"],
+        target: flConfig[0]["masterDatasetNode"]["target"],
+        param_grid: optim_params,
+        metric: flConfig[0]["flOptimizeNode"]["Metric"],
+        direction: flConfig[0]["flOptimizeNode"]["optimisation direction"],
+        type: flConfig[0]["flOptimizeNode"]["optimisation Type"]
+      },
+      dbConfigfile: dbConfigfile
+    }
+
+    setIsProgressUpdating(true)
+    setIsUpdating(true)
+    if (isUpdating) {
+      console.log("")
+    }
+    requestBackend(
+      // Send the request
+      port,
+      "/medfl/param-optim/" + pageId,
+      JSONToSend,
+      (jsonResponse) => {
+        if (jsonResponse.error) {
+          if (typeof jsonResponse.error == "string") {
+            jsonResponse.error = JSON.parse(jsonResponse.error)
+          }
+          setError(jsonResponse.error)
+        } else {
+          setIsUpdating(false) // Set the isUpdating to false
+          console.log("jsonResponse", jsonResponse)
+          toast.success(jsonResponse["stringFromBackend"])
+          setOptimResults(jsonResponse)
+          setRunModal(false)
+          setTimeout(() => {
+            setIsProgressUpdating(false)
+          }, 2000)
+        }
+      },
+      function (error) {
+        setIsUpdating(false)
+        setProgress({ now: 0, currentLabel: "Message sending failed ❌" })
+        toast.error("Sending failed", error)
+        console.log(error)
+      }
+    )
+  }
+
   useEffect(() => {
     if (flConfigFile?.path != "") {
       setDBConfig(flConfigFile?.path)
     }
   }, [flConfigFile?.path])
+
+  useEffect(() => {
+    console.log(allConfigResults)
+  }, [allConfigResults.length])
 
   return (
     <>
@@ -722,6 +944,14 @@ const MedflWorkflow = ({ setWorkflowType, workflowType }) => {
           setconfigModal(false)
         }}
       />
+      <OptimResultsModal
+        show={optimResults}
+        onHide={() => {
+          setOptimResults(null)
+        }}
+        results={optimResults ? optimResults : {}}
+        title="GRID Search optimisation results"
+      />
 
       {/* RUN the fl pipeline modal  */}
       <RunPipelineModal
@@ -732,12 +962,18 @@ const MedflWorkflow = ({ setWorkflowType, workflowType }) => {
         }}
         configs={getConfigs(treeData, 0)}
         nodes={nodes}
-        onRun={(flConfig) => {
+        onRun={(flConfig, mode) => {
           setRunModal(false)
-          runFlPipeline(flConfig, flConfigFile?.path)
+          if (mode == "run") {
+         
+          runFlPipeline(ALL_CONFIGS, flConfigFile?.path)
+           
+          } else {
+            runFlOptimisation(flConfig, flConfigFile?.path)
+          }
         }}
       />
-      <WorkflowBase
+      <FlWorflowBase
         // mandatory props
         mandatoryProps={{
           reactFlowInstance: reactFlowInstance,

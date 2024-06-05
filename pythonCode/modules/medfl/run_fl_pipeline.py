@@ -54,130 +54,161 @@ class GoExecScriptRunPipelineFromMEDfl(GoExecutionScript):
         This function is the main script of the execution of the process from Go
         """
 
+        global_results = []
+
         set_db_config(json_config['dbConfigfile'])
 
         db_manager = DatabaseManager()
 
-        self.set_progress(label="Creating MEDfl DB", now=2)
-        # Create the master dataset
-        db_manager.create_MEDfl_db(
-            path_to_csv=json_config['flConfig'][0]['masterDatasetNode']['path'])
+        self.set_progress(label=" Creating MEDfl DB", now=2)
 
-        self.set_progress(label="Creating the Network", now=5)
-        # Create Network
-        Net_1 = Network(json_config['flConfig'][0]['Network']['name'])
-        Net_1.create_network()
+        for index , config in enumerate(json_config['flConfig']) :
 
-        self.set_progress(label="Creating the MasterDataset", now=10)
-        # Creating the masterdataset
-        Net_1.create_master_dataset(
-            json_config['flConfig'][0]['masterDatasetNode']['path'])
+            # =======================================================
+            # Create the master dataset
+            db_manager.create_MEDfl_db(
+                path_to_csv=config['masterDatasetNode']['path'])
 
-        self.set_progress(label="Creating the FL setup", now=20)
-        # auto FLsetup creation
-        autoFl = FLsetup(name=json_config['flConfig'][0]['flSetupNode']['name'],
-                         description=json_config['flConfig'][0]['flSetupNode']['description'], network=Net_1)
-        autoFl.create()
+            self.set_progress(label=f"Configuration : {index +1 }, Creating the Network", now=5)
+            # Create Network
+            Net_1 = Network(config['Network']['name'])
+            Net_1.create_network()
 
-        # Create nodes
-        self.set_progress(label="Creating the FL clients", now=25)
+            self.set_progress(label=f"Configuration : {index +1 }, Creating the MasterDataset", now=10)
+            # Creating the masterdataset
+            Net_1.create_master_dataset(
+                config['masterDatasetNode']['path'])
 
-        for client in json_config['flConfig'][0]['Network']['clients']:
-            hospital = Node(
-                name=client["name"], train=1 if client['type'] == 'Train node' else 0)
-            Net_1.add_node(hospital)
-            hospital.upload_dataset("datasetName",  client["dataset"]['path'])
+            self.set_progress(label=f"Configuration : {index +1 }, Creating the FL setup", now=20)
+            # auto FLsetup creation
+            autoFl = FLsetup(name=config['flSetupNode']['name'],
+                            description=config['flSetupNode']['description'], network=Net_1)
+            autoFl.create()
 
-         # Create FLDataSet
-        self.set_progress(label="Creating the Federated dataset", now=35)
+            # Create nodes
+            self.set_progress(label=f"Configuration : {index +1 }, Creating the FL clients", now=25)
 
-        fl_dataset = autoFl.create_federated_dataset(
-            output=json_config['flConfig'][0]['masterDatasetNode']['target'],
-            fit_encode=[],
-            to_drop=[json_config['flConfig'][0]['masterDatasetNode']['target']]
-        )
+            for client in config['Network']['clients']:
+                hospital = Node(
+                    name=client["name"], train=1 if client['type'] == 'Train node' else 0)
+                Net_1.add_node(hospital)
+                hospital.upload_dataset("datasetName",  client["dataset"]['path'])
 
-        # Create the model
-        self.set_progress(label="Creating The model", now=40)
+            # Create FLDataSet
+            self.set_progress(label=f"Configuration : {index +1 }, Creating the Federated dataset", now=35)
 
-        if json_config['flConfig'][0]['flModelNode']['activateTl']:
-            model = Model.load_model(
-                json_config['flConfig'][0]['flModelNode']['file']['path'])
+            fl_dataset = autoFl.create_federated_dataset(
+                output=config['masterDatasetNode']['target'],
+                fit_encode=[],
+                to_drop=[config['masterDatasetNode']['target']]
+            )
 
-        else:
-            pass
+            # Create the model
+            self.set_progress(label=f"Configuration : {index +1 }, Creating The model", now=40)
 
-        if json_config['flConfig'][0]['flModelNode']['optimizer'] == 'Adam':
-            optimizer = optim.Adam(
-                model.parameters(), lr=json_config['flConfig'][0]['flModelNode']['learning rate'])
-        elif json_config['flConfig'][0]['flModelNode']['optimizer'] == 'SGD':
-            optimizer = optim.SGD(model.parameters(),
-                                  lr=json_config['flConfig'][0]['flModelNode']['learning rate'])
-        elif json_config['flConfig'][0]['flModelNode']['optimizer'] == 'RMSprop':
-            optimizer = optim.RMSprop(
-                model.parameters(), lr=json_config['flConfig'][0]['flModelNode']['learning rate'])
+            if config['flModelNode']['activateTl']: 
+                model = Model.load_model(config['flModelNode']['file']['path'])
+            
+            else : 
+                pass 
 
-        criterion = nn.BCEWithLogitsLoss()
+            
+            
 
-        # Creating a new Model instance using the specific model created by DynamicModel
-        global_model = Model(model, optimizer, criterion)
+            if config['flModelNode']['optimizer'] == 'Adam':
+                optimizer = optim.Adam(
+                    model.parameters(), lr=config['flModelNode']['learning rate'])
+            elif config['flModelNode']['optimizer'] == 'SGD':
+                optimizer = optim.SGD(model.parameters(),
+                                    lr=config['flModelNode']['learning rate'])
+            elif config['flModelNode']['optimizer'] == 'RMSprop':
+                optimizer = optim.RMSprop(
+                    model.parameters(), lr=config['flModelNode']['learning rate'])
 
-        # Get the initial params of the model
-        init_params = global_model.get_parameters()
+            criterion = nn.BCEWithLogitsLoss()
 
-        # Create the strategy
-        self.set_progress(label="Creating The Server strategy", now=45)
+            # Creating a new Model instance using the specific model created by DynamicModel
+            global_model = Model(model, optimizer, criterion)
 
-        aggreg_algo = Strategy(json_config['flConfig'][0]['flStrategyNode']['Aggregation algorithm'],
-                               fraction_fit=json_config['flConfig'][0]['flStrategyNode']['Training fraction'],
-                               fraction_evaluate=json_config['flConfig'][0]['flStrategyNode']['Evaluation fraction'],
-                               min_fit_clients=json_config['flConfig'][0]['flStrategyNode']['Minimal used clients for training'],
-                               min_evaluate_clients=json_config['flConfig'][0][
-                                   'flStrategyNode']['Minimal used clients for evaluation'],
-                               min_available_clients=json_config['flConfig'][0][
-                                   'flStrategyNode']['Minimal available clients'],
-                               initial_parameters=init_params)
-        aggreg_algo.create_strategy()
+            # Get the initial params of the model
+            init_params = global_model.get_parameters()
 
-        # Create The server
-        self.set_progress(label="Creating The Server", now=55)
+            # Create the strategy
+            self.set_progress(label=f"Configuration : {index +1 }, Creating The Server strategy", now=45)
 
-        server = FlowerServer(global_model,
-                              strategy=aggreg_algo,
-                              num_rounds=json_config['flConfig'][0]['Network']['server']['nRounds'],
-                              num_clients=len(fl_dataset.trainloaders),
-                              fed_dataset=fl_dataset,
-                              diff_privacy=True if json_config['flConfig'][0]['Network'][
-                                  'server']['activateDP'] == "Activate" else False,
-                              # You can change the resources alocated for each client based on your machine
-                              client_resources={
-                                      'num_cpus': 1.0, 'num_gpus': 0.0}
-                              )
+            aggreg_algo = Strategy(config['flStrategyNode']['Aggregation algorithm'],
+                                fraction_fit=config['flStrategyNode']['Training fraction'],
+                                fraction_evaluate=config['flStrategyNode']['Evaluation fraction'],
+                                min_fit_clients=config['flStrategyNode']['Minimal used clients for training'],
+                                min_evaluate_clients=config[
+                                    'flStrategyNode']['Minimal used clients for evaluation'],
+                                min_available_clients=config[
+                                    'flStrategyNode']['Minimal available clients'],
+                                initial_parameters=init_params)
+            aggreg_algo.create_strategy()
 
-        # Create the pipeline
-        self.set_progress(label="Creating The pipeline", now=65)
+            # Create The server
+            self.set_progress(label=f"Configuration : {index +1 }, Creating The Server", now=55)
 
-        ppl_1 = FLpipeline(name=json_config['flConfig'][0]['flPipelineNode']['name'],
-                           description=json_config['flConfig'][0]['flPipelineNode']['description'],
-                           server=server)
+            server = FlowerServer(global_model,
+                                strategy=aggreg_algo,
+                                num_rounds=config['Network']['server']['nRounds'],
+                                num_clients=len(fl_dataset.trainloaders),
+                                fed_dataset=fl_dataset,
+                                diff_privacy=True if config['Network'][
+                                    'server']['activateDP'] == "Activate" else False,
+                                # You can change the resources alocated for each client based on your machine
+                                client_resources={
+                                        'num_cpus': 1.0, 'num_gpus': 0.0}
+                                )
 
-        # Run the Traning of the model
-        self.set_progress(label="Running the FL pipeline", now=75)
-        history = ppl_1.server.run()
+            # Create the pipeline
+            self.set_progress(label=f"Configuration : {index +1 }, Creating The pipeline", now=65)
 
-        # Test the model
-        self.set_progress(label="Testing the model", now=95)
-        report = ppl_1.auto_test()
+            ppl_1 = FLpipeline(name=config['flPipelineNode']['name'],
+                            description=config['flPipelineNode']['description'],
+                            server=server)
 
-        results = {
-            'results': server.auc,
-            'test_results': report
-        }
+            # Run the Traning of the model
+            self.set_progress(label=f"Configuration : {index +1 }, Running the FL pipeline", now=75)
+            history = ppl_1.server.run()
 
+            # Test the model
+            self.set_progress(label=f"Configuration : {index +1 }, Testing the model", now=95)
+            report = ppl_1.auto_test()
+            
+            # Debugging: Print the classification reports before parsing
+            for report_item in report:
+                print(f"Raw classification_report: {report_item['classification_report']}")
+                try:
+                    report_item['classification_report'] = json.loads(report_item['classification_report'].replace("'", "\""))
+                except json.JSONDecodeError as e:
+                    print(f"Error decoding JSON: {e}")
+                    report_item['classification_report'] = {}  # Set to an empty dict in case of error
+
+
+            results = {
+                'results': server.auc,
+                'test_results': report
+            }
+
+            global_results.append(results)
+            
+
+            print(results)
+            # =========================================
+
+        for result in global_results:
+            if not isinstance(result, dict):
+                raise ValueError("All entries in global_results must be dictionaries")
+
+        print(f'this is the global results =========================================> \n {global_results}')
         self.set_progress(label="The results are ready !", now=99)
         time.sleep(1)
-        self.results = {"data": results,
-                        "stringFromBackend": "Pipeline training completed!"}
+        self.results = { "stats" : {"results" : len(global_results)} , 
+            "data": global_results,
+            "stringFromBackend": "Pipeline training completed!" , 
+        }
 
         return self.results
 

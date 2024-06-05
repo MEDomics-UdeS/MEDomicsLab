@@ -1,8 +1,8 @@
 import React, { useState } from "react"
 import ModulePage from "./moduleBasics/modulePage"
-import FlowPageBase from "../flow/flowPageBase"
 import MedflWorkflow from "../medfl/medflWorkflow"
 import MedflWelcomePage from "../medfl/medflWelcomePage"
+import FLFlowPageBase from "../medfl/flFLowPageBase"
 
 const MEDflPage = ({ pageId, configPath = "" }) => {
   const [displayWelcomeMessage, setWelcomeMessage] = useState(true)
@@ -17,9 +17,9 @@ const MEDflPage = ({ pageId, configPath = "" }) => {
             <MedflWelcomePage changePage={setWelcomeMessage} />
           </>
         ) : (
-          <FlowPageBase workflowType={flFlowType} id={pageId}>
+          <FLFlowPageBase workflowType={flFlowType} id={pageId}>
             <MedflWorkflow id={pageId} workflowType={flFlowType} setWorkflowType={setFlFlowType} />
-          </FlowPageBase>
+          </FLFlowPageBase>
         )}
       </ModulePage>
     </>

@@ -187,11 +187,13 @@ const FlInput = ({ name, settingInfos, currentValue, onInputChange, disabled, se
                 disabled={disabled}
                 defaultValue={currentValue}
                 onChange={(e) =>
+                 { 
+                  console.log(e)
                   setInputUpdate({
                     name: name,
                     value: e.target.value,
                     type: settingInfos.type
-                  })
+                  })}
                 }
               >
                 <option value="" hidden></option>

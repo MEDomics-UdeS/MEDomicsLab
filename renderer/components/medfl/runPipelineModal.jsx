@@ -21,6 +21,7 @@ const RunPipelineModal = ({ show, onHide, configs, nodes, onRun }) => {
     })
 
     setConfig(fullConfig)
+console.log(fullConfig)
   }
 
   useEffect(() => {
@@ -113,6 +114,9 @@ const RunPipelineModal = ({ show, onHide, configs, nodes, onRun }) => {
               description: node.data.internal.settings.description
             }
             break
+          case "flOptimizeNode":
+            n = node.data.internal.settings
+            break
           default:
             n = {
               name: node.data.internal.name,
@@ -126,6 +130,8 @@ const RunPipelineModal = ({ show, onHide, configs, nodes, onRun }) => {
 
     return [n, nodeType]
   }
+
+  const optimiseParams = () => {}
 
   useEffect(() => {
     if (!experimentConfig) getConfigInfos()
@@ -161,9 +167,18 @@ const RunPipelineModal = ({ show, onHide, configs, nodes, onRun }) => {
           )}
         </Modal.Body>
         <Modal.Footer>
+          {experimentConfig?.length > 0 && experimentConfig[0]["flOptimizeNode"] ? (
+            <Button
+              onClick={() => {
+                onRun(experimentConfig , "optim")
+              }}
+            >
+              Optimise hyperparameters
+            </Button>
+          ) : null}
           <Button
             onClick={() => {
-              onRun(experimentConfig)
+              onRun(experimentConfig , 'run')
             }}
           >
             Run Pipeline
