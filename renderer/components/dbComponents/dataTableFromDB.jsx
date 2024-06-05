@@ -307,6 +307,7 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn }) => {
             value={options.value}
             onChange={(e) => options.editorCallback(e.target.value)}
             onKeyDown={(e) => e.stopPropagation()}
+            style={{width: '100%'}}
         />
     );
   };
@@ -434,6 +435,7 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn }) => {
                           />
                         </div>
                     )}
+                    {!isReadOnly && (
                     <div>
                       <SplitButton
                           label="Export"
@@ -441,6 +443,8 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn }) => {
                           className="p-button-success"
                       />
                     </div>
+                    )}
+                    {!isReadOnly && (
                     <div>
                       <Button
                           icon="pi pi-refresh"
@@ -454,6 +458,7 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn }) => {
                           }}
                       />
                     </div>
+                    )}
                   </div>
                 }
             >
