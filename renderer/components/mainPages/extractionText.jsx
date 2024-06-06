@@ -7,7 +7,7 @@ const ExtractionTextPage = ({ pageId, configPath = "" }) => {
     <>
       <ModulePage pageId={pageId} configPath={configPath} shadow>
         <h1 className="center">Extraction - Text Notes</h1>
-        <ExtractionTabularData extractionTypeList={["BioBERT"]} serverUrl={"/extraction_text/"} defaultFilename={"text_extracted_features.csv"} />
+        <ExtractionTabularData extractionTypeList={["BioBERT"]} serverUrl={"/extraction_text/"} defaultFilename={"text_extracted_features"} />
       </ModulePage>
     </>
   )

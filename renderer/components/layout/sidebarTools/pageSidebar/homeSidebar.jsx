@@ -1,9 +1,6 @@
 import React, { useContext } from "react"
-import { Accordion, Button, Stack } from "react-bootstrap"
-import { WorkspaceContext } from "../../../workspace/workspaceContext"
+import { Accordion, Stack } from "react-bootstrap"
 import { MongoDBContext } from "../../../mongoDB/mongoDBContext"
-import { ipcRenderer } from "electron"
-import SidebarDirectoryTreeControlled from "../directoryTree/sidebarDirectoryTreeControlled"
 import SidebarDBTree from "../DBTree/sidebarDBTree"
 
 /**
@@ -11,15 +8,7 @@ import SidebarDBTree from "../DBTree/sidebarDBTree"
  *
  */
 const HomeSidebar = () => {
-  const { workspace } = useContext(WorkspaceContext) // We get the workspace from the context to retrieve the directory tree of the workspace, thus retrieving the data files
   const { DB } = useContext(MongoDBContext)
-
-  /**
-   * @description - This function is used to send a message to the main process to request a folder from the user
-   */
-  async function handleWorkspaceChange() {
-    ipcRenderer.send("messageFromNext", "requestDialogFolder")
-  }
 
   return (
     <>
@@ -35,15 +24,6 @@ const HomeSidebar = () => {
         >
           Home
         </p>
-        {workspace.hasBeenSet == false && <h3 style={{ color: "white", paddingInline: "1rem" }}>No workspace</h3>}
-        {workspace.hasBeenSet == false && (
-          <Button onClick={handleWorkspaceChange} style={{ margin: "1rem" }}>
-            Set Workspace
-          </Button>
-        )}
-        <Accordion defaultActiveKey={["dirTree"]} alwaysOpen>
-          <SidebarDirectoryTreeControlled />
-        </Accordion>
         {DB.hasBeenSet && (
           <Accordion defaultActiveKey={["DBTree"]} alwaysOpen>
             <SidebarDBTree />

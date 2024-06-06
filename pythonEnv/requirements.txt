@@ -211,6 +211,7 @@ pydicom==1.2.2
 pydub==0.25.1
 Pygments==2.14.0
 PyJWT==2.6.0
+pymongo==4.7.3
 pyod==1.1.0
 pyparsing==3.0.9
 pyrsistent==0.19.3

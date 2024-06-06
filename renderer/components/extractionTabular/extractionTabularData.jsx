@@ -1,5 +1,4 @@
 import { Button } from "primereact/button"
-import { DataContext } from "../workspace/dataContext"
 import DataTableFromContext from "../mainPages/dataComponents/dataTableFromContext"
 import { Dropdown } from "primereact/dropdown"
 import { ErrorRequestContext } from "../generalPurpose/errorRequestContext"
@@ -7,7 +6,6 @@ import ExtractionBioBERT from "./extractionTypes/extractionBioBERT"
 import ExtractionTSfresh from "./extractionTypes/extractionTSfresh"
 import { InputSwitch } from "primereact/inputswitch"
 import { InputText } from "primereact/inputtext"
-import MedDataObject from "../workspace/medDataObject"
 import { Message } from "primereact/message"
 import { PageInfosContext } from "../mainPages/moduleBasics/pageInfosContext"
 import { ProgressSpinner } from "primereact/progressspinner"
@@ -15,7 +13,9 @@ import ProgressBar from "react-bootstrap/ProgressBar"
 import React, { useState, useEffect, useContext } from "react"
 import { requestBackend } from "../../utilities/requests"
 import { toast } from "react-toastify"
-import { WorkspaceContext } from "../workspace/workspaceContext"
+import { MongoDBContext } from "../mongoDB/mongoDBContext"
+import { ServerConnectionContext } from "../serverConnection/connectionContext"
+import { getCollectionData, getCollectionColumnTypes } from "../dbComponents/utils"
 
 /**
  *
@@ -31,19 +31,16 @@ import { WorkspaceContext } from "../workspace/workspaceContext"
  */
 const ExtractionTabularData = ({ extractionTypeList, serverUrl, defaultFilename }) => {
   const [areResultsLarge, setAreResultsLarge] = useState(false) // if the results are too large we don't display them
-  const [csvPath, setCsvPath] = useState("") // csv path of data to extract
-  const [csvResultPath, setCsvResultPath] = useState("") // csv path of extracted data
-  const [dataFolderPath, setDataFolderPath] = useState("") // DATA folder
+  const [columnsTypes, setColumnsTypes] = useState({}) // the selected dataset column types
+  //const [dataFolderPath, setDataFolderPath] = useState("") // DATA folder
   const [dataframe, setDataframe] = useState([]) // djanfo dataframe of data to extract
-  const [datasetList, setDatasetList] = useState([]) // list of available datasets in DATA folder
-  const [extractionInitializeFunction, setExtractionInitializeFunction] = useState("initialize_" + extractionTypeList[0] + "_extraction") // name of the function to use for extraction initialization
+  //const [datasetList, setDatasetList] = useState([]) // list of available datasets in DATA folder
   const [extractionFunction, setExtractionFunction] = useState(extractionTypeList[0] + "_extraction") // name of the function to use for extraction
-  const [extractionToMasterFunction, setExtractionToMasterFunction] = useState("to_master_" + extractionTypeList[0] + "_extraction") // name of the function to use to format extraction data to submastertable
   const [extractionProgress, setExtractionProgress] = useState(0) // advancement state in the extraction function
   const [extractionStep, setExtractionStep] = useState("") // current step in the extraction function
   const [extractionJsonData, setExtractionJsonData] = useState({}) // json data depending on extractionType
   const [extractionType, setExtractionType] = useState(extractionTypeList[0]) // extraction type
-  const [filename, setFilename] = useState(defaultFilename) // name of the csv file containing extracted data
+  const [resultCollectionName, setResultCollectionName] = useState(defaultFilename) // name of the csv file containing extracted data
   const [filenameSavedFeatures, setFilenameSavedFeatures] = useState(null) // name of the csv file containing extracted data
   const [isLoadingDataset, setIsLoadingDataset] = useState(false) // boolean telling if the result dataset is loading
   const [mayProceed, setMayProceed] = useState(false) // boolean set to true if all informations about the extraction (depending on extractionType) have been completed
@@ -53,46 +50,10 @@ const ExtractionTabularData = ({ extractionTypeList, serverUrl, defaultFilename 
   const [viewResults, setViewResults] = useState(false) // Display result if true and results can be displayed
   const [viewOriginalData, setViewOriginalData] = useState(false) // Display selected dataset if true and results can be displayed
 
-  const { globalData } = useContext(DataContext) // we get the global data from the context to retrieve the directory tree of the workspace, thus retrieving the data files
+  const { DB, DBData } = useContext(MongoDBContext) // we get the global data from the context to retrieve the directory tree of the workspace, thus retrieving the data files
   const { pageId } = useContext(PageInfosContext) // used to get the pageId
-  const { port } = useContext(WorkspaceContext) // we get the port for server connexion
+  const { port } = useContext(ServerConnectionContext) // we get the port for server connexion
   const { setError } = useContext(ErrorRequestContext) // used to diplay the errors
-
-  /**
-   *
-   * @param {DataContext} dataContext
-   *
-   * @description
-   * This functions get all files from the DataContext and update datasetList.
-   *
-   */
-  function getDatasetListFromDataContext(dataContext) {
-    let keys = Object.keys(dataContext)
-    let datasetListToShow = []
-    keys.forEach((key) => {
-      if (dataContext[key].type !== "folder") {
-        datasetListToShow.push(dataContext[key])
-      }
-    })
-    setDatasetList(datasetListToShow)
-  }
-
-  /**
-   *
-   * @param {DataContext} dataContext
-   *
-   * @description
-   * This functions returns the DATA folder path
-   *
-   */
-  function getDataFolderPath(dataContext) {
-    let keys = Object.keys(dataContext)
-    keys.forEach((key) => {
-      if (dataContext[key].type == "folder" && dataContext[key].name == "DATA" && dataContext[key].parentID == "UUID_ROOT") {
-        setDataFolderPath(dataContext[key].path)
-      }
-    })
-  }
 
   /**
    *
@@ -103,10 +64,17 @@ const ExtractionTabularData = ({ extractionTypeList, serverUrl, defaultFilename 
    *
    */
   async function datasetSelected(dataset) {
-    let data = await dataset.loadDataFromDisk()
-    setSelectedDataset(dataset)
-    setCsvPath(dataset.path)
-    setDataframe(data)
+    try {
+      setSelectedDataset(dataset)
+      const data = await getCollectionData(DB.name, dataset.label)
+      setDataframe(data)
+      console.log("Dataframe", data)
+      const columnsData = await getCollectionColumnTypes(DB.name, dataset.label)
+      setColumnsTypes(columnsData)
+      console.log("column types", columnsData)
+    } catch (error) {
+      console.error("Error:", error)
+    }
   }
 
   /**
@@ -118,9 +86,9 @@ const ExtractionTabularData = ({ extractionTypeList, serverUrl, defaultFilename 
    * file will be saved.
    *
    */
-  const handleFilenameChange = (name) => {
-    if (name.match("^[a-zA-Z0-9_]+.csv$") != null) {
-      setFilename(name)
+  const handleResultCollectionNameChange = (name) => {
+    if (name.match("^[a-zA-Z0-9_]$") != null) {
+      setResultCollectionName(name)
     }
   }
 
@@ -134,32 +102,7 @@ const ExtractionTabularData = ({ extractionTypeList, serverUrl, defaultFilename 
    */
   const onChangeExtractionType = (value) => {
     setExtractionType(value)
-    setExtractionInitializeFunction("initialize_" + value + "_extraction")
     setExtractionFunction(value + "_extraction")
-    setExtractionToMasterFunction("to_master_" + value + "_extraction")
-  }
-
-  /**
-   * @description
-   * Run the initialization process for the specified extraction type
-   *
-   * @returns jsonResponse
-   */
-  async function initializeExtraction() {
-    return new Promise((resolve, reject) => {
-      requestBackend(
-        port,
-        serverUrl + extractionInitializeFunction + "/" + pageId,
-        {
-          relativeToExtractionType: extractionJsonData,
-          dataFolderPath: dataFolderPath,
-          csvPath: csvPath,
-          filename: filename
-        },
-        (response) => resolve(response),
-        (error) => reject(error)
-      )
-    })
   }
 
   /**
@@ -169,8 +112,8 @@ const ExtractionTabularData = ({ extractionTypeList, serverUrl, defaultFilename 
    *
    * @returns extractedData
    */
-  async function extractDataFromFileList(csvResultsPath, processingList) {
-    let progress = 10
+  async function extractDataFromFileList(processingList) {
+    let progress = 0
     let chunkSize = 25
     let chunks = []
     for (let i = 0; i < processingList.length; i += chunkSize) {
@@ -180,7 +123,7 @@ const ExtractionTabularData = ({ extractionTypeList, serverUrl, defaultFilename 
     for (const subList of chunks) {
       try {
         const jsonResponse = await new Promise((resolve, reject) => {
-          progress += (1 / chunks.length) * 80
+          progress += (1 / chunks.length) * 100
           setExtractionProgress(progress.toFixed(2))
           requestBackend(
             port,
@@ -188,8 +131,9 @@ const ExtractionTabularData = ({ extractionTypeList, serverUrl, defaultFilename 
             {
               relativeToExtractionType: extractionJsonData,
               identifiersList: subList,
-              csvResultsPath: csvResultsPath,
-              csvPath: csvPath,
+              resultCollectionName: resultCollectionName,
+              DBName: DB.name,
+              collectionName: selectedDataset.label,
               pageId: pageId
             },
             (response) => resolve(response),
@@ -210,30 +154,6 @@ const ExtractionTabularData = ({ extractionTypeList, serverUrl, defaultFilename 
 
   /**
    *
-   * @param {*} extractedFeaturesPath
-   * @description
-   * Format the extracted features as submaster table
-   *
-   * @returns jsonResponse
-   */
-  async function formatAsMasterTable(csvResultsPath) {
-    return new Promise((resolve, reject) => {
-      requestBackend(
-        port,
-        serverUrl + extractionToMasterFunction + "/" + pageId,
-        {
-          relativeToExtractionType: extractionJsonData,
-          csvResultsPath: csvResultsPath,
-          csvPath: csvPath
-        },
-        (response) => resolve(response),
-        (error) => reject(error)
-      )
-    })
-  }
-
-  /**
-   *
    * @description
    * Run extraction main function.
    *
@@ -242,69 +162,33 @@ const ExtractionTabularData = ({ extractionTypeList, serverUrl, defaultFilename 
     setMayProceed(false)
     setShowProgressBar(true)
     setExtractionProgress(0)
-    setExtractionStep("Initialization")
-    // Initialize extraction process
-    let jsonInitialization = await initializeExtraction()
-    setExtractionProgress(10)
-    setExtractionStep("Extracting data")
-    if (!jsonInitialization.error) {
-      // Extract data
-      let processingList = jsonInitialization["processing_list"]
-      let csvResultsPath = jsonInitialization["csv_result_path"]
-      await extractDataFromFileList(csvResultsPath, processingList)
-      if (extractionJsonData["masterTableCompatible"]) {
-        setExtractionStep("Format data as master table")
-        setExtractionProgress(95)
-        let jsonFormat = await formatAsMasterTable(csvResultsPath)
-        if (jsonFormat.error) {
-          toast.error(`Extraction failed: ${jsonFormat.error.message}`)
-          setError(jsonFormat.error)
-        }
-      }
-      setCsvResultPath(csvResultsPath)
-      setFilenameSavedFeatures(filename)
-      setExtractionStep("Extracted Features Saved")
-      MedDataObject.updateWorkspaceDataObject()
-      setExtractionProgress(100)
-      setResultDataset(null)
-      setIsLoadingDataset(true)
+    setExtractionStep("Extraction")
+    const patientIdentifierColumn = extractionJsonData["selectedColumns"]["patientIdentifier"]
+    const uniquePatientIdentifiers = Array.from(new Set(dataframe.map((item) => item[patientIdentifierColumn])))
+    const jsonResponse = await extractDataFromFileList(uniquePatientIdentifiers)
+    if (!jsonResponse.error) {
+      toast.success(jsonResponse["collection_length"] + " elements added to " + DB.name)
     } else {
-      toast.error(`Extraction failed: ${jsonInitialization.error.message}`)
-      setError(jsonInitialization.error)
+      toast.error(`Extraction failed: ${jsonResponse.error.message}`)
+      setError(jsonResponse.error)
     }
-    setExtractionProgress(100)
     setExtractionStep("")
     setMayProceed(true)
     setShowProgressBar(false)
   }
-
-  // Called when the datasetList is updated, in order to get the extracted data
-  useEffect(() => {
-    if (datasetList.length > 0) {
-      datasetList.forEach((dataset) => {
-        if (dataset.path == csvResultPath) {
-          setResultDataset(dataset)
-        }
-      })
-    }
-  }, [datasetList])
-
-  // Called when data in DataContext is updated, in order to updated datasetList and DataFolderPath
-  useEffect(() => {
-    if (globalData !== undefined) {
-      getDatasetListFromDataContext(globalData)
-      getDataFolderPath(globalData)
-    }
-  }, [globalData])
 
   return (
     <div>
       <hr></hr>
       <div className="margin-top-bottom-15">
         <div className="center">
-          {/* Select CSV data */}
-          <h2>Select CSV data</h2>
-          {datasetList.length > 0 ? <Dropdown value={selectedDataset} options={datasetList.filter((value) => value.extension == "csv")} optionLabel="name" onChange={(event) => datasetSelected(event.value)} placeholder="Select a dataset" /> : <Dropdown placeholder="No dataset to show" disabled />}
+          {/* Select Data */}
+          <h2>Select Data</h2>
+          {DBData.length > 0 ? (
+            <Dropdown value={selectedDataset} options={DBData} onChange={(event) => datasetSelected(event.value)} placeholder="Select a dataset" />
+          ) : (
+            <Dropdown placeholder="No dataset to show" disabled />
+          )}
         </div>
       </div>
 
@@ -347,8 +231,10 @@ const ExtractionTabularData = ({ extractionTypeList, serverUrl, defaultFilename 
             <Dropdown value={extractionType} options={extractionTypeList} onChange={(event) => onChangeExtractionType(event.value)} />
           </div>
           <div className="margin-top-15">
-            {extractionType == "BioBERT" && <ExtractionBioBERT dataframe={dataframe} setExtractionJsonData={setExtractionJsonData} setMayProceed={setMayProceed} />}
-            {extractionType == "TSfresh" && <ExtractionTSfresh dataframe={dataframe} setExtractionJsonData={setExtractionJsonData} setMayProceed={setMayProceed} setAreResultsLarge={setAreResultsLarge} />}
+            {extractionType == "BioBERT" && <ExtractionBioBERT dataframe={dataframe} columnsTypes={columnsTypes} setExtractionJsonData={setExtractionJsonData} setMayProceed={setMayProceed} />}
+            {extractionType == "TSfresh" && (
+              <ExtractionTSfresh dataframe={dataframe} setExtractionJsonData={setExtractionJsonData} setMayProceed={setMayProceed} setAreResultsLarge={setAreResultsLarge} />
+            )}
           </div>
         </div>
       </div>
@@ -363,7 +249,7 @@ const ExtractionTabularData = ({ extractionTypeList, serverUrl, defaultFilename 
             <div className="flex-container">
               <div>
                 Save extracted features as : &nbsp;
-                <InputText value={filename} onChange={(e) => handleFilenameChange(e.target.value)} />
+                <InputText value={resultCollectionName} onChange={(e) => handleResultCollectionNameChange(e.target.value)} />
               </div>
               <div>
                 {/* Button activated only if all necessary columns have been selected */}
@@ -394,7 +280,17 @@ const ExtractionTabularData = ({ extractionTypeList, serverUrl, defaultFilename 
         <div className="margin-top-bottom-15 center">
           <InputSwitch id="switch" checked={viewResults} onChange={(e) => setViewResults(e.value)} />
         </div>
-        {viewResults == true && areResultsLarge == false && <div>{resultDataset ? <DataTableFromContext MedDataObject={resultDataset} tablePropsData={{ size: "small", paginator: true, rows: 5 }} /> : isLoadingDataset ? <ProgressSpinner /> : <p>Nothing to show, proceed to extraction first.</p>}</div>}
+        {viewResults == true && areResultsLarge == false && (
+          <div>
+            {resultDataset ? (
+              <DataTableFromContext MedDataObject={resultDataset} tablePropsData={{ size: "small", paginator: true, rows: 5 }} />
+            ) : isLoadingDataset ? (
+              <ProgressSpinner />
+            ) : (
+              <p>Nothing to show, proceed to extraction first.</p>
+            )}
+          </div>
+        )}
         {viewResults == true && resultDataset && areResultsLarge == true && <p>The result dataset is too large to be display here.</p>}
         {resultDataset && (
           <p>

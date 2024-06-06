@@ -1,5 +1,5 @@
 import { ToastContainer } from "react-toastify"
-import React, {useEffect, useState} from "react"
+import React, { useEffect, useState } from "react"
 import Head from "next/head"
 import LayoutManager from "../components/layout/layoutManager"
 import { LayoutModelProvider } from "../components/layout/layoutContext"
@@ -12,6 +12,7 @@ import { ActionContextProvider } from "../components/layout/actionContext"
 import { HotkeysProvider } from "@blueprintjs/core"
 import { ConfirmPopup } from "primereact/confirmpopup"
 import { ConfirmDialog } from "primereact/confirmdialog"
+import { ServerConnectionProvider } from "../components/serverConnection/connectionContext"
 
 // CSS
 import "bootstrap/dist/css/bootstrap.min.css"
@@ -197,21 +198,21 @@ function App() {
       let treeCollections = collections.map((item) => ({
         key: item,
         label: item,
-        icon: "pi pi-folder",
+        icon: "pi pi-folder"
       }))
       setDBData(treeCollections)
     })
 
     ipcRenderer.on("collection-data", (event, data) => {
-        let collData = data.map((item) => {
-            let keys = Object.keys(item)
-            let values = Object.values(item)
-            let dataObject = {}
-            for (let i = 0; i < keys.length; i++) {
-              dataObject[keys[i]] = values[i]
-            }
-            return dataObject
-        })
+      let collData = data.map((item) => {
+        let keys = Object.keys(item)
+        let values = Object.values(item)
+        let dataObject = {}
+        for (let i = 0; i < keys.length; i++) {
+          dataObject[keys[i]] = values[i]
+        }
+        return dataObject
+      })
       setCollectionData(collData)
     })
 
@@ -544,16 +545,27 @@ function App() {
                 recentWorkspaces={recentWorkspaces}
                 setRecentWorkspaces={setRecentWorkspaces}
               >
-                <MongoDBProvider DB={DBObject} setDB={setDBObject} DBData={DBData} setDBData={setDBData} recentDBs={recentDBs} setRecentDBs={setRecentDBs} setCollectionData={setCollectionData} collectionData={collectionData}>
-                  <LayoutModelProvider // This is the LayoutContextProvider, which provides the layout model to all the children components of the LayoutManager
-                    layoutModel={layoutModel}
-                    setLayoutModel={setLayoutModel}
-                  >
-                    {/* This is the WorkspaceProvider, which provides the workspace model to all the children components of the LayoutManager */}
-                    {/* This is the LayoutContextProvider, which provides the layout model to all the children components of the LayoutManager */}
-                    <LayoutManager layout={initialLayout} />
-                    {/** We pass the initialLayout as a parameter */}
-                  </LayoutModelProvider>
+                <MongoDBProvider
+                  DB={DBObject}
+                  setDB={setDBObject}
+                  DBData={DBData}
+                  setDBData={setDBData}
+                  recentDBs={recentDBs}
+                  setRecentDBs={setRecentDBs}
+                  setCollectionData={setCollectionData}
+                  collectionData={collectionData}
+                >
+                  <ServerConnectionProvider port={port} setPort={setPort}>
+                    <LayoutModelProvider // This is the LayoutContextProvider, which provides the layout model to all the children components of the LayoutManager
+                      layoutModel={layoutModel}
+                      setLayoutModel={setLayoutModel}
+                    >
+                      {/* This is the WorkspaceProvider, which provides the workspace model to all the children components of the LayoutManager */}
+                      {/* This is the LayoutContextProvider, which provides the layout model to all the children components of the LayoutManager */}
+                      <LayoutManager layout={initialLayout} />
+                      {/** We pass the initialLayout as a parameter */}
+                    </LayoutModelProvider>
+                  </ServerConnectionProvider>
                 </MongoDBProvider>
               </WorkspaceProvider>
             </DataContextProvider>
