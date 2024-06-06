@@ -6,23 +6,40 @@ import { Button } from "primereact/button";
 import { MongoClient, ObjectId } from "mongodb";
 import {toast} from "react-toastify";
 const mongoUrl = "mongodb://127.0.0.1:27017";
+import { saveAs } from 'file-saver';
+import { SplitButton } from 'primereact/splitbutton';
 
 /**
  * DataTableFromDB component
  * @param data
  * @param tablePropsData
  * @param tablePropsColumn
+ * @param isReadOnly
  * @returns {Element}
  * @constructor
  */
-const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn }) => {
+const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly }) => {
   const [innerData, setInnerData] = useState([]);
   const [columns, setColumns] = useState([]);
   const [newColumnName, setNewColumnName] = useState("");
   const [numRows, setNumRows] = useState("");
   const [hoveredButton, setHoveredButton] = useState(null);
+  const exportOptions = [
+    {
+      label: 'CSV',
+      command: () => {
+        handleExport('CSV');
+      }
+    },
+    {
+      label: 'JSON',
+      command: () => {
+        handleExport('JSON');
+      }
+    }
+  ];
 
-  const isReadOnly = false; // true: Read-Only Mode, false: Edit-Mode
+  //const isReadOnly = false; // true: Read-Only Mode, false: Edit-Mode
 
   const buttonStyle = (id) => ({
     borderRadius: '10px',
@@ -291,6 +308,7 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn }) => {
             value={options.value}
             onChange={(e) => options.editorCallback(e.target.value)}
             onKeyDown={(e) => e.stopPropagation()}
+            style={{width: '100%'}}
         />
     );
   };
@@ -336,6 +354,29 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn }) => {
     }
   };
 
+  // Export data to CSV or JSON
+  function handleExport(format) {
+    if (format === "CSV") {
+      const headers = columns.map(column => column.field);
+      const csvData = [headers.join(",")];
+      csvData.push(...innerData.map((row) => {
+        let csvRow = "";
+        for (const [key, value] of Object.entries(row)) {
+          csvRow += value + ",";
+        }
+        return csvRow.slice(0, -1);
+      }));
+      const csvString = csvData.join("\n");
+      const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8' });
+      saveAs(blob, data.uuid + '.csv');
+    } else if (format === "JSON") {
+      const jsonBlob = new Blob([JSON.stringify(innerData)], { type: 'application/json' });
+      saveAs(jsonBlob, data.uuid + '.json');
+    } else {
+      toast.warn("Please select a format to export");
+    }
+  }
+
   // Render the DataTable component
   return (
       <>
@@ -363,7 +404,7 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn }) => {
                               id="numRows"
                               value={numRows}
                               onChange={(e) => setNumRows(e.target.value)}
-                              style={{marginRight: '10px', width: '130px'}}
+                              style={{marginRight: '10px', width: '100px'}}
                               placeholder="# of Rows"
                           />
                           <Button
@@ -371,7 +412,7 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn }) => {
                               onClick={handleAddRow}
                               style={{
                                 width: '100px',
-                                marginRight: '20px',
+                                marginRight: '40px',
                               }}
                           />
                         </div>
@@ -390,10 +431,21 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn }) => {
                               onClick={handleAddColumn}
                               style={{
                                 width: '100px',
+                                marginRight: '40px',
                               }}
                           />
                         </div>
                     )}
+                    {!isReadOnly && (
+                    <div>
+                      <SplitButton
+                          label="Export"
+                          model={exportOptions}
+                          className="p-button-success"
+                      />
+                    </div>
+                    )}
+                    {!isReadOnly && (
                     <div>
                       <Button
                           icon="pi pi-refresh"
@@ -407,6 +459,7 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn }) => {
                           }}
                       />
                     </div>
+                    )}
                   </div>
                 }
             >
