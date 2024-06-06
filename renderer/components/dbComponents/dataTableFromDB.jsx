@@ -14,10 +14,11 @@ import { SplitButton } from 'primereact/splitbutton';
  * @param data
  * @param tablePropsData
  * @param tablePropsColumn
+ * @param isReadOnly
  * @returns {Element}
  * @constructor
  */
-const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn }) => {
+const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly }) => {
   const [innerData, setInnerData] = useState([]);
   const [columns, setColumns] = useState([]);
   const [newColumnName, setNewColumnName] = useState("");
@@ -38,7 +39,7 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn }) => {
     }
   ];
 
-  const isReadOnly = false; // true: Read-Only Mode, false: Edit-Mode
+  //const isReadOnly = false; // true: Read-Only Mode, false: Edit-Mode
 
   const buttonStyle = (id) => ({
     borderRadius: '10px',
