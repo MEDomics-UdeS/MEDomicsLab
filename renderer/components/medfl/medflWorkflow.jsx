@@ -134,10 +134,7 @@ const MedflWorkflow = ({ setWorkflowType, workflowType }) => {
         validationFraction: 0.1,
         testFraction: 0
       },
-      flPipelineNode: {
-        name: "FL Pipeline"  , 
-        description  : "fl pipeline"
-      },
+      
       flModelNode: {
         activateTl: "true",
         file: {
@@ -197,10 +194,6 @@ const MedflWorkflow = ({ setWorkflowType, workflowType }) => {
         name: "FL Dataset",
         validationFraction: 0.1,
         testFraction: 0
-      },
-      flPipelineNode: {
-        name: "FL Pipeline" , 
-        description  : "fl pipeline"
       },
       flModelNode: {
         activateTl: "true",

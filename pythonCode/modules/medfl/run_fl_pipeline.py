@@ -13,6 +13,9 @@ import json
 import sys
 from pathlib import Path
 
+from datetime import datetime
+
+
 sys.path.append(
     str(Path(os.path.dirname(os.path.abspath(__file__))).parent.parent))
 
@@ -60,18 +63,20 @@ class GoExecScriptRunPipelineFromMEDfl(GoExecutionScript):
 
         db_manager = DatabaseManager()
 
-        self.set_progress(label=" Creating MEDfl DB", now=2)
+        
 
         for index , config in enumerate(json_config['flConfig']) :
 
             # =======================================================
+            self.set_progress(label=f"Configuration : {index +1 }, Creating MEDfl DB", now=2)
             # Create the master dataset
             db_manager.create_MEDfl_db(
                 path_to_csv=config['masterDatasetNode']['path'])
 
             self.set_progress(label=f"Configuration : {index +1 }, Creating the Network", now=5)
             # Create Network
-            Net_1 = Network(config['Network']['name'])
+            microseconds = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f").split('.')[1]
+            Net_1 = Network( f"{config['Network']['name']}_{microseconds}")
             Net_1.create_network()
 
             self.set_progress(label=f"Configuration : {index +1 }, Creating the MasterDataset", now=10)
@@ -81,7 +86,8 @@ class GoExecScriptRunPipelineFromMEDfl(GoExecutionScript):
 
             self.set_progress(label=f"Configuration : {index +1 }, Creating the FL setup", now=20)
             # auto FLsetup creation
-            autoFl = FLsetup(name=config['flSetupNode']['name'],
+            microseconds = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f").split('.')[1]
+            autoFl = FLsetup( name= f"{config['flSetupNode']['name']}_{microseconds}" ,
                             description=config['flSetupNode']['description'], network=Net_1)
             autoFl.create()
 
@@ -89,8 +95,11 @@ class GoExecScriptRunPipelineFromMEDfl(GoExecutionScript):
             self.set_progress(label=f"Configuration : {index +1 }, Creating the FL clients", now=25)
 
             for client in config['Network']['clients']:
+
+                microseconds = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f").split('.')[1]
+                
                 hospital = Node(
-                    name=client["name"], train=1 if client['type'] == 'Train node' else 0)
+                    name= f"{client['name']}_{microseconds}" , train=1 if client['type'] == 'Train node' else 0)
                 Net_1.add_node(hospital)
                 hospital.upload_dataset("datasetName",  client["dataset"]['path'])
 
@@ -165,8 +174,10 @@ class GoExecScriptRunPipelineFromMEDfl(GoExecutionScript):
             # Create the pipeline
             self.set_progress(label=f"Configuration : {index +1 }, Creating The pipeline", now=65)
 
-            ppl_1 = FLpipeline(name=config['flPipelineNode']['name'],
-                            description=config['flPipelineNode']['description'],
+            microseconds = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f").split('.')[1]
+
+            ppl_1 = FLpipeline(name= f"pipeline_{microseconds}" ,
+                            description="",
                             server=server)
 
             # Run the Traning of the model
