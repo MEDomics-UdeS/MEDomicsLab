@@ -6,6 +6,8 @@ import json
 import sys
 from pathlib import Path
 import time
+import plotly.io as pio
+import base64
 
 sys.path.append(
     str(Path(os.path.dirname(os.path.abspath(__file__))).parent.parent))
@@ -33,6 +35,11 @@ class GoExecScriptParamOptimFromMEDfl(GoExecutionScript):
         super().__init__(json_params, _id)
         self.results = {"data": "nothing to return"}
 
+    def fig_to_base64(self, fig):
+        img_bytes = pio.to_image(fig, format='png')
+        img_str = base64.b64encode(img_bytes).decode('utf-8')
+        return img_str 
+    
     def _custom_process(self, json_config: dict) -> dict:
         """
         This function is the main script of the execution of the process from Go
@@ -59,6 +66,17 @@ class GoExecScriptParamOptimFromMEDfl(GoExecutionScript):
         else:
             study = trainer.optuna_optimisation(
                 direction=json_config['flConfig']["direction"], params=json_config['flConfig']["param_grid"])
+            
+            # Generate the plots
+            opt_history = trainer.plot_optimization_history()
+            param_importance = trainer.plot_param_importances()
+            parallel_coordinates = trainer.plot_parallel_coordinate()
+
+            # Convert plots to base64 strings
+            opt_history_base64 = self.fig_to_base64(opt_history)
+            param_importance_base64 = self.fig_to_base64(param_importance)
+            parallel_coordinates_base64 = self.fig_to_base64(parallel_coordinates)
+
 
         self.set_progress(label="Getting params", now=90)
 
@@ -75,7 +93,10 @@ class GoExecScriptParamOptimFromMEDfl(GoExecutionScript):
                 "data": {
                     "Best Parameters": study.best_params,
                     "Best Score": study.best_value,
-                    "Metric": json_config['flConfig']["metric"]
+                    "Metric": json_config['flConfig']["metric"] , 
+                    'opt_history' : opt_history_base64 , 
+                    'param_importance' : param_importance_base64 , 
+                    'parallel_coordinates' : parallel_coordinates_base64
                 },
                 "stringFromBackend": "Best optuna params returned"}
         self.set_progress(label="Best hyperparameters are ready", now=100)

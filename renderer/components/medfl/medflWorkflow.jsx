@@ -82,6 +82,7 @@ const MedflWorkflow = ({ setWorkflowType, workflowType }) => {
   const [showConfigModal, setconfigModal] = useState(true)
 
   const [optimResults, setOptimResults] = useState(null)
+  const [optimType, setOptimType] = useState("")
 
   const { groupNodeId, changeSubFlow, hasNewConnection } = useContext(FlowFunctionsContext)
   const { config, pageId, configPath } = useContext(PageInfosContext) // used to get the page infos such as id and config path
@@ -941,7 +942,7 @@ const MedflWorkflow = ({ setWorkflowType, workflowType }) => {
           setOptimResults(null)
         }}
         results={optimResults ? optimResults : {}}
-        title="GRID Search optimisation results"
+        title={optimType == "gridSearch" ? "GRID Search optimisation results" : "Optuna central optimization"}
       />
 
       {/* RUN the fl pipeline modal  */}
@@ -958,6 +959,7 @@ const MedflWorkflow = ({ setWorkflowType, workflowType }) => {
           if (mode == "run") {
             runFlPipeline(ALL_CONFIGS, flConfigFile?.path)
           } else {
+            setOptimType(flConfig[0]["flOptimizeNode"]["optimisation Type"])
             runFlOptimisation(flConfig, flConfigFile?.path)
           }
         }}

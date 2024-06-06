@@ -82,17 +82,17 @@ const nodesParams = {
     title: "FL Strategy",
     possibleSettings: {}
   },
-  fl_pipeline: {
-    type: "flPipelineNode",
-    classes: "object ",
-    nbInput: 3,
-    nbOutput: 1,
-    input: ["fl_strategy", "model", "fl_dataset"],
-    output: ["fl_pipeline"],
-    img: "pipeline.png",
-    title: "FL Pipeline",
-    possibleSettings: {}
-  }
+  // fl_pipeline: {
+  //   type: "flPipelineNode",
+  //   classes: "object ",
+  //   nbInput: 3,
+  //   nbOutput: 1,
+  //   input: ["fl_strategy", "model", "fl_dataset"],
+  //   output: ["fl_pipeline"],
+  //   img: "pipeline.png",
+  //   title: "FL Pipeline",
+  //   possibleSettings: {}
+  // }
   // results: {
   //   type: "flResultsNode",
   //   classes: "object dataset ",

@@ -64,8 +64,7 @@ class GoExecScriptRunPipelineFromMEDfl(GoExecutionScript):
         db_manager = DatabaseManager()
 
         # =======================================================
-
-        self.set_progress(label=f"Creating MEDfl DB", now=2)
+        self.set_progress(label=f" Creating MEDfl DB", now=2)
         # Create the master dataset
         db_manager.create_MEDfl_db(
             path_to_csv=json_config['flConfig'][0]['masterDatasetNode']['path'])
