@@ -95,8 +95,8 @@ const MedflWorkflow = ({ setWorkflowType, workflowType }) => {
   let ALL_CONFIGS = [
     {
       masterDatasetNode: {
-        name: "output_1.csv",
-        path: "C:\\Users\\HP User\\Desktop\\MEDomicsLab\\DATA\\output_1.csv",
+        name: "Mimic_2017.csv",
+        path: "/home/local/USHERBROOKE/saho6810/Bureau/DATA/Mimic_2017.csv",
         target: "deceased"
       },
       Network: {
@@ -106,23 +106,23 @@ const MedflWorkflow = ({ setWorkflowType, workflowType }) => {
             name: "Client",
             type: "Test Node",
             dataset: {
-              name: "output_1.csv",
-              path: "C:\\Users\\HP User\\Desktop\\MEDomicsLab\\DATA\\output_1.csv"
+              name: "Mimic_2017.csv",
+              path: "/home/local/USHERBROOKE/saho6810/Bureau/DATA/Mimic_2017.csv"
             }
           },
           {
             name: "Client",
             type: "Train node",
             dataset: {
-              name: "output_2.csv",
-              path: "C:\\Users\\HP User\\Desktop\\MEDomicsLab\\DATA\\output_2.csv"
+              name: "Mimic_2017.csv",
+              path: "/home/local/USHERBROOKE/saho6810/Bureau/DATA/Mimic_2017.csv"
             }
           }
         ],
         server: {
-          name: "FL Server"  , 
-          nRounds : 2 , 
-          activateDP:"Deactivate"
+          name: "FL Server",
+          nRounds: 2,
+          activateDP: "Deactivate"
         }
       },
       flSetupNode: {
@@ -134,12 +134,12 @@ const MedflWorkflow = ({ setWorkflowType, workflowType }) => {
         validationFraction: 0.1,
         testFraction: 0
       },
-      
+
       flModelNode: {
         activateTl: "true",
         file: {
           name: "grid_search_classifier.pth",
-          path: "C:\\Users\\HP User\\Desktop\\MEDomicsLab\\DATA\\grid_search_classifier.pth"
+          path: "/home/local/USHERBROOKE/saho6810/Bureau/DATA/grid_search_classifier.pth"
         },
         optimizer: "Adam",
         "learning rate": 0.001,
@@ -156,8 +156,8 @@ const MedflWorkflow = ({ setWorkflowType, workflowType }) => {
     },
     {
       masterDatasetNode: {
-        name: "output_1.csv",
-        path: "C:\\Users\\HP User\\Desktop\\MEDomicsLab\\DATA\\output_1.csv",
+        name: "Mimic_2017.csv",
+        path: "/home/local/USHERBROOKE/saho6810/Bureau/DATA/Mimic_2017.csv",
         target: "deceased"
       },
       Network: {
@@ -167,23 +167,23 @@ const MedflWorkflow = ({ setWorkflowType, workflowType }) => {
             name: "Client",
             type: "Test Node",
             dataset: {
-              name: "output_1.csv",
-              path: "C:\\Users\\HP User\\Desktop\\MEDomicsLab\\DATA\\output_1.csv"
+              name: "Mimic_2017.csv",
+              path: "/home/local/USHERBROOKE/saho6810/Bureau/DATA/Mimic_2017.csv"
             }
           },
           {
             name: "Client",
             type: "Train node",
             dataset: {
-              name: "output_2.csv",
-              path: "C:\\Users\\HP User\\Desktop\\MEDomicsLab\\DATA\\output_2.csv"
+              name: "Mimic_2017.csv",
+              path: "/home/local/USHERBROOKE/saho6810/Bureau/DATA/Mimic_2017.csv"
             }
           }
         ],
         server: {
-          name: "FL Server" , 
-          nRounds : 2 , 
-          activateDP:"Deactivate"
+          name: "FL Server",
+          nRounds: 2,
+          activateDP: "Deactivate"
         }
       },
       flSetupNode: {
@@ -199,7 +199,7 @@ const MedflWorkflow = ({ setWorkflowType, workflowType }) => {
         activateTl: "true",
         file: {
           name: "grid_search_classifier.pth",
-          path: "C:\\Users\\HP User\\Desktop\\MEDomicsLab\\DATA\\grid_search_classifier.pth"
+          path: "/home/local/USHERBROOKE/saho6810/Bureau/DATA/grid_search_classifier.pth"
         },
         optimizer: "Adam",
         "learning rate": 0.001,
@@ -756,9 +756,7 @@ const MedflWorkflow = ({ setWorkflowType, workflowType }) => {
     return result
   }
 
-  const 
-  
-  runFlPipeline = (flConfig, dbConfigfile) => {
+  const runFlPipeline = (flConfig, dbConfigfile) => {
     let JSONToSend = { flConfig: flConfig, dbConfigfile: dbConfigfile }
 
     setIsProgressUpdating(true)
@@ -958,9 +956,7 @@ const MedflWorkflow = ({ setWorkflowType, workflowType }) => {
         onRun={(flConfig, mode) => {
           setRunModal(false)
           if (mode == "run") {
-         
-          runFlPipeline(ALL_CONFIGS, flConfigFile?.path)
-           
+            runFlPipeline(ALL_CONFIGS, flConfigFile?.path)
           } else {
             runFlOptimisation(flConfig, flConfigFile?.path)
           }
