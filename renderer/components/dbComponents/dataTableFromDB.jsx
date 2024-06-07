@@ -5,6 +5,7 @@ import {InputText} from "primereact/inputtext";
 import {Button} from "primereact/button";
 import {MongoClient, ObjectId} from "mongodb";
 import {toast} from "react-toastify";
+import { MultiSelect } from 'primereact/multiselect';
 
 const mongoUrl = "mongodb://127.0.0.1:27017";
 import {saveAs} from 'file-saver';
@@ -25,6 +26,7 @@ const DataTableFromDB = ({data, tablePropsData, tablePropsColumn, isReadOnly}) =
     const [newColumnName, setNewColumnName] = useState("");
     const [numRows, setNumRows] = useState("");
     const [hoveredButton, setHoveredButton] = useState(null);
+    const [selectedColumns, setSelectedColumns] = useState([]);
     const exportOptions = [
         {
             label: 'CSV',
@@ -376,6 +378,33 @@ const DataTableFromDB = ({data, tablePropsData, tablePropsColumn, isReadOnly}) =
         }
     }
 
+    // Transform data to binary or non-empty
+    const transformData = (type) => {
+        if (selectedColumns.length === 0) {
+            toast.warn("Please select at least one column to transform");
+            return;
+        }
+        const newInnerData = innerData.map(row => {
+            let newRow = { ...row };
+            selectedColumns.forEach(column => {
+                if (type === 'Binary') {
+                    newRow[column] = newRow[column] ? 1 : 0;
+                } else if (type === 'Non-empty') {
+                    newRow[column] = newRow[column] ? newRow[column] : 0;
+                }
+            });
+            return newRow;
+        });
+        setInnerData(newInnerData);
+
+        // Update the MongoDB database
+        newInnerData.forEach(async (row) => {
+            for (const column of selectedColumns) {
+                await updateDatabaseData(data.path, data.uuid, row._id, column, row[column]);
+            }
+        });
+    };
+
     // Render the DataTable component
     return (
         <>
@@ -430,6 +459,36 @@ const DataTableFromDB = ({data, tablePropsData, tablePropsColumn, isReadOnly}) =
                                         onClick={handleAddColumn}
                                         style={{
                                             width: '100px',
+                                            marginRight: '40px',
+                                        }}
+                                    />
+                                </div>
+                            )}
+                            {!isReadOnly && (
+                                <div style={{display: 'flex', alignItems: 'center', margin: '5px'}}>
+                                    <MultiSelect
+                                        value={selectedColumns}
+                                        options={columns.map(column => ({ label: column.header, value: column.field }))}
+                                        onChange={(e) => setSelectedColumns(e.value)}
+                                        placeholder="Select Columns"
+                                        style={{marginRight: '10px', width: '200px'}}
+                                    />
+                                    <SplitButton
+                                        label="Transform"
+                                        model={[
+                                            {
+                                                label: 'Binary',
+                                                command: () => transformData('Binary')
+
+                                            },
+                                            {
+                                                label: 'Non-empty',
+                                                command: () => transformData('Non-empty')
+                                            }
+                                        ]}
+                                        className="p-button-success"
+                                        style={{
+                                            width: '150px',
                                             marginRight: '40px',
                                         }}
                                     />
