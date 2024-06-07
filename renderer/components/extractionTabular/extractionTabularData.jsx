@@ -8,9 +8,8 @@ import { InputSwitch } from "primereact/inputswitch"
 import { InputText } from "primereact/inputtext"
 import { Message } from "primereact/message"
 import { PageInfosContext } from "../mainPages/moduleBasics/pageInfosContext"
-import { ProgressSpinner } from "primereact/progressspinner"
 import ProgressBar from "react-bootstrap/ProgressBar"
-import React, { useState, useEffect, useContext } from "react"
+import React, { useState, useContext } from "react"
 import { requestBackend } from "../../utilities/requests"
 import { toast } from "react-toastify"
 import { MongoDBContext } from "../mongoDB/mongoDBContext"
@@ -30,11 +29,8 @@ import { getCollectionData, getCollectionColumnTypes } from "../dbComponents/uti
  *
  */
 const ExtractionTabularData = ({ extractionTypeList, serverUrl, defaultFilename }) => {
-  const [areResultsLarge, setAreResultsLarge] = useState(false) // if the results are too large we don't display them
   const [columnsTypes, setColumnsTypes] = useState({}) // the selected dataset column types
-  //const [dataFolderPath, setDataFolderPath] = useState("") // DATA folder
   const [dataframe, setDataframe] = useState([]) // djanfo dataframe of data to extract
-  //const [datasetList, setDatasetList] = useState([]) // list of available datasets in DATA folder
   const [extractionFunction, setExtractionFunction] = useState(extractionTypeList[0] + "_extraction") // name of the function to use for extraction
   const [extractionProgress, setExtractionProgress] = useState(0) // advancement state in the extraction function
   const [extractionStep, setExtractionStep] = useState("") // current step in the extraction function
@@ -42,7 +38,6 @@ const ExtractionTabularData = ({ extractionTypeList, serverUrl, defaultFilename 
   const [extractionType, setExtractionType] = useState(extractionTypeList[0]) // extraction type
   const [resultCollectionName, setResultCollectionName] = useState(defaultFilename) // name of the csv file containing extracted data
   const [filenameSavedFeatures, setFilenameSavedFeatures] = useState(null) // name of the csv file containing extracted data
-  const [isLoadingDataset, setIsLoadingDataset] = useState(false) // boolean telling if the result dataset is loading
   const [mayProceed, setMayProceed] = useState(false) // boolean set to true if all informations about the extraction (depending on extractionType) have been completed
   const [resultDataset, setResultDataset] = useState(null) // dataset of extracted data used to be display
   const [selectedDataset, setSelectedDataset] = useState(null) // dataset of data to extract used to be display
@@ -68,27 +63,10 @@ const ExtractionTabularData = ({ extractionTypeList, serverUrl, defaultFilename 
       setSelectedDataset(dataset)
       const data = await getCollectionData(DB.name, dataset.label)
       setDataframe(data)
-      console.log("Dataframe", data)
       const columnsData = await getCollectionColumnTypes(DB.name, dataset.label)
       setColumnsTypes(columnsData)
-      console.log("column types", columnsData)
     } catch (error) {
       console.error("Error:", error)
-    }
-  }
-
-  /**
-   *
-   * @param {String} name
-   *
-   * @description
-   * Called when the user change the name under which the extracted data
-   * file will be saved.
-   *
-   */
-  const handleResultCollectionNameChange = (name) => {
-    if (name.match("^[a-zA-Z0-9_]$") != null) {
-      setResultCollectionName(name)
     }
   }
 
@@ -113,9 +91,10 @@ const ExtractionTabularData = ({ extractionTypeList, serverUrl, defaultFilename 
    * @returns extractedData
    */
   async function extractDataFromFileList(processingList) {
-    let progress = 0
+    let progress = 5
     let chunkSize = 25
     let chunks = []
+    let response = {}
     for (let i = 0; i < processingList.length; i += chunkSize) {
       const chunk = processingList.slice(i, i + chunkSize)
       chunks.push(chunk)
@@ -123,8 +102,6 @@ const ExtractionTabularData = ({ extractionTypeList, serverUrl, defaultFilename 
     for (const subList of chunks) {
       try {
         const jsonResponse = await new Promise((resolve, reject) => {
-          progress += (1 / chunks.length) * 100
-          setExtractionProgress(progress.toFixed(2))
           requestBackend(
             port,
             serverUrl + extractionFunction + "/" + pageId,
@@ -140,6 +117,9 @@ const ExtractionTabularData = ({ extractionTypeList, serverUrl, defaultFilename 
             (error) => reject(error)
           )
         })
+        response = jsonResponse
+        progress += (1 / chunks.length) * 95
+        setExtractionProgress(progress.toFixed(2))
         if (jsonResponse.error) {
           toast.error(`Extraction failed: ${jsonResponse.error.message}`)
           setError(jsonResponse.error)
@@ -150,6 +130,7 @@ const ExtractionTabularData = ({ extractionTypeList, serverUrl, defaultFilename 
         return
       }
     }
+    return response
   }
 
   /**
@@ -165,9 +146,13 @@ const ExtractionTabularData = ({ extractionTypeList, serverUrl, defaultFilename 
     setExtractionStep("Extraction")
     const patientIdentifierColumn = extractionJsonData["selectedColumns"]["patientIdentifier"]
     const uniquePatientIdentifiers = Array.from(new Set(dataframe.map((item) => item[patientIdentifierColumn])))
+    setExtractionProgress(5)
     const jsonResponse = await extractDataFromFileList(uniquePatientIdentifiers)
     if (!jsonResponse.error) {
-      toast.success(jsonResponse["collection_length"] + " elements added to " + DB.name)
+      toast.success(jsonResponse["collection_length"] + " elements added to " + jsonResponse["resultCollectionName"])
+      setFilenameSavedFeatures(jsonResponse["resultCollectionName"])
+      const resultData = await getCollectionData(DB.name, jsonResponse["resultCollectionName"])
+      setResultDataset(resultData)
     } else {
       toast.error(`Extraction failed: ${jsonResponse.error.message}`)
       setError(jsonResponse.error)
@@ -198,7 +183,7 @@ const ExtractionTabularData = ({ extractionTypeList, serverUrl, defaultFilename 
         <div className="center">
           <h2>Selected data</h2>
           <div>
-            <p>Display result dataset &nbsp;</p>
+            <p>Display dataset &nbsp;</p>
           </div>
           <div className="margin-top-bottom-15 center">
             <InputSwitch id="switch" checked={viewOriginalData} onChange={(e) => setViewOriginalData(e.value)} />
@@ -232,9 +217,7 @@ const ExtractionTabularData = ({ extractionTypeList, serverUrl, defaultFilename 
           </div>
           <div className="margin-top-15">
             {extractionType == "BioBERT" && <ExtractionBioBERT dataframe={dataframe} columnsTypes={columnsTypes} setExtractionJsonData={setExtractionJsonData} setMayProceed={setMayProceed} />}
-            {extractionType == "TSfresh" && (
-              <ExtractionTSfresh dataframe={dataframe} setExtractionJsonData={setExtractionJsonData} setMayProceed={setMayProceed} setAreResultsLarge={setAreResultsLarge} />
-            )}
+            {extractionType == "TSfresh" && <ExtractionTSfresh dataframe={dataframe} setExtractionJsonData={setExtractionJsonData} setMayProceed={setMayProceed} />}
           </div>
         </div>
       </div>
@@ -249,7 +232,7 @@ const ExtractionTabularData = ({ extractionTypeList, serverUrl, defaultFilename 
             <div className="flex-container">
               <div>
                 Save extracted features as : &nbsp;
-                <InputText value={resultCollectionName} onChange={(e) => handleResultCollectionNameChange(e.target.value)} />
+                <InputText keyfilter="alphanum" value={resultCollectionName} onChange={(e) => setResultCollectionName(e.target.value)} />
               </div>
               <div>
                 {/* Button activated only if all necessary columns have been selected */}
@@ -274,29 +257,17 @@ const ExtractionTabularData = ({ extractionTypeList, serverUrl, defaultFilename 
       <div className="margin-top-bottom-15 center">
         {/* Display extracted data */}
         <h2>Extracted data</h2>
+        <div>{resultDataset && <Message severity="success" text={`Features saved under ${filenameSavedFeatures}`} />}</div>
         <div>
           <p>Display result dataset &nbsp;</p>
         </div>
         <div className="margin-top-bottom-15 center">
           <InputSwitch id="switch" checked={viewResults} onChange={(e) => setViewResults(e.value)} />
         </div>
-        {viewResults == true && areResultsLarge == false && (
+        {viewResults && (
           <div>
-            {resultDataset ? (
-              <DataTableFromContext MedDataObject={resultDataset} tablePropsData={{ size: "small", paginator: true, rows: 5 }} />
-            ) : isLoadingDataset ? (
-              <ProgressSpinner />
-            ) : (
-              <p>Nothing to show, proceed to extraction first.</p>
-            )}
+            {resultDataset ? <DataTableFromContext MedDataObject={resultDataset} tablePropsData={{ size: "small", paginator: true, rows: 5 }} /> : <p>Nothing to show, proceed to extraction first.</p>}
           </div>
-        )}
-        {viewResults == true && resultDataset && areResultsLarge == true && <p>The result dataset is too large to be display here.</p>}
-        {resultDataset && (
-          <p>
-            Features saved under &quot;extracted_features/
-            {filenameSavedFeatures}&quot;.
-          </p>
         )}
       </div>
     </div>

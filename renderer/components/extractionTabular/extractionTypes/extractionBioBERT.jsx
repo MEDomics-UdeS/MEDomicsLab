@@ -149,7 +149,7 @@ const ExtractionBioBERT = ({ columnsTypes, setExtractionJsonData, setMayProceed 
       setMayProceed(biobertPath !== "" && selectedColumns.patientIdentifier !== "" && selectedColumns.notes !== "")
       setExtractionJsonData({ biobertPath: biobertPath, selectedColumns: selectedColumns, columnPrefix: columnPrefix, frequency: frequency, masterTableCompatible: masterTableCompatible })
     }
-  }, [selectedColumns, frequency, hourRange, masterTableCompatible, columnPrefix])
+  }, [selectedColumns, frequency, hourRange, masterTableCompatible, columnPrefix, biobertPath])
 
   // The options for extraction are displayed in a Carousel component
   const carouselItems = [
