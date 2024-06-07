@@ -1,5 +1,4 @@
 import { Button } from "primereact/button"
-import DataTableFromContext from "../mainPages/dataComponents/dataTableFromContext"
 import { Dropdown } from "primereact/dropdown"
 import { ErrorRequestContext } from "../generalPurpose/errorRequestContext"
 import ExtractionBioBERT from "./extractionTypes/extractionBioBERT"
@@ -15,6 +14,7 @@ import { toast } from "react-toastify"
 import { MongoDBContext } from "../mongoDB/mongoDBContext"
 import { ServerConnectionContext } from "../serverConnection/connectionContext"
 import { getCollectionData, getCollectionColumnTypes } from "../dbComponents/utils"
+import DataTableFromDB from "../dbComponents/dataTableFromDB"
 
 /**
  *
@@ -151,8 +151,7 @@ const ExtractionTabularData = ({ extractionTypeList, serverUrl, defaultFilename 
     if (!jsonResponse.error) {
       toast.success(jsonResponse["collection_length"] + " elements added to " + jsonResponse["resultCollectionName"])
       setFilenameSavedFeatures(jsonResponse["resultCollectionName"])
-      const resultData = await getCollectionData(DB.name, jsonResponse["resultCollectionName"])
-      setResultDataset(resultData)
+      setResultDataset({ uuid: jsonResponse["resultCollectionName"], path: DB.name })
     } else {
       toast.error(`Extraction failed: ${jsonResponse.error.message}`)
       setError(jsonResponse.error)
@@ -192,13 +191,7 @@ const ExtractionTabularData = ({ extractionTypeList, serverUrl, defaultFilename 
         {viewOriginalData &&
           (selectedDataset ? (
             <div>
-              <DataTableFromContext
-                MedDataObject={selectedDataset}
-                tablePropsData={{ size: "small", paginator: true, rows: 5 }}
-                tablePropsColumn={{
-                  sortable: true
-                }}
-              />
+              <DataTableFromDB data={{ uuid: selectedDataset.label, path: DB.name }} isReadOnly={true} />
             </div>
           ) : (
             <div className="center">
@@ -264,11 +257,7 @@ const ExtractionTabularData = ({ extractionTypeList, serverUrl, defaultFilename 
         <div className="margin-top-bottom-15 center">
           <InputSwitch id="switch" checked={viewResults} onChange={(e) => setViewResults(e.value)} />
         </div>
-        {viewResults && (
-          <div>
-            {resultDataset ? <DataTableFromContext MedDataObject={resultDataset} tablePropsData={{ size: "small", paginator: true, rows: 5 }} /> : <p>Nothing to show, proceed to extraction first.</p>}
-          </div>
-        )}
+        {viewResults && <div>{resultDataset ? <DataTableFromDB data={resultDataset} isReadOnly={true} /> : <p>Nothing to show, proceed to extraction first.</p>}</div>}
       </div>
     </div>
   )

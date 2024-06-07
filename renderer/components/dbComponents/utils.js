@@ -8,7 +8,7 @@ const mongoUrl = "mongodb://127.0.0.1:27017"
  * @returns fetchedData
  */
 export const getCollectionData = async (dbname, collectionName) => {
-  const client = new MongoClient(mongoUrl, { useNewUrlParser: true, useUnifiedTopology: true })
+  const client = new MongoClient(mongoUrl)
   try {
     await client.connect()
     const db = client.db(dbname)
