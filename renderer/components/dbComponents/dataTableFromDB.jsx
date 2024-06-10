@@ -14,12 +14,12 @@ import {SplitButton} from 'primereact/splitbutton';
 
 /**
  * DataTableFromDB component
- * @param data
- * @param tablePropsData
- * @param tablePropsColumn
- * @param isReadOnly
- * @returns {Element}
- * @constructor
+ * @param data - MongoDB data
+ * @param tablePropsData - DataTable props
+ * @param tablePropsColumn - Column props
+ * @param isReadOnly - Read-only mode
+ * @returns {Element} - DataTable component
+ * @constructor - DataTableFromDB
  */
 const DataTableFromDB = ({data, tablePropsData, tablePropsColumn, isReadOnly}) => {
     const [innerData, setInnerData] = useState([]);
