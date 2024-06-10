@@ -182,22 +182,23 @@ const FlInput = ({ name, settingInfos, currentValue, onInputChange, disabled, se
       case "bool":
         return (
           <>
-            <FloatingLabel controlId={name} label={name} className=" input-hov">
-              <Form.Select
-                disabled={disabled}
-                defaultValue={currentValue}
-                onChange={(e) =>
-                  setInputUpdate({
-                    name: name,
-                    value: e.target.value,
-                    type: settingInfos.type
-                  })
-                }
-              >
-                <option value="" hidden></option>
-                <option value="True">True</option>
-                <option value="False">False</option>
-              </Form.Select>
+            <FloatingLabel controlId={name} className="input-hov">
+              <div className="p-2 border rounded">
+                <Form.Check
+                  disabled={disabled}
+                  id={name}
+                  label={name}
+                  checked={currentValue === "True"}
+                  onChange={(e) => {
+                    const value = e.target.checked ? "True" : "False"
+                    setInputUpdate({
+                      name: name,
+                      value: value,
+                      type: settingInfos.type
+                    })
+                  }}
+                />
+              </div>
             </FloatingLabel>
             {createTooltip(settingInfos.tooltip, name)}
           </>
@@ -285,6 +286,7 @@ const FlInput = ({ name, settingInfos, currentValue, onInputChange, disabled, se
                 }
                 options={settingInfos.choices}
                 optionLabel="name"
+                appendTo="self"
               />
             </FloatingLabel>
             {createTooltip(settingInfos.tooltip, name)}
@@ -293,28 +295,40 @@ const FlInput = ({ name, settingInfos, currentValue, onInputChange, disabled, se
       // for list input (form select of all the options, multiple selection possible)
       case "list-multiple":
         return (
-          <div className="w-100">
-            <MultiSelect
-              maxSelectedLabels={2}
-              optionLabel="name"
-              display="chip"
-              disabled={disabled}
-              value={inputValue}
-              onChange={(e) => {
-              setInputValue(e.target.value);
-              setInputUpdate({
-                name: name,
-                value: e.value,  // Update to e.value to get the array of selected values
-                type: settingInfos.type,
-              });
-            }}
-            onBlur={() => {}}
-              options={settingInfos.choices}
-              className="w-100 md:w-20rem"
-            />
+          <div className="w-100" style={{ position: "relative" }}>
+            <label
+              htmlFor={name}
+              className="input-hov"
+              style={{ color: "grey", fontSize: "13px", position: "absolute", top: "-0.8rem", left: "1rem", backgroundColor: "white", padding: "0 0.5rem", zIndex: "1" }}
+            >
+              {name}
+            </label>
+            <div style={{ marginTop: "1.5rem", padding: "1rem", border: "1px solid #ced4da", borderRadius: "0.25rem" }}>
+              <MultiSelect
+                maxSelectedLabels={2}
+                optionLabel="name"
+                display="chip"
+                disabled={disabled}
+                value={inputValue}
+                appendTo="self"
+                onChange={(e) => {
+                  setInputValue(e.target.value)
+                  setInputUpdate({
+                    name: name,
+                    value: e.value, // Update to e.value to get the array of selected values
+                    type: settingInfos.type
+                  })
+                }}
+                onBlur={() => {}}
+                options={settingInfos.choices}
+                className="w-100" // Increased width to fit better
+                style={{ width: "100%", height: "100%" }}
+              />
+            </div>
             {createTooltip(settingInfos.tooltip, name)}
           </div>
-        );
+        )
+
       // for range input
       case "range":
         return (
@@ -323,6 +337,9 @@ const FlInput = ({ name, settingInfos, currentValue, onInputChange, disabled, se
               <Form.Control
                 disabled={disabled}
                 type="range"
+                min={settingInfos.min} // specify the minimum value
+                max={settingInfos.max} // specify the maximum value
+                step={settingInfos.step} // specify the step size
                 defaultValue={currentValue}
                 onChange={(e) =>
                   setInputUpdate({
@@ -332,6 +349,7 @@ const FlInput = ({ name, settingInfos, currentValue, onInputChange, disabled, se
                   })
                 }
               />
+              <div className="range-value">{currentValue}</div> {/* Display current value */}
             </FloatingLabel>
             {createTooltip(settingInfos.tooltip, name)}
           </>

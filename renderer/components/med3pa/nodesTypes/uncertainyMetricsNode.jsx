@@ -1,21 +1,17 @@
-/* eslint-disable camelcase */
 import React, { useState, useContext, useEffect } from "react"
 import Node from "../../flow/node"
 import FlInput from "../paInput"
-import { Button } from "react-bootstrap"
+import { Button, OverlayTrigger, Tooltip } from "react-bootstrap"
 import * as Icon from "react-bootstrap-icons"
 import { FlowFunctionsContext } from "../../flow/context/flowFunctionsContext"
 
-import { OverlayTrigger, Tooltip } from "react-bootstrap"
-
-export default function DetectronNode({ id, data }) {
+export default function UncertaintyMetricsNode({ id, data }) {
   // context
   const [showDetails, setShowDetails] = useState(false)
   const { updateNode } = useContext(FlowFunctionsContext)
   const [hovered, setHovered] = useState(false)
 
   // Initialize the files field in the internal data if it doesn't exist
-
   useEffect(() => {
     updateNode({
       id: id,
@@ -56,8 +52,8 @@ export default function DetectronNode({ id, data }) {
         nodeBody={
           <>
             <div className="center">
-              <Button variant="light" className="width-100 btn-contour">
-                {data.internal.settings.target ? "Change Selected Parameters" : "Select Detectron Parameters"}
+              <Button variant="light" className="width-100 btn-contour" onClick={toggleShowDetails}>
+                {data.internal.settings.target ? "Change the selected Uncertainty Metric" : "Select an Uncertainty Metric to use"}
               </Button>
             </div>
             <div className="center">
@@ -105,8 +101,7 @@ export default function DetectronNode({ id, data }) {
                   <p className="fw-bold mb-0">Default Settings</p>
                   <br />
                   {Object.keys(data.setupParam.possibleSettings).map((key) => (
-                    // eslint-disable-next-line react/jsx-key
-                    <div className="row mb-2">
+                    <div className="row mb-2" key={key}>
                       <div className="col-sm-6">
                         <p className="fw-bold mb-2">{key}</p>
                       </div>
@@ -132,22 +127,20 @@ export default function DetectronNode({ id, data }) {
         // default settings are the default settings of the node, so mandatory settings
         defaultSettings={
           <>
+            {/* Iterate over possible settings and render FlInput components */}
             {Object.keys(data.setupParam.possibleSettings).map((key) => (
-              <div key={key} style={{ marginBottom: "2px" }}>
-                <FlInput
-                  key={key}
-                  name={key}
-                  settingInfos={{
-                    type: data.setupParam.possibleSettings[key].type,
-                    tooltip: data.setupParam.possibleSettings[key].tooltip,
-                    ...(data.setupParam.possibleSettings[key].options && {
-                      choices: data.setupParam.possibleSettings[key].options
-                    })
-                  }}
-                  currentValue={data.internal.settings[key] || ""}
-                  onInputChange={(value) => handleInputChange(key, value)}
-                />
-              </div>
+              <FlInput
+                key={key}
+                name={key}
+                settingInfos={{
+                  ...data.setupParam.possibleSettings[key],
+                  ...(data.setupParam.possibleSettings[key].options && {
+                    choices: data.setupParam.possibleSettings[key].options
+                  })
+                }}
+                currentValue={data.internal.settings[key] || ""}
+                onInputChange={(value) => handleInputChange(key, value)}
+              />
             ))}
           </>
         }

@@ -569,7 +569,7 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
   function fromJSONtoTree(medDataContext) {
     const treeToSend = {}
     const namesYouCantRename = ["UUID_ROOT", "DATA", "EXPERIMENTS", ".medomics"] // These names cannot be renamed
-
+    console.log(medDataContext)
     Object.keys(medDataContext).forEach((key) => {
       let medDataItem = medDataContext[key]
       let medDataItemName = medDataItem.name

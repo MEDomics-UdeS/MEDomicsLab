@@ -1,7 +1,5 @@
 import paSettings from "./possibleSettings/med3pa/paSettings"
 
-
-
 const evalNodesParams = {
   evalMed3pa: {
     type: "evaluationNode",
@@ -24,8 +22,7 @@ const evalNodesParams = {
     img: "results.png",
     title: "Evaluation Detectron",
     possibleSettings: paSettings["evalDetectron"]
-  },
-   
+  }
 }
 
 export default evalNodesParams

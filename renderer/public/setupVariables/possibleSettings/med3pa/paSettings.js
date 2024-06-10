@@ -8,67 +8,77 @@ const paSettings = {
         default_val: "None"
       }
     },
-    code: "",
-    datasets:{
+    datasets: {
       default: {
         files: [
-          { name: "Training Set", target: "" },
-          { name: "Validation Set", target:""},
-          { name: "Test Set", target: "" },
+          { name: "Training Set", target: "", path: "" },
+          { name: "Validation Set", target: "", path: "" },
+          { name: "Test Set", target: "", path: "" }
         ],
-      
-      tooltip:"<p>Select Datasets Spicific to a base classification model</p>", 
+
+        tooltip: "<p>Select Datasets Spicific to a base classification model</p>"
       },
-      detectronNode: {
-        files: [
-          { name: "Test Set" , target: ""},
-          { name: "Test Set (Shifted)",target: ""},
-        ],
-        
-        tooltip:"<p>Select Datasets Spicific to Detectron</p>", 
-      },
-      med3paNode: {
-        files: [
-          { name: "Internal Validation Set", target: "" },
-          { name: "External Validation Set", target: "" },
-        ],
-        
-        tooltip:"<p>Select Datasets Spicific to MED3pa</p>", 
+      evalNode: {
+        files: [{ name: "Evaluation Set", target: "", path: "" }],
+        tooltip: "<p>Select here your evaluation Dataset</p>"
       }
+    }
   },
-},
-  med3pa: {
-    tree_depth: {
-      type: "int",
-      tooltip: "Depth of the decision tree for med3pa",
-      default_val: 5 // Default value for tree depth
+  ipcModel: {
+    model_type: {
+      type: "list",
+      tooltip: "Model Types for IPC Model",
+      options: [{ name: "Random Forest Regressor" }, { name: "XGBoost" }, { name: "Extra Trees Regressor" }],
+      default_val: "Random Forest Regressor" // Default Model
     },
-    min_leaves_ratio: {
-      type: "int",
-      tooltip: "Minimum ratio of leaves for med3pa",
-      default_val: 2 // Default value for minimum leaves ratio
-    },
-    metrics: {
+    evaluation_metrics: {
       type: "list-multiple",
       tooltip: "Evaluation metrics for med3pa",
-      options: [
-        { name: "AUC" },
-        { name: "F1-Score" },
-        { name: "Precision" },
-        { name: "Recall" },
-        { name: "Specificity" },
-        { name: "Accuracy" },        
-      ],
-      default_val: ["AUC","F1-Score","Precision","Accuracy", "Recall"] // Default value for metrics 
-    },
+      options: [{ name: "AUC" }, { name: "F1-Score" }, { name: "Precision" }, { name: "Recall" }, { name: "Specificity" }, { name: "Accuracy" }],
+      default_val: ["AUC", "F1-Score", "Precision", "Accuracy", "Recall"] // Default value for metrics
+    }
   },
-   detectron: {
+
+  apcModel: {
+    tree_depth: {
+      type: "range",
+      tooltip: "Depth of the decision tree for med3pa",
+      min: 0,
+      max: 10,
+      step: 1,
+      default_val: 4 // Default value for tree depth
+    },
+    min_leaves_ratio: {
+      type: "range",
+      tooltip: "Minimum ratio of leaves for med3pa",
+      min: 0,
+      max: 1,
+      step: 0.1,
+      default_val: 0.5 // Default value for minimum leaves ratio
+    },
+    evaluation_metrics: {
+      type: "list-multiple",
+      tooltip: "Evaluation metrics for APC Model",
+      options: [{ name: "Mean Square Error (MSE)" }, { name: "Mean Absolute Error (MAE)" }],
+      default_val: ["Mean Square Error (MSE)"] // Default value for metrics
+    }
+  },
+  uncertaintyMetrics: {
+    uncertainty_metric: {
+      type: "list",
+      tooltip: "Uncertainty Metric to use for Base Model Error quantification",
+      options: [{ name: "Mean Square Error (MSE)" }, { name: "Mean Absolute Error (MAE)" }],
+      default_val: "Mean Absolute Error (MAE)"
+    }
+  },
+
+  detectron: {
     sample_size: {
       type: "int",
       tooltip: "The size of the Testing Set N",
-      default_val: 20 // Default value for tree depth
-    }, 
-    ensemble_size : {
+      default_val: 20 // Default value sample size
+    },
+    ensemble_size: {
       type: "int",
       tooltip: "Number of CDCs to train",
       default_val: 5 // Default value for minimum leaves ratio
@@ -86,60 +96,44 @@ const paSettings = {
     detectron_test: {
       type: "list-multiple",
       tooltip: "The types of Detectron test to run",
-      options: [
-        { name: "Detectron Disagreement" },
-        { name: "Detecton with Mann-Whitney" },
-        { name: "Detectron Entropy" },
-        { name: "Detectron with KS-test" },    
-      ],
-      default_val: ["Detectron Disagreement","Detecton with Mann-Whitney"] // Default value for metrics 
+      options: [{ name: "Detectron Disagreement" }, { name: "Detecton with Mann-Whitney" }, { name: "Detectron Entropy" }, { name: "Detectron with KS-test" }],
+      default_val: ["Detectron Disagreement", "Detecton with Mann-Whitney"] // Default value for metrics
     }
   },
-  evaluation:{
+  evaluation: {
     metrics: {
-      type: "list-multiple",  
+      type: "list-multiple",
       tooltip: "Evaluation metrics for ML models",
       options: [
-        { name: "AUC" },  
+        { name: "AUC" },
         { name: "F1-Score" },
-        { name: "Accuracy"},
-        { name: "Sensitivity"},
-        { name: "Recall"},
-        { name: "Specificity"},
-        { name: "Precision"},
-        { name: "Balanced Accuracy"},
-        { name: "Log Loss"},
+        { name: "Accuracy" },
+        { name: "Sensitivity" },
+        { name: "Recall" },
+        { name: "Specificity" },
+        { name: "Precision" },
+        { name: "Balanced Accuracy" },
+        { name: "Log Loss" }
       ],
-      default_val: ["AUC","Balanced Accuracy", "F1-Score"]
+      default_val: ["AUC", "Balanced Accuracy", "F1-Score"]
     }
   },
-  evalDetectron:{
+  evalDetectron: {
     metrics: {
-      type: "list-multiple",  
+      type: "list-multiple",
       tooltip: "Evaluation metrics for Detectron",
-      options: [
-        { name: "AUC" },  
-        { name: "Sensitivity"},
-        { name: "Specificity"},
-        { name: "Precision"},
-      ],
+      options: [{ name: "AUC" }, { name: "Sensitivity" }, { name: "Specificity" }, { name: "Precision" }],
       default_val: ["AUC"]
-    },
+    }
   },
-  evalMed3pa:{
+  evalMed3pa: {
     metrics: {
-      type: "list-multiple",  
-      tooltip: "Evaluation metrics for Detectron",
-      options: [
-        { name: "AUC" },  
-        { name: "Balanced Accuracy"},
-        { name: "Specificity"},
-        { name: "Precision"},
-      ],
+      type: "list-multiple",
+      tooltip: "Evaluation metrics for MED3pa",
+      options: [{ name: "AUC" }, { name: "Balanced Accuracy" }, { name: "Specificity" }, { name: "Precision" }],
       default_val: ["AUC", "Balanced Accuracy"]
     }
   }
-  }
-
+}
 
 export default paSettings

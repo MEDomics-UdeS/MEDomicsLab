@@ -1,6 +1,5 @@
 import paSettings from "./possibleSettings/med3pa/paSettings"
 
-
 /* eslint-disable */
 const nodesParams = {
   dataset_loader: {
@@ -31,66 +30,33 @@ const nodesParams = {
     classes: "object model",
     nbInput: 2,
     nbOutput: 1,
-    input: ["dataset_loader","base_model"],
+    input: ["dataset_loader", "base_model"],
     output: ["detectron"],
     img: "detectron.png",
     title: "Detectron",
     possibleSettings: paSettings["detectron"]
   },
   med3pa: {
-    type: "med3paNode",
-    classes: "object model",
+    type: "groupNode",
+    classes: "object model run",
     nbInput: 2,
     nbOutput: 1,
-    input: ["dataset_loader","base_model"],
+    input: ["dataset_loader", "base_model"],
     output: ["med3pa"],
     img: "med3pa2.png",
     title: "MED3pa",
-    possibleSettings: paSettings["med3pa"]
-  }, 
-  det3pa: {
-    type: "det3paNode",
-    classes: "object model",
-    nbInput: 2,
-    nbOutput: 1,
-    input: ["detectron","med3pa"],
-    output: ["det3pa"],
-    img: "results2.png",
-    title: "Det3pa",
     possibleSettings: {}
   },
   evaluation: {
     type: "evaluationNode",
     classes: "object dataset run startNode",
-    nbInput: 3,
+    nbInput: 4,
     nbOutput: 1,
-    input: ["detectron", "base_model","med3pa"],
+    input: ["detectron", "base_model", "med3pa", "det3pa"],
     output: ["evaluation"],
     img: "evaluation.png",
     title: "Evaluation",
     possibleSettings: paSettings["evaluation"]
-  },
-  pipeline: {
-    type: "paPipelineNode",
-    classes: "object",
-    nbInput: 4,
-    nbOutput: 1,
-    input: ["detectron", "base_model", "dataset_loader","med3pa"],
-    output: ["pipeline"],
-    img: "pipeline.png",
-    title: "Pipeline",
-    possibleSettings: {}
-  },
-  results: {
-    type: "paResultsNode",
-    classes: "object dataset run startNode",
-    nbInput: 1,
-    nbOutput: 0,
-    input: ["pipeline"],
-    output: [""],
-    img: "results2.png",
-    title: "Results",
-    possibleSettings: {}
   }
 }
 

@@ -25,20 +25,15 @@ class GoExecScriptHelloWorldFromMED3pa(GoExecutionScript):
         super().__init__(json_params, _id)
         self.results = {"data": "nothing to return"}
 
+
     def _custom_process(self, json_config: dict) -> dict:
         """
         This function is the main script of the execution of the process from Go
         """
         string_received = json_config["stringFromFrontend"]
-        self.set_progress(label="Starting the Hello World", now=10)
-        time.sleep(2) # Add timeout to simulate a long process
-        self.set_progress(label="Setting up the Hello World", now=50)
-        time.sleep(2) # Add timeout to simulate a long process
-        self.set_progress(label="Printing...", now=70)
-        self.results = {"data": "Backend received: " + string_received, "stringFromBackend":"Hello World from MED3pa backend @ " + time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()) + " !"}
-        time.sleep(2) # Add timeout to simulate a long process
-        self.set_progress(label="Compiling the Hello World ...", now=80)
-        time.sleep(2)
+        self.results = {"data": "Backend received: " + string_received, "stringFromBackend":
+                        "Hello World from MEDfl backend @ " + time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()) + " !"}
+
         self.set_progress(label="Hello World is ready !", now=100)
         return self.results
 

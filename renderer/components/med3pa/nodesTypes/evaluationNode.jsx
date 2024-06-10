@@ -151,10 +151,15 @@ export default function EvaluationNode({ id, data }) {
         break
       case "evalMed3pa":
         buttonText = data.internal.settings.target ? "Change Evaluation Metrics" : "Select MED3pa Evaluation Metrics"
-        description = "Evaluation Node for Med3pa."
+        description = "Evaluation Node for MED3pa."
+        break
+      case "evalDet3pa":
+        buttonText = data.internal.settings.target ? "Change Evaluation Metrics" : "Select DET3pa Evaluation Metrics"
+        description = "Evaluation Node for DET3pa."
         break
       default:
-        return null
+        buttonText = data.internal.settings.target ? "Change Evaluation Metrics" : "Select Model Evaluation Metrics"
+        description = "Evaluation Node for ML models."
     }
 
     return (
