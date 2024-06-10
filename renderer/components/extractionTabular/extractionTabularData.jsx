@@ -60,11 +60,11 @@ const ExtractionTabularData = ({ extractionTypeList, serverUrl, defaultFilename 
    */
   async function datasetSelected(dataset) {
     try {
+      const columnsData = await getCollectionColumnTypes(DB.name, dataset.label)
+      setColumnsTypes(columnsData)
       setSelectedDataset(dataset)
       const data = await getCollectionData(DB.name, dataset.label)
       setDataframe(data)
-      const columnsData = await getCollectionColumnTypes(DB.name, dataset.label)
-      setColumnsTypes(columnsData)
     } catch (error) {
       console.error("Error:", error)
     }
@@ -209,8 +209,8 @@ const ExtractionTabularData = ({ extractionTypeList, serverUrl, defaultFilename 
             <Dropdown value={extractionType} options={extractionTypeList} onChange={(event) => onChangeExtractionType(event.value)} />
           </div>
           <div className="margin-top-15">
-            {extractionType == "BioBERT" && <ExtractionBioBERT dataframe={dataframe} columnsTypes={columnsTypes} setExtractionJsonData={setExtractionJsonData} setMayProceed={setMayProceed} />}
-            {extractionType == "TSfresh" && <ExtractionTSfresh dataframe={dataframe} setExtractionJsonData={setExtractionJsonData} setMayProceed={setMayProceed} />}
+            {extractionType == "BioBERT" && <ExtractionBioBERT columnsTypes={columnsTypes} setExtractionJsonData={setExtractionJsonData} setMayProceed={setMayProceed} />}
+            {extractionType == "TSfresh" && <ExtractionTSfresh columnsTypes={columnsTypes} setExtractionJsonData={setExtractionJsonData} setMayProceed={setMayProceed} />}
           </div>
         </div>
       </div>
