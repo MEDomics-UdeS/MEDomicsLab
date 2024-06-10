@@ -476,6 +476,17 @@ if (isProd) {
   })
 
   /**
+   * @description select path to folder
+   * @returns {String} path to the selected folder
+   */
+  ipcMain.handle("select-folder-path", async (event) => {
+    const result = await dialog.showOpenDialog(mainWindow, {
+      properties: ["openDirectory"]
+    })
+    return result
+  })
+
+  /**
    * @description Returns the settings
    * @returns {Object} The settings
    * @summary Returns the settings from the settings file if it exists, otherwise returns an empty object
