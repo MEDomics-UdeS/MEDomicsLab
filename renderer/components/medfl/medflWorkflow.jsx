@@ -44,6 +44,8 @@ import FlConfigModal from "./flConfigModal"
 import DBCOnfigFileModal from "./dbCOnfigFileModal.jsx"
 import FlWorflowBase from "./flWorkflowBase.jsx"
 import OptimResultsModal from "./optimResultsModal"
+import FlTrainModelNode from "./nodesTypes/flTrainModel.jsx"
+import FlSaveModelNode from "./nodesTypes/flSaveModelNode.jsx"
 
 const staticNodesParams = nodesParams // represents static nodes parameters
 
@@ -94,67 +96,67 @@ const MedflWorkflow = ({ setWorkflowType, workflowType }) => {
   const [allConfigResults, setAllresults] = useState([])
 
   let ALL_CONFIGS = [
-    {
-      masterDatasetNode: {
-        name: "Mimic_2017.csv",
-        path: "/home/local/USHERBROOKE/saho6810/Bureau/DATA/Mimic_2017.csv",
-        target: "deceased"
-      },
-      Network: {
-        name: "Network",
-        clients: [
-          {
-            name: "Client",
-            type: "Test Node",
-            dataset: {
-              name: "Mimic_2017.csv",
-              path: "/home/local/USHERBROOKE/saho6810/Bureau/DATA/Mimic_2017.csv"
-            }
-          },
-          {
-            name: "Client",
-            type: "Train node",
-            dataset: {
-              name: "Mimic_2017.csv",
-              path: "/home/local/USHERBROOKE/saho6810/Bureau/DATA/Mimic_2017.csv"
-            }
-          }
-        ],
-        server: {
-          name: "FL Server",
-          nRounds: 2,
-          activateDP: "Deactivate"
-        }
-      },
-      flSetupNode: {
-        name: "FL Setup",
-        description: "fsfsf"
-      },
-      flDatasetNode: {
-        name: "FL Dataset",
-        validationFraction: 0.1,
-        testFraction: 0
-      },
+    // {
+    //   masterDatasetNode: {
+    //     name: "Mimic_2017.csv",
+    //     path: "/home/local/USHERBROOKE/saho6810/Bureau/DATA/Mimic_2017.csv",
+    //     target: "deceased"
+    //   },
+    //   Network: {
+    //     name: "Network",
+    //     clients: [
+    //       {
+    //         name: "Client",
+    //         type: "Test Node",
+    //         dataset: {
+    //           name: "Mimic_2017.csv",
+    //           path: "/home/local/USHERBROOKE/saho6810/Bureau/DATA/Mimic_2017.csv"
+    //         }
+    //       },
+    //       {
+    //         name: "Client",
+    //         type: "Train node",
+    //         dataset: {
+    //           name: "Mimic_2017.csv",
+    //           path: "/home/local/USHERBROOKE/saho6810/Bureau/DATA/Mimic_2017.csv"
+    //         }
+    //       }
+    //     ],
+    //     server: {
+    //       name: "FL Server",
+    //       nRounds: 2,
+    //       activateDP: "Deactivate"
+    //     }
+    //   },
+    //   flSetupNode: {
+    //     name: "FL Setup",
+    //     description: "fsfsf"
+    //   },
+    //   flDatasetNode: {
+    //     name: "FL Dataset",
+    //     validationFraction: 0.1,
+    //     testFraction: 0
+    //   },
 
-      flModelNode: {
-        activateTl: "true",
-        file: {
-          name: "grid_search_classifier.pth",
-          path: "/home/local/USHERBROOKE/saho6810/Bureau/DATA/grid_search_classifier.pth"
-        },
-        optimizer: "Adam",
-        "learning rate": 0.001,
-        Threshold: 0.1
-      },
-      flStrategyNode: {
-        "Aggregation algorithm": "FedYogi",
-        "Evaluation fraction": 1,
-        "Training fraction": 1,
-        "Minimal used clients for evaluation": 1,
-        "Minimal used clients for training": 1,
-        "Minimal available clients": 1
-      }
-    },
+    //   flModelNode: {
+    //     activateTl: "true",
+    //     file: {
+    //       name: "grid_search_classifier.pth",
+    //       path: "/home/local/USHERBROOKE/saho6810/Bureau/DATA/grid_search_classifier.pth"
+    //     },
+    //     optimizer: "Adam",
+    //     "learning rate": 0.001,
+    //     Threshold: 0.1
+    //   },
+    //   flStrategyNode: {
+    //     "Aggregation algorithm": "FedYogi",
+    //     "Evaluation fraction": 1,
+    //     "Training fraction": 1,
+    //     "Minimal used clients for evaluation": 1,
+    //     "Minimal used clients for training": 1,
+    //     "Minimal available clients": 1
+    //   }
+    // },
     {
       masterDatasetNode: {
         name: "Mimic_2017.csv",
@@ -213,18 +215,16 @@ const MedflWorkflow = ({ setWorkflowType, workflowType }) => {
         "Minimal used clients for evaluation": 1,
         "Minimal used clients for training": 1,
         "Minimal available clients": 1
-      }
+      },
+      flTrainModelNode: { clientRessources: "Use GPU" }
     }
   ]
   // declare node types using useMemo hook to avoid re-creating component types unnecessarily (it memorizes the output) https://www.w3schools.com/react/react_usememo.asp
   const nodeTypes = useMemo(
     () => ({
       standardNode: StandardNode,
-      selectionNode: SelectionNode,
       groupNode: GroupNode,
-      optimizeIO: OptimizeIO,
       masterDatasetNode: MasterDatasetNode,
-      loadModelNode: LoadModelNode,
       networkNode: NetworkNode,
       flClientNode: FlClientNode,
       flServerNode: FlServerNode,
@@ -234,7 +234,9 @@ const MedflWorkflow = ({ setWorkflowType, workflowType }) => {
       flOptimizeNode: FlOptimizeNode,
       flStrategyNode: FlStrategyNode,
       flPipelineNode: FlPipelineNode,
-      flResultsNode: FlResultsNode
+      flResultsNode: FlResultsNode,
+      flTrainModelNode: FlTrainModelNode,
+      flSaveModelNode: FlSaveModelNode
     }),
     []
   )

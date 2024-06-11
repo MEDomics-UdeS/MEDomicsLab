@@ -15,6 +15,8 @@ from pathlib import Path
 
 from datetime import datetime
 
+import torch
+
 
 sys.path.append(
     str(Path(os.path.dirname(os.path.abspath(__file__))).parent.parent))
@@ -73,7 +75,7 @@ class GoExecScriptRunPipelineFromMEDfl(GoExecutionScript):
 
         for index , config in enumerate(json_config['flConfig']) :
 
-            
+            print(config)
 
             self.set_progress(label=f"Configuration : {index +1 }, Creating the Network", now=5)
             # Create Network
@@ -161,6 +163,13 @@ class GoExecScriptRunPipelineFromMEDfl(GoExecutionScript):
             # Create The server
             self.set_progress(label=f"Configuration : {index +1 }, Creating The Server", now=55)
 
+           
+
+            client_resources = None
+            if config['flTrainModelNode']['clientRessources'] == "Use GPU" and torch.cuda.is_available():
+                client_resources = {"num_gpus": 1}
+
+                         
             server = FlowerServer(global_model,
                                 strategy=aggreg_algo,
                                 num_rounds=config['Network']['server']['nRounds'],
@@ -169,8 +178,8 @@ class GoExecScriptRunPipelineFromMEDfl(GoExecutionScript):
                                 diff_privacy=True if config['Network'][
                                     'server']['activateDP'] == "Activate" else False,
                                 # You can change the resources alocated for each client based on your machine
-                                client_resources={
-                                        'num_cpus': 1.0, 'num_gpus': 0.0}
+
+                                client_resources = client_resources
                                 )
 
             # Create the pipeline

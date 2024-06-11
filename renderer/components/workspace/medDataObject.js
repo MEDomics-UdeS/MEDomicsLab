@@ -103,6 +103,7 @@ export default class MedDataObject {
   static createFolderFromPath(path) {
     if (!fs.existsSync(path)) {
       fs.mkdirSync(path, { recursive: true })
+      this.updateWorkspaceDataObject(1000)
     }
   }
 

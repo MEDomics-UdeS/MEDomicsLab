@@ -1,6 +1,6 @@
 import { SelectButton } from "primereact/selectbutton"
 import React, { useContext, useEffect, useState } from "react"
-import { Button, Card } from "react-bootstrap"
+import { Card } from "react-bootstrap"
 import * as Icon from "react-bootstrap-icons"
 import { FlowResultsContext } from "../flow/context/flowResultsContext"
 import FlInput from "./flInput"
@@ -8,7 +8,16 @@ import { DataTable } from "primereact/datatable"
 import { Column } from "@blueprintjs/table"
 import FlCompareResults from "./flCompareResults"
 
+import { Button } from "primereact/button"
+import { UUID_ROOT, DataContext } from "../workspace/dataContext"
+import { EXPERIMENTS } from "../workspace/workspaceContext"
+
+import Path from "path"
+import MedDataObject from "../workspace/medDataObject"
+
 export default function FlResultsPane() {
+  const { globalData } = useContext(DataContext)
+
   // state
   const [activeConfig, setActiveConfig] = useState("Config 1")
   const [resultsType, setResultsType] = useState("Global results")
@@ -184,20 +193,33 @@ export default function FlResultsPane() {
     }
   }, [resultsType, activeConfig, selectedNode])
 
+  const saveFlResults = async () => {
+    let path = Path.join(globalData[UUID_ROOT].path, EXPERIMENTS)
+
+    MedDataObject.createFolderFromPath(path + "/FL")
+    MedDataObject.createFolderFromPath(path + "/FL/Results")
+
+    // do custom actions in the folder while it is unzipped
+    await MedDataObject.writeFileSync(flowResults["data"], path + "/FL/Results", "metadata2", "json")
+    await MedDataObject.writeFileSync(flowResults["data"], path + "/FL/Results", "metadata2", "medflres")
+  }
+
   if (!res)
     return (
       <Card>
         <Card.Header>
-          <div className="flex justify-content-center">
+          <div className="d-flex justify-content-between w-100 ">
             <div className="gap-3 results-header">
               <div className="flex align-items-center">
                 <h5>FL Pipeline results</h5>
               </div>
             </div>
+            <div>
+              <Button className="outline " severity="secondary" text onClick={handleClose} style={{ padding: 1 }}>
+                <Icon.X width="30px" height="30px" />
+              </Button>
+            </div>
           </div>
-          <Button variant="outline closeBtn closeBtn-resultsPane end-5" onClick={handleClose}>
-            <Icon.X width="30px" height="30px" />
-          </Button>
         </Card.Header>
         <div
           style={{
@@ -215,16 +237,21 @@ export default function FlResultsPane() {
     <div>
       <Card>
         <Card.Header>
-          <div className="flex justify-content-center">
+          <div className="d-flex justify-content-between w-100 ">
             <div className="gap-3 results-header">
               <div className="flex align-items-center">
                 <h5>FL Pipeline results</h5>
               </div>
             </div>
+            <div>
+              <Button className="outline " severity="secondary" text tooltipOptions={{ position: "left" }} tooltip="Save results" onClick={saveFlResults} style={{ padding: 5 }}>
+                <Icon.Save width="20px" height="20px" />
+              </Button>
+              <Button variant="outline " text onClick={handleClose} style={{ marginTop: -4, padding: 1 }}>
+                <Icon.X width="30px" height="30px" />
+              </Button>
+            </div>
           </div>
-          <Button variant="outline closeBtn closeBtn-resultsPane end-5" onClick={handleClose}>
-            <Icon.X width="30px" height="30px" />
-          </Button>
         </Card.Header>
         <Card.Body>
           <div style={{ display: "flex", justifyContent: "space-between" }}>
