@@ -14,7 +14,25 @@ export const getCollectionData = async (dbname, collectionName) => {
     await client.connect()
     const db = client.db(dbname)
     const collection = db.collection(collectionName)
-    const fetchedData = await collection.find({}).toArray()
+    let fetchedData = await collection.find({}).toArray()
+
+    // Convert Date objects to strings
+    fetchedData = fetchedData.map((item) => {
+      let keys = Object.keys(item)
+      let values = Object.values(item)
+      let dataObject = {}
+      for (let i = 0; i < keys.length; i++) {
+        // Check if the value is a Date object
+        if (values[i] instanceof Date) {
+          // If it is, convert it to a string
+          dataObject[keys[i]] = values[i].toISOString()
+        } else {
+          dataObject[keys[i]] = values[i]
+        }
+      }
+      return dataObject
+    })
+
     return fetchedData
   } catch (error) {
     console.error("Error fetching data:", error)

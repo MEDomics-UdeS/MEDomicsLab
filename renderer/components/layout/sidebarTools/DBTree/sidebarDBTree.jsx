@@ -125,9 +125,9 @@ const SidebarDBTree = () => {
         value={treeData}
         className="db-tree"
         selectionMode="single"
-        onSelectionChange={(e) => {
-          console.log("selected node", e.value)
-          handleNodeSelect(e.value)
+        onNodeDoubleClick={(e) => {
+          console.log("double clicked node", e.node)
+          handleNodeSelect(e.node.key)
         }}
       />
     </>

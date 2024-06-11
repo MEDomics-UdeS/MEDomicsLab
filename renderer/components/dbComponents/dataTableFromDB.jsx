@@ -9,17 +9,18 @@ import { MultiSelect } from "primereact/multiselect"
 
 const mongoUrl = "mongodb://127.0.0.1:27017"
 import { saveAs } from "file-saver"
+import Papa from "papaparse"
 import { SplitButton } from "primereact/splitbutton"
 import { getCollectionData } from "./utils"
 
 /**
  * DataTableFromDB component
- * @param data
- * @param tablePropsData
- * @param tablePropsColumn
- * @param isReadOnly
- * @returns {Element}
- * @constructor
+ * @param data - MongoDB data
+ * @param tablePropsData - DataTable props
+ * @param tablePropsColumn - Column props
+ * @param isReadOnly - Read-only mode
+ * @returns {Element} - DataTable component
+ * @constructor - DataTableFromDB
  */
 const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly }) => {
   const [innerData, setInnerData] = useState([])
@@ -28,6 +29,7 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
   const [numRows, setNumRows] = useState("")
   const [hoveredButton, setHoveredButton] = useState(null)
   const [selectedColumns, setSelectedColumns] = useState([])
+  const [csvData, setCsvData] = useState([])
   const exportOptions = [
     {
       label: "CSV",
@@ -93,6 +95,12 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
   useEffect(() => {
     console.log("columns updated:", columns)
   }, [columns])
+
+  useEffect(() => {
+    return () => {
+      setCsvData([])
+    }
+  }, [])
 
   const getColumnsFromData = (data) => {
     if (data.length > 0) {
@@ -219,7 +227,6 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
 
   // Handle row deletion
   const onDeleteRow = (rowData) => {
-    toast.success("Row " + rowData._id + " deleted successfully")
     const { _id } = rowData
     console.log("Deleting row with _id:", _id)
     deleteDatabaseData(data.path, data.uuid, _id)
@@ -233,7 +240,6 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
 
   // Handle column deletion
   const onDeleteColumn = async (field) => {
-    toast.success("Column " + field + " deleted successfully")
     setColumns(columns.filter((column) => column.field !== field))
     setInnerData(
       innerData.map((row) => {
@@ -358,6 +364,67 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
     })
   }
 
+  // Handle file upload
+  const handleFileUpload = (event) => {
+    Papa.parse(event.target.files[0], {
+      complete: function (results) {
+        setCsvData(results.data)
+        handleCsvData() // Call handleCsvData function after CSV data is set
+      }
+    })
+  }
+
+  // Handle CSV data
+  const handleCsvData = () => {
+    if (csvData.length > 0) {
+      const columnNames = csvData[0]
+      const dbColumnNames = columns.map((column) => column.field)
+      const nonExistentColumns = columnNames.filter((column) => !dbColumnNames.includes(column))
+
+      if (nonExistentColumns.length > 0) {
+        toast.warn("The following columns do not exist in the database: " + nonExistentColumns.join(", "))
+        return
+      }
+
+      setSelectedColumns(columnNames)
+    }
+  }
+
+  // Handle exporting selected columns
+  const handleExportColumns = () => {
+    if (selectedColumns.length > 0) {
+      const csvString = selectedColumns.join(",")
+      const blob = new Blob([csvString], { type: "text/csv;charset=utf-8" })
+      saveAs(blob, "selected_columns.csv")
+    } else {
+      toast.warn("No columns selected for export")
+    }
+  }
+
+  // Handle deleting selected columns
+  const handleDeleteColumns = async () => {
+    if (selectedColumns.length > 0) {
+      let newColumns = [...columns]
+      let newInnerData = [...innerData]
+      let newSelectedColumns = [...selectedColumns]
+      for (const column of selectedColumns) {
+        newColumns = newColumns.filter((col) => col.field !== column)
+        newInnerData = newInnerData.map((row) => {
+          const { [column]: _, ...rest } = row
+          return rest
+        })
+        await onDeleteColumn(column)
+        newSelectedColumns = newSelectedColumns.filter((col) => col !== column)
+      }
+      setColumns(newColumns)
+      setInnerData(newInnerData)
+      setSelectedColumns(newSelectedColumns)
+      toast.success("Selected columns deleted successfully")
+    } else {
+      toast.warn("No columns selected for deletion")
+    }
+  }
+
   // Render the DataTable component
   return (
     <>
@@ -376,80 +443,129 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
           rowsPerPageOptions={[20, 40, 80, 100]}
           {...tablePropsData}
           footer={
-            <div style={{ display: "flex", justifyContent: "center", alignItems: "center", padding: "5px" }}>
+            <div>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  padding: "5px"
+                }}
+              >
+                {!isReadOnly && (
+                  <div style={{ display: "flex", alignItems: "center", margin: "5px" }}>
+                    <InputText id="numRows" value={numRows} onChange={(e) => setNumRows(e.target.value)} style={{ marginRight: "10px", width: "100px" }} placeholder="# of Rows" />
+                    <Button
+                      label="Add"
+                      onClick={handleAddRow}
+                      style={{
+                        width: "100px",
+                        marginRight: "40px"
+                      }}
+                    />
+                  </div>
+                )}
+                {!isReadOnly && (
+                  <div style={{ display: "flex", alignItems: "center", margin: "5px" }}>
+                    <InputText id="newColumnName" value={newColumnName} style={{ marginRight: "10px", width: "130px" }} onChange={(e) => setNewColumnName(e.target.value)} placeholder="Column Name" />
+                    <Button
+                      label="Add"
+                      onClick={handleAddColumn}
+                      style={{
+                        width: "100px",
+                        marginRight: "40px"
+                      }}
+                    />
+                  </div>
+                )}
+                {!isReadOnly && (
+                  <div style={{ display: "flex", alignItems: "center", margin: "5px" }}>
+                    <SplitButton label="Export DB" model={exportOptions} className="p-button-success" />
+                    <Button
+                      icon="pi pi-refresh"
+                      onClick={() => refreshData()}
+                      style={{
+                        width: "50px",
+                        padding: "5px",
+                        marginLeft: "50px",
+                        backgroundColor: "green",
+                        borderColor: "green"
+                      }}
+                    />
+                  </div>
+                )}
+              </div>
               {!isReadOnly && (
-                <div style={{ display: "flex", alignItems: "center", margin: "5px" }}>
-                  <InputText id="numRows" value={numRows} onChange={(e) => setNumRows(e.target.value)} style={{ marginRight: "10px", width: "100px" }} placeholder="# of Rows" />
-                  <Button
-                    label="Add"
-                    onClick={handleAddRow}
-                    style={{
-                      width: "100px",
-                      marginRight: "40px"
-                    }}
-                  />
-                </div>
-              )}
-              {!isReadOnly && (
-                <div style={{ display: "flex", alignItems: "center", margin: "5px" }}>
-                  <InputText id="newColumnName" value={newColumnName} style={{ marginRight: "10px", width: "130px" }} onChange={(e) => setNewColumnName(e.target.value)} placeholder="Column Name" />
-                  <Button
-                    label="Add"
-                    onClick={handleAddColumn}
-                    style={{
-                      width: "100px",
-                      marginRight: "40px"
-                    }}
-                  />
-                </div>
-              )}
-              {!isReadOnly && (
-                <div style={{ display: "flex", alignItems: "center", margin: "5px" }}>
-                  <MultiSelect
-                    value={selectedColumns}
-                    options={columns.map((column) => ({ label: column.header, value: column.field }))}
-                    onChange={(e) => setSelectedColumns(e.value)}
-                    placeholder="Select Columns"
-                    style={{ marginRight: "10px", width: "200px" }}
-                  />
-                  <SplitButton
-                    label="Transform"
-                    model={[
-                      {
-                        label: "Binary",
-                        command: () => transformData("Binary")
-                      },
-                      {
-                        label: "Non-empty",
-                        command: () => transformData("Non-empty")
-                      }
-                    ]}
-                    className="p-button-success"
-                    style={{
-                      width: "150px",
-                      marginRight: "40px"
-                    }}
-                  />
-                </div>
-              )}
-              {!isReadOnly && (
-                <div>
-                  <SplitButton label="Export" model={exportOptions} className="p-button-success" />
-                </div>
-              )}
-              {!isReadOnly && (
-                <div>
-                  <Button
-                    icon="pi pi-refresh"
-                    onClick={() => refreshData()}
-                    style={{
-                      width: "50px",
-                      padding: "5px",
-                      marginLeft: "50px",
-                      backgroundColor: "green",
-                      borderColor: "green"
-                    }}
-                  />
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    padding: "5px"
+                  }}
+                >
+                  <div style={{ display: "flex", alignItems: "center", margin: "5px" }}>
+                    <MultiSelect
+                      value={selectedColumns}
+                      options={columns
+                        .filter((column) => column.header !== null)
+                        .map((column) => ({
+                          label: column.header,
+                          value: column.field
+                        }))}
+                      onChange={(e) => setSelectedColumns(e.value)}
+                      placeholder="Select Columns"
+                      style={{ marginRight: "10px", width: "200px" }}
+                    />
+                    <SplitButton
+                      label="Transform"
+                      model={[
+                        {
+                          label: "Binary",
+                          command: () => transformData("Binary")
+                        },
+                        {
+                          label: "Non-empty",
+                          command: () => transformData("Non-empty")
+                        }
+                      ]}
+                      className="p-button-success"
+                      style={{
+                        width: "150px",
+                        marginRight: "40px"
+                      }}
+                    />
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", margin: "5px" }}>
+                    <input type="file" accept=".csv" onChange={handleFileUpload} />
+                    <Button
+                      label="Import Columns"
+                      onClick={handleCsvData}
+                      className="p-button-success"
+                      style={{
+                        width: "150px",
+                        marginRight: "10px"
+                      }}
+                    />
+                    <Button
+                      label="Export Columns"
+                      onClick={handleExportColumns}
+                      className="p-button-success"
+                      style={{
+                        width: "150px",
+                        marginRight: "10px"
+                      }}
+                    />
+                    <Button
+                      label="Delete Columns"
+                      onClick={handleDeleteColumns}
+                      className="p-button-danger"
+                      style={{
+                        width: "150px",
+                        marginRight: "10px"
+                      }}
+                    />
+                  </div>
                 </div>
               )}
             </div>
