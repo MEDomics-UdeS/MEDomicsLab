@@ -5,12 +5,20 @@ import { InputText } from "primereact/inputtext"
 import { Button } from "primereact/button"
 import { MongoClient, ObjectId } from "mongodb"
 import { toast } from "react-toastify"
-import { MultiSelect } from "primereact/multiselect"
+import { Panel } from "primereact/panel"
+
+// Import tools components
+import TransformColumnTools from "./inputToolsDB/transformColumnTools"
+import BasicTools from "./inputToolsDB/basicTools"
+import MergeTools from "./inputToolsDB/mergeTools"
+import SimpleCleaningTools from "./inputToolsDB/simpleCleaningTools"
+import SubsetCreationTools from "./inputToolsDB/subsetCreationTools"
+import HoldoutSetCreationTool from "./inputToolsDB/holdoutSetCreationTools"
+import FeatureReductionTools from "./inputToolsDB/featureReductionTools"
 
 const mongoUrl = "mongodb://127.0.0.1:27017"
 import { saveAs } from "file-saver"
 import Papa from "papaparse"
-import { SplitButton } from "primereact/splitbutton"
 import { getCollectionData } from "./utils"
 
 /**
@@ -54,6 +62,16 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
     opacity: isReadOnly ? 0.5 : 1,
     cursor: isReadOnly ? "not-allowed" : "pointer"
   })
+
+  const dataTableStyle = {
+    height: "100%",
+    overflow: "auto"
+  }
+
+  const panelContainerStyle = {
+    height: "350px",
+    overflow: "auto"
+  }
 
   // Fetch data from MongoDB on component mount
   useEffect(() => {
@@ -431,185 +449,104 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
       {innerData.length === 0 ? (
         <p style={{ color: "red", fontSize: "20px", textAlign: "center", margin: "30px" }}>No data found in {data.uuid}</p>
       ) : (
-        <DataTable
-          value={innerData}
-          editMode={!isReadOnly ? "cell" : undefined}
-          size="small"
-          scrollable
-          height={"100%"}
-          width={"100%"}
-          paginator
-          rows={20}
-          rowsPerPageOptions={[20, 40, 80, 100]}
-          {...tablePropsData}
-          footer={
-            <div>
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "center",
-                  alignItems: "center",
-                  padding: "5px"
-                }}
-              >
-                {!isReadOnly && (
-                  <div style={{ display: "flex", alignItems: "center", margin: "5px" }}>
-                    <InputText id="numRows" value={numRows} onChange={(e) => setNumRows(e.target.value)} style={{ marginRight: "10px", width: "100px" }} placeholder="# of Rows" />
-                    <Button
-                      label="Add"
-                      onClick={handleAddRow}
-                      style={{
-                        width: "100px",
-                        marginRight: "40px"
-                      }}
+        <div style={dataTableStyle}>
+          <DataTable
+            value={innerData}
+            editMode={!isReadOnly ? "cell" : undefined}
+            size="small"
+            scrollable
+            height={"100%"}
+            width={"100%"}
+            paginator
+            rows={20}
+            rowsPerPageOptions={[20, 40, 80, 100]}
+            {...tablePropsData}
+            footer={
+              !isReadOnly && (
+                <div style={panelContainerStyle}>
+                  <Panel header="Add, Export and Refresh Tools" toggleable collapsed={true}>
+                    <BasicTools
+                      numRows={numRows}
+                      setNumRows={setNumRows}
+                      handleAddRow={handleAddRow}
+                      newColumnName={newColumnName}
+                      setNewColumnName={setNewColumnName}
+                      handleAddColumn={handleAddColumn}
+                      exportOptions={exportOptions}
+                      refreshData={refreshData}
                     />
-                  </div>
-                )}
-                {!isReadOnly && (
-                  <div style={{ display: "flex", alignItems: "center", margin: "5px" }}>
-                    <InputText id="newColumnName" value={newColumnName} style={{ marginRight: "10px", width: "130px" }} onChange={(e) => setNewColumnName(e.target.value)} placeholder="Column Name" />
-                    <Button
-                      label="Add"
-                      onClick={handleAddColumn}
-                      style={{
-                        width: "100px",
-                        marginRight: "40px"
-                      }}
+                  </Panel>
+                  <Panel header="Transform Column Tools" toggleable collapsed={true}>
+                    <TransformColumnTools
+                      selectedColumns={selectedColumns}
+                      setSelectedColumns={setSelectedColumns}
+                      columns={columns}
+                      transformData={transformData}
+                      handleFileUpload={handleFileUpload}
+                      handleCsvData={handleCsvData}
+                      handleExportColumns={handleExportColumns}
+                      handleDeleteColumns={handleDeleteColumns}
                     />
-                  </div>
-                )}
-                {!isReadOnly && (
-                  <div style={{ display: "flex", alignItems: "center", margin: "5px" }}>
-                    <SplitButton label="Export DB" model={exportOptions} className="p-button-success" />
-                    <Button
-                      icon="pi pi-refresh"
-                      onClick={() => refreshData()}
-                      style={{
-                        width: "50px",
-                        padding: "5px",
-                        marginLeft: "50px",
-                        backgroundColor: "green",
-                        borderColor: "green"
-                      }}
-                    />
-                  </div>
-                )}
-              </div>
-              {!isReadOnly && (
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    padding: "5px"
-                  }}
-                >
-                  <div style={{ display: "flex", alignItems: "center", margin: "5px" }}>
-                    <MultiSelect
-                      value={selectedColumns}
-                      options={columns
-                        .filter((column) => column.header !== null)
-                        .map((column) => ({
-                          label: column.header,
-                          value: column.field
-                        }))}
-                      onChange={(e) => setSelectedColumns(e.value)}
-                      placeholder="Select Columns"
-                      style={{ marginRight: "10px", width: "200px" }}
-                    />
-                    <SplitButton
-                      label="Transform"
-                      model={[
-                        {
-                          label: "Binary",
-                          command: () => transformData("Binary")
-                        },
-                        {
-                          label: "Non-empty",
-                          command: () => transformData("Non-empty")
-                        }
-                      ]}
-                      className="p-button-success"
-                      style={{
-                        width: "150px",
-                        marginRight: "40px"
-                      }}
-                    />
-                  </div>
-                  <div style={{ display: "flex", alignItems: "center", margin: "5px" }}>
-                    <input type="file" accept=".csv" onChange={handleFileUpload} />
-                    <Button
-                      label="Import Columns"
-                      onClick={handleCsvData}
-                      className="p-button-success"
-                      style={{
-                        width: "150px",
-                        marginRight: "10px"
-                      }}
-                    />
-                    <Button
-                      label="Export Columns"
-                      onClick={handleExportColumns}
-                      className="p-button-success"
-                      style={{
-                        width: "150px",
-                        marginRight: "10px"
-                      }}
-                    />
-                    <Button
-                      label="Delete Columns"
-                      onClick={handleDeleteColumns}
-                      className="p-button-danger"
-                      style={{
-                        width: "150px",
-                        marginRight: "10px"
-                      }}
-                    />
-                  </div>
+                  </Panel>
+                  <Panel header="Merge Tools" toggleable collapsed={true}>
+                    <MergeTools />
+                  </Panel>
+                  <Panel header="Simple Cleaning Tools" toggleable collapsed={true}>
+                    <SimpleCleaningTools />
+                  </Panel>
+                  <Panel header="Holdout Set Creation Tools" toggleable collapsed={true}>
+                    <HoldoutSetCreationTool />
+                  </Panel>
+                  <Panel header="Subset Creation Tools" toggleable collapsed={true}>
+                    <SubsetCreationTools />
+                  </Panel>
+                  <Panel header="Feature Reduction Tools" toggleable collapsed={true}>
+                    <FeatureReductionTools />
+                  </Panel>
                 </div>
-              )}
-            </div>
-          }
-        >
-          {!isReadOnly && (
-            <Column
-              field="delete"
-              body={(rowData) => (
-                <Button
-                  icon="pi pi-trash"
-                  style={buttonStyle(rowData._id)}
-                  onClick={() => onDeleteRow(rowData)}
-                  onMouseEnter={() => setHoveredButton(rowData._id)}
-                  onMouseLeave={() => setHoveredButton(null)}
-                />
-              )}
-            />
-          )}
-          {columns.length > 0
-            ? columns.map((col) => (
-                <Column
-                  key={col.field}
-                  field={col.field}
-                  header={
-                    <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-                      {!isReadOnly && (
-                        <Button
-                          icon="pi pi-trash"
-                          style={buttonStyle(col.field)}
-                          onClick={() => onDeleteColumn(col.field)}
-                          onMouseEnter={() => setHoveredButton(col.field)}
-                          onMouseLeave={() => setHoveredButton(null)}
-                        />
-                      )}
-                      {col.header}
-                    </div>
-                  }
-                  editor={!isReadOnly ? (options) => textEditor(options) : undefined}
-                  onCellEditComplete={!isReadOnly ? onCellEditComplete : undefined}
-                />
-              ))
-            : getColumnsFromData(innerData)}
-        </DataTable>
+              )
+            }
+          >
+            {!isReadOnly && (
+              <Column
+                field="delete"
+                body={(rowData) => (
+                  <Button
+                    icon="pi pi-trash"
+                    style={buttonStyle(rowData._id)}
+                    onClick={() => onDeleteRow(rowData)}
+                    onMouseEnter={() => setHoveredButton(rowData._id)}
+                    onMouseLeave={() => setHoveredButton(null)}
+                  />
+                )}
+              />
+            )}
+            {columns.length > 0
+              ? columns.map((col) => (
+                  <Column
+                    key={col.field}
+                    field={col.field}
+                    header={
+                      <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+                        {!isReadOnly && (
+                          <Button
+                            icon="pi pi-trash"
+                            style={buttonStyle(col.field)}
+                            onClick={() => onDeleteColumn(col.field)}
+                            onMouseEnter={() => setHoveredButton(col.field)}
+                            onMouseLeave={() => setHoveredButton(null)}
+                          />
+                        )}
+                        {col.header}
+                      </div>
+                    }
+                    editor={!isReadOnly ? (options) => textEditor(options) : undefined}
+                    onCellEditComplete={!isReadOnly ? onCellEditComplete : undefined}
+                  />
+                ))
+              : getColumnsFromData(innerData)}
+          </DataTable>
+        </div>
       )}
     </>
   )
