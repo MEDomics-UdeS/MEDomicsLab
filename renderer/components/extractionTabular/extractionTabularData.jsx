@@ -13,7 +13,7 @@ import { requestBackend } from "../../utilities/requests"
 import { toast } from "react-toastify"
 import { MongoDBContext } from "../mongoDB/mongoDBContext"
 import { ServerConnectionContext } from "../serverConnection/connectionContext"
-import { getCollectionData, getCollectionColumnTypes } from "../dbComponents/utils"
+import { getCollectionData, getCollectionColumnTypes, updateDBCollections } from "../dbComponents/utils"
 import DataTableFromDB from "../dbComponents/dataTableFromDB"
 
 /**
@@ -60,6 +60,7 @@ const ExtractionTabularData = ({ extractionTypeList, serverUrl, defaultFilename 
    */
   async function datasetSelected(dataset) {
     try {
+      setResultDataset(null)
       const columnsData = await getCollectionColumnTypes(DB.name, dataset.label)
       setColumnsTypes(columnsData)
       setSelectedDataset(dataset)
@@ -140,6 +141,7 @@ const ExtractionTabularData = ({ extractionTypeList, serverUrl, defaultFilename 
    *
    */
   const runExtraction = async () => {
+    setResultDataset(null)
     setMayProceed(false)
     setShowProgressBar(true)
     setExtractionProgress(0)
@@ -159,6 +161,7 @@ const ExtractionTabularData = ({ extractionTypeList, serverUrl, defaultFilename 
     setExtractionStep("")
     setMayProceed(true)
     setShowProgressBar(false)
+    updateDBCollections(DB.name)
   }
 
   return (

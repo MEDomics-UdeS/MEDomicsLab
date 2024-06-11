@@ -1,3 +1,4 @@
+import { ipcRenderer } from "electron"
 const MongoClient = require("mongodb").MongoClient
 const mongoUrl = "mongodb://127.0.0.1:27017"
 
@@ -84,4 +85,13 @@ export const getCollectionColumnTypes = async (dbname, collectionName) => {
   } finally {
     await client.close()
   }
+}
+
+/**
+ * Get the names of all the collections present in the DB
+ * Useful when a new collection have been created
+ * @param {String} DBname
+ */
+export const updateDBCollections = (DBname) => {
+  ipcRenderer.send("get-collections", DBname)
 }
