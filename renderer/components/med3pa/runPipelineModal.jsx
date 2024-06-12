@@ -1,19 +1,16 @@
 /* eslint-disable react/jsx-key */
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import { Button, Modal, Tab, Tabs, Card } from "react-bootstrap"
 import { FiArrowLeft } from "react-icons/fi"
 
-const NodeDetails = ({ id, nodes }) => {
+const NodeDetails = ({ node }) => {
   const [isExpanded, setIsExpanded] = useState(false)
 
-  const node = nodes.find((node) => node.id === id)
-  if (!node || !node.data || !node.data.internal || !node.data.internal.settings) {
+  if (!node || !node.settings) {
     return null
   }
+  const settings = node.settings
 
-  const settings = node.data.internal.settings
-  console.log(node)
-  console.log(settings)
   const toggleExpansion = () => {
     setIsExpanded(!isExpanded)
   }
@@ -33,7 +30,7 @@ const NodeDetails = ({ id, nodes }) => {
   return (
     <Card className="mb-2">
       <Card.Body>
-        <Card.Title>{node.name}</Card.Title>
+        <Card.Title>{node.label}</Card.Title>
         <Button onClick={toggleExpansion} variant="link" className={`p-0 text-decoration-none ${isExpanded ? "expanded" : ""}`} style={{ fontSize: "0.85rem" }}>
           {isExpanded ? "Hide Details" : "Expand Details"}
         </Button>
@@ -48,21 +45,32 @@ const NodeDetails = ({ id, nodes }) => {
   )
 }
 
-const RunPipelineModal = ({ show, onHide, configs, nodes }) => {
+const RunPipelineModal = ({ show, onHide, configs, onRun }) => {
   let med3paNodeCount = 0
 
   const [selectedConfig, setSelectedConfig] = useState(null)
 
-  const handleShowSubNodes = (med3paId) => {
+  useEffect(() => {
+    if (!show) {
+      setSelectedConfig(null) // Reset the selectedConfig when the modal is hidden
+    }
+  }, [show])
+
+  const handleShowSubNodes = (children) => {
+    console.log(children)
     // Filter configurations with subNodeId equal to med3paId
-    const subNodeConfigs = configs.filter((config) => config.some((node) => node.supIdNode === med3paId))
 
     // Update state with the filtered configurations
-    setSelectedConfig(subNodeConfigs)
+    setSelectedConfig(children)
   }
 
   const handleBack = () => {
     setSelectedConfig(null)
+  }
+
+  const handleRunPipeline = () => {
+    onRun(configs)
+    onHide()
   }
 
   return (
@@ -90,7 +98,7 @@ const RunPipelineModal = ({ show, onHide, configs, nodes }) => {
                     <Tab eventKey={"conf" + index} title={configName}>
                       <div>
                         {config.map((node) => (
-                          <NodeDetails key={node.id} id={node.id} nodes={nodes} />
+                          <NodeDetails key={node.id} node={node} />
                         ))}
                       </div>
                     </Tab>
@@ -109,13 +117,13 @@ const RunPipelineModal = ({ show, onHide, configs, nodes }) => {
                     <Tab eventKey={"conf" + index} title={`Configuration ${index + 1}`}>
                       <div>
                         {config.map((node) => (
-                          <NodeDetails key={node.id} id={node.id} nodes={nodes} />
+                          <NodeDetails key={node.id} node={node} />
                         ))}
                       </div>
                       {med3paNode && (
                         <>
                           <br></br>
-                          <Button onClick={() => handleShowSubNodes(med3paNode.id)} variant="outline-primary" size="sm">
+                          <Button onClick={() => handleShowSubNodes(med3paNode.children)} variant="outline-primary" size="sm">
                             Show MED3pa Node Configurations
                           </Button>
                         </>
@@ -126,7 +134,7 @@ const RunPipelineModal = ({ show, onHide, configs, nodes }) => {
             </Tabs>
           )}
         </Modal.Body>
-        <Modal.Footer>{!selectedConfig && <Button onClick={onHide}>Run Pipeline</Button>}</Modal.Footer>
+        <Modal.Footer>{!selectedConfig && <Button onClick={handleRunPipeline}>Run Pipeline</Button>}</Modal.Footer>
       </Modal>
     </div>
   )

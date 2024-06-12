@@ -19,6 +19,21 @@ export default function IPCModelNode({ id, data }) {
       updatedData: data.internal
     })
   }, [])
+  // Initialize the files field in the internal data if it doesn't exist
+  useEffect(() => {
+    const defaultSettings = {}
+    Object.keys(data.setupParam.possibleSettings).forEach((key) => {
+      defaultSettings[key] = data.setupParam.possibleSettings[key].default_val
+    })
+
+    updateNode({
+      id: id,
+      updatedData: {
+        ...data.internal,
+        settings: defaultSettings
+      }
+    })
+  }, [])
 
   const handleInputChange = (key, value) => {
     // Check if the value is an array (multi-select) or a single value (text input)
@@ -113,11 +128,11 @@ export default function IPCModelNode({ id, data }) {
                         <OverlayTrigger
                           placement="top"
                           overlay={
-                            <Tooltip id="tooltip">{Array.isArray(data.setupParam.possibleSettings[key].default_val) ? data.internal.settings[key].join(", ") : data.internal.settings[key]}</Tooltip>
+                            <Tooltip id="tooltip">{Array.isArray(data.setupParam.possibleSettings[key].default_val) ? data.internal.settings[key]?.join(", ") : data.internal.settings[key]}</Tooltip>
                           }
                         >
                           <p className="fw-bold mb-0" style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                            {Array.isArray(data.setupParam.possibleSettings[key].default_val) ? data.internal.settings[key].join(", ") : data.internal.settings[key]}
+                            {Array.isArray(data.setupParam.possibleSettings[key].default_val) ? data.internal.settings[key]?.join(", ") : data.internal.settings[key]}
                           </p>
                         </OverlayTrigger>
                       </div>

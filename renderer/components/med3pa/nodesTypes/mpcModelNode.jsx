@@ -1,9 +1,6 @@
-import React from "react"
 import Node from "../../flow/node"
 
 export default function MPCModelNode({ id, data }) {
-  // context
-
   return (
     <>
       {/* build on top of the Node component */}

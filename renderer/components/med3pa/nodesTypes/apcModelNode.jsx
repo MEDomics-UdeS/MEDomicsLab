@@ -4,7 +4,7 @@ import FlInput from "../paInput"
 import { Button, Modal, OverlayTrigger, Tooltip } from "react-bootstrap"
 import * as Icon from "react-bootstrap-icons"
 import { FlowFunctionsContext } from "../../flow/context/flowFunctionsContext"
-import DecisionTree from "./DecisionTree" // Import the DecisionTree component
+// import DecisionTree from "./DecisionTree" // Import the DecisionTree component
 
 export default function APCModelNode({ id, data }) {
   // context
@@ -12,8 +12,8 @@ export default function APCModelNode({ id, data }) {
   const [showModal, setShowModal] = useState(false)
   const { updateNode } = useContext(FlowFunctionsContext)
   const [hovered, setHovered] = useState(false)
-  const [depth, setDepth] = useState(data.internal.settings.tree_depth || 4) // Initialize depth state
-  const [minLeafRatio, setMinLeafRatio] = useState(data.internal.settings.min_leaves_ratio || 0.5) // Initialize minLeafRatio state
+  // const [depth, setDepth] = useState(data.internal.settings.tree_depth || 4) // Initialize depth state
+  // const [minLeafRatio, setMinLeafRatio] = useState(data.internal.settings.min_leaves_ratio || 0.5) // Initialize minLeafRatio state
 
   // Initialize the files field in the internal data if it doesn't exist
   useEffect(() => {
@@ -27,14 +27,14 @@ export default function APCModelNode({ id, data }) {
     // Check if the value is an array (multi-select) or a single value (text input)
     const selectedValues = Array.isArray(value.value) ? value.value.map((option) => option.name) : value.value
 
-    if (key === "min_leaves_ratio" || key === "tree_depth") {
-      // Update the depth and minLeafRatio states
-      if (key === "tree_depth") {
-        setDepth(selectedValues)
-      } else {
-        setMinLeafRatio(selectedValues)
-      }
-    }
+    // if (key === "min_leaves_ratio" || key === "tree_depth") {
+    //   // Update the depth and minLeafRatio states
+    //   if (key === "tree_depth") {
+    //     setDepth(selectedValues)
+    //   } else {
+    //     setMinLeafRatio(selectedValues)
+    //   }
+    // }
     // Update the context with the new value
     updateNode({
       id: id,
@@ -55,14 +55,14 @@ export default function APCModelNode({ id, data }) {
   const handleModalShow = () => {
     setShowModal(true)
     // Reset depth and minLeafRatio states to their initial values
-    setDepth(data.internal.settings.tree_depth || 4)
-    setMinLeafRatio(data.internal.settings.min_leaves_ratio || 0.5)
+    //  setDepth(data.internal.settings.tree_depth || 4)
+    // setMinLeafRatio(data.internal.settings.min_leaves_ratio || 0.5)
   }
   const handleModalClose = () => {
     setShowModal(false)
     // Reset depth and minLeafRatio states to their initial values
-    setDepth(data.internal.settings.tree_depth || 4)
-    setMinLeafRatio(data.internal.settings.min_leaves_ratio || 0.5)
+    //  setDepth(data.internal.settings.tree_depth || 4)
+    // setMinLeafRatio(data.internal.settings.min_leaves_ratio || 0.5)
   }
 
   return (
@@ -160,7 +160,7 @@ export default function APCModelNode({ id, data }) {
       />
       <Modal show={showModal} onHide={handleModalClose} size="lg">
         <Modal.Header closeButton>
-          <Modal.Title>Select IPC Model Parameters</Modal.Title>
+          <Modal.Title>Select APC Model Parameters</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           {/* Iterate over possible settings and render FlInput components */}

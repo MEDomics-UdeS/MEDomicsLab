@@ -22,7 +22,7 @@ export default function DatasetLoaderNode({ id, data }) {
   const [settings, setSettings] = useState(data.internal.settings)
 
   useEffect(() => {
-    if (Object.keys(settings).length < Object.keys(data.setupParam.possibleSettings.datasets[data.internal.contentType].files).length * 3) {
+    if (Object.keys(data.internal.settings).length < Object.keys(data.setupParam.possibleSettings.datasets.files).length) {
       data.internal.hasWarning = { state: true, tooltip: <p>Select all dataset types</p> }
     } else {
       data.internal.hasWarning = { state: false }
@@ -66,10 +66,9 @@ export default function DatasetLoaderNode({ id, data }) {
       }
     })
   }
-
   const onFilesChange = async (inputUpdate) => {
     const newSettings = { ...settings, [inputUpdate.name]: inputUpdate.value }
-    const fileIndex = parseInt(inputUpdate.name.split("_")[2])
+    const fileIndex = parseInt(inputUpdate.name.split("_")[1]) // Changed to use [1] instead of [2]
     if (inputUpdate.value.path !== "") {
       setLoader(true)
       const { columnsArray, columnsObject } = await MedDataObject.getColumnsFromPath(inputUpdate.value.path, globalData, setGlobalData)
@@ -78,47 +77,48 @@ export default function DatasetLoaderNode({ id, data }) {
       if (steps) newSettings.steps = steps
 
       // Update the columns property for the specific file index
-      newSettings[`columns_${data.internal.contentType}_${fileIndex}`] = columnsObject
+      newSettings[`columns_${fileIndex}`] = columnsObject
 
+      // Check if columnsArray is valid
+      const targetValue = columnsArray && columnsArray.length > 0 ? columnsArray[columnsArray.length - 1] : ""
       // Update target variable for the corresponding file
-      newSettings[`target_${data.internal.contentType}_${fileIndex}`] = columnsArray[columnsArray.length - 1]
+      newSettings[`target_${fileIndex}`] = targetValue
     }
-    if (newSettings[`target_${data.internal.contentType}_${fileIndex}`] === "") {
-      delete newSettings[`target_${data.internal.contentType}_${fileIndex}`].target
-      delete newSettings[`columns_${data.internal.contentType}_${fileIndex}`]
+    if (newSettings[`target_${fileIndex}`] === "") {
+      delete newSettings[`target_${fileIndex}`] // Removed `.target` from here
+      delete newSettings[`columns_${fileIndex}`]
     }
     setSettings(newSettings)
   }
 
-  const getDatasetFields = (datasets, contentType) => {
-    if (!datasets[contentType]) return null
-    return datasets[contentType].files.map((file, index) => (
-      <React.Fragment key={`${contentType}_${index}`}>
+  const getDatasetFields = (datasets) => {
+    return datasets.files.map((file, index) => (
+      <React.Fragment key={`${index}`}>
         <p className="text-muted">Please Select {file.name}</p>
         <FlInput
-          name={`file_${contentType}_${index}`}
+          name={`file_${index}`}
           settingInfos={{
             type: "data-input",
-            tooltip: datasets[contentType].tooltip
+            tooltip: datasets.tooltip
           }}
-          currentValue={settings[`file_${contentType}_${index}`] || ""}
+          currentValue={data.internal.settings[`file_${index}`] || ""}
           onInputChange={onFilesChange}
           setHasWarning={handleWarning}
         />
         <FlInput
-          name={`target_${contentType}_${index}`}
+          name={`target_${index}`}
           settingInfos={{
             type: "list",
             tooltip: "<p>Specify the column name of the target variable</p>",
-            choices: settings[`columns_${contentType}_${index}`]
-              ? Object.entries(settings[`columns_${contentType}_${index}`]).map(([option]) => {
+            choices: settings[`columns_${index}`]
+              ? Object.entries(settings[`columns_${index}`]).map(([option]) => {
                   return {
                     name: option
                   }
                 })
               : []
           }}
-          currentValue={data.internal.settings[`target_${contentType}_${index}`] || ""}
+          currentValue={data.internal.settings[`target_${index}`] || ""}
           onInputChange={onInputChange}
           setHasWarning={handleWarning}
         />
@@ -127,7 +127,6 @@ export default function DatasetLoaderNode({ id, data }) {
   }
 
   const toggleShowDetails = () => {
-    console.log(data.internal.settings)
     setShowDetails(!showDetails)
   }
 
@@ -142,14 +141,12 @@ export default function DatasetLoaderNode({ id, data }) {
           <>
             <div className="center">
               <Button variant="light" className="width-100 btn-contour">
-                {settings.target ? `Change Selected ${data.internal.contentType} Datasets` : `Select ${data.internal.contentType} Datasets`}
+                {settings.target ? `Change Selected Main Datasets` : `Select Main Datasets`}
               </Button>
               <p style={{ textAlign: "center", marginTop: "10px", fontSize: "12px" }}>
-                This node simplifies the process by
+                This node is responsible for loading the main Datasets
                 <br />
-                automatically detecting if an Evaluation Set
-                <br />
-                required for each ML model when connected.
+                required for evaluating an ML base model.
               </p>
             </div>
             <div className="center">
@@ -196,41 +193,20 @@ export default function DatasetLoaderNode({ id, data }) {
                 <div className="mb-3">
                   <p className="fw-bold mb-0">List Of Datasets</p>
                   <br />
-                  {data.internal.contentType === "default"
-                    ? // Show details only for the default content type
-                      data.setupParam.possibleSettings.datasets[data.internal.contentType].files.map((file, index) => (
-                        <div className="row mb-2" key={`${data.internal.contentType}_${index}`}>
-                          <div className="col-sm-6">
-                            <p className="fw-bold mb-2">{file.name}</p>
-                          </div>
-                          <div className="col-sm-6 text-end">
-                            <OverlayTrigger placement="top" overlay={<Tooltip id="tooltip">{settings[`file_${data.internal.contentType}_${index}`]?.name}</Tooltip>}>
-                              <p className="fw-bold mb-0" style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                                {settings[`file_${data.internal.contentType}_${index}`]?.name}
-                              </p>
-                            </OverlayTrigger>
-                          </div>
-                        </div>
-                      ))
-                    : // Show details for all content types
-                      Object.keys(data.setupParam.possibleSettings.datasets).map((contentType) => (
-                        <React.Fragment key={contentType}>
-                          {data.setupParam.possibleSettings.datasets[contentType].files.map((file, index) => (
-                            <div className="row mb-2" key={`${contentType}_${index}`}>
-                              <div className="col-sm-6">
-                                <p className="fw-bold mb-2">{file.name}</p>
-                              </div>
-                              <div className="col-sm-6 text-end">
-                                <OverlayTrigger placement="top" overlay={<Tooltip id="tooltip">{settings[`file_${contentType}_${index}`]?.name}</Tooltip>}>
-                                  <p className="fw-bold mb-0" style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                                    {settings[`file_${contentType}_${index}`]?.name}
-                                  </p>
-                                </OverlayTrigger>
-                              </div>
-                            </div>
-                          ))}
-                        </React.Fragment>
-                      ))}
+                  {data.setupParam.possibleSettings.datasets.files.map((file, index) => (
+                    <div className="row mb-2" key={`${index}`}>
+                      <div className="col-sm-6">
+                        <p className="fw-bold mb-2">{file.name}</p>
+                      </div>
+                      <div className="col-sm-6 text-end">
+                        <OverlayTrigger placement="top" overlay={<Tooltip id="tooltip">{settings[`file_${index}`]?.name}</Tooltip>}>
+                          <p className="fw-bold mb-0" style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                            {settings[`file_${index}`]?.name}
+                          </p>
+                        </OverlayTrigger>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
             )}
@@ -238,7 +214,7 @@ export default function DatasetLoaderNode({ id, data }) {
         }
         defaultSettings={
           <Stack id="default" direction="vertical" gap={1}>
-            {getDatasetFields(data.setupParam.possibleSettings.datasets, data.internal.contentType)}
+            {getDatasetFields(data.setupParam.possibleSettings.datasets)}
           </Stack>
         }
         nodeSpecific={

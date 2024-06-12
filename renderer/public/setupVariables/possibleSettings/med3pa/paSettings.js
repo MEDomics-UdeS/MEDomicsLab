@@ -9,19 +9,13 @@ const paSettings = {
       }
     },
     datasets: {
-      default: {
-        files: [
-          { name: "Training Set", target: "", path: "" },
-          { name: "Validation Set", target: "", path: "" },
-          { name: "Test Set", target: "", path: "" }
-        ],
-
-        tooltip: "<p>Select Datasets Spicific to a base classification model</p>"
-      },
-      evalNode: {
-        files: [{ name: "Evaluation Set", target: "", path: "" }],
-        tooltip: "<p>Select here your evaluation Dataset</p>"
-      }
+      files: [
+        { name: "Training Set", target: "", path: "" },
+        { name: "Validation Set", target: "", path: "" },
+        { name: "Test Set", target: "", path: "" },
+        { name: "Evaluation Set", target: "", path: "" }
+      ],
+      tooltip: "<p>Select your main Datasets</p>"
     }
   },
   ipcModel: {

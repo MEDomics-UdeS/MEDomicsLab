@@ -30,9 +30,12 @@ class GoExecScriptHelloWorldFromMED3pa(GoExecutionScript):
         """
         This function is the main script of the execution of the process from Go
         """
-        string_received = json_config["stringFromFrontend"]
-        self.results = {"data": "Backend received: " + string_received, "stringFromBackend":
-                        "Hello World from MEDfl backend @ " + time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()) + " !"}
+        
+        self.results = {
+        "json_config": json_config,
+        "data": "Backend received Information",
+        "stringFromBackend": "Hello World from med3pa backend @ " + time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()) + " !"
+        }
 
         self.set_progress(label="Hello World is ready !", now=100)
         return self.results

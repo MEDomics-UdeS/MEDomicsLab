@@ -13,6 +13,22 @@ export default function UncertaintyMetricsNode({ id, data }) {
 
   // Initialize the files field in the internal data if it doesn't exist
   useEffect(() => {
+    const defaultSettings = {}
+    Object.keys(data.setupParam.possibleSettings).forEach((key) => {
+      defaultSettings[key] = data.setupParam.possibleSettings[key].default_val
+    })
+
+    updateNode({
+      id: id,
+      updatedData: {
+        ...data.internal,
+        settings: defaultSettings
+      }
+    })
+  }, [])
+
+  // Initialize the files field in the internal data if it doesn't exist
+  useEffect(() => {
     updateNode({
       id: id,
       updatedData: data.internal
@@ -138,7 +154,7 @@ export default function UncertaintyMetricsNode({ id, data }) {
                     choices: data.setupParam.possibleSettings[key].options
                   })
                 }}
-                currentValue={data.internal.settings[key] || ""}
+                currentValue={data.internal.settings[key] || data.setupParam.possibleSettings[key].default_val}
                 onInputChange={(value) => handleInputChange(key, value)}
               />
             ))}

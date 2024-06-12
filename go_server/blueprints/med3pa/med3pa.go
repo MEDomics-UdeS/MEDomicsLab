@@ -16,7 +16,7 @@ func AddHandleFunc() {
 // handleStartSweetviz handles the request to run a sweetviz analysis
 // It returns the response from the python script
 func handleHelloWorld(jsonConfig string, id string) (string, error) {
-	log.Println("Hello World MED3pa...", id)
+	log.Println("Running Experiment...", id)
 	response, err := Utils.StartPythonScripts(jsonConfig, "../pythonCode/modules/med3pa/hello_world_med3pa.py", id)
 	Utils.RemoveIdFromScripts(id)
 	if err != nil {

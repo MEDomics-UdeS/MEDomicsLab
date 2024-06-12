@@ -28,9 +28,9 @@ const paModelsNodesParams = {
   apc_model: {
     type: "apcModelNode",
     classes: "object model",
-    nbInput: 2,
+    nbInput: 1,
     nbOutput: 1,
-    input: ["ipc_model", "uncertainty_metric"],
+    input: ["ipc_model"],
     output: ["apc_model"],
     img: "apc.png",
     title: "APC Model",

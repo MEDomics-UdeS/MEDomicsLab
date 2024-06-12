@@ -503,6 +503,9 @@ input.node-editableLabel {
 .intersect .node {
   background-color: #28970087;
 }
+.intersect2 .node {
+  background-color: #fa6a6a73;
+}
 
 .intersect .card {
   /* border: 2px solid #1817ff73; */

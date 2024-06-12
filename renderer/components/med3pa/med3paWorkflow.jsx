@@ -1,22 +1,24 @@
 /* eslint-disable camelcase */
 import React, { useState, useCallback, useMemo, useEffect, useContext } from "react"
 import { toast } from "react-toastify"
-// import { ipcRenderer } from "electron"
-import { useNodesState, useEdgesState, useReactFlow, addEdge } from "reactflow"
-import WorkflowBase from "../flow/workflowBase.jsx"
-import { loadJsonSync } from "../../utilities/fileManagementUtils.js"
+//import { ipcRenderer } from "electron"
+import { useNodesState, useEdgesState, useReactFlow } from "reactflow"
+//import WorkflowBase from "../flow/workflowBase.jsx"
+import { loadJsonSync } from "../../utilities/fileManagementUtils"
+import { requestBackend } from "../../utilities/requests"
+import PaWorkflowBase from "./paWorkflowBase.jsx"
 import BtnDiv from "../flow/btnDiv.jsx"
 import ProgressBarRequests from "../generalPurpose/progressBarRequests.jsx"
 import { PageInfosContext } from "../mainPages/moduleBasics/pageInfosContext.jsx"
 //import { defaultValueFromType } from "../../utilities/learning/inputTypesUtils.js"
-// import { FlowResultsContext } from "../flow/context/flowResultsContext"
-// import { WorkspaceContext } from "../workspace/workspaceContext"
-// import { ErrorRequestContext } from "../generalPurpose/errorRequestContext.jsx"
+import { FlowResultsContext } from "../flow/context/flowResultsContext"
 
-// import { requestBackend } from "../../utilities/requests"
+import { WorkspaceContext } from "../workspace/workspaceContext"
+
+import { ErrorRequestContext } from "../generalPurpose/errorRequestContext.jsx"
 import MedDataObject from "../workspace/medDataObject.js"
 import { modifyZipFileSync } from "../../utilities/customZipFile.js"
-// import { sceneDescription } from "../../public/setupVariables/learningNodesParams.jsx"
+//import { sceneDescription } from "../../public/setupVariables/learningNodesParams.jsx"
 
 import RunPipelineModal from "./runPipelineModal"
 // here are the different types of nodes implemented in the workflow
@@ -26,13 +28,15 @@ import nodesParams from "../../public/setupVariables/allNodesParams.jsx"
 import evalNodesParams from "../../public/setupVariables/evalNodesParams.jsx"
 
 // here are static functions used in the workflow
-// import Path from "path"
+//import Path from "path"
 import { removeDuplicates, deepCopy } from "../../utilities/staticFunctions.js"
 import { FlowInfosContext } from "../flow/context/flowInfosContext.jsx"
 import StandardNode from "../learning/nodesTypes/standardNode.jsx"
 import SelectionNode from "../learning/nodesTypes/selectionNode.jsx"
 import { FlowFunctionsContext } from "../flow/context/flowFunctionsContext"
-import OptimizeIO from "../learning/nodesTypes/optimizeIO.jsx"
+
+import PaOptimizeIO from "./nodesTypes/paOptimizeIO.jsx"
+
 import GroupNode from "../flow/groupNode.jsx"
 import LoadModelNode from "../learning/nodesTypes/loadModelNode.jsx"
 import DatasetLoaderNode from "./nodesTypes/datasetLoaderNode.jsx"
@@ -67,8 +71,10 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
   const [MLType, setMLType] = useState("classification") // MLType is used to know which machine learning type is selected
   const { setViewport } = useReactFlow() // setViewport is used to update the viewport of the workflow
   const { getIntersectingNodes } = useReactFlow() // getIntersectingNodes is used to get the intersecting nodes of a node
-  // const { updateFlowResults } = useContext(FlowResultsContext)
-  // const { port } = useContext(WorkspaceContext)
+  const { isResults } = useContext(FlowResultsContext)
+  const { port } = useContext(WorkspaceContext)
+
+  const { setError } = useContext(ErrorRequestContext)
   const [intersections, setIntersections] = useState([]) // intersections is used to store the intersecting nodes related to optimize nodes start and end
   const [isProgressUpdating, setIsProgressUpdating] = useState(false) // progress is used to store the progress of the workflow execution
   const [treeData, setTreeData] = useState([]) // treeData is used to set the data of the tree menu
@@ -80,8 +86,12 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
   const [paWorkflowSettings, setPaWorkflowSettings] = useState({})
   const { groupNodeId, changeSubFlow, hasNewConnection } = useContext(FlowFunctionsContext)
   const [showRunModal, setRunModal] = useState(false)
+  // eslint-disable-next-line no-unused-vars
+  const [isUpdating, setIsUpdating] = useState(false) // we use this to store the progress value of the dashboard
   const { config, pageId, configPath } = useContext(PageInfosContext) // used to get the page infos such as id and config path
   const { canRun } = useContext(FlowInfosContext)
+  // eslint-disable-next-line no-unused-vars
+  const [progressValue, setProgressValue] = useState({ now: 0, currentLabel: "" }) // we use this to store the progress value of the dashboard
   // const { setError } = useContext(ErrorRequestContext)
 
   // declare node types using useMemo hook to avoid re-creating component types unnecessarily (it memorizes the output) https://www.w3schools.com/react/react_usememo.asp
@@ -89,7 +99,7 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
     () => ({
       standardNode: StandardNode,
       selectionNode: SelectionNode,
-      optimizeIO: OptimizeIO,
+
       datasetLoaderNode: DatasetLoaderNode,
       loadModelNode: LoadModelNode,
       baseModelNode: BaseModelNode,
@@ -100,7 +110,9 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
       apcModelNode: APCModelNode,
       mpcModelNode: MPCModelNode,
       groupNode: GroupNode,
+
       paOptimizeNode: PaOptimizeNode,
+      paOptimizeIO: PaOptimizeIO,
       uncertaintyMetricsNode: UncertaintyMetricsNode
     }),
     []
@@ -119,7 +131,6 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
   // executed when the nodes array and edges array are changed
   useEffect(() => {
     setTreeData(createPathsToLeafNodes())
-    console.log(treeData)
   }, [nodes, edges])
 
   // it updates the possible settings of the nodes
@@ -148,6 +159,16 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
       })
     )
   }, [MLType])
+
+  // when isResults is changed, we set the progressBar to completed state
+  useEffect(() => {
+    if (isResults) {
+      setProgress({
+        now: 100,
+        currentLabel: "Done!"
+      })
+    }
+  }, [isResults])
 
   // execute this when groupNodeId change. I put it in useEffect because it assures groupNodeId is updated
   useEffect(() => {
@@ -196,18 +217,38 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
   // executed when intersections array is changed
   // it updates nodes and eges array
   useEffect(() => {
-    // first, we add 'intersect' class to the nodes that are intersecting with OptimizeIO nodes
     setNodes((nds) =>
       nds.map((node) => {
         node.data = {
           ...node.data
         }
         node.className = ""
+
         intersections.forEach((intersect) => {
-          if (intersect.targetId == node.id || intersect.sourceId == node.id) {
-            node.className = "intersect"
+          const sourceNode = nds.find((n) => n.id === intersect.sourceId)
+          const targetNode = nds.find((n) => n.id === intersect.targetId)
+
+          if (sourceNode && targetNode) {
+            if ((sourceNode.data.setupParam.nbInput == 0 && targetNode.name === "Start") || targetNode.name === "End") {
+              targetNode.className = "intersect"
+              // Store the default description before changing it
+              if (!targetNode.defaultDescription) {
+                targetNode.defaultDescription = targetNode.data.internal.description
+              }
+              targetNode.data.internal.description = "This is a valid " + targetNode.name + " Node"
+            } else {
+              targetNode.className = "intersect2"
+              // Check if default description exists, if not use the current description
+              targetNode.data.internal.description = "This is a wrong " + targetNode.name + " Node"
+            }
           }
         })
+
+        // If no intersections are found, reset description to default
+        if (!intersections.some((intersect) => intersect.sourceId === node.id || intersect.targetId === node.id) && node.defaultDescription) {
+          node.data.internal.description = node.defaultDescription
+        }
+
         return node
       })
     )
@@ -216,49 +257,6 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
     // this is useful to create the recursive workflow automatically
     // it basically bypasses the optimize nodes
     setEdges((eds) => eds.filter((edge) => !edge.id.includes("opt"))) // remove all edges that are linked to optimize nodes
-    intersections.forEach((intersect, index) => {
-      if (intersect.targetId.includes("start")) {
-        let groupNodeId = intersect.targetId.split(".")[1]
-        let groupNodeIdConnections = edges.filter((eds) => eds.target == groupNodeId)
-        groupNodeIdConnections.forEach((groupNodeIdConnection, index2) => {
-          let edgeSource = groupNodeIdConnection.source
-          let edgeTarget = intersect.sourceId
-          setEdges((eds) =>
-            addEdge(
-              {
-                source: edgeSource,
-                sourceHandle: 0 + "_" + edgeSource, // we add 0_ because the sourceHandle always starts with 0_. Handles are created by a for loop so it represents an index
-                target: edgeTarget,
-                targetHandle: 0 + "_" + edgeTarget,
-                id: index + "_" + index2 + edgeSource + "_" + edgeTarget + "_opt",
-                hidden: true
-              },
-              eds
-            )
-          )
-        })
-      } else if (intersect.targetId.includes("end")) {
-        let groupNodeId = intersect.targetId.split(".")[1]
-        let groupNodeIdConnections = edges.filter((eds) => eds.source == groupNodeId)
-        groupNodeIdConnections.forEach((groupNodeIdConnection, index2) => {
-          let edgeSource = intersect.sourceId
-          let edgeTarget = groupNodeIdConnection.target
-          setEdges((eds) =>
-            addEdge(
-              {
-                source: edgeSource,
-                sourceHandle: 0 + "_" + edgeSource, // we add 0_ because the sourceHandle always starts with 0_. Handles are created by a for loop so it represents an index
-                target: edgeTarget,
-                targetHandle: 0 + "_" + edgeTarget,
-                id: index + "_" + index2 + edgeSource + "_" + edgeTarget + "_opt",
-                hidden: true
-              },
-              eds
-            )
-          )
-        })
-      }
-    })
   }, [intersections, hasNewConnection])
   /**
    * @param {Object} event event object
@@ -402,43 +400,28 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
 
     newNode.id = `${newNode.id}${associatedNode ? `.${associatedNode}` : ""}` // if the node is a sub-group node, it has the id of the parent node seperated by a dot. useful when processing only ids
 
-    newNode.hidden = newNode.type == "optimizeIO"
-    newNode.zIndex = newNode.type == "optimizeIO" ? 1 : 1010
+    newNode.hidden = newNode.type == "paOptimizeIO"
+    newNode.zIndex = newNode.type == "paOptimizeIO" ? 1 : 1010
     newNode.data.tooltipBy = "type"
     newNode.data.setupParam = setupParams
 
     newNode.data.internal.code = ""
     newNode.className = setupParams.classes
 
-    if (newNode.type === "evaluationNode" || newNode.type === "datasetLoaderNode") {
+    if (newNode.type === "evaluationNode") {
       newNode.data.internal.contentType = "default"
       newNode.data.internal.connected = false
     }
 
-    newNode.data.internal.description = ""
+    newNode.data.internal.description = newNode.data.internal.description !== undefined ? newNode.data.internal.description : ""
 
     let tempDefaultSettings = {}
     if (newNode.data.setupParam.possibleSettings) {
       const possibleSettings = newNode.data.setupParam.possibleSettings
-      if (possibleSettings.detectron && possibleSettings.med3pa) {
-        // Handle the node with two settings
-        // "default" in newNode.data.setupParam.possibleSettings &&
-        //   Object.entries(newNode.data.setupParam.possibleSettings.default).map(([settingName, setting]) => {
-        //     tempDefaultSettings[settingName] = defaultValueFromType[setting.type]
-        //   })
-
-        Object.entries(possibleSettings.detectron).forEach(([settingName, setting]) => {
-          tempDefaultSettings[`detectron_${settingName}`] = setting.default_val
-        })
-        Object.entries(possibleSettings.med3pa).forEach(([settingName, setting]) => {
-          tempDefaultSettings[`med3pa_${settingName}`] = setting.default_val
-        })
-      } else {
-        // Handle nodes with one setting
-        Object.entries(possibleSettings).forEach(([settingName, setting]) => {
-          tempDefaultSettings[settingName] = setting.default_val
-        })
-      }
+      // Handle nodes with one setting
+      Object.entries(possibleSettings).forEach(([settingName, setting]) => {
+        tempDefaultSettings[settingName] = setting.default_val
+      })
     }
 
     newNode.data.internal.settings = tempDefaultSettings
@@ -447,65 +430,15 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
     newNode.data.internal.checkedOptions = []
     newNode.data.internal.subflowId = !associatedNode ? groupNodeId.id : associatedNode
     newNode.data.internal.hasWarning = { state: false }
-    console.log("EDGES:", edges)
 
     return newNode
   }
-
   /**
-   * @returns {Object} updated tree data
+   * @returns {Array} updated tree data
    *
-   * This function creates the tree data from the nodes array
+   * This function creates the tree path data from the nodes array
    * it is used to create the recursive workflow
    */
-  const createTreeFromNodes = () => {
-    // recursively create tree from nodes
-    const createTreeFromNodesRec = (node) => {
-      let children = {}
-
-      edges.forEach((edge) => {
-        if (edge.source == node.id) {
-          let targetNode = deepCopy(nodes.find((node) => node.id === edge.target))
-          let subIdText = ""
-          let supIdNode = ""
-          let subflowId = targetNode.data.internal.subflowId
-          if (subflowId != "MAIN") {
-            subIdText = deepCopy(nodes.find((node) => node.id == subflowId)).data.internal.name + "."
-            supIdNode = subflowId
-          }
-          children[targetNode.id] = {
-            id: targetNode.id,
-            supIdNode: supIdNode,
-            label: subIdText + targetNode.data.internal.name,
-            nodes: createTreeFromNodesRec(targetNode)
-          }
-        }
-      })
-      return children
-    }
-
-    let treeMenuData = {}
-    edges.forEach((edge) => {
-      let sourceNode = deepCopy(nodes.find((node) => node.id === edge.source))
-      if (sourceNode.data.setupParam.classes.split(" ").includes("startNode")) {
-        let subIdText = ""
-        let supIdNode = ""
-        let subflowId = sourceNode.data.internal.subflowId
-        if (subflowId != "MAIN") {
-          subIdText = deepCopy(nodes.find((node) => node.id == subflowId)).data.internal.name + "."
-          supIdNode = subflowId
-        }
-        treeMenuData[sourceNode.id] = {
-          id: sourceNode.id,
-          supIdNode: supIdNode,
-          label: subIdText + sourceNode.data.internal.name,
-          nodes: createTreeFromNodesRec(sourceNode)
-        }
-      }
-    })
-
-    return treeMenuData
-  }
 
   const createPathsToLeafNodes = () => {
     // Recursively create paths from nodes to leaf nodes
@@ -513,7 +446,8 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
       currentPath.push({
         id: node.id,
         supIdNode: node.data.internal.subflowId !== "MAIN" ? node.data.internal.subflowId : "",
-        label: (node.data.internal.subflowId !== "MAIN" ? nodes.find((n) => n.id === node.data.internal.subflowId).data.internal.name + "." : "") + node.data.internal.name
+        label: (node.data.internal.subflowId !== "MAIN" ? nodes.find((n) => n.id === node.data.internal.subflowId).data.internal.name + "." : "") + node.data.internal.name,
+        settings: node.data.internal.settings !== undefined ? node.data.internal.settings : {}
       })
 
       let isLeaf = true
@@ -526,7 +460,10 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
       })
 
       if (isLeaf) {
-        paths.push(currentPath)
+        // Check if the current path already exists in paths
+        if (!paths.some((path) => JSON.stringify(path) === JSON.stringify(currentPath))) {
+          paths.push(currentPath)
+        }
       }
     }
 
@@ -538,10 +475,48 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
       }
     })
 
-    return paths
+    let configs = separateSubarrays(paths)
+
+    configs = addChildrenToMed3pa(configs.topLevelConfigs, configs.internalConfigsExtracted)
+
+    return configs
   }
 
-  /**
+  function separateSubarrays(paths) {
+    const internalConfigs = paths.filter(
+      (subarray) =>
+        subarray.some((node) => node.supIdNode !== "") &&
+        !subarray.some((node) => node.label === "MED3pa.Optimize") &&
+        !(subarray.some((node) => node.label === "MED3pa.MPC Model") && !subarray.some((n) => n.label === "MED3pa.APC Model"))
+    )
+
+    const topLevelConfigs = paths.filter(
+      (subarray) =>
+        subarray.length > 1 && subarray.some((node) => node.supIdNode === "") && subarray.some((node) => node.label === "Base Model") && subarray.some((node) => node.label === "Dataset Loader")
+    )
+
+    const internalConfigsExtracted = internalConfigs.map((subarray) => {
+      const supIdNode = subarray.find((node) => node.supIdNode !== "").supIdNode
+      return {
+        [supIdNode]: subarray.map((node) => ({ ...node }))
+      }
+    })
+
+    return { topLevelConfigs, internalConfigsExtracted }
+  }
+  function addChildrenToMed3pa(topLevelConfigs, internalConfigsExtracted) {
+    topLevelConfigs.forEach((config) => {
+      const med3paNodes = config.filter((node) => node.label === "MED3pa")
+      med3paNodes.forEach((med3paNode) => {
+        const med3paId = med3paNode.id
+        const extractedConfigs = internalConfigsExtracted.filter((obj) => obj[med3paId])
+        if (extractedConfigs.length > 0) {
+          med3paNode.children = extractedConfigs.map((obj) => obj[med3paId])
+        }
+      })
+    })
+    return topLevelConfigs
+  }
 
   // const getByteSize = (json, sizeType) => {
   //   if (sizeType == undefined) {
@@ -573,7 +548,7 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
   //     setIsProgressUpdating(true)
   //     requestBackend(
   //       port,
-  //       "/learning/run_experiment/" + pageId,
+  //       "/med3pa/hello_world_med3pa/" + pageId,
   //       flow,
   //       (jsonResponse) => {
   //         console.log("received results:", jsonResponse)
@@ -672,12 +647,6 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
       return "Node is not found"
     }
 
-    if (sourceNode.type === "datasetLoaderNode" && targetNode.type !== "baseModelNode") {
-      if (!sourceNode.data.internal.connected || sourceNode.data.internal.hasWarning["state"]) {
-        return "Please select necessary Base Model Datasets before Evaluating"
-      }
-    }
-
     return ""
   }
 
@@ -704,16 +673,29 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
       })
       return
     }
-    sourceNode.data.internal.connected = true
-    targetNode.data.internal.connected = true
+    if (targetNode.type === "baseModelNode" || targetNode.type === "ipcModelNode") {
+      let isConnected = edges.some((edge) => edge.target === target && nodes.find((node) => node.id === edge.source)?.type === sourceNode.type && edge.source !== source)
+      if (isConnected) {
+        setEdges((prevEdges) => prevEdges.filter((edge) => !(edge.source === source && edge.target === target)))
+        toast.error(targetNode.name + " Node is already connected to another source node.", {
+          position: "bottom-right",
+          autoClose: 2000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "light"
+        })
+        return
+      }
+    }
 
     if (targetNode.type === "evaluationNode") {
       let newStyle = null
 
       if (sourceNode.type === "detectronNode") {
         newStyle = "evalDetectron"
-      } else {
-        newStyle = "evalMed3pa"
       }
 
       if (newStyle) {
@@ -723,19 +705,6 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
             targetNode.data.setupParam = staticevalNodesParams[newStyle]
           }
         })
-      }
-    }
-
-    if (sourceNode.type === "datasetLoaderNode") {
-      if (targetNode.type !== "baseModelNode") {
-        sourceNode.data.internal.hasWarning.state = true
-        nodes.map((node) => {
-          if (node.id === target) {
-            sourceNode.data.internal.contentType = "evalNode"
-          }
-        })
-      } else {
-        sourceNode.data.internal.contentType = "default"
       }
     }
   }
@@ -758,48 +727,70 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
   const onBack = useCallback(() => {
     changeSubFlow("MAIN")
   }, [])
-  const removeConfigsWithoutBaseModel = (configs) => {
-    return configs.filter((config) => Object.values(config).some((node) => node.label === "Base Model"))
-  }
-
-  // const getConfigs = (paths, i = 0, result = []) => {
-  //   if (!Array.isArray(result)) {
-  //     result = []
-  //   }
-
-  //   paths.forEach((path) => {
-  //     let newConfig = {}
-  //     path.forEach((node) => {
-  //       newConfig[node.label] = node
-  //     })
-  //     result.push(newConfig)
-  //   })
-  //   return result
-  // }
 
   const groupNodeHandlingDefault = (createBaseNode, newId) => {
-    // let newNodeStart = createBaseNode(
-    //   { x: 0, y: 200 },
-    //   {
-    //     nodeType: "optimizeIO",
-    //     name: "Start",
-    //     image: "/icon/dataset.png"
-    //   },
-    //   "opt-start"
-    // )
-    // newNodeStart = addSpecificToNode(newNodeStart, newId)
-    // let newNodeEnd = createBaseNode(
-    //   { x: 500, y: 200 },
-    //   {
-    //     nodeType: "optimizeIO",
-    //     name: "End",
-    //     image: "/icon/dataset.png"
-    //   },
-    //   "opt-end"
-    // )
-    // newNodeEnd = addSpecificToNode(newNodeEnd, newId)
-    // setNodes((nds) => nds.concat(newNodeStart))
-    // setNodes((nds) => nds.concat(newNodeEnd))
+    let newNodeStart = createBaseNode(
+      { x: 0, y: 200 },
+      {
+        nodeType: "paOptimizeIO",
+        name: "Start",
+        description: "Start with an Uncertainty Metric Node. Drop it here.",
+        image: "/icon/dataset.png"
+      },
+      "opt-start"
+    )
+    newNodeStart = addSpecificToNode(newNodeStart, newId)
+    let newNodeEnd = createBaseNode(
+      { x: 500, y: 200 },
+      {
+        nodeType: "paOptimizeIO",
+        name: "End",
+        description: "MED3pa Configurations can end Differently",
+        image: "/icon/dataset.png"
+      },
+      "opt-end"
+    )
+    newNodeEnd = addSpecificToNode(newNodeEnd, newId)
+    setNodes((nds) => nds.concat(newNodeStart))
+    setNodes((nds) => nds.concat(newNodeEnd))
+  }
+
+  const runPaPipeline = (flConfig) => {
+    let JSONToSend = flConfig
+
+    setIsProgressUpdating(true)
+    setIsUpdating(true)
+
+    requestBackend(
+      // Send the request
+      port,
+      "/med3pa/hello_world/" + pageId,
+      JSONToSend,
+      (jsonResponse) => {
+        if (jsonResponse.error) {
+          if (typeof jsonResponse.error == "string") {
+            jsonResponse.error = JSON.parse(jsonResponse.error)
+          }
+          setError(jsonResponse.error)
+        } else {
+          setIsUpdating(false) // Set the isUpdating to false
+
+          setProgressValue({ now: 100, currentLabel: jsonResponse["data"] }) // Set the progress value to 100 and show the message that the backend received from the frontend
+
+          toast.success("We recieved the config from the front end")
+          setRunModal(false)
+          setTimeout(() => {
+            setIsProgressUpdating(false)
+          }, 2000)
+        }
+      },
+      function (error) {
+        setIsUpdating(false)
+        setProgressValue({ now: 0, currentLabel: "Message sending failed ❌" })
+        toast.error("Sending failed", error)
+        console.log(error)
+      }
+    )
   }
 
   return (
@@ -811,9 +802,10 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
         }}
         configs={treeData}
         nodes={nodes}
+        onRun={runPaPipeline}
       />
 
-      <WorkflowBase
+      <PaWorkflowBase
         // mandatory props
 
         mandatoryProps={{

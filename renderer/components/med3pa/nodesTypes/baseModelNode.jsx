@@ -1,7 +1,6 @@
 /* eslint-disable camelcase */
 import React, { useState, useContext, useEffect } from "react"
 import Node from "../../flow/node"
-
 import { Button } from "react-bootstrap"
 import * as Icon from "react-bootstrap-icons"
 import { FlowFunctionsContext } from "../../flow/context/flowFunctionsContext"
@@ -19,19 +18,49 @@ export default function BaseModelNode({ id, data }) {
   const { setLoader } = useContext(LoaderContext)
 
   useEffect(() => {
-    if (data.internal.settings.files && data.internal.settings.files.path === "") {
-      data.internal.hasWarning = { state: true, tooltip: <p>No Base Model selected</p> }
-    } else {
-      data.internal.hasWarning = { state: false }
+    const filterSettings = () => {
+      const filteredSettings = Object.keys(data.internal.settings)
+        .filter((key) => ["hyperparameters", "files", "target"].includes(key))
+        .reduce((obj, key) => {
+          obj[key] = data.internal.settings[key]
+          return obj
+        }, {})
+
+      return filteredSettings
     }
+
+    const updateSettings = () => {
+      const filteredSettings = filterSettings()
+      data.internal.settings = filteredSettings
+
+      updateNode({
+        id: id,
+        updatedData: data.internal
+      })
+    }
+
+    if (data.internal.settings.files) {
+      data.internal.hasWarning = { state: false, tooltip: <p>No Base Model selected</p> }
+    } else {
+      data.internal.hasWarning = { state: true }
+    }
+
+    updateSettings()
+  }, [id, data.internal, updateNode])
+
+  const handleWarning = (hasWarning) => {
+    data.internal.hasWarning = hasWarning
     updateNode({
       id: id,
       updatedData: data.internal
     })
-  }, [])
+  }
 
-  const handleWarning = (hasWarning) => {
-    data.internal.hasWarning = hasWarning
+  const onInputChange = (e) => {
+    const { value, name } = e
+    data.internal.settings.hyperparameters[name] = value
+
+    // Update the node with the new settings
     updateNode({
       id: id,
       updatedData: data.internal
@@ -168,7 +197,7 @@ export default function BaseModelNode({ id, data }) {
                         tooltip: "Extracted Parameter Value"
                       }}
                       currentValue={value}
-                      onInputChange={() => {}}
+                      onInputChange={onInputChange}
                     />
                   </div>
                 ))}

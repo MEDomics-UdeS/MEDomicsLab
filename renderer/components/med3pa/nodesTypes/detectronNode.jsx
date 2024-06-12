@@ -14,7 +14,22 @@ export default function DetectronNode({ id, data }) {
   const { updateNode } = useContext(FlowFunctionsContext)
   const [hovered, setHovered] = useState(false)
 
-  // Initialize the files field in the internal data if it doesn't exist
+  useEffect(() => {
+    const defaultSettings = {}
+    for (const key in data.setupParam.possibleSettings) {
+      defaultSettings[key] = data.setupParam.possibleSettings[key].default_val
+    }
+
+    updateNode({
+      id: id,
+      updatedData: {
+        ...data.internal,
+        settings: {
+          ...defaultSettings
+        }
+      }
+    })
+  }, [])
 
   useEffect(() => {
     updateNode({
