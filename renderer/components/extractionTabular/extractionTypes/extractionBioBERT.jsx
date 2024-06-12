@@ -216,7 +216,7 @@ const ExtractionBioBERT = ({ columnsTypes, setExtractionJsonData, setMayProceed 
                 value={selectedColumns.patientIdentifier}
                 onChange={(event) => handleColumnSelect("patientIdentifier", event)}
                 options={Object.entries(columnsTypes)
-                  .filter(([, value]) => value.includes("integer"))
+                  .filter(([, value]) => value.includes("integer") || value.includes("string"))
                   .map(([key]) => ({ label: key, value: key }))}
                 placeholder="Patient Identifier"
               />
@@ -233,7 +233,7 @@ const ExtractionBioBERT = ({ columnsTypes, setExtractionJsonData, setMayProceed 
                     value={selectedColumns.admissionIdentifier}
                     onChange={(event) => handleColumnSelect("admissionIdentifier", event)}
                     options={Object.entries(columnsTypes)
-                      .filter(([, value]) => value.includes("integer"))
+                      .filter(([, value]) => value.includes("integer") || value.includes("string"))
                       .map(([key]) => ({ label: key, value: key }))}
                     placeholder="Admission Identifier"
                   />

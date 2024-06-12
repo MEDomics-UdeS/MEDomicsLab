@@ -186,7 +186,7 @@ class GoExecScriptBioBERTExtraction(GoExecutionScript):
                         df_admission_embeddings = pd.DataFrame([embeddings])
                         # Insert admission_time in the dataframe
                         df_admission_embeddings.insert(0, column_admission_time, df_admission[column_admission_time].iloc[0])
-                        # Insert admission_id in the dataframe if master_table_compatible is false
+                        # Insert admission_id in the dataframe
                         df_admission_embeddings.insert(0, column_admission, admission_id)
                         # Insert patient_id in the dataframe
                         df_admission_embeddings.insert(0, column_id, patient_id)
@@ -243,7 +243,7 @@ class GoExecScriptBioBERTExtraction(GoExecutionScript):
                         if not df_time.empty:
                             embeddings = self.get_biobert_embeddings_from_event_list(df_time[column_text])
                             df_time_embeddings = pd.DataFrame([embeddings])
-                            # Insert time in the dataframe (only start date if master_table_compatible)
+                            # Insert time in the dataframe
                             df_time_embeddings.insert(0, "end_date", end_date)
                             df_time_embeddings.insert(0, "start_date", start_date)
                             # Insert patient_id in the dataframe
