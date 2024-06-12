@@ -27,7 +27,7 @@ import { TabStorage } from "./tabStorage"
 import { Utils } from "./utils"
 import "prismjs/themes/prism-coy.css"
 import LearningPage from "../../mainPages/learning"
-import { loadCSVFromPath, loadJsonPath, loadJSONFromPath, loadXLSXFromPath } from "../../../utilities/fileManagementUtils"
+import { loadCSVFromPath, loadJsonPath, loadJSONFromPath, loadXLSXFromPath, loadFileFromPathSync } from "../../../utilities/fileManagementUtils"
 import { LayoutModelContext } from "../layoutContext"
 import { DataContext } from "../../workspace/dataContext"
 import MedDataObject from "../../workspace/medDataObject"
@@ -55,6 +55,7 @@ import HtmlViewer from "../../mainPages/htmlViewer"
 import ModelViewer from "../../mainPages/modelViewer"
 import NotebookEditor from "../../mainPages/notebookEditor"
 import Iframe from "react-iframe"
+import FLResultsPage from "../../medfl/flResultsPage"
 
 var fields = ["Name", "Field1", "Field2", "Field3", "Field4", "Field5"]
 
@@ -805,6 +806,8 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
       }
     } else if (component === "Settings") {
       return <SettingsPage />
+    } else if (component === "medflResultsPage") {
+      return <FLResultsPage url={node.getConfig().path} />
     } else if (component !== "") {
       if (node.getExtraData().data == null) {
         const config = node.getConfig()
@@ -889,7 +892,7 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
       if (component === "evaluationPage") {
         return <span style={{ marginRight: 3 }}>✅</span>
       }
-      if (component === "resultsPage") {
+      if (component === "resultsPage" || component === "medflResultsPage") {
         return <span style={{ marginRight: 3 }}>📊</span>
       }
       if (component === "learningPage") {

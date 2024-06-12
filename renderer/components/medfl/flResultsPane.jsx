@@ -1,6 +1,6 @@
 import { SelectButton } from "primereact/selectbutton"
 import React, { useContext, useEffect, useState } from "react"
-import { Card } from "react-bootstrap"
+import { ButtonGroup, Card } from "react-bootstrap"
 import * as Icon from "react-bootstrap-icons"
 import { FlowResultsContext } from "../flow/context/flowResultsContext"
 import FlInput from "./flInput"
@@ -14,6 +14,9 @@ import { EXPERIMENTS } from "../workspace/workspaceContext"
 
 import Path from "path"
 import MedDataObject from "../workspace/medDataObject"
+import { useMEDflContext } from "../workspace/medflContext"
+import { toast } from "react-toastify"
+import { InputText } from "primereact/inputtext"
 
 export default function FlResultsPane() {
   const { globalData } = useContext(DataContext)
@@ -37,8 +40,13 @@ export default function FlResultsPane() {
 
   const [selectedNode, setNode] = useState("Client 1")
 
+  const [isFileName, showFileName] = useState(false)
+  const [resultsFileName, setResumltsFileName] = useState("")
+
   // context
   const { flowResults, setShowResultsPane } = useContext(FlowResultsContext) // used to update the flow infos
+
+  const { flPipelineConfigs } = useMEDflContext()
 
   const [res, setResults] = useState(flowResults["data"] ? flowResults["data"][0] : null)
 
@@ -191,17 +199,23 @@ export default function FlResultsPane() {
         }
       }
     }
-  }, [resultsType, activeConfig, selectedNode])
+  }, [res, resultsType, activeConfig, selectedNode])
 
   const saveFlResults = async () => {
-    let path = Path.join(globalData[UUID_ROOT].path, EXPERIMENTS)
+    try {
+      let path = Path.join(globalData[UUID_ROOT].path, EXPERIMENTS)
 
-    MedDataObject.createFolderFromPath(path + "/FL")
-    MedDataObject.createFolderFromPath(path + "/FL/Results")
+      MedDataObject.createFolderFromPath(path + "/FL")
+      MedDataObject.createFolderFromPath(path + "/FL/Results")
 
-    // do custom actions in the folder while it is unzipped
-    await MedDataObject.writeFileSync(flowResults["data"], path + "/FL/Results", "metadata2", "json")
-    await MedDataObject.writeFileSync(flowResults["data"], path + "/FL/Results", "metadata2", "medflres")
+      // do custom actions in the folder while it is unzipped
+      await MedDataObject.writeFileSync(flowResults["data"], path + "/FL/Results", resultsFileName, "json")
+      await MedDataObject.writeFileSync({ data: flowResults["data"], configs: flPipelineConfigs, date: Date.now() }, path + "/FL/Results", resultsFileName, "medflres")
+      showFileName(false)
+      toast.success("Experiment results saved successfuly ")
+    } catch {
+      toast.error("Something went wrong ")
+    }
   }
 
   if (!res)
@@ -243,8 +257,27 @@ export default function FlResultsPane() {
                 <h5>FL Pipeline results</h5>
               </div>
             </div>
-            <div>
-              <Button className="outline " severity="secondary" text tooltipOptions={{ position: "left" }} tooltip="Save results" onClick={saveFlResults} style={{ padding: 5 }}>
+            <div className="d-flex">
+              {isFileName ? (
+                <div className="d-flex">
+                  <div className="p-inputgroup flex-1 me-4">
+                    <InputText placeholder="File name" onChange={(e) => setResumltsFileName(e.target.value)} />
+                    <Button icon="pi pi-check" className="p-button-primary" onClick={saveFlResults} disabled={resultsFileName == ""} />
+                  </div>
+                </div>
+              ) : null}
+              <Button
+                className="outline "
+                severity="secondary"
+                text
+                tooltipOptions={{ position: "left" }}
+                tooltip="Save results"
+                onClick={() => {
+                  showFileName(!isFileName)
+                  setResumltsFileName("")
+                }}
+                style={{ padding: 5 }}
+              >
                 <Icon.Save width="20px" height="20px" />
               </Button>
               <Button variant="outline " text onClick={handleClose} style={{ marginTop: -4, padding: 1 }}>

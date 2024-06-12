@@ -23,10 +23,7 @@ import { removeDuplicates, deepCopy } from "../../utilities/staticFunctions"
 import { defaultValueFromType } from "../../utilities/learning/inputTypesUtils.js"
 import { FlowInfosContext } from "../flow/context/flowInfosContext.jsx"
 import StandardNode from "../learning/nodesTypes/standardNode.jsx"
-import SelectionNode from "../learning/nodesTypes/selectionNode.jsx"
 import GroupNode from "../flow/groupNode.jsx"
-import OptimizeIO from "../learning/nodesTypes/optimizeIO.jsx"
-import LoadModelNode from "../learning/nodesTypes/loadModelNode.jsx"
 import NetworkNode from "./nodesTypes/networkNode.jsx"
 import FlClientNode from "./nodesTypes/flClientNode.jsx"
 import FlServerNode from "./nodesTypes/flServerNode.jsx"
@@ -46,6 +43,7 @@ import FlWorflowBase from "./flWorkflowBase.jsx"
 import OptimResultsModal from "./optimResultsModal"
 import FlTrainModelNode from "./nodesTypes/flTrainModel.jsx"
 import FlSaveModelNode from "./nodesTypes/flSaveModelNode.jsx"
+import { useMEDflContext } from "../workspace/medflContext.jsx"
 
 const staticNodesParams = nodesParams // represents static nodes parameters
 
@@ -95,68 +93,70 @@ const MedflWorkflow = ({ setWorkflowType, workflowType }) => {
 
   const [allConfigResults, setAllresults] = useState([])
 
-  let ALL_CONFIGS = [
-    // {
-    //   masterDatasetNode: {
-    //     name: "Mimic_2017.csv",
-    //     path: "/home/local/USHERBROOKE/saho6810/Bureau/DATA/Mimic_2017.csv",
-    //     target: "deceased"
-    //   },
-    //   Network: {
-    //     name: "Network",
-    //     clients: [
-    //       {
-    //         name: "Client",
-    //         type: "Test Node",
-    //         dataset: {
-    //           name: "Mimic_2017.csv",
-    //           path: "/home/local/USHERBROOKE/saho6810/Bureau/DATA/Mimic_2017.csv"
-    //         }
-    //       },
-    //       {
-    //         name: "Client",
-    //         type: "Train node",
-    //         dataset: {
-    //           name: "Mimic_2017.csv",
-    //           path: "/home/local/USHERBROOKE/saho6810/Bureau/DATA/Mimic_2017.csv"
-    //         }
-    //       }
-    //     ],
-    //     server: {
-    //       name: "FL Server",
-    //       nRounds: 2,
-    //       activateDP: "Deactivate"
-    //     }
-    //   },
-    //   flSetupNode: {
-    //     name: "FL Setup",
-    //     description: "fsfsf"
-    //   },
-    //   flDatasetNode: {
-    //     name: "FL Dataset",
-    //     validationFraction: 0.1,
-    //     testFraction: 0
-    //   },
+  const { updatePipelineConfigs } = useMEDflContext()
 
-    //   flModelNode: {
-    //     activateTl: "true",
-    //     file: {
-    //       name: "grid_search_classifier.pth",
-    //       path: "/home/local/USHERBROOKE/saho6810/Bureau/DATA/grid_search_classifier.pth"
-    //     },
-    //     optimizer: "Adam",
-    //     "learning rate": 0.001,
-    //     Threshold: 0.1
-    //   },
-    //   flStrategyNode: {
-    //     "Aggregation algorithm": "FedYogi",
-    //     "Evaluation fraction": 1,
-    //     "Training fraction": 1,
-    //     "Minimal used clients for evaluation": 1,
-    //     "Minimal used clients for training": 1,
-    //     "Minimal available clients": 1
-    //   }
-    // },
+  let ALL_CONFIGS = [
+    {
+      masterDatasetNode: {
+        name: "Mimic_2017.csv",
+        path: "/home/local/USHERBROOKE/saho6810/Bureau/DATA/Mimic_2017.csv",
+        target: "deceased"
+      },
+      Network: {
+        name: "Network",
+        clients: [
+          {
+            name: "Client",
+            type: "Test Node",
+            dataset: {
+              name: "Mimic_2017.csv",
+              path: "/home/local/USHERBROOKE/saho6810/Bureau/DATA/Mimic_2017.csv"
+            }
+          },
+          {
+            name: "Client",
+            type: "Train node",
+            dataset: {
+              name: "Mimic_2017.csv",
+              path: "/home/local/USHERBROOKE/saho6810/Bureau/DATA/Mimic_2017.csv"
+            }
+          }
+        ],
+        server: {
+          name: "FL Server",
+          nRounds: 2,
+          activateDP: "Deactivate"
+        }
+      },
+      flSetupNode: {
+        name: "FL Setup",
+        description: "fsfsf"
+      },
+      flDatasetNode: {
+        name: "FL Dataset",
+        validationFraction: 0.1,
+        testFraction: 0
+      },
+      flModelNode: {
+        activateTl: "true",
+        file: {
+          name: "grid_search_classifier.pth",
+          path: "/home/local/USHERBROOKE/saho6810/Bureau/DATA/grid_search_classifier.pth"
+        },
+        optimizer: "Adam",
+        "learning rate": 0.001,
+        Threshold: 0.1
+      },
+      flStrategyNode: {
+        "Aggregation algorithm": "FedAvg",
+        "Evaluation fraction": 1,
+        "Training fraction": 1,
+        "Minimal used clients for evaluation": 1,
+        "Minimal used clients for training": 1,
+        "Minimal available clients": 1
+      },
+      flTrainModelNode: { clientRessources: "Use GPU" }
+    },
     {
       masterDatasetNode: {
         name: "Mimic_2017.csv",
@@ -941,6 +941,7 @@ const MedflWorkflow = ({ setWorkflowType, workflowType }) => {
       <OptimResultsModal
         show={optimResults}
         onHide={() => {
+          updatePipelineConfigs
           setOptimResults(null)
         }}
         results={optimResults ? optimResults : {}}
@@ -957,7 +958,9 @@ const MedflWorkflow = ({ setWorkflowType, workflowType }) => {
         configs={getConfigs(treeData, 0)}
         nodes={nodes}
         onRun={(flConfig, mode) => {
+          updatePipelineConfigs(ALL_CONFIGS)
           setRunModal(false)
+
           if (mode == "run") {
             runFlPipeline(ALL_CONFIGS, flConfigFile?.path)
           } else {

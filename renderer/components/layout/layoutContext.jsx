@@ -100,6 +100,8 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
           return openInJSONViewer(action)
         case "openPandasProfiling":
           return openInPandasProfiling(action)
+        case "openInMEDflResultsViewer":
+          return openInMEDflresults(action)
         /*********** OPEN *****************/
         case "openInputModule":
           return openInput(action)
@@ -290,14 +292,14 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
     openGeneric(action, "MEDfl", "medflPage")
   }
 
-    /**
+  /**
    * @summary Function that adds a tab of the MED3pa Module to the layout model
    * @params {Object} action - The action passed on by the dispatchLayout function
    */
-    const openMED3pa = (action) => {
-      openGeneric(action, "MED3pa", "med3paPage")
-    }
-  
+  const openMED3pa = (action) => {
+    openGeneric(action, "MED3pa", "med3paPage")
+  }
+
   /**
    * @summary Function that adds a tab of the Extraction Text Module to the layout model
    * @params {Object} action - The action passed on by the dispatchLayout function
@@ -452,6 +454,14 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
   }
 
   /**
+   * @summary Function that adds a tab of MEDfl resuts to the layout model
+   * @params {Object} action - The action passed on by the dispatchLayout function, it uses the payload in the action as a JSON object to add a new child to the layout model
+   */
+  const openInMEDflresults = (action) => {
+    openInDotDotDot(action, "medflResultsPage")
+  }
+
+  /**
    * @summary Function that adds a new child to the layout model
    * @params {Object} action - The action passed on by the dispatchLayout function, it uses the payload in the action as a JSON object to add a new child to the layout model
    */
@@ -500,7 +510,13 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
   }, [layoutRequestQueue])
   // Returns the LayoutModelContext.Provider with the layoutModel, the dispatchLayout function and the flexlayoutInterpreter function as values
   // The children are wrapped by the LayoutModelContext.Provider and will have access to the layoutModel, the dispatchLayout function and the flexlayoutInterpreter function
-  return <LayoutModelContext.Provider value={{ layoutModel, setLayoutModel, dispatchLayout, flexlayoutInterpreter, layoutMainState, setLayoutMainState, layoutRequestQueue, setLayoutRequestQueue, developerMode, setDeveloperMode }}>{children}</LayoutModelContext.Provider>
+  return (
+    <LayoutModelContext.Provider
+      value={{ layoutModel, setLayoutModel, dispatchLayout, flexlayoutInterpreter, layoutMainState, setLayoutMainState, layoutRequestQueue, setLayoutRequestQueue, developerMode, setDeveloperMode }}
+    >
+      {children}
+    </LayoutModelContext.Provider>
+  )
 }
 
 function checkIfIDIsInLayoutModel(id, layoutModel) {
