@@ -438,6 +438,12 @@ if (isProd) {
     })
   })
 
+  // IPC handler for changing the workspace
+  ipcMain.on("change-workspace", (event, workspacePath) => {
+    console.log(`Changing workspace to: ${workspacePath}`)
+    startMongoDB(workspacePath)
+  })
+
   ipcMain.on("setDB", (event, data) => {
     event.reply("DBSet", {
       name: data,
@@ -976,6 +982,31 @@ function getTheWorkingDirectoryStructure() {
 function getWorkingDirectory() {
   // Returns the working directory
   return app.getPath("sessionData")
+}
+
+// Function to start MongoDB
+function startMongoDB(workspacePath) {
+  const medomicsDir = path.join(workspacePath, ".medomics")
+  const mongoConfigPath = path.join(medomicsDir, "mongod.conf")
+
+  if (fs.existsSync(mongoConfigPath)) {
+    // Command to start mongod with the specified configuration file
+    const command = `mongod --config "${mongoConfigPath}"`
+
+    exec(command, (error, stdout, stderr) => {
+      if (error) {
+        console.error(`Error starting MongoDB: ${error.message}`)
+        return
+      }
+      if (stderr) {
+        console.error(`MongoDB stderr: ${stderr}`)
+        return
+      }
+      console.log(`MongoDB stdout: ${stdout}`)
+    })
+  } else {
+    console.error(`MongoDB config file not found at ${mongoConfigPath}`)
+  }
 }
 
 ipcMain.handle("request", async (_, axios_request) => {

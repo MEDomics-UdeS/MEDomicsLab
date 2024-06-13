@@ -154,6 +154,10 @@ function App() {
 
   const [globalData, setGlobalData] = useState({}) // The global data object
 
+  // Import fs and path
+  const fs = require("fs")
+  const path = require("path")
+
   useEffect(() => {
     localStorage.clear()
   }, [])
@@ -181,6 +185,10 @@ function App() {
       if (workspaceObject !== data) {
         let workspace = { ...data }
         setWorkspaceObject(workspace)
+        // Call function to create .medomics directory and files
+        createMedomicsDirectory(workspace.workingDirectory.path)
+        // Send IPC event to main process to start MongoDB
+        ipcRenderer.send("change-workspace", data.workingDirectory.path)
       }
     })
 
@@ -219,6 +227,8 @@ function App() {
     ipcRenderer.on("updateDirectory", (event, data) => {
       let workspace = { ...data }
       setWorkspaceObject(workspace)
+      // Send IPC event to main process to start MongoDB
+      ipcRenderer.send("change-workspace", data.workingDirectory.path)
     })
 
     ipcRenderer.on("getServerPort", (event, data) => {
@@ -396,56 +406,45 @@ function App() {
     return metadataFileExists
   }
 
-  // This useEffect hook is called whenever the `workspaceObject` state changes.
-  useEffect(() => {
-    const updateGlobalData = async () => {
-      // Create a copy of the `globalData` state object.
-      let newGlobalData = { ...globalData }
-      // Check if the `workingDirectory` property of the `workspaceObject` has been set.
-      if (workspaceObject.hasBeenSet === true) {
-        // Loop through each child of the `workingDirectory`.
+  // Function to create the .medomics directory and necessary files
+  const createMedomicsDirectory = (directoryPath) => {
+    const medomicsDir = path.join(directoryPath, ".medomics")
+    const mongoDataDir = path.join(medomicsDir, "MongoDBdata")
+    const globalDataPath = path.join(medomicsDir, "globalData.json")
+    const mongoConfigPath = path.join(medomicsDir, "mongod.conf")
 
-        let metadataFileExists = checkIfMetadataFileExists()
-        if (metadataFileExists && Object.keys(globalData).length == 0) {
-          // Load the global data from the metadata file
-          newGlobalData = await loadGlobalDataFromFile()
-        }
-        let rootChildren = workspaceObject.workingDirectory.children
-        let rootParentID = "UUID_ROOT"
-        let rootName = workspaceObject.workingDirectory.name
-        let rootPath = workspaceObject.workingDirectory.path
-        let rootType = "folder"
-        let rootChildrenIDs = recursivelyRecenseTheDirectory(rootChildren, rootParentID, newGlobalData).childrenIDsToReturn
-
-        let rootDataObject = new MedDataObject({
-          originalName: rootName,
-          path: rootPath,
-          parentID: rootParentID,
-          type: rootType,
-          childrenIDs: rootChildrenIDs,
-          _UUID: rootParentID
-        })
-        newGlobalData[rootParentID] = rootDataObject
-      }
-      // Clean the globalData from files & folders that are not in the workspace
-      newGlobalData = cleanGlobalDataFromFilesNotFoundInWorkspace(workspaceObject, newGlobalData)
-
-      // Update the `globalData` state object with the new `newGlobalData` object.
-      setGlobalData(newGlobalData)
+    if (!fs.existsSync(medomicsDir)) {
+      // Create .medomicsDir
+      fs.mkdirSync(medomicsDir)
     }
-    updateGlobalData()
-  }, [workspaceObject])
 
-  // This useEffect hook is called whenever the `workspaceObject` state changes.
-  useEffect(() => {
-    console.log("workspaceObject changed", workspaceObject)
-  }, [workspaceObject])
+    if (!fs.existsSync(mongoDataDir)) {
+      // Create MongoDB data dir
+      fs.mkdirSync(mongoDataDir)
+    }
 
-  // This useEffect hook is called whenever the `DBObject` state changes.
-  useEffect(() => {
-    console.log("DBObject changed", DBObject)
-    ipcRenderer.send("get-collections", DBObject.name)
-  }, [DBObject])
+    if (!fs.existsSync(globalDataPath)) {
+      // Create globalData.json
+      const globalData = {} // Add your initial global data here
+      fs.writeFileSync(globalDataPath, JSON.stringify(globalData, null, 2))
+    }
+
+    if (!fs.existsSync(mongoConfigPath)) {
+      // Create mongod.conf
+      const mongoConfig = `
+    systemLog:
+      destination: file
+      path: ${path.join(medomicsDir, "mongod.log")}
+      logAppend: true
+    storage:
+      dbPath: ${mongoDataDir}
+    net:
+      bindIp: 127.0.0.1
+      port: 27017
+    `
+      fs.writeFileSync(mongoConfigPath, mongoConfig)
+    }
+  }
 
   /**
    * Function that saves a JSON Object to a file to a specified path
@@ -500,6 +499,8 @@ function App() {
     })
   }
 
+  // USE EFFECT HOOKS
+
   // This useEffect hook is called whenever the `globalData` state changes.
   useEffect(() => {
     console.log("globalData changed", globalData)
@@ -521,10 +522,57 @@ function App() {
     console.log("layoutModel changed", layoutModel)
   }, [layoutModel]) // Here, we specify that the hook should only be called when the layoutModel state variable changes
 
-  // This useEffect hook is called at the beginning of the app to clear the localStorage
-  // useEffect(() => {
-  //   localStorage.clear()
-  // }, [])
+  // This useEffect hook is called whenever the `workspaceObject` state changes.
+  useEffect(() => {
+    const updateGlobalData = async () => {
+      // Create a copy of the `globalData` state object.
+      let newGlobalData = { ...globalData }
+      // Check if the `workingDirectory` property of the `workspaceObject` has been set.
+      if (workspaceObject.hasBeenSet === true) {
+        // Loop through each child of the `workingDirectory`.
+
+        let metadataFileExists = checkIfMetadataFileExists()
+        if (metadataFileExists && Object.keys(globalData).length == 0) {
+          // Load the global data from the metadata file
+          newGlobalData = await loadGlobalDataFromFile()
+        }
+        let rootChildren = workspaceObject.workingDirectory.children
+        let rootParentID = "UUID_ROOT"
+        let rootName = workspaceObject.workingDirectory.name
+        let rootPath = workspaceObject.workingDirectory.path
+        let rootType = "folder"
+        let rootChildrenIDs = recursivelyRecenseTheDirectory(rootChildren, rootParentID, newGlobalData).childrenIDsToReturn
+
+        let rootDataObject = new MedDataObject({
+          originalName: rootName,
+          path: rootPath,
+          parentID: rootParentID,
+          type: rootType,
+          childrenIDs: rootChildrenIDs,
+          _UUID: rootParentID
+        })
+        newGlobalData[rootParentID] = rootDataObject
+      }
+      // Clean the globalData from files & folders that are not in the workspace
+      newGlobalData = cleanGlobalDataFromFilesNotFoundInWorkspace(workspaceObject, newGlobalData)
+
+      // Update the `globalData` state object with the new `newGlobalData` object.
+      setGlobalData(newGlobalData)
+    }
+    updateGlobalData()
+  }, [workspaceObject])
+
+  // This useEffect hook is called whenever the `workspaceObject` state changes.
+  useEffect(() => {
+    console.log("workspaceObject changed", workspaceObject)
+  }, [workspaceObject])
+
+  // This useEffect hook is called whenever the `DBObject` state changes.
+  useEffect(() => {
+    console.log("DBObject changed", DBObject)
+    ipcRenderer.send("get-collections", DBObject.name)
+  }, [DBObject])
+
   return (
     <>
       <Head>
