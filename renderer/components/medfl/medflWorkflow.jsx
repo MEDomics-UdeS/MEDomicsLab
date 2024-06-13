@@ -957,7 +957,8 @@ const MedflWorkflow = ({ setWorkflowType, workflowType }) => {
         onRun={(flConfig, mode) => {
           setRunModal(false)
           if (mode == "run") {
-            runFlPipeline(ALL_CONFIGS, flConfigFile?.path)
+            // runFlPipeline(ALL_CONFIGS, flConfigFile?.path)
+            runFlPipeline(flConfig, flConfigFile?.path)
           } else {
             setOptimType(flConfig[0]["flOptimizeNode"]["optimisation Type"])
             runFlOptimisation(flConfig, flConfigFile?.path)
