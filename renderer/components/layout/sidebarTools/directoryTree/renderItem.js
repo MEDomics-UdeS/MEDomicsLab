@@ -32,6 +32,7 @@ const iconExtension = {
   zip: <span className="emoji">🔒</span>,
   ini: <span className="emoji">⚙️ </span>,
   pth: <span className="emoji">🧬 </span>,
+  medflres: <span className="emoji">📊</span>,
   medmodel: (
     <span>
       <PiGraph className="icon-offset" style={{ color: "#97edfb" }} />

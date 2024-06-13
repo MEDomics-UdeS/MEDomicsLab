@@ -32,7 +32,9 @@ const WsSelect = ({ selectedPath, onChange, rootDir, acceptFolder = false, accep
           if (globalData[globalData[uuid].parentID]) {
             if (globalData[globalData[uuid].parentID].originalName == rootDir) {
               if (!(!acceptFolder && globalData[uuid].type == "folder")) {
+                console.log(acceptedExtensions)
                 if (acceptedExtensions.includes("all") || acceptedExtensions.includes(globalData[uuid].extension)) {
+                  console.log("with rootID kffr", globalData[uuid].path)
                   datasetListToShow.push({ name: globalData[uuid].name, path: globalData[uuid].path, isFolder: globalData[uuid].type == "folder" })
                 }
               }
@@ -40,6 +42,7 @@ const WsSelect = ({ selectedPath, onChange, rootDir, acceptFolder = false, accep
           }
           // else, we want to add any file (or folder) from acceptedExtensions
         } else {
+          console.log("without rootID", globalData[uuid].path)
           if (acceptedExtensions.includes(globalData[uuid].extension) || acceptedExtensions.includes("all")) {
             if (acceptedExtensions.includes("all") || acceptedExtensions.includes(globalData[uuid].extension)) {
               datasetListToShow.push({ name: globalData[uuid].name, path: globalData[uuid].path, isFolder: globalData[uuid].type == "folder" })

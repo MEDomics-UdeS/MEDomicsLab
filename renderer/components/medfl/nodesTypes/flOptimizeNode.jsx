@@ -1,14 +1,19 @@
-import React, { useContext, useState } from "react"
+import React, { useContext, useEffect, useState } from "react"
 import Node from "../../flow/node"
 import FlInput from "../flInput"
 import { Form } from "react-bootstrap"
 import flSettings from "../../../public/setupVariables/possibleSettings/MEDfl/flSettings"
 import { FlowFunctionsContext } from "../../flow/context/flowFunctionsContext"
+import { Checkbox } from "primereact/checkbox"
 
 const FlOptimizeNode = ({ id, data }) => {
   // states
   const [optimizationType, setOptimizationType] = useState("gridSearch")
   const [selectedOptizers, setOptimizers] = useState([])
+  const [optimisableList, setOptList] = useState({
+    layers: false
+  })
+
   //context
   const { updateNode } = useContext(FlowFunctionsContext)
 
@@ -56,6 +61,16 @@ const FlOptimizeNode = ({ id, data }) => {
       updatedData: data.internal
     })
   }
+
+  const onListCheck = (name) => {
+    let list = optimisableList
+    list = { ...list, [name]: !list[name] }
+
+    setOptList(list)
+    console.log(list)
+  }
+
+  useEffect(() => {}, [optimisableList.layers])
 
   return (
     <>
@@ -105,12 +120,22 @@ const FlOptimizeNode = ({ id, data }) => {
         defaultSettings={<></>}
         // node specific is the body of the node, so optional settings
         nodeSpecific={
-          <>
+          <div
+            style={{
+              maxHeight: "400px",
+              overflowY: "scroll",
+              paddingRight: "5px"
+            }}
+          >
             {(() => {
               switch (optimizationType) {
                 case "optunaCentral":
                   return (
-                    <>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "4px", paddingBottom: 15 }}>
+                      <div style={{ fontWeight: "bold", fontSize: "19px" }} className="py-3">
+                        Optuna arguments{" "}
+                      </div>
+
                       <FlInput
                         name="Metric"
                         settingInfos={{
@@ -133,134 +158,239 @@ const FlOptimizeNode = ({ id, data }) => {
                         onInputChange={onModelInputChange}
                         setHasWarning={() => {}}
                       />
-                      <div className="row">
-                        <div className="col">Number of layers</div>
-                        <div className="col">
-                          <FlInput
-                            name="Min"
-                            settingInfos={{
-                              type: "int",
-                              tooltip: "<p>Specify a data file (xlsx, csv, json)</p>"
-                            }}
-                            currentValue={data.internal.settings["Number of layers"] ? data.internal.settings["Number of layers"]["Min"] : ""}
-                            onInputChange={(e) => {
-                              updateOptimRanges("Number of layers", e)
-                            }}
-                            setHasWarning={() => {}}
-                          />
-                        </div>
-                        <div className="col">
-                          <FlInput
-                            name="Max"
-                            settingInfos={{
-                              type: "int",
-                              tooltip: "<p>Specify a data file (xlsx, csv, json)</p>"
-                            }}
-                            currentValue={data.internal.settings["Number of layers"] ? data.internal.settings["Number of layers"]["Max"] : ""}
-                            onInputChange={(e) => {
-                              updateOptimRanges("Number of layers", e)
-                            }}
-                            setHasWarning={() => {}}
-                          />
-                        </div>
-                      </div>
-                      <div className="row">
-                        <div className="col">Hidden layers size</div>
-                        <div className="col">
-                          <FlInput
-                            name="Min"
-                            settingInfos={{
-                              type: "int",
-                              tooltip: "<p>Specify a data file (xlsx, csv, json)</p>"
-                            }}
-                            currentValue={data.internal.settings["Hidden layers size"] ? data.internal.settings["Hidden layers size"]["Min"] : ""}
-                            onInputChange={(e) => {
-                              updateOptimRanges("Hidden layers size", e)
-                            }}
-                            setHasWarning={() => {}}
-                          />
-                        </div>
-                        <div className="col">
-                          <FlInput
-                            name="Max"
-                            settingInfos={{
-                              type: "int",
-                              tooltip: "<p>Specify a data file (xlsx, csv, json)</p>"
-                            }}
-                            currentValue={data.internal.settings["Hidden layers size"] ? data.internal.settings["Hidden layers size"]["Max"] : ""}
-                            onInputChange={(e) => {
-                              updateOptimRanges("Hidden layers size", e)
-                            }}
-                            setHasWarning={() => {}}
-                          />
-                        </div>
-                      </div>
-                      <div className="row">
-                        <div className="col">Number of epochs</div>
-                        <div className="col">
-                          <FlInput
-                            name="Min"
-                            settingInfos={{
-                              type: "int",
-                              tooltip: "<p>Specify a data file (xlsx, csv, json)</p>"
-                            }}
-                            currentValue={data.internal.settings["Number of epochs"] ? data.internal.settings["Number of epochs"]["Min"] : ""}
-                            onInputChange={(e) => {
-                              updateOptimRanges("Number of epochs", e)
-                            }}
-                            setHasWarning={() => {}}
-                          />
-                        </div>
-                        <div className="col">
-                          <FlInput
-                            name="Max"
-                            settingInfos={{
-                              type: "int",
-                              tooltip: "<p>Specify a data file (xlsx, csv, json)</p>"
-                            }}
-                            currentValue={data.internal.settings["Number of epochs"] ? data.internal.settings["Number of epochs"]["Max"] : ""}
-                            onInputChange={(e) => {
-                              updateOptimRanges("Number of epochs", e)
-                            }}
-                            setHasWarning={() => {}}
-                          />
-                        </div>
-                      </div>
-                      <div className="row">
-                        <div className="col">Learning rate</div>
-                        <div className="col">
-                          <FlInput
-                            name="Min"
-                            settingInfos={{
-                              type: "float",
-                              tooltip: "<p>Specify a data file (xlsx, csv, json)</p>"
-                            }}
-                            currentValue={data.internal.settings["Learning rate"] ? data.internal.settings["Learning rate"]["Min"] : ""}
-                            onInputChange={(e) => {
-                              updateOptimRanges("Learning rate", e)
-                            }}
-                            setHasWarning={() => {}}
-                          />
-                        </div>
-                        <div className="col">
-                          <FlInput
-                            name="Max"
-                            settingInfos={{
-                              type: "float",
-                              tooltip: "<p>Specify a data file (xlsx, csv, json)</p>"
-                            }}
-                            currentValue={data.internal.settings["Learning rate"] ? data.internal.settings["Learning rate"]["Max"] : ""}
-                            onInputChange={(e) => {
-                              updateOptimRanges("Learning rate", e)
-                            }}
-                            setHasWarning={() => {}}
-                          />
-                        </div>
-                      </div>
-                      <div className="row justify-between">
-                        <div className="col-4">Optimizer</div>
 
-                        <div className="col-8 ">
+                      <FlInput
+                        name="Number of trials"
+                        settingInfos={{
+                          type: "int",
+                          tooltip: "<p>Specify the model type</p>"
+                        }}
+                        currentValue={data.internal.settings["Number of trials"]}
+                        onInputChange={onModelInputChange}
+                        setHasWarning={() => {}}
+                      />
+
+                      <FlInput
+                        name="Sampling algorithms"
+                        settingInfos={{
+                          type: "list",
+                          tooltip: "<p>Specify the model type</p>",
+                          choices: [
+                            { name: "GridSampler" },
+                            { name: "RandomSampler" },
+                            { name: "TPESampler" },
+                            { name: "CmaEsSampler" },
+                            { name: "GPSampler" },
+                            { name: "PartialFixedSampler" },
+                            { name: "NSGAIISampler" },
+                            { name: "QMCSampler" }
+                          ]
+                        }}
+                        currentValue={data.internal.settings["Sampling algorithms"]}
+                        onInputChange={onModelInputChange}
+                        setHasWarning={() => {}}
+                      />
+                      <div style={{ fontWeight: "bold", fontSize: "19px" }} className="pt-4">
+                        Optimisable hyperparameters{" "}
+                      </div>
+                      <div style={{ fontSize: "11px" }} className="pb-4">
+                        select the hyperparameters to optimise
+                      </div>
+                      <div className="row">
+                        <div
+                          className="col"
+                          style={{
+                            width: "300px"
+                          }}
+                        >
+                          Number of layers
+                        </div>
+                        <div className="col">
+                          <Checkbox onChange={() => onListCheck("layers")} checked={optimisableList.layers}></Checkbox>
+                        </div>
+                      </div>
+                      {optimisableList.layers && (
+                        <div className="row">
+                          <div className="col">
+                            <FlInput
+                              name="Min"
+                              settingInfos={{
+                                type: "int",
+                                tooltip: "<p>Specify a data file (xlsx, csv, json)</p>"
+                              }}
+                              currentValue={data.internal.settings["Number of layers"] ? data.internal.settings["Number of layers"]["Min"] : ""}
+                              onInputChange={(e) => {
+                                updateOptimRanges("Number of layers", e)
+                              }}
+                              setHasWarning={() => {}}
+                            />
+                          </div>
+                          <div className="col">
+                            <FlInput
+                              name="Max"
+                              settingInfos={{
+                                type: "int",
+                                tooltip: "<p>Specify a data file (xlsx, csv, json)</p>"
+                              }}
+                              currentValue={data.internal.settings["Number of layers"] ? data.internal.settings["Number of layers"]["Max"] : ""}
+                              onInputChange={(e) => {
+                                updateOptimRanges("Number of layers", e)
+                              }}
+                              setHasWarning={() => {}}
+                            />
+                          </div>
+                        </div>
+                      )}
+                      <div className="row">
+                        <div
+                          className="col"
+                          style={{
+                            width: "300px"
+                          }}
+                        >
+                          Hidden layers size
+                        </div>
+                        <div className="col">
+                          <Checkbox onChange={() => onListCheck("layers_size")} checked={optimisableList.layers_size}></Checkbox>
+                        </div>
+                      </div>
+                      {optimisableList.layers_size && (
+                        <div className="row">
+                          <div className="col">
+                            <FlInput
+                              name="Min"
+                              settingInfos={{
+                                type: "int",
+                                tooltip: "<p>Specify a data file (xlsx, csv, json)</p>"
+                              }}
+                              currentValue={data.internal.settings["Hidden layers size"] ? data.internal.settings["Hidden layers size"]["Min"] : ""}
+                              onInputChange={(e) => {
+                                updateOptimRanges("Hidden layers size", e)
+                              }}
+                              setHasWarning={() => {}}
+                            />
+                          </div>
+                          <div className="col">
+                            <FlInput
+                              name="Max"
+                              settingInfos={{
+                                type: "int",
+                                tooltip: "<p>Specify a data file (xlsx, csv, json)</p>"
+                              }}
+                              currentValue={data.internal.settings["Hidden layers size"] ? data.internal.settings["Hidden layers size"]["Max"] : ""}
+                              onInputChange={(e) => {
+                                updateOptimRanges("Hidden layers size", e)
+                              }}
+                              setHasWarning={() => {}}
+                            />
+                          </div>
+                        </div>
+                      )}
+                      <div className="row">
+                        <div
+                          className="col"
+                          style={{
+                            width: "300px"
+                          }}
+                        >
+                          Number of epochs
+                        </div>
+                        <div className="col">
+                          <Checkbox onChange={() => onListCheck("epochs")} checked={optimisableList.epochs}></Checkbox>
+                        </div>
+                      </div>
+                      {optimisableList.epochs && (
+                        <div className="row">
+                          <div className="col">
+                            <FlInput
+                              name="Min"
+                              settingInfos={{
+                                type: "int",
+                                tooltip: "<p>Specify a data file (xlsx, csv, json)</p>"
+                              }}
+                              currentValue={data.internal.settings["Number of epochs"] ? data.internal.settings["Number of epochs"]["Min"] : ""}
+                              onInputChange={(e) => {
+                                updateOptimRanges("Number of epochs", e)
+                              }}
+                              setHasWarning={() => {}}
+                            />
+                          </div>
+                          <div className="col">
+                            <FlInput
+                              name="Max"
+                              settingInfos={{
+                                type: "int",
+                                tooltip: "<p>Specify a data file (xlsx, csv, json)</p>"
+                              }}
+                              currentValue={data.internal.settings["Number of epochs"] ? data.internal.settings["Number of epochs"]["Max"] : ""}
+                              onInputChange={(e) => {
+                                updateOptimRanges("Number of epochs", e)
+                              }}
+                              setHasWarning={() => {}}
+                            />
+                          </div>
+                        </div>
+                      )}
+                      <div className="row">
+                        <div
+                          className="col"
+                          style={{
+                            width: "300px"
+                          }}
+                        >
+                          Learning rate
+                        </div>
+                        <div className="col">
+                          <Checkbox onChange={() => onListCheck("learning_rate")} checked={optimisableList.learning_rate}></Checkbox>
+                        </div>
+                      </div>
+                      {optimisableList.learning_rate && (
+                        <div className="row">
+                          <div className="col">
+                            <FlInput
+                              name="Min"
+                              settingInfos={{
+                                type: "float",
+                                tooltip: "<p>Specify a data file (xlsx, csv, json)</p>"
+                              }}
+                              currentValue={data.internal.settings["Learning rate"] ? data.internal.settings["Learning rate"]["Min"] : ""}
+                              onInputChange={(e) => {
+                                updateOptimRanges("Learning rate", e)
+                              }}
+                              setHasWarning={() => {}}
+                            />
+                          </div>
+                          <div className="col">
+                            <FlInput
+                              name="Max"
+                              settingInfos={{
+                                type: "float",
+                                tooltip: "<p>Specify a data file (xlsx, csv, json)</p>"
+                              }}
+                              currentValue={data.internal.settings["Learning rate"] ? data.internal.settings["Learning rate"]["Max"] : ""}
+                              onInputChange={(e) => {
+                                updateOptimRanges("Learning rate", e)
+                              }}
+                              setHasWarning={() => {}}
+                            />
+                          </div>
+                        </div>
+                      )}
+                      <div className="row ">
+                        <div
+                          className="col"
+                          style={{
+                            width: "300px"
+                          }}
+                        >
+                          Optimizer
+                        </div>
+                        <div className="col">
+                          <Checkbox onChange={() => onListCheck("optimiser")} checked={optimisableList.optimiser}></Checkbox>
+                        </div>
+                      </div>
+                      {optimisableList.optimiser && (
+                        <div className=" ">
                           <FlInput
                             name=""
                             settingInfos={{
@@ -278,25 +408,12 @@ const FlOptimizeNode = ({ id, data }) => {
                             setHasWarning={() => {}}
                           />
                         </div>
-                        <div className="my-2">
-                        <FlInput
-                          name="Number of trials"
-                          settingInfos={{
-                            type: "int",
-                            tooltip: "<p>Specify the model type</p>"
-                          }}
-                          currentValue={data.internal.settings["Number of trials"]}
-                          onInputChange={onModelInputChange}
-                          setHasWarning={() => {}}
-                        />
-                        </div>
-                     
-                      </div>
-                    </>
+                      )}
+                    </div>
                   )
                 case "gridSearch":
                   return (
-                    <>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
                       <FlInput
                         name="Metric"
                         settingInfos={{
@@ -338,13 +455,13 @@ const FlOptimizeNode = ({ id, data }) => {
                         onInputChange={onModelInputChange}
                         setHasWarning={() => {}}
                       />
-                    </>
+                    </div>
                   )
                 default:
                   return <>{optimizationType} </>
               }
             })()}
-          </>
+          </div>
         }
       />
     </>

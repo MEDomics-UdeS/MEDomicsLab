@@ -8,10 +8,14 @@ import ProgressBarRequests from "../generalPurpose/progressBarRequests"
 import { PageInfosContext } from "../mainPages/moduleBasics/pageInfosContext"
 import { FlowFunctionsContext } from "../flow/context/flowFunctionsContext"
 import { FlowResultsContext } from "../flow/context/flowResultsContext"
-import { WorkspaceContext } from "../workspace/workspaceContext"
+import { EXPERIMENTS, WorkspaceContext } from "../workspace/workspaceContext"
 import { ErrorRequestContext } from "../generalPurpose/errorRequestContext.jsx"
 import MedDataObject from "../workspace/medDataObject"
 import { modifyZipFileSync } from "../../utilities/customZipFile.js"
+
+import { UUID_ROOT, DataContext } from "../workspace/dataContext"
+
+import Path from "path"
 
 // here are the different types of nodes implemented in the workflow
 
@@ -23,10 +27,7 @@ import { removeDuplicates, deepCopy } from "../../utilities/staticFunctions"
 import { defaultValueFromType } from "../../utilities/learning/inputTypesUtils.js"
 import { FlowInfosContext } from "../flow/context/flowInfosContext.jsx"
 import StandardNode from "../learning/nodesTypes/standardNode.jsx"
-import SelectionNode from "../learning/nodesTypes/selectionNode.jsx"
 import GroupNode from "../flow/groupNode.jsx"
-import OptimizeIO from "../learning/nodesTypes/optimizeIO.jsx"
-import LoadModelNode from "../learning/nodesTypes/loadModelNode.jsx"
 import NetworkNode from "./nodesTypes/networkNode.jsx"
 import FlClientNode from "./nodesTypes/flClientNode.jsx"
 import FlServerNode from "./nodesTypes/flServerNode.jsx"
@@ -44,6 +45,9 @@ import FlConfigModal from "./flConfigModal"
 import DBCOnfigFileModal from "./dbCOnfigFileModal.jsx"
 import FlWorflowBase from "./flWorkflowBase.jsx"
 import OptimResultsModal from "./optimResultsModal"
+import FlTrainModelNode from "./nodesTypes/flTrainModel.jsx"
+import FlSaveModelNode from "./nodesTypes/flSaveModelNode.jsx"
+import { useMEDflContext } from "../workspace/medflContext.jsx"
 
 const staticNodesParams = nodesParams // represents static nodes parameters
 
@@ -91,7 +95,11 @@ const MedflWorkflow = ({ setWorkflowType, workflowType }) => {
   const { port } = useContext(WorkspaceContext)
   const { setError } = useContext(ErrorRequestContext)
 
+  const { globalData } = useContext(DataContext)
+
   const [allConfigResults, setAllresults] = useState([])
+
+  const { updatePipelineConfigs } = useMEDflContext()
 
   let ALL_CONFIGS = [
     {
@@ -135,7 +143,6 @@ const MedflWorkflow = ({ setWorkflowType, workflowType }) => {
         validationFraction: 0.1,
         testFraction: 0
       },
-
       flModelNode: {
         activateTl: "true",
         file: {
@@ -147,13 +154,15 @@ const MedflWorkflow = ({ setWorkflowType, workflowType }) => {
         Threshold: 0.1
       },
       flStrategyNode: {
-        "Aggregation algorithm": "FedYogi",
+        "Aggregation algorithm": "FedAvg",
         "Evaluation fraction": 1,
         "Training fraction": 1,
         "Minimal used clients for evaluation": 1,
         "Minimal used clients for training": 1,
         "Minimal available clients": 1
-      }
+      },
+      flTrainModelNode: { clientRessources: "Use GPU" },
+      flSaveModelNode: { fileName: "resultsauto" }
     },
     {
       masterDatasetNode: {
@@ -213,18 +222,17 @@ const MedflWorkflow = ({ setWorkflowType, workflowType }) => {
         "Minimal used clients for evaluation": 1,
         "Minimal used clients for training": 1,
         "Minimal available clients": 1
-      }
+      },
+      flTrainModelNode: { clientRessources: "Use GPU" },
+      flSaveModelNode: { fileName: "resultsauto" }
     }
   ]
   // declare node types using useMemo hook to avoid re-creating component types unnecessarily (it memorizes the output) https://www.w3schools.com/react/react_usememo.asp
   const nodeTypes = useMemo(
     () => ({
       standardNode: StandardNode,
-      selectionNode: SelectionNode,
       groupNode: GroupNode,
-      optimizeIO: OptimizeIO,
       masterDatasetNode: MasterDatasetNode,
-      loadModelNode: LoadModelNode,
       networkNode: NetworkNode,
       flClientNode: FlClientNode,
       flServerNode: FlServerNode,
@@ -234,7 +242,9 @@ const MedflWorkflow = ({ setWorkflowType, workflowType }) => {
       flOptimizeNode: FlOptimizeNode,
       flStrategyNode: FlStrategyNode,
       flPipelineNode: FlPipelineNode,
-      flResultsNode: FlResultsNode
+      flResultsNode: FlResultsNode,
+      flTrainModelNode: FlTrainModelNode,
+      flSaveModelNode: FlSaveModelNode
     }),
     []
   )
@@ -770,7 +780,7 @@ const MedflWorkflow = ({ setWorkflowType, workflowType }) => {
       port,
       "/medfl/run-pipeline/" + pageId,
       JSONToSend,
-      (jsonResponse) => {
+      async (jsonResponse) => {
         if (jsonResponse.error) {
           if (typeof jsonResponse.error == "string") {
             jsonResponse.error = JSON.parse(jsonResponse.error)
@@ -781,6 +791,23 @@ const MedflWorkflow = ({ setWorkflowType, workflowType }) => {
           console.log("jsonResponse", jsonResponse)
           toast.success(jsonResponse["stringFromBackend"])
           updateFlowResults(jsonResponse)
+          // save the results on a file
+          if (flConfig[0]?.flSaveModelNode?.fileName) {
+            try {
+              let path = Path.join(globalData[UUID_ROOT].path, EXPERIMENTS)
+
+              MedDataObject.createFolderFromPath(path + "/FL")
+              MedDataObject.createFolderFromPath(path + "/FL/Results")
+
+              // do custom actions in the folder while it is unzipped
+              await MedDataObject.writeFileSync(jsonResponse["data"], path + "/FL/Results", flConfig[0]?.flSaveModelNode?.fileName, "json")
+              await MedDataObject.writeFileSync({ data: jsonResponse["data"], configs: flConfig, date: Date.now() }, path + "/FL/Results", flConfig[0]?.flSaveModelNode?.fileName, "medflres")
+
+              toast.success("Experiment results saved successfuly ")
+            } catch {
+              toast.error("Something went wrong ")
+            }
+          }
           setAllresults([...allConfigResults, jsonResponse])
           setRunModal(false)
           setTimeout(() => {
@@ -939,6 +966,7 @@ const MedflWorkflow = ({ setWorkflowType, workflowType }) => {
       <OptimResultsModal
         show={optimResults}
         onHide={() => {
+          updatePipelineConfigs
           setOptimResults(null)
         }}
         results={optimResults ? optimResults : {}}
@@ -955,7 +983,9 @@ const MedflWorkflow = ({ setWorkflowType, workflowType }) => {
         configs={getConfigs(treeData, 0)}
         nodes={nodes}
         onRun={(flConfig, mode) => {
+          updatePipelineConfigs(ALL_CONFIGS)
           setRunModal(false)
+
           if (mode == "run") {
             // runFlPipeline(ALL_CONFIGS, flConfigFile?.path)
             runFlPipeline(flConfig, flConfigFile?.path)

@@ -186,15 +186,14 @@ const FlInput = ({ name, settingInfos, currentValue, onInputChange, disabled, se
               <Form.Select
                 disabled={disabled}
                 defaultValue={currentValue}
-                onChange={(e) =>
-                 { 
+                onChange={(e) => {
                   console.log(e)
                   setInputUpdate({
                     name: name,
                     value: e.target.value,
                     type: settingInfos.type
-                  })}
-                }
+                  })
+                }}
               >
                 <option value="" hidden></option>
                 <option value="True">True</option>
@@ -394,9 +393,10 @@ const FlInput = ({ name, settingInfos, currentValue, onInputChange, disabled, se
           <>
             <FloatingLabel id={name} controlId={name} label={name} className=" input-hov">
               <WsSelect
+                rootDir={settingInfos.rootDir}
                 disabled={disabled}
                 selectedPath={currentValue}
-                acceptedExtensions={acceptedExtensions || ["csv"]}
+                acceptedExtensions={acceptedExtensions || ["all"]}
                 acceptFolder={settingInfos.acceptFolder ? settingInfos.acceptFolder : false}
                 onChange={(e, path) => {
                   console.log("e", e, path)

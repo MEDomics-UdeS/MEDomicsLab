@@ -29,7 +29,7 @@ const nodesParams = {
     type: "flSetupNode",
     classes: "object ",
     nbInput: 1,
-    nbOutput: 3,
+    nbOutput: 1,
     input: ["network"],
     output: ["fl_setup"],
     img: "flsetup.png",
@@ -52,9 +52,9 @@ const nodesParams = {
     classes: "object model",
     nbInput: 1,
     nbOutput: 1,
-    input: ["fl_setup"],
+    input: ["fl_dataset"],
     output: ["model"],
-    img: "create_model.png",
+    img: "model.png",
     title: "Model",
     possibleSettings: {}
   },
@@ -76,7 +76,7 @@ const nodesParams = {
     classes: "object",
     nbInput: 1,
     nbOutput: 1,
-    input: ["fl_setup"],
+    input: ["model"],
     output: ["fl_strategy"],
     img: "strategy.png",
     title: "FL Strategy",
@@ -104,6 +104,28 @@ const nodesParams = {
   //   title: "Results",
   //   possibleSettings: {}
   // }
+  train_model: {
+    type: "flTrainModelNode",
+    classes: "object",
+    nbInput: 1,
+    nbOutput: 1,
+    input: ["fl_strategy"],
+    output: ["train_model"],
+    img: "create_model.png",
+    title: "Train Model",
+    possibleSettings: {}
+  },
+  save_results: {
+    type: "flSaveModelNode",
+    classes: "object",
+    nbInput: 1,
+    nbOutput: 0,
+    input: ["train_model"],
+    output: ["save_results"],
+    img: "save_model.png",
+    title: "Save results",
+    possibleSettings: {}
+  }
 }
 
 export default nodesParams

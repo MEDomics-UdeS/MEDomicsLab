@@ -21,7 +21,7 @@ const RunPipelineModal = ({ show, onHide, configs, nodes, onRun }) => {
     })
 
     setConfig(fullConfig)
-console.log(fullConfig)
+    console.log(fullConfig)
   }
 
   useEffect(() => {
@@ -117,10 +117,15 @@ console.log(fullConfig)
           case "flOptimizeNode":
             n = node.data.internal.settings
             break
+          case "flTrainModelNode":
+            n = node.data.internal.settings
+            break
+          case "flSaveModelNode":
+            n = node.data.internal.settings
+            break
           default:
             n = {
-              name: node.data.internal.name,
-              description: node.data.internal.settings.description
+              name: node.data.internal.name
             }
             break
         }
@@ -130,8 +135,6 @@ console.log(fullConfig)
 
     return [n, nodeType]
   }
-
-  const optimiseParams = () => {}
 
   useEffect(() => {
     if (!experimentConfig) getConfigInfos()
@@ -170,7 +173,7 @@ console.log(fullConfig)
           {experimentConfig?.length > 0 && experimentConfig[0]["flOptimizeNode"] ? (
             <Button
               onClick={() => {
-                onRun(experimentConfig , "optim")
+                onRun(experimentConfig, "optim")
               }}
             >
               Optimise hyperparameters
@@ -178,7 +181,7 @@ console.log(fullConfig)
           ) : null}
           <Button
             onClick={() => {
-              onRun(experimentConfig , 'run')
+              onRun(experimentConfig, "run")
             }}
           >
             Run Pipeline
