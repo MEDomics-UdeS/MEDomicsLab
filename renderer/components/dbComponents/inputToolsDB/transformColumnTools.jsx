@@ -2,30 +2,38 @@ import React from "react"
 import { MultiSelect } from "primereact/multiselect"
 import { SplitButton } from "primereact/splitbutton"
 import { Button } from "primereact/button"
+import { Message } from "primereact/message"
 
 const TransformColumnTools = ({ selectedColumns, setSelectedColumns, columns, transformData, handleFileUpload, handleCsvData, handleExportColumns, handleDeleteColumns }) => {
-  return (
-    <div
-      style={{
-        display: "flex",
-        justifyContent: "space-around",
-        alignItems: "center",
-        padding: "2px",
-        flexWrap: "wrap"
-      }}
-    >
-      <MultiSelect
-        value={selectedColumns}
-        options={columns
-          .filter((column) => column.header !== null)
-          .map((column) => ({
-            label: column.header,
-            value: column.field
-          }))}
-        onChange={(e) => setSelectedColumns(e.value)}
-        placeholder="Select Columns"
-        style={{ marginRight: "5px", width: "200px" }}
-      />
+    return (
+        <>
+            <div style={{ textAlign: "center", marginBottom: "10px" }}>
+                <Message
+                    severity="info"
+                    text="The Transform Columns Tools provide functionalities to alter dataset columns. This includes converting selected columns to binary, replacing empty cells with zeros, and facilitating the import and export of column lists."
+                />
+            </div>
+            <div
+                style={{
+                    display: "flex",
+                    justifyContent: "space-around",
+                    alignItems: "center",
+                    padding: "2px",
+                    flexWrap: "wrap"
+                }}
+            >
+                <MultiSelect
+                    value={selectedColumns}
+                    options={columns
+                        .filter((column) => column.header !== null)
+                        .map((column) => ({
+                            label: column.header,
+                            value: column.field
+                        }))}
+                    onChange={(e) => setSelectedColumns(e.value)}
+                    placeholder="Select Columns"
+                    style={{ marginRight: "5px", width: "200px" }}
+                />
       <SplitButton
         label="Transform"
         model={[
@@ -71,8 +79,9 @@ const TransformColumnTools = ({ selectedColumns, setSelectedColumns, columns, tr
           marginRight: "2px"
         }}
       />
-      <input type="file" accept=".csv" onChange={handleFileUpload} />
+      <input type="file" accept=".csv" onChange={handleFileUpload} style={{width: "250px"}}/>
     </div>
+        </>
   )
 }
 

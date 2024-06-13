@@ -2,21 +2,30 @@ import React from "react"
 import { InputText } from "primereact/inputtext"
 import { Button } from "primereact/button"
 import { SplitButton } from "primereact/splitbutton"
+import {Message} from "primereact/message";
 
 const BasicTools = ({ numRows, setNumRows, handleAddRow, newColumnName, setNewColumnName, handleAddColumn, exportOptions, refreshData }) => {
   return (
+      <>
+      <div style={{textAlign: "center", marginBottom: "10px"}}>
+          <Message
+              severity="info"
+              text={"The Basic Tools enable you to add rows and columns to a dataset, export the dataset, and refresh the data."}
+          />
+      </div>
     <div
-      style={{
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        padding: "2px",
-        flexWrap: "wrap"
-      }}
+        style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            padding: "2px",
+            flexWrap: "wrap"
+        }}
     >
-      <div style={{ display: "flex", marginLeft: "100px" }}>
-        <InputText id="numRows" value={numRows} onChange={(e) => setNumRows(e.target.value)} style={{ width: "100px" }} placeholder="# of Rows" />
-        <Button
+        <div style={{display: "flex", marginLeft: "100px"}}>
+            <InputText id="numRows" value={numRows} onChange={(e) => setNumRows(e.target.value)}
+                       style={{width: "100px"}} placeholder="# of Rows"/>
+            <Button
           label="Add"
           onClick={handleAddRow}
           style={{
@@ -47,6 +56,7 @@ const BasicTools = ({ numRows, setNumRows, handleAddRow, newColumnName, setNewCo
         }}
       />
     </div>
+      </>
   )
 }
 

@@ -200,16 +200,23 @@ const MergeTools = ({ collections, DB, currentCollection }) => {
   }
 
   return (
-    <div
+      <>
+        <div style={{textAlign: "center", marginBottom: "10px"}}>
+          <Message
+              severity="info"
+              text={"The Merge Tools enable you to merge two collections in a database. You can select the collections to merge, the columns to merge on, and the type of merge to perform."}
+          />
+        </div>
+  <div
       style={{
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
         padding: "5px"
       }}
-    >
-      <div style={{ display: "flex", alignItems: "center", margin: "5px" }}>
-        <MultiSelect
+  >
+    <div style={{display: "flex", alignItems: "center", margin: "5px"}}>
+      <MultiSelect
           value={selectedCollections}
           options={collections}
           onChange={(e) => handleCollectionSelect(e.value)}
@@ -240,6 +247,7 @@ const MergeTools = ({ collections, DB, currentCollection }) => {
           (matchingColumns.length > 0 ? <Message severity="info" text={`Matching columns: ${matchingColumns.join(", ")}`} /> : <Message severity="warn" text="No matching columns." />)}
       </div>
     </div>
+      </>
   )
 }
 

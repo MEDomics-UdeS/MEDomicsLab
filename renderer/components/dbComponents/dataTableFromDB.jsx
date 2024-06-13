@@ -57,7 +57,7 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
 
   const buttonStyle = (id) => ({
     borderRadius: "10px",
-    backgroundColor: hoveredButton === id ? "#d32f2f" : "#f44336",
+    backgroundColor: hoveredButton === id ? "#d32f2f" : "#cccccc",
     color: "white",
     border: "none",
     padding: "2px",
