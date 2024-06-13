@@ -8,47 +8,44 @@ const BasicTools = ({ numRows, setNumRows, handleAddRow, newColumnName, setNewCo
     <div
       style={{
         display: "flex",
-        justifyContent: "center",
+        justifyContent: "space-between",
         alignItems: "center",
-        padding: "5px"
+        padding: "2px",
+        flexWrap: "wrap"
       }}
     >
-      <div style={{ display: "flex", alignItems: "center", margin: "5px" }}>
-        <InputText id="numRows" value={numRows} onChange={(e) => setNumRows(e.target.value)} style={{ marginRight: "10px", width: "100px" }} placeholder="# of Rows" />
+      <div style={{ display: "flex", marginLeft: "100px" }}>
+        <InputText id="numRows" value={numRows} onChange={(e) => setNumRows(e.target.value)} style={{ width: "100px" }} placeholder="# of Rows" />
         <Button
           label="Add"
           onClick={handleAddRow}
           style={{
-            width: "100px",
-            marginRight: "40px"
+            width: "100px"
           }}
         />
       </div>
-      <div style={{ display: "flex", alignItems: "center", margin: "5px" }}>
-        <InputText id="newColumnName" value={newColumnName} style={{ marginRight: "10px", width: "130px" }} onChange={(e) => setNewColumnName(e.target.value)} placeholder="Column Name" />
+      <div style={{ display: "flex" }}>
+        <InputText id="newColumnName" value={newColumnName} style={{ width: "130px" }} onChange={(e) => setNewColumnName(e.target.value)} placeholder="Column Name" />
         <Button
           label="Add"
           onClick={handleAddColumn}
           style={{
-            width: "100px",
-            marginRight: "40px"
+            width: "100px"
           }}
         />
       </div>
-      <div style={{ display: "flex", alignItems: "center", margin: "5px" }}>
-        <SplitButton label="Export DB" model={exportOptions} className="p-button-success" />
-        <Button
-          icon="pi pi-refresh"
-          onClick={() => refreshData()}
-          style={{
-            width: "50px",
-            padding: "5px",
-            marginLeft: "50px",
-            backgroundColor: "green",
-            borderColor: "green"
-          }}
-        />
-      </div>
+      <SplitButton icon="pi pi-download" model={exportOptions} className="p-button-success" />
+      <Button
+        icon="pi pi-refresh"
+        onClick={() => refreshData()}
+        style={{
+          width: "50px",
+          padding: "5px",
+          backgroundColor: "green",
+          borderColor: "green",
+          marginRight: "100px"
+        }}
+      />
     </div>
   )
 }

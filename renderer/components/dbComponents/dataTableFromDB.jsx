@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react"
+import React, { useContext, useEffect, useState } from "react"
 import { DataTable } from "primereact/datatable"
 import { Column } from "primereact/column"
 import { InputText } from "primereact/inputtext"
@@ -20,6 +20,7 @@ const mongoUrl = "mongodb://127.0.0.1:27017"
 import { saveAs } from "file-saver"
 import Papa from "papaparse"
 import { getCollectionData } from "./utils"
+import { MongoDBContext } from "../mongoDB/mongoDBContext"
 
 /**
  * DataTableFromDB component
@@ -31,6 +32,7 @@ import { getCollectionData } from "./utils"
  * @constructor - DataTableFromDB
  */
 const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly }) => {
+  const { DB, DBData } = useContext(MongoDBContext)
   const [innerData, setInnerData] = useState([])
   const [columns, setColumns] = useState([])
   const [newColumnName, setNewColumnName] = useState("")
@@ -103,7 +105,11 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
   useEffect(() => {
     console.log("innerData updated:", innerData)
     if (innerData.length > 0) {
-      const keys = Object.keys(innerData[0]).filter((key) => key !== "_id")
+      const allKeys = new Set()
+      innerData.forEach((item) => {
+        Object.keys(item).forEach((key) => allKeys.add(key))
+      })
+      const keys = Array.from(allKeys).filter((key) => key !== "_id")
       const newColumns = keys.map((key) => ({ field: key, header: key }))
       setColumns(newColumns)
     }
@@ -209,6 +215,14 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
   // Handle cell edit completion
   const onCellEditComplete = (e) => {
     let { rowData, newValue, field, originalEvent: event } = e
+    // Parse newValue to its appropriate type
+    if (!isNaN(newValue)) {
+      if (Number.isInteger(parseFloat(newValue))) {
+        newValue = parseInt(newValue)
+      } else {
+        newValue = parseFloat(newValue)
+      }
+    }
     rowData[field] = newValue
     if (!rowData._id) {
       console.log("Calling insertDatabaseData with:", {
@@ -489,7 +503,7 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
                     />
                   </Panel>
                   <Panel header="Merge Tools" toggleable collapsed={true}>
-                    <MergeTools />
+                    <MergeTools data={innerData} columns={columns} DB={DB} collections={DBData} currentCollection={data.uuid} />
                   </Panel>
                   <Panel header="Simple Cleaning Tools" toggleable collapsed={true}>
                     <SimpleCleaningTools />

@@ -8,73 +8,70 @@ const TransformColumnTools = ({ selectedColumns, setSelectedColumns, columns, tr
     <div
       style={{
         display: "flex",
-        justifyContent: "center",
+        justifyContent: "space-around",
         alignItems: "center",
-        padding: "5px"
+        padding: "2px",
+        flexWrap: "wrap"
       }}
     >
-      <div style={{ display: "flex", alignItems: "center", margin: "5px" }}>
-        <MultiSelect
-          value={selectedColumns}
-          options={columns
-            .filter((column) => column.header !== null)
-            .map((column) => ({
-              label: column.header,
-              value: column.field
-            }))}
-          onChange={(e) => setSelectedColumns(e.value)}
-          placeholder="Select Columns"
-          style={{ marginRight: "10px", width: "200px" }}
-        />
-        <SplitButton
-          label="Transform"
-          model={[
-            {
-              label: "Binary",
-              command: () => transformData("Binary")
-            },
-            {
-              label: "Non-empty",
-              command: () => transformData("Non-empty")
-            }
-          ]}
-          className="p-button-success"
-          style={{
-            width: "150px",
-            marginRight: "40px"
-          }}
-        />
-      </div>
-      <div style={{ display: "flex", alignItems: "center", margin: "5px" }}>
-        <input type="file" accept=".csv" onChange={handleFileUpload} />
-        <Button
-          label="Import Columns"
-          onClick={handleCsvData}
-          className="p-button-success"
-          style={{
-            width: "150px",
-            marginRight: "10px"
-          }}
-        />
-        <Button
-          label="Export Columns"
-          onClick={handleExportColumns}
-          className="p-button-success"
-          style={{
-            width: "150px",
-            marginRight: "10px"
-          }}
-        />
-        <Button
-          label="Delete Columns"
-          onClick={handleDeleteColumns}
-          className="p-button-danger"
-          style={{
-            width: "150px",
-            marginRight: "10px"
-          }}
-        />
-      </div>
+      <MultiSelect
+        value={selectedColumns}
+        options={columns
+          .filter((column) => column.header !== null)
+          .map((column) => ({
+            label: column.header,
+            value: column.field
+          }))}
+        onChange={(e) => setSelectedColumns(e.value)}
+        placeholder="Select Columns"
+        style={{ marginRight: "5px", width: "200px" }}
+      />
+      <SplitButton
+        label="Transform"
+        model={[
+          {
+            label: "Binary",
+            command: () => transformData("Binary")
+          },
+          {
+            label: "Non-empty",
+            command: () => transformData("Non-empty")
+          }
+        ]}
+        className="p-button-success"
+        style={{
+          width: "auto",
+          marginRight: "5px"
+        }}
+      />
+      <Button
+        icon="pi pi-upload"
+        onClick={handleCsvData}
+        className="p-button-success"
+        style={{
+          width: "50px",
+          marginRight: "3px"
+        }}
+      />
+      <Button
+        icon="pi pi-download"
+        onClick={handleExportColumns}
+        className="p-button-success"
+        style={{
+          width: "50px",
+          marginRight: "2px"
+        }}
+      />
+      <Button
+        icon="pi pi-trash"
+        onClick={handleDeleteColumns}
+        className="p-button-danger"
+        style={{
+          width: "50px",
+          marginRight: "2px"
+        }}
+      />
+      <input type="file" accept=".csv" onChange={handleFileUpload} />
     </div>
   )
 }
