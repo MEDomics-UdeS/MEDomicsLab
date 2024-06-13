@@ -1,6 +1,6 @@
 import { SelectButton } from "primereact/selectbutton"
 import React, { useContext, useEffect, useState } from "react"
-import { ButtonGroup, Card } from "react-bootstrap"
+import { Card } from "react-bootstrap"
 import * as Icon from "react-bootstrap-icons"
 import { FlowResultsContext } from "../flow/context/flowResultsContext"
 import FlInput from "./flInput"
@@ -198,6 +198,7 @@ export default function FlResultsPane() {
           setnodeflresults(getNodeResults(selectedNode))
         }
       }
+      setNode(res["test_results"][0]["node_name"])
     }
   }, [res, resultsType, activeConfig, selectedNode])
 

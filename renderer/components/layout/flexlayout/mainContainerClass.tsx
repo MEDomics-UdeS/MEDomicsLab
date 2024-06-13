@@ -56,6 +56,7 @@ import ModelViewer from "../../mainPages/modelViewer"
 import NotebookEditor from "../../mainPages/notebookEditor"
 import Iframe from "react-iframe"
 import FLResultsPage from "../../medfl/flResultsPage"
+import OptimResultsPage from "../../medfl/optimResultsPage"
 
 var fields = ["Name", "Field1", "Field2", "Field3", "Field4", "Field5"]
 
@@ -808,6 +809,8 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
       return <SettingsPage />
     } else if (component === "medflResultsPage") {
       return <FLResultsPage url={node.getConfig().path} />
+    } else if (component === "medflOptResultsPage") {
+      return <OptimResultsPage url={node.getConfig().path} />
     } else if (component !== "") {
       if (node.getExtraData().data == null) {
         const config = node.getConfig()
@@ -892,7 +895,7 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
       if (component === "evaluationPage") {
         return <span style={{ marginRight: 3 }}>✅</span>
       }
-      if (component === "resultsPage" || component === "medflResultsPage") {
+      if (component === "resultsPage") {
         return <span style={{ marginRight: 3 }}>📊</span>
       }
       if (component === "learningPage") {
@@ -930,6 +933,12 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
       }
       if (component === "Settings") {
         return <span style={{ marginRight: 3 }}>⚙️</span>
+      }
+      if (component === "medflResultsPage") {
+        return <span style={{ marginRight: 3 }}>📊</span>
+      }
+      if (component === "medflOptResultsPage") {
+        return <span style={{ marginRight: 3 }}>📊</span>
       }
     }
   }

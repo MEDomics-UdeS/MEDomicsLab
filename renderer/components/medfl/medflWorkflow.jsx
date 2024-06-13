@@ -8,10 +8,14 @@ import ProgressBarRequests from "../generalPurpose/progressBarRequests"
 import { PageInfosContext } from "../mainPages/moduleBasics/pageInfosContext"
 import { FlowFunctionsContext } from "../flow/context/flowFunctionsContext"
 import { FlowResultsContext } from "../flow/context/flowResultsContext"
-import { WorkspaceContext } from "../workspace/workspaceContext"
+import { EXPERIMENTS, WorkspaceContext } from "../workspace/workspaceContext"
 import { ErrorRequestContext } from "../generalPurpose/errorRequestContext.jsx"
 import MedDataObject from "../workspace/medDataObject"
 import { modifyZipFileSync } from "../../utilities/customZipFile.js"
+
+import { UUID_ROOT, DataContext } from "../workspace/dataContext"
+
+import Path from "path"
 
 // here are the different types of nodes implemented in the workflow
 
@@ -91,6 +95,8 @@ const MedflWorkflow = ({ setWorkflowType, workflowType }) => {
   const { port } = useContext(WorkspaceContext)
   const { setError } = useContext(ErrorRequestContext)
 
+  const { globalData } = useContext(DataContext)
+
   const [allConfigResults, setAllresults] = useState([])
 
   const { updatePipelineConfigs } = useMEDflContext()
@@ -155,7 +161,8 @@ const MedflWorkflow = ({ setWorkflowType, workflowType }) => {
         "Minimal used clients for training": 1,
         "Minimal available clients": 1
       },
-      flTrainModelNode: { clientRessources: "Use GPU" }
+      flTrainModelNode: { clientRessources: "Use GPU" },
+      flSaveModelNode: { fileName: "resultsauto" }
     },
     {
       masterDatasetNode: {
@@ -216,7 +223,8 @@ const MedflWorkflow = ({ setWorkflowType, workflowType }) => {
         "Minimal used clients for training": 1,
         "Minimal available clients": 1
       },
-      flTrainModelNode: { clientRessources: "Use GPU" }
+      flTrainModelNode: { clientRessources: "Use GPU" },
+      flSaveModelNode: { fileName: "resultsauto" }
     }
   ]
   // declare node types using useMemo hook to avoid re-creating component types unnecessarily (it memorizes the output) https://www.w3schools.com/react/react_usememo.asp
@@ -772,7 +780,7 @@ const MedflWorkflow = ({ setWorkflowType, workflowType }) => {
       port,
       "/medfl/run-pipeline/" + pageId,
       JSONToSend,
-      (jsonResponse) => {
+      async (jsonResponse) => {
         if (jsonResponse.error) {
           if (typeof jsonResponse.error == "string") {
             jsonResponse.error = JSON.parse(jsonResponse.error)
@@ -783,6 +791,23 @@ const MedflWorkflow = ({ setWorkflowType, workflowType }) => {
           console.log("jsonResponse", jsonResponse)
           toast.success(jsonResponse["stringFromBackend"])
           updateFlowResults(jsonResponse)
+          // save the results on a file
+          if (flConfig[0]?.flSaveModelNode?.fileName) {
+            try {
+              let path = Path.join(globalData[UUID_ROOT].path, EXPERIMENTS)
+
+              MedDataObject.createFolderFromPath(path + "/FL")
+              MedDataObject.createFolderFromPath(path + "/FL/Results")
+
+              // do custom actions in the folder while it is unzipped
+              await MedDataObject.writeFileSync(jsonResponse["data"], path + "/FL/Results", flConfig[0]?.flSaveModelNode?.fileName, "json")
+              await MedDataObject.writeFileSync({ data: jsonResponse["data"], configs: flConfig, date: Date.now() }, path + "/FL/Results", flConfig[0]?.flSaveModelNode?.fileName, "medflres")
+
+              toast.success("Experiment results saved successfuly ")
+            } catch {
+              toast.error("Something went wrong ")
+            }
+          }
           setAllresults([...allConfigResults, jsonResponse])
           setRunModal(false)
           setTimeout(() => {

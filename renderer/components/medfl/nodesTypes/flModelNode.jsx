@@ -4,6 +4,8 @@ import FlInput from "../flInput"
 import { Button, Form } from "react-bootstrap"
 import CodeEditor from "../../flow/codeEditor"
 import { FlowFunctionsContext } from "../../flow/context/flowFunctionsContext"
+import { Message } from "primereact/message"
+import { loadFileFromPathSync } from "../../../utilities/fileManagementUtils"
 
 const FlModelNode = ({ id, data }) => {
   // context
@@ -12,6 +14,8 @@ const FlModelNode = ({ id, data }) => {
   // states
   const [tlActivated, setTLActivation] = useState(data.internal.settings.activateTl || "true")
   const [noTlModel, setNoTLmodel] = useState(data.internal.settings.noTlModelType || "custom")
+
+  const [optimFile, setOptimFile] = useState(null)
 
   // Handle the Transfer Learning Activation change
   const onSelectionChange = (e) => {
@@ -58,6 +62,36 @@ const FlModelNode = ({ id, data }) => {
   }
 
   useEffect(() => {}, [tlActivated])
+
+  useEffect(() => {
+    if (optimFile?.path && optimFile?.path != "") {
+      loadFileFromPathSync(optimFile?.path).then((results) => {
+        console.log("this is the best", results)
+        data.internal.settings["learning rate"] = results["data"]["Best Parameters"]["learning_rate"]
+        data.internal.settings["Hidden size"] = results["data"]["Best Parameters"]["hidden_size"]
+        data.internal.settings["Number of epochs"] = results["data"]["Best Parameters"]["num_epochs"]
+        data.internal.settings["Number of layers"] = results["data"]["Best Parameters"]["num_layers"]
+        data.internal.settings["optimizer"] = results["data"]["Best Parameters"]["optimizer"]
+        data.internal.settings["Model type"] = "Binary classifier"
+        updateNode({
+          id: id,
+          updatedData: data.internal
+        })
+      })
+    } else {
+      data.internal.settings["learning rate"] = { value: "" }
+      data.internal.settings["Hidden size"] = { value: "" }
+      data.internal.settings["Number of epochs"] = { value: "" }
+      data.internal.settings["Number of layers"] = { value: "" }
+      data.internal.settings["optimizer"] = ""
+      data.internal.settings["Model type"] = ""
+
+      updateNode({
+        id: id,
+        updatedData: data.internal
+      })
+    }
+  }, [optimFile?.path])
 
   return (
     <>
@@ -179,7 +213,22 @@ const FlModelNode = ({ id, data }) => {
                         </option>
                       </Form.Select>
                       {noTlModel === "custom" ? (
-                        <>
+                        <div style={{ maxHeight: "400px", overflowY: "scroll", display: "flex", flexDirection: "column", gap: 3, paddingRight: 3 }}>
+                          <div style={{ fontSize: "18px", padding: "10px 0", fontWeight: "bold" }}>Optimization results files</div>
+                          <Message severity="info" text="You can autofill the model hyperparameters using a saved optim results" />
+
+                          <FlInput
+                            name="files"
+                            settingInfos={{
+                              type: "data-input",
+                              tooltip: "<p>Specify a data file (xlsx, csv, json)</p>",
+                              rootDir: "Optimization"
+                            }}
+                            currentValue={optimFile || {}}
+                            onInputChange={(input) => setOptimFile(input.value)}
+                            setHasWarning={() => {}}
+                          />
+                          <div style={{ fontSize: "18px", padding: "10px 0", fontWeight: "bold" }}>Model hyperparameters</div>
                           <FlInput
                             name="Model type"
                             settingInfos={{
@@ -233,7 +282,7 @@ const FlModelNode = ({ id, data }) => {
                             onInputChange={onModelInputChange}
                             setHasWarning={() => {}}
                           />
-                          <FlInput
+                          {/* <FlInput
                             name="Threshold"
                             settingInfos={{
                               type: "float",
@@ -243,8 +292,8 @@ const FlModelNode = ({ id, data }) => {
                             onInputChange={onModelInputChange}
                             setHasWarning={() => {}}
                           />
-                          <Button>Create model</Button>
-                        </>
+                          <Button>Create model</Button> */}
+                        </div>
                       ) : (
                         <>
                           <CodeEditor></CodeEditor>

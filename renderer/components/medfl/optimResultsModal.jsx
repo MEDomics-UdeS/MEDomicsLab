@@ -1,10 +1,41 @@
-import React from "react"
-import { Button } from "react-bootstrap"
+import React, { useContext, useState } from "react"
 import Modal from "react-bootstrap/Modal"
 import { JsonView, allExpanded } from "react-json-view-lite"
+import MedDataObject from "../workspace/medDataObject"
+import { toast } from "react-toastify"
+
+import { UUID_ROOT, DataContext } from "../workspace/dataContext"
+import { EXPERIMENTS } from "../workspace/workspaceContext"
+
+import Path from "path"
+import { InputText } from "primereact/inputtext"
+import { Button } from "primereact/button"
 
 const OptimResultsModal = ({ show, onHide, title, results }) => {
-  console.log(results)
+  //states
+  const [fileName, setFileName] = useState("")
+  const [isFileName, showFileName] = useState(false)
+
+  // context
+  const { globalData } = useContext(DataContext)
+
+  const saveOptResults = async () => {
+    try {
+      let path = Path.join(globalData[UUID_ROOT].path, EXPERIMENTS)
+
+      MedDataObject.createFolderFromPath(path + "/FL")
+      MedDataObject.createFolderFromPath(path + "/FL/Optimization")
+
+      // do custom actions in the folder while it is unzipped
+      await MedDataObject.writeFileSync({ data: results["data"], date: Date.now() }, path + "/FL/Optimization", fileName, "json")
+      await MedDataObject.writeFileSync({ data: results["data"], date: Date.now() }, path + "/FL/Optimization", fileName, "medflopt")
+      showFileName(false)
+      toast.success("Optimization results saved successfuly ")
+      onHide()
+    } catch {
+      toast.error("Something went wrong ")
+    }
+  }
   return (
     <div>
       <Modal show={show} onHide={onHide} size="lg" aria-labelledby="contained-modal-title-vcenter" centered className="modal-settings-chooser">
@@ -35,7 +66,15 @@ const OptimResultsModal = ({ show, onHide, title, results }) => {
           )}
         </Modal.Body>
         <Modal.Footer>
-          <Button onClick={onHide}>Save results</Button>
+          {!isFileName ? <Button label="Save results" icon="pi pi-save" onClick={() => showFileName(true)}></Button> : null}
+          {isFileName ? (
+            <div className="d-flex">
+              <div className="p-inputgroup flex-1 me-4">
+                <InputText placeholder="File name" onChange={(e) => setFileName(e.target.value)} />
+                <Button label="Save results" icon="pi pi-save" className="p-button-primary" onClick={saveOptResults} disabled={fileName == ""}></Button>
+              </div>
+            </div>
+          ) : null}
         </Modal.Footer>
       </Modal>
     </div>

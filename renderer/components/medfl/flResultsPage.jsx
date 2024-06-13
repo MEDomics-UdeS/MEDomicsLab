@@ -15,7 +15,7 @@ export default function FLResultsPage({ url }) {
 
   const [flowResults, setFlowResults] = useState({})
 
-  const [showConfigDetails, setConfigDetails] = useState(false)
+  const [showConfigDetails, setConfigDetails] = useState(true)
 
   const [globalflresults, setglobalflresults] = useState({
     confusionMatrix: [
@@ -30,9 +30,9 @@ export default function FLResultsPage({ url }) {
     ]
   })
 
-  const [selectedNode, setNode] = useState("Client 1")
-
   const [res, setResults] = useState(flowResults["data"] ? flowResults["data"][0] : null)
+
+  const [selectedNode, setNode] = useState(res ? res["test_results"][0]["node_name"] : "")
 
   const [saveDate, setDate] = useState(null)
 
@@ -188,6 +188,7 @@ export default function FLResultsPage({ url }) {
           setnodeflresults(getNodeResults(selectedNode))
         }
       }
+      setNode(res["test_results"][0]["node_name"])
     }
   }, [res, resultsType, activeConfig, selectedNode])
 

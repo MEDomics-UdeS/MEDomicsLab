@@ -102,6 +102,8 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
           return openInPandasProfiling(action)
         case "openInMEDflResultsViewer":
           return openInMEDflresults(action)
+        case "openInMEDflOptResultsViewer":
+          return openInMEDflOptresults(action)
         /*********** OPEN *****************/
         case "openInputModule":
           return openInput(action)
@@ -459,6 +461,14 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
    */
   const openInMEDflresults = (action) => {
     openInDotDotDot(action, "medflResultsPage")
+  }
+
+  /**
+   * @summary Function that adds a tab of MEDfl optimization resuts to the layout model
+   * @params {Object} action - The action passed on by the dispatchLayout function, it uses the payload in the action as a JSON object to add a new child to the layout model
+   */
+  const openInMEDflOptresults = (action) => {
+    openInDotDotDot(action, "medflOptResultsPage")
   }
 
   /**

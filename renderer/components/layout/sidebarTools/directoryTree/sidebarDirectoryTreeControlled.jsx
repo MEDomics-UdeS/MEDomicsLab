@@ -331,6 +331,8 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
         dispatchLayout({ type: "openInModelViewer", payload: item })
       } else if (item.type == "medflres") {
         dispatchLayout({ type: "openInMEDflResultsViewer", payload: item })
+      } else if (item.type == "medflopt") {
+        dispatchLayout({ type: "openInMEDflOptResultsViewer", payload: item })
       } else {
         console.log("DBCLICKED", event, item)
       }

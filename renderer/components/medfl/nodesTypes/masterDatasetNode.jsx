@@ -129,6 +129,7 @@ export default function MasterDatasetNode({ id, data }) {
                   currentValue={data.internal.settings.files || {}}
                   onInputChange={onFilesChange}
                   setHasWarning={handleWarning}
+                  acceptedExtensions={["csv"]}
                 />
                 <FlInput
                   disabled={data.internal.settings.files && data.internal.settings.files.path == ""}
