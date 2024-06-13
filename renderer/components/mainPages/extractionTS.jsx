@@ -7,7 +7,7 @@ const ExtractionTSPage = ({ pageId, configPath = "" }) => {
     <>
       <ModulePage pageId={pageId} configPath={configPath} shadow={true}>
         <h1 className="center">Extraction - Time Series</h1>
-        <ExtractionTabularData extractionTypeList={["TSfresh"]} serverUrl={"/extraction_ts/"} defaultFilename={"ts_extracted_features.csv"} />
+        <ExtractionTabularData extractionTypeList={["TSfresh"]} serverUrl={"/extraction_ts/"} defaultFilename={"ts_extracted_features"} />
       </ModulePage>
     </>
   )
