@@ -10,7 +10,7 @@ const paModelsNodesParams = {
     nbOutput: 1,
     input: [],
     output: ["uncertainty_metric"],
-    img: "uncertainty.png",
+    img: "uncertainty1.png",
     title: "Uncertainty Metric",
     possibleSettings: paSettings["uncertaintyMetrics"]
   },
@@ -40,22 +40,11 @@ const paModelsNodesParams = {
     type: "mpcModelNode",
     classes: "object model",
     nbInput: 2,
-    nbOutput: 1,
-    input: ["ipc_model", "apc_model"],
-    output: ["mpc_model"],
-    img: "mpc.jpg",
-    title: "MPC Model",
-    possibleSettings: {}
-  },
-  optimize: {
-    type: "paOptimizeNode",
-    classes: "object model",
-    nbInput: 2,
     nbOutput: 0,
     input: ["ipc_model", "apc_model"],
     output: [],
-    img: "optimize.png",
-    title: "Optimize",
+    img: "mpc.jpg",
+    title: "MPC Model",
     possibleSettings: {}
   },
   detectron_profiles: {

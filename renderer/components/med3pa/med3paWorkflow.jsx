@@ -3,7 +3,6 @@ import React, { useState, useCallback, useMemo, useEffect, useContext } from "re
 import { toast } from "react-toastify"
 //import { ipcRenderer } from "electron"
 import { useNodesState, useEdgesState, useReactFlow } from "reactflow"
-//import WorkflowBase from "../flow/workflowBase.jsx"
 import { loadJsonSync } from "../../utilities/fileManagementUtils"
 import { requestBackend } from "../../utilities/requests"
 import PaWorkflowBase from "./paWorkflowBase.jsx"
@@ -25,7 +24,6 @@ import RunPipelineModal from "./runPipelineModal"
 
 // here are the parameters of the nodes
 import nodesParams from "../../public/setupVariables/allNodesParams.jsx"
-import evalNodesParams from "../../public/setupVariables/evalNodesParams.jsx"
 
 // here are static functions used in the workflow
 //import Path from "path"
@@ -41,18 +39,16 @@ import GroupNode from "../flow/groupNode.jsx"
 import LoadModelNode from "../learning/nodesTypes/loadModelNode.jsx"
 import DatasetLoaderNode from "./nodesTypes/datasetLoaderNode.jsx"
 import BaseModelNode from "./nodesTypes/baseModelNode.jsx"
-import EvaluationNode from "./nodesTypes/evaluationNode.jsx"
+
 import MED3paNode from "./nodesTypes/med3paNode.jsx"
 import IPCModelNode from "./nodesTypes/ipcModelNode.jsx"
 import APCModelNode from "./nodesTypes/apcModelNode.jsx"
 import MPCModelNode from "./nodesTypes/mpcModelNode.jsx"
 import UncertaintyMetricsNode from "./nodesTypes/uncertainyMetricsNode.jsx"
-import PaOptimizeNode from "./nodesTypes/paOptimize.jsx"
 
 import DetectronNode from "./nodesTypes/detectronNode.jsx"
 
 const staticNodesParams = nodesParams // represents static nodes parameters
-const staticevalNodesParams = evalNodesParams
 
 /**
  *
@@ -103,7 +99,7 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
       datasetLoaderNode: DatasetLoaderNode,
       loadModelNode: LoadModelNode,
       baseModelNode: BaseModelNode,
-      evaluationNode: EvaluationNode,
+
       med3paNode: MED3paNode,
       detectronNode: DetectronNode,
       ipcModelNode: IPCModelNode,
@@ -111,7 +107,6 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
       mpcModelNode: MPCModelNode,
       groupNode: GroupNode,
 
-      paOptimizeNode: PaOptimizeNode,
       paOptimizeIO: PaOptimizeIO,
       uncertaintyMetricsNode: UncertaintyMetricsNode
     }),
@@ -151,9 +146,6 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
           node.data.setupParam.possibleSettings = deepCopy(staticNodesParams[subworkflowType][node.data.internal.type]["possibleSettings"])
           node.data.internal.settings = {}
           node.data.internal.checkedOptions = []
-          // if (node.type == "selectionNode") {
-          //   node.data.internal.selection = Object.keys(node.data.setupParam.possibleSettings)[0]
-          // }
         }
         return node
       })
@@ -408,11 +400,6 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
     newNode.data.internal.code = ""
     newNode.className = setupParams.classes
 
-    if (newNode.type === "evaluationNode") {
-      newNode.data.internal.contentType = "default"
-      newNode.data.internal.connected = false
-    }
-
     newNode.data.internal.description = newNode.data.internal.description !== undefined ? newNode.data.internal.description : ""
 
     let tempDefaultSettings = {}
@@ -484,10 +471,7 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
 
   function separateSubarrays(paths) {
     const internalConfigs = paths.filter(
-      (subarray) =>
-        subarray.some((node) => node.supIdNode !== "") &&
-        !subarray.some((node) => node.label === "MED3pa.Optimize") &&
-        !(subarray.some((node) => node.label === "MED3pa.MPC Model") && !subarray.some((n) => n.label === "MED3pa.APC Model"))
+      (subarray) => subarray.some((node) => node.supIdNode !== "") && !(subarray.some((node) => node.label === "MED3pa.MPC Model") && !subarray.some((n) => n.label === "MED3pa.APC Model"))
     )
 
     const topLevelConfigs = paths.filter(
@@ -600,7 +584,7 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
   const getPaSettings = (nodes) => {
     nodes.map((node) => {
       // DatasetNode
-      if (node.type === "datasetLoaderNode") {
+      {
         setPaWorkflowSettings({
           ...paWorkflowSettings,
           datasetLoaderNode: node.data.internal.settings
@@ -688,23 +672,6 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
           theme: "light"
         })
         return
-      }
-    }
-
-    if (targetNode.type === "evaluationNode") {
-      let newStyle = null
-
-      if (sourceNode.type === "detectronNode") {
-        newStyle = "evalDetectron"
-      }
-
-      if (newStyle) {
-        nodes.map((node) => {
-          if (node.id === target) {
-            targetNode.data.internal.contentType = newStyle
-            targetNode.data.setupParam = staticevalNodesParams[newStyle]
-          }
-        })
       }
     }
   }

@@ -36,7 +36,8 @@ class GoExecScriptHelloWorldFromMED3pa(GoExecutionScript):
         "data": "Backend received Information",
         "stringFromBackend": "Hello World from med3pa backend @ " + time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()) + " !"
         }
-
+        
+        go_print("RECEIVED RESULTS:" + str(json_config))
         self.set_progress(label="Hello World is ready !", now=100)
         return self.results
 

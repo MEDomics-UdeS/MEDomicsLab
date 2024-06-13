@@ -1,9 +1,8 @@
-/* eslint-disable react/jsx-key */
 import React, { useState, useEffect } from "react"
-import { Button, Modal, Tab, Tabs, Card } from "react-bootstrap"
+import { Button, Modal, Tab, Tabs, Card, Container, Row, Col } from "react-bootstrap"
 import { FiArrowLeft } from "react-icons/fi"
 
-const NodeDetails = ({ node }) => {
+const NodeDetails = ({ node, labelColor }) => {
   const [isExpanded, setIsExpanded] = useState(false)
 
   if (!node || !node.settings) {
@@ -15,39 +14,59 @@ const NodeDetails = ({ node }) => {
     setIsExpanded(!isExpanded)
   }
 
-  const renderSettings = (obj, depth = 0) => {
+  const renderSettings = (obj, depth = 0, parentKey = "") => {
     return Object.entries(obj).map(([key, value]) => {
       const isObject = typeof value === "object" && value !== null
+      const uniqueKey = parentKey ? `${parentKey}.${key}` : key
+      // Check if the node label is "Dataset Loader"
 
+      if (key.startsWith("file_")) {
+        const fileIndex = parseInt(key.split("_")[1])
+        key = `file_${["train", "val", "test", "eval"][fileIndex]}`
+      } else if (key.startsWith("target_")) {
+        const targetIndex = parseInt(key.split("_")[1])
+        key = `target_${["train", "val", "test", "eval"][targetIndex]}`
+      }
       return (
-        <div key={key} style={{ paddingLeft: depth * 20 }}>
-          <strong>{key}:</strong> {isObject ? renderSettings(value, depth + 1) : value}
-        </div>
+        <Card key={uniqueKey} className="mb-2" style={{ paddingLeft: depth * 10, backgroundColor: "#f8f9fa", borderRadius: "8px", boxShadow: "0 1px 3px rgba(0,0,0,0.1)" }}>
+          <Card.Body>
+            <div className="d-flex justify-content-between align-items-center">
+              <div>
+                <strong style={{ color: labelColor }}>{key}:</strong>
+              </div>
+              <div style={{ fontFamily: "Arial, sans-serif", fontSize: "0.9rem", color: "#555" }}>{isObject ? renderSettings(value, depth + 1, uniqueKey) : value}</div>
+            </div>
+          </Card.Body>
+        </Card>
       )
     })
   }
 
   return (
-    <Card className="mb-2">
+    <Card className="mb-2" style={{ borderRadius: "8px", boxShadow: "0 1px 3px rgba(0,0,0,0.1)" }}>
       <Card.Body>
-        <Card.Title>{node.label}</Card.Title>
-        <Button onClick={toggleExpansion} variant="link" className={`p-0 text-decoration-none ${isExpanded ? "expanded" : ""}`} style={{ fontSize: "0.85rem" }}>
-          {isExpanded ? "Hide Details" : "Expand Details"}
-        </Button>
+        <Card.Title style={{ color: labelColor }}>{node.label}</Card.Title>
         {isExpanded && (
           <>
             <hr />
-            {renderSettings(settings)}
+            <Container>
+              <Row>
+                <Col>{renderSettings(settings)}</Col>
+              </Row>
+            </Container>
           </>
         )}
+        <div className="d-flex justify-content-end">
+          <Button onClick={toggleExpansion} variant="link" className={`p-0 text-decoration-none ${isExpanded ? "expanded" : ""}`} style={{ fontSize: "0.85rem", color: "#007bff" }}>
+            {isExpanded ? "Hide Details" : "Show Details"}
+          </Button>
+        </div>
       </Card.Body>
     </Card>
   )
 }
 
 const RunPipelineModal = ({ show, onHide, configs, onRun }) => {
-  let med3paNodeCount = 0
-
   const [selectedConfig, setSelectedConfig] = useState(null)
 
   useEffect(() => {
@@ -57,10 +76,6 @@ const RunPipelineModal = ({ show, onHide, configs, onRun }) => {
   }, [show])
 
   const handleShowSubNodes = (children) => {
-    console.log(children)
-    // Filter configurations with subNodeId equal to med3paId
-
-    // Update state with the filtered configurations
     setSelectedConfig(children)
   }
 
@@ -93,9 +108,9 @@ const RunPipelineModal = ({ show, onHide, configs, onRun }) => {
               <Tabs defaultActiveKey="conf0" id="uncontrolled-tab-example" className="mb-3">
                 {selectedConfig.map((config, index) => {
                   const isMed3paConfig = config.some((node) => node.label.startsWith("MED3pa."))
-                  const configName = isMed3paConfig ? `MED3PA NODE Configuration ${++med3paNodeCount}` : `Configuration ${index + 1}`
+                  const configName = isMed3paConfig ? `MED3PA NODE Configuration ${index + 1}` : `Configuration ${index + 1}`
                   return (
-                    <Tab eventKey={"conf" + index} title={configName}>
+                    <Tab key={index} eventKey={"conf" + index} title={configName}>
                       <div>
                         {config.map((node) => (
                           <NodeDetails key={node.id} node={node} />
@@ -114,7 +129,7 @@ const RunPipelineModal = ({ show, onHide, configs, onRun }) => {
                   const med3paNode = config.find((node) => node.label === "MED3pa")
 
                   return (
-                    <Tab eventKey={"conf" + index} title={`Configuration ${index + 1}`}>
+                    <Tab key={index} eventKey={"conf" + index} title={`Configuration ${index + 1}`}>
                       <div>
                         {config.map((node) => (
                           <NodeDetails key={node.id} node={node} />

@@ -29,9 +29,9 @@ const nodesParams = {
     type: "detectronNode",
     classes: "object model",
     nbInput: 1,
-    nbOutput: 1,
+    nbOutput: 0,
     input: ["base_model"],
-    output: ["detectron"],
+    output: [],
     img: "detectron.png",
     title: "Detectron",
     possibleSettings: paSettings["detectron"]
@@ -40,23 +40,12 @@ const nodesParams = {
     type: "groupNode",
     classes: "object model run",
     nbInput: 1,
-    nbOutput: 1,
+    nbOutput: 0,
     input: ["base_model"],
-    output: ["med3pa"],
+    output: [],
     img: "med3pa2.png",
     title: "MED3pa",
     possibleSettings: {}
-  },
-  evaluation: {
-    type: "evaluationNode",
-    classes: "object dataset run startNode",
-    nbInput: 2,
-    nbOutput: 1,
-    input: ["detectron", "base_model"],
-    output: ["evaluation"],
-    img: "evaluation.png",
-    title: "Evaluation",
-    possibleSettings: paSettings["evaluation"]
   }
 }
 
