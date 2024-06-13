@@ -235,16 +235,16 @@ const MergeTools = ({ collections, DB, currentCollection }) => {
         />
         <Dropdown value={selectedMergeType} options={mergeTypes} onChange={handleMergeTypeSelect} placeholder="Select Merge Type" style={{ width: "200px", marginRight: "10px" }} />
         <Button
-          label="Merge Datasets"
+          label="Merge"
           onClick={handleMerge}
           className="p-button-success"
           style={{
-            width: "170px",
+            width: "100px",
             marginRight: "10px"
           }}
         />
         {selectedCollections.length === 2 &&
-          (matchingColumns.length > 0 ? <Message severity="info" text={`Matching columns: ${matchingColumns.join(", ")}`} /> : <Message severity="warn" text="No matching columns." />)}
+          (matchingColumns.length > 0 ? <Message severity="success" text={`Matching columns: ${matchingColumns.join(", ")}`} /> : <Message severity="warn" text="No matching columns." />)}
       </div>
     </div>
       </>

@@ -40,6 +40,7 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
   const [hoveredButton, setHoveredButton] = useState(null)
   const [selectedColumns, setSelectedColumns] = useState([])
   const [csvData, setCsvData] = useState([])
+  const [fileName, setFileName] = useState("Choose File");
   const exportOptions = [
     {
       label: "CSV",
@@ -120,11 +121,12 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
     console.log("columns updated:", columns)
   }, [columns])
 
+  // Call handleCsvData whenever csvData changes
   useEffect(() => {
-    return () => {
-      setCsvData([])
+    if (csvData.length > 0) {
+      handleCsvData();
     }
-  }, [])
+  }, [csvData]);
 
   const getColumnsFromData = (data) => {
     if (data.length > 0) {
@@ -371,10 +373,6 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
 
   // Transform data to binary or non-empty
   const transformData = (type) => {
-    if (selectedColumns.length === 0) {
-      toast.warn("Please select at least one column to transform")
-      return
-    }
     const newInnerData = innerData.map((row) => {
       let newRow = { ...row }
       selectedColumns.forEach((column) => {
@@ -400,26 +398,27 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
   const handleFileUpload = (event) => {
     Papa.parse(event.target.files[0], {
       complete: function (results) {
-        setCsvData(results.data)
-        handleCsvData() // Call handleCsvData function after CSV data is set
-      }
-    })
+        const uploadedColumnNames = results.data[0]; // Assuming the first row contains column names
+        const existingColumnNames = columns.map(column => column.field);
+
+        // Check if all uploaded column names exist in the data
+        const nonExistentColumns = uploadedColumnNames.filter(columnName => !existingColumnNames.includes(columnName));
+
+        if (nonExistentColumns.length > 0) {
+          toast.warn("The following columns do not exist in the dataset: " + nonExistentColumns.join(", "));
+          setFileName("Choose File")
+          return;
+        }
+          setFileName(event.target.files[0].name);
+          setCsvData(results.data);
+        }
+    });
   }
 
   // Handle CSV data
   const handleCsvData = () => {
-    if (csvData.length > 0) {
-      const columnNames = csvData[0]
-      const dbColumnNames = columns.map((column) => column.field)
-      const nonExistentColumns = columnNames.filter((column) => !dbColumnNames.includes(column))
-
-      if (nonExistentColumns.length > 0) {
-        toast.warn("The following columns do not exist in the database: " + nonExistentColumns.join(", "))
-        return
-      }
-
-      setSelectedColumns(columnNames)
-    }
+    const columnNames = csvData[0];
+    setSelectedColumns(columnNames);
   }
 
   // Handle exporting selected columns
@@ -497,6 +496,8 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
                       columns={columns}
                       transformData={transformData}
                       handleFileUpload={handleFileUpload}
+                      fileName={fileName}
+                      setFileName={setFileName}
                       handleCsvData={handleCsvData}
                       handleExportColumns={handleExportColumns}
                       handleDeleteColumns={handleDeleteColumns}

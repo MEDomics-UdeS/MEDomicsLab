@@ -16,7 +16,7 @@ const BasicTools = ({ numRows, setNumRows, handleAddRow, newColumnName, setNewCo
     <div
         style={{
             display: "flex",
-            justifyContent: "space-between",
+            justifyContent: "space-around",
             alignItems: "center",
             padding: "2px",
             flexWrap: "wrap"
@@ -26,34 +26,40 @@ const BasicTools = ({ numRows, setNumRows, handleAddRow, newColumnName, setNewCo
             <InputText id="numRows" value={numRows} onChange={(e) => setNumRows(e.target.value)}
                        style={{width: "100px"}} placeholder="# of Rows"/>
             <Button
-          label="Add"
+                icon="pi pi-plus"
           onClick={handleAddRow}
           style={{
-            width: "100px"
+            width: "50px"
           }}
         />
       </div>
       <div style={{ display: "flex" }}>
         <InputText id="newColumnName" value={newColumnName} style={{ width: "130px" }} onChange={(e) => setNewColumnName(e.target.value)} placeholder="Column Name" />
         <Button
-          label="Add"
+            icon="pi pi-plus"
           onClick={handleAddColumn}
           style={{
-            width: "100px"
+            width: "50px"
           }}
         />
       </div>
-      <SplitButton icon="pi pi-download" model={exportOptions} className="p-button-success" />
-      <Button
-        icon="pi pi-refresh"
-        onClick={() => refreshData()}
-        style={{
-          width: "50px",
-          padding: "5px",
-          backgroundColor: "green",
-          borderColor: "green",
-          marginRight: "100px"
-        }}
+        <Button
+            icon="pi pi-refresh"
+            onClick={() => refreshData()}
+            style={{
+                width: "50px",
+                padding: "5px",
+            }}
+            tooltip="Refresh the dataset"
+            tooltipOptions={{ position: 'top' }}
+        />
+      <SplitButton
+          icon="pi pi-file-export"
+          model={exportOptions}
+          className="p-button-success"
+          style={{marginRight: "100px"}}
+          tooltip="Export the dataset"
+          tooltipOptions={{ position: 'top' }}
       />
     </div>
       </>
