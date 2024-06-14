@@ -1,6 +1,6 @@
 import React from "react"
 
-const SimpleCleaningTools = () => {
+const FeatureReductionToolsDB = () => {
   return (
     <div
       style={{
@@ -10,9 +10,9 @@ const SimpleCleaningTools = () => {
         padding: "5px"
       }}
     >
-      <p>Simple cleaning tools Not yet implemented</p>
+      <p>Feature reduction tools not yet implemented</p>
     </div>
   )
 }
 
-export default SimpleCleaningTools
+export default FeatureReductionToolsDB

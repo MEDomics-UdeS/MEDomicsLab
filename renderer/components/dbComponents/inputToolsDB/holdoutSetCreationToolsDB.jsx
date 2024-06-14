@@ -1,6 +1,6 @@
 import React from "react"
 
-const HoldoutSetCreationTools = () => {
+const HoldoutSetCreationToolsDB = () => {
   return (
     <div
       style={{
@@ -15,4 +15,4 @@ const HoldoutSetCreationTools = () => {
   )
 }
 
-export default HoldoutSetCreationTools
+export default HoldoutSetCreationToolsDB

@@ -8,13 +8,13 @@ import { toast } from "react-toastify"
 import { Panel } from "primereact/panel"
 
 // Import tools components
-import TransformColumnTools from "./inputToolsDB/transformColumnTools"
-import BasicTools from "./inputToolsDB/basicTools"
-import MergeTools from "./inputToolsDB/mergeTools"
-import SimpleCleaningTools from "./inputToolsDB/simpleCleaningTools"
-import SubsetCreationTools from "./inputToolsDB/subsetCreationTools"
-import HoldoutSetCreationTool from "./inputToolsDB/holdoutSetCreationTools"
-import FeatureReductionTools from "./inputToolsDB/featureReductionTools"
+import TransformColumnToolsDB from "./inputToolsDB/transformColumnToolsDB"
+import BasicToolsDB from "./inputToolsDB/basicToolsDB"
+import MergeToolsDB from "./inputToolsDB/mergeToolsDB"
+import SimpleCleaningToolsDB from "./inputToolsDB/simpleCleaningToolsDB"
+import SubsetCreationToolsDB from "./inputToolsDB/subsetCreationToolsDB"
+import FeatureReductionToolsDB from "./inputToolsDB/featureReductionToolsDB"
+import HoldoutSetCreationToolsDB from "./inputToolsDB/holdoutSetCreationToolsDB"
 
 const mongoUrl = "mongodb://127.0.0.1:27017"
 import { saveAs } from "file-saver"
@@ -40,7 +40,8 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
   const [hoveredButton, setHoveredButton] = useState(null)
   const [selectedColumns, setSelectedColumns] = useState([])
   const [csvData, setCsvData] = useState([])
-  const [fileName, setFileName] = useState("Choose File");
+  const [fileName, setFileName] = useState("Choose File")
+  const [lastEdit, setLastEdit] = useState(Date.now())
   const exportOptions = [
     {
       label: "CSV",
@@ -124,9 +125,9 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
   // Call handleCsvData whenever csvData changes
   useEffect(() => {
     if (csvData.length > 0) {
-      handleCsvData();
+      handleCsvData()
     }
-  }, [csvData]);
+  }, [csvData])
 
   const getColumnsFromData = (data) => {
     if (data.length > 0) {
@@ -217,8 +218,9 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
   // Handle cell edit completion
   const onCellEditComplete = (e) => {
     let { rowData, newValue, field, originalEvent: event } = e
-    // Parse newValue to its appropriate type
-    if (!isNaN(newValue)) {
+    if (newValue === "" || newValue === null) {
+      newValue = null
+    } else if (!isNaN(newValue)) {
       if (Number.isInteger(parseFloat(newValue))) {
         newValue = parseInt(newValue)
       } else {
@@ -252,6 +254,7 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
       updateDatabaseData(data.path, data.uuid, rowData._id, field, newValue)
         .then(() => {
           console.log("Database updated successfully")
+          setLastEdit(Date.now())
         })
         .catch((error) => {
           console.error("Failed to update database:", error)
@@ -336,7 +339,6 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
             return dataObject
           })
           setInnerData(collData)
-          toast.success("Data refreshed successfully")
         })
         .catch((error) => {
           console.error("Failed to fetch data:", error)
@@ -398,27 +400,27 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
   const handleFileUpload = (event) => {
     Papa.parse(event.target.files[0], {
       complete: function (results) {
-        const uploadedColumnNames = results.data[0]; // Assuming the first row contains column names
-        const existingColumnNames = columns.map(column => column.field);
+        const uploadedColumnNames = results.data[0] // Assuming the first row contains column names
+        const existingColumnNames = columns.map((column) => column.field)
 
         // Check if all uploaded column names exist in the data
-        const nonExistentColumns = uploadedColumnNames.filter(columnName => !existingColumnNames.includes(columnName));
+        const nonExistentColumns = uploadedColumnNames.filter((columnName) => !existingColumnNames.includes(columnName))
 
         if (nonExistentColumns.length > 0) {
-          toast.warn("The following columns do not exist in the dataset: " + nonExistentColumns.join(", "));
+          toast.warn("The following columns do not exist in the dataset: " + nonExistentColumns.join(", "))
           setFileName("Choose File")
-          return;
+          return
         }
-          setFileName(event.target.files[0].name);
-          setCsvData(results.data);
-        }
-    });
+        setFileName(event.target.files[0].name)
+        setCsvData(results.data)
+      }
+    })
   }
 
   // Handle CSV data
   const handleCsvData = () => {
-    const columnNames = csvData[0];
-    setSelectedColumns(columnNames);
+    const columnNames = csvData[0]
+    setSelectedColumns(columnNames)
   }
 
   // Handle exporting selected columns
@@ -478,7 +480,7 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
               !isReadOnly && (
                 <div style={panelContainerStyle}>
                   <Panel header="Add, Export and Refresh Tools" toggleable collapsed={true}>
-                    <BasicTools
+                    <BasicToolsDB
                       numRows={numRows}
                       setNumRows={setNumRows}
                       handleAddRow={handleAddRow}
@@ -490,7 +492,7 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
                     />
                   </Panel>
                   <Panel header="Transform Column Tools" toggleable collapsed={true}>
-                    <TransformColumnTools
+                    <TransformColumnToolsDB
                       selectedColumns={selectedColumns}
                       setSelectedColumns={setSelectedColumns}
                       columns={columns}
@@ -504,19 +506,19 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
                     />
                   </Panel>
                   <Panel header="Merge Tools" toggleable collapsed={true}>
-                    <MergeTools data={innerData} columns={columns} DB={DB} collections={DBData} currentCollection={data.uuid} />
+                    <MergeToolsDB data={innerData} columns={columns} DB={DB} collections={DBData} currentCollection={data.uuid} />
                   </Panel>
                   <Panel header="Simple Cleaning Tools" toggleable collapsed={true}>
-                    <SimpleCleaningTools />
+                    <SimpleCleaningToolsDB refreshData={refreshData} lastEdit={lastEdit} data={innerData} columns={columns} DB={DB} collections={DBData} currentCollection={data.uuid} />
                   </Panel>
                   <Panel header="Holdout Set Creation Tools" toggleable collapsed={true}>
-                    <HoldoutSetCreationTool />
+                    <HoldoutSetCreationToolsDB />
                   </Panel>
                   <Panel header="Subset Creation Tools" toggleable collapsed={true}>
-                    <SubsetCreationTools />
+                    <SubsetCreationToolsDB />
                   </Panel>
                   <Panel header="Feature Reduction Tools" toggleable collapsed={true}>
-                    <FeatureReductionTools />
+                    <FeatureReductionToolsDB />
                   </Panel>
                 </div>
               )

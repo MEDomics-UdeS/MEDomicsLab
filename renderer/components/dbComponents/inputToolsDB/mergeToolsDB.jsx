@@ -11,12 +11,12 @@ import { Message } from "primereact/message"
 import _ from "lodash"
 
 /**
- * @description MergeTools component
+ * @description MergeToolsDB component
  * @param [collections] - Array of collections
  * @param {DB} - Database object
  * @param {currentCollection} - Current collection
  */
-const MergeTools = ({ collections, DB, currentCollection }) => {
+const MergeToolsDB = ({ collections, DB, currentCollection }) => {
   const [selectedCollectionLabels, setSelectedCollectionLabels] = useState([currentCollection])
   const [selectedCollections, setSelectedCollections] = useState(collections.filter((collection) => collection.label === currentCollection))
   const [selectedColumns, setSelectedColumns] = useState([])
@@ -200,55 +200,57 @@ const MergeTools = ({ collections, DB, currentCollection }) => {
   }
 
   return (
-      <>
-        <div style={{textAlign: "center", marginBottom: "10px"}}>
-          <Message
-              severity="info"
-              text={"The Merge Tools enable you to merge two collections in a database. You can select the collections to merge, the columns to merge on, and the type of merge to perform."}
-          />
-        </div>
-  <div
-      style={{
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        padding: "5px"
-      }}
-  >
-    <div style={{display: "flex", alignItems: "center", margin: "5px"}}>
-      <MultiSelect
-          value={selectedCollections}
-          options={collections}
-          onChange={(e) => handleCollectionSelect(e.value)}
-          placeholder={selectedCollectionLabels.join(", ") || "Select Collections"}
-          style={{ width: "200px", marginRight: "10px" }}
-          optionDisabled={(option) => option.label === currentCollection}
+    <>
+      <div style={{ textAlign: "center", marginBottom: "10px" }}>
+        <Message
+          severity="info"
+          text={"The Merge Tools enable you to merge two collections in a database. You can select the collections to merge, the columns to merge on, and the type of merge to perform."}
         />
-        <MultiSelect
-          value={selectedColumns}
-          options={collectionColumns}
-          onChange={handleColumnSelect}
-          placeholder="Select Columns"
-          style={{ width: "200px", marginRight: "10px" }}
-          optionDisabled={(option) => disabledColumns.includes(option) || selectedMergeType === "cross"}
-          disabled={selectedMergeType === "cross"}
-        />
-        <Dropdown value={selectedMergeType} options={mergeTypes} onChange={handleMergeTypeSelect} placeholder="Select Merge Type" style={{ width: "200px", marginRight: "10px" }} />
-        <Button
-          label="Merge"
-          onClick={handleMerge}
-          className="p-button-success"
-          style={{
-            width: "100px",
-            marginRight: "10px"
-          }}
-        />
-        {selectedCollections.length === 2 &&
-          (matchingColumns.length > 0 ? <Message severity="success" text={`Matching columns: ${matchingColumns.join(", ")}`} /> : <Message severity="warn" text="No matching columns." />)}
       </div>
-    </div>
-      </>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          padding: "5px"
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", margin: "5px" }}>
+          <MultiSelect
+            value={selectedCollections}
+            options={collections}
+            onChange={(e) => handleCollectionSelect(e.value)}
+            placeholder={selectedCollectionLabels.join(", ") || "Select Collections"}
+            style={{ width: "200px", marginRight: "10px" }}
+            optionDisabled={(option) => option.label === currentCollection}
+          />
+          <MultiSelect
+            value={selectedColumns}
+            options={collectionColumns}
+            onChange={handleColumnSelect}
+            placeholder="Select Columns"
+            style={{ width: "200px", marginRight: "10px" }}
+            optionDisabled={(option) => disabledColumns.includes(option) || selectedMergeType === "cross"}
+            disabled={selectedMergeType === "cross"}
+          />
+          <Dropdown value={selectedMergeType} options={mergeTypes} onChange={handleMergeTypeSelect} placeholder="Select Merge Type" style={{ width: "200px", marginRight: "10px" }} />
+          <Button
+            icon={"pi pi-check"}
+            onClick={handleMerge}
+            className="p-button-success"
+            style={{
+              width: "100px",
+              marginRight: "10px"
+            }}
+            tooltip="Merge"
+            tooltipOptions={{ position: "top" }}
+          />
+          {selectedCollections.length === 2 &&
+            (matchingColumns.length > 0 ? <Message severity="success" text={`Matching columns: ${matchingColumns.join(", ")}`} /> : <Message severity="warn" text="No matching columns." />)}
+        </div>
+      </div>
+    </>
   )
 }
 
-export default MergeTools
+export default MergeToolsDB

@@ -1,6 +1,6 @@
 import React from "react"
 
-const FeatureReductionTools = () => {
+const SubsetCreationToolsDB = () => {
   return (
     <div
       style={{
@@ -10,9 +10,9 @@ const FeatureReductionTools = () => {
         padding: "5px"
       }}
     >
-      <p>Feature reduction tools not yet implemented</p>
+      <p>Subset creation tools not yet implemented</p>
     </div>
   )
 }
 
-export default FeatureReductionTools
+export default SubsetCreationToolsDB
