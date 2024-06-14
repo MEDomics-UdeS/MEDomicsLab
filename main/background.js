@@ -8,11 +8,13 @@ import { toast } from "react-toastify"
 
 const MongoClient = require("mongodb").MongoClient
 const mongoUrl = "mongodb://localhost:27017"
+let mongoProcess = null
+let isMongoStopping = false
 const os = require("os")
 const fs = require("fs")
 var path = require("path")
 const dirTree = require("directory-tree")
-const { spawn, exec, execFile } = require("child_process")
+const { spawn, exec, execFile, spawnSync } = require("child_process")
 var serverProcess = null
 var serverPort = MEDconfig.defaultPort
 var hasBeenSet = false
@@ -441,7 +443,10 @@ if (isProd) {
   // IPC handler for changing the workspace
   ipcMain.on("change-workspace", (event, workspacePath) => {
     console.log(`Changing workspace to: ${workspacePath}`)
-    startMongoDB(workspacePath)
+    stopMongoDB()
+    setTimeout(() => {
+      startMongoDB(workspacePath)
+    }, 5000)
   })
 
   ipcMain.on("setDB", (event, data) => {
@@ -818,27 +823,6 @@ if (isProd) {
         hasBeenSet: hasBeenSet,
         newPort: serverPort
       }) // Sends the folder structure to Next.js
-    } else if (data === "get-databases") {
-      const client = new MongoClient(mongoUrl)
-      ;(async () => {
-        try {
-          await client.connect()
-          const adminDb = client.db("admin")
-          const dbs = await adminDb.admin().listDatabases()
-          const dbsNames = []
-          dbs.databases.forEach((db) => {
-            if (db.name != "admin" && db.name != "local" && db.name != "config") {
-              dbsNames.push(db.name)
-            }
-          })
-          event.reply("recentDBs", dbsNames)
-        } catch (error) {
-          console.error(error)
-          event.reply("databases", [])
-        } finally {
-          await client.close()
-        }
-      })()
     } else if (data === "getServerPort") {
       event.reply("getServerPort", {
         newPort: serverPort
@@ -986,26 +970,31 @@ function getWorkingDirectory() {
 
 // Function to start MongoDB
 function startMongoDB(workspacePath) {
-  const medomicsDir = path.join(workspacePath, ".medomics")
-  const mongoConfigPath = path.join(medomicsDir, "mongod.conf")
-
+  const mongoConfigPath = path.join(workspacePath, ".medomics", "mongod.conf")
   if (fs.existsSync(mongoConfigPath)) {
-    // Command to start mongod with the specified configuration file
-    const command = `mongod --config "${mongoConfigPath}"`
+    console.log("Starting MongoDB with config: ", mongoConfigPath)
+    mongoProcess = spawn("mongod", ["--config", mongoConfigPath])
 
-    exec(command, (error, stdout, stderr) => {
-      if (error) {
-        console.error(`Error starting MongoDB: ${error.message}`)
-        return
-      }
-      if (stderr) {
-        console.error(`MongoDB stderr: ${stderr}`)
-        return
-      }
-      console.log(`MongoDB stdout: ${stdout}`)
+    mongoProcess.stdout.on("data", (data) => {
+      console.log(`MongoDB stdout: ${data}`)
+    })
+
+    mongoProcess.stderr.on("data", (data) => {
+      console.error(`MongoDB stderr: ${data}`)
+    })
+
+    mongoProcess.on("close", (code) => {
+      console.log(`MongoDB process exited with code ${code}`)
     })
   } else {
-    console.error(`MongoDB config file not found at ${mongoConfigPath}`)
+    console.error("MongoDB config file does not exist: ", mongoConfigPath)
+  }
+}
+
+// Function to stop MongoDB
+function stopMongoDB() {
+  if (mongoProcess) {
+    mongoProcess.kill()
   }
 }
 
@@ -1016,6 +1005,7 @@ ipcMain.handle("request", async (_, axios_request) => {
 
 app.on("window-all-closed", () => {
   console.log("app quit")
+  stopMongoDB()
   if (MEDconfig.runServerAutomatically) {
     try {
       // Check if the serverProcess has the kill method

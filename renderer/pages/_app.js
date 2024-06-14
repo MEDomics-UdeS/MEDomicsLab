@@ -4,10 +4,10 @@ import Head from "next/head"
 import LayoutManager from "../components/layout/layoutManager"
 import { LayoutModelProvider } from "../components/layout/layoutContext"
 import { WorkspaceProvider } from "../components/workspace/workspaceContext"
-import { MongoDBProvider } from "../components/mongoDB/mongoDBContext"
 import { ipcRenderer } from "electron"
 import { DataContextProvider } from "../components/workspace/dataContext"
-import MedDataObject from "../components/workspace/medDataObject"
+//import MedDataObject from "../components/workspace/medDataObject"
+import { MEDDataObject } from "../components/workspace/NewMedDataObject"
 import { ActionContextProvider } from "../components/layout/actionContext"
 import { HotkeysProvider } from "@blueprintjs/core"
 import { ConfirmPopup } from "primereact/confirmpopup"
@@ -142,14 +142,7 @@ function App() {
     hasBeenSet: false,
     workingDirectory: ""
   })
-  const [DBObject, setDBObject] = useState({
-    name: "",
-    hasBeenSet: false
-  })
-  const [collectionData, setCollectionData] = useState([])
-  const [DBData, setDBData] = useState([])
   const [recentWorkspaces, setRecentWorkspaces] = useState([]) // The list of recent workspaces
-  const [recentDBs, setRecentDBs] = useState([])
   const [port, setPort] = useState() // The port of the server
 
   const [globalData, setGlobalData] = useState({}) // The global data object
@@ -195,7 +188,7 @@ function App() {
     /**
      * IMPORTANT - Related to the MongoDB
      */
-    ipcRenderer.on("DBSet", (event, data) => {
+    /* ipcRenderer.on("DBSet", (event, data) => {
       if (DBObject !== data) {
         let DB = { ...data }
         setDBObject(DB)
@@ -223,12 +216,12 @@ function App() {
       })
       setCollectionData(collData)
     })
-
+ */
     ipcRenderer.on("updateDirectory", (event, data) => {
       let workspace = { ...data }
       setWorkspaceObject(workspace)
       // Send IPC event to main process to start MongoDB
-      ipcRenderer.send("change-workspace", data.workingDirectory.path)
+      //ipcRenderer.send("change-workspace", data.workingDirectory.path)
     })
 
     ipcRenderer.on("getServerPort", (event, data) => {
@@ -252,11 +245,6 @@ function App() {
       setRecentWorkspaces(data)
     })
 
-    ipcRenderer.on("recentDBs", (event, data) => {
-      console.log("recentDBs", data)
-      setRecentDBs(data)
-    })
-
     /**
      * This is to log messages from the main process in the console
      */
@@ -264,9 +252,9 @@ function App() {
       console.log("log", data)
     })
 
-    ipcRenderer.on("databases", (event, databases) => {
+    /*   ipcRenderer.on("databases", (event, databases) => {
       console.log("DATABASES", databases)
-    })
+    }) */
 
     ipcRenderer.send("messageFromNext", "getServerPort")
 
@@ -285,7 +273,7 @@ function App() {
    * @description This function is used to recursively recense the directory tree and add the files and folders to the global data object
    * It is called when the working directory is set
    */
-  function recursivelyRecenseTheDirectory(children, parentID, newGlobalData, acceptedFileTypes = undefined) {
+  /* function recursivelyRecenseTheDirectory(children, parentID, newGlobalData, acceptedFileTypes = undefined) {
     let childrenIDsToReturn = []
 
     children.forEach((child) => {
@@ -329,14 +317,14 @@ function App() {
     })
     return { childrenIDsToReturn: childrenIDsToReturn }
   }
-
+ */
   /**
    * Gets the children paths of the children passed as a parameter
    * @param {Object} children - The children of the current directory
    * @returns {Array} - The children paths of the current directory
    * @description This function is used to recursively recense the directory tree and add the files and folders to the global data object
    */
-  const getChildrenPaths = (children) => {
+  /*   const getChildrenPaths = (children) => {
     let childrenPaths = []
     children.forEach((child) => {
       childrenPaths.push(child.path)
@@ -346,7 +334,7 @@ function App() {
       }
     })
     return childrenPaths
-  }
+  } */
 
   /**
    * Creates a list of files not found in the workspace
@@ -354,7 +342,7 @@ function App() {
    * @param {Object} currentGlobalData - The current global data
    * @returns {Array} - The list of files not found in the workspace
    */
-  const createListOfFilesNotFoundInWorkspace = (currentWorkspace, currentGlobalData) => {
+  /* const createListOfFilesNotFoundInWorkspace = (currentWorkspace, currentGlobalData) => {
     let listOfFilesNotFoundInWorkspace = []
     let workspaceChildren = currentWorkspace.workingDirectory.children
     let workspaceChildrenPaths = []
@@ -372,7 +360,7 @@ function App() {
       }
     })
     return listOfFilesNotFoundInWorkspace
-  }
+  } */
 
   /**
    * Cleans the global data from files and folders not found in the workspace
@@ -380,7 +368,7 @@ function App() {
    * @param {Object} dataContext - The current global data
    * @returns {Object} - The new global data
    */
-  const cleanGlobalDataFromFilesNotFoundInWorkspace = (workspace, dataContext) => {
+  /*   const cleanGlobalDataFromFilesNotFoundInWorkspace = (workspace, dataContext) => {
     let newGlobalData = { ...dataContext }
     let listOfFilesNotFoundInWorkspace = createListOfFilesNotFoundInWorkspace(workspace, dataContext)
     console.log("listOfFilesNotFoundInWorkspace", listOfFilesNotFoundInWorkspace)
@@ -388,12 +376,12 @@ function App() {
       if (newGlobalData[file] !== undefined && file !== "UUID_ROOT") delete newGlobalData[file]
     })
     return newGlobalData
-  }
+  } */
 
   /**
    * Checks if a metadata file exists in the workspace
    */
-  const checkIfMetadataFileExists = () => {
+  /*   const checkIfMetadataFileExists = () => {
     // Check if a file ending with .medomics exists in the workspace directory
     let metadataFileExists = false
     let workspaceChildren = workspaceObject.workingDirectory.children
@@ -404,7 +392,7 @@ function App() {
       }
     })
     return metadataFileExists
-  }
+  } */
 
   // Function to create the .medomics directory and necessary files
   const createMedomicsDirectory = (directoryPath) => {
@@ -425,7 +413,11 @@ function App() {
 
     if (!fs.existsSync(globalDataPath)) {
       // Create globalData.json
-      const globalData = {} // Add your initial global data here
+      let globalData = {
+        DATA: new MEDDataObject({ name: "DATA", type: "folder" }),
+        EXPERIMENTS: new MEDDataObject({ name: "EXPERIMENTS", type: "folder" })
+      }
+      console.log("here", globalData)
       fs.writeFileSync(globalDataPath, JSON.stringify(globalData, null, 2))
     }
 
@@ -471,7 +463,7 @@ function App() {
    * @param {Object} globalData - The global data to parse
    * @returns {Object} - The parsed global data
    */
-  const parseGlobalData = (globalData) => {
+  /*   const parseGlobalData = (globalData) => {
     let parsedGlobalData = {}
     Object.keys(globalData).forEach((key) => {
       let dataObject = globalData[key]
@@ -479,12 +471,12 @@ function App() {
       parsedGlobalData[key] = parsedDataObject
     })
     return parsedGlobalData
-  }
+  } */
 
   /**
    * Load the global data from a file
    */
-  const loadGlobalDataFromFile = () => {
+  /*   const loadGlobalDataFromFile = () => {
     return new Promise((resolve, reject) => {
       // eslint-disable-next-line no-undef
       const fsx = require("fs-extra")
@@ -497,7 +489,7 @@ function App() {
         resolve(parseGlobalData(JSON.parse(data)))
       })
     })
-  }
+  } */
 
   // USE EFFECT HOOKS
 
@@ -523,7 +515,7 @@ function App() {
   }, [layoutModel]) // Here, we specify that the hook should only be called when the layoutModel state variable changes
 
   // This useEffect hook is called whenever the `workspaceObject` state changes.
-  useEffect(() => {
+  /*   useEffect(() => {
     const updateGlobalData = async () => {
       // Create a copy of the `globalData` state object.
       let newGlobalData = { ...globalData }
@@ -560,18 +552,12 @@ function App() {
       setGlobalData(newGlobalData)
     }
     updateGlobalData()
-  }, [workspaceObject])
+  }, [workspaceObject]) */
 
   // This useEffect hook is called whenever the `workspaceObject` state changes.
   useEffect(() => {
     console.log("workspaceObject changed", workspaceObject)
   }, [workspaceObject])
-
-  // This useEffect hook is called whenever the `DBObject` state changes.
-  useEffect(() => {
-    console.log("DBObject changed", DBObject)
-    ipcRenderer.send("get-collections", DBObject.name)
-  }, [DBObject])
 
   return (
     <>
@@ -593,28 +579,17 @@ function App() {
                 recentWorkspaces={recentWorkspaces}
                 setRecentWorkspaces={setRecentWorkspaces}
               >
-                <MongoDBProvider
-                  DB={DBObject}
-                  setDB={setDBObject}
-                  DBData={DBData}
-                  setDBData={setDBData}
-                  recentDBs={recentDBs}
-                  setRecentDBs={setRecentDBs}
-                  setCollectionData={setCollectionData}
-                  collectionData={collectionData}
-                >
-                  <ServerConnectionProvider port={port} setPort={setPort}>
-                    <LayoutModelProvider // This is the LayoutContextProvider, which provides the layout model to all the children components of the LayoutManager
-                      layoutModel={layoutModel}
-                      setLayoutModel={setLayoutModel}
-                    >
-                      {/* This is the WorkspaceProvider, which provides the workspace model to all the children components of the LayoutManager */}
-                      {/* This is the LayoutContextProvider, which provides the layout model to all the children components of the LayoutManager */}
-                      <LayoutManager layout={initialLayout} />
-                      {/** We pass the initialLayout as a parameter */}
-                    </LayoutModelProvider>
-                  </ServerConnectionProvider>
-                </MongoDBProvider>
+                <ServerConnectionProvider port={port} setPort={setPort}>
+                  <LayoutModelProvider // This is the LayoutContextProvider, which provides the layout model to all the children components of the LayoutManager
+                    layoutModel={layoutModel}
+                    setLayoutModel={setLayoutModel}
+                  >
+                    {/* This is the WorkspaceProvider, which provides the workspace model to all the children components of the LayoutManager */}
+                    {/* This is the LayoutContextProvider, which provides the layout model to all the children components of the LayoutManager */}
+                    <LayoutManager layout={initialLayout} />
+                    {/** We pass the initialLayout as a parameter */}
+                  </LayoutModelProvider>
+                </ServerConnectionProvider>
               </WorkspaceProvider>
             </DataContextProvider>
           </ActionContextProvider>
