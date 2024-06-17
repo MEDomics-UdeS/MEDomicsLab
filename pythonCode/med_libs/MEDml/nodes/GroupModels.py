@@ -5,7 +5,7 @@ import json
 
 from sklearn.pipeline import Pipeline
 
-from .NodeObj import Node, format_model
+from .NodeObj import Node, format_model, NodeCodeHandler
 from typing import Union
 from colorama import Fore
 from med_libs.server_utils import go_print
@@ -31,6 +31,7 @@ class GroupModels(Node):
         self.models_list = sorted(self.config_json['associated_id'].split('.'))
         self.config_json['cur_models_list_id'] = []
         self.config_json['cur_models_list_obj'] = []
+        self.config_json['cur_models_list_settings'] = []
         print(f"GroupModels: {self.models_list}")
         print(f"{self.config_json['cur_models_list_id']}")
 
@@ -40,6 +41,7 @@ class GroupModels(Node):
         """
         self.config_json['instance'] += 1
         self.config_json['cur_models_list_id'] += [kwargs['id'].split('*')[0]]
+        self.config_json['cur_models_list_settings'] += [kwargs['settings']]
         print()
         print(Fore.BLUE + "=== GroupModels === " + Fore.YELLOW + f"({self.username})" + Fore.RESET)
         print(self.config_json['instance'])
@@ -53,5 +55,32 @@ class GroupModels(Node):
         trained_models_copy = trained_models.copy()
         self.config_json['cur_models_list_obj'] += trained_models_copy
         self._info_for_next_node = {'models': self.config_json['cur_models_list_obj'], 'id': self.id}
-        isLast = sorted(self.config_json['cur_models_list_id']) == self.models_list or len(self.config_json['cur_models_list_id']) > len(self.models_list)
+        self.CodeHandler.add_line("code", f"trained_models = []")
+
+        isLast = sorted(self.config_json['cur_models_list_id']) == self.models_list or len(
+            self.config_json['cur_models_list_id']) > len(self.models_list)
+        if isLast:
+            for settings in self.config_json['cur_models_list_settings']:
+                model_string = format_model_process(settings)
+                self.CodeHandler.add_line("code", f"trained_models += {[model_str['content'] for model_str in model_string]}".replace("\"", ""))
         return {"prev_node_complete": isLast}
+
+
+def format_model_process(settings):
+    codeHandler = NodeCodeHandler()
+    codeHandler.reset()
+    settings_cp = copy.deepcopy(settings)
+    fct_type = settings_cp['fct_type']
+    del settings_cp['fct_type']
+    go_print('testssssss----' + fct_type)
+    if fct_type == 'compare_models':
+        codeHandler.add_line(
+            "code",
+            f"pycaret_exp.compare_models({codeHandler.convert_dict_to_params(settings_cp)})")
+
+    elif fct_type == 'train_model':
+        codeHandler.add_line(
+            "code",
+            f"pycaret_exp.create_model({codeHandler.convert_dict_to_params(settings_cp)})")
+
+    return codeHandler.get_code()

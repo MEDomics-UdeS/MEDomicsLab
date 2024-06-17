@@ -20,7 +20,7 @@
                         "checked": false,
                         "contextChecked": true
                     },
-                    "hasRun": false,
+                    "hasRun": true,
                     "code": "",
                     "settings": {
                         "files": [
@@ -406,7 +406,7 @@
                 "tooltipBy": "type",
                 "setupParam": null
             },
-            "draggable": true,
+            "draggable": false,
             "hidden": false,
             "zIndex": 1010,
             "className": "",
@@ -436,7 +436,7 @@
                         "checked": false,
                         "contextChecked": false
                     },
-                    "hasRun": false,
+                    "hasRun": true,
                     "code": "",
                     "settings": {},
                     "selection": false,
@@ -449,7 +449,7 @@
                 "tooltipBy": "type",
                 "setupParam": null
             },
-            "draggable": true,
+            "draggable": false,
             "hidden": false,
             "zIndex": 1010,
             "className": "",
@@ -479,7 +479,7 @@
                         "checked": false,
                         "contextChecked": false
                     },
-                    "hasRun": false,
+                    "hasRun": true,
                     "code": "",
                     "settings": {},
                     "selection": "lr",
@@ -492,7 +492,7 @@
                 "tooltipBy": "type",
                 "setupParam": null
             },
-            "draggable": true,
+            "draggable": false,
             "hidden": false,
             "zIndex": 1010,
             "className": "",
@@ -522,7 +522,7 @@
                         "checked": false,
                         "contextChecked": false
                     },
-                    "hasRun": false,
+                    "hasRun": true,
                     "code": "",
                     "settings": {},
                     "selection": false,
@@ -535,7 +535,7 @@
                 "tooltipBy": "type",
                 "setupParam": null
             },
-            "draggable": true,
+            "draggable": false,
             "hidden": false,
             "zIndex": 1010,
             "className": "",
@@ -565,7 +565,7 @@
                         "checked": false,
                         "contextChecked": false
                     },
-                    "hasRun": false,
+                    "hasRun": true,
                     "code": "",
                     "settings": {},
                     "selection": "et",
@@ -578,7 +578,7 @@
                 "tooltipBy": "type",
                 "setupParam": null
             },
-            "draggable": true,
+            "draggable": false,
             "hidden": false,
             "zIndex": 1010,
             "className": "",
@@ -608,7 +608,7 @@
                         "checked": false,
                         "contextChecked": false
                     },
-                    "hasRun": false,
+                    "hasRun": true,
                     "code": "",
                     "settings": {},
                     "selection": false,
@@ -621,7 +621,7 @@
                 "tooltipBy": "type",
                 "setupParam": null
             },
-            "draggable": true,
+            "draggable": false,
             "hidden": false,
             "zIndex": 1010,
             "className": "",
@@ -651,7 +651,7 @@
                         "checked": false,
                         "contextChecked": false
                     },
-                    "hasRun": false,
+                    "hasRun": true,
                     "code": "",
                     "settings": {},
                     "selection": false,
@@ -664,7 +664,7 @@
                 "tooltipBy": "type",
                 "setupParam": null
             },
-            "draggable": true,
+            "draggable": false,
             "hidden": true,
             "zIndex": 1010,
             "className": "intersect",
@@ -694,7 +694,7 @@
                         "checked": false,
                         "contextChecked": false
                     },
-                    "hasRun": false,
+                    "hasRun": true,
                     "code": "",
                     "settings": {},
                     "selection": false,
@@ -707,7 +707,7 @@
                 "tooltipBy": "type",
                 "setupParam": null
             },
-            "draggable": true,
+            "draggable": false,
             "hidden": true,
             "zIndex": 1010,
             "className": "intersect",
@@ -737,7 +737,7 @@
                         "checked": false,
                         "contextChecked": true
                     },
-                    "hasRun": false,
+                    "hasRun": true,
                     "code": "",
                     "settings": {
                         "plot": "error"
@@ -754,7 +754,7 @@
                 "tooltipBy": "type",
                 "setupParam": null
             },
-            "draggable": true,
+            "draggable": false,
             "hidden": false,
             "zIndex": 1010,
             "className": "",
@@ -784,7 +784,7 @@
                         "checked": false,
                         "contextChecked": false
                     },
-                    "hasRun": false,
+                    "hasRun": true,
                     "code": "",
                     "settings": {},
                     "selection": false,
@@ -797,7 +797,7 @@
                 "tooltipBy": "type",
                 "setupParam": null
             },
-            "draggable": true,
+            "draggable": false,
             "hidden": false,
             "zIndex": 1010,
             "className": "",

@@ -160,8 +160,16 @@ const PipelinesResults = ({ pipelines, selectionMode, flowContent }) => {
   const createTitleFromPipe = useCallback(
     (pipeline) => {
       let pipelineId = pipeline.join("-")
-      const getName = (id) => {
+      const getName = (id, pipeline = null) => {
         let node = flowContent.nodes.find((node) => node.id == id)
+        if (pipeline) {
+          let nextNode = pipeline.indexOf(id) + 1 < pipeline.length ? flowContent.nodes.find((node) => node.id == pipeline[pipeline.indexOf(id) + 1]) : null
+          if (nextNode && nextNode.data.internal.type == "group_models") {
+            let prevEdges = flowContent.edges.filter((edge) => edge.target == nextNode.id)
+            let prevIds = prevEdges.map((edge) => edge.source)
+            return prevIds.map((id) => getName(id)).join(" & ")
+          }
+        }
         return node && node.data.internal.name
       }
 
@@ -203,12 +211,22 @@ const PipelinesResults = ({ pipelines, selectionMode, flowContent }) => {
         console.log("code generation", pipeline)
         let resultsCopy = deepCopy(flowResults)
         console.log("resultsCopy", resultsCopy)
-        pipeline.forEach((id) => {
+        pipeline.forEach((id, index) => {
+          // check if next node is a group_models
+          let nextNode = index + 1 < pipeline.length ? flowContent.nodes.find((node) => node.id == pipeline[index + 1]) : null
+          console.log("nextNode", nextNode)
+          let isNextGroupModels = nextNode && nextNode.data.internal.type == "group_models"
+          if (isNextGroupModels) {
+            console.log("next node is a group_models")
+            console.log(checkIfObjectContainsId(resultsCopy, id))
+          }
           let nodeResults = checkIfObjectContainsId(resultsCopy, id)
           if (nodeResults) {
-            finalCode = [...finalCode, ...Object.values(nodeResults.results.code.content)]
-            console.log("imports", Object.values(nodeResults.results.code.imports))
-            finalImports = [...finalImports, ...Object.values(nodeResults.results.code.imports)]
+            if (!isNextGroupModels) {
+              finalCode = [...finalCode, ...Object.values(nodeResults.results.code.content)]
+              console.log("imports", Object.values(nodeResults.results.code.imports))
+              finalImports = [...finalImports, ...Object.values(nodeResults.results.code.imports)]
+            }
             resultsCopy = nodeResults.next_nodes
           } else {
             console.log("id " + id + " not found in results")
@@ -232,7 +250,7 @@ const PipelinesResults = ({ pipelines, selectionMode, flowContent }) => {
        */
       const createNoteBookDoc = (code, imports) => {
         let newLineChar = "\n" // before was process.platform === "linux" ? "\n" : ""
-        let notebook = loadJsonPath([getBasePath(EXPERIMENTS), sceneName, "notebooks", pipeline.map((id) => getName(id)).join("-")].join(MedDataObject.getPathSeparator()) + ".ipynb")
+        let notebook = loadJsonPath([getBasePath(EXPERIMENTS), sceneName, "notebooks", pipeline.map((id) => getName(id, pipeline)).join("-")].join(MedDataObject.getPathSeparator()) + ".ipynb")
         notebook = notebook ? deepCopy(notebook) : deepCopy(loadJsonPath(isProd ? Path.join(process.resourcesPath, "baseFiles", "emptyNotebook.ipynb") : "./baseFiles/emptyNotebook.ipynb"))
         notebook.cells = []
         let lastType = "md"
@@ -273,7 +291,7 @@ const PipelinesResults = ({ pipelines, selectionMode, flowContent }) => {
         addMarkdown([
           "## Notebook automatically generated\n\n",
           "**Scene:** " + sceneName + "\n\n",
-          "**Pipeline:** " + pipeline.map((id) => getName(id)).join(" ➡️ ") + "\n\n",
+          "**Pipeline:** " + pipeline.map((id) => getName(id, pipeline)).join(" ➡️ ") + "\n\n",
           "**Date:** " + new Date().toLocaleString() + "\n\n"
         ])
         // IMPORTS
@@ -291,7 +309,7 @@ const PipelinesResults = ({ pipelines, selectionMode, flowContent }) => {
         })
         compileLines(linesOfSameType)
 
-        MedDataObject.writeFileSync(notebook, [getBasePath(EXPERIMENTS), sceneName, "notebooks"], pipeline.map((id) => getName(id)).join("-"), "ipynb").then(() => {
+        MedDataObject.writeFileSync(notebook, [getBasePath(EXPERIMENTS), sceneName, "notebooks"], pipeline.map((id) => getName(id, pipeline)).join("-"), "ipynb").then(() => {
           toast.success("Notebook generated and saved !")
         })
       }
@@ -315,7 +333,7 @@ const PipelinesResults = ({ pipelines, selectionMode, flowContent }) => {
             optionLabel="name"
             options={pipeline.map((id) => {
               return {
-                name: getName(id),
+                name: getName(id, pipeline),
                 value: id,
                 class: `${isChecked(id) ? "checked" : "unchecked"} ${!hasRun(id) ? "pipe-name-notRun" : ""}`
               }
