@@ -5,22 +5,13 @@ import { InputText } from "primereact/inputtext"
 import { Button } from "primereact/button"
 import { MongoClient, ObjectId } from "mongodb"
 import { toast } from "react-toastify"
-import { Panel } from "primereact/panel"
-
-// Import tools components
-import TransformColumnToolsDB from "./inputToolsDB/transformColumnToolsDB"
-import BasicToolsDB from "./inputToolsDB/basicToolsDB"
-import MergeToolsDB from "./inputToolsDB/mergeToolsDB"
-import SimpleCleaningToolsDB from "./inputToolsDB/simpleCleaningToolsDB"
-import SubsetCreationToolsDB from "./inputToolsDB/subsetCreationToolsDB"
-import FeatureReductionToolsDB from "./inputToolsDB/featureReductionToolsDB"
-import HoldoutSetCreationToolsDB from "./inputToolsDB/holdoutSetCreationToolsDB"
-
 const mongoUrl = "mongodb://127.0.0.1:27017"
 import { saveAs } from "file-saver"
 import Papa from "papaparse"
 import { getCollectionData } from "./utils"
 import { MongoDBContext } from "../mongoDB/mongoDBContext"
+import InputToolsComponent from "./InputToolsComponent"
+import { Dialog } from "primereact/dialog"
 
 /**
  * DataTableFromDB component
@@ -42,6 +33,7 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
   const [csvData, setCsvData] = useState([])
   const [fileName, setFileName] = useState("Choose File")
   const [lastEdit, setLastEdit] = useState(Date.now())
+  const [isDialogVisible, setDialogVisible] = useState(false)
   const exportOptions = [
     {
       label: "CSV",
@@ -69,11 +61,6 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
 
   const dataTableStyle = {
     height: "100%",
-    overflow: "auto"
-  }
-
-  const panelContainerStyle = {
-    height: "350px",
     overflow: "auto"
   }
 
@@ -458,6 +445,16 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
     }
   }
 
+  // Function to open the modal
+  const openDialog = () => {
+    setDialogVisible(true)
+  }
+
+  // Function to close the modal
+  const closeDialog = () => {
+    setDialogVisible(false)
+  }
+
   // Render the DataTable component
   return (
     <>
@@ -478,48 +475,8 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
             {...tablePropsData}
             footer={
               !isReadOnly && (
-                <div style={panelContainerStyle}>
-                  <Panel header="Add, Export and Refresh Tools" toggleable collapsed={true}>
-                    <BasicToolsDB
-                      numRows={numRows}
-                      setNumRows={setNumRows}
-                      handleAddRow={handleAddRow}
-                      newColumnName={newColumnName}
-                      setNewColumnName={setNewColumnName}
-                      handleAddColumn={handleAddColumn}
-                      exportOptions={exportOptions}
-                      refreshData={refreshData}
-                    />
-                  </Panel>
-                  <Panel header="Transform Column Tools" toggleable collapsed={true}>
-                    <TransformColumnToolsDB
-                      selectedColumns={selectedColumns}
-                      setSelectedColumns={setSelectedColumns}
-                      columns={columns}
-                      transformData={transformData}
-                      handleFileUpload={handleFileUpload}
-                      fileName={fileName}
-                      setFileName={setFileName}
-                      handleCsvData={handleCsvData}
-                      handleExportColumns={handleExportColumns}
-                      handleDeleteColumns={handleDeleteColumns}
-                    />
-                  </Panel>
-                  <Panel header="Merge Tools" toggleable collapsed={true}>
-                    <MergeToolsDB data={innerData} columns={columns} DB={DB} collections={DBData} currentCollection={data.uuid} />
-                  </Panel>
-                  <Panel header="Simple Cleaning Tools" toggleable collapsed={true}>
-                    <SimpleCleaningToolsDB refreshData={refreshData} lastEdit={lastEdit} data={innerData} columns={columns} DB={DB} collections={DBData} currentCollection={data.uuid} />
-                  </Panel>
-                  <Panel header="Holdout Set Creation Tools" toggleable collapsed={true}>
-                    <HoldoutSetCreationToolsDB />
-                  </Panel>
-                  <Panel header="Subset Creation Tools" toggleable collapsed={true}>
-                    <SubsetCreationToolsDB />
-                  </Panel>
-                  <Panel header="Feature Reduction Tools" toggleable collapsed={true}>
-                    <FeatureReductionToolsDB />
-                  </Panel>
+                <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100%" }}>
+                  <Button icon="pi pi-file-edit" onClick={openDialog} tooltip="Open Input Tools" tooltipOptions={{ position: "bottom" }} />
                 </div>
               )
             }
@@ -565,6 +522,33 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
           </DataTable>
         </div>
       )}
+      <Dialog header="Input Tools" visible={isDialogVisible} onHide={closeDialog} style={{ width: "80%", height: "80%" }} modal={true}>
+        <InputToolsComponent
+          DBData={DBData}
+          data={data}
+          numRows={numRows}
+          setNumRows={setNumRows}
+          newColumnName={newColumnName}
+          setNewColumnName={setNewColumnName}
+          handleAddColumn={handleAddColumn}
+          exportOptions={exportOptions}
+          refreshData={refreshData}
+          selectedColumns={selectedColumns}
+          setSelectedColumns={setSelectedColumns}
+          columns={columns}
+          transformData={transformData}
+          handleFileUpload={handleFileUpload}
+          fileName={fileName}
+          setFileName={setFileName}
+          handleCsvData={handleCsvData}
+          handleExportColumns={handleExportColumns}
+          handleDeleteColumns={handleDeleteColumns}
+          innerData={innerData}
+          DB={DB}
+          handleAddRow={handleAddRow}
+          lastEdit={lastEdit}
+        />
+      </Dialog>
     </>
   )
 }
