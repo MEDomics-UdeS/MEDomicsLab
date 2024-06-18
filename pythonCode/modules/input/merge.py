@@ -94,8 +94,9 @@ class GoExecScriptMerge(GoExecutionScript):
                     intersection = collections.Counter(first_dataset_columns) & collections.Counter(new_dataframe.columns)
                     if len(intersection) > 0:
                         # Remove the merge on column from the intersection
-                        if dataset_merge_on in intersection.keys():
-                            intersection.pop(dataset_merge_on)
+                        for column in dataset_merge_on:
+                            if column in intersection.keys():
+                                intersection.pop(column)
                         # Add the dataset name to the column names of the new dataframe to avoid duplicates and modify the column names acting as keys in the new_dataframe_tags dictionary
                         for duplicate_column_name in intersection.keys():
                             new_dataframe.rename(
