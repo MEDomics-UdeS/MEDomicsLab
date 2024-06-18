@@ -1,8 +1,9 @@
 export class MEDDataObject {
-  constructor(name, type, parentID, childrenID) {
+  constructor({ id, name, type, parentID, childrenIDs }) {
+    this.id = id
     this.name = name
     this.type = type
     this.parentID = parentID
-    this.childrenID = childrenID
+    this.childrenIDs = childrenIDs
   }
 }

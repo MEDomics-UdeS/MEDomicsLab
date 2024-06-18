@@ -1,4 +1,5 @@
-import MedDataObject from "../../components/workspace/medDataObject"
+import { MEDDataObject } from "../../components/workspace/NewMedDataObject"
+import { randomUUID } from "crypto"
 
 // Import fs and path
 const fs = require("fs")
@@ -74,49 +75,24 @@ export const createMedomicsDirectory = (directoryPath) => {
  * @description This function is used to recursively recense the directory tree and add the files and folders to the global data object
  * It is called when the working directory is set
  */
-export function recursivelyRecenseTheDirectory(children, parentID, newGlobalData, acceptedFileTypes = undefined) {
-  let childrenIDsToReturn = []
-
+export function recursivelyRecenseWorkspaceTree(children, parentID, newGlobalData) {
   children.forEach((child) => {
-    let uuid = MedDataObject.checkIfMedDataObjectInContextbyName(child.name, newGlobalData, parentID)
-    let objectType = "folder"
-    let objectUUID = uuid
-    let childrenIDs = []
-    if (uuid == "") {
-      let dataObject = new MedDataObject({
-        originalName: child.name,
-        path: child.path,
-        parentID: parentID,
-        type: objectType
-      })
-
-      objectUUID = dataObject.getUUID()
-      let acceptedFiles = MedDataObject.setAcceptedFileTypes(dataObject, acceptedFileTypes)
-      dataObject.setAcceptedFileTypes(acceptedFiles)
-      if (child.children === undefined) {
-        objectType = "file"
-        childrenIDs = null
-      } else if (child.children.length != 0) {
-        let answer = recursivelyRecenseTheDirectory(child.children, objectUUID, newGlobalData, acceptedFiles)
-        childrenIDs = answer.childrenIDsToReturn
-      }
-      dataObject.setType(objectType)
-      dataObject.setChildrenIDs(childrenIDs)
-      newGlobalData[objectUUID] = dataObject
-      childrenIDsToReturn.push(objectUUID)
-    } else {
-      let dataObject = newGlobalData[uuid]
-      let acceptedFiles = dataObject.acceptedFileTypes
-      if (child.children !== undefined) {
-        let answer = recursivelyRecenseTheDirectory(child.children, uuid, newGlobalData, acceptedFiles)
-        childrenIDs = answer.childrenIDsToReturn
-        newGlobalData[objectUUID]["childrenIDs"] = childrenIDs
-        newGlobalData[objectUUID]["parentID"] = parentID
-      }
-      childrenIDsToReturn.push(uuid)
+    const stats = fs.lstatSync(child.path)
+    let uuid = child.name == "DATA" || child.name == "EXPERIMENTS" ? child.name : randomUUID()
+    let childType = stats.isDirectory() ? "directory" : path.extname(child.path).slice(1)
+    let childObject = new MEDDataObject({
+      id: uuid,
+      name: child.name,
+      type: childType,
+      parentID: parentID,
+      childrenIDs: []
+    })
+    newGlobalData[uuid] = childObject
+    newGlobalData[parentID].childrenIDs.push(uuid)
+    if (childType == "directory" && child.name != ".medomics") {
+      recursivelyRecenseWorkspaceTree(child.children, uuid, newGlobalData)
     }
   })
-  return { childrenIDsToReturn: childrenIDsToReturn }
 }
 
 /**

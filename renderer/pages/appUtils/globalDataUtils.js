@@ -1,5 +1,6 @@
-import MedDataObject from "../../components/workspace/medDataObject"
-import { recursivelyRecenseTheDirectory, checkIfMetadataFileExists, createListOfFilesNotFoundInWorkspace } from "./workspaceUtils"
+//import MedDataObject from "../../components/workspace/medDataObject"
+import { MEDDataObject } from "../../components/workspace/NewMedDataObject"
+import { recursivelyRecenseWorkspaceTree, createListOfFilesNotFoundInWorkspace } from "./workspaceUtils"
 
 /**
  * Load the global data from a file
@@ -28,7 +29,7 @@ export const parseGlobalData = (globalData) => {
   let parsedGlobalData = {}
   Object.keys(globalData).forEach((key) => {
     let dataObject = globalData[key]
-    let parsedDataObject = new MedDataObject(dataObject)
+    let parsedDataObject = new MEDDataObject(dataObject)
     parsedGlobalData[key] = parsedDataObject
   })
   return parsedGlobalData
@@ -40,32 +41,28 @@ export const updateGlobalData = async (globalData, workspaceObject) => {
   // Check if the `workingDirectory` property of the `workspaceObject` has been set.
   if (workspaceObject.hasBeenSet === true) {
     // Loop through each child of the `workingDirectory`.
-    let metadataFileExists = checkIfMetadataFileExists(workspaceObject)
+    /* let metadataFileExists = checkIfMetadataFileExists(workspaceObject)
     if (metadataFileExists && Object.keys(globalData).length == 0) {
       // Load the global data from the metadata file
       newGlobalData = await loadGlobalDataFromFile(workspaceObject)
-    }
+    } */
     let rootChildren = workspaceObject.workingDirectory.children
-    let rootParentID = "UUID_ROOT"
+    let rootParentID = "ROOT"
     let rootName = workspaceObject.workingDirectory.name
-    let rootPath = workspaceObject.workingDirectory.path
-    let rootType = "folder"
-    let rootChildrenIDs = recursivelyRecenseTheDirectory(rootChildren, rootParentID, newGlobalData).childrenIDsToReturn
-
-    let rootDataObject = new MedDataObject({
-      originalName: rootName,
-      path: rootPath,
-      parentID: rootParentID,
+    let rootType = "directory"
+    let rootDataObject = new MEDDataObject({
+      id: rootParentID,
+      name: rootName,
       type: rootType,
-      childrenIDs: rootChildrenIDs,
-      _UUID: rootParentID
+      parentID: null,
+      childrenIDs: []
     })
     newGlobalData[rootParentID] = rootDataObject
+    recursivelyRecenseWorkspaceTree(rootChildren, rootParentID, newGlobalData)
   }
   // Clean the globalData from files & folders that are not in the workspace
-  newGlobalData = cleanGlobalDataFromFilesNotFoundInWorkspace(workspaceObject, newGlobalData)
+  //newGlobalData = cleanGlobalDataFromFilesNotFoundInWorkspace(workspaceObject, newGlobalData)
 
-  // Update the `globalData` state object with the new `newGlobalData` object.
   return newGlobalData
 }
 

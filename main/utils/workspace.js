@@ -22,7 +22,6 @@ export function setWorkingDirectory(event, mainWindow) {
         event.reply("messageFromElectron", "Dialog was canceled")
       } else {
         const file = result.filePaths[0]
-        console.log(file)
         if (dirTree(file).children.length > 0) {
           // If the selected folder is not empty
           console.log("Selected folder is not empty")
@@ -202,7 +201,11 @@ export function getRecentWorkspacesOptions(event, mainWindow, workspacesArray = 
       label: workspace.path,
       click() {
         updateWorkspace(workspace.path)
-        let workspaceObject = { workingDirectory: dirTree(workspace.path), hasBeenSet: true, newPort: serverPort }
+        let workspaceObject = {
+          workingDirectory: dirTree(workspace.path),
+          hasBeenSet: true,
+          newPort: serverPort
+        }
         hasBeenSet = true
         mainWindow.webContents.send("openWorkspace", workspaceObject)
       }

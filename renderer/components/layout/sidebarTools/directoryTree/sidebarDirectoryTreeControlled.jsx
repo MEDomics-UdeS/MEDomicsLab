@@ -47,6 +47,10 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
     setExternalSelectedItems && setExternalSelectedItems(selectedItems)
   }, [selectedItems])
 
+  useEffect(() => {
+    console.log("DIRTREE", dirTree)
+  }, [dirTree])
+
   /**
    * This function handles the key press event. It is attached to the document.
    * @param {Object} event - The key press event
@@ -549,12 +553,10 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
     let files = []
     array.forEach((item) => {
       if (dataContextObject[item] !== undefined) {
-        if (!dataContextObject[item].name.startsWith(".") || showHiddenFiles) {
-          if (dataContextObject[item].type == "folder") {
-            folders.push(item)
-          } else {
-            files.push(item)
-          }
+        if (dataContextObject[item].type == "directory") {
+          folders.push(item)
+        } else {
+          files.push(item)
         }
       }
     })
@@ -566,53 +568,25 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
    * @param {Object} medDataContext - The data context object
    * @returns {Object} - The tree object
    */
-  function fromJSONtoTree(medDataContext) {
-    const treeToSend = {}
-    const namesYouCantRename = ["UUID_ROOT", "DATA", "EXPERIMENTS", ".medomics"] // These names cannot be renamed
-
-    Object.keys(medDataContext).forEach((key) => {
-      let medDataItem = medDataContext[key]
-      let medDataItemName = medDataItem.name
-      if (showHiddenFiles == false) {
-        // Check if the name starts with a dot
-        let nameStartsWithDot = medDataItemName.startsWith(".")
-        let parentNameStartsWithDot = false
-        if (medDataItem.parentID !== undefined) {
-          let parentID = medDataItem.parentID
-          let parentObject = medDataContext[parentID]
-          if (parentObject !== undefined) {
-            let parentName = parentObject.name
-            parentNameStartsWithDot = parentName.startsWith(".")
-          }
-        }
-        if (nameStartsWithDot || parentNameStartsWithDot) {
-          return
-        }
-      }
-      if (medDataItem !== undefined && medDataItem.type !== undefined) {
-        let itemIsFolder = medDataItem.type === "folder"
-        let ableToRename = !boolNameInArray(medDataItemName, namesYouCantRename)
-        let treeItem = {
-          index: key,
-          isFolder: itemIsFolder,
-          UUID: key,
-          name: medDataItemName,
-          type: medDataItem.extension,
-          path: medDataItem.path,
-          acceptedFiles: medDataItem.acceptedFileTypes,
-          children: medDataItem.childrenIDs ? reorderArrayOfFoldersAndFiles(medDataItem.childrenIDs, medDataContext) : [],
-          data: medDataItemName,
+  function fromJSONtoTree(data) {
+    let tree = {}
+    const namesYouCantRename = ["DATA", "EXPERIMENTS"] // These names cannot be renamed
+    Object.keys(data).forEach((key) => {
+      let element = data[key]
+      if (element.name != ".medomics") {
+        let ableToRename = !boolNameInArray(element.name, namesYouCantRename)
+        tree[element.id] = {
+          index: element.id,
+          canMove: ableToRename,
+          isFolder: element.type == "directory",
+          children: element.childrenIDs ? reorderArrayOfFoldersAndFiles(element.childrenIDs, data) : [],
+          data: element.name,
           canRename: ableToRename,
-          canMove: ableToRename
-        }
-        treeToSend[key] = treeItem
-        if (medDataItem.parentID && medDataItem.parentID.length == 0) {
-          treeToSend.root.children.push(key)
+          type: element.type
         }
       }
     })
-
-    return treeToSend
+    return tree
   }
 
   /**
@@ -757,7 +731,7 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
                 onDrop={onDrop}
                 isHovering={isHovering}
               >
-                <Tree treeId="tree-2" rootItem="UUID_ROOT" treeLabel="Tree Example" ref={tree} />
+                <Tree treeId="tree-2" rootItem="ROOT" treeLabel="Tree Example" ref={tree} />
               </ControlledTreeEnvironment>
             </div>
           </Accordion.Body>
