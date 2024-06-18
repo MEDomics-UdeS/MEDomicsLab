@@ -429,7 +429,7 @@ const SimpleCleaningToolsDB = ({ lastEdit, DB, data, columns, currentCollection,
             onChange={(e) => setSelectedOption(e.value)}
             tooltip="This will determine whether to begin clearing with columns or rows."
             tooltipOptions={{ position: "top" }}
-            disabled={true}
+            disabled={true} // temporaire
           />
         </div>
       </div>
@@ -439,7 +439,7 @@ const SimpleCleaningToolsDB = ({ lastEdit, DB, data, columns, currentCollection,
           onChange={(e) => setNewCollectionName2(e.target.value)}
           placeholder="New clean dataset name"
           style={{ margin: "5px", fontSize: "1rem", width: "205px", marginTop: "20px" }}
-          disabled={true}
+          disabled={true} // temporaire
         />
         <Button
           icon="pi pi-plus"
@@ -447,7 +447,7 @@ const SimpleCleaningToolsDB = ({ lastEdit, DB, data, columns, currentCollection,
           onClick={() => insertCleanedDataBoth(newCollectionName2, cleaningOption, selectedOption)}
           tooltip="Create Clean Dataset"
           tooltipOptions={{ position: "top" }}
-          disabled={true}
+          disabled={true} // temporaire
         />
       </div>
       <OverlayPanel ref={op} showCloseIcon={true} dismissable={true} style={{ width: "420px", padding: "10px" }} onHide={() => setNewCollectionName("")}>
