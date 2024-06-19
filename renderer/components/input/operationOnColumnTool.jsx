@@ -12,6 +12,8 @@ import SaveDataset from "../generalPurpose/saveDataset"
 import { InputSwitch } from "primereact/inputswitch"
 import { Message } from "primereact/message"
 import { Checkbox } from "primereact/checkbox"
+import fs from "fs"
+import readline from "readline"
 
 const dfd = require("danfojs-node")
 
@@ -138,26 +140,50 @@ const OperationOnColumnTool = ({ operationType }) => {
     setNewDatasetName("")
   }
 
-  /**
-   * Get list of CSV files that contains only columns
-   */
-  const getListOfCsvColumns = async () => {
-    let keys = Object.keys(globalData)
-    let tmpList = []
-    for (let key of keys) {
-      if (globalData[key].type === "file" && globalData[key].extension === "csv") {
-        let dataWithoutHeader = await dfd.readCSV(globalData[key].path, { header: false })
-        if (dataWithoutHeader.$columns.length > 0 && dataWithoutHeader.$data.length == 1) {
-          tmpList.push({ data: globalData[key], header: false })
-        }
-        let dataWithHeader = await dfd.readCSV(globalData[key].path)
-        if (dataWithHeader.$columns.length > 0 && dataWithHeader.$data.length == 1) {
-          tmpList.push({ data: globalData[key], header: true })
-        }
-      }
+/**
+ * Get list of CSV files that contains only columns
+ */
+const getListOfCsvColumns = async () => {
+  let keys = Object.keys(globalData)
+  let tmpList = []
+
+  for (let key of keys) {
+    // console.log("STAT", fs, Papa, globalData[key].path, globalData[key].name, globalData[key].extension)
+    if (globalData[key].type === "file" && globalData[key].extension === "csv") {
+      const readable = fs.createReadStream(globalData[key].path);
+      const reader = readline.createInterface({ input: readable });
+      const lines = await new Promise((resolve) => {
+        let lineCounter = 0;
+        let firstTwoLines = [];
+        let headerBool = false;
+        reader.on('close', () => {
+          resolve({"lines": firstTwoLines, "header": headerBool});
+        });
+        reader.on('line', (line) => {
+          lineCounter++;
+          if (lineCounter === 1) {
+          firstTwoLines.push(line);
+          }
+          if (lineCounter === 2 ) {
+            headerBool = true;
+          }
+          if (lineCounter > 2) {
+            firstTwoLines.push(line);
+            reader.close();
+          }
+        });
+      });
+      readable.close();
+
+      if (lines.lines.length === 1) {
+        tmpList.push({ data: globalData[key], header: lines.header })
+      } else {
+        // No operation
+      }    
     }
-    setListOfCsvColumns(tmpList)
   }
+  setListOfCsvColumns(tmpList)
+}
 
   /**
    * Header of the displayed dataset, containing the tools for columns selection
