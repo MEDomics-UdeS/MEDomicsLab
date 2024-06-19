@@ -18,6 +18,7 @@ func AddHandleFunc() {
 	Utils.CreateHandleFunc(prePath+"/compute_spearman/", handleComputeSpearman)
 	Utils.CreateHandleFunc(prePath+"/clean/", handleClean)
 	Utils.CreateHandleFunc(prePath+"/progress/", handleProgress)
+	Utils.CreateHandleFunc(prePath+"/cleanDB/", handleCleanDB)
 }
 
 // handleMerge handles the request to merge the datasets 
@@ -32,6 +33,17 @@ func handleMerge(jsonConfig string, id string) (string, error) {
 	return response, nil
 }
 
+// handleCreateHoldoutSet handles the request to create the holdout set
+// It returns the response from the python script
+func handleCleanDB(jsonConfig string, id string) (string, error) {
+	log.Println("Cleaning DB...", id)
+	response, err := Utils.StartPythonScripts(jsonConfig, "../pythonCode/modules/input/cleanDB.py", id)
+	Utils.RemoveIdFromScripts(id)
+	if err != nil {
+		return "", err
+	}
+	return response, nil
+}
 
 // handleCreateHoldoutSet handles the request to create the holdout set
 // It returns the response from the python script
