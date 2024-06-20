@@ -73,7 +73,7 @@ const InputToolsComponent = ({
         <SimpleCleaningToolsDB refreshData={refreshData} lastEdit={lastEdit} data={innerData} columns={columns} DB={DB} collections={DBData} currentCollection={data.uuid} />
       </Panel>
       <Panel header="Holdout Set Creation Tools" toggleable collapsed={true}>
-        <HoldoutSetCreationToolsDB />
+        <HoldoutSetCreationToolsDB DB={DB} data={innerData} collections={DBData} currentCollection={data.uuid}/>
       </Panel>
       <Panel header="Subset Creation Tools" toggleable collapsed={true}>
         <SubsetCreationToolsDB />
