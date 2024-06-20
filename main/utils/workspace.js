@@ -1,6 +1,7 @@
 import { app, dialog } from "electron"
 const fs = require("fs")
 var path = require("path")
+const dirTree = require("directory-tree")
 
 /**
  * @description Set the working directory

@@ -1,83 +1,49 @@
 //import MedDataObject from "../../components/workspace/medDataObject"
 import { MEDDataObject } from "../../components/workspace/NewMedDataObject"
-import { recursivelyRecenseWorkspaceTree, createListOfFilesNotFoundInWorkspace } from "./workspaceUtils"
+import { recursivelyRecenseWorkspaceTree } from "./workspaceUtils"
+import { connectToMongoDB, insertMEDDataObjectIfNotExists } from "../../components/mongoDB/mongoDBUtils"
 
 /**
- * Load the global data from a file
+ * @description Used to update the data present in the DB with local files not present in the database
+ * @param {Object} workspaceObject
  */
-export const loadGlobalDataFromFile = (workspaceObject) => {
-  return new Promise((resolve, reject) => {
-    // eslint-disable-next-line no-undef
-    const fsx = require("fs-extra")
-    let path = workspaceObject.workingDirectory.path + "/.medomics"
-    fsx.readFile(path + "/globalData.json", "utf8", (err, data) => {
-      if (err) {
-        console.error(err)
-        reject(err)
-      }
-      resolve(parseGlobalData(JSON.parse(data)))
-    })
+export const updateGlobalData = async (workspaceObject) => {
+  let rootChildren = workspaceObject.workingDirectory.children
+  let rootParentID = "ROOT"
+  let rootName = workspaceObject.workingDirectory.name
+  let rootType = "directory"
+  let rootPath = workspaceObject.workingDirectory.path
+  let rootDataObject = new MEDDataObject({
+    id: rootParentID,
+    name: rootName,
+    type: rootType,
+    parentID: null,
+    childrenIDs: []
   })
+  await insertMEDDataObjectIfNotExists(rootDataObject, rootPath)
+  await recursivelyRecenseWorkspaceTree(rootChildren, rootParentID)
 }
 
 /**
- * Parse the global data so that the objects are MedDataObjects
- * @param {Object} globalData - The global data to parse
- * @returns {Object} - The parsed global data
+ * @descritption load the MEDDataObjects from the MongoDB database
+ * @returns medDataObjectsDict dict containing the MEDDataObjects in the Database
  */
-export const parseGlobalData = (globalData) => {
-  let parsedGlobalData = {}
-  Object.keys(globalData).forEach((key) => {
-    let dataObject = globalData[key]
-    let parsedDataObject = new MEDDataObject(dataObject)
-    parsedGlobalData[key] = parsedDataObject
-  })
-  return parsedGlobalData
-}
+export async function loadMEDDataObjects() {
+  let medDataObjectsDict = {}
+  try {
+    // Get global data
+    const db = await connectToMongoDB()
+    const collection = db.collection("medDataObjects")
+    const medDataObjectsArray = await collection.find().toArray()
 
-export const updateGlobalData = async (globalData, workspaceObject) => {
-  // Create a copy of the `globalData` state object.
-  let newGlobalData = { ...globalData }
-  // Check if the `workingDirectory` property of the `workspaceObject` has been set.
-  if (workspaceObject.hasBeenSet === true) {
-    // Loop through each child of the `workingDirectory`.
-    /* let metadataFileExists = checkIfMetadataFileExists(workspaceObject)
-    if (metadataFileExists && Object.keys(globalData).length == 0) {
-      // Load the global data from the metadata file
-      newGlobalData = await loadGlobalDataFromFile(workspaceObject)
-    } */
-    let rootChildren = workspaceObject.workingDirectory.children
-    let rootParentID = "ROOT"
-    let rootName = workspaceObject.workingDirectory.name
-    let rootType = "directory"
-    let rootDataObject = new MEDDataObject({
-      id: rootParentID,
-      name: rootName,
-      type: rootType,
-      parentID: null,
-      childrenIDs: []
+    // Format data
+    medDataObjectsArray.forEach((data) => {
+      const medDataObject = new MEDDataObject(data)
+      medDataObjectsDict[medDataObject.id] = medDataObject
     })
-    newGlobalData[rootParentID] = rootDataObject
-    recursivelyRecenseWorkspaceTree(rootChildren, rootParentID, newGlobalData)
+    console.log("MEDDataObjects loaded into globalData", medDataObjectsDict)
+  } catch (error) {
+    console.error("Failed to load MEDDataObjects: ", error)
   }
-  // Clean the globalData from files & folders that are not in the workspace
-  //newGlobalData = cleanGlobalDataFromFilesNotFoundInWorkspace(workspaceObject, newGlobalData)
-
-  return newGlobalData
-}
-
-/**
- * Cleans the global data from files and folders not found in the workspace
- * @param {Object} workspace - The current workspace
- * @param {Object} dataContext - The current global data
- * @returns {Object} - The new global data
- */
-export const cleanGlobalDataFromFilesNotFoundInWorkspace = (workspace, dataContext) => {
-  let newGlobalData = { ...dataContext }
-  let listOfFilesNotFoundInWorkspace = createListOfFilesNotFoundInWorkspace(workspace, dataContext)
-  console.log("listOfFilesNotFoundInWorkspace", listOfFilesNotFoundInWorkspace)
-  listOfFilesNotFoundInWorkspace.forEach((file) => {
-    if (newGlobalData[file] !== undefined && file !== "UUID_ROOT") delete newGlobalData[file]
-  })
-  return newGlobalData
+  return medDataObjectsDict
 }

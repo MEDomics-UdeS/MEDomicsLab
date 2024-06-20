@@ -14,7 +14,7 @@ let mongoProcess = null
 const fs = require("fs")
 var path = require("path")
 const dirTree = require("directory-tree")
-const { spawn, exec } = require("child_process")
+const { exec } = require("child_process")
 var serverProcess = null
 var serverPort = MEDconfig.defaultPort
 var hasBeenSet = false
@@ -560,23 +560,6 @@ if (isProd) {
     } else if (data === "getRecentWorkspaces") {
       let recentWorkspaces = loadWorkspaces()
       event.reply("recentWorkspaces", recentWorkspaces)
-    } else if (data === "handleDBChange") {
-      const client = new MongoClient(mongoUrl)
-      ;(async () => {
-        try {
-          await client.connect()
-          const db = client.db(args)
-          event.reply("DBSet", {
-            name: db.databaseName,
-            hasBeenSet: true,
-            newPort: serverPort
-          })
-        } catch (error) {
-          console.error(error)
-        } finally {
-          await client.close()
-        }
-      })()
     } else if (data === "updateWorkingDirectory") {
       event.reply("updateDirectory", {
         workingDirectory: dirTree(app.getPath("sessionData")),

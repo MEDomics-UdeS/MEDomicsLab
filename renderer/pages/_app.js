@@ -11,8 +11,8 @@ import { HotkeysProvider } from "@blueprintjs/core"
 import { ConfirmPopup } from "primereact/confirmpopup"
 import { ConfirmDialog } from "primereact/confirmdialog"
 import { ServerConnectionProvider } from "../components/serverConnection/connectionContext"
-import { createMedomicsDirectory, saveObjectToFile } from "./appUtils/workspaceUtils"
-import { updateGlobalData } from "./appUtils/globalDataUtils"
+import { createMedomicsDirectory } from "./appUtils/workspaceUtils"
+import { loadMEDDataObjects, updateGlobalData } from "./appUtils/globalDataUtils"
 
 // CSS
 import "bootstrap/dist/css/bootstrap.min.css"
@@ -259,7 +259,7 @@ function App() {
   useEffect(() => {
     console.log("globalData changed", globalData)
     // Save the global data to a file
-    if (workspaceObject.hasBeenSet === true) {
+    /* if (workspaceObject.hasBeenSet === true) {
       let path = workspaceObject.workingDirectory.path + "/.medomics"
       // Check if the .medomics folder exists
       // eslint-disable-next-line no-undef
@@ -267,7 +267,7 @@ function App() {
       fsx.ensureDirSync(workspaceObject.workingDirectory.path + "/.medomics")
       // Save the global data to a file
       saveObjectToFile(globalData, path + "/globalData.json")
-    }
+    } */
   }, [globalData])
 
   // This useEffect hook is called whenever the `layoutModel` state changes.
@@ -279,11 +279,14 @@ function App() {
   // This useEffect hook is called whenever the `workspaceObject` state changes.
   useEffect(() => {
     async function getGlobalData() {
-      const newGlobalData = await updateGlobalData(globalData, workspaceObject)
+      await updateGlobalData(workspaceObject)
+      const newGlobalData = await loadMEDDataObjects()
       setGlobalData(newGlobalData)
     }
-    console.log("workspaceObject changed", workspaceObject)
-    getGlobalData()
+    if (workspaceObject.hasBeenSet == true) {
+      console.log("workspaceObject changed", workspaceObject)
+      getGlobalData()
+    }
   }, [workspaceObject])
 
   return (

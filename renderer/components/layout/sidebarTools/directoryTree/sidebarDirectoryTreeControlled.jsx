@@ -47,10 +47,6 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
     setExternalSelectedItems && setExternalSelectedItems(selectedItems)
   }, [selectedItems])
 
-  useEffect(() => {
-    console.log("DIRTREE", dirTree)
-  }, [dirTree])
-
   /**
    * This function handles the key press event. It is attached to the document.
    * @param {Object} event - The key press event
@@ -609,6 +605,10 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
       document.removeEventListener("click", handleSelectedItemsBlur)
     }
   }, [])
+
+  useEffect(() => {
+    console.log("DIRTREE", dirTree)
+  }, [dirTree])
 
   /**
    * This useEffect hook updates the directory tree when the global data changes.
