@@ -39,6 +39,9 @@ import "flexlayout-react/style/light.css"
 import "../styles/flow/reactFlow.css"
 import "../styles/globals.css"
 import "../styles/learning/learning.css"
+import "../styles/med3pa/med3pa.css"
+import "../styles/med3pa/treeParameters.css"
+
 import "../styles/extraction/extractionMEDimage.css"
 import "../styles/extraction/extractionTabular.css"
 import "../styles/input/MEDprofiles.css"
@@ -187,7 +190,8 @@ function App() {
       setPort(data.newPort)
     })
 
-    ipcRenderer.on("openWorkspace", (event, data) => {MED3paContextProvider
+    ipcRenderer.on("openWorkspace", (event, data) => {
+      MED3paContextProvider
       console.log("openWorkspace from NEXT", data)
       let workspace = { ...data }
       setWorkspaceObject(workspace)
@@ -478,22 +482,29 @@ function App() {
       </Head>
       <div style={{ height: "100%", width: "100%" }}>
         <HotkeysProvider>
-        <MED3paContextProvider>
-          <ActionContextProvider>
-            <DataContextProvider globalData={globalData} setGlobalData={setGlobalData}>
-              <WorkspaceProvider workspace={workspaceObject} setWorkspace={setWorkspaceObject} port={port} setPort={setPort} recentWorkspaces={recentWorkspaces} setRecentWorkspaces={setRecentWorkspaces}>
-                <LayoutModelProvider // This is the LayoutContextProvider, which provides the layout model to all the children components of the LayoutManager
-                  layoutModel={layoutModel}
-                  setLayoutModel={setLayoutModel}
+          <MED3paContextProvider>
+            <ActionContextProvider>
+              <DataContextProvider globalData={globalData} setGlobalData={setGlobalData}>
+                <WorkspaceProvider
+                  workspace={workspaceObject}
+                  setWorkspace={setWorkspaceObject}
+                  port={port}
+                  setPort={setPort}
+                  recentWorkspaces={recentWorkspaces}
+                  setRecentWorkspaces={setRecentWorkspaces}
                 >
-                  {/* This is the WorkspaceProvider, which provides the workspace model to all the children components of the LayoutManager */}
-                  {/* This is the LayoutContextProvider, which provides the layout model to all the children components of the LayoutManager */}
-                  <LayoutManager layout={initialLayout} />
-                  {/** We pass the initialLayout as a parameter */}
-                </LayoutModelProvider>
-              </WorkspaceProvider>
-            </DataContextProvider>
-          </ActionContextProvider>
+                  <LayoutModelProvider // This is the LayoutContextProvider, which provides the layout model to all the children components of the LayoutManager
+                    layoutModel={layoutModel}
+                    setLayoutModel={setLayoutModel}
+                  >
+                    {/* This is the WorkspaceProvider, which provides the workspace model to all the children components of the LayoutManager */}
+                    {/* This is the LayoutContextProvider, which provides the layout model to all the children components of the LayoutManager */}
+                    <LayoutManager layout={initialLayout} />
+                    {/** We pass the initialLayout as a parameter */}
+                  </LayoutModelProvider>
+                </WorkspaceProvider>
+              </DataContextProvider>
+            </ActionContextProvider>
           </MED3paContextProvider>
         </HotkeysProvider>
         <ConfirmPopup />

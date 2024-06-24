@@ -21,7 +21,10 @@ export default function Med3paWelcomePage({ changePage }) {
             <Image src={myimage} alt="" style={{ height: "175px", width: "175px" }} />
           </Stack>
 
-          <h5 className="px-3 w-75"> A unified approach to model evaluation, analytics, and problematic profile detection. Evaluate any ML model's performance and analyse it based on group of profiles.</h5>
+          <h5 className="px-3 w-75">
+            {" "}
+            A unified approach to model evaluation, analytics, and problematic profile detection. Evaluate any ML model's performance and analyse it based on group of profiles.
+          </h5>
           <Button
             onClick={() => {
               changePage(false)

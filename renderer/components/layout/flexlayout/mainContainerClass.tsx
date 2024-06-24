@@ -55,6 +55,7 @@ import HtmlViewer from "../../mainPages/htmlViewer"
 import ModelViewer from "../../mainPages/modelViewer"
 import NotebookEditor from "../../mainPages/notebookEditor"
 import Iframe from "react-iframe"
+import MED3paResultsPage from "../../med3pa/MED3paResultsPage"
 
 var fields = ["Name", "Field1", "Field2", "Field3", "Field4", "Field5"]
 
@@ -756,6 +757,15 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
           return <MED3paPage pageId={"MED3paPage"} />
         }
       }
+    } else if (component === "MED3paResults") {
+      if (node.getExtraData().data == null) {
+        const config = node.getConfig()
+        if (config.path !== null) {
+          return <MED3paResultsPage pageId={config.uuid} configPath={config.path} />
+        } else {
+          return <MED3paResultsPage pageId={"med3paResultsPage"} />
+        }
+      }
     } else if (component === "applicationPage") {
       if (node.getExtraData().data == null) {
         const config = node.getConfig()
@@ -874,6 +884,8 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
           return <Icons.FiletypeXlsx />
         case "xls":
           return <Icons.FiletypeXls />
+        case "MED3paResults":
+          return <span style={{ marginRight: 3 }}>📊</span>
       }
       let icon = <span style={{ marginRight: 3 }}>{iconToReturn}</span>
       return icon

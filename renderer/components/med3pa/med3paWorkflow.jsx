@@ -12,7 +12,7 @@ import { PageInfosContext } from "../mainPages/moduleBasics/pageInfosContext.jsx
 //import { defaultValueFromType } from "../../utilities/learning/inputTypesUtils.js"
 import { FlowResultsContext } from "../flow/context/flowResultsContext"
 
-import { WorkspaceContext } from "../workspace/workspaceContext"
+import { WorkspaceContext, EXPERIMENTS } from "../workspace/workspaceContext"
 
 import { ErrorRequestContext } from "../generalPurpose/errorRequestContext.jsx"
 import MedDataObject from "../workspace/medDataObject.js"
@@ -67,8 +67,8 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
   const [MLType, setMLType] = useState("classification") // MLType is used to know which machine learning type is selected
   const { setViewport } = useReactFlow() // setViewport is used to update the viewport of the workflow
   const { getIntersectingNodes } = useReactFlow() // getIntersectingNodes is used to get the intersecting nodes of a node
-  const { isResults } = useContext(FlowResultsContext)
-  const { port } = useContext(WorkspaceContext)
+  const { isResults, setIsResults } = useContext(FlowResultsContext)
+  const { port, getBasePath } = useContext(WorkspaceContext)
 
   const { setError } = useContext(ErrorRequestContext)
   const [intersections, setIntersections] = useState([]) // intersections is used to store the intersecting nodes related to optimize nodes start and end
@@ -706,6 +706,7 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
       },
       "opt-start"
     )
+
     newNodeStart = addSpecificToNode(newNodeStart, newId)
     let newNodeEnd = createBaseNode(
       { x: 500, y: 200 },
@@ -735,23 +736,52 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
       JSONToSend,
       (jsonResponse) => {
         if (jsonResponse.error) {
-          if (typeof jsonResponse.error == "string") {
+          if (typeof jsonResponse.error === "string") {
             jsonResponse.error = JSON.parse(jsonResponse.error)
           }
           setError(jsonResponse.error)
         } else {
           setIsUpdating(false) // Set the isUpdating to false
-
           setProgressValue({ now: 100, currentLabel: jsonResponse["data"] }) // Set the progress value to 100 and show the message that the backend received from the frontend
-
-          toast.success("We recieved the config from the front end")
+          toast.success("We received the config from the front end")
+          setIsResults(true)
           setRunModal(false)
           setTimeout(() => {
             setIsProgressUpdating(false)
           }, 2000)
+
+          if (isResults) {
+            const folderPath = [getBasePath(EXPERIMENTS), "MED3paResults"].join(MedDataObject.getPathSeparator())
+            MedDataObject.createFolderFromPath(folderPath)
+
+            // Create a copy of the jsonResponse without the path property
+            const { path, ...modifiedJsonResponse } = jsonResponse
+
+            // Create a file for each path
+
+            path.forEach((pathElement) => {
+              const fileName = `MED3paResults_${pathElement}_${new Date().toISOString()}`.replace(/[^a-zA-Z0-9-_]/g, "")
+              const fileContent = {
+                ...modifiedJsonResponse,
+                file_path: [folderPath, pathElement].join(MedDataObject.getPathSeparator())
+              }
+
+              MedDataObject.writeFileSync(fileContent, [getBasePath(EXPERIMENTS), "MED3paResults"], fileName, "MED3paResults")
+                .then((res) => {
+                  console.log("res", res)
+                  toast.success(`Result generated and saved for ${pathElement}!`)
+                })
+                .catch((error) => {
+                  console.error(`Error writing file for ${pathElement}:`, error)
+                  toast.error(`Failed to save result for ${pathElement}`, error)
+                })
+            })
+
+            MedDataObject.updateWorkspaceDataObject()
+          }
         }
       },
-      function (error) {
+      (error) => {
         setIsUpdating(false)
         setProgressValue({ now: 0, currentLabel: "Message sending failed ❌" })
         toast.error("Sending failed", error)

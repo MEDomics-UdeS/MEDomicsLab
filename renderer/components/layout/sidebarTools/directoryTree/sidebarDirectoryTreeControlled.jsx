@@ -257,6 +257,9 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
         case "openInLearningModule":
           dispatchLayout({ type: "openInLearningModule", payload: props })
           break
+        case "MED3paResults":
+          dispatchLayout({ type: "MED3paResults", payload: props })
+          break
         case "openInEvaluationModule":
           dispatchLayout({ type: "openInEvaluationModule", payload: props })
           break
@@ -329,6 +332,8 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
         dispatchLayout({ type: "openInTextEditor", payload: item })
       } else if (item.type == "medmodel") {
         dispatchLayout({ type: "openInModelViewer", payload: item })
+      } else if (item.type == "MED3paResults") {
+        dispatchLayout({ type: "MED3paResults", payload: item })
       } else {
         console.log("DBCLICKED", event, item)
       }
