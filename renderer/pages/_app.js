@@ -162,14 +162,23 @@ function App() {
       // Handle the received message from the Electron side
     })
 
+    ipcRenderer.on("setWorkingDirectoryInApp", (event, data) => {
+      ipcRenderer.invoke("setWorkingDirectory", data).then((data) => {
+        if (workspaceObject !== data) {
+          let workspace = { ...data }
+          setWorkspaceObject(workspace)
+        }
+      })
+    })
+
     // This useEffect hook is called only once and it sets the ipcRenderer to listen for the "workingDirectorySet" message from the main process
     // The working directory tree is stored in the workspaceObject state variable
-    ipcRenderer.on("workingDirectorySet", (event, data) => {
+    /* ipcRenderer.on("workingDirectorySet", (event, data) => {
       if (workspaceObject !== data) {
         let workspace = { ...data }
         setWorkspaceObject(workspace)
       }
-    })
+    }) */
 
     /**
      * IMPORTANT - Related to the MongoDB
@@ -203,23 +212,23 @@ function App() {
       setCollectionData(collData)
     })
  */
-    ipcRenderer.on("updateDirectory", (event, data) => {
+    /*  ipcRenderer.on("updateDirectory", (event, data) => {
       let workspace = { ...data }
       setWorkspaceObject(workspace)
       // Send IPC event to main process to start MongoDB
       //ipcRenderer.send("change-workspace", data.workingDirectory.path)
-    })
+    }) */
 
     ipcRenderer.on("getServerPort", (event, data) => {
       console.log("server port update from Electron:", data)
       setPort(data.newPort)
     })
 
-    ipcRenderer.on("openWorkspace", (event, data) => {
+    /*  ipcRenderer.on("openWorkspace", (event, data) => {
       console.log("openWorkspace from NEXT", data)
       let workspace = { ...data }
       setWorkspaceObject(workspace)
-    })
+    }) */
 
     ipcRenderer.on("toggleDarkMode", () => {
       console.log("toggleDarkMode")
@@ -273,6 +282,7 @@ function App() {
 
   // This useEffect hook is called whenever the `workspaceObject` state changes.
   useEffect(() => {
+    console.log("WORKSPACE OBJECT CHANGED")
     async function getGlobalData() {
       await updateGlobalData(workspaceObject)
       const newGlobalData = await loadMEDDataObjects()

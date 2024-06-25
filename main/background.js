@@ -188,7 +188,15 @@ if (isProd) {
     }
   })
 
-  ipcMain.on("setWorkingDirectory", async (event, data) => {
+  /*   ipcMain.on("setDB", (event, data) => {
+    event.reply("DBSet", {
+      name: data,
+      hasBeenSet: true,
+      newPort: serverPort
+    })
+  }) */
+
+  ipcMain.handle("setWorkingDirectory", async (event, data) => {
     app.setPath("sessionData", data)
     console.log("setWorkingDirectory : ", data)
     createMedomicsDirectory(data)
@@ -198,22 +206,19 @@ if (isProd) {
       await stopMongoDB(mongoProcess)
       // Start MongoDB with the new configuration
       startMongoDB(data, mongoProcess)
-      event.reply("workingDirectorySet", {
+      return {
         workingDirectory: dirTree(app.getPath("sessionData")),
         hasBeenSet: true,
         newPort: serverPort
-      })
+      }
+      /* event.reply("workingDirectorySet", {
+          workingDirectory: dirTree(app.getPath("sessionData")),
+          hasBeenSet: true,
+          newPort: serverPort
+        }) */
     } catch (error) {
       console.error("Failed to change workspace: ", error)
     }
-  })
-
-  ipcMain.on("setDB", (event, data) => {
-    event.reply("DBSet", {
-      name: data,
-      hasBeenSet: true,
-      newPort: serverPort
-    })
   })
 
   /**
@@ -290,7 +295,7 @@ if (isProd) {
    * @param {*} dbName The name of the database
    *
    */
-  ipcMain.on("get-collections", async (event, dbName) => {
+  /*   ipcMain.on("get-collections", async (event, dbName) => {
     const client = new MongoClient(mongoUrl)
     try {
       await client.connect()
@@ -306,14 +311,14 @@ if (isProd) {
     } finally {
       await client.close()
     }
-  })
+  }) */
 
   /**
    * @description Upload CSV, TSV, JSON files and images into the Database
    * @param {String} event The event
    * @param {String} dbName The name of the database
    */
-  ipcMain.on("upload-files", async (event, dbName) => {
+  /* ipcMain.on("upload-files", async (event, dbName) => {
     // Select file(s) to import
     const result = await dialog.showOpenDialog({ properties: ["openFile", "multiSelections"] })
 
@@ -378,14 +383,14 @@ if (isProd) {
         })
       })
     }
-  })
+  }) */
 
   /**
    * @description Upload a folder structure as collection into the Database
    * @param {String} event The event
    * @param {String} dbName The name of the database
    */
-  ipcMain.on("select-folder", async (event, dbName) => {
+  /* ipcMain.on("select-folder", async (event, dbName) => {
     const result = await dialog.showOpenDialog({ properties: ["openDirectory"] })
     if (result.filePaths && result.filePaths.length > 0) {
       const directoryPath = result.filePaths[0]
@@ -438,7 +443,7 @@ if (isProd) {
         event.reply("upload-folder-error", collectionName)
       }
     }
-  })
+  }) */
 
   /**
    * @description Delete a collection in the database
@@ -446,7 +451,7 @@ if (isProd) {
    * @param {String} dbName Name of the database
    * @param {String} collectionName Name of the collection to delete
    */
-  ipcMain.on("delete-collection", async (event, dbName, collectionName) => {
+  /*   ipcMain.on("delete-collection", async (event, dbName, collectionName) => {
     const client = new MongoClient(mongoUrl)
     try {
       await client.connect()
@@ -459,7 +464,7 @@ if (isProd) {
     } finally {
       await client.close()
     }
-  })
+  }) */
 
   /**
    * @description Gets the data of a collection
@@ -468,7 +473,7 @@ if (isProd) {
    * @param {*} collectionName The name of the collection
    */
 
-  ipcMain.on("get-collection-data", async (event, dbname, collectionName) => {
+  /*   ipcMain.on("get-collection-data", async (event, dbname, collectionName) => {
     const client = new MongoClient(mongoUrl)
     try {
       await client.connect()
@@ -482,7 +487,7 @@ if (isProd) {
     } finally {
       await client.close()
     }
-  })
+  }) */
 
   /**
    * @description Returns the server status
@@ -673,11 +678,19 @@ function startMongoDB(workspacePath) {
 }
 
 // Function to stop MongoDB
-function stopMongoDB() {
+async function stopMongoDB(mongoProcess) {
   return new Promise((resolve, reject) => {
     if (mongoProcess) {
-      console.log("Stopping MongoDB...")
-      mongoProcess.kill()
+      mongoProcess.on("exit", () => {
+        mongoProcess = null
+        resolve()
+      })
+      try {
+        mongoProcess.kill()
+      } catch (error) {
+        console.log("Error while stopping MongoDB ", error)
+        reject()
+      }
     } else {
       resolve()
     }

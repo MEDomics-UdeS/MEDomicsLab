@@ -171,11 +171,11 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
     if (selectedItemObject.type !== undefined) {
       if (selectedItemObject.type == "folder") {
         MedDataObject.copy(dataObject, selectedItemObject, globalData, setGlobalData)
-        MedDataObject.updateWorkspaceDataObject(300)
+        //MedDataObject.updateWorkspaceDataObject(300)
       } else {
         let parentObject = globalData[selectedItemObject.parentID]
         MedDataObject.copy(dataObject, parentObject, globalData, setGlobalData)
-        MedDataObject.updateWorkspaceDataObject(300)
+        //MedDataObject.updateWorkspaceDataObject(300)
       }
     }
   }
@@ -215,7 +215,7 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
           globalDataCopy = MedDataObject.delete(globalDataCopy[uuid], globalData, dispatchLayout)
           setGlobalData(globalDataCopy)
           toast.success(`Deleted ${globalData[uuid].name}`)
-          MedDataObject.updateWorkspaceDataObject(300)
+          //MedDataObject.updateWorkspaceDataObject(300)
           setIsDialogShowing(false)
         },
         reject: () => {
@@ -446,10 +446,10 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
           let dataObject = globalData[item.UUID]
           if (dataObject.type == "folder") {
             MedDataObject.move(dataObject, globalData[target.targetItem], globalData, setGlobalData)
-            MedDataObject.updateWorkspaceDataObject()
+            //MedDataObject.updateWorkspaceDataObject()
           } else {
             MedDataObject.move(dataObject, globalData[target.targetItem], globalData, setGlobalData)
-            MedDataObject.updateWorkspaceDataObject()
+            //MedDataObject.updateWorkspaceDataObject()
           }
         }
       } else {
@@ -462,7 +462,7 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
           // NO Operation
         } else {
           MedDataObject.move(dataObject, globalData[target.parentItem], globalData, setGlobalData)
-          MedDataObject.updateWorkspaceDataObject()
+          //MedDataObject.updateWorkspaceDataObject()
         }
       }
     }
@@ -503,7 +503,7 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
       let globalDataCopy = { ...globalData }
       globalDataCopy[uuid] = renamedDataObject
       setGlobalData(globalDataCopy)
-      MedDataObject.updateWorkspaceDataObject()
+      //MedDataObject.updateWorkspaceDataObject()
     }
   }
 
@@ -531,7 +531,7 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
       }
 
       MedDataObject.createEmptyFolderFS("New Folder", parentObject.path)
-      MedDataObject.updateWorkspaceDataObject()
+      //MedDataObject.updateWorkspaceDataObject()
       tree.current.expandItem(parentObject.getUUID()) // We expand the parent folder so that we see the new folder
     } else {
       toast.error("Error: Please select a folder")

@@ -24,7 +24,6 @@ export function setWorkingDirectory(event, mainWindow) {
         event.reply("messageFromElectron", "Dialog was canceled")
       } else {
         const file = result.filePaths[0]
-        console.log("FILE", file, result, result.filePaths)
         if (dirTree(file).children.length > 0) {
           // If the selected folder is not empty
           console.log("Selected folder is not empty")
@@ -40,7 +39,7 @@ export function setWorkingDirectory(event, mainWindow) {
             .then((result) => {
               if (result.response === 0) {
                 // If the user clicks on "Yes"
-                ipcRenderer.send("setWorkingDirectory", file)
+                mainWindow.webContents.send("setWorkingDirectoryInApp", file)
               } else if (result.response === 1) {
                 // If the user clicks on "No"
                 console.log("Dialog was canceled")
@@ -53,7 +52,7 @@ export function setWorkingDirectory(event, mainWindow) {
         } else {
           // If the working directory is not set to the selected folder
           // The working directory is set to the selected folder and the folder structure is returned to Next.js
-          ipcRenderer.send("setWorkingDirectory", file)
+          mainWindow.webContents.send("setWorkingDirectoryInApp", file)
         }
       }
     })
@@ -155,7 +154,7 @@ export function getRecentWorkspacesOptions(event, mainWindow, hasBeenSet, worksp
           newPort: serverPort
         }
         hasBeenSet = true
-        mainWindow.webContents.send("openWorkspace", workspaceObject)
+        //mainWindow.webContents.send("openWorkspace", workspaceObject)
       }
     }
   })

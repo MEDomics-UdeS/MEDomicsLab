@@ -10,7 +10,7 @@ import { ipcRenderer } from "electron"
  * @returns the home page component
  */
 const HomePage = () => {
-  const { workspace, recentWorkspaces } = useContext(WorkspaceContext)
+  const { workspace, setWorkspace, recentWorkspaces } = useContext(WorkspaceContext)
   const [hasBeenSet, setHasBeenSet] = useState(workspace.hasBeenSet)
 
   async function handleWorkspaceChange() {
@@ -55,7 +55,12 @@ const HomePage = () => {
                     <a
                       key={index}
                       onClick={() => {
-                        ipcRenderer.send("setWorkingDirectory", workspace.path)
+                        ipcRenderer.invoke("setWorkingDirectory", workspace.path).then((data) => {
+                          if (workspace !== data) {
+                            let workspaceToSet = { ...data }
+                            setWorkspace(workspaceToSet)
+                          }
+                        })
                       }}
                       style={{ margin: "0rem", color: "var(--blue-600)" }}
                     >
