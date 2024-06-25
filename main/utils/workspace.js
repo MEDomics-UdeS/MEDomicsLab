@@ -1,4 +1,4 @@
-import { app, dialog } from "electron"
+import { app, dialog, ipcRenderer } from "electron"
 const fs = require("fs")
 var path = require("path")
 const dirTree = require("directory-tree")
@@ -9,6 +9,7 @@ const dirTree = require("directory-tree")
  *          When the working directory is set, the function returns the folder structure of the working directory as a JSON object in a reply to Next.js
  * @param {*} event
  * @param {*} mainWindow
+ * @param {*} hasBeenSet
  */
 export function setWorkingDirectory(event, mainWindow) {
   dialog
@@ -23,6 +24,7 @@ export function setWorkingDirectory(event, mainWindow) {
         event.reply("messageFromElectron", "Dialog was canceled")
       } else {
         const file = result.filePaths[0]
+        console.log("FILE", file, result, result.filePaths)
         if (dirTree(file).children.length > 0) {
           // If the selected folder is not empty
           console.log("Selected folder is not empty")
@@ -38,19 +40,7 @@ export function setWorkingDirectory(event, mainWindow) {
             .then((result) => {
               if (result.response === 0) {
                 // If the user clicks on "Yes"
-                console.log("Working directory set to " + file)
-                event.reply("messageFromElectron", "Working directory set to " + file)
-                // Add selected folder to the recent workspaces
-                updateWorkspace(file)
-                app.setPath("sessionData", file)
-                createWorkingDirectory()
-                hasBeenSet = true // The boolean hasBeenSet is set to true to indicate that the working directory has been set
-                // This is the variable that controls the disabled/enabled state of the IconSidebar's buttons in Next.js
-                event.reply("messageFromElectron", dirTree(file))
-                event.reply("workingDirectorySet", {
-                  workingDirectory: dirTree(file),
-                  hasBeenSet: hasBeenSet
-                })
+                ipcRenderer.send("setWorkingDirectory", file)
               } else if (result.response === 1) {
                 // If the user clicks on "No"
                 console.log("Dialog was canceled")
@@ -60,59 +50,16 @@ export function setWorkingDirectory(event, mainWindow) {
         } else if (file === app.getPath("sessionData")) {
           // If the working directory is already set to the selected folder
           console.log("Working directory is already set to " + file)
-          event.reply("messageFromElectron", "Working directory is already set to " + file)
-          event.reply("workingDirectorySet", {
-            workingDirectory: dirTree(file),
-            hasBeenSet: hasBeenSet
-          })
         } else {
           // If the working directory is not set to the selected folder
           // The working directory is set to the selected folder and the folder structure is returned to Next.js
-          console.log("Working directory set to " + file)
-          event.reply("messageFromElectron", "Working directory set to " + file)
-          app.setPath("sessionData", file)
-          updateWorkspace(file)
-          createWorkingDirectory()
-          hasBeenSet = true // The boolean hasBeenSet is set to true to indicate that the working directory has been set
-          // This is the variable that controls the disabled/enabled state of the IconSidebar's buttons in Next.js
-          event.reply("messageFromElectron", dirTree(file))
-          event.reply("workingDirectorySet", {
-            workingDirectory: dirTree(file),
-            hasBeenSet: hasBeenSet
-          })
+          ipcRenderer.send("setWorkingDirectory", file)
         }
       }
     })
     .catch((err) => {
       console.log(err)
     })
-}
-
-function createWorkingDirectory() {
-  // See the workspace menuTemplate in the repository
-  createFolder("DATA")
-  createFolder("EXPERIMENTS")
-}
-
-function createFolder(folderString) {
-  // Creates a folder in the working directory
-  const folderPath = path.join(app.getPath("sessionData"), folderString)
-
-  fs.mkdir(folderPath, { recursive: true }, (err) => {
-    if (err) {
-      console.error(err)
-      return
-    }
-
-    console.log("Folder created successfully!")
-  })
-}
-
-function getTheWorkingDirectoryStructure() {
-  // Returns the folder structure of the working directory
-  const dirTree = require("directory-tree")
-  const tree = dirTree(getWorkingDirectory())
-  return tree
 }
 
 function getWorkingDirectory() {
@@ -186,7 +133,7 @@ function updateWorkspace(workspacePath) {
  * @param {*} workspacesArray The array of workspaces, if null, the function will load the workspaces
  * @returns {Array} An array of recent workspaces options
  */
-export function getRecentWorkspacesOptions(event, mainWindow, workspacesArray = null) {
+export function getRecentWorkspacesOptions(event, mainWindow, hasBeenSet, workspacesArray = null) {
   let workspaces
   if (workspacesArray === null) {
     workspaces = loadWorkspaces()
@@ -213,4 +160,37 @@ export function getRecentWorkspacesOptions(event, mainWindow, workspacesArray = 
     }
   })
   return recentWorkspacesOptions
+}
+
+// Function to create the .medomics directory and necessary files
+export const createMedomicsDirectory = (directoryPath) => {
+  const medomicsDir = path.join(directoryPath, ".medomics")
+  const mongoDataDir = path.join(medomicsDir, "MongoDBdata")
+  const mongoConfigPath = path.join(medomicsDir, "mongod.conf")
+
+  if (!fs.existsSync(medomicsDir)) {
+    // Create .medomicsDir
+    fs.mkdirSync(medomicsDir)
+  }
+
+  if (!fs.existsSync(mongoDataDir)) {
+    // Create MongoDB data dir
+    fs.mkdirSync(mongoDataDir)
+  }
+
+  if (!fs.existsSync(mongoConfigPath)) {
+    // Create mongod.conf
+    const mongoConfig = `
+    systemLog:
+      destination: file
+      path: ${path.join(medomicsDir, "mongod.log")}
+      logAppend: true
+    storage:
+      dbPath: ${mongoDataDir}
+    net:
+      bindIp: 127.0.0.1
+      port: 27017
+    `
+    fs.writeFileSync(mongoConfigPath, mongoConfig)
+  }
 }

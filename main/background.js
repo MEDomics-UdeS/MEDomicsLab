@@ -4,17 +4,16 @@ import serve from "electron-serve"
 import { createWindow } from "./helpers"
 import { installExtension, REACT_DEVELOPER_TOOLS } from "electron-extension-installer"
 import MEDconfig from "../medomics.dev"
-import { startMongoDB, stopMongoDB } from "./utils/mongoDB"
 import { runServer } from "./utils/server"
-import { setWorkingDirectory, getRecentWorkspacesOptions, loadWorkspaces } from "./utils/workspace"
+import { setWorkingDirectory, getRecentWorkspacesOptions, loadWorkspaces, createMedomicsDirectory } from "./utils/workspace"
 
 const MongoClient = require("mongodb").MongoClient
 const mongoUrl = "mongodb://localhost:27017"
-let mongoProcess = null
 const fs = require("fs")
 var path = require("path")
+let mongoProcess = null
 const dirTree = require("directory-tree")
-const { exec } = require("child_process")
+const { exec, spawn } = require("child_process")
 var serverProcess = null
 var serverPort = MEDconfig.defaultPort
 var hasBeenSet = false
@@ -91,12 +90,12 @@ if (isProd) {
     splashScreen.focus()
     splashScreen.setAlwaysOnTop(true)
   })
-  const openRecentWorkspacesSubmenuOptions = getRecentWorkspacesOptions(null, mainWindow)
+  const openRecentWorkspacesSubmenuOptions = getRecentWorkspacesOptions(null, mainWindow, hasBeenSet)
   console.log("openRecentWorkspacesSubmenuOptions", JSON.stringify(openRecentWorkspacesSubmenuOptions, null, 2))
   const menuTemplate = [
     {
       label: "File",
-      submenu: [{ label: "Open recent", submenu: getRecentWorkspacesOptions(null, mainWindow) }, { type: "separator" }, { role: "quit" }]
+      submenu: [{ label: "Open recent", submenu: getRecentWorkspacesOptions(null, mainWindow, hasBeenSet) }, { type: "separator" }, { role: "quit" }]
     },
     {
       label: "Edit",
@@ -185,28 +184,28 @@ if (isProd) {
     console.log("GetRecentWorkspaces : ", data)
     if (data === "requestRecentWorkspaces") {
       // If the message is "requestRecentWorkspaces", the function getRecentWorkspaces is called
-      getRecentWorkspacesOptions(event, mainWindow)
+      getRecentWorkspacesOptions(event, mainWindow, hasBeenSet)
     }
   })
 
-  ipcMain.on("setWorkingDirectory", (event, data) => {
+  ipcMain.on("setWorkingDirectory", async (event, data) => {
     app.setPath("sessionData", data)
     console.log("setWorkingDirectory : ", data)
+    createMedomicsDirectory(data)
     hasBeenSet = true
-    event.reply("workingDirectorySet", {
-      workingDirectory: dirTree(app.getPath("sessionData")),
-      hasBeenSet: true,
-      newPort: serverPort
-    })
-  })
-
-  // IPC handler for changing the workspace
-  ipcMain.on("change-workspace", (event, workspacePath) => {
-    console.log(`Changing workspace to: ${workspacePath}`)
-    stopMongoDB(mongoProcess)
-    setTimeout(() => {
-      startMongoDB(workspacePath, mongoProcess)
-    }, 5000)
+    try {
+      // Stop MongoDB if it's running
+      await stopMongoDB(mongoProcess)
+      // Start MongoDB with the new configuration
+      startMongoDB(data, mongoProcess)
+      event.reply("workingDirectorySet", {
+        workingDirectory: dirTree(app.getPath("sessionData")),
+        hasBeenSet: true,
+        newPort: serverPort
+      })
+    } catch (error) {
+      console.error("Failed to change workspace: ", error)
+    }
   })
 
   ipcMain.on("setDB", (event, data) => {
@@ -560,13 +559,13 @@ if (isProd) {
     } else if (data === "getRecentWorkspaces") {
       let recentWorkspaces = loadWorkspaces()
       event.reply("recentWorkspaces", recentWorkspaces)
-    } else if (data === "updateWorkingDirectory") {
+    } /* else if (data === "updateWorkingDirectory") {
       event.reply("updateDirectory", {
         workingDirectory: dirTree(app.getPath("sessionData")),
         hasBeenSet: hasBeenSet,
         newPort: serverPort
       }) // Sends the folder structure to Next.js
-    } else if (data === "getServerPort") {
+    } */ else if (data === "getServerPort") {
       event.reply("getServerPort", {
         newPort: serverPort
       }) // Sends the folder structure to Next.js
@@ -641,5 +640,46 @@ function openWindowFromURL(url) {
   window.once("ready-to-show", () => {
     window.show()
     window.focus()
+  })
+}
+
+// Function to start MongoDB
+function startMongoDB(workspacePath) {
+  const mongoConfigPath = path.join(workspacePath, ".medomics", "mongod.conf")
+  if (fs.existsSync(mongoConfigPath)) {
+    console.log("Starting MongoDB with config: ", mongoConfigPath)
+    mongoProcess = spawn("mongod", ["--config", mongoConfigPath])
+
+    mongoProcess.stdout.on("data", (data) => {
+      console.log(`MongoDB stdout: ${data}`)
+    })
+
+    mongoProcess.stderr.on("data", (data) => {
+      console.error(`MongoDB stderr: ${data}`)
+    })
+
+    mongoProcess.on("close", (code) => {
+      console.log(`MongoDB process exited with code ${code}`)
+    })
+
+    mongoProcess.on("error", (err) => {
+      console.error("Failed to start MongoDB: ", err)
+      reject(err)
+    })
+  } else {
+    const errorMsg = `MongoDB config file does not exist: ${mongoConfigPath}`
+    console.error(errorMsg)
+  }
+}
+
+// Function to stop MongoDB
+function stopMongoDB() {
+  return new Promise((resolve, reject) => {
+    if (mongoProcess) {
+      console.log("Stopping MongoDB...")
+      mongoProcess.kill()
+    } else {
+      resolve()
+    }
   })
 }

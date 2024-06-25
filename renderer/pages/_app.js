@@ -11,7 +11,6 @@ import { HotkeysProvider } from "@blueprintjs/core"
 import { ConfirmPopup } from "primereact/confirmpopup"
 import { ConfirmDialog } from "primereact/confirmdialog"
 import { ServerConnectionProvider } from "../components/serverConnection/connectionContext"
-import { createMedomicsDirectory } from "./appUtils/workspaceUtils"
 import { loadMEDDataObjects, updateGlobalData } from "./appUtils/globalDataUtils"
 
 // CSS
@@ -169,10 +168,6 @@ function App() {
       if (workspaceObject !== data) {
         let workspace = { ...data }
         setWorkspaceObject(workspace)
-        // Call function to create .medomics directory and files
-        createMedomicsDirectory(workspace.workingDirectory.path)
-        // Send IPC event to main process to start MongoDB
-        ipcRenderer.send("change-workspace", data.workingDirectory.path)
       }
     })
 

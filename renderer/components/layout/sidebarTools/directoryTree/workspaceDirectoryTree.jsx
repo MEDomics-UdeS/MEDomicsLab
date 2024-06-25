@@ -3,7 +3,6 @@ import { SidebarFolder } from "../components"
 import { WorkspaceContext } from "../../../workspace/workspaceContext"
 import { deepCopy } from "../../../../utilities/staticFunctions"
 import { ArrowClockwise } from "react-bootstrap-icons"
-import { ipcRenderer } from "electron"
 import { DataContext } from "../../../workspace/dataContext"
 /**
  * @description This is an element that is displayed after the header of the workspace directory tree
@@ -13,7 +12,7 @@ import { DataContext } from "../../../workspace/dataContext"
 const AfterHeader = () => {
   function handleRefreshClick(event) {
     event.stopPropagation()
-    ipcRenderer.send("messageFromNext", "updateWorkingDirectory")
+    //ipcRenderer.send("messageFromNext", "updateWorkingDirectory")
   }
 
   return (
@@ -87,12 +86,20 @@ const WorkspaceDirectoryTree = (props) => {
 
   if (props.all == true) {
     // If the all prop is set to true, we display the whole workspace directory tree
-    return <>{workspaceTree.workingDirectory["name"] && SidebarFolder({ afterHeader: afterHeader, name: workspaceTree.workingDirectory["name"], children: workspaceTree.workingDirectory["children"], globalData: workspaceTree.globalData })}</>
+    return (
+      <>
+        {workspaceTree.workingDirectory["name"] &&
+          SidebarFolder({ afterHeader: afterHeader, name: workspaceTree.workingDirectory["name"], children: workspaceTree.workingDirectory["children"], globalData: workspaceTree.globalData })}
+      </>
+    )
   }
 
   return (
     // Otherwise we display only the data folder and the data files
-    <>{workspaceTree.workingDirectory["name"] && SidebarFolder({ afterHeader: afterHeader, name: workspaceTree.workingDirectory["name"], children: workspaceTree.workingDirectory["children"], globalData: workspaceTree.globalData })}</>
+    <>
+      {workspaceTree.workingDirectory["name"] &&
+        SidebarFolder({ afterHeader: afterHeader, name: workspaceTree.workingDirectory["name"], children: workspaceTree.workingDirectory["children"], globalData: workspaceTree.globalData })}
+    </>
   )
 }
 

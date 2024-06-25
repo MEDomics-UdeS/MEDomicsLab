@@ -6,39 +6,6 @@ import { insertMEDDataObjectIfNotExists } from "../../components/mongoDB/mongoDB
 const fs = require("fs")
 const path = require("path")
 
-// Function to create the .medomics directory and necessary files
-export const createMedomicsDirectory = (directoryPath) => {
-  const medomicsDir = path.join(directoryPath, ".medomics")
-  const mongoDataDir = path.join(medomicsDir, "MongoDBdata")
-  const mongoConfigPath = path.join(medomicsDir, "mongod.conf")
-
-  if (!fs.existsSync(medomicsDir)) {
-    // Create .medomicsDir
-    fs.mkdirSync(medomicsDir)
-  }
-
-  if (!fs.existsSync(mongoDataDir)) {
-    // Create MongoDB data dir
-    fs.mkdirSync(mongoDataDir)
-  }
-
-  if (!fs.existsSync(mongoConfigPath)) {
-    // Create mongod.conf
-    const mongoConfig = `
-    systemLog:
-      destination: file
-      path: ${path.join(medomicsDir, "mongod.log")}
-      logAppend: true
-    storage:
-      dbPath: ${mongoDataDir}
-    net:
-      bindIp: 127.0.0.1
-      port: 27017
-    `
-    fs.writeFileSync(mongoConfigPath, mongoConfig)
-  }
-}
-
 /**
  * @param {Object} children - The children of the current directory
  * @param {String} parentID - The UUID of the parent directory

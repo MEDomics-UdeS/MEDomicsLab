@@ -649,7 +649,7 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
         <Tooltip className="tooltip-small" target=".refresh-icon" {...delayOptions} />
         <Tooltip className="tooltip-small" target=".context-menu-icon" {...delayOptions} />
         <Accordion.Item eventKey="dirTree">
-          <Accordion.Header onClick={() => MedDataObject.updateWorkspaceDataObject()}>
+          <Accordion.Header /* onClick={() => MedDataObject.updateWorkspaceDataObject()} */>
             <Stack direction="horizontal" style={{ flexGrow: "1" }}>
               <p>
                 <strong>WORKSPACE</strong>
@@ -672,7 +672,7 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
                       onClick={(e) => {
                         e.preventDefault()
                         e.stopPropagation()
-                        MedDataObject.updateWorkspaceDataObject()
+                        //MedDataObject.updateWorkspaceDataObject()
                       }}
                     >
                       <ArrowClockwise size={"1rem"} className="context-menu-icon refresh-icon" data-pr-at="right bottom" data-pr-tooltip="Refresh" data-pr-my="left top" />

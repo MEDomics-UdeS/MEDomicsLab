@@ -24,7 +24,6 @@ import ExtractionSidebar from "./sidebarTools/pageSidebar/extractionSidebar"
 import EvaluationSidebar from "./sidebarTools/pageSidebar/evaluationSidebar"
 import MEDflSidebar from "./sidebarTools/pageSidebar/medflSidebar"
 import MED3paSidebar from "./sidebarTools/pageSidebar/med3paSidebar"
-import { ipcRenderer } from "electron"
 import { MainContainer } from "./flexlayout/mainContainerClass"
 import EvaluationPage from "../mainPages/evaluation"
 import SidebarDirectoryTreeControlled from "./sidebarTools/directoryTree/sidebarDirectoryTreeControlled"
@@ -110,7 +109,7 @@ const LayoutManager = (props) => {
    */
   const handleSidebarItemSelect = (selectedItem) => {
     setActiveSidebarItem(selectedItem) // Update activeNavItem state with selected item
-    ipcRenderer.send("messageFromNext", "updateWorkingDirectory")
+    //ipcRenderer.send("messageFromNext", "updateWorkingDirectory")
   }
 
   // Render content component based on activeNavItem state
@@ -287,7 +286,14 @@ const LayoutManager = (props) => {
             </Panel>
           </PanelGroup>
           <div className="quebec-flag-div">
-            <Image className="quebec-flag" src="/images/QUEBEC-FLAG.jpg" alt="Quebec flag" width="750" height="500" style={{ opacity: quebecFlagDisplay ? "1" : "0", height: quebecFlagDisplayHeight, zIndex: quebecFlagZIndex }} />
+            <Image
+              className="quebec-flag"
+              src="/images/QUEBEC-FLAG.jpg"
+              alt="Quebec flag"
+              width="750"
+              height="500"
+              style={{ opacity: quebecFlagDisplay ? "1" : "0", height: quebecFlagDisplayHeight, zIndex: quebecFlagZIndex }}
+            />
           </div>
         </div>
       </div>
