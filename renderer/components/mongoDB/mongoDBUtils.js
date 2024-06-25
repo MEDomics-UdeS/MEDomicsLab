@@ -31,10 +31,14 @@ export async function insertMEDDataObjectIfNotExists(data, path) {
 
   // Check if MEDDataObject exists in the DB
   const existingObjectByID = await collection.findOne({ id: data.id })
+  if (existingObjectByID) {
+    // If object already in the DB we stop here
+    return existingObjectByID.id
+  }
   const existingObjectByAttributes = await collection.findOne({ name: data.name, type: data.type, parentID: data.parentID })
-  // If object already in the DB we stop here
-  if (existingObjectByID || existingObjectByAttributes) {
-    return
+  if (existingObjectByAttributes) {
+    // If object already in the DB we stop here
+    return existingObjectByAttributes.id
   }
 
   // Insert MEDdataObject if not exists
