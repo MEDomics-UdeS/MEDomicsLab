@@ -81,6 +81,7 @@ const HoldoutSetCreationToolsDB = ({ refreshData, DB, data, collection, currentC
     >
       <div style={{ textAlign: "center", marginBottom: "10px" }}>
         <Message
+          className="margin-top-15 margin-bottom-15 center"
           content={
             <div>
               <i className="pi pi-info-circle" />
@@ -94,7 +95,7 @@ const HoldoutSetCreationToolsDB = ({ refreshData, DB, data, collection, currentC
             </div>
           }
         />
-        <Message severity="success" text={`Current collection: ${currentCollection}`} style={{ marginTop: "10px" }} />
+        <Message className="margin-top-15 margin-bottom-15 center" severity="success" text={`Current collection: ${currentCollection}`} style={{ marginTop: "10px" }} />
         <div style={{ marginTop: "10px", marginLeft: "80px" }}>
           <div style={{ marginTop: "10px", display: "flex", justifyContent: "center", marginRight: "70px", alignItems: "center" }}>
             <Checkbox
