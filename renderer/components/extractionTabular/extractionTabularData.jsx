@@ -61,10 +61,10 @@ const ExtractionTabularData = ({ extractionTypeList, serverUrl, defaultFilename 
   async function datasetSelected(dataset) {
     try {
       setResultDataset(null)
-      const columnsData = await getCollectionColumnTypes(DB.name, dataset.label)
+      const columnsData = await getCollectionColumnTypes(dataset.label)
       setColumnsTypes(columnsData)
       setSelectedDataset(dataset)
-      const data = await getCollectionData(DB.name, dataset.label)
+      const data = await getCollectionData(dataset.label)
       setDataframe(data)
     } catch (error) {
       console.error("Error:", error)

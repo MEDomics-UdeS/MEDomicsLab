@@ -116,7 +116,7 @@ const ExtractionDenseNet = ({ folderDepth, setExtractionJsonData, setOptionsSele
    */
   async function datasetSelected(dataset) {
     try {
-      const columnsData = await getCollectionColumnTypes(DB.name, dataset.label)
+      const columnsData = await getCollectionColumnTypes(dataset.label)
       setColumnsTypes(columnsData)
       setSelectedDataset(dataset)
     } catch (error) {

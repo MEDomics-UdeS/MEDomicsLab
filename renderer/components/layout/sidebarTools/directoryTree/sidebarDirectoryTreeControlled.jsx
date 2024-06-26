@@ -314,7 +314,7 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
       } else if (item.type == "medeval") {
         dispatchLayout({ type: "openInEvaluationModule", payload: item })
       } else if (item.type == "csv" || item.type == "tsv" || item.type == "xlsx") {
-        dispatchLayout({ type: "openInDataTable", payload: item })
+        dispatchLayout({ type: "openInDataTableFromDBViewer", payload: item })
       } else if (item.type == "json") {
         dispatchLayout({ type: "openInJSONViewer", payload: item })
       } else if (item.type == "py" || item.type == "ipynb") {
@@ -605,10 +605,6 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
       document.removeEventListener("click", handleSelectedItemsBlur)
     }
   }, [])
-
-  useEffect(() => {
-    console.log("DIRTREE", dirTree)
-  }, [dirTree])
 
   /**
    * This useEffect hook updates the directory tree when the global data changes.

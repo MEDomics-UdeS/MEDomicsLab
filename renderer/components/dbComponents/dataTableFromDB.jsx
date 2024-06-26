@@ -75,9 +75,9 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
 
   // Fetch data from MongoDB on component mount
   useEffect(() => {
-    if (data && data.uuid && data.path) {
+    if (data && data.id) {
       console.log("Fetching data with:", data)
-      getCollectionData(data.path, data.uuid)
+      getCollectionData(data.id)
         .then((fetchedData) => {
           console.log("Fetched data:", fetchedData)
           let collData = fetchedData.map((item) => {
@@ -307,8 +307,8 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
 
   // Refresh data from MongoDB
   const refreshData = () => {
-    if (data && data.uuid && data.path) {
-      getCollectionData(data.path, data.uuid)
+    if (data && data.id) {
+      getCollectionData(data.id)
         .then((fetchedData) => {
           let collData = fetchedData.map((item) => {
             let keys = Object.keys(item)
@@ -447,7 +447,7 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
   return (
     <>
       {innerData.length === 0 ? (
-        <p style={{ color: "red", fontSize: "20px", textAlign: "center", margin: "30px" }}>No data found in {data.uuid}</p>
+        <p style={{ color: "red", fontSize: "20px", textAlign: "center", margin: "30px" }}>No data found in {data.name}</p>
       ) : (
         <div style={dataTableStyle}>
           <DataTable

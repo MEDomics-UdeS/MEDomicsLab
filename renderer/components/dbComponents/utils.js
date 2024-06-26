@@ -8,7 +8,7 @@ const mongoUrl = "mongodb://127.0.0.1:27017"
  * @param {String} collectionName
  * @returns fetchedData
  */
-export const getCollectionData = async (dbname, collectionName) => {
+export const getCollectionData = async (collectionName, dbname = "data") => {
   const client = new MongoClient(mongoUrl)
   try {
     await client.connect()
@@ -48,7 +48,7 @@ export const getCollectionData = async (dbname, collectionName) => {
  * @param {String} collectionName
  * @returns columnTypes
  */
-export const getCollectionColumnTypes = async (dbname, collectionName) => {
+export const getCollectionColumnTypes = async (collectionName, dbname = "data") => {
   const client = new MongoClient(mongoUrl, { useNewUrlParser: true, useUnifiedTopology: true })
   try {
     await client.connect()
