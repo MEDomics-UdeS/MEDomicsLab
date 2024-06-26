@@ -1,25 +1,17 @@
-import React, { useEffect, useState } from "react"
+import React, { useContext, useEffect, useState } from "react"
 import { DataTable } from "primereact/datatable"
 import { Column } from "primereact/column"
 import { InputText } from "primereact/inputtext"
 import { Button } from "primereact/button"
 import { MongoClient, ObjectId } from "mongodb"
 import { toast } from "react-toastify"
-import { Panel } from "primereact/panel"
-
-// Import tools components
-import TransformColumnTools from "./inputToolsDB/transformColumnTools"
-import BasicTools from "./inputToolsDB/basicTools"
-import MergeTools from "./inputToolsDB/mergeTools"
-import SimpleCleaningTools from "./inputToolsDB/simpleCleaningTools"
-import SubsetCreationTools from "./inputToolsDB/subsetCreationTools"
-import HoldoutSetCreationTool from "./inputToolsDB/holdoutSetCreationTools"
-import FeatureReductionTools from "./inputToolsDB/featureReductionTools"
-
 const mongoUrl = "mongodb://127.0.0.1:27017"
 import { saveAs } from "file-saver"
 import Papa from "papaparse"
 import { getCollectionData } from "./utils"
+import { MongoDBContext } from "../mongoDB/mongoDBContext"
+import InputToolsComponent from "./InputToolsComponent"
+import { Dialog } from "primereact/dialog"
 
 /**
  * DataTableFromDB component
@@ -31,6 +23,7 @@ import { getCollectionData } from "./utils"
  * @constructor - DataTableFromDB
  */
 const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly }) => {
+  const { DB, DBData } = useContext(MongoDBContext)
   const [innerData, setInnerData] = useState([])
   const [columns, setColumns] = useState([])
   const [newColumnName, setNewColumnName] = useState("")
@@ -38,6 +31,9 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
   const [hoveredButton, setHoveredButton] = useState(null)
   const [selectedColumns, setSelectedColumns] = useState([])
   const [csvData, setCsvData] = useState([])
+  const [fileName, setFileName] = useState("Choose File")
+  const [lastEdit, setLastEdit] = useState(Date.now())
+  const [isDialogVisible, setDialogVisible] = useState(false)
   const exportOptions = [
     {
       label: "CSV",
@@ -55,7 +51,7 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
 
   const buttonStyle = (id) => ({
     borderRadius: "10px",
-    backgroundColor: hoveredButton === id ? "#d32f2f" : "#f44336",
+    backgroundColor: hoveredButton === id ? "#d32f2f" : "#cccccc",
     color: "white",
     border: "none",
     padding: "2px",
@@ -65,11 +61,6 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
 
   const dataTableStyle = {
     height: "100%",
-    overflow: "auto"
-  }
-
-  const panelContainerStyle = {
-    height: "350px",
     overflow: "auto"
   }
 
@@ -103,7 +94,11 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
   useEffect(() => {
     console.log("innerData updated:", innerData)
     if (innerData.length > 0) {
-      const keys = Object.keys(innerData[0]).filter((key) => key !== "_id")
+      const allKeys = new Set()
+      innerData.forEach((item) => {
+        Object.keys(item).forEach((key) => allKeys.add(key))
+      })
+      const keys = Array.from(allKeys).filter((key) => key !== "_id")
       const newColumns = keys.map((key) => ({ field: key, header: key }))
       setColumns(newColumns)
     }
@@ -114,11 +109,12 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
     console.log("columns updated:", columns)
   }, [columns])
 
+  // Call handleCsvData whenever csvData changes
   useEffect(() => {
-    return () => {
-      setCsvData([])
+    if (csvData.length > 0) {
+      handleCsvData()
     }
-  }, [])
+  }, [csvData])
 
   const getColumnsFromData = (data) => {
     if (data.length > 0) {
@@ -209,6 +205,15 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
   // Handle cell edit completion
   const onCellEditComplete = (e) => {
     let { rowData, newValue, field, originalEvent: event } = e
+    if (newValue === "" || newValue === null) {
+      newValue = null
+    } else if (!isNaN(newValue)) {
+      if (Number.isInteger(parseFloat(newValue))) {
+        newValue = parseInt(newValue)
+      } else {
+        newValue = parseFloat(newValue)
+      }
+    }
     rowData[field] = newValue
     if (!rowData._id) {
       console.log("Calling insertDatabaseData with:", {
@@ -236,6 +241,7 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
       updateDatabaseData(data.path, data.uuid, rowData._id, field, newValue)
         .then(() => {
           console.log("Database updated successfully")
+          setLastEdit(Date.now())
         })
         .catch((error) => {
           console.error("Failed to update database:", error)
@@ -320,7 +326,6 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
             return dataObject
           })
           setInnerData(collData)
-          toast.success("Data refreshed successfully")
         })
         .catch((error) => {
           console.error("Failed to fetch data:", error)
@@ -357,10 +362,6 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
 
   // Transform data to binary or non-empty
   const transformData = (type) => {
-    if (selectedColumns.length === 0) {
-      toast.warn("Please select at least one column to transform")
-      return
-    }
     const newInnerData = innerData.map((row) => {
       let newRow = { ...row }
       selectedColumns.forEach((column) => {
@@ -386,26 +387,27 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
   const handleFileUpload = (event) => {
     Papa.parse(event.target.files[0], {
       complete: function (results) {
+        const uploadedColumnNames = results.data[0] // Assuming the first row contains column names
+        const existingColumnNames = columns.map((column) => column.field)
+
+        // Check if all uploaded column names exist in the data
+        const nonExistentColumns = uploadedColumnNames.filter((columnName) => !existingColumnNames.includes(columnName))
+
+        if (nonExistentColumns.length > 0) {
+          toast.warn("The following columns do not exist in the dataset: " + nonExistentColumns.join(", "))
+          setFileName("Choose File")
+          return
+        }
+        setFileName(event.target.files[0].name)
         setCsvData(results.data)
-        handleCsvData() // Call handleCsvData function after CSV data is set
       }
     })
   }
 
   // Handle CSV data
   const handleCsvData = () => {
-    if (csvData.length > 0) {
-      const columnNames = csvData[0]
-      const dbColumnNames = columns.map((column) => column.field)
-      const nonExistentColumns = columnNames.filter((column) => !dbColumnNames.includes(column))
-
-      if (nonExistentColumns.length > 0) {
-        toast.warn("The following columns do not exist in the database: " + nonExistentColumns.join(", "))
-        return
-      }
-
-      setSelectedColumns(columnNames)
-    }
+    const columnNames = csvData[0]
+    setSelectedColumns(columnNames)
   }
 
   // Handle exporting selected columns
@@ -443,6 +445,16 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
     }
   }
 
+  // Function to open the modal
+  const openDialog = () => {
+    setDialogVisible(true)
+  }
+
+  // Function to close the modal
+  const closeDialog = () => {
+    setDialogVisible(false)
+  }
+
   // Render the DataTable component
   return (
     <>
@@ -463,46 +475,8 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
             {...tablePropsData}
             footer={
               !isReadOnly && (
-                <div style={panelContainerStyle}>
-                  <Panel header="Add, Export and Refresh Tools" toggleable collapsed={true}>
-                    <BasicTools
-                      numRows={numRows}
-                      setNumRows={setNumRows}
-                      handleAddRow={handleAddRow}
-                      newColumnName={newColumnName}
-                      setNewColumnName={setNewColumnName}
-                      handleAddColumn={handleAddColumn}
-                      exportOptions={exportOptions}
-                      refreshData={refreshData}
-                    />
-                  </Panel>
-                  <Panel header="Transform Column Tools" toggleable collapsed={true}>
-                    <TransformColumnTools
-                      selectedColumns={selectedColumns}
-                      setSelectedColumns={setSelectedColumns}
-                      columns={columns}
-                      transformData={transformData}
-                      handleFileUpload={handleFileUpload}
-                      handleCsvData={handleCsvData}
-                      handleExportColumns={handleExportColumns}
-                      handleDeleteColumns={handleDeleteColumns}
-                    />
-                  </Panel>
-                  <Panel header="Merge Tools" toggleable collapsed={true}>
-                    <MergeTools />
-                  </Panel>
-                  <Panel header="Simple Cleaning Tools" toggleable collapsed={true}>
-                    <SimpleCleaningTools />
-                  </Panel>
-                  <Panel header="Holdout Set Creation Tools" toggleable collapsed={true}>
-                    <HoldoutSetCreationTool />
-                  </Panel>
-                  <Panel header="Subset Creation Tools" toggleable collapsed={true}>
-                    <SubsetCreationTools />
-                  </Panel>
-                  <Panel header="Feature Reduction Tools" toggleable collapsed={true}>
-                    <FeatureReductionTools />
-                  </Panel>
+                <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100%" }}>
+                  <Button icon="pi pi-file-edit" onClick={openDialog} tooltip="Open Input Tools" tooltipOptions={{ position: "bottom" }} />
                 </div>
               )
             }
@@ -548,6 +522,33 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
           </DataTable>
         </div>
       )}
+      <Dialog header="Input Tools" visible={isDialogVisible} onHide={closeDialog} style={{ width: "80%", height: "80%" }} modal={true}>
+        <InputToolsComponent
+          DBData={DBData}
+          data={data}
+          numRows={numRows}
+          setNumRows={setNumRows}
+          newColumnName={newColumnName}
+          setNewColumnName={setNewColumnName}
+          handleAddColumn={handleAddColumn}
+          exportOptions={exportOptions}
+          refreshData={refreshData}
+          selectedColumns={selectedColumns}
+          setSelectedColumns={setSelectedColumns}
+          columns={columns}
+          transformData={transformData}
+          handleFileUpload={handleFileUpload}
+          fileName={fileName}
+          setFileName={setFileName}
+          handleCsvData={handleCsvData}
+          handleExportColumns={handleExportColumns}
+          handleDeleteColumns={handleDeleteColumns}
+          innerData={innerData}
+          DB={DB}
+          handleAddRow={handleAddRow}
+          lastEdit={lastEdit}
+        />
+      </Dialog>
     </>
   )
 }

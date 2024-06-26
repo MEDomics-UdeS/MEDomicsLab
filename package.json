@@ -97,6 +97,7 @@
     "ipynb-editor": "^1.1.0",
     "jimp": "^0.22.10",
     "jquery-csv": "^1.0.21",
+    "lodash": "^4.17.21",
     "mongodb": "^6.6.2",
     "mongodb-client-encryption": "^6.0.1",
     "papaparse": "^5.4.1",
