@@ -55,7 +55,7 @@ import HtmlViewer from "../../mainPages/htmlViewer"
 import ModelViewer from "../../mainPages/modelViewer"
 import NotebookEditor from "../../mainPages/notebookEditor"
 import Iframe from "react-iframe"
-import MED3paResultsPage from "../../med3pa/MED3paResultsPage"
+import MED3paResultsPage from "../../med3pa/med3paResultsPage"
 
 var fields = ["Name", "Field1", "Field2", "Field3", "Field4", "Field5"]
 

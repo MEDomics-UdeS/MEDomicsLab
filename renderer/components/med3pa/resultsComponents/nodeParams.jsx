@@ -1,50 +1,60 @@
-import React, { useState } from "react"
+import React from "react"
 import { Typography, FormControl, RadioGroup, FormControlLabel, Radio, Switch } from "@mui/material"
 import FlInput from "../paInput"
-
-const NodeParameters = () => {
-  const [focusView, setFocusView] = useState("")
-  const [thresholdEnabled, setThresholdEnabled] = useState(false)
-  const [customThreshold, setCustomThreshold] = useState("")
-  const [selectedParameter, setSelectedParameter] = useState("")
+import { TbSettingsCog } from "react-icons/tb"
+const NodeParameters = ({ nodeParams, setNodeParams }) => {
+  const { focusView, thresholdEnabled, customThreshold, selectedParameter } = nodeParams
 
   const handleFocusViewChange = (event) => {
-    setFocusView(event.target.value)
+    setNodeParams((prevState) => ({
+      ...prevState,
+      focusView: event.target.value
+    }))
   }
 
   const handleThresholdToggleChange = () => {
-    setThresholdEnabled(!thresholdEnabled)
+    setNodeParams((prevState) => ({
+      ...prevState,
+      thresholdEnabled: !prevState.thresholdEnabled
+    }))
   }
 
   const handleCustomThresholdChange = (event) => {
-    setCustomThreshold(event.value)
+    setNodeParams((prevState) => ({
+      ...prevState,
+      customThreshold: event.value
+    }))
   }
 
   const handleParameterChange = (event) => {
-    setSelectedParameter(event.value)
+    setNodeParams((prevState) => ({
+      ...prevState,
+      selectedParameter: event.value
+    }))
   }
 
   return (
-    <div className="card">
-      <Typography variant="h6" style={{ color: "#868686", fontSize: "1.2rem" }}>
+    <div className="card-paresults">
+      <Typography variant="h6" style={{ color: "#868686", fontSize: "1.2rem", display: "flex", alignItems: "center" }}>
+        <TbSettingsCog style={{ marginRight: "0.5rem", fontSize: "1.4rem" }} />
         Node Parameters
-        <hr style={{ borderColor: "#868686", borderWidth: "0.5px" }} />
       </Typography>
-      <div className="node-param-section">
-        <Typography variant="h6" className="default-text-color" style={{ fontSize: "1.1rem" }}>
-          Focus view on
+      <hr style={{ borderColor: "#868686", borderWidth: "0.5px" }} />
+      <div className="node-param-section-paresults">
+        <Typography variant="h6" className="default-text-color-paresults" style={{ fontSize: "1.1rem" }}>
+          Focus on
         </Typography>
         <FormControl component="fieldset">
           <RadioGroup value={focusView} onChange={handleFocusViewChange} style={{ display: "flex", flexDirection: "row", justifyContent: "flex-start", width: "100%", margin: "0%" }}>
-            <FormControlLabel value="Node information" control={<Radio />} label="Node information" className="default-text-color" />
-            <FormControlLabel value="Node performance" control={<Radio />} label="Node performance" className="default-text-color" />
-            <FormControlLabel value="Covariate-shift probabilities" control={<Radio />} label="Covariate-shift probs" className="default-text-color" />
+            <FormControlLabel value="Node information" control={<Radio />} label="Node information" className="default-text-color-paresults" />
+            <FormControlLabel value="Node performance" control={<Radio />} label="Node performance" className="default-text-color-paresults" />
+            <FormControlLabel value="Covariate-shift probabilities" control={<Radio />} label="Covariate-shift probs" className="default-text-color-paresults" />
           </RadioGroup>
         </FormControl>
         <hr style={{ borderColor: "#868686", borderWidth: "0.5px" }} />
       </div>
-      <div className="node-param-section" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <Typography variant="h6" className="default-text-color" style={{ fontSize: "1.1rem" }}>
+      <div className="node-param-section-paresults" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <Typography variant="h6" className="default-text-color-paresults" style={{ fontSize: "1.1rem" }}>
           Highlight from certain threshold
         </Typography>
         <FormControlLabel control={<Switch checked={thresholdEnabled} onChange={handleThresholdToggleChange} />} label="" />
@@ -63,7 +73,7 @@ const NodeParameters = () => {
               currentValue={selectedParameter}
               onInputChange={handleParameterChange}
               disabled={false}
-              className="default-text-color"
+              className="default-text-color-paresults"
             />
           </div>
           <div style={{ width: "40%" }}>
@@ -73,10 +83,10 @@ const NodeParameters = () => {
                 type: "int",
                 tooltip: "Input threshold"
               }}
-              currentValue={customThreshold}
+              value={customThreshold}
               onInputChange={handleCustomThresholdChange}
               disabled={false}
-              className="default-text-color"
+              className="default-text-color-paresults"
             />
           </div>
         </div>

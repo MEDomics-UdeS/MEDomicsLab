@@ -1,8 +1,8 @@
-.slider-group {
+.slider-group-paresults {
   display: flex;
-  justify-content: space-around;
+  justify-content: space-between;
 }
 
-.slider-container {
-  width: 48%;
+.slider-container-paresults {
+  width: 45%;
 }

@@ -742,6 +742,7 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
           setError(jsonResponse.error)
         } else {
           setIsUpdating(false) // Set the isUpdating to false
+
           setProgressValue({ now: 100, currentLabel: jsonResponse["data"] }) // Set the progress value to 100 and show the message that the backend received from the frontend
           toast.success("We received the config from the front end")
           setIsResults(true)
@@ -750,7 +751,7 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
             setIsProgressUpdating(false)
           }, 2000)
 
-          if (isResults) {
+          if (!isProgressUpdating) {
             const folderPath = [getBasePath(EXPERIMENTS), "MED3paResults"].join(MedDataObject.getPathSeparator())
             MedDataObject.createFolderFromPath(folderPath)
 
@@ -767,8 +768,7 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
               }
 
               MedDataObject.writeFileSync(fileContent, [getBasePath(EXPERIMENTS), "MED3paResults"], fileName, "MED3paResults")
-                .then((res) => {
-                  console.log("res", res)
+                .then(() => {
                   toast.success(`Result generated and saved for ${pathElement}!`)
                 })
                 .catch((error) => {
