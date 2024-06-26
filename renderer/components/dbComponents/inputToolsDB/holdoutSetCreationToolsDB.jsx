@@ -66,7 +66,7 @@ const HoldoutSetCreationToolsDB = ({ refreshData, DB, data, collection, currentC
       console.log("jsonResponse", jsonResponse)
       refreshData()
       ipcRenderer.send("get-collections", DB.name)
-      toast.success("Data cleaned successfully.")
+      toast.success("Holdout and learning sets created successfully.")
     })
   }
 
