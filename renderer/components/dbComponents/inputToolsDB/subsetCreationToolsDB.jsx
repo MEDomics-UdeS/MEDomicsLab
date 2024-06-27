@@ -84,18 +84,15 @@ const SubsetCreationToolsDB = ({ DB, currentCollection, refreshData }) => {
     await client.connect()
     const db = client.db(DB.name)
 
-    // Check if a collection with the new subset name already exists
     const collections = await db.listCollections().toArray()
     const collectionExists = collections.some((collection) => collection.name === newCollectionName)
 
     if (collectionExists) {
-      // If the collection already exists, display a toast message and return
       toast.warn(`A subset with the name ${newCollectionName} already exists.`)
       await client.close()
       return
     }
 
-    // If the collection does not exist, create it
     const newCollection = await db.createCollection(newCollectionName)
     await newCollection.insertMany(filteredData)
     ipcRenderer.send("get-collections", DB.name)
