@@ -1,69 +1,26 @@
 import { useState, useEffect } from "react"
 import { Message } from "primereact/message"
 import * as React from "react"
-import { getCollectionData, getCollectionColumnTypes } from "../utils"
+import { getCollectionData, getCollectionColumnTypes, getColumnOptions } from "../utils"
 import { DataTable } from "primereact/datatable"
 import { Column } from "primereact/column"
 import { InputText } from "primereact/inputtext"
-import { InputNumber } from "primereact/inputnumber"
-import { MultiSelect } from "primereact/multiselect"
 import { FilterMatchMode, FilterOperator } from "primereact/api"
 import { Row } from "react-bootstrap"
 import { Button } from "primereact/button"
+import { ipcRenderer } from "electron"
+import { toast } from "react-toastify"
+import { MongoClient } from "mongodb"
+const mongoUrl = "mongodb://localhost:27017"
 
-const SubsetCreationToolsDB = ({ DB, currentCollection }) => {
+const SubsetCreationToolsDB = ({ DB, currentCollection, refreshData }) => {
   const [data, setData] = useState([])
   const [columns, setColumns] = useState([])
   const [columnTypes, setColumnTypes] = useState({})
   const [filters, setFilters] = useState({})
   const [newCollectionName, setNewCollectionName] = useState("")
+  const [filteredData, setFilteredData] = useState([])
   const filterDisplay = "menu"
-
-  const initFilters = () => {
-    let newFilters = {}
-    newFilters["global"] = { value: "", matchMode: "contains" }
-
-    Object.keys(columnTypes).forEach((column) => {
-      if (columnTypes[column] === "category") {
-        newFilters[column] = { value: "", matchMode: FilterMatchMode.IN }
-      } else if (columnTypes[column] === "int32" || columnTypes[column] === "float32") {
-        newFilters[column] = { operator: FilterOperator.AND, constraints: [{ value: "", matchMode: FilterMatchMode.EQUALS }] }
-      } else if (columnTypes[column] === "string") {
-        newFilters[column] = { operator: FilterOperator.AND, constraints: [{ value: "", matchMode: FilterMatchMode.STARTS_WITH }] }
-      }
-    })
-
-    setFilters(newFilters)
-  }
-
-  const categoryFilterTemplate = (options) => {
-    return <MultiSelect />
-  }
-
-  const numberFilterTemplate = (options) => {
-    return <InputNumber />
-  }
-
-  const stringFilterTemplate = (options) => {
-    return <InputText />
-  }
-
-  const filterTemplateRenderer = (column) => {
-    const columnType = columnTypes[column]
-    console.log(columnType)
-
-    if (columnType === "category") {
-      return categoryFilterTemplate
-    } else if (columnType === "int32" || columnType === "float32") {
-      return numberFilterTemplate
-    } else if (columnType === "string" || columnType === "date") {
-      return stringFilterTemplate
-    }
-  }
-
-  useEffect(() => {
-    initFilters()
-  }, [columnTypes])
 
   useEffect(() => {
     const fetchData = async () => {
@@ -74,6 +31,7 @@ const SubsetCreationToolsDB = ({ DB, currentCollection }) => {
         }
       })
       setData(formattedData)
+      setFilteredData(formattedData)
       console.log(formattedData)
 
       const columns = Object.keys(formattedData[0])
@@ -88,17 +46,61 @@ const SubsetCreationToolsDB = ({ DB, currentCollection }) => {
       const collectionColumnTypes = await getCollectionColumnTypes(DB.name, currentCollection)
       setColumnTypes(collectionColumnTypes)
       console.log(collectionColumnTypes)
-    }
 
+      initFiltersDynamically(columns, columnTypes)
+    }
     fetchData()
   }, [DB, currentCollection])
 
-  const overwriteCollection = async () => {
-    // todo: overwrite collection with new data with the filters applied
+  useEffect(() => {
+    console.log("filteredData", filteredData)
+  }, [filteredData])
+
+  const initFiltersDynamically = (columns, columnTypes) => {
+    columns.reduce((acc, col) => {
+      const type = columnTypes[col.field]
+      if (type === "string" || type === "date") {
+        acc[col.field] = { operator: FilterOperator.AND, constraints: [{ value: "", matchMode: FilterMatchMode.STARTS_WITH }] }
+      } else if (type === "number" || type === "integer" || type === "float" || type === "int32") {
+        acc[col.field] = { operator: FilterOperator.AND, constraints: [{ value: "", matchMode: FilterMatchMode.EQUALS }] }
+      }
+      setFilters(acc)
+    }, {})
   }
 
-  const createNewCollectionSubset = async (newCollectionName) => {
-    // todo: create new collection with the subset of data with the filters applied
+  const overwriteCollection = async () => {
+    const client = new MongoClient(mongoUrl)
+    await client.connect()
+    const db = client.db(DB.name)
+    const collection = db.collection(currentCollection)
+    await collection.deleteMany({})
+    await collection.insertMany(filteredData)
+    toast.success(`Data in ${currentCollection} overwritten with filtered data.`)
+    refreshData()
+  }
+
+  const createNewCollectionSubset = async (newCollectionName, DB) => {
+    const client = new MongoClient(mongoUrl)
+    await client.connect()
+    const db = client.db(DB.name)
+
+    // Check if a collection with the new subset name already exists
+    const collections = await db.listCollections().toArray()
+    const collectionExists = collections.some((collection) => collection.name === newCollectionName)
+
+    if (collectionExists) {
+      // If the collection already exists, display a toast message and return
+      toast.warn(`A subset with the name ${newCollectionName} already exists.`)
+      await client.close()
+      return
+    }
+
+    // If the collection does not exist, create it
+    const newCollection = await db.createCollection(newCollectionName)
+    await newCollection.insertMany(filteredData)
+    ipcRenderer.send("get-collections", DB.name)
+    toast.success(`New subset ${newCollectionName} created with filtered data.`)
+    await client.close()
   }
 
   return (
@@ -116,35 +118,46 @@ const SubsetCreationToolsDB = ({ DB, currentCollection }) => {
         severity="info"
         text="The Subset Creation tool enables the creation of a subset of rows from a dataset by applying filters to columns."
       />
-      <Message className="margin-top-15 margin-bottom-15 center" severity="success" text={`Current Collection: ${currentCollection}`} />
-      <DataTable className="p-datatable-striped p-datatable-gridlines" value={data} paginator rows={5} filters={filters} filterDisplay={filterDisplay} size={"small"}>
-        {columns.map((col) => (
-          <Column key={col.field} field={col.field} header={col.header} sortable filter filterElement={filterTemplateRenderer(col.field)} filterPlaceholder={`Search by ${col}`} />
-        ))}
-      </DataTable>
-      <Row
-        className={"card"}
-        style={{
-          display: "flex",
-          justifyContent: "space-evenly",
-          flexDirection: "row",
-          marginTop: "1rem",
-          backgroundColor: "transparent",
-          padding: "0.5rem"
+      <Message style={{ marginBottom: "15px" }} severity="success" text={`Current Collection: ${currentCollection}`} />
+      <DataTable
+        onValueChange={(e) => {
+          setFilteredData(e)
         }}
+        className="p-datatable-striped p-datatable-gridlines"
+        value={data}
+        paginator={true}
+        rows={5}
+        rowsPerPageOptions={[5, 10, 85, 20]}
+        size={"small"}
+        removableSort={true}
+        filters={filters}
+        filterDisplay={filterDisplay}
+        globalFilterFields={columns.map((col) => col.field)}
       >
+        {columns.length > 0 &&
+          columns.map((col) => <Column key={col} field={col.field} header={col.header} sortable={true} filter filterPlaceholder={`Search by ${col.header}`} filterField={col.field} />)}
+      </DataTable>
+
+      <Row className={"card"} style={{ display: "flex", justifyContent: "space-evenly", flexDirection: "row", marginTop: "0.5rem", backgroundColor: "transparent", padding: "0.5rem" }}>
         <h6>
-          Rows selected : <b>{data.length}</b>&nbsp; of &nbsp;
+          Rows selected : <b>{filteredData.length}</b>&nbsp; of &nbsp;
           <b>{data ? data.length : 0}</b>
         </h6>
       </Row>
       <div style={{ display: "flex", justifyContent: "center", alignItems: "center", marginTop: "1rem" }}>
-        <Button className="p-button-danger" label="Overwrite" style={{ margin: "5px", fontSize: "1rem", padding: "6px 10px" }} onClick={() => overwriteCollection} />
+        <Button
+          className="p-button-danger"
+          label="Overwrite"
+          style={{ margin: "5px", fontSize: "1rem", padding: "6px 10px" }}
+          onClick={overwriteCollection}
+          tooltip="Overwrite current collection with filtered data"
+          tooltipOptions={{ position: "top" }}
+        />
         <InputText value={newCollectionName} onChange={(e) => setNewCollectionName(e.target.value)} placeholder="New subset name" style={{ margin: "5px", fontSize: "1rem", width: "205px" }} />
         <Button
           icon="pi pi-plus"
           style={{ margin: "5px", fontSize: "1rem", padding: "6px 10px", width: "100px", marginTop: "0.25rem" }}
-          onClick={() => createNewCollectionSubset(newCollectionName)}
+          onClick={() => createNewCollectionSubset(newCollectionName, DB)}
           tooltip="Create subset"
           tooltipOptions={{ position: "top" }}
         />

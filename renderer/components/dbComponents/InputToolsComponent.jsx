@@ -76,7 +76,7 @@ const InputToolsComponent = ({
         <HoldoutSetCreationToolsDB refreshData={refreshData} DB={DB} data={innerData} collections={DBData} currentCollection={data.uuid} />
       </Panel>
       <Panel header="Subset Creation Tools" toggleable collapsed={true}>
-        <SubsetCreationToolsDB DB={DB} currentCollection={data.uuid} data={innerData} />
+        <SubsetCreationToolsDB DB={DB} currentCollection={data.uuid} data={innerData} refreshData={refreshData} />
       </Panel>
       <Panel header="Feature Reduction Tools" toggleable collapsed={true}>
         <FeatureReductionToolsDB />
