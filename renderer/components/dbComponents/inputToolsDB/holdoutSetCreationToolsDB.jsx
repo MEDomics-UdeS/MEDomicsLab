@@ -13,7 +13,7 @@ import { requestBackend } from "../../../utilities/requests"
 import { ServerConnectionContext } from "../../serverConnection/connectionContext"
 import { toast } from "react-toastify"
 
-const HoldoutSetCreationToolsDB = ({ refreshData, DB, data, collection, currentCollection }) => {
+const HoldoutSetCreationToolsDB = ({ refreshData, data, collection, currentCollection }) => {
   const [shuffle, setShuffle] = useState(false)
   const [stratify, setStratify] = useState(false)
   const [selectedColumns, setSelectedColumns] = useState([])
@@ -27,13 +27,13 @@ const HoldoutSetCreationToolsDB = ({ refreshData, DB, data, collection, currentC
 
   useEffect(() => {
     const fetchData = async () => {
-      const collectionData = await getCollectionData(DB.name, currentCollection)
+      const collectionData = await getCollectionData(currentCollection)
       if (collectionData && collectionData.length > 0) {
         setColumns(Object.keys(collectionData[0]))
       }
     }
     fetchData()
-  }, [DB, currentCollection])
+  }, [currentCollection])
 
   useEffect(() => {
     ipcRenderer.invoke("get-settings").then((receivedSettings) => {
@@ -52,7 +52,7 @@ const HoldoutSetCreationToolsDB = ({ refreshData, DB, data, collection, currentC
   const createHoldoutSet = async () => {
     let JSONToSend = {}
     JSONToSend = {
-      databaseName: DB.name,
+      databaseName: "data",
       collectionName: currentCollection,
       name: newCollectionName,
       holdoutSetSize: holdoutSetSize,
@@ -65,7 +65,7 @@ const HoldoutSetCreationToolsDB = ({ refreshData, DB, data, collection, currentC
     requestBackend(port, "/input/create_holdout_set_DB/", JSONToSend, (jsonResponse) => {
       console.log("jsonResponse", jsonResponse)
       refreshData()
-      ipcRenderer.send("get-collections", DB.name)
+      //ipcRenderer.send("get-collections", DB.name)
       toast.success("Holdout and learning sets created successfully.")
     })
   }

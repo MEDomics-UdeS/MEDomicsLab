@@ -5,8 +5,9 @@ import { InputNumber } from "primereact/inputnumber"
 import { InputSwitch } from "primereact/inputswitch"
 import { InputText } from "primereact/inputtext"
 import React, { useContext, useEffect, useState } from "react"
-import { MongoDBContext } from "../../mongoDB/mongoDBContext"
 import { getCollectionColumnTypes } from "../../dbComponents/utils"
+import { DataContext } from "../../workspace/dataContext"
+import { MEDDataObject } from "../../workspace/NewMedDataObject"
 
 /**
  *
@@ -22,6 +23,7 @@ import { getCollectionColumnTypes } from "../../dbComponents/utils"
 const ExtractionDenseNet = ({ folderDepth, setExtractionJsonData, setOptionsSelected }) => {
   const [columnPrefix, setColumnPrefix] = useState("img") // column prefix to set in the generated dataframe from extracted features
   const [columnsTypes, setColumnsTypes] = useState({}) // the selected dataset column types
+  const [datasetsList, setDatasetsList] = useState([]) // list of datasets we can select to proceed to extraction
   const [masterTableCompatible, setMasterTableCompatible] = useState(true) // boolean true if the generated dataframe from extracted features must follow the submaster table specifications
   const [parsePatientIdAsInt, setParsePatientIdAsInt] = useState(false) // boolean true if the patients identifiers given by folder names must be parsed as integer in the result dataframe
   const [patientIdentifierLevel, setPatientIdentifierLevel] = useState(1) // integer indicating at which folder level are specified the patients identifiers
@@ -42,7 +44,7 @@ const ExtractionDenseNet = ({ folderDepth, setExtractionJsonData, setOptionsSele
     "densenet121-res224-mimic_nb",
     "densenet121-res224-mimic_ch"
   ]) // list of available weigths for feature generation
-  const { DB, DBData } = useContext(MongoDBContext) // we get the global data from the context to retrieve the directory tree of the workspace, thus retrieving the data files
+  const { globalData } = useContext(DataContext) // get global data
 
   // display options for the carousel
   const responsiveOptions = [
@@ -116,7 +118,7 @@ const ExtractionDenseNet = ({ folderDepth, setExtractionJsonData, setOptionsSele
    */
   async function datasetSelected(dataset) {
     try {
-      const columnsData = await getCollectionColumnTypes(dataset.label)
+      const columnsData = await getCollectionColumnTypes(dataset.id)
       setColumnsTypes(columnsData)
       setSelectedDataset(dataset)
     } catch (error) {
@@ -153,7 +155,7 @@ const ExtractionDenseNet = ({ folderDepth, setExtractionJsonData, setOptionsSele
       masterTableCompatible: masterTableCompatible,
       patientIdentifierLevel: patientIdentifierLevel,
       selectedColumns: selectedColumns,
-      collectionName: selectedDataset?.label,
+      collectionName: selectedDataset?.id,
       parsePatientIdAsInt: parsePatientIdAsInt,
       columnPrefix: columnPrefix
     })
@@ -163,6 +165,16 @@ const ExtractionDenseNet = ({ folderDepth, setExtractionJsonData, setOptionsSele
   useEffect(() => {
     setPatientIdentifierLevel(1)
   }, [folderDepth])
+
+  /* Hook called when the global data changes to get the list of dataset to display */
+  useEffect(() => {
+    if (globalData) {
+      let matchingDatasets = MEDDataObject.getMatchingTypesInDict(globalData, ["csv"])
+      setDatasetsList(matchingDatasets)
+    } else {
+      setDatasetsList([])
+    }
+  }, [globalData])
 
   // The options for extraction are displayed in a Carousel component
   const carouselItems = [
@@ -225,8 +237,8 @@ const ExtractionDenseNet = ({ folderDepth, setExtractionJsonData, setOptionsSele
               </div>
               <div className="margin-top-15">
                 Select a file associating image filenames to dates : &nbsp;
-                {DBData.length > 0 ? (
-                  <Dropdown value={selectedDataset} options={DBData} onChange={(event) => datasetSelected(event.value)} placeholder="Select a dataset" />
+                {datasetsList.length > 0 ? (
+                  <Dropdown value={selectedDataset} options={datasetsList} optionLabel="name" onChange={(event) => datasetSelected(event.value)} placeholder="Select a dataset" />
                 ) : (
                   <Dropdown placeholder="No dataset to show" disabled />
                 )}

@@ -212,12 +212,10 @@ function App() {
       setCollectionData(collData)
     })
  */
-    /*  ipcRenderer.on("updateDirectory", (event, data) => {
+    ipcRenderer.on("updateDirectory", (event, data) => {
       let workspace = { ...data }
       setWorkspaceObject(workspace)
-      // Send IPC event to main process to start MongoDB
-      //ipcRenderer.send("change-workspace", data.workingDirectory.path)
-    }) */
+    })
 
     ipcRenderer.on("getServerPort", (event, data) => {
       console.log("server port update from Electron:", data)

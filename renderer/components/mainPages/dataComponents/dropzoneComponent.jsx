@@ -3,6 +3,7 @@ import { useDropzone } from "react-dropzone"
 import fs from "fs"
 import { WorkspaceContext } from "../../workspace/workspaceContext"
 import MedDataObject from "../../workspace/medDataObject"
+import { MEDDataObject } from "../../workspace/NewMedDataObject"
 import { toast } from "react-toastify"
 import { getDroppedOrSelectedFiles } from "html5-file-selector"
 
@@ -116,7 +117,7 @@ export default function DropzoneComponent({ children, item = undefined, setIsDro
         })
       })
       console.log("UPDATE")
-      MedDataObject.updateWorkspaceDataObject()
+      MEDDataObject.updateWorkspaceDataObject()
     }
     setIsDropping(false)
     setStyle({ ...style, ...baseStyle })

@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from "react"
+import React, { useEffect, useState } from "react"
 import { DataTable } from "primereact/datatable"
 import { Column } from "primereact/column"
 import { InputText } from "primereact/inputtext"
@@ -9,7 +9,6 @@ const mongoUrl = "mongodb://127.0.0.1:27017"
 import { saveAs } from "file-saver"
 import Papa from "papaparse"
 import { getCollectionData } from "./utils"
-import { MongoDBContext } from "../mongoDB/mongoDBContext"
 import InputToolsComponent from "./InputToolsComponent"
 import { Dialog } from "primereact/dialog"
 
@@ -23,7 +22,6 @@ import { Dialog } from "primereact/dialog"
  * @constructor - DataTableFromDB
  */
 const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly }) => {
-  const { DB, DBData } = useContext(MongoDBContext)
   const [innerData, setInnerData] = useState([])
   const [columns, setColumns] = useState([])
   const [newColumnName, setNewColumnName] = useState("")
@@ -524,7 +522,6 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
       )}
       <Dialog header="Input Tools" visible={isDialogVisible} onHide={closeDialog} style={{ width: "80%", height: "80%" }} modal={true}>
         <InputToolsComponent
-          DBData={DBData}
           data={data}
           numRows={numRows}
           setNumRows={setNumRows}
@@ -544,7 +541,6 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
           handleExportColumns={handleExportColumns}
           handleDeleteColumns={handleDeleteColumns}
           innerData={innerData}
-          DB={DB}
           handleAddRow={handleAddRow}
           lastEdit={lastEdit}
         />

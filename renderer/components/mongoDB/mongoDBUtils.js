@@ -1,6 +1,6 @@
 const { MongoClient } = require("mongodb")
 const fs = require("fs")
-const csv = require("csv-parser")
+const Papa = require("papaparse")
 
 const uri = "mongodb://localhost:27017" // Remplacez par votre URI MongoDB
 const dbName = "data" // Remplacez par le nom de votre base de données
@@ -23,9 +23,9 @@ export async function connectToMongoDB() {
  * @description Insert a MEDDataObject in the database if not exists
  * @param {MEDDataObject} data data to insert in the database
  * @param {String} path path of the data we want to import in the database
- * @returns
+ * @returns id the id of the MEDDataObject in the DB
  */
-export async function insertMEDDataObjectIfNotExists(data, path) {
+export async function insertMEDDataObjectIfNotExists(data, path = null) {
   const db = await connectToMongoDB()
   const collection = db.collection("medDataObjects")
 
@@ -35,6 +35,7 @@ export async function insertMEDDataObjectIfNotExists(data, path) {
     // If object already in the DB we stop here
     return existingObjectByID.id
   }
+
   const existingObjectByAttributes = await collection.findOne({ name: data.name, type: data.type, parentID: data.parentID })
   if (existingObjectByAttributes) {
     // If object already in the DB we stop here
@@ -71,14 +72,17 @@ export async function insertMEDDataObjectIfNotExists(data, path) {
     }
   }
 
-  // Insert MEDdataObject data
-  switch (data.type) {
-    case "csv":
-      await insertCSVIntoCollection(path, data.id)
-      break
-    default:
-      break
+  // Insert MEDdataObject data (if contains data)
+  if (path) {
+    switch (data.type) {
+      case "csv":
+        await insertCSVIntoCollection(path, data.id)
+        break
+      default:
+        break
+    }
   }
+  return data.id
 }
 
 /**
@@ -91,24 +95,23 @@ export async function insertMEDDataObjectIfNotExists(data, path) {
 async function insertCSVIntoCollection(filePath, collectionName) {
   const db = await connectToMongoDB()
   const collection = db.collection(collectionName)
+
   return new Promise((resolve, reject) => {
-    const data = []
-    fs.createReadStream(filePath)
-      .pipe(csv())
-      .on("data", (row) => {
-        data.push(row)
-      })
-      .on("end", async () => {
+    Papa.parse(fs.createReadStream(filePath), {
+      header: true,
+      dynamicTyping: true, // Automatically convert numeric fields to numbers
+      complete: async (results) => {
         try {
-          const result = await collection.insertMany(data)
+          const result = await collection.insertMany(results.data)
           console.log(`CSV data inserted with ${result.insertedCount} documents`)
           resolve(result)
         } catch (error) {
           reject(error)
         }
-      })
-      .on("error", (error) => {
+      },
+      error: (error) => {
         reject(error)
-      })
+      }
+    })
   })
 }

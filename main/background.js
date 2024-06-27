@@ -564,13 +564,13 @@ if (isProd) {
     } else if (data === "getRecentWorkspaces") {
       let recentWorkspaces = loadWorkspaces()
       event.reply("recentWorkspaces", recentWorkspaces)
-    } /* else if (data === "updateWorkingDirectory") {
+    } else if (data === "updateWorkingDirectory") {
       event.reply("updateDirectory", {
         workingDirectory: dirTree(app.getPath("sessionData")),
         hasBeenSet: hasBeenSet,
         newPort: serverPort
       }) // Sends the folder structure to Next.js
-    } */ else if (data === "getServerPort") {
+    } else if (data === "getServerPort") {
       event.reply("getServerPort", {
         newPort: serverPort
       }) // Sends the folder structure to Next.js

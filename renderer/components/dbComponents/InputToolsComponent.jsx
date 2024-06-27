@@ -1,4 +1,4 @@
-import React, { useContext } from "react"
+import React from "react"
 import { Panel } from "primereact/panel"
 import BasicToolsDB from "./inputToolsDB/basicToolsDB"
 import TransformColumnToolsDB from "./inputToolsDB/transformColumnToolsDB"
@@ -9,7 +9,6 @@ import SubsetCreationToolsDB from "./inputToolsDB/subsetCreationToolsDB"
 import FeatureReductionToolsDB from "./inputToolsDB/featureReductionToolsDB"
 
 const InputToolsComponent = ({
-  DBData,
   data,
   handleAddRow,
   numRows,
@@ -30,7 +29,6 @@ const InputToolsComponent = ({
   handleExportColumns,
   handleDeleteColumns,
   innerData,
-  DB,
   lastEdit
 }) => {
   const panelContainerStyle = {
@@ -67,13 +65,13 @@ const InputToolsComponent = ({
         />
       </Panel>
       <Panel header="Merge Tools" toggleable collapsed={true}>
-        <MergeToolsDB data={innerData} columns={columns} DB={DB} collections={DBData} currentCollection={data.uuid} />
+        <MergeToolsDB data={innerData} columns={columns} currentCollection={data.id} />
       </Panel>
       <Panel header="Simple Cleaning Tools" toggleable collapsed={true}>
-        <SimpleCleaningToolsDB refreshData={refreshData} lastEdit={lastEdit} data={innerData} columns={columns} DB={DB} collections={DBData} currentCollection={data.uuid} />
+        <SimpleCleaningToolsDB refreshData={refreshData} lastEdit={lastEdit} data={innerData} columns={columns} currentCollection={data.id} />
       </Panel>
       <Panel header="Holdout Set Creation Tools" toggleable collapsed={true}>
-        <HoldoutSetCreationToolsDB refreshData={refreshData} DB={DB} data={innerData} collections={DBData} currentCollection={data.uuid} />
+        <HoldoutSetCreationToolsDB refreshData={refreshData} data={innerData} currentCollection={data.id} />
       </Panel>
       <Panel header="Subset Creation Tools" toggleable collapsed={true}>
         <SubsetCreationToolsDB />
