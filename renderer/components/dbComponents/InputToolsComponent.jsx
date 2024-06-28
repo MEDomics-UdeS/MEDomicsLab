@@ -6,7 +6,7 @@ import MergeToolsDB from "./inputToolsDB/mergeToolsDB"
 import SimpleCleaningToolsDB from "./inputToolsDB/simpleCleaningToolsDB"
 import HoldoutSetCreationToolsDB from "./inputToolsDB/holdoutSetCreationToolsDB"
 import SubsetCreationToolsDB from "./inputToolsDB/subsetCreationToolsDB"
-import FeatureReductionToolsDB from "./inputToolsDB/featureReductionToolsDB"
+import FeatureReductionToolsDB from "./inputToolsDB/featureReductionToolsDB/featureReductionToolsDB"
 
 const InputToolsComponent = ({
   DBData,
