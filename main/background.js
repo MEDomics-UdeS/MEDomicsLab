@@ -7,8 +7,6 @@ import MEDconfig from "../medomics.dev"
 import { runServer } from "./utils/server"
 import { setWorkingDirectory, getRecentWorkspacesOptions, loadWorkspaces, createMedomicsDirectory } from "./utils/workspace"
 
-const MongoClient = require("mongodb").MongoClient
-const mongoUrl = "mongodb://localhost:27017"
 const fs = require("fs")
 var path = require("path")
 let mongoProcess = null
@@ -188,14 +186,6 @@ if (isProd) {
     }
   })
 
-  /*   ipcMain.on("setDB", (event, data) => {
-    event.reply("DBSet", {
-      name: data,
-      hasBeenSet: true,
-      newPort: serverPort
-    })
-  }) */
-
   ipcMain.handle("setWorkingDirectory", async (event, data) => {
     app.setPath("sessionData", data)
     console.log("setWorkingDirectory : ", data)
@@ -211,11 +201,6 @@ if (isProd) {
         hasBeenSet: true,
         newPort: serverPort
       }
-      /* event.reply("workingDirectorySet", {
-          workingDirectory: dirTree(app.getPath("sessionData")),
-          hasBeenSet: true,
-          newPort: serverPort
-        }) */
     } catch (error) {
       console.error("Failed to change workspace: ", error)
     }
@@ -288,206 +273,6 @@ if (isProd) {
     console.log("settings to save : ", settingsFilePath, settings)
     fs.writeFileSync(settingsFilePath, JSON.stringify(settings))
   })
-
-  /**
-   * @description Gets the collections of a database
-   * @param {*} event The event
-   * @param {*} dbName The name of the database
-   *
-   */
-  /*   ipcMain.on("get-collections", async (event, dbName) => {
-    const client = new MongoClient(mongoUrl)
-    try {
-      await client.connect()
-      const db = client.db(dbName)
-      const collections = await db.listCollections().toArray()
-      event.reply(
-        "collections",
-        collections.map((coll) => coll.name)
-      )
-    } catch (error) {
-      console.error(error)
-      event.reply("collections", [])
-    } finally {
-      await client.close()
-    }
-  }) */
-
-  /**
-   * @description Upload CSV, TSV, JSON files and images into the Database
-   * @param {String} event The event
-   * @param {String} dbName The name of the database
-   */
-  /* ipcMain.on("upload-files", async (event, dbName) => {
-    // Select file(s) to import
-    const result = await dialog.showOpenDialog({ properties: ["openFile", "multiSelections"] })
-
-    // Import all the selected files
-    if (result.filePaths && result.filePaths.length > 0) {
-      result.filePaths.forEach((filePath, index) => {
-        const fileName = path.basename(filePath, path.extname(filePath))
-        const extension = path.extname(filePath).slice(1)
-        let mongoImportCommand
-        let tempFilePath
-        let tempFileCreated = false
-
-        if (extension === "json") {
-          mongoImportCommand = `mongoimport --db ${dbName} --collection ${fileName} --type json --file "${filePath}" --jsonArray`
-        } else if (extension === "csv" || extension === "tsv") {
-          mongoImportCommand = `mongoimport --db ${dbName} --collection ${fileName} --type ${extension} --file "${filePath}" --headerline`
-        } else {
-          // Import images and other file types as paths
-          let imgInfos = {
-            path: filePath,
-            type: extension
-          }
-          let jsonImg = JSON.stringify([imgInfos])
-          tempFilePath = path.join(path.dirname(filePath), String("image_path_" + index + ".json"))
-          fs.writeFileSync(tempFilePath, jsonImg)
-          tempFileCreated = true
-          mongoImportCommand = `mongoimport --db ${dbName} --collection ${fileName} --type json --file "${tempFilePath}" --jsonArray`
-        }
-
-        // Execute importation command
-        exec(mongoImportCommand, (error, stdout, stderr) => {
-          if (tempFileCreated) {
-            fs.unlinkSync(tempFilePath) // Delete temp file (only for images) after import
-          }
-          if (error) {
-            // Try import with mongofiles
-            if (extension === "csv" || extension === "tsv" || extension === "json") {
-              let secondChanceCmd = `mongofiles --db ${dbName} --prefix fs put "${filePath}"`
-              exec(secondChanceCmd, (error, stdout, stderr) => {
-                if (error) {
-                  // Error with second try
-                  console.error(`exec error: ${error}`)
-                  event.reply("upload-file-error", fileName)
-                  return
-                }
-                // Second try successful
-                console.log(`stdout: ${stdout}`)
-                console.error(`stderr: ${stderr}`)
-                event.reply("second-upload-file-success", fileName)
-              })
-            } else {
-              // Error while importing files other than json, csv & tsv
-              console.error(`exec error: ${error}`)
-              event.reply("upload-file-error", fileName)
-            }
-            return
-          }
-          // Import successful
-          console.log(`stdout: ${stdout}`)
-          console.error(`stderr: ${stderr}`)
-          event.reply("upload-file-success", fileName)
-        })
-      })
-    }
-  }) */
-
-  /**
-   * @description Upload a folder structure as collection into the Database
-   * @param {String} event The event
-   * @param {String} dbName The name of the database
-   */
-  /* ipcMain.on("select-folder", async (event, dbName) => {
-    const result = await dialog.showOpenDialog({ properties: ["openDirectory"] })
-    if (result.filePaths && result.filePaths.length > 0) {
-      const directoryPath = result.filePaths[0]
-      const collectionName = path.basename(directoryPath)
-
-      const buildFolderStructure = (dirPath) => {
-        const folderStructure = {}
-        const items = fs.readdirSync(dirPath)
-
-        items.forEach((item) => {
-          const itemPath = path.join(dirPath, item)
-          const stats = fs.statSync(itemPath)
-
-          if (stats.isDirectory()) {
-            folderStructure[item] = buildFolderStructure(itemPath)
-          } else {
-            folderStructure[item] = {
-              path: itemPath,
-              type: path.extname(item).slice(1)
-            }
-          }
-        })
-
-        return folderStructure
-      }
-
-      try {
-        const folderStructure = [buildFolderStructure(directoryPath)]
-        const jsonStructure = JSON.stringify(folderStructure)
-
-        const tempFilePath = path.join(directoryPath, "folder_structure.json")
-        fs.writeFileSync(tempFilePath, jsonStructure)
-
-        const mongoImportCommand = `mongoimport --db ${dbName} --collection ${collectionName} --type json --file "${tempFilePath}" --jsonArray`
-
-        exec(mongoImportCommand, (error, stdout, stderr) => {
-          fs.unlinkSync(tempFilePath) // Delete temp file after import
-
-          if (error) {
-            console.error(`exec error: ${error}`)
-            event.reply("upload-folder-error", collectionName)
-            return
-          }
-          console.log(`stdout: ${stdout}`)
-          console.error(`stderr: ${stderr}`)
-          event.reply("upload-folder-success", collectionName)
-        })
-      } catch (err) {
-        console.error(`Error building folder structure: ${err}`)
-        event.reply("upload-folder-error", collectionName)
-      }
-    }
-  }) */
-
-  /**
-   * @description Delete a collection in the database
-   * @param {*} event
-   * @param {String} dbName Name of the database
-   * @param {String} collectionName Name of the collection to delete
-   */
-  /*   ipcMain.on("delete-collection", async (event, dbName, collectionName) => {
-    const client = new MongoClient(mongoUrl)
-    try {
-      await client.connect()
-      const db = client.db(dbName)
-      await db.collection(collectionName).drop()
-      event.reply("delete-collection-success", collectionName)
-    } catch (error) {
-      console.error(`Error deleting collection: ${error}`)
-      event.reply("delete-collection-error", collectionName)
-    } finally {
-      await client.close()
-    }
-  }) */
-
-  /**
-   * @description Gets the data of a collection
-   * @param {*} event The event
-   * @param {*} dbname The name of the database
-   * @param {*} collectionName The name of the collection
-   */
-
-  /*   ipcMain.on("get-collection-data", async (event, dbname, collectionName) => {
-    const client = new MongoClient(mongoUrl)
-    try {
-      await client.connect()
-      const db = client.db(dbname)
-      const collection = db.collection(collectionName)
-      const data = await collection.find({}).toArray()
-      event.reply("collection-data", data)
-    } catch (error) {
-      console.error(error)
-      event.reply("collection-data", [])
-    } finally {
-      await client.close()
-    }
-  }) */
 
   /**
    * @description Returns the server status

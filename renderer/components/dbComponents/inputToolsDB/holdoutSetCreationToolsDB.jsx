@@ -13,7 +13,7 @@ import { requestBackend } from "../../../utilities/requests"
 import { ServerConnectionContext } from "../../serverConnection/connectionContext"
 import { toast } from "react-toastify"
 
-const HoldoutSetCreationToolsDB = ({ refreshData, data, collection, currentCollection }) => {
+const HoldoutSetCreationToolsDB = ({ refreshData, currentCollection }) => {
   const [shuffle, setShuffle] = useState(false)
   const [stratify, setStratify] = useState(false)
   const [selectedColumns, setSelectedColumns] = useState([])

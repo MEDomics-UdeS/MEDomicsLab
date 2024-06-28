@@ -6,7 +6,6 @@ import { getCollectionData } from "../utils"
 import { Dropdown } from "primereact/dropdown"
 const mongoUrl = "mongodb://localhost:27017"
 import { MongoClient, ObjectId } from "mongodb"
-import { ipcRenderer } from "electron"
 import { Message } from "primereact/message"
 import _ from "lodash"
 

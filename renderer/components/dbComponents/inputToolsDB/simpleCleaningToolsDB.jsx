@@ -13,7 +13,6 @@ import { Dropdown } from "primereact/dropdown"
 import { SelectButton } from "primereact/selectbutton"
 import { requestBackend } from "../../../utilities/requests"
 import { ServerConnectionContext } from "../../serverConnection/connectionContext"
-import { ipcRenderer } from "electron"
 
 const SimpleCleaningToolsDB = ({ lastEdit, data, columns, currentCollection, refreshData }) => {
   const [tableData, setTableData] = useState([])

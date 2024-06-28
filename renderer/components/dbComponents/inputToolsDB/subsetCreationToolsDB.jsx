@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react"
 import { Message } from "primereact/message"
 import * as React from "react"
-import { getCollectionData, getCollectionColumnTypes, getColumnOptions } from "../utils"
+import { getCollectionData, getCollectionColumnTypes } from "../utils"
 import { DataTable } from "primereact/datatable"
 import { Column } from "primereact/column"
 import { InputText } from "primereact/inputtext"
@@ -25,7 +25,7 @@ const SubsetCreationToolsDB = ({ DB, currentCollection, refreshData }) => {
   useEffect(() => {
     const fetchData = async () => {
       const collectionData = await getCollectionData(DB.name, currentCollection)
-      const formattedData = collectionData.map((row, index) => {
+      const formattedData = collectionData.map((row) => {
         return {
           ...row
         }

@@ -127,10 +127,6 @@ function App() {
   }
 
   /**
-   * TODO : When changing the working directory, the global data should be cleared and the new working directory should be set
-   */
-
-  /**
    * This is the state for the layout model. It is passed to the LayoutContextProvider, which provides the layout model to all components.
    * @param {Object} layoutModel - The layout model for the LayoutContextProvider
    * @param {Function} setLayoutModel - The function to set the layout model for the LayoutContextProvider
@@ -171,47 +167,6 @@ function App() {
       })
     })
 
-    // This useEffect hook is called only once and it sets the ipcRenderer to listen for the "workingDirectorySet" message from the main process
-    // The working directory tree is stored in the workspaceObject state variable
-    /* ipcRenderer.on("workingDirectorySet", (event, data) => {
-      if (workspaceObject !== data) {
-        let workspace = { ...data }
-        setWorkspaceObject(workspace)
-      }
-    }) */
-
-    /**
-     * IMPORTANT - Related to the MongoDB
-     */
-    /* ipcRenderer.on("DBSet", (event, data) => {
-      if (DBObject !== data) {
-        let DB = { ...data }
-        setDBObject(DB)
-      }
-    })
-
-    ipcRenderer.on("collections", (event, collections) => {
-      let treeCollections = collections.map((item) => ({
-        key: item,
-        label: item,
-        icon: "pi pi-folder"
-      }))
-      setDBData(treeCollections)
-    })
-
-    ipcRenderer.on("collection-data", (event, data) => {
-      let collData = data.map((item) => {
-        let keys = Object.keys(item)
-        let values = Object.values(item)
-        let dataObject = {}
-        for (let i = 0; i < keys.length; i++) {
-          dataObject[keys[i]] = values[i]
-        }
-        return dataObject
-      })
-      setCollectionData(collData)
-    })
- */
     ipcRenderer.on("updateDirectory", (event, data) => {
       let workspace = { ...data }
       setWorkspaceObject(workspace)
@@ -221,12 +176,6 @@ function App() {
       console.log("server port update from Electron:", data)
       setPort(data.newPort)
     })
-
-    /*  ipcRenderer.on("openWorkspace", (event, data) => {
-      console.log("openWorkspace from NEXT", data)
-      let workspace = { ...data }
-      setWorkspaceObject(workspace)
-    }) */
 
     ipcRenderer.on("toggleDarkMode", () => {
       console.log("toggleDarkMode")
@@ -245,10 +194,6 @@ function App() {
       console.log("log", data)
     })
 
-    /*   ipcRenderer.on("databases", (event, databases) => {
-      console.log("DATABASES", databases)
-    }) */
-
     ipcRenderer.send("messageFromNext", "getServerPort")
 
     // Cleanup function to remove the event listener
@@ -260,16 +205,6 @@ function App() {
   // This useEffect hook is called whenever the `globalData` state changes.
   useEffect(() => {
     console.log("globalData changed", globalData)
-    // Save the global data to a file
-    /* if (workspaceObject.hasBeenSet === true) {
-      let path = workspaceObject.workingDirectory.path + "/.medomics"
-      // Check if the .medomics folder exists
-      // eslint-disable-next-line no-undef
-      const fsx = require("fs-extra")
-      fsx.ensureDirSync(workspaceObject.workingDirectory.path + "/.medomics")
-      // Save the global data to a file
-      saveObjectToFile(globalData, path + "/globalData.json")
-    } */
   }, [globalData])
 
   // This useEffect hook is called whenever the `layoutModel` state changes.
