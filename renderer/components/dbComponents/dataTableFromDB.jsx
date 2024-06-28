@@ -461,6 +461,7 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
       ) : (
         <div style={dataTableStyle}>
           <DataTable
+            className="p-datatable-striped p-datatable-gridlines"
             value={innerData}
             editMode={!isReadOnly ? "cell" : undefined}
             size="small"

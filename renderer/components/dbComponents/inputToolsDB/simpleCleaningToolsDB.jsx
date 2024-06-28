@@ -146,13 +146,27 @@ const SimpleCleaningToolsDB = ({ lastEdit, data, columns, currentCollection, ref
         <Message style={{ marginTop: "10px" }} severity="success" text={`Current Collection: ${currentCollection}`} />
       </div>
       <div>
-        <DataTable value={tableData} readOnly rowClassName={(rowData) => (columnsToClean.includes(rowData.column) ? "highlight-row" : "")}>
+        <DataTable
+          paginator
+          rows={5}
+          className="p-datatable-striped p-datatable-gridlines"
+          value={tableData}
+          readOnly
+          rowClassName={(rowData) => (columnsToClean.includes(rowData.column) ? "highlight-row" : "")}
+        >
           <Column field="column" header={`Columns (${columns.length})`} sortable></Column>
           <Column field="NaN" header="Number of empty" sortable></Column>
           <Column field="percentage" header="% of empty" sortable></Column>
         </DataTable>
         <div style={{ marginTop: "20px" }}>
-          <DataTable value={rowData} readOnly rowClassName={(rowData) => (columnsToClean.includes(rowData.column) ? "highlight-row" : "")}>
+          <DataTable
+            paginator
+            rows={5}
+            className="p-datatable-striped p-datatable-gridlines"
+            value={rowData}
+            readOnly
+            rowClassName={(rowData) => (columnsToClean.includes(rowData.column) ? "highlight-row" : "")}
+          >
             <Column field="rowIndex" header={`Row index (${columns.length})`} sortable></Column>
             <Column field="NaN" header="Number of empty" sortable></Column>
             <Column field="percentage" header="% of empty" sortable></Column>
