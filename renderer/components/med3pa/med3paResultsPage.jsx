@@ -17,6 +17,7 @@ const MED3paResultsPage = ({ pageId, configPath = "" }) => {
   const [loadedFiles, setLoadedFiles] = useState(null)
   const [treeData, setTreeData] = useState({})
   const [fullscreen, setFullscreen] = useState(false)
+  const [metrics, setMetrics] = useState() // State to store the metrics keys
   const [treeParams, setTreeParams] = useState({
     declarationRate: 100,
     maxDepth: 5,
@@ -27,9 +28,10 @@ const MED3paResultsPage = ({ pageId, configPath = "" }) => {
     focusView: "Node information",
     thresholdEnabled: false,
     customThreshold: 29,
-    selectedParameter: "declaration rate"
+    selectedParameter: "declaration rate",
+    metrics: metrics
   })
-  const filterData = (data, treeParams) => {
+  const filterData = (data, treeParams, nodeParams) => {
     // Implement your filtering logic based on treeParams and nodeParams
     // This is just an example, replace it with your actual logic
     let filteredData = []
@@ -52,6 +54,33 @@ const MED3paResultsPage = ({ pageId, configPath = "" }) => {
       }
     }
 
+    // Further filter the items based on nodeParams.focusView
+    filteredData = filteredData.map((item) => {
+      const newItem = { id: item.id, path: item.path } // Keep id and path
+
+      if (nodeParams.focusView === "Node information") {
+        // Remove metrics and detectron_results
+        newItem.value = parseFloat(item.value.toFixed(5))
+        return newItem
+      } else if (nodeParams.focusView === "Covariate-shift probabilities") {
+        // Keep only detectron_results
+        // eslint-disable-next-line camelcase
+        newItem.detectron_results = item.detectron_results
+        return newItem
+      } else {
+        // Keep only the metrics defined in nodeParams.metrics
+        newItem.metrics = {}
+
+        for (const metric of nodeParams.metrics) {
+          if (item.metrics && item.metrics[metric.name]) {
+            newItem.metrics[metric.name] = item.metrics[metric.name]
+          }
+        }
+        console.log("NEW ITEM", newItem.metrics)
+        return newItem
+      }
+    })
+
     return filteredData
   }
 
@@ -63,7 +92,8 @@ const MED3paResultsPage = ({ pageId, configPath = "" }) => {
         focusView: "Node information",
         thresholdEnabled: false,
         customThreshold: 29,
-        selectedParameter: "declaration rate"
+        selectedParameter: "declaration rate",
+        metrics: metrics
       })
       setTreeParams({
         declarationRate: 100,
@@ -109,11 +139,20 @@ const MED3paResultsPage = ({ pageId, configPath = "" }) => {
           return acc
         }, {})
 
-        const filteredData = filterData(loadedFiles, treeParams)
+        const filteredData = filterData(loadedFiles, treeParams, nodeParams)
         setLoadedFiles(loadedFiles)
 
         setTreeData(filteredData)
         setLoading(true) // Set loading to true before fetching data
+
+        // Extract the metrics keys from the first item in the filtered data
+        if (!metrics) {
+          const firstItem = loadedFiles.profiles[0][1][0]
+
+          if (firstItem && firstItem.metrics) {
+            setMetrics(Object.keys(firstItem.metrics))
+          }
+        }
       } catch (error) {
         console.error("Error loading JSON files:", error)
       }
@@ -126,15 +165,15 @@ const MED3paResultsPage = ({ pageId, configPath = "" }) => {
     const loadFiles = () => {
       if (!loadedFiles) return
       try {
-        const filteredData = filterData(loadedFiles, treeParams)
+        const filteredData = filterData(loadedFiles, treeParams, nodeParams)
         setTreeData(filteredData)
       } catch (error) {
-        console.error("Error loading JSON files:", error)
+        console.error("Error loading filtered files:", error)
       }
     }
 
     loadFiles()
-  }, [buttonClicked, filter, loadedFiles])
+  }, [buttonClicked, filter])
 
   useEffect(() => {
     console.log("treeData here:", treeData)
@@ -148,6 +187,16 @@ const MED3paResultsPage = ({ pageId, configPath = "" }) => {
     console.log("nodeParams changed to:", nodeParams)
   }, [nodeParams])
 
+  useEffect(() => {
+    console.log("nodeParams changed to:", nodeParams)
+    // Update nodeParams with new metrics
+    if (metrics) {
+      setNodeParams((prevNodeParams) => ({
+        ...prevNodeParams,
+        metrics: metrics
+      }))
+    }
+  }, [metrics])
   const toggleFullscreen = () => {
     setFullscreen(!fullscreen) // Toggle fullscreen state
   }
