@@ -54,6 +54,17 @@ const NodeParameters = ({ nodeParams, setNodeParams }) => {
     }))
   }
 
+  const getHighlightChoices = () => {
+    if (focusView === "Node information") {
+      return [{ name: "Profile value" }]
+    } else if (focusView === "Node performance" && metrics) {
+      return metrics.map((metric) => ({ name: metric.name }))
+    } else if (focusView === "Covariate-shift probabilities") {
+      return [{ name: "Detectron results" }]
+    }
+    return []
+  }
+
   return (
     <div className="card-paresults">
       <Typography
@@ -97,11 +108,9 @@ const NodeParameters = ({ nodeParams, setNodeParams }) => {
               settingInfos={{
                 type: "list-multiple",
                 tooltip: "Select metrics",
-                choices: localMetrics.map((metric) => ({
-                  name: metric
-                }))
+                choices: localMetrics
               }}
-              currentValue={localMetrics}
+              currentValue={metrics}
               onInputChange={handleMetricsChange}
               disabled={false}
               className="default-text-color-paresults"
@@ -139,7 +148,7 @@ const NodeParameters = ({ nodeParams, setNodeParams }) => {
               settingInfos={{
                 type: "list",
                 tooltip: "Select here the highlight element",
-                choices: [{ name: "min confidence level" }, { name: "declaration rate" }, { name: "Max Depth" }, { name: "Min Sample Ratio" }]
+                choices: getHighlightChoices()
               }}
               currentValue={selectedParameter}
               onInputChange={handleParameterChange}
@@ -154,7 +163,7 @@ const NodeParameters = ({ nodeParams, setNodeParams }) => {
                 type: "float",
                 tooltip: "Input threshold"
               }}
-              value={customThreshold}
+              currentValue={customThreshold}
               onInputChange={handleCustomThresholdChange}
               disabled={false}
               className="default-text-color-paresults"

@@ -49,7 +49,7 @@ export default function TreeNode({ id, data }) {
     <div
       className="node"
       style={{
-        background: "#F5F5F5",
+        background: settings.color,
         borderRadius: "8px",
         border: "1px solid rgba(0, 0, 0, 0.1)",
         boxShadow: "0px 4px 4px rgba(0, 0, 0, 0.1)",
@@ -81,7 +81,7 @@ export default function TreeNode({ id, data }) {
       >
         {/* Display all settings dynamically, excluding 'path' */}
         {Object.keys(settings).map((key) => {
-          if (key === "path") return null // Skip rendering 'path'
+          if (key === "path" || key === "color") return null // Skip rendering 'path'
           const value = settings[key]
           return <div key={key}>{renderSettingValue(value, key)}</div>
         })}

@@ -18,6 +18,7 @@ const TreeWorkflow = ({ treeData, onButtonClicked, onFullScreenClicked, fullscre
   const [nodes, setNodes, onNodesChange] = useNodesState([]) // nodes array, setNodes is used to update the nodes array, onNodesChange is a callback hook that is executed when the nodes array is changed
   const [edges, setEdges] = useEdgesState([]) // edges array, setEdges is used to update the edges array, onEdgesChange is a callback hook that is executed when the edges array is changed
   const cardRef = useRef(null)
+  const [selectedNodeInfo, setSelectedNodeInfo] = useState(null)
 
   // eslint-disable-next-line no-unused-vars
 
@@ -27,6 +28,12 @@ const TreeWorkflow = ({ treeData, onButtonClicked, onFullScreenClicked, fullscre
     }),
     []
   )
+  const handleNodeClick = () => {
+    // Update selectedNodeInfo with clicked node data
+    setSelectedNodeInfo(nodes.find((node) => node.selected).data)
+
+    console.log("SELECTED NODE:", selectedNodeInfo)
+  }
 
   const handleClick = (buttonType) => {
     setButtonClicked(buttonType)
@@ -250,7 +257,6 @@ const TreeWorkflow = ({ treeData, onButtonClicked, onFullScreenClicked, fullscre
       treeData.forEach((profile) => {
         const position = findNodeById(tree, profile.id)?.position
         const nodeId = `treeNode_${profile.id}`
-
         const newNodeParams = {
           nodeType: "treeNode",
           name: "Profile",
@@ -377,8 +383,9 @@ const TreeWorkflow = ({ treeData, onButtonClicked, onFullScreenClicked, fullscre
           <BiRefresh style={{ marginRight: "5px" }} /> Reset
         </Button>
       </div>
+
       <div style={{ flex: 1, width: dimensions.width, height: dimensions.height }}>
-        <ReactFlow fitView minZoom={0} maxZoom={1.5} zoomOnScroll={true} nodes={nodes} edges={edges} onNodesChange={onNodesChange} nodeTypes={nodeTypes}>
+        <ReactFlow fitView minZoom={0} maxZoom={1.5} zoomOnScroll={true} nodes={nodes} edges={edges} onNodesChange={onNodesChange} nodeTypes={nodeTypes} onNodeClick={handleNodeClick}>
           <Controls />
         </ReactFlow>
       </div>

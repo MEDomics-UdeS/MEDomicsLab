@@ -79,7 +79,7 @@ const paSettings = {
       type: "list-multiple",
       tooltip: "The types of Detectron test to run",
       options: [{ name: "Detectron Disagreement" }, { name: "Detecton with Mann-Whitney" }, { name: "Detectron Entropy" }, { name: "Detectron with KS-test" }],
-      default_val: ["Detectron Disagreement", "Detecton with Mann-Whitney"] // Default value for metrics
+      default_val: [{ name: "Detectron Disagreement" }, { name: "Detecton with Mann-Whitney" }] // Default value for metrics
     }
   }
 }

@@ -309,7 +309,7 @@ const FlInput = ({ name, settingInfos, currentValue, onInputChange, disabled, se
                 optionLabel="name"
                 display="chip"
                 disabled={disabled}
-                value={inputValue}
+                value={currentValue}
                 appendTo="self"
                 onChange={(e) => {
                   setInputValue(e.target.value)
