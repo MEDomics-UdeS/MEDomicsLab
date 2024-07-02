@@ -52,7 +52,7 @@ const nodesParams = {
     classes: "object model",
     nbInput: 1,
     nbOutput: 1,
-    input: ["fl_dataset"],
+    input: ["fl_dataset" ],
     output: ["model"],
     img: "model.png",
     title: "Model",
@@ -62,9 +62,9 @@ const nodesParams = {
   optimize: {
     type: "flOptimizeNode",
     classes: "action optimize run",
-    nbInput: 1,
+    nbInput: 2,
     nbOutput: 1,
-    input: ["dataset"],
+    input: ["dataset"  , "model"],
     output: ["model"],
     img: "optimize.png",
     title: "Optimize",
@@ -119,11 +119,22 @@ const nodesParams = {
     type: "flSaveModelNode",
     classes: "object",
     nbInput: 1,
-    nbOutput: 0,
+    nbOutput: 1,
     input: ["train_model"],
     output: ["save_results"],
     img: "save_model.png",
     title: "Save results",
+    possibleSettings: {}
+  }, 
+  merge_results: {
+    type: "flMergeresultsNode",
+    classes: "object",
+    nbInput: 1,
+    nbOutput: 0,
+    input: ["save_results"],
+    output: ["save_results"],
+    img: "compare.png",
+    title: "Merge results",
     possibleSettings: {}
   }
 }

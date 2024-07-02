@@ -103,6 +103,7 @@ export default function FlClientNode({ id, data }) {
               currentValue={data.internal.settings.Node_Dataset || {}}
               onInputChange={onFileSelection}
               setHasWarning={() => {}}
+              acceptedExtensions={["csv"]}
             />
           </>
         }

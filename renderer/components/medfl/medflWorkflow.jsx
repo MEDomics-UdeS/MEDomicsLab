@@ -48,6 +48,7 @@ import OptimResultsModal from "./optimResultsModal"
 import FlTrainModelNode from "./nodesTypes/flTrainModel.jsx"
 import FlSaveModelNode from "./nodesTypes/flSaveModelNode.jsx"
 import { useMEDflContext } from "../workspace/medflContext.jsx"
+import FlCompareResults from "./nodesTypes/flCompareResultsNode"
 
 const staticNodesParams = nodesParams // represents static nodes parameters
 
@@ -105,7 +106,7 @@ const MedflWorkflow = ({ setWorkflowType, workflowType }) => {
     {
       masterDatasetNode: {
         name: "Mimic_2017.csv",
-        path: "/home/local/USHERBROOKE/saho6810/Bureau/DATA/Mimic_2017.csv",
+        path: "C:\\Users\\HP User\\Desktop\\MEDomicsLab\\DATA\\Mimic_ouael.csv",
         target: "deceased"
       },
       Network: {
@@ -116,7 +117,7 @@ const MedflWorkflow = ({ setWorkflowType, workflowType }) => {
             type: "Test Node",
             dataset: {
               name: "Mimic_2017.csv",
-              path: "/home/local/USHERBROOKE/saho6810/Bureau/DATA/Mimic_2017.csv"
+              path: "C:\\Users\\HP User\\Desktop\\MEDomicsLab\\DATA\\Mimic_ouael.csv"
             }
           },
           {
@@ -124,7 +125,7 @@ const MedflWorkflow = ({ setWorkflowType, workflowType }) => {
             type: "Train node",
             dataset: {
               name: "Mimic_2017.csv",
-              path: "/home/local/USHERBROOKE/saho6810/Bureau/DATA/Mimic_2017.csv"
+              path: "C:\\Users\\HP User\\Desktop\\MEDomicsLab\\DATA\\Mimic_ouael.csv"
             }
           }
         ],
@@ -147,7 +148,7 @@ const MedflWorkflow = ({ setWorkflowType, workflowType }) => {
         activateTl: "true",
         file: {
           name: "grid_search_classifier.pth",
-          path: "/home/local/USHERBROOKE/saho6810/Bureau/DATA/grid_search_classifier.pth"
+          path: "C:\\Users\\HP User\\Desktop\\MEDomicsLab\\DATA\\grid_search_classifier.pth"
         },
         optimizer: "Adam",
         "learning rate": 0.001,
@@ -162,12 +163,21 @@ const MedflWorkflow = ({ setWorkflowType, workflowType }) => {
         "Minimal available clients": 1
       },
       flTrainModelNode: { clientRessources: "Use GPU" },
-      flSaveModelNode: { fileName: "resultsauto" }
+      flSaveModelNode: { fileName: "resultsauto" } , 
+      flMergeresultsNode: {
+        files: [
+          {
+            name: "testResults.medflres",
+            path: "C:\\Users\\HP User\\Desktop\\MEDomicsLab\\EXPERIMENTS\\FL\\Results\\testResults.medflres"
+          }
+        ],
+        fileName: "automerge"
+      }
     },
     {
       masterDatasetNode: {
         name: "Mimic_2017.csv",
-        path: "/home/local/USHERBROOKE/saho6810/Bureau/DATA/Mimic_2017.csv",
+        path: "C:\\Users\\HP User\\Desktop\\MEDomicsLab\\DATA\\Mimic_ouael.csv",
         target: "deceased"
       },
       Network: {
@@ -178,7 +188,7 @@ const MedflWorkflow = ({ setWorkflowType, workflowType }) => {
             type: "Test Node",
             dataset: {
               name: "Mimic_2017.csv",
-              path: "/home/local/USHERBROOKE/saho6810/Bureau/DATA/Mimic_2017.csv"
+              path: "C:\\Users\\HP User\\Desktop\\MEDomicsLab\\DATA\\Mimic_ouael.csv"
             }
           },
           {
@@ -186,7 +196,7 @@ const MedflWorkflow = ({ setWorkflowType, workflowType }) => {
             type: "Train node",
             dataset: {
               name: "Mimic_2017.csv",
-              path: "/home/local/USHERBROOKE/saho6810/Bureau/DATA/Mimic_2017.csv"
+              path: "C:\\Users\\HP User\\Desktop\\MEDomicsLab\\DATA\\Mimic_ouael.csv"
             }
           }
         ],
@@ -209,7 +219,7 @@ const MedflWorkflow = ({ setWorkflowType, workflowType }) => {
         activateTl: "true",
         file: {
           name: "grid_search_classifier.pth",
-          path: "/home/local/USHERBROOKE/saho6810/Bureau/DATA/grid_search_classifier.pth"
+          path: "C:\\Users\\HP User\\Desktop\\MEDomicsLab\\DATA\\grid_search_classifier.pth"
         },
         optimizer: "Adam",
         "learning rate": 0.001,
@@ -224,7 +234,16 @@ const MedflWorkflow = ({ setWorkflowType, workflowType }) => {
         "Minimal available clients": 1
       },
       flTrainModelNode: { clientRessources: "Use GPU" },
-      flSaveModelNode: { fileName: "resultsauto" }
+      flSaveModelNode: { fileName: "resultsauto" },
+      flMergeresultsNode: {
+        files: [
+          {
+            name: "testResults.medflres",
+            path: "C:\\Users\\HP User\\Desktop\\MEDomicsLab\\EXPERIMENTS\\FL\\Results\\testResults.medflres"
+          }
+        ],
+        fileName: "automerge"
+      }
     }
   ]
   // declare node types using useMemo hook to avoid re-creating component types unnecessarily (it memorizes the output) https://www.w3schools.com/react/react_usememo.asp
@@ -244,7 +263,8 @@ const MedflWorkflow = ({ setWorkflowType, workflowType }) => {
       flPipelineNode: FlPipelineNode,
       flResultsNode: FlResultsNode,
       flTrainModelNode: FlTrainModelNode,
-      flSaveModelNode: FlSaveModelNode
+      flSaveModelNode: FlSaveModelNode,
+      flMergeresultsNode: FlCompareResults
     }),
     []
   )
@@ -808,6 +828,51 @@ const MedflWorkflow = ({ setWorkflowType, workflowType }) => {
               toast.error("Something went wrong ")
             }
           }
+
+          if (flConfig[0]?.flMergeresultsNode?.files) {
+            let resultsFiles = flConfig[0]?.flMergeresultsNode?.files
+
+            const readData = async (index, data) => {
+              let resData = data
+              if (index === resultsFiles.length) {
+                return resData
+              } else {
+                try {
+                  const fileData = await loadFileFromPathSync(resultsFiles[index].path)
+                  return readData(index + 1, [...resData, fileData])
+                } catch (error) {
+                  console.error("Error loading file:", error)
+                  return resData
+                }
+              }
+            }
+
+            readData(0, []).then(async (readData) => {
+              let resultFileData = { data: jsonResponse["data"], configs: flConfig, date:  Date.now() }
+
+              readData.map((data) => {
+                resultFileData = {
+                  ...resultFileData,
+                  data: resultFileData.data.concat(data.data),
+                  configs: resultFileData.configs.concat(data.configs)
+                }
+              })
+              try {
+                let path = Path.join(globalData[UUID_ROOT].path, EXPERIMENTS)
+
+                MedDataObject.createFolderFromPath(path + "/FL")
+                MedDataObject.createFolderFromPath(path + "/FL/Results")
+
+                // do custom actions in the folder while it is unzipped
+                await MedDataObject.writeFileSync(resultFileData["data"], path + "/FL/Results", fileName, "json")
+                await MedDataObject.writeFileSync(resultFileData, path + "/FL/Results", fileName, "medflres")
+
+                toast.success("Experiment results saved successfuly ")
+              } catch {
+                toast.error("Something went wrong ")
+              }
+            })
+          }
           setAllresults([...allConfigResults, jsonResponse])
           setRunModal(false)
           setTimeout(() => {
@@ -987,8 +1052,8 @@ const MedflWorkflow = ({ setWorkflowType, workflowType }) => {
           setRunModal(false)
 
           if (mode == "run") {
-            // runFlPipeline(ALL_CONFIGS, flConfigFile?.path)
-            runFlPipeline(flConfig, flConfigFile?.path)
+            runFlPipeline(ALL_CONFIGS, flConfigFile?.path)
+            // runFlPipeline(flConfig, flConfigFile?.path)
           } else {
             setOptimType(flConfig[0]["flOptimizeNode"]["optimisation Type"])
             runFlOptimisation(flConfig, flConfigFile?.path)

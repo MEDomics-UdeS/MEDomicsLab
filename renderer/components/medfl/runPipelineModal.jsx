@@ -124,9 +124,8 @@ const RunPipelineModal = ({ show, onHide, configs, nodes, onRun }) => {
             n = node.data.internal.settings
             break
           default:
-            n = {
-              name: node.data.internal.name
-            }
+            n  = node.data.internal.settings
+           
             break
         }
         nodeType = node.type
@@ -179,13 +178,13 @@ const RunPipelineModal = ({ show, onHide, configs, nodes, onRun }) => {
               Optimise hyperparameters
             </Button>
           ) : null}
-          <Button
+          {experimentConfig?.length > 0 && !experimentConfig[0]["flOptimizeNode"] ? <Button
             onClick={() => {
               onRun(experimentConfig, "run")
             }}
           >
             Run Pipeline
-          </Button>
+          </Button> : null }
         </Modal.Footer>
       </Modal>
     </div>

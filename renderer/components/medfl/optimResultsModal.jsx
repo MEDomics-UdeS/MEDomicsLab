@@ -57,10 +57,12 @@ const OptimResultsModal = ({ show, onHide, title, results }) => {
               </div>
               <JsonView data={results["data"]["Best Parameters"]} shouldExpandNode={allExpanded} />
 
-              <img src={`data:image/png;base64,${results["data"]["opt_history"]}`} alt="Optimization History" />
+           { results["data"]["opt_history"] ? <div>
+            <img src={`data:image/png;base64,${results["data"]["opt_history"]}`} alt="Optimization History" />
               <img src={`data:image/png;base64,${results["data"]["parallel_coordinates"]}`} alt="parallel_coordinates" />
               <img src={`data:image/png;base64,${results["data"]["param_importance"]}`} alt="param_importance" />
-            </>
+           
+           </div>  : null } </>
           ) : (
             "Loading"
           )}

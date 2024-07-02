@@ -21,7 +21,7 @@ export default function MedflWelcomePage({ changePage }) {
             <Image src={myimage} alt="" style={{ height: "175px", width: "175px" }} />
           </Stack>
 
-          <h5 className="px-3 w-75"> A unified approach to federated learning, analytics, and evaluation. Federate any workload, any ML framework, and any programming language.</h5>
+          <h5 className="px-3 w-75"> A comprehensive package for simulating the federated learning process in the medical field, featuring an intuitive user interface for seamless interaction.</h5>
           <Button
             onClick={() => {
               changePage(false)
