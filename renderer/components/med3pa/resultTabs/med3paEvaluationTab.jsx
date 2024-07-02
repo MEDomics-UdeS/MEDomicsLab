@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react"
 
 import MDRCurve from "../resultsComponents/mdrCurve"
-import TreeWorkflow from "../resultsComponents/treeWorkflow"
+import FlowWithProvider from "../resultsComponents/treeWorkflow"
 import NodeParameters from "../resultsComponents/nodeParams"
 import TreeParameters from "../resultsComponents/treeParams"
 import DetectronResults from "../resultsComponents/detectronResults"
@@ -23,7 +23,7 @@ const MED3paEvaluationTab = ({ loadedFiles }) => {
   const [nodeParams, setNodeParams] = useState({
     focusView: "Node information",
     thresholdEnabled: false,
-    customThreshold: 29,
+    customThreshold: 100,
     selectedParameter: "",
     metrics: metrics
   })
@@ -53,7 +53,7 @@ const MED3paEvaluationTab = ({ loadedFiles }) => {
     // Further filter the items based on nodeParams.focusView
     filteredData = filteredData.map((item) => {
       const newItem = { id: item.id, path: item.path } // Keep id and path
-      newItem.color = "#F5F5F5"
+      newItem.className = ""
       let customThreshold = nodeParams.customThreshold
       if (!nodeParams.selectedParameter.endsWith("%")) {
         customThreshold = customThreshold / 100
@@ -63,7 +63,7 @@ const MED3paEvaluationTab = ({ loadedFiles }) => {
         // Remove metrics and detectron_results
         newItem.value = parseFloat(item.value.toFixed(5))
         if (newItem.value >= customThreshold) {
-          newItem.color = "#90EE90"
+          newItem.className = "panode-threshold"
         }
         return newItem
       } else if (nodeParams.focusView === "Covariate-shift probabilities") {
@@ -71,7 +71,7 @@ const MED3paEvaluationTab = ({ loadedFiles }) => {
         // eslint-disable-next-line camelcase
         newItem.detectron_results = typeof item.detectron_results === "number" ? parseFloat(item.detectron_results.toFixed(5)) : item.detectron_results
         if (newItem.detectron_results >= customThreshold) {
-          newItem.color = "#90EE90"
+          newItem.className = "panode-threshold"
         }
         return newItem
       } else {
@@ -84,7 +84,7 @@ const MED3paEvaluationTab = ({ loadedFiles }) => {
           }
         }
         if (newItem.metrics[nodeParams.selectedParameter] >= customThreshold) {
-          newItem.color = "#90EE90"
+          newItem.className = "panode-threshold"
         }
         return newItem
       }
@@ -100,7 +100,7 @@ const MED3paEvaluationTab = ({ loadedFiles }) => {
       setNodeParams({
         focusView: "Node information",
         thresholdEnabled: false,
-        customThreshold: 29,
+        customThreshold: 100,
         selectedParameter: "",
         metrics: metrics
       })
@@ -191,7 +191,7 @@ const MED3paEvaluationTab = ({ loadedFiles }) => {
         {fullscreen ? (
           <div style={{ flex: "1", display: "flex", position: "relative" }}>
             <div style={{ position: "absolute", inset: "0", display: "flex", flexDirection: "column" }}>
-              {!loading ? <p>Loading tree data...</p> : <TreeWorkflow treeData={treeData} onButtonClicked={handleButtonClicked} onFullScreenClicked={toggleFullscreen} fullscreen={fullscreen} />}
+              {!loading ? <p>Loading tree data...</p> : <FlowWithProvider treeData={treeData} onButtonClicked={handleButtonClicked} onFullScreenClicked={toggleFullscreen} fullscreen={fullscreen} />}
             </div>
           </div>
         ) : (
@@ -201,15 +201,15 @@ const MED3paEvaluationTab = ({ loadedFiles }) => {
                 <TreeParameters treeParams={treeParams} setTreeParams={updateTreeParams} />
               </div>
               <div className="col-md-5 mb-3" style={{ display: "flex", flexDirection: "column" }}>
-                <NodeParameters nodeParams={nodeParams} setNodeParams={setNodeParams} />
+                <NodeParameters parentId="eval" nodeParams={nodeParams} setNodeParams={setNodeParams} />
               </div>
             </div>
             <div className="row" style={{ flex: "1", display: "flex" }}>
               <div className="col-md-7 mb-3" style={{ display: "flex", flexDirection: "column", flex: "1", paddingRight: "15px" }}>
-                {!loading ? <p>Loading tree data...</p> : <TreeWorkflow treeData={treeData} onButtonClicked={handleButtonClicked} onFullScreenClicked={toggleFullscreen} fullscreen={fullscreen} />}
+                {!loading ? <p>Loading tree data...</p> : <FlowWithProvider treeData={treeData} onButtonClicked={handleButtonClicked} onFullScreenClicked={toggleFullscreen} fullscreen={fullscreen} />}
               </div>
               <div className="col-md-5 mb-3" style={{ display: "flex", flexDirection: "column" }}>
-                <MDRCurve />
+                <MDRCurve metricsByDrFile={loadedFiles?.metrics_dr} />
                 <DetectronResults />
               </div>
             </div>

@@ -37,3 +37,68 @@
   z-index: 1000;
   cursor: pointer;
 }
+
+.panode {
+  border-radius: 8px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.1);
+  padding: 10px;
+  position: relative;
+  transition: all 0.3s ease;
+  background: #f1f0f0;
+}
+
+.panode-body {
+  background: white;
+  border-radius: 8px;
+  padding: 15px;
+  box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.panode-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.panode-header h5 {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.panode-value {
+  font-weight: bold;
+  margin-bottom: 2px;
+  font-size: 1.2rem;
+}
+
+.panode-value-end {
+  font-weight: bold;
+  margin-bottom: 0;
+  font-size: 1.2rem;
+}
+
+/* Additional Classes */
+.palost-node {
+  display: none;
+}
+
+.paselected-node {
+  transform: scale(4); /* Increase scaling factor */
+  background: #80cbc4;
+}
+
+.paselected-node .node-header h5,
+.paselected-node .node-value,
+.paselected-node .node-value-end {
+  font-size: 3rem;
+}
+
+.panode-threshold {
+  transform: scale(2);
+  background: rgb(166, 241, 158);
+}
+
+.panode-lost {
+  display: none;
+}

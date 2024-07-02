@@ -68,7 +68,6 @@ const MED3paResultsPage = ({ pageId, configPath = "" }) => {
           filePath = path.join(fileData.file_path, "reference")
         } else if (tab === "test") {
           const parentFolderName = path.basename(fileData.file_path)
-
           if (parentFolderName.startsWith("det")) {
             filePath = path.join(fileData.file_path, "detectron_results")
           }

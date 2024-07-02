@@ -109,6 +109,7 @@
     "react-csv-reader": "^4.0.0",
     "react-d3-tree": "^3.6.2",
     "react-dropzone": "^14.2.3",
+    "react-flow-renderer": "^10.3.17",
     "react-hook-form": "^7.47.0",
     "react-icons": "^4.12.0",
     "react-iframe": "^1.8.5",
@@ -145,8 +146,8 @@
     "next": "^13.5.3",
     "nextron": "^8.5.0",
     "prettier": "^3.2.5",
-    "react": "^18.2.0",
+    "react": "^18.3.1",
     "react-bootstrap": "^2.7.1",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.3.1"
   }
 }

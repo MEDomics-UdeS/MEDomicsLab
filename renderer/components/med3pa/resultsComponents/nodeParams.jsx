@@ -3,7 +3,7 @@ import { Typography, FormControl, RadioGroup, FormControlLabel, Radio, Switch } 
 import FlInput from "../paInput"
 import { TbSettingsCog } from "react-icons/tb"
 
-const NodeParameters = ({ nodeParams, setNodeParams }) => {
+const NodeParameters = ({ parentId, nodeParams, setNodeParams }) => {
   const { focusView, thresholdEnabled, customThreshold, selectedParameter, metrics } = nodeParams
 
   // Local state for metrics selection
@@ -59,8 +59,6 @@ const NodeParameters = ({ nodeParams, setNodeParams }) => {
       return [{ name: "Profile value" }]
     } else if (focusView === "Node performance" && metrics) {
       return metrics.map((metric) => ({ name: metric.name }))
-    } else if (focusView === "Covariate-shift probabilities") {
-      return [{ name: "Detectron results" }]
     }
     return []
   }
@@ -98,7 +96,7 @@ const NodeParameters = ({ nodeParams, setNodeParams }) => {
           >
             <FormControlLabel value="Node information" control={<Radio />} label="General information" className="default-text-color-paresults" />
             <FormControlLabel value="Node performance" control={<Radio />} label="Node performance" className="default-text-color-paresults" />
-            <FormControlLabel value="Covariate-shift probabilities" control={<Radio />} label="Covariate-shift probs" className="default-text-color-paresults" />
+            {parentId !== "test" && <FormControlLabel value="Covariate-shift probabilities" control={<Radio />} label="Covariate-shift probs" className="default-text-color-paresults" />}
           </RadioGroup>
         </FormControl>
         {focusView === "Node performance" && (

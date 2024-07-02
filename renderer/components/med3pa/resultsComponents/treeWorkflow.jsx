@@ -4,21 +4,26 @@ import React, { useState, useMemo, useEffect, useRef, useLayoutEffect } from "re
 import { TbBinaryTree } from "react-icons/tb"
 import { BiFilter, BiRefresh } from "react-icons/bi"
 import { AiOutlineFullscreen, AiOutlineFullscreenExit } from "react-icons/ai"
-import ReactFlow, { useNodesState, useEdgesState, Controls, addEdge } from "reactflow"
+import ReactFlow, { useNodesState, useEdgesState, Controls, addEdge, useReactFlow, ReactFlowProvider } from "reactflow"
 import TreeNode from "../nodesTypes/treeNode.jsx"
 import { Typography } from "@mui/material"
 import { Button } from "react-bootstrap"
 import { deepCopy } from "../../../utilities/staticFunctions.js"
+import { GiPathDistance } from "react-icons/gi"
+import { MdOutlineGroups3 } from "react-icons/md"
 
 const TreeWorkflow = ({ treeData, onButtonClicked, onFullScreenClicked, fullscreen }) => {
   // eslint-disable-next-line no-unused-vars
   const [buttonClicked, setButtonClicked] = useState(false)
+  const { setCenter, fitView } = useReactFlow()
 
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 })
   const [nodes, setNodes, onNodesChange] = useNodesState([]) // nodes array, setNodes is used to update the nodes array, onNodesChange is a callback hook that is executed when the nodes array is changed
   const [edges, setEdges] = useEdgesState([]) // edges array, setEdges is used to update the edges array, onEdgesChange is a callback hook that is executed when the edges array is changed
   const cardRef = useRef(null)
+
   const [selectedNodeInfo, setSelectedNodeInfo] = useState(null)
+  const [originalClasses, setOriginalClasses] = useState([])
 
   // eslint-disable-next-line no-unused-vars
 
@@ -28,11 +33,73 @@ const TreeWorkflow = ({ treeData, onButtonClicked, onFullScreenClicked, fullscre
     }),
     []
   )
-  const handleNodeClick = () => {
-    // Update selectedNodeInfo with clicked node data
-    setSelectedNodeInfo(nodes.find((node) => node.selected).data)
 
-    console.log("SELECTED NODE:", selectedNodeInfo)
+  const getOriginalClassById = (id) => {
+    const originalColorObj = originalClasses.find((colorObj) => colorObj.id === id)
+    return originalColorObj ? originalColorObj.originalClass : "black" // Default to black if not found
+  }
+
+  const handleNodeClick = () => {
+    // Define updatedNodes as a copy of nodes
+    const updatedNodes = nodes.map((node) => ({ ...node }))
+
+    let newSelectedNodeInfo = null // Variable to store the new selected node info
+
+    // Find previously selected node and revert its color to original
+    if (selectedNodeInfo) {
+      const prevSelectedNode = updatedNodes.find((node) => node.data.internal.settings.id === selectedNodeInfo.data.internal.settings.id)
+
+      if (prevSelectedNode) {
+        const prevNodeId = prevSelectedNode.data.internal.settings.id
+        const originalClass = getOriginalClassById(prevNodeId)
+
+        updatedNodes.forEach((node) => {
+          if (node.data.internal.settings.id === prevNodeId) {
+            node.data.internal.settings.className = originalClass // Revert to original color
+          }
+        })
+
+        // If clicking on the same node again, do not select it
+        if (prevSelectedNode.selected) {
+          newSelectedNodeInfo = null
+          setSelectedNodeInfo(null)
+          fitView({ duration: 800 })
+        }
+      }
+    }
+
+    // Update newly selected node's color to light blue and handle state updates if it's not the same node
+    const finalNodes = updatedNodes.map((node) => {
+      if (node.selected) {
+        // If it's the same node, do not change its color again
+        if (node.data.internal.settings.id === selectedNodeInfo?.data.internal.settings.id) {
+          return node
+        }
+
+        newSelectedNodeInfo = node
+        setCenter(newSelectedNodeInfo.position.x + newSelectedNodeInfo.width / 2, newSelectedNodeInfo.position.y + newSelectedNodeInfo.height / 2, { zoom: 0.3, duration: 800 })
+
+        return {
+          ...node,
+          data: {
+            ...node.data,
+            internal: {
+              ...node.data.internal,
+              settings: {
+                ...node.data.internal.settings,
+                className: "paselected-node" // Update color for newly selected node
+              }
+            }
+          }
+        }
+      }
+      return node
+    })
+
+    setNodes(finalNodes)
+
+    // Update selectedNodeInfo with the new selected node data
+    setSelectedNodeInfo(newSelectedNodeInfo)
   }
 
   const handleClick = (buttonType) => {
@@ -268,8 +335,14 @@ const TreeWorkflow = ({ treeData, onButtonClicked, onFullScreenClicked, fullscre
         let newNode = createBaseNode(newNodeParams, nodeId)
         newNode = addSpecificToNode(newNode)
 
+        originalClasses.push({
+          id: profile.id,
+          originalClass: newNode.data.internal.settings.className
+        })
+
         setNodes((nds) => nds.concat(newNode))
       })
+      setOriginalClasses(originalClasses)
 
       // Step 2: Create edges
 
@@ -338,6 +411,7 @@ const TreeWorkflow = ({ treeData, onButtonClicked, onFullScreenClicked, fullscre
 
   useLayoutEffect(() => {
     // Initial dimensions setup
+
     updateDimensions()
 
     // ResizeObserver to watch for size changes in cardRef
@@ -383,7 +457,57 @@ const TreeWorkflow = ({ treeData, onButtonClicked, onFullScreenClicked, fullscre
           <BiRefresh style={{ marginRight: "5px" }} /> Reset
         </Button>
       </div>
+      {selectedNodeInfo && (
+        <div
+          style={{
+            position: "relative",
+            top: "20px",
 
+            display: "inline-block",
+            maxWidth: "30%",
+            borderRadius: "8px",
+            backgroundColor: "#80cbc4",
+            boxShadow: "0 4px 4px rgba(0, 0, 0, 0.1)",
+            padding: "5px",
+            border: "1px solid rgba(0, 0, 0, 0.1)"
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center"
+            }}
+          >
+            <Typography variant="h6" style={{ marginLeft: "5px", color: "black" }}>
+              <MdOutlineGroups3 style={{ fontSize: "28px", marginRight: "10px" }} />
+              Profile {selectedNodeInfo.data.internal.settings.id}
+            </Typography>
+            <GiPathDistance style={{ fontSize: "1.5rem", color: "black" }} />
+          </div>
+          <div
+            style={{
+              backgroundColor: "#FFFFFF",
+              padding: "20px",
+              borderRadius: "8px",
+              marginTop: "10px",
+              boxShadow: "0px 2px 4px rgba(0, 0, 0, 0.1)"
+            }}
+          >
+            <Typography variant="body1">
+              <div
+                style={{ color: "black", fontWeight: "bold", width: "100%", fontSize: "100%", wordWrap: "break-word" }}
+                dangerouslySetInnerHTML={{
+                  __html: `${selectedNodeInfo.data.internal.settings.path
+                    .filter((item) => item !== "*")
+                    .map((item) => item)
+                    .join(" <br /> ")}`
+                }}
+              />
+            </Typography>
+          </div>
+        </div>
+      )}
       <div style={{ flex: 1, width: dimensions.width, height: dimensions.height }}>
         <ReactFlow fitView minZoom={0} maxZoom={1.5} zoomOnScroll={true} nodes={nodes} edges={edges} onNodesChange={onNodesChange} nodeTypes={nodeTypes} onNodeClick={handleNodeClick}>
           <Controls />
@@ -393,4 +517,12 @@ const TreeWorkflow = ({ treeData, onButtonClicked, onFullScreenClicked, fullscre
   )
 }
 
-export default TreeWorkflow
+const FlowWithProvider = ({ treeData, onButtonClicked, onFullScreenClicked, fullscreen }) => {
+  return (
+    <ReactFlowProvider>
+      <TreeWorkflow treeData={treeData} onButtonClicked={onButtonClicked} onFullScreenClicked={onFullScreenClicked} fullscreen={fullscreen} />
+    </ReactFlowProvider>
+  )
+}
+
+export default FlowWithProvider
