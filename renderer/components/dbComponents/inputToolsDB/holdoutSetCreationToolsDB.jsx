@@ -12,6 +12,7 @@ import { Button } from "primereact/button"
 import { requestBackend } from "../../../utilities/requests"
 import { ServerConnectionContext } from "../../serverConnection/connectionContext"
 import { toast } from "react-toastify"
+import { MEDDataObject } from "../../workspace/NewMedDataObject"
 
 const HoldoutSetCreationToolsDB = ({ refreshData, currentCollection }) => {
   const [shuffle, setShuffle] = useState(false)
@@ -65,7 +66,7 @@ const HoldoutSetCreationToolsDB = ({ refreshData, currentCollection }) => {
     requestBackend(port, "/input/create_holdout_set_DB/", JSONToSend, (jsonResponse) => {
       console.log("jsonResponse", jsonResponse)
       refreshData()
-      //ipcRenderer.send("get-collections", DB.name)
+      MEDDataObject.updateWorkspaceDataObject()
       toast.success("Holdout and learning sets created successfully.")
     })
   }

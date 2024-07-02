@@ -3,14 +3,14 @@ import { DataTable } from "primereact/datatable"
 import { Column } from "primereact/column"
 import { InputText } from "primereact/inputtext"
 import { Button } from "primereact/button"
-import { MongoClient, ObjectId } from "mongodb"
+import { ObjectId } from "mongodb"
 import { toast } from "react-toastify"
-const mongoUrl = "mongodb://127.0.0.1:27017"
 import { saveAs } from "file-saver"
 import Papa from "papaparse"
 import { getCollectionData } from "./utils"
 import InputToolsComponent from "./InputToolsComponent"
 import { Dialog } from "primereact/dialog"
+import { connectToMongoDB } from "../mongoDB/mongoDBUtils"
 
 /**
  * DataTableFromDB component
@@ -139,11 +139,8 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
 
   // Update data in MongoDB
   const updateDatabaseData = async (dbname, collectionName, id, field, newValue) => {
-    const client = new MongoClient(mongoUrl)
     try {
-      await client.connect()
-      console.log("Connected to the server for update", dbname, collectionName)
-      const db = client.db(dbname)
+      const db = await connectToMongoDB()
       const collection = db.collection(collectionName)
       console.log(`Updating document with _id: ${id}, setting ${field} to ${newValue}`)
       const result = await collection.updateOne({ _id: new ObjectId(id) }, { $set: { [field]: newValue } })
@@ -153,18 +150,13 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
       }
     } catch (error) {
       console.error("Error updating data:", error)
-    } finally {
-      await client.close()
     }
   }
 
   // Delete data from MongoDB
   const deleteDatabaseData = async (dbname, collectionName, id) => {
-    const client = new MongoClient(mongoUrl)
     try {
-      await client.connect()
-      console.log("Connected to the server for deletion", dbname, collectionName)
-      const db = client.db(dbname)
+      const db = await connectToMongoDB()
       const collection = db.collection(collectionName)
       console.log(`Deleting document with _id: ${id}`)
       const result = await collection.deleteOne({ _id: new ObjectId(id) })
@@ -176,18 +168,13 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
       }
     } catch (error) {
       console.error("Error deleting data:", error)
-    } finally {
-      await client.close()
     }
   }
 
   // Insert data into MongoDB
   const insertDatabaseData = async (dbname, collectionName, data) => {
-    const client = new MongoClient(mongoUrl)
     try {
-      await client.connect()
-      console.log("Connected to the server for insertion", dbname, collectionName)
-      const db = client.db(dbname)
+      const db = await connectToMongoDB()
       const collection = db.collection(collectionName)
       console.log(`Inserting document: ${JSON.stringify(data)}`)
       const result = await collection.insertOne(data)
@@ -195,14 +182,12 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
       return result.insertedId.toString()
     } catch (error) {
       console.error("Error inserting data:", error)
-    } finally {
-      await client.close()
     }
   }
 
   // Handle cell edit completion
   const onCellEditComplete = (e) => {
-    let { rowData, newValue, field, originalEvent: event } = e
+    let { rowData, newValue, field } = e
     if (newValue === "" || newValue === null) {
       newValue = null
     } else if (!isNaN(newValue)) {
@@ -270,12 +255,9 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
       })
     )
 
-    const client = new MongoClient(mongoUrl)
     try {
-      await client.connect()
-      console.log("Connected to the server for column deletion", data.path, data.uuid)
-      const db = client.db(data.path)
-      const collection = db.collection(data.uuid)
+      const db = await connectToMongoDB()
+      const collection = db.collection(data.id)
       console.log(`Deleting field ${field} from all documents`)
       const result = await collection.updateMany({}, { $unset: { [field]: "" } })
       console.log("Delete column result:", result)
@@ -284,8 +266,6 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
       }
     } catch (error) {
       console.error("Error deleting column:", error)
-    } finally {
-      await client.close()
     }
   }
 
@@ -341,7 +321,7 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
       csvData.push(
         ...innerData.map((row) => {
           let csvRow = ""
-          for (const [key, value] of Object.entries(row)) {
+          for (const [, value] of Object.entries(row)) {
             csvRow += value + ","
           }
           return csvRow.slice(0, -1)

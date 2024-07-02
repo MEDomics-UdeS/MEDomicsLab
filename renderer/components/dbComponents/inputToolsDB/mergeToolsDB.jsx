@@ -4,10 +4,10 @@ import { Button } from "primereact/button"
 import { toast } from "react-toastify"
 import { getCollectionData } from "../utils"
 import { Dropdown } from "primereact/dropdown"
-const mongoUrl = "mongodb://localhost:27017"
-import { MongoClient, ObjectId } from "mongodb"
+import { ObjectId } from "mongodb"
 import { Message } from "primereact/message"
 import _ from "lodash"
+import { connectToMongoDB } from "../../mongoDB/mongoDBUtils"
 
 /**
  * @description MergeToolsDB component
@@ -173,9 +173,7 @@ const MergeToolsDB = ({ collections, currentCollection }) => {
     }
 
     if (mergedData) {
-      const client = new MongoClient(mongoUrl)
-      await client.connect()
-      const db = client.db("data")
+      const db = await connectToMongoDB()
       let baseCollectionName = `${selectedCollectionLabels[0]}${selectedCollectionLabels[1]}_${selectedMergeType}_Merged`
       let newCollectionName = baseCollectionName
 
@@ -193,7 +191,6 @@ const MergeToolsDB = ({ collections, currentCollection }) => {
       await newCollection.insertMany(mergedData)
       //ipcRenderer.send("get-collections", DB.name)
       console.log(`New collection ${newCollectionName} created with merged data.`)
-      await client.close()
     }
   }
 

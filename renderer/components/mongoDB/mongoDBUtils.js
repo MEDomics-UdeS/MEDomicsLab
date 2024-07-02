@@ -21,40 +21,41 @@ export async function connectToMongoDB() {
 
 /**
  * @description Insert a MEDDataObject in the database if not exists
- * @param {MEDDataObject} data data to insert in the database
+ * @param {MEDDataObject} medData MEDDataObject to insert in the database
  * @param {String} path path of the data we want to import in the database
+ * @param {Json} jsonData the data to insert in MongoDB
  * @returns id the id of the MEDDataObject in the DB
  */
-export async function insertMEDDataObjectIfNotExists(data, path = null) {
+export async function insertMEDDataObjectIfNotExists(medData, path = null, jsonData = null) {
   const db = await connectToMongoDB()
   const collection = db.collection("medDataObjects")
 
   // Check if MEDDataObject exists in the DB
-  const existingObjectByID = await collection.findOne({ id: data.id })
+  const existingObjectByID = await collection.findOne({ id: medData.id })
   if (existingObjectByID) {
     // If object already in the DB we stop here
     return existingObjectByID.id
   }
 
-  const existingObjectByAttributes = await collection.findOne({ name: data.name, type: data.type, parentID: data.parentID })
+  const existingObjectByAttributes = await collection.findOne({ name: medData.name, type: medData.type, parentID: medData.parentID })
   if (existingObjectByAttributes) {
     // If object already in the DB we stop here
     return existingObjectByAttributes.id
   }
 
   // Insert MEDdataObject if not exists
-  const result = await collection.insertOne(data)
+  const result = await collection.insertOne(medData)
   console.log(`MEDDataObject inserted with _id: ${result.insertedId}`)
 
   // Add the id of the inserted object to the childrenIDs of its parent
-  if (data.parentID) {
-    const parent = await collection.findOne({ id: data.parentID })
+  if (medData.parentID) {
+    const parent = await collection.findOne({ id: medData.parentID })
     if (parent) {
       let children = parent.childrenIDs || []
 
       // Fetch the actual child objects to sort them
       const childrenObjects = await collection.find({ id: { $in: children } }).toArray()
-      childrenObjects.push(data)
+      childrenObjects.push(medData)
 
       // Sort the children objects first by type (directories first) and then alphabetically by name
       childrenObjects.sort((a, b) => {
@@ -68,21 +69,25 @@ export async function insertMEDDataObjectIfNotExists(data, path = null) {
       children = childrenObjects.map((child) => child.id)
 
       // Update the parent with the sorted children ids
-      await collection.updateOne({ id: data.parentID }, { $set: { childrenIDs: children } })
+      await collection.updateOne({ id: medData.parentID }, { $set: { childrenIDs: children } })
     }
   }
 
   // Insert MEDdataObject data (if contains data)
-  if (path) {
-    switch (data.type) {
+  if (jsonData) {
+    const dataCollection = db.collection(medData.id)
+    const result = await dataCollection.insertMany(jsonData)
+    console.log(`Data inserted with ${result.insertedCount} documents`)
+  } else if (path) {
+    switch (medData.type) {
       case "csv":
-        await insertCSVIntoCollection(path, data.id)
+        await insertCSVIntoCollection(path, medData.id)
         break
       default:
         break
     }
   }
-  return data.id
+  return medData.id
 }
 
 /**
@@ -114,4 +119,16 @@ async function insertCSVIntoCollection(filePath, collectionName) {
       }
     })
   })
+}
+
+/**
+ * @description overwrite a MEDDataObject data in the DataBase
+ * @param {String} id id of the MEDDataObject data to overwrite
+ * @param {Json} jsonData the new data for the MEDDataObject
+ */
+export async function overwriteMEDDataObject(id, jsonData) {
+  const db = await connectToMongoDB()
+  const collection = db.collection(id)
+  await collection.deleteMany({})
+  await collection.insertMany(jsonData)
 }

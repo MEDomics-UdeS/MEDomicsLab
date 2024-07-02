@@ -128,7 +128,6 @@ const SimpleCleaningToolsDB = ({ lastEdit, data, columns, currentCollection, ref
     requestBackend(port, "/input/cleanDB/", jsonToSend, (jsonResponse) => {
       console.log("jsonResponse", jsonResponse)
       refreshData()
-      //ipcRenderer.send("get-collections", DB.name)
       toast.success("Data cleaned successfully.")
     })
   }

@@ -1,4 +1,3 @@
-//import MedDataObject from "../../components/workspace/medDataObject"
 import { MEDDataObject } from "../../components/workspace/NewMedDataObject"
 import { recursivelyRecenseWorkspaceTree } from "./workspaceUtils"
 import { connectToMongoDB, insertMEDDataObjectIfNotExists } from "../../components/mongoDB/mongoDBUtils"
@@ -41,7 +40,6 @@ export async function loadMEDDataObjects() {
       const medDataObject = new MEDDataObject(data)
       medDataObjectsDict[medDataObject.id] = medDataObject
     })
-    console.log("MEDDataObjects loaded into globalData", medDataObjectsDict)
   } catch (error) {
     console.error("Failed to load MEDDataObjects: ", error)
   }
