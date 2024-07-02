@@ -4,13 +4,16 @@ import { Trash, BoxArrowUpRight, Eraser, FolderPlus, ArrowClockwise, EyeFill, Ey
 import { Accordion, Stack } from "react-bootstrap"
 import { ControlledTreeEnvironment, Tree } from "react-complex-tree"
 import { DataContext } from "../../../workspace/dataContext"
-import MedDataObject from "../../../workspace/medDataObject"
+//import MedDataObject from "../../../workspace/medDataObject"
 import { toast } from "react-toastify"
 import { LayoutModelContext } from "../../layoutContext"
 import { useContextMenu, Menu, Item, Submenu } from "react-contexify"
 import renderItem from "./renderItem"
 import { Tooltip } from "primereact/tooltip"
 import { confirmDialog } from "primereact/confirmdialog"
+import { MEDDataObject } from "../../../workspace/NewMedDataObject"
+import { randomUUID } from "crypto"
+import { insertMEDDataObjectIfNotExists } from "../../../mongoDB/mongoDBUtils"
 
 /**
  * @description - This component is the sidebar tools component that will be used in the sidebar component
@@ -519,22 +522,26 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
    * @param {Array} selectedItems - The array of selected items in the directory tree
    * @returns {void}
    */
-  function createFolder(selectedItems) {
-    let selectedItem = selectedItems[0]
-    let selectedItemObject = globalData[selectedItem]
-    let parentObject = undefined
-    if (selectedItemObject !== undefined && selectedItemObject.type !== undefined) {
-      if (selectedItemObject.type == "folder") {
-        parentObject = selectedItemObject
+  async function createFolder(selectedItems) {
+    if (selectedItems && selectedItems.length > 0) {
+      const item = globalData[selectedItems[0]]
+      let parentID = null
+      if (item.type == "directory") {
+        parentID = item.id
       } else {
-        parentObject = globalData[selectedItemObject.parentID]
+        parentID = item.parentID
       }
-
-      MedDataObject.createEmptyFolderFS("New Folder", parentObject.path)
-      //MedDataObject.updateWorkspaceDataObject()
-      tree.current.expandItem(parentObject.getUUID()) // We expand the parent folder so that we see the new folder
+      const medObject = new MEDDataObject({
+        id: randomUUID(),
+        name: MEDDataObject.getNewNameForType(globalData, "directory", parentID),
+        type: "directory",
+        parentID: parentID,
+        childrenIDs: []
+      })
+      await insertMEDDataObjectIfNotExists(medObject)
+      MEDDataObject.updateWorkspaceDataObject()
     } else {
-      toast.error("Error: Please select a folder")
+      toast.error("Error: Please select a directory")
     }
   }
 
