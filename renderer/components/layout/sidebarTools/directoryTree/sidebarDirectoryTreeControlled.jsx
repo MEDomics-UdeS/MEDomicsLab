@@ -64,10 +64,7 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
   const handleKeyPress = (event) => {
     if (event.key === "Delete" && tree.current.isRenaming === false) {
       if (selectedItems.length > 0) {
-        console.log("DELETE", selectedItems[0])
-        selectedItems.forEach((item) => {
-          onDelete(item)
-        })
+        onDeleteSequentially(selectedItems)
       }
     } else if (event.code === "KeyC" && event.ctrlKey) {
       setCopiedItems(selectedItems)
@@ -117,8 +114,9 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
           }
         }
       } else if (event.code === "Backspace" && event.metaKey) {
-        console.log("BACKSPACE", selectedItems[0])
-        onDelete(selectedItems[0])
+        if (selectedItems.length > 0) {
+          onDeleteSequentially(selectedItems)
+        }
       }
     }
   }
@@ -189,14 +187,20 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
   }
 
   /**
-   * This function deletes a `MEDDataObject` in the workspace.
-   * @param {string} id - The ID of the `MEDDataObject` to delete
+   * This function deletes a list of `MEDDataObject` in the workspace.
+   * @param {[string]} items - The list `MEDDataObject` to delete
+   * @param {Int} index The index of the item to delete
    * @returns {void}
-   * @note - This function is called when the user deletes a file or folder in the directory tree, either by pressing the delete key or by right-clicking and selecting "Delete".
+   * @note - This function is called when the user deletes files or folders in the directory tree, either by pressing the delete key or by right-clicking and selecting "Delete".
    */
-  function onDelete(id) {
+  function onDeleteSequentially(items, index = 0) {
+    const id = items[index]
+    if (index >= items.length || !globalData[id]) {
+      return // All items have been processed
+    }
     if (untouchableIDs.includes(id)) {
-      toast.warning("Cannot delete this element")
+      toast.warning(`Cannot delete this element ${globalData[id].name}`)
+      onDeleteSequentially(items, index + 1) // Move to the next item
     } else {
       setIsDialogShowing(true)
       confirmDialog({
@@ -205,15 +209,19 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
         icon: "pi pi-info-circle",
         closable: false,
         accept: async () => {
-          // If the user confirms the deletion, we delete the `MedDataObject` with the current name and update the `globalData` object.
           const name = globalData[id].name
           await MEDDataObject.deleteObjectAndChildren(globalData, id, workspace.workingDirectory.path)
           toast.success(`Deleted ${name}`)
           setIsDialogShowing(false)
+          setTimeout(() => {
+            onDeleteSequentially(items, index + 1) // Move to the next item
+          }, 1000)
         },
         reject: () => {
-          // If the user cancels the deletion, we do nothing.
           setIsDialogShowing(false)
+          setTimeout(() => {
+            onDeleteSequentially(items, index + 1) // Move to the next item
+          }, 1000)
         }
       })
     }
@@ -265,19 +273,19 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
           dispatchLayout({ type: "openInJSONViewer", payload: props })
           break
         case "open":
-          onOpen(props.UUID)
+          onOpen(props.index)
           break
         case "rename":
-          onRename(props.UUID)
+          onRename(props.index)
           break
         case "delete":
-          onDelete(props.UUID)
+          onDeleteSequentially([props.index])
           break
         case "revealInFileExplorer":
-          if (globalData[props.UUID] !== undefined) {
-            if (globalData[props.UUID].path !== undefined) {
+          if (globalData[props.index] !== undefined) {
+            if (globalData[props.index].path !== undefined) {
               // eslint-disable-next-line no-undef
-              require("electron").shell.showItemInFolder(globalData[props.UUID].path)
+              require("electron").shell.showItemInFolder(globalData[props.index].path)
             } else {
               toast.error("Error: No path found")
             }
