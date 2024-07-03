@@ -1,15 +1,19 @@
 import { ipcRenderer } from "electron"
+import { deleteMEDDataObject } from "../mongoDB/mongoDBUtils"
+import fs from "fs"
+import path from "path"
 
 /**
  * @description class definition of a MEDDataObject
  */
 export class MEDDataObject {
-  constructor({ id, name, type, parentID, childrenIDs }) {
+  constructor({ id, name, type, parentID, childrenIDs, inWorkspace }) {
     this.id = id
     this.name = name
     this.type = type
     this.parentID = parentID
     this.childrenIDs = childrenIDs
+    this.inWorkspace = inWorkspace
   }
 
   /**
@@ -64,6 +68,55 @@ export class MEDDataObject {
     }
 
     return newName
+  }
+
+  /**
+   * @description Recursively get the full path of the object in the workspace
+   * @param {Dictionary} dict - dictionary of all MEDDataObjects
+   * @param {String} id - the id of the object to find the path for
+   * @param {String} workspacePath - the root path of the workspace
+   * @returns {String} fullPath - the full path of the object
+   */
+  static getFullPath(dict, id, workspacePath) {
+    let object = dict[id]
+    let pathParts = [object.name]
+    while (object.parentID) {
+      object = dict[object.parentID]
+      // Avoid to have 2 times the workspace name in the returned path
+      if (object.id != "ROOT") {
+        pathParts.unshift(object.name)
+      }
+    }
+    return path.join(workspacePath, ...pathParts)
+  }
+
+  /**
+   * @description Delete a MEDDataObject and its children from the dictionary and the local workspace
+   * @param {Dictionary} dict - dictionary of all MEDDataObjects
+   * @param {String} id - the id of the object to delete
+   * @param {String} workspacePath - the root path of the workspace
+   * @returns {Promise<void>}
+   */
+  static async deleteObjectAndChildren(dict, id, workspacePath) {
+    // Get the object to delete
+    const objectToDelete = dict[id]
+
+    if (!objectToDelete) {
+      console.log(`Object with id ${id} not found`)
+      return
+    }
+
+    // Delete the file/directory from the local filesystem if it exists and is in workspace
+    if (objectToDelete.inWorkspace) {
+      // Get the full path of the object in the workspace
+      const fullPath = this.getFullPath(dict, id, workspacePath)
+      fs.rmSync(fullPath, { recursive: true, force: true })
+      console.log(`Deleted ${fullPath} from workspace`)
+    }
+
+    // Delete the object and its children recursively
+    await deleteMEDDataObject(id)
+    this.updateWorkspaceDataObject()
   }
 
   /**

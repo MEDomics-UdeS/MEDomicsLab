@@ -142,7 +142,7 @@ const ExtractionJPG = ({ extractionTypeList, serverUrl, defaultFilename }) => {
    */
   const runExtraction = async () => {
     // Insert MEDDataObject in DB
-    const object = new MEDDataObject({ id: randomUUID(), name: resultCollectionName + ".csv", type: "csv", parentID: "DATA", childrenIDs: [] })
+    const object = new MEDDataObject({ id: randomUUID(), name: resultCollectionName + ".csv", type: "csv", parentID: "DATA", childrenIDs: [], inWorkspace: false })
     const resultCollectionIDinDB = await insertMEDDataObjectIfNotExists(object)
     // Initialize extraction
     setResultDataset(null)

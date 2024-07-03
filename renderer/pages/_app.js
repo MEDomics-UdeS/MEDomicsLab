@@ -215,7 +215,6 @@ function App() {
 
   // This useEffect hook is called whenever the `workspaceObject` state changes.
   useEffect(() => {
-    console.log("WORKSPACE OBJECT CHANGED")
     async function getGlobalData() {
       await updateGlobalData(workspaceObject)
       const newGlobalData = await loadMEDDataObjects()

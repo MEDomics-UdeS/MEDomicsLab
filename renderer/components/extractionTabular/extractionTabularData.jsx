@@ -147,7 +147,14 @@ const ExtractionTabularData = ({ extractionTypeList, serverUrl, defaultFilename 
    */
   const runExtraction = async () => {
     // Insert MEDDataObject in DB
-    const object = new MEDDataObject({ id: randomUUID(), name: resultCollectionName + "." + selectedDataset.type, type: selectedDataset.type, parentID: selectedDataset.parentID, childrenIDs: [] })
+    const object = new MEDDataObject({
+      id: randomUUID(),
+      name: resultCollectionName + "." + selectedDataset.type,
+      type: selectedDataset.type,
+      parentID: selectedDataset.parentID,
+      childrenIDs: [],
+      inWorkspace: false
+    })
     const resultCollectionIDinDB = await insertMEDDataObjectIfNotExists(object)
     // Initialize extraction
     setResultDataset(null)

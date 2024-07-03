@@ -132,3 +132,55 @@ export async function overwriteMEDDataObject(id, jsonData) {
   await collection.deleteMany({})
   await collection.insertMany(jsonData)
 }
+
+/**
+ * @description Delete a MEDDataObject from the database and its associated content
+ * @param {String} id id of the MEDDataObject to delete
+ */
+export async function deleteMEDDataObject(id) {
+  const db = await connectToMongoDB()
+  const collection = db.collection("medDataObjects")
+
+  // Find the MEDDataObject to delete
+  const medDataObject = await collection.findOne({ id })
+  if (!medDataObject) {
+    console.log(`MEDDataObject with id ${id} not found`)
+    return
+  }
+
+  // Recursively delete children MEDDataObjects
+  async function deleteChildren(objectId) {
+    const parentObject = await collection.findOne({ id: objectId })
+    if (parentObject && parentObject.childrenIDs && parentObject.childrenIDs.length > 0) {
+      for (const childId of parentObject.childrenIDs) {
+        await deleteChildren(childId)
+      }
+    }
+    // Delete the object itself
+    await collection.deleteOne({ id: objectId })
+    console.log(`MEDDataObject with id ${objectId} deleted`)
+
+    // Delete the associated content collection if exists
+    const dataCollection = db.collection(objectId)
+    const collections = await db.listCollections({ name: objectId }).toArray()
+    if (collections.length > 0) {
+      await dataCollection.drop()
+      console.log(`Collection with id ${objectId} deleted`)
+    }
+  }
+
+  // Start the recursive deletion from the specified object
+  await deleteChildren(id)
+
+  // Update the parent to remove the deleted object from childrenIDs
+  if (medDataObject.parentID) {
+    const parent = await collection.findOne({ id: medDataObject.parentID })
+    if (parent) {
+      const children = parent.childrenIDs || []
+      const updatedChildren = children.filter((childID) => childID !== id)
+
+      await collection.updateOne({ id: medDataObject.parentID }, { $set: { childrenIDs: updatedChildren } })
+      console.log(`Parent MEDDataObject with id ${medDataObject.parentID} updated`)
+    }
+  }
+}

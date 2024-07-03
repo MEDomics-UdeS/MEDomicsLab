@@ -14,6 +14,7 @@ import { confirmDialog } from "primereact/confirmdialog"
 import { MEDDataObject } from "../../../workspace/NewMedDataObject"
 import { randomUUID } from "crypto"
 import { insertMEDDataObjectIfNotExists } from "../../../mongoDB/mongoDBUtils"
+import { WorkspaceContext } from "../../../workspace/workspaceContext"
 
 /**
  * @description - This component is the sidebar tools component that will be used in the sidebar component
@@ -36,11 +37,15 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
   const [isHovering, setIsHovering] = useState(false) // This state is used to know if the mouse is hovering the directory tree
   const [showHiddenFiles, setShowHiddenFiles] = useState(false) // This state is used to know if the user wants to see hidden files or not
   const [isAccordionShowing, setIsAccordionShowing] = useState(true) // This state is used to know if the accordion is collapsed or not
-  const { globalData, setGlobalData } = useContext(DataContext) // We get the global data from the context to retrieve the directory tree of the workspace, thus retrieving the data files
-  const { dispatchLayout, developerMode } = useContext(LayoutModelContext)
   const [isDialogShowing, setIsDialogShowing] = useState(false) // This state is used to know if the dialog is showing or not
   const [dirTree, setDirTree] = useState({}) // We get the directory tree from the workspace
   const [isDropping, setIsDropping] = useState(false) // Set if the item is getting dropped something in (for elements outside of the tree)
+
+  const { globalData, setGlobalData } = useContext(DataContext) // We get the global data from the context to retrieve the directory tree of the workspace, thus retrieving the data files
+  const { dispatchLayout, developerMode } = useContext(LayoutModelContext)
+  const { workspace } = useContext(WorkspaceContext)
+
+  const untouchableIDs = ["ROOT", "DATA", "EXPERIMENTS"]
 
   useEffect(() => {
     console.log("isDialogShowing", isDialogShowing)
@@ -184,46 +189,30 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
   }
 
   /**
-   * This function deletes a `MedDataObject` in the workspace.
-   * @param {string} uuid - The UUID of the `MedDataObject` to delete
+   * This function deletes a `MEDDataObject` in the workspace.
+   * @param {string} id - The ID of the `MEDDataObject` to delete
    * @returns {void}
    * @note - This function is called when the user deletes a file or folder in the directory tree, either by pressing the delete key or by right-clicking and selecting "Delete".
    */
-  function onDelete(uuid) {
-    // Get the UUID of the `MedDataObject` with the current name from the `globalData` object.
-    const namesYouCantDelete = ["UUID_ROOT", "DATA", "EXPERIMENTS"]
-    if (uuid == "") {
-      toast.warning("Error: UUID not found")
-      return
-    } else if (uuid == "UUID_ROOT") {
-      toast.warning("Error: Cannot delete root")
-      return
-    } else if (globalData[uuid] == undefined) {
-      toast.warning("Error: UUID not found in globalData")
-      return
-    } else if (boolNameInArray(globalData[uuid].name, namesYouCantDelete)) {
-      console.log("Error: This name cannot be deleted")
-      toast.error(`Error: ${globalData[uuid].name} cannot be deleted`)
-      return
+  function onDelete(id) {
+    if (untouchableIDs.includes(id)) {
+      toast.warning("Cannot delete this element")
     } else {
       setIsDialogShowing(true)
       confirmDialog({
-        message: `Are you sure you want to delete ${globalData[uuid].name}?`,
+        message: `Are you sure you want to delete ${globalData[id].name}?`,
         header: "Delete Confirmation",
         icon: "pi pi-info-circle",
         closable: false,
-        accept: () => {
+        accept: async () => {
           // If the user confirms the deletion, we delete the `MedDataObject` with the current name and update the `globalData` object.
-          let globalDataCopy = { ...globalData }
-          globalDataCopy = MedDataObject.delete(globalDataCopy[uuid], globalData, dispatchLayout)
-          setGlobalData(globalDataCopy)
-          toast.success(`Deleted ${globalData[uuid].name}`)
-          //MedDataObject.updateWorkspaceDataObject(300)
+          const name = globalData[id].name
+          await MEDDataObject.deleteObjectAndChildren(globalData, id, workspace.workingDirectory.path)
+          toast.success(`Deleted ${name}`)
           setIsDialogShowing(false)
         },
         reject: () => {
           // If the user cancels the deletion, we do nothing.
-          toast.info("Delete cancelled")
           setIsDialogShowing(false)
         }
       })
@@ -536,12 +525,13 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
         name: MEDDataObject.getNewNameForType(globalData, "directory", parentID),
         type: "directory",
         parentID: parentID,
-        childrenIDs: []
+        childrenIDs: [],
+        inWorkspace: false
       })
       await insertMEDDataObjectIfNotExists(medObject)
       MEDDataObject.updateWorkspaceDataObject()
     } else {
-      toast.error("Error: Please select a directory")
+      toast.warning("Please select a directory")
     }
   }
 
