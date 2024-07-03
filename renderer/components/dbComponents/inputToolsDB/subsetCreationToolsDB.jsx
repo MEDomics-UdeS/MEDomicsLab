@@ -124,7 +124,7 @@ const SubsetCreationToolsDB = ({ DB, currentCollection, refreshData }) => {
         value={data}
         paginator={true}
         rows={5}
-        rowsPerPageOptions={[5, 10, 85, 20]}
+        rowsPerPageOptions={[5, 10, 15, 20]}
         size={"small"}
         removableSort={true}
         filters={filters}

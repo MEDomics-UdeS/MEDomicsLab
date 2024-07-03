@@ -79,7 +79,7 @@ const InputToolsComponent = ({
         <SubsetCreationToolsDB DB={DB} currentCollection={data.uuid} data={innerData} refreshData={refreshData} />
       </Panel>
       <Panel header="Feature Reduction Tools" toggleable collapsed={true}>
-        <FeatureReductionToolsDB />
+        <FeatureReductionToolsDB currentCollection={data.uuid} DB={DB} refreshData={refreshData} />
       </Panel>
     </div>
   )

@@ -20,6 +20,8 @@ func AddHandleFunc() {
 	Utils.CreateHandleFunc(prePath+"/progress/", handleProgress)
 	Utils.CreateHandleFunc(prePath+"/cleanDB/", handleCleanDB)
 	Utils.CreateHandleFunc(prePath+"/create_holdout_set_DB/", handleCreateHoldoutSetDB)
+	Utils.CreateHandleFunc(prePath+"/compute_eigenvaluesDB/", handleComputeEigenvaluesDB)
+	Utils.CreateHandleFunc(prePath+"/create_pcaDB/", handleCreatePCADB)
 }
 
 // handleMerge handles the request to merge the datasets 
@@ -83,12 +85,36 @@ func handleComputeEigenvalues(jsonConfig string, id string) (string, error) {
 	return response, nil
 }
 
+// handleComputeEigenvaluesDB handles the request to compute the eigenvalues for the DB
+// It returns the response from the python script
+func handleComputeEigenvaluesDB(jsonConfig string, id string) (string, error) {
+	log.Println("Compute Eigenvalues", id)
+	response, err := Utils.StartPythonScripts(jsonConfig, "../pythonCode/modules/input/compute_eigenvaluesDB.py", id)
+	Utils.RemoveIdFromScripts(id)
+	if err != nil {
+		return "", err
+	}
+	return response, nil
+}
+
 
 // handleCreatePCA handles the request to compute pca
 // It returns the response from the python script
 func handleCreatePCA(jsonConfig string, id string) (string, error) {
 	log.Println("Create PCA", id)
 	response, err := Utils.StartPythonScripts(jsonConfig, "../pythonCode/modules/input/create_pca.py", id)
+	Utils.RemoveIdFromScripts(id)
+	if err != nil {
+		return "", err
+	}
+	return response, nil
+}
+
+// handleCreatePCADB handles the request to compute pca for the db
+// It returns the response from the python script
+func handleCreatePCADB(jsonConfig string, id string) (string, error) {
+	log.Println("Create PCA", id)
+	response, err := Utils.StartPythonScripts(jsonConfig, "../pythonCode/modules/input/create_pcaDB.py", id)
 	Utils.RemoveIdFromScripts(id)
 	if err != nil {
 		return "", err
@@ -143,6 +169,7 @@ func handleClean(jsonConfig string, id string) (string, error) {
 	}
 	return response, nil
 }
+
 
 // handleProgress handles the request to get the progress of the experiment
 // It returns the progress of the experiment
