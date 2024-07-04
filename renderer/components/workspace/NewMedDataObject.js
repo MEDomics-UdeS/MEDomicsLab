@@ -1,5 +1,5 @@
 import { ipcRenderer } from "electron"
-import { deleteMEDDataObject, insertMEDDataObjectIfNotExists } from "../mongoDB/mongoDBUtils"
+import { deleteMEDDataObject, insertMEDDataObjectIfNotExists, updateMEDDataObjectName } from "../mongoDB/mongoDBUtils"
 import { randomUUID } from "crypto"
 import fs from "fs"
 import path from "path"
@@ -197,6 +197,44 @@ export class MEDDataObject {
     }
 
     // Save the updated dictionary
+    this.updateWorkspaceDataObject()
+  }
+
+  /**
+   * @description Rename a MEDDataObject ensuring the new name is unique in the parent directory
+   * @param {Dictionary} dict - dictionary of all MEDDataObjects
+   * @param {String} id - the id of the MEDDataObject to rename
+   * @param {String} newName - the new name for the MEDDataObject
+   * @param {String} workspacePath - the root path of the workspace
+   * @returns {void}
+   */
+  static async rename(dict, id, newName, workspacePath) {
+    const object = dict[id]
+
+    if (!object) {
+      throw new Error(`Object with id ${id} not found`)
+    }
+
+    const uniqueName = this.getUniqueNameForCopy(dict, newName, object.parentID)
+
+    // Update the dictionary with the new name
+    const succeed = await updateMEDDataObjectName(id, newName)
+
+    if (!succeed) {
+      console.log("Failed to rename MEDDataObject")
+      return
+    }
+
+    // Update the local filesystem if the object is in workspace
+    if (object.inWorkspace) {
+      const oldPath = this.getFullPath(dict, id, workspacePath)
+      object.name = uniqueName
+      const newPath = this.getFullPath(dict, id, workspacePath)
+      fs.renameSync(oldPath, newPath)
+      console.log(`Renamed ${oldPath} to ${newPath}`)
+    }
+
+    // Notify the system to update the workspace
     this.updateWorkspaceDataObject()
   }
 

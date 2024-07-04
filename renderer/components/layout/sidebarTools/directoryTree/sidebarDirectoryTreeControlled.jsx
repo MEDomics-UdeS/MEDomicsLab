@@ -327,7 +327,6 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
         console.log("DBCLICKED", event, item)
       }
       setDbClickedItem(item)
-      // console.log("DBCLICKED", event, item)
     } else {
       toast.error("Error: Developer mode is enabled")
     }
@@ -465,47 +464,40 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
 
   /**
    * This function renames a `MedDataObject` in the workspace.
-   * @param {Object} medObject - The `MedDataObject` to rename
+   * @param {Object} item - The item linked to a `MedDataObject` to rename
    * @param {string} newName - The new name of the `MedDataObject`
    * @returns {void}
    * @note - This function is called when the user renames a file or folder in the directory tree, either by F2 or by right-clicking and selecting "Rename".
    */
-  function handleNameChange(medObject, newName) {
-    /* const namesYouCantRename = ["UUID_ROOT", "DATA", "EXPERIMENTS"]
+  function handleNameChange(item, newName) {
     if (newName == "") {
       toast.error("Error: Name cannot be empty")
       return
-    } else if (medObject.name == newName) {
+    }
+    // Check if the name keeps the original extension
+    if (globalData[item.index].type != "directory") {
+      const newNameParts = newName.split(".")
+      if (globalData[item.index].type != newNameParts[newNameParts.length - 1]) {
+        toast.error("Invalid Name")
+        return
+      }
+    }
+    // Check if the new name is different from the original
+    if (item.data == newName) {
       toast.warning("Warning: Name is the same as before")
       return
-    } else if (boolNameInArray(newName, namesYouCantRename)) {
+    }
+    // Check if the name is not DATA or EXPERIMENTS
+    if (untouchableIDs.includes(newName)) {
       toast.error("Error: This name is reserved and cannot be used")
       return
-    } else if (boolNameInArray(medObject.name, namesYouCantRename)) {
-      console
+    }
+    // Check if we are not trying to change DATA or EXPERIMENTS
+    if (untouchableIDs.includes(item.data)) {
       toast.error("Error: This name cannot be changed")
       return
-    } else if (boolNameInArray(newName, Object.keys(globalData))) {
-      toast.error("Error: This name is already used")
-      return
-    } else {
-      // Check if the new name is the same as the current name.
-      // Get the UUID of the `MedDataObject` with the current name from the `globalData` object.
-      let dataObject = globalData[medObject.UUID]
-      let uuid = medObject.UUID
-      // Rename the `MedDataObject` with the new name and update the `globalData` object.
-      let renamedDataObject = MedDataObject.rename(dataObject, newName, globalData)
-      let globalDataCopy = { ...globalData }
-      globalDataCopy[uuid] = renamedDataObject
-      setGlobalData(globalDataCopy)
-      //MedDataObject.updateWorkspaceDataObject()
-    } */
-  }
-
-  function boolNameInArray(name, array) {
-    let nameInArray = false
-    array.includes(name) ? (nameInArray = true) : (nameInArray = false)
-    return nameInArray
+    }
+    MEDDataObject.rename(globalData, item.index, newName, workspace.workingDirectory.path)
   }
 
   /**
@@ -570,7 +562,7 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
     Object.keys(data).forEach((key) => {
       let element = data[key]
       if (element.name != ".medomics") {
-        let ableToRename = !boolNameInArray(element.name, namesYouCantRename)
+        let ableToRename = !namesYouCantRename.includes(element.name)
         tree[element.id] = {
           index: element.id,
           canMove: ableToRename,
