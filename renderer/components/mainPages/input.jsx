@@ -9,6 +9,7 @@ import HoldoutSetCreationTool from "../input/holdoutSetCreationTool"
 import SubsetCreationTool from "../input/subsetCreationTool"
 import FeatureReductionTool from "../input/featuresReduction/featuresReductionTool"
 import OperationOnColumnTool from "../input/operationOnColumnTool"
+import InputToolsComponent from "../dbComponents/InputToolsComponent"
 /**
  * @description - This component is the input page of the application
  * @returns the input page component
@@ -21,7 +22,8 @@ const InputPage = ({ pageId = "42", configPath = null }) => {
     <>
       <ModulePage pageId={pageId} configPath={configPath} shadow>
         <h1>INPUT MODULE</h1>
-        <div className="input-page">
+        <InputToolsComponent />
+        {/* <div className="input-page">
           <Accordion className="card-accordion" defaultActiveKey={["1"]} alwaysOpen>
             <Accordion.Item eventKey="1">
               <Accordion.Header>Merge tool</Accordion.Header>
@@ -78,7 +80,7 @@ const InputPage = ({ pageId = "42", configPath = null }) => {
               </Accordion.Body>
             </Accordion.Item>
           </Accordion>
-        </div>
+        </div> */}
       </ModulePage>
     </>
   )

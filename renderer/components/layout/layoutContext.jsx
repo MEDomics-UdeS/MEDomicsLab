@@ -129,6 +129,8 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
           return openMED3pa(action)
         case "openSettings":
           return openGeneric(action, "Settings", "Settings")
+        case "openInputToolsDB":
+          return openInputToolsDB(action, "InputToolsDB")
 
         case "add":
           return add(action)
@@ -172,6 +174,32 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
         id: medObject.UUID,
         component: component,
         config: { path: medObject.path, uuid: medObject.UUID, extension: medObject.type }
+      }
+      let layoutRequestQueueCopy = [...layoutRequestQueue]
+      layoutRequestQueueCopy.push({ type: "ADD_TAB", payload: newChild })
+      setLayoutRequestQueue(layoutRequestQueueCopy)
+
+      if (component == "learningPage" || component == "extractionMEDimagePage") {
+        const nextlayoutModel = { ...layoutModel }
+        // To add a new child to the layout model, we need to add it to the children array (layoutModel.layout.children[x].children)
+        // ****IMPORTANT**** For the hook to work, we need to create a new array and not modify the existing one
+        const newChildren = [...layoutModel.layout.children[0].children, newChild]
+        nextlayoutModel.layout.children[0].children = newChildren
+      }
+    }
+  }
+
+  function openInputToolsDB(action, component) {
+    let thoseProps = action.payload.data
+    let isAlreadyIn = checkIfIDIsInLayoutModel(thoseProps.data.uuid, layoutModel)
+    if (!isAlreadyIn) {
+      const newChild = {
+        type: "tab",
+        helpText: thoseProps.filename,
+        name: thoseProps.filename,
+        id: thoseProps.uuid,
+        component: component,
+        config: { thoseProps }
       }
       let layoutRequestQueueCopy = [...layoutRequestQueue]
       layoutRequestQueueCopy.push({ type: "ADD_TAB", payload: newChild })

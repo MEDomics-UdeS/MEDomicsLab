@@ -458,7 +458,33 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
   }
 
   const handleDialogClick = () => {
-    dispatchLayout({type: 'openInput'});
+    console.log("Opening Input Tools")
+    let newProps = {
+      DBData:DBData,
+      data:{...data},
+      numRows:numRows,
+      setNumRows:setNumRows,
+      newColumnName:newColumnName,
+      setNewColumnName:setNewColumnName,
+      handleAddColumn:handleAddColumn,
+      exportOptions:exportOptions,
+      refreshData:refreshData,
+      selectedColumns:selectedColumns,
+      setSelectedColumns:setSelectedColumns,
+      columns:columns,
+      transformData:transformData,
+      handleFileUpload:handleFileUpload,
+      fileName:{...fileName},
+      setFileName:setFileName,
+      handleCsvData:handleCsvData,
+      handleExportColumns:handleExportColumns,
+      handleDeleteColumns:handleDeleteColumns,
+      innerData:{...innerData},
+      DB:{...DB},
+      handleAddRow:handleAddRow,
+      lastEdit: {...lastEdit}
+    }
+    dispatchLayout({type: 'openInputToolsDB', payload: {data: newProps}});
   };
 
   const renderInputToolsComponent = () => {
@@ -513,7 +539,7 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
             footer={
               !isReadOnly && (
                 <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100%" }}>
-                  <Button icon="pi pi-file-edit" onClick={openDialog} tooltip="Open Input Tools" tooltipOptions={{ position: "bottom" }} />
+                  <Button icon="pi pi-file-edit" onClick={handleDialogClick} tooltip="Open Input Tools" tooltipOptions={{ position: "bottom" }} />
                 </div>
               )
             }
@@ -559,14 +585,15 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
           </DataTable>
         </div>
       )}
-      <Dialog header="Input Tools"
+      {/* <Button onClick={handleDialogClick} label="Open Input Tools" />
+      {/* <Dialog header="Input Tools"
               visible={isDialogVisible}
               onHide={closeDialog}
               style={{ width: "80%", height: "80%" }}
               modal={true}
       >
         {renderInputToolsComponent()}
-      </Dialog>
+      </Dialog> */} 
     </>
   )
 }

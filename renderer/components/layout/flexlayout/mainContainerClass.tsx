@@ -56,6 +56,7 @@ import ModelViewer from "../../mainPages/modelViewer"
 import NotebookEditor from "../../mainPages/notebookEditor"
 import Iframe from "react-iframe"
 import DataTableFromDB from "../../dbComponents/dataTableFromDB"
+import InputToolsComponent from "../../dbComponents/InputToolsComponent"
 
 var fields = ["Name", "Field1", "Field2", "Field3", "Field4", "Field5"]
 
@@ -645,12 +646,12 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
         const whenDataLoaded = (data) => {
           node.getExtraData().data = data
         }
-          // const { M, setGlobalData } = this.props as DataContextType
-        }
-      
+        // const { M, setGlobalData } = this.props as DataContextType
+      }
+
       return (
         <>
-          <DataTableFromDB data={node.getConfig()} isReadOnly={false}/>
+          <DataTableFromDB data={node.getConfig()} isReadOnly={false} />
         </>
       )
     } else if (component === "learningPage") {
@@ -658,6 +659,16 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
         const config = node.getConfig()
 
         return <LearningPage pageId={config.uuid} configPath={config.path} />
+      }
+    } else if (component === "InputToolsDB") {
+      if (node.getExtraData().data == null) {
+        const config = node.getConfig().thoseProps
+        console.log("config", config)
+        if (config.thoseProps !== null) {
+          return <InputToolsComponent {...config} />
+        } else {
+          return <InputToolsComponent {...config} />
+        }
       }
     } else if (component === "inputPage") {
       if (node.getExtraData().data == null) {

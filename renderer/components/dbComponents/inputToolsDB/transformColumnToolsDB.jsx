@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import React, { useEffect, useState } from "react"
 import { MultiSelect } from "primereact/multiselect"
 import { SplitButton } from "primereact/splitbutton"
 import { Button } from "primereact/button"
@@ -15,6 +15,7 @@ const TransformColumnToolsDB = ({ fileName, setFileName, selectedColumns, setSel
     border: "none",
     borderRadius: "4px"
   }
+  // const [innerColumns, setInnerColumns] = useState(Array.from(columns))
 
   const handleFileUploadUpdated = (event) => {
     handleFileUpload(event)
@@ -23,6 +24,10 @@ const TransformColumnToolsDB = ({ fileName, setFileName, selectedColumns, setSel
       setFileName(event.target.files[0].name)
     }
   }
+
+  useEffect(() => {
+    console.log("TransformColumnToolsDB: useEffect: columns: ", columns)
+  }, [])
 
   return (
     <>
@@ -43,12 +48,13 @@ const TransformColumnToolsDB = ({ fileName, setFileName, selectedColumns, setSel
       >
         <MultiSelect
           value={selectedColumns}
-          options={columns
-            .filter((column) => column.header !== null)
-            .map((column) => ({
-              label: column.header,
-              value: column.field
-            }))}
+          // options={columns
+          //   .filter((column) => column.header !== null)
+          //   .map((column) => ({
+          //     label: column.header,
+          //     value: column.field
+          //   }))}
+          options={columns}
           onChange={(e) => setSelectedColumns(e.value)}
           placeholder="Select Columns"
           style={{ marginRight: "5px", width: "200px" }}

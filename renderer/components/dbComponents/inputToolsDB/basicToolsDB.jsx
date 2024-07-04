@@ -33,7 +33,7 @@ const BasicToolsDB = ({ numRows, setNumRows, handleAddRow, newColumnName, setNew
           <InputText id="newColumnName" value={newColumnName} style={{ width: "130px" }} onChange={(e) => setNewColumnName(e.target.value)} placeholder="Column Name" />
           <Button
             icon="pi pi-plus"
-            onClick={handleAddColumn}
+            onClick={()=>handleAddColumn()}
             style={{
               width: "50px"
             }}

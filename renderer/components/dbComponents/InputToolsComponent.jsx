@@ -1,4 +1,4 @@
-import React, { useContext } from "react"
+import React, { useContext, useEffect } from "react"
 import { Panel } from "primereact/panel"
 import BasicToolsDB from "./inputToolsDB/basicToolsDB"
 import TransformColumnToolsDB from "./inputToolsDB/transformColumnToolsDB"
@@ -38,6 +38,10 @@ const InputToolsComponent = ({
     overflow: "auto"
   }
 
+  useEffect(() => {
+    console.log("InputToolsComponent: useEffect: columns: ", columns)
+  }, [])
+
   return (
     <div style={panelContainerStyle}>
       <Panel header="Add, Export and Refresh Tools" toggleable collapsed={true}>
@@ -53,6 +57,7 @@ const InputToolsComponent = ({
         />
       </Panel>
       <Panel header="Transform Column Tools" toggleable collapsed={true}>
+
         <TransformColumnToolsDB
           selectedColumns={selectedColumns}
           setSelectedColumns={setSelectedColumns}
