@@ -52,7 +52,7 @@ const paModelsNodesParams = {
     classes: "object model",
     nbInput: 1,
     nbOutput: 0,
-    input: ["apc_model"],
+    input: ["apc_model", "mpc_model"],
     output: [],
     img: "detectron.png",
     title: "Detectron Profiles",

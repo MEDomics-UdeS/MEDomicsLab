@@ -12,6 +12,9 @@ import { deepCopy } from "../../../utilities/staticFunctions.js"
 import { GiPathDistance } from "react-icons/gi"
 import { MdOutlineGroups3 } from "react-icons/md"
 
+import DownloadButton from "./download.jsx"
+import { Fullscreen } from "react-bootstrap-icons"
+
 const TreeWorkflow = ({ treeData, onButtonClicked, onFullScreenClicked, fullscreen }) => {
   // eslint-disable-next-line no-unused-vars
   const [buttonClicked, setButtonClicked] = useState(false)
@@ -25,14 +28,16 @@ const TreeWorkflow = ({ treeData, onButtonClicked, onFullScreenClicked, fullscre
   const [selectedNodeInfo, setSelectedNodeInfo] = useState(null)
   const [originalClasses, setOriginalClasses] = useState([])
 
-  // eslint-disable-next-line no-unused-vars
-
   const nodeTypes = useMemo(
     () => ({
       treeNode: TreeNode
     }),
     []
   )
+
+  useEffect(() => {
+    fitView({ animate: true })
+  }, [edges])
 
   const getOriginalClassById = (id) => {
     const originalColorObj = originalClasses.find((colorObj) => colorObj.id === id)
@@ -102,12 +107,22 @@ const TreeWorkflow = ({ treeData, onButtonClicked, onFullScreenClicked, fullscre
     setSelectedNodeInfo(newSelectedNodeInfo)
   }
 
+  useEffect(() => {
+    // Ensure fitView after nodes and edges are updated
+    fitView({ duration: 800 })
+  }, [buttonClicked, Fullscreen])
+
   const handleClick = (buttonType) => {
     setButtonClicked(buttonType)
     onButtonClicked(buttonType) // Notify the parent component that the button was clicked
+    if (buttonType === "reset") {
+      setSelectedNodeInfo(null)
+    }
   }
 
   const toggleFullscreen = () => {
+    // Set a delay before calling fitView
+
     onFullScreenClicked(!fullscreen) // Toggle fullscreen state in the parent component
   }
   const constructTreeArray = (data) => {
@@ -210,6 +225,7 @@ const TreeWorkflow = ({ treeData, onButtonClicked, onFullScreenClicked, fullscre
   }
 
   useEffect(() => {
+    fitView({ duration: 800 })
     setNodes([])
     setEdges([])
   }, [treeData])
@@ -360,7 +376,7 @@ const TreeWorkflow = ({ treeData, onButtonClicked, onFullScreenClicked, fullscre
             target: targetId,
             targetHandle: `${targetId}_bottom`,
             labelStyle: {
-              fontSize: "15px"
+              fontSize: "1.5rem"
             },
             style: {
               strokeWidth: 1,
@@ -385,7 +401,7 @@ const TreeWorkflow = ({ treeData, onButtonClicked, onFullScreenClicked, fullscre
             targetHandle: `${targetId}_bottom`,
             id: sourceId + "_" + targetId + "_opt",
             labelStyle: {
-              fontSize: "15px"
+              fontSize: "1.5rem"
             },
             style: {
               strokeWidth: 1,
@@ -431,7 +447,7 @@ const TreeWorkflow = ({ treeData, onButtonClicked, onFullScreenClicked, fullscre
   }, [])
 
   return (
-    <div className="card-paresults" ref={cardRef} style={{ display: "flex", flexDirection: "column", padding: "15px", height: "100%", width: "100%" }}>
+    <div className="card-paresults" ref={cardRef} style={{ display: "flex", flexDirection: "column", padding: "15px" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <Typography variant="h6" style={{ color: "#868686", fontSize: "1.2rem", display: "flex", alignItems: "center" }}>
           <TbBinaryTree style={{ marginRight: "0.5rem", fontSize: "1.4rem" }} />
@@ -508,8 +524,19 @@ const TreeWorkflow = ({ treeData, onButtonClicked, onFullScreenClicked, fullscre
           </div>
         </div>
       )}
-      <div style={{ flex: 1, width: dimensions.width, height: dimensions.height }}>
-        <ReactFlow fitView minZoom={0} maxZoom={1.5} zoomOnScroll={true} nodes={nodes} edges={edges} onNodesChange={onNodesChange} nodeTypes={nodeTypes} onNodeClick={handleNodeClick}>
+      <div style={{ flex: "1", width: dimensions.width, height: dimensions.height }}>
+        <ReactFlow
+          fitView={fitView({ duration: 800 })}
+          minZoom={0}
+          maxZoom={1.5}
+          zoomOnScroll={true}
+          nodes={nodes}
+          edges={edges}
+          onNodesChange={onNodesChange}
+          nodeTypes={nodeTypes}
+          onNodeClick={handleNodeClick}
+        >
+          <DownloadButton />
           <Controls />
         </ReactFlow>
       </div>

@@ -1,20 +1,26 @@
-import React, { useState, useEffect } from "react"
+import React, { useEffect } from "react"
 import { Typography, FormControl, RadioGroup, FormControlLabel, Radio, Switch } from "@mui/material"
 import FlInput from "../paInput"
 import { TbSettingsCog } from "react-icons/tb"
+import { nodeInformation, shiftInformation } from "../resultTabs/tabFunctions"
 
-const NodeParameters = ({ parentId, nodeParams, setNodeParams }) => {
-  const { focusView, thresholdEnabled, customThreshold, selectedParameter, metrics } = nodeParams
+const NodeParameters = ({ parentId, nodeParams, setNodeParams, settings }) => {
+  const { focusView, thresholdEnabled, customThreshold, selectedParameter, metrics, detectronStrategy } = nodeParams
 
-  // Local state for metrics selection
-  const [localMetrics, setLocalMetrics] = useState()
-
-  // Effect to initialize localMetrics when metrics change
   useEffect(() => {
-    if (metrics && !localMetrics) {
-      setLocalMetrics(metrics)
+    if (nodeParams.metrics === null) {
+      setNodeParams((prevNodeParams) => ({
+        ...prevNodeParams,
+        metrics: settings.metrics
+      }))
     }
-  }, [metrics])
+    if (nodeParams.detectronStrategy === null) {
+      setNodeParams((prevNodeParams) => ({
+        ...prevNodeParams,
+        detectronStrategy: settings.strategy
+      }))
+    }
+  }, [settings])
 
   const handleFocusViewChange = (event) => {
     setNodeParams((prevState) => ({
@@ -45,22 +51,27 @@ const NodeParameters = ({ parentId, nodeParams, setNodeParams }) => {
   }
 
   const handleMetricsChange = (event) => {
-    // Update local state only
-
-    // Update parent state if needed
     setNodeParams((prevState) => ({
       ...prevState,
       metrics: event.value
     }))
   }
 
+  const handleStrategyChange = (event) => {
+    setNodeParams((prevState) => ({
+      ...prevState,
+      detectronStrategy: event.value
+    }))
+  }
+
   const getHighlightChoices = () => {
     if (focusView === "Node information") {
-      return [{ name: "Profile value" }]
+      return nodeInformation.map((information) => ({ name: information }))
     } else if (focusView === "Node performance" && metrics) {
       return metrics.map((metric) => ({ name: metric.name }))
+    } else {
+      return shiftInformation.map((information) => ({ name: information }))
     }
-    return []
   }
 
   return (
@@ -106,7 +117,7 @@ const NodeParameters = ({ parentId, nodeParams, setNodeParams }) => {
               settingInfos={{
                 type: "list-multiple",
                 tooltip: "Select metrics",
-                choices: localMetrics
+                choices: settings.metrics
               }}
               currentValue={metrics}
               onInputChange={handleMetricsChange}
@@ -115,9 +126,24 @@ const NodeParameters = ({ parentId, nodeParams, setNodeParams }) => {
             />
           </div>
         )}
-        <hr style={{ borderColor: "#868686", borderWidth: "0.5px" }} />
+        {focusView === "Covariate-shift probabilities" && parentId === "eval" && (
+          <div style={{ width: "100%", marginTop: "3%" }}>
+            <FlInput
+              name="Detectron Test Type"
+              settingInfos={{
+                type: "list",
+                tooltip: "<p>Show on Node Detectron Test Results based on a specific Strategy</p>",
+                choices: settings.strategy
+              }}
+              currentValue={detectronStrategy}
+              onInputChange={handleStrategyChange}
+              disabled={false}
+              className="default-text-color-paresults"
+            />
+          </div>
+        )}
       </div>
-
+      <hr style={{ borderColor: "#868686", borderWidth: "0.5px" }} />
       <div
         className="node-param-section-paresults"
         style={{
@@ -145,7 +171,7 @@ const NodeParameters = ({ parentId, nodeParams, setNodeParams }) => {
               name="Highlight by parameter"
               settingInfos={{
                 type: "list",
-                tooltip: "Select here the highlight element",
+                tooltip: "<p>Select here the highlight element<p>",
                 choices: getHighlightChoices()
               }}
               currentValue={selectedParameter}
@@ -159,7 +185,7 @@ const NodeParameters = ({ parentId, nodeParams, setNodeParams }) => {
               name="Custom Threshold"
               settingInfos={{
                 type: "float",
-                tooltip: "Input threshold"
+                tooltip: "<p>Input threshold<p>"
               }}
               currentValue={customThreshold}
               onInputChange={handleCustomThresholdChange}

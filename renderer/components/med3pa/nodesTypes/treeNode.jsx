@@ -1,10 +1,13 @@
 import React from "react"
 import { Handle } from "reactflow"
 import { MdOutlineGroups3 } from "react-icons/md"
+import { formatValue } from "../resultTabs/tabFunctions"
 
+import { BsFillCheckCircleFill } from "react-icons/bs"
+import { VscError } from "react-icons/vsc"
 export default function TreeNode({ id, data }) {
   const settings = data.internal.settings
-  const { className } = settings
+  let { className } = settings
 
   const renderSettingValue = (value, parentKey) => {
     if (typeof value === "object" && value !== null) {
@@ -17,7 +20,7 @@ export default function TreeNode({ id, data }) {
                 <p className="panode-value">{key}</p>
               </div>
               <div className="col-sm-6 text-end">
-                <p className="panode-value-end">{value[key]}</p>
+                <p className="panode-value-end">{formatValue(value[key])}</p>
               </div>
             </div>
           ))}
@@ -31,7 +34,7 @@ export default function TreeNode({ id, data }) {
             <p className="panode-value">{parentKey}</p>
           </div>
           <div className="col-sm-6 text-end">
-            <p className="panode-value-end">{value !== null ? value.toString() : "Nothing to show"}</p>
+            <p className="panode-value-end">{value !== null && value ? formatValue(value) : "X"}</p>
           </div>
         </div>
       )
@@ -40,6 +43,17 @@ export default function TreeNode({ id, data }) {
 
   return (
     <div className={`panode ${className}`}>
+      {/* Icon based on className */}
+      {className.includes("with-icon-success") && (
+        <div className="icon-pacontainer">
+          <BsFillCheckCircleFill className="custom-paicon-success" />
+        </div>
+      )}
+      {className.includes("with-icon-fail") && (
+        <div className="icon-pacontainer">
+          <VscError className="custom-paicon-fail" />
+        </div>
+      )}
       {/* Top handle */}
       <Handle type="source" position="bottom" id={`${id}_top`} style={{ background: "#555", left: "50%", transform: "translateX(-50%)" }} />
       <div className="panode-header">
@@ -49,7 +63,7 @@ export default function TreeNode({ id, data }) {
       <div className="panode-body">
         {/* Display all settings dynamically, excluding 'path' */}
         {Object.keys(settings).map((key) => {
-          if (key === "path" || key === "className") return null
+          if (key === "path" || key === "id" || key === "className") return null
           const value = settings[key]
           return <div key={key}>{renderSettingValue(value, key)}</div>
         })}

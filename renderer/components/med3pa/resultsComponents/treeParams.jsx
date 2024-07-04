@@ -49,6 +49,7 @@ const TreeParameters = ({ treeParams, setTreeParams }) => {
       <div className="slider-group-paresults" style={{ marginTop: "25px" }}>
         <div className="slider-container-paresults">
           <Typography className="default-text-color-paresults">Min Confidence Level</Typography>
+
           <Slider
             value={treeParams.minConfidenceLevel || 0}
             onChange={(e, value) => handleSliderChange("minConfidenceLevel", value)}
@@ -56,8 +57,10 @@ const TreeParameters = ({ treeParams, setTreeParams }) => {
             sx={{ color: "#FFCAC7" }}
             valueLabelDisplay="auto"
             min={0}
-            max={100}
-            step={1}
+            max={1}
+            step={0.1}
+            disabled={true}
+            style={{ pointerEvents: "auto" }}
           />
         </div>
         <div className="slider-container-paresults">

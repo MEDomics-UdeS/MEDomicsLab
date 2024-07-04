@@ -52,6 +52,7 @@ const MED3paResultsPage = ({ pageId, configPath = "" }) => {
 
     try {
       const loadedFiles = readJsonFiles(dirPath)
+
       return loadedFiles
     } catch (error) {
       console.error("Error loading JSON files:", error)
@@ -69,22 +70,41 @@ const MED3paResultsPage = ({ pageId, configPath = "" }) => {
         } else if (tab === "test") {
           const parentFolderName = path.basename(fileData.file_path)
           if (parentFolderName.startsWith("det")) {
-            filePath = path.join(fileData.file_path, "detectron_results")
-          }
-          if (parentFolderName.startsWith("det3") || parentFolderName.startsWith("med3")) {
+            // Load files from both "test" and "detectron_results" folders
+            const testFiles = {}
+            const testFilePath = path.join(fileData.file_path, "test")
+            const detectronFilePath = path.join(fileData.file_path, "detectron_results")
+
+            loadJsonFiles(testFilePath)
+              .then((files) => {
+                testFiles["test"] = files
+                return loadJsonFiles(detectronFilePath)
+              })
+              .then((detectronFiles) => {
+                testFiles["detectron_results"] = detectronFiles
+                setLoadedFiles((prevState) => ({ ...prevState, [tab]: testFiles }))
+              })
+              .catch((error) => {
+                console.error("Error loading files:", error)
+              })
+          } else if (parentFolderName.startsWith("med3")) {
+            // Load files only from "test" folder
             filePath = path.join(fileData.file_path, "test")
           }
         }
 
         if (filePath) {
-          loadJsonFiles(filePath).then((files) => {
-            setLoadedFiles((prevState) => ({ ...prevState, [tab]: files }))
-          })
+          loadJsonFiles(filePath)
+            .then((files) => {
+              setLoadedFiles((prevState) => ({ ...prevState, [tab]: files }))
+            })
+            .catch((error) => {
+              console.error("Error loading files:", error)
+            })
         }
       })
     }
   }, [fileData])
-
   return (
     <ModulePage pageId={pageId} configPath={configPath}>
       <Tabs activeKey={activeTab} onSelect={(k) => setActiveTab(k)}>

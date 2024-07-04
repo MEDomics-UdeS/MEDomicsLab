@@ -295,7 +295,7 @@ const FlInput = ({ name, settingInfos, currentValue, onInputChange, disabled, se
       // for list input (form select of all the options, multiple selection possible)
       case "list-multiple":
         return (
-          <div className="w-100" style={{ position: "relative" }}>
+          <div className="w-100" style={{ position: "relative", zIndex: 1 }}>
             <label
               htmlFor={name}
               className="input-hov"
@@ -321,7 +321,7 @@ const FlInput = ({ name, settingInfos, currentValue, onInputChange, disabled, se
                 }}
                 onBlur={() => {}}
                 options={settingInfos.choices}
-                className="w-100" // Increased width to fit better
+                className="w-100 multi-select-dropdown"
                 style={{ width: "100%", height: "100%" }}
               />
             </div>

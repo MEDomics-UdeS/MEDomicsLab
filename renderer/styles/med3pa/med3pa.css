@@ -63,19 +63,36 @@
 
 .panode-header h5 {
   margin: 0;
-  font-size: 1.2rem;
+  font-size: 1.7rem;
 }
 
 .panode-value {
   font-weight: bold;
   margin-bottom: 2px;
-  font-size: 1.2rem;
+  font-size: 1.7rem;
+}
+.icon-pacontainer {
+  position: absolute;
+  top: 0px;
+  right: -15px; /* Adjust this value based on the size of the icon */
+  transform: translateY(-50%);
+  z-index: 10;
 }
 
+/* Icon styles */
+.custom-paicon-success {
+  font-size: 3rem;
+  color: #00cc00; /* Success icon color */
+}
+
+.custom-paicon-fail {
+  font-size: 3rem;
+  color: #cc0000; /* Failure icon color */
+}
 .panode-value-end {
   font-weight: bold;
   margin-bottom: 0;
-  font-size: 1.2rem;
+  font-size: 1.7rem;
 }
 
 /* Additional Classes */
@@ -94,7 +111,9 @@
   font-size: 3rem;
 }
 
-.panode-threshold {
+.panode-threshold,
+.with-icon-successpanode-threshold,
+.with-icon-successpanode-threshold {
   transform: scale(2);
   background: rgb(166, 241, 158);
 }

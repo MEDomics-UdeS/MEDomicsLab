@@ -1,68 +1,77 @@
 import { Typography } from "@mui/material"
-import React from "react"
+import React, { useState, useEffect } from "react"
 import ReactECharts from "echarts-for-react"
 import { TbChartDots2 } from "react-icons/tb"
 
-const MDRCurve = ({ metricsByDrFile }) => {
-  // Transform JSON data into an array suitable for echarts
-  if (!metricsByDrFile) return <div>Loading...</div>
-  const transformedData = Object.keys(metricsByDrFile).map((key) => {
-    return {
-      declarationRate: parseInt(key, 10),
-      ...metricsByDrFile[key].metrics
+const MDRCurve = ({ curveData }) => {
+  const [options, setOptions] = useState(null)
+
+  useEffect(() => {
+    if (!curveData) {
+      setOptions(null) // Reset options if curveData is null or undefined
+      return
     }
-  })
 
-  // Extract metric names for series generation
-  const metricNames = Object.keys(transformedData[0]).filter((key) => key !== "declarationRate")
+    // Filter out entries where metrics are null or undefined
+    const filteredCurveData = Object.keys(curveData)
+      .filter((key) => curveData[key].metrics !== null && curveData[key].metrics !== undefined)
+      .reduce((obj, key) => {
+        obj[key] = curveData[key]
+        return obj
+      }, {})
 
-  // Generate series data for echarts
-  const series = metricNames.map((metric) => ({
-    name: metric,
-    type: "line",
-    data: transformedData.map((item) => [item.declarationRate, item[metric]])
-  }))
+    const metricNames = Object.keys(filteredCurveData[Object.keys(filteredCurveData)[0]].metrics)
 
-  const options = {
-    title: {
-      text: "Metrics by Declaration Rates Curves",
-      left: "center",
-      bottom: "0%",
-      textStyle: {
-        color: "#868686",
-        fontSize: 16
-      }
-    },
-    grid: {
-      left: "5%",
-      right: "5%",
-      bottom: "10%",
-      containLabel: true
-    },
-    toolbox: {
-      feature: {
-        saveAsImage: {}
-      }
-    },
-    tooltip: {
-      trigger: "axis"
-    },
-    legend: {
-      data: metricNames
-    },
-    xAxis: {
-      type: "value",
-      name: "Declaration Rate",
-      nameLocation: "middle",
-      data: transformedData.map((item) => item.declarationRate)
-    },
-    yAxis: {
-      type: "value",
-      name: "Metrics"
-    },
+    const series = metricNames.map((metric) => ({
+      name: metric,
+      type: "line",
+      data: Object.keys(filteredCurveData).map((key) => {
+        const declarationRate = parseInt(key, 10)
+        return [declarationRate, filteredCurveData[key].metrics[metric]]
+      })
+    }))
 
-    series: series
-  }
+    const newOptions = {
+      title: {
+        show: false
+      },
+      grid: {
+        left: "5%",
+        right: "5%",
+        bottom: "10%",
+        padding: "5%",
+        containLabel: true
+      },
+      toolbox: {
+        feature: {
+          saveAsImage: {}
+        }
+      },
+      tooltip: {
+        trigger: "axis"
+      },
+      legend: {
+        data: metricNames
+      },
+      xAxis: {
+        type: "value",
+        name: "Declaration Rate",
+        nameLocation: "middle",
+        nameGap: 25,
+        data: Object.keys(filteredCurveData).map((key) => parseInt(key, 10))
+      },
+      yAxis: {
+        type: "value",
+        name: "Metrics"
+      },
+      series: series
+    }
+
+    setOptions(newOptions)
+  }, [curveData])
+
+  if (!options) return <div>Loading...</div> // Render loading state while options are null
+
   return (
     <div className="card-paresults p-3" style={{ display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
       <Typography
@@ -78,8 +87,8 @@ const MDRCurve = ({ metricsByDrFile }) => {
         Metrics By Declaration Rate Curve
       </Typography>
       <hr style={{ borderColor: "#868686", borderWidth: "0.5px", width: "100%" }} />
-      <div style={{ marginTop: 20, flex: 1, width: "100%" }}>
-        <ReactECharts option={options} style={{ height: "100%", width: "100%" }} />
+      <div style={{ width: "100%" }}>
+        <ReactECharts key={JSON.stringify(options)} option={options} />
       </div>
     </div>
   )
