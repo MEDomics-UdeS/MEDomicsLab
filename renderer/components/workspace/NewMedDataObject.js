@@ -1,5 +1,6 @@
 import { ipcRenderer } from "electron"
-import { deleteMEDDataObject } from "../mongoDB/mongoDBUtils"
+import { deleteMEDDataObject, insertMEDDataObjectIfNotExists } from "../mongoDB/mongoDBUtils"
+import { randomUUID } from "crypto"
 import fs from "fs"
 import path from "path"
 
@@ -71,6 +72,45 @@ export class MEDDataObject {
   }
 
   /**
+   * @description Get a unique name for a copied MEDDataObject in a target directory
+   * @param {Dictionary} dict - dictionary of all MEDDataObjects
+   * @param {String} baseName - the base name of the object to copy
+   * @param {String} parentID - the ID of the target directory
+   * @returns {String} uniqueName - the unique name for the copied MEDDataObject
+   */
+  static getUniqueNameForCopy(dict, baseName, parentID) {
+    let newName = baseName
+    let counter = 1
+
+    const parentObject = dict[parentID]
+    const existingNames = new Set()
+
+    if (parentObject && parentObject.childrenIDs) {
+      parentObject.childrenIDs.forEach((childID) => {
+        const child = dict[childID]
+        if (child) {
+          existingNames.add(child.name)
+        }
+      })
+    }
+
+    const baseNameParts = baseName.split(".")
+    const isDirectory = baseNameParts.length === 1
+    const nameWithoutExtension = isDirectory ? baseName : baseNameParts.slice(0, -1).join(".")
+    const extension = isDirectory ? "" : `.${baseNameParts[baseNameParts.length - 1]}`
+
+    while (existingNames.has(newName)) {
+      if (isDirectory) {
+        newName = `${baseName}_${counter}`
+      } else {
+        newName = `${nameWithoutExtension}_${counter}${extension}`
+      }
+      counter++
+    }
+    return newName
+  }
+
+  /**
    * @description Recursively get the full path of the object in the workspace
    * @param {Dictionary} dict - dictionary of all MEDDataObjects
    * @param {String} id - the id of the object to find the path for
@@ -116,6 +156,47 @@ export class MEDDataObject {
 
     // Delete the object and its children recursively
     await deleteMEDDataObject(id)
+    this.updateWorkspaceDataObject()
+  }
+
+  /**
+   * @description Recursively copies a MEDDataObject and its children to a new parent directory
+   * @param {Object} dict - dictionary of all MEDDataObjects
+   * @param {Object} copiedObject - the MEDDataObject to copy
+   * @param {Object} placeToCopy - the target MEDDataObject where the copied object will be placed
+   * @returns {Promise<void>}
+   */
+  static async copyMedDataObject(dict, copiedObject, placeToCopy) {
+    if (placeToCopy.type !== "directory") {
+      throw new Error("Target object must be a directory")
+    }
+
+    const newId = randomUUID()
+    const uniqueName = this.getUniqueNameForCopy(dict, copiedObject.name, placeToCopy.id)
+    const newObject = new MEDDataObject({
+      id: newId,
+      name: uniqueName,
+      type: copiedObject.type,
+      parentID: placeToCopy.id,
+      childrenIDs: [],
+      inWorkspace: false
+    })
+
+    await insertMEDDataObjectIfNotExists(newObject, null, null, copiedObject.id)
+
+    // Update the dictionary
+    dict[newId] = newObject
+    placeToCopy.childrenIDs.push(newId)
+
+    // Recursively copy children
+    for (const childId of copiedObject.childrenIDs) {
+      const childObject = dict[childId]
+      if (childObject) {
+        await this.copyMedDataObject(dict, childObject, newObject)
+      }
+    }
+
+    // Save the updated dictionary
     this.updateWorkspaceDataObject()
   }
 

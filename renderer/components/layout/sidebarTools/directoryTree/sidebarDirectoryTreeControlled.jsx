@@ -41,7 +41,7 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
   const [dirTree, setDirTree] = useState({}) // We get the directory tree from the workspace
   const [isDropping, setIsDropping] = useState(false) // Set if the item is getting dropped something in (for elements outside of the tree)
 
-  const { globalData, setGlobalData } = useContext(DataContext) // We get the global data from the context to retrieve the directory tree of the workspace, thus retrieving the data files
+  const { globalData } = useContext(DataContext) // We get the global data from the context to retrieve the directory tree of the workspace, thus retrieving the data files
   const { dispatchLayout, developerMode } = useContext(LayoutModelContext)
   const { workspace } = useContext(WorkspaceContext)
 
@@ -50,6 +50,10 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
   useEffect(() => {
     console.log("isDialogShowing", isDialogShowing)
   }, [isDialogShowing])
+
+  useEffect(() => {
+    console.log("ENV", environment)
+  }, [environment])
 
   useEffect(() => {
     setExternalSelectedItems && setExternalSelectedItems(selectedItems)
@@ -72,7 +76,6 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
       setCutItems(selectedItems)
     } else if (event.code === "KeyV" && event.ctrlKey) {
       if (copiedItems.length > 0) {
-        console.log("PASTE", copiedItems)
         copiedItems.forEach((item) => {
           onPaste(item, selectedItems[0])
         })
@@ -135,55 +138,46 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
 
   /**
    * This function renames a `MedDataObject` in the workspace.
-   * @param {string} uuid - The UUID of the `MedDataObject` to rename
+   * @param {string} id - The ID of the `MedDataObject` to rename
    * @returns {void}
    * @note this function is useful to rename
    */
-  function onRename(uuid) {
-    setSelectedItems([uuid])
-    tree.current.startRenamingItem(uuid)
+  function onRename(id) {
+    setSelectedItems([id])
+    tree.current.startRenamingItem(id)
   }
 
   /**
    * This function opens a `MedDataObject` in the workspace.
-   * @param {string} uuid - The UUID of the `MedDataObject` to open
+   * @param {string} id - The ID of the `MedDataObject` to open
    * @returns {void}
    * @note - This function is called when the user double-clicks on a file or folder in the directory tree, or when the user right-clicks and selects "Open".
    * @todo - This function should open the file in the default application.
    * @README - This function is not implemented yet.
    */
-  function onOpen(uuid) {
-    let dataObjectUUID = uuid
+  function onOpen(id) {
+    let dataObjectID = id
     // eslint-disable-next-line no-unused-vars
-    let path = globalData[dataObjectUUID].path
+    let path = globalData[dataObjectID].path
     // NOOP
   }
 
   /**
    * This function pastes a `MedDataObject` in the workspace.
-   * @param {string} uuid - The UUID of the `MedDataObject` to paste
-   * @param {string} selectedItem - The UUID of the copied `MedDataObject`
+   * @param {string} copiedObjectId - The ID of the `MedDataObject` to paste
+   * @param {string} placeToCopyId - The ID of the place to copy `MedDataObject`
    * @returns {void}
    * @note - This function is called when the user pastes a file or folder in the directory tree, either by pressing Ctrl+V or by right-clicking and selecting "Paste".
    */
-  function onPaste(uuid, selectedItem) {
-    let dataObject = globalData[uuid]
-    if (selectedItem == undefined) {
-      console.warn("PASTE - selectedItem undefined")
-      return
+  function onPaste(copiedObjectId, placeToCopyId) {
+    let copiedObject = globalData[copiedObjectId]
+    let placeToCopy = globalData[placeToCopyId]
+    // We can't copy an object into a file
+    if (placeToCopy.type != "directory") {
+      let parentID = placeToCopy.parentID
+      placeToCopy = globalData[parentID]
     }
-
-    let selectedItemObject = globalData[selectedItem]
-    if (selectedItemObject.type !== undefined) {
-      if (selectedItemObject.type == "folder") {
-        MedDataObject.copy(dataObject, selectedItemObject, globalData, setGlobalData)
-        //MedDataObject.updateWorkspaceDataObject(300)
-      } else {
-        let parentObject = globalData[selectedItemObject.parentID]
-        MedDataObject.copy(dataObject, parentObject, globalData, setGlobalData)
-        //MedDataObject.updateWorkspaceDataObject(300)
-      }
-    }
+    MEDDataObject.copyMedDataObject(globalData, copiedObject, placeToCopy)
   }
 
   /**
@@ -427,7 +421,8 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
    * @note - This function is called when the user drops an item in the directory tree.
    */
   const onDrop = async (items, target) => {
-    const currentItems = tree.current.treeEnvironmentContext.items
+    console.log("HERE", items, target)
+    /* const currentItems = tree.current.treeEnvironmentContext.items
     for (const item of items) {
       const parent = Object.values(currentItems).find((potentialParent) => potentialParent.children?.includes(item.index))
 
@@ -443,8 +438,8 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
         if (target.targetItem === parent.index) {
           // NO Operation
         } else {
-          let dataObject = globalData[item.UUID]
-          if (dataObject.type == "folder") {
+          let dataObject = globalData[item.index]
+          if (dataObject.type == "directory") {
             MedDataObject.move(dataObject, globalData[target.targetItem], globalData, setGlobalData)
             //MedDataObject.updateWorkspaceDataObject()
           } else {
@@ -465,7 +460,7 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
           //MedDataObject.updateWorkspaceDataObject()
         }
       }
-    }
+    } */
   }
 
   /**
@@ -476,7 +471,7 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
    * @note - This function is called when the user renames a file or folder in the directory tree, either by F2 or by right-clicking and selecting "Rename".
    */
   function handleNameChange(medObject, newName) {
-    const namesYouCantRename = ["UUID_ROOT", "DATA", "EXPERIMENTS"]
+    /* const namesYouCantRename = ["UUID_ROOT", "DATA", "EXPERIMENTS"]
     if (newName == "") {
       toast.error("Error: Name cannot be empty")
       return
@@ -504,7 +499,7 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
       globalDataCopy[uuid] = renamedDataObject
       setGlobalData(globalDataCopy)
       //MedDataObject.updateWorkspaceDataObject()
-    }
+    } */
   }
 
   function boolNameInArray(name, array) {
@@ -587,6 +582,7 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
         }
       }
     })
+    console.log("Tree", tree)
     return tree
   }
 

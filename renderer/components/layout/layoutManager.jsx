@@ -17,7 +17,6 @@ import ApplicationPage from "../mainPages/application"
 import HomeSidebar from "./sidebarTools/pageSidebar/homeSidebar"
 import ExplorerSidebar from "./sidebarTools/pageSidebar/explorerSidebar"
 import SearchSidebar from "./sidebarTools/pageSidebar/searchSidebar"
-import LayoutTestSidebar from "./sidebarTools/pageSidebar/layoutTestSidebar"
 import InputSidebar from "./sidebarTools/pageSidebar/inputSidebar"
 import FlowSceneSidebar from "./sidebarTools/pageSidebar/flowSceneSidebar"
 import ExtractionSidebar from "./sidebarTools/pageSidebar/extractionSidebar"
@@ -142,8 +141,6 @@ const LayoutManager = (props) => {
           return <EvaluationPage />
         case "application":
           return <ApplicationPage />
-        case "layoutTest":
-          return <MainContainer />
         default:
       }
     }
@@ -157,8 +154,6 @@ const LayoutManager = (props) => {
         return <ExplorerSidebar />
       case "search":
         return <SearchSidebar />
-      case "layoutTest":
-        return <LayoutTestSidebar />
       case "input":
         return <InputSidebar />
       case "learning":

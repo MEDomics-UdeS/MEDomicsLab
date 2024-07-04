@@ -24,9 +24,10 @@ export async function connectToMongoDB() {
  * @param {MEDDataObject} medData MEDDataObject to insert in the database
  * @param {String} path path of the data we want to import in the database
  * @param {Json} jsonData the data to insert in MongoDB
+ * @param {Int} copyId if we insert a copy of a MEDDataObject we copy its data too
  * @returns id the id of the MEDDataObject in the DB
  */
-export async function insertMEDDataObjectIfNotExists(medData, path = null, jsonData = null) {
+export async function insertMEDDataObjectIfNotExists(medData, path = null, jsonData = null, copyId = null) {
   const db = await connectToMongoDB()
   const collection = db.collection("medDataObjects")
 
@@ -85,6 +86,18 @@ export async function insertMEDDataObjectIfNotExists(medData, path = null, jsonD
         break
       default:
         break
+    }
+  } else if (copyId) {
+    // Copy the data from the collection of the object being copied
+    const sourceCollection = db.collection(copyId)
+    const targetCollection = db.collection(medData.id)
+
+    const documentsToCopy = await sourceCollection.find({}).toArray()
+    if (documentsToCopy.length > 0) {
+      const result = await targetCollection.insertMany(documentsToCopy)
+      console.log(`Copied ${result.insertedCount} documents from collection ${copyId} to ${medData.id}`)
+    } else {
+      console.log(`No documents found in collection ${copyId} to copy`)
     }
   }
   return medData.id
