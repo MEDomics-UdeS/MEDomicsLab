@@ -1,9 +1,6 @@
 import React, { useContext, useEffect, useState } from "react"
-import { Stack } from "react-bootstrap"
 import { EXPERIMENTS, WorkspaceContext } from "../../../workspace/workspaceContext"
-import SidebarDirectoryTreeControlled from "../directoryTree/sidebarDirectoryTreeControlled"
 import { loadJsonPath } from "../../../../utilities/fileManagementUtils"
-import { Accordion } from "react-bootstrap"
 import MedDataObject from "../../../workspace/medDataObject"
 import { DataContext, UUID_ROOT } from "../../../workspace/dataContext"
 import { createZipFileSync } from "../../../../utilities/customZipFile"
@@ -90,24 +87,7 @@ const FlowSceneSidebar = ({ type }) => {
 
   return (
     <>
-      <Stack direction="vertical" gap={0}>
-        <p
-          style={{
-            color: "#a3a3a3",
-            font: "Arial",
-            fontSize: "12px",
-            padding: "0.75rem 0.25rem 0.75rem 0.75rem",
-            margin: "0 0 0 0"
-          }}
-        >
-          {typeInfo[type].title} Module
-        </p>
         <FileCreationBtn label="Create scene" piIcon="pi-plus" createEmptyFile={createEmptyScene} checkIsNameValid={checkIsNameValid} />
-
-        <Accordion defaultActiveKey={["dirTree"]} alwaysOpen>
-          <SidebarDirectoryTreeControlled />
-        </Accordion>
-      </Stack>
     </>
   )
 }

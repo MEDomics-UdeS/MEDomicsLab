@@ -15,20 +15,13 @@ import ExploratoryPage from "../mainPages/exploratory"
 import ResultsPage from "../mainPages/results"
 import ApplicationPage from "../mainPages/application"
 import HomeSidebar from "./sidebarTools/pageSidebar/homeSidebar"
+import GeneralModuleSidebar from "./sidebarTools/pageSidebar/generalModuleSidebar"
 import ExplorerSidebar from "./sidebarTools/pageSidebar/explorerSidebar"
-import SearchSidebar from "./sidebarTools/pageSidebar/searchSidebar"
-import LayoutTestSidebar from "./sidebarTools/pageSidebar/layoutTestSidebar"
-import InputSidebar from "./sidebarTools/pageSidebar/inputSidebar"
 import FlowSceneSidebar from "./sidebarTools/pageSidebar/flowSceneSidebar"
-import ExtractionSidebar from "./sidebarTools/pageSidebar/extractionSidebar"
 import EvaluationSidebar from "./sidebarTools/pageSidebar/evaluationSidebar"
-import MEDflSidebar from "./sidebarTools/pageSidebar/medflSidebar"
-import MED3paSidebar from "./sidebarTools/pageSidebar/med3paSidebar"
 import { ipcRenderer } from "electron"
 import { MainContainer } from "./flexlayout/mainContainerClass"
 import EvaluationPage from "../mainPages/evaluation"
-import SidebarDirectoryTreeControlled from "./sidebarTools/directoryTree/sidebarDirectoryTreeControlled"
-import { Accordion, Stack } from "react-bootstrap"
 import { LayoutModelContext } from "./layoutContext"
 import { WorkspaceContext } from "../workspace/workspaceContext"
 import { requestBackend } from "../../utilities/requests"
@@ -156,40 +149,22 @@ const LayoutManager = (props) => {
         return <HomeSidebar />
       case "explorer":
         return <ExplorerSidebar />
-      case "search":
-        return <SearchSidebar />
-      case "layoutTest":
-        return <LayoutTestSidebar />
       case "input":
-        return <InputSidebar />
+        return <GeneralModuleSidebar pageTitle="Input" />
       case "learning":
-        return <FlowSceneSidebar type="learning" />
-      case "extractionText":
-        return <ExtractionSidebar />
-      case "extractionTS":
-        return <ExtractionSidebar />
-      case "extractionImage":
-        return <ExtractionSidebar />
+        return <GeneralModuleSidebar pageTitle="Learning" >
+          <FlowSceneSidebar type="learning" />
+          </GeneralModuleSidebar>
       case "extractionMEDimage":
-        return <FlowSceneSidebar type="extractionMEDimage" />
-      case "MEDprofilesViewer":
-        return <InputSidebar />
+        return <GeneralModuleSidebar pageTitle="Extraction MEDimage" >
+          <FlowSceneSidebar type="extractionMEDimage" />
+          </GeneralModuleSidebar>
       case "evaluation":
         return <EvaluationSidebar />
-      case "medfl":
-        return <MEDflSidebar />
-      case "med3pa":
-        return <MED3paSidebar />
-
       default:
         return (
           <>
-            <Stack direction="vertical" gap={3} style={{ marginLeft: "0.5rem" }}>
-              <h5 style={{ color: "#d3d3d3", marginLeft: "0.5rem" }}>{activeSidebarItem}</h5>
-              <Accordion defaultActiveKey={["0"]} alwaysOpen>
-                <SidebarDirectoryTreeControlled />
-              </Accordion>
-            </Stack>
+            <GeneralModuleSidebar pageTitle={activeSidebarItem.charAt(0).toUpperCase()+activeSidebarItem.slice(1)} />
           </>
         )
     }
