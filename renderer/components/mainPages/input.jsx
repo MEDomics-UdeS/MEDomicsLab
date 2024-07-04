@@ -22,8 +22,7 @@ const InputPage = ({ pageId = "42", configPath = null }) => {
     <>
       <ModulePage pageId={pageId} configPath={configPath} shadow>
         <h1>INPUT MODULE</h1>
-        <InputToolsComponent />
-        {/* <div className="input-page">
+        <div className="input-page">
           <Accordion className="card-accordion" defaultActiveKey={["1"]} alwaysOpen>
             <Accordion.Item eventKey="1">
               <Accordion.Header>Merge tool</Accordion.Header>
@@ -80,7 +79,7 @@ const InputPage = ({ pageId = "42", configPath = null }) => {
               </Accordion.Body>
             </Accordion.Item>
           </Accordion>
-        </div> */}
+        </div>
       </ModulePage>
     </>
   )

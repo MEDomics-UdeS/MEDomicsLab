@@ -191,13 +191,14 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
 
   function openInputToolsDB(action, component) {
     let thoseProps = action.payload.data
+    console.log("OPEN INPUT TOOLS DB", thoseProps)
     let isAlreadyIn = checkIfIDIsInLayoutModel(thoseProps.data.uuid, layoutModel)
     if (!isAlreadyIn) {
       const newChild = {
         type: "tab",
-        helpText: thoseProps.filename,
-        name: thoseProps.filename,
-        id: thoseProps.uuid,
+        helpText:thoseProps.data.path + "/" + thoseProps.data.uuid,
+        name: thoseProps.data.uuid+" Input Tools",
+        id: thoseProps.data.uuid+" Input Tools",
         component: component,
         config: { thoseProps }
       }

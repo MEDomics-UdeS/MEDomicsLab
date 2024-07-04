@@ -7,6 +7,7 @@ import { toast } from "react-toastify"
 
 const TransformColumnToolsDB = ({ fileName, setFileName, selectedColumns, setSelectedColumns, columns, transformData, handleFileUpload, handleExportColumns, handleDeleteColumns }) => {
   const [isHovered, setIsHovered] = useState(false)
+  const innerColumns = columns
   const customFileUpload = {
     padding: "6px 12px",
     cursor: "pointer",
@@ -48,13 +49,9 @@ const TransformColumnToolsDB = ({ fileName, setFileName, selectedColumns, setSel
       >
         <MultiSelect
           value={selectedColumns}
-          // options={columns
-          //   .filter((column) => column.header !== null)
-          //   .map((column) => ({
-          //     label: column.header,
-          //     value: column.field
-          //   }))}
-          options={columns}
+          options={innerColumns}
+          optionLabel="field"
+          
           onChange={(e) => setSelectedColumns(e.value)}
           placeholder="Select Columns"
           style={{ marginRight: "5px", width: "200px" }}

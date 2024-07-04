@@ -474,7 +474,7 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
       columns:columns,
       transformData:transformData,
       handleFileUpload:handleFileUpload,
-      fileName:{...fileName},
+      fileName:fileName,
       setFileName:setFileName,
       handleCsvData:handleCsvData,
       handleExportColumns:handleExportColumns,

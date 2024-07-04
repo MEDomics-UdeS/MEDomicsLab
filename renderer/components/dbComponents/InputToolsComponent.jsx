@@ -72,7 +72,7 @@ const InputToolsComponent = ({
         />
       </Panel>
       <Panel header="Merge Tools" toggleable collapsed={true}>
-        <MergeToolsDB data={innerData} columns={columns} DB={DB} collections={DBData} currentCollection={data.uuid} />
+        <MergeToolsDB data={innerData} columns={Array.from(columns)} DB={DB} collections={DBData} currentCollection={data.uuid} />
       </Panel>
       <Panel header="Simple Cleaning Tools" toggleable collapsed={true}>
         <SimpleCleaningToolsDB refreshData={refreshData} lastEdit={lastEdit} data={innerData} columns={columns} DB={DB} collections={DBData} currentCollection={data.uuid} />
