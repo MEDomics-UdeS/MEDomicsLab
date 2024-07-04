@@ -4,9 +4,10 @@ import { WorkspaceContext } from "../../../workspace/workspaceContext"
 import SidebarDirectoryTreeControlled from "../directoryTree/sidebarDirectoryTreeControlled"
 
 /**
- * @description - This component is the sidebar tools component that will be used in the sidebar component as the input page
- * @summary - It contains the dropzone component and the workspace directory tree filtered to only show the data folder and the data files
- * @returns {JSX.Element} - This component is the sidebar tools component that will be used in the sidebar component as the input page
+ * @description - This component is the sidebar for almost all the modules in the application
+ * @returns {JSX.Element}
+ * @param {Object} children - The children components that will be rendered in the sidebar
+ * @param {String} pageTitle - The title of the page that will be displayed in the sidebar
  */
 const GeneralModuleSidebar = ({children, pageTitle="Undefined"}) => {
   // eslint-disable-next-line no-unused-vars
