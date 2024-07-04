@@ -106,6 +106,11 @@ const CreatePCADB = ({ currentCollection, DB, refreshData }) => {
    * @param {Boolean} overwrite - True if the dataset should be overwritten, false otherwise
    */
   const applyPCA = (overwrite) => {
+    if (!selectedPCRow) {
+      toast.error("Please select the number of principal components")
+      return
+    }
+
     let jsonToSend = {}
     jsonToSend = {
       columns: selectedColumns,

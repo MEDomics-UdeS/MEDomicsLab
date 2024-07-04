@@ -22,6 +22,7 @@ func AddHandleFunc() {
 	Utils.CreateHandleFunc(prePath+"/create_holdout_set_DB/", handleCreateHoldoutSetDB)
 	Utils.CreateHandleFunc(prePath+"/compute_eigenvaluesDB/", handleComputeEigenvaluesDB)
 	Utils.CreateHandleFunc(prePath+"/create_pcaDB/", handleCreatePCADB)
+	Utils.CreateHandleFunc(prePath+"/apply_pcaDB/", handleApplyPCADB)
 }
 
 // handleMerge handles the request to merge the datasets 
@@ -127,6 +128,18 @@ func handleCreatePCADB(jsonConfig string, id string) (string, error) {
 func handleApplyPCA(jsonConfig string, id string) (string, error) {
 	log.Println("Create PCA", id)
 	response, err := Utils.StartPythonScripts(jsonConfig, "../pythonCode/modules/input/apply_pca.py", id)
+	Utils.RemoveIdFromScripts(id)
+	if err != nil {
+		return "", err
+	}
+	return response, nil
+}
+
+// handleApplyPCA handles the request to compute pca with DB
+// It returns the response from the python script
+func handleApplyPCADB(jsonConfig string, id string) (string, error) {
+	log.Println("Create PCA", id)
+	response, err := Utils.StartPythonScripts(jsonConfig, "../pythonCode/modules/input/apply_pcaDB.py", id)
 	Utils.RemoveIdFromScripts(id)
 	if err != nil {
 		return "", err

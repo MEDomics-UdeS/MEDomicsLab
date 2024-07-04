@@ -663,7 +663,6 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
     } else if (component === "InputToolsDB") {
       if (node.getExtraData().data == null) {
         const config = node.getConfig().thoseProps
-        console.log("config", config)
         if (config.thoseProps !== null) {
           return <InputToolsComponent {...config} />
         } else {

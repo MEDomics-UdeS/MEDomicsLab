@@ -538,6 +538,22 @@ if (isProd) {
     }
   })
 
+  // Register an IPC handler for "get-collections-list"
+  ipcMain.handle("get-collections-list", async (event, dbName) => {
+    const client = new MongoClient(mongoUrl)
+    try {
+      await client.connect()
+      const db = client.db(dbName)
+      const collections = await db.listCollections().toArray()
+      return collections.map((coll) => coll.name) // This value is sent back to the renderer
+    } catch (error) {
+      console.error(error)
+      throw new Error("Failed to get collections") // Throw an error to be caught in the renderer
+    } finally {
+      await client.close()
+    }
+  })
+
   /**
    * @description Upload CSV, TSV, JSON files and images into the Database
    * @param {String} event The event

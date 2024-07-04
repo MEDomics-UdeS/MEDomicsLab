@@ -105,6 +105,9 @@ class GoExecScriptCreatePCA(GoExecutionScript):
                                     )
     
         # Matrix multiplication or dot Product
+        print(extracted_features)
+        print(pca_component)
+
         extracted_features_pca = extracted_features @ pca_component
 
         # Concatenate PCA with the unselected columns

@@ -11,12 +11,6 @@ import FeatureReductionToolsDB from "./inputToolsDB/featureReductionToolsDB/feat
 const InputToolsComponent = ({
   DBData,
   data,
-  handleAddRow,
-  numRows,
-  setNumRows,
-  newColumnName,
-  setNewColumnName,
-  handleAddColumn,
   exportOptions,
   refreshData,
   selectedColumns,
@@ -37,27 +31,15 @@ const InputToolsComponent = ({
     height: "100%",
     overflow: "auto"
   }
-
-  useEffect(() => {
-    console.log("InputToolsComponent: useEffect: columns: ", columns)
-  }, [])
-
   return (
     <div style={panelContainerStyle}>
-      <Panel header="Add, Export and Refresh Tools" toggleable collapsed={true}>
-        <BasicToolsDB
-          numRows={numRows}
-          setNumRows={setNumRows}
-          handleAddRow={handleAddRow}
-          newColumnName={newColumnName}
-          setNewColumnName={setNewColumnName}
-          handleAddColumn={handleAddColumn}
-          exportOptions={exportOptions}
-          refreshData={refreshData}
-        />
+      <div style={{ textAlign: "center", marginTop: "20px", marginBottom: "20px" }}>
+        <h1>Database Input Tools</h1> {/* Title now wrapped for additional styling */}
+      </div>
+      <Panel header="Basic Tools" toggleable collapsed={true}>
+        <BasicToolsDB exportOptions={exportOptions} refreshData={refreshData} DB={DB} DBData={DBData} currentCollection={data.uuid} />
       </Panel>
       <Panel header="Transform Column Tools" toggleable collapsed={true}>
-
         <TransformColumnToolsDB
           selectedColumns={selectedColumns}
           setSelectedColumns={setSelectedColumns}
@@ -84,7 +66,7 @@ const InputToolsComponent = ({
         <SubsetCreationToolsDB DB={DB} currentCollection={data.uuid} data={innerData} refreshData={refreshData} />
       </Panel>
       <Panel header="Feature Reduction Tools" toggleable collapsed={true}>
-        <FeatureReductionToolsDB currentCollection={data.uuid} DB={DB} refreshData={refreshData} />
+        <FeatureReductionToolsDB currentCollection={data.uuid} DB={DB} refreshData={refreshData} DBData={DBData} />
       </Panel>
     </div>
   )

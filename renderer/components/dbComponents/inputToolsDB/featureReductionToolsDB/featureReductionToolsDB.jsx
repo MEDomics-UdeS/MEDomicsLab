@@ -5,7 +5,7 @@ import CreatePCADB from "./CreatePcaDB"
 import ApplyPCADB from "./ApplyPcaDB"
 import { Message } from "primereact/message"
 
-const FeatureReductionToolsDB = ({ currentCollection, DB, refreshData }) => {
+const FeatureReductionToolsDB = ({ currentCollection, DB, refreshData, DBData }) => {
   return (
     <div
       style={{
@@ -24,7 +24,7 @@ const FeatureReductionToolsDB = ({ currentCollection, DB, refreshData }) => {
               <CreatePCADB currentCollection={currentCollection} DB={DB} refreshData={refreshData} />
             </TabPanel>
             <TabPanel header="Apply PCA">
-              <ApplyPCADB />
+              <ApplyPCADB currentCollection={currentCollection} DB={DB} refreshData={refreshData} />
             </TabPanel>
           </TabView>
         </TabPanel>

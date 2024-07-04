@@ -12,7 +12,7 @@ import { getCollectionData } from "./utils"
 import { MongoDBContext } from "../mongoDB/mongoDBContext"
 import InputToolsComponent from "./InputToolsComponent"
 import { Dialog } from "primereact/dialog"
-import {LayoutModelContext} from "../layout/layoutContext";
+import { LayoutModelContext } from "../layout/layoutContext"
 
 /**
  * DataTableFromDB component
@@ -24,18 +24,15 @@ import {LayoutModelContext} from "../layout/layoutContext";
  * @constructor - DataTableFromDB
  */
 const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly }) => {
-  const { dispatchLayout } = useContext(LayoutModelContext);
+  const { dispatchLayout } = useContext(LayoutModelContext)
   const { DB, DBData } = useContext(MongoDBContext)
   const [innerData, setInnerData] = useState([])
   const [columns, setColumns] = useState([])
-  const [newColumnName, setNewColumnName] = useState("")
-  const [numRows, setNumRows] = useState("")
   const [hoveredButton, setHoveredButton] = useState(null)
   const [selectedColumns, setSelectedColumns] = useState([])
   const [csvData, setCsvData] = useState([])
   const [fileName, setFileName] = useState("Choose File")
   const [lastEdit, setLastEdit] = useState(Date.now())
-  const [isDialogVisible, setDialogVisible] = useState(false)
   const exportOptions = [
     {
       label: "CSV",
@@ -125,20 +122,6 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
         .map((key) => <Column key={key} field={key} header={key} {...tablePropsColumn} />)
     }
     return null
-  }
-
-  // Add a new column to the table
-  const handleAddColumn = () => {
-    if (newColumnName !== "") {
-      const newColumn = { field: newColumnName, header: newColumnName }
-      setColumns([...columns, newColumn])
-      const newInnerData = innerData.map((row) => ({ ...row, [newColumn.field]: "" }))
-      setInnerData(newInnerData)
-      setNewColumnName("")
-      toast.success("Column " + newColumnName + " added successfully")
-    } else {
-      toast.warn("New column name cannot be empty")
-    }
   }
 
   // Update data in MongoDB
@@ -298,21 +281,6 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
     return <InputText type="text" value={options.value} onChange={(e) => options.editorCallback(e.target.value)} onKeyDown={(e) => e.stopPropagation()} style={{ width: "100%" }} />
   }
 
-  // Add a new row to the table
-  const handleAddRow = () => {
-    if (!numRows || isNaN(numRows)) {
-      toast.warn("Please enter a valid number for # of rows")
-      return
-    }
-    const newRows = Array.from({ length: numRows }, () => {
-      const newRow = {}
-      columns.forEach((col) => (newRow[col.field] = ""))
-      return newRow
-    })
-    setInnerData([...innerData, ...newRows])
-    toast.success(numRows + " rows added successfully")
-  }
-
   // Refresh data from MongoDB
   const refreshData = () => {
     if (data && data.uuid && data.path) {
@@ -447,74 +415,28 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
     }
   }
 
-  // Function to open the modal
-  const openDialog = () => {
-    setDialogVisible(true)
-  }
-
-  // Function to close the modal
-  const closeDialog = () => {
-    setDialogVisible(false)
-  }
-
   const handleDialogClick = () => {
     console.log("Opening Input Tools")
     let newProps = {
-      DBData:DBData,
-      data:{...data},
-      numRows:numRows,
-      setNumRows:setNumRows,
-      newColumnName:newColumnName,
-      setNewColumnName:setNewColumnName,
-      handleAddColumn:handleAddColumn,
-      exportOptions:exportOptions,
-      refreshData:refreshData,
-      selectedColumns:selectedColumns,
-      setSelectedColumns:setSelectedColumns,
-      columns:columns,
-      transformData:transformData,
-      handleFileUpload:handleFileUpload,
-      fileName:fileName,
-      setFileName:setFileName,
-      handleCsvData:handleCsvData,
-      handleExportColumns:handleExportColumns,
-      handleDeleteColumns:handleDeleteColumns,
-      innerData:{...innerData},
-      DB:{...DB},
-      handleAddRow:handleAddRow,
-      lastEdit: {...lastEdit}
+      DBData: DBData,
+      data: { ...data },
+      exportOptions: exportOptions,
+      refreshData: refreshData,
+      selectedColumns: selectedColumns,
+      setSelectedColumns: setSelectedColumns,
+      columns: columns,
+      transformData: transformData,
+      handleFileUpload: handleFileUpload,
+      fileName: fileName,
+      setFileName: setFileName,
+      handleCsvData: handleCsvData,
+      handleExportColumns: handleExportColumns,
+      handleDeleteColumns: handleDeleteColumns,
+      innerData: { ...innerData },
+      DB: { ...DB },
+      lastEdit: { ...lastEdit }
     }
-    dispatchLayout({type: 'openInputToolsDB', payload: {data: newProps}});
-  };
-
-  const renderInputToolsComponent = () => {
-    return (
-        <InputToolsComponent
-        DBData={DBData}
-        data={data}
-        numRows={numRows}
-        setNumRows={setNumRows}
-        newColumnName={newColumnName}
-        setNewColumnName={setNewColumnName}
-        handleAddColumn={handleAddColumn}
-        exportOptions={exportOptions}
-        refreshData={refreshData}
-        selectedColumns={selectedColumns}
-        setSelectedColumns={setSelectedColumns}
-        columns={columns}
-        transformData={transformData}
-        handleFileUpload={handleFileUpload}
-        fileName={fileName}
-        setFileName={setFileName}
-        handleCsvData={handleCsvData}
-        handleExportColumns={handleExportColumns}
-        handleDeleteColumns={handleDeleteColumns}
-        innerData={innerData}
-        DB={DB}
-        handleAddRow={handleAddRow}
-        lastEdit={lastEdit}
-    />
-    )
+    dispatchLayout({ type: "openInputToolsDB", payload: { data: newProps } })
   }
 
   // Render the DataTable component
@@ -585,15 +507,6 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
           </DataTable>
         </div>
       )}
-      {/* <Button onClick={handleDialogClick} label="Open Input Tools" />
-      {/* <Dialog header="Input Tools"
-              visible={isDialogVisible}
-              onHide={closeDialog}
-              style={{ width: "80%", height: "80%" }}
-              modal={true}
-      >
-        {renderInputToolsComponent()}
-      </Dialog> */} 
     </>
   )
 }

@@ -16,19 +16,13 @@ const TransformColumnToolsDB = ({ fileName, setFileName, selectedColumns, setSel
     border: "none",
     borderRadius: "4px"
   }
-  // const [innerColumns, setInnerColumns] = useState(Array.from(columns))
 
   const handleFileUploadUpdated = (event) => {
     handleFileUpload(event)
-
     if (event.target.files.length > 0) {
       setFileName(event.target.files[0].name)
     }
   }
-
-  useEffect(() => {
-    console.log("TransformColumnToolsDB: useEffect: columns: ", columns)
-  }, [])
 
   return (
     <>
@@ -51,7 +45,6 @@ const TransformColumnToolsDB = ({ fileName, setFileName, selectedColumns, setSel
           value={selectedColumns}
           options={innerColumns}
           optionLabel="field"
-          
           onChange={(e) => setSelectedColumns(e.value)}
           placeholder="Select Columns"
           style={{ marginRight: "5px", width: "200px" }}
