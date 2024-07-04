@@ -12,6 +12,7 @@ import { getCollectionData } from "./utils"
 import { MongoDBContext } from "../mongoDB/mongoDBContext"
 import InputToolsComponent from "./InputToolsComponent"
 import { Dialog } from "primereact/dialog"
+import {LayoutModelContext} from "../layout/layoutContext";
 
 /**
  * DataTableFromDB component
@@ -23,6 +24,7 @@ import { Dialog } from "primereact/dialog"
  * @constructor - DataTableFromDB
  */
 const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly }) => {
+  const { dispatchLayout } = useContext(LayoutModelContext);
   const { DB, DBData } = useContext(MongoDBContext)
   const [innerData, setInnerData] = useState([])
   const [columns, setColumns] = useState([])
@@ -455,6 +457,40 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
     setDialogVisible(false)
   }
 
+  const handleDialogClick = () => {
+    dispatchLayout({type: 'openInput'});
+  };
+
+  const renderInputToolsComponent = () => {
+    return (
+        <InputToolsComponent
+        DBData={DBData}
+        data={data}
+        numRows={numRows}
+        setNumRows={setNumRows}
+        newColumnName={newColumnName}
+        setNewColumnName={setNewColumnName}
+        handleAddColumn={handleAddColumn}
+        exportOptions={exportOptions}
+        refreshData={refreshData}
+        selectedColumns={selectedColumns}
+        setSelectedColumns={setSelectedColumns}
+        columns={columns}
+        transformData={transformData}
+        handleFileUpload={handleFileUpload}
+        fileName={fileName}
+        setFileName={setFileName}
+        handleCsvData={handleCsvData}
+        handleExportColumns={handleExportColumns}
+        handleDeleteColumns={handleDeleteColumns}
+        innerData={innerData}
+        DB={DB}
+        handleAddRow={handleAddRow}
+        lastEdit={lastEdit}
+    />
+    )
+  }
+
   // Render the DataTable component
   return (
     <>
@@ -523,32 +559,13 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
           </DataTable>
         </div>
       )}
-      <Dialog header="Input Tools" visible={isDialogVisible} onHide={closeDialog} style={{ width: "80%", height: "80%" }} modal={true}>
-        <InputToolsComponent
-          DBData={DBData}
-          data={data}
-          numRows={numRows}
-          setNumRows={setNumRows}
-          newColumnName={newColumnName}
-          setNewColumnName={setNewColumnName}
-          handleAddColumn={handleAddColumn}
-          exportOptions={exportOptions}
-          refreshData={refreshData}
-          selectedColumns={selectedColumns}
-          setSelectedColumns={setSelectedColumns}
-          columns={columns}
-          transformData={transformData}
-          handleFileUpload={handleFileUpload}
-          fileName={fileName}
-          setFileName={setFileName}
-          handleCsvData={handleCsvData}
-          handleExportColumns={handleExportColumns}
-          handleDeleteColumns={handleDeleteColumns}
-          innerData={innerData}
-          DB={DB}
-          handleAddRow={handleAddRow}
-          lastEdit={lastEdit}
-        />
+      <Dialog header="Input Tools"
+              visible={isDialogVisible}
+              onHide={closeDialog}
+              style={{ width: "80%", height: "80%" }}
+              modal={true}
+      >
+        {renderInputToolsComponent()}
       </Dialog>
     </>
   )
