@@ -23,6 +23,8 @@ func AddHandleFunc() {
 	Utils.CreateHandleFunc(prePath+"/compute_eigenvaluesDB/", handleComputeEigenvaluesDB)
 	Utils.CreateHandleFunc(prePath+"/create_pcaDB/", handleCreatePCADB)
 	Utils.CreateHandleFunc(prePath+"/apply_pcaDB/", handleApplyPCADB)
+	Utils.CreateHandleFunc(prePath+"/compute_correlationsDB/", handleComputeCorrelationsDB)
+	Utils.CreateHandleFunc(prePath+"/compute_spearmanDB/", handleComputeSpearmanDB)
 }
 
 // handleMerge handles the request to merge the datasets 
@@ -159,11 +161,35 @@ func handleComputeCorrelations(jsonConfig string, id string) (string, error) {
 	return response, nil
 }
 
+// handleComputeCorrelations handles the request to compute correlations for the DB
+// It returns the response from the python script
+func handleComputeCorrelationsDB(jsonConfig string, id string) (string, error) {
+	log.Println("Compute Correlations", id)
+	response, err := Utils.StartPythonScripts(jsonConfig, "../pythonCode/modules/input/compute_correlationsDB.py", id)
+	Utils.RemoveIdFromScripts(id)
+	if err != nil {
+		return "", err
+	}
+	return response, nil
+}
+
 // handleComputeSpearman handles the request to compute Spearman
 // It returns the response from the python script
 func handleComputeSpearman(jsonConfig string, id string) (string, error) {
 	log.Println("Compute Spearman", id)
 	response, err := Utils.StartPythonScripts(jsonConfig, "../pythonCode/modules/input/compute_spearman.py", id)
+	Utils.RemoveIdFromScripts(id)
+	if err != nil {
+		return "", err
+	}
+	return response, nil
+}
+
+// handleComputeSpearman handles the request to compute Spearman for the DB
+// It returns the response from the python script
+func handleComputeSpearmanDB(jsonConfig string, id string) (string, error) {
+	log.Println("Compute Spearman", id)
+	response, err := Utils.StartPythonScripts(jsonConfig, "../pythonCode/modules/input/compute_spearmanDB.py", id)
 	Utils.RemoveIdFromScripts(id)
 	if err != nil {
 		return "", err

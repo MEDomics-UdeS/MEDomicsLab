@@ -60,7 +60,7 @@ class GoExecScriptCreatePCA(GoExecutionScript):
         # Fetch data and convert to DataFrame 
         data = list(collection.find())
         df = pd.DataFrame(data)
-        print(df)
+        df = df.drop('_id', axis=1)
         
         if df.empty:
             print("DataFrame is empty. Exiting script.")
@@ -68,9 +68,7 @@ class GoExecScriptCreatePCA(GoExecutionScript):
 
         # Remove columns containing only 0 values
         zero_columns = df.columns[df.eq(0).all()]
-        print('test1',zero_columns)
         filtered_columns = [x for x in columns if x not in zero_columns]
-        print ('test2',filtered_columns)
 
         # Keep extracted features columns
         if set(filtered_columns).issubset(df.columns):
