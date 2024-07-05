@@ -184,7 +184,7 @@ const SpearmanDB = ({ DB, currentCollection, refreshData }) => {
             label="Overwrite"
             style={{ margin: "5px", fontSize: "1rem", padding: "6px 10px" }}
             onClick={() => computeSpearman(true)}
-            tooltip="Overwrite current collection with PCA results"
+            tooltip="Overwrite current collection with spearman results"
             tooltipOptions={{ position: "top" }}
           />
           <InputText value={newCollectionName} onChange={(e) => setNewCollectionName(e.target.value)} placeholder="New name" style={{ margin: "5px", fontSize: "1rem", width: "205px" }} />
@@ -192,7 +192,7 @@ const SpearmanDB = ({ DB, currentCollection, refreshData }) => {
             icon="pi pi-plus"
             style={{ margin: "5px", fontSize: "1rem", padding: "6px 10px", width: "100px", marginTop: "0.25rem" }}
             onClick={() => computeSpearman(false)}
-            tooltip="Create new collection with PCA results"
+            tooltip="Create new collection with spearman results"
             tooltipOptions={{ position: "top" }}
           />
         </div>
