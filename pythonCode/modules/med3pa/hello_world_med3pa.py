@@ -34,7 +34,7 @@ class GoExecScriptHelloWorldFromMED3pa(GoExecutionScript):
         self.results = {
         "json_config": json_config,
         "data": "Backend received Information",
-        "path": ['det3pa_config1','config2'],
+        "path": ['det3pa_config1','med3pa_config2','detectron_config3','med3pa_config4'],
         "stringFromBackend": "Hello World from med3pa backend @ " + time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()) + " !"
         }
         

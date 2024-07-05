@@ -2,6 +2,7 @@ export const nodeInformation = ["Node%", "Population%", "Mean Confidence Level",
 export const shiftInformation = ["Shift Probability", "Test Statistic"]
 // Function to format numbers with three decimal places
 export const formatValue = (value) => {
+  if (!value) return null
   if (typeof value === "number" && !Number.isInteger(value)) {
     value = value.toFixed(3)
   }
@@ -9,7 +10,7 @@ export const formatValue = (value) => {
 }
 export const filterData = (data, treeParams, nodeParams) => {
   let filteredData = []
-
+  if (!data) return data
   // Iterate over the top-level keys
   for (const topKey in data) {
     const topLevel = data[topKey]
@@ -82,6 +83,7 @@ export const filterData = (data, treeParams, nodeParams) => {
 }
 export const filterLost = (data, treeParams) => {
   // Iterate over the top-level keys of the 'data' object
+  if (!data) return data
   for (const topKey in data) {
     const topLevel = data[topKey]
 

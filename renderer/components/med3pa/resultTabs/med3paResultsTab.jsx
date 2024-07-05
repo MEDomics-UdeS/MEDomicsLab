@@ -1,0 +1,302 @@
+/* eslint-disable camelcase */
+import React, { useState, useEffect } from "react"
+
+import MDRCurve from "../resultsComponents/mdrCurve"
+import FlowWithProvider from "../resultsComponents/treeWorkflow"
+
+import DetectronResults from "../resultsComponents/detectronResults"
+import { filterData, filterLost, filterMetrics } from "./tabFunctions"
+import LostProfiles from "../resultsComponents/lostProfiles"
+import ResultsFilter from "../resultsComponents/resultsFilter"
+const MED3paResultsTab = ({ loadedFiles, type }) => {
+  const [buttonClicked, setButtonClicked] = useState("reset")
+  const [loadingTree, setLoadingTree] = useState(false)
+  const [loadingCurve, setLoadingCurve] = useState(false)
+  const [loadingLost, setLoadingLost] = useState(false)
+  const [lostData, setLostData] = useState({})
+  const [filter, setFilter] = useState(false)
+  const [curveData, setCurveData] = useState({})
+  const [treeData, setTreeData] = useState({})
+  const [fullscreen, setFullscreen] = useState(false)
+  const [isExpanded, setIsExpanded] = useState(false)
+
+  const [detectronR, setdetectronR] = useState({})
+  const [loadingDetectron, setLoadingDetectron] = useState(false)
+
+  const [settings, setSettings] = useState({
+    metrics: null,
+    strategy: null
+  })
+  const [treeParams, setTreeParams] = useState({
+    declarationRate: 100,
+    maxDepth: 5,
+    minConfidenceLevel: 1,
+    minSamplesRatio: 0
+  })
+  const [nodeParams, setNodeParams] = useState({
+    focusView: "Node information",
+    thresholdEnabled: false,
+    customThreshold: 100,
+    selectedParameter: "",
+    metrics: settings.metrics,
+    detectronStrategy: settings.strategy
+  })
+  // Function to determine and format loaded files based on type
+  const formatDisplay = (loadedFiles, type) => {
+    let test, detectronResults
+
+    if (type === "eval") {
+      const { test: evalTest, detectron_results: evalDetectronResults } = loadedFiles
+      test = evalTest
+      detectronResults = evalDetectronResults
+      if (!test) {
+        // eslint-disable-next-line no-unused-vars
+        const { detectron_results, ...rest } = loadedFiles
+        test = rest
+      }
+      console.log("LOADED HERE:", test, detectronResults)
+    } else {
+      test = loadedFiles
+      detectronResults = null
+    }
+
+    return { test, detectronResults }
+  }
+  const handleButtonClicked = (buttonType) => {
+    setButtonClicked(buttonType)
+
+    if (buttonType === "reset") {
+      setNodeParams({
+        focusView: "Node information",
+        thresholdEnabled: false,
+        customThreshold: 100,
+        selectedParameter: "",
+        metrics: settings.metrics,
+        detectronStrategy: settings.strategy
+      })
+      setTreeParams({
+        declarationRate: 100,
+        maxDepth: 5,
+        minConfidenceLevel: 1,
+        minSamplesRatio: 0
+      })
+    } else {
+      setFilter(!filter)
+    }
+  }
+  useEffect(() => {
+    if (!loadedFiles || !loadedFiles.metrics_dr || treeParams.declarationRate === undefined) return
+
+    // Access the metrics_dr based on declarationRate
+    const declarationRateKey = String(treeParams.declarationRate)
+    const values = loadedFiles.metrics_dr[declarationRateKey]
+
+    if (values) {
+      setTreeParams((prevTreeParams) => ({
+        ...prevTreeParams,
+        minConfidenceLevel: values.min_confidence_level
+      }))
+    }
+  }, [treeParams.declarationRate])
+  const updateTreeParams = (newTreeParams) => {
+    setTreeParams(newTreeParams)
+  }
+
+  useEffect(() => {
+    const loadJsonFiles = async () => {
+      if (!loadedFiles) return
+      console.log("LOADED FILE:", loadedFiles)
+
+      const { test, detectronResults } = formatDisplay(loadedFiles, type)
+
+      try {
+        if (detectronResults) {
+          setdetectronR(detectronResults)
+          if (detectronR) {
+            setLoadingDetectron(true)
+          }
+          if (!settings.strategy) {
+            let newStrategy = []
+            detectronResults.detectron_results.forEach((result) => {
+              Object.entries(result).forEach(([key, value]) => {
+                if (key === "Strategy") {
+                  newStrategy.push(value)
+                }
+              })
+            })
+
+            setSettings((prevSettings) => ({
+              ...prevSettings,
+              strategy: newStrategy
+            }))
+          }
+        }
+        if (!test) return
+
+        if (test.metrics_dr) {
+          if (!settings.metrics) {
+            const firstItem = test.metrics_dr[0]
+            let newMetrics = null
+            if (firstItem && firstItem.metrics) {
+              newMetrics = Object.keys(firstItem.metrics).map((metric) => ({
+                name: metric
+              }))
+            }
+            setSettings((prevSettings) => ({
+              ...prevSettings,
+              metrics: newMetrics
+            }))
+          }
+          setCurveData(test.metrics_dr)
+          setLoadingCurve(true)
+        }
+        if (!test.profiles) return
+        const filteredData = filterData(test.profiles, treeParams, nodeParams)
+        const filteredLost = filterLost(test.lost_profiles, treeParams)
+
+        if (filteredData) {
+          setTreeData(filteredData)
+          setLostData(filteredLost)
+          setLoadingLost(true)
+          setTimeout(() => {
+            setLoadingTree(true)
+          }, 500)
+        }
+      } catch (error) {
+        console.error("Error loading JSON files:", error)
+      }
+    }
+
+    loadJsonFiles()
+  }, [loadedFiles])
+
+  const loadFiles = () => {
+    if (!loadedFiles) return
+
+    const { test } = formatDisplay(loadedFiles, type)
+
+    try {
+      if (!test) return
+
+      const filteredMDRData = filterMetrics(test.metrics_dr, nodeParams)
+      if (filteredMDRData) {
+        setCurveData(filteredMDRData)
+        setLoadingCurve(true) // Set loading to true after fetching data
+      }
+
+      if (!test.profiles) return
+
+      const filteredData = filterData(test.profiles, treeParams, nodeParams)
+      const filteredLost = filterLost(test.lost_profiles, treeParams)
+
+      if (filteredData) {
+        setTreeData(filteredData)
+        setLoadingLost(true)
+        setLostData(filteredLost)
+        setTimeout(() => {
+          setLoadingTree(true)
+        }, 500)
+      }
+    } catch (error) {
+      console.error("Error loading files:", error)
+    }
+  }
+  useEffect(() => {
+    loadFiles()
+  }, [buttonClicked, filter])
+
+  useEffect(() => {
+    console.log("treeData here:", treeData)
+  }, [treeData])
+
+  useEffect(() => {
+    console.log("treeParams changed to:", treeParams)
+  }, [treeParams])
+
+  useEffect(() => {
+    console.log("nodeParams changed to:", nodeParams)
+  }, [nodeParams])
+
+  const toggleFullscreen = () => {
+    setFullscreen(!fullscreen) // Toggle fullscreen state
+
+    if (fullscreen) {
+      setLoadingTree(false)
+      setTimeout(() => {
+        setLoadingTree(true)
+      }, 300)
+    }
+  }
+  const toggleExpand = () => {
+    setIsExpanded(!isExpanded) // Toggle expand/minimize state
+  }
+  return (
+    <>
+      <div style={{ marginTop: "5px", display: "flex", flexDirection: "column", overflowX: "hidden", overflowY: "auto" }}>
+        {fullscreen ? (
+          <div className="fullscreen-container">
+            <div className="fullscreen-treeWorkflow">
+              {!loadingTree ? (
+                <p>Loading tree data...</p>
+              ) : (
+                <FlowWithProvider treeData={treeData} onButtonClicked={handleButtonClicked} onFullScreenClicked={toggleFullscreen} fullscreen={fullscreen} />
+              )}
+            </div>
+          </div>
+        ) : (
+          <>
+            {!loadingLost && !loadingTree && loadingCurve ? (
+              <>
+                <ResultsFilter
+                  isExpanded={isExpanded}
+                  toggleExpand={toggleExpand}
+                  treeParams={treeParams}
+                  updateTreeParams={updateTreeParams}
+                  nodeParams={nodeParams}
+                  setNodeParams={setNodeParams}
+                  type={type}
+                  setFilter={setFilter}
+                  settings={settings}
+                  tree={false}
+                />
+
+                <MDRCurve curveData={curveData} />
+              </>
+            ) : (
+              <>
+                <ResultsFilter
+                  isExpanded={isExpanded}
+                  toggleExpand={toggleExpand}
+                  treeParams={treeParams}
+                  updateTreeParams={updateTreeParams}
+                  nodeParams={nodeParams}
+                  setNodeParams={setNodeParams}
+                  type={type}
+                  setFilter={setFilter}
+                  settings={settings}
+                  tree={true}
+                />
+                <div className="row">
+                  <div className="col-md-7 mb-3" style={{ display: "flex", flexDirection: "column", flex: "1", paddingRight: "15px" }}>
+                    {!loadingTree ? (
+                      <p>Loading tree data...</p>
+                    ) : (
+                      <FlowWithProvider treeData={treeData} onButtonClicked={handleButtonClicked} onFullScreenClicked={toggleFullscreen} fullscreen={fullscreen} />
+                    )}
+                  </div>
+                  <div className="col-md-5 mb-3" style={{ flex: "1", display: "flex", flexDirection: "column" }}>
+                    {!loadingCurve ? <p>Loading CURVE data...</p> : <MDRCurve curveData={curveData} />}
+                    {!loadingLost ? null : <LostProfiles lostData={lostData} />}
+                    {type === "eval" && !loadingDetectron ? null : type === "eval" && <DetectronResults detectronResults={detectronR.detectron_results} />}
+                  </div>
+                </div>
+              </>
+            )}
+          </>
+        )}
+      </div>
+    </>
+  )
+}
+
+export default MED3paResultsTab

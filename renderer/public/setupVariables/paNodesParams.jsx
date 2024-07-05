@@ -22,7 +22,7 @@ const nodesParams = {
     output: ["base_model"],
     img: "create_model.png",
     title: "Base Model",
-    possibleSettings: paSettings["dataset_loader"]
+    possibleSettings: paSettings["base_model"]
   },
 
   detectron: {

@@ -20,7 +20,7 @@ export default function BaseModelNode({ id, data }) {
   useEffect(() => {
     const filterSettings = () => {
       const filteredSettings = Object.keys(data.internal.settings)
-        .filter((key) => ["hyperparameters", "files", "target"].includes(key))
+        .filter((key) => ["file"].includes(key))
         .reduce((obj, key) => {
           obj[key] = data.internal.settings[key]
           return obj
@@ -39,7 +39,7 @@ export default function BaseModelNode({ id, data }) {
       })
     }
 
-    if (data.internal.settings.files) {
+    if (data.internal.settings.file) {
       data.internal.hasWarning = { state: false, tooltip: <p>No Base Model selected</p> }
     } else {
       data.internal.hasWarning = { state: true }
@@ -50,17 +50,6 @@ export default function BaseModelNode({ id, data }) {
 
   const handleWarning = (hasWarning) => {
     data.internal.hasWarning = hasWarning
-    updateNode({
-      id: id,
-      updatedData: data.internal
-    })
-  }
-
-  const onInputChange = (e) => {
-    const { value, name } = e
-    data.internal.settings.hyperparameters[name] = value
-
-    // Update the node with the new settings
     updateNode({
       id: id,
       updatedData: data.internal
@@ -89,24 +78,6 @@ export default function BaseModelNode({ id, data }) {
 
   const toggleShowDetails = () => {
     setShowDetails(!showDetails)
-  }
-
-  const defaultHyperparameters = {
-    objective: "binary:logistic",
-    eval_metric: "auc",
-    eta: 0.1,
-    max_depth: 6,
-    subsample: 0.8,
-    colsample_bytree: 0.8,
-    min_child_weight: 1,
-    nthread: 4,
-    tree_method: "hist",
-    device: "cpu"
-  }
-
-  // Initialize hyperparameters with default values if not already set
-  if (!data.internal.settings.hyperparameters) {
-    data.internal.settings.hyperparameters = { ...defaultHyperparameters }
   }
 
   return (
@@ -162,47 +133,6 @@ export default function BaseModelNode({ id, data }) {
                 </Button>
               </div>
             )}
-            {showDetails && (
-              <div className="border border-light p-3 mb-3">
-                <div className="mb-3">
-                  <p className="fw-bold mb-0">Model Type & Class</p>
-                  <br></br>
-                  <div className="row">
-                    <div className="col-sm-6">
-                      <p className="fw-bold mb-2">Type</p>
-                    </div>
-                    <div className="col-sm-6 text-end">
-                      <p className="fw-bold mb-0">XGBoost Model</p>
-                    </div>
-                  </div>
-                  <div className="row">
-                    <div className="col-sm-6">
-                      <p className="fw-bold mb-2">Class</p>
-                    </div>
-                    <div className="col-sm-6 text-end">
-                      <p className="fw-bold mb-0">xgb.Booster</p>
-                    </div>
-                  </div>
-                </div>
-                <hr className="my-2" />
-                <br></br>
-
-                <p className="fw-bold mb-0">Extracted Training Hyperparameters</p>
-                <br></br>
-                {Object.entries(data.internal.settings.hyperparameters).map(([param, value]) => (
-                  <div key={param} className="mb-3">
-                    <FlInput
-                      name={param}
-                      settingInfos={{
-                        tooltip: "Extracted Parameter Value"
-                      }}
-                      currentValue={value}
-                      onInputChange={onInputChange}
-                    />
-                  </div>
-                ))}
-              </div>
-            )}
           </>
         }
         defaultSettings={
@@ -210,12 +140,12 @@ export default function BaseModelNode({ id, data }) {
             <Stack id="default" direction="vertical" gap={1}>
               <>
                 <FlInput
-                  name="files"
+                  name="file"
                   settingInfos={{
                     type: "data-input",
                     tooltip: "<p>Specify a model file (model)</p>"
                   }}
-                  currentValue={data.internal.settings.files || {}}
+                  currentValue={data.internal.settings.file || {}}
                   onInputChange={onFilesChange}
                   setHasWarning={handleWarning}
                 />

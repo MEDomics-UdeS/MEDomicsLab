@@ -4,6 +4,7 @@
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   margin-bottom: 1rem;
   height: 100%;
+  width: 100%; /* Ensure the card takes up full width of its container */
   padding: 16px;
 }
 

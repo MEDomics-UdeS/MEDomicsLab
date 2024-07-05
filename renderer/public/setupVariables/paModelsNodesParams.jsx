@@ -40,9 +40,9 @@ const paModelsNodesParams = {
     type: "mpcModelNode",
     classes: "object model",
     nbInput: 2,
-    nbOutput: 0,
+    nbOutput: 1,
     input: ["ipc_model", "apc_model"],
-    output: [],
+    output: ["mpc_model"],
     img: "mpc.jpg",
     title: "MPC Model",
     possibleSettings: {}
@@ -50,7 +50,7 @@ const paModelsNodesParams = {
   detectron_profiles: {
     type: "detectronNode",
     classes: "object model",
-    nbInput: 1,
+    nbInput: 2,
     nbOutput: 0,
     input: ["apc_model", "mpc_model"],
     output: [],

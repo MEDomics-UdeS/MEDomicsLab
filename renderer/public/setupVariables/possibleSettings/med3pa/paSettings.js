@@ -18,6 +18,12 @@ const paSettings = {
       tooltip: "<p>Select your main Datasets</p>"
     }
   },
+  base_model: {
+    file: {
+      name: "Training Set",
+      path: ""
+    }
+  },
   ipcModel: {
     model_type: {
       type: "list",

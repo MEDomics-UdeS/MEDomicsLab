@@ -8,8 +8,8 @@ const DetectronResults = ({ detectronResults }) => {
   const [initialized, setInitialized] = useState(false)
 
   useEffect(() => {
-    console.log("DETECTRON RESULTS", detectronResults.detectron_results)
-    if (detectronResults && detectronResults.length > 0) {
+    console.log("DETECTRON RESULTS", detectronResults)
+    if (detectronResults && detectronResults) {
       setInitialized(true)
     }
   }, [detectronResults])

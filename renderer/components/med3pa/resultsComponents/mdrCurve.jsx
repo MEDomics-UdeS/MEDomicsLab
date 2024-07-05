@@ -73,7 +73,7 @@ const MDRCurve = ({ curveData }) => {
   if (!options) return <div>Loading...</div> // Render loading state while options are null
 
   return (
-    <div className="card-paresults p-3" style={{ display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
+    <div className="card-paresults p-3" style={{ display: "flex", flexDirection: "column", height: "100%", alignItems: "flex-start" }}>
       <Typography
         variant="h6"
         style={{
@@ -87,7 +87,7 @@ const MDRCurve = ({ curveData }) => {
         Metrics By Declaration Rate Curve
       </Typography>
       <hr style={{ borderColor: "#868686", borderWidth: "0.5px", width: "100%" }} />
-      <div style={{ width: "100%" }}>
+      <div style={{ width: "100%", height: "100%" }}>
         <ReactECharts key={JSON.stringify(options)} option={options} />
       </div>
     </div>

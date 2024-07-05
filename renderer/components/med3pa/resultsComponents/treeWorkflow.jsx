@@ -526,7 +526,7 @@ const TreeWorkflow = ({ treeData, onButtonClicked, onFullScreenClicked, fullscre
       )}
       <div style={{ flex: "1", width: dimensions.width, height: dimensions.height }}>
         <ReactFlow
-          fitView={fitView({ duration: 800 })}
+          fitView={fitView({ duration: 100 })}
           minZoom={0}
           maxZoom={1.5}
           zoomOnScroll={true}
