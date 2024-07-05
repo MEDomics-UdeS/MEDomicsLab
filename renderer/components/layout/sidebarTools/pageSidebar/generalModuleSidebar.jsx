@@ -4,11 +4,12 @@ import { WorkspaceContext } from "../../../workspace/workspaceContext"
 import SidebarDirectoryTreeControlled from "../directoryTree/sidebarDirectoryTreeControlled"
 
 /**
- * @description - This component is the sidebar tools component for the MED3pa module
- * @summary - It contains the dropzone component and the workspace directory tree component
- * @returns {JSX.Element} - The MED3paSidebar component
+ * @description - This component is the sidebar for almost all the modules in the application
+ * @returns {JSX.Element}
+ * @param {Object} children - The children components that will be rendered in the sidebar
+ * @param {String} pageTitle - The title of the page that will be displayed in the sidebar
  */
-const MED3paSidebar = () => {
+const GeneralModuleSidebar = ({children, pageTitle="Undefined"}) => {
   // eslint-disable-next-line no-unused-vars
   const { workspace } = useContext(WorkspaceContext) // We get the workspace from the context to retrieve the directory tree of the workspace, thus retrieving the data files
 
@@ -24,8 +25,11 @@ const MED3paSidebar = () => {
             margin: "0 0 0 0"
           }}
         >
-          MED3pa Module
+        {pageTitle} Module
         </p>
+
+        {children}
+        
         <Accordion defaultActiveKey={["dirTree"]} alwaysOpen>
           <SidebarDirectoryTreeControlled />
         </Accordion>
@@ -36,4 +40,4 @@ const MED3paSidebar = () => {
   )
 }
 
-export default MED3paSidebar
+export default GeneralModuleSidebar
