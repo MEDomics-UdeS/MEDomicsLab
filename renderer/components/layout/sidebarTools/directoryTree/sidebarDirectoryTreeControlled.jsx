@@ -11,6 +11,7 @@ import renderItem from "./renderItem"
 import { Tooltip } from "primereact/tooltip"
 import { WorkspaceContext } from "../../../workspace/workspaceContext"
 import { rename, onPaste, onDeleteSequentially, createFolder, onDrop, fromJSONtoTree, evaluateIfTargetIsAChild } from "./utils"
+import { MEDDataObject } from "../../../workspace/NewMedDataObject"
 
 /**
  * @description - This component is the sidebar tools component that will be used in the sidebar component
@@ -56,6 +57,10 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
   useEffect(() => {
     setExternalSelectedItems && setExternalSelectedItems(selectedItems)
   }, [selectedItems])
+
+  useEffect(() => {
+    console.log("HERE", tree)
+  }, [tree])
 
   /**
    * This useEffect hook sets the external double click item when the double click item changes.
@@ -408,7 +413,7 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
                       onClick={(e) => {
                         e.preventDefault()
                         e.stopPropagation()
-                        //MedDataObject.updateWorkspaceDataObject()
+                        MEDDataObject.updateWorkspaceDataObject()
                       }}
                     >
                       <ArrowClockwise size={"1rem"} className="context-menu-icon refresh-icon" data-pr-at="right bottom" data-pr-tooltip="Refresh" data-pr-my="left top" />
