@@ -118,11 +118,9 @@ const MED3paResultsTab = ({ loadedFiles, type }) => {
           if (!settings.strategy) {
             let newStrategy = []
             detectronResults.detectron_results.forEach((result) => {
-              Object.entries(result).forEach(([key, value]) => {
-                if (key === "Strategy") {
-                  newStrategy.push(value)
-                }
-              })
+              console.log("HELLO:", result.Strategy)
+
+              newStrategy.push({ name: result.Strategy })
             })
 
             setSettings((prevSettings) => ({

@@ -93,25 +93,36 @@ const MED3paResultsPage = ({ pageId, configPath = "" }) => {
             if (parentFolderName.startsWith("det")) {
               testFilePath = path.join(fileData.file_path, "test")
               detectronFilePath = path.join(fileData.file_path, "detectron_results")
+              loadJsonFiles(testFilePath)
+                .then((files) => {
+                  testFiles["test"] = files
+                  return loadJsonFiles(detectronFilePath)
+                })
+                .then((detectronFiles) => {
+                  testFiles["detectron_results"] = detectronFiles
+                  setLoadedFiles((prevState) => ({
+                    ...prevState,
+                    [tab]: testFiles
+                  }))
+                })
+                .catch((error) => {
+                  console.error("Error loading files:", error)
+                })
+            } else if (parentFolderName.startsWith("med3")) {
+              testFilePath = path.join(fileData.file_path, "test")
+              if (testFilePath) {
+                loadJsonFiles(testFilePath)
+                  .then((files) => {
+                    setLoadedFiles((prevState) => ({
+                      ...prevState,
+                      [tab]: files
+                    }))
+                  })
+                  .catch((error) => {
+                    console.error("Error loading files:", error)
+                  })
+              }
             }
-
-            loadJsonFiles(testFilePath)
-              .then((files) => {
-                testFiles["test"] = files
-                return loadJsonFiles(detectronFilePath)
-              })
-              .then((detectronFiles) => {
-                testFiles["detectron_results"] = detectronFiles
-                setLoadedFiles((prevState) => ({
-                  ...prevState,
-                  [tab]: testFiles
-                }))
-              })
-              .catch((error) => {
-                console.error("Error loading files:", error)
-              })
-          } else if (parentFolderName.startsWith("med3")) {
-            filePath = path.join(fileData.file_path, "test")
           }
 
           if (filePath) {
