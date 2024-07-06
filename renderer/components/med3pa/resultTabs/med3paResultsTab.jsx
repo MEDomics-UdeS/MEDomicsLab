@@ -5,7 +5,7 @@ import MDRCurve from "../resultsComponents/mdrCurve"
 import FlowWithProvider from "../resultsComponents/treeWorkflow"
 
 import DetectronResults from "../resultsComponents/detectronResults"
-import { filterData, filterLost, filterMetrics } from "./tabFunctions"
+import { filterData, filterLost, filterMetrics, isSubPath } from "./tabFunctions"
 import LostProfiles from "../resultsComponents/lostProfiles"
 import ResultsFilter from "../resultsComponents/resultsFilter"
 const MED3paResultsTab = ({ loadedFiles, type }) => {
@@ -19,7 +19,7 @@ const MED3paResultsTab = ({ loadedFiles, type }) => {
   const [treeData, setTreeData] = useState({})
   const [fullscreen, setFullscreen] = useState(false)
   const [isExpanded, setIsExpanded] = useState(false)
-
+  const [prevSelectedId, setPrevSelectedId] = useState(null)
   const [detectronR, setdetectronR] = useState({})
   const [loadingDetectron, setLoadingDetectron] = useState(false)
 
@@ -118,8 +118,6 @@ const MED3paResultsTab = ({ loadedFiles, type }) => {
           if (!settings.strategy) {
             let newStrategy = []
             detectronResults.detectron_results.forEach((result) => {
-              console.log("HELLO:", result.Strategy)
-
               newStrategy.push({ name: result.Strategy })
             })
 
@@ -156,6 +154,7 @@ const MED3paResultsTab = ({ loadedFiles, type }) => {
           setTreeData(filteredData)
           setLostData(filteredLost)
           setLoadingLost(true)
+
           setTimeout(() => {
             setLoadingTree(true)
           }, 500)
@@ -189,6 +188,7 @@ const MED3paResultsTab = ({ loadedFiles, type }) => {
 
       if (filteredData) {
         setTreeData(filteredData)
+
         setLoadingLost(true)
         setLostData(filteredLost)
         setTimeout(() => {
@@ -202,6 +202,35 @@ const MED3paResultsTab = ({ loadedFiles, type }) => {
   useEffect(() => {
     loadFiles()
   }, [buttonClicked, filter])
+
+  // Handle element click function
+  const handleElementClick = (data) => {
+    setTreeData((prevTreeData) => {
+      let dataPathArray = data.name.split("\n").map((pathItem) => pathItem.trim())
+      if (dataPathArray[0] === "") {
+        dataPathArray = ["*"]
+      } else {
+        dataPathArray = ["*", ...dataPathArray]
+      }
+
+      const resetAllClassNames = data.id === prevSelectedId
+
+      const updatedTreeData = prevTreeData.map((item) => {
+        if (resetAllClassNames) {
+          return { ...item, className: "" }
+        } else if (isSubPath(item.path, dataPathArray)) {
+          return { ...item, className: "panode-lost-dr" }
+        } else {
+          return { ...item, className: "panode-lost" }
+        }
+      })
+
+      // Update prevSelectedId
+      setPrevSelectedId(data.id)
+
+      return updatedTreeData
+    })
+  }
 
   useEffect(() => {
     console.log("treeData here:", treeData)
@@ -284,7 +313,7 @@ const MED3paResultsTab = ({ loadedFiles, type }) => {
                   </div>
                   <div className="col-md-5 mb-3" style={{ flex: "1", display: "flex", flexDirection: "column" }}>
                     {!loadingCurve ? <p>Loading CURVE data...</p> : <MDRCurve curveData={curveData} />}
-                    {!loadingLost ? null : <LostProfiles lostData={lostData} />}
+                    {!loadingLost ? null : <LostProfiles lostData={lostData} onElementClick={handleElementClick} />}
                     {type === "eval" && !loadingDetectron ? null : type === "eval" && <DetectronResults detectronResults={detectronR.detectron_results} />}
                   </div>
                 </div>

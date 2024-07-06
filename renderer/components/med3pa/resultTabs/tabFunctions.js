@@ -95,7 +95,18 @@ export const filterLost = (data, treeParams) => {
 
   return null
 }
-
+// Function to check if path1 is a subpath of path2
+export const isSubPath = (path1, path2) => {
+  if (path1.length > path2.length) {
+    return false
+  }
+  for (let i = 0; i < path1.length; i++) {
+    if (path1[i] !== path2[i]) {
+      return false
+    }
+  }
+  return true
+}
 export const filterUniqueLostProfiles = (data) => {
   // Initialize a Map to store unique objects based on id
   let uniqueEntries = new Set()

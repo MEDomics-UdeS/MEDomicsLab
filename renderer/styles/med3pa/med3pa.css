@@ -118,7 +118,11 @@
   transform: scale(2);
   background: rgb(166, 241, 158);
 }
+.panode-lost-dr {
+  background: rgb(168, 207, 255);
+  transform: scale(1.5);
+}
 
 .panode-lost {
-  display: none;
+  opacity: 40%;
 }
