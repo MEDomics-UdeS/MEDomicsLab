@@ -15,7 +15,7 @@ import { MdOutlineGroups3 } from "react-icons/md"
 import DownloadButton from "./download.jsx"
 import { Fullscreen } from "react-bootstrap-icons"
 
-const TreeWorkflow = ({ treeData, onButtonClicked, onFullScreenClicked, fullscreen }) => {
+const TreeWorkflow = ({ treeData, lostProfiles, onButtonClicked, onFullScreenClicked, fullscreen }) => {
   // eslint-disable-next-line no-unused-vars
   const [buttonClicked, setButtonClicked] = useState(false)
   const { setCenter, fitView } = useReactFlow()
@@ -35,9 +35,7 @@ const TreeWorkflow = ({ treeData, onButtonClicked, onFullScreenClicked, fullscre
     []
   )
 
-  useEffect(() => {
-    fitView({ animate: true })
-  }, [edges])
+  const fitViewOptions = () => fitView({ duration: 200 })
 
   const getOriginalClassById = (id) => {
     const originalColorObj = originalClasses.find((colorObj) => colorObj.id === id)
@@ -121,8 +119,6 @@ const TreeWorkflow = ({ treeData, onButtonClicked, onFullScreenClicked, fullscre
   }
 
   const toggleFullscreen = () => {
-    // Set a delay before calling fitView
-
     onFullScreenClicked(!fullscreen) // Toggle fullscreen state in the parent component
   }
   const constructTreeArray = (data) => {
@@ -225,10 +221,30 @@ const TreeWorkflow = ({ treeData, onButtonClicked, onFullScreenClicked, fullscre
   }
 
   useEffect(() => {
+    // Call fitView with duration 800 (assuming it's a function that adjusts the view)
     fitView({ duration: 800 })
-    setNodes([])
-    setEdges([])
-  }, [treeData])
+
+    // Log lostProfiles for debugging
+
+    // Update nodes state
+    setNodes((prevNodes) => {
+      return prevNodes.map((node) => {
+        // Check if this node's id matches any profile id in lostProfiles
+        const profile = lostProfiles.find((profile) => node.id === `treeNode_${profile.id}`)
+
+        if (profile) {
+          // If found, update the className to "panode-lost"
+          return {
+            ...node,
+            className: "panode-lost"
+          }
+        }
+
+        // If not found, return the node as is
+        return node
+      })
+    })
+  }, [lostProfiles]) // Include lostProfiles in the dependency array
 
   useEffect(() => {
     setNodes((nds) =>
@@ -525,17 +541,7 @@ const TreeWorkflow = ({ treeData, onButtonClicked, onFullScreenClicked, fullscre
         </div>
       )}
       <div style={{ flex: "1", width: dimensions.width, height: dimensions.height }}>
-        <ReactFlow
-          fitView={fitView({ duration: 100 })}
-          minZoom={0}
-          maxZoom={1.5}
-          zoomOnScroll={true}
-          nodes={nodes}
-          edges={edges}
-          onNodesChange={onNodesChange}
-          nodeTypes={nodeTypes}
-          onNodeClick={handleNodeClick}
-        >
+        <ReactFlow fitView={fitViewOptions} minZoom={0} maxZoom={1.5} zoomOnScroll={true} nodes={nodes} edges={edges} onNodesChange={onNodesChange} nodeTypes={nodeTypes} onNodeClick={handleNodeClick}>
           <DownloadButton />
           <Controls />
         </ReactFlow>
@@ -544,10 +550,10 @@ const TreeWorkflow = ({ treeData, onButtonClicked, onFullScreenClicked, fullscre
   )
 }
 
-const FlowWithProvider = ({ treeData, onButtonClicked, onFullScreenClicked, fullscreen }) => {
+const FlowWithProvider = ({ treeData, lostProfiles, onButtonClicked, onFullScreenClicked, fullscreen }) => {
   return (
     <ReactFlowProvider>
-      <TreeWorkflow treeData={treeData} onButtonClicked={onButtonClicked} onFullScreenClicked={onFullScreenClicked} fullscreen={fullscreen} />
+      <TreeWorkflow treeData={treeData} lostProfiles={lostProfiles} onButtonClicked={onButtonClicked} onFullScreenClicked={onFullScreenClicked} fullscreen={fullscreen} />
     </ReactFlowProvider>
   )
 }

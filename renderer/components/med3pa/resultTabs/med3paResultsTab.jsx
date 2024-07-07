@@ -5,7 +5,7 @@ import MDRCurve from "../resultsComponents/mdrCurve"
 import FlowWithProvider from "../resultsComponents/treeWorkflow"
 
 import DetectronResults from "../resultsComponents/detectronResults"
-import { filterData, filterLost, filterMetrics, isSubPath } from "./tabFunctions"
+import { filterData, filterMetrics, isLost, isSubPath } from "./tabFunctions"
 import LostProfiles from "../resultsComponents/lostProfiles"
 import ResultsFilter from "../resultsComponents/resultsFilter"
 const MED3paResultsTab = ({ loadedFiles, type }) => {
@@ -20,8 +20,11 @@ const MED3paResultsTab = ({ loadedFiles, type }) => {
   const [fullscreen, setFullscreen] = useState(false)
   const [isExpanded, setIsExpanded] = useState(false)
   const [prevSelectedId, setPrevSelectedId] = useState(null)
+  const [currentSelectedId, setCurrentSelectedId] = useState(null)
+
   const [detectronR, setdetectronR] = useState({})
   const [loadingDetectron, setLoadingDetectron] = useState(false)
+  const [lostProfiles, setLostProfiles] = useState({})
 
   const [settings, setSettings] = useState({
     metrics: null,
@@ -54,7 +57,6 @@ const MED3paResultsTab = ({ loadedFiles, type }) => {
         const { detectron_results, ...rest } = loadedFiles
         test = rest
       }
-      console.log("LOADED HERE:", test, detectronResults)
     } else {
       test = loadedFiles
       detectronResults = null
@@ -105,7 +107,6 @@ const MED3paResultsTab = ({ loadedFiles, type }) => {
   useEffect(() => {
     const loadJsonFiles = async () => {
       if (!loadedFiles) return
-      console.log("LOADED FILE:", loadedFiles)
 
       const { test, detectronResults } = formatDisplay(loadedFiles, type)
 
@@ -147,12 +148,16 @@ const MED3paResultsTab = ({ loadedFiles, type }) => {
           setLoadingCurve(true)
         }
         if (!test.profiles) return
-        const filteredData = filterData(test.profiles, treeParams, nodeParams)
-        const filteredLost = filterLost(test.lost_profiles, treeParams)
+
+        const filteredData = filterData(test.profiles[treeParams.minSamplesRatio][treeParams.declarationRate], test.lost_profiles[treeParams.minSamplesRatio][treeParams.declarationRate], nodeParams)
 
         if (filteredData) {
           setTreeData(filteredData)
-          setLostData(filteredLost)
+
+          setLostData(test.lost_profiles[treeParams.minSamplesRatio])
+
+          setLostProfiles(test.lost_profiles[treeParams.minSamplesRatio][treeParams.declarationRate])
+
           setLoadingLost(true)
 
           setTimeout(() => {
@@ -183,14 +188,15 @@ const MED3paResultsTab = ({ loadedFiles, type }) => {
 
       if (!test.profiles) return
 
-      const filteredData = filterData(test.profiles, treeParams, nodeParams)
-      const filteredLost = filterLost(test.lost_profiles, treeParams)
+      const filteredData = filterData(test.profiles[treeParams.minSamplesRatio][treeParams.declarationRate], test.lost_profiles[treeParams.minSamplesRatio][treeParams.declarationRate], nodeParams)
 
       if (filteredData) {
         setTreeData(filteredData)
 
+        setLostProfiles(test.lost_profiles[treeParams.minSamplesRatio][treeParams.declarationRate])
+
         setLoadingLost(true)
-        setLostData(filteredLost)
+        setLostData(test.lost_profiles[treeParams.minSamplesRatio])
         setTimeout(() => {
           setLoadingTree(true)
         }, 500)
@@ -205,28 +211,39 @@ const MED3paResultsTab = ({ loadedFiles, type }) => {
 
   // Handle element click function
   const handleElementClick = (data) => {
+    setCurrentSelectedId(data.data["value"][0])
     setTreeData((prevTreeData) => {
-      let dataPathArray = data.name.split("\n").map((pathItem) => pathItem.trim())
+      let dataPathArray = data.data.name.split("\n").map((pathItem) => pathItem.trim())
       if (dataPathArray[0] === "") {
         dataPathArray = ["*"]
       } else {
         dataPathArray = ["*", ...dataPathArray]
       }
 
-      const resetAllClassNames = data.id === prevSelectedId
+      const resetAllClassNames = data.data.id === prevSelectedId?.data.id
 
       const updatedTreeData = prevTreeData.map((item) => {
         if (resetAllClassNames) {
+          setCurrentSelectedId(null)
+          if (isLost(item)) {
+            return { ...item, className: "panode-lost" }
+          }
           return { ...item, className: "" }
-        } else if (isSubPath(item.path, dataPathArray)) {
+        } else if (item.id === data.data.id && isLost(item)) {
           return { ...item, className: "panode-lost-dr" }
+        } else if (isSubPath(item.path, dataPathArray)) {
+          return { ...item, className: data.className }
         } else {
-          return { ...item, className: "panode-lost" }
+          return { ...item, className: "panode-notimportant" }
         }
       })
-
       // Update prevSelectedId
-      setPrevSelectedId(data.id)
+
+      if (resetAllClassNames) {
+        setPrevSelectedId(null)
+      } else {
+        setPrevSelectedId(data)
+      }
 
       return updatedTreeData
     })
@@ -259,14 +276,14 @@ const MED3paResultsTab = ({ loadedFiles, type }) => {
   }
   return (
     <>
-      <div style={{ marginTop: "5px", display: "flex", flexDirection: "column", overflowX: "hidden", overflowY: "auto" }}>
+      <div style={{ marginTop: "5px", display: "flex", flexDirection: "column", overflowX: "hidden", overflowY: "hidden" }}>
         {fullscreen ? (
           <div className="fullscreen-container">
             <div className="fullscreen-treeWorkflow">
               {!loadingTree ? (
                 <p>Loading tree data...</p>
               ) : (
-                <FlowWithProvider treeData={treeData} onButtonClicked={handleButtonClicked} onFullScreenClicked={toggleFullscreen} fullscreen={fullscreen} />
+                <FlowWithProvider treeData={treeData} lostProfiles={lostProfiles} onButtonClicked={handleButtonClicked} onFullScreenClicked={toggleFullscreen} fullscreen={fullscreen} />
               )}
             </div>
           </div>
@@ -282,12 +299,11 @@ const MED3paResultsTab = ({ loadedFiles, type }) => {
                   nodeParams={nodeParams}
                   setNodeParams={setNodeParams}
                   type={type}
-                  setFilter={setFilter}
                   settings={settings}
                   tree={false}
                 />
 
-                <MDRCurve curveData={curveData} />
+                <MDRCurve curveData={curveData} clickedLostElement={currentSelectedId} />
               </>
             ) : (
               <>
@@ -299,7 +315,6 @@ const MED3paResultsTab = ({ loadedFiles, type }) => {
                   nodeParams={nodeParams}
                   setNodeParams={setNodeParams}
                   type={type}
-                  setFilter={setFilter}
                   settings={settings}
                   tree={true}
                 />
@@ -308,12 +323,12 @@ const MED3paResultsTab = ({ loadedFiles, type }) => {
                     {!loadingTree ? (
                       <p>Loading tree data...</p>
                     ) : (
-                      <FlowWithProvider treeData={treeData} onButtonClicked={handleButtonClicked} onFullScreenClicked={toggleFullscreen} fullscreen={fullscreen} />
+                      <FlowWithProvider treeData={treeData} lostProfiles={lostProfiles} onButtonClicked={handleButtonClicked} onFullScreenClicked={toggleFullscreen} fullscreen={fullscreen} />
                     )}
                   </div>
                   <div className="col-md-5 mb-3" style={{ flex: "1", display: "flex", flexDirection: "column" }}>
-                    {!loadingCurve ? <p>Loading CURVE data...</p> : <MDRCurve curveData={curveData} />}
-                    {!loadingLost ? null : <LostProfiles lostData={lostData} onElementClick={handleElementClick} />}
+                    {!loadingCurve ? <p>Loading CURVE data...</p> : <MDRCurve curveData={curveData} clickedLostElement={currentSelectedId} />}
+                    {!loadingLost ? null : <LostProfiles lostData={lostData} dr={treeParams.declarationRate} onElementClick={handleElementClick} />}
                     {type === "eval" && !loadingDetectron ? null : type === "eval" && <DetectronResults detectronResults={detectronR.detectron_results} />}
                   </div>
                 </div>

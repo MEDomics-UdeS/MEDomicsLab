@@ -295,7 +295,7 @@ const FlInput = ({ name, settingInfos, currentValue, onInputChange, disabled, se
       // for list input (form select of all the options, multiple selection possible)
       case "list-multiple":
         return (
-          <div className="w-100" style={{ position: "relative", zIndex: 1 }}>
+          <div className="w-100" style={{ position: "relative" }}>
             <label
               htmlFor={name}
               className="input-hov"

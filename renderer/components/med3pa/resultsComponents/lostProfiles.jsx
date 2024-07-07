@@ -4,17 +4,24 @@ import { filterUniqueLostProfiles } from "../resultTabs/tabFunctions"
 import { MdGroupRemove } from "react-icons/md"
 import { Typography } from "@mui/material"
 
-const LostProfiles = ({ lostData, onElementClick }) => {
+const LostProfiles = ({ lostData, dr, onElementClick }) => {
   // eslint-disable-next-line no-unused-vars
   const [key, setKey] = useState(0)
   const chartRef = useRef(null)
   const [selectedElement, setSelectedElement] = useState(null)
 
   const onChartClick = (params) => {
-    const clickedElement = params.data
-    if (selectedElement && selectedElement.id === clickedElement.id) {
-      // Deselect if already selected
-      setSelectedElement(null)
+    const clickedElement = {
+      data: params.data
+    }
+    if (params.color === "rgba(255, 0, 0, 0.5)") {
+      clickedElement.className = "panode-lost-dr"
+    } else {
+      clickedElement.className = "panode-lost-dr2"
+    }
+
+    if (selectedElement && selectedElement.data.id === clickedElement.data.id) {
+      setSelectedElement(null) // Deselect if already selected
     } else {
       setSelectedElement(clickedElement)
     }
@@ -35,18 +42,19 @@ const LostProfiles = ({ lostData, onElementClick }) => {
 
   // Prepare data for ECharts
   const seriesData = Object.entries(uniquePoints).flatMap(([key, items]) =>
-    items.map((item) => ({
-      id: item.id,
-      name: item.path.filter((p) => p !== "*").join("\n"), // Use path as tooltip display
-      value: [parseInt(key, 10), item.id], // Use key for x-axis, id as y-axis
-      symbolSize: selectedElement && selectedElement.id === item.id ? 30 : 10, // Larger size for selected element
-      itemStyle: {
-        color:
-          selectedElement && selectedElement.id === item.id
-            ? "rgb(168, 207, 255)" // Different color for selected element
-            : "rgba(138, 138, 138, 0.6)" // Light blue with reduced opacity for others
+    items.map((item) => {
+      const declarationRate = parseInt(key, 10)
+      const isGreaterThanDR = declarationRate > dr
+      return {
+        id: item.id,
+        name: item.path.filter((p) => p !== "*").join("\n"), // Use path as tooltip display
+        value: [declarationRate, item.id], // Use key for x-axis, id as y-axis
+        symbolSize: selectedElement && selectedElement.data.id === item.id ? 30 : 10, // Larger size for selected element
+        itemStyle: {
+          color: isGreaterThanDR ? "rgba(255, 0, 0, 0.5)" : "rgba(138, 138, 138, 0.6)" // Conditional color based on DR comparison
+        }
       }
-    }))
+    })
   )
 
   // ECharts option configuration
@@ -59,6 +67,28 @@ const LostProfiles = ({ lostData, onElementClick }) => {
       min: 10,
       max: 100,
       scale: true,
+      splitLine: {
+        show: true
+      },
+      axisLabel: {
+        rich: {
+          highlighted: {
+            color: "rgba(255, 0, 0, 0.5)",
+            fontSize: 12,
+            fontWeight: "bold"
+          },
+          normal: {
+            color: "#666",
+            fontSize: 12
+          }
+        },
+        formatter: function (value) {
+          if (value >= dr) {
+            return "{highlighted|" + value + "}"
+          }
+          return "{normal|" + value + "}"
+        }
+      },
       axisLine: {
         show: true
       }
@@ -73,7 +103,7 @@ const LostProfiles = ({ lostData, onElementClick }) => {
       show: false // Hide y-axis
     },
     grid: {
-      top: "10%", // Adjusted top padding
+      top: "20%", // Adjusted top padding
       bottom: "10%", // Adjusted bottom padding
       left: "5%", // Adjusted left padding
       right: "5%", // Adjusted right padding
@@ -85,13 +115,51 @@ const LostProfiles = ({ lostData, onElementClick }) => {
         return `ID: ${params.data.value[1]}<br/>DR: ${params.data.value[0]}<br/>Path:<br/>${params.data.name.replace(/\n/g, "<br/>")}`
       }
     },
+    legend: {
+      orient: "horizontal",
+      type: "scroll",
+      left: 0,
+      top: 0,
+
+      data: [
+        {
+          name: "Lost Profiles >= Declaration Rate",
+          icon: "circle",
+          itemStyle: {
+            color: "rgba(255, 0, 0, 0.5)"
+          }
+        },
+        {
+          name: "Lost Profiles < Declaration Rate",
+          icon: "circle",
+          itemStyle: {
+            color: "rgba(138, 138, 138, 0.6)"
+          }
+        }
+      ],
+      textStyle: {
+        color: "#5a5555"
+      },
+
+      selectedMode: true
+    },
     series: [
       {
+        name: "Lost Profiles >= Declaration Rate",
         type: "scatter",
-        data: seriesData,
+        data: seriesData.filter((item) => item.value[0] >= dr), // Filter data for Lost Profiles >= DR
         symbolSize: 10, // Example symbol size
         itemStyle: {
-          color: "rgba(178, 211, 248, 0.8)" // Example color
+          color: "rgba(255, 0, 0, 0.5)" // Example color
+        }
+      },
+      {
+        name: "Lost Profiles < Declaration Rate",
+        type: "scatter",
+        data: seriesData.filter((item) => item.value[0] < dr), // Filter data for Lost Profiles < DR
+        symbolSize: 10, // Example symbol size
+        itemStyle: {
+          color: "rgba(138, 138, 138, 0.6)" // Example color
         }
       }
     ]
@@ -119,4 +187,5 @@ const LostProfiles = ({ lostData, onElementClick }) => {
     </div>
   )
 }
+
 export default LostProfiles

@@ -784,7 +784,7 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
       (error) => {
         setIsUpdating(false)
         setProgressValue({ now: 0, currentLabel: "Message sending failed ❌" })
-        toast.error("Sending failed", error)
+        toast.error("Sending failed: No configurations set", error)
         console.log(error)
       }
     )

@@ -1,5 +1,6 @@
 export const nodeInformation = ["Node%", "Population%", "Mean Confidence Level", "Positive%"]
 export const shiftInformation = ["Shift Probability", "Test Statistic"]
+
 // Function to format numbers with three decimal places
 export const formatValue = (value) => {
   if (!value) return null
@@ -8,65 +9,61 @@ export const formatValue = (value) => {
   }
   return value.toString()
 }
-export const filterData = (data, treeParams, nodeParams) => {
-  let filteredData = []
-  if (!data) return data
-  // Iterate over the top-level keys
-  for (const topKey in data) {
-    const topLevel = data[topKey]
 
-    // Check if the top-level key meets the minSamplesRatio condition
-    if (parseInt(topKey) === treeParams.minSamplesRatio) {
-      // Iterate over the second-level keys
-      for (const subKey in topLevel) {
-        // Check if the sub-level key meets the declarationRate condition
-        if (parseInt(subKey) === treeParams.declarationRate) {
-          // Apply additional filtering based on maxDepth
-          const filteredItems = topLevel[subKey].filter((item) => item.path.length <= treeParams.maxDepth)
-          filteredData = filteredData.concat(filteredItems)
-        }
-      }
-    }
-  }
+export const isLost = (obj) => {
+  return !(
+    obj &&
+    (Object.prototype.hasOwnProperty.call(obj, "nodeInformation") || Object.prototype.hasOwnProperty.call(obj, "detectronResults") || Object.prototype.hasOwnProperty.call(obj, "metrics"))
+  )
+}
+
+export const filterData = (data, lostData, nodeParams) => {
+  if (!data) return data
+
+  // Create deep copies of data and lostData
+  let dataCopy = JSON.parse(JSON.stringify(data)).map((item) => ({
+    ...item,
+    className: ""
+  }))
+  let lostDataCopy = JSON.parse(JSON.stringify(lostData)).map((item) => ({
+    ...item,
+    className: "panode-lost"
+  }))
+
+  let filteredData = [...dataCopy, ...lostDataCopy]
 
   // Further filter the items based on nodeParams.focusView
   filteredData = filteredData.map((item) => {
-    const newItem = { id: item.id, path: item.path } // Keep id and path
-    newItem.className = ""
+    const newItem = { id: item.id, path: item.path, className: item.className }
     let customThreshold = nodeParams.customThreshold
 
     if (nodeParams.focusView === "Node information") {
-      // Remove metrics and detectron_results
+      if (item.className === "panode-lost") return newItem
       newItem.nodeInformation = item["node information"]
 
       if (parseFloat(newItem.nodeInformation[nodeParams.selectedParameter]) >= customThreshold) {
-        console.log("bilalou:", newItem.nodeInformation[nodeParams.selectedParameter])
         newItem.className = "panode-threshold"
       }
       return newItem
     } else if (nodeParams.focusView === "Covariate-shift probabilities") {
-      // Keep only detectron_results
       newItem.detectronResults = {}
       if (item.detectron_results && item.detectron_results["Tests Results"]) {
-        // eslint-disable-next-linecamelcase, camelcase
         newItem.className = "with-icon-success"
-        // eslint-disable-next-line camelcase
         const shiftInfo = item.detectron_results["Tests Results"].find((elem) => elem.Strategy === nodeParams.detectronStrategy)
-
+        if (item.className === "panode-lost") return newItem
         newItem.detectronResults = { "Shift Probability": shiftInfo.shift_probability, "Test Statistic": shiftInfo.test_statistic }
+
         if (parseFloat(newItem.detectronResults[nodeParams.selectedParameter]) >= customThreshold / 100) {
           newItem.className += "panode-threshold"
         }
       } else {
-        // Handle the case where item.detectron_results['Tests Results'] is null or undefined
         newItem.className = "with-icon-fail"
-        newItem.detectronResults = null // Or set to some default value or handle the absence accordingly
+        newItem.detectronResults = null
       }
       return newItem
     } else {
-      // Keep only the metrics defined in nodeParams.metrics
       newItem.metrics = {}
-
+      if (item.className === "panode-lost") return newItem
       for (const metric of nodeParams.metrics) {
         if (item.metrics && item.metrics[metric.name]) {
           newItem.metrics[metric.name] = item.metrics[metric.name]
@@ -81,20 +78,7 @@ export const filterData = (data, treeParams, nodeParams) => {
 
   return filteredData
 }
-export const filterLost = (data, treeParams) => {
-  // Iterate over the top-level keys of the 'data' object
-  if (!data) return data
-  for (const topKey in data) {
-    const topLevel = data[topKey]
 
-    // Check if the top-level key matches 'treeParams.minSamplesRatio'
-    if (parseInt(topKey) === treeParams.minSamplesRatio) {
-      return [topLevel]
-    }
-  }
-
-  return null
-}
 // Function to check if path1 is a subpath of path2
 export const isSubPath = (path1, path2) => {
   if (path1.length > path2.length) {
@@ -107,47 +91,36 @@ export const isSubPath = (path1, path2) => {
   }
   return true
 }
+
 export const filterUniqueLostProfiles = (data) => {
-  // Initialize a Map to store unique objects based on id
+  if (!data) return null
+
+  const dataCopy = JSON.parse(JSON.stringify(data))
   let uniqueEntries = new Set()
 
-  // Get the array of objects for the current key
-  let entries = data[0]
-
-  // Iterate over each key in entries in reverse order
-  Object.keys(entries)
+  Object.keys(dataCopy)
     .reverse()
     .forEach((key) => {
-      // Track seen ids for the current key
-
-      // Filter and update the array entries[key]
-      entries[key] = entries[key].filter((obj) => {
-        let id = obj.id // Extract id from the object
-
+      dataCopy[key] = dataCopy[key].filter((obj) => {
+        let id = obj.id
         if (!uniqueEntries.has(id)) {
-          // If id hasn't been seen before, mark it as seen and add the object to uniqueEntries
           uniqueEntries.add(id)
-
-          return true // Keep the object in entries[key]
+          return true
         }
-        return false // Filter out the duplicate object from entries[key]
+        return false
       })
     })
 
-  // Return the modified entries array
-
-  return entries
+  return dataCopy
 }
 
 export const filterMetrics = (data, nodeParams) => {
-  if (!data) {
-    return data // Return original data if it's null or undefined
-  }
+  if (!data) return data
 
-  let filteredData = Object.keys(data).map((key) => {
-    const item = data[key]
+  const dataCopy = JSON.parse(JSON.stringify(data))
+  const filteredData = Object.keys(dataCopy).map((key) => {
+    const item = dataCopy[key]
     if (item.metrics) {
-      // Filter item.metrics based on nodeParams.metrics
       const filteredMetrics = Object.keys(item.metrics)
         .filter((metricKey) => {
           return nodeParams.metrics.some((nameObj) => nameObj.name === metricKey)
@@ -157,13 +130,9 @@ export const filterMetrics = (data, nodeParams) => {
           return obj
         }, {})
 
-      return {
-        ...item,
-        metrics: filteredMetrics
-      }
-    } else {
-      return item // Return item as-is if metrics are not present
+      return { ...item, metrics: filteredMetrics }
     }
+    return item
   })
 
   return filteredData

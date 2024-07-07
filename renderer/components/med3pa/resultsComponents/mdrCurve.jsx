@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react"
 import ReactECharts from "echarts-for-react"
 import { TbChartDots2 } from "react-icons/tb"
 
-const MDRCurve = ({ curveData }) => {
+const MDRCurve = ({ curveData, clickedLostElement }) => {
   const [options, setOptions] = useState(null)
 
   useEffect(() => {
@@ -25,9 +25,19 @@ const MDRCurve = ({ curveData }) => {
     const series = metricNames.map((metric) => ({
       name: metric,
       type: "line",
+      symbolSize: (value, params) => {
+        const declarationRate = params.data[0]
+        return declarationRate === clickedLostElement ? 15 : 5 // Larger size for clickedLostElement
+      },
       data: Object.keys(filteredCurveData).map((key) => {
-        const declarationRate = parseInt(key, 10)
-        return [declarationRate, filteredCurveData[key].metrics[metric]]
+        const declarationRate = parseInt(key, 10) // Assuming key is the declarationRate
+        return {
+          value: [declarationRate, filteredCurveData[key].metrics[metric]],
+          itemStyle: {
+            color: declarationRate === clickedLostElement ? "#f00" : null, // Red for clickedLostElement
+            opacity: declarationRate === clickedLostElement ? 1 : 0 // Full opacity for clickedLostElement, reduced for others
+          }
+        }
       })
     }))
 
@@ -68,7 +78,33 @@ const MDRCurve = ({ curveData }) => {
     }
 
     setOptions(newOptions)
-  }, [curveData])
+  }, [curveData, clickedLostElement])
+
+  useEffect(() => {
+    if (!options) return // Do nothing if options are null
+
+    // Remove styling if selectedLostId[0] and selectedLostId[1] are equal
+    if (clickedLostElement === null) {
+      const updatedSeries = options.series.map((serie) => ({
+        ...serie,
+        data: serie.data.map((item) => ({
+          ...item,
+          itemStyle: {
+            ...item.itemStyle,
+            color: null,
+            opacity: 1
+          }
+        }))
+      }))
+
+      const updatedOptions = {
+        ...options,
+        series: updatedSeries
+      }
+
+      setOptions(updatedOptions)
+    }
+  }, [clickedLostElement])
 
   if (!options) return <div>Loading...</div> // Render loading state while options are null
 

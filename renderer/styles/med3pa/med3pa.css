@@ -119,10 +119,30 @@
   background: rgb(166, 241, 158);
 }
 .panode-lost-dr {
-  background: rgb(168, 207, 255);
+  background: rgba(255, 0, 0, 0.5);
+  opacity: 90%;
   transform: scale(1.5);
+  z-index: 1;
+}
+
+.panode-lost-dr2 {
+  background: rgba(138, 138, 138, 0.6);
+  opacity: 90%;
+  transform: scale(1.5);
+  z-index: 1;
 }
 
 .panode-lost {
   opacity: 40%;
+  z-index: -1;
+  position: relative;
+  background: rgba(255, 0, 0, 0.5);
+}
+
+.panode-notimportant {
+  opacity: 40%;
+}
+.panode-revert {
+  opacity: 40%;
+  transform: scale(1);
 }
