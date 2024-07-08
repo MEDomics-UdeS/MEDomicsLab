@@ -6,7 +6,6 @@ import { Button } from "primereact/button"
 import { ObjectId } from "mongodb"
 import { toast } from "react-toastify"
 import { saveAs } from "file-saver"
-import Papa from "papaparse"
 import { getCollectionData } from "./utils"
 import InputToolsComponent from "./InputToolsComponent"
 import { Dialog } from "primereact/dialog"
@@ -27,10 +26,8 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
   const [innerData, setInnerData] = useState([])
   const [columns, setColumns] = useState([])
   const [hoveredButton, setHoveredButton] = useState(null)
-  const [csvData, setCsvData] = useState([])
   const [lastEdit, setLastEdit] = useState(Date.now())
   const { dispatchLayout } = useContext(LayoutModelContext)
-  const globalData = useContext(DataContext)
   const exportOptions = [
     {
       label: "CSV",
