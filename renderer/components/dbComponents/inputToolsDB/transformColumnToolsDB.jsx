@@ -4,10 +4,15 @@ import { SplitButton } from "primereact/splitbutton"
 import { Button } from "primereact/button"
 import { Message } from "primereact/message"
 import { toast } from "react-toastify"
+import { getCollectionData } from "../utils"
+import { connectToMongoDB } from "../../mongoDB/mongoDBUtils"
+import Papa from "papaparse";
 
-const TransformColumnToolsDB = ({ fileName, setFileName, selectedColumns, setSelectedColumns, columns, transformData, handleFileUpload, handleExportColumns, handleDeleteColumns }) => {
+const TransformColumnToolsDB = ({ currentCollection, refreshData }) => {
   const [isHovered, setIsHovered] = useState(false)
-  const innerColumns = columns
+  const [selectedColumns, setSelectedColumns] = useState([])
+  const [columns, setColumns] = useState([])
+  const [fileName, setFileName] = useState("Choose File")
   const customFileUpload = {
     padding: "6px 12px",
     cursor: "pointer",
@@ -17,12 +22,112 @@ const TransformColumnToolsDB = ({ fileName, setFileName, selectedColumns, setSel
     borderRadius: "4px"
   }
 
+  useEffect(() => {
+    const fetchData = async () => {
+      const collectionData = await getCollectionData(currentCollection)
+      if (collectionData && collectionData.length > 0) {
+        setColumns(Object.keys(collectionData[0]))
+      }
+    }
+    fetchData()
+  }, [currentCollection])
+
   const handleFileUploadUpdated = (event) => {
     handleFileUpload(event)
     if (event.target.files.length > 0) {
       setFileName(event.target.files[0].name)
     }
   }
+
+  const transformData = async (type, currentCollection) => {
+    const data = await getCollectionData(currentCollection); // Await the async call
+    const newTransformedData = data.map((row) => {
+      let newRow = { ...row };
+      selectedColumns.forEach((column) => {
+        const cellValue = newRow[column];
+        if (type === "Binary") {
+          newRow[column] = cellValue && !isNaN(cellValue) ? 1 : 0;
+        } else if (type === "Non-empty") {
+          newRow[column] = cellValue && !isNaN(cellValue) ? cellValue : 0;
+        }
+      });
+      return newRow;
+    });
+
+    const db = await connectToMongoDB();
+    const collection = db.collection(currentCollection);
+    await collection.deleteMany({});
+    await collection.insertMany(newTransformedData);
+    toast.success("Data transformed to " + type + " successfully");
+    refreshData();
+
+  };
+
+  // Handle exporting selected columns
+  const handleExportColumns = () => {
+    if (selectedColumns.length > 0) {
+      const csvString = selectedColumns.join(",")
+      const blob = new Blob([csvString], { type: "text/csv;charset=utf-8" })
+      saveAs(blob, "selected_columns.csv")
+    } else {
+      toast.warn("No columns selected for export")
+    }
+  }
+
+  // Handle deleting selected columns
+  const handleDeleteColumns = async () => {
+    if (selectedColumns.length > 0) {
+      const db = await connectToMongoDB()
+      const collection = db.collection(currentCollection)
+      const data = await collection.find({}).toArray()
+      const newTransformedData = data.map((row) => {
+        let newRow = {...row}
+        selectedColumns.forEach((column) => {
+          delete newRow[column]
+        })
+        return newRow
+      })
+      await collection.deleteMany({})
+      await collection.insertMany(newTransformedData)
+      setColumns(Object.keys(newTransformedData[0]))
+      setSelectedColumns([])
+      toast.success("Columns deleted successfully")
+      refreshData()
+    }
+  }
+
+  // Handle file upload
+  const handleFileUpload = (event) => {
+    const file = event.target.files[0];
+    if (!file) {
+      toast.warn("No file selected");
+      return;
+    }
+
+    if (file.type !== "text/csv") {
+      toast.warn("File must be a CSV");
+      return;
+    }
+
+    Papa.parse(file, {
+      complete: (result) => {
+        const uploadedColumns = result.data[0]; // Assuming the first row contains column names
+        if (result.data.length !== 1) {
+          toast.warn("CSV file must contain only one line with column names");
+          return;
+        }
+
+        const missingColumns = uploadedColumns.filter(col => !columns.includes(col));
+        if (missingColumns.length > 0) {
+          toast.warn("Missing columns: " + missingColumns.join(", "));
+        } else {
+          setSelectedColumns(uploadedColumns);
+        }
+      },
+      skipEmptyLines: true,
+      header: false
+    });
+  };
 
   return (
     <>
@@ -43,9 +148,11 @@ const TransformColumnToolsDB = ({ fileName, setFileName, selectedColumns, setSel
       >
         <MultiSelect
           value={selectedColumns}
-          options={innerColumns}
-          optionLabel="field"
-          onChange={(e) => setSelectedColumns(e.value)}
+          options={columns.filter((col) => col !== "_id")}
+          display="chip"
+          onChange={(e) => {
+            setSelectedColumns(e.value)
+          }}
           placeholder="Select Columns"
           style={{ marginRight: "5px", width: "200px" }}
         />
@@ -56,7 +163,7 @@ const TransformColumnToolsDB = ({ fileName, setFileName, selectedColumns, setSel
               label: "Binary",
               command: () => {
                 if (selectedColumns.length > 0) {
-                  transformData("Binary")
+                  transformData("Binary", currentCollection)
                 } else {
                   toast.warn("No columns selected for transformation")
                 }
@@ -66,7 +173,7 @@ const TransformColumnToolsDB = ({ fileName, setFileName, selectedColumns, setSel
               label: "Non-empty",
               command: () => {
                 if (selectedColumns.length > 0) {
-                  transformData("Non-empty")
+                  transformData("Non-empty", currentCollection)
                 } else {
                   toast.warn("No columns selected for transformation")
                 }

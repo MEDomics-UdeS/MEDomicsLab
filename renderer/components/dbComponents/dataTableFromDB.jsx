@@ -12,6 +12,7 @@ import InputToolsComponent from "./InputToolsComponent"
 import { Dialog } from "primereact/dialog"
 import { LayoutModelContext } from "../layout/layoutContext"
 import { connectToMongoDB } from "../mongoDB/mongoDBUtils"
+import {DataContext} from "../workspace/dataContext";
 
 /**
  * DataTableFromDB component
@@ -26,11 +27,10 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
   const [innerData, setInnerData] = useState([])
   const [columns, setColumns] = useState([])
   const [hoveredButton, setHoveredButton] = useState(null)
-  const [selectedColumns, setSelectedColumns] = useState([])
   const [csvData, setCsvData] = useState([])
-  const [fileName, setFileName] = useState("Choose File")
   const [lastEdit, setLastEdit] = useState(Date.now())
   const { dispatchLayout } = useContext(LayoutModelContext)
+  const globalData = useContext(DataContext)
   const exportOptions = [
     {
       label: "CSV",
@@ -105,13 +105,6 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
   useEffect(() => {
     console.log("columns updated:", columns)
   }, [columns])
-
-  // Call handleCsvData whenever csvData changes
-  useEffect(() => {
-    if (csvData.length > 0) {
-      handleCsvData()
-    }
-  }, [csvData])
 
   const getColumnsFromData = (data) => {
     if (data.length > 0) {
@@ -308,110 +301,14 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
     }
   }
 
-  // Transform data to binary or non-empty
-  const transformData = (type) => {
-    const newInnerData = innerData.map((row) => {
-      let newRow = { ...row }
-      selectedColumns.forEach((column) => {
-        if (type === "Binary") {
-          newRow[column] = newRow[column] ? 1 : 0
-        } else if (type === "Non-empty") {
-          newRow[column] = newRow[column] ? newRow[column] : 0
-        }
-      })
-      return newRow
-    })
-    setInnerData(newInnerData)
-
-    // Update the MongoDB database
-    newInnerData.forEach(async (row) => {
-      for (const column of selectedColumns) {
-        await updateDatabaseData(data.path, data.uuid, row._id, column, row[column])
-      }
-    })
-  }
-
-  // Handle file upload
-  const handleFileUpload = (event) => {
-    Papa.parse(event.target.files[0], {
-      complete: function (results) {
-        const uploadedColumnNames = results.data[0] // Assuming the first row contains column names
-        const existingColumnNames = columns.map((column) => column.field)
-
-        // Check if all uploaded column names exist in the data
-        const nonExistentColumns = uploadedColumnNames.filter((columnName) => !existingColumnNames.includes(columnName))
-
-        if (nonExistentColumns.length > 0) {
-          toast.warn("The following columns do not exist in the dataset: " + nonExistentColumns.join(", "))
-          setFileName("Choose File")
-          return
-        }
-        setFileName(event.target.files[0].name)
-        setCsvData(results.data)
-      }
-    })
-  }
-
-  // Handle CSV data
-  const handleCsvData = () => {
-    const columnNames = csvData[0]
-    setSelectedColumns(columnNames)
-  }
-
-  // Handle exporting selected columns
-  const handleExportColumns = () => {
-    if (selectedColumns.length > 0) {
-      const csvString = selectedColumns.join(",")
-      const blob = new Blob([csvString], { type: "text/csv;charset=utf-8" })
-      saveAs(blob, "selected_columns.csv")
-    } else {
-      toast.warn("No columns selected for export")
-    }
-  }
-
-  // Handle deleting selected columns
-  const handleDeleteColumns = async () => {
-    if (selectedColumns.length > 0) {
-      let newColumns = [...columns]
-      let newInnerData = [...innerData]
-      let newSelectedColumns = [...selectedColumns]
-      for (const column of selectedColumns) {
-        newColumns = newColumns.filter((col) => col.field !== column)
-        newInnerData = newInnerData.map((row) => {
-          const { [column]: _, ...rest } = row
-          return rest
-        })
-        await onDeleteColumn(column)
-        newSelectedColumns = newSelectedColumns.filter((col) => col !== column)
-      }
-      setColumns(newColumns)
-      setInnerData(newInnerData)
-      setSelectedColumns(newSelectedColumns)
-      toast.success("Selected columns deleted successfully")
-    } else {
-      toast.warn("No columns selected for deletion")
-    }
-  }
-
   const handleDialogClick = () => {
     console.log("Opening Input Tools")
     let newProps = {
-      //DBData: DBData,
       data: { ...data },
       exportOptions: exportOptions,
       refreshData: refreshData,
-      selectedColumns: selectedColumns,
-      setSelectedColumns: setSelectedColumns,
       columns: columns,
-      transformData: transformData,
-      handleFileUpload: handleFileUpload,
-      fileName: fileName,
-      setFileName: setFileName,
-      handleCsvData: handleCsvData,
-      handleExportColumns: handleExportColumns,
-      handleDeleteColumns: handleDeleteColumns,
       innerData: { ...innerData },
-      //DB: { ...DB },
       lastEdit: { ...lastEdit }
     }
     dispatchLayout({ type: "openInputToolsDB", payload: { data: newProps } })
@@ -490,16 +387,7 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
           data={data}
           exportOptions={exportOptions}
           refreshData={refreshData}
-          selectedColumns={selectedColumns}
-          setSelectedColumns={setSelectedColumns}
           columns={columns}
-          transformData={transformData}
-          handleFileUpload={handleFileUpload}
-          fileName={fileName}
-          setFileName={setFileName}
-          handleCsvData={handleCsvData}
-          handleExportColumns={handleExportColumns}
-          handleDeleteColumns={handleDeleteColumns}
           innerData={innerData}
           lastEdit={lastEdit}
         />

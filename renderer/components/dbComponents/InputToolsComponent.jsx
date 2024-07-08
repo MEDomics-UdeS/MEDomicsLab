@@ -12,16 +12,8 @@ const InputToolsComponent = ({
   data,
   exportOptions,
   refreshData,
-  selectedColumns,
-  setSelectedColumns,
   columns,
   transformData,
-  handleFileUpload,
-  fileName,
-  setFileName,
-  handleCsvData,
-  handleExportColumns,
-  handleDeleteColumns,
   innerData,
   lastEdit
 }) => {
@@ -39,16 +31,10 @@ const InputToolsComponent = ({
       </Panel>
       <Panel header="Transform Column Tools" toggleable collapsed={true}>
         <TransformColumnToolsDB
-          selectedColumns={selectedColumns}
-          setSelectedColumns={setSelectedColumns}
           columns={columns}
           transformData={transformData}
-          handleFileUpload={handleFileUpload}
-          fileName={fileName}
-          setFileName={setFileName}
-          handleCsvData={handleCsvData}
-          handleExportColumns={handleExportColumns}
-          handleDeleteColumns={handleDeleteColumns}
+          currentCollection={data.id}
+          refreshData={refreshData}
         />
       </Panel>
       <Panel header="Merge Tools" toggleable collapsed={true}>
