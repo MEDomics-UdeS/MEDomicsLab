@@ -195,14 +195,14 @@ const CreatePCADB = ({ currentCollection, DB, refreshData }) => {
             onClick={() => applyPCA(true)}
             tooltip="Overwrite current collection with PCA results"
             tooltipOptions={{ position: "top" }}
-            enabled={selectedPCRow ? true : false}
+            disabled={!selectedPCRow}
           />
           <InputText
             value={newCollectionName}
             onChange={(e) => setNewCollectionName(e.target.value)}
             placeholder="New name"
             style={{ margin: "5px", fontSize: "1rem", width: "205px" }}
-            enabled={selectedPCRow ? true : false}
+            disabled={!selectedPCRow}
           />
           <Button
             icon="pi pi-plus"
@@ -210,7 +210,7 @@ const CreatePCADB = ({ currentCollection, DB, refreshData }) => {
             onClick={() => applyPCA(false)}
             tooltip="Create new collection with PCA results"
             tooltipOptions={{ position: "top" }}
-            enabled={selectedPCRow ? true : false}
+            disabled={!selectedPCRow}
           />
         </div>
       </div>
