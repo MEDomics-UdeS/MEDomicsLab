@@ -1,26 +1,27 @@
-import React, { useState } from "react"
+import React, { useContext, useState } from "react"
 import { InputText } from "primereact/inputtext"
 import { Button } from "primereact/button"
 import { SplitButton } from "primereact/splitbutton"
 import { Message } from "primereact/message"
 import { toast } from "react-toastify"
 import { MongoClient } from "mongodb"
+import { connectToMongoDB } from "../../mongoDB/mongoDBUtils"
+import { DataContext } from "../../workspace/dataContext"
 
-const BasicToolsDB = ({ exportOptions, refreshData, DB, currentCollection }) => {
+const BasicToolsDB = ({ exportOptions, refreshData, currentCollection }) => {
   const [newColumnName, setNewColumnName] = useState("")
   const [numRows, setNumRows] = useState("")
   const [columns, setColumns] = useState([])
   const [innerData, setInnerData] = useState([])
-  const mongoUrl = "mongodb://localhost:27017"
+  const { globalData } = useContext(DataContext)
 
   // Add a new column to the table
   const handleAddColumn = async () => {
     if (newColumnName !== "") {
       try {
-        const client = new MongoClient(mongoUrl)
-        await client.connect()
-        const db = client.db(DB.name)
-        const collection = db.collection(currentCollection)
+        console.log("currentCollection", currentCollection)
+        const db = await connectToMongoDB()
+        const collection = db.collection(globalData[currentCollection].id)
         const existingDocument = await collection.findOne({})
         if (existingDocument && newColumnName in existingDocument) {
           toast.warn("Column name already exists, please use a different column name")
@@ -56,10 +57,8 @@ const BasicToolsDB = ({ exportOptions, refreshData, DB, currentCollection }) => 
     })
 
     try {
-      const client = new MongoClient(mongoUrl)
-      await client.connect()
-      const db = client.db(DB.name)
-      const collection = db.collection(currentCollection)
+      const db = await connectToMongoDB()
+      const collection = db.collection(globalData[currentCollection].id)
       await collection.insertMany(newRows)
       setNumRows("")
       refreshData()

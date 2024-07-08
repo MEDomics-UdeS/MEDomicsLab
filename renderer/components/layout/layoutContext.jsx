@@ -218,9 +218,9 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
     if (!isAlreadyIn) {
       const newChild = {
         type: "tab",
-        helpText:thoseProps.data.path + "/" + thoseProps.data.uuid,
-        name: thoseProps.data.uuid+" Input Tools",
-        id: thoseProps.data.uuid+" Input Tools",
+        helpText: thoseProps.data.path + "/" + thoseProps.data.uuid,
+        name: thoseProps.data.name + " Input Tools",
+        id: thoseProps.data.name + " Input Tools",
         component: component,
         config: { thoseProps }
       }

@@ -221,7 +221,7 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
   const onDeleteRow = (rowData) => {
     const { _id } = rowData
     console.log("Deleting row with _id:", _id)
-    deleteDatabaseData(data.path, data.uuid, _id)
+    deleteDatabaseData(data.path, data.id, _id)
       .then(() => {
         console.log("Row deleted successfully")
       })

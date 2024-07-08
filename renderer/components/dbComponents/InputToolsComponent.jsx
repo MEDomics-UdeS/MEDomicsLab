@@ -35,7 +35,7 @@ const InputToolsComponent = ({
         <h1>Database Input Tools</h1> {/* Title now wrapped for additional styling */}
       </div>
       <Panel header="Basic Tools" toggleable collapsed={true}>
-        <BasicToolsDB exportOptions={exportOptions} refreshData={refreshData} currentCollection={data.uuid} />
+        <BasicToolsDB exportOptions={exportOptions} refreshData={refreshData} currentCollection={data.id} />
       </Panel>
       <Panel header="Transform Column Tools" toggleable collapsed={true}>
         <TransformColumnToolsDB
@@ -61,10 +61,10 @@ const InputToolsComponent = ({
         <HoldoutSetCreationToolsDB refreshData={refreshData} data={innerData} currentCollection={data.id} />
       </Panel>
       <Panel header="Subset Creation Tools" toggleable collapsed={true}>
-        <SubsetCreationToolsDB currentCollection={data.uuid} data={innerData} refreshData={refreshData} />
+        <SubsetCreationToolsDB currentCollection={data.id} data={innerData} refreshData={refreshData} />
       </Panel>
       <Panel header="Feature Reduction Tools" toggleable collapsed={true}>
-        <FeatureReductionToolsDB currentCollection={data.uuid} refreshData={refreshData} />
+        <FeatureReductionToolsDB currentCollection={data.id} refreshData={refreshData} />
       </Panel>
     </div>
   )
