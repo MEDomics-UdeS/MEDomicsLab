@@ -1,15 +1,11 @@
-import React, { useContext, useState } from "react"
+import React, { useContext } from "react"
 import { Accordion, Button, Stack } from "react-bootstrap"
 import { ipcRenderer } from "electron"
 import SidebarDirectoryTreeControlled from "../directoryTree/sidebarDirectoryTreeControlled"
 import { DataContext } from "../../../workspace/dataContext"
-import { MongoDBContext } from "../../../mongoDB/mongoDBContext"
-import { ListBox } from "primereact/listbox"
 
 const ExplorerSidebar = () => {
   const { setGlobalData } = useContext(DataContext)
-  const { DB, recentDBs } = useContext(MongoDBContext)
-  const [selectedDB] = useState(DB.name)
 
   /**
    * @description - This function is called when the user clicks on the change workspace button
@@ -46,19 +42,6 @@ const ExplorerSidebar = () => {
             </Accordion.Header>
             <Accordion.Body>
               <Button onClick={handleWorkspaceChange}>Change Workspace</Button>
-            </Accordion.Body>
-          </Accordion.Item>
-          <Accordion.Item eventKey="">
-            <Accordion.Header>
-              <Stack direction="horizontal" style={{ flexGrow: "1" }}>
-                <p style={{ marginBottom: "0px", paddingLeft: "1rem" }}>
-                  <strong>CHANGE DATABASE</strong>
-                </p>
-                <div style={{ flexGrow: "10" }} />
-              </Stack>
-            </Accordion.Header>
-            <Accordion.Body>
-              <ListBox value={selectedDB} onChange={(e) => ipcRenderer.send("messageFromNext", "handleDBChange", e.value)} options={recentDBs}></ListBox>
             </Accordion.Body>
           </Accordion.Item>
           <SidebarDirectoryTreeControlled />

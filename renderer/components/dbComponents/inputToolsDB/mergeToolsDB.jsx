@@ -4,19 +4,17 @@ import { Button } from "primereact/button"
 import { toast } from "react-toastify"
 import { getCollectionData } from "../utils"
 import { Dropdown } from "primereact/dropdown"
-const mongoUrl = "mongodb://localhost:27017"
-import { MongoClient, ObjectId } from "mongodb"
-import { ipcRenderer } from "electron"
+import { ObjectId } from "mongodb"
 import { Message } from "primereact/message"
 import _ from "lodash"
+import { connectToMongoDB } from "../../mongoDB/mongoDBUtils"
 
 /**
  * @description MergeToolsDB component
- * @param [collections] - Array of collections
- * @param {DB} - Database object
+ * @param {[collections]} - Array of collections
  * @param {currentCollection} - Current collection
  */
-const MergeToolsDB = ({ collections, DB, currentCollection }) => {
+const MergeToolsDB = ({ collections, currentCollection }) => {
   const [selectedCollectionLabels, setSelectedCollectionLabels] = useState([currentCollection])
   const [selectedCollections, setSelectedCollections] = useState(collections.filter((collection) => collection.label === currentCollection))
   const [selectedColumns, setSelectedColumns] = useState([])
@@ -60,8 +58,8 @@ const MergeToolsDB = ({ collections, DB, currentCollection }) => {
       const labels = selectedOptions.map((option) => option.label)
       setSelectedCollectionLabels(labels)
 
-      const data1 = selectedOptions.length > 0 ? await getCollectionData(DB.name, labels[0]) : null
-      const data2 = selectedOptions.length > 1 ? await getCollectionData(DB.name, labels[1]) : null
+      const data1 = selectedOptions.length > 0 ? await getCollectionData(labels[0]) : null
+      const data2 = selectedOptions.length > 1 ? await getCollectionData(labels[1]) : null
 
       setSelectedCollectionsData1(data1)
       setSelectedCollectionsData2(data2)
@@ -175,9 +173,7 @@ const MergeToolsDB = ({ collections, DB, currentCollection }) => {
     }
 
     if (mergedData) {
-      const client = new MongoClient(mongoUrl)
-      await client.connect()
-      const db = client.db(DB.name)
+      const db = await connectToMongoDB()
       let baseCollectionName = `${selectedCollectionLabels[0]}${selectedCollectionLabels[1]}_${selectedMergeType}_Merged`
       let newCollectionName = baseCollectionName
 
@@ -193,9 +189,8 @@ const MergeToolsDB = ({ collections, DB, currentCollection }) => {
 
       const newCollection = await db.createCollection(newCollectionName)
       await newCollection.insertMany(mergedData)
-      ipcRenderer.send("get-collections", DB.name)
+      //ipcRenderer.send("get-collections", DB.name)
       console.log(`New collection ${newCollectionName} created with merged data.`)
-      await client.close()
     }
   }
 

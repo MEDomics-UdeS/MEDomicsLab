@@ -163,7 +163,9 @@ const renderItem = ({ item, depth, children, title, context, arrow }, additional
       {item.isFolder && (
         <>
           {additionalParams.isHovering && !additionalParams.isDropping ? (
-            <div className="sidebar-dropzone-dirtree" style={{display:"block", boxSizing:"border-box"}}>{folderItemContent}</div>
+            <div className="sidebar-dropzone-dirtree" style={{ display: "block", boxSizing: "border-box" }}>
+              {folderItemContent}
+            </div>
           ) : (
             <DropzoneComponent className="sidebar-dropzone-dirtree" item={item} noClick={true} setIsDropping={additionalParams.setIsDropping}>
               {folderItemContent}

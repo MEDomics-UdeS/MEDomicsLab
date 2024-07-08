@@ -11,8 +11,9 @@ import React, { useContext, useRef, useState } from "react"
 import { requestBackend } from "../../utilities/requests"
 import { toast } from "react-toastify"
 import { ServerConnectionContext } from "../serverConnection/connectionContext"
-import { MongoDBContext } from "../mongoDB/mongoDBContext"
-import { updateDBCollections } from "../dbComponents/utils"
+import { MEDDataObject } from "../workspace/NewMedDataObject"
+import { randomUUID } from "crypto"
+import { insertMEDDataObjectIfNotExists } from "../mongoDB/mongoDBUtils"
 import DataTableFromDB from "../dbComponents/dataTableFromDB"
 
 /**
@@ -48,7 +49,6 @@ const ExtractionJPG = ({ extractionTypeList, serverUrl, defaultFilename }) => {
   const { port } = useContext(ServerConnectionContext) // we get the port for server connexion
   const { pageId } = useContext(PageInfosContext) // used to get the pageId
   const { setError } = useContext(ErrorRequestContext) // used to diplay the errors
-  const { DB } = useContext(MongoDBContext)
 
   /**
    *
@@ -91,7 +91,7 @@ const ExtractionJPG = ({ extractionTypeList, serverUrl, defaultFilename }) => {
    *
    * @returns extractedData
    */
-  async function extractDataFromFileList() {
+  async function extractDataFromFileList(resultCollectionIDinDB) {
     let progress = 10
     let chunkSize = 100
     let chunks = []
@@ -110,8 +110,8 @@ const ExtractionJPG = ({ extractionTypeList, serverUrl, defaultFilename }) => {
               relativeToExtractionType: extractionJsonData,
               depth: folderDepth,
               filePathList: subList,
-              resultCollectionName: resultCollectionName,
-              DBName: DB.name,
+              resultCollectionName: resultCollectionIDinDB,
+              DBName: "data",
               pageId: pageId
             },
             (response) => resolve(response),
@@ -141,6 +141,10 @@ const ExtractionJPG = ({ extractionTypeList, serverUrl, defaultFilename }) => {
    *
    */
   const runExtraction = async () => {
+    // Insert MEDDataObject in DB
+    const object = new MEDDataObject({ id: randomUUID(), name: resultCollectionName + ".csv", type: "csv", parentID: "DATA", childrenIDs: [], inWorkspace: false })
+    const resultCollectionIDinDB = await insertMEDDataObjectIfNotExists(object)
+    // Initialize extraction
     setResultDataset(null)
     setRunning(true)
     setShowProgressBar(true)
@@ -152,11 +156,11 @@ const ExtractionJPG = ({ extractionTypeList, serverUrl, defaultFilename }) => {
     setExtractionStep("Extracting data")
     if (!jsonInitialization.error) {
       // Extract data
-      const jsonResponse = await extractDataFromFileList()
+      const jsonResponse = await extractDataFromFileList(resultCollectionIDinDB)
       if (!jsonResponse.error) {
-        toast.success(jsonResponse["collection_length"] + " elements added to " + jsonResponse["resultCollectionName"])
-        setFilenameSavedFeatures(jsonResponse["resultCollectionName"])
-        setResultDataset({ uuid: jsonResponse["resultCollectionName"], path: DB.name })
+        toast.success(jsonResponse["collection_length"] + " elements added to " + object.name)
+        setFilenameSavedFeatures(object.name)
+        setResultDataset({ id: jsonResponse["resultCollectionName"] })
       } else {
         toast.error(`Extraction failed: ${jsonResponse.error.message}`)
         setError(jsonResponse.error)
@@ -169,7 +173,7 @@ const ExtractionJPG = ({ extractionTypeList, serverUrl, defaultFilename }) => {
     setExtractionStep("")
     setShowProgressBar(false)
     setRunning(false)
-    updateDBCollections(DB.name)
+    MEDDataObject.updateWorkspaceDataObject()
   }
 
   /**
@@ -247,6 +251,7 @@ const ExtractionJPG = ({ extractionTypeList, serverUrl, defaultFilename }) => {
                 <div>
                   Save extracted features as : &nbsp;
                   <InputText keyfilter="alphanum" value={resultCollectionName} onChange={(e) => setResultCollectionName(e.target.value)} />
+                  .csv
                 </div>
                 <div>
                   {/* Button activated only if all necessary columns have been selected */}

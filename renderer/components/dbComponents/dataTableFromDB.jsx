@@ -1,18 +1,17 @@
-import React, { useContext, useEffect, useState } from "react"
+import React, { useEffect, useState, useContext } from "react"
 import { DataTable } from "primereact/datatable"
 import { Column } from "primereact/column"
 import { InputText } from "primereact/inputtext"
 import { Button } from "primereact/button"
-import { MongoClient, ObjectId } from "mongodb"
+import { ObjectId } from "mongodb"
 import { toast } from "react-toastify"
-const mongoUrl = "mongodb://127.0.0.1:27017"
 import { saveAs } from "file-saver"
 import Papa from "papaparse"
 import { getCollectionData } from "./utils"
-import { MongoDBContext } from "../mongoDB/mongoDBContext"
 import InputToolsComponent from "./InputToolsComponent"
 import { Dialog } from "primereact/dialog"
 import { LayoutModelContext } from "../layout/layoutContext"
+import { connectToMongoDB } from "../mongoDB/mongoDBUtils"
 
 /**
  * DataTableFromDB component
@@ -24,8 +23,6 @@ import { LayoutModelContext } from "../layout/layoutContext"
  * @constructor - DataTableFromDB
  */
 const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly }) => {
-  const { dispatchLayout } = useContext(LayoutModelContext)
-  const { DB, DBData } = useContext(MongoDBContext)
   const [innerData, setInnerData] = useState([])
   const [columns, setColumns] = useState([])
   const [hoveredButton, setHoveredButton] = useState(null)
@@ -33,6 +30,7 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
   const [csvData, setCsvData] = useState([])
   const [fileName, setFileName] = useState("Choose File")
   const [lastEdit, setLastEdit] = useState(Date.now())
+  const { dispatchLayout } = useContext(LayoutModelContext)
   const exportOptions = [
     {
       label: "CSV",
@@ -65,9 +63,9 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
 
   // Fetch data from MongoDB on component mount
   useEffect(() => {
-    if (data && data.uuid && data.path) {
+    if (data && data.id) {
       console.log("Fetching data with:", data)
-      getCollectionData(data.path, data.uuid)
+      getCollectionData(data.id)
         .then((fetchedData) => {
           console.log("Fetched data:", fetchedData)
           let collData = fetchedData.map((item) => {
@@ -126,11 +124,8 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
 
   // Update data in MongoDB
   const updateDatabaseData = async (dbname, collectionName, id, field, newValue) => {
-    const client = new MongoClient(mongoUrl)
     try {
-      await client.connect()
-      console.log("Connected to the server for update", dbname, collectionName)
-      const db = client.db(dbname)
+      const db = await connectToMongoDB()
       const collection = db.collection(collectionName)
       console.log(`Updating document with _id: ${id}, setting ${field} to ${newValue}`)
       const result = await collection.updateOne({ _id: new ObjectId(id) }, { $set: { [field]: newValue } })
@@ -140,18 +135,13 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
       }
     } catch (error) {
       console.error("Error updating data:", error)
-    } finally {
-      await client.close()
     }
   }
 
   // Delete data from MongoDB
   const deleteDatabaseData = async (dbname, collectionName, id) => {
-    const client = new MongoClient(mongoUrl)
     try {
-      await client.connect()
-      console.log("Connected to the server for deletion", dbname, collectionName)
-      const db = client.db(dbname)
+      const db = await connectToMongoDB()
       const collection = db.collection(collectionName)
       console.log(`Deleting document with _id: ${id}`)
       const result = await collection.deleteOne({ _id: new ObjectId(id) })
@@ -163,18 +153,13 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
       }
     } catch (error) {
       console.error("Error deleting data:", error)
-    } finally {
-      await client.close()
     }
   }
 
   // Insert data into MongoDB
   const insertDatabaseData = async (dbname, collectionName, data) => {
-    const client = new MongoClient(mongoUrl)
     try {
-      await client.connect()
-      console.log("Connected to the server for insertion", dbname, collectionName)
-      const db = client.db(dbname)
+      const db = await connectToMongoDB()
       const collection = db.collection(collectionName)
       console.log(`Inserting document: ${JSON.stringify(data)}`)
       const result = await collection.insertOne(data)
@@ -182,14 +167,12 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
       return result.insertedId.toString()
     } catch (error) {
       console.error("Error inserting data:", error)
-    } finally {
-      await client.close()
     }
   }
 
   // Handle cell edit completion
   const onCellEditComplete = (e) => {
-    let { rowData, newValue, field, originalEvent: event } = e
+    let { rowData, newValue, field } = e
     if (newValue === "" || newValue === null) {
       newValue = null
     } else if (!isNaN(newValue)) {
@@ -257,12 +240,9 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
       })
     )
 
-    const client = new MongoClient(mongoUrl)
     try {
-      await client.connect()
-      console.log("Connected to the server for column deletion", data.path, data.uuid)
-      const db = client.db(data.path)
-      const collection = db.collection(data.uuid)
+      const db = await connectToMongoDB()
+      const collection = db.collection(data.id)
       console.log(`Deleting field ${field} from all documents`)
       const result = await collection.updateMany({}, { $unset: { [field]: "" } })
       console.log("Delete column result:", result)
@@ -271,8 +251,6 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
       }
     } catch (error) {
       console.error("Error deleting column:", error)
-    } finally {
-      await client.close()
     }
   }
 
@@ -283,8 +261,8 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
 
   // Refresh data from MongoDB
   const refreshData = () => {
-    if (data && data.uuid && data.path) {
-      getCollectionData(data.path, data.uuid)
+    if (data && data.id) {
+      getCollectionData(data.id)
         .then((fetchedData) => {
           let collData = fetchedData.map((item) => {
             let keys = Object.keys(item)
@@ -313,7 +291,7 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
       csvData.push(
         ...innerData.map((row) => {
           let csvRow = ""
-          for (const [key, value] of Object.entries(row)) {
+          for (const [, value] of Object.entries(row)) {
             csvRow += value + ","
           }
           return csvRow.slice(0, -1)
@@ -418,7 +396,7 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
   const handleDialogClick = () => {
     console.log("Opening Input Tools")
     let newProps = {
-      DBData: DBData,
+      //DBData: DBData,
       data: { ...data },
       exportOptions: exportOptions,
       refreshData: refreshData,
@@ -433,7 +411,7 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
       handleExportColumns: handleExportColumns,
       handleDeleteColumns: handleDeleteColumns,
       innerData: { ...innerData },
-      DB: { ...DB },
+      //DB: { ...DB },
       lastEdit: { ...lastEdit }
     }
     dispatchLayout({ type: "openInputToolsDB", payload: { data: newProps } })
@@ -443,7 +421,7 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
   return (
     <>
       {innerData.length === 0 ? (
-        <p style={{ color: "red", fontSize: "20px", textAlign: "center", margin: "30px" }}>No data found in {data.uuid}</p>
+        <p style={{ color: "red", fontSize: "20px", textAlign: "center", margin: "30px" }}>No data found in {data.name}</p>
       ) : (
         <div style={dataTableStyle}>
           <DataTable
@@ -507,6 +485,31 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
           </DataTable>
         </div>
       )}
+      <Dialog header="Input Tools" /* visible={isDialogVisible} onHide={closeDialog} */ style={{ width: "80%", height: "80%" }} modal={true}>
+        <InputToolsComponent
+          data={data}
+          /*           numRows={numRows}
+          setNumRows={setNumRows}
+          newColumnName={newColumnName}
+          setNewColumnName={setNewColumnName}
+          handleAddColumn={handleAddColumn} */
+          exportOptions={exportOptions}
+          refreshData={refreshData}
+          selectedColumns={selectedColumns}
+          setSelectedColumns={setSelectedColumns}
+          columns={columns}
+          transformData={transformData}
+          handleFileUpload={handleFileUpload}
+          fileName={fileName}
+          setFileName={setFileName}
+          handleCsvData={handleCsvData}
+          handleExportColumns={handleExportColumns}
+          handleDeleteColumns={handleDeleteColumns}
+          innerData={innerData}
+          //handleAddRow={handleAddRow}
+          lastEdit={lastEdit}
+        />
+      </Dialog>
     </>
   )
 }

@@ -3,27 +3,18 @@ import Image from "next/image"
 import myimage from "../../../resources/medomics_transparent_bg.png"
 import { Button, Stack } from "react-bootstrap"
 import { WorkspaceContext } from "../workspace/workspaceContext"
-import { MongoDBContext } from "../mongoDB/mongoDBContext"
 import { ipcRenderer } from "electron"
-import { InputText } from "primereact/inputtext"
 
 /**
  *
  * @returns the home page component
  */
 const HomePage = () => {
-  const { workspace, recentWorkspaces } = useContext(WorkspaceContext)
-  const { DB, recentDBs } = useContext(MongoDBContext)
+  const { workspace, setWorkspace, recentWorkspaces } = useContext(WorkspaceContext)
   const [hasBeenSet, setHasBeenSet] = useState(workspace.hasBeenSet)
-  const [DBSet, setDBSet] = useState(DB.hasBeenSet)
-  const [newDBName, setNewDBName] = useState("")
 
   async function handleWorkspaceChange() {
     ipcRenderer.send("messageFromNext", "requestDialogFolder")
-  }
-
-  async function handleDbChange() {
-    ipcRenderer.send("messageFromNext", "handleDBChange", newDBName)
   }
 
   // We set the workspace hasBeenSet state
@@ -35,19 +26,9 @@ const HomePage = () => {
     }
   }, [workspace])
 
-  // We set the db hasBeenSet state
-  useEffect(() => {
-    if (DB.hasBeenSet == false) {
-      setDBSet(true)
-    } else {
-      setDBSet(false)
-    }
-  }, [DB])
-
   // We set the recent workspaces -> We send a message to the main process to get the recent workspaces, the workspace context will be updated by the main process in _app.js
   useEffect(() => {
     ipcRenderer.send("messageFromNext", "getRecentWorkspaces")
-    ipcRenderer.send("messageFromNext", "get-databases")
   }, [])
 
   return (
@@ -74,7 +55,12 @@ const HomePage = () => {
                     <a
                       key={index}
                       onClick={() => {
-                        ipcRenderer.send("setWorkingDirectory", workspace.path)
+                        ipcRenderer.invoke("setWorkingDirectory", workspace.path).then((data) => {
+                          if (workspace !== data) {
+                            let workspaceToSet = { ...data }
+                            setWorkspace(workspaceToSet)
+                          }
+                        })
                       }}
                       style={{ margin: "0rem", color: "var(--blue-600)" }}
                     >
@@ -86,35 +72,6 @@ const HomePage = () => {
             </>
           ) : (
             <h5>Workspace is set to {workspace.workingDirectory.path}</h5>
-          )}
-          {DBSet ? (
-            <>
-              <h5>Set up your database to get started</h5>
-              <div sstyle={{ display: "flex" }}>
-                <InputText value={newDBName} onChange={(e) => setNewDBName(e.target.value)} keyfilter="alpha" />
-                <Button disabled={newDBName == ""} onClick={handleDbChange} style={{ margin: "1rem" }}>
-                  Set Database
-                </Button>
-              </div>
-              <h5>Or open an existing database</h5>
-              <Stack direction="vertical" gap={0} style={{ padding: "0 0 0 0", alignContent: "center" }}>
-                {recentDBs.map((DB, index) => {
-                  return (
-                    <a
-                      key={index}
-                      onClick={() => {
-                        ipcRenderer.send("setDB", DB)
-                      }}
-                      style={{ margin: "0rem", color: "var(--blue-600)" }}
-                    >
-                      <h6>{DB}</h6>
-                    </a>
-                  )
-                })}
-              </Stack>
-            </>
-          ) : (
-            <h5>Database is set to {DB.name}</h5>
           )}
         </Stack>
       </div>

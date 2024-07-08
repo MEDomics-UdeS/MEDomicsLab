@@ -156,7 +156,29 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
     layoutRequestQueueCopy.push(action)
     setLayoutRequestQueue(layoutRequestQueueCopy)
   }
-  
+
+  /**
+   * @summary Generic function that adds a tab with an object to the layout model
+   * @params {Object} action - The action passed on by the dispatchLayout function
+   * @params {String} component - The component to be used in the tab
+   */
+  function openInTab(action, component) {
+    let object = action.payload
+    let isAlreadyIn = checkIfIDIsInLayoutModel(object.name, layoutModel)
+    if (!isAlreadyIn) {
+      const newChild = {
+        type: "tab",
+        helpText: object.data,
+        name: object.data,
+        id: object.index,
+        component: component,
+        config: { id: object.index, name: object.data, extension: object.type }
+      }
+      let layoutRequestQueueCopy = [...layoutRequestQueue]
+      layoutRequestQueueCopy.push({ type: "ADD_TAB", payload: newChild })
+      setLayoutRequestQueue(layoutRequestQueueCopy)
+    }
+  }
 
   /**
    * @summary Generic function that adds a tab with a medDataObject to the layout model
@@ -322,14 +344,14 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
     openGeneric(action, "MEDfl", "medflPage")
   }
 
-    /**
+  /**
    * @summary Function that adds a tab of the MED3pa Module to the layout model
    * @params {Object} action - The action passed on by the dispatchLayout function
    */
-    const openMED3pa = (action) => {
-      openGeneric(action, "MED3pa", "med3paPage")
-    }
-  
+  const openMED3pa = (action) => {
+    openGeneric(action, "MED3pa", "med3paPage")
+  }
+
   /**
    * @summary Function that adds a tab of the Extraction Text Module to the layout model
    * @params {Object} action - The action passed on by the dispatchLayout function
@@ -423,7 +445,7 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
    * @params {Object} action - The action passed on by the dispatchLayout function, it uses the payload in the action as a JSON object to add a tab containing a data table to the layout model
    */
   const openDataTableFromDB = (action) => {
-    openInDotDotDot(action, "dataTableFromDB")
+    openInTab(action, "dataTableFromDB")
   }
 
   /**
@@ -540,7 +562,13 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
   }, [layoutRequestQueue])
   // Returns the LayoutModelContext.Provider with the layoutModel, the dispatchLayout function and the flexlayoutInterpreter function as values
   // The children are wrapped by the LayoutModelContext.Provider and will have access to the layoutModel, the dispatchLayout function and the flexlayoutInterpreter function
-  return <LayoutModelContext.Provider value={{ layoutModel, setLayoutModel, dispatchLayout, flexlayoutInterpreter, layoutMainState, setLayoutMainState, layoutRequestQueue, setLayoutRequestQueue, developerMode, setDeveloperMode }}>{children}</LayoutModelContext.Provider>
+  return (
+    <LayoutModelContext.Provider
+      value={{ layoutModel, setLayoutModel, dispatchLayout, flexlayoutInterpreter, layoutMainState, setLayoutMainState, layoutRequestQueue, setLayoutRequestQueue, developerMode, setDeveloperMode }}
+    >
+      {children}
+    </LayoutModelContext.Provider>
+  )
 }
 
 function checkIfIDIsInLayoutModel(id, layoutModel) {

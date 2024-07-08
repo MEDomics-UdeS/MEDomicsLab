@@ -8,13 +8,16 @@ import { InputText } from "primereact/inputtext"
 import { Message } from "primereact/message"
 import { PageInfosContext } from "../mainPages/moduleBasics/pageInfosContext"
 import ProgressBar from "react-bootstrap/ProgressBar"
-import React, { useState, useContext } from "react"
+import React, { useState, useContext, useEffect } from "react"
 import { requestBackend } from "../../utilities/requests"
 import { toast } from "react-toastify"
-import { MongoDBContext } from "../mongoDB/mongoDBContext"
 import { ServerConnectionContext } from "../serverConnection/connectionContext"
-import { getCollectionData, getCollectionColumnTypes, updateDBCollections } from "../dbComponents/utils"
+import { getCollectionData, getCollectionColumnTypes } from "../dbComponents/utils"
+import { MEDDataObject } from "../workspace/NewMedDataObject"
 import DataTableFromDB from "../dbComponents/dataTableFromDB"
+import { DataContext } from "../workspace/dataContext"
+import { insertMEDDataObjectIfNotExists } from "../mongoDB/mongoDBUtils"
+import { randomUUID } from "crypto"
 
 /**
  *
@@ -31,6 +34,7 @@ import DataTableFromDB from "../dbComponents/dataTableFromDB"
 const ExtractionTabularData = ({ extractionTypeList, serverUrl, defaultFilename }) => {
   const [columnsTypes, setColumnsTypes] = useState({}) // the selected dataset column types
   const [dataframe, setDataframe] = useState([]) // djanfo dataframe of data to extract
+  const [datasetsList, setDatasetsList] = useState([]) // list of datasets we can select to proceed to extraction
   const [extractionFunction, setExtractionFunction] = useState(extractionTypeList[0] + "_extraction") // name of the function to use for extraction
   const [extractionProgress, setExtractionProgress] = useState(0) // advancement state in the extraction function
   const [extractionStep, setExtractionStep] = useState("") // current step in the extraction function
@@ -45,7 +49,7 @@ const ExtractionTabularData = ({ extractionTypeList, serverUrl, defaultFilename 
   const [viewResults, setViewResults] = useState(false) // Display result if true and results can be displayed
   const [viewOriginalData, setViewOriginalData] = useState(false) // Display selected dataset if true and results can be displayed
 
-  const { DB, DBData } = useContext(MongoDBContext) // we get the global data from the context to retrieve the directory tree of the workspace, thus retrieving the data files
+  const { globalData } = useContext(DataContext) // get global data
   const { pageId } = useContext(PageInfosContext) // used to get the pageId
   const { port } = useContext(ServerConnectionContext) // we get the port for server connexion
   const { setError } = useContext(ErrorRequestContext) // used to diplay the errors
@@ -61,10 +65,11 @@ const ExtractionTabularData = ({ extractionTypeList, serverUrl, defaultFilename 
   async function datasetSelected(dataset) {
     try {
       setResultDataset(null)
-      const columnsData = await getCollectionColumnTypes(DB.name, dataset.label)
+      const columnsData = await getCollectionColumnTypes(dataset.id)
+      console.log("HERE", columnsData)
       setColumnsTypes(columnsData)
       setSelectedDataset(dataset)
-      const data = await getCollectionData(DB.name, dataset.label)
+      const data = await getCollectionData(dataset.id)
       setDataframe(data)
     } catch (error) {
       console.error("Error:", error)
@@ -91,7 +96,7 @@ const ExtractionTabularData = ({ extractionTypeList, serverUrl, defaultFilename 
    *
    * @returns extractedData
    */
-  async function extractDataFromFileList(processingList) {
+  async function extractDataFromFileList(processingList, resultCollectionIDinDB) {
     let progress = 5
     let chunkSize = 25
     let chunks = []
@@ -109,9 +114,9 @@ const ExtractionTabularData = ({ extractionTypeList, serverUrl, defaultFilename 
             {
               relativeToExtractionType: extractionJsonData,
               identifiersList: subList,
-              resultCollectionName: resultCollectionName,
-              DBName: DB.name,
-              collectionName: selectedDataset.label,
+              resultCollectionName: resultCollectionIDinDB,
+              DBName: "data",
+              collectionName: selectedDataset.id,
               pageId: pageId
             },
             (response) => resolve(response),
@@ -141,6 +146,17 @@ const ExtractionTabularData = ({ extractionTypeList, serverUrl, defaultFilename 
    *
    */
   const runExtraction = async () => {
+    // Insert MEDDataObject in DB
+    const object = new MEDDataObject({
+      id: randomUUID(),
+      name: resultCollectionName + "." + selectedDataset.type,
+      type: selectedDataset.type,
+      parentID: selectedDataset.parentID,
+      childrenIDs: [],
+      inWorkspace: false
+    })
+    const resultCollectionIDinDB = await insertMEDDataObjectIfNotExists(object)
+    // Initialize extraction
     setResultDataset(null)
     setMayProceed(false)
     setShowProgressBar(true)
@@ -149,11 +165,12 @@ const ExtractionTabularData = ({ extractionTypeList, serverUrl, defaultFilename 
     const patientIdentifierColumn = extractionJsonData["selectedColumns"]["patientIdentifier"]
     const uniquePatientIdentifiers = Array.from(new Set(dataframe.map((item) => item[patientIdentifierColumn])))
     setExtractionProgress(5)
-    const jsonResponse = await extractDataFromFileList(uniquePatientIdentifiers)
+    // Proceed to extraction
+    const jsonResponse = await extractDataFromFileList(uniquePatientIdentifiers, resultCollectionIDinDB)
     if (!jsonResponse.error) {
-      toast.success(jsonResponse["collection_length"] + " elements added to " + jsonResponse["resultCollectionName"])
-      setFilenameSavedFeatures(jsonResponse["resultCollectionName"])
-      setResultDataset({ uuid: jsonResponse["resultCollectionName"], path: DB.name })
+      toast.success(jsonResponse["collection_length"] + " elements added to " + object.name)
+      setFilenameSavedFeatures(object.name)
+      setResultDataset({ id: jsonResponse["resultCollectionName"] })
     } else {
       toast.error(`Extraction failed: ${jsonResponse.error.message}`)
       setError(jsonResponse.error)
@@ -161,8 +178,18 @@ const ExtractionTabularData = ({ extractionTypeList, serverUrl, defaultFilename 
     setExtractionStep("")
     setMayProceed(true)
     setShowProgressBar(false)
-    updateDBCollections(DB.name)
+    MEDDataObject.updateWorkspaceDataObject()
   }
+
+  /* Hook called when the global data changes to get the list of dataset to display */
+  useEffect(() => {
+    if (globalData) {
+      let matchingDatasets = MEDDataObject.getMatchingTypesInDict(globalData, ["csv"])
+      setDatasetsList(matchingDatasets)
+    } else {
+      setDatasetsList([])
+    }
+  }, [globalData])
 
   return (
     <div>
@@ -171,8 +198,8 @@ const ExtractionTabularData = ({ extractionTypeList, serverUrl, defaultFilename 
         <div className="center">
           {/* Select Data */}
           <h2>Select Data</h2>
-          {DBData.length > 0 ? (
-            <Dropdown value={selectedDataset} options={DBData} onChange={(event) => datasetSelected(event.value)} placeholder="Select a dataset" />
+          {datasetsList.length > 0 ? (
+            <Dropdown value={selectedDataset} options={datasetsList} optionLabel="name" onChange={(event) => datasetSelected(event.value)} placeholder="Select a dataset" />
           ) : (
             <Dropdown placeholder="No dataset to show" disabled />
           )}
@@ -194,7 +221,7 @@ const ExtractionTabularData = ({ extractionTypeList, serverUrl, defaultFilename 
         {viewOriginalData &&
           (selectedDataset ? (
             <div>
-              <DataTableFromDB data={{ uuid: selectedDataset.label, path: DB.name }} isReadOnly={true} />
+              <DataTableFromDB data={{ id: selectedDataset.id }} isReadOnly={true} />
             </div>
           ) : (
             <div className="center">
@@ -229,6 +256,7 @@ const ExtractionTabularData = ({ extractionTypeList, serverUrl, defaultFilename 
               <div>
                 Save extracted features as : &nbsp;
                 <InputText keyfilter="alphanum" value={resultCollectionName} onChange={(e) => setResultCollectionName(e.target.value)} />
+                {selectedDataset?.type && "." + selectedDataset.type}
               </div>
               <div>
                 {/* Button activated only if all necessary columns have been selected */}

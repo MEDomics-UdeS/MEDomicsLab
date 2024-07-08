@@ -1,19 +1,18 @@
 import { useState, useEffect } from "react"
 import { Message } from "primereact/message"
 import * as React from "react"
-import { getCollectionData, getCollectionColumnTypes, getColumnOptions } from "../utils"
+import { getCollectionData, getCollectionColumnTypes } from "../utils"
 import { DataTable } from "primereact/datatable"
 import { Column } from "primereact/column"
 import { InputText } from "primereact/inputtext"
 import { FilterMatchMode, FilterOperator } from "primereact/api"
 import { Row } from "react-bootstrap"
 import { Button } from "primereact/button"
-import { ipcRenderer } from "electron"
 import { toast } from "react-toastify"
-import { MongoClient } from "mongodb"
-const mongoUrl = "mongodb://localhost:27017"
+import { connectToMongoDB } from "../../mongoDB/mongoDBUtils"
+import { MEDDataObject } from "../../workspace/NewMedDataObject"
 
-const SubsetCreationToolsDB = ({ DB, currentCollection, refreshData }) => {
+const SubsetCreationToolsDB = ({ currentCollection, refreshData }) => {
   const [data, setData] = useState([])
   const [columns, setColumns] = useState([])
   const [columnTypes, setColumnTypes] = useState({})
@@ -24,8 +23,8 @@ const SubsetCreationToolsDB = ({ DB, currentCollection, refreshData }) => {
 
   useEffect(() => {
     const fetchData = async () => {
-      const collectionData = await getCollectionData(DB.name, currentCollection)
-      const formattedData = collectionData.map((row, index) => {
+      const collectionData = await getCollectionData(currentCollection)
+      const formattedData = collectionData.map((row) => {
         return {
           ...row
         }
@@ -43,14 +42,14 @@ const SubsetCreationToolsDB = ({ DB, currentCollection, refreshData }) => {
       setColumns(columns)
       console.log(columns)
 
-      const collectionColumnTypes = await getCollectionColumnTypes(DB.name, currentCollection)
+      const collectionColumnTypes = await getCollectionColumnTypes(currentCollection)
       setColumnTypes(collectionColumnTypes)
       console.log(collectionColumnTypes)
 
       initFiltersDynamically(columns, columnTypes)
     }
     fetchData()
-  }, [DB, currentCollection])
+  }, [currentCollection])
 
   useEffect(() => {
     console.log("filteredData", filteredData)
@@ -69,9 +68,7 @@ const SubsetCreationToolsDB = ({ DB, currentCollection, refreshData }) => {
   }
 
   const overwriteCollection = async () => {
-    const client = new MongoClient(mongoUrl)
-    await client.connect()
-    const db = client.db(DB.name)
+    const db = await connectToMongoDB()
     const collection = db.collection(currentCollection)
     await collection.deleteMany({})
     await collection.insertMany(filteredData)
@@ -79,25 +76,21 @@ const SubsetCreationToolsDB = ({ DB, currentCollection, refreshData }) => {
     refreshData()
   }
 
-  const createNewCollectionSubset = async (newCollectionName, DB) => {
-    const client = new MongoClient(mongoUrl)
-    await client.connect()
-    const db = client.db(DB.name)
+  const createNewCollectionSubset = async (newCollectionName) => {
+    const db = await connectToMongoDB()
 
     const collections = await db.listCollections().toArray()
     const collectionExists = collections.some((collection) => collection.name === newCollectionName)
 
     if (collectionExists) {
       toast.warn(`A subset with the name ${newCollectionName} already exists.`)
-      await client.close()
       return
     }
 
     const newCollection = await db.createCollection(newCollectionName)
     await newCollection.insertMany(filteredData)
-    ipcRenderer.send("get-collections", DB.name)
+    MEDDataObject.updateWorkspaceDataObject()
     toast.success(`New subset ${newCollectionName} created with filtered data.`)
-    await client.close()
   }
 
   return (
@@ -154,7 +147,7 @@ const SubsetCreationToolsDB = ({ DB, currentCollection, refreshData }) => {
         <Button
           icon="pi pi-plus"
           style={{ margin: "5px", fontSize: "1rem", padding: "6px 10px", width: "100px", marginTop: "0.25rem" }}
-          onClick={() => createNewCollectionSubset(newCollectionName, DB)}
+          onClick={() => createNewCollectionSubset(newCollectionName)}
           tooltip="Create subset"
           tooltipOptions={{ position: "top" }}
         />

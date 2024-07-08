@@ -30,8 +30,8 @@ const EvaluationSidebar = () => {
   useEffect(() => {
     let experimentList = []
     if (globalData) {
-      let element = globalData["UUID_ROOT"]
-      element.childrenIDs.forEach((childID) => {
+      let element = globalData["ROOT"]
+      element.childrenID?.forEach((childID) => {
         if (globalData[childID].type == "file" && globalData[childID].extension == typeInfo.extension) {
           experimentList.push(globalData[childID].name.replace("." + typeInfo.extension, ""))
         }
@@ -49,7 +49,7 @@ const EvaluationSidebar = () => {
    * @description - This function is used to create an empty scene
    */
   const createEmptyScene = async (name, useMedStandard = null) => {
-    let path = globalData["UUID_ROOT"].path
+    let path = globalData["ROOT"].path
     await createSceneContent(path, name, typeInfo.extension, useMedStandard)
   }
 
@@ -60,7 +60,7 @@ const EvaluationSidebar = () => {
    * @param {String} extension The extension of the scene
    */
   const createSceneContent = async (path, sceneName, extension, useMedStandard) => {
-    const emptyScene = {'useMedStandard': useMedStandard}
+    const emptyScene = { useMedStandard: useMedStandard }
     // create custom zip file
     console.log("zipFilePath", Path.join(path, sceneName + "." + extension))
     await createZipFileSync(Path.join(path, sceneName + "." + extension), async (path) => {
@@ -98,7 +98,7 @@ const EvaluationSidebar = () => {
         <FileCreationBtn hasMedStandrad label="Create evaluation page" piIcon="pi-plus" createEmptyFile={createEmptyScene} checkIsNameValid={checkIsNameValid} handleClickCreateScene={handleClick} />
 
         <Accordion defaultActiveKey={["dirTree"]} alwaysOpen>
-          <SidebarDirectoryTreeControlled/>
+          <SidebarDirectoryTreeControlled />
         </Accordion>
       </Stack>
     </>

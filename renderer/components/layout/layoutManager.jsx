@@ -19,7 +19,6 @@ import GeneralModuleSidebar from "./sidebarTools/pageSidebar/generalModuleSideba
 import ExplorerSidebar from "./sidebarTools/pageSidebar/explorerSidebar"
 import FlowSceneSidebar from "./sidebarTools/pageSidebar/flowSceneSidebar"
 import EvaluationSidebar from "./sidebarTools/pageSidebar/evaluationSidebar"
-import { ipcRenderer } from "electron"
 import { MainContainer } from "./flexlayout/mainContainerClass"
 import EvaluationPage from "../mainPages/evaluation"
 import { LayoutModelContext } from "./layoutContext"
@@ -103,7 +102,7 @@ const LayoutManager = (props) => {
    */
   const handleSidebarItemSelect = (selectedItem) => {
     setActiveSidebarItem(selectedItem) // Update activeNavItem state with selected item
-    ipcRenderer.send("messageFromNext", "updateWorkingDirectory")
+    //ipcRenderer.send("messageFromNext", "updateWorkingDirectory")
   }
 
   // Render content component based on activeNavItem state
@@ -136,8 +135,6 @@ const LayoutManager = (props) => {
           return <EvaluationPage />
         case "application":
           return <ApplicationPage />
-        case "layoutTest":
-          return <MainContainer />
         default:
       }
     }
@@ -152,19 +149,23 @@ const LayoutManager = (props) => {
       case "input":
         return <GeneralModuleSidebar pageTitle="Input" />
       case "learning":
-        return <GeneralModuleSidebar pageTitle="Learning" >
-          <FlowSceneSidebar type="learning" />
+        return (
+          <GeneralModuleSidebar pageTitle="Learning">
+            <FlowSceneSidebar type="learning" />
           </GeneralModuleSidebar>
+        )
       case "extractionMEDimage":
-        return <GeneralModuleSidebar pageTitle="Extraction MEDimage" >
-          <FlowSceneSidebar type="extractionMEDimage" />
+        return (
+          <GeneralModuleSidebar pageTitle="Extraction MEDimage">
+            <FlowSceneSidebar type="extractionMEDimage" />
           </GeneralModuleSidebar>
+        )
       case "evaluation":
         return <EvaluationSidebar />
       default:
         return (
           <>
-            <GeneralModuleSidebar pageTitle={activeSidebarItem.charAt(0).toUpperCase()+activeSidebarItem.slice(1)} />
+            <GeneralModuleSidebar pageTitle={activeSidebarItem.charAt(0).toUpperCase() + activeSidebarItem.slice(1)} />
           </>
         )
     }
@@ -262,7 +263,14 @@ const LayoutManager = (props) => {
             </Panel>
           </PanelGroup>
           <div className="quebec-flag-div">
-            <Image className="quebec-flag" src="/images/QUEBEC-FLAG.jpg" alt="Quebec flag" width="750" height="500" style={{ opacity: quebecFlagDisplay ? "1" : "0", height: quebecFlagDisplayHeight, zIndex: quebecFlagZIndex }} />
+            <Image
+              className="quebec-flag"
+              src="/images/QUEBEC-FLAG.jpg"
+              alt="Quebec flag"
+              width="750"
+              height="500"
+              style={{ opacity: quebecFlagDisplay ? "1" : "0", height: quebecFlagDisplayHeight, zIndex: quebecFlagZIndex }}
+            />
           </div>
         </div>
       </div>

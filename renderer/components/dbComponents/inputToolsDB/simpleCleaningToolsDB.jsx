@@ -13,9 +13,8 @@ import { Dropdown } from "primereact/dropdown"
 import { SelectButton } from "primereact/selectbutton"
 import { requestBackend } from "../../../utilities/requests"
 import { ServerConnectionContext } from "../../serverConnection/connectionContext"
-import { ipcRenderer } from "electron"
 
-const SimpleCleaningToolsDB = ({ lastEdit, DB, data, columns, currentCollection, refreshData }) => {
+const SimpleCleaningToolsDB = ({ lastEdit, data, columns, currentCollection, refreshData }) => {
   const [tableData, setTableData] = useState([])
   const [rowData, setRowData] = useState([])
   const [columnThreshold, setColumnThreshold] = useState(100)
@@ -36,7 +35,7 @@ const SimpleCleaningToolsDB = ({ lastEdit, DB, data, columns, currentCollection,
   // Function to show the data in the columns and rows datatables
   useEffect(() => {
     async function fetchData() {
-      const fetchedData = await getCollectionData(DB.name, currentCollection)
+      const fetchedData = await getCollectionData(currentCollection)
 
       const columnsData = columns.map((column) => {
         const NaNValues = fetchedData.reduce((count, row) => {
@@ -103,7 +102,7 @@ const SimpleCleaningToolsDB = ({ lastEdit, DB, data, columns, currentCollection,
         type: type,
         cleanMethod: cleaningOption,
         overwrite: overwrite,
-        databaseName: DB.name,
+        databaseName: "data",
         collectionName: currentCollection,
         rowThreshold: rowThreshold,
         columnThreshold: columnThreshold,
@@ -117,7 +116,7 @@ const SimpleCleaningToolsDB = ({ lastEdit, DB, data, columns, currentCollection,
         type: type,
         cleanMethod: cleaningOption,
         overwrite: overwrite,
-        databaseName: DB.name,
+        databaseName: "data",
         collectionName: currentCollection,
         rowThreshold: rowThreshold,
         columnThreshold: columnThreshold,
@@ -129,7 +128,6 @@ const SimpleCleaningToolsDB = ({ lastEdit, DB, data, columns, currentCollection,
     requestBackend(port, "/input/cleanDB/", jsonToSend, (jsonResponse) => {
       console.log("jsonResponse", jsonResponse)
       refreshData()
-      ipcRenderer.send("get-collections", DB.name)
       toast.success("Data cleaned successfully.")
     })
   }
