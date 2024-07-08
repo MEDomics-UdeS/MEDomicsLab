@@ -13,6 +13,7 @@ import { Dropdown } from "primereact/dropdown"
 import { SelectButton } from "primereact/selectbutton"
 import { requestBackend } from "../../../utilities/requests"
 import { ServerConnectionContext } from "../../serverConnection/connectionContext"
+import { DataContext } from "../../workspace/dataContext"
 
 const SimpleCleaningToolsDB = ({ lastEdit, data, columns, currentCollection, refreshData }) => {
   const [tableData, setTableData] = useState([])
@@ -31,6 +32,7 @@ const SimpleCleaningToolsDB = ({ lastEdit, data, columns, currentCollection, ref
   const cleaningOptions = ["drop", "random fill", "mean fill", "median fill", "mode fill", "bfill", "ffill"]
   const [startWith, setStartWith] = useState("Columns")
   const { port } = useContext(ServerConnectionContext)
+  const { globalData } = useContext(DataContext)
 
   // Function to show the data in the columns and rows datatables
   useEffect(() => {
@@ -141,7 +143,7 @@ const SimpleCleaningToolsDB = ({ lastEdit, data, columns, currentCollection, ref
             "The Simple Cleaning tool assists in handling missing values within your datasets, whether by rows, columns, or both. It provides various methods such as dropping missing values or filling them in."
           }
         />
-        <Message style={{ marginTop: "10px" }} severity="success" text={`Current Collection: ${currentCollection}`} />
+        <Message style={{ marginTop: "10px" }} severity="success" text={`Current Collection: ${globalData[currentCollection].name}`} />
       </div>
       <div>
         <DataTable
