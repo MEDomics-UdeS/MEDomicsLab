@@ -185,11 +185,11 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
     rowData[field] = newValue
     if (!rowData._id) {
       console.log("Calling insertDatabaseData with:", {
-        dbname: data.path,
-        collectionName: data.uuid,
+        Filename: data.name,
+        collectionName: data.id,
         data: rowData
       })
-      insertDatabaseData(data.path, data.uuid, rowData)
+      insertDatabaseData(data.path, data.id, rowData)
         .then((id) => {
           console.log("Database inserted successfully")
           rowData._id = id
@@ -200,13 +200,13 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
         })
     } else {
       console.log("Calling updateDatabaseData with:", {
-        dbname: data.path,
-        collectionName: data.uuid,
+        Filename: data.name,
+        collectionName: data.id,
         id: rowData._id,
         field,
         newValue
       })
-      updateDatabaseData(data.path, data.uuid, rowData._id, field, newValue)
+      updateDatabaseData(data.path, data.id, rowData._id, field, newValue)
         .then(() => {
           console.log("Database updated successfully")
           setLastEdit(Date.now())
