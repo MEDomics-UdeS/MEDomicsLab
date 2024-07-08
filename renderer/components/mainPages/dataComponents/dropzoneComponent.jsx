@@ -107,10 +107,11 @@ export default function DropzoneComponent({ children, item = undefined, setIsDro
       }
     }
     // Set new folders in globalData
+    console.log("HERE", folderMap)
     for (const folder of folderMap) {
       await insertMEDDataObjectIfNotExists(folder[1])
     }
-    MEDDataObject.updateWorkspaceDataObject()
+    //MEDDataObject.updateWorkspaceDataObject()
     return fileObjects
   }
 

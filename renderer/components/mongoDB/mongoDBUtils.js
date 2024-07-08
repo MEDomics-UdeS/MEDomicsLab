@@ -66,23 +66,26 @@ export async function insertMEDDataObjectIfNotExists(medData, path = null, jsonD
     if (parent) {
       let children = parent.childrenIDs || []
 
-      // Fetch the actual child objects to sort them
-      const childrenObjects = await collection.find({ id: { $in: children } }).toArray()
-      childrenObjects.push(medData)
+      // Check if the child is already in the parent's childrenIDs
+      if (!children.includes(medData.id)) {
+        // Fetch the actual child objects to sort them
+        const childrenObjects = await collection.find({ id: { $in: children } }).toArray()
+        childrenObjects.push(medData)
 
-      // Sort the children objects first by type (directories first) and then alphabetically by name
-      childrenObjects.sort((a, b) => {
-        if (a.type === b.type) {
-          return a.name.localeCompare(b.name)
-        }
-        return a.type === "directory" ? -1 : 1
-      })
+        // Sort the children objects first by type (directories first) and then alphabetically by name
+        childrenObjects.sort((a, b) => {
+          if (a.type === b.type) {
+            return a.name.localeCompare(b.name)
+          }
+          return a.type === "directory" ? -1 : 1
+        })
 
-      // Extract the sorted ids
-      children = childrenObjects.map((child) => child.id)
+        // Extract the sorted ids
+        children = childrenObjects.map((child) => child.id)
 
-      // Update the parent with the sorted children ids
-      await collection.updateOne({ id: medData.parentID }, { $set: { childrenIDs: children } })
+        // Update the parent with the sorted children ids
+        await collection.updateOne({ id: medData.parentID }, { $set: { childrenIDs: children } })
+      }
     }
   }
 
