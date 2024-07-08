@@ -485,14 +485,9 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
           </DataTable>
         </div>
       )}
-      <Dialog header="Input Tools" /* visible={isDialogVisible} onHide={closeDialog} */ style={{ width: "80%", height: "80%" }} modal={true}>
+      <Dialog header="Input Tools" style={{ width: "80%", height: "80%" }} modal={true}>
         <InputToolsComponent
           data={data}
-          /*           numRows={numRows}
-          setNumRows={setNumRows}
-          newColumnName={newColumnName}
-          setNewColumnName={setNewColumnName}
-          handleAddColumn={handleAddColumn} */
           exportOptions={exportOptions}
           refreshData={refreshData}
           selectedColumns={selectedColumns}
@@ -506,7 +501,6 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
           handleExportColumns={handleExportColumns}
           handleDeleteColumns={handleDeleteColumns}
           innerData={innerData}
-          //handleAddRow={handleAddRow}
           lastEdit={lastEdit}
         />
       </Dialog>
