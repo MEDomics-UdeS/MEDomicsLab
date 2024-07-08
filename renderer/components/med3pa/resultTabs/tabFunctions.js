@@ -1,9 +1,9 @@
-export const nodeInformation = ["Node%", "Population%", "Mean Confidence Level", "Positive%"]
+export const nodeInformation = ["Node%", "Population%", "Mean confidence level", "Positive%"]
 export const shiftInformation = ["Shift Probability", "Test Statistic"]
 
 // Function to format numbers with three decimal places
 export const formatValue = (value) => {
-  if (!value) return null
+  if (value === null) return null
   if (typeof value === "number" && !Number.isInteger(value)) {
     value = value.toFixed(3)
   }
@@ -17,18 +17,22 @@ export const isLost = (obj) => {
   )
 }
 
-export const filterData = (data, lostData, nodeParams) => {
+export const filterData = (data, lostData, nodeParams, maxDepth) => {
   if (!data) return data
 
   // Create deep copies of data and lostData
-  let dataCopy = JSON.parse(JSON.stringify(data)).map((item) => ({
-    ...item,
-    className: ""
-  }))
-  let lostDataCopy = JSON.parse(JSON.stringify(lostData)).map((item) => ({
-    ...item,
-    className: "panode-lost"
-  }))
+  let dataCopy = JSON.parse(JSON.stringify(data))
+    .map((item) => ({
+      ...item,
+      className: ""
+    }))
+    .filter((item) => item.path.length <= parseInt(maxDepth))
+  let lostDataCopy = JSON.parse(JSON.stringify(lostData))
+    .map((item) => ({
+      ...item,
+      className: "panode-lost"
+    }))
+    .filter((item) => item.path.length <= parseInt(maxDepth))
 
   let filteredData = [...dataCopy, ...lostDataCopy]
 
@@ -40,6 +44,8 @@ export const filterData = (data, lostData, nodeParams) => {
     if (nodeParams.focusView === "Node information") {
       if (item.className === "panode-lost") return newItem
       newItem.nodeInformation = item["node information"]
+      console.log("DOES IT EXIST", newItem.nodeInformation[nodeParams.selectedParameter])
+      console.log("SEE HERE NODE INFORMATION", newItem.nodeInformation)
 
       if (parseFloat(newItem.nodeInformation[nodeParams.selectedParameter]) >= customThreshold) {
         newItem.className = "panode-threshold"

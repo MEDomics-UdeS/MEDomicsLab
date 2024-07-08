@@ -34,7 +34,7 @@ export default function TreeNode({ id, data }) {
             <p className="panode-value">{parentKey}</p>
           </div>
           <div className="col-sm-6 text-end">
-            <p className="panode-value-end">{value !== null && value ? formatValue(value) : "X"}</p>
+            <p className="panode-value-end">{value !== null ? formatValue(value) : "X"}</p>
           </div>
         </div>
       )

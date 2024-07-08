@@ -4,10 +4,11 @@ import { filterUniqueLostProfiles } from "../resultTabs/tabFunctions"
 import { MdGroupRemove } from "react-icons/md"
 import { Typography } from "@mui/material"
 
-const LostProfiles = ({ lostData, dr, onElementClick }) => {
+const LostProfiles = ({ lostData, filters, onElementClick }) => {
   // eslint-disable-next-line no-unused-vars
   const [key, setKey] = useState(0)
   const chartRef = useRef(null)
+  const { dr, maxDepth } = filters
   const [selectedElement, setSelectedElement] = useState(null)
 
   const onChartClick = (params) => {
@@ -45,6 +46,19 @@ const LostProfiles = ({ lostData, dr, onElementClick }) => {
     items.map((item) => {
       const declarationRate = parseInt(key, 10)
       const isGreaterThanDR = declarationRate > dr
+
+      // Filter out items exceeding maxDepth
+      if (item.path.length > maxDepth) {
+        return {
+          id: item.id,
+          name: item.path.filter((p) => p !== "*").join("\n"), // Use path as tooltip display
+          value: [declarationRate, item.id], // Use key for x-axis, id as y-axis
+          symbolSize: selectedElement && selectedElement.data.id === item.id ? 30 : 10, // Larger size for selected element
+          itemStyle: {
+            color: "transparent" // Conditional color based on DR comparison
+          }
+        }
+      }
       return {
         id: item.id,
         name: item.path.filter((p) => p !== "*").join("\n"), // Use path as tooltip display

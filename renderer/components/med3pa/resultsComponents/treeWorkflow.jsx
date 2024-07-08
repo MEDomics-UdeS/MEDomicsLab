@@ -15,7 +15,7 @@ import { MdOutlineGroups3 } from "react-icons/md"
 import DownloadButton from "./download.jsx"
 import { Fullscreen } from "react-bootstrap-icons"
 
-const TreeWorkflow = ({ treeData, lostProfiles, onButtonClicked, onFullScreenClicked, fullscreen }) => {
+const TreeWorkflow = ({ treeData, maxDepth, onButtonClicked, onFullScreenClicked, fullscreen }) => {
   // eslint-disable-next-line no-unused-vars
   const [buttonClicked, setButtonClicked] = useState(false)
   const { setCenter, fitView } = useReactFlow()
@@ -108,7 +108,7 @@ const TreeWorkflow = ({ treeData, lostProfiles, onButtonClicked, onFullScreenCli
   useEffect(() => {
     // Ensure fitView after nodes and edges are updated
     fitView({ duration: 800 })
-  }, [buttonClicked, Fullscreen])
+  }, [Fullscreen, buttonClicked])
 
   const handleClick = (buttonType) => {
     setButtonClicked(buttonType)
@@ -221,42 +221,85 @@ const TreeWorkflow = ({ treeData, lostProfiles, onButtonClicked, onFullScreenCli
   }
 
   useEffect(() => {
-    // Call fitView with duration 800 (assuming it's a function that adjusts the view)
+    // Update nodes and edges state
     fitView({ duration: 800 })
-
-    // Log lostProfiles for debugging
-
-    // Update nodes state
+    let className
     setNodes((prevNodes) => {
-      return prevNodes.map((node) => {
-        // Check if this node's id matches any profile id in lostProfiles
-        const profile = lostProfiles.find((profile) => node.id === `treeNode_${profile.id}`)
+      const updatedNodes = prevNodes
+        .map((node) => {
+          // Check if the node path length exceeds maxDepth, if so, skip updating
 
-        if (profile) {
-          // If found, update the className to "panode-lost"
-          return {
-            ...node,
-            className: "panode-lost"
+          if (node.data.internal.settings.path.length > maxDepth) {
+            const className = "panode-maxdepth"
+            return {
+              ...node,
+              data: {
+                ...node.data,
+                internal: {
+                  ...node.data.internal,
+                  settings: {
+                    ...node.data.internal.settings,
+                    className: className
+                  }
+                }
+              }
+            }
           }
-        }
+          // Check if the node exists in treeData
+          const isInTreeData = treeData.some((profile) => node.id === `treeNode_${profile.id}`)
 
-        // If not found, return the node as is
-        return node
+          if (!isInTreeData) {
+            className = "panode-lost"
+            // If not found in treeData, update its className to "panode-lost" and remove unnecessary fields
+            // eslint-disable-next-line no-unused-vars
+            const { nodeInformation, detectronResults, metrics, ...restSettings } = node.data.internal.settings
+
+            return {
+              ...node,
+              data: {
+                ...node.data,
+                internal: {
+                  ...node.data.internal,
+                  settings: {
+                    ...restSettings,
+                    className: className
+                  }
+                }
+              }
+            }
+          }
+
+          // If found in treeData or in both treeData and lostProfiles, return the node as is
+          return node
+        })
+        .filter(Boolean) // Filter out null or undefined nodes (due to conditions above)
+      // Collect IDs of nodes to be removed
+      const removedNodeIds = prevNodes.filter((node) => node.data.internal.settings.path.length > maxDepth).map((node) => node.id)
+
+      // Update edges state with updated style for removed nodes
+      const updatedEdges = edges.map((edge) => {
+        // Check if the edge's target node is in removedNodeIds
+        const isNotVisible = removedNodeIds.includes(edge.target)
+
+        // Conditionally update style based on visibility
+
+        return {
+          ...edge,
+          style: isNotVisible ? { ...edge.style, opacity: 0 } : { ...edge.style, opacity: 1 },
+          labelStyle: isNotVisible ? { ...edge.labelStyle, opacity: 0 } : { ...edge.labelStyle, opacity: 1 }
+        }
       })
+
+      // Update edges state with updatedEdges
+      if (updatedEdges && updatedEdges.length > 0) {
+        setEdges(updatedEdges)
+      }
+      // Return updatedNodes to update nodes state
+      return updatedNodes
     })
-  }, [lostProfiles]) // Include lostProfiles in the dependency array
+  }, [treeData])
 
-  useEffect(() => {
-    setNodes((nds) =>
-      nds.map((node) => {
-        // it's important that you create a new object here in order to notify react flow about the change
-        node.data = {
-          ...node.data
-        }
-        return node
-      })
-    )
-  }, []) // Add an empty dependency array here
+  // Add lostProfiles to the dependency array if it's not already there
 
   const createBaseNode = (node, id) => {
     const { nodeType, name, image, description, settings, position } = node
@@ -432,6 +475,7 @@ const TreeWorkflow = ({ treeData, lostProfiles, onButtonClicked, onFullScreenCli
     }
 
     addTreeNodesFromProfiles()
+    fitView({ duration: 800 })
   }, [treeData])
 
   const updateDimensions = () => {
@@ -550,10 +594,10 @@ const TreeWorkflow = ({ treeData, lostProfiles, onButtonClicked, onFullScreenCli
   )
 }
 
-const FlowWithProvider = ({ treeData, lostProfiles, onButtonClicked, onFullScreenClicked, fullscreen }) => {
+const FlowWithProvider = ({ treeData, maxDepth, onButtonClicked, onFullScreenClicked, fullscreen }) => {
   return (
     <ReactFlowProvider>
-      <TreeWorkflow treeData={treeData} lostProfiles={lostProfiles} onButtonClicked={onButtonClicked} onFullScreenClicked={onFullScreenClicked} fullscreen={fullscreen} />
+      <TreeWorkflow treeData={treeData} maxDepth={maxDepth} onButtonClicked={onButtonClicked} onFullScreenClicked={onFullScreenClicked} fullscreen={fullscreen} />
     </ReactFlowProvider>
   )
 }

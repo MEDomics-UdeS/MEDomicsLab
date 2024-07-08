@@ -24,7 +24,6 @@ const MED3paResultsTab = ({ loadedFiles, type }) => {
 
   const [detectronR, setdetectronR] = useState({})
   const [loadingDetectron, setLoadingDetectron] = useState(false)
-  const [lostProfiles, setLostProfiles] = useState({})
 
   const [settings, setSettings] = useState({
     metrics: null,
@@ -149,14 +148,17 @@ const MED3paResultsTab = ({ loadedFiles, type }) => {
         }
         if (!test.profiles) return
 
-        const filteredData = filterData(test.profiles[treeParams.minSamplesRatio][treeParams.declarationRate], test.lost_profiles[treeParams.minSamplesRatio][treeParams.declarationRate], nodeParams)
+        const filteredData = filterData(
+          test.profiles[treeParams.minSamplesRatio][treeParams.declarationRate],
+          test.lost_profiles[treeParams.minSamplesRatio][treeParams.declarationRate],
+          nodeParams,
+          treeParams.maxDepth
+        )
 
         if (filteredData) {
           setTreeData(filteredData)
 
           setLostData(test.lost_profiles[treeParams.minSamplesRatio])
-
-          setLostProfiles(test.lost_profiles[treeParams.minSamplesRatio][treeParams.declarationRate])
 
           setLoadingLost(true)
 
@@ -188,12 +190,15 @@ const MED3paResultsTab = ({ loadedFiles, type }) => {
 
       if (!test.profiles) return
 
-      const filteredData = filterData(test.profiles[treeParams.minSamplesRatio][treeParams.declarationRate], test.lost_profiles[treeParams.minSamplesRatio][treeParams.declarationRate], nodeParams)
+      const filteredData = filterData(
+        test.profiles[treeParams.minSamplesRatio][treeParams.declarationRate],
+        test.lost_profiles[treeParams.minSamplesRatio][treeParams.declarationRate],
+        nodeParams,
+        treeParams.maxDepth
+      )
 
       if (filteredData) {
         setTreeData(filteredData)
-
-        setLostProfiles(test.lost_profiles[treeParams.minSamplesRatio][treeParams.declarationRate])
 
         setLoadingLost(true)
         setLostData(test.lost_profiles[treeParams.minSamplesRatio])
@@ -283,7 +288,7 @@ const MED3paResultsTab = ({ loadedFiles, type }) => {
               {!loadingTree ? (
                 <p>Loading tree data...</p>
               ) : (
-                <FlowWithProvider treeData={treeData} lostProfiles={lostProfiles} onButtonClicked={handleButtonClicked} onFullScreenClicked={toggleFullscreen} fullscreen={fullscreen} />
+                <FlowWithProvider treeData={treeData} maxDepth={treeParams.maxDepth} onButtonClicked={handleButtonClicked} onFullScreenClicked={toggleFullscreen} fullscreen={fullscreen} />
               )}
             </div>
           </div>
@@ -323,12 +328,12 @@ const MED3paResultsTab = ({ loadedFiles, type }) => {
                     {!loadingTree ? (
                       <p>Loading tree data...</p>
                     ) : (
-                      <FlowWithProvider treeData={treeData} lostProfiles={lostProfiles} onButtonClicked={handleButtonClicked} onFullScreenClicked={toggleFullscreen} fullscreen={fullscreen} />
+                      <FlowWithProvider treeData={treeData} maxDepth={treeParams.maxDepth} onButtonClicked={handleButtonClicked} onFullScreenClicked={toggleFullscreen} fullscreen={fullscreen} />
                     )}
                   </div>
                   <div className="col-md-5 mb-3" style={{ flex: "1", display: "flex", flexDirection: "column" }}>
                     {!loadingCurve ? <p>Loading CURVE data...</p> : <MDRCurve curveData={curveData} clickedLostElement={currentSelectedId} />}
-                    {!loadingLost ? null : <LostProfiles lostData={lostData} dr={treeParams.declarationRate} onElementClick={handleElementClick} />}
+                    {!loadingLost ? null : <LostProfiles lostData={lostData} filters={{ dr: treeParams.declarationRate, maxDepth: treeParams.maxDepth }} onElementClick={handleElementClick} />}
                     {type === "eval" && !loadingDetectron ? null : type === "eval" && <DetectronResults detectronResults={detectronR.detectron_results} />}
                   </div>
                 </div>

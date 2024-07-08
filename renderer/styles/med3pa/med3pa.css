@@ -135,7 +135,7 @@
 .panode-lost {
   opacity: 40%;
   z-index: -1;
-  position: relative;
+
   background: rgba(255, 0, 0, 0.5);
 }
 
@@ -145,4 +145,7 @@
 .panode-revert {
   opacity: 40%;
   transform: scale(1);
+}
+.panode-maxdepth {
+  display: none;
 }

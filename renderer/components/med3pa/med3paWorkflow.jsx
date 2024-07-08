@@ -69,7 +69,8 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
   const { getIntersectingNodes } = useReactFlow() // getIntersectingNodes is used to get the intersecting nodes of a node
   const { isResults, setIsResults } = useContext(FlowResultsContext)
   const { port, getBasePath } = useContext(WorkspaceContext)
-
+  // eslint-disable-next-line no-unused-vars
+  const [paParams, setpaParams] = useState({})
   const { setError } = useContext(ErrorRequestContext)
   const [intersections, setIntersections] = useState([]) // intersections is used to store the intersecting nodes related to optimize nodes start and end
   const [isProgressUpdating, setIsProgressUpdating] = useState(false) // progress is used to store the progress of the workflow execution
@@ -517,6 +518,36 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
   //     }
   //   }
   // }
+  useEffect(() => {
+    const fetchData = () => {
+      if (!port) return null
+      requestBackend(
+        // Send the request
+        port,
+        "/med3pa/send_params/" + pageId,
+        "JSONToSend",
+        (jsonResponse) => {
+          if (jsonResponse.error) {
+            if (typeof jsonResponse.error == "string") {
+              jsonResponse.error = JSON.parse(jsonResponse.error)
+            }
+            setError(jsonResponse.error)
+          } else {
+            setIsUpdating(false) // Set the isUpdating to false
+            console.log("jsonResponse", jsonResponse)
+            setProgressValue({ now: 100, currentLabel: jsonResponse["data"] }) // Set the progress value to 100 and show the message that the backend received from the frontend
+          }
+        },
+        function (error) {
+          setIsUpdating(false)
+          setProgressValue({ now: 0, currentLabel: "Message sending failed ❌" })
+          toast.error("Sending failed", error)
+        }
+      )
+    }
+
+    fetchData()
+  }, [])
 
   /**
    * Request the backend to run the experiment
