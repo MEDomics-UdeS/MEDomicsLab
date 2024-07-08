@@ -12,7 +12,7 @@ import InputToolsComponent from "./InputToolsComponent"
 import { Dialog } from "primereact/dialog"
 import { LayoutModelContext } from "../layout/layoutContext"
 import { connectToMongoDB } from "../mongoDB/mongoDBUtils"
-import {DataContext} from "../workspace/dataContext";
+import { DataContext } from "../workspace/dataContext"
 
 /**
  * DataTableFromDB component
@@ -383,14 +383,7 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
         </div>
       )}
       <Dialog header="Input Tools" style={{ width: "80%", height: "80%" }} modal={true}>
-        <InputToolsComponent
-          data={data}
-          exportOptions={exportOptions}
-          refreshData={refreshData}
-          columns={columns}
-          innerData={innerData}
-          lastEdit={lastEdit}
-        />
+        <InputToolsComponent data={data} exportOptions={exportOptions} refreshData={refreshData} columns={columns} innerData={innerData} lastEdit={lastEdit} />
       </Dialog>
     </>
   )

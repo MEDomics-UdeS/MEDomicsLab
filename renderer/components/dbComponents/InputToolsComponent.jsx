@@ -8,15 +8,7 @@ import HoldoutSetCreationToolsDB from "./inputToolsDB/holdoutSetCreationToolsDB"
 import SubsetCreationToolsDB from "./inputToolsDB/subsetCreationToolsDB"
 import FeatureReductionToolsDB from "./inputToolsDB/featureReductionToolsDB/featureReductionToolsDB"
 
-const InputToolsComponent = ({
-  data,
-  exportOptions,
-  refreshData,
-  columns,
-  transformData,
-  innerData,
-  lastEdit
-}) => {
+const InputToolsComponent = ({ data, exportOptions, refreshData, columns, transformData, innerData, lastEdit }) => {
   const panelContainerStyle = {
     height: "100%",
     overflow: "auto"
@@ -30,12 +22,7 @@ const InputToolsComponent = ({
         <BasicToolsDB exportOptions={exportOptions} refreshData={refreshData} currentCollection={data.id} />
       </Panel>
       <Panel header="Transform Column Tools" toggleable collapsed={true}>
-        <TransformColumnToolsDB
-          columns={columns}
-          transformData={transformData}
-          currentCollection={data.id}
-          refreshData={refreshData}
-        />
+        <TransformColumnToolsDB columns={columns} transformData={transformData} currentCollection={data.id} refreshData={refreshData} />
       </Panel>
       <Panel header="Merge Tools" toggleable collapsed={true}>
         <MergeToolsDB data={innerData} columns={columns} currentCollection={data.id} />

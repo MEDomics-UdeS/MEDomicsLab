@@ -6,7 +6,7 @@ import { Message } from "primereact/message"
 import { toast } from "react-toastify"
 import { getCollectionData } from "../utils"
 import { connectToMongoDB } from "../../mongoDB/mongoDBUtils"
-import Papa from "papaparse";
+import Papa from "papaparse"
 
 const TransformColumnToolsDB = ({ currentCollection, refreshData }) => {
   const [isHovered, setIsHovered] = useState(false)
@@ -40,28 +40,27 @@ const TransformColumnToolsDB = ({ currentCollection, refreshData }) => {
   }
 
   const transformData = async (type, currentCollection) => {
-    const data = await getCollectionData(currentCollection); // Await the async call
+    const data = await getCollectionData(currentCollection) // Await the async call
     const newTransformedData = data.map((row) => {
-      let newRow = { ...row };
+      let newRow = { ...row }
       selectedColumns.forEach((column) => {
-        const cellValue = newRow[column];
+        const cellValue = newRow[column]
         if (type === "Binary") {
-          newRow[column] = cellValue && !isNaN(cellValue) ? 1 : 0;
+          newRow[column] = cellValue && !isNaN(cellValue) ? 1 : 0
         } else if (type === "Non-empty") {
-          newRow[column] = cellValue && !isNaN(cellValue) ? cellValue : 0;
+          newRow[column] = cellValue && !isNaN(cellValue) ? cellValue : 0
         }
-      });
-      return newRow;
-    });
+      })
+      return newRow
+    })
 
-    const db = await connectToMongoDB();
-    const collection = db.collection(currentCollection);
-    await collection.deleteMany({});
-    await collection.insertMany(newTransformedData);
-    toast.success("Data transformed to " + type + " successfully");
-    refreshData();
-
-  };
+    const db = await connectToMongoDB()
+    const collection = db.collection(currentCollection)
+    await collection.deleteMany({})
+    await collection.insertMany(newTransformedData)
+    toast.success("Data transformed to " + type + " successfully")
+    refreshData()
+  }
 
   // Handle exporting selected columns
   const handleExportColumns = () => {
@@ -81,7 +80,7 @@ const TransformColumnToolsDB = ({ currentCollection, refreshData }) => {
       const collection = db.collection(currentCollection)
       const data = await collection.find({}).toArray()
       const newTransformedData = data.map((row) => {
-        let newRow = {...row}
+        let newRow = { ...row }
         selectedColumns.forEach((column) => {
           delete newRow[column]
         })
@@ -98,36 +97,36 @@ const TransformColumnToolsDB = ({ currentCollection, refreshData }) => {
 
   // Handle file upload
   const handleFileUpload = (event) => {
-    const file = event.target.files[0];
+    const file = event.target.files[0]
     if (!file) {
-      toast.warn("No file selected");
-      return;
+      toast.warn("No file selected")
+      return
     }
 
     if (file.type !== "text/csv") {
-      toast.warn("File must be a CSV");
-      return;
+      toast.warn("File must be a CSV")
+      return
     }
 
     Papa.parse(file, {
       complete: (result) => {
-        const uploadedColumns = result.data[0]; // Assuming the first row contains column names
+        const uploadedColumns = result.data[0] // Assuming the first row contains column names
         if (result.data.length !== 1) {
-          toast.warn("CSV file must contain only one line with column names");
-          return;
+          toast.warn("CSV file must contain only one line with column names")
+          return
         }
 
-        const missingColumns = uploadedColumns.filter(col => !columns.includes(col));
+        const missingColumns = uploadedColumns.filter((col) => !columns.includes(col))
         if (missingColumns.length > 0) {
-          toast.warn("Missing columns: " + missingColumns.join(", "));
+          toast.warn("Missing columns: " + missingColumns.join(", "))
         } else {
-          setSelectedColumns(uploadedColumns);
+          setSelectedColumns(uploadedColumns)
         }
       },
       skipEmptyLines: true,
       header: false
-    });
-  };
+    })
+  }
 
   return (
     <>
