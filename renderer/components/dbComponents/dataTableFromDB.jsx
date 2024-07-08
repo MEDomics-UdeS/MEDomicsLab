@@ -11,7 +11,6 @@ import InputToolsComponent from "./InputToolsComponent"
 import { Dialog } from "primereact/dialog"
 import { LayoutModelContext } from "../layout/layoutContext"
 import { connectToMongoDB } from "../mongoDB/mongoDBUtils"
-import { DataContext } from "../workspace/dataContext"
 
 /**
  * DataTableFromDB component
