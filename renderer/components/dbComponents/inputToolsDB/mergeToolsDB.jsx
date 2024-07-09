@@ -84,6 +84,11 @@ const MergeToolsDB = ({ currentCollection }) => {
    * It is used to merge the datasets, create a new dataset and update the workspace
    */
   const merge = async (selectedMergeType) => {
+    if (!selectedMergeType) {
+      toast.warn("Please select a merge type.")
+      return
+    }
+
     const id = randomUUID()
     const object = new MEDDataObject({
       id: id,
@@ -148,6 +153,7 @@ const MergeToolsDB = ({ currentCollection }) => {
             }}
             tooltip="Merge"
             tooltipOptions={{ position: "top" }}
+            disabled={selectedCollections.length !== 2 || selectedColumns.length === 0 || !selectedMergeType}
           />
         </div>
       </div>

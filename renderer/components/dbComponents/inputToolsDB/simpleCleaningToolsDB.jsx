@@ -14,6 +14,9 @@ import { SelectButton } from "primereact/selectbutton"
 import { requestBackend } from "../../../utilities/requests"
 import { ServerConnectionContext } from "../../serverConnection/connectionContext"
 import { DataContext } from "../../workspace/dataContext"
+import { randomUUID } from "crypto"
+import { MEDDataObject } from "../../workspace/NewMedDataObject"
+import { insertMEDDataObjectIfNotExists } from "../../mongoDB/mongoDBUtils"
 
 const SimpleCleaningToolsDB = ({ lastEdit, data, columns, currentCollection, refreshData }) => {
   const [tableData, setTableData] = useState([])
@@ -97,7 +100,17 @@ const SimpleCleaningToolsDB = ({ lastEdit, data, columns, currentCollection, ref
     clean(cleanType, overwrite)
   }
 
-  const clean = (type, overwrite) => {
+  const clean = async (type, overwrite) => {
+    const id = randomUUID()
+    const object = new MEDDataObject({
+      id: id,
+      name: newCollectionName,
+      type: "csv",
+      parentID: null,
+      childrenIDs: [],
+      inWorkspace: false
+    })
+
     let jsonToSend = {}
     if (type == "all") {
       jsonToSend = {
@@ -105,12 +118,12 @@ const SimpleCleaningToolsDB = ({ lastEdit, data, columns, currentCollection, ref
         cleanMethod: cleaningOption,
         overwrite: overwrite,
         databaseName: "data",
-        collectionName: currentCollection,
+        collectionName: globalData[currentCollection].id,
         rowThreshold: rowThreshold,
         columnThreshold: columnThreshold,
         rowsToClean: rowsToClean,
         columnsToClean: columnsToClean,
-        newDatasetName: newCollectionName,
+        newDatasetName: id,
         startWith: startWith
       }
     } else {
@@ -119,12 +132,12 @@ const SimpleCleaningToolsDB = ({ lastEdit, data, columns, currentCollection, ref
         cleanMethod: cleaningOption,
         overwrite: overwrite,
         databaseName: "data",
-        collectionName: currentCollection,
+        collectionName: globalData[currentCollection].id,
         rowThreshold: rowThreshold,
         columnThreshold: columnThreshold,
         rowsToClean: rowsToClean,
         columnsToClean: columnsToClean,
-        newDatasetName: newCollectionName
+        newDatasetName: id
       }
     }
     requestBackend(port, "/input/cleanDB/", jsonToSend, (jsonResponse) => {
@@ -132,6 +145,8 @@ const SimpleCleaningToolsDB = ({ lastEdit, data, columns, currentCollection, ref
       refreshData()
       toast.success("Data cleaned successfully.")
     })
+    await insertMEDDataObjectIfNotExists(object)
+    MEDDataObject.updateWorkspaceDataObject()
   }
 
   return (

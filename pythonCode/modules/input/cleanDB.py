@@ -79,6 +79,8 @@ class GoExecScriptClean(GoExecutionScript):
                 df = clean_rows(df, rows_to_clean, clean_method)
                 df = clean_columns(df, columns_to_clean, clean_method)
         
+        print(df)
+
         # Save the dataset
         if overwrite:
             # Delete the content of the collection and insert the new data
