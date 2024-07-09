@@ -10,6 +10,7 @@ var prePath = "input"
 // AddHandleFunc adds the specific module handle function to the server
 func AddHandleFunc() {
 	Utils.CreateHandleFunc(prePath+"/merge_datasets/", handleMerge)
+	Utils.CreateHandleFunc(prePath+"/merge_datasets_DB/", handleMergeDB)
 	Utils.CreateHandleFunc(prePath+"/create_holdout_set/", handleCreateHoldoutSet)
 	Utils.CreateHandleFunc(prePath+"/compute_eigenvalues/", handleComputeEigenvalues)
 	Utils.CreateHandleFunc(prePath+"/create_pca/", handleCreatePCA)
@@ -32,6 +33,18 @@ func AddHandleFunc() {
 func handleMerge(jsonConfig string, id string) (string, error) {
 	log.Println("Merging datasets...", id)
 	response, err := Utils.StartPythonScripts(jsonConfig, "../pythonCode/modules/input/merge.py", id)
+	Utils.RemoveIdFromScripts(id)
+	if err != nil {
+		return "", err
+	}
+	return response, nil
+}
+
+// handleMerge handles the request to merge the datasets for the DB
+// It returns the response from the python script
+func handleMergeDB(jsonConfig string, id string) (string, error) {
+	log.Println("Merging datasets DB...", id)
+	response, err := Utils.StartPythonScripts(jsonConfig, "../pythonCode/modules/input/mergeDB.py", id)
 	Utils.RemoveIdFromScripts(id)
 	if err != nil {
 		return "", err

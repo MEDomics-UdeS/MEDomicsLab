@@ -1,11 +1,13 @@
-import React from "react"
+import React, { useContext } from "react"
 import { TabPanel, TabView } from "primereact/tabview"
 import SpearmanDB from "./SpearmanDB"
 import CreatePCADB from "./CreatePcaDB"
 import ApplyPCADB from "./ApplyPcaDB"
 import { Message } from "primereact/message"
+import { DataContext } from "../../../workspace/dataContext"
 
 const FeatureReductionToolsDB = ({ currentCollection, DB, refreshData }) => {
+  const { globalData } = useContext(DataContext)
   return (
     <div
       style={{
@@ -16,7 +18,7 @@ const FeatureReductionToolsDB = ({ currentCollection, DB, refreshData }) => {
         padding: "5px"
       }}
     >
-      <Message style={{ marginBottom: "15px" }} severity="success" text={`Current Collection: ${currentCollection}`} />
+      <Message style={{ marginBottom: "15px" }} severity="success" text={`Current Collection: ${globalData[currentCollection].name}`} />
       <TabView>
         <TabPanel header="PCA">
           <TabView>

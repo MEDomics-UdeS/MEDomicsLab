@@ -16,7 +16,7 @@ const InputToolsComponent = ({ data, exportOptions, refreshData, columns, transf
   return (
     <div style={panelContainerStyle}>
       <div style={{ textAlign: "center", marginTop: "20px", marginBottom: "20px" }}>
-        <h1>Database Input Tools</h1> {/* Title now wrapped for additional styling */}
+        <h1>Database Input Tools</h1>
       </div>
       <Panel header="Basic Tools" toggleable collapsed={true}>
         <BasicToolsDB exportOptions={exportOptions} refreshData={refreshData} currentCollection={data.id} />
@@ -25,7 +25,7 @@ const InputToolsComponent = ({ data, exportOptions, refreshData, columns, transf
         <TransformColumnToolsDB columns={columns} transformData={transformData} currentCollection={data.id} refreshData={refreshData} />
       </Panel>
       <Panel header="Merge Tools" toggleable collapsed={true}>
-        <MergeToolsDB data={innerData} columns={columns} currentCollection={data.id} />
+        <MergeToolsDB refreshData={refreshData} currentCollection={data.id} />
       </Panel>
       <Panel header="Simple Cleaning Tools" toggleable collapsed={true}>
         <SimpleCleaningToolsDB refreshData={refreshData} lastEdit={lastEdit} data={innerData} columns={columns} currentCollection={data.id} />

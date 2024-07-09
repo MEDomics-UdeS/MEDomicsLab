@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useContext } from "react"
 import { Message } from "primereact/message"
 import * as React from "react"
 import { getCollectionData, getCollectionColumnTypes } from "../utils"
@@ -11,6 +11,7 @@ import { Button } from "primereact/button"
 import { toast } from "react-toastify"
 import { connectToMongoDB } from "../../mongoDB/mongoDBUtils"
 import { MEDDataObject } from "../../workspace/NewMedDataObject"
+import { DataContext } from "../../workspace/dataContext"
 
 const SubsetCreationToolsDB = ({ currentCollection, refreshData }) => {
   const [data, setData] = useState([])
@@ -19,6 +20,7 @@ const SubsetCreationToolsDB = ({ currentCollection, refreshData }) => {
   const [filters, setFilters] = useState({})
   const [newCollectionName, setNewCollectionName] = useState("")
   const [filteredData, setFilteredData] = useState([])
+  const { globalData } = useContext(DataContext)
   const filterDisplay = "menu"
 
   useEffect(() => {
@@ -108,7 +110,7 @@ const SubsetCreationToolsDB = ({ currentCollection, refreshData }) => {
         severity="info"
         text="The Subset Creation tool enables the creation of a subset of rows from a dataset by applying filters to columns."
       />
-      <Message style={{ marginBottom: "15px" }} severity="success" text={`Current Collection: ${currentCollection}`} />
+      <Message style={{ marginBottom: "15px" }} severity="success" text={`Current Collection: ${globalData[currentCollection].name}`} />
       <DataTable
         onValueChange={(e) => {
           setFilteredData(e)

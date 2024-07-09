@@ -13,6 +13,7 @@ import { requestBackend } from "../../../utilities/requests"
 import { ServerConnectionContext } from "../../serverConnection/connectionContext"
 import { toast } from "react-toastify"
 import { MEDDataObject } from "../../workspace/NewMedDataObject"
+import { DataContext } from "../../workspace/dataContext"
 
 const HoldoutSetCreationToolsDB = ({ refreshData, currentCollection }) => {
   const [shuffle, setShuffle] = useState(false)
@@ -24,6 +25,7 @@ const HoldoutSetCreationToolsDB = ({ refreshData, currentCollection }) => {
   const [cleaningOption, setCleaningOption] = useState("drop")
   const cleaningOptions = ["drop", "random fill", "mean fill", "median fill", "mode fill", "bfill", "ffill"]
   const [newCollectionName, setNewCollectionName] = useState("")
+  const { globalData } = useContext(DataContext)
   const { port } = useContext(ServerConnectionContext)
 
   useEffect(() => {
@@ -96,7 +98,7 @@ const HoldoutSetCreationToolsDB = ({ refreshData, currentCollection }) => {
             </div>
           }
         />
-        <Message className="margin-top-15 margin-bottom-15 center" severity="success" text={`Current collection: ${currentCollection}`} style={{ marginTop: "10px" }} />
+        <Message className="margin-top-15 margin-bottom-15 center" severity="success" text={`Current collection: ${globalData[currentCollection].name}`} style={{ marginTop: "10px" }} />
         <div style={{ marginTop: "10px", marginLeft: "80px" }}>
           <div style={{ marginTop: "10px", display: "flex", justifyContent: "center", marginRight: "70px", alignItems: "center" }}>
             <Checkbox
