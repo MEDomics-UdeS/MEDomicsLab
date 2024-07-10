@@ -10,8 +10,13 @@ import { InputText } from "primereact/inputtext"
 import { toast } from "react-toastify"
 import { requestBackend } from "../../../../utilities/requests"
 import { ServerConnectionContext } from "../../../serverConnection/connectionContext"
+import { MEDDataObject } from "../../../workspace/NewMedDataObject"
+import { insertMEDDataObjectIfNotExists } from "../../../mongoDB/mongoDBUtils"
+import { randomUUID } from "crypto"
+import { DataContext } from "../../../workspace/dataContext"
 
-const ApplyPCADB = ({ DB, currentCollection, refreshData }) => {
+const ApplyPCADB = ({ currentCollection, refreshData }) => {
+  const { globalData } = useContext(DataContext)
   const [transformationCollection, setTransformationSelected] = useState("")
   const [collections, setCollections] = useState([])
   const [selectedColumns, setSelectedColumns] = useState([])
@@ -33,7 +38,7 @@ const ApplyPCADB = ({ DB, currentCollection, refreshData }) => {
     const fetchData = async () => {
       if (transformationCollection) {
         try {
-          const collectionData2 = await getCollectionData(DB.name, transformationCollection)
+          const collectionData2 = await getCollectionData(transformationCollection)
           if (collectionData2) {
             let count = 0
             for (let i = 0; i < collectionData2.length; i++) {
@@ -49,55 +54,76 @@ const ApplyPCADB = ({ DB, currentCollection, refreshData }) => {
     }
 
     fetchData()
-  }, [transformationCollection, DB.name, getCollectionData])
+  }, [transformationCollection, getCollectionData])
 
   useEffect(() => {
     async function getCollections() {
       try {
-        let collections = await ipcRenderer.invoke("get-collections-list", DB.name)
-        let filteredCollections = collections.filter((collection) => collection.includes("pca_transformations_"))
+        const allEntries = Object.values(globalData)
+        const csvEntries = allEntries.filter((entry) => entry.type === "csv")
+        const newOptions = csvEntries.map(({ id, name }) => ({
+          label: name,
+          value: id
+        }))
+        let filteredCollections = newOptions.filter((collection) => collection.label.includes("PCA_TRANSFORMATIONS"))
         setCollections(filteredCollections)
-        console.log("collections", collections)
       } catch (error) {
         console.error("Error fetching collections:", error)
       }
     }
 
     getCollections()
-  }, [DB.name])
+  }, [])
 
   useEffect(() => {
     const fetchData = async () => {
-      const collectionData = await getCollectionData(DB.name, currentCollection)
+      const collectionData = await getCollectionData(currentCollection)
       if (collectionData && collectionData.length > 0) {
         setColumns(Object.keys(collectionData[0]))
       }
     }
     fetchData()
-  }, [DB, currentCollection])
+  }, [currentCollection])
 
   /**
    * @description
    * Call the server to compute pca
    * @param {Boolean} overwrite - True if the dataset should be overwritten, false otherwise
    */
-  const computePCA = (overwrite) => {
+  const computePCA = async (overwrite) => {
+    const id = randomUUID()
+    const object = new MEDDataObject({
+      id: id,
+      name: newCollectionName + "_reduced_features",
+      type: "csv",
+      parentID: null,
+      childrenIDs: [],
+      inWorkspace: false
+    })
+
     let jsonToSend = {}
     jsonToSend = {
       columns: selectedColumns,
       keepUnselectedColumns: keepUnselectedColumns,
       overwrite: overwrite,
-      collectionName: currentCollection,
-      databaseName: DB.name,
-      newCollectionName: newCollectionName,
+      collectionName: globalData[currentCollection].id,
+      databaseName: "data",
+      newCollectionName: id,
       transformationCollection: transformationCollection
     }
     requestBackend(port, "/input/apply_pcaDB/", jsonToSend, (jsonResponse) => {
       console.log("received results:", jsonResponse)
       refreshData()
-      ipcRenderer.send("get-collections", DB.name)
       toast.success("PCA applied successfully")
     })
+    if (!overwrite) {
+      await insertMEDDataObjectIfNotExists(object)
+      MEDDataObject.updateWorkspaceDataObject()
+      toast.success("PCA applied successfully")
+    } else {
+      MEDDataObject.updateWorkspaceDataObject()
+      toast.success("PCA applied successfully")
+    }
   }
 
   return (

@@ -80,8 +80,8 @@ class GoExecScriptApplyPCA(GoExecutionScript):
             collection.insert_many(extracted_features_pca.to_dict(orient="records"))
             return
         else:
-            db.create_collection(new_collection_name + "_reduced_features")
-            collection = db[new_collection_name + "_reduced_features"]
+            db.create_collection(new_collection_name)
+            collection = db[new_collection_name]
             collection.insert_many(extracted_features_pca.to_dict(orient="records"))
             return
 

@@ -14,12 +14,11 @@ import { DataContext } from "../../../workspace/dataContext"
 import { randomUUID } from "crypto"
 import { MEDDataObject } from "../../../workspace/NewMedDataObject"
 import { insertMEDDataObjectIfNotExists } from "../../../mongoDB/mongoDBUtils"
-import { over } from "lodash"
 
 /**
  * Component that renders the CreatePCA feature reduction tool
  */
-const CreatePCADB = ({ currentCollection, DB, refreshData }) => {
+const CreatePCADB = ({ currentCollection, refreshData }) => {
   const [columnPrefix, setColumnPrefix] = useState("pca")
   const [exportTransformation, setExportTransformation] = useState(false)
   const [keepUnselectedColumns, setKeepUnselectedColumns] = useState(false)
