@@ -12,6 +12,8 @@ import { toast } from "react-toastify"
 import { connectToMongoDB } from "../../mongoDB/mongoDBUtils"
 import { MEDDataObject } from "../../workspace/NewMedDataObject"
 import { DataContext } from "../../workspace/dataContext"
+import { randomUUID } from "crypto"
+import { insertMEDDataObjectIfNotExists } from "../../mongoDB/mongoDBUtils"
 
 const SubsetCreationToolsDB = ({ currentCollection, refreshData }) => {
   const [data, setData] = useState([])
@@ -74,23 +76,32 @@ const SubsetCreationToolsDB = ({ currentCollection, refreshData }) => {
     const collection = db.collection(currentCollection)
     await collection.deleteMany({})
     await collection.insertMany(filteredData)
-    toast.success(`Data in ${currentCollection} overwritten with filtered data.`)
+    toast.success(`Data in ${globalData[currentCollection].name} overwritten with filtered data.`)
     refreshData()
   }
 
   const createNewCollectionSubset = async (newCollectionName) => {
+    const id = randomUUID()
+    const object = new MEDDataObject({
+      id: id,
+      name: newCollectionName,
+      type: "csv",
+      parentID: null,
+      childrenIDs: [],
+      inWorkspace: false
+    })
     const db = await connectToMongoDB()
-
     const collections = await db.listCollections().toArray()
-    const collectionExists = collections.some((collection) => collection.name === newCollectionName)
+    const collectionExists = collections.some((collection) => collection.name === id)
 
     if (collectionExists) {
-      toast.warn(`A subset with the name ${newCollectionName} already exists.`)
+      toast.warn(`A subset with the name ${globalData[id].name} already exists.`)
       return
     }
 
-    const newCollection = await db.createCollection(newCollectionName)
+    const newCollection = await db.createCollection(id)
     await newCollection.insertMany(filteredData)
+    await insertMEDDataObjectIfNotExists(object)
     MEDDataObject.updateWorkspaceDataObject()
     toast.success(`New subset ${newCollectionName} created with filtered data.`)
   }
