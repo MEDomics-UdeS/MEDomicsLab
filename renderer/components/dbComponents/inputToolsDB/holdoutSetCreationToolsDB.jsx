@@ -14,6 +14,8 @@ import { ServerConnectionContext } from "../../serverConnection/connectionContex
 import { toast } from "react-toastify"
 import { MEDDataObject } from "../../workspace/NewMedDataObject"
 import { DataContext } from "../../workspace/dataContext"
+import { randomUUID } from "crypto"
+import { insertMEDDataObjectIfNotExists } from "../../mongoDB/mongoDBUtils"
 
 const HoldoutSetCreationToolsDB = ({ refreshData, currentCollection }) => {
   const [shuffle, setShuffle] = useState(false)
@@ -53,11 +55,32 @@ const HoldoutSetCreationToolsDB = ({ refreshData, currentCollection }) => {
    * @async
    */
   const createHoldoutSet = async () => {
+    const id = randomUUID()
+    const id2 = randomUUID()
+    const object = new MEDDataObject({
+      id: id,
+      name: "Learning_" + newCollectionName,
+      type: "csv",
+      parentID: null,
+      childrenIDs: [],
+      inWorkspace: false
+    })
+
+    const object2 = new MEDDataObject({
+      id: id2,
+      name: "Holdout_" + newCollectionName,
+      type: "csv",
+      parentID: null,
+      childrenIDs: [],
+      inWorkspace: false
+    })
+
     let JSONToSend = {}
     JSONToSend = {
       databaseName: "data",
-      collectionName: currentCollection,
-      name: newCollectionName,
+      collectionName: globalData[currentCollection].id,
+      name: id,
+      name2: id2,
       holdoutSetSize: holdoutSetSize,
       shuffle: shuffle,
       stratify: stratify,
@@ -68,9 +91,11 @@ const HoldoutSetCreationToolsDB = ({ refreshData, currentCollection }) => {
     requestBackend(port, "/input/create_holdout_set_DB/", JSONToSend, (jsonResponse) => {
       console.log("jsonResponse", jsonResponse)
       refreshData()
-      MEDDataObject.updateWorkspaceDataObject()
-      toast.success("Holdout and learning sets created successfully.")
+      toast.success("Holdout set created successfully")
     })
+    await insertMEDDataObjectIfNotExists(object)
+    await insertMEDDataObjectIfNotExists(object2)
+    MEDDataObject.updateWorkspaceDataObject()
   }
 
   return (

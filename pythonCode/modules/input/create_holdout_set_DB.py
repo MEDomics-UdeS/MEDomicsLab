@@ -13,12 +13,9 @@ from med_libs.server_utils import go_print
 
 # To deal with the DB
 from pymongo import MongoClient
-import math
 
 json_params_dict, id_ = parse_arguments()
 go_print("running script.py:" + id_)
-
-
 
 class GoExecScriptCreateHoldoutSet(GoExecutionScript):
     """
@@ -52,6 +49,7 @@ class GoExecScriptCreateHoldoutSet(GoExecutionScript):
         random_state = json_config["randomState"]
         nan_method = json_config["nanMethod"]
         final_name = json_config["name"]
+        final_name2 = json_config["name2"]
         database_name = json_config["databaseName"]
         collection_name = json_config["collectionName"]
 
@@ -100,14 +98,16 @@ class GoExecScriptCreateHoldoutSet(GoExecutionScript):
             train_set, holdout_set = train_test_split(
                 df_cleaned, test_size=holdout_size, random_state=random_state)
 
-        # Save the datasets
-        learningCollection = "learning_"+final_name
+
+        # Learning
+        learningCollection = final_name
         db.create_collection(learningCollection)
         learningCollection = db[learningCollection]
         data_dict = train_set.where(pd.notnull(train_set), None).to_dict(orient='records')
         learningCollection.insert_many(data_dict)
 
-        holdoutCollection = "holdout_"+final_name
+        # Holdout
+        holdoutCollection = final_name2
         db.create_collection(holdoutCollection)
         holdoutCollection = db[holdoutCollection]
         data_dict = holdout_set.where(pd.notnull(holdout_set), None).to_dict(orient='records')
