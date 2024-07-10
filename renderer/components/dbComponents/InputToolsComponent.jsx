@@ -37,7 +37,7 @@ const InputToolsComponent = ({ data, exportOptions, refreshData, columns, transf
         <SubsetCreationToolsDB currentCollection={data.id} data={innerData} refreshData={refreshData} />
       </Panel>
       <Panel header="Feature Reduction Tools" toggleable collapsed={true}>
-        <FeatureReductionToolsDB currentCollection={data.id} refreshData={refreshData} />
+        <FeatureReductionToolsDB data={data} refreshData={refreshData} />
       </Panel>
     </div>
   )

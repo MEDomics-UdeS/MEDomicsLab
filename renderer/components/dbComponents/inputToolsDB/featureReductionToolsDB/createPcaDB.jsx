@@ -10,7 +10,11 @@ import { DataTable } from "primereact/datatable"
 import { Column } from "primereact/column"
 import { Checkbox } from "primereact/checkbox"
 import { InputText } from "primereact/inputtext"
-import { ipcRenderer } from "electron"
+import { DataContext } from "../../../workspace/dataContext"
+import { randomUUID } from "crypto"
+import { MEDDataObject } from "../../../workspace/NewMedDataObject"
+import { insertMEDDataObjectIfNotExists } from "../../../mongoDB/mongoDBUtils"
+import { over } from "lodash"
 
 /**
  * Component that renders the CreatePCA feature reduction tool
@@ -29,16 +33,17 @@ const CreatePCADB = ({ currentCollection, DB, refreshData }) => {
   const [explainedVar, setExplainedVar] = useState([])
   const { port } = useContext(ServerConnectionContext)
   const [newCollectionName, setNewCollectionName] = useState("")
+  const { globalData } = useContext(DataContext)
 
   useEffect(() => {
     const fetchData = async () => {
-      const collectionData = await getCollectionData(DB.name, currentCollection)
+      const collectionData = await getCollectionData(currentCollection)
       if (collectionData && collectionData.length > 0) {
         setColumns(Object.keys(collectionData[0]))
       }
     }
     fetchData()
-  }, [DB, currentCollection])
+  }, [currentCollection])
 
   useEffect(() => {
     setSelectedPCRow(null)
@@ -73,8 +78,8 @@ const CreatePCADB = ({ currentCollection, DB, refreshData }) => {
       "/input/compute_eigenvaluesDB/",
       {
         columns: selectedColumns,
-        databaseName: DB.name,
-        collectionName: currentCollection
+        databaseName: "data",
+        collectionName: globalData[currentCollection].id
       },
       (jsonResponse) => {
         console.log("received results:", jsonResponse)
@@ -105,11 +110,31 @@ const CreatePCADB = ({ currentCollection, DB, refreshData }) => {
    * Call the server to compute pca
    * @param {Boolean} overwrite - True if the dataset should be overwritten, false otherwise
    */
-  const applyPCA = (overwrite) => {
+  const applyPCA = async (overwrite) => {
     if (!selectedPCRow) {
       toast.error("Please select the number of principal components")
       return
     }
+    const id = randomUUID()
+    const id2 = randomUUID()
+
+    const object = new MEDDataObject({
+      id: id,
+      name: newCollectionName,
+      type: "csv",
+      parentID: null,
+      childrenIDs: [],
+      inWorkspace: false
+    })
+
+    const object2 = new MEDDataObject({
+      id: id2,
+      name: "PCA_Transformations_" + newCollectionName,
+      type: "csv",
+      parentID: null,
+      childrenIDs: [],
+      inWorkspace: false
+    })
 
     let jsonToSend = {}
     jsonToSend = {
@@ -119,16 +144,40 @@ const CreatePCADB = ({ currentCollection, DB, refreshData }) => {
       keepUnselectedColumns: keepUnselectedColumns,
       overwrite: overwrite,
       exportTransformation: exportTransformation,
-      collectionName: currentCollection,
-      databaseName: DB.name,
-      newCollectionName: newCollectionName
+      collectionName: globalData[currentCollection].id,
+      databaseName: "data",
+      newCollectionName: id,
+      newPCATransformationName: id2
     }
+
     requestBackend(port, "/input/create_pcaDB/", jsonToSend, (jsonResponse) => {
       console.log("received results:", jsonResponse)
       refreshData()
-      ipcRenderer.send("get-collections", DB.name)
-      toast.success("PCA applied successfully")
     })
+    if (exportTransformation) {
+      // Creates 1 collection with the PCA transformations
+      if (overwrite) {
+        await insertMEDDataObjectIfNotExists(object2)
+        MEDDataObject.updateWorkspaceDataObject()
+        toast.success("PCA applied successfully")
+        // Create 2 collections with the PCA transformations and the results with the PCA applied
+      } else {
+        await insertMEDDataObjectIfNotExists(object)
+        await insertMEDDataObjectIfNotExists(object2)
+        MEDDataObject.updateWorkspaceDataObject()
+        toast.success("PCA applied successfully")
+      }
+    } else {
+      // Creates 1 collection with the results of the PCA applied
+      if (!overwrite) {
+        await insertMEDDataObjectIfNotExists(object)
+        MEDDataObject.updateWorkspaceDataObject()
+        toast.success("PCA applied successfully")
+      } else {
+        MEDDataObject.updateWorkspaceDataObject()
+        toast.success("PCA applied successfully")
+      }
+    }
   }
 
   return (
@@ -143,10 +192,10 @@ const CreatePCADB = ({ currentCollection, DB, refreshData }) => {
           <MultiSelect
             value={selectedColumns}
             options={columns.filter((col) => col !== "_id")}
+            display="chip"
             onChange={(e) => setSelectedColumns(e.value)}
             placeholder="Select columns"
             style={{ marginTop: "10px", maxWidth: "1000px" }}
-            display="chip"
           />
           <hr />
         </div>

@@ -51,6 +51,7 @@ class GoExecScriptCreatePCA(GoExecutionScript):
         database_name = json_config["databaseName"]
         collection_name = json_config["collectionName"]
         new_collection_name = json_config["newCollectionName"]
+        new_PCA_collection_name = json_config["newPCATransformationName"]
 
         # Connect to MongoDB
         client = MongoClient('localhost', 27017)
@@ -118,18 +119,18 @@ class GoExecScriptCreatePCA(GoExecutionScript):
             if overwrite:
                 collection.delete_many({})
                 collection.insert_many(extracted_features_pca.to_dict(orient='records'))
-                db.create_collection('pca_transformations' + "_" + collection_name + "_" + str(n_components))
-                collection2 = db['pca_transformations' + "_" + collection_name + "_" + str(n_components)]
+                db.create_collection(new_PCA_collection_name)
+                collection2 = db[new_PCA_collection_name]
                 collection2.insert_many(pca_component.to_dict(orient='records'))
                 return
             
             # If overwrite option is not selected
             else:
-                db.create_collection(new_collection_name + "_reduced_" + column_prefix)
-                collection = db[new_collection_name + "_reduced_" + column_prefix]
+                db.create_collection(new_collection_name)
+                collection = db[new_collection_name]
                 collection.insert_many(extracted_features_pca.to_dict(orient='records'))
-                db.create_collection('pca_transformations' + "_" + collection_name + "_" + str(n_components))
-                collection2 = db['pca_transformations' + "_" + collection_name + "_" + str(n_components)]
+                db.create_collection(new_PCA_collection_name)
+                collection2 = db[new_PCA_collection_name]
                 collection2.insert_many(pca_component.to_dict(orient='records'))
                 return
             
@@ -142,8 +143,8 @@ class GoExecScriptCreatePCA(GoExecutionScript):
                 return
                 
             else:
-                db.create_collection(new_collection_name + "_reduced_" + column_prefix)
-                collection = db[new_collection_name + "_reduced_" + column_prefix]
+                db.create_collection(new_collection_name)
+                collection = db[new_collection_name]
                 collection.insert_many(extracted_features_pca.to_dict(orient='records'))
                 return
        
