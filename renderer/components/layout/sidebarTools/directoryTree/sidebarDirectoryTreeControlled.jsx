@@ -193,8 +193,8 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
   function handleContextMenuAction({ id, props }) {
     if (developerMode) {
       switch (id) {
-        case "openInDataTableViewer":
-          dispatchLayout({ type: "openInDataTable", payload: props })
+        case "openInDataTableFromDBViewer":
+          dispatchLayout({ type: "openInDataTableFromDBViewer", payload: props })
           break
         case "openInCodeEditor":
           dispatchLayout({ type: "openInCodeEditor", payload: props })
@@ -495,7 +495,7 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
             <Item id="openInJSONViewer" onClick={handleContextMenuAction}>
               JSON Viewer (default)
             </Item>
-            <Item id="openInDataTableViewer" onClick={handleContextMenuAction}>
+            <Item id="openInDataTableFromDBViewer" onClick={handleContextMenuAction}>
               DataTable Viewer
             </Item>
             <Item id="openInDtale" onClick={handleContextMenuAction}>
@@ -528,7 +528,7 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
               </>
             }
           >
-            <Item id="openInDataTableViewer" onClick={handleContextMenuAction}>
+            <Item id="openInDataTableFromDBViewer" onClick={handleContextMenuAction}>
               DataTable Viewer (default)
             </Item>
             <Item id="openInDtale" onClick={handleContextMenuAction}>
