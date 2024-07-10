@@ -12,6 +12,10 @@ import { ipcRenderer } from "electron"
 import { requestBackend } from "../../../../utilities/requests"
 import { Checkbox } from "primereact/checkbox"
 import { InputText } from "primereact/inputtext"
+import { DataContext } from "../../../workspace/dataContext"
+import { randomUUID } from "crypto"
+import { MEDDataObject } from "../../../workspace/NewMedDataObject"
+import { insertMEDDataObjectIfNotExists } from "../../../mongoDB/mongoDBUtils"
 
 /**
  * Component that renders the Spearman feature reduction creation tool
@@ -26,6 +30,7 @@ const SpearmanDB = ({ DB, currentCollection, refreshData }) => {
   const [keepTarget, setKeepTarget] = useState(false)
   const { port } = useContext(ServerConnectionContext)
   const [newCollectionName, setNewCollectionName] = useState("")
+  const { globalData } = useContext(DataContext)
   const correlationsColumns = [
     { field: "index", header: "Column Name" },
     { field: "value", header: "Correlation with target" }
@@ -33,13 +38,13 @@ const SpearmanDB = ({ DB, currentCollection, refreshData }) => {
 
   useEffect(() => {
     const fetchData = async () => {
-      const collectionData = await getCollectionData(DB.name, currentCollection)
+      const collectionData = await getCollectionData(currentCollection)
       if (collectionData && collectionData.length > 0) {
         setColumns(Object.keys(collectionData[0]))
       }
     }
     fetchData()
-  }, [DB, currentCollection])
+  }, [currentCollection])
 
   useEffect(() => {
     setCorrelations([])
@@ -59,8 +64,8 @@ const SpearmanDB = ({ DB, currentCollection, refreshData }) => {
     jsonToSend = {
       columns: selectedColumns,
       target: selectedTarget,
-      collection: currentCollection,
-      databaseName: DB.name
+      collection: globalData[currentCollection].id,
+      databaseName: "data"
     }
     requestBackend(
       port,
@@ -77,7 +82,6 @@ const SpearmanDB = ({ DB, currentCollection, refreshData }) => {
             }))
           )
           refreshData()
-          ipcRenderer.send("get-collections", DB.name)
           toast.success("Computation successful")
         } else {
           toast.error(`Computation failed: ${jsonResponse.error.message}`)
@@ -95,7 +99,18 @@ const SpearmanDB = ({ DB, currentCollection, refreshData }) => {
    * Call the server to compute Spearman
    * @param {Boolean} overwrite - True if the dataset should be overwritten, false otherwise
    */
-  const computeSpearman = (overwrite) => {
+  const computeSpearman = async (overwrite) => {
+    const id = randomUUID()
+
+    const object = new MEDDataObject({
+      id: id,
+      name: newCollectionName + "_reduced_spearman",
+      type: "csv",
+      parentID: null,
+      childrenIDs: [],
+      inWorkspace: false
+    })
+
     let jsonToSend = {}
     jsonToSend = {
       selectedColumns: selectedColumns,
@@ -103,17 +118,24 @@ const SpearmanDB = ({ DB, currentCollection, refreshData }) => {
       selectedSpearmanRows: selectedSpearmanRows,
       keepUnselectedColumns: keepUnselectedColumns,
       keepTarget: keepTarget,
-      collection: currentCollection,
-      databaseName: DB.name,
-      newCollectionName: newCollectionName,
+      collection: globalData[currentCollection].id,
+      databaseName: "data",
+      newCollectionName: id,
       overwrite: overwrite
     }
     requestBackend(port, "/input/compute_spearmanDB/", jsonToSend, (jsonResponse) => {
       console.log("received results:", jsonResponse)
       refreshData()
-      ipcRenderer.send("get-collections", DB.name)
-      toast.success("Spearman applied successfully")
     })
+
+    if (!overwrite) {
+      await insertMEDDataObjectIfNotExists(object)
+      MEDDataObject.updateWorkspaceDataObject()
+      toast.success("Spearman applied successfully")
+    } else {
+      MEDDataObject.updateWorkspaceDataObject()
+      toast.success("Spearman applied successfully")
+    }
   }
 
   return (

@@ -86,8 +86,8 @@ class GoExecScriptComputeSpearman(GoExecutionScript):
             return
  
         else:
-            db.create_collection(new_collection_name + "_reduced_spearman")
-            collection = db[new_collection_name + "_reduced_spearman"]
+            db.create_collection(new_collection_name)
+            collection = db[new_collection_name]
             collection.insert_many(result_df.to_dict(orient='records'))
             return
 
