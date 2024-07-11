@@ -810,9 +810,7 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
       }
     } else if (component === "htmlViewer") {
       if (node.getExtraData().data == null) {
-        const config = node.getConfig()
-        console.log("config", config)
-        return <HtmlViewer configPath={config.path} />
+        return <HtmlViewer config={node.getConfig()} />
       }
     } else if (component === "iframeViewer") {
       if (node.getExtraData().data == null) {

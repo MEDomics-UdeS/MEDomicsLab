@@ -37,7 +37,6 @@ export default function DropzoneComponent({ children, item = undefined, setIsDro
   async function myCustomFileGetter(event) {
     const fileObjects = []
     let files = await getDroppedOrSelectedFiles(event)
-    console.log("files", files)
 
     const folderMap = new Map() // Map to store folder path and MEDDataObject
     const parentID = item.index
@@ -107,7 +106,6 @@ export default function DropzoneComponent({ children, item = undefined, setIsDro
       }
     }
     // Set new folders in globalData
-    console.log("HERE", folderMap)
     for (const folder of folderMap) {
       await insertMEDDataObjectIfNotExists(folder[1])
     }

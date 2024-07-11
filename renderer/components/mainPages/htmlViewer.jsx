@@ -1,24 +1,40 @@
 import React, { useEffect, useState } from "react"
-import Path from "path"
-import Iframe from "react-iframe"
-import { toLocalPath } from "../../utilities/fileManagementUtils"
+import { connectToMongoDB } from "../mongoDB/mongoDBUtils"
 
 /**
- *
- * @returns a page that shows the model informations
+ * @param config currently a MEDDataObject
+ * @returns a page that shows the html content
  */
-const HtmlViewer = ({ configPath }) => {
-  const [localPath, setLocalPath] = useState(undefined)
+const HtmlViewer = ({ config }) => {
+  //const [localPath, setLocalPath] = useState(undefined)
+  const [htmlContent, setHtmlContent] = useState("")
 
   useEffect(() => {
-    console.log("html config", configPath)
-    console.log(Path.basename(configPath))
-    toLocalPath(configPath).then((localPath) => {
-      setLocalPath(localPath)
-    })
-  }, [configPath])
+    console.log(htmlContent)
+  }, [htmlContent])
 
-  return <>{localPath && <Iframe url={localPath} width="100%" height="100%" />}</>
+  useEffect(() => {
+    const fetchHtmlContent = async () => {
+      try {
+        const db = await connectToMongoDB()
+        const collection = db.collection(config.id)
+        const document = await collection.findOne({})
+
+        if (document) {
+          setHtmlContent(document.htmlContent)
+        }
+      } catch (error) {
+        console.error("Error fetching HTML content:", error)
+      }
+    }
+    fetchHtmlContent()
+  }, [config])
+
+  return (
+    <>
+      <div dangerouslySetInnerHTML={{ __html: htmlContent }} width="100%" height="100%" />
+    </>
+  )
 }
 
 export default HtmlViewer
