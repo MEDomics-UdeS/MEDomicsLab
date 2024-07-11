@@ -99,6 +99,9 @@ export async function insertMEDDataObjectIfNotExists(medData, path = null, jsonD
       case "csv":
         await insertCSVIntoCollection(path, medData.id)
         break
+      case "html":
+        await insertHTMLIntoCollection(path, medData.id)
+        break
       default:
         break
     }
@@ -147,6 +150,25 @@ async function insertCSVIntoCollection(filePath, collectionName) {
       }
     })
   })
+}
+
+/**
+ * @description Insert an HTML file in the database based on the associated MEDDataObject id
+ * @param {String} filePath path of the file to import in the database
+ * @param {String} collectionName name of the collection in which we want to import the data
+ * (which corresponds to the MEDDataObject id)
+ * @returns
+ */
+async function insertHTMLIntoCollection(filePath, collectionName) {
+  const db = await connectToMongoDB()
+  const collection = db.collection(collectionName)
+
+  const htmlContent = fs.readFileSync(filePath, "utf8")
+  const document = { htmlContent: htmlContent }
+
+  const result = await collection.insertOne(document)
+  console.log(`HTML data inserted with _id: ${result.insertedId}`)
+  return result
 }
 
 /**
@@ -211,4 +233,41 @@ export async function deleteMEDDataObject(id) {
       console.log(`Parent MEDDataObject with id ${medDataObject.parentID} updated`)
     }
   }
+}
+
+/**
+ * @description Get columns of a collection specified by id
+ * @param {String} collectionId Id of the collection to retrieve columns from
+ * @returns {Array} An array of column names
+ */
+export async function getCollectionColumns(collectionId) {
+  const db = await connectToMongoDB()
+  const collection = db.collection(collectionId)
+
+  // Use aggregation to get keys in the order they appear
+  const result = await collection
+    .aggregate([
+      { $project: { keys: { $objectToArray: "$$ROOT" } } },
+      { $unwind: "$keys" },
+      { $group: { _id: null, keys: { $push: "$keys.k" } } },
+      {
+        $project: {
+          _id: 0,
+          keys: {
+            $reduce: {
+              input: "$keys",
+              initialValue: [],
+              in: { $cond: [{ $in: ["$$this", "$$value"] }, "$$value", { $concatArrays: ["$$value", ["$$this"]] }] }
+            }
+          }
+        }
+      }
+    ])
+    .toArray()
+
+  if (result.length > 0) {
+    return result[0].keys.filter((key) => key !== "_id")
+  }
+
+  return []
 }

@@ -1,7 +1,5 @@
 import React, { useState, useContext } from "react"
 import { LayoutModelContext } from "../layout/layoutContext"
-import { LoaderContext } from "../generalPurpose/loaderContext"
-import { DataContext } from "../workspace/dataContext"
 import MedDataObject from "../workspace/medDataObject"
 import { requestBackend } from "../../utilities/requests"
 import { downloadFilePath } from "../../utilities/fileManagementUtils"
@@ -14,6 +12,7 @@ import Input from "../learning/input"
 import { Button } from "primereact/button"
 import { ToggleButton } from "primereact/togglebutton"
 import ProgressBarRequests from "../generalPurpose/progressBarRequests"
+import { getCollectionColumns } from "../mongoDB/mongoDBUtils"
 
 /**
  *
@@ -35,8 +34,6 @@ const SweetViz = ({ pageId, port, setError }) => {
   const [progress, setProgress] = useState({ now: 0, currentLabel: 0 })
   const [mainDatasetTarget, setMainDatasetTarget] = useState()
   const [mainDatasetTargetChoices, setMainDatasetTargetChoices] = useState()
-  const { setLoader } = useContext(LoaderContext)
-  const { globalData, setGlobalData } = useContext(DataContext)
 
   /**
    *
@@ -55,14 +52,15 @@ const SweetViz = ({ pageId, port, setError }) => {
    */
   const onDatasetChange = async (inputUpdate) => {
     setMainDataset(inputUpdate)
-    if (inputUpdate.value.path != "") {
-      setLoader(true)
-      let { columnsArray, columnsObject } = await MedDataObject.getColumnsFromPath(inputUpdate.value.path, globalData, setGlobalData)
-      setLoader(false)
-      setMainDatasetTargetChoices(columnsObject)
-      setMainDatasetTarget(columnsArray[columnsArray.length - 1])
-    } else {
-      console.log("no file selected")
+    if (inputUpdate.value.id != "") {
+      let columns = await getCollectionColumns(inputUpdate.value.id)
+      console.log("here", columns)
+      let columnsDict = {}
+      columns.forEach((column) => {
+        columnsDict[column] = column
+      })
+      setMainDatasetTargetChoices(columnsDict)
+      setMainDatasetTarget(columnsDict[columns[columns.length - 1]])
     }
   }
 

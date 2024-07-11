@@ -405,16 +405,11 @@ const Input = ({ name, settingInfos, currentValue, onInputChange, disabled, setH
                 selectedPath={currentValue}
                 acceptedExtensions={["csv"]}
                 acceptFolder={settingInfos.acceptFolder ? settingInfos.acceptFolder : false}
-                onChange={(e, path) => {
-                  console.log("e", e, path)
-                  if (path == "") {
-                    setHasWarning({ state: true, tooltip: <p>No file selected</p> })
-                  } else {
-                    setHasWarning({ state: false })
-                  }
+                onChange={(e) => {
+                  console.log(name, e.target.value, settingInfos.type)
                   setInputUpdate({
                     name: name,
-                    value: { name: e.target.value, path: path },
+                    value: { id: e.target.value },
                     type: settingInfos.type
                   })
                 }}
