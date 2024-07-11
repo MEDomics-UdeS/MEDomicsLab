@@ -241,6 +241,9 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
         case "delete":
           onDeleteSequentially(globalData, workspace.workingDirectory.path, setIsDialogShowing, [props.index])
           break
+        case "rmFromWs":
+          MEDDataObject.deleteObjectAndChildrenFromWorkspace(globalData, props.index, workspace.workingDirectory.path)
+          break
         case "revealInFileExplorer":
           if (globalData[props.index] !== undefined) {
             if (globalData[props.index].path !== undefined) {
@@ -524,6 +527,10 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
             <Trash size={"1rem"} className="context-menu-icon" />
             Delete
           </Item>
+          <Item id="rmFromWs" onClick={handleContextMenuAction}>
+            <Trash size={"1rem"} className="context-menu-icon" />
+            Remove from Workspace
+          </Item>
         </Menu>
         <Menu id={"MENU_DATA"}>
           <Submenu
@@ -561,6 +568,10 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
             <Trash size={"1rem"} className="context-menu-icon" />
             Delete
           </Item>
+          <Item id="rmFromWs" onClick={handleContextMenuAction}>
+            <Trash size={"1rem"} className="context-menu-icon" />
+            Remove from Workspace
+          </Item>
         </Menu>
 
         <Menu id={"MENU_MEDML"}>
@@ -593,6 +604,10 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
             <Trash size={"1rem"} className="context-menu-icon" />
             Delete
           </Item>
+          <Item id="rmFromWs" onClick={handleContextMenuAction}>
+            <Trash size={"1rem"} className="context-menu-icon" />
+            Remove from Workspace
+          </Item>
         </Menu>
 
         <Menu id="MENU_FOLDER">
@@ -611,6 +626,10 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
           <Item id="delete" onClick={handleContextMenuAction}>
             <Trash size={"1rem"} className="context-menu-icon" />
             Delete
+          </Item>
+          <Item id="rmFromWs" onClick={handleContextMenuAction}>
+            <Trash size={"1rem"} className="context-menu-icon" />
+            Remove from Workspace
           </Item>
         </Menu>
 
@@ -656,6 +675,10 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
             <Trash size={"1rem"} className="context-menu-icon" />
             Delete
           </Item>
+          <Item id="rmFromWs" onClick={handleContextMenuAction}>
+            <Trash size={"1rem"} className="context-menu-icon" />
+            Remove from Workspace
+          </Item>
         </Menu>
 
         <Menu id="MENU_IMAGE">
@@ -687,6 +710,10 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
           <Item id="delete" onClick={handleContextMenuAction}>
             <Trash size={"1rem"} className="context-menu-icon" />
             Delete
+          </Item>
+          <Item id="rmFromWs" onClick={handleContextMenuAction}>
+            <Trash size={"1rem"} className="context-menu-icon" />
+            Remove from Workspace
           </Item>
         </Menu>
 
@@ -720,6 +747,10 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
             <Trash size={"1rem"} className="context-menu-icon" />
             Delete
           </Item>
+          <Item id="rmFromWs" onClick={handleContextMenuAction}>
+            <Trash size={"1rem"} className="context-menu-icon" />
+            Remove from Workspace
+          </Item>
         </Menu>
 
         <Menu id="MENU_TEXT">
@@ -749,6 +780,10 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
           <Item id="delete" onClick={handleContextMenuAction}>
             <Trash size={"1rem"} className="context-menu-icon" />
             Delete
+          </Item>
+          <Item id="rmFromWs" onClick={handleContextMenuAction}>
+            <Trash size={"1rem"} className="context-menu-icon" />
+            Remove from Workspace
           </Item>
         </Menu>
 
@@ -788,6 +823,10 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
             <Trash size={"1rem"} className="context-menu-icon" />
             Delete
           </Item>
+          <Item id="rmFromWs" onClick={handleContextMenuAction}>
+            <Trash size={"1rem"} className="context-menu-icon" />
+            Remove from Workspace
+          </Item>
         </Menu>
 
         <Menu id="MENU_DEFAULT">
@@ -806,6 +845,10 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
           <Item id="delete" onClick={handleContextMenuAction}>
             <Trash size={"1rem"} className="context-menu-icon" />
             Delete
+          </Item>
+          <Item id="rmFromWs" onClick={handleContextMenuAction}>
+            <Trash size={"1rem"} className="context-menu-icon" />
+            Remove from Workspace
           </Item>
         </Menu>
       </div>
