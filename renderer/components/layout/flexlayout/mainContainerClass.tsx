@@ -645,7 +645,6 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
     } else if (component === "learningPage") {
       if (node.getExtraData().data == null) {
         const config = node.getConfig()
-
         return <LearningPage pageId={config.uuid} configPath={config.path} />
       }
     } else if (component === "inputPage") {
@@ -811,7 +810,7 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
       return <FLResultsPage url={node.getConfig().path} />
     } else if (component === "medflOptResultsPage") {
       return <OptimResultsPage url={node.getConfig().path} />
-    } else if (component !== "") {
+    }else if (component !== "") {
       if (node.getExtraData().data == null) {
         const config = node.getConfig()
         return <h4>{component?.toUpperCase()} - Not Implemented Yet</h4>
@@ -881,6 +880,8 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
         case "xlsx":
           return <Icons.FiletypeXlsx />
         case "xls":
+          return <Icons.FiletypeXls />
+        case "fl":
           return <Icons.FiletypeXls />
       }
       let icon = <span style={{ marginRight: 3 }}>{iconToReturn}</span>

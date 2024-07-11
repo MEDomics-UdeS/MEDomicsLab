@@ -307,7 +307,7 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
    */
   const onDBClickItem = (event, item) => {
     if (developerMode) {
-      if (item.type == "medml") {
+      if (item.type == "medml" ) {
         dispatchLayout({ type: "openInLearningModule", payload: item })
       } else if (item.type == "medimg") {
         dispatchLayout({ type: "openInExtractionMEDimageModule", payload: item })
@@ -333,7 +333,9 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
         dispatchLayout({ type: "openInMEDflResultsViewer", payload: item })
       } else if (item.type == "medflopt") {
         dispatchLayout({ type: "openInMEDflOptResultsViewer", payload: item })
-      } else {
+      }else if (item.type == "fl") {
+        dispatchLayout({ type: "openInFlModule", payload: item })
+      }  else {
         console.log("DBCLICKED", event, item)
       }
       setDbClickedItem(item)

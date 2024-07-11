@@ -6,7 +6,7 @@ import Path from "path"
 
 // This context is used to store the pageInfos (id and config of the workflow)
 const PageInfosContext = createContext()
-const ZipFileExtensions = ["medml", "medimg", "medeval", "medmodel"]
+const ZipFileExtensions = ["medml", "medimg", "medeval", "medmodel"  ,"fl"]
 
 /**
  * @param {*} children components that will use the context

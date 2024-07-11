@@ -11,7 +11,7 @@ import { FlowResultsContext } from "../flow/context/flowResultsContext"
 import { EXPERIMENTS, WorkspaceContext } from "../workspace/workspaceContext"
 import { ErrorRequestContext } from "../generalPurpose/errorRequestContext.jsx"
 import MedDataObject from "../workspace/medDataObject"
-import { modifyZipFileSync } from "../../utilities/customZipFile.js"
+import { createZipFileSync, modifyZipFileSync } from "../../utilities/customZipFile.js"
 
 import { UUID_ROOT, DataContext } from "../workspace/dataContext"
 
@@ -49,6 +49,8 @@ import FlTrainModelNode from "./nodesTypes/flTrainModel.jsx"
 import FlSaveModelNode from "./nodesTypes/flSaveModelNode.jsx"
 import { useMEDflContext } from "../workspace/medflContext.jsx"
 import FlCompareResults from "./nodesTypes/flCompareResultsNode"
+import { Modal } from "react-bootstrap"
+import FlInput from "./flInput"
 
 const staticNodesParams = nodesParams // represents static nodes parameters
 
@@ -89,6 +91,9 @@ const MedflWorkflow = ({ setWorkflowType, workflowType }) => {
   const [optimResults, setOptimResults] = useState(null)
   const [optimType, setOptimType] = useState("")
 
+  const [isSaveModal, openSaveModal] = useState(false)
+  const [scenName, setSceanName] = useState("")
+
   const { groupNodeId, changeSubFlow, hasNewConnection } = useContext(FlowFunctionsContext)
   const { config, pageId, configPath } = useContext(PageInfosContext) // used to get the page infos such as id and config path
   const { updateFlowResults, isResults } = useContext(FlowResultsContext)
@@ -102,22 +107,25 @@ const MedflWorkflow = ({ setWorkflowType, workflowType }) => {
 
   const { updatePipelineConfigs } = useMEDflContext()
 
+
   let ALL_CONFIGS = [
     {
       masterDatasetNode: {
         name: "Mimic_2017.csv",
-        path: "C:\\Users\\HP User\\Desktop\\MEDomicsLab\\DATA\\Mimic_ouael.csv",
-        target: "deceased"
+        // path: "C:\\Users\\HP User\\Desktop\\MEDomicsLab\\DATA\\Mimic_ouael.csv",
+        path: "C:\\Users\\HP User\\Desktop\\medfl_workspace\\DATA\\client_3_dataset.csv",
+        target: "diabetes"
       },
       Network: {
         name: "Network",
         clients: [
           {
             name: "Client",
-            type: "Test Node",
+            type: "Train Node",
             dataset: {
               name: "Mimic_2017.csv",
-              path: "C:\\Users\\HP User\\Desktop\\MEDomicsLab\\DATA\\Mimic_ouael.csv"
+              // path: "C:\\Users\\HP User\\Desktop\\MEDomicsLab\\DATA\\Mimic_ouael.csv"
+              path: "C:\\Users\\HP User\\Desktop\\medfl_workspace\\DATA\\client_2_dataset.csv"
             }
           },
           {
@@ -125,7 +133,8 @@ const MedflWorkflow = ({ setWorkflowType, workflowType }) => {
             type: "Train node",
             dataset: {
               name: "Mimic_2017.csv",
-              path: "C:\\Users\\HP User\\Desktop\\MEDomicsLab\\DATA\\Mimic_ouael.csv"
+              // path: "C:\\Users\\HP User\\Desktop\\MEDomicsLab\\DATA\\Mimic_ouael.csv"
+              path: "C:\\Users\\HP User\\Desktop\\medfl_workspace\\DATA\\client_1_dataset.csv"
             }
           }
         ],
@@ -142,17 +151,17 @@ const MedflWorkflow = ({ setWorkflowType, workflowType }) => {
       flDatasetNode: {
         name: "FL Dataset",
         validationFraction: 0.1,
-        testFraction: 0
+        testFraction: 0.2
       },
       flModelNode: {
         activateTl: "true",
         file: {
           name: "grid_search_classifier.pth",
-          path: "C:\\Users\\HP User\\Desktop\\MEDomicsLab\\DATA\\grid_search_classifier.pth"
+          path: "C:\\Users\\HP User\\Desktop\\MEDomicsLab\\DATA\\diabetes_model2.pth"
         },
         optimizer: "Adam",
-        "learning rate": 0.001,
-        Threshold: 0.1
+        "learning rate": 0.0001,
+        Threshold: 0.4
       },
       flStrategyNode: {
         "Aggregation algorithm": "FedAvg",
@@ -163,7 +172,7 @@ const MedflWorkflow = ({ setWorkflowType, workflowType }) => {
         "Minimal available clients": 1
       },
       flTrainModelNode: { clientRessources: "Use GPU" },
-      flSaveModelNode: { fileName: "resultsauto" } , 
+      flSaveModelNode: { fileName: "resultsauto" },
       flMergeresultsNode: {
         files: [
           {
@@ -177,18 +186,20 @@ const MedflWorkflow = ({ setWorkflowType, workflowType }) => {
     {
       masterDatasetNode: {
         name: "Mimic_2017.csv",
-        path: "C:\\Users\\HP User\\Desktop\\MEDomicsLab\\DATA\\Mimic_ouael.csv",
-        target: "deceased"
+        // path: "C:\\Users\\HP User\\Desktop\\MEDomicsLab\\DATA\\Mimic_ouael.csv",
+        path: "C:\\Users\\HP User\\Desktop\\medfl_workspace\\DATA\\client_1_dataset.csv",
+        target: "diabetes"
       },
       Network: {
         name: "Network",
         clients: [
           {
             name: "Client",
-            type: "Test Node",
+            type: "Train Node",
             dataset: {
               name: "Mimic_2017.csv",
-              path: "C:\\Users\\HP User\\Desktop\\MEDomicsLab\\DATA\\Mimic_ouael.csv"
+              // path: "C:\\Users\\HP User\\Desktop\\MEDomicsLab\\DATA\\Mimic_ouael.csv"
+              path: "C:\\Users\\HP User\\Desktop\\medfl_workspace\\DATA\\client_1_dataset.csv"
             }
           },
           {
@@ -196,7 +207,8 @@ const MedflWorkflow = ({ setWorkflowType, workflowType }) => {
             type: "Train node",
             dataset: {
               name: "Mimic_2017.csv",
-              path: "C:\\Users\\HP User\\Desktop\\MEDomicsLab\\DATA\\Mimic_ouael.csv"
+              // path: "C:\\Users\\HP User\\Desktop\\MEDomicsLab\\DATA\\Mimic_ouael.csv"
+              path: "C:\\Users\\HP User\\Desktop\\medfl_workspace\\DATA\\client_2_dataset.csv"
             }
           }
         ],
@@ -213,16 +225,16 @@ const MedflWorkflow = ({ setWorkflowType, workflowType }) => {
       flDatasetNode: {
         name: "FL Dataset",
         validationFraction: 0.1,
-        testFraction: 0
+        testFraction: 0.2
       },
       flModelNode: {
         activateTl: "true",
         file: {
           name: "grid_search_classifier.pth",
-          path: "C:\\Users\\HP User\\Desktop\\MEDomicsLab\\DATA\\grid_search_classifier.pth"
+          path: "C:\\Users\\HP User\\Desktop\\MEDomicsLab\\DATA\\diabetes_model2.pth"
         },
         optimizer: "Adam",
-        "learning rate": 0.001,
+        "learning rate": 0.0001,
         Threshold: 0.1
       },
       flStrategyNode: {
@@ -711,9 +723,24 @@ const MedflWorkflow = ({ setWorkflowType, workflowType }) => {
   }, [reactFlowInstance, MLType, nodes, edges, intersections, configPath])
 
   /**
+   *
+   * @param {String} path The path of the folder where the scene will be created
+   * @param {String} sceneName The name of the scene
+   * @param {String} extension The extension of the scene
+   */
+  const createSceneContent = async (path, sceneName, extension, useMedStandard) => {
+    const emptyScene = { useMedStandard: useMedStandard }
+    // create custom zip file
+    console.log("zipFilePath", Path.join(path, sceneName + "." + extension))
+    await createZipFileSync(Path.join(path, sceneName + "." + extension), async (path) => {
+      // do custom actions in the folder while it is unzipped
+      await MedDataObject.writeFileSync(emptyScene, path, "metadata", "json")
+    })
+  }
+  /**
    * save the workflow as a json file
    */
-  const onSave = useCallback(() => {
+  const onSave = useCallback(async (scean) => {
     if (reactFlowInstance) {
       const flow = deepCopy(reactFlowInstance.toObject())
       flow.MLType = MLType
@@ -722,11 +749,24 @@ const MedflWorkflow = ({ setWorkflowType, workflowType }) => {
         node.data.setupParam = null
       })
       flow.intersections = intersections
-      modifyZipFileSync(configPath, async (path) => {
-        // do custom actions in the folder while it is unzipped
-        await MedDataObject.writeFileSync(flow, path, "metadata", "json")
-        toast.success("Scene has been saved successfully")
-      })
+      if (configPath != "") {
+        console.log("Heeeeeeere")
+        modifyZipFileSync(configPath , async (path) => {
+          // do custom actions in the folder while it is unzippsed
+          await MedDataObject.writeFileSync(flow, path, "metadata", "json")
+          toast.success("Scene has been saved successfully")
+        })
+      } else {
+        console.log('here' , scean)
+        let configPath = "C:\\Users\\HP User\\Desktop\\medfl_workspace\\EXPERIMENTS\\FL\\Sceans"
+        createSceneContent(configPath, scean, "fl", null).then(() =>
+          modifyZipFileSync(configPath + "\\" + scean + ".fl", async (path) => {
+            // do custom actions in the folder while it is unzipped
+            await MedDataObject.writeFileSync(flow, path, "metadata", "json")
+            toast.success("Scene has been saved successfully")
+          })
+        )
+      }
     }
   }, [reactFlowInstance, MLType, intersections])
 
@@ -741,6 +781,10 @@ const MedflWorkflow = ({ setWorkflowType, workflowType }) => {
       setIntersections([])
     }
   }, [])
+
+  useEffect(() =>{
+    console.log(scenName)
+  }, [scenName])
 
   /**
    * Set the subflow id to null to go back to the main workflow
@@ -848,7 +892,7 @@ const MedflWorkflow = ({ setWorkflowType, workflowType }) => {
             }
 
             readData(0, []).then(async (readData) => {
-              let resultFileData = { data: jsonResponse["data"], configs: flConfig, date:  Date.now() }
+              let resultFileData = { data: jsonResponse["data"], configs: flConfig, date: Date.now() }
 
               readData.map((data) => {
                 resultFileData = {
@@ -1020,6 +1064,27 @@ const MedflWorkflow = ({ setWorkflowType, workflowType }) => {
     <>
       {/* DB config modal */}
       <DBCOnfigFileModal show={showDBconfigModal} onHide={() => setDBModal(false)} setFile={setConfigFile} configFile={flConfigFile} />
+      <Modal show={isSaveModal} onHide={() => openSaveModal(false)} centered>
+        <Modal.Header>
+          <Modal.Title> Save scean</Modal.Title>
+        </Modal.Header>
+
+        <Modal.Body>
+          <FlInput
+            name="file name"
+            settingInfos={{
+              type: "string",
+              tooltip: "<p>Specify a data file (xlsx, csv, json)</p>"
+            }}
+            currentValue={scenName}
+            onInputChange={(e) =>{ setSceanName(e.value) ; console.log(e.value) ; console.log(scenName)}}
+            setHasWarning={() => {}}
+          />
+        </Modal.Body>
+        <Modal.Footer>
+          <Button label="Save Scean" icon="pi pi-save" className="p-button-primary" onClick={()=>onSave(scenName)} disabled={!scenName || scenName == ""}></Button>
+        </Modal.Footer>
+      </Modal>
       {/* set the fl config file  */}
 
       <FlConfigModal
@@ -1048,12 +1113,14 @@ const MedflWorkflow = ({ setWorkflowType, workflowType }) => {
         configs={getConfigs(treeData, 0)}
         nodes={nodes}
         onRun={(flConfig, mode) => {
-          updatePipelineConfigs(ALL_CONFIGS)
+          // updatePipelineConfigs(ALL_CONFIGS)
+          updatePipelineConfigs(flConfig)
+
           setRunModal(false)
 
           if (mode == "run") {
-            runFlPipeline(ALL_CONFIGS, flConfigFile?.path)
-            // runFlPipeline(flConfig, flConfigFile?.path)
+            // runFlPipeline(ALL_CONFIGS, flConfigFile?.path)
+            runFlPipeline(flConfig, flConfigFile?.path)
           } else {
             setOptimType(flConfig[0]["flOptimizeNode"]["optimisation Type"])
             runFlOptimisation(flConfig, flConfigFile?.path)
@@ -1091,7 +1158,12 @@ const MedflWorkflow = ({ setWorkflowType, workflowType }) => {
                   buttonsList={[
                     { type: "run", onClick: onRun, disabled: !canRun },
                     { type: "clear", onClick: onClear },
-                    { type: "save", onClick: onSave },
+                    {
+                      type: "save",
+                      onClick: () => {
+                        configPath != "" ? onSave() : openSaveModal(true)
+                      }
+                    },
                     { type: "load", onClick: onLoad }
                   ]}
                 />

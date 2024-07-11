@@ -104,6 +104,10 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
           return openInMEDflresults(action)
         case "openInMEDflOptResultsViewer":
           return openInMEDflOptresults(action)
+        case "openInFlModule":
+            return openInFlModule(action)
+          
+
         /*********** OPEN *****************/
         case "openInputModule":
           return openInput(action)
@@ -470,6 +474,16 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
   const openInMEDflOptresults = (action) => {
     openInDotDotDot(action, "medflOptResultsPage")
   }
+
+   /**
+   * @summary Function that adds a tab of MEDfl page
+   * @params {Object} action - The action passed on by the dispatchLayout function, it uses the payload in the action as a JSON object to add a new child to the layout model
+   */
+   const openInFlModule = (action) => {
+    openInDotDotDot(action, "medflPage")
+  }
+
+  
 
   /**
    * @summary Function that adds a new child to the layout model

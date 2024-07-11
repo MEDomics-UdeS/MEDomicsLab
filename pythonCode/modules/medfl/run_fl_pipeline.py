@@ -16,6 +16,7 @@ from pathlib import Path
 from datetime import datetime
 
 import torch
+import torch.nn.functional as F
 
 
 sys.path.append(
@@ -119,10 +120,38 @@ class GoExecScriptRunPipelineFromMEDfl(GoExecutionScript):
             # Create the model
             self.set_progress(label=f"Configuration : {index +1 }, Creating The model", now=40)
 
-            if config['flModelNode']['activateTl']: 
+            if config['flModelNode']['activateTl'] == "true": 
                 model = Model.load_model(config['flModelNode']['file']['path'])
             
             else : 
+                class BinaryClassifier(nn.Module):
+                    def __init__(self, input_size, num_layers, layer_size):
+                        super(BinaryClassifier, self).__init__()
+
+                        # Input layer
+                        self.layers = [nn.Linear(input_size, layer_size)]
+                        
+                        # Hidden layers
+                        for _ in range(num_layers - 1):
+                            self.layers.append(nn.Linear(layer_size, layer_size))
+                        
+                        # Output layer
+                        self.layers.append(nn.Linear(layer_size, 1))
+                        
+                        # ModuleList to handle dynamic number of layers
+                        self.layers = nn.ModuleList(self.layers)
+
+                    def forward(self, x):
+                        for layer in self.layers[:-1]:
+                            x = F.relu(layer(x))
+                        x = self.layers[-1](x)
+                        return x
+                    
+                
+                # Create the model with the suggested hyperparameters
+                model = BinaryClassifier(input_size=fl_dataset.size,
+                                         num_layers=config['flModelNode']['Number of layers'],
+                                         layer_size=config['flModelNode']['Hidden size'],)
                 pass 
 
             
@@ -137,8 +166,12 @@ class GoExecScriptRunPipelineFromMEDfl(GoExecutionScript):
             elif config['flModelNode']['optimizer'] == 'RMSprop':
                 optimizer = optim.RMSprop(
                     model.parameters(), lr=config['flModelNode']['learning rate'])
+            
+            pos_weight = torch.tensor([4])
 
-            criterion = nn.BCEWithLogitsLoss()
+
+            criterion = nn.BCEWithLogitsLoss(pos_weight=pos_weight)
+
 
             # Creating a new Model instance using the specific model created by DynamicModel
             global_model = Model(model, optimizer, criterion)
