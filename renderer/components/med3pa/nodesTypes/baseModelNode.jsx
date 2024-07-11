@@ -1,20 +1,16 @@
 /* eslint-disable camelcase */
 import React, { useState, useContext, useEffect } from "react"
 import Node from "../../flow/node"
-import { Button } from "react-bootstrap"
+import { Button, OverlayTrigger, Tooltip } from "react-bootstrap"
 import * as Icon from "react-bootstrap-icons"
 import { FlowFunctionsContext } from "../../flow/context/flowFunctionsContext"
-import { Stack } from "react-bootstrap"
-import { DataContext } from "../../workspace/dataContext"
-import MedDataObject from "../../workspace/medDataObject"
 import { LoaderContext } from "../../generalPurpose/loaderContext"
 import FlInput from "../paInput"
 
 export default function BaseModelNode({ id, data }) {
   const [showDetails, setShowDetails] = useState(false)
-  const { updateNode } = useContext(FlowFunctionsContext)
   const [hovered, setHovered] = useState(false)
-  const { globalData, setGlobalData } = useContext(DataContext)
+  const { updateNode } = useContext(FlowFunctionsContext)
   const { setLoader } = useContext(LoaderContext)
 
   useEffect(() => {
@@ -59,16 +55,9 @@ export default function BaseModelNode({ id, data }) {
   const onFilesChange = async (inputUpdate) => {
     data.internal.settings[inputUpdate.name] = inputUpdate.value
     if (inputUpdate.value.path !== "") {
-      setLoader(true)
-      let { columnsArray, columnsObject } = await MedDataObject.getColumnsFromPath(inputUpdate.value.path, globalData, setGlobalData)
-      let steps = await MedDataObject.getStepsFromPath(inputUpdate.value.path, globalData, setGlobalData)
       setLoader(false)
-      steps && (data.internal.settings.steps = steps)
-      data.internal.settings.columns = columnsObject
-      data.internal.settings.target = columnsArray[columnsArray.length - 1]
     } else {
-      delete data.internal.settings.target
-      delete data.internal.settings.columns
+      setLoader(true)
     }
     updateNode({
       id: id,
@@ -81,79 +70,108 @@ export default function BaseModelNode({ id, data }) {
   }
 
   return (
-    <>
-      <Node
-        key={id}
-        id={id}
-        data={data}
-        setupParam={data.setupParam}
-        nodeBody={
-          <>
+    <Node
+      key={id}
+      id={id}
+      data={data}
+      setupParam={data.setupParam}
+      nodeBody={
+        <>
+          <div className="center">
+            <Button variant="light" className="width-100 btn-contour">
+              {data.internal.settings.target ? `Change Selected Base Model` : `Select Base Model`}
+            </Button>
+            <p style={{ textAlign: "center", marginTop: "10px", fontSize: "12px" }}>This node is responsible for loading the Base Model (.pkl).</p>
+          </div>
+          {data.internal.settings.file && (
             <div className="center">
-              <Button variant="light" className="width-100 btn-contour">
-                {data.internal.settings.target ? "Change Base Model" : "Select Base Model"}
+              <Button
+                variant="light"
+                className="width-100 btn-contour"
+                onClick={toggleShowDetails}
+                style={{
+                  backgroundColor: "transparent",
+                  border: "none",
+                  padding: 0,
+                  textAlign: "left",
+                  display: "flex",
+                  alignItems: "center"
+                }}
+              >
+                <div
+                  className="d-flex align-items-center"
+                  style={{
+                    transition: "color 0.3s",
+                    cursor: "pointer",
+                    marginLeft: "auto"
+                  }}
+                  onMouseEnter={() => setHovered(true)}
+                  onMouseLeave={() => setHovered(false)}
+                >
+                  <span
+                    className="ms-2"
+                    style={{
+                      fontSize: "0.8rem",
+                      color: hovered ? "black" : "#999" // Lighter color
+                    }}
+                  >
+                    {showDetails ? "Hide Details" : "Show Details"}
+                  </span>
+                  {showDetails ? <Icon.Dash style={{ color: hovered ? "black" : "#999", marginRight: "5px" }} /> : <Icon.Plus style={{ color: hovered ? "black" : "#999", marginRight: "5px" }} />}
+                </div>
               </Button>
             </div>
-            {data.internal.settings.target && (
-              <div className="center">
-                <Button
-                  variant="light"
-                  className="width-100 btn-contour"
-                  onClick={toggleShowDetails}
-                  style={{
-                    backgroundColor: "transparent",
-                    border: "none",
-                    padding: 0,
-                    textAlign: "left",
-                    display: "flex",
-                    alignItems: "center"
-                  }}
-                >
-                  <div
-                    className="d-flex align-items-center"
-                    style={{
-                      transition: "color 0.3s",
-                      cursor: "pointer",
-                      marginLeft: "auto"
-                    }}
-                    onMouseEnter={() => setHovered(true)}
-                    onMouseLeave={() => setHovered(false)}
-                  >
-                    <span
-                      className="ms-2"
-                      style={{
-                        fontSize: "0.8rem",
-                        color: hovered ? "black" : "#999" // Lighter color
-                      }}
-                    >
-                      {showDetails ? "Hide Details" : "Show Details"}
-                    </span>
-                    {showDetails ? <Icon.Dash style={{ color: hovered ? "black" : "#999", marginRight: "5px" }} /> : <Icon.Plus style={{ color: hovered ? "black" : "#999", marginRight: "5px" }} />}
+          )}
+          {showDetails && (
+            <div className="border border-light p-3 mb-3">
+              <hr className="my-2" />
+              <br />
+              <div className="mb-3">
+                <div className="d-flex justify-content-between">
+                  <div className="col-sm-6">
+                    <p className="fw-bold mb-0" style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                      Name
+                    </p>
                   </div>
-                </Button>
+                  <div className="col-sm-6">
+                    <OverlayTrigger placement="top" overlay={<Tooltip id="tooltip">{data.internal.settings.file?.name}</Tooltip>}>
+                      <p className="fw-bold mb-0 text-end" style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                        {data.internal.settings.file?.name}
+                      </p>
+                    </OverlayTrigger>
+                  </div>
+                </div>
+                <div className="d-flex justify-content-between">
+                  <div className="col-sm-6">
+                    <p className="fw-bold mb-0" style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                      Path
+                    </p>
+                  </div>
+                  <div className="col-sm-6">
+                    <OverlayTrigger placement="top" overlay={<Tooltip id="tooltip">{data.internal.settings.file?.path}</Tooltip>}>
+                      <p className="fw-bold mb-0 text-end" style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                        {data.internal.settings.file?.path}
+                      </p>
+                    </OverlayTrigger>
+                  </div>
+                </div>
               </div>
-            )}
-          </>
-        }
-        defaultSettings={
-          <>
-            <Stack id="default" direction="vertical" gap={1}>
-              <>
-                <FlInput
-                  name="file"
-                  settingInfos={{
-                    type: "data-input",
-                    tooltip: "<p>Specify a model file (model)</p>"
-                  }}
-                  currentValue={data.internal.settings.file || {}}
-                  onInputChange={onFilesChange}
-                  setHasWarning={handleWarning}
-                />
-              </>
-            </Stack>
-          </>
-        }
-      />
-    </>
+            </div>
+          )}
+        </>
+      }
+      defaultSettings={
+        <FlInput
+          name="file"
+          settingInfos={{
+            type: "models-input",
+            tooltip: "<p>Specify a model file (model)</p>"
+          }}
+          currentValue={data.internal.settings.file || {}}
+          onInputChange={onFilesChange}
+          setHasWarning={handleWarning}
+        />
+      }
+    />
   )
 }

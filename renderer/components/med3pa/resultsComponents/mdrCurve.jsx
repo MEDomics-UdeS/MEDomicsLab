@@ -54,14 +54,18 @@ const MDRCurve = ({ curveData, clickedLostElement }) => {
       },
       toolbox: {
         feature: {
-          saveAsImage: {}
+          saveAsImage: {
+            type: "svg",
+            backgroundColor: "transparent"
+          }
         }
       },
       tooltip: {
         trigger: "axis"
       },
       legend: {
-        data: metricNames
+        data: metricNames,
+        type: "scroll"
       },
       xAxis: {
         type: "value",

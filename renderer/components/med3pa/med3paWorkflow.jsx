@@ -11,7 +11,7 @@ import ProgressBarRequests from "../generalPurpose/progressBarRequests.jsx"
 import { PageInfosContext } from "../mainPages/moduleBasics/pageInfosContext.jsx"
 //import { defaultValueFromType } from "../../utilities/learning/inputTypesUtils.js"
 import { FlowResultsContext } from "../flow/context/flowResultsContext"
-
+import { LoaderContext } from "../generalPurpose/loaderContext.jsx"
 import { WorkspaceContext, EXPERIMENTS } from "../workspace/workspaceContext"
 
 import { ErrorRequestContext } from "../generalPurpose/errorRequestContext.jsx"
@@ -47,6 +47,7 @@ import MPCModelNode from "./nodesTypes/mpcModelNode.jsx"
 import UncertaintyMetricsNode from "./nodesTypes/uncertainyMetricsNode.jsx"
 
 import DetectronNode from "./nodesTypes/detectronNode.jsx"
+import { mergeSettings } from "../../public/setupVariables/possibleSettings/med3pa/paSettings.js"
 
 const staticNodesParams = nodesParams // represents static nodes parameters
 
@@ -69,8 +70,8 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
   const { getIntersectingNodes } = useReactFlow() // getIntersectingNodes is used to get the intersecting nodes of a node
   const { isResults, setIsResults } = useContext(FlowResultsContext)
   const { port, getBasePath } = useContext(WorkspaceContext)
-  // eslint-disable-next-line no-unused-vars
-  const [paParams, setpaParams] = useState({})
+
+  const [paParams, setpaParams] = useState()
   const { setError } = useContext(ErrorRequestContext)
   const [intersections, setIntersections] = useState([]) // intersections is used to store the intersecting nodes related to optimize nodes start and end
   const [isProgressUpdating, setIsProgressUpdating] = useState(false) // progress is used to store the progress of the workflow execution
@@ -87,6 +88,7 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
   const [isUpdating, setIsUpdating] = useState(false) // we use this to store the progress value of the dashboard
   const { config, pageId, configPath } = useContext(PageInfosContext) // used to get the page infos such as id and config path
   const { canRun } = useContext(FlowInfosContext)
+  const { setLoader } = useContext(LoaderContext)
   // eslint-disable-next-line no-unused-vars
   const [progressValue, setProgressValue] = useState({ now: 0, currentLabel: "" }) // we use this to store the progress value of the dashboard
   // const { setError } = useContext(ErrorRequestContext)
@@ -403,16 +405,66 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
 
     newNode.data.internal.description = newNode.data.internal.description !== undefined ? newNode.data.internal.description : ""
 
-    let tempDefaultSettings = {}
     if (newNode.data.setupParam.possibleSettings) {
-      const possibleSettings = newNode.data.setupParam.possibleSettings
-      // Handle nodes with one setting
-      Object.entries(possibleSettings).forEach(([settingName, setting]) => {
-        tempDefaultSettings[settingName] = setting.default_val
-      })
-    }
+      let possibleSettings = newNode.data.setupParam.possibleSettings
+      let tempDefaultSettings = {}
+      if (newNode.type === "uncertaintyMetricsNode" || newNode.type === "detectronNode" || newNode.type === "ipcModelNode" || newNode.type === "apcModelNode") {
+        possibleSettings = mergeSettings(newNode.type, possibleSettings, paParams)
+      }
+      // Iterate over each key-value pair in possibleSettings
 
-    newNode.data.internal.settings = tempDefaultSettings
+      Object.entries(possibleSettings).forEach(([settingName, settingValue]) => {
+        if (settingName === "model_settings") {
+          tempDefaultSettings = {
+            ...tempDefaultSettings,
+            hyperparameters: {},
+            grid_params: {}
+          }
+          // Iterate over model_settings for each model type
+          // eslint-disable-next-line no-unused-vars
+          Object.entries(settingValue).forEach(([modelName, modelSettings]) => {
+            if (modelSettings.hyperparameters) {
+              // Initialize hyperparameters for the model type
+              modelSettings.hyperparameters.forEach((param) => {
+                tempDefaultSettings.hyperparameters[param.name] = param.default_val
+              })
+            }
+            if (modelSettings.grid_params) {
+              // Initialize grid_params for the model type
+              modelSettings.grid_params.forEach((param) => {
+                tempDefaultSettings.grid_params[param.name] = param.default_val
+              })
+            }
+          })
+        } else if (newNode.type === "apcModelNode") {
+          tempDefaultSettings = {
+            hyperparameters: {},
+            grid_params: {}
+          }
+
+          // Iterate through possible settings and populate tempDefaultSettings accordingly
+          Object.entries(possibleSettings).forEach(([settingName, settingValue]) => {
+            if (settingName === "grid_params") {
+              settingValue.forEach((p) => {
+                tempDefaultSettings.grid_params[p.name] = p.default_val
+              })
+            } else if (settingName === "hyperparameters") {
+              settingValue.forEach((p) => {
+                tempDefaultSettings.hyperparameters[p.name] = p.default_val
+              })
+            } else {
+              // Handle other possible settings (if any)
+              tempDefaultSettings[settingName] = settingValue.default_val
+            }
+          })
+        } else {
+          // Handle other possible settings (if any)
+          tempDefaultSettings[settingName] = settingValue.default_val
+        }
+      })
+
+      newNode.data.internal.settings = tempDefaultSettings
+    }
 
     newNode.data.internal.selection = newNode.type == "selectionNode" && Object.keys(setupParams.possibleSettings)[0]
     newNode.data.internal.checkedOptions = []
@@ -503,24 +555,10 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
     return topLevelConfigs
   }
 
-  // const getByteSize = (json, sizeType) => {
-  //   if (sizeType == undefined) {
-  //     sizeType = "bytes"
-  //   }
-  //   if (json != null && json != undefined) {
-  //     let size = new Blob([JSON.stringify(json)]).size
-  //     if (sizeType == "bytes") {
-  //       return size
-  //     } else if (sizeType == "kb") {
-  //       return size / 1024
-  //     } else if (sizeType == "mb") {
-  //       return size / 1024 / 1024
-  //     }
-  //   }
-  // }
   useEffect(() => {
     const fetchData = () => {
       if (!port) return null
+      setLoader(true)
       requestBackend(
         // Send the request
         port,
@@ -533,8 +571,9 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
             }
             setError(jsonResponse.error)
           } else {
+            setLoader(false)
             setIsUpdating(false) // Set the isUpdating to false
-            console.log("jsonResponse", jsonResponse)
+            setpaParams(jsonResponse)
             setProgressValue({ now: 100, currentLabel: jsonResponse["data"] }) // Set the progress value to 100 and show the message that the backend received from the frontend
           }
         },
@@ -548,58 +587,6 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
 
     fetchData()
   }, [])
-
-  /**
-   * Request the backend to run the experiment
-   * @param {Number} port port of the backend
-   * @param {Object} flow json object of the workflow
-   * @param {Boolean} isValid boolean to know if the workflow is valid
-   * @returns {Object} results of the experiment
-   */
-  // function requestBackendRunExperiment(port, flow, isValid) {
-  //   if (isValid) {
-  //     console.log("sended flow", flow)
-  //     console.log("port", port)
-  //     setIsProgressUpdating(true)
-  //     requestBackend(
-  //       port,
-  //       "/med3pa/hello_world_med3pa/" + pageId,
-  //       flow,
-  //       (jsonResponse) => {
-  //         console.log("received results:", jsonResponse)
-  //         if (!jsonResponse.error) {
-  //           updateFlowResults(jsonResponse)
-  //           setProgress({
-  //             now: 100,
-  //             currentLabel: "Done!"
-  //           })
-  //           setIsProgressUpdating(false)
-  //         } else {
-  //           setProgress({
-  //             now: 0,
-  //             currentLabel: ""
-  //           })
-  //           setIsProgressUpdating(false)
-  //           toast.error("Error detected while running the experiment")
-  //           console.log("error", jsonResponse.error)
-  //           setError(jsonResponse.error)
-  //         }
-  //       },
-  //       (error) => {
-  //         setProgress({
-  //           now: 0,
-  //           currentLabel: ""
-  //         })
-  //         setIsProgressUpdating(false)
-  //         toast.error("Error detected while running the experiment")
-  //         console.log("error", error)
-  //         setError(error)
-  //       }
-  //     )
-  //   } else {
-  //     toast.warn("Workflow is not valid, maybe some default values are not set")
-  //   }
-  // }
 
   /**
    *
@@ -755,7 +742,7 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
   }
 
   const runPaPipeline = (flConfig) => {
-    let JSONToSend = flConfig
+    let JSONToSend = { config: flConfig, path: getBasePath(EXPERIMENTS) }
 
     setIsProgressUpdating(true)
     setIsUpdating(true)
@@ -835,7 +822,6 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
 
       <PaWorkflowBase
         // mandatory props
-
         mandatoryProps={{
           reactFlowInstance: reactFlowInstance,
           setReactFlowInstance: setReactFlowInstance,
@@ -853,44 +839,40 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
         customOnConnect={onConnect}
         onDeleteNode={onDeleteNode}
         onNodeDrag={onNodeDrag}
-        // reprensents the visual over the workflow
+        // represents the visual overlay over the workflow
         groupNodeHandlingDefault={groupNodeHandlingDefault}
         uiTopRight={
           <>
-            {workflowType == "pa" && (
-              <>
-                <BtnDiv
-                  buttonsList={[
-                    { type: "run", onClick: onRun, disabled: !canRun },
-                    { type: "clear", onClick: onClear },
-                    { type: "save", onClick: onSave },
-                    { type: "load", onClick: onLoad }
-                  ]}
-                />
-              </>
+            {workflowType === "pa" && (
+              <BtnDiv
+                buttonsList={[
+                  { type: "run", onClick: onRun, disabled: !canRun },
+                  { type: "clear", onClick: onClear },
+                  { type: "save", onClick: onSave },
+                  { type: "load", onClick: onLoad }
+                ]}
+              />
             )}
           </>
         }
         uiTopCenter={
           <>
-            {workflowType == "pamodels" && (
-              <>
-                <div>
-                  {groupNodeId.id != "pa" && (
-                    <div className="subFlow-title" style={{ marginTop: "20px" }}>
-                      MED3pa Configuration
-                      <BtnDiv
-                        buttonsList={[
-                          {
-                            type: "back",
-                            onClick: onBack
-                          }
-                        ]}
-                      />
-                    </div>
-                  )}
-                </div>
-              </>
+            {workflowType === "pamodels" && (
+              <div>
+                {groupNodeId.id !== "pa" && (
+                  <div className="subFlow-title" style={{ marginTop: "20px" }}>
+                    MED3pa Configuration
+                    <BtnDiv
+                      buttonsList={[
+                        {
+                          type: "back",
+                          onClick: onBack
+                        }
+                      ]}
+                    />
+                  </div>
+                )}
+              </div>
             )}
           </>
         }
@@ -915,5 +897,4 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
     </>
   )
 }
-
 export default Med3paWorkflow

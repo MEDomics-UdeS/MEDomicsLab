@@ -109,7 +109,10 @@ const LostProfiles = ({ lostData, filters, onElementClick }) => {
     },
     toolbox: {
       feature: {
-        saveAsImage: {}
+        saveAsImage: {
+          type: "svg",
+          backgroundColor: "transparent"
+        }
       }
     },
     yAxis: {

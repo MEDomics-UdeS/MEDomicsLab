@@ -1,48 +1,48 @@
-/* eslint-disable camelcase */
 import React, { useState, useContext, useEffect } from "react"
 import Node from "../../flow/node"
 import FlInput from "../paInput"
-import { Button } from "react-bootstrap"
+import { Button } from "react-bootstrap" // Ensure Dropdown is imported from react-bootstrap
 import * as Icon from "react-bootstrap-icons"
 import { FlowFunctionsContext } from "../../flow/context/flowFunctionsContext"
-
 import { OverlayTrigger, Tooltip } from "react-bootstrap"
 
 export default function DetectronNode({ id, data }) {
-  // context
   const [showDetails, setShowDetails] = useState(false)
   const { updateNode } = useContext(FlowFunctionsContext)
   const [hovered, setHovered] = useState(false)
+  const [settingsLoaded, setSettingsLoaded] = useState(false)
 
   useEffect(() => {
-    const defaultSettings = {}
-    for (const key in data.setupParam.possibleSettings) {
-      defaultSettings[key] = data.setupParam.possibleSettings[key].default_val
-    }
-
-    updateNode({
-      id: id,
-      updatedData: {
-        ...data.internal,
-        settings: {
-          ...defaultSettings
-        }
+    // Simulate loading delay with setTimeout
+    const timer = setTimeout(() => {
+      const defaultSettings = {}
+      for (const key in data.setupParam.possibleSettings) {
+        defaultSettings[key] = data.setupParam.possibleSettings[key].default_val
       }
-    })
-  }, [])
+
+      updateNode({
+        id: id,
+        updatedData: {
+          ...data.internal,
+          settings: {
+            ...defaultSettings
+          }
+        }
+      })
+      setSettingsLoaded(true)
+    }, 2000) // Adjust timeout delay as needed (2000ms = 2 seconds)
+
+    return () => clearTimeout(timer) // Cleanup timeout on component unmount
+  }, [id, data.internal, data.setupParam.possibleSettings, updateNode])
 
   useEffect(() => {
-    updateNode({
-      id: id,
-      updatedData: data.internal
-    })
-  }, [])
+    console.log("HEY:", data.internal.settings)
+    console.log("HEY2:", data.setupParam.possibleSettings)
+  }, [settingsLoaded])
 
   const handleInputChange = (key, value) => {
-    // Check if the value is an array (multi-select) or a single value (text input)
-    const selectedValues = Array.isArray(value.value) ? value.value.map((option) => option.name) : value.value
+    const selectedValues = Array.isArray(value.value) ? value.value.map((option) => option) : value.value
 
-    // Update the context with the new value
     updateNode({
       id: id,
       updatedData: {
@@ -61,13 +61,11 @@ export default function DetectronNode({ id, data }) {
 
   return (
     <>
-      {/* build on top of the Node component */}
       <Node
         key={id}
         id={id}
         data={data}
         setupParam={data.setupParam}
-        // the body of the node is a form select (particular to this node)
         nodeBody={
           <>
             <div className="center">
@@ -103,12 +101,26 @@ export default function DetectronNode({ id, data }) {
                     className="ms-2"
                     style={{
                       fontSize: "0.8rem",
-                      color: hovered ? "black" : "#999" // Lighter color
+                      color: hovered ? "black" : "#999"
                     }}
                   >
                     {showDetails ? "Hide Details" : "Show Details"}
                   </span>
-                  {showDetails ? <Icon.Dash style={{ color: hovered ? "black" : "#999", marginRight: "5px" }} /> : <Icon.Plus style={{ color: hovered ? "black" : "#999", marginRight: "5px" }} />}
+                  {showDetails ? (
+                    <Icon.Dash
+                      style={{
+                        color: hovered ? "black" : "#999",
+                        marginRight: "5px"
+                      }}
+                    />
+                  ) : (
+                    <Icon.Plus
+                      style={{
+                        color: hovered ? "black" : "#999",
+                        marginRight: "5px"
+                      }}
+                    />
+                  )}
                 </div>
               </Button>
             </div>
@@ -120,8 +132,7 @@ export default function DetectronNode({ id, data }) {
                   <p className="fw-bold mb-0">Default Settings</p>
                   <br />
                   {Object.keys(data.setupParam.possibleSettings).map((key) => (
-                    // eslint-disable-next-line react/jsx-key
-                    <div className="row mb-2">
+                    <div className="row mb-2" key={key}>
                       <div className="col-sm-6">
                         <p className="fw-bold mb-2">{key}</p>
                       </div>
@@ -129,11 +140,20 @@ export default function DetectronNode({ id, data }) {
                         <OverlayTrigger
                           placement="top"
                           overlay={
-                            <Tooltip id="tooltip">{Array.isArray(data.setupParam.possibleSettings[key].default_val) ? data.internal.settings[key].join(", ") : data.internal.settings[key]}</Tooltip>
+                            <Tooltip id={`tooltip-${key}`}>
+                              {Array.isArray(data.internal.settings[key]) ? data.internal.settings[key].map((item) => item.name).join(", ") : data.internal.settings[key]}
+                            </Tooltip>
                           }
                         >
-                          <p className="fw-bold mb-0" style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                            {Array.isArray(data.setupParam.possibleSettings[key].default_val) ? data.internal.settings[key].join(", ") : data.internal.settings[key]}
+                          <p
+                            className="fw-bold mb-0"
+                            style={{
+                              whiteSpace: "nowrap",
+                              overflow: "hidden",
+                              textOverflow: "ellipsis"
+                            }}
+                          >
+                            {Array.isArray(data.internal.settings[key]) ? data.internal.settings[key].map((item) => item.name).join(", ") : data.internal.settings[key]}
                           </p>
                         </OverlayTrigger>
                       </div>
@@ -144,29 +164,28 @@ export default function DetectronNode({ id, data }) {
             )}
           </>
         }
-        // default settings are the default settings of the node, so mandatory settings
         defaultSettings={
           <>
-            {Object.keys(data.setupParam.possibleSettings).map((key) => (
-              <div key={key} style={{ marginBottom: "2px" }}>
-                <FlInput
-                  key={key}
-                  name={key}
-                  settingInfos={{
-                    type: data.setupParam.possibleSettings[key].type,
-                    tooltip: data.setupParam.possibleSettings[key].tooltip,
-                    ...(data.setupParam.possibleSettings[key].options && {
-                      choices: data.setupParam.possibleSettings[key].options
-                    })
-                  }}
-                  currentValue={data.internal.settings[key] || ""}
-                  onInputChange={(value) => handleInputChange(key, value)}
-                />
-              </div>
-            ))}
+            {settingsLoaded &&
+              Object.keys(data.setupParam.possibleSettings).map((key) => (
+                <div key={key} style={{ marginBottom: "2px" }}>
+                  <FlInput
+                    key={key}
+                    name={key}
+                    settingInfos={{
+                      type: data.setupParam.possibleSettings[key].type,
+                      tooltip: data.setupParam.possibleSettings[key].tooltip,
+                      ...(data.setupParam.possibleSettings[key].options && {
+                        choices: data.setupParam.possibleSettings[key].options
+                      })
+                    }}
+                    currentValue={data.internal?.settings[key] || data.setupParam.possibleSettings[key].default_val}
+                    onInputChange={(value) => handleInputChange(key, value)}
+                  />
+                </div>
+              ))}
           </>
         }
-        // node specific is the body of the node, so optional settings
         nodeSpecific={<></>}
       />
     </>

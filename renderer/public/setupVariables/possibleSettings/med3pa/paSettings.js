@@ -28,35 +28,22 @@ const paSettings = {
     model_type: {
       type: "list",
       tooltip: "Model Types for IPC Model",
-      options: [{ name: "Random Forest Regressor" }, { name: "XGBoost" }, { name: "Extra Trees Regressor" }],
-      default_val: "Random Forest Regressor" // Default Model
-    }
+      options: [],
+      default_val: "" // Default Model
+    },
+    model_settings: {}
   },
 
   apcModel: {
-    tree_depth: {
-      type: "range",
-      tooltip: "Depth of the decision tree for med3pa",
-      min: 0,
-      max: 10,
-      step: 1,
-      default_val: 4 // Default value for tree depth
-    },
-    min_leaves_ratio: {
-      type: "range",
-      tooltip: "Minimum ratio of leaves for med3pa",
-      min: 0,
-      max: 1,
-      step: 0.1,
-      default_val: 0.5 // Default value for minimum leaves ratio
-    }
+    hyperparameters: {},
+    grid_params: {}
   },
   uncertaintyMetrics: {
     uncertainty_metric: {
       type: "list",
       tooltip: "Uncertainty Metric to use for Base Model Error quantification",
-      options: [{ name: "Mean Square Error (MSE)" }, { name: "Mean Absolute Error (MAE)" }],
-      default_val: "Mean Absolute Error (MAE)"
+      options: [],
+      default_val: ""
     }
   },
 
@@ -84,10 +71,79 @@ const paSettings = {
     detectron_test: {
       type: "list-multiple",
       tooltip: "The types of Detectron test to run",
-      options: [{ name: "Detectron Disagreement" }, { name: "Detecton with Mann-Whitney" }, { name: "Detectron Entropy" }, { name: "Detectron with KS-test" }],
-      default_val: [{ name: "Detectron Disagreement" }, { name: "Detecton with Mann-Whitney" }] // Default value for metrics
+      options: [],
+      default_val: [] // Default value for metrics
     }
   }
+}
+export function formatString(str) {
+  return str
+    .toLowerCase()
+    .replace(/_/g, " ") // Replace underscores with spaces
+    .replace(/\b\w/g, (char) => char.toUpperCase()) // Capitalize the first letter of each word
+}
+export const mergeSettings = (nodeName, staticSettings, dynamicSettings) => {
+  const mapOptions = (options) => options.map((option) => ({ name: formatString(option) }))
+  if (nodeName === "ipcModelNode") {
+    if (dynamicSettings.ipc_models) {
+      // Iterate through ipc_models keys and add them to model_type options
+      Object.keys(dynamicSettings.ipc_models).forEach((model) => {
+        staticSettings.model_type.options.push({ name: model })
+
+        // Store model-specific settings inside model_settings
+        staticSettings.model_settings[model] = {
+          hyperparameters: dynamicSettings.ipc_models[model].params.map((param) => ({
+            ...param,
+            type: param.type,
+            tooltip: `${param.name} for ${model}`,
+            default_val: param.default
+          })),
+          grid_params: dynamicSettings.ipc_models[model].grid_params.map((param) => ({
+            ...param,
+            type: param.type,
+            tooltip: `${param.name} for Grid Search Optimization`,
+            default_val: param.default
+          }))
+        }
+      })
+
+      // Set default_val to the first model in options
+      staticSettings.model_type.default_val = staticSettings.model_type.options[0]?.name || ""
+    }
+  }
+  if (nodeName === "apcModelNode") {
+    if (dynamicSettings.apc_models) {
+      Object.keys(dynamicSettings.apc_models).forEach((model) => {
+        // Store model-specific settings inside apc_models
+        ;(staticSettings.hyperparameters = dynamicSettings.apc_models[model].params.map((param) => ({
+          ...param,
+          type: param.type,
+          tooltip: `Parameter for ${model}`,
+          default_val: param.default
+        }))),
+          (staticSettings.grid_params = dynamicSettings.apc_models[model].grid_params.map((param) => ({
+            ...param,
+            type: param.type,
+            tooltip: `Grid parameter for ${model}`,
+            default_val: param.default
+          })))
+      })
+    }
+  }
+  if (nodeName === "uncertaintyMetricsNode") {
+    if (dynamicSettings.uncertainty_metrics) {
+      staticSettings.uncertainty_metric.options = mapOptions(dynamicSettings.uncertainty_metrics)
+      staticSettings.uncertainty_metric.default_val = formatString(dynamicSettings.uncertainty_metrics[0])
+    }
+  }
+  if (nodeName === "detectronNode") {
+    if (dynamicSettings.detetron_strategies) {
+      staticSettings.detectron_test.options = mapOptions(dynamicSettings.detetron_strategies)
+      staticSettings.detectron_test.default_val = mapOptions(dynamicSettings.detetron_strategies)
+    }
+  }
+
+  return staticSettings
 }
 
 export default paSettings

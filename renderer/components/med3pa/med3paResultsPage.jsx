@@ -71,6 +71,7 @@ const MED3paResultsPage = ({ pageId, configPath = "" }) => {
         let testFilePath
         let detectronFilePath
         const parentFolderName = path.basename(fileData.file_path)
+        console.log("HEELO:", fileData.file_path)
         if (parentFolderName.startsWith("detectron")) {
           setIsDetectron(true)
           detectronFilePath = path.join(fileData.file_path, "detectron_results")
@@ -144,7 +145,6 @@ const MED3paResultsPage = ({ pageId, configPath = "" }) => {
 
   useEffect(() => {
     if (loadedFiles.detectronResults) {
-      console.log("TEST HERE:", loadedFiles.detectronResults)
       setLoaded(true)
     }
   }, [isDetectron, loadedFiles])

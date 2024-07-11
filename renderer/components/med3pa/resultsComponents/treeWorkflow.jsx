@@ -14,20 +14,23 @@ import { MdOutlineGroups3 } from "react-icons/md"
 
 import DownloadButton from "./download.jsx"
 import { Fullscreen } from "react-bootstrap-icons"
+import TreeLegend from "./treeLegend.jsx"
 
-const TreeWorkflow = ({ treeData, maxDepth, onButtonClicked, onFullScreenClicked, fullscreen }) => {
+const TreeWorkflow = ({ treeData, maxDepth, customThreshold, onButtonClicked, onFullScreenClicked, fullscreen }) => {
   // eslint-disable-next-line no-unused-vars
   const [buttonClicked, setButtonClicked] = useState(false)
   const { setCenter, fitView } = useReactFlow()
+  const reactFlow = useReactFlow()
 
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 })
   const [nodes, setNodes, onNodesChange] = useNodesState([]) // nodes array, setNodes is used to update the nodes array, onNodesChange is a callback hook that is executed when the nodes array is changed
   const [edges, setEdges] = useEdgesState([]) // edges array, setEdges is used to update the edges array, onEdgesChange is a callback hook that is executed when the edges array is changed
   const cardRef = useRef(null)
+  const reactFlowRef = useRef(null)
 
   const [selectedNodeInfo, setSelectedNodeInfo] = useState(null)
-  const [originalClasses, setOriginalClasses] = useState([])
 
+  const [prevClassName, setPrevClassName] = useState(null)
   const nodeTypes = useMemo(
     () => ({
       treeNode: TreeNode
@@ -36,11 +39,6 @@ const TreeWorkflow = ({ treeData, maxDepth, onButtonClicked, onFullScreenClicked
   )
 
   const fitViewOptions = () => fitView({ duration: 200 })
-
-  const getOriginalClassById = (id) => {
-    const originalColorObj = originalClasses.find((colorObj) => colorObj.id === id)
-    return originalColorObj ? originalColorObj.originalClass : "black" // Default to black if not found
-  }
 
   const handleNodeClick = () => {
     // Define updatedNodes as a copy of nodes
@@ -54,11 +52,11 @@ const TreeWorkflow = ({ treeData, maxDepth, onButtonClicked, onFullScreenClicked
 
       if (prevSelectedNode) {
         const prevNodeId = prevSelectedNode.data.internal.settings.id
-        const originalClass = getOriginalClassById(prevNodeId)
+        //const originalClass = getOriginalClassById(prevNodeId)
 
         updatedNodes.forEach((node) => {
           if (node.data.internal.settings.id === prevNodeId) {
-            node.data.internal.settings.className = originalClass // Revert to original color
+            node.data.internal.settings.className = prevClassName // Revert to original color
           }
         })
 
@@ -74,6 +72,7 @@ const TreeWorkflow = ({ treeData, maxDepth, onButtonClicked, onFullScreenClicked
     // Update newly selected node's color to light blue and handle state updates if it's not the same node
     const finalNodes = updatedNodes.map((node) => {
       if (node.selected) {
+        setPrevClassName(node.data.internal.settings.className)
         // If it's the same node, do not change its color again
         if (node.data.internal.settings.id === selectedNodeInfo?.data.internal.settings.id) {
           return node
@@ -410,14 +409,8 @@ const TreeWorkflow = ({ treeData, maxDepth, onButtonClicked, onFullScreenClicked
         let newNode = createBaseNode(newNodeParams, nodeId)
         newNode = addSpecificToNode(newNode)
 
-        originalClasses.push({
-          id: profile.id,
-          originalClass: newNode.data.internal.settings.className
-        })
-
         setNodes((nds) => nds.concat(newNode))
       })
-      setOriginalClasses(originalClasses)
 
       // Step 2: Create edges
 
@@ -585,8 +578,20 @@ const TreeWorkflow = ({ treeData, maxDepth, onButtonClicked, onFullScreenClicked
         </div>
       )}
       <div style={{ flex: "1", width: dimensions.width, height: dimensions.height }}>
-        <ReactFlow fitView={fitViewOptions} minZoom={0} maxZoom={1.5} zoomOnScroll={true} nodes={nodes} edges={edges} onNodesChange={onNodesChange} nodeTypes={nodeTypes} onNodeClick={handleNodeClick}>
-          <DownloadButton />
+        <ReactFlow
+          ref={reactFlowRef}
+          fitView={fitViewOptions}
+          minZoom={0}
+          maxZoom={1.5}
+          zoomOnScroll={true}
+          nodes={nodes}
+          edges={edges}
+          onNodesChange={onNodesChange}
+          nodeTypes={nodeTypes}
+          onNodeClick={handleNodeClick}
+        >
+          {reactFlow && <DownloadButton reactFlowInstance={reactFlow} reactFlowRef={reactFlowRef.current} />}
+          {customThreshold !== 0 && <TreeLegend customThreshold={customThreshold}></TreeLegend>}
           <Controls />
         </ReactFlow>
       </div>
@@ -594,10 +599,10 @@ const TreeWorkflow = ({ treeData, maxDepth, onButtonClicked, onFullScreenClicked
   )
 }
 
-const FlowWithProvider = ({ treeData, maxDepth, onButtonClicked, onFullScreenClicked, fullscreen }) => {
+const FlowWithProvider = ({ treeData, maxDepth, customThreshold, onButtonClicked, onFullScreenClicked, fullscreen }) => {
   return (
     <ReactFlowProvider>
-      <TreeWorkflow treeData={treeData} maxDepth={maxDepth} onButtonClicked={onButtonClicked} onFullScreenClicked={onFullScreenClicked} fullscreen={fullscreen} />
+      <TreeWorkflow treeData={treeData} maxDepth={maxDepth} customThreshold={customThreshold} onButtonClicked={onButtonClicked} onFullScreenClicked={onFullScreenClicked} fullscreen={fullscreen} />
     </ReactFlowProvider>
   )
 }

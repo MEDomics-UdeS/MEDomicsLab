@@ -38,7 +38,7 @@ const MED3paResultsTab = ({ loadedFiles, type }) => {
   const [nodeParams, setNodeParams] = useState({
     focusView: "Node information",
     thresholdEnabled: false,
-    customThreshold: 100,
+    customThreshold: 0,
     selectedParameter: "",
     metrics: settings.metrics,
     detectronStrategy: settings.strategy
@@ -70,7 +70,7 @@ const MED3paResultsTab = ({ loadedFiles, type }) => {
       setNodeParams({
         focusView: "Node information",
         thresholdEnabled: false,
-        customThreshold: 100,
+        customThreshold: 0,
         selectedParameter: "",
         metrics: settings.metrics,
         detectronStrategy: settings.strategy
@@ -112,9 +112,7 @@ const MED3paResultsTab = ({ loadedFiles, type }) => {
       try {
         if (detectronResults) {
           setdetectronR(detectronResults)
-          if (detectronR) {
-            setLoadingDetectron(true)
-          }
+
           if (!settings.strategy) {
             let newStrategy = []
             detectronResults.detectron_results.forEach((result) => {
@@ -159,7 +157,11 @@ const MED3paResultsTab = ({ loadedFiles, type }) => {
           setTreeData(filteredData)
 
           setLostData(test.lost_profiles[treeParams.minSamplesRatio])
-
+          if (detectronR) {
+            setTimeout(() => {
+              setLoadingDetectron(true)
+            }, 3000)
+          }
           setLoadingLost(true)
 
           setTimeout(() => {
@@ -205,6 +207,11 @@ const MED3paResultsTab = ({ loadedFiles, type }) => {
         setTimeout(() => {
           setLoadingTree(true)
         }, 500)
+        if (detectronR) {
+          setTimeout(() => {
+            setLoadingDetectron(true)
+          }, 1000)
+        }
       }
     } catch (error) {
       console.error("Error loading files:", error)
@@ -288,7 +295,14 @@ const MED3paResultsTab = ({ loadedFiles, type }) => {
               {!loadingTree ? (
                 <p>Loading tree data...</p>
               ) : (
-                <FlowWithProvider treeData={treeData} maxDepth={treeParams.maxDepth} onButtonClicked={handleButtonClicked} onFullScreenClicked={toggleFullscreen} fullscreen={fullscreen} />
+                <FlowWithProvider
+                  treeData={treeData}
+                  maxDepth={treeParams.maxDepth}
+                  customThreshold={nodeParams.customThreshold}
+                  onButtonClicked={handleButtonClicked}
+                  onFullScreenClicked={toggleFullscreen}
+                  fullscreen={fullscreen}
+                />
               )}
             </div>
           </div>
@@ -328,7 +342,14 @@ const MED3paResultsTab = ({ loadedFiles, type }) => {
                     {!loadingTree ? (
                       <p>Loading tree data...</p>
                     ) : (
-                      <FlowWithProvider treeData={treeData} maxDepth={treeParams.maxDepth} onButtonClicked={handleButtonClicked} onFullScreenClicked={toggleFullscreen} fullscreen={fullscreen} />
+                      <FlowWithProvider
+                        treeData={treeData}
+                        maxDepth={treeParams.maxDepth}
+                        customThreshold={nodeParams.customThreshold}
+                        onButtonClicked={handleButtonClicked}
+                        onFullScreenClicked={toggleFullscreen}
+                        fullscreen={fullscreen}
+                      />
                     )}
                   </div>
                   <div className="col-md-5 mb-3" style={{ flex: "1", display: "flex", flexDirection: "column" }}>

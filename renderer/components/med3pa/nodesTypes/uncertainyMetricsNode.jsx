@@ -14,6 +14,7 @@ export default function UncertaintyMetricsNode({ id, data }) {
   // Initialize the files field in the internal data if it doesn't exist
   useEffect(() => {
     const defaultSettings = {}
+
     Object.keys(data.setupParam.possibleSettings).forEach((key) => {
       defaultSettings[key] = data.setupParam.possibleSettings[key].default_val
     })
@@ -37,7 +38,7 @@ export default function UncertaintyMetricsNode({ id, data }) {
 
   const handleInputChange = (key, value) => {
     // Check if the value is an array (multi-select) or a single value (text input)
-    const selectedValues = Array.isArray(value.value) ? value.value.map((option) => option.name) : value.value
+    const selectedValues = Array.isArray(value.value) ? value.value.map((option) => option) : value.value
 
     // Update the context with the new value
     updateNode({

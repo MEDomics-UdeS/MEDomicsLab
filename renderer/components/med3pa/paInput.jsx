@@ -188,9 +188,10 @@ const FlInput = ({ name, settingInfos, currentValue, onInputChange, disabled, se
                   disabled={disabled}
                   id={name}
                   label={name}
-                  checked={currentValue === "True"}
+                  checked={currentValue === true}
                   onChange={(e) => {
-                    const value = e.target.checked ? "True" : "False"
+                    const value = e.target.checked
+
                     setInputUpdate({
                       name: name,
                       value: value,
@@ -518,7 +519,7 @@ const FlInput = ({ name, settingInfos, currentValue, onInputChange, disabled, se
             <FloatingLabel id={name} controlId={name} label={name} className="input-hov">
               <WsSelect
                 selectedPath={currentValue}
-                acceptedExtensions={["medmodel"]}
+                acceptedExtensions={["medmodel", "pkl"]}
                 onChange={(e, path) => {
                   console.log("e", e, path)
                   setInputUpdate({

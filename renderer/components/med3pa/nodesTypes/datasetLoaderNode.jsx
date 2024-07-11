@@ -38,16 +38,19 @@ export default function DatasetLoaderNode({ id, data }) {
       })
     }
     updateSettings()
-  }, [id, data.internal, updateNode])
+  }, [id, data.internal, updateNode, settings])
 
   useEffect(() => {
-    const hasAllDatasetTypes = Object.keys(data.internal.settings).length < Object.keys(data.setupParam.possibleSettings.datasets.files).length
-    data.internal.hasWarning = { state: hasAllDatasetTypes, tooltip: hasAllDatasetTypes && <p>Select all dataset types</p> }
+    const hasAllDatasetTypes = Object.keys(data.internal.settings).length < Object.keys(data.setupParam.possibleSettings.datasets.files).length * 2
+    data.internal.hasWarning = {
+      state: hasAllDatasetTypes,
+      tooltip: hasAllDatasetTypes && <p>Select all dataset types</p>
+    }
   }, [settings])
 
   const onInputChange = (inputUpdate) => {
     const newSettings = { ...settings, [inputUpdate.name]: inputUpdate.value }
-    if (["files", "target"].includes(inputUpdate.name)) {
+    if (["file", "target"].includes(inputUpdate.name.split("_")[0])) {
       setGlobalData({ ...globalData })
     }
     setSettings(newSettings)
@@ -125,45 +128,49 @@ export default function DatasetLoaderNode({ id, data }) {
             <Button variant="light" className="width-100 btn-contour">
               {settings.target ? `Change Selected Main Datasets` : `Select Main Datasets`}
             </Button>
-            <p style={{ textAlign: "center", marginTop: "10px", fontSize: "12px" }}>This node is responsible for loading the main Datasets required for the experiment.</p>
+            <p style={{ textAlign: "center", marginTop: "10px", fontSize: "12px" }}>
+              This node is responsible for <br></br>Loading the main Datasets required for the experiment.
+            </p>
           </div>
-          <div className="center">
-            <Button
-              variant="light"
-              className="width-100 btn-contour"
-              onClick={toggleShowDetails}
-              style={{
-                backgroundColor: "transparent",
-                border: "none",
-                padding: 0,
-                textAlign: "left",
-                display: "flex",
-                alignItems: "center"
-              }}
-            >
-              <div
-                className="d-flex align-items-center"
+          {!data.internal.hasWarning.state && (
+            <div className="center">
+              <Button
+                variant="light"
+                className="width-100 btn-contour"
+                onClick={toggleShowDetails}
                 style={{
-                  transition: "color 0.3s",
-                  cursor: "pointer",
-                  marginLeft: "auto"
+                  backgroundColor: "transparent",
+                  border: "none",
+                  padding: 0,
+                  textAlign: "left",
+                  display: "flex",
+                  alignItems: "center"
                 }}
-                onMouseEnter={() => setHovered(true)}
-                onMouseLeave={() => setHovered(false)}
               >
-                <span
-                  className="ms-2"
+                <div
+                  className="d-flex align-items-center"
                   style={{
-                    fontSize: "0.8rem",
-                    color: hovered ? "black" : "#999" // Lighter color
+                    transition: "color 0.3s",
+                    cursor: "pointer",
+                    marginLeft: "auto"
                   }}
+                  onMouseEnter={() => setHovered(true)}
+                  onMouseLeave={() => setHovered(false)}
                 >
-                  {showDetails ? "Hide Details" : "Show Details"}
-                </span>
-                {showDetails ? <Icon.Dash style={{ color: hovered ? "black" : "#999", marginRight: "5px" }} /> : <Icon.Plus style={{ color: hovered ? "black" : "#999", marginRight: "5px" }} />}
-              </div>
-            </Button>
-          </div>
+                  <span
+                    className="ms-2"
+                    style={{
+                      fontSize: "0.8rem",
+                      color: hovered ? "black" : "#999" // Lighter color
+                    }}
+                  >
+                    {showDetails ? "Hide Details" : "Show Details"}
+                  </span>
+                  {showDetails ? <Icon.Dash style={{ color: hovered ? "black" : "#999", marginRight: "5px" }} /> : <Icon.Plus style={{ color: hovered ? "black" : "#999", marginRight: "5px" }} />}
+                </div>
+              </Button>
+            </div>
+          )}
           {showDetails && (
             <div className="border border-light p-3 mb-3">
               <hr className="my-2" />

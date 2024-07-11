@@ -8,6 +8,36 @@
   padding: 16px;
 }
 
+.legend-items {
+  display: flex;
+  flex-direction: row; /* Display items horizontally */
+  align-items: center;
+  justify-content: flex-end; /* Align items to the right */
+  margin-bottom: 20px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  margin-right: 15px; /* Adjust margin between items */
+}
+
+.threshold-circle {
+  width: 20px;
+  height: 10px;
+  border-radius: 0%;
+  margin-right: 5px; /* Adjust margin between circle and description */
+}
+
+.threshold-description {
+  font-size: 14px;
+  font-family: "Arial", sans-serif; /* Example font family */
+  font-weight: bold; /* Example font weight */
+  color: #555; /* Example color */
+  text-transform: uppercase; /* Example text transformation */
+  letter-spacing: 0.5px; /* Example letter spacing */
+}
+
 .container-paresults {
   max-width: 100%;
   margin: 0 auto;
@@ -115,9 +145,27 @@
 .panode-threshold,
 .with-icon-successpanode-threshold,
 .with-icon-successpanode-threshold {
-  transform: scale(2);
-  background: rgb(166, 241, 158);
+  background: rgb(123, 188, 115);
 }
+
+.panode-moderatethreshold,
+.with-icon-successpanode-moderatethreshold,
+.with-icon-successpanode-moderatethreshold {
+  background: rgb(248, 224, 120);
+}
+
+.panode-warningthreshold,
+.with-icon-successpanode-warningthreshold,
+.with-icon-successpanode-warningthreshold {
+  background: rgb(242, 159, 42);
+}
+
+.panode-criticalthreshold,
+.with-icon-successpanode-criticalthreshold,
+.with-icon-successpanode-criticalthreshold {
+  background: rgb(255, 81, 0);
+}
+
 .panode-lost-dr {
   background: rgba(255, 0, 0, 0.5);
   opacity: 90%;
