@@ -1,5 +1,5 @@
 import { ipcRenderer } from "electron"
-import { deleteMEDDataObject, insertMEDDataObjectIfNotExists, updateMEDDataObjectName } from "../mongoDB/mongoDBUtils"
+import { deleteMEDDataObject, insertMEDDataObjectIfNotExists, updateMEDDataObjectName, downloadCollectionToFile, overwriteMEDDataObjectProperties } from "../mongoDB/mongoDBUtils"
 import { randomUUID } from "crypto"
 import fs from "fs"
 import path from "path"
@@ -236,6 +236,56 @@ export class MEDDataObject {
 
     // Notify the system to update the workspace
     this.updateWorkspaceDataObject()
+  }
+
+  /**
+   * @description Load the MEDdataObject (and its parents) content from the DB into the Workspace
+   * @param {Dictionary} dict - dictionary of all MEDDataObjects
+   * @param {String} id - the id of the MEDDataObject to sync
+   * @param {String} workspacePath - the root path of the workspace
+   */
+  static async sync(dict, id, workspacePath) {
+    const medDataObject = dict[id]
+
+    if (!medDataObject) {
+      console.log(`MEDDataObject with id ${id} not found`)
+      return
+    }
+
+    // Recursively sync parent objects
+    if (medDataObject.parentID && medDataObject.parentID !== "ROOT") {
+      await this.sync(dict, medDataObject.parentID, workspacePath)
+    }
+
+    // Define the file path where the content will be downloaded
+    const filePath = this.getFullPath(dict, id, workspacePath)
+
+    // Ensure the directory exists
+    const directoryPath = path.dirname(filePath)
+    if (!fs.existsSync(directoryPath)) {
+      fs.mkdirSync(directoryPath, { recursive: true })
+    }
+
+    // Download the content based on the type
+    try {
+      if (medDataObject.type != "directory") {
+        await downloadCollectionToFile(id, filePath, medDataObject.type)
+      }
+
+      // Update inWorkspace property to true after successful download
+      if (!medDataObject.inWorkspace) {
+        const updateData = { inWorkspace: true }
+        const updateSuccess = await overwriteMEDDataObjectProperties(id, updateData)
+
+        if (updateSuccess) {
+          medDataObject.inWorkspace = true // Update local dictionary as well
+        } else {
+          console.error(`Failed to update inWorkspace property for MEDDataObject with id ${id}`)
+        }
+      }
+    } catch (error) {
+      console.error(`Failed to download collection ${id}: ${error.message}`)
+    }
   }
 
   /**

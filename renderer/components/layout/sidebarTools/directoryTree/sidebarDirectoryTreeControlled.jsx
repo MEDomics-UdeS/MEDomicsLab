@@ -1,6 +1,6 @@
 /* eslint-disable no-undef */
 import React, { useContext, useRef, useState, useEffect } from "react"
-import { Trash, BoxArrowUpRight, Eraser, FolderPlus, ArrowClockwise, EyeFill, EyeSlashFill } from "react-bootstrap-icons"
+import { Trash, BoxArrowUpRight, Eraser, FolderPlus, ArrowClockwise, EyeFill, EyeSlashFill, ArrowRepeat } from "react-bootstrap-icons"
 import { Accordion, Stack } from "react-bootstrap"
 import { ControlledTreeEnvironment, Tree } from "react-complex-tree"
 import { DataContext } from "../../../workspace/dataContext"
@@ -231,6 +231,9 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
           break
         case "open":
           onOpen(props.index)
+          break
+        case "sync":
+          MEDDataObject.sync(globalData, props.index, workspace.workingDirectory.path)
           break
         case "rename":
           onRename(props.index)
@@ -509,6 +512,10 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
             {/* <BoxArrowUpRight size={"1rem"} className="context-menu-icon" /> */}
             Reveal in File Explorer
           </Item>
+          <Item id="sync" onClick={handleContextMenuAction}>
+            <ArrowRepeat size={"1rem"} className="context-menu-icon" />
+            Sync
+          </Item>
           <Item id="rename" onClick={handleContextMenuAction}>
             <Eraser size={"1rem"} className="context-menu-icon" />
             Rename
@@ -542,6 +549,10 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
             {/* <BoxArrowUpRight size={"1rem"} className="context-menu-icon" /> */}
             Reveal in File Explorer
           </Item>
+          <Item id="sync" onClick={handleContextMenuAction}>
+            <ArrowRepeat size={"1rem"} className="context-menu-icon" />
+            Sync
+          </Item>
           <Item id="rename" onClick={handleContextMenuAction}>
             <Eraser size={"1rem"} className="context-menu-icon" />
             Rename
@@ -570,6 +581,10 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
             {/* <BoxArrowUpRight size={"1rem"} className="context-menu-icon" /> */}
             Reveal in File Explorer
           </Item>
+          <Item id="sync" onClick={handleContextMenuAction}>
+            <ArrowRepeat size={"1rem"} className="context-menu-icon" />
+            Sync
+          </Item>
           <Item id="rename" onClick={handleContextMenuAction}>
             <Eraser size={"1rem"} className="context-menu-icon" />
             Rename
@@ -584,6 +599,10 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
           <Item id="revealInFileExplorer" onClick={handleContextMenuAction}>
             {/* <BoxArrowUpRight size={"1rem"} className="context-menu-icon" /> */}
             Reveal in File Explorer
+          </Item>
+          <Item id="sync" onClick={handleContextMenuAction}>
+            <ArrowRepeat size={"1rem"} className="context-menu-icon" />
+            Sync
           </Item>
           <Item id="rename" onClick={handleContextMenuAction}>
             <Eraser size={"1rem"} className="context-menu-icon" />
@@ -625,6 +644,10 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
             {/* <BoxArrowUpRight size={"1rem"} className="context-menu-icon" /> */}
             Reveal in File Explorer
           </Item>
+          <Item id="sync" onClick={handleContextMenuAction}>
+            <ArrowRepeat size={"1rem"} className="context-menu-icon" />
+            Sync
+          </Item>
           <Item id="rename" onClick={handleContextMenuAction}>
             <Eraser size={"1rem"} className="context-menu-icon" />
             Rename
@@ -652,6 +675,10 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
           <Item id="revealInFileExplorer" onClick={handleContextMenuAction}>
             {/* <BoxArrowUpRight size={"1rem"} className="context-menu-icon" /> */}
             Reveal in File Explorer
+          </Item>
+          <Item id="sync" onClick={handleContextMenuAction}>
+            <ArrowRepeat size={"1rem"} className="context-menu-icon" />
+            Sync
           </Item>
           <Item id="rename" onClick={handleContextMenuAction}>
             <Eraser size={"1rem"} className="context-menu-icon" />
@@ -681,6 +708,10 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
             {/* <BoxArrowUpRight size={"1rem"} className="context-menu-icon" /> */}
             Reveal in File Explorer
           </Item>
+          <Item id="sync" onClick={handleContextMenuAction}>
+            <ArrowRepeat size={"1rem"} className="context-menu-icon" />
+            Sync
+          </Item>
           <Item id="rename" onClick={handleContextMenuAction}>
             <Eraser size={"1rem"} className="context-menu-icon" />
             Rename
@@ -706,6 +737,10 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
           <Item id="revealInFileExplorer" onClick={handleContextMenuAction}>
             {/* <BoxArrowUpRight size={"1rem"} className="context-menu-icon" /> */}
             Reveal in File Explorer
+          </Item>
+          <Item id="sync" onClick={handleContextMenuAction}>
+            <ArrowRepeat size={"1rem"} className="context-menu-icon" />
+            Sync
           </Item>
           <Item id="rename" onClick={handleContextMenuAction}>
             <Eraser size={"1rem"} className="context-menu-icon" />
@@ -741,6 +776,10 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
             {/* <BoxArrowUpRight size={"1rem"} className="context-menu-icon" /> */}
             Reveal in File Explorer
           </Item>
+          <Item id="sync" onClick={handleContextMenuAction}>
+            <ArrowRepeat size={"1rem"} className="context-menu-icon" />
+            Sync
+          </Item>
           <Item id="rename" onClick={handleContextMenuAction}>
             <Eraser size={"1rem"} className="context-menu-icon" />
             Rename
@@ -755,6 +794,10 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
           <Item id="revealInFileExplorer" onClick={handleContextMenuAction}>
             {/* <BoxArrowUpRight size={"1rem"} className="context-menu-icon" /> */}
             Reveal in File Explorer
+          </Item>
+          <Item id="sync" onClick={handleContextMenuAction}>
+            <ArrowRepeat size={"1rem"} className="context-menu-icon" />
+            Sync
           </Item>
           <Item id="rename" onClick={handleContextMenuAction}>
             <Eraser size={"1rem"} className="context-menu-icon" />
