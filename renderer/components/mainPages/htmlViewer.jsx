@@ -10,10 +10,7 @@ const HtmlViewer = ({ config }) => {
   const [htmlContent, setHtmlContent] = useState("")
 
   useEffect(() => {
-    console.log(htmlContent)
-  }, [htmlContent])
-
-  useEffect(() => {
+    console.log("config", config)
     const fetchHtmlContent = async () => {
       try {
         const db = await connectToMongoDB()

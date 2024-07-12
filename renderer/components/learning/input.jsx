@@ -406,10 +406,9 @@ const Input = ({ name, settingInfos, currentValue, onInputChange, disabled, setH
                 acceptedExtensions={["csv"]}
                 acceptFolder={settingInfos.acceptFolder ? settingInfos.acceptFolder : false}
                 onChange={(e) => {
-                  console.log(name, e.target.value, settingInfos.type)
                   setInputUpdate({
                     name: name,
-                    value: { id: e.target.value },
+                    value: { id: e.target.value, name: globalData[e.target.value].name },
                     type: settingInfos.type
                   })
                 }}
