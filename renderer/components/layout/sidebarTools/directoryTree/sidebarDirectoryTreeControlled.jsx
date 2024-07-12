@@ -234,6 +234,7 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
           break
         case "sync":
           MEDDataObject.sync(globalData, props.index, workspace.workingDirectory.path)
+          MEDDataObject.updateWorkspaceDataObject()
           break
         case "rename":
           onRename(props.index)
