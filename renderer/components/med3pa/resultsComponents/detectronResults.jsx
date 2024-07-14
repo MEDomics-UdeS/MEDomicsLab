@@ -11,6 +11,7 @@ import "echarts/lib/component/legend" // Import legend component
 
 const DetectronResults = ({ detectronResults }) => {
   const [initialized, setInitialized] = useState(false)
+  const [activeKey, setActiveKey] = useState("0")
   const chartRef = useRef(null) // Reference for the chart DOM element
 
   useEffect(() => {
@@ -23,7 +24,7 @@ const DetectronResults = ({ detectronResults }) => {
     if (initialized) {
       initializeCharts()
     }
-  }, [initialized])
+  }, [initialized, activeKey])
 
   const initializeCharts = () => {
     const chartDom = chartRef.current // Access the DOM element using the ref
@@ -31,16 +32,24 @@ const DetectronResults = ({ detectronResults }) => {
 
     const myChart = echarts.init(chartDom) // Initialize ECharts instance
 
-    // Prepare data for pie chart
+    // Prepare data for pie chart and legend
     const pieData = []
     const legendData = []
+    const colors = ["#7cbf77", "#ffd966", "#ffa05c", "#ff6f69"] // Define colors
+
     if (detectronResults && detectronResults.length > 0) {
-      const significanceDescription = detectronResults[0].significance_description
-      Object.keys(significanceDescription).forEach((key) => {
-        const value = significanceDescription[key]
-        pieData.push({ value: value, name: key })
-        legendData.push(key) // Add key to legend data
-      })
+      const significanceDescription = detectronResults.find((result) => result.Strategy === "enhanced_disagreement_strategy")?.significance_description
+
+      if (significanceDescription) {
+        Object.keys(significanceDescription).forEach((key, index) => {
+          const value = significanceDescription[key]
+          pieData.push({ value: value, name: key })
+          legendData.push({ name: key, icon: "circle" }) // Add key to legend data
+          // Assign color based on index, looping through colors array
+          const colorIndex = index % colors.length
+          pieData[index].itemStyle = { color: colors[colorIndex] }
+        })
+      }
     }
 
     // Set options for pie chart
@@ -48,7 +57,7 @@ const DetectronResults = ({ detectronResults }) => {
       title: {
         text: "Chart Pie Representing Shift Probability",
         left: "center", // Center the title
-        top: "top" // Position title at the top
+        top: 0 // Position title at the top
       },
       tooltip: {
         trigger: "item",
@@ -57,23 +66,21 @@ const DetectronResults = ({ detectronResults }) => {
       legend: {
         type: "scroll",
         orient: "horizontal",
-
         bottom: 0,
-
         data: legendData
       },
       series: [
         {
           type: "pie",
           radius: "65%",
-          center: ["50%", "50%"],
+          center: ["50%", "55%"],
           selectedMode: "single",
           data: pieData.map((item) => ({
             value: item.value.toFixed(2), // Limit to two decimal places
             name: item.name,
+            itemStyle: item.itemStyle,
             label: {
-              borderWidth: 1,
-              borderRadius: 4
+              fontSize: 16 // Adjust the font size here
             }
           })),
           emphasis: {
@@ -168,9 +175,9 @@ const DetectronResults = ({ detectronResults }) => {
       />
 
       {/* Render the Tabs component and map through detectronResults */}
-      <Tabs defaultActiveKey="0" id="strategy-tabs" className="mb-3">
+      <Tabs activeKey={activeKey} onSelect={(k) => setActiveKey(k)} id="strategy-tabs" className="mb-3">
         {detectronResults.map((result, index) => (
-          <Tab key={index} eventKey={index} title={result.Strategy}>
+          <Tab key={index} eventKey={index.toString()} title={result.Strategy}>
             <div style={{ marginTop: "1rem" }}>
               <Table bordered hover>
                 <tbody>
@@ -187,13 +194,13 @@ const DetectronResults = ({ detectronResults }) => {
                               : value}
                           </td>
                         </tr>
-                      ) : (
+                      ) : activeKey === index.toString() ? (
                         <tr key={key}>
                           <td colSpan="2">
                             <div ref={chartRef} style={{ height: "300px", width: "100%" }} />
                           </td>
                         </tr>
-                      )
+                      ) : null
                     ) : null
                   )}
                 </tbody>

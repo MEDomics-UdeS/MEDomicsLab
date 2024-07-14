@@ -22,7 +22,7 @@ const MED3paResultsTab = ({ loadedFiles, type }) => {
   const [prevSelectedId, setPrevSelectedId] = useState(null)
   const [currentSelectedId, setCurrentSelectedId] = useState(null)
 
-  const [detectronR, setdetectronR] = useState({})
+  const [detectronR, setdetectronR] = useState()
   const [loadingDetectron, setLoadingDetectron] = useState(false)
 
   const [settings, setSettings] = useState({
@@ -40,7 +40,7 @@ const MED3paResultsTab = ({ loadedFiles, type }) => {
     thresholdEnabled: false,
     customThreshold: 0,
     selectedParameter: "",
-    metrics: settings.metrics,
+    metrics: null,
     detectronStrategy: settings.strategy
   })
   // Function to determine and format loaded files based on type
@@ -48,14 +48,11 @@ const MED3paResultsTab = ({ loadedFiles, type }) => {
     let test, detectronResults
 
     if (type === "eval") {
-      const { test: evalTest, detectron_results: evalDetectronResults } = loadedFiles
-      test = evalTest
-      detectronResults = evalDetectronResults
-      if (!test) {
-        // eslint-disable-next-line no-unused-vars
-        const { detectron_results, ...rest } = loadedFiles
-        test = rest
-      }
+      // eslint-disable-next-line no-unused-vars
+      const { detectron_results, ...rest } = loadedFiles
+
+      detectronResults = detectron_results
+      test = rest
     } else {
       test = loadedFiles
       detectronResults = null
@@ -72,7 +69,7 @@ const MED3paResultsTab = ({ loadedFiles, type }) => {
         thresholdEnabled: false,
         customThreshold: 0,
         selectedParameter: "",
-        metrics: settings.metrics,
+        metrics: settings.metrics.filter((item) => ["Auc", "Accuracy", "F1Score", "Recall"].includes(item.name)) || null,
         detectronStrategy: settings.strategy
       })
       setTreeParams({
@@ -115,7 +112,7 @@ const MED3paResultsTab = ({ loadedFiles, type }) => {
 
           if (!settings.strategy) {
             let newStrategy = []
-            detectronResults.detectron_results.forEach((result) => {
+            detectronResults.forEach((result) => {
               newStrategy.push({ name: result.Strategy })
             })
 
@@ -131,17 +128,23 @@ const MED3paResultsTab = ({ loadedFiles, type }) => {
           if (!settings.metrics) {
             const firstItem = test.metrics_dr[0]
             let newMetrics = null
+
             if (firstItem && firstItem.metrics) {
-              newMetrics = Object.keys(firstItem.metrics).map((metric) => ({
-                name: metric
-              }))
+              newMetrics = Object.keys(firstItem.metrics)
+                .filter((metric) => metric !== "LogLoss") // Filter out "LogLoss"
+                .map((metric) => ({
+                  name: metric
+                }))
             }
+
             setSettings((prevSettings) => ({
               ...prevSettings,
               metrics: newMetrics
             }))
           }
-          setCurveData(test.metrics_dr)
+
+          const filteredMDRData = filterMetrics(test.metrics_dr, nodeParams)
+          setCurveData(filteredMDRData)
           setLoadingCurve(true)
         }
         if (!test.profiles) return
@@ -157,6 +160,7 @@ const MED3paResultsTab = ({ loadedFiles, type }) => {
           setTreeData(filteredData)
 
           setLostData(test.lost_profiles[treeParams.minSamplesRatio])
+
           if (detectronR) {
             setTimeout(() => {
               setLoadingDetectron(true)
@@ -355,7 +359,7 @@ const MED3paResultsTab = ({ loadedFiles, type }) => {
                   <div className="col-md-5 mb-3" style={{ flex: "1", display: "flex", flexDirection: "column" }}>
                     {!loadingCurve ? <p>Loading CURVE data...</p> : <MDRCurve curveData={curveData} clickedLostElement={currentSelectedId} />}
                     {!loadingLost ? null : <LostProfiles lostData={lostData} filters={{ dr: treeParams.declarationRate, maxDepth: treeParams.maxDepth }} onElementClick={handleElementClick} />}
-                    {type === "eval" && !loadingDetectron ? null : type === "eval" && <DetectronResults detectronResults={detectronR.detectron_results} />}
+                    {!loadingDetectron ? null : type === "eval" && <DetectronResults detectronResults={detectronR} />}
                   </div>
                 </div>
               </>

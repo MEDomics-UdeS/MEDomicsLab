@@ -3,7 +3,7 @@ import React, { useState, useCallback, useMemo, useEffect, useContext } from "re
 import { toast } from "react-toastify"
 //import { ipcRenderer } from "electron"
 import { useNodesState, useEdgesState, useReactFlow } from "reactflow"
-import { loadJsonSync } from "../../utilities/fileManagementUtils"
+import { loadJsonSync, deleteFolderRecursive } from "../../utilities/fileManagementUtils"
 import { requestBackend } from "../../utilities/requests"
 import PaWorkflowBase from "./paWorkflowBase.jsx"
 import BtnDiv from "../flow/btnDiv.jsx"
@@ -13,7 +13,7 @@ import { PageInfosContext } from "../mainPages/moduleBasics/pageInfosContext.jsx
 import { FlowResultsContext } from "../flow/context/flowResultsContext"
 import { LoaderContext } from "../generalPurpose/loaderContext.jsx"
 import { WorkspaceContext, EXPERIMENTS } from "../workspace/workspaceContext"
-
+import path from "path"
 import { ErrorRequestContext } from "../generalPurpose/errorRequestContext.jsx"
 import MedDataObject from "../workspace/medDataObject.js"
 import { modifyZipFileSync } from "../../utilities/customZipFile.js"
@@ -48,6 +48,7 @@ import UncertaintyMetricsNode from "./nodesTypes/uncertainyMetricsNode.jsx"
 
 import DetectronNode from "./nodesTypes/detectronNode.jsx"
 import { mergeSettings } from "../../public/setupVariables/possibleSettings/med3pa/paSettings.js"
+import { loadJsonFiles } from "./resultTabs/tabFunctions.js"
 
 const staticNodesParams = nodesParams // represents static nodes parameters
 
@@ -741,62 +742,28 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
     setNodes((nds) => nds.concat(newNodeEnd))
   }
 
-  const runPaPipeline = (flConfig) => {
-    let JSONToSend = { config: flConfig, path: getBasePath(EXPERIMENTS) }
+  const runPaPipeline = async (flConfig) => {
+    const folderPath = [getBasePath(EXPERIMENTS), "MED3paResults"].join(MedDataObject.getPathSeparator())
 
     setIsProgressUpdating(true)
     setIsUpdating(true)
 
     requestBackend(
-      // Send the request
       port,
-      "/med3pa/hello_world/" + pageId,
-      JSONToSend,
-      (jsonResponse) => {
-        if (jsonResponse.error) {
-          if (typeof jsonResponse.error === "string") {
-            jsonResponse.error = JSON.parse(jsonResponse.error)
+      "/med3pa/run_experiments/" + pageId,
+      { config: flConfig, path: getBasePath(EXPERIMENTS) },
+      async (jsonResponse) => {
+        try {
+          if (jsonResponse.error) {
+            handleErrorResponse(jsonResponse.error)
+          } else {
+            handleSuccessResponse(jsonResponse, folderPath)
           }
-          setError(jsonResponse.error)
-        } else {
-          setIsUpdating(false) // Set the isUpdating to false
-
-          setProgressValue({ now: 100, currentLabel: jsonResponse["data"] }) // Set the progress value to 100 and show the message that the backend received from the frontend
-          toast.success("We received the config from the front end")
-          setIsResults(true)
-          setRunModal(false)
-          setTimeout(() => {
-            setIsProgressUpdating(false)
-          }, 2000)
-
-          if (!isProgressUpdating) {
-            const folderPath = [getBasePath(EXPERIMENTS), "MED3paResults"].join(MedDataObject.getPathSeparator())
-            MedDataObject.createFolderFromPath(folderPath)
-
-            // Create a copy of the jsonResponse without the path property
-            const { path, ...modifiedJsonResponse } = jsonResponse
-
-            // Create a file for each path
-
-            path.forEach((pathElement) => {
-              const fileName = `MED3paResults_${pathElement}_${new Date().toISOString()}`.replace(/[^a-zA-Z0-9-_]/g, "")
-              const fileContent = {
-                ...modifiedJsonResponse,
-                file_path: [folderPath, pathElement].join(MedDataObject.getPathSeparator())
-              }
-
-              MedDataObject.writeFileSync(fileContent, [getBasePath(EXPERIMENTS), "MED3paResults"], fileName, "MED3paResults")
-                .then(() => {
-                  toast.success(`Result generated and saved for ${pathElement}!`)
-                })
-                .catch((error) => {
-                  console.error(`Error writing file for ${pathElement}:`, error)
-                  toast.error(`Failed to save result for ${pathElement}`, error)
-                })
-            })
-
-            MedDataObject.updateWorkspaceDataObject()
-          }
+        } catch (error) {
+          handleError(error)
+        } finally {
+          setIsUpdating(false)
+          setTimeout(() => setIsProgressUpdating(false), 2000)
         }
       },
       (error) => {
@@ -806,6 +773,103 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
         console.log(error)
       }
     )
+  }
+
+  function handleSuccessResponse(jsonResponse, folderPath) {
+    setProgressValue({ now: 100, currentLabel: jsonResponse["data"] })
+    toast.success("Config received from the front end")
+    setIsResults(true)
+    setRunModal(false)
+
+    processPathToResults(jsonResponse.path_to_results, folderPath)
+  }
+
+  async function processPathToResults(path_to_results, folderPath) {
+    for (const Element of path_to_results) {
+      const fileName = `MED3paResults_${Element}_${new Date().toISOString()}`.replace(/[^a-zA-Z0-9-_]/g, "")
+      const pathElement = [folderPath, Element].join(MedDataObject.getPathSeparator())
+      let isDetectron = false
+      const tabs = ["reference", "test"]
+
+      const fileContent = { loadedFiles: {}, isDetectron: false }
+      let filePath
+      if (Element.startsWith("detectron")) {
+        isDetectron = true
+        filePath = path.join(pathElement, "detectron_results")
+        await loadAndHandleFiles(filePath, fileContent, null)
+      } else {
+        for (const tab of tabs) {
+          filePath = ""
+          if (tab === "reference") {
+            filePath = path.join(pathElement, "reference")
+          } else if (tab === "test") {
+            if (Element.startsWith("det3")) {
+              filePath = path.join(pathElement, "test")
+              await loadAndHandleFiles(filePath, fileContent, "test")
+              await loadAndHandleFiles(path.join(pathElement, "detectron_results"), fileContent, "detectron_results")
+            } else if (Element.startsWith("med3")) {
+              filePath = path.join(pathElement, "test")
+              await loadAndHandleFiles(filePath, fileContent, "test")
+            }
+          }
+          if (filePath) {
+            await loadAndHandleFiles(filePath, fileContent, tab)
+          }
+        }
+      }
+      fileContent.isDetectron = isDetectron
+      const parentFolder = Element.startsWith("detectron")
+        ? "Detectron Experiments"
+        : Element.startsWith("det3")
+          ? "MED3pa & Detectron Experiments"
+          : Element.startsWith("med3")
+            ? "MED3pa Experiments"
+            : ""
+
+      if (parentFolder) {
+        const parentFolderPath = [folderPath, parentFolder].join(MedDataObject.getPathSeparator())
+        MedDataObject.createFolderFromPath(parentFolderPath)
+
+        await MedDataObject.writeFileSync(fileContent, parentFolderPath, fileName, "MED3paResults")
+          .then(() => {
+            toast.success(`Result generated and saved for ${pathElement}!`)
+          })
+          .catch((error) => {
+            console.error(`Error writing file for ${pathElement}:`, error)
+            toast.error(`Failed to save result for ${pathElement}`, error)
+          })
+        MedDataObject.updateWorkspaceDataObject()
+        await deleteFolderRecursive(pathElement)
+      }
+    }
+  }
+
+  async function loadAndHandleFiles(filePath, fileContent, tab) {
+    try {
+      const files = await loadJsonFiles(filePath)
+      if (tab === null) {
+        fileContent.loadedFiles = files
+      } else {
+        fileContent.loadedFiles[tab] = files
+      }
+    } catch (error) {
+      console.error(`Error loading ${tab} files:`, error)
+    }
+  }
+
+  function handleErrorResponse(error) {
+    setError(typeof error === "string" ? JSON.parse(error) : error)
+    setIsUpdating(false)
+    setProgressValue({ now: 0, currentLabel: "Message sending failed ❌" })
+    toast.error("Sending failed: No configurations set", error)
+    console.log(error)
+  }
+
+  function handleError(error) {
+    console.error("Error during pipeline execution:", error)
+    setIsUpdating(false)
+    setProgressValue({ now: 0, currentLabel: "Pipeline execution failed ❌" })
+    toast.error("Pipeline execution failed", error.message)
   }
 
   return (

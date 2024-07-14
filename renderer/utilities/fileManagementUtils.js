@@ -224,6 +224,25 @@ const loadJsonSync = () => {
 }
 
 /**
+ * @param {String} folderPath
+ * @returns {Promise} Promise that deleted the selected folder
+ * @description
+ * This function takes a path of a Folder and deletes it and its Sub-Folders
+ */
+const deleteFolderRecursive = (folderPath) => {
+  return new Promise((resolve, reject) => {
+    fs.rmdir(folderPath, { recursive: true }, (error) => {
+      if (error) {
+        console.error(`Error deleting folder ${folderPath}:`, error)
+        reject(error)
+      } else {
+        console.log(`Folder ${folderPath} deleted successfully.`)
+        resolve(true) // Indicate success
+      }
+    })
+  })
+}
+/**
  * @param {String} path
  * @returns {Object} json object
  * @description
@@ -426,4 +445,24 @@ const getFileReadingMethodFromExtension = {
   xlsx: (path, whenLoaded) => loadXLSXFromPath(path, whenLoaded)
 }
 
-export { toLocalPath, downloadFile, downloadPath, downloadFilePath, loadFileFromPathSync, writeFile, writeJson, writeJsonSync, loadJson, loadJsonSync, loadJsonPath, loadCSVPath, loadCSVFromPath, createFolder, createFolderSync, loadJSONFromPath, loadXLSXFromPath, getFileReadingMethodFromExtension }
+export {
+  toLocalPath,
+  downloadFile,
+  downloadPath,
+  downloadFilePath,
+  loadFileFromPathSync,
+  writeFile,
+  writeJson,
+  writeJsonSync,
+  loadJson,
+  loadJsonSync,
+  deleteFolderRecursive,
+  loadJsonPath,
+  loadCSVPath,
+  loadCSVFromPath,
+  createFolder,
+  createFolderSync,
+  loadJSONFromPath,
+  loadXLSXFromPath,
+  getFileReadingMethodFromExtension
+}

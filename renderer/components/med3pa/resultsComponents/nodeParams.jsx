@@ -11,7 +11,7 @@ const NodeParameters = ({ parentId, nodeParams, setNodeParams, settings }) => {
     if (nodeParams.metrics === null) {
       setNodeParams((prevNodeParams) => ({
         ...prevNodeParams,
-        metrics: settings.metrics
+        metrics: settings.metrics?.filter((item) => ["Auc", "Accuracy", "F1Score", "Recall"].includes(item.name))
       }))
     }
     if (nodeParams.detectronStrategy === null) {

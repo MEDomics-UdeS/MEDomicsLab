@@ -1,3 +1,6 @@
+import { loadJsonPath } from "../../../utilities/fileManagementUtils"
+import fs from "fs"
+import path from "path"
 export const nodeInformation = ["Node%", "Population%", "Mean confidence level", "Positive%"]
 export const shiftInformation = ["Shift Probability", "Test Statistic"]
 
@@ -25,6 +28,40 @@ function getClassnameForThreshold(value, threshold) {
     return "panode-warningthreshold" // Orange
   } else {
     return "panode-criticalthreshold" // Red
+  }
+}
+
+export const loadJsonFiles = async (dirPath) => {
+  if (!dirPath) return {}
+
+  const readJsonFiles = (currentPath) => {
+    let filenames
+    try {
+      filenames = fs.readdirSync(currentPath)
+    } catch (error) {
+      console.error("Error reading directory:", error)
+      return {}
+    }
+
+    return filenames.reduce((acc, filename) => {
+      const fullPath = path.join(currentPath, filename)
+      if (filename.endsWith(".json")) {
+        const fileContent = loadJsonPath(fullPath)
+        if (fileContent) {
+          acc[filename.replace(".json", "")] = fileContent
+        }
+      }
+      return acc
+    }, {})
+  }
+
+  try {
+    const loadedFiles = readJsonFiles(dirPath)
+
+    return loadedFiles
+  } catch (error) {
+    console.error("Error loading JSON files:", error)
+    return {}
   }
 }
 
@@ -92,11 +129,11 @@ export const filterData = (data, lostData, nodeParams, maxDepth) => {
       newItem.metrics = {}
       if (item.className === "panode-lost") return newItem
       for (const metric of nodeParams.metrics) {
-        if (item.metrics && item.metrics[metric.name]) {
-          newItem.metrics[metric.name] = item.metrics[metric.name]
+        if (item.metrics) {
+          newItem.metrics[metric.name] = item.metrics[metric.name] !== null ? item.metrics[metric.name] : "-"
         }
       }
-      if (parseFloat(newItem.metrics[nodeParams.selectedParameter])) {
+      if (parseFloat(newItem.metrics[nodeParams.selectedParameter]) || newItem.metrics[nodeParams.selectedParameter] === 0) {
         newItem.className = getClassnameForThreshold(parseFloat(newItem.metrics[nodeParams.selectedParameter]), customThreshold / 100)
       }
       return newItem
@@ -148,14 +185,26 @@ export const filterMetrics = (data, nodeParams) => {
   const filteredData = Object.keys(dataCopy).map((key) => {
     const item = dataCopy[key]
     if (item.metrics) {
-      const filteredMetrics = Object.keys(item.metrics)
-        .filter((metricKey) => {
-          return nodeParams.metrics.some((nameObj) => nameObj.name === metricKey)
-        })
-        .reduce((obj, key) => {
-          obj[key] = item.metrics[key]
-          return obj
-        }, {})
+      let filteredMetrics
+      if (nodeParams.metrics) {
+        filteredMetrics = Object.keys(item.metrics)
+          .filter((metricKey) => {
+            return nodeParams.metrics.some((nameObj) => nameObj.name === metricKey)
+          })
+          .reduce((obj, key) => {
+            obj[key] = item.metrics[key]
+            return obj
+          }, {})
+      } else {
+        // nodeParams.metrics is falsy, so exclude "logLoss"
+        const initMetrics = ["Auc", "Accuracy", "Recall", "F1Score"]
+        filteredMetrics = Object.keys(item.metrics)
+          .filter((metricKey) => initMetrics.includes(metricKey) && metricKey !== "LogLoss")
+          .reduce((obj, key) => {
+            obj[key] = item.metrics[key]
+            return obj
+          }, {})
+      }
 
       return { ...item, metrics: filteredMetrics }
     }

@@ -527,7 +527,8 @@ const FlInput = ({ name, settingInfos, currentValue, onInputChange, disabled, se
                     value: { name: e.target.value, path: path },
                     type: settingInfos.type
                   })
-                  if (path != "") {
+                  console.log("HELLO:", e.target.value)
+                  if (path != "" && !e.target.value?.endsWith(".pkl")) {
                     customZipFile2Object(path)
                       .then((content) => {
                         setInputUpdate({

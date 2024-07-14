@@ -1,4 +1,4 @@
-import React, { useEffect } from "react"
+import React from "react"
 import { Typography } from "@mui/material"
 import { TbFilterCog } from "react-icons/tb"
 import { FaCompress, FaExpand } from "react-icons/fa"
@@ -13,15 +13,6 @@ const ResultsFilter = ({ isExpanded, toggleExpand, treeParams, updateTreeParams,
       metrics: event.value
     }))
   }
-
-  useEffect(() => {
-    if (nodeParams.metrics === null) {
-      setNodeParams((prevNodeParams) => ({
-        ...prevNodeParams,
-        metrics: settings.metrics
-      }))
-    }
-  }, [settings])
 
   return (
     <div className={`card mb-3 ${isExpanded ? "expanded" : ""}`} style={{ overflowY: "visible" }}>

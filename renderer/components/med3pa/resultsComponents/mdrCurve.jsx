@@ -64,8 +64,10 @@ const MDRCurve = ({ curveData, clickedLostElement }) => {
         trigger: "axis"
       },
       legend: {
-        data: metricNames,
-        type: "scroll"
+        orient: "horizontal",
+        type: "scroll",
+
+        width: "80%"
       },
       xAxis: {
         type: "value",

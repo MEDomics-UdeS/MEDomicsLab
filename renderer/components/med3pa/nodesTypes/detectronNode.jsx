@@ -30,15 +30,12 @@ export default function DetectronNode({ id, data }) {
         }
       })
       setSettingsLoaded(true)
-    }, 2000) // Adjust timeout delay as needed (2000ms = 2 seconds)
+    }, [])
 
     return () => clearTimeout(timer) // Cleanup timeout on component unmount
   }, [id, data.internal, data.setupParam.possibleSettings, updateNode])
 
-  useEffect(() => {
-    console.log("HEY:", data.internal.settings)
-    console.log("HEY2:", data.setupParam.possibleSettings)
-  }, [settingsLoaded])
+  useEffect(() => {}, [settingsLoaded])
 
   const handleInputChange = (key, value) => {
     const selectedValues = Array.isArray(value.value) ? value.value.map((option) => option) : value.value

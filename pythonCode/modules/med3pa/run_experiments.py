@@ -72,13 +72,17 @@ def _transform_base_model_node(experiment):
         return base_model_node["settings"]["file"]["path"]
     return ""
 
+def format_string(input_string):
+    formatted_string = input_string.lower().replace(" ", "_")
+    return formatted_string
+
 def _transform_detectron_node(node):
     return {
         "sample_size": node["settings"].get("sample_size", None),
         "ensemble_size": node["settings"].get("ensemble_size", None),
         "num_runs": node["settings"].get("num_rounds", None),
         "patience": node["settings"].get("patience", None),
-        "test_strategies": [strategy["name"] for strategy in node["settings"].get("detectron_test", [])]
+        "test_strategies": [format_string(strategy["name"]) for strategy in node["settings"].get("detectron_test", [])]
     }
 
 def _transform_ipc_model_node(node):
@@ -96,7 +100,7 @@ def _transform_apc_model_node(node):
     }
 
 def _transform_uncertainty_metric_node(node):
-    return node["settings"].get("uncertainty_metric", None)
+    return format_string(node["settings"].get("uncertainty_metric", None))
 
 def _transform_experiment(experiment):
     datasets = _transform_datasets_node(experiment)
@@ -208,7 +212,7 @@ def _handle_detectron_experiment(experiment):
     manager.set_from_file(dataset_type="testing", file=datasets['testing']['path'], target_column_name=datasets['testing']['target'])
 
     factory = ModelFactory()
-    model = factory.create_model_from_pickled('D:\\medomics-workspace\\DATA\\diabetes_xgb_model.pkl')
+    model = factory.create_model_from_pickled("/home/ludmila/TestWorspace/DATA/diabetes_models/diabetes_xgb_model.pkl")
     
     # Set the base model using BaseModelManager
     base_model_manager = BaseModelManager()
@@ -230,7 +234,7 @@ def _handle_detectron_experiment(experiment):
         experiment_kwargs["patience"] = patience
 
     experiment_results = DetectronExperiment.run(**experiment_kwargs)
-    experiment_results.analyze_results(["enhanced_disagreement_strategy", "mannwhitney_strategy"])
+    experiment_results.analyze_results(test_strategies)
     
     BaseModelManager.reset()
     
@@ -276,7 +280,7 @@ def _handle_med3pa_experiment(experiment):
     manager.set_from_file(dataset_type="testing", file=datasets['testing']['path'], target_column_name=datasets['testing']['target'])
 
     factory = ModelFactory()
-    model = factory.create_model_from_pickled('D:\\medomics-workspace\\DATA\\diabetes_xgb_model.pkl')
+    model = factory.create_model_from_pickled(base_model)
 
     # Set the base model using BaseModelManager
     base_model_manager = BaseModelManager()
@@ -288,8 +292,8 @@ def _handle_med3pa_experiment(experiment):
     }
     
     # Include optional parameters only if they are provided
-    #if uncertainty_metric is not None:
-    #    experiment_kwargs["uncertainty_metric"] = uncertainty_metric
+    if uncertainty_metric is not None:
+       experiment_kwargs["uncertainty_metric"] = uncertainty_metric
     
     if ipc_type is not None:
         experiment_kwargs["ipc_type"] = ipc_type
@@ -308,7 +312,7 @@ def _handle_med3pa_experiment(experiment):
     
     experiment_kwargs["evaluate_models"] = True
     experiment_kwargs["samples_ratio_max"] = 10
-    experiment_kwargs["uncertainty_metric"] = "absolute_error"
+    experiment_kwargs["uncertainty_metric"] = uncertainty_metric
     
     experiment_results = Med3paExperiment.run(**experiment_kwargs)
     
@@ -365,7 +369,7 @@ def _handle_det3pa_experiment(experiment):
     manager.set_from_file(dataset_type="testing", file=datasets['testing']['path'], target_column_name=datasets['testing']['target'])
 
     factory = ModelFactory()
-    model = factory.create_model_from_pickled('D:\\medomics-workspace\\DATA\\diabetes_xgb_model.pkl')
+    model = factory.create_model_from_pickled(base_model)
 
     # Set the base model using BaseModelManager
     base_model_manager = BaseModelManager()
@@ -377,8 +381,8 @@ def _handle_det3pa_experiment(experiment):
     }
     
     # Include optional parameters only if they are provided
-    #if uncertainty_metric is not None:
-    #    experiment_kwargs["uncertainty_metric"] = uncertainty_metric
+    if uncertainty_metric is not None:
+       experiment_kwargs["uncertainty_metric"] = uncertainty_metric
     
     if ipc_type is not None:
         experiment_kwargs["ipc_type"] = ipc_type
@@ -407,8 +411,8 @@ def _handle_det3pa_experiment(experiment):
 
     experiment_kwargs["evaluate_models"] = True
     experiment_kwargs["samples_ratio_max"] = 10
-    experiment_kwargs["uncertainty_metric"] = "absolute_error"
-    experiment_kwargs["test_strategies"] = ["enhanced_disagreement_strategy", "mannwhitney_strategy"]
+    experiment_kwargs["uncertainty_metric"] = uncertainty_metric
+    experiment_kwargs["test_strategies"] = test_strategies
 
     experiment_results = Med3paDetectronExperiment.run(**experiment_kwargs)
     
@@ -455,6 +459,7 @@ class GoExecScriptRunExperiments(GoExecutionScript):
             
             if experiment_name == 'detectron_experiment':
                 results = _handle_detectron_experiment(experiment)
+                saving_path = os.path.join(saving_path, "detectron_results")
             elif experiment_name == 'med3pa_experiment':
                 results = _handle_med3pa_experiment(experiment)
             elif experiment_name == 'med3pa_detectron_experiment':
@@ -467,7 +472,7 @@ class GoExecScriptRunExperiments(GoExecutionScript):
             progress = int((index + 1) / total_experiments * 100)
             self.set_progress(label=f"Finished Processing {experiment_name} ({index + 1}/{total_experiments})", now=progress)
         
-        self.results = {'paths': paths}
+        self.results = {'path_to_results': paths}
         go_print("RECEIVED RESULTS:" + str(self.results))
         self.set_progress(label="Finished processing the experiments", now=100)
         return self.results
