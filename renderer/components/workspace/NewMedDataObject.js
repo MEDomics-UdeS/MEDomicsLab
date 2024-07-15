@@ -1,6 +1,7 @@
 import { ipcRenderer } from "electron"
-import { deleteMEDDataObject, insertMEDDataObjectIfNotExists, updateMEDDataObjectName } from "../mongoDB/mongoDBUtils"
+import { deleteMEDDataObject, insertMEDDataObjectIfNotExists, updateMEDDataObjectName, downloadCollectionToFile, overwriteMEDDataObjectProperties } from "../mongoDB/mongoDBUtils"
 import { randomUUID } from "crypto"
+import { toast } from "react-toastify"
 import fs from "fs"
 import path from "path"
 
@@ -160,6 +161,39 @@ export class MEDDataObject {
   }
 
   /**
+   * @description Delete a MEDDataObject and its children from the local workspace
+   * @param {Dictionary} dict - dictionary of all MEDDataObjects
+   * @param {String} id - the id of the object to delete
+   * @param {String} workspacePath - the root path of the workspace
+   * @param {Boolean} notify - Wether to display a toast message while success
+   * @returns {Promise<void>}
+   */
+  static async deleteObjectAndChildrenFromWorkspace(dict, id, workspacePath, notify = true) {
+    // Get the object to delete
+    const objectToDelete = dict[id]
+
+    if (!objectToDelete) {
+      console.log(`Object with id ${id} not found`)
+      return
+    }
+
+    // Delete the file/directory from the local filesystem if it exists and is in workspace
+    if (objectToDelete.inWorkspace) {
+      // Get the full path of the object in the workspace
+      const fullPath = this.getFullPath(dict, id, workspacePath)
+      fs.rmSync(fullPath, { recursive: true, force: true })
+      console.log(`Deleted ${fullPath} from workspace`)
+      const success = await overwriteMEDDataObjectProperties(id, { inWorkspace: false })
+      if (success) {
+        this.updateWorkspaceDataObject()
+        if (notify) {
+          toast.success(`Removed ${dict[id].name} from workspace`)
+        }
+      }
+    }
+  }
+
+  /**
    * @description Recursively copies a MEDDataObject and its children to a new parent directory
    * @param {Object} dict - dictionary of all MEDDataObjects
    * @param {Object} copiedObject - the MEDDataObject to copy
@@ -236,6 +270,60 @@ export class MEDDataObject {
 
     // Notify the system to update the workspace
     this.updateWorkspaceDataObject()
+  }
+
+  /**
+   * @description Load the MEDdataObject (and its parents) content from the DB into the Workspace
+   * @param {Dictionary} dict - dictionary of all MEDDataObjects
+   * @param {String} id - the id of the MEDDataObject to sync
+   * @param {String} workspacePath - the root path of the workspace
+   * @param {Boolean} notify - Wether to display a toast message while success
+   */
+  static async sync(dict, id, workspacePath, notify = true) {
+    const medDataObject = dict[id]
+
+    if (!medDataObject) {
+      console.log(`MEDDataObject with id ${id} not found`)
+      return
+    }
+
+    // Recursively sync parent objects
+    if (medDataObject.parentID && medDataObject.parentID !== "ROOT") {
+      await this.sync(dict, medDataObject.parentID, workspacePath, notify)
+    }
+
+    // Define the file path where the content will be downloaded
+    const filePath = this.getFullPath(dict, id, workspacePath)
+
+    // Ensure the directory exists
+    const directoryPath = path.dirname(filePath)
+    if (!fs.existsSync(directoryPath)) {
+      fs.mkdirSync(directoryPath, { recursive: true })
+    }
+
+    // Download the content based on the type
+    try {
+      if (medDataObject.type != "directory") {
+        await downloadCollectionToFile(id, filePath, medDataObject.type)
+      }
+
+      // Update inWorkspace property to true after successful download
+      if (!medDataObject.inWorkspace) {
+        const updateData = { inWorkspace: true }
+        const updateSuccess = await overwriteMEDDataObjectProperties(id, updateData)
+
+        if (updateSuccess) {
+          medDataObject.inWorkspace = true // Update local dictionary as well
+          if (notify) {
+            toast.success(`Sync ${medDataObject.name} successfully`)
+          }
+        } else {
+          console.error(`Failed to update inWorkspace property for MEDDataObject with id ${id}`)
+        }
+      }
+    } catch (error) {
+      console.error(`Failed to download collection ${id}: ${error.message}`)
+    }
   }
 
   /**

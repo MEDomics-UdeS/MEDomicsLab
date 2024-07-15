@@ -1,7 +1,6 @@
 import React, { useState, useContext, useEffect } from "react"
 import { LayoutModelContext } from "../layout/layoutContext"
 import { requestBackend } from "../../utilities/requests"
-import Path from "path"
 import { Tag } from "primereact/tag"
 import { Tooltip } from "primereact/tooltip"
 import { Button } from "primereact/button"
@@ -57,7 +56,7 @@ const DTaleProcess = ({ uniqueId, pageId, port, setError, onDelete }) => {
     shutdownDTale(serverPath)
     requestBackend(
       port,
-      "removeId/" + uniqueId + "/" + pageId + "-" + Path.basename(mainDataset.value.path),
+      "removeId/" + uniqueId + "/" + pageId + "-" + mainDataset.value.name,
       { dataset: mainDataset.value },
       (response) => {
         console.log(response)
@@ -65,7 +64,7 @@ const DTaleProcess = ({ uniqueId, pageId, port, setError, onDelete }) => {
         setServerPath("")
         requestBackend(
           port,
-          "exploratory/start_dtale/" + uniqueId + "/" + pageId + "-" + Path.basename(mainDataset.value.path),
+          "exploratory/start_dtale/" + uniqueId + "/" + pageId + "-" + mainDataset.value.name,
           { dataset: mainDataset.value },
           (response) => {
             console.log(response)
@@ -104,8 +103,7 @@ const DTaleProcess = ({ uniqueId, pageId, port, setError, onDelete }) => {
    * @param {String} uniqueId The unique id of the process
    */
   const handleOpenWebServer = (urlPath, uniqueId) => {
-    const medObj = new MedDataObject({ path: urlPath, type: "html", name: name, _UUID: uniqueId })
-    dispatchLayout({ type: "openInIFrame", payload: medObj })
+    dispatchLayout({ type: "openInIFrame", payload: { path: urlPath, name: name, id: uniqueId } })
   }
   return (
     <>
@@ -122,7 +120,7 @@ const DTaleProcess = ({ uniqueId, pageId, port, setError, onDelete }) => {
           <Input
             name="Choose main dataset"
             settingInfos={{ type: "data-input", tooltip: "" }}
-            currentValue={mainDataset && mainDataset.value}
+            currentValue={mainDataset && mainDataset.value.id}
             onInputChange={(data) => setMainDataset(data)}
             setHasWarning={setMainDatasetHasWarning}
           />
@@ -145,7 +143,7 @@ const DTaleProcess = ({ uniqueId, pageId, port, setError, onDelete }) => {
           setIsUpdating={setIsCalculating}
           progress={progress}
           setProgress={setProgress}
-          requestTopic={"exploratory/progress/" + uniqueId + "/" + pageId + "-" + Path.basename(mainDataset.value.path)}
+          requestTopic={"exploratory/progress/" + uniqueId + "/" + pageId + "-" + mainDataset.value.name}
           onDataReceived={onProgressDataReceived}
         />
       )}

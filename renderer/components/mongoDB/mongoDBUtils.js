@@ -172,11 +172,23 @@ async function insertHTMLIntoCollection(filePath, collectionName) {
 }
 
 /**
+ * @description Overwrite a MEDDataObject specified by id in the DB
+ * @param {String} id Id of the MEDDataObject to overwrite
+ * @param {Object} newData New data to overwrite the MEDDataObject
+ * @returns bool true if succeed
+ */
+export async function overwriteMEDDataObjectProperties(id, newData) {
+  const db = await connectToMongoDB()
+  const result = await db.collection("medDataObjects").updateOne({ id: id }, { $set: newData })
+  return result.modifiedCount > 0
+}
+
+/**
  * @description overwrite a MEDDataObject data in the DataBase
  * @param {String} id id of the MEDDataObject data to overwrite
  * @param {Json} jsonData the new data for the MEDDataObject
  */
-export async function overwriteMEDDataObject(id, jsonData) {
+export async function overwriteMEDDataObjectContent(id, jsonData) {
   const db = await connectToMongoDB()
   const collection = db.collection(id)
   await collection.deleteMany({})
@@ -270,4 +282,42 @@ export async function getCollectionColumns(collectionId) {
   }
 
   return []
+}
+
+/**
+ * @description Download the content of a MongoDB collection to a file.
+ * @param {String} collectionId The ID of the collection.
+ * @param {String} filePath The path where the file should be saved.
+ * @param {String} type The type of file to be downloaded (csv or html).
+ */
+export async function downloadCollectionToFile(collectionId, filePath, type) {
+  const db = await connectToMongoDB()
+  const collection = db.collection(collectionId)
+
+  // Exclude the _id field
+  const documents = await collection.find({}, { projection: { _id: 0 } }).toArray()
+
+  if (documents.length === 0) {
+    console.error(`No documents found in collection ${collectionId}`)
+    return
+  }
+
+  if (type === "csv") {
+    const csv = Papa.unparse(documents)
+    fs.writeFileSync(filePath, csv)
+    console.log(`Collection ${collectionId} has been downloaded as CSV to ${filePath}`)
+  } else if (type === "html") {
+    // Check if documents have the 'content' field
+    const htmlDocuments = documents.map((doc) => doc.htmlContent).filter((content) => content)
+    if (htmlDocuments.length === 0) {
+      console.error(`No valid HTML content found in collection ${collectionId}`)
+      return
+    }
+
+    const htmlContent = htmlDocuments.join("\n")
+    fs.writeFileSync(filePath, htmlContent)
+    console.log(`Collection ${collectionId} has been downloaded as HTML to ${filePath}`)
+  } else {
+    throw new Error("Unsupported file type")
+  }
 }

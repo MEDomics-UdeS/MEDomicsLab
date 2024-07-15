@@ -1,8 +1,7 @@
 import React, { useState, useContext } from "react"
 import { LayoutModelContext } from "../layout/layoutContext"
-import MedDataObject from "../workspace/medDataObject"
+import { MEDDataObject } from "../workspace/NewMedDataObject"
 import { requestBackend } from "../../utilities/requests"
-import { downloadFilePath } from "../../utilities/fileManagementUtils"
 import Path from "path"
 import { Stack } from "react-bootstrap"
 import { Tag } from "primereact/tag"
@@ -13,6 +12,9 @@ import { Button } from "primereact/button"
 import { ToggleButton } from "primereact/togglebutton"
 import ProgressBarRequests from "../generalPurpose/progressBarRequests"
 import { getCollectionColumns } from "../mongoDB/mongoDBUtils"
+import { randomUUID } from "crypto"
+import { insertMEDDataObjectIfNotExists } from "../mongoDB/mongoDBUtils"
+import { DataContext } from "../workspace/dataContext"
 
 /**
  *
@@ -28,15 +30,18 @@ const SweetViz = ({ pageId, port, setError }) => {
   const [mainDatasetHasWarning, setMainDatasetHasWarning] = useState({ state: false, tooltip: "" })
   const [compDatasetHasWarning, setCompDatasetHasWarning] = useState({ state: false, tooltip: "" })
   const [compareChecked, setCompareChecked] = useState(false)
-  const [htmlFilePath, setHtmlFilePath] = useState("")
   const { dispatchLayout } = useContext(LayoutModelContext)
   const [isCalculating, setIsCalculating] = useState(false)
   const [progress, setProgress] = useState({ now: 0, currentLabel: 0 })
   const [mainDatasetTarget, setMainDatasetTarget] = useState()
   const [mainDatasetTargetChoices, setMainDatasetTargetChoices] = useState()
+  const [report, setReport] = useState(null)
+  const { globalData } = useContext(DataContext)
+
+  var path = require("path")
 
   /**
-   *
+   * @description Change the selected target
    * @param {Object} inputUpdate The input update
    */
   const onTargetChange = (inputUpdate) => {
@@ -44,17 +49,13 @@ const SweetViz = ({ pageId, port, setError }) => {
   }
 
   /**
-   *
+   * @description This function is used to update the main dataset, target and target choices
    * @param {Object} inputUpdate The input update
-   *
-   * @description
-   * This function is used to update the node internal data when the files input changes.
    */
   const onDatasetChange = async (inputUpdate) => {
     setMainDataset(inputUpdate)
     if (inputUpdate.value.id != "") {
       let columns = await getCollectionColumns(inputUpdate.value.id)
-      console.log("here", columns)
       let columnsDict = {}
       columns.forEach((column) => {
         columnsDict[column] = column
@@ -65,43 +66,73 @@ const SweetViz = ({ pageId, port, setError }) => {
   }
 
   /**
-   *
-   * @param {String} filePath The file path to open
-   * @returns The file path to open
+   * @description Load the generated report in database
    */
-  const handleOpenFile = (filePath) => () => {
-    const medObj = new MedDataObject({ path: filePath, type: "html", name: "SweetViz-report.html", _UUID: "SweetViz-report" })
-    dispatchLayout({ type: "openHtmlViewer", payload: medObj })
+  const setReportInDB = async (htmlFilePath) => {
+    let globalDataCopy = { ...globalData }
+    const sweetvizFolder = new MEDDataObject({
+      id: randomUUID(),
+      name: "sweetviz_reports",
+      type: "directory",
+      parentID: "DATA",
+      childrenIDs: [],
+      inWorkspace: false
+    })
+    const parentId = await insertMEDDataObjectIfNotExists(sweetvizFolder)
+    // Append the new object to a local global data copy to avoid calling MEDDataObject.updateWorkspaceDataObject() twice
+    if (parentId == sweetvizFolder.id) {
+      globalDataCopy[parentId] = sweetvizFolder
+      console.log("COPY", globalDataCopy)
+    }
+    let medObjectName =
+      compDataset && compareChecked ? path.basename(mainDataset.value.name, ".csv") + "_" + path.basename(compDataset.name, ".csv") + ".html" : path.basename(mainDataset.value.name, ".csv") + ".html"
+    medObjectName = MEDDataObject.getUniqueNameForCopy(globalDataCopy, medObjectName, parentId)
+    const newReport = new MEDDataObject({
+      id: randomUUID(),
+      name: medObjectName,
+      type: "html",
+      parentID: parentId,
+      childrenIDs: [],
+      inWorkspace: false
+    })
+    console.log("path", htmlFilePath)
+    await insertMEDDataObjectIfNotExists(newReport, htmlFilePath)
+    setReport(newReport)
+    MEDDataObject.updateWorkspaceDataObject()
   }
 
   /**
    *
-   * @param {String} filePath The file path to download
-   * @returns The file path to download
+   * @param {String} filePath The file path to open
+   * @returns The file path to open
    */
-  const handleDownloadFile = (filePath) => () => {
-    downloadFilePath(filePath)
+  const handleOpenFile = (localReport) => () => {
+    const objectToRet = {
+      index: localReport.id,
+      data: localReport.name,
+      extension: localReport.type
+    }
+    dispatchLayout({ type: "openHtmlViewer", payload: objectToRet })
   }
 
   /**
    * @description This function is used to open the html viewer with the given file path
    */
   const generateReport = () => {
-    // eslint-disable-next-line no-undef
     const basePath = process.env.NODE_ENV == "production" ? process.resourcesPath : process.cwd()
     const savingPath = Path.join(basePath, "tmp", "SweetViz_report.html")
     setIsCalculating(true)
-    setHtmlFilePath("")
+    setReport(null)
     requestBackend(
       port,
       "exploratory/start_sweetviz/" + pageId,
-      { mainDataset: mainDataset.value, compDataset: compDataset && compareChecked ? compDataset.value : "", savingPath: savingPath, target: mainDatasetTarget },
+      { mainDataset: mainDataset.value, compDataset: compDataset && compareChecked ? compDataset : "", savingPath: savingPath, target: mainDatasetTarget },
       (response) => {
         console.log(response)
         if (response.error) {
           setError(response.error)
         } else {
-          setHtmlFilePath(response.savingPath)
+          setReportInDB(response.savingPath)
         }
         setIsCalculating(false)
       },
@@ -142,7 +173,7 @@ const SweetViz = ({ pageId, port, setError }) => {
             <Input
               name="Choose main dataset"
               settingInfos={{ type: "data-input", tooltip: "" }}
-              currentValue={mainDataset && mainDataset.value}
+              currentValue={mainDataset && mainDataset.value.id}
               onInputChange={onDatasetChange}
               setHasWarning={setMainDatasetHasWarning}
             />
@@ -186,7 +217,7 @@ const SweetViz = ({ pageId, port, setError }) => {
                 name="Choose second dataset"
                 settingInfos={{ type: "data-input", tooltip: "" }}
                 currentValue={compDataset && compDataset.value}
-                onInputChange={(data) => setCompDataset(data)}
+                onInputChange={(data) => setCompDataset(data.value)}
                 setHasWarning={setCompDatasetHasWarning}
               />
               <Button
@@ -200,7 +231,7 @@ const SweetViz = ({ pageId, port, setError }) => {
             </div>
           </div>
         )}
-        {isCalculating && !htmlFilePath && (
+        {isCalculating && !report && (
           <ProgressBarRequests
             delayMS={500}
             progressBarProps={{ animated: true, variant: "success" }}
@@ -211,10 +242,9 @@ const SweetViz = ({ pageId, port, setError }) => {
             requestTopic={"exploratory/progress/" + pageId}
           />
         )}
-        {htmlFilePath && (
+        {report && (
           <div className="finish-btn-group">
-            <Button onClick={handleOpenFile(htmlFilePath)} className="btn btn-primary" label="Open generated file" icon="pi pi-chart-bar" iconPos="right" severity="success" />
-            <Button onClick={handleDownloadFile(htmlFilePath)} className="btn btn-primary" label="Save generated file" icon="pi pi-download" iconPos="right" severity="success" />
+            <Button onClick={handleOpenFile(report)} className="btn btn-primary" label="Open generated file" icon="pi pi-chart-bar" iconPos="right" severity="success" />
           </div>
         )}
       </Stack>

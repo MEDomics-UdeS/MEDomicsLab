@@ -224,10 +224,12 @@ if (isProd) {
   ipcMain.handle("appCopyFile", async (_event, source) => {
     // Get the filename from the source path
     let filename = path.basename(source)
+    let extension = path.extname(source).slice(1)
+    console.log("extension", extension)
     const { filePath } = await dialog.showSaveDialog({
       title: "Save file",
       defaultPath: filename.length > 0 ? filename : source,
-      filters: [{ name: "All Files", extensions: ["*"] }]
+      filters: [{ name: extension, extensions: [extension] }]
     })
     if (filePath) {
       fs.copyFileSync(source, filePath)

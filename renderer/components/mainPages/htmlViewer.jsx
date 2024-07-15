@@ -1,40 +1,47 @@
-import React, { useEffect, useState } from "react"
-import { connectToMongoDB } from "../mongoDB/mongoDBUtils"
+import React, { useEffect, useState, useContext } from "react"
+//import { connectToMongoDB } from "../mongoDB/mongoDBUtils"
+import Iframe from "react-iframe"
+import { DataContext } from "../workspace/dataContext"
+import { MEDDataObject } from "../workspace/NewMedDataObject"
+import { WorkspaceContext } from "../workspace/workspaceContext"
+import { toLocalPath } from "../../utilities/fileManagementUtils"
 
 /**
  * @param config currently a MEDDataObject
  * @returns a page that shows the html content
  */
 const HtmlViewer = ({ config }) => {
-  //const [localPath, setLocalPath] = useState(undefined)
-  const [htmlContent, setHtmlContent] = useState("")
+  const [localPath, setLocalPath] = useState(undefined)
+  const { globalData } = useContext(DataContext)
+  const { workspace } = useContext(WorkspaceContext)
 
   useEffect(() => {
-    console.log(htmlContent)
-  }, [htmlContent])
+    async function onMount(medObject) {
+      // We need to have a local file to display it
+      if (!medObject.inWorkspace) {
+        await MEDDataObject.sync(globalData, medObject.id, workspace.workingDirectory.path, false)
+      }
 
-  useEffect(() => {
-    const fetchHtmlContent = async () => {
-      try {
-        const db = await connectToMongoDB()
-        const collection = db.collection(config.id)
-        const document = await collection.findOne({})
+      const medObjectPath = MEDDataObject.getFullPath(globalData, medObject.id, workspace.workingDirectory.path)
+      toLocalPath(medObjectPath).then((localPath) => {
+        setLocalPath(localPath)
+      })
+    }
 
-        if (document) {
-          setHtmlContent(document.htmlContent)
-        }
-      } catch (error) {
-        console.error("Error fetching HTML content:", error)
+    const medObject = globalData[config.id]
+    const alreadyInWorkspace = medObject.inWorkspace
+    onMount(medObject)
+
+    // returned function will be called on component unmount
+    return () => {
+      // Remove downloaded file from workspace
+      if (!alreadyInWorkspace) {
+        MEDDataObject.deleteObjectAndChildrenFromWorkspace(globalData, medObject.id, workspace.workingDirectory.path, false)
       }
     }
-    fetchHtmlContent()
-  }, [config])
+  }, [])
 
-  return (
-    <>
-      <div dangerouslySetInnerHTML={{ __html: htmlContent }} width="100%" height="100%" />
-    </>
-  )
+  return <>{localPath && <Iframe url={localPath} width="100%" height="100%" />}</>
 }
 
 export default HtmlViewer
