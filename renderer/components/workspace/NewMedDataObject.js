@@ -289,7 +289,7 @@ export class MEDDataObject {
 
     // Recursively sync parent objects
     if (medDataObject.parentID && medDataObject.parentID !== "ROOT") {
-      await this.sync(dict, medDataObject.parentID, workspacePath)
+      await this.sync(dict, medDataObject.parentID, workspacePath, notify)
     }
 
     // Define the file path where the content will be downloaded

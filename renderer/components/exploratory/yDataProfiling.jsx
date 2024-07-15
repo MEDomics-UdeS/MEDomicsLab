@@ -5,13 +5,15 @@ import { Button } from "primereact/button"
 import { ToggleButton } from "primereact/togglebutton"
 import { Card } from "primereact/card"
 import { LayoutModelContext } from "../layout/layoutContext"
-import MedDataObject from "../workspace/medDataObject"
-import { downloadFilePath } from "../../utilities/fileManagementUtils"
 import { requestBackend } from "../../utilities/requests"
 import Path from "path"
 import { Stack } from "react-bootstrap"
 import Input from "../learning/input"
 import ProgressBarRequests from "../generalPurpose/progressBarRequests"
+import { randomUUID } from "crypto"
+import { insertMEDDataObjectIfNotExists } from "../mongoDB/mongoDBUtils"
+import { DataContext } from "../workspace/dataContext"
+import { MEDDataObject } from "../workspace/NewMedDataObject"
 
 /**
  *
@@ -26,52 +28,80 @@ const YDataProfiling = ({ pageId, port, setError }) => {
   const [mainDatasetHasWarning, setMainDatasetHasWarning] = useState({ state: false, tooltip: "" })
   const [compDatasetHasWarning, setCompDatasetHasWarning] = useState({ state: false, tooltip: "" })
   const [compareChecked, setCompareChecked] = useState(false)
-  const [htmlFilePath, setHtmlFilePath] = useState("")
   const { dispatchLayout } = useContext(LayoutModelContext)
   const [isCalculating, setIsCalculating] = useState(false)
+  const [report, setReport] = useState(null)
   const [progress, setProgress] = useState({ now: 0, currentLabel: 0 })
+  const { globalData } = useContext(DataContext)
+
+  var path = require("path")
 
   /**
    *
    * @param {String} filePath The file path to open
-   * @returns
+   * @returns The file path to open
    */
-  const handleOpenFile = (filePath) => () => {
-    console.log("open file", filePath)
-    const medObj = new MedDataObject({ path: filePath, type: "html", name: "ydata-profiling-report.html", _UUID: "ydata-profiling-report" })
-    dispatchLayout({ type: "openHtmlViewer", payload: medObj })
+  const handleOpenFile = (localReport) => () => {
+    const objectToRet = {
+      index: localReport.id,
+      data: localReport.name,
+      extension: localReport.type
+    }
+    dispatchLayout({ type: "openHtmlViewer", payload: objectToRet })
   }
 
   /**
-   *
-   * @param {String} filePath The file path to download
-   * @returns
+   * @description Load the generated report in database
    */
-  const handleDownloadFile = (filePath) => () => {
-    console.log("download file", filePath)
-    downloadFilePath(filePath)
+  const setReportInDB = async (htmlFilePath) => {
+    let globalDataCopy = { ...globalData }
+    const ydataprofilingFolder = new MEDDataObject({
+      id: randomUUID(),
+      name: "ydataProfiling_reports",
+      type: "directory",
+      parentID: "DATA",
+      childrenIDs: [],
+      inWorkspace: false
+    })
+    const parentId = await insertMEDDataObjectIfNotExists(ydataprofilingFolder)
+    // Append the new object to a local global data copy to avoid calling MEDDataObject.updateWorkspaceDataObject() twice
+    if (parentId == ydataprofilingFolder.id) {
+      globalDataCopy[parentId] = ydataprofilingFolder
+    }
+    let medObjectName =
+      compDataset && compareChecked ? path.basename(mainDataset.value.name, ".csv") + "_" + path.basename(compDataset.name, ".csv") + ".html" : path.basename(mainDataset.value.name, ".csv") + ".html"
+    medObjectName = MEDDataObject.getUniqueNameForCopy(globalDataCopy, medObjectName, parentId)
+    const newReport = new MEDDataObject({
+      id: randomUUID(),
+      name: medObjectName,
+      type: "html",
+      parentID: parentId,
+      childrenIDs: [],
+      inWorkspace: false
+    })
+    await insertMEDDataObjectIfNotExists(newReport, htmlFilePath)
+    setReport(newReport)
+    MEDDataObject.updateWorkspaceDataObject()
   }
 
   /**
    * @description This function is used to open the html viewer with the given file path
    */
   const generateReport = () => {
-    // eslint-disable-next-line no-undef
-    console.log("process.execPath", process.execPath)
     const basePath = process.env.NODE_ENV == "production" ? process.resourcesPath : process.cwd()
     const savingPath = Path.join(basePath, "tmp", "ydata_report.html")
     setIsCalculating(true)
-    setHtmlFilePath("")
+    setReport(null)
     requestBackend(
       port,
       "exploratory/start_ydata_profiling/" + pageId,
-      { mainDataset: mainDataset.value, compDataset: compDataset && compareChecked ? compDataset.value : "", savingPath: savingPath },
+      { mainDataset: mainDataset.value, compDataset: compDataset && compareChecked ? compDataset : "", savingPath: savingPath },
       (response) => {
         console.log(response)
         if (response.error) {
           setError(response.error)
         } else {
-          setHtmlFilePath(response.savingPath)
+          setReportInDB(response.savingPath)
         }
         setIsCalculating(false)
       },
@@ -112,7 +142,7 @@ const YDataProfiling = ({ pageId, port, setError }) => {
             <Input
               name="Choose main dataset"
               settingInfos={{ type: "data-input", tooltip: "" }}
-              currentValue={mainDataset && mainDataset.value}
+              currentValue={mainDataset && mainDataset.value.id}
               onInputChange={(data) => setMainDataset(data)}
               setHasWarning={setMainDatasetHasWarning}
             />
@@ -142,7 +172,7 @@ const YDataProfiling = ({ pageId, port, setError }) => {
                 name="Choose second dataset"
                 settingInfos={{ type: "data-input", tooltip: "" }}
                 currentValue={compDataset && compDataset.value}
-                onInputChange={(data) => setCompDataset(data)}
+                onInputChange={(data) => setCompDataset(data.value)}
                 setHasWarning={setCompDatasetHasWarning}
               />
               <Button
@@ -156,7 +186,7 @@ const YDataProfiling = ({ pageId, port, setError }) => {
             </div>
           </div>
         )}
-        {isCalculating && !htmlFilePath && (
+        {isCalculating && !report && (
           <ProgressBarRequests
             delayMS={500}
             progressBarProps={{ animated: true, variant: "success" }}
@@ -167,10 +197,9 @@ const YDataProfiling = ({ pageId, port, setError }) => {
             requestTopic={"exploratory/progress/" + pageId}
           />
         )}
-        {htmlFilePath && (
+        {report && (
           <div className="finish-btn-group">
-            <Button onClick={handleOpenFile(htmlFilePath)} className="btn btn-primary" label="Open generated file" icon="pi pi-chart-bar" iconPos="right" severity="success" />
-            <Button onClick={handleDownloadFile(htmlFilePath)} className="btn btn-primary" label="Save generated file" icon="pi pi-download" iconPos="right" severity="success" />
+            <Button onClick={handleOpenFile(report)} className="btn btn-primary" label="Open generated file" icon="pi pi-chart-bar" iconPos="right" severity="success" />
           </div>
         )}
       </Stack>

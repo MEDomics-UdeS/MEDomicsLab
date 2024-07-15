@@ -30,7 +30,6 @@ const SweetViz = ({ pageId, port, setError }) => {
   const [mainDatasetHasWarning, setMainDatasetHasWarning] = useState({ state: false, tooltip: "" })
   const [compDatasetHasWarning, setCompDatasetHasWarning] = useState({ state: false, tooltip: "" })
   const [compareChecked, setCompareChecked] = useState(false)
-  const [htmlFilePath, setHtmlFilePath] = useState("")
   const { dispatchLayout } = useContext(LayoutModelContext)
   const [isCalculating, setIsCalculating] = useState(false)
   const [progress, setProgress] = useState({ now: 0, currentLabel: 0 })
@@ -69,7 +68,8 @@ const SweetViz = ({ pageId, port, setError }) => {
   /**
    * @description Load the generated report in database
    */
-  const setReportInDB = async () => {
+  const setReportInDB = async (htmlFilePath) => {
+    let globalDataCopy = { ...globalData }
     const sweetvizFolder = new MEDDataObject({
       id: randomUUID(),
       name: "sweetviz_reports",
@@ -79,10 +79,14 @@ const SweetViz = ({ pageId, port, setError }) => {
       inWorkspace: false
     })
     const parentId = await insertMEDDataObjectIfNotExists(sweetvizFolder)
+    // Append the new object to a local global data copy to avoid calling MEDDataObject.updateWorkspaceDataObject() twice
+    if (parentId == sweetvizFolder.id) {
+      globalDataCopy[parentId] = sweetvizFolder
+      console.log("COPY", globalDataCopy)
+    }
     let medObjectName =
       compDataset && compareChecked ? path.basename(mainDataset.value.name, ".csv") + "_" + path.basename(compDataset.name, ".csv") + ".html" : path.basename(mainDataset.value.name, ".csv") + ".html"
-    medObjectName = MEDDataObject.getUniqueNameForCopy(globalData, medObjectName, parentId)
-    console.log("HERE", medObjectName, parentId)
+    medObjectName = MEDDataObject.getUniqueNameForCopy(globalDataCopy, medObjectName, parentId)
     const newReport = new MEDDataObject({
       id: randomUUID(),
       name: medObjectName,
@@ -91,6 +95,7 @@ const SweetViz = ({ pageId, port, setError }) => {
       childrenIDs: [],
       inWorkspace: false
     })
+    console.log("path", htmlFilePath)
     await insertMEDDataObjectIfNotExists(newReport, htmlFilePath)
     setReport(newReport)
     MEDDataObject.updateWorkspaceDataObject()
@@ -114,12 +119,10 @@ const SweetViz = ({ pageId, port, setError }) => {
    * @description This function is used to open the html viewer with the given file path
    */
   const generateReport = () => {
-    // eslint-disable-next-line no-undef
     const basePath = process.env.NODE_ENV == "production" ? process.resourcesPath : process.cwd()
     const savingPath = Path.join(basePath, "tmp", "SweetViz_report.html")
     setIsCalculating(true)
     setReport(null)
-    setHtmlFilePath("")
     requestBackend(
       port,
       "exploratory/start_sweetviz/" + pageId,
@@ -129,8 +132,7 @@ const SweetViz = ({ pageId, port, setError }) => {
         if (response.error) {
           setError(response.error)
         } else {
-          setHtmlFilePath(response.savingPath)
-          setReportInDB()
+          setReportInDB(response.savingPath)
         }
         setIsCalculating(false)
       },
@@ -240,7 +242,7 @@ const SweetViz = ({ pageId, port, setError }) => {
             requestTopic={"exploratory/progress/" + pageId}
           />
         )}
-        {htmlFilePath && report && (
+        {report && (
           <div className="finish-btn-group">
             <Button onClick={handleOpenFile(report)} className="btn btn-primary" label="Open generated file" icon="pi pi-chart-bar" iconPos="right" severity="success" />
           </div>
