@@ -8,7 +8,7 @@ const NodeParameters = ({ parentId, nodeParams, setNodeParams, settings, isDetec
   const { focusView, thresholdEnabled, customThreshold, selectedParameter, metrics, detectronStrategy } = nodeParams
 
   useEffect(() => {
-    console.log("HELLO",isDetectron)
+    
     if (nodeParams.metrics === null) {
       setNodeParams((prevNodeParams) => ({
         ...prevNodeParams,

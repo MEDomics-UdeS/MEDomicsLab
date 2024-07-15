@@ -839,7 +839,7 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
             toast.error(`Failed to save result for ${pathElement}`, error)
           })
         MedDataObject.updateWorkspaceDataObject()
-        //  await deleteFolderRecursive(pathElement)
+        await deleteFolderRecursive(pathElement)
       }
     }
   }
