@@ -487,7 +487,7 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
       currentPath.push({
         id: node.id,
         supIdNode: node.data.internal.subflowId !== "MAIN" ? node.data.internal.subflowId : "",
-        label: (node.data.internal.subflowId !== "MAIN" ? nodes.find((n) => n.id === node.data.internal.subflowId).data.internal.name + "." : "") + node.data.internal.name,
+        label: (node.data.internal.subflowId !== "MAIN" ? nodes.find((n) => n.id === node.data.internal.subflowId)?.data.internal.name + "." : "") + node.data.internal.name,
         settings: node.data.internal.settings !== undefined ? node.data.internal.settings : {}
       })
 
@@ -803,10 +803,10 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
           if (tab === "reference") {
             filePath = path.join(pathElement, "reference")
           } else if (tab === "test") {
-            if (Element.startsWith("det3")) {
+            if (Element.startsWith("med3pa_detectron")) {
               filePath = path.join(pathElement, "test")
               await loadAndHandleFiles(filePath, fileContent, "test")
-              await loadAndHandleFiles(path.join(pathElement, "detectron_results"), fileContent, "detectron_results")
+              await loadAndHandleFiles(path.join(pathElement, "detectron"), fileContent, "detectron_results")
             } else if (Element.startsWith("med3")) {
               filePath = path.join(pathElement, "test")
               await loadAndHandleFiles(filePath, fileContent, "test")
@@ -820,7 +820,7 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
       fileContent.isDetectron = isDetectron
       const parentFolder = Element.startsWith("detectron")
         ? "Detectron Experiments"
-        : Element.startsWith("det3")
+        : Element.startsWith("med3pa_detectron")
           ? "MED3pa & Detectron Experiments"
           : Element.startsWith("med3")
             ? "MED3pa Experiments"
@@ -839,7 +839,7 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
             toast.error(`Failed to save result for ${pathElement}`, error)
           })
         MedDataObject.updateWorkspaceDataObject()
-        await deleteFolderRecursive(pathElement)
+        //  await deleteFolderRecursive(pathElement)
       }
     }
   }

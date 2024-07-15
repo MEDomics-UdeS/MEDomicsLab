@@ -1,4 +1,4 @@
-import React from "react"
+import React,{useEffect} from "react"
 import { Typography } from "@mui/material"
 import { TbFilterCog } from "react-icons/tb"
 import { FaCompress, FaExpand } from "react-icons/fa"
@@ -6,13 +6,15 @@ import TreeParameters from "./treeParams"
 import NodeParameters from "./nodeParams"
 import FlInput from "../paInput"
 
-const ResultsFilter = ({ isExpanded, toggleExpand, treeParams, updateTreeParams, nodeParams, setNodeParams, type, settings, tree }) => {
+const ResultsFilter = ({ isExpanded, toggleExpand, treeParams, updateTreeParams, nodeParams, setNodeParams, type, settings, tree, isDetectron }) => {
   const handleMetricsChange = (event) => {
     setNodeParams((prevParams) => ({
       ...prevParams,
       metrics: event.value
     }))
+  
   }
+ 
 
   return (
     <div className={`card mb-3 ${isExpanded ? "expanded" : ""}`} style={{ overflowY: "visible" }}>
@@ -35,7 +37,7 @@ const ResultsFilter = ({ isExpanded, toggleExpand, treeParams, updateTreeParams,
                   <TreeParameters treeParams={treeParams} setTreeParams={updateTreeParams} />
                 </div>
                 <div className="col-md-5 mb-3" style={{ display: "flex", flex: "1", flexDirection: "column", height: "100%" }}>
-                  <NodeParameters parentId={type} nodeParams={nodeParams} setNodeParams={setNodeParams} settings={settings} />
+                  <NodeParameters parentId={type} nodeParams={nodeParams} setNodeParams={setNodeParams} settings={settings} isDetectron={isDetectron} />
                 </div>
               </div>
             ) : (

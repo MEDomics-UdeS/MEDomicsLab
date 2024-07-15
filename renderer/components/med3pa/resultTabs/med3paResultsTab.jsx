@@ -324,6 +324,7 @@ const MED3paResultsTab = ({ loadedFiles, type }) => {
                   type={type}
                   settings={settings}
                   tree={false}
+                  isDetectron={loadingDetectron}
                 />
 
                 <MDRCurve curveData={curveData} clickedLostElement={currentSelectedId} />
@@ -340,6 +341,7 @@ const MED3paResultsTab = ({ loadedFiles, type }) => {
                   type={type}
                   settings={settings}
                   tree={true}
+                  isDetectron={loadingDetectron}
                 />
                 <div className="row">
                   <div className="col-md-7 mb-3" style={{ display: "flex", flexDirection: "column", flex: "1", paddingRight: "15px" }}>

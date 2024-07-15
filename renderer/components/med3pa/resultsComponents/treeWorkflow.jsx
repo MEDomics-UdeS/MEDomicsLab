@@ -9,12 +9,11 @@ import TreeNode from "../nodesTypes/treeNode.jsx"
 import { Typography } from "@mui/material"
 import { Button } from "react-bootstrap"
 import { deepCopy } from "../../../utilities/staticFunctions.js"
-import { GiPathDistance } from "react-icons/gi"
-import { MdOutlineGroups3 } from "react-icons/md"
 
 import DownloadButton from "./download.jsx"
 import { Fullscreen } from "react-bootstrap-icons"
 import TreeLegend from "./treeLegend.jsx"
+import SelectedNodePath from "./selectedNodePath.jsx"
 
 const TreeWorkflow = ({ treeData, maxDepth, customThreshold, onButtonClicked, onFullScreenClicked, fullscreen }) => {
   // eslint-disable-next-line no-unused-vars
@@ -37,8 +36,6 @@ const TreeWorkflow = ({ treeData, maxDepth, customThreshold, onButtonClicked, on
     }),
     []
   )
-
-  const fitViewOptions = () => fitView({ duration: 200 })
 
   const handleNodeClick = () => {
     // Define updatedNodes as a copy of nodes
@@ -188,6 +185,12 @@ const TreeWorkflow = ({ treeData, maxDepth, customThreshold, onButtonClicked, on
     }
 
     // Recursive function to position nodes
+    // Calculate the maximum depth of the tree
+    const calculateMaxDepth = (nodes) => {
+      return Math.max(...nodes.map((node) => node.depth))
+    }
+
+    // Recursive function to position nodes
     const positionNodes = (nodeId, x, y, spacing) => {
       const node = tree.find((n) => n.id === nodeId)
       if (!node) return
@@ -208,10 +211,15 @@ const TreeWorkflow = ({ treeData, maxDepth, customThreshold, onButtonClicked, on
     // Find the root nodes (nodes without parents)
     const rootNodes = tree.filter((node) => node.idParent === null)
 
-    // Position the root nodes and their children
+    // Calculate the maximum depth of the tree
+    const maxDepth = calculateMaxDepth(tree)
+
+    // Dynamically set the initial spacing based on the maximum depth
     const initialX = 0
     const initialY = 0
-    const initialSpacing = 1900
+    const initialSpacing = 800 * maxDepth // Adjust multiplier as needed
+
+    // Position the root nodes and their children
     rootNodes.forEach((rootNode, index) => {
       positionNodes(rootNode.id, initialX + index * initialSpacing, initialY, initialSpacing / 2)
     })
@@ -221,7 +229,7 @@ const TreeWorkflow = ({ treeData, maxDepth, customThreshold, onButtonClicked, on
 
   useEffect(() => {
     // Update nodes and edges state
-    fitView({ duration: 800 })
+
     let className
     setNodes((prevNodes) => {
       const updatedNodes = prevNodes
@@ -296,6 +304,7 @@ const TreeWorkflow = ({ treeData, maxDepth, customThreshold, onButtonClicked, on
       // Return updatedNodes to update nodes state
       return updatedNodes
     })
+    fitView({ duration: 800 })
   }, [treeData])
 
   // Add lostProfiles to the dependency array if it's not already there
@@ -380,7 +389,6 @@ const TreeWorkflow = ({ treeData, maxDepth, customThreshold, onButtonClicked, on
 
     let targetNode = deepCopy(nodes.find((node) => node.id === params.target))
     isLoop = verificationForLoopHolesRec(targetNode, false)
-
     return isLoop
   }
 
@@ -526,61 +534,11 @@ const TreeWorkflow = ({ treeData, maxDepth, customThreshold, onButtonClicked, on
           <BiRefresh style={{ marginRight: "5px" }} /> Reset
         </Button>
       </div>
-      {selectedNodeInfo && (
-        <div
-          style={{
-            position: "relative",
-            top: "20px",
 
-            display: "inline-block",
-            maxWidth: "30%",
-            borderRadius: "8px",
-            backgroundColor: "#80cbc4",
-            boxShadow: "0 4px 4px rgba(0, 0, 0, 0.1)",
-            padding: "5px",
-            border: "1px solid rgba(0, 0, 0, 0.1)"
-          }}
-        >
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center"
-            }}
-          >
-            <Typography variant="h6" style={{ marginLeft: "5px", color: "black" }}>
-              <MdOutlineGroups3 style={{ fontSize: "28px", marginRight: "10px" }} />
-              Profile {selectedNodeInfo.data.internal.settings.id}
-            </Typography>
-            <GiPathDistance style={{ fontSize: "1.5rem", color: "black" }} />
-          </div>
-          <div
-            style={{
-              backgroundColor: "#FFFFFF",
-              padding: "20px",
-              borderRadius: "8px",
-              marginTop: "10px",
-              boxShadow: "0px 2px 4px rgba(0, 0, 0, 0.1)"
-            }}
-          >
-            <Typography variant="body1">
-              <div
-                style={{ color: "black", fontWeight: "bold", width: "100%", fontSize: "100%", wordWrap: "break-word" }}
-                dangerouslySetInnerHTML={{
-                  __html: `${selectedNodeInfo.data.internal.settings.path
-                    .filter((item) => item !== "*")
-                    .map((item) => item)
-                    .join(" <br /> ")}`
-                }}
-              />
-            </Typography>
-          </div>
-        </div>
-      )}
       <div style={{ flex: "1", width: dimensions.width, height: dimensions.height }}>
         <ReactFlow
           ref={reactFlowRef}
-          fitView={fitViewOptions}
+          fitView
           minZoom={0}
           maxZoom={1.5}
           zoomOnScroll={true}
@@ -590,6 +548,7 @@ const TreeWorkflow = ({ treeData, maxDepth, customThreshold, onButtonClicked, on
           nodeTypes={nodeTypes}
           onNodeClick={handleNodeClick}
         >
+          {selectedNodeInfo && <SelectedNodePath selectedNodeInfo={selectedNodeInfo}></SelectedNodePath>}
           {reactFlow && <DownloadButton reactFlowInstance={reactFlow} reactFlowRef={reactFlowRef.current} />}
           {customThreshold !== 0 && <TreeLegend customThreshold={customThreshold}></TreeLegend>}
           <Controls />

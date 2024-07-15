@@ -4,10 +4,11 @@ import FlInput from "../paInput"
 import { TbSettingsCog } from "react-icons/tb"
 import { nodeInformation, shiftInformation } from "../resultTabs/tabFunctions"
 
-const NodeParameters = ({ parentId, nodeParams, setNodeParams, settings }) => {
+const NodeParameters = ({ parentId, nodeParams, setNodeParams, settings, isDetectron }) => {
   const { focusView, thresholdEnabled, customThreshold, selectedParameter, metrics, detectronStrategy } = nodeParams
 
   useEffect(() => {
+    console.log("HELLO",isDetectron)
     if (nodeParams.metrics === null) {
       setNodeParams((prevNodeParams) => ({
         ...prevNodeParams,
@@ -107,7 +108,7 @@ const NodeParameters = ({ parentId, nodeParams, setNodeParams, settings }) => {
           >
             <FormControlLabel value="Node information" control={<Radio />} label="General information" className="default-text-color-paresults" />
             <FormControlLabel value="Node performance" control={<Radio />} label="Node performance" className="default-text-color-paresults" />
-            {parentId !== "test" && <FormControlLabel value="Covariate-shift probabilities" control={<Radio />} label="Covariate-shift probs" className="default-text-color-paresults" />}
+            {parentId !== "test" &&  isDetectron && <FormControlLabel value="Covariate-shift probabilities" control={<Radio />} label="Covariate-shift probs" className="default-text-color-paresults" />}
           </RadioGroup>
         </FormControl>
         {focusView === "Node performance" && (
@@ -126,7 +127,7 @@ const NodeParameters = ({ parentId, nodeParams, setNodeParams, settings }) => {
             />
           </div>
         )}
-        {focusView === "Covariate-shift probabilities" && parentId === "eval" && (
+        {focusView === "Covariate-shift probabilities" && parentId === "eval"  && (
           <div style={{ width: "100%", marginTop: "3%" }}>
             <FlInput
               name="Detectron Test Type"

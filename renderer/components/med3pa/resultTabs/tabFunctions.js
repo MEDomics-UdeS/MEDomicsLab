@@ -113,6 +113,7 @@ export const filterData = (data, lostData, nodeParams, maxDepth) => {
     } else if (nodeParams.focusView === "Covariate-shift probabilities") {
       newItem.detectronResults = {}
       if (item.detectron_results && item.detectron_results["Tests Results"]) {
+        console.log("HERE",item.detectron_results)
         newItem.className = "with-icon-success"
         const shiftInfo = item.detectron_results["Tests Results"].find((elem) => elem.Strategy === nodeParams.detectronStrategy)
         if (item.className === "panode-lost") return newItem
