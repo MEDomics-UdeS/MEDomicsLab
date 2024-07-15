@@ -181,6 +181,29 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
   }
 
   /**
+   * @summary Generic function that adds a tab with an object to the layout model
+   * @params {Object} action - The action passed on by the dispatchLayout function
+   * @params {String} component - The component to be used in the tab
+   */
+  function openInIFrameTab(action, component) {
+    let object = action.payload
+    let isAlreadyIn = checkIfIDIsInLayoutModel(object.name, layoutModel)
+    if (!isAlreadyIn) {
+      const newChild = {
+        type: "tab",
+        helpText: object.name,
+        name: object.name,
+        id: object.id,
+        component: component,
+        config: { path: object.path }
+      }
+      let layoutRequestQueueCopy = [...layoutRequestQueue]
+      layoutRequestQueueCopy.push({ type: "ADD_TAB", payload: newChild })
+      setLayoutRequestQueue(layoutRequestQueueCopy)
+    }
+  }
+
+  /**
    * @summary Generic function that adds a tab with a medDataObject to the layout model
    * @params {Object} action - The action passed on by the dispatchLayout function
    * @params {String} component - The component to be used in the tab
@@ -454,7 +477,7 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
    * @params {Object} action - The action passed on by the dispatchLayout function, it uses the payload in the action as a JSON object to add a new child to the layout model
    */
   const openInIFrame = (action) => {
-    openInDotDotDot(action, "iframeViewer")
+    openInIFrameTab(action, "iframeViewer")
   }
 
   /**
