@@ -65,6 +65,46 @@ function findAvailablePort(startPort, endPort = 8000) {
   })
 }
 
+export function killProcessOnPort(port) {
+  let platform = process.platform
+  return new Promise((resolve, reject) => {
+    if (platform == "darwin") {
+      exec(`lsof -i:${port}`, (err, stdout, stderr) => {
+        if (err) {
+          console.log(`Port ${port} is available !`)
+          resolve(port)
+        } else {
+          exec("kill -9 $(lsof -t -i:" + port + ")", (err, stdout, stderr) => {
+            if (!err) {
+              console.log("Previous server instance was killed successfully")
+              console.log(`Port ${port} is now available !`)
+              resolve(port)
+            }
+            stdout && console.log(stdout)(stderr) && console.log(stderr)
+          })
+        }
+      })
+    } else {
+      exec(`netstat ${platform == "win32" ? "-ano | find" : "-ltnup | grep"} ":${port}"`, (err, stdout, stderr) => {
+        if (err) {
+          console.log(`Port ${port} is available !`)
+          resolve(port)
+        } else {
+          let PID = stdout.trim().split(/\s+/)[stdout.trim().split(/\s+/).length - 1].split("/")[0]
+          exec(`${platform == "win32" ? "taskkill /f /t /pid" : "kill"} ${PID}`, (err, stdout, stderr) => {
+            if (!err) {
+              console.log("Previous server instance was killed successfully")
+              console.log(`Port ${port} is now available !`)
+              resolve(port)
+            }
+            stdout && console.log(stdout)(stderr) && console.log(stderr)
+          })
+        }
+      })
+    }
+  })
+}
+
 export function runServer(isProd, serverPort, serverProcess, serverIsRunning, condaPath = null) {
   // Runs the server
 

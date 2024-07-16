@@ -291,7 +291,7 @@ class GoExecScriptBioBERTExtraction(GoExecutionScript):
         self.BIOBERT_MODEL = AutoModel.from_pretrained(self.BIOBERT_PATH)
 
         # MongoDB setup
-        mongo_client = pymongo.MongoClient("mongodb://localhost:27017/")
+        mongo_client = pymongo.MongoClient("mongodb://localhost:54017/")
         database = mongo_client[json_config["DBName"]]
         collection = database[json_config["collectionName"]]
         result_collection = database[json_config["resultCollectionName"]]

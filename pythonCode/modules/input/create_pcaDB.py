@@ -54,7 +54,7 @@ class GoExecScriptCreatePCA(GoExecutionScript):
         new_PCA_collection_name = json_config["newPCATransformationName"]
 
         # Connect to MongoDB
-        client = MongoClient('localhost', 27017)
+        client = MongoClient('localhost', 54017)
         db = client[database_name]
         collection = db[collection_name]
 

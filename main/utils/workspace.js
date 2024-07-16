@@ -166,6 +166,8 @@ export const createMedomicsDirectory = (directoryPath) => {
   const medomicsDir = path.join(directoryPath, ".medomics")
   const mongoDataDir = path.join(medomicsDir, "MongoDBdata")
   const mongoConfigPath = path.join(medomicsDir, "mongod.conf")
+  const dataDir = path.join(directoryPath, "DATA")
+  const experimentsDir = path.join(directoryPath, "EXPERIMENTS")
 
   if (!fs.existsSync(medomicsDir)) {
     // Create .medomicsDir
@@ -176,6 +178,22 @@ export const createMedomicsDirectory = (directoryPath) => {
     // Create MongoDB data dir
     fs.mkdirSync(mongoDataDir)
   }
+
+  if (!fs.existsSync(mongoDataDir)) {
+    // Create MongoDB data dir
+    fs.mkdirSync(mongoDataDir)
+  }
+
+  if (!fs.existsSync(dataDir)) {
+    // Create DATA dir
+    fs.mkdirSync(dataDir)
+  }
+
+  if (!fs.existsSync(experimentsDir)) {
+    // Create EXPERIMENTS dir
+    fs.mkdirSync(experimentsDir)
+  }
+  
 
   if (!fs.existsSync(mongoConfigPath)) {
     // Create mongod.conf
@@ -188,7 +206,7 @@ export const createMedomicsDirectory = (directoryPath) => {
       dbPath: ${mongoDataDir}
     net:
       bindIp: 127.0.0.1
-      port: 27017
+      port: 54017
     `
     fs.writeFileSync(mongoConfigPath, mongoConfig)
   }

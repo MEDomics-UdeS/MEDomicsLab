@@ -1,5 +1,5 @@
 const MongoClient = require("mongodb").MongoClient
-const mongoUrl = "mongodb://127.0.0.1:27017"
+const mongoUrl = "mongodb://127.0.0.1:54017"
 
 /**
  * @description Get data from collectionName in dbname

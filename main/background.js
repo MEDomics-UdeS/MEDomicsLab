@@ -4,14 +4,14 @@ import serve from "electron-serve"
 import { createWindow } from "./helpers"
 import { installExtension, REACT_DEVELOPER_TOOLS } from "electron-extension-installer"
 import MEDconfig from "../medomics.dev"
-import { runServer } from "./utils/server"
+import { runServer, killProcessOnPort } from "./utils/server"
 import { setWorkingDirectory, getRecentWorkspacesOptions, loadWorkspaces, createMedomicsDirectory } from "./utils/workspace"
 
 const fs = require("fs")
 var path = require("path")
 let mongoProcess = null
 const dirTree = require("directory-tree")
-const { exec, spawn } = require("child_process")
+const { exec, spawn, execSync } = require("child_process")
 var serverProcess = null
 var serverPort = MEDconfig.defaultPort
 var hasBeenSet = false
@@ -194,6 +194,12 @@ if (isProd) {
     try {
       // Stop MongoDB if it's running
       await stopMongoDB(mongoProcess)
+      if (process.platform === "win32") {
+        // Kill the process on the port
+        killProcessOnPort(serverPort)
+      } else {
+        execSync("pkill -f mongod")
+      }
       // Start MongoDB with the new configuration
       startMongoDB(data, mongoProcess)
       return {
@@ -441,7 +447,6 @@ function startMongoDB(workspacePath) {
   if (fs.existsSync(mongoConfigPath)) {
     console.log("Starting MongoDB with config: ", mongoConfigPath)
     mongoProcess = spawn("mongod", ["--config", mongoConfigPath])
-
     mongoProcess.stdout.on("data", (data) => {
       console.log(`MongoDB stdout: ${data}`)
     })

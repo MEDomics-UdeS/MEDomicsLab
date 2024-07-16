@@ -2,7 +2,7 @@ const { MongoClient } = require("mongodb")
 const fs = require("fs")
 const Papa = require("papaparse")
 
-const uri = "mongodb://localhost:27017" // Remplacez par votre URI MongoDB
+const uri = "mongodb://localhost:54017" // Remplacez par votre URI MongoDB
 const dbName = "data" // Remplacez par le nom de votre base de données
 
 let client
