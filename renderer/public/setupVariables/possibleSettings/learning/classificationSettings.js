@@ -122,11 +122,6 @@ const classificationSettings = {
     },
     "dataset": {
         "options": {
-            "data_func": {
-                "type": "data-function",
-                "tooltip": "<p>The function that generate data (the dataframe-like input). This\nis useful when the dataset is large, and you need parallel operations\nsuch as compare_models. It can avoid broadcasting large dataset\nfrom driver to workers. Notice one and only one of data and\ndata_func must be set.</p>\n",
-                "default_val": ""
-            },
             "index": {
                 "type": "bool-int-str",
                 "tooltip": "<dl >\n<dt>Handle indices in the <cite>data</cite> dataframe.</dt><dd><ul >\n<li><p>If False: Reset to RangeIndex.</p></li>\n<li><p>If True: Keep the provided index.</p></li>\n<li><p>If int: Position of the column to use as index.</p></li>\n<li><p>If str: Name of the column to use as index.</p></li>\n<li><p>If sequence: Array with shape=(n_samples,) to use as index.</p></li>\n</ul>\n</dd>\n</dl>\n",
@@ -140,11 +135,6 @@ const classificationSettings = {
             "test_data": {
                 "type": "dataframe",
                 "tooltip": "<p>If not None, test_data is used as a hold-out set and <cite>train_size</cite> parameter\nis ignored. The columns of data and test_data must match.</p>\n",
-                "default_val": "None"
-            },
-            "ordinal_features": {
-                "type": "dict",
-                "tooltip": "<p>Categorical features to be encoded ordinally. For example, a categorical\nfeature with \u2018low\u2019, \u2018medium\u2019, \u2018high\u2019 values where low &lt; medium &lt; high can\nbe passed as ordinal_features = {\u2018column_name\u2019 : [\u2018low\u2019, \u2018medium\u2019, \u2018high\u2019]}.</p>\n",
                 "default_val": "None"
             },
             "numeric_features": {
@@ -197,11 +187,6 @@ const classificationSettings = {
                 "tooltip": "<p>Categorical columns with <cite>max_encoding_ohe</cite> or less unique values are\nencoded using OneHotEncoding. If more, the <cite>encoding_method</cite> estimator\nis used. Note that columns with exactly two classes are always encoded\nordinally. Set to below 0 to always use OneHotEncoding.</p>\n",
                 "default_val": "25"
             },
-            "encoding_method": {
-                "type": "category-encoders estimator",
-                "tooltip": "<p>A <cite>category-encoders</cite> estimator to encode the categorical columns\nwith more than <cite>max_encoding_ohe</cite> unique values. If None,\n<cite>category_encoders.target_encoder.TargetEncoder</cite> is used.</p>\n",
-                "default_val": "None"
-            },
             "rare_to_value": {
                 "type": "float",
                 "tooltip": "<p>Minimum fraction of category occurrences in a categorical column.\nIf a category is less frequent than <cite>rare_to_value * len(X)</cite>, it is\nreplaced with the string in <cite>rare_value</cite>. Use this parameter to group\nrare categories before encoding the column. If None, ignores this step.</p>\n",
@@ -215,11 +200,6 @@ const classificationSettings = {
             "low_variance_threshold": {
                 "type": "float",
                 "tooltip": "<p>Remove features with a training-set variance lower than the provided\nthreshold. If 0, keep all features with non-zero variance, i.e. remove\nthe features that have the same value in all samples. If None, skip\nthis transformation step.</p>\n",
-                "default_val": "None"
-            },
-            "group_features": {
-                "type": "dict",
-                "tooltip": "<p>When the dataset contains features with related characteristics,\nadd new fetaures with the following statistical properties of that\ngroup: min, max, mean, std, median and mode. The parameter takes a\ndict with the group name as key and a list of feature names\nbelonging to that group as value.</p>\n",
                 "default_val": "None"
             },
             "drop_groups": {
@@ -246,11 +226,6 @@ const classificationSettings = {
                 "type": "string",
                 "tooltip": "<p>Estimator with which to perform class balancing. Choose from the name\nof an <cite>imblearn</cite> estimator, or a custom instance of such. Ignored when\n<cite>fix_imbalance=False</cite>.</p>\n",
                 "default_val": "\u201cSMOTE\u201d"
-            },
-            "custom_pipeline": {
-                "type": "list of (str, transformer), dict or Pipeline",
-                "tooltip": "<p>Addidiotnal custom transformers. If passed, they are applied to the\npipeline last, after all the build-in transformers.</p>\n",
-                "default_val": "None"
             },
             "custom_pipeline_position": {
                 "type": "int",
@@ -317,11 +292,6 @@ const classificationSettings = {
                 "tooltip": "<p>Name of the experiment for logging. Ignored when log_experiment is False.</p>\n",
                 "default_val": "None"
             },
-            "experiment_custom_tags": {
-                "type": "dict",
-                "tooltip": "<p>Dictionary of tag_name: String -&gt; value: (String, but will be string-ified\nif not) passed to the mlflow.set_tags to add new custom tags for the experiment.</p>\n",
-                "default_val": "None"
-            },
             "log_plots": {
                 "type": "bool",
                 "tooltip": "<p>When set to True, certain plots are logged automatically in the MLFlow server.\nTo change the type of plots to be logged, pass a list containing plot IDs. Refer\nto documentation of plot_model. Ignored when log_experiment is False.</p>\n",
@@ -337,30 +307,10 @@ const classificationSettings = {
                 "tooltip": "<p>When set to True, dataset is logged on the MLflow server as a csv file.\nIgnored when log_experiment is False.</p>\n",
                 "default_val": "False"
             },
-            "engine": {
-                "type": "Optional[Dict[str, str]] = None",
-                "tooltip": "<p>The execution engines to use for the models in the form of a dict\nof <cite>model_id: engine</cite> - e.g. for Logistic Regression (\u201clr\u201d, users can\nswitch between \u201csklearn\u201d and \u201csklearnex\u201d by specifying\n<cite>engine={\u201clr\u201d: \u201csklearnex\u201d}</cite></p>\n",
-                "default_val": ""
-            },
             "verbose": {
                 "type": "bool",
                 "tooltip": "<p>When set to False, Information grid is not printed.</p>\n",
                 "default_val": "True"
-            },
-            "memory": {
-                "type": "str, bool or Memory",
-                "tooltip": "<dl >\n<dt>Used to cache the fitted transformers of the pipeline.</dt><dd><p>If False: No caching is performed.\nIf True: A default temp directory is used.\nIf str: Path to the caching directory.</p>\n</dd>\n</dl>\n",
-                "default_val": "rue"
-            },
-            "profile": {
-                "type": "bool",
-                "tooltip": "<p>When set to True, an interactive EDA report is displayed.</p>\n",
-                "default_val": "False"
-            },
-            "profile_kwargs": {
-                "type": "dict",
-                "tooltip": "<p>Dictionary of arguments passed to the ProfileReport method used\nto create the EDA report. Ignored if profile is False.</p>\n",
-                "default_val": "{} (empty dict)"
             },
             "time-point": {
                 "type": "string",
@@ -464,11 +414,6 @@ const classificationSettings = {
                 "tooltip": "<p>When set to \u2018ignore\u2019, will skip the model with exceptions and continue.\nIf \u2018raise\u2019, will break the function when exceptions are raised.</p>\n",
                 "default_val": "ignore"
             },
-            "fit_kwargs": {
-                "type": "dict",
-                "tooltip": "<p>Dictionary of arguments passed to the fit method of the model.</p>\n",
-                "default_val": "{} (empty dict)"
-            },
             "groups": {
                 "type": "string",
                 "tooltip": "<p>Optional group labels when \u2018GroupKFold\u2019 is used for the cross validation.\nIt takes an array with shape (n_samples, ) where n_samples is the number\nof rows in the training dataset. When string is passed, it is interpreted\nas the column name in the dataset containing group labels.</p>\n",
@@ -483,11 +428,6 @@ const classificationSettings = {
                 "type": "float",
                 "tooltip": "<p>Threshold for converting predicted probability to class label.\nIt defaults to 0.5 for all classifiers unless explicitly defined\nin this parameter. Only applicable for binary classification.</p>\n",
                 "default_val": "None"
-            },
-            "engine": {
-                "type": "Optional[Dict[str, str]] = None",
-                "tooltip": "<p>The execution engines to use for the models in the form of a dict\nof <cite>model_id: engine</cite> - e.g. for Logistic Regression (\u201clr\u201d, users can\nswitch between \u201csklearn\u201d and \u201csklearnex\u201d by specifying\n<cite>engine={\u201clr\u201d: \u201csklearnex\u201d}</cite></p>\n",
-                "default_val": ""
             },
             "verbose": {
                 "type": "bool",
@@ -514,11 +454,6 @@ const classificationSettings = {
                 "tooltip": "<p>When set to False, metrics are evaluated on holdout set. fold param\nis ignored when cross_validation is set to False.</p>\n",
                 "default_val": "True"
             },
-            "fit_kwargs": {
-                "type": "dict",
-                "tooltip": "<p>Dictionary of arguments passed to the fit method of the model.</p>\n",
-                "default_val": "{} (empty dict)"
-            },
             "groups": {
                 "type": "string",
                 "tooltip": "<p>Optional group labels when GroupKFold is used for the cross validation.\nIt takes an array with shape (n_samples, ) where n_samples is the number\nof rows in training dataset. When string is passed, it is interpreted as\nthe column name in the dataset containing group labels.</p>\n",
@@ -528,16 +463,6 @@ const classificationSettings = {
                 "type": "float",
                 "tooltip": "<p>Threshold for converting predicted probability to class label.\nIt defaults to 0.5 for all classifiers unless explicitly defined\nin this parameter. Only applicable for binary classification.</p>\n",
                 "default_val": "None"
-            },
-            "experiment_custom_tags": {
-                "type": "dict",
-                "tooltip": "<p>Dictionary of tag_name: String -&gt; value: (String, but will be string-ified\nif not) passed to the mlflow.set_tags to add new custom tags for the experiment.</p>\n",
-                "default_val": "None"
-            },
-            "engine": {
-                "type": "Optional[str] = None",
-                "tooltip": "<p>The execution engine to use for the model, e.g. for Logistic Regression (\u201clr\u201d), users can\nswitch between \u201csklearn\u201d and \u201csklearnex\u201d by specifying\n<cite>engine=\u201dsklearnex\u201d</cite>.</p>\n",
-                "default_val": ""
             },
             "verbose": {
                 "type": "bool",
@@ -570,16 +495,6 @@ const classificationSettings = {
                     "type": "int",
                     "tooltip": "<p>Controls cross-validation. If None, the CV generator in the fold_strategy\nparameter of the setup function is used. When an integer is passed,\nit is interpreted as the \u2018n_splits\u2019 parameter of the CV generator in the\nsetup function.</p>\n",
                     "default_val": "None"
-                },
-                "fit_kwargs": {
-                    "type": "dict",
-                    "tooltip": "<p>Dictionary of arguments passed to the fit method of the model.</p>\n",
-                    "default_val": "{} (empty dict)"
-                },
-                "plot_kwargs": {
-                    "type": "dict",
-                    "tooltip": "<dl >\n<dt>Dictionary of arguments passed to the visualizer class.</dt><dd><ul >\n<li><p>pipeline: fontsize -&gt; int</p></li>\n</ul>\n</dd>\n</dl>\n",
-                    "default_val": "{} (empty dict)"
                 },
                 "groups": {
                     "type": "string",
@@ -659,11 +574,6 @@ const classificationSettings = {
     },
     "finalize": {
         "options": {
-            "fit_kwargs": {
-                "type": "dict",
-                "tooltip": "<p>Dictionary of arguments passed to the fit method of the model.</p>\n",
-                "default_val": "{} (empty dict)"
-            },
             "groups": {
                 "type": "string",
                 "tooltip": "<p>Optional group labels when GroupKFold is used for the cross validation.\nIt takes an array with shape (n_samples, ) where n_samples is the number\nof rows in training dataset. When string is passed, it is interpreted as\nthe column name in the dataset containing group labels.</p>\n",
@@ -673,11 +583,6 @@ const classificationSettings = {
                 "type": "bool",
                 "tooltip": "<p>Whether to return the complete fitted pipeline or only the fitted model.</p>\n",
                 "default_val": "False"
-            },
-            "experiment_custom_tags": {
-                "type": "dict",
-                "tooltip": "<p>Dictionary of tag_name: String -&gt; value: (String, but will be string-ified\nif not) passed to the mlflow.set_tags to add new custom tags for the experiment.</p>\n",
-                "default_val": "None"
             }
         },
         "code": "",
@@ -706,16 +611,6 @@ const classificationSettings = {
     },
     "load_model": {
         "options": {
-            "platform": {
-                "type": "string",
-                "tooltip": "<p>Name of the cloud platform. Currently supported platforms:\n\u2018aws\u2019, \u2018gcp\u2019 and \u2018azure\u2019.</p>\n",
-                "default_val": "None"
-            },
-            "authentication": {
-                "type": "dict",
-                "tooltip": "<p>dictionary of applicable authentication tokens.</p>\n<p>when platform = \u2018aws\u2019:\n{\u2018bucket\u2019 : \u2018Name of Bucket on S3\u2019, \u2018path\u2019: (optional) folder name under the bucket}</p>\n<p>when platform = \u2018gcp\u2019:\n{\u2018project\u2019: \u2018gcp-project-name\u2019, \u2018bucket\u2019 : \u2018gcp-bucket-name\u2019}</p>\n<p>when platform = \u2018azure\u2019:\n{\u2018container\u2019: \u2018azure-container-name\u2019}</p>\n",
-                "default_val": "None"
-            },
             "verbose": {
                 "type": "bool",
                 "tooltip": "<p>Success message is not printed when verbose is set to False.</p>\n",
@@ -751,20 +646,10 @@ const classificationSettings = {
                 "tooltip": "<p>Number of iterations in the grid search. Increasing \u2018n_iter\u2019 may improve\nmodel performance but also increases the training time.</p>\n",
                 "default_val": "10"
             },
-            "custom_grid": {
-                "type": "dict",
-                "tooltip": "<p>To define custom search space for hyperparameters, pass a dictionary with\nparameter name and values to be iterated. Custom grids must be in a format\nsupported by the defined search_library.</p>\n",
-                "default_val": "None"
-            },
             "optimize": {
                 "type": "string",
                 "tooltip": "<p>Metric name to be evaluated for hyperparameter tuning. It also accepts custom\nmetrics that are added through the add_metric function.</p>\n",
                 "default_val": "Accuracy"
-            },
-            "custom_scorer": {
-                "type": "object",
-                "tooltip": "<p>custom scoring strategy can be passed to tune hyperparameters of the model.\nIt must be created using sklearn.make_scorer. It is equivalent of adding\ncustom metric using the add_metric function and passing the name of the\ncustom metric in the optimize parameter.\nWill be deprecated in future.</p>\n",
-                "default_val": "None"
             },
             "search_library": {
                 "type": "string",
@@ -790,11 +675,6 @@ const classificationSettings = {
                 "type": "bool",
                 "tooltip": "<p>When set to True, the returned object is always better performing. The\nmetric used for comparison is defined by the optimize parameter.</p>\n",
                 "default_val": "True"
-            },
-            "fit_kwargs": {
-                "type": "dict",
-                "tooltip": "<p>Dictionary of arguments passed to the fit method of the tuner.</p>\n",
-                "default_val": "{} (empty dict)"
             },
             "groups": {
                 "type": "string",
@@ -858,11 +738,6 @@ const classificationSettings = {
                 "tooltip": "<p>Metric to compare for model selection when choose_better is True.</p>\n",
                 "default_val": "Accuracy"
             },
-            "fit_kwargs": {
-                "type": "dict",
-                "tooltip": "<p>Dictionary of arguments passed to the fit method of the model.</p>\n",
-                "default_val": "{} (empty dict)"
-            },
             "groups": {
                 "type": "string",
                 "tooltip": "<p>Optional group labels when GroupKFold is used for the cross validation.\nIt takes an array with shape (n_samples, ) where n_samples is the number\nof rows in training dataset. When string is passed, it is interpreted as\nthe column name in the dataset containing group labels.</p>\n",
@@ -919,11 +794,6 @@ const classificationSettings = {
                 "type": "custom-list",
                 "tooltip": "<p>Sequence of weights (float or int) to weight the occurrences of predicted class\nlabels (hard voting) or class probabilities before averaging (soft voting). Uses\nuniform weights when None.</p>\n",
                 "default_val": "None"
-            },
-            "fit_kwargs": {
-                "type": "dict",
-                "tooltip": "<p>Dictionary of arguments passed to the fit method of the model.</p>\n",
-                "default_val": "{} (empty dict)"
             },
             "groups": {
                 "type": "string",
@@ -1012,11 +882,6 @@ const classificationSettings = {
                 "tooltip": "<p>Metric to compare for model selection when choose_better is True.</p>\n",
                 "default_val": "Accuracy"
             },
-            "fit_kwargs": {
-                "type": "dict",
-                "tooltip": "<p>Dictionary of arguments passed to the fit method of the model.</p>\n",
-                "default_val": "{} (empty dict)"
-            },
             "groups": {
                 "type": "string",
                 "tooltip": "<p>Optional group labels when GroupKFold is used for the cross validation.\nIt takes an array with shape (n_samples, ) where n_samples is the number\nof rows in training dataset. When string is passed, it is interpreted as\nthe column name in the dataset containing group labels.</p>\n",
@@ -1063,11 +928,6 @@ const classificationSettings = {
                 "type": "int",
                 "tooltip": "<p>Number of decimal places the metrics in the score grid will be rounded to.</p>\n",
                 "default_val": "4"
-            },
-            "fit_kwargs": {
-                "type": "dict",
-                "tooltip": "<p>Dictionary of arguments passed to the fit method of the model.</p>\n",
-                "default_val": "{} (empty dict)"
             },
             "groups": {
                 "type": "string",

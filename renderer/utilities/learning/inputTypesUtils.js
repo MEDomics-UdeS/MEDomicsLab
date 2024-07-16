@@ -109,8 +109,17 @@ const implementedTypesDescription = [
     type: "int-float-str",
     description: "int-float-str",
     default: ""
+  },
+  // {
+  //   type: "data-function",
+  //   description: "for data function input",
+  //   default: ""
+  // },
+  {
+    type: "dataframe",
+    description: "for dataframe input",
+    default: ""
   }
-
 ]
 
 // this object is used to get the default value and implemeted types of possible settings

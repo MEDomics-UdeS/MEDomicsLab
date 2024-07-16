@@ -114,6 +114,13 @@ class MEDexperimentLearning(MEDexperiment):
             elif kwargs['use_gpu'] == "False":
                 kwargs['use_gpu'] = False
 
+        if 'index' in kwargs:
+            if kwargs['index'] == "True":
+                kwargs['index'] = True
+            elif kwargs['index'] == "False":
+                kwargs['index'] = False
+
+
         # add the imports
         node.CodeHandler.add_import("import numpy as np")
         node.CodeHandler.add_import("import pandas as pd")
@@ -137,9 +144,15 @@ class MEDexperimentLearning(MEDexperiment):
         medml_logger = MEDml_logger()
 
         # setup the experiment
-        pycaret_exp.setup(temp_df, log_experiment=medml_logger, **kwargs)
-        node.CodeHandler.add_line(
-            "code", f"pycaret_exp.setup(temp_df, {node.CodeHandler.convert_dict_to_params(kwargs)})")
+        if 'test_data' in kwargs:
+            test_data_df = pd.read_csv(kwargs['test_data']['path'])
+            node.CodeHandler.add_line("code", f"test_data_df = pd.read_csv('{kwargs['test_data']}'")
+            node.CodeHandler.add_line("code", f"pycaret_exp.setup(temp_df, test_data=test_data_df, {node.CodeHandler.convert_dict_to_params(kwargs)})")
+            del kwargs['test_data']
+            pycaret_exp.setup(temp_df, test_data=test_data_df, log_experiment=medml_logger, **kwargs)
+        else:
+            pycaret_exp.setup(temp_df, log_experiment=medml_logger, **kwargs)
+            node.CodeHandler.add_line("code", f"pycaret_exp.setup(temp_df, {node.CodeHandler.convert_dict_to_params(kwargs)})")
         node.CodeHandler.add_line(
             "code", f"dataset = pycaret_exp.get_config('X').join(pycaret_exp.get_config('y'))")
         dataset_metaData = {
