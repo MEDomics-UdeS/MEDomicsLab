@@ -30,7 +30,7 @@ class GoExecScriptRunExperiment(GoExecutionScript):
     """
 
     def __init__(self, json_params: dict, _id: str = None, isProgressInThread: bool = False):
-        super().__init__(json_params, _id, debug=True)
+        super().__init__(json_params, _id, debug=False)
         self.storing_mode = USE_RAM_FOR_EXPERIMENTS_STORING
         # self.storing_mode = USE_SAVE_FOR_EXPERIMENTS_STORING
         self.current_experiment = None

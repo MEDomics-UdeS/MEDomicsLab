@@ -80,10 +80,8 @@ class GoExecutionScript(ABC):
         try:
             self.push_progress()
             results = self._custom_process(self._json_params)
-            # print(self._debug, results)
             if self._debug:
-                # print(os.getcwd())
-                with open("C:\\Users\\gblai\\Documents\\github\\MEDomics\\MEDomicsLab\\pythonCode\\modules\\learning\\results.json", "w") as f:
+                with open("results.json", "w") as f:
                     f.write(json.dumps(results, indent=4))
             self.send_response(results)
         except BaseException as e:
