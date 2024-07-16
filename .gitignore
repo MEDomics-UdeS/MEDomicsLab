@@ -28,6 +28,8 @@ share/python-wheels/
 *.egg
 MANIFEST
 
+python/*
+
 # PyInstaller
 #  Usually these files are written by a python script from a template
 #  before PyInstaller builds the exe, so as to inject date/other infos into it.
@@ -75,7 +77,6 @@ node_modules
 .next
 app
 dist
-
 
 # Sphinx documentation
 docs/_build/
@@ -140,7 +141,6 @@ dmypy.json
 # submodules
 /flask_server/submodules/MEDimage/*
 /flask_server/submodules/MEDprofiles/*
-
 
 # custom gitignore
 tmp

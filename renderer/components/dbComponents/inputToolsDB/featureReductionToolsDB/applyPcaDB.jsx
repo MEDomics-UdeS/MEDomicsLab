@@ -96,7 +96,7 @@ const ApplyPCADB = ({ currentCollection, refreshData }) => {
       id: id,
       name: newCollectionName + "_reduced_features",
       type: "csv",
-      parentID: null,
+      parentID: "ROOT",
       childrenIDs: [],
       inWorkspace: false
     })
