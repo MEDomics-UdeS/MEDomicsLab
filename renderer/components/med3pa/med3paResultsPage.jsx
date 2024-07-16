@@ -3,9 +3,10 @@ import ModulePage from "../mainPages/moduleBasics/modulePage"
 import { loadFileFromPathSync } from "../../utilities/fileManagementUtils"
 import { Tabs, Tab } from "react-bootstrap"
 import "bootstrap/dist/css/bootstrap.min.css"
-import MED3paCompareTab from "./resultTabs/med3paCompareTab.jsx"
+
 import MED3paResultsTab from "./resultTabs/med3paResultsTab.jsx"
 import DetectronResults from "./resultsComponents/detectronResults.jsx"
+import MED3paConfigTab from "./resultTabs/med3paConfigTab.jsx"
 
 const MED3paResultsPage = ({ pageId, configPath = "" }) => {
   const [fileData, setFileData] = useState(null)
@@ -26,6 +27,13 @@ const MED3paResultsPage = ({ pageId, configPath = "" }) => {
   useEffect(() => {
     if (fileData) {
       console.log("FILEDATA:", fileData)
+
+      // Determine the initial active tab based on experiment type
+      if (fileData.isDetectron) {
+        setActiveTab("results") // Set to "results" if Detectron experiment
+      } else {
+        setActiveTab("reference") // Set to "reference" for non-Detectron experiment
+      }
     }
   }, [fileData])
 
@@ -37,7 +45,14 @@ const MED3paResultsPage = ({ pageId, configPath = "" }) => {
     <ModulePage pageId={pageId} configPath={configPath}>
       <div>
         {fileData.isDetectron ? (
-          <DetectronResults detectronResults={fileData.loadedFiles.detectron_results} />
+          <Tabs activeKey={activeTab} onSelect={(k) => setActiveTab(k)}>
+            <Tab eventKey="results" title="Configuration Results">
+              <DetectronResults detectronResults={fileData.loadedFiles.detectron_results} />
+            </Tab>
+            <Tab eventKey="infoConfig" title="Configuration Information">
+              <MED3paConfigTab loadedFiles={fileData.loadedFiles?.experiment_config} />
+            </Tab>
+          </Tabs>
         ) : (
           <Tabs activeKey={activeTab} onSelect={(k) => setActiveTab(k)}>
             <Tab eventKey="reference" title="Test Set Results">
@@ -46,8 +61,8 @@ const MED3paResultsPage = ({ pageId, configPath = "" }) => {
             <Tab eventKey="test" title="Evaluation Set Results">
               <MED3paResultsTab loadedFiles={{ ...fileData.loadedFiles.test, ...fileData.loadedFiles.detectron_results }} type="eval" />
             </Tab>
-            <Tab eventKey="compare" title="Compare Sets Results">
-              <MED3paCompareTab loadedReferenceFiles={fileData.loadedFiles.reference} loadedTestFiles={fileData.loadedFiles.test} />
+            <Tab eventKey="infoConfig" title="Configuration Information">
+              <MED3paConfigTab loadedFiles={fileData.loadedFiles?.infoConfig.experiment_config} />
             </Tab>
           </Tabs>
         )}

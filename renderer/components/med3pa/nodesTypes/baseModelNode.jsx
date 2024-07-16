@@ -58,6 +58,9 @@ export default function BaseModelNode({ id, data }) {
       setLoader(false)
     } else {
       setLoader(true)
+      setTimeout(() => {
+        setLoader(false)
+      }, 1000) // Reset loader to true after 1 second
     }
     updateNode({
       id: id,

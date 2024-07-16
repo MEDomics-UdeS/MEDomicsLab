@@ -434,6 +434,33 @@ const FlInput = ({ name, settingInfos, currentValue, onInputChange, disabled, se
             {createTooltip(settingInfos.tooltip, name)}
           </>
         )
+      case "json-input":
+        return (
+          <>
+            <FloatingLabel id={name} controlId={name} label={name} className=" input-hov">
+              <WsSelect
+                disabled={disabled}
+                selectedPath={currentValue}
+                acceptedExtensions={["json"]}
+                acceptFolder={settingInfos.acceptFolder ? settingInfos.acceptFolder : false}
+                onChange={(e, path) => {
+                  console.log("e", e, path)
+                  if (path == "") {
+                    setHasWarning({ state: true, tooltip: <p>No file selected</p> })
+                  } else {
+                    setHasWarning({ state: false })
+                  }
+                  setInputUpdate({
+                    name: name,
+                    value: { name: e.target.value, path: path },
+                    type: settingInfos.type
+                  })
+                }}
+              />
+            </FloatingLabel>
+            {createTooltip(settingInfos.tooltip, name)}
+          </>
+        )
 
       case "data-input-multiple":
         console.log("currentValue", currentValue)

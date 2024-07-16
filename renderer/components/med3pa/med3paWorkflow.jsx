@@ -225,7 +225,7 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
           const targetNode = nds.find((n) => n.id === intersect.targetId)
 
           if (sourceNode && targetNode) {
-            if ((sourceNode.data.setupParam.nbInput == 0 && targetNode.name === "Start") || targetNode.name === "End") {
+            if ((sourceNode.data.setupParam.nbInput == 0 && targetNode.name === "Start") || (!sourceNode.data.setupParam.nbInput == 0 && targetNode.name === "End")) {
               targetNode.className = "intersect"
               // Store the default description before changing it
               if (!targetNode.defaultDescription) {
@@ -789,7 +789,7 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
       const fileName = `MED3paResults_${Element}_${new Date().toISOString()}`.replace(/[^a-zA-Z0-9-_]/g, "")
       const pathElement = [folderPath, Element].join(MedDataObject.getPathSeparator())
       let isDetectron = false
-      const tabs = ["reference", "test"]
+      const tabs = ["infoConfig", "reference", "test"]
 
       const fileContent = { loadedFiles: {}, isDetectron: false }
       let filePath
@@ -811,6 +811,8 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
               filePath = path.join(pathElement, "test")
               await loadAndHandleFiles(filePath, fileContent, "test")
             }
+          } else {
+            filePath = pathElement
           }
           if (filePath) {
             await loadAndHandleFiles(filePath, fileContent, tab)

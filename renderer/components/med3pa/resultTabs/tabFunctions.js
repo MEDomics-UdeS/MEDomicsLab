@@ -2,7 +2,7 @@ import { loadJsonPath } from "../../../utilities/fileManagementUtils"
 import fs from "fs"
 import path from "path"
 export const nodeInformation = ["Node%", "Population%", "Mean confidence level", "Positive%"]
-export const shiftInformation = ["Shift Probability", "Test Statistic"]
+export let shiftInformation = []
 
 // Function to format numbers with three decimal places
 export const formatValue = (value) => {
@@ -20,11 +20,11 @@ export const isLost = (obj) => {
   )
 }
 function getClassnameForThreshold(value, threshold) {
-  if (value >= threshold * 0.75) {
+  if (value >= threshold) {
     return "panode-threshold" // Green
-  } else if (value >= threshold * 0.5) {
+  } else if (value >= threshold * 0.66) {
     return "panode-moderatethreshold" // Yellow
-  } else if (value >= threshold * 0.25) {
+  } else if (value >= threshold * 0.33) {
     return "panode-warningthreshold" // Orange
   } else {
     return "panode-criticalthreshold" // Red
@@ -67,9 +67,9 @@ export const loadJsonFiles = async (dirPath) => {
 
 export function calculateRanges(threshold) {
   const range1 = { description: ` >= ${threshold}%`, className: "panode-threshold" }
-  const range2 = { description: `${threshold * 0.5}% - ${threshold * 0.75}%`, className: "panode-moderatethreshold" }
-  const range3 = { description: `${threshold * 0.25}% - ${threshold * 0.5}%`, className: "panode-warningthreshold" }
-  const range4 = { description: `0% - ${threshold * 0.25}%`, className: "panode-criticalthreshold" }
+  const range2 = { description: `${threshold * 0.66}% - ${threshold}%`, className: "panode-moderatethreshold" }
+  const range3 = { description: `${threshold * 0.33}% - ${threshold * 0.66}%`, className: "panode-warningthreshold" }
+  const range4 = { description: `0% - ${threshold * 0.33}%`, className: "panode-criticalthreshold" }
 
   return {
     range1,
@@ -113,13 +113,40 @@ export const filterData = (data, lostData, nodeParams, maxDepth) => {
     } else if (nodeParams.focusView === "Covariate-shift probabilities") {
       newItem.detectronResults = {}
       if (item.detectron_results && item.detectron_results["Tests Results"]) {
-        console.log("HERE",item.detectron_results)
         newItem.className = "with-icon-success"
         const shiftInfo = item.detectron_results["Tests Results"].find((elem) => elem.Strategy === nodeParams.detectronStrategy)
         if (item.className === "panode-lost") return newItem
-        newItem.detectronResults = { "Shift Probability": shiftInfo.shift_probability, "Test Statistic": shiftInfo.test_statistic }
+
+        // Filter keys containing "value", "statistic", or "probability"
+        const filteredKeys = Object.keys(shiftInfo).filter((key) => key.toLowerCase().includes("value") || key.toLowerCase().includes("statistic") || key.toLowerCase().includes("probability"))
+
+        // Construct newItem.detectronResults with filtered keys
+        newItem.detectronResults = {}
+        shiftInformation = []
+        newItem.detectronResults["sample_size"] = item.detectron_results["Tested Profile size"]
+        filteredKeys.forEach((key) => {
+          // Check if the key includes "probability" or "value"
+          if (key.toLowerCase().includes("probability")) {
+            // Transform key to "stability percentage"
+            let transformedKey = key.toLowerCase().includes("probability") ? "Stability%" : key
+
+            // Calculate and assign the transformed value
+            newItem.detectronResults[transformedKey] = ((1 - shiftInfo[key]) * 100).toFixed(2)
+
+            // Push transformed key to shiftInformation array
+            shiftInformation.push(transformedKey)
+          } else if (key.toLowerCase().includes("value")) {
+            newItem.detectronResults[key] = shiftInfo[key]
+            shiftInformation.push(key)
+          }
+        })
+
         if (parseFloat(newItem.detectronResults[nodeParams.selectedParameter])) {
-          newItem.className += getClassnameForThreshold(parseFloat(newItem.detectronResults[nodeParams.selectedParameter]), customThreshold / 100)
+          if (nodeParams.selectedParameter.includes("value")) {
+            newItem.className += getClassnameForThreshold(parseFloat(newItem.detectronResults[nodeParams.selectedParameter]), customThreshold / 100)
+          } else {
+            newItem.className += getClassnameForThreshold(parseFloat(newItem.detectronResults[nodeParams.selectedParameter]), customThreshold)
+          }
         }
       } else {
         newItem.className = "with-icon-fail"

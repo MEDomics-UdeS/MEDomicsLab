@@ -8,12 +8,16 @@ import DetectronResults from "../resultsComponents/detectronResults"
 import { filterData, filterMetrics, isLost, isSubPath } from "./tabFunctions"
 import LostProfiles from "../resultsComponents/lostProfiles"
 import ResultsFilter from "../resultsComponents/resultsFilter"
+import PaModelsEval from "../resultsComponents/paModelsEval"
 const MED3paResultsTab = ({ loadedFiles, type }) => {
   const [buttonClicked, setButtonClicked] = useState("reset")
   const [loadingTree, setLoadingTree] = useState(false)
+  const [loadingEval, setLoadingEval] = useState(false)
+
   const [loadingCurve, setLoadingCurve] = useState(false)
   const [loadingLost, setLoadingLost] = useState(false)
   const [lostData, setLostData] = useState({})
+  const [evalData, setEvalData] = useState({})
   const [filter, setFilter] = useState(false)
   const [curveData, setCurveData] = useState({})
   const [treeData, setTreeData] = useState({})
@@ -123,6 +127,10 @@ const MED3paResultsTab = ({ loadedFiles, type }) => {
           }
         }
         if (!test) return
+        if (test.models_evaluation) {
+          setLoadingEval(true)
+          setEvalData(test.models_evaluation)
+        }
 
         if (test.metrics_dr) {
           if (!settings.metrics) {
@@ -162,15 +170,13 @@ const MED3paResultsTab = ({ loadedFiles, type }) => {
           setLostData(test.lost_profiles[treeParams.minSamplesRatio])
 
           if (detectronR) {
-            setTimeout(() => {
-              setLoadingDetectron(true)
-            }, 3000)
+            setLoadingDetectron(true)
           }
           setLoadingLost(true)
 
           setTimeout(() => {
             setLoadingTree(true)
-          }, 500)
+          }, 600)
         }
       } catch (error) {
         console.error("Error loading JSON files:", error)
@@ -364,6 +370,8 @@ const MED3paResultsTab = ({ loadedFiles, type }) => {
                     {!loadingDetectron ? null : type === "eval" && <DetectronResults detectronResults={detectronR} />}
                   </div>
                 </div>
+
+                <div>{!loadingEval ? <p>Loading MED3pa Models Evaluation...</p> : <PaModelsEval loadedFile={evalData} />}</div>
               </>
             )}
           </>

@@ -6,25 +6,30 @@ import { Button, Modal } from "react-bootstrap"
 import * as Icon from "react-bootstrap-icons"
 import { FlowFunctionsContext } from "../../flow/context/flowFunctionsContext"
 import { CiEdit } from "react-icons/ci"
-
+import { LoaderContext } from "../../generalPurpose/loaderContext"
 export default function APCModelNode({ id, data }) {
   const [showDetails, setShowDetails] = useState(false)
   const [showModal, setShowModal] = useState(false)
   const [showGridParams, setShowGridParams] = useState(false)
   const [showHyperParams, setShowHyperParams] = useState(false)
-
+  const { setLoader } = useContext(LoaderContext)
   const { updateNode } = useContext(FlowFunctionsContext)
   const [hovered, setHovered] = useState(false)
 
   const [loading, setLoading] = useState(true)
   const [gridParams, setGridParams] = useState({}) // State to hold grid_params
-
+  const [useJsonInput, setUseJsonInput] = useState(false) // Load an Existing Fixed
   useEffect(() => {
     if (data.setupParam.possibleSettings && data.internal.settings) {
       setGridParams(data.internal.settings.grid_params)
       setLoading(false)
     }
   }, [])
+
+  useEffect(() => {
+    console.log("GENERAL PARAMS :", data.internal)
+  }, [data.internal.settings])
+
   useEffect(() => {
     console.log("GRID PARAMS :", data.internal.settings.grid_params)
   }, [data.internal.settings.grid_params])
@@ -32,6 +37,36 @@ export default function APCModelNode({ id, data }) {
   useEffect(() => {
     console.log("HYPERPARAMS:", data.internal.settings.hyperparameters)
   }, [data.internal.settings.hyperparameters])
+
+  const handleWarning = (hasWarning) => {
+    data.internal.hasWarning = hasWarning
+    updateNode({
+      id: id,
+      updatedData: data.internal
+    })
+  }
+  const onFilesChange = async (inputUpdate) => {
+    data.internal.settings.file = inputUpdate.value
+
+    if (inputUpdate.value.path !== "") {
+      setLoader(false)
+
+      if (data.internal.settings.file) {
+        data.internal.hasWarning = { state: false }
+      } else {
+        data.internal.hasWarning = { state: true, tooltip: <p>No Fixed Tree Structure selected</p> }
+      }
+    } else {
+      setLoader(true)
+      setTimeout(() => {
+        setLoader(false)
+      }, 1000) // Reset loader to true after 1 second
+    }
+    updateNode({
+      id: id,
+      updatedData: data.internal
+    })
+  }
 
   const handleHyperParamChange = (key, value) => {
     const selectedValues = Array.isArray(value.value) ? value.value.map((option) => option.name) : value.value
@@ -177,6 +212,19 @@ export default function APCModelNode({ id, data }) {
     }))
   }
 
+  const handleUseJSONChange = (value) => {
+    setUseJsonInput(value.value)
+    if (value.value) {
+      if (!data.internal.settings.file) {
+        data.internal.hasWarning = { state: true, tooltip: <p>No Fixed Tree Structure selected</p> }
+      } else {
+        data.internal.hasWarning = { state: false }
+      }
+    } else {
+      data.internal.hasWarning = { state: false }
+    }
+  }
+
   const toggleShowDetails = () => {
     setShowDetails(!showDetails)
   }
@@ -206,80 +254,115 @@ export default function APCModelNode({ id, data }) {
         nodeBody={
           <>
             <div className="center">
-              <Button variant="light" className="width-100 btn-contour" onClick={handleModalShow}>
-                {data.internal.settings.target ? "Change Selected Parameters" : "Select APC Model Parameters"}
-              </Button>
-            </div>
-            <div className="center">
-              <Button
-                variant="light"
-                className="width-100 btn-contour"
-                onClick={toggleShowDetails}
-                style={{
-                  backgroundColor: "transparent",
-                  border: "none",
-                  padding: 0,
-                  textAlign: "left",
-                  display: "flex",
-                  alignItems: "center"
+              <FlInput
+                key={"FixedTree"}
+                name={"Load a Fixed tree structure"}
+                settingInfos={{
+                  type: "bool",
+                  tooltip: "<p>Check if you have a fixed tree that you want to load</p>"
                 }}
-              >
-                <div
-                  className="d-flex align-items-center"
-                  style={{
-                    transition: "color 0.3s",
-                    cursor: "pointer",
-                    marginLeft: "auto"
+                currentValue={useJsonInput}
+                onInputChange={(value) => handleUseJSONChange(value)}
+              />
+            </div>
+            {useJsonInput ? (
+              <div className="center mt-3">
+                <FlInput
+                  key={"FixedTree"}
+                  name={"Load a Fixed tree structure"}
+                  settingInfos={{
+                    type: "json-input",
+                    tooltip: "<p>Load Tree Structure here</p>"
                   }}
-                  onMouseEnter={() => setHovered(true)}
-                  onMouseLeave={() => setHovered(false)}
-                >
-                  <span
-                    className="ms-2"
+                  currentValue={data.internal.settings.file || {}}
+                  setHasWarning={handleWarning}
+                  onInputChange={onFilesChange}
+                />
+              </div>
+            ) : (
+              <>
+                <div className="center mt-3">
+                  {" "}
+                  {/* Added mt-3 for margin top */}
+                  <Button variant="light" className="width-100 btn-contour" onClick={handleModalShow}>
+                    {data.internal.settings.target ? "Change Selected Parameters" : "Select APC Model Parameters"}
+                  </Button>
+                </div>
+                <div className="center">
+                  <Button
+                    variant="light"
+                    className="width-100 btn-contour"
+                    onClick={toggleShowDetails}
                     style={{
-                      fontSize: "0.8rem",
-                      color: hovered ? "black" : "#999"
+                      backgroundColor: "transparent",
+                      border: "none",
+                      padding: 0,
+                      textAlign: "left",
+                      display: "flex",
+                      alignItems: "center",
+                      marginTop: "10px" // Added marginTop for spacing
                     }}
                   >
-                    {showDetails ? "Hide Details" : "Show Details"}
-                  </span>
-                  {showDetails ? (
-                    <Icon.Dash
+                    <div
+                      className="d-flex align-items-center"
                       style={{
-                        color: hovered ? "black" : "#999",
-                        marginRight: "5px"
+                        transition: "color 0.3s",
+                        cursor: "pointer",
+                        marginLeft: "auto"
                       }}
-                    />
-                  ) : (
-                    <Icon.Plus
-                      style={{
-                        color: hovered ? "black" : "#999",
-                        marginRight: "5px"
-                      }}
-                    />
-                  )}
+                      onMouseEnter={() => setHovered(true)}
+                      onMouseLeave={() => setHovered(false)}
+                    >
+                      <span
+                        className="ms-2"
+                        style={{
+                          fontSize: "0.8rem",
+                          color: hovered ? "black" : "#999"
+                        }}
+                      >
+                        {showDetails ? "Hide Details" : "Show Details"}
+                      </span>
+                      {showDetails ? (
+                        <Icon.Dash
+                          style={{
+                            color: hovered ? "black" : "#999",
+                            marginRight: "5px"
+                          }}
+                        />
+                      ) : (
+                        <Icon.Plus
+                          style={{
+                            color: hovered ? "black" : "#999",
+                            marginRight: "5px"
+                          }}
+                        />
+                      )}
+                    </div>
+                  </Button>
                 </div>
-              </Button>
-            </div>
-            {showDetails && data.internal.settings && (
-              <div className="border border-light p-3 mb-3">
-                <hr className="my-2" />
-                <br />
-                <div className="mb-3">
-                  <p className="fw-bold mb-0">Default Settings</p>
-                  <br />
-                  {renderSettings(data.internal.settings)}
-                </div>
-              </div>
+                {showDetails && data.internal.settings && (
+                  <div className="border border-light p-3 mt-3">
+                    {" "}
+                    {/* Added mt-3 for margin top */}
+                    <hr className="my-2" />
+                    <br />
+                    <div className="mb-3">
+                      <p className="fw-bold mb-0">Default Settings</p>
+                      <br />
+                      {renderSettings(data.internal.settings)}
+                    </div>
+                  </div>
+                )}
+              </>
             )}
           </>
         }
-        defaultSettings={<div>IPC Model is responsible for extracting individual problematic patients</div>}
+        defaultSettings={<div>APC Model is responsible for extracting individual problematic patients</div>}
         nodeSpecific={<></>}
       />
       <Modal show={showModal} onHide={handleModalClose} size="lg">
         <Modal.Header closeButton>
-          <Modal.Title>Select IPC Model Parameters</Modal.Title>
+          <Modal.Title>Select APC Model Parameters</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <>
