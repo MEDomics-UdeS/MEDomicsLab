@@ -163,12 +163,13 @@ func StartPythonScripts(jsonParam string, filename string, id string) (string, e
 	}
 	log.Println("Conda env: " + condaEnv)
 
-	jsonParamBytes := []byte(jsonParam)
-	err = os.WriteFile("jsonParam.txt", jsonParamBytes, 0644)
-	if err != nil {
-		log.Println("Error writing jsonParam to file")
-		return "", err
-	}
+	// UNCOMMENT TO WRITE JSON PARAM TO FILE FOR DEBUGGING
+	// jsonParamBytes := []byte(jsonParam)
+	// err = os.WriteFile("jsonParam.txt", jsonParamBytes, 0644)
+	// if err != nil {
+	// 	log.Println("Error writing jsonParam to file")
+	// 	return "", err
+	// }
 	
 	Scripts[id] = ScriptInfo{
 		Cmd:      exec.Command(condaEnv, "-u", script, "--json-param", jsonParam, "--id", id),
