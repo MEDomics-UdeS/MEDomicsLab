@@ -86,7 +86,7 @@ const SubsetCreationToolsDB = ({ currentCollection, refreshData }) => {
       id: id,
       name: newCollectionName,
       type: "csv",
-      parentID: null,
+      parentID: "ROOT",
       childrenIDs: [],
       inWorkspace: false
     })

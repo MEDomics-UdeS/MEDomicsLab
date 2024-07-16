@@ -121,7 +121,7 @@ const CreatePCADB = ({ currentCollection, refreshData }) => {
       id: id,
       name: newCollectionName,
       type: "csv",
-      parentID: null,
+      parentID: "ROOT",
       childrenIDs: [],
       inWorkspace: false
     })
@@ -130,7 +130,7 @@ const CreatePCADB = ({ currentCollection, refreshData }) => {
       id: id2,
       name: "PCA_Transformations_" + newCollectionName,
       type: "csv",
-      parentID: null,
+      parentID: "ROOT",
       childrenIDs: [],
       inWorkspace: false
     })

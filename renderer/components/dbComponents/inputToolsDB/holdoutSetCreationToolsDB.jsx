@@ -61,7 +61,7 @@ const HoldoutSetCreationToolsDB = ({ refreshData, currentCollection }) => {
       id: id,
       name: "Learning_" + newCollectionName,
       type: "csv",
-      parentID: null,
+      parentID: "ROOT",
       childrenIDs: [],
       inWorkspace: false
     })
@@ -70,7 +70,7 @@ const HoldoutSetCreationToolsDB = ({ refreshData, currentCollection }) => {
       id: id2,
       name: "Holdout_" + newCollectionName,
       type: "csv",
-      parentID: null,
+      parentID: "ROOT",
       childrenIDs: [],
       inWorkspace: false
     })

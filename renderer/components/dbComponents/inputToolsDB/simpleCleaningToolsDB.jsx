@@ -106,7 +106,7 @@ const SimpleCleaningToolsDB = ({ lastEdit, data, columns, currentCollection, ref
       id: id,
       name: newCollectionName,
       type: "csv",
-      parentID: null,
+      parentID: "ROOT",
       childrenIDs: [],
       inWorkspace: false
     })

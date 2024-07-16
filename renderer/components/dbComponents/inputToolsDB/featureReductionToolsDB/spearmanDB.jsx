@@ -106,7 +106,7 @@ const SpearmanDB = ({ DB, currentCollection, refreshData }) => {
       id: id,
       name: newCollectionName + "_reduced_spearman",
       type: "csv",
-      parentID: null,
+      parentID: "ROOT",
       childrenIDs: [],
       inWorkspace: false
     })

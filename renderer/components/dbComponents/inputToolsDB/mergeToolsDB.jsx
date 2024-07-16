@@ -94,7 +94,7 @@ const MergeToolsDB = ({ currentCollection }) => {
       id: id,
       name: globalData[selectedCollections[0]].name + " " + selectedMergeType + " " + globalData[selectedCollections[1]].name + ".csv",
       type: "csv",
-      parentID: null,
+      parentID: "ROOT",
       childrenIDs: [],
       inWorkspace: false
     })
