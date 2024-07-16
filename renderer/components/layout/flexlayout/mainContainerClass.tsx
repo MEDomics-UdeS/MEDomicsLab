@@ -56,7 +56,7 @@ import ModelViewer from "../../mainPages/modelViewer"
 import NotebookEditor from "../../mainPages/notebookEditor"
 import Iframe from "react-iframe"
 import DataTableFromDB from "../../dbComponents/dataTableFromDB"
-import InputToolsComponent from "../../dbComponents/InputToolsComponent"
+import InputToolsComponent from "../../dbComponents/inputToolsComponent"
 
 var fields = ["Name", "Field1", "Field2", "Field3", "Field4", "Field5"]
 

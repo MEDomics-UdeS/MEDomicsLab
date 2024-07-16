@@ -1,8 +1,8 @@
 import React, { useContext } from "react"
 import { TabPanel, TabView } from "primereact/tabview"
-import SpearmanDB from "./SpearmanDB"
-import CreatePCADB from "./CreatePcaDB"
-import ApplyPCADB from "./ApplyPcaDB"
+import SpearmanDB from "./spearmanDB"
+import CreatePCADB from "./createPcaDB"
+import ApplyPCADB from "./applyPcaDB"
 import { Message } from "primereact/message"
 import { DataContext } from "../../../workspace/dataContext"
 
