@@ -18,6 +18,14 @@
       "resources/**/*"
     ],
     "extraResources": [
+      {
+        "from": "python",
+        "to": "python",
+        "filter": [
+          "**/*"
+        ]
+
+      },
       "./pythonCode/**/*",
       "./baseFiles/**/*",
       "./go_executables/**/*",
