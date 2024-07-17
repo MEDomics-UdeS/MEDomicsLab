@@ -6,7 +6,7 @@ import { installExtension, REACT_DEVELOPER_TOOLS } from "electron-extension-inst
 import MEDconfig from "../medomics.dev"
 import { runServer, killProcessOnPort } from "./utils/server"
 import { setWorkingDirectory, getRecentWorkspacesOptions, loadWorkspaces, createMedomicsDirectory } from "./utils/workspace"
-
+import { getBundledPythonEnvironment, getInstalledPythonPackages, installPythonPackage, installBundledPythonExecutable } from "./utils/pythonEnv"
 const fs = require("fs")
 var path = require("path")
 let mongoProcess = null
@@ -197,8 +197,14 @@ if (isProd) {
       if (process.platform === "win32") {
         // Kill the process on the port
         killProcessOnPort(serverPort)
-      } else {
+      } else if (process.platform === "darwin") {
         execSync("pkill -f mongod")
+      } else {
+        try {
+          execSync("killall mongod")
+        } catch (error) {
+          console.warn("Failed to kill mongod: ", error)
+        }
       }
       // Start MongoDB with the new configuration
       startMongoDB(data, mongoProcess)
@@ -394,6 +400,19 @@ ipcMain.handle("request", async (_, axios_request) => {
   const result = await axios(axios_request)
   return { data: result.data, status: result.status }
 })
+
+// Python environment handling
+ipcMain.handle("getInstalledPythonPackages", async (event, pythonPath) => {
+  return getInstalledPythonPackages(pythonPath)
+})
+
+ipcMain.handle("getBundledPythonEnvironment", async (event) => {
+  return getBundledPythonEnvironment()
+})
+
+ipcMain.handle("installBundledPythonExecutable", async (event) => {
+  return installBundledPythonExecutable()
+} )
 
 app.on("window-all-closed", () => {
   console.log("app quit")

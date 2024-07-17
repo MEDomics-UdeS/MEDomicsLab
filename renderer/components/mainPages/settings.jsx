@@ -18,7 +18,7 @@ const SettingsPage = () => {
   const [activeIndex, setActiveIndex] = useState(0) // Index of the active tab
   const [condaPath, setCondaPath] = useState("") // Path to the conda environment
   const [seed, setSeed] = useState(54288) // Seed for random number generation
-
+  const [pythonEmbedded, setPythonEmbedded] = useState({}) // Boolean to know if python is embedded
   /**
    * Get the settings from the main process
    * if the conda path is defined in the settings, set it
@@ -64,9 +64,36 @@ const SettingsPage = () => {
         setServerIsRunning(status)
         console.log("server is running", status)
       })
+      ipcRenderer.invoke("getBundledPythonEnvironment").then((res) => {
+        console.log("Python imbedded: ", res)
+        if (res !== null) {
+          ipcRenderer.invoke("getInstalledPythonPackages", res).then((pythonPackages) => {
+            console.log("Installed Python Packages: ", pythonPackages)
+            setPythonEmbedded({ pythonEmbedded: true, pythonPackages: pythonPackages })
+            }
+          )
+        }
+      })
     }, 5000)
     return () => clearInterval(interval)
   })
+
+  useEffect(() => {
+    ipcRenderer.invoke("getBundledPythonEnvironment").then((res) => {
+      console.log("Python imbedded: ", res)
+      if (res !== null) {
+        ipcRenderer.invoke("getInstalledPythonPackages", res).then((pythonPackages) => {
+          console.log("Installed Python Packages: ", pythonPackages)
+          setPythonEmbedded({ pythonEmbedded: true, pythonPackages: pythonPackages })
+          }
+        )
+      }
+    })
+  }, [])
+
+  /**
+   * 
+   */
 
   return (
     <>
@@ -146,6 +173,16 @@ const SettingsPage = () => {
                         saveSettings({ ...settings, seed: e.value })
                       }}
                     />
+                  </Col>
+                </Col>
+                <Col xs={12} md={12} style={{ display: "flex", flexDirection: "row", justifyContent: "flex-start", alignItems: "center", flexWrap: "wrap", marginTop: ".75rem" }}>
+                  <Col xs={12} md="auto" style={{ display: "flex", flexDirection: "row", justifyContent: "flex-start", alignItems: "center", flexWrap: "wrap" }}>
+                    <h5>Python bundled : &nbsp;</h5>
+                  </Col>
+                  <Col xs={12} md="auto" style={{ display: "flex", flexDirection: "row", justifyContent: "flex-start", alignItems: "center", flexWrap: "nowrap", flexGrow: "1" }}>
+                    <h5>{pythonEmbedded.pythonEmbedded ? "Yes" : "No"} &nbsp;</h5>
+                    {!pythonEmbedded.pythonEmbedded && (<Button label="Install Python" onClick={() => {ipcRenderer.invoke("installBundledPythonExecutable")}}/>)}
+                    {pythonEmbedded.pythonEmbedded && (<Button label="Show installed packages" onClick={() => {console.log(pythonEmbedded.pythonPackages)}}/>)}
                   </Col>
                 </Col>
               </Col>

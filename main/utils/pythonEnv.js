@@ -1,6 +1,7 @@
 import { app } from "electron"
 const fs = require("fs")
 var path = require("path")
+const { execSync } = require("child_process")
 
 export function getPythonEnvironment(medCondaEnv = "med_conda_env") {
   // Returns the python environment
@@ -137,4 +138,101 @@ function getThePythonExecutablePath(condaPath, envName) {
     pythonExecutablePath = path.join(condaPath, "envs", envName, "bin", "python")
   }
   return pythonExecutablePath
+}
+
+
+export function getBundledPythonEnvironment() {
+  let pythonEnvironment = null
+
+  let bundledPythonPath = path.join(process.cwd(), "python")
+  if (process.env.NODE_ENV === "production") {
+    bundledPythonPath = path.join(process.cwd(), "python")
+  }
+
+  pythonEnvironment = path.join(bundledPythonPath, "bin", "python")
+  if (process.platform == "win32") {
+    pythonEnvironment = path.join(bundledPythonPath, "python.exe")
+  } 
+  console.log("Python Environment bundledPythonPath: ", bundledPythonPath)
+  console.log("Python Environment: ", pythonEnvironment)
+  if (!fs.existsSync(pythonEnvironment)) {
+    pythonEnvironment = null
+  }
+  return pythonEnvironment
+}
+
+
+export function getInstalledPythonPackages(pythonPath=null) {
+  let pythonPackages = []
+  if (pythonPath === null) {
+    pythonPath = getPythonEnvironment()
+  }
+  let pythonPackagesOutput = execSync(`${pythonPath} -m pip list --format=json`).toString()
+  pythonPackages = JSON.parse(pythonPackagesOutput)
+  return pythonPackages
+}
+
+export function installPythonPackage(pythonPath, packageName=null, requirementsFilePath=null) {
+  console.log("Installing python package: ", packageName, requirementsFilePath, " with pythonPath: ", pythonPath)
+  let execSyncResult = null
+  if (requirementsFilePath !== null) {
+    execSyncResult = execSync(`${pythonPath} -m pip install -r ${requirementsFilePath}`).toString()
+  } else {
+    execSyncResult = execSync(`${pythonPath} -m pip install ${packageName}`).toString()
+  }
+}
+
+export function installBundledPythonExecutable() {
+  
+  let bundledPythonPath = path.join(process.cwd(), "python")
+  if (process.env.NODE_ENV === "production") {
+    bundledPythonPath = path.join(process.cwd(), "python")
+  }
+  // Check if the python executable is already installed
+  let pythonExecutablePath = null
+  if (process.platform == "win32") {
+    pythonExecutablePath = path.join(bundledPythonPath, "python.exe")
+  } else {
+    pythonExecutablePath = path.join(bundledPythonPath, "bin", "python")
+  }
+  if (!fs.existsSync(pythonExecutablePath)) {
+    // Install the python executable
+    
+    // 1. Download the python executable https://github.com/indygreg/python-build-standalone/releases/download/20240224/cpython-3.9.18+20240224
+    // 2. Extract the python executable
+    
+    if (process.platform == "win32") {
+      // Download the python executable
+      // Extract the python executable
+    } else if (process.platform == "darwin") {
+      // Download the right python executable (arm64 or x86_64) 
+      let isArm64 = process.arch === "arm64" 
+      let url = "https://github.com/indygreg/python-build-standalone/releases/download/20240224/cpython-3.9.18+20240224-x86_64-apple-darwin-install_only.tar.gz"
+      let extractCommand = `tar -xvf cpython-3.9.18+20240224-x86_64-apple-darwin-install_only.tar.gz`
+      if (isArm64 === "arm64") {
+        url = "https://github.com/indygreg/python-build-standalone/releases/download/20240224/cpython-3.9.18+20240224-aarch64-apple-darwin-install_only.tar.gz"
+        extractCommand = `tar -xvf cpython-3.9.18+20240224-aarch64-apple-darwin-install_only.tar.gz`
+      }
+      let downloadResult = execSync(`wget ${url}`).toString()
+      console.log(downloadResult)
+      // Extract the python executable
+      let extractionResult = execSync(extractCommand).toString()
+      console.log(extractionResult)
+      // Install the required python packages
+      installPythonPackage(pythonExecutablePath, null, path.join(process.cwd(), "pythonEnv", "requirements_mac.txt"))
+    } else if (process.platform == "linux") {
+      // Download the right python executable (arm64 or x86_64)
+       
+      let url = "https://github.com/indygreg/python-build-standalone/releases/download/20240224/cpython-3.9.18+20240224-x86_64_v4-unknown-linux-gnu-install_only.tar.gz"
+      let extractCommand = `tar -xvf cpython-3.9.18+20240224-x86_64_v4-unknown-linux-gnu-install_only.tar.gz`
+      let downloadResult = execSync(`wget ${url}`).toString()
+      console.log(downloadResult)
+      // Extract the python executable
+      let extractionResult = execSync(extractCommand).toString()
+      console.log(extractionResult)
+      // Install the required python packages
+      installPythonPackage(pythonExecutablePath,  null, path.join(process.cwd(),"pythonEnv", "requirements.txt"))
+    }
+
+  }
 }
