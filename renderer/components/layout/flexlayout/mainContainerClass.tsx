@@ -658,7 +658,7 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
       if (node.getExtraData().data == null) {
         const config = node.getConfig()
 
-        return <LearningPage pageId={config.uuid} configPath={config.path} />
+        return <LearningPage pageId={config.id} configPath={config.name} />
       }
     } else if (component === "InputToolsDB") {
       if (node.getExtraData().data == null) {
