@@ -1,4 +1,4 @@
-import React from "react"
+import React, { useEffect, useState } from "react"
 import { Typography } from "@mui/material"
 import { TbFilterCog } from "react-icons/tb"
 import { FaCompress, FaExpand } from "react-icons/fa"
@@ -7,12 +7,31 @@ import NodeParameters from "./nodeParams"
 import FlInput from "../paInput"
 
 const ResultsFilter = ({ isExpanded, toggleExpand, treeParams, updateTreeParams, nodeParams, setNodeParams, type, settings, tree, isDetectron }) => {
+  const [shouldDisable, setShouldDisable] = useState(false)
+  const [disableFilter, setDisableFilter] = useState(false)
+
   const handleMetricsChange = (event) => {
     setNodeParams((prevParams) => ({
       ...prevParams,
       metrics: event.value
     }))
   }
+
+  useEffect(() => {
+    if (treeParams && (treeParams.declarationRate !== 100 || treeParams.minSamplesRatio !== 0)) {
+      setShouldDisable(true)
+    } else {
+      setShouldDisable(false)
+    }
+  }, [treeParams])
+
+  useEffect(() => {
+    if (nodeParams && nodeParams.focusView === "Covariate-shift probabilities") {
+      setDisableFilter(true)
+    } else {
+      setDisableFilter(false)
+    }
+  }, [nodeParams])
 
   return (
     <div className={`card mb-3 ${isExpanded ? "expanded" : ""}`} style={{ overflowY: "visible" }}>
@@ -32,10 +51,10 @@ const ResultsFilter = ({ isExpanded, toggleExpand, treeParams, updateTreeParams,
             {tree ? (
               <div className="row" style={{ flex: "0 0 auto", display: "flex", padding: "1%" }}>
                 <div className="col-md-7 mb-3" style={{ display: "flex", flexDirection: "column" }}>
-                  <TreeParameters treeParams={treeParams} setTreeParams={updateTreeParams} />
+                  <TreeParameters treeParams={treeParams} setTreeParams={updateTreeParams} disableFilter={disableFilter} />
                 </div>
                 <div className="col-md-5 mb-3" style={{ display: "flex", flex: "1", flexDirection: "column", height: "100%" }}>
-                  <NodeParameters parentId={type} nodeParams={nodeParams} setNodeParams={setNodeParams} settings={settings} isDetectron={isDetectron} />
+                  <NodeParameters parentId={type} nodeParams={nodeParams} setNodeParams={setNodeParams} settings={settings} isDetectron={isDetectron} shouldDisable={shouldDisable} />
                 </div>
               </div>
             ) : (
@@ -47,7 +66,7 @@ const ResultsFilter = ({ isExpanded, toggleExpand, treeParams, updateTreeParams,
                     tooltip: "Select metrics",
                     choices: settings.metrics
                   }}
-                  currentValue={nodeParams.metrics}
+                  currentValue={nodeParams.metrics || settings.metrics?.filter((item) => ["Auc", "Accuracy", "F1Score", "Recall"].includes(item.name))}
                   onInputChange={handleMetricsChange}
                   disabled={false}
                   className="default-text-color-paresults"

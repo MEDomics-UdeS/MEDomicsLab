@@ -178,6 +178,33 @@ const FlInput = ({ name, settingInfos, currentValue, onInputChange, disabled, se
             {createTooltip(settingInfos.tooltip, name)}
           </>
         )
+      case "percentage":
+        return (
+          <>
+            <FloatingLabel controlId={name} label={name} className="input-hov">
+              <Form.Control
+                disabled={disabled}
+                type="number"
+                step="0.1"
+                max="100"
+                value={currentValue} // Use `value` instead of `defaultValue` for controlled components
+                onChange={(e) => {
+                  const newValue = parseFloat(e.target.value)
+                  if (newValue > 100) {
+                    toast.error("The input is a percentage. Must be <= 100 ")
+                  }
+                  setInputUpdate({
+                    name: name,
+                    value: newValue <= 100 ? newValue : 0,
+                    type: settingInfos.type
+                  })
+                }}
+              />
+            </FloatingLabel>
+            {createTooltip(settingInfos.tooltip, name)}
+          </>
+        )
+
       // for boolean input (form select of 2 options True/False)
       case "bool":
         return (

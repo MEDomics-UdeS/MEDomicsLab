@@ -2,7 +2,7 @@ import React from "react"
 import { Slider, Typography } from "@mui/material"
 import { TbSettingsCog } from "react-icons/tb"
 
-const TreeParameters = ({ treeParams, setTreeParams }) => {
+const TreeParameters = ({ treeParams, setTreeParams, disableFilter }) => {
   const handleSliderChange = (property, value) => {
     setTreeParams({
       ...treeParams,
@@ -29,6 +29,7 @@ const TreeParameters = ({ treeParams, setTreeParams }) => {
             min={0}
             max={100}
             step={1}
+            disabled={disableFilter}
           />
         </div>
         <div className="slider-container-paresults">
@@ -74,6 +75,7 @@ const TreeParameters = ({ treeParams, setTreeParams }) => {
             min={0}
             max={50}
             step={5}
+            disabled={disableFilter}
           />
         </div>
       </div>

@@ -22,6 +22,8 @@ const MED3paResultsTab = ({ loadedFiles, type }) => {
   const [curveData, setCurveData] = useState({})
   const [treeData, setTreeData] = useState({})
   const [fullscreen, setFullscreen] = useState(false)
+  const [fullscreenCurve, setFullscreenCurve] = useState(false)
+
   const [isExpanded, setIsExpanded] = useState(false)
   const [prevSelectedId, setPrevSelectedId] = useState(null)
   const [currentSelectedId, setCurrentSelectedId] = useState(null)
@@ -197,6 +199,7 @@ const MED3paResultsTab = ({ loadedFiles, type }) => {
       const filteredMDRData = filterMetrics(test.metrics_dr, nodeParams)
       if (filteredMDRData) {
         setCurveData(filteredMDRData)
+        console.log("HEY")
         setLoadingCurve(true) // Set loading to true after fetching data
       }
 
@@ -224,12 +227,34 @@ const MED3paResultsTab = ({ loadedFiles, type }) => {
         }
       }
     } catch (error) {
-      console.error("Error loading files:", error)
+      console.error("Error filtering file:", error)
     }
   }
   useEffect(() => {
     loadFiles()
   }, [buttonClicked, filter])
+
+  const FilterMDRCurve = () => {
+    if (!loadedFiles) return
+
+    const { test } = formatDisplay(loadedFiles, type)
+
+    try {
+      if (!test) return
+
+      const filteredMDRData = filterMetrics(test.metrics_dr, nodeParams)
+      if (filteredMDRData) {
+        setCurveData(filteredMDRData)
+
+        setLoadingCurve(true) // Set loading to true after fetching data
+      }
+    } catch (error) {
+      console.error("Error filtering curve:", error)
+    }
+  }
+  useEffect(() => {
+    FilterMDRCurve()
+  }, [nodeParams.metrics])
 
   // Handle element click function
   const handleElementClick = (data) => {
@@ -251,10 +276,10 @@ const MED3paResultsTab = ({ loadedFiles, type }) => {
             return { ...item, className: "panode-lost" }
           }
           return { ...item, className: "" }
-        } else if (item.id === data.data.id && isLost(item)) {
-          return { ...item, className: "panode-lost-dr" }
-        } else if (isSubPath(item.path, dataPathArray)) {
+        } else if (item.id === data.data.id) {
           return { ...item, className: data.className }
+        } else if (isSubPath(item.path, dataPathArray)) {
+          return { ...item, className: "" }
         } else {
           return { ...item, className: "panode-notimportant" }
         }
@@ -283,9 +308,13 @@ const MED3paResultsTab = ({ loadedFiles, type }) => {
     console.log("nodeParams changed to:", nodeParams)
   }, [nodeParams])
 
-  const toggleFullscreen = () => {
-    setFullscreen(!fullscreen) // Toggle fullscreen state
-
+  const toggleFullscreen = (component) => {
+    if (component === "tree") {
+      setFullscreen(!fullscreen) // Toggle fullscreen state
+    }
+    if (component === "curve") {
+      setFullscreenCurve(!fullscreenCurve)
+    }
     if (fullscreen) {
       setLoadingTree(false)
       setTimeout(() => {
@@ -310,9 +339,19 @@ const MED3paResultsTab = ({ loadedFiles, type }) => {
                   maxDepth={treeParams.maxDepth}
                   customThreshold={nodeParams.customThreshold}
                   onButtonClicked={handleButtonClicked}
-                  onFullScreenClicked={toggleFullscreen}
+                  onFullScreenClicked={() => toggleFullscreen("tree")}
                   fullscreen={fullscreen}
                 />
+              )}
+            </div>
+          </div>
+        ) : fullscreenCurve ? (
+          <div className="fullscreen-container">
+            <div className="fullscreen-treeWorkflow">
+              {!loadingCurve ? (
+                <p>Loading Curve data...</p>
+              ) : (
+                <MDRCurve curveData={curveData} clickedLostElement={currentSelectedId} onFullScreenClicked={() => toggleFullscreen("curve")} fullscreenCurve={fullscreenCurve} setFilter={setFilter} />
               )}
             </div>
           </div>
@@ -332,8 +371,7 @@ const MED3paResultsTab = ({ loadedFiles, type }) => {
                   tree={false}
                   isDetectron={loadingDetectron}
                 />
-
-                <MDRCurve curveData={curveData} clickedLostElement={currentSelectedId} />
+                <MDRCurve curveData={curveData} clickedLostElement={currentSelectedId} onFullScreenClicked={toggleFullscreen} fullscreenCurve={null} />
               </>
             ) : (
               <>
@@ -365,12 +403,15 @@ const MED3paResultsTab = ({ loadedFiles, type }) => {
                     )}
                   </div>
                   <div className="col-md-5 mb-3" style={{ flex: "1", display: "flex", flexDirection: "column" }}>
-                    {!loadingCurve ? <p>Loading CURVE data...</p> : <MDRCurve curveData={curveData} clickedLostElement={currentSelectedId} />}
+                    {!loadingCurve ? (
+                      <p>Loading CURVE data...</p>
+                    ) : (
+                      <MDRCurve curveData={curveData} clickedLostElement={currentSelectedId} onFullScreenClicked={() => toggleFullscreen("curve")} fullscreenCurve={fullscreenCurve} />
+                    )}
                     {!loadingLost ? null : <LostProfiles lostData={lostData} filters={{ dr: treeParams.declarationRate, maxDepth: treeParams.maxDepth }} onElementClick={handleElementClick} />}
                     {!loadingDetectron ? null : type === "eval" && <DetectronResults detectronResults={detectronR} />}
                   </div>
                 </div>
-
                 <div>{!loadingEval ? <p>Loading MED3pa Models Evaluation...</p> : <PaModelsEval loadedFile={evalData} />}</div>
               </>
             )}

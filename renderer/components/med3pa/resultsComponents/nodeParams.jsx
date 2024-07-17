@@ -4,11 +4,10 @@ import FlInput from "../paInput"
 import { TbSettingsCog } from "react-icons/tb"
 import { nodeInformation, shiftInformation } from "../resultTabs/tabFunctions"
 
-const NodeParameters = ({ parentId, nodeParams, setNodeParams, settings, isDetectron }) => {
+const NodeParameters = ({ parentId, nodeParams, setNodeParams, settings, isDetectron, shouldDisable }) => {
   const { focusView, thresholdEnabled, customThreshold, selectedParameter, metrics, detectronStrategy } = nodeParams
 
   useEffect(() => {
-    
     if (nodeParams.metrics === null) {
       setNodeParams((prevNodeParams) => ({
         ...prevNodeParams,
@@ -108,7 +107,9 @@ const NodeParameters = ({ parentId, nodeParams, setNodeParams, settings, isDetec
           >
             <FormControlLabel value="Node information" control={<Radio />} label="General information" className="default-text-color-paresults" />
             <FormControlLabel value="Node performance" control={<Radio />} label="Node performance" className="default-text-color-paresults" />
-            {parentId !== "test" &&  isDetectron && <FormControlLabel value="Covariate-shift probabilities" control={<Radio />} label="Covariate-shift probs" className="default-text-color-paresults" />}
+            {parentId !== "test" && isDetectron && (
+              <FormControlLabel disabled={shouldDisable} value="Covariate-shift probabilities" control={<Radio />} label="Covariate-shift probs" className="default-text-color-paresults" />
+            )}
           </RadioGroup>
         </FormControl>
         {focusView === "Node performance" && (
@@ -127,7 +128,7 @@ const NodeParameters = ({ parentId, nodeParams, setNodeParams, settings, isDetec
             />
           </div>
         )}
-        {focusView === "Covariate-shift probabilities" && parentId === "eval"  && (
+        {focusView === "Covariate-shift probabilities" && parentId === "eval" && (
           <div style={{ width: "100%", marginTop: "3%" }}>
             <FlInput
               name="Detectron Test Type"
@@ -185,7 +186,7 @@ const NodeParameters = ({ parentId, nodeParams, setNodeParams, settings, isDetec
             <FlInput
               name="Custom Threshold"
               settingInfos={{
-                type: "float",
+                type: "percentage",
                 tooltip: "<p>Input threshold<p>"
               }}
               currentValue={customThreshold}

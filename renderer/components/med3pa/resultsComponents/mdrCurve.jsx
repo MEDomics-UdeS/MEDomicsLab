@@ -2,8 +2,9 @@ import { Typography } from "@mui/material"
 import React, { useState, useEffect } from "react"
 import ReactECharts from "echarts-for-react"
 import { TbChartDots2 } from "react-icons/tb"
+import { AiOutlineFullscreen, AiOutlineFullscreenExit } from "react-icons/ai"
 
-const MDRCurve = ({ curveData, clickedLostElement }) => {
+const MDRCurve = ({ curveData, clickedLostElement, onFullScreenClicked, fullscreenCurve }) => {
   const [options, setOptions] = useState(null)
 
   useEffect(() => {
@@ -21,7 +22,7 @@ const MDRCurve = ({ curveData, clickedLostElement }) => {
       }, {})
 
     const metricNames = Object.keys(filteredCurveData[Object.keys(filteredCurveData)[0]].metrics)
-
+    console.log("HELLO:", metricNames)
     const series = metricNames.map((metric) => ({
       name: metric,
       type: "line",
@@ -85,6 +86,9 @@ const MDRCurve = ({ curveData, clickedLostElement }) => {
 
     setOptions(newOptions)
   }, [curveData, clickedLostElement])
+  const toggleFullscreen = () => {
+    onFullScreenClicked(!fullscreenCurve) // Toggle fullscreen state in the parent component
+  }
 
   useEffect(() => {
     if (!options) return // Do nothing if options are null
@@ -116,18 +120,29 @@ const MDRCurve = ({ curveData, clickedLostElement }) => {
 
   return (
     <div className="card-paresults p-3" style={{ display: "flex", flexDirection: "column", height: "100%", alignItems: "flex-start" }}>
-      <Typography
-        variant="h6"
-        style={{
-          color: "#868686",
-          fontSize: "1.2rem",
-          display: "flex",
-          alignItems: "center"
-        }}
-      >
-        <TbChartDots2 style={{ marginRight: "0.5rem", fontSize: "1.4rem" }} />
-        Metrics By Declaration Rate Curve
-      </Typography>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%" }}>
+        <Typography
+          variant="h6"
+          style={{
+            color: "#868686",
+            fontSize: "1.2rem",
+            display: "flex",
+            alignItems: "center"
+          }}
+        >
+          <TbChartDots2 style={{ marginRight: "0.5rem", fontSize: "1.4rem" }} />
+          Metrics By Declaration Rate Curve
+        </Typography>
+        {fullscreenCurve !== null && (
+          <>
+            {fullscreenCurve ? (
+              <AiOutlineFullscreenExit onClick={toggleFullscreen} style={{ cursor: "pointer", color: "#868686", fontSize: "1.6rem" }} />
+            ) : (
+              <AiOutlineFullscreen onClick={toggleFullscreen} style={{ cursor: "pointer", color: "#868686", fontSize: "1.6rem" }} />
+            )}
+          </>
+        )}
+      </div>
       <hr style={{ borderColor: "#868686", borderWidth: "0.5px", width: "100%" }} />
       <div style={{ width: "100%", height: "100%" }}>
         <ReactECharts key={JSON.stringify(options)} option={options} />
