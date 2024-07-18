@@ -27,55 +27,35 @@ const WsSelectMultiple = ({
   const [datasetList, setDatasetList] = useState([])
 
   /**
-   * Get the columns from a promise
-   * @param {object} dataObject - Data object
-   * @returns {array} - Columns
-   * @summary This function is used to get the columns from a promise - async function
-   */
-  async function getColumnsFromPromise(dataObject) {
-    let promise = new Promise((resolve) => {
-      resolve(dataObject.getColumnsOfTheDataObjectIfItIsATable())
-    })
-    let columns = await promise
-    return columns
-  }
-
-  /**
    * @description This useEffect is used to generate the dataset list from the global data context if it's defined
    * @returns {void} calls the generateDatasetListFromDataContext function
    */
   useEffect(() => {
     if (globalData !== undefined) {
-      let uuids = Object.keys(globalData)
-
+      let ids = Object.keys(globalData)
       let datasetListToShow = []
-      uuids.forEach((uuid) => {
+      ids.forEach((id) => {
         // in this case, we want to show only the files in the selected root directory
         if (rootDir != undefined) {
-          if (globalData[globalData[uuid].parentID]) {
-            if (rootDir.includes(globalData[globalData[uuid].parentID].name) || rootDir.includes(globalData[globalData[uuid].parentID].originalName)) {
-              if (!(!acceptFolder && globalData[uuid].type == "folder")) {
-                if (acceptedExtensions.includes("all") || acceptedExtensions.includes(globalData[uuid].extension)) {
-                  if (!matchRegex || matchRegex.test(globalData[uuid].nameWithoutExtension)) {
-                    console.log("dataset", globalData[uuid])
-                    if (!globalData[uuid].metadata.columnsTag) {
-                      getColumnsFromPromise(globalData[uuid]).then((columns) => {
-                        console.log("columns", columns)
-                      })
-                    } else {
-                      let columnsTag = deepCopy(globalData[uuid].metadata.columnsTag)
-                      let timePrefix = globalData[uuid].originalName.split("_")[0]
+          if (globalData[globalData[id].parentID]) {
+            if (rootDir.includes(globalData[globalData[id].parentID].name) || rootDir.includes(globalData[globalData[id].parentID].originalName)) {
+              if (!(!acceptFolder && globalData[id].type == "directory")) {
+                if (acceptedExtensions.includes("all") || acceptedExtensions.includes(globalData[id].type)) {
+                  if (!matchRegex || matchRegex.test(globalData[id].name)) {
+                    let columnsTag = deepCopy(globalData[id].metadata?.columnsTag)
+                    let timePrefix = globalData[id].name.split("_")[0]
+                    if (columnsTag) {
                       columnsTag = Object.keys(columnsTag).reduce((acc, key) => {
                         acc[timePrefix + "_" + key] = columnsTag[key]
                         return acc
                       }, {})
-                      datasetListToShow.push({
-                        name: globalData[uuid].name,
-                        path: globalData[uuid].path,
-                        tags: Object.keys(globalData[uuid].metadata.tagsDict),
-                        columnsTags: globalData[uuid].metadata.columnsTag
-                      })
                     }
+                    datasetListToShow.push({
+                      id: id,
+                      name: globalData[id].name,
+                      tags: globalData[id].metadata?.tagsDict ? Object.keys(globalData[id].metadata.tagsDict) : [],
+                      columnsTags: globalData[id].metadata?.columnsTag ? globalData[id].metadata.columnsTag : []
+                    })
                   }
                 }
               }
@@ -83,13 +63,13 @@ const WsSelectMultiple = ({
           }
           // else, we want to add any file (or folder) from acceptedExtensions
         } else {
-          if (acceptedExtensions.includes(globalData[uuid].extension) || acceptedExtensions.includes("all")) {
-            if (acceptedExtensions.includes("all") || acceptedExtensions.includes(globalData[uuid].extension)) {
+          if (acceptedExtensions.includes(globalData[id].extension) || acceptedExtensions.includes("all")) {
+            if (acceptedExtensions.includes("all") || acceptedExtensions.includes(globalData[id].extension)) {
               datasetListToShow.push({
-                name: globalData[uuid].name,
-                path: globalData[uuid].path,
-                tags: Object.keys(globalData[uuid].metadata.tagsDict),
-                columnsTags: globalData[uuid].metadata.columnsTag
+                id: id,
+                name: globalData[id].name,
+                tags: Object.keys(globalData[id].metadata?.tagsDict),
+                columnsTags: globalData[id].metadata?.columnsTag
               })
             }
           }

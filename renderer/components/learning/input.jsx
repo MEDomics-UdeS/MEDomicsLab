@@ -42,7 +42,7 @@ const createOption = (label) => ({
 const Input = ({ name, settingInfos, currentValue, onInputChange, disabled, setHasWarning = () => {}, customProps }) => {
   const [inputUpdate, setInputUpdate] = useState({})
   const [inputValue, setInputValue] = useState("")
-  const { globalData, setGlobalData } = useContext(DataContext)
+  const { globalData } = useContext(DataContext)
 
   /**
    *
@@ -406,9 +406,14 @@ const Input = ({ name, settingInfos, currentValue, onInputChange, disabled, setH
                 acceptedExtensions={["csv"]}
                 acceptFolder={settingInfos.acceptFolder ? settingInfos.acceptFolder : false}
                 onChange={(e) => {
+                  if (!e.target.value) {
+                    setHasWarning({ state: true, tooltip: <p>No file(s) selected</p> })
+                  } else {
+                    setHasWarning({ state: false })
+                  }
                   setInputUpdate({
                     name: name,
-                    value: { id: e.target.value, name: globalData[e.target.value].name },
+                    value: { id: e.target.value, name: globalData[e.target.value]?.name || "" },
                     type: settingInfos.type
                   })
                 }}
@@ -419,9 +424,6 @@ const Input = ({ name, settingInfos, currentValue, onInputChange, disabled, setH
         )
 
       case "data-input-multiple":
-        console.log("currentValue", currentValue)
-        console.log("settingInfos", settingInfos)
-        console.log("name", name)
         return (
           <>
             <WsSelectMultiple
@@ -434,7 +436,6 @@ const Input = ({ name, settingInfos, currentValue, onInputChange, disabled, setH
               matchRegex={new RegExp("T[0-9]*_(w+)?")}
               acceptFolder={settingInfos.acceptFolder ? settingInfos.acceptFolder : false}
               onChange={(value) => {
-                console.log("e", value)
                 if (value.length === 0) {
                   setHasWarning({ state: true, tooltip: <p>No file(s) selected</p> })
                 } else {
@@ -484,7 +485,6 @@ const Input = ({ name, settingInfos, currentValue, onInputChange, disabled, setH
               selectedDatasets={settingInfos.selectedDatasets}
               selectedVars={currentValue}
               onChange={(value) => {
-                console.log("e", value)
                 setInputUpdate({
                   name: name,
                   value: value,
@@ -521,7 +521,6 @@ const Input = ({ name, settingInfos, currentValue, onInputChange, disabled, setH
                         console.log("content", content)
                         let modelDataObject = MedDataObject.checkIfMedDataObjectInContextbyPath(path, globalData)
                         modelDataObject.metadata.content = content.metadata
-                        setGlobalData({ ...globalData })
                       })
                       .catch((error) => {
                         console.log("error", error)
