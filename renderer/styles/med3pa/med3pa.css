@@ -10,10 +10,10 @@
 
 .legend-items {
   display: flex;
-  flex-direction: row; /* Display items horizontally */
+  flex-direction: column; /* Display items horizontally */
   align-items: center;
   justify-content: flex-end; /* Align items to the right */
-  margin-bottom: 20px;
+  margin-bottom: 5px;
 }
 
 .legend-item {
@@ -24,18 +24,21 @@
 
 .threshold-circle {
   width: 20px;
-  height: 10px;
-  border-radius: 0%;
   margin-right: 5px; /* Adjust margin between circle and description */
 }
 
 .threshold-description {
-  font-size: 14px;
+  font-size: 12px;
   font-family: "Arial", sans-serif; /* Example font family */
   font-weight: bold; /* Example font weight */
-  color: #555; /* Example color */
+  color: #3f3f3f; /* Example color */
   text-transform: uppercase; /* Example text transformation */
   letter-spacing: 0.5px; /* Example letter spacing */
+  margin-left: -180%; /* Adjust as needed to position to the left of the threshold-circle */
+
+  transform: translateY(-50%);
+
+  white-space: nowrap; /* Ensures text doesn't wrap */
 }
 
 .container-paresults {

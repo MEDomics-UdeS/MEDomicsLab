@@ -199,7 +199,7 @@ const MED3paResultsTab = ({ loadedFiles, type }) => {
       const filteredMDRData = filterMetrics(test.metrics_dr, nodeParams)
       if (filteredMDRData) {
         setCurveData(filteredMDRData)
-        console.log("HEY")
+
         setLoadingCurve(true) // Set loading to true after fetching data
       }
 
@@ -397,7 +397,7 @@ const MED3paResultsTab = ({ loadedFiles, type }) => {
                         maxDepth={treeParams.maxDepth}
                         customThreshold={nodeParams.customThreshold}
                         onButtonClicked={handleButtonClicked}
-                        onFullScreenClicked={toggleFullscreen}
+                        onFullScreenClicked={() => toggleFullscreen("tree")}
                         fullscreen={fullscreen}
                       />
                     )}

@@ -8,6 +8,14 @@ import { VscError } from "react-icons/vsc"
 export default function TreeNode({ id, data }) {
   const settings = data.internal.settings
   let { className } = settings
+  let backgroundColor = ""
+
+  // Check if className starts with '#', indicating it's a color code
+
+  if (className.startsWith("#")) {
+    backgroundColor = className
+    className = "" // Reset className to prevent it from being applied
+  }
 
   const renderSettingValue = (value, parentKey) => {
     if (typeof value === "object" && value !== null) {
@@ -42,7 +50,7 @@ export default function TreeNode({ id, data }) {
   }
 
   return (
-    <div className={`panode ${className}`}>
+    <div className={`panode ${className}`} style={{ backgroundColor }}>
       {/* Icon based on className */}
       {className.includes("with-icon-success") && (
         <div className="icon-pacontainer">

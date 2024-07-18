@@ -155,7 +155,7 @@ const NodeParameters = ({ parentId, nodeParams, setNodeParams, settings, isDetec
         }}
       >
         <Typography variant="h6" className="default-text-color-paresults" style={{ fontSize: "1.1rem" }}>
-          Highlight from certain threshold
+          Color Nodes By values
         </Typography>
         <FormControlLabel control={<Switch checked={thresholdEnabled} onChange={handleThresholdToggleChange} />} label="" />
       </div>
@@ -170,7 +170,7 @@ const NodeParameters = ({ parentId, nodeParams, setNodeParams, settings, isDetec
         >
           <div style={{ width: "50%" }}>
             <FlInput
-              name="Highlight by parameter"
+              name="Color by parameter"
               settingInfos={{
                 type: "list",
                 tooltip: "<p>Select here the highlight element<p>",
@@ -184,7 +184,7 @@ const NodeParameters = ({ parentId, nodeParams, setNodeParams, settings, isDetec
           </div>
           <div style={{ width: "40%" }}>
             <FlInput
-              name="Custom Threshold"
+              name="Color Range Step"
               settingInfos={{
                 type: "percentage",
                 tooltip: "<p>Input threshold<p>"

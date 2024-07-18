@@ -1,4 +1,5 @@
 import { loadJsonPath } from "../../../utilities/fileManagementUtils"
+import chroma from "chroma-js"
 import fs from "fs"
 import path from "path"
 export const nodeInformation = ["Node%", "Population%", "Mean confidence level", "Positive%"]
@@ -19,17 +20,17 @@ export const isLost = (obj) => {
     (Object.prototype.hasOwnProperty.call(obj, "nodeInformation") || Object.prototype.hasOwnProperty.call(obj, "detectronResults") || Object.prototype.hasOwnProperty.call(obj, "metrics"))
   )
 }
-function getClassnameForThreshold(value, threshold) {
-  if (value >= threshold) {
-    return "panode-threshold" // Green
-  } else if (value >= threshold * 0.66) {
-    return "panode-moderatethreshold" // Yellow
-  } else if (value >= threshold * 0.33) {
-    return "panode-warningthreshold" // Orange
-  } else {
-    return "panode-criticalthreshold" // Red
-  }
-}
+// function getClassnameForThreshold(value, threshold) {
+//   if (value >= threshold) {
+//     return "panode-threshold" // Green
+//   } else if (value >= threshold * 0.66) {
+//     return "panode-moderatethreshold" // Yellow
+//   } else if (value >= threshold * 0.33) {
+//     return "panode-warningthreshold" // Orange
+//   } else {
+//     return "panode-criticalthreshold" // Red
+//   }
+// }
 
 export const loadJsonFiles = async (dirPath) => {
   if (!dirPath) return {}
@@ -65,20 +66,41 @@ export const loadJsonFiles = async (dirPath) => {
   }
 }
 
-export function calculateRanges(threshold) {
-  const range1 = { description: ` >= ${threshold}%`, className: "panode-threshold" }
-  const range2 = { description: `${threshold * 0.66}% - ${threshold}%`, className: "panode-moderatethreshold" }
-  const range3 = { description: `${threshold * 0.33}% - ${threshold * 0.66}%`, className: "panode-warningthreshold" }
-  const range4 = { description: `0% - ${threshold * 0.33}%`, className: "panode-criticalthreshold" }
-
-  return {
-    range1,
-    range2,
-    range3,
-    range4
-  }
+// Function to generate a color based on the value using chroma.js
+function getColor(value, max) {
+  const scale = chroma.scale(["red", "yellow", "green"]).domain([0, max])
+  return scale(value).hex()
 }
 
+export function calculateRanges(step) {
+  const ranges = []
+
+  for (let i = 0; i <= 100; i += step) {
+    let description = null // Initialize description as null
+
+    // Only set description for multiples of 10%
+    if (i % 10 === 0) {
+      description = `${i}%`
+    }
+
+    const range = {
+      description,
+      rangemin: i,
+      color: getColor(i, 100)
+    }
+
+    ranges.push(range)
+  }
+
+  return ranges
+}
+export function getRange(nodeInf, step) {
+  const ranges = calculateRanges(step)
+  const range = ranges.find((range) => {
+    return range.rangemin <= nodeInf && nodeInf < range.rangemin + step
+  })
+  return range
+}
 export const filterData = (data, lostData, nodeParams, maxDepth) => {
   if (!data) return data
 
@@ -107,7 +129,7 @@ export const filterData = (data, lostData, nodeParams, maxDepth) => {
       if (item.className === "panode-lost") return newItem
       newItem.nodeInformation = item["node information"]
       if (parseFloat(newItem.nodeInformation[nodeParams.selectedParameter])) {
-        newItem.className = getClassnameForThreshold(parseFloat(newItem.nodeInformation[nodeParams.selectedParameter]), customThreshold)
+        newItem.className = getRange(parseFloat(newItem.nodeInformation[nodeParams.selectedParameter]), customThreshold).color
       }
       return newItem
     } else if (nodeParams.focusView === "Covariate-shift probabilities") {
@@ -143,9 +165,9 @@ export const filterData = (data, lostData, nodeParams, maxDepth) => {
 
         if (parseFloat(newItem.detectronResults[nodeParams.selectedParameter])) {
           if (nodeParams.selectedParameter.includes("value")) {
-            newItem.className += getClassnameForThreshold(parseFloat(newItem.detectronResults[nodeParams.selectedParameter]), customThreshold / 100)
+            newItem.className = getRange(parseFloat(newItem.detectronResults[nodeParams.selectedParameter]) * 100, customThreshold).color
           } else {
-            newItem.className += getClassnameForThreshold(parseFloat(newItem.detectronResults[nodeParams.selectedParameter]), customThreshold)
+            newItem.className = getRange(parseFloat(newItem.detectronResults[nodeParams.selectedParameter]), customThreshold).color
           }
         }
       } else {
@@ -162,7 +184,7 @@ export const filterData = (data, lostData, nodeParams, maxDepth) => {
         }
       }
       if (parseFloat(newItem.metrics[nodeParams.selectedParameter]) || newItem.metrics[nodeParams.selectedParameter] === 0) {
-        newItem.className = getClassnameForThreshold(parseFloat(newItem.metrics[nodeParams.selectedParameter]), customThreshold / 100)
+        newItem.className = getRange(parseFloat(newItem.metrics[nodeParams.selectedParameter]) * 100, customThreshold).color
       }
       return newItem
     }

@@ -185,7 +185,7 @@ const FlInput = ({ name, settingInfos, currentValue, onInputChange, disabled, se
               <Form.Control
                 disabled={disabled}
                 type="number"
-                step="0.1"
+                step="1"
                 max="100"
                 value={currentValue} // Use `value` instead of `defaultValue` for controlled components
                 onChange={(e) => {
