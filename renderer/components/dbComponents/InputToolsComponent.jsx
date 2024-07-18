@@ -7,6 +7,7 @@ import SimpleCleaningToolsDB from "./inputToolsDB/simpleCleaningToolsDB"
 import HoldoutSetCreationToolsDB from "./inputToolsDB/holdoutSetCreationToolsDB"
 import SubsetCreationToolsDB from "./inputToolsDB/subsetCreationToolsDB"
 import FeatureReductionToolsDB from "./inputToolsDB/featureReductionToolsDB/featureReductionToolsDB"
+import GroupingTaggingToolsDB from "./inputToolsDB/groupingTaggingToolsDB"
 
 const InputToolsComponent = ({ data, exportOptions, refreshData, columns, transformData, innerData, lastEdit }) => {
   const panelContainerStyle = {
@@ -38,6 +39,9 @@ const InputToolsComponent = ({ data, exportOptions, refreshData, columns, transf
       </Panel>
       <Panel header="Feature Reduction Tools" toggleable collapsed={true}>
         <FeatureReductionToolsDB data={data} refreshData={refreshData} />
+      </Panel>
+      <Panel header="Grouping/Tagging Tools" toggleable collapsed={true}>
+        <GroupingTaggingToolsDB currentCollection={data.id} refreshData={refreshData} />
       </Panel>
     </div>
   )
