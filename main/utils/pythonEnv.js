@@ -272,15 +272,3 @@ export async function installBundledPythonExecutable(mainWindow) {
     }
   }
 }
-
-function execCallbacks(id, error, stdout, stderr) {
-  if (error) {
-    console.error(`exec error: ${error}`)
-    mainWindow.webContents.send("notification", { id: id, message: `exec error: ${error}` })
-    return
-  }
-  console.log(`stdout: ${stdout}`)
-  console.error(`stderr: ${stderr}`)
-  mainWindow.webContents.send("notification", { id: id, message: `stdout: ${stdout}` })
-  mainWindow.webContents.send("notification", { id: id, message: `stderr: ${stderr}` })
-}
