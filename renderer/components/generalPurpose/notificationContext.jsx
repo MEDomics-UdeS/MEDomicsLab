@@ -1,5 +1,4 @@
-import { ipcRenderer } from "electron"
-import React, { createContext, useEffect, useState } from "react"
+import React, { createContext, useState } from "react"
 
 // This context is used to store the notifications that will be displayed in the notification overlay
 /**

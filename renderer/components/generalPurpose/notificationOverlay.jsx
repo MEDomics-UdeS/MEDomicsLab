@@ -1,18 +1,9 @@
 import React, { useState, useContext, useEffect, useRef } from "react"
-import ProgressBar from "react-bootstrap/ProgressBar"
-import useInterval from "@khalidalansi/use-interval"
-import { requestBackend } from "../../utilities/requests"
-import { Accordion, AccordionTab } from "primereact/accordion"
 import { Badge } from "primereact/badge"
-import { WorkspaceContext } from "../workspace/workspaceContext"
-import { toast } from "react-toastify"
-import { PageInfosContext } from "../mainPages/moduleBasics/pageInfosContext"
 import { OverlayPanel } from "primereact/overlaypanel"
 import { Button } from "primereact/button"
 import { NotificationContext } from "./notificationContext"
 import { ipcRenderer } from "electron"
-import { parse } from "papaparse"
-import { set } from "lodash"
 import { Card } from "react-bootstrap"
 
 /**
@@ -20,11 +11,9 @@ import { Card } from "react-bootstrap"
  *
  */
 const NotificationOverlay = () => {
-  const { port } = useContext(WorkspaceContext) // used to get the port
   const { notifications, setNotifications } = useContext(NotificationContext) // used to get the notifications
   const op = useRef(null)
   const [notificationCards, setNotificationCards] = useState([])
-  const [notificationCount, setNotificationCount] = useState(0)
   const [localNotifications, setLocalNotifications] = useState([])
 
   /**
