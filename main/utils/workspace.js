@@ -193,7 +193,7 @@ export const createMedomicsDirectory = (directoryPath) => {
     // Create EXPERIMENTS dir
     fs.mkdirSync(experimentsDir)
   }
-  
+
 
   if (!fs.existsSync(mongoConfigPath)) {
     // Create mongod.conf

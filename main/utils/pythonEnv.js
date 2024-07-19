@@ -1,7 +1,7 @@
 import { app } from "electron"
 const fs = require("fs")
 var path = require("path")
-const { execSync } = require("child_process")
+const { execSync, exec} = require("child_process")
 
 export function getPythonEnvironment(medCondaEnv = "med_conda_env") {
   // Returns the python environment
@@ -175,10 +175,11 @@ export function getInstalledPythonPackages(pythonPath=null) {
 export function installPythonPackage(pythonPath, packageName=null, requirementsFilePath=null) {
   console.log("Installing python package: ", packageName, requirementsFilePath, " with pythonPath: ", pythonPath)
   let execSyncResult = null
+  let pipUpgradeExecResult = execSync(`${pythonPath} -m pip install --upgrade pip`).toString()
   if (requirementsFilePath !== null) {
-    execSyncResult = execSync(`${pythonPath} -m pip install -r ${requirementsFilePath}`).toString()
+    execSyncResult = exec(`${pythonPath} -m pip install -r ${requirementsFilePath}`).toString()
   } else {
-    execSyncResult = execSync(`${pythonPath} -m pip install ${packageName}`).toString()
+    execSyncResult = exec(`${pythonPath} -m pip install ${packageName}`).toString()
   }
 }
 
@@ -203,6 +204,9 @@ export function installBundledPythonExecutable() {
     
     if (process.platform == "win32") {
       // Download the python executable
+      let url = "https://github.com/indygreg/python-build-standalone/releases/download/20240224/cpython-3.10.13+20240224-x86_64-pc-windows-msvc-static-install_only.tar.gz"
+      let downloadResult = execSync(`curl -fsSLO ${url}`).toString()
+      
       // Extract the python executable
     } else if (process.platform == "darwin") {
       // Download the right python executable (arm64 or x86_64) 
@@ -213,8 +217,8 @@ export function installBundledPythonExecutable() {
         url = "https://github.com/indygreg/python-build-standalone/releases/download/20240224/cpython-3.9.18+20240224-aarch64-apple-darwin-install_only.tar.gz"
         extractCommand = `tar -xvf cpython-3.9.18+20240224-aarch64-apple-darwin-install_only.tar.gz`
       }
-      let downloadResult = execSync(`wget ${url}`).toString()
-      console.log(downloadResult)
+      let downloadResult = execSync(`/bin/bash -c "$(curl -fsSLO ${url})"`).toString()
+      console.log("Download", downloadResult)
       // Extract the python executable
       let extractionResult = execSync(extractCommand).toString()
       console.log(extractionResult)
