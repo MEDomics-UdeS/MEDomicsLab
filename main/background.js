@@ -196,7 +196,7 @@ if (isProd) {
       await stopMongoDB(mongoProcess)
       if (process.platform === "win32") {
         // Kill the process on the port
-        killProcessOnPort(serverPort)
+        // killProcessOnPort(serverPort)
       } else if (process.platform === "darwin") {
         execSync("pkill -f mongod")
       } else {
@@ -411,8 +411,8 @@ ipcMain.handle("getBundledPythonEnvironment", async (event) => {
 })
 
 ipcMain.handle("installBundledPythonExecutable", async (event) => {
-  return installBundledPythonExecutable()
-} )
+  return installBundledPythonExecutable(mainWindow)
+})
 
 app.on("window-all-closed", () => {
   console.log("app quit")

@@ -7,6 +7,8 @@ import { Col } from "react-bootstrap"
 import { Check2Circle, Folder2Open, XCircleFill } from "react-bootstrap-icons"
 import { InputText } from "primereact/inputtext"
 import { InputNumber } from "primereact/inputnumber"
+import { DataTable } from "primereact/datatable"
+import { Column } from "primereact/column"
 
 /**
  * Settings page
@@ -19,6 +21,7 @@ const SettingsPage = () => {
   const [condaPath, setCondaPath] = useState("") // Path to the conda environment
   const [seed, setSeed] = useState(54288) // Seed for random number generation
   const [pythonEmbedded, setPythonEmbedded] = useState({}) // Boolean to know if python is embedded
+  const [showPythonPackages, setShowPythonPackages] = useState(false) // Boolean to know if python packages are shown
   /**
    * Get the settings from the main process
    * if the conda path is defined in the settings, set it
@@ -66,12 +69,12 @@ const SettingsPage = () => {
       })
       ipcRenderer.invoke("getBundledPythonEnvironment").then((res) => {
         console.log("Python imbedded: ", res)
+
         if (res !== null) {
           ipcRenderer.invoke("getInstalledPythonPackages", res).then((pythonPackages) => {
             console.log("Installed Python Packages: ", pythonPackages)
-            setPythonEmbedded({ pythonEmbedded: true, pythonPackages: pythonPackages })
-            }
-          )
+            setPythonEmbedded({ pythonEmbedded: res, pythonPackages: pythonPackages })
+          })
         }
       })
     }, 5000)
@@ -84,15 +87,14 @@ const SettingsPage = () => {
       if (res !== null) {
         ipcRenderer.invoke("getInstalledPythonPackages", res).then((pythonPackages) => {
           console.log("Installed Python Packages: ", pythonPackages)
-          setPythonEmbedded({ pythonEmbedded: true, pythonPackages: pythonPackages })
-          }
-        )
+          setPythonEmbedded({ pythonEmbedded: res, pythonPackages: pythonPackages })
+        })
       }
     })
   }, [])
 
   /**
-   * 
+   *
    */
 
   return (
@@ -116,7 +118,7 @@ const SettingsPage = () => {
                         console.log("server is running", status)
                       })
                     }}
-                    style={{ backgroundColor: serverIsRunning ? "grey" : "#54a559", borderColor: serverIsRunning ? "grey" : "#54a559", marginRight: "1rem"}}
+                    style={{ backgroundColor: serverIsRunning ? "grey" : "#54a559", borderColor: serverIsRunning ? "grey" : "#54a559", marginRight: "1rem" }}
                     disabled={serverIsRunning}
                   />
                   <Button
@@ -180,11 +182,37 @@ const SettingsPage = () => {
                     <h5>Python bundled : &nbsp;</h5>
                   </Col>
                   <Col xs={12} md="auto" style={{ display: "flex", flexDirection: "row", justifyContent: "flex-start", alignItems: "center", flexWrap: "nowrap", flexGrow: "1" }}>
-                    <h5>{pythonEmbedded.pythonEmbedded ? "Yes" : "No"} &nbsp;</h5>
-                    {!pythonEmbedded.pythonEmbedded && (<Button label="Install Python" onClick={() => {ipcRenderer.invoke("installBundledPythonExecutable")}}/>)}
-                    {pythonEmbedded.pythonEmbedded && (<Button label="Show installed packages" onClick={() => {console.log(pythonEmbedded.pythonPackages)}}/>)}
+                    {pythonEmbedded.pythonEmbedded && <Check2Circle size="25" style={{ marginInline: "1rem", color: "green" }} />}
+                    {!pythonEmbedded.pythonEmbedded && <XCircleFill size="25" style={{ marginInline: "1rem", color: "#d55757" }} />}
+                    <h5>{pythonEmbedded.pythonEmbedded ? `Yes` : "No"} &nbsp;</h5>
+
+                    {!pythonEmbedded.pythonEmbedded && (
+                      <Button
+                        label="Install Python"
+                        onClick={() => {
+                          ipcRenderer.invoke("installBundledPythonExecutable")
+                        }}
+                      />
+                    )}
+                    {pythonEmbedded.pythonEmbedded && (
+                      <Button
+                        label={showPythonPackages ? "Hide Python Packages" : "Show Python Packages"}
+                        onClick={() => {
+                          setShowPythonPackages(!showPythonPackages)
+                          console.log(pythonEmbedded.pythonPackages)
+                        }}
+                      />
+                    )}
                   </Col>
+                  {/* If pythonEmbedded.pythonEmbedded is defined and a string, show it in a label just under this way: "at ${pythonEmbedded.pythonEmbedded}"*/}
+                  {pythonEmbedded.pythonEmbedded && typeof pythonEmbedded.pythonEmbedded === "string" && <h6 style={{ marginTop: "0.5rem" }}>at {pythonEmbedded.pythonEmbedded}</h6>}
                 </Col>
+                {showPythonPackages && (
+                  <DataTable value={pythonEmbedded.pythonPackages} size="small" scrollable scrollHeight="25rem" style={{ marginTop: "1rem" }}>
+                    <Column field="name" header="Name" />
+                    <Column field="version" header="Version" />
+                  </DataTable>
+                )}
               </Col>
             </div>
           </TabPanel>

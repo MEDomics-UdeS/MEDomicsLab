@@ -1,4 +1,5 @@
-import React, { createContext, useState } from "react"
+import { ipcRenderer } from "electron"
+import React, { createContext, useEffect, useState } from "react"
 
 // This context is used to store the notifications that will be displayed in the notification overlay
 /**
@@ -10,18 +11,17 @@ import React, { createContext, useState } from "react"
 const NotificationContext = createContext()
 
 function NotificationContextProvider({ children }) {
-  const [notifications, setNotifications] = useState([]) 
-
+  const [notifications, setNotifications] = useState([])
 
   return (
     <NotificationContext.Provider
       value={{
         notifications,
-        setNotifications,
+        setNotifications
       }}
     >
       {children}
-    </NotificationContext.Provider> 
+    </NotificationContext.Provider>
   )
 }
 
