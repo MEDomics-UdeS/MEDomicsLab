@@ -189,10 +189,15 @@ export async function overwriteMEDDataObjectProperties(id, newData) {
  * @param {Json} jsonData the new data for the MEDDataObject
  */
 export async function overwriteMEDDataObjectContent(id, jsonData) {
-  const db = await connectToMongoDB()
-  const collection = db.collection(id)
-  await collection.deleteMany({})
-  await collection.insertMany(jsonData)
+  try {
+    const db = await connectToMongoDB()
+    const collection = db.collection(id)
+    await collection.deleteMany({})
+    await collection.insertMany(jsonData)
+    return true
+  } catch (error) {
+    return false
+  }
 }
 
 /**

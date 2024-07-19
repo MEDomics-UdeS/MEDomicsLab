@@ -58,14 +58,6 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
     setExternalSelectedItems && setExternalSelectedItems(selectedItems)
   }, [selectedItems])
 
-  useEffect(() => {
-    console.log("TREE", tree)
-  }, [tree])
-
-  useEffect(() => {
-    console.log("ENV", environment)
-  }, [environment])
-
   /**
    * This useEffect hook sets the external double click item when the double click item changes.
    */

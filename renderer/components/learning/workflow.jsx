@@ -15,8 +15,8 @@ import { FlowResultsContext } from "../flow/context/flowResultsContext"
 import { WorkspaceContext } from "../workspace/workspaceContext"
 import { ErrorRequestContext } from "../generalPurpose/errorRequestContext.jsx"
 import MedDataObject from "../workspace/medDataObject"
-import { modifyZipFileSync } from "../../utilities/customZipFile.js"
 import { sceneDescription } from "../../public/setupVariables/learningNodesParams.jsx"
+import { DataContext } from "../workspace/dataContext.jsx"
 
 // here are the different types of nodes implemented in the workflow
 import StandardNode from "./nodesTypes/standardNode"
@@ -34,6 +34,8 @@ import { removeDuplicates, deepCopy } from "../../utilities/staticFunctions"
 import { defaultValueFromType } from "../../utilities/learning/inputTypesUtils.js"
 import { FlowInfosContext } from "../flow/context/flowInfosContext.jsx"
 import Path from "path"
+import { overwriteMEDDataObjectContent } from "../mongoDB/mongoDBUtils.js"
+import { getCollectionData } from "../dbComponents/utils.js"
 
 const staticNodesParams = nodesParams // represents static nodes parameters
 
@@ -67,6 +69,7 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
   const { canRun } = useContext(FlowInfosContext)
   const { port } = useContext(WorkspaceContext)
   const { setError } = useContext(ErrorRequestContext)
+  const { globalData } = useContext(DataContext)
 
   // declare node types using useMemo hook to avoid re-creating component types unnecessarily (it memorizes the output) https://www.w3schools.com/react/react_usememo.asp
   const nodeTypes = useMemo(
@@ -83,13 +86,24 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
 
   // When config is changed, we update the workflow
   useEffect(() => {
-    if (config && Object.keys(config).length > 0) {
-      updateScene(config)
-      toast.success("Config file has been loaded successfully")
-    } else {
-      console.log("No config file found for this page, base workflow will be used")
+    async function getConfig() {
+      let metadataFileID
+      for (const childID of globalData[pageId].childrenIDs) {
+        if (globalData[childID].name == "metadata.json") {
+          metadataFileID = childID
+          break
+        }
+      }
+      if (metadataFileID) {
+        let jsonContent = await getCollectionData(metadataFileID)
+        updateScene(jsonContent[0])
+        toast.success("Config file has been loaded successfully")
+      } else {
+        console.log("No config file found for this page, base workflow will be used")
+      }
     }
-  }, [config])
+    getConfig()
+  }, [pageId])
 
   // when isResults is changed, we set the progressBar to completed state
   useEffect(() => {
@@ -233,7 +247,8 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
         edge = {
           ...edge
         }
-        edge.hidden = nodes.find((node) => node.id === edge.source).data.internal.subflowId != activeSubflowId || nodes.find((node) => node.id === edge.target).data.internal.subflowId != activeSubflowId
+        edge.hidden =
+          nodes.find((node) => node.id === edge.source).data.internal.subflowId != activeSubflowId || nodes.find((node) => node.id === edge.target).data.internal.subflowId != activeSubflowId
         return edge
       })
     )
@@ -773,8 +788,15 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
   /**
    * save the workflow as a json file
    */
-  const onSave = useCallback(() => {
-    if (reactFlowInstance) {
+  const onSave = useCallback(async () => {
+    let metadataFileID
+    for (const childID of globalData[pageId].childrenIDs) {
+      if (globalData[childID].name == "metadata.json") {
+        metadataFileID = childID
+        break
+      }
+    }
+    if (reactFlowInstance && metadataFileID) {
       const flow = deepCopy(reactFlowInstance.toObject())
       flow.MLType = MLType
       console.log("flow debug", flow)
@@ -782,11 +804,12 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
         node.data.setupParam = null
       })
       flow.intersections = intersections
-      modifyZipFileSync(configPath, async (path) => {
-        // do custom actions in the folder while it is unzipped
-        await MedDataObject.writeFileSync(flow, path, "metadata", "json")
+      let success = await overwriteMEDDataObjectContent(metadataFileID, [flow])
+      if (success) {
         toast.success("Scene has been saved successfully")
-      })
+      } else {
+        toast.error("Error while saving scene")
+      }
     }
   }, [reactFlowInstance, MLType, intersections])
 
@@ -929,7 +952,18 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
         ui={
           <>
             {/* bottom center - progress bar */}
-            <div className="panel-bottom-center">{isProgressUpdating && <ProgressBarRequests progressBarProps={{ animated: true, variant: "success" }} isUpdating={isProgressUpdating} setIsUpdating={setIsProgressUpdating} progress={progress} setProgress={setProgress} requestTopic={"learning/progress/" + pageId} />}</div>
+            <div className="panel-bottom-center">
+              {isProgressUpdating && (
+                <ProgressBarRequests
+                  progressBarProps={{ animated: true, variant: "success" }}
+                  isUpdating={isProgressUpdating}
+                  setIsUpdating={setIsProgressUpdating}
+                  progress={progress}
+                  setProgress={setProgress}
+                  requestTopic={"learning/progress/" + pageId}
+                />
+              )}
+            </div>
           </>
         }
       />
