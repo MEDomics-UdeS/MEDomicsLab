@@ -30,7 +30,7 @@ class GoExecScriptRunExperiment(GoExecutionScript):
     """
 
     def __init__(self, json_params: dict, _id: str = None, isProgressInThread: bool = False):
-        super().__init__(json_params, _id, debug=True)
+        super().__init__(json_params, _id, debug=False)
         self.storing_mode = USE_RAM_FOR_EXPERIMENTS_STORING
         # self.storing_mode = USE_SAVE_FOR_EXPERIMENTS_STORING
         self.current_experiment = None
@@ -134,11 +134,6 @@ def is_experiment_exist(id_):
     if not os.path.exists(local_path):
         os.makedirs(local_path)
     return os.path.exists(os.path.join(local_path, 'MEDexperiment_' + id_ + '.medexp'))
-
-
-# save json_params_dict to a file
-with open('json_params_dict.json', 'w') as f:
-    json.dump(json_params_dict, f, indent=4)
 
 run_experiment = GoExecScriptRunExperiment(json_params_dict, id_, True)
 run_experiment.start()

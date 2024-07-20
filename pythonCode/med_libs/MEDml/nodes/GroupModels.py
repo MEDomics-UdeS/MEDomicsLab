@@ -67,12 +67,20 @@ class GroupModels(Node):
 
 
 def format_model_process(settings):
+    """
+    This function is used to format the model process.
+
+    Args:
+        settings (dict): The settings.
+
+    Returns:
+        List[dict] : The formatted model process.
+    """
     codeHandler = NodeCodeHandler()
     codeHandler.reset()
     settings_cp = copy.deepcopy(settings)
     fct_type = settings_cp['fct_type']
     del settings_cp['fct_type']
-    go_print('testssssss----' + fct_type)
     if fct_type == 'compare_models':
         codeHandler.add_line(
             "code",
