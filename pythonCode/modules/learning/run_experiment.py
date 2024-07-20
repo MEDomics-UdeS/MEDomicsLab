@@ -4,6 +4,8 @@ import threading
 import time
 import json
 import sys
+import pymongo
+
 from pathlib import Path
 sys.path.append(
     str(Path(os.path.dirname(os.path.abspath(__file__))).parent.parent))
@@ -44,30 +46,31 @@ class GoExecScriptRunExperiment(GoExecutionScript):
         """
         This function is the main script of the pipeline execution
         """
-        # If the json_config is too large, it will be saved in a file and the path will be sent instead
-        if not 'pageId' in json_config and 'temp' in json_config:
-            path_to_load = json_config["temp"]
-            with open(path_to_load, 'r') as f:
-                json_config = json.load(f)
-            os.remove(path_to_load)
+
+        # MongoDB setup
+        mongo_client = pymongo.MongoClient("mongodb://localhost:27017/")
+        database = mongo_client[json_config["DBName"]]
+        collection = database[json_config["id"]]
+        flow = list(collection.find({}, {'_id': False}))[0]
             
-        go_print(json.dumps(json_config, indent=4))
-        scene_id = json_config['pageId']
+        scene_id = flow['pageId']
         # check if experiment already exists
-        if self.storing_mode == USE_SAVE_FOR_EXPERIMENTS_STORING:
+        """ if self.storing_mode == USE_SAVE_FOR_EXPERIMENTS_STORING:
             # create experiment or load it
             if is_experiment_exist(scene_id):
                 self.current_experiment = load_experiment(scene_id)
-                self.current_experiment.update(json_config)
+                self.current_experiment.update(flow)
             else:
-                self.current_experiment = MEDexperimentLearning(json_config)
+                self.current_experiment = MEDexperimentLearning(flow)
         else:
-            self.current_experiment = MEDexperimentLearning(json_config)
+            self.current_experiment = MEDexperimentLearning(flow) """
+        self.current_experiment = MEDexperimentLearning(flow)
         self.current_experiment.start()
         results_pipeline = self.current_experiment.get_results()
         if self.storing_mode == USE_SAVE_FOR_EXPERIMENTS_STORING:
             self.current_experiment.set_progress(label='Saving the experiment')
-            save_experiment(self.current_experiment)
+            print("EXPERIMENT", self.current_experiment)
+            #save_experiment(self.current_experiment)
         return results_pipeline
 
     def update_progress(self):

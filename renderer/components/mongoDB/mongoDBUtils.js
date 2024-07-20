@@ -196,6 +196,7 @@ export async function overwriteMEDDataObjectContent(id, jsonData) {
     await collection.insertMany(jsonData)
     return true
   } catch (error) {
+    console.error("Error in overwriteMEDDataObjectContent", error)
     return false
   }
 }

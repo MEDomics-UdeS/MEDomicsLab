@@ -106,6 +106,16 @@ const FlowSceneSidebar = ({ type }) => {
       inWorkspace: false
     })
     await insertMEDDataObjectIfNotExists(metadataObject, null, emptyScene)
+    // Create hidden metadata file for backend
+    let backendMetadataObject = new MEDDataObject({
+      id: randomUUID(),
+      name: "backend_metadata.json",
+      type: "json",
+      parentID: sceneObjectId,
+      childrenIDs: [],
+      inWorkspace: false
+    })
+    await insertMEDDataObjectIfNotExists(backendMetadataObject, null, emptyScene)
     // Create hidden folders
     for (const folder of typeInfo[type].internalFolders) {
       let medObject = new MEDDataObject({
