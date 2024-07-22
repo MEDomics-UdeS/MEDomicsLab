@@ -3,6 +3,7 @@ import pandas as pd
 import os
 import numpy as np
 import json
+import uuid
 from .NodeObj import Node, format_model
 from typing import Union
 from colorama import Fore
@@ -10,7 +11,8 @@ import sys
 import os
 from pathlib import Path
 sys.path.append(str(Path(os.path.dirname(os.path.abspath(__file__))).parent.parent))
-from CustomZipFile import CustomZipFile
+from MEDDataObject import MEDDataObject
+from mongodb_utils import insert_med_data_object_if_not_exists
 
 
 DATAFRAME_LIKE = Union[dict, list, tuple, np.ndarray, pd.DataFrame]
@@ -30,7 +32,7 @@ class ModelIO(Node):
         """
         super().__init__(id_, global_config_json)
         self.model_extension = '.medmodel'
-        self.CustZipFileModel = CustomZipFile(self.model_extension)
+        #self.CustZipFileModel = CustomZipFile(self.model_extension)
 
     def _execute(self, experiment: dict = None, **kwargs) -> json:
         """
@@ -42,42 +44,49 @@ class ModelIO(Node):
         print(Fore.CYAN + f"Using {self.type}" + Fore.RESET)
         settings = copy.deepcopy(self.settings)
         return_val = {}
+        
         if self.type == 'save_model':
-           """  self.CodeHandler.add_line(
+            self.CodeHandler.add_line(
                 "code", f"for model in trained_models:")
             for model in kwargs['models']:
                 model = format_model(model)
                 if 'model_name' not in settings.keys():
-                    settings['model_name'] = "model"
-                new_path = os.path.join(self.global_config_json['paths']['models'],
-                                        f"{self.global_config_json['unique_id']}-{settings['model_name']}-{model.__class__.__name__}.medmodel")
-                self.global_config_json["unique_id"] += 1
+                    # .medmodel object
+                    model_med_object = MEDDataObject(id = str(uuid.uuid4()),
+                    name = model.__class__.__name__ + ".medmodel",
+                    type = "medmodel",
+                    parentID = self.global_config_json['identifiers']['models'],
+                    childrenIDs = [],
+                    inWorkspace = False)
+                    model_med_object_id = insert_med_data_object_if_not_exists(model_med_object, None)
 
-                def add_model_to_zip(path):
-                    model_path = os.path.join(path, "model")
                     settings_copy = copy.deepcopy(settings)
-                    settings_copy['model_name'] = model_path
+                    settings_copy['model_name'] = model_med_object.name
                     getattr(experiment['pycaret_exp'],
                             self.type)(model, **settings_copy)
                     self.CodeHandler.add_line(
                         "code", f"pycaret_exp.save_model(model, {self.CodeHandler.convert_dict_to_params(settings_copy)})", 1)
-                    model_path = os.path.join(path, "metadata.json")
-                    with open(model_path, 'w') as f:
-                        to_write = {"columns": self.global_config_json["columns"],
+                    
+                    # .medmodel metadata
+                    metadata_med_object = MEDDataObject(id=str(uuid.uuid4()),
+                    name = "metadata.json",
+                    type = "json",
+                    parentID = model_med_object_id,
+                    childrenIDs = [],
+                    inWorkspace = False)
+
+                    to_write = {"columns": self.global_config_json["columns"],
                                     "target": self.global_config_json["target_column"],
                                     "steps": self.global_config_json["steps"],
                                     "ml_type": self.global_config_json["MLType"]
                                     }
-                        if 'selectedTags' in self.global_config_json:
-                            to_write['selectedTags'] = self.global_config_json['selectedTags']
-                        if 'selectedVariables' in self.global_config_json:
-                            to_write['selectedVariables'] = self.global_config_json['selectedVariables']
-                        json.dump(to_write, f, indent=4)
+                    if 'selectedTags' in self.global_config_json:
+                        to_write['selectedTags'] = self.global_config_json['selectedTags']
+                    if 'selectedVariables' in self.global_config_json:
+                        to_write['selectedVariables'] = self.global_config_json['selectedVariables']
 
-                self.CustZipFileModel.create_zip(new_path, add_model_to_zip)
-
-                return_val[model.__class__.__name__] = new_path + \
-                    self.model_extension """
+                    insert_med_data_object_if_not_exists(metadata_med_object, [to_write])
+                    return_val[model.__class__.__name__] = metadata_med_object.id
 
         elif self.type == 'load_model':
            """  original_path = settings['model_to_load']['path']

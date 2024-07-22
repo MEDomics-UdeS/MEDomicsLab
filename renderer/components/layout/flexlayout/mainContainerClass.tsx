@@ -806,7 +806,7 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
       if (node.getExtraData().data == null) {
         const config = node.getConfig()
         console.log("config", config)
-        return <ModelViewer pageId={config.uuid} configPath={config.path} />
+        return <ModelViewer pageId={config.id} configPath={config.name} />
       }
     } else if (component === "htmlViewer") {
       if (node.getExtraData().data == null) {

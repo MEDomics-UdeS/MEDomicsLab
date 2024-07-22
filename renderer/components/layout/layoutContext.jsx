@@ -444,7 +444,7 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
    * @params {Object} action - The action passed on by the dispatchLayout function
    */
   const openModelViewer = (action) => {
-    openInDotDotDot(action, "modelViewer")
+    openInTab(action, "modelViewer")
   }
 
   /**
