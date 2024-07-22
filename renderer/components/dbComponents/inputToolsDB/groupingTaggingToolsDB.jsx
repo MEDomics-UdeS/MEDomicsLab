@@ -22,12 +22,13 @@ const GroupingTaggingToolsDB = () => {
   const [currentTag, setCurrentTag] = useState("")
   const [treeSelectData, setTreeSelectData] = useState([])
   const [columnsByCollection, setColumnsByCollection] = useState([])
-  const op = useRef(null)
   const [selectedColumnsToTag, setSelectedColumnsToTag] = useState([])
+  const [selectedTags, setSelectedTags] = useState([])
+  const op = useRef(null)
 
   useEffect(() => {
-    console.log("selectedColumnsToTag", selectedColumnsToTag)
-  }, [selectedColumnsToTag])
+    console.log("selectedTags", selectedTags)
+  }, [selectedTags])
 
   useEffect(() => {
     const fetchColumnsData = async () => {
@@ -42,6 +43,11 @@ const GroupingTaggingToolsDB = () => {
     if (selectedCollections.length > 0) {
       fetchColumnsData()
     }
+  }, [selectedCollections])
+
+  useEffect(() => {
+    const updatedTreeSelectData = treeSelectData.filter((item) => selectedCollections.includes(item.key))
+    setTreeSelectData(updatedTreeSelectData)
   }, [selectedCollections])
 
   useEffect(() => {
@@ -128,6 +134,7 @@ const GroupingTaggingToolsDB = () => {
   const handleDeleteTag = (tag) => {
     const { [tag]: oldTag, ...rest } = tagsDict
     setTagsDict(rest)
+    setSelectedTags(selectedTags.filter((selectedTag) => selectedTag !== tag))
   }
 
   const handleChangeTagName = (tag, event) => {
@@ -149,6 +156,19 @@ const GroupingTaggingToolsDB = () => {
       setTagsDict(newTagsDict)
     }
     op.current.hide()
+  }
+
+  const applyTagsToColumns = (selectedColumns, selectedTags) => {
+    console.log("tags Applied")
+    return
+  }
+
+  const handleTagSelection = (selectedTag) => {
+    if (selectedColumnsToTag.length < 1) {
+      toast.error("Please select columns to tag.")
+      return
+    }
+    setSelectedTags(selectedTag)
   }
 
   return (
@@ -235,7 +255,27 @@ const GroupingTaggingToolsDB = () => {
               display="chip"
               filter
               panelClassName="groupingToolTree"
-              style={{ width: "300px", height: "50px" }}
+              style={{ width: "300px", height: "50px", marginRight: "20px" }}
+            />
+            <MultiSelect
+              value={selectedTags}
+              options={Object.keys(tagsDict).map((key) => ({ label: key, value: key }))}
+              onChange={(e) => handleTagSelection(e.value)}
+              placeholder="Select Tags"
+              style={{ width: "300px", height: "50px", marginRight: "20px" }}
+            />
+            <Button
+              icon={"pi pi-check"}
+              onClick={() => {
+                applyTagsToColumns(selectedColumnsToTag, selectedTags)
+              }}
+              className="p-button-success"
+              style={{
+                width: "100px",
+                marginRight: "20px"
+              }}
+              tooltip="Apply tags to selected columns"
+              tooltipOptions={{ position: "top" }}
             />
           </div>
         </div>
