@@ -43,7 +43,7 @@ class ModelIO(Node):
         settings = copy.deepcopy(self.settings)
         return_val = {}
         if self.type == 'save_model':
-            self.CodeHandler.add_line(
+           """  self.CodeHandler.add_line(
                 "code", f"for model in trained_models:")
             for model in kwargs['models']:
                 model = format_model(model)
@@ -77,10 +77,10 @@ class ModelIO(Node):
                 self.CustZipFileModel.create_zip(new_path, add_model_to_zip)
 
                 return_val[model.__class__.__name__] = new_path + \
-                    self.model_extension
+                    self.model_extension """
 
         elif self.type == 'load_model':
-            original_path = settings['model_to_load']['path']
+           """  original_path = settings['model_to_load']['path']
             print('original_path:', original_path)
 
             def load_model_from_zip(path):
@@ -96,6 +96,6 @@ class ModelIO(Node):
                 print('trained_model:', trained_model)
 
             self.CustZipFileModel.read_in_zip(
-                original_path, load_model_from_zip)
+                original_path, load_model_from_zip) """
 
         return return_val

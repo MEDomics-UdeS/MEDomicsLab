@@ -84,8 +84,8 @@ class Node(ABC):
         self._has_run = False
         self.just_run = False
         self._info_for_next_node = {}
-        self.CustZipFile = CustomZipFile(
-            path=self.global_config_json['configPath'])
+        """ self.CustZipFile = CustomZipFile(
+            path=self.global_config_json['configPath']) """
         for setting, value in self.settings.items():
             if isinstance(value, str):
                 if is_float(value):

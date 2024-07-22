@@ -31,7 +31,6 @@ import nodesParams from "../../public/setupVariables/allNodesParams"
 import { removeDuplicates, deepCopy } from "../../utilities/staticFunctions"
 import { defaultValueFromType } from "../../utilities/learning/inputTypesUtils.js"
 import { FlowInfosContext } from "../flow/context/flowInfosContext.jsx"
-import Path from "path"
 import { overwriteMEDDataObjectContent } from "../mongoDB/mongoDBUtils.js"
 import { getCollectionData } from "../dbComponents/utils.js"
 import { MEDDataObject } from "../workspace/NewMedDataObject.js"
@@ -537,7 +536,7 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
         (jsonResponse) => {
           console.log("received results:", jsonResponse)
           if (!jsonResponse.error) {
-            updateFlowResults(jsonResponse)
+            updateFlowResults(jsonResponse, globalData[pageId].parentID)
             setProgress({
               now: 100,
               currentLabel: "Done!"

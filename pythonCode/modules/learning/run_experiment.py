@@ -2,7 +2,6 @@ import pickle
 import os
 import threading
 import time
-import json
 import sys
 import pymongo
 

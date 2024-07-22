@@ -7,6 +7,7 @@ from .NodeObj import *
 from typing import Union
 import sys
 import os
+import pymongo
 from pathlib import Path
 
 from ...server_utils import go_print
@@ -39,8 +40,9 @@ class Dataset(Node):
         self.output_dataset = {}
         # check if files is a list or a dict
         if isinstance(self.settings['files'], dict):
-            self.settings['files'] = self.settings['files']['path']
-            self.entry_file_type = FOLDER if os.path.isdir(self.settings['files']) else FILE
+            """ self.settings['files'] = self.settings['files']['path']
+            self.entry_file_type = FOLDER if os.path.isdir(self.settings['files']) else FILE """
+            self.entry_file_type = FILE
         else:
             if isinstance(self.settings['files'], list):
                 self.entry_file_type = FILES
@@ -49,17 +51,26 @@ class Dataset(Node):
         """
         This function is used to execute the node.
         """
+        # MongoDB setup
+        mongo_client = pymongo.MongoClient("mongodb://localhost:27017/")
+        database = mongo_client["data"]
+
         if self.entry_file_type == FOLDER:
-            self.load_csv_in_folder(self.settings['files'])
+            # TODO SCALABILITY
+            """ self.load_csv_in_folder(self.settings['files'])
             self.dfs_combinations = self._merge_dfs(self.settings['time-point'],
-                                                    self.settings['split_experiment_by_institutions'])
+                                                    self.settings['split_experiment_by_institutions']) """
         elif self.entry_file_type == FILE:
-            self.df = pd.read_csv(self.settings['files'], sep=',', encoding='utf-8')
+            collection = database[self.settings['files']["id"]]
+            collection_data = collection.find({}, {'_id': False})
+            self.df = pd.DataFrame(list(collection_data))
             self.CodeHandler.add_line(
                 "code", f"df = pd.read_csv({json.dumps(self.settings['files'])}, sep=',', encoding='utf-8')")
             self.CodeHandler.add_seperator()
+            
         elif self.entry_file_type == FILES: # Time points detection and add _T{X} suffix to columns
-            df_dict = {} # dict containing time points to their associated files
+            # TODO SCALABILITY
+            """ df_dict = {} # dict containing time points to their associated files
             df_path_list = [file['path'] for file in self.settings['files']]
             df_name_list = [file['name'] for file in self.settings['files']]
             for i, name in enumerate(df_name_list): # if the filename not contains T+number we don't keep it, else we associate it to his time point number
@@ -108,7 +119,7 @@ class Dataset(Node):
             self.CodeHandler.add_line("code", "df_list = [df_dict[key] for key in sorted_keys]")
             self.CodeHandler.add_seperator()
 
-            self.df = self.combine_df_timepoint_tags(df_list, self.settings['tags'], self.settings['variables'])
+            self.df = self.combine_df_timepoint_tags(df_list, self.settings['tags'], self.settings['variables']) """
 
         self._info_for_next_node['target'] = self.settings['target']
         return {}
