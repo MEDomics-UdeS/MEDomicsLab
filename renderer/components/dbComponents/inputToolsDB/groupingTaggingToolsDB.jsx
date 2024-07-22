@@ -23,6 +23,11 @@ const GroupingTaggingToolsDB = () => {
   const [treeSelectData, setTreeSelectData] = useState([])
   const [columnsByCollection, setColumnsByCollection] = useState([])
   const op = useRef(null)
+  const [selectedColumnsToTag, setSelectedColumnsToTag] = useState([])
+
+  useEffect(() => {
+    console.log("selectedColumnsToTag", selectedColumnsToTag)
+  }, [selectedColumnsToTag])
 
   useEffect(() => {
     const fetchColumnsData = async () => {
@@ -32,7 +37,6 @@ const GroupingTaggingToolsDB = () => {
         columnsData[collection] = columns
       }
       setColumnsByCollection(columnsData)
-      console.log("Columns by collection", columnsData)
     }
 
     if (selectedCollections.length > 0) {
@@ -223,12 +227,15 @@ const GroupingTaggingToolsDB = () => {
           <h6 style={{ paddingBottom: "0.25rem", margin: "0rem", marginInline: "0.5rem", height: "1.5rem" }}>Select the columns you want to tag</h6>
           <div style={{ display: "flex", justifyContent: "center", alignItems: "center", marginTop: "5px" }}>
             <TreeSelect
-              value={selectedCollections}
+              value={selectedColumnsToTag}
               options={treeSelectData}
-              onChange={(e) => setSelectedCollections(e.value)}
+              onChange={(e) => setSelectedColumnsToTag(e.value)}
               placeholder="Select Collections and Columns"
               selectionMode="checkbox"
-              style={{ width: "300px" }}
+              display="chip"
+              filter
+              panelClassName="groupingToolTree"
+              style={{ width: "300px", height: "50px" }}
             />
           </div>
         </div>
