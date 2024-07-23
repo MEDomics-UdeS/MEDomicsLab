@@ -11,7 +11,7 @@ import { HotkeysProvider } from "@blueprintjs/core"
 import { ConfirmPopup } from "primereact/confirmpopup"
 import { ConfirmDialog } from "primereact/confirmdialog"
 import { ServerConnectionProvider } from "../components/serverConnection/connectionContext"
-import { loadMEDDataObjects, updateGlobalData } from "./appUtils/globalDataUtils"
+import { loadMEDDataObjects, updateGlobalData } from "../utilities/appUtils/globalDataUtils"
 import { NotificationContextProvider } from "../components/generalPurpose/notificationContext"
 // CSS
 import "bootstrap/dist/css/bootstrap.min.css"
