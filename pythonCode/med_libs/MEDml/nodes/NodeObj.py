@@ -11,7 +11,6 @@ import sys
 import os
 from pathlib import Path
 sys.path.append(str(Path(os.path.dirname(os.path.abspath(__file__))).parent.parent))
-from CustomZipFile import CustomZipFile
 DATAFRAME_LIKE = Union[dict, list, tuple, np.ndarray, pd.DataFrame]
 TARGET_LIKE = Union[int, str, list, tuple, np.ndarray, pd.Series]
 

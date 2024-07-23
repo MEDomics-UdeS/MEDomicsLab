@@ -10,8 +10,6 @@ from pathlib import Path
 from abc import ABC, abstractmethod
 import sys
 sys.path.append(str(Path(os.path.dirname(os.path.abspath(__file__))).parent))
-from server_utils import get_repo_path
-from CustomZipFile import CustomZipFile
 
 DATAFRAME_LIKE = Union[dict, list, tuple, np.ndarray, pd.DataFrame]
 TARGET_LIKE = Union[int, str, list, tuple, np.ndarray, pd.Series]
@@ -65,24 +63,6 @@ class MEDexperiment(ABC):
         self._nb_nodes_done: float = 0.0
         self.global_json_config['unique_id'] = 0
         self.pipelines_objects = self.create_next_nodes(self.pipelines, {})
-        """ self.sceneZipFile = CustomZipFile(
-            path=global_json_config['configPath'])
-        if self.global_json_config['paths']['ws'][0] == '.':
-            for key, value in self.global_json_config['paths'].items():
-                self.global_json_config['paths'][key] = get_repo_path(
-                ) + value[1:]"""
-        os.chdir(str(Path(os.path.dirname(os.path.abspath(__file__))).parent.parent))
-        print("current working directory: ", os.getcwd()) 
-
-        """ def clear_tmp_folder(path):
-            
-                #Function that clear the tmp folder of the experiment.
-            
-            for f in os.listdir(os.path.join(path, 'tmp')):
-                if f != '.gitkeep':
-                    os.remove(os.path.join(path, 'tmp', f))
-
-        self.sceneZipFile.write_to_zip(custom_actions=clear_tmp_folder) """
 
     def update(self, global_json_config: json = None):
         """Updates the experiment with the pipelines and the global configuration.
@@ -398,27 +378,3 @@ class MEDexperiment(ABC):
             label = self._progress['currentLabel']
         self._progress = {'currentLabel': label, 'now': now}
 
-    def make_save_ready(self):
-        """Makes the experiment ready to be saved.
-        """
-        self._make_save_ready_rec(self.pipelines_objects)
-
-    @abstractmethod
-    def _make_save_ready_rec(self, next_nodes: dict):
-        """
-        Recursive function that makes the experiment ready to be saved.
-        """
-        pass
-
-    def init_obj(self):
-        """
-        Initializes the experiment object (pycaret) from a path.
-        """
-        self._init_obj_rec(self.pipelines_objects)
-
-    @abstractmethod
-    def _init_obj_rec(self, next_nodes: dict):
-        """
-        Recursive function that initializes the experiment object (pycaret) from a path.
-        """
-        pass

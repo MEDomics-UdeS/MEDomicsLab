@@ -1,4 +1,3 @@
-import pickle
 import os
 import threading
 import time
@@ -52,24 +51,11 @@ class GoExecScriptRunExperiment(GoExecutionScript):
         collection = database[json_config["id"]]
         flow = list(collection.find({}, {'_id': False}))[0]
             
-        scene_id = flow['pageId']
-        # check if experiment already exists
-        """ if self.storing_mode == USE_SAVE_FOR_EXPERIMENTS_STORING:
-            # create experiment or load it
-            if is_experiment_exist(scene_id):
-                self.current_experiment = load_experiment(scene_id)
-                self.current_experiment.update(flow)
-            else:
-                self.current_experiment = MEDexperimentLearning(flow)
-        else:
-            self.current_experiment = MEDexperimentLearning(flow) """
         self.current_experiment = MEDexperimentLearning(flow)
         self.current_experiment.start()
         results_pipeline = self.current_experiment.get_results()
         if self.storing_mode == USE_SAVE_FOR_EXPERIMENTS_STORING:
             self.current_experiment.set_progress(label='Saving the experiment')
-            print("EXPERIMENT", self.current_experiment)
-            #save_experiment(self.current_experiment)
         return results_pipeline
 
     def update_progress(self):
@@ -88,54 +74,6 @@ class GoExecScriptRunExperiment(GoExecutionScript):
             self.update_progress()
             self.push_progress()
             time.sleep(1.0 / self._progress_update_frequency_HZ)
-
-
-def save_experiment(experiment: MEDexperimentLearning):
-    """
-    triggered by the button save in the dashboard, it saves the pipeline execution
-
-    Returns: the results of the pipeline execution
-    """
-    go_print("saving experiment")
-    experiment.make_save_ready()
-    basePath = str(Path(os.path.dirname(os.path.abspath(__file__))).parent.parent)
-    local_path = os.path.join(basePath, 'local_dir')
-    if not os.path.exists(local_path):
-        os.makedirs(local_path)
-    with open(os.path.join(local_path,'MEDexperiment_' + experiment.id + '.medexp'), 'wb') as f:
-        pickle.dump(experiment, f)
-        del experiment
-
-
-def load_experiment(id_):
-    """
-    triggered by the button load in the dashboard, it loads the pipeline execution
-
-    Returns: the previously saved MEDexperiment
-    """
-    go_print("loading experiment")
-    basePath = str(Path(os.path.dirname(os.path.abspath(__file__))).parent.parent)
-    local_path = os.path.join(basePath, 'local_dir')
-    if not os.path.exists(local_path):
-        os.makedirs(local_path)
-    with open(os.path.join(local_path,'MEDexperiment_' + id_ + '.medexp'), 'rb') as f:
-        experiment = pickle.load(f)
-        experiment.init_obj()
-        return experiment
-
-
-def is_experiment_exist(id_):
-    """
-    triggered by the button load in the dashboard, it loads the pipeline execution
-
-    Returns: the results of the pipeline execution
-    """
-    basePath = str(Path(os.path.dirname(os.path.abspath(__file__))).parent.parent)
-    local_path = os.path.join(basePath, 'local_dir')
-    if not os.path.exists(local_path):
-        os.makedirs(local_path)
-    return os.path.exists(os.path.join(local_path,'MEDexperiment_' + id_ + '.medexp'))
-
 
 run_experiment = GoExecScriptRunExperiment(json_params_dict, id_, True)
 run_experiment.start()

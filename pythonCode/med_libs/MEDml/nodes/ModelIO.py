@@ -4,6 +4,7 @@ import os
 import numpy as np
 import json
 import uuid
+import pickle
 from .NodeObj import Node, format_model
 from typing import Union
 from colorama import Fore
@@ -12,7 +13,7 @@ import os
 from pathlib import Path
 sys.path.append(str(Path(os.path.dirname(os.path.abspath(__file__))).parent.parent))
 from MEDDataObject import MEDDataObject
-from mongodb_utils import insert_med_data_object_if_not_exists
+from mongodb_utils import insert_med_data_object_if_not_exists, get_child_id_by_name, get_pickled_model_from_collection
 
 
 DATAFRAME_LIKE = Union[dict, list, tuple, np.ndarray, pd.DataFrame]
@@ -32,7 +33,6 @@ class ModelIO(Node):
         """
         super().__init__(id_, global_config_json)
         self.model_extension = '.medmodel'
-        #self.CustZipFileModel = CustomZipFile(self.model_extension)
 
     def _execute(self, experiment: dict = None, **kwargs) -> json:
         """
@@ -61,11 +61,22 @@ class ModelIO(Node):
                     model_med_object_id = insert_med_data_object_if_not_exists(model_med_object, None)
 
                     settings_copy = copy.deepcopy(settings)
-                    settings_copy['model_name'] = model_med_object.name
-                    getattr(experiment['pycaret_exp'],
-                            self.type)(model, **settings_copy)
+                    settings_copy['model_name'] = model.__class__.__name__
+                    """ getattr(experiment['pycaret_exp'],
+                            self.type)(model, **settings_copy) """
                     self.CodeHandler.add_line(
                         "code", f"pycaret_exp.save_model(model, {self.CodeHandler.convert_dict_to_params(settings_copy)})", 1)
+                    
+                    # .medmodel model
+                    serialized_model_med_object = MEDDataObject(id=str(uuid.uuid4()),
+                    name = "model.pkl",
+                    type = "pkl",
+                    parentID = model_med_object_id,
+                    childrenIDs = [],
+                    inWorkspace = False)
+
+                    serialized_model = pickle.dumps(model)
+                    insert_med_data_object_if_not_exists(serialized_model_med_object, [{'model': serialized_model}])
                     
                     # .medmodel metadata
                     metadata_med_object = MEDDataObject(id=str(uuid.uuid4()),
@@ -89,22 +100,14 @@ class ModelIO(Node):
                     return_val[model.__class__.__name__] = metadata_med_object.id
 
         elif self.type == 'load_model':
-           """  original_path = settings['model_to_load']['path']
-            print('original_path:', original_path)
-
-            def load_model_from_zip(path):
-                models_path = os.path.join(path, "model")
-                settings_copy = copy.deepcopy(settings)
-                settings_copy['model_name'] = models_path
-                del settings_copy['model_to_load']
-                trained_model: Pipeline = experiment['pycaret_exp'].load_model(
-                    **settings_copy)
-                self.CodeHandler.add_line(
-                    "code", f"pycaret_exp.load_model({self.CodeHandler.convert_dict_to_params(settings_copy)})")
-                self._info_for_next_node = {'models': [trained_model]}
-                print('trained_model:', trained_model)
-
-            self.CustZipFileModel.read_in_zip(
-                original_path, load_model_from_zip) """
+            serialized_model_id = get_child_id_by_name(settings['model_to_load']['id'], "model.pkl")
+            pickle_model = get_pickled_model_from_collection(serialized_model_id)
+            trained_model: Pipeline = pickle_model
+            settings_copy = copy.deepcopy(settings)
+            settings_copy['model_name'] = settings['model_to_load']['name'].removesuffix('.medmodel')
+            del settings_copy['model_to_load']
+            self.CodeHandler.add_line(
+                "code", f"pycaret_exp.load_model({self.CodeHandler.convert_dict_to_params(settings_copy)})")
+            self._info_for_next_node = {'models': [trained_model]}
 
         return return_val
