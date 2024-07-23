@@ -9,7 +9,7 @@ import HoldoutSetCreationTool from "../input/holdoutSetCreationTool"
 import SubsetCreationTool from "../input/subsetCreationTool"
 import FeatureReductionTool from "../input/featuresReduction/featuresReductionTool"
 import OperationOnColumnTool from "../input/operationOnColumnTool"
-import InputToolsComponent from "../dbComponents/inputToolsComponent"
+
 /**
  * @description - This component is the input page of the application
  * @returns the input page component

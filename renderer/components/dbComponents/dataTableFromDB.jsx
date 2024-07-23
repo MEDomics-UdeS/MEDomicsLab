@@ -224,6 +224,7 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
     setColumns(columns.filter((column) => column.field !== field))
     setInnerData(
       innerData.map((row) => {
+        // eslint-disable-next-line no-unused-vars
         const { [field]: _, ...rest } = row
         return rest
       })

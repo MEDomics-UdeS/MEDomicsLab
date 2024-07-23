@@ -4,7 +4,6 @@ import { Button } from "primereact/button"
 import { SplitButton } from "primereact/splitbutton"
 import { Message } from "primereact/message"
 import { toast } from "react-toastify"
-import { MongoClient } from "mongodb"
 import { connectToMongoDB } from "../../mongoDB/mongoDBUtils"
 import { DataContext } from "../../workspace/dataContext"
 

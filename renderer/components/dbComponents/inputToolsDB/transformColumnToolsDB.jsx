@@ -67,6 +67,7 @@ const TransformColumnToolsDB = ({ currentCollection, refreshData }) => {
     if (selectedColumns.length > 0) {
       const csvString = selectedColumns.join(",")
       const blob = new Blob([csvString], { type: "text/csv;charset=utf-8" })
+      // eslint-disable-next-line no-undef
       saveAs(blob, "selected_columns.csv")
     } else {
       toast.warn("No columns selected for export")
