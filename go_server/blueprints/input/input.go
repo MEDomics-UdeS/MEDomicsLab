@@ -26,6 +26,7 @@ func AddHandleFunc() {
 	Utils.CreateHandleFunc(prePath+"/apply_pcaDB/", handleApplyPCADB)
 	Utils.CreateHandleFunc(prePath+"/compute_correlationsDB/", handleComputeCorrelationsDB)
 	Utils.CreateHandleFunc(prePath+"/compute_spearmanDB/", handleComputeSpearmanDB)
+	Utils.CreateHandleFunc(prePath+"/create_tags/", handleCreateTags)
 }
 
 // handleMerge handles the request to merge the datasets 
@@ -234,4 +235,16 @@ func handleProgress(jsonConfig string, id string) (string, error) {
 	} else {
 		return "{\"now\":\"0\", \"currentLabel\":\"Warming up\"}", nil
 	}
+}
+
+// handleComputeSpearman handles the request to compute Spearman for the DB
+// It returns the response from the python script
+func handleCreateTags(jsonConfig string, id string) (string, error) {
+	log.Println("Compute Tags Creation", id)
+	response, err := Utils.StartPythonScripts(jsonConfig, "../pythonCode/modules/input/create_tags.py", id)
+	Utils.RemoveIdFromScripts(id)
+	if err != nil {
+		return "", err
+	}
+	return response, nil
 }

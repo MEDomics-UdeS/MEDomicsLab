@@ -3,7 +3,6 @@ import { toast } from "react-toastify" // Assuming toast is from react-toastify
 import { DataContext } from "../../workspace/dataContext"
 import { Message } from "primereact/message"
 import { MultiSelect } from "primereact/multiselect"
-import { getCollectionData } from "../utils"
 import { getCollectionColumns } from "../../mongoDB/mongoDBUtils"
 import { Chips } from "primereact/chips"
 import { Button } from "primereact/button"
@@ -12,6 +11,8 @@ import { Chip } from "primereact/chip"
 import { TreeSelect } from "primereact/treeselect"
 import { OverlayPanel } from "primereact/overlaypanel"
 import { InputText } from "primereact/inputtext"
+import { requestBackend } from "../../../utilities/requests"
+import { ServerConnectionContext } from "../../serverConnection/connectionContext"
 
 const GroupingTaggingToolsDB = () => {
   const [options, setOptions] = useState([])
@@ -24,6 +25,7 @@ const GroupingTaggingToolsDB = () => {
   const [columnsByCollection, setColumnsByCollection] = useState([])
   const [selectedColumnsToTag, setSelectedColumnsToTag] = useState([])
   const [selectedTags, setSelectedTags] = useState([])
+  const { port } = useContext(ServerConnectionContext)
   const op = useRef(null)
 
   useEffect(() => {
@@ -159,8 +161,15 @@ const GroupingTaggingToolsDB = () => {
   }
 
   const applyTagsToColumns = (selectedColumns, selectedTags) => {
-    console.log("tags Applied")
-    return
+    let jsonToSend = {}
+    jsonToSend = {
+      collections: selectedCollections,
+      columns: selectedColumns,
+      tags: selectedTags
+    }
+    requestBackend(port, "/input/create_tags/", jsonToSend, (jsonResponse) => {
+      console.log("jsonResponse", jsonResponse)
+    })
   }
 
   const handleTagSelection = (selectedTag) => {
