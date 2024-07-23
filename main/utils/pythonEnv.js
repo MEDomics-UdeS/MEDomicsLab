@@ -168,7 +168,13 @@ export function getInstalledPythonPackages(pythonPath = null) {
   if (pythonPath === null) {
     pythonPath = getPythonEnvironment()
   }
-  let pythonPackagesOutput = execSync(`${pythonPath} -m pip list --format=json`).toString()
+  
+  let pythonPackagesOutput = ""
+  try {
+    pythonPackagesOutput = execSync(`${pythonPath} -m pip list --format=json`).toString()
+  } catch (error) {
+    console.warn("Error retrieving python packages:", error)
+  }
   pythonPackages = JSON.parse(pythonPackagesOutput)
   return pythonPackages
 }
@@ -255,7 +261,7 @@ export async function installBundledPythonExecutable(mainWindow) {
       execCallbacksForChildWithNotifications(extractionPromise.child, "Python Exec. Extracting", mainWindow)
       const { stdout: extrac, stderr: extracErr } = await extractionPromise
         // Install the required python packages
-        .installPythonPackage(mainWindow, pythonExecutablePath, null, path.join(process.cwd(), "pythonEnv", "requirements_mac.txt"))
+      installPythonPackage(mainWindow, pythonExecutablePath, null, path.join(process.cwd(), "pythonEnv", "requirements_mac.txt"))
     } else if (process.platform == "linux") {
       // Download the right python executable (arm64 or x86_64)
 
