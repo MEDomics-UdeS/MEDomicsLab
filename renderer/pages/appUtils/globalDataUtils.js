@@ -28,7 +28,7 @@ export const updateGlobalData = async (workspaceObject) => {
  * @descritption load the MEDDataObjects from the MongoDB database
  * @returns medDataObjectsDict dict containing the MEDDataObjects in the Database
  */
-export async function loadMEDDataObjects() {
+export default async function loadMEDDataObjects() {
   let medDataObjectsDict = {}
   try {
     // Get global data
