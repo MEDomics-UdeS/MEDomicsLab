@@ -43,6 +43,9 @@ jobs:
           go build main.go 
           cd ..
 
+      - name: Prebuild libmongocrypt
+        run: bash ./utilScripts/libmongocrypt_prebuild.sh
+
       - name: Build for Windows
         run: npm run build:win
 
@@ -97,6 +100,9 @@ jobs:
           cd go_server
           go build main.go 
           cd ..
+
+      - name: Prebuild libmongocrypt
+        run: bash ./utilScripts/libmongocrypt_prebuild.sh
 
       - name: Build for Linux
         run: npm run build:linux
@@ -204,6 +210,9 @@ jobs:
 
       - name: Install dependencies
         run: npm install
+
+      - name: Prebuild libmongocrypt
+        run: bash ./utilScripts/libmongocrypt_prebuild.sh
 
       - name: Update version
         run: |
