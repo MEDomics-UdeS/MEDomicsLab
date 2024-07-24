@@ -318,7 +318,7 @@ export class MEDDataObject {
 
     // Download the content based on the type
     try {
-      if (medDataObject.type != "directory") {
+      if (medDataObject.type != "directory" && medDataObject.type != "medml") {
         await downloadCollectionToFile(id, filePath, medDataObject.type)
       }
 

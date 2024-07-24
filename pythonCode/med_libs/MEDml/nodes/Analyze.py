@@ -4,10 +4,14 @@ import pandas as pd
 import os
 import numpy as np
 import json
-from sklearn.pipeline import Pipeline
+import uuid
+import io
 from .NodeObj import Node, format_model
 from typing import Union
 from colorama import Fore
+from MEDDataObject import MEDDataObject
+from mongodb_utils import insert_med_data_object_if_not_exists
+from PIL import Image
 
 DATAFRAME_LIKE = Union[dict, list, tuple, np.ndarray, pd.DataFrame]
 TARGET_LIKE = Union[int, str, list, tuple, np.ndarray, pd.Series]
@@ -40,8 +44,8 @@ class Analyze(Node):
         if selection == 'plot_model':
             settings.update({'save': True})
             settings.update({"plot_kwargs": {}})
-        if selection == 'interpret_model':
-            settings.update({'save': self.global_config_json["tmp_path"]})
+        """ if selection == 'interpret_model':
+            settings.update({'save': self.global_config_json["tmp_path"]}) """
 
         self.CodeHandler.add_line("code", f"for model in trained_models:")
         print_settings = copy.deepcopy(settings)
@@ -51,24 +55,22 @@ class Analyze(Node):
             "code", f"pycaret_exp.{selection}(model, {self.CodeHandler.convert_dict_to_params(print_settings)})", 1)
         for model in kwargs['models']:
             model = format_model(model)
-            #os.chdir(self.global_config_json['paths']['ws'])
-            return_value = getattr(experiment['pycaret_exp'], selection)(model, **settings)
+            plot_image = experiment['pycaret_exp'].plot_model(model, **settings)
 
-            if 'save' in settings and settings['save'] and return_value is not None:
-                return_path = return_value
+            # Save Image into MongoDB
+            image_med_object = MEDDataObject(id=str(uuid.uuid4()),
+                    name = print_settings['plot'] + '.png',
+                    type = "png",
+                    parentID = self.global_config_json['identifiers']['exp'],
+                    childrenIDs = [],
+                    inWorkspace = False)
+            PIL_image = Image.open(plot_image)
+            image_bytes = io.BytesIO()
+            PIL_image.save(image_bytes, format='PNG')
+            image_data = {
+                'data': image_bytes.getvalue()
+            }
+            model_med_object_id = insert_med_data_object_if_not_exists(image_med_object, [image_data])
+            plot_paths[model.__class__.__name__] = model_med_object_id
 
-                def move_file(return_path, new_path):
-                    """
-                        This function is used to move and replace a file from return_path to new_path.
-                    """
-                    if os.path.isfile(new_path):
-                        os.remove(new_path)
-                    os.rename(return_path, new_path)
-                new_path = os.path.join(
-                    self.global_config_json['internalPaths']['tmp'], f'{self.global_config_json["unique_id"]}-{model.__class__.__name__}.png')
-                self.global_config_json["unique_id"] += 1
-                self.CustZipFile.write_to_zip(
-                    custom_actions=lambda path: move_file(return_path, new_path))
-
-                plot_paths[model.__class__.__name__] = new_path
         return plot_paths
