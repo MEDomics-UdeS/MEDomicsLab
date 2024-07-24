@@ -59,7 +59,7 @@ class Analyze(Node):
 
             # Save Image into MongoDB
             image_med_object = MEDDataObject(id=str(uuid.uuid4()),
-                    name = print_settings['plot'] + '.png',
+                    name = model.__class__.__name__ + '_' + print_settings['plot'] + '.png',
                     type = "png",
                     parentID = self.global_config_json['identifiers']['exp'],
                     childrenIDs = [],
@@ -71,6 +71,11 @@ class Analyze(Node):
                 'data': image_bytes.getvalue()
             }
             model_med_object_id = insert_med_data_object_if_not_exists(image_med_object, [image_data])
+
+            # Remove the plot image file
+            if os.path.exists(plot_image):
+                os.remove(plot_image)
+
             plot_paths[model.__class__.__name__] = model_med_object_id
 
         return plot_paths
