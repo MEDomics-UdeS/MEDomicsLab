@@ -11,7 +11,6 @@ from med_libs.server_utils import go_print
 
 # To deal with the DB
 from pymongo import MongoClient
-import math
 
 json_params_dict, id_ = parse_arguments()
 go_print("running script.py:" + id_)
@@ -38,9 +37,65 @@ class GoExecScriptCreateTags(GoExecutionScript):
         Args:
             json_config: The input json params
         """
-        # Logic here
-        # ...
-        
+        # Get the data from the json
+        collections = json_config["collections"]
+        columns = json_config["columns"]
+        tags = json_config["tags"]
+        database_name = json_config["databaseName"]
+        new_collection_name = json_config["newCollectionName"]
+
+        # Connect to the DB
+        client = MongoClient('localhost', 27017)
+        db = client[database_name]
+        DBcollections = db.list_collection_names()
+
+        if new_collection_name not in DBcollections:
+            db.create_collection(new_collection_name)
+
+        print("collections: ", collections)
+        print("tags: ", tags)
+        print('new_collection_name: ', new_collection_name)
+
+
+        # Create a dictionnary to store the columns selected by collections selected
+        columns_by_file = {}
+        for key, value in columns.items():
+            parts = key.split('-')
+            if len(parts) == 2 and value['checked']:
+                filename, column_name = parts
+                if filename not in columns_by_file:
+                    columns_by_file[filename] = []
+                columns_by_file[filename].append(column_name)
+        print("columns_by_file: ", columns_by_file)
+
+        # SAssociate collections with files
+        file_to_collection = {filename: collection_id for filename, collection_id in zip(columns_by_file.keys(), collections)}
+        print("file_to_collection: ", file_to_collection)
+
+        # Create a MongoDB document for each column
+        for filename, column_names in columns_by_file.items():
+            collection_id = file_to_collection[filename]
+            for column_name in column_names:
+                # Search for an existing document
+                existing_document = db[new_collection_name].find_one({"collection_id": collection_id, "column_name": column_name})
+                if existing_document:
+                    # Replace the existing tags with the new ones
+                    db[new_collection_name].update_one(
+                        {"_id": existing_document["_id"]},
+                        {"$set": {"tags": tags}}  # 'tags' is assumed to be the list of new tags you want to set
+                    )
+                else:
+                    # Insert a new document if not found
+                    document = {
+                        "collection_id": collection_id,
+                        "column_name": column_name,
+                        "tags": tags,  # 'tags' is the list of new tags
+                        "filename": filename
+                    }
+                    db[new_collection_name].insert_one(document)
+
+        print("Tagging complete.")
+
         return
        
         

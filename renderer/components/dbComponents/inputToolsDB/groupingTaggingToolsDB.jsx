@@ -13,6 +13,9 @@ import { OverlayPanel } from "primereact/overlaypanel"
 import { InputText } from "primereact/inputtext"
 import { requestBackend } from "../../../utilities/requests"
 import { ServerConnectionContext } from "../../serverConnection/connectionContext"
+import { randomUUID } from "crypto"
+import { MEDDataObject } from "../../workspace/NewMedDataObject"
+import { insertMEDDataObjectIfNotExists } from "../../mongoDB/mongoDBUtils"
 
 const GroupingTaggingToolsDB = () => {
   const [options, setOptions] = useState([])
@@ -27,10 +30,29 @@ const GroupingTaggingToolsDB = () => {
   const [selectedTags, setSelectedTags] = useState([])
   const { port } = useContext(ServerConnectionContext)
   const op = useRef(null)
+  let isCalled = false
+
+  const usePersistentUUID = () => {
+    const [id, setId] = useState("")
+    useEffect(() => {
+      let uuid = localStorage.getItem("myUUID")
+      if (!uuid) {
+        uuid = randomUUID()
+        localStorage.setItem("myUUID", uuid)
+      }
+      setId(uuid)
+    }, [])
+
+    return id
+  }
+
+  const id = usePersistentUUID()
 
   useEffect(() => {
     console.log("selectedTags", selectedTags)
-  }, [selectedTags])
+    console.log("selectedColumnsToTag", selectedColumnsToTag)
+    console.log("selectedCollections", selectedCollections)
+  }, [selectedTags, selectedColumnsToTag, selectedCollections])
 
   useEffect(() => {
     const fetchColumnsData = async () => {
@@ -160,16 +182,36 @@ const GroupingTaggingToolsDB = () => {
     op.current.hide()
   }
 
-  const applyTagsToColumns = (selectedColumns, selectedTags) => {
+  const applyTagsToColumns = async (selectedColumns, selectedTags) => {
     let jsonToSend = {}
     jsonToSend = {
+      newCollectionName: id,
       collections: selectedCollections,
       columns: selectedColumns,
-      tags: selectedTags
+      tags: selectedTags,
+      databaseName: "data"
     }
+    console.log("id", id)
     requestBackend(port, "/input/create_tags/", jsonToSend, (jsonResponse) => {
       console.log("jsonResponse", jsonResponse)
     })
+    if (!isCalled) {
+      callInsertOnce()
+      isCalled = true
+    }
+  }
+
+  async function callInsertOnce() {
+    const object = new MEDDataObject({
+      id: id,
+      name: "columns_tags.csv",
+      type: "csv",
+      parentID: "ROOT",
+      childrenIDs: [],
+      inWorkspace: false
+    })
+    await insertMEDDataObjectIfNotExists(object)
+    MEDDataObject.updateWorkspaceDataObject()
   }
 
   const handleTagSelection = (selectedTag) => {
