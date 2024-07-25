@@ -1,109 +1,108 @@
 import React, { useCallback, useContext, useEffect, useState } from "react"
 import { PageInfosContext } from "../mainPages/moduleBasics/pageInfosContext"
 import { DataContext } from "../workspace/dataContext"
-import MedDataObject from "../workspace/medDataObject"
 import { LoaderContext } from "../generalPurpose/loaderContext"
 import { Col, Row } from "react-bootstrap"
 import { toast } from "react-toastify"
-import { modifyZipFileSync, customZipFile2Object } from "../../utilities/customZipFile"
 import { WorkspaceContext } from "../workspace/workspaceContext"
 import { requestBackend } from "../../utilities/requests"
 import PageConfig from "./pageConfig"
 import PageEval from "./pageEval"
-import { writeJsonSync } from "../../utilities/fileManagementUtils"
+import { MEDDataObject } from "../workspace/NewMedDataObject"
+import { getCollectionColumns, overwriteMEDDataObjectContent } from "../mongoDB/mongoDBUtils"
+import { getCollectionData } from "../dbComponents/utils"
 
 /**
  * @description - This component is the evaluation page content component, it handles medeval config and evaluation
  * @returns the evaluation page content
  */
 const EvaluationPageContent = () => {
-  const { config, pageId, configPath, setConfig } = useContext(PageInfosContext)
-  const [chosenModel, setChosenModel] = useState(config && config.model && Object.keys(config.model).length > 0 ? config.model : {})
-  const [chosenDataset, setChosenDataset] = useState(config && config.dataset && Object.keys(config.dataset).length > 0 ? config.dataset : {})
+  const { pageId } = useContext(PageInfosContext)
+  const [chosenModel, setChosenModel] = useState({})
+  const [chosenDataset, setChosenDataset] = useState({})
   const [modelHasWarning, setModelHasWarning] = useState({ state: false, tooltip: "" })
   const [datasetHasWarning, setDatasetHasWarning] = useState({ state: false, tooltip: "" })
-  const { globalData, setGlobalData } = useContext(DataContext)
+  const [evalConfig, setEvalConfig] = useState({})
+  const { globalData } = useContext(DataContext)
   const { setLoader } = useContext(LoaderContext)
   const { port } = useContext(WorkspaceContext) // we get the port for server connexion
   const [run, setRun] = useState(false)
 
+  useEffect(() => {
+    const fetchData = async () => {
+      let configToLoadID = MEDDataObject.getChildIDWithName(globalData, pageId, "metadata.json")
+      let configToLoad = await getCollectionData(configToLoadID)
+      updateConfig("useMedStandard", configToLoad[0].useMedStandard)
+    }
+    if (globalData && pageId) {
+      fetchData()
+    }
+  }, [globalData])
+
   // handle updating the config when the chosen model changes
   useEffect(() => {
-    console.log("chosenModel changed", chosenModel)
     updateConfig("model", chosenModel)
   }, [chosenModel])
 
   // handle updating the config when the chosen dataset changes
   useEffect(() => {
-    console.log("chosenDataset changed", chosenDataset)
     updateConfig("dataset", chosenDataset)
   }, [chosenDataset])
 
   // when the config changes, we update the warnings
   useEffect(() => {
-    console.log("new config", config)
-    if (config) {
-      if (Object.keys(config).length > 0) {
-        console.log("config in if", Object.keys(config).length)
-        updateWarnings(config.useMedStandard)
-      }
-    } else {
-      let newConfig = {}
-      setConfig(newConfig)
+    if (Object.keys(evalConfig).length > 0) {
+      updateWarnings(evalConfig.useMedStandard)
     }
-  }, [config])
+  }, [evalConfig])
 
   /**
    * @description - This function is used to update the config
    */
   const updateConfig = useCallback(
     (type, data) => {
-      console.log("updateConfig, current config:", config)
-      let newConfig = { ...config }
+      let newConfig = { ...evalConfig }
       if (type == "model") {
         newConfig.model = data
       } else if (type == "dataset") {
         newConfig.dataset = data
+      } else if (type == "useMedStandard") {
+        newConfig.useMedStandard = data
       }
-      setConfig(newConfig)
+      setEvalConfig(newConfig)
     },
-    [config]
+    [evalConfig]
   )
 
   /**
    * @description - This function is used to update the config WHEN THE USER CLICKS ON THE UPDATE CONFIG BUTTON
    */
-  const updateConfigClick = () => {
-    console.log("updateEvaluationConfig", config)
-    let newConfig = { ...config }
+  const updateConfigClick = async () => {
+    let newConfig = { ...evalConfig }
     newConfig.isSet = true
-    modifyZipFileSync(configPath, async (path) => {
-      await writeJsonSync(newConfig, path, "metadata", "json")
+    let configToLoadID = MEDDataObject.getChildIDWithName(globalData, pageId, "metadata.json")
+    let success = await overwriteMEDDataObjectContent(configToLoadID, [newConfig])
+    if (success) {
       toast.success("Config has been saved successfully")
-    }).then((res) => {
-      console.log("res:", res)
       requestBackend(
         port,
         "evaluation/close_dashboard/dashboard/" + pageId,
         { pageId: pageId },
-        (data) => {
-          console.log("closeDashboard received data:", data)
-          setConfig(newConfig)
+        () => {
+          setEvalConfig(newConfig)
           setRun(!run)
         },
         (error) => {
           console.log("closeDashboard received error:", error)
         }
       )
-    })
+    }
   }
 
   /**
    * @description - This function is used to update the warnings
    */
   const updateWarnings = async (useMedStandard) => {
-    console.log("updateWarnings")
-
     /**
      *
      * @param {Array} datasetData An array of the columns of the dataset
@@ -112,6 +111,7 @@ const EvaluationPageContent = () => {
     const checkWarnings = async (datasetData, modelData, useMedStandard) => {
       // sort the arrays alphabetically and numerically
       let isValid = true
+      let isValidDatasetsSelected = true
       let modelCols = modelData.columns
 
       let columnsArray_ = []
@@ -119,20 +119,13 @@ const EvaluationPageContent = () => {
       let modelDatasetsTx = []
 
       if (useMedStandard) {
-        console.log("dataset infos", datasetData)
-        console.log("model infos", modelData)
-
         let selectedDatasets = datasetData.selectedDatasets
-        let wantedTags = modelData.selectedTags
         let wantedVariables = modelData.selectedVariables
-        console.log("wantedTags", wantedTags)
-        console.log("wantedVariables", wantedVariables)
 
         // getting a list of unique values ot T1, T2, ... representing selected datasets time points
         wantedVariables.forEach((wantedVariable) => {
           // getting last element of split list
           let datasetTx = wantedVariable.split("_")[wantedVariable.split("_").length - 1]
-          // let datasetTx = wantedVariable.split("_")[-1]
           !modelDatasetsTx.includes(datasetTx) && modelDatasetsTx.push(datasetTx)
         })
 
@@ -143,17 +136,12 @@ const EvaluationPageContent = () => {
           !selectedDatasetsTx.includes(datasetTx) && selectedDatasetsTx.push(datasetTx)
         })
 
-        console.log("modelDatasetsTx", modelDatasetsTx)
-        console.log("selectedDatasetsTx", selectedDatasetsTx)
-        var isValidDatasetsSelected = modelDatasetsTx.sort().join(",") == selectedDatasetsTx.sort().join(",")
-        console.log("isValid", isValid)
+        isValidDatasetsSelected = modelDatasetsTx.sort().join(",") == selectedDatasetsTx.sort().join(",")
       } else {
-        let { columnsArray } = await MedDataObject.getColumnsFromPath(config.dataset.path, globalData, setGlobalData)
+        let columnsArray = await getCollectionColumns(datasetData.id)
         columnsArray_ = columnsArray
         let datasetColsString = JSON.stringify(columnsArray.sort())
         let modelColsString = JSON.stringify(modelCols.sort())
-        console.log("datasetColsString", datasetColsString)
-        console.log("modelColsString", modelColsString)
         isValid = !(datasetColsString !== modelColsString && modelCols && columnsArray)
       }
       setLoader(false)
@@ -229,53 +217,20 @@ const EvaluationPageContent = () => {
     }
 
     if (
-      config &&
-      config.model &&
-      config.dataset &&
-      Object.keys(config.model).length > 0 &&
-      Object.keys(config.dataset).length > 0 &&
-      config.model.name != "No selection" &&
-      config.dataset.name != "No selection"
+      evalConfig &&
+      evalConfig.model &&
+      evalConfig.dataset &&
+      Object.keys(evalConfig.model).length > 0 &&
+      Object.keys(evalConfig.dataset).length > 1 &&
+      evalConfig.model.name != "No selection" &&
+      evalConfig.dataset.name != "No selection"
     ) {
-      let modelDataObject = await MedDataObject.getObjectByPathSync(config.model.path, globalData)
-      if (modelDataObject) {
-        console.log("model columns already loaded ?", modelDataObject.metadata.content)
-        if (!modelDataObject.metadata.content) {
-          console.log("flag1 - true")
-          if (!config.model.metadata) {
-            console.log("flag2 - true")
-
-            try {
-              customZipFile2Object(config.model.path)
-                .then(async (content) => {
-                  console.log("finish customZipFile2Object", content)
-                  if (content && Object.keys(content).length > 0) {
-                    modelDataObject.metadata.content = content
-                    setGlobalData({ ...globalData })
-                    await checkWarnings(config.dataset, content, useMedStandard)
-                  }
-                })
-                .catch((error) => {
-                  console.log("error", error)
-                })
-            } catch (error) {
-              console.log("error", error)
-            }
-          } else {
-            console.log("flag2 - false")
-
-            modelDataObject.metadata.content = config.model.metadata
-            setGlobalData({ ...globalData })
-            let modelData = config.model.metadata
-            await checkWarnings(config.dataset, modelData, useMedStandard)
-          }
-        } else {
-          console.log("flag1 - false")
-
-          let modelData = modelDataObject.metadata.content
-          await checkWarnings(config.dataset, modelData, useMedStandard)
+      let modelMetadataID = MEDDataObject.getChildIDWithName(globalData, evalConfig.model.id, "metadata.json")
+      if (modelMetadataID) {
+        let modelData = await getCollectionData(modelMetadataID)
+        if (modelData) {
+          await checkWarnings(evalConfig.dataset, modelData[0], useMedStandard)
         }
-        console.log("modelDataObject.metadata.content", modelDataObject.metadata.content)
       }
     }
   }
@@ -285,14 +240,13 @@ const EvaluationPageContent = () => {
    * @returns the evaluation step: either the config step or the evaluation step
    */
   const getEvaluationStep = () => {
-    console.log("initializing evaluation step:", config, "mode:", config.isSet)
-    if (config.isSet) {
+    if (evalConfig.isSet) {
       return (
         <PageEval
-          useMedStandard={config.useMedStandard}
+          useMedStandard={evalConfig.useMedStandard}
           run={run}
           pageId={pageId}
-          config={config}
+          config={evalConfig}
           updateWarnings={updateWarnings}
           setDatasetHasWarning={setDatasetHasWarning}
           datasetHasWarning={datasetHasWarning}
@@ -306,10 +260,10 @@ const EvaluationPageContent = () => {
     } else {
       return (
         <PageConfig
-          useMedStandard={config.useMedStandard}
+          useMedStandard={evalConfig.useMedStandard}
           run={run}
           pageId={pageId}
-          config={config}
+          config={evalConfig}
           updateWarnings={updateWarnings}
           setDatasetHasWarning={setDatasetHasWarning}
           datasetHasWarning={datasetHasWarning}
@@ -323,7 +277,7 @@ const EvaluationPageContent = () => {
     }
   }
 
-  return <>{config && getEvaluationStep()}</>
+  return <>{evalConfig && getEvaluationStep()}</>
 }
 
 export default EvaluationPageContent

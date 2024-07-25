@@ -517,7 +517,7 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
    * @params {Object} action - The action passed on by the dispatchLayout function, it uses the payload in the action as a JSON object to add a new child to the layout model
    */
   const openInEvaluation = (action) => {
-    openInDotDotDot(action, "evaluationPage")
+    openInTab(action, "evaluationPage")
   }
 
   /**

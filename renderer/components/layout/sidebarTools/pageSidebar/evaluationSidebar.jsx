@@ -54,8 +54,6 @@ const EvaluationSidebar = () => {
    * @param {String} extension The extension of the scene
    */
   const createSceneContent = async (parentId, sceneName, extension, useMedStandard) => {
-    const emptyScene = [{ useMedStandard: useMedStandard }]
-
     // Create custom zip file
     let sceneObject = new MEDDataObject({
       id: randomUUID(),
@@ -65,7 +63,19 @@ const EvaluationSidebar = () => {
       childrenIDs: [],
       inWorkspace: false
     })
-    let sceneObjectId = await insertMEDDataObjectIfNotExists(sceneObject, null, emptyScene)
+    let sceneObjectId = await insertMEDDataObjectIfNotExists(sceneObject)
+
+    // Create hidden metadata file
+    const emptyScene = [{ useMedStandard: useMedStandard }]
+    let metadataObject = new MEDDataObject({
+      id: randomUUID(),
+      name: "metadata.json",
+      type: "json",
+      parentID: sceneObjectId,
+      childrenIDs: [],
+      inWorkspace: false
+    })
+    await insertMEDDataObjectIfNotExists(metadataObject, null, emptyScene)
 
     // Create internal folders
     for (const folder of typeInfo.internalFolders) {
