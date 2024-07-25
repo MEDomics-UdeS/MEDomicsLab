@@ -178,6 +178,8 @@ const FlInput = ({ name, settingInfos, currentValue, onInputChange, disabled, se
             {createTooltip(settingInfos.tooltip, name)}
           </>
         )
+
+      // for percentage input
       case "percentage":
         return (
           <>
@@ -581,7 +583,7 @@ const FlInput = ({ name, settingInfos, currentValue, onInputChange, disabled, se
                     value: { name: e.target.value, path: path },
                     type: settingInfos.type
                   })
-                  console.log("HELLO:", e.target.value)
+
                   if (path != "" && !e.target.value?.endsWith(".pkl")) {
                     customZipFile2Object(path)
                       .then((content) => {

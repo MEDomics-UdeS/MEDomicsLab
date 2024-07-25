@@ -6,67 +6,86 @@ import { Button, Modal } from "react-bootstrap"
 import * as Icon from "react-bootstrap-icons"
 import { FlowFunctionsContext } from "../../flow/context/flowFunctionsContext"
 import { CiEdit } from "react-icons/ci"
+import { LoaderContext } from "../../generalPurpose/loaderContext"
 
+/**
+ *
+ * @param {string} id id of the node
+ * @param {Object} data data of the node
+ * @returns {JSX.Element} An APCModel node
+ *
+ *
+ * @description
+ * This component is used to display an IPCModel node within the MED3pa subworkflow.
+ * It manages the display of the node and the associated modal.
+ * The IPC Model can accept either a .pkl file as input
+ *  OR model type along with its general hyperparameters amd grid search optimization parameters.
+ */
 export default function IPCModelNode({ id, data }) {
   const [showDetails, setShowDetails] = useState(false)
-  const [showModal, setShowModal] = useState(false)
+  const [showModal, setShowModal] = useState(false) // Show and hide settings details of the node
+  // Show and Hide Modal and its Parameters
   const [showGridParams, setShowGridParams] = useState(false)
   const [showHyperParams, setShowHyperParams] = useState(false)
-  const [hyperInit, setHyperInit] = useState(false)
+
   const { updateNode } = useContext(FlowFunctionsContext)
   const [hovered, setHovered] = useState(false)
   const [modelType, setModelType] = useState(null)
+  const { setLoader } = useContext(LoaderContext)
   const [loading, setLoading] = useState(true)
   const [gridParams, setGridParams] = useState({}) // State to hold grid_params
+  const [savePickled, setSavePickled] = useState(true) // Save the model
+  const [usePklInput, setUsePklInput] = useState(false) // Load an Existing model
 
-  useEffect(
-    () => {
-      if (data.setupParam.possibleSettings.model_type) {
-        // Initialize default model type and settings
-        const defaultModelType = data.setupParam.possibleSettings.model_type.default_val
+  // Update the node's internal settings when the model type changes
+  useEffect(() => {
+    if (data.setupParam.possibleSettings.model_type) {
+      // Initialize default model type and settings
+      const defaultModelType = data.setupParam.possibleSettings.model_type.default_val
 
-        const defaultSettings = {
-          model_type: defaultModelType,
-          hyperparameters: {},
-          grid_params: {}
-        }
+      const defaultSettings = {
+        model_type: defaultModelType,
+        hyperparameters: {},
+        grid_params: {},
+        save_pickled: true
+      }
 
-        // Populate hyperparameters and grid_params with default values
-        if (defaultModelType && data.setupParam.possibleSettings.model_settings[defaultModelType]) {
-          data.setupParam.possibleSettings.model_settings[defaultModelType].hyperparameters.forEach((param) => {
-            defaultSettings.hyperparameters[param.name] = param.default_val
-          })
-
-          data.setupParam.possibleSettings.model_settings[defaultModelType].grid_params.forEach((param) => {
-            defaultSettings.grid_params[param.name] = param.default_val
-          })
-        }
-
-        // Update the node with default settings
-        updateNode({
-          id: id,
-          updatedData: {
-            ...data.internal,
-            settings: defaultSettings
-          }
+      // Populate hyperparameters and grid_params with default values
+      if (defaultModelType && data.setupParam.possibleSettings.model_settings[defaultModelType]) {
+        data.setupParam.possibleSettings.model_settings[defaultModelType].hyperparameters.forEach((param) => {
+          defaultSettings.hyperparameters[param.name] = param.default_val
         })
 
-        // Set initial state
-        setModelType(defaultSettings.model_type)
-        setGridParams(defaultSettings.grid_params)
-        setLoading(false)
+        data.setupParam.possibleSettings.model_settings[defaultModelType].grid_params.forEach((param) => {
+          defaultSettings.grid_params[param.name] = param.default_val
+        })
       }
-    },
-    [],
-    [modelType]
-  )
-  useEffect(() => {
-    updateNode({
-      id: id,
-      updatedData: data.internal
-    })
-  }, [])
 
+      // Update the node with default settings
+      updateNode({
+        id: id,
+        updatedData: {
+          ...data.internal,
+          settings: defaultSettings
+        }
+      })
+
+      // Set initial state
+      setModelType(defaultSettings.model_type)
+      setGridParams(defaultSettings.grid_params)
+      setLoading(false)
+    }
+  }, [modelType])
+
+  /**
+   *
+   * @param {Object} settings Object containing hyperparameters and grid search parameters.
+   * @returns {JSX.Element} A JSX element representing the formatted display of settings.
+   *
+   *
+   * @description
+   * This function generates the JSX structure to display hyperparameters and grid search parameters of a model.
+   */
   const renderSettings = (settings) => {
     return (
       <div>
@@ -106,22 +125,52 @@ export default function IPCModelNode({ id, data }) {
     )
   }
 
-  useEffect(() => {
-    console.log("GRID PARAMS:", data.internal.settings.grid_params)
-  }, [data.internal.settings.grid_params])
-
-  useEffect(() => {
-    console.log("HYPERPARAMS:", data.internal.settings.hyperparameters)
-    setHyperInit(true)
-  }, [data.internal.settings.hyperparameters])
-
+  /**
+   *
+   * @param {string} selectedModelType The selected Model Type (Input)
+   *
+   *
+   * @description
+   * This function sets the model type to the selected value from the input component.
+   */
   const handleModelTypeChange = (selectedModelType) => {
     setModelType(selectedModelType)
   }
-  useEffect(() => {
-    console.log("modelTYPE", modelType)
-  }, [modelType])
 
+  /**
+   *
+   * @param {Object} value The updated value (Input)
+   *
+   *
+   * @description
+   * This function updates the 'save_pickled' setting both in the local state and the node's internal data.
+   */
+  const handlesavePickledChange = (value) => {
+    setSavePickled(value.value)
+    if (value) {
+      // Update the node with default settings
+      updateNode({
+        id: id,
+        updatedData: {
+          ...data.internal,
+          settings: {
+            ...data.internal.settings,
+            save_pickled: value.value
+          }
+        }
+      })
+    }
+  }
+
+  /**
+   *
+   * @param {string} key The unique key of the chosen hyperparameter
+   * @param {Object} value The Updated Value (Input)
+   *
+   *
+   * @description
+   * This function is used to update the node internal data settings when the hyperparameters change
+   */
   const handleHyperParamChange = (key, value) => {
     const selectedValues = Array.isArray(value.value) ? value.value.map((option) => option.name) : value.value
 
@@ -140,6 +189,17 @@ export default function IPCModelNode({ id, data }) {
     })
   }
 
+  /**
+   *
+   * @param {string} key The unique key of the parameter to optimize (Grid Search).
+   * @param {int} index The index of the value within the parameter's array of possible values to update.
+   * @param {Object} value The Updated Value (Input)
+   *
+   *
+   * @description
+   * This function is used to update the node internal data settings When
+   *  The grid search parameters array values change
+   */
   const handleGridParamChange = (key, index, value) => {
     let selectedValues = Array.isArray(value.value) ? value.value.map((option) => option.name) : value.value
 
@@ -149,6 +209,7 @@ export default function IPCModelNode({ id, data }) {
       selectedValues[index] = value.value
     }
 
+    // Update data.internal.settings.grid_params with the new value
     updateNode({
       id: id,
       updatedData: {
@@ -166,6 +227,18 @@ export default function IPCModelNode({ id, data }) {
     setGridParams(data.internal.settings.grid_params)
   }
 
+  /**
+   *
+   * @param {string} paramName The name of the Grid Search parameter from which to remove the last element.
+   *
+   *
+   * @description
+   * This function updates the node's internal data settings when
+   *  The length of a grid search parameter's array changes.
+   * It checks if the specified parameter exists in the gridParams.
+   *  If it does, it removes the last element from the
+   * parameter's array and updates the node settings and gridParams state accordingly.
+   */
   const handleRemoveGridParam = (paramName) => {
     if (!gridParams[paramName]) {
       return // Return early if paramName does not exist in grid_params
@@ -203,6 +276,18 @@ export default function IPCModelNode({ id, data }) {
     }
   }
 
+  /**
+   *
+   * @param {string} paramName The name of the Grid Search parameter to which to add an element
+   *
+   *
+   * @description
+   * This function updates the node's internal data settings when
+   *  The length of a grid search parameter's array changes.
+   * It checks if the specified parameter exists in the gridParams.
+   *  If it does, it adds an element to the end of the
+   * parameter's array and updates the node settings and gridParams state accordingly.
+   */
   const handleAddGridParam = (paramName) => {
     if (!gridParams[paramName]) {
       return // Return early if paramName does not exist in grid_params
@@ -237,23 +322,137 @@ export default function IPCModelNode({ id, data }) {
     }))
   }
 
+  /**
+   *
+   * @param {Object} value The updated value (Input)
+   *
+   *
+   * @description
+   * This function updates the node's data internal settings of the node based on 'use_pkl_input' value.
+   *  If PKL input is enabled,
+   * it checks if a file is selected.
+   *  If not, it sets a warning to indicate that no fixed tree structure is selected.
+   * If PKL input is disabled, it removes the 'file' property from the settings and clears any warnings.
+   */
+  const handleUsePKLChange = (value) => {
+    setUsePklInput(value.value)
+    if (value.value) {
+      if (!data.internal.settings.file) {
+        data.internal.hasWarning = { state: true, tooltip: <p>No Fixed Tree Structure selected</p> }
+      } else {
+        data.internal.hasWarning = { state: false }
+      }
+    } else {
+      // eslint-disable-next-line no-unused-vars
+      const { file, ...rest } = data.internal.settings
+      data.internal.hasWarning = { state: false }
+      data.internal.settings = rest
+    }
+  }
+
+  /**
+   *
+   * @param {Object} hasWarning The warning object
+   *
+   *
+   * @description
+   * This function is used to update the node internal data when a warning is triggered from the Input component.
+   */
+  const handleWarning = (hasWarning) => {
+    data.internal.hasWarning = hasWarning
+    updateNode({
+      id: id,
+      updatedData: data.internal
+    })
+  }
+
+  /**
+   *
+   * @param {Object} inputUpdate The input update
+   *
+   *
+   * @description
+   * This function is used to update the node internal data when the files input changes.
+   */
+  const onFilesChange = async (inputUpdate) => {
+    data.internal.settings.file = inputUpdate.value
+
+    if (inputUpdate.value.path !== "") {
+      setLoader(false)
+
+      if (data.internal.settings.file) {
+        data.internal.hasWarning = { state: false }
+      } else {
+        data.internal.hasWarning = { state: true, tooltip: <p>No Fixed Tree Structure selected</p> }
+      }
+    } else {
+      setLoader(true)
+      setTimeout(() => {
+        setLoader(false)
+      }, 1000) // Reset loader to true after 1 second
+    }
+    updateNode({
+      id: id,
+      updatedData: {
+        ...data.internal,
+        settings: {
+          ...data.internal.settings,
+          file: inputUpdate.value
+        }
+      }
+    })
+  }
+
+  /**
+   *
+   *
+   * @description
+   * This function switches the state of `showDetails` between `true` and `false`
+   */
   const toggleShowDetails = () => {
     setShowDetails(!showDetails)
   }
 
+  /**
+   *
+   *
+   * @description
+   * This function switches the state of `showGridParams` between `true` and `false`
+   */
   const toggleShowGridParams = () => {
     setShowGridParams(!showGridParams)
   }
 
+  /**
+   *
+   *
+   * @description
+   * This function switches the state of `showHyperParams` between `true` and `false`
+   */
   const toggleShowHyperParams = () => {
     setShowHyperParams(!showHyperParams)
   }
 
+  /**
+   *
+   *
+   * @description
+   * This function updates the state to display the modal. It sets the `showModal` state
+   * to `true`, making the modal visible.
+   */
   const handleModalShow = () => setShowModal(true)
+
+  /**
+   *
+   *
+   * @description
+   * This function updates the state to hide the modal. It sets the `showModal` state
+   * to `false`, making the modal invisible.
+   */
   const handleModalClose = () => setShowModal(false)
 
   if (loading) {
-    return <div>Loading...</div>
+    return <div>Loading...</div> // If the Settings are not loaded yet
   }
 
   return (
@@ -266,71 +465,113 @@ export default function IPCModelNode({ id, data }) {
         nodeBody={
           <>
             <div className="center">
-              <Button variant="light" className="width-100 btn-contour" onClick={handleModalShow}>
-                {data.internal.settings.target ? "Change Selected Parameters" : "Select IPC Model Parameters"}
-              </Button>
-            </div>
-            <div className="center">
-              <Button
-                variant="light"
-                className="width-100 btn-contour"
-                onClick={toggleShowDetails}
-                style={{
-                  backgroundColor: "transparent",
-                  border: "none",
-                  padding: 0,
-                  textAlign: "left",
-                  display: "flex",
-                  alignItems: "center"
+              <FlInput
+                key={"pklModel"}
+                name={"Load a Pickled Model"}
+                settingInfos={{
+                  type: "bool",
+                  tooltip: "<p>Check if you have a pickled model that you want to use</p>"
                 }}
-              >
-                <div
-                  className="d-flex align-items-center"
-                  style={{
-                    transition: "color 0.3s",
-                    cursor: "pointer",
-                    marginLeft: "auto"
+                currentValue={usePklInput}
+                onInputChange={handleUsePKLChange}
+              />
+            </div>
+            {usePklInput ? (
+              <div className="center mt-3">
+                <FlInput
+                  key={"PickledModel"}
+                  name={"Load a pickled model"}
+                  settingInfos={{
+                    type: "models-input",
+                    tooltip: "<p>Load file .pkl here</p>"
                   }}
-                  onMouseEnter={() => setHovered(true)}
-                  onMouseLeave={() => setHovered(false)}
-                >
-                  <span
-                    className="ms-2"
+                  currentValue={data.internal.settings.file || {}}
+                  setHasWarning={handleWarning}
+                  onInputChange={onFilesChange}
+                />
+              </div>
+            ) : (
+              <>
+                <div className="center mt-3">
+                  <Button variant="light" className="width-100 btn-contour" onClick={handleModalShow}>
+                    {data.internal.settings.target ? "Change Selected Parameters" : "Select IPC Model Parameters"}
+                  </Button>
+                </div>
+                <div className="center mt-3">
+                  <FlInput
+                    key={"SavePkl"}
+                    name={"Store model in pickle format"}
+                    settingInfos={{
+                      type: "bool",
+                      tooltip: "<p>Check if you want to save the model</p>"
+                    }}
+                    currentValue={savePickled}
+                    onInputChange={handlesavePickledChange}
+                  />
+                </div>
+                <div className="center">
+                  <Button
+                    variant="light"
+                    className="width-100 btn-contour"
+                    onClick={toggleShowDetails}
                     style={{
-                      fontSize: "0.8rem",
-                      color: hovered ? "black" : "#999"
+                      backgroundColor: "transparent",
+                      border: "none",
+                      padding: 0,
+                      textAlign: "left",
+                      display: "flex",
+                      alignItems: "center"
                     }}
                   >
-                    {showDetails ? "Hide Details" : "Show Details"}
-                  </span>
-                  {showDetails ? (
-                    <Icon.Dash
+                    <div
+                      className="d-flex align-items-center"
                       style={{
-                        color: hovered ? "black" : "#999",
-                        marginRight: "5px"
+                        transition: "color 0.3s",
+                        cursor: "pointer",
+                        marginLeft: "auto"
                       }}
-                    />
-                  ) : (
-                    <Icon.Plus
-                      style={{
-                        color: hovered ? "black" : "#999",
-                        marginRight: "5px"
-                      }}
-                    />
-                  )}
+                      onMouseEnter={() => setHovered(true)}
+                      onMouseLeave={() => setHovered(false)}
+                    >
+                      <span
+                        className="ms-2"
+                        style={{
+                          fontSize: "0.8rem",
+                          color: hovered ? "black" : "#999"
+                        }}
+                      >
+                        {showDetails ? "Hide Details" : "Show Details"}
+                      </span>
+                      {showDetails ? (
+                        <Icon.Dash
+                          style={{
+                            color: hovered ? "black" : "#999",
+                            marginRight: "5px"
+                          }}
+                        />
+                      ) : (
+                        <Icon.Plus
+                          style={{
+                            color: hovered ? "black" : "#999",
+                            marginRight: "5px"
+                          }}
+                        />
+                      )}
+                    </div>
+                  </Button>
                 </div>
-              </Button>
-            </div>
-            {showDetails && data.internal.settings && (
-              <div className="border border-light p-3 mb-3">
-                <hr className="my-2" />
-                <br />
-                <div className="mb-3">
-                  <p className="fw-bold mb-0">Default Settings</p>
-                  <br />
-                  {renderSettings(data.internal.settings)}
-                </div>
-              </div>
+                {showDetails && data.internal.settings && (
+                  <div className="border border-light p-3 mb-3">
+                    <hr className="my-2" />
+                    <br />
+                    <div className="mb-3">
+                      <p className="fw-bold mb-0">Default Settings</p>
+                      <br />
+                      {renderSettings(data.internal.settings)}
+                    </div>
+                  </div>
+                )}
+              </>
             )}
           </>
         }
@@ -372,7 +613,6 @@ export default function IPCModelNode({ id, data }) {
                     <Icon.ChevronDown style={{ cursor: "pointer", marginLeft: "auto" }} onClick={toggleShowHyperParams} />
                   </div>
                   {showHyperParams &&
-                    hyperInit &&
                     data.setupParam.possibleSettings.model_settings[modelType].hyperparameters.map((param) => {
                       // Transform choices to objects with a name property if choices exist
                       const transformedChoices = param.choices ? param.choices.map((choice) => ({ name: choice })) : []

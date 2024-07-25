@@ -1,59 +1,58 @@
 import { Typography } from "@mui/material"
 import { BiSearchAlt } from "react-icons/bi"
-import React, { useEffect, useState, useRef } from "react"
+import React, { useEffect, useState } from "react"
 import { Tab, Tabs } from "react-bootstrap"
 import { Table } from "react-bootstrap"
-import echarts from "echarts/lib/echarts" // Import ECharts
-import "echarts/lib/chart/pie" // Import pie chart
-import "echarts/lib/component/tooltip" // Import tooltip component
-import "echarts/lib/component/title" // Import title component
-import "echarts/lib/component/legend" // Import legend component
+import ReactECharts from "echarts-for-react"
 
+/**
+ *
+ * @param {Array} detectronResults The array of results from Detectron Experiment.
+ * @returns {JSX.Element} The DetectronResults component.
+ *
+ *
+ * @description
+ * This component displays the results of the Detectron analysis as tabs,
+ *  specifically for covariate shift detection. Each tab displays the results of a Detectron Strategy.
+ * It initializes and manages the state for the results,
+ *  including rendering pie charts for significance descriptions.
+ */
 const DetectronResults = ({ detectronResults }) => {
-  const [initialized, setInitialized] = useState(false)
-  const [activeKey, setActiveKey] = useState("0")
-  const chartRef = useRef(null) // Reference for the chart DOM element
+  const [initialized, setInitialized] = useState(false) // If the results are set
+  const [activeKey, setActiveKey] = useState("0") // Initialize the active tab
 
+  // Initialize the component state based on the detectronResults prop
   useEffect(() => {
     if (detectronResults && detectronResults.length > 0) {
       setInitialized(true)
     }
   }, [detectronResults])
 
-  useEffect(() => {
-    if (initialized) {
-      initializeCharts()
-    }
-  }, [initialized, activeKey])
-
-  const initializeCharts = () => {
-    const chartDom = chartRef.current // Access the DOM element using the ref
-    if (!chartDom) return // Ensure the chart DOM element exists
-
-    const myChart = echarts.init(chartDom) // Initialize ECharts instance
-
-    // Prepare data for pie chart and legend
+  /**
+   *
+   * @param {Object} significanceDescription An object where keys are significance categories and values are their respective percentages.
+   * @returns {Object} Configuration options for the pie chart.
+   *
+   *
+   * @description
+   * This function takes the significance description data and maps it to the format required by ECharts.
+   * It prepares the data and legend items for the pie chart, assigns colors, and sets up chart options including tooltip and legend.
+   */
+  const getPieChartOptions = (significanceDescription) => {
     const pieData = []
     const legendData = []
     const colors = ["#7cbf77", "#ffd966", "#ffa05c", "#ff6f69"] // Define colors
 
-    if (detectronResults && detectronResults.length > 0) {
-      const significanceDescription = detectronResults.find((result) => result.Strategy === "enhanced_disagreement_strategy")?.significance_description
+    Object.keys(significanceDescription).forEach((key, index) => {
+      const value = significanceDescription[key]
+      pieData.push({ value: value, name: key })
+      legendData.push({ name: key, icon: "circle" }) // Add key to legend data
+      // Assign color based on index, looping through colors array
+      const colorIndex = index % colors.length
+      pieData[index].itemStyle = { color: colors[colorIndex] }
+    })
 
-      if (significanceDescription) {
-        Object.keys(significanceDescription).forEach((key, index) => {
-          const value = significanceDescription[key]
-          pieData.push({ value: value, name: key })
-          legendData.push({ name: key, icon: "circle" }) // Add key to legend data
-          // Assign color based on index, looping through colors array
-          const colorIndex = index % colors.length
-          pieData[index].itemStyle = { color: colors[colorIndex] }
-        })
-      }
-    }
-
-    // Set options for pie chart
-    const option = {
+    return {
       title: {
         text: "Chart Pie Representing Shift Probability",
         left: "center", // Center the title
@@ -93,9 +92,6 @@ const DetectronResults = ({ detectronResults }) => {
         }
       ]
     }
-
-    // Set chart options and render
-    myChart.setOption(option)
   }
 
   if (!initialized) {
@@ -124,7 +120,7 @@ const DetectronResults = ({ detectronResults }) => {
       </div>
     )
   }
-
+  // Render no results message if detectronResults is empty
   if (!detectronResults || detectronResults.length === 0) {
     return (
       <div className="card-paresults p-3">
@@ -197,7 +193,7 @@ const DetectronResults = ({ detectronResults }) => {
                       ) : activeKey === index.toString() ? (
                         <tr key={key}>
                           <td colSpan="2">
-                            <div ref={chartRef} style={{ height: "300px", width: "100%" }} />
+                            <ReactECharts option={getPieChartOptions(value)} style={{ height: "300px", width: "100%" }} />
                           </td>
                         </tr>
                       ) : null

@@ -7,6 +7,7 @@ import { OverlayTrigger, Tooltip } from "react-bootstrap"
  * @description This component is used to display a PaOptimizeIO node.
  * It is a container with a label and description.
  * Its purpose is to be used in a subflow as a visually appealing demo node.
+ * This node is a copy of the OptimizeIO of the learning module
  */
 const PaOptimizeIO = ({ id, data }) => {
   // Define inline styles

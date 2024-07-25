@@ -2,6 +2,16 @@ import React, { useState, useEffect } from "react"
 import { Button, Modal, Tab, Tabs, Card, Container, Row, Col } from "react-bootstrap"
 import { FiArrowLeft } from "react-icons/fi"
 
+/**
+ *
+ * @param {Object} node The node object containing details and settings to display.
+ * @param {string} labelColor The color for the label text.
+ * @returns {JSX.Element} The rendered component showing node details.
+ *
+ * @description
+ * This component renders a card displaying the details of a node. The node's label and settings are shown,
+ * with the option to expand or collapse the detailed settings view.
+ */
 const NodeDetails = ({ node, labelColor }) => {
   const [isExpanded, setIsExpanded] = useState(false)
 
@@ -10,10 +20,26 @@ const NodeDetails = ({ node, labelColor }) => {
   }
   const settings = node.settings
 
+  /**
+   *
+   * @description
+   * The function toggles the expansion state to show or hide details.
+   */
   const toggleExpansion = () => {
     setIsExpanded(!isExpanded)
   }
 
+  /**
+   *
+   * @param {Object} obj The settings object to render.
+   * @param {number} depth The depth level for indentation.
+   * @param {string} parentKey he key of the parent object for unique key generation.
+   * @returns {JSX.Element[]} Array of Card components displaying the settings.
+   *
+   *
+   * @description
+   * Recursively renders the settings object into a list of Card components.
+   */
   const renderSettings = (obj, depth = 0, parentKey = "") => {
     return Object.entries(obj).map(([key, value]) => {
       const isObject = typeof value === "object" && value !== null
@@ -66,23 +92,49 @@ const NodeDetails = ({ node, labelColor }) => {
   )
 }
 
+/**
+ *
+ * @param {boolean} show Indicates if the modal is visible.
+ * @param {function} onHide Function to call when hiding the modal.
+ * @param {Array} configs Array of configurations to display.
+ * @param {function} onRun Function to call when running the pipeline.
+ *
+ *
+ * @description
+ * Modal for running the MED3pa pipeline / displaying detailed configurations.
+ */
 const RunPipelineModal = ({ show, onHide, configs, onRun }) => {
   const [selectedConfig, setSelectedConfig] = useState(null)
 
+  // Update the selectedConfig when show state changes
   useEffect(() => {
     if (!show) {
       setSelectedConfig(null) // Reset the selectedConfig when the modal is hidden
     }
   }, [show])
 
+  /**
+   *
+   * @param {Array} children Array of child nodes to display.
+   *
+   *
+   * @description
+   * The function sets the selected configuration to show sub-nodes.
+   */
   const handleShowSubNodes = (children) => {
     setSelectedConfig(children)
   }
 
+  /**
+   * Resets the selected configuration to return to the previous view.
+   */
   const handleBack = () => {
     setSelectedConfig(null)
   }
 
+  /**
+   * Executes the pipeline with the current configurations and hides the modal.
+   */
   const handleRunPipeline = () => {
     onRun(configs)
     onHide()

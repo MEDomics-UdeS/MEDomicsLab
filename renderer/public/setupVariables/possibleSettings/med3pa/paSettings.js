@@ -1,4 +1,6 @@
 /* eslint-disable */
+
+// Static Settings (Unchangeable)
 const paSettings = {
   dataset_loader: {
     options: {
@@ -12,8 +14,8 @@ const paSettings = {
       files: [
         { name: "Training Set", target: "", path: "" },
         { name: "Validation Set", target: "", path: "" },
-        { name: "Test Set", target: "", path: "" },
-        { name: "Evaluation Set", target: "", path: "" }
+        { name: "Reference Set", target: "", path: "" },
+        { name: "Test Set", target: "", path: "" }
       ],
       tooltip: "<p>Select your main Datasets</p>"
     }
@@ -76,12 +78,34 @@ const paSettings = {
     }
   }
 }
+
+/**
+ *
+ * @param {string} str The input string to be formatted.
+ * @returns {string} The formatted string.
+ *
+ *
+ * @description
+ * Formats a string by converting it to title case and replacing underscores with spaces.
+ */
 export function formatString(str) {
   return str
     .toLowerCase()
     .replace(/_/g, " ") // Replace underscores with spaces
     .replace(/\b\w/g, (char) => char.toUpperCase()) // Capitalize the first letter of each word
 }
+
+/**
+ *
+ * @param {string} nodeName The type of node ('ipcModelNode', 'apcModelNode', 'uncertaintyMetricsNode', or 'detectronNode').
+ * @param {Object} staticSettings The static settings object to be updated.
+ * @param {Object} dynamicSettings The dynamic settings object containing model-specific configurations.
+ * @returns {Object} The updated static settings object.
+ *
+ *
+ * @description
+ * Merges dynamic settings retrieved from Backend into static settings based on the node type.
+ */
 export const mergeSettings = (nodeName, staticSettings, dynamicSettings) => {
   const mapOptions = (options) => options.map((option) => ({ name: formatString(option) }))
   if (nodeName === "ipcModelNode") {

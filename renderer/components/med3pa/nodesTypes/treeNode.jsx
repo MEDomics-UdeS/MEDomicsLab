@@ -5,6 +5,18 @@ import { formatValue } from "../resultTabs/tabFunctions"
 
 import { BsFillCheckCircleFill } from "react-icons/bs"
 import { VscError } from "react-icons/vsc"
+
+/**
+ *
+ * @param {string} id id of the node
+ * @param {Object} data data of the node
+ * @returns {JSX.Element} A Tree node
+ *
+ *
+ * @description
+ * This component is used to display a Tree node.
+ * It manages the display of the node profile in a MED3pa results profile tree.
+ */
 export default function TreeNode({ id, data }) {
   const settings = data.internal.settings
   let { className } = settings
@@ -17,6 +29,19 @@ export default function TreeNode({ id, data }) {
     className = "" // Reset className to prevent it from being applied
   }
 
+  /**
+   *
+   * @param {Object} value The input update
+   * @param {string} parentKey - The key associated with the value if the value is not an object.
+   * @returns {JSX.Element} A set of JSX elements representing the setting's value.
+   *
+   *
+   * @description
+   * This function renders the value of a setting. If the value is an object, it recursively
+   * renders its child fields as key-value pairs. If the value is a string or any other primitive type,
+   * it renders the value directly with its key if available.
+   * The function handles both nested objects and primitive values, ensuring proper formatting and display.
+   */
   const renderSettingValue = (value, parentKey) => {
     if (typeof value === "object" && value !== null) {
       // If value is an object, render its child fields as key-value pairs

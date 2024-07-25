@@ -2,6 +2,18 @@ import React from "react"
 import { Button } from "react-bootstrap"
 import Modal from "react-bootstrap/Modal"
 
+/**
+ *
+ * @param {boolean} show Determines whether the modal is visible or not.
+ * @param {Function} onHide Function to handle closing the modal.
+ * @param {React.ReactNode} results The content to display within the modal body.
+ * @param {string} title The title of the modal.
+ * @returns {JSX.Element} The rendered modal component.
+ *
+ *
+ * @description
+ * A React component that displays a modal with configuration details.
+ */
 export default function FlResultsModal({ show, onHide, results, title }) {
   return (
     <div>

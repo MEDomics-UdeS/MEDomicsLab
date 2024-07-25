@@ -2,7 +2,27 @@ import React from "react"
 import { Typography, Grid } from "@mui/material"
 import { MdOutlineQueryStats } from "react-icons/md"
 import { CiBookmarkCheck } from "react-icons/ci"
+
+/**
+ *
+ * @param {Object} loadedFile  An object where keys are evaluation names and values are objects containing metric data.
+ * @returns {JSX.Element} The rendered component displaying model evaluations.
+ *
+ *
+ * @description
+ * Component to display the evaluation metrics for MED3PA models: IPC Model and APC Model.
+ */
 const PaModelsEval = ({ loadedFile }) => {
+  /**
+   *
+   * @param {Object} evaluation - The metrics for a specific evaluation.
+   * @param {string} title - The name of the evaluation model.
+   * @returns {JSX.Element} A grid item containing the title and metrics.
+   *
+   *
+   * @description
+   * A function that renders a grid item displaying metrics for a given evaluation.
+   */
   const renderEvaluation = (evaluation, title) => {
     return (
       <Grid item xs={12} sm={6} key={title}>

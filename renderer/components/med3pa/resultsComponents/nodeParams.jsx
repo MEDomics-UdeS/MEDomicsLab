@@ -4,9 +4,28 @@ import FlInput from "../paInput"
 import { TbSettingsCog } from "react-icons/tb"
 import { nodeInformation, shiftInformation } from "../resultTabs/tabFunctions"
 
+/**
+ *
+ * @param {string} parentId ID of the parent node.
+ * @param {Object} nodeParams Current parameters of the node.
+ * @param {function} setNodeParams Function to update node parameters.
+ * @param {Object} settings Settings used to populate available options for metrics and strategies.
+ * @param {boolean} isDetectron Boolean indicating if the node is of Detectron type.
+ * @param {boolean} shouldDisable Boolean to determine if the Detectron-related options should be disabled.
+ * @returns {JSX.Element} The NodeParameters component.
+ *
+ *
+ * @description
+ * NodeParameters component allows the configuration of various parameters for a node.
+ * It includes options for focus view, metrics, detectron strategies, and coloring nodes based on values.
+ */
 const NodeParameters = ({ parentId, nodeParams, setNodeParams, settings, isDetectron, shouldDisable }) => {
   const { focusView, thresholdEnabled, customThreshold, selectedParameter, metrics, detectronStrategy } = nodeParams
 
+  /**
+   * Initialize `metrics` and `detectronStrategy` if they are not already set in `nodeParams`.
+   * Update the state with filtered metrics and strategy options from `settings`.
+   */
   useEffect(() => {
     if (nodeParams.metrics === null) {
       setNodeParams((prevNodeParams) => ({
@@ -22,6 +41,15 @@ const NodeParameters = ({ parentId, nodeParams, setNodeParams, settings, isDetec
     }
   }, [settings])
 
+  /**
+   *
+   * @param {Object} event The change event from the radio group.
+   *
+   *
+   * @description
+   * A function that handles changes in focus view selection.
+   * Updates `focusView` in `nodeParams` state.
+   */
   const handleFocusViewChange = (event) => {
     setNodeParams((prevState) => ({
       ...prevState,
@@ -29,6 +57,11 @@ const NodeParameters = ({ parentId, nodeParams, setNodeParams, settings, isDetec
     }))
   }
 
+  /**
+   *
+   * @description
+   * A function that toggles the state of `thresholdEnabled` to enable or disable threshold-based coloring.
+   */
   const handleThresholdToggleChange = () => {
     setNodeParams((prevState) => ({
       ...prevState,
@@ -36,6 +69,15 @@ const NodeParameters = ({ parentId, nodeParams, setNodeParams, settings, isDetec
     }))
   }
 
+  /**
+   *
+   * @param {Object} event The change event from the input.
+   *
+   *
+   * @description
+   * A function that handles changes in custom threshold value.
+   * it updates `customThreshold` in `nodeParams` state.
+   */
   const handleCustomThresholdChange = (event) => {
     setNodeParams((prevState) => ({
       ...prevState,
@@ -43,6 +85,15 @@ const NodeParameters = ({ parentId, nodeParams, setNodeParams, settings, isDetec
     }))
   }
 
+  /**
+   *
+   * @param {Object} event The change event from the input.
+   *
+   *
+   * @description
+   * A function that handles changes in the selected parameter for highlighting nodes.
+   * it updates `selectedParameter` in `nodeParams` state.
+   */
   const handleParameterChange = (event) => {
     setNodeParams((prevState) => ({
       ...prevState,
@@ -50,6 +101,15 @@ const NodeParameters = ({ parentId, nodeParams, setNodeParams, settings, isDetec
     }))
   }
 
+  /**
+   *
+   * @param {Object} event The change event from the input.
+   *
+   *
+   * @description
+   * A function that handles changes in selected metrics.
+   * It updates `metrics` in `nodeParams` state.
+   */
   const handleMetricsChange = (event) => {
     setNodeParams((prevState) => ({
       ...prevState,
@@ -57,6 +117,15 @@ const NodeParameters = ({ parentId, nodeParams, setNodeParams, settings, isDetec
     }))
   }
 
+  /**
+   *
+   * @param {Object} event The change event from the input.
+   *
+   *
+   * @description
+   * A function that handles changes in the detectron strategy selection.
+   * it updates `detectronStrategy` in `nodeParams` state.
+   */
   const handleStrategyChange = (event) => {
     setNodeParams((prevState) => ({
       ...prevState,
@@ -64,6 +133,15 @@ const NodeParameters = ({ parentId, nodeParams, setNodeParams, settings, isDetec
     }))
   }
 
+  /**
+   *
+   * @returns {Array} Array of choices for highlighting.
+   *
+   *
+   * @description
+   * A function that determines available choices for highlighting based on the current `focusView`.
+   * It returns an array of choices to be used in a select input.
+   */
   const getHighlightChoices = () => {
     if (focusView === "Node information") {
       return nodeInformation.map((information) => ({ name: information }))

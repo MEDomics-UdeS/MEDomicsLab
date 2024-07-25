@@ -4,9 +4,19 @@ import { Typography } from "@mui/material"
 import { GiPathDistance } from "react-icons/gi"
 import { FaMinus, FaPlus } from "react-icons/fa"
 
+/**
+ *
+ * @param {Object} selectedNodeInfo Information about the selected node.
+ * @returns {JSX.Element|null} The rendered component, or `null` if no `selectedNodeInfo` is provided.
+ *
+ *
+ * @description
+ * Component that displays the path of a selected node and allows toggling its visibility.
+ */
 const SelectedNodePath = ({ selectedNodeInfo }) => {
-  const [isContentVisible, setIsContentVisible] = useState(true)
+  const [isContentVisible, setIsContentVisible] = useState(true) // Controls whether the path content is visible or hidden
 
+  // If no selectedNodeInfo is provided, render nothing
   if (!selectedNodeInfo) return null
 
   return (

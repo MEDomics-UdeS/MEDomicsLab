@@ -7,18 +7,36 @@ import * as Icon from "react-bootstrap-icons"
 import { FlowFunctionsContext } from "../../flow/context/flowFunctionsContext"
 import { CiEdit } from "react-icons/ci"
 import { LoaderContext } from "../../generalPurpose/loaderContext"
+
+/**
+ *
+ * @param {string} id id of the node
+ * @param {Object} data data of the node
+ * @returns {JSX.Element} An APCModel node
+ *
+ *
+ * @description
+ * This component is used to display an APCModel node within the MED3pa subworkflow.
+ * It manages the display of the node and the associated modal.
+ * The APC Model can accept either a .json file as input
+ *  OR general hyperparameters along with grid parameters.
+ */
 export default function APCModelNode({ id, data }) {
-  const [showDetails, setShowDetails] = useState(false)
+  const [showDetails, setShowDetails] = useState(false) // Show and hide settings details of the node
+  // Show and Hide Modal and its Parameters
   const [showModal, setShowModal] = useState(false)
   const [showGridParams, setShowGridParams] = useState(false)
   const [showHyperParams, setShowHyperParams] = useState(false)
+
   const { setLoader } = useContext(LoaderContext)
   const { updateNode } = useContext(FlowFunctionsContext)
   const [hovered, setHovered] = useState(false)
-
+  const [savePickled, setSavePickled] = useState(true) // Save the APC Model
   const [loading, setLoading] = useState(true)
   const [gridParams, setGridParams] = useState({}) // State to hold grid_params
   const [useJsonInput, setUseJsonInput] = useState(false) // Load an Existing Fixed
+
+  // Initial set up of GridParams state and Loading State
   useEffect(() => {
     if (data.setupParam.possibleSettings && data.internal.settings) {
       setGridParams(data.internal.settings.grid_params)
@@ -26,18 +44,30 @@ export default function APCModelNode({ id, data }) {
     }
   }, [])
 
+  // Update Internal Node Data when the data.internal.settings change and "save_pickled" is not initialized
   useEffect(() => {
-    console.log("GENERAL PARAMS :", data.internal)
+    if (!("save_pickled" in data.internal.settings)) {
+      updateNode({
+        id: id,
+        updatedData: {
+          ...data.internal,
+          settings: {
+            ...data.internal.settings,
+            save_pickled: true
+          }
+        }
+      })
+    }
   }, [data.internal.settings])
 
-  useEffect(() => {
-    console.log("GRID PARAMS :", data.internal.settings.grid_params)
-  }, [data.internal.settings.grid_params])
-
-  useEffect(() => {
-    console.log("HYPERPARAMS:", data.internal.settings.hyperparameters)
-  }, [data.internal.settings.hyperparameters])
-
+  /**
+   *
+   * @param {Object} hasWarning The warning object
+   *
+   *
+   * @description
+   * This function is used to update the node internal data when a warning is triggered from the Input component.
+   */
   const handleWarning = (hasWarning) => {
     data.internal.hasWarning = hasWarning
     updateNode({
@@ -45,12 +75,31 @@ export default function APCModelNode({ id, data }) {
       updatedData: data.internal
     })
   }
-  const onFilesChange = async (inputUpdate) => {
-    data.internal.settings.file = inputUpdate.value
 
+  /**
+   *
+   * @param {Object} inputUpdate The input update
+   *
+   *
+   * @description
+   * This function is used to update the node internal data when the files input changes.
+   */
+  const onFilesChange = async (inputUpdate) => {
+    // Update Node internal settings with the updated information!
+    updateNode({
+      id: id,
+      updatedData: {
+        ...data.internal,
+        settings: {
+          ...data.internal.settings,
+          file: inputUpdate.value
+        }
+      }
+    })
+
+    // Update Warning State
     if (inputUpdate.value.path !== "") {
       setLoader(false)
-
       if (data.internal.settings.file) {
         data.internal.hasWarning = { state: false }
       } else {
@@ -58,19 +107,26 @@ export default function APCModelNode({ id, data }) {
       }
     } else {
       setLoader(true)
+      data.internal.hasWarning = { state: true, tooltip: <p>No Fixed Tree Structure selected</p> }
       setTimeout(() => {
         setLoader(false)
-      }, 1000) // Reset loader to true after 1 second
+      }, 1000) // Reset loader to true after 1 second so the App won't stop
     }
-    updateNode({
-      id: id,
-      updatedData: data.internal
-    })
   }
 
+  /**
+   *
+   * @param {string} key The unique key of the chosen hyperparameter
+   * @param {Object} value The Updated Value (Input)
+   *
+   *
+   * @description
+   * This function is used to update the node internal data settings when the hyperparameters change
+   */
   const handleHyperParamChange = (key, value) => {
     const selectedValues = Array.isArray(value.value) ? value.value.map((option) => option.name) : value.value
 
+    // Update data.internal.settings.hyperparameters with the new value
     updateNode({
       id: id,
       updatedData: {
@@ -86,6 +142,17 @@ export default function APCModelNode({ id, data }) {
     })
   }
 
+  /**
+   *
+   * @param {string} key The unique key of the parameter to optimize (Grid Search).
+   * @param {int} index The index of the value within the parameter's array of possible values to update.
+   * @param {Object} value The Updated Value (Input)
+   *
+   *
+   * @description
+   * This function is used to update the node internal data settings When
+   *  The grid search parameters array values change
+   */
   const handleGridParamChange = (key, index, value) => {
     let selectedValues = Array.isArray(value.value) ? value.value.map((option) => option.name) : value.value
     if (index !== -1 && data.internal.settings.grid_params[key]) {
@@ -94,6 +161,7 @@ export default function APCModelNode({ id, data }) {
       selectedValues[index] = value.value
     }
 
+    // Update data.internal.settings.grid_params with the new value
     updateNode({
       id: id,
       updatedData: {
@@ -107,9 +175,22 @@ export default function APCModelNode({ id, data }) {
         }
       }
     })
+    // Set state of GridParams with the new value
     setGridParams(data.internal.settings.grid_params)
   }
 
+  /**
+   *
+   * @param {string} paramName The name of the Grid Search parameter from which to remove the last element.
+   *
+   *
+   * @description
+   * This function updates the node's internal data settings when
+   *  The length of a grid search parameter's array changes.
+   * It checks if the specified parameter exists in the gridParams.
+   *  If it does, it removes the last element from the
+   * parameter's array and updates the node settings and gridParams state accordingly.
+   */
   const handleRemoveGridParam = (paramName) => {
     if (!gridParams[paramName]) {
       return // Return early if paramName does not exist in grid_params
@@ -120,7 +201,7 @@ export default function APCModelNode({ id, data }) {
 
     // Ensure index is valid
     if (updatedGridParams.length > 0) {
-      // Remove the item at the specified index
+      // Remove the item at the end
       updatedGridParams.splice(updatedGridParams.length - 1, 1)
 
       // Update the settings with the modified grid_params
@@ -145,6 +226,61 @@ export default function APCModelNode({ id, data }) {
       }))
     }
   }
+
+  /**
+   *
+   * @param {string} paramName The name of the Grid Search parameter to which to add an element
+   *
+   *
+   * @description
+   * This function updates the node's internal data settings when
+   *  The length of a grid search parameter's array changes.
+   * It checks if the specified parameter exists in the gridParams.
+   *  If it does, it adds an element to the end of the
+   * parameter's array and updates the node settings and gridParams state accordingly.
+   */
+  const handleAddGridParam = (paramName) => {
+    if (!gridParams[paramName]) {
+      return // Return early if paramName does not exist in grid_params
+    }
+
+    // Create a copy of the current grid_params array
+    const updatedGridParams = [...gridParams[paramName]]
+
+    // Append a new item (here, adding 0 as an example)
+    updatedGridParams.push(null)
+
+    // Update the settings with the modified grid_params
+    updateNode({
+      id: id,
+      updatedData: {
+        ...data.internal,
+        settings: {
+          ...data.internal.settings,
+          grid_params: {
+            ...data.internal.settings.grid_params,
+            [paramName]: updatedGridParams
+          }
+        }
+      }
+    })
+
+    // Update gridParams state after updating node data
+    setGridParams((prevState) => ({
+      ...prevState,
+      [paramName]: updatedGridParams
+    }))
+  }
+
+  /**
+   *
+   * @param {Object} settings Object containing hyperparameters and grid search parameters.
+   * @returns {JSX.Element} A JSX element representing the formatted display of settings.
+   *
+   *
+   * @description
+   * This function generates the JSX structure to display hyperparameters and grid search parameters.
+   */
   const renderSettings = (settings) => {
     return (
       <div>
@@ -179,39 +315,43 @@ export default function APCModelNode({ id, data }) {
     )
   }
 
-  const handleAddGridParam = (paramName) => {
-    if (!gridParams[paramName]) {
-      return // Return early if paramName does not exist in grid_params
-    }
-
-    // Create a copy of the current grid_params array
-    const updatedGridParams = [...gridParams[paramName]]
-
-    // Append a new item (here, adding 0 as an example)
-    updatedGridParams.push(null)
-
-    // Update the settings with the modified grid_params
-    updateNode({
-      id: id,
-      updatedData: {
-        ...data.internal,
-        settings: {
-          ...data.internal.settings,
-          grid_params: {
-            ...data.internal.settings.grid_params,
-            [paramName]: updatedGridParams
+  /**
+   *
+   * @param {Object} value The updated value (Input)
+   *
+   *
+   * @description
+   * This function updates the 'save_pickled' setting both in the local state and the node's internal data.
+   */
+  const handlesavePickledChange = (value) => {
+    setSavePickled(value.value)
+    if (value) {
+      // Update the node with the updated state value
+      updateNode({
+        id: id,
+        updatedData: {
+          ...data.internal,
+          settings: {
+            ...data.internal.settings,
+            save_pickled: value.value
           }
         }
-      }
-    })
-
-    // Update gridParams state after updating node data
-    setGridParams((prevState) => ({
-      ...prevState,
-      [paramName]: updatedGridParams
-    }))
+      })
+    }
   }
 
+  /**
+   *
+   * @param {Object} value The updated value (Input)
+   *
+   *
+   * @description
+   * This function updates the node's data internal settings of the node based on 'use_json_input' value.
+   *  If JSON input is enabled,
+   * it checks if a file is selected.
+   *  If not, it sets a warning to indicate that no fixed tree structure is selected.
+   * If JSON input is disabled, it removes the 'file' property from the settings and clears any warnings.
+   */
   const handleUseJSONChange = (value) => {
     setUseJsonInput(value.value)
     if (value.value) {
@@ -221,27 +361,63 @@ export default function APCModelNode({ id, data }) {
         data.internal.hasWarning = { state: false }
       }
     } else {
+      // eslint-disable-next-line no-unused-vars
+      const { file, ...rest } = data.internal.settings
       data.internal.hasWarning = { state: false }
+      data.internal.settings = rest
     }
   }
 
+  /**
+   *
+   *
+   * @description
+   * This function switches the state of `showDetails` between `true` and `false`
+   */
   const toggleShowDetails = () => {
     setShowDetails(!showDetails)
   }
 
+  /**
+   *
+   *
+   * @description
+   * This function switches the state of `showGridParams` between `true` and `false`
+   */
   const toggleShowGridParams = () => {
     setShowGridParams(!showGridParams)
   }
 
+  /**
+   *
+   *
+   * @description
+   * This function switches the state of `showHyperParams` between `true` and `false`
+   */
   const toggleShowHyperParams = () => {
     setShowHyperParams(!showHyperParams)
   }
 
+  /**
+   *
+   *
+   * @description
+   * This function updates the state to display the modal. It sets the `showModal` state
+   * to `true`, making the modal visible.
+   */
   const handleModalShow = () => setShowModal(true)
+
+  /**
+   *
+   *
+   * @description
+   * This function updates the state to hide the modal. It sets the `showModal` state
+   * to `false`, making the modal invisible.
+   */
   const handleModalClose = () => setShowModal(false)
 
   if (loading) {
-    return <div>Loading...</div>
+    return <div>Loading...</div> // If the Settings are not loaded yet
   }
 
   return (
@@ -282,11 +458,21 @@ export default function APCModelNode({ id, data }) {
             ) : (
               <>
                 <div className="center mt-3">
-                  {" "}
-                  {/* Added mt-3 for margin top */}
                   <Button variant="light" className="width-100 btn-contour" onClick={handleModalShow}>
                     {data.internal.settings.target ? "Change Selected Parameters" : "Select APC Model Parameters"}
                   </Button>
+                </div>
+                <div className="center mt-3">
+                  <FlInput
+                    key={"SavePkl"}
+                    name={"Store model in pickle format"}
+                    settingInfos={{
+                      type: "bool",
+                      tooltip: "<p>Check if you want to save the model</p>"
+                    }}
+                    currentValue={savePickled}
+                    onInputChange={handlesavePickledChange}
+                  />
                 </div>
                 <div className="center">
                   <Button

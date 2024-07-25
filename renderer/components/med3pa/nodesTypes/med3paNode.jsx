@@ -3,9 +3,19 @@ import Node from "../../flow/node"
 import { Button } from "react-bootstrap"
 import { PiFloppyDisk } from "react-icons/pi"
 
-// MEDfl context
+// MED3pa context
 import { useMED3paContext } from "../../workspace/med3paContext"
 
+/**
+ *
+ * @param {string} id id of the node
+ * @param {Object} data data of the node
+ * @returns {JSX.Element} A MED3Pa node
+ *
+ *
+ * @description
+ * This component is used to display a Group Node: MED3pa.
+ */
 export default function MED3paNode({ id, data }) {
   // context
   const { med3paData, add3paData } = useMED3paContext()
@@ -18,7 +28,6 @@ export default function MED3paNode({ id, data }) {
         id={id}
         data={data}
         setupParam={data.setupParam}
-        // the body of the node is a form select (particular to this node)
         nodeBody={
           <>
             <div className="center">

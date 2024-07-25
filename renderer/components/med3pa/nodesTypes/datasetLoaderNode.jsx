@@ -8,15 +8,39 @@ import MedDataObject from "../../workspace/medDataObject"
 import { LoaderContext } from "../../generalPurpose/loaderContext"
 import FlInput from "../paInput"
 
+/**
+ *
+ * @param {string} id id of the node
+ * @param {Object} data data of the node
+ * @returns {JSX.Element} A BaseModel node
+ *
+ *
+ * @description
+ * This component is used to display a DatasetLoader node.
+ * It manages the display of the node.
+ * The node takes 4 .csv files as an input: Training Set, Validation Set, Reference Set
+ * and Possible Shifted Set (Test Set)
+ */
 export default function DatasetLoaderNode({ id, data }) {
   const [hovered, setHovered] = useState(false)
   const { updateNode } = useContext(FlowFunctionsContext)
   const { globalData, setGlobalData } = useContext(DataContext)
   const { setLoader } = useContext(LoaderContext)
-  const [showDetails, setShowDetails] = useState(false)
-  const [settings, setSettings] = useState(data.internal.settings)
+  const [showDetails, setShowDetails] = useState(false) // Show and hide settings details of the node
+  const [settings, setSettings] = useState(data.internal.settings) // store the data.internal.settings state
 
+  // Set up node's data internal settings when settings variable state changes
   useEffect(() => {
+    /**
+     *
+     * @returns {Object} An object containing only the filtered settings.
+     *
+     *
+     * @description
+     * This function filters the `data.internal.settings` object to include only the settings
+     * with keys that are specified in the filter array. It creates a new object containing
+     * only these filtered settings and returns it.
+     */
     const filterSettings = () => {
       const filteredSettings = Object.keys(settings).reduce((acc, key) => {
         if (key.startsWith("file_") || key.startsWith("target_")) {
@@ -28,6 +52,12 @@ export default function DatasetLoaderNode({ id, data }) {
       return filteredSettings
     }
 
+    /**
+     *
+     *
+     * @description
+     * This function updates the `data.internal.settings` with the filtered settings
+     */
     const updateSettings = () => {
       const filteredSettings = filterSettings()
       data.internal.settings = filteredSettings
@@ -38,8 +68,9 @@ export default function DatasetLoaderNode({ id, data }) {
       })
     }
     updateSettings()
-  }, [id, data.internal, updateNode, settings])
+  }, [id, settings])
 
+  // Update the internal data warning when the settings variable length changes
   useEffect(() => {
     const hasAllDatasetTypes = Object.keys(data.internal.settings).length < Object.keys(data.setupParam.possibleSettings.datasets.files).length * 2
     data.internal.hasWarning = {
@@ -48,6 +79,14 @@ export default function DatasetLoaderNode({ id, data }) {
     }
   }, [settings])
 
+  /**
+   *
+   * @param {Object} inputUpdate The input update
+   *
+   *
+   * @description
+   * This function is used to update the node internal data when the target input changes.
+   */
   const onInputChange = (inputUpdate) => {
     const newSettings = { ...settings, [inputUpdate.name]: inputUpdate.value }
     if (["file", "target"].includes(inputUpdate.name.split("_")[0])) {
@@ -56,6 +95,14 @@ export default function DatasetLoaderNode({ id, data }) {
     setSettings(newSettings)
   }
 
+  /**
+   *
+   * @param {Object} hasWarning The warning object
+   *
+   *
+   * @description
+   * This function is used to update the node internal data when a warning is triggered from the Input component.
+   */
   const handleWarning = (hasWarning) => {
     data.internal.hasWarning = hasWarning
     updateNode({
@@ -64,6 +111,14 @@ export default function DatasetLoaderNode({ id, data }) {
     })
   }
 
+  /**
+   *
+   * @param {Object} inputUpdate The input update
+   *
+   *
+   * @description
+   * This function is used to update the node internal data when the loaded files changes.
+   */
   const onFilesChange = async (inputUpdate) => {
     const newSettings = { ...settings, [inputUpdate.name]: inputUpdate.value }
     const fileIndex = parseInt(inputUpdate.name.split("_")[1])
@@ -86,6 +141,19 @@ export default function DatasetLoaderNode({ id, data }) {
     setSettings(newSettings)
   }
 
+  /**
+   *
+   * @param {Object} datasets - An object containing dataset information (files{name,path} and targets).
+   * @returns {React.Fragment[]} An array of React fragments, each containing input fields
+   * for specifying the dataset file and its target variable.
+   *
+   *
+   * @description
+   * This function creates input fields for each dataset file.
+   * For each file, it generates:
+   * - A `FlInput` component for selecting the file.
+   * - A `FlInput` component for specifying the target variable column name.
+   */
   const getDatasetFields = (datasets) => {
     return datasets.files.map((file, index) => (
       <React.Fragment key={`${index}`}>
@@ -112,6 +180,12 @@ export default function DatasetLoaderNode({ id, data }) {
     ))
   }
 
+  /**
+   *
+   *
+   * @description
+   * This function switches the state of `showDetails` between `true` and `false`
+   */
   const toggleShowDetails = () => {
     setShowDetails(!showDetails)
   }

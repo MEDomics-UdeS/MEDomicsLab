@@ -7,18 +7,39 @@ import { IconButton } from "@mui/material"
 import JSZip from "jszip"
 import download from "downloadjs"
 
+/**
+ *
+ * @param {Object} reactFlowInstance The instance of React Flow.
+ * @param {Object} reactFlowRef A reference to the React Flow DOM element.
+ * @returns {JSX.Element} The DownloadButton component.
+ *
+ *
+ * @description
+ * This component renders a button that allows users to download the current React Flow diagram and
+ * corresponding legend as a ZIP file.
+ */
 function DownloadButton({ reactFlowInstance, reactFlowRef }) {
   const [imagesLoaded, setImagesLoaded] = useState(false)
 
-  const imageWidth = 6000 // Example: Increase width for larger image
-  const imageHeight = 3000 // Example: Increase height for larger image
+  const imageWidth = 6000 // Increase width for larger image
+  const imageHeight = 3000 // Increase height for larger image
 
+  // Trigger the download process once the images are loaded.
   useEffect(() => {
     if (imagesLoaded) {
       handleDownload()
     }
   }, [imagesLoaded])
 
+  /**
+   *
+   * @returns {void}
+   *
+   *
+   * @description
+   * This function captures images of the React Flow viewport and legend (if available),
+   * adds them to a ZIP file, and triggers the download of the ZIP file.
+   */
   const handleDownload = () => {
     const nodesBounds = getNodesBounds(reactFlowInstance.getNodes())
     const { x, y, zoom } = getViewportForBounds(nodesBounds, imageWidth, imageHeight, 0.4, 2)
@@ -49,7 +70,8 @@ function DownloadButton({ reactFlowInstance, reactFlowRef }) {
     })
       .then((dataUrl) => {
         addToZip("Profiles_tree.svg", dataUrl)
-        const legendItems = reactFlowRef.querySelector(".legend-items")
+        const legendItems = reactFlowRef.querySelector(".legend-container")
+
         if (legendItems) {
           return toPng(legendItems)
         } else {
@@ -88,7 +110,6 @@ function DownloadButton({ reactFlowInstance, reactFlowRef }) {
         </IconButton>
       </Tooltip>
 
-      {/* Assuming you have some way to trigger imagesLoaded state */}
       <button onClick={handleImagesLoaded} style={{ display: "none" }} onLoad={() => setImagesLoaded(true)}>
         Trigger Images Loaded
       </button>

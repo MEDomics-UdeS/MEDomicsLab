@@ -14,9 +14,10 @@ import { FlowResultsContext } from "../flow/context/flowResultsContext"
 import { LoaderContext } from "../generalPurpose/loaderContext.jsx"
 import { WorkspaceContext, EXPERIMENTS } from "../workspace/workspaceContext"
 import path from "path"
+
 import { ErrorRequestContext } from "../generalPurpose/errorRequestContext.jsx"
 import MedDataObject from "../workspace/medDataObject.js"
-import { modifyZipFileSync } from "../../utilities/customZipFile.js"
+import { modifyZipFileSync, createZipFileSync } from "../../utilities/customZipFile.js"
 //import { sceneDescription } from "../../public/setupVariables/learningNodesParams.jsx"
 
 import RunPipelineModal from "./runPipelineModal"
@@ -49,6 +50,7 @@ import UncertaintyMetricsNode from "./nodesTypes/uncertainyMetricsNode.jsx"
 import DetectronNode from "./nodesTypes/detectronNode.jsx"
 import { mergeSettings } from "../../public/setupVariables/possibleSettings/med3pa/paSettings.js"
 import { loadJsonFiles } from "./resultTabs/tabFunctions.js"
+import SaveSceneModal from "./saveSceneModal.jsx"
 
 const staticNodesParams = nodesParams // represents static nodes parameters
 
@@ -59,20 +61,21 @@ const staticNodesParams = nodesParams // represents static nodes parameters
  * @returns {JSX.Element} A workflow
  *
  * @description
- * This component is used to display a workflow (ui, nodes, edges, etc.).
+ * This component is used to display a MED3pa workflow (ui, nodes, edges, etc.).
  *
  */
 const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
   const [nodes, setNodes, onNodesChange] = useNodesState([]) // nodes array, setNodes is used to update the nodes array, onNodesChange is a callback hook that is executed when the nodes array is changed
   const [edges, setEdges, onEdgesChange] = useEdgesState([]) // edges array, setEdges is used to update the edges array, onEdgesChange is a callback hook that is executed when the edges array is changed
   const [reactFlowInstance, setReactFlowInstance] = useState(null) // reactFlowInstance is used to get the reactFlowInstance object important for the reactFlow library
-  const [MLType, setMLType] = useState("classification") // MLType is used to know which machine learning type is selected
+  const [showSaveModal, setShowSaveModal] = useState(false)
+  const [sceneName, setSceneName] = useState("") // Scene Name (Flow Name)
   const { setViewport } = useReactFlow() // setViewport is used to update the viewport of the workflow
   const { getIntersectingNodes } = useReactFlow() // getIntersectingNodes is used to get the intersecting nodes of a node
   const { isResults, setIsResults } = useContext(FlowResultsContext)
   const { port, getBasePath } = useContext(WorkspaceContext)
 
-  const [paParams, setpaParams] = useState()
+  const [paParams, setpaParams] = useState() // State to store MED3pa parameters retrieved from the backend
   const { setError } = useContext(ErrorRequestContext)
   const [intersections, setIntersections] = useState([]) // intersections is used to store the intersecting nodes related to optimize nodes start and end
   const [isProgressUpdating, setIsProgressUpdating] = useState(false) // progress is used to store the progress of the workflow execution
@@ -92,7 +95,6 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
   const { setLoader } = useContext(LoaderContext)
   // eslint-disable-next-line no-unused-vars
   const [progressValue, setProgressValue] = useState({ now: 0, currentLabel: "" }) // we use this to store the progress value of the dashboard
-  // const { setError } = useContext(ErrorRequestContext)
 
   // declare node types using useMemo hook to avoid re-creating component types unnecessarily (it memorizes the output) https://www.w3schools.com/react/react_usememo.asp
   const nodeTypes = useMemo(
@@ -116,6 +118,10 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
     }),
     []
   )
+
+  useEffect(() => {
+    console.log("SCENE NAME:", sceneName)
+  }, [sceneName])
 
   // When config is changed, we update the workflow
   useEffect(() => {
@@ -154,7 +160,7 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
         return node
       })
     )
-  }, [MLType])
+  }, [])
 
   // when isResults is changed, we set the progressBar to completed state
   useEffect(() => {
@@ -178,10 +184,13 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
       hideNodesbut(groupNodeId.id)
     }
   }, [groupNodeId])
+
   /**
    *
    * @param {String} activeSubflowId id of the group that is active
    *
+   *
+   * @description
    * This function hides the nodes and edges that are not in the active group
    * each node has a subflowId that is the id of the group it belongs to
    * if the subflowId is not equal to the activeNodeId, then the node is hidden
@@ -254,10 +263,13 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
     // it basically bypasses the optimize nodes
     setEdges((eds) => eds.filter((edge) => !edge.id.includes("opt"))) // remove all edges that are linked to optimize nodes
   }, [intersections, hasNewConnection])
+
   /**
    * @param {Object} event event object
    * @param {Object} node node object
    *
+   *
+   * @description
    * This function is called when a node is dragged
    * It checks if the node is intersecting with another node
    * If it is, it adds the intersection to the intersections array
@@ -305,6 +317,7 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
 
   /**
    *
+   * @description
    * this function handles loading a json file to the editor
    * it is called when the user clicks on the load button
    * it checks if the user wants to import a new experiment because it erase the current one
@@ -329,6 +342,8 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
    *
    * @param {Object} newScene new scene to update the workflow
    *
+   *
+   * @description
    * This function updates the workflow with the new scene
    */
   const updateScene = (newScene) => {
@@ -337,7 +352,7 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
       if (Object.keys(newScene).length > 0) {
         Object.values(newScene.nodes).forEach(() => {})
         const { x = 0, y = 0, zoom = 1 } = newScene.viewport
-        setMLType(newScene.MLType)
+
         setNodes(newScene.nodes || [])
         setEdges(newScene.edges || [])
         setViewport({ x, y, zoom })
@@ -349,6 +364,8 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
   /**
    * @param {Object} id id of the node to delete
    *
+   *
+   * @description
    * This function is called when the user clicks on the delete button of a node
    * It deletes the node and its edges
    * If the node is a group node, it deletes all the nodes inside the group node
@@ -383,8 +400,14 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
   /**
    *
    * @param {Object} newNode base node object
+   * @param {String} associatedNode id of the parent node if the node is a sub-group node
    * @returns
+   *
+   * @description
+   * This function takes a base node object and adds specific configurations and properties to it based on
+   *  its type and whether it is a sub-group node.
    */
+
   const addSpecificToNode = (newNode, associatedNode) => {
     let setupParams = {}
     setupParams = {}
@@ -474,11 +497,14 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
 
     return newNode
   }
+
   /**
    * @returns {Array} updated tree data
    *
+   *
+   * @description
    * This function creates the tree path data from the nodes array
-   * it is used to create the recursive workflow
+   * It is used to create the recursive workflow
    */
 
   const createPathsToLeafNodes = () => {
@@ -523,6 +549,25 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
     return configs
   }
 
+  /**
+   *
+   * @param {Array<Array<Object>>} paths An array of subarrays, where each subarray contains node objects.
+   * @returns {Object} An object containing two properties:
+   *   - `topLevelConfigs`: An array of subarrays that represent top-level configurations.
+   *   - `internalConfigsExtracted`: An array of objects, each representing an internal configuration with a key based on the `supIdNode`.
+   *
+   *
+   * @description
+   * This function processes an array of node arrays (`paths`) and categorizes them into two distinct groups:
+   * - **Internal Configurations**: Subarrays where:
+   *   - At least one node has a non-empty `supIdNode`.
+   *   - Not all nodes have the label "MED3pa.MPC Model" if "MED3pa.APC Model" is absent in the same subarray.
+   *
+   * - **Top-Level Configurations**: Subarrays where:
+   *   - The subarray contains more than one node.
+   *   - At least one node has an empty `supIdNode`.
+   *   - The subarray includes nodes with the labels "Base Model" and "Dataset Loader".
+   */
   function separateSubarrays(paths) {
     const internalConfigs = paths.filter(
       (subarray) => subarray.some((node) => node.supIdNode !== "") && !(subarray.some((node) => node.label === "MED3pa.MPC Model") && !subarray.some((n) => n.label === "MED3pa.APC Model"))
@@ -542,6 +587,17 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
 
     return { topLevelConfigs, internalConfigsExtracted }
   }
+
+  /**
+   *
+   * @param {Array<Array<Object>>} topLevelConfigs An array of subarrays, where each subarray contains node objects representing top-level configurations.
+   * @param {Array<Object>} internalConfigsExtracted An array of objects where each object represents an internal configuration keyed by `supIdNode`.
+   * @returns {Array<Array<Object>>} The updated `topLevelConfigs` array with children added to "MED3pa" nodes.
+   *
+   *
+   * @description
+   * Adds child nodes to "MED3pa" nodes in the top-level configurations based on internal configurations.
+   */
   function addChildrenToMed3pa(topLevelConfigs, internalConfigsExtracted) {
     topLevelConfigs.forEach((config) => {
       const med3paNodes = config.filter((node) => node.label === "MED3pa")
@@ -556,7 +612,13 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
     return topLevelConfigs
   }
 
+  // Retrieve MED3pa parameters from the backend when loading workflow
   useEffect(() => {
+    /**
+     *
+     * @description
+     * This function initiates a request to the backend to send parameters related to MED3pa.
+     */
     const fetchData = () => {
       if (!port) return null
       setLoader(true)
@@ -598,8 +660,17 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
    */
   const runNode = useCallback(() => {
     //setRunModal(true)
-  }, [reactFlowInstance, MLType, nodes, edges, intersections])
+  }, [reactFlowInstance, nodes, edges, intersections])
 
+  /**
+   *
+   * @param {Array} nodes  An array of node objects where each node contains data with internal settings.
+   *
+   *
+   * @description
+   * This function iterates over the provided nodes to extract and update settings
+   *  related to the dataset loader.
+   */
   const getPaSettings = (nodes) => {
     nodes.map((node) => {
       // DatasetNode
@@ -611,6 +682,7 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
       }
     })
   }
+
   /**
    * execute the whole workflow
    */
@@ -622,29 +694,70 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
         getPaSettings(nodes)
       }
     },
-    [reactFlowInstance, MLType, nodes, edges, intersections, configPath]
+    [reactFlowInstance, nodes, edges, intersections, configPath]
   )
+
+  /**
+   *
+   * @param {String} path The path of the folder where the scene will be created.
+   * @param {Object} useMedStandard The flow object to save as part of the scene content.
+   *
+   *
+   * @description
+   * The function creates a scene content by generating a custom zip file with the provided data.
+   * The function ensures that the scene content is
+   *  properly created and saved within a zip file, allowing for efficient storage and retrieval.
+   */
+  const createSceneContent = async (path, useMedStandard) => {
+    // create custom zip file
+
+    await createZipFileSync(path, async (path) => {
+      // do custom actions in the folder while it is unzipped
+      await MedDataObject.writeFileSync(useMedStandard, path, "pa_metadata", "json")
+    })
+  }
 
   /**
    * save the workflow as a json file
    */
-  const onSave = useCallback(() => {
-    if (reactFlowInstance) {
-      const flow = deepCopy(reactFlowInstance.toObject())
-      flow.MLType = MLType
-      console.log("flow debug", flow)
-      flow.nodes.forEach((node) => {
-        node.data.setupParam = null
-      })
-      flow.intersections = intersections
-      modifyZipFileSync(configPath, async (path) => {
-        // do custom actions in the folder while it is unzipped
-        await MedDataObject.writeFileSync(flow, path, "metadata", "json")
-        toast.success("Scene has been saved successfully")
-      })
-    }
-  }, [reactFlowInstance, MLType, intersections])
+  const onSave = useCallback(
+    (sceneName) => {
+      if (reactFlowInstance) {
+        const flow = deepCopy(reactFlowInstance.toObject())
 
+        console.log("flow debug", flow)
+
+        flow.intersections = intersections
+
+        if (configPath === "") {
+          // If configPath is empty, create path to experiments
+          let configPath = [getBasePath(EXPERIMENTS), "MED3paWorkflows", sceneName + ".pa"].join(MedDataObject.getPathSeparator())
+
+          createSceneContent(configPath, flow).then(() =>
+            // If the ZipFile already exists, modify it
+            modifyZipFileSync(configPath, async (path) => {
+              // do custom actions in the folder while it is unzipped
+              await MedDataObject.writeFileSync(flow, path, "pa_metadata", "json")
+
+              toast.success("Scene has been saved successfully")
+            })
+          )
+        }
+      }
+    },
+    [reactFlowInstance, intersections]
+  )
+
+  /**
+   *
+   * @param {Object} sourceNode The source node to be verified.
+   * @param {Object} targetNode The target node to be verified.
+   * @returns {String} An error message if either node is not found, otherwise an empty string.
+   *
+   *
+   * @description
+   * This function checks whether both the source node and the target node are present.
+   */
   const verifyError = (sourceNode, targetNode) => {
     if (!targetNode || !sourceNode) {
       return "Node is not found"
@@ -653,6 +766,20 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
     return ""
   }
 
+  /**
+   *
+
+   * @param {String} source The ID of the source node.
+   * @param {String} target The ID of the target node.
+   *
+   *
+   * @description
+   * This function manages the logic for connecting nodes in a workflow.
+   * It ensures valid connections by verifying the source
+   * and target nodes and handling errors or conflicts that may arise.
+   * For specific target node types (`baseModelNode` or `ipcModelNode`),
+   *  it ensures the target node is not already connected to another source node of the same type.
+   */
   const onConnect = ({ source, target }) => {
     if (!source || !target) {
       console.error("Invalid source or target:", source, target)
@@ -714,6 +841,16 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
     changeSubFlow("MAIN")
   }, [])
 
+  /**
+   *
+   * @param {Function} createBaseNode Function to create a base node with given parameters.
+   * @param {String} newId The ID to be used for adding specifics to the new nodes.
+   *
+   *
+   * @description
+   * The function handles the creation and setup of default nodes ("Start" and "End") within the workflow.
+   *
+   */
   const groupNodeHandlingDefault = (createBaseNode, newId) => {
     let newNodeStart = createBaseNode(
       { x: 0, y: 200 },
@@ -742,6 +879,15 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
     setNodes((nds) => nds.concat(newNodeEnd))
   }
 
+  /**
+   *
+   * @param {Object} flConfig The configuration object for the PA pipeline.
+   * @returns {Promise<void>}
+   *
+   *
+   * @description
+   * This asynchronous function runs the PA pipeline by sending a request to the backend with the given configuration.
+   */
   const runPaPipeline = async (flConfig) => {
     const folderPath = [getBasePath(EXPERIMENTS), "MED3paResults"].join(MedDataObject.getPathSeparator())
 
@@ -775,6 +921,15 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
     )
   }
 
+  /**
+   *
+   * @param {Object} jsonResponse The JSON response received from the backend.
+   * @param {String} folderPath The path of the folder where results will be stored.
+   *
+   *
+   * @description
+   * This function processes the successful response received from the backend.
+   */
   function handleSuccessResponse(jsonResponse, folderPath) {
     setProgressValue({ now: 100, currentLabel: jsonResponse["data"] })
     toast.success("Config received from the front end")
@@ -784,6 +939,16 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
     processPathToResults(jsonResponse.path_to_results, folderPath)
   }
 
+  /**
+   *
+   * @param {Array} path_to_results The list of result paths to be processed.
+   * @param {String} folderPath The base folder path where results will be stored.
+   *
+   *
+   * @description
+   * This function iterates through each result path, processes the files,
+   *  and saves them into the corresponding folders.
+   */
   async function processPathToResults(path_to_results, folderPath) {
     for (const Element of path_to_results) {
       const fileName = `MED3paResults_${Element}_${new Date().toISOString()}`.replace(/[^a-zA-Z0-9-_]/g, "")
@@ -846,6 +1011,16 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
     }
   }
 
+  /**
+   *
+   * @param {String} filePath The path of the folder from which JSON files will be loaded.
+   * @param {Object} fileContent The object to which the loaded files will be added.
+   * @param {String|null} tab The specific tab or category under which the loaded files should be stored.
+   *
+   *
+   * @description
+   * The function loads JSON files from the specified file path and handles them by adding to the fileContent object.
+   */
   async function loadAndHandleFiles(filePath, fileContent, tab) {
     try {
       const files = await loadJsonFiles(filePath)
@@ -859,6 +1034,14 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
     }
   }
 
+  /**
+   *
+   * @param {Object|string} error The error response received from the backend.
+   *
+   *
+   * @description
+   *This function handles the error response from the backend by updating the error state and UI accordingly.
+   */
   function handleErrorResponse(error) {
     setError(typeof error === "string" ? JSON.parse(error) : error)
     setIsUpdating(false)
@@ -866,6 +1049,14 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
     toast.error("Sending failed: No configurations set", error)
     console.log(error)
   }
+
+  /**
+   *
+   * @param {Error} error The error object received during pipeline execution.
+   *
+   * @description
+   * Handles errors that occur during the pipeline execution by updating the UI and logging the error.
+   */
 
   function handleError(error) {
     console.error("Error during pipeline execution:", error)
@@ -884,6 +1075,16 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
         configs={treeData}
         nodes={nodes}
         onRun={runPaPipeline}
+      />
+
+      <SaveSceneModal
+        show={showSaveModal}
+        onHide={() => {
+          setShowSaveModal(false)
+        }}
+        onSave={onSave}
+        sceneName={sceneName}
+        setSceneName={setSceneName}
       />
 
       <PaWorkflowBase
@@ -914,7 +1115,12 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
                 buttonsList={[
                   { type: "run", onClick: onRun, disabled: !canRun },
                   { type: "clear", onClick: onClear },
-                  { type: "save", onClick: onSave },
+                  {
+                    type: "save",
+                    onClick: () => {
+                      configPath != "" ? onSave() : setShowSaveModal(true)
+                    }
+                  },
                   { type: "load", onClick: onLoad }
                 ]}
               />

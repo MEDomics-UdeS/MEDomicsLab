@@ -4,9 +4,27 @@ import ReactECharts from "echarts-for-react"
 import { TbChartDots2 } from "react-icons/tb"
 import { AiOutlineFullscreen, AiOutlineFullscreenExit } from "react-icons/ai"
 
+/**
+ *
+ * @param {Object} curveData Data used to generate the curve chart.
+ * @param {number} clickedLostElement The declaration rate of the clicked element.
+ * @param {function} onFullScreenClicked Function to toggle fullscreen mode.
+ * @param {boolean} fullscreenCurve Boolean indicating whether the curve is in fullscreen mode.
+ * @returns {JSX.Element} The MDRCurve component.
+ *
+ *
+ * @description
+ * MDRCurve component renders a curve chart based on provided curve data.
+ * It allows toggling between fullscreen and normal view
+ */
 const MDRCurve = ({ curveData, clickedLostElement, onFullScreenClicked, fullscreenCurve }) => {
   const [options, setOptions] = useState(null)
 
+  /**
+   * Update the chart options whenever `curveData` or `clickedLostElement` changes.
+   * Process `curveData` to filter out invalid entries and generates the options for the chart.
+   * Reset options to null if `curveData` is not provided.
+   */
   useEffect(() => {
     if (!curveData) {
       setOptions(null) // Reset options if curveData is null or undefined
@@ -22,7 +40,7 @@ const MDRCurve = ({ curveData, clickedLostElement, onFullScreenClicked, fullscre
       }, {})
 
     const metricNames = Object.keys(filteredCurveData[Object.keys(filteredCurveData)[0]].metrics)
-    console.log("HELLO:", metricNames)
+
     const series = metricNames.map((metric) => ({
       name: metric,
       type: "line",
@@ -86,10 +104,21 @@ const MDRCurve = ({ curveData, clickedLostElement, onFullScreenClicked, fullscre
 
     setOptions(newOptions)
   }, [curveData, clickedLostElement])
+
+  /**
+   *
+   *
+   * @description
+   * This function switches the state of `fullscreenCurve` between `true` and `false`
+   */
   const toggleFullscreen = () => {
     onFullScreenClicked(!fullscreenCurve) // Toggle fullscreen state in the parent component
   }
 
+  /**
+   * Update the chart options to remove styling from series data
+   * if `clickedLostElement` is null. Reset the color and opacity of all data points.
+   */
   useEffect(() => {
     if (!options) return // Do nothing if options are null
 

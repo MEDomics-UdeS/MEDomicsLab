@@ -11,10 +11,24 @@ import { Button } from "react-bootstrap"
 import { deepCopy } from "../../../utilities/staticFunctions.js"
 
 import DownloadButton from "./download.jsx"
-import { Fullscreen } from "react-bootstrap-icons"
+
 import TreeLegend from "./treeLegend.jsx"
 import SelectedNodePath from "./selectedNodePath.jsx"
 
+/**
+ *
+ * @param {Object} treeData The current data of the profiles tree.
+ * @param {number} maxDepth The maximum depth of the profiles tree.
+ * @param {number} customThreshold The step size used to calculate the ranges for the tree legend.
+ * @param {Function} onButtonClicked Function to handle button clicks and update the profiles tree data.
+ * @param {Function} onFullScreenClicked Function to toggle fullscreen mode.
+ * @param {boolean} fullscreen Boolean indicating whether the component is in fullscreen mode.
+ * @returns {JSX.Element} The rendered component displaying the profiles tree.
+ *
+ *
+ * @description
+ * This component displays the profiles tree generated from the APC/MPC model with reactFlow.
+ */
 const TreeWorkflow = ({ treeData, maxDepth, customThreshold, onButtonClicked, onFullScreenClicked, fullscreen }) => {
   // eslint-disable-next-line no-unused-vars
   const [buttonClicked, setButtonClicked] = useState(false)
@@ -27,9 +41,11 @@ const TreeWorkflow = ({ treeData, maxDepth, customThreshold, onButtonClicked, on
   const cardRef = useRef(null)
   const reactFlowRef = useRef(null)
 
-  const [selectedNodeInfo, setSelectedNodeInfo] = useState(null)
+  const [selectedNodeInfo, setSelectedNodeInfo] = useState(null) // Information of a clicked node
 
-  const [prevClassName, setPrevClassName] = useState(null)
+  const [prevClassName, setPrevClassName] = useState(null) // Variable to the store previous className of a node
+
+  // Set the required Nodes
   const nodeTypes = useMemo(
     () => ({
       treeNode: TreeNode
@@ -37,6 +53,16 @@ const TreeWorkflow = ({ treeData, maxDepth, customThreshold, onButtonClicked, on
     []
   )
 
+  /**
+   *
+   * @description
+   * The function handles the node click event to manage node selection and update nodes' colors.
+   *
+   * This function updates the state of node selections,
+   *  including reverting the color of previously selected nodes
+   *  and applying a new color to the currently selected node.
+   * It also adjusts the view to center on the selected node.
+   */
   const handleNodeClick = () => {
     // Define updatedNodes as a copy of nodes
     const updatedNodes = nodes.map((node) => ({ ...node }))
@@ -101,11 +127,22 @@ const TreeWorkflow = ({ treeData, maxDepth, customThreshold, onButtonClicked, on
     setSelectedNodeInfo(newSelectedNodeInfo)
   }
 
+  // Ensure fitView after the component tree is updated
   useEffect(() => {
-    // Ensure fitView after nodes and edges are updated
-    fitView({ duration: 800 })
-  }, [Fullscreen, buttonClicked])
+    if (!selectedNodeInfo) {
+      fitView({ duration: 800 })
+    }
+  }, [nodes])
 
+  /**
+   * @param {string} buttonType The type of the button that was clicked. It can be either:
+   *   - "reset": Resets the tree data to its initial default state.
+   *   - "filter": Applies a filter to the tree data.
+   *
+   * @description
+   * This function updates the state to reflect which button was clicked and notifies the parent component
+   * of the action.
+   */
   const handleClick = (buttonType) => {
     setButtonClicked(buttonType)
     onButtonClicked(buttonType) // Notify the parent component that the button was clicked
@@ -114,9 +151,38 @@ const TreeWorkflow = ({ treeData, maxDepth, customThreshold, onButtonClicked, on
     }
   }
 
+  /**
+   *
+   *
+   * @description
+   * This function switches the state of `fullscreen` between `true` and `false`
+   */
   const toggleFullscreen = () => {
     onFullScreenClicked(!fullscreen) // Toggle fullscreen state in the parent component
   }
+
+  /**
+   *
+   * @param {Array<Object>} data Array of node objects where each object represents a node with an `id` and `path`.
+   *   - {string} id - Unique identifier for the node.
+   *   - {Array<string>} path - Hierarchical path to the node, where each element represents a step in the path.
+   *
+   * @returns {Array<Object>} Array of tree nodes with added properties for tree structure and positioning.
+   *   Each node object in the returned array will include:
+   *   - {string} id - Unique identifier for the node.
+   *   - {string|null} idParent - The ID of the parent node, or `null` if it is a root node.
+   *   - {string|null} idLeft - The ID of the left child node, or `null` if it does not have a left child.
+   *   - {string|null} idRight - The ID of the right child node, or `null` if it does not have a right child.
+   *   - {number} depth - Depth of the node in the tree.
+   *   - {string} path - The last element of the node's path, representing the node's position in its depth level.
+   *   - {Object} position - The x and y coordinates for the node's position in the layout.
+   *     - {number} x - The x-coordinate for positioning the node.
+   *     - {number} y - The y-coordinate for positioning the node.
+   *
+   * @description
+   * This function processes an array of node objects to create a hierarchical tree structure.
+   */
+
   const constructTreeArray = (data) => {
     const idToObject = {}
     data.forEach((obj) => {
@@ -227,6 +293,12 @@ const TreeWorkflow = ({ treeData, maxDepth, customThreshold, onButtonClicked, on
     return tree
   }
 
+  /**
+   * Updates the nodes and edges based on changes in `treeData`.
+   * - Modifies node appearance and properties based on path length and presence in `treeData`.
+   * - Adjusts edge visibility if connected nodes are affected by depth changes.
+   * - Fits the view to accommodate updated nodes and edges.
+   */
   useEffect(() => {
     // Update nodes and edges state
 
@@ -237,7 +309,6 @@ const TreeWorkflow = ({ treeData, maxDepth, customThreshold, onButtonClicked, on
           // Check if the node path length exceeds maxDepth, if so, skip updating
 
           if (node.data.internal.settings.path.length > maxDepth) {
-            const className = "panode-maxdepth"
             return {
               ...node,
               data: {
@@ -245,11 +316,11 @@ const TreeWorkflow = ({ treeData, maxDepth, customThreshold, onButtonClicked, on
                 internal: {
                   ...node.data.internal,
                   settings: {
-                    ...node.data.internal.settings,
-                    className: className
+                    ...node.data.internal.settings
                   }
                 }
-              }
+              },
+              hidden: true // Mark node as hidden
             }
           }
           // Check if the node exists in treeData
@@ -304,11 +375,18 @@ const TreeWorkflow = ({ treeData, maxDepth, customThreshold, onButtonClicked, on
       // Return updatedNodes to update nodes state
       return updatedNodes
     })
-    fitView({ duration: 800 })
   }, [treeData])
 
-  // Add lostProfiles to the dependency array if it's not already there
-
+  /**
+   *
+   * @param {Object} node The source node object containing properties to be used.
+   * @param {string} id - The unique identifier for the new node.
+   * @returns {Object} - A new node object formatted for use in the visualization.
+   *
+   *
+   * @description
+   * The function constructs a node with a specific format and data structure.
+   */
   const createBaseNode = (node, id) => {
     const { nodeType, name, image, description, settings, position } = node
 
@@ -392,12 +470,26 @@ const TreeWorkflow = ({ treeData, maxDepth, customThreshold, onButtonClicked, on
     return isLoop
   }
 
-  // Helper function to search for a tree node by id
+  /**
+   *
+   * @param {Array<Object>} tree The array of nodes representing the tree structure.
+   * @param {string} id The unique identifier of the node to find.
+   * @returns {Object|null} The node object with the specified ID, or `null` if not found.
+   *
+   * @description
+   * This function searches through the provided array of tree nodes to find and return the node that matches the given ID.
+   */
   const findNodeById = (tree, id) => {
     return tree.find((node) => node.id === id)
   }
 
-  // Add a tree node with settings from profiles to the workflow
+  /**
+   *
+   * @description
+   * This `useEffect` hook is triggered whenever `treeData` is updated. It performs the following steps:
+   * It uses `constructTreeArray` to generate a tree structure from `treeData`.
+   */
+
   useEffect(() => {
     const addTreeNodesFromProfiles = () => {
       const tree = constructTreeArray(treeData)
@@ -476,9 +568,16 @@ const TreeWorkflow = ({ treeData, maxDepth, customThreshold, onButtonClicked, on
     }
 
     addTreeNodesFromProfiles()
-    fitView({ duration: 800 })
   }, [treeData])
 
+  /**
+   *
+   * @description
+   * This function checks if `cardRef.current` is available.
+   * If so, it retrieves the element's `clientWidth` and `clientHeight`.
+   *
+   * This is useful for adjusting the layout or styling of our component based on its actual size.
+   */
   const updateDimensions = () => {
     if (cardRef.current) {
       const { clientWidth, clientHeight } = cardRef.current
@@ -486,6 +585,12 @@ const TreeWorkflow = ({ treeData, maxDepth, customThreshold, onButtonClicked, on
     }
   }
 
+  /**
+   *
+   * @description
+   * This setup ensures that the component's dimensions are always up-to-date with its rendered size,
+   *  even when resized dynamically.
+   */
   useLayoutEffect(() => {
     // Initial dimensions setup
 

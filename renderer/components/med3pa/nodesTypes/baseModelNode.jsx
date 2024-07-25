@@ -7,13 +7,36 @@ import { FlowFunctionsContext } from "../../flow/context/flowFunctionsContext"
 import { LoaderContext } from "../../generalPurpose/loaderContext"
 import FlInput from "../paInput"
 
+/**
+ *
+ * @param {string} id id of the node
+ * @param {Object} data data of the node
+ * @returns {JSX.Element} A BaseModel node
+ *
+ *
+ * @description
+ * This component is used to display a BaseModel node.
+ * It manages the display of the node.
+ * The node  takes a .pkl file as an input
+ */
 export default function BaseModelNode({ id, data }) {
-  const [showDetails, setShowDetails] = useState(false)
+  const [showDetails, setShowDetails] = useState(false) // Show and hide settings details of the node
   const [hovered, setHovered] = useState(false)
   const { updateNode } = useContext(FlowFunctionsContext)
   const { setLoader } = useContext(LoaderContext)
 
+  // Set up node's data internal settings when creating node
   useEffect(() => {
+    /**
+     *
+     * @returns {Object} An object containing only the filtered settings.
+     *
+     *
+     * @description
+     * This function filters the `data.internal.settings` object to include only the settings
+     * with keys that are specified in the filter array. It creates a new object containing
+     * only these filtered settings and returns it.
+     */
     const filterSettings = () => {
       const filteredSettings = Object.keys(data.internal.settings)
         .filter((key) => ["file"].includes(key))
@@ -25,25 +48,38 @@ export default function BaseModelNode({ id, data }) {
       return filteredSettings
     }
 
+    /**
+     *
+     *
+     * @description
+     * This function updates the `data.internal.settings` with the filtered settings, and manages warnings
+     * based on the presence of the 'file' setting.
+     */
     const updateSettings = () => {
       const filteredSettings = filterSettings()
       data.internal.settings = filteredSettings
-
+      if (data.internal.settings.file) {
+        data.internal.hasWarning = { state: false }
+      } else {
+        data.internal.hasWarning = { state: true, tooltip: <p>No Base Model selected</p> }
+      }
       updateNode({
         id: id,
         updatedData: data.internal
       })
     }
 
-    if (data.internal.settings.file) {
-      data.internal.hasWarning = { state: false, tooltip: <p>No Base Model selected</p> }
-    } else {
-      data.internal.hasWarning = { state: true }
-    }
-
     updateSettings()
-  }, [id, data.internal, updateNode])
+  }, [])
 
+  /**
+   *
+   * @param {Object} hasWarning The warning object
+   *
+   *
+   * @description
+   * This function is used to update the node internal data when a warning is triggered from the Input component.
+   */
   const handleWarning = (hasWarning) => {
     data.internal.hasWarning = hasWarning
     updateNode({
@@ -52,11 +88,23 @@ export default function BaseModelNode({ id, data }) {
     })
   }
 
+  /**
+   *
+   * @param {Object} inputUpdate The input update
+   *
+   *
+   * @description
+   * This function is used to update the node internal data when the files input changes.
+   */
   const onFilesChange = async (inputUpdate) => {
     data.internal.settings[inputUpdate.name] = inputUpdate.value
+    if (data.internal.settings.file) {
+      data.internal.hasWarning = { state: false }
+    }
     if (inputUpdate.value.path !== "") {
       setLoader(false)
     } else {
+      data.internal.hasWarning = { state: true, tooltip: <p>No Base Model selected</p> }
       setLoader(true)
       setTimeout(() => {
         setLoader(false)
@@ -68,6 +116,12 @@ export default function BaseModelNode({ id, data }) {
     })
   }
 
+  /**
+   *
+   *
+   * @description
+   * This function switches the state of `showDetails` between `true` and `false`
+   */
   const toggleShowDetails = () => {
     setShowDetails(!showDetails)
   }
@@ -115,7 +169,7 @@ export default function BaseModelNode({ id, data }) {
                     className="ms-2"
                     style={{
                       fontSize: "0.8rem",
-                      color: hovered ? "black" : "#999" // Lighter color
+                      color: hovered ? "black" : "#999"
                     }}
                   >
                     {showDetails ? "Hide Details" : "Show Details"}

@@ -6,37 +6,52 @@ import * as Icon from "react-bootstrap-icons"
 import { FlowFunctionsContext } from "../../flow/context/flowFunctionsContext"
 import { OverlayTrigger, Tooltip } from "react-bootstrap"
 
+/**
+ *
+ * @param {string} id id of the node
+ * @param {Object} data data of the node
+ * @returns {JSX.Element} A Detectron node
+ *
+ *
+ * @description
+ * This component is used to display a Detectron node.
+ * It manages the display of the node.
+ * The node takes the hyperparameters and the strategies of Detectron as inputs
+ */
 export default function DetectronNode({ id, data }) {
-  const [showDetails, setShowDetails] = useState(false)
+  const [showDetails, setShowDetails] = useState(false) // Show and hide settings details of the node
   const { updateNode } = useContext(FlowFunctionsContext)
   const [hovered, setHovered] = useState(false)
-  const [settingsLoaded, setSettingsLoaded] = useState(false)
+  const [settingsLoaded, setSettingsLoaded] = useState(false) // Store the loading state of the settings
 
+  // Set up node's data internal settings when creating the node
   useEffect(() => {
-    // Simulate loading delay with setTimeout
-    const timer = setTimeout(() => {
-      const defaultSettings = {}
-      for (const key in data.setupParam.possibleSettings) {
-        defaultSettings[key] = data.setupParam.possibleSettings[key].default_val
-      }
+    const defaultSettings = {}
+    for (const key in data.setupParam.possibleSettings) {
+      defaultSettings[key] = data.setupParam.possibleSettings[key].default_val
+    }
 
-      updateNode({
-        id: id,
-        updatedData: {
-          ...data.internal,
-          settings: {
-            ...defaultSettings
-          }
+    updateNode({
+      id: id,
+      updatedData: {
+        ...data.internal,
+        settings: {
+          ...defaultSettings
         }
-      })
-      setSettingsLoaded(true)
-    }, [])
+      }
+    })
+    setSettingsLoaded(true)
+  }, [])
 
-    return () => clearTimeout(timer) // Cleanup timeout on component unmount
-  }, [id, data.internal, data.setupParam.possibleSettings, updateNode])
-
-  useEffect(() => {}, [settingsLoaded])
-
+  /**
+   *
+   * @param {string} key The unique key of the hyperparameter to update
+   * @param {Object} value The input update
+   *
+   *
+   * @description
+   * This function updates the node's data internal settings when an input field changes.
+   */
   const handleInputChange = (key, value) => {
     const selectedValues = Array.isArray(value.value) ? value.value.map((option) => option) : value.value
 
@@ -52,6 +67,12 @@ export default function DetectronNode({ id, data }) {
     })
   }
 
+  /**
+   *
+   *
+   * @description
+   * This function switches the state of `showDetails` between `true` and `false`
+   */
   const toggleShowDetails = () => {
     setShowDetails(!showDetails)
   }
@@ -128,6 +149,7 @@ export default function DetectronNode({ id, data }) {
                 <div className="mb-3">
                   <p className="fw-bold mb-0">Default Settings</p>
                   <br />
+                  {/* {Loop over setupParameters and print the actual node's settings} */}
                   {Object.keys(data.setupParam.possibleSettings).map((key) => (
                     <div className="row mb-2" key={key}>
                       <div className="col-sm-6">

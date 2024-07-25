@@ -4,6 +4,22 @@ import { filterUniqueLostProfiles } from "../resultTabs/tabFunctions"
 import { MdGroupRemove } from "react-icons/md"
 import { Typography } from "@mui/material"
 
+/**
+ *
+ * @param {Object} lostData The data representing lost profiles.
+ * @param {Object} filters An object containing filters with properties:
+ *   - {number} dr - The declaration rate threshold.
+ *   - {number} maxDepth - The maximum depth for filtering profiles.
+ * @param {function} onElementClick - A callback function triggered when an element in the chart is clicked.
+ * It receives the clicked element object.
+ * @returns {JSX.Element} The LostProfiles component.
+ *
+ *
+ * @description
+ * This component renders a scatter interactive and dynamic plot of lost profiles.
+ * Profiles are displayed based on their declaration rate and their path's length.
+ * Profiles are filtered based on the provided `dr` (declaration rate) and `maxDepth` (maximum depth).
+ */
 const LostProfiles = ({ lostData, filters, onElementClick }) => {
   // eslint-disable-next-line no-unused-vars
   const [key, setKey] = useState(0)
@@ -11,6 +27,14 @@ const LostProfiles = ({ lostData, filters, onElementClick }) => {
   const { dr, maxDepth } = filters
   const [selectedElement, setSelectedElement] = useState(null)
 
+  /**
+   *
+   * @param {Object} params  The parameters from the chart click event.
+   *
+   *
+   * @description
+   * Handles click events on the chart.
+   */
   const onChartClick = (params) => {
     const clickedElement = {
       data: params.data
@@ -33,8 +57,8 @@ const LostProfiles = ({ lostData, filters, onElementClick }) => {
     click: onChartClick
   }
 
+  // Increment key to remount component
   useEffect(() => {
-    // Increment key to remount component
     setKey((prevKey) => prevKey + 1)
   }, []) // Empty dependency array means it runs only once on mount
 
@@ -165,18 +189,18 @@ const LostProfiles = ({ lostData, filters, onElementClick }) => {
         name: "Lost Profiles >= Declaration Rate",
         type: "scatter",
         data: seriesData.filter((item) => item.value[0] >= dr), // Filter data for Lost Profiles >= DR
-        symbolSize: 10, // Example symbol size
+        symbolSize: 10,
         itemStyle: {
-          color: "rgba(255, 0, 0, 0.5)" // Example color
+          color: "rgba(255, 0, 0, 0.5)"
         }
       },
       {
         name: "Lost Profiles < Declaration Rate",
         type: "scatter",
         data: seriesData.filter((item) => item.value[0] < dr), // Filter data for Lost Profiles < DR
-        symbolSize: 10, // Example symbol size
+        symbolSize: 10,
         itemStyle: {
-          color: "rgba(138, 138, 138, 0.6)" // Example color
+          color: "rgba(138, 138, 138, 0.6)"
         }
       }
     ]

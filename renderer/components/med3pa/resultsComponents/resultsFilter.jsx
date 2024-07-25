@@ -6,10 +6,35 @@ import TreeParameters from "./treeParams"
 import NodeParameters from "./nodeParams"
 import FlInput from "../paInput"
 
+/**
+ *
+ * @param {boolean} isExpanded Determines if the filter section is expanded or not.
+ * @param {Function} toggleExpand Function to toggle the expanded state of the filter section.
+ * @param {Object} treeParams The current parameters for the tree.
+ * @param {Function} updateTreeParams Function to update the tree parameters.
+ * @param {Object} nodeParams The current parameters for the node.
+ * @param {Function} setNodeParams Function to update the node parameters.
+ * @param {string} type The type of the filter (IPC or APC Model Filter).
+ * @param {Object} settings The settings object containing available metrics.
+ * @param {Object} tree The tree object used for rendering parameters.
+ * @param {boolean} isDetectron Flag indicating if Detectron is executed.
+ * @returns {JSX.Element} The rendered component displaying the filter options.
+ *
+ * @description
+ * Component to filter and display results filter options based on tree and node parameters.
+ */
 const ResultsFilter = ({ isExpanded, toggleExpand, treeParams, updateTreeParams, nodeParams, setNodeParams, type, settings, tree, isDetectron }) => {
-  const [shouldDisable, setShouldDisable] = useState(false)
-  const [disableFilter, setDisableFilter] = useState(false)
+  const [shouldDisable, setShouldDisable] = useState(false) // State used to disable/enable Detectron Results filtering
+  const [disableFilter, setDisableFilter] = useState(false) // State used to disable/enable tree filtering
 
+  /**
+   *
+   * @param {Object} event - The event object containing the new metrics value.
+   *
+   *
+   * @description
+   * A function that handles changes in the metrics selection.
+   */
   const handleMetricsChange = (event) => {
     setNodeParams((prevParams) => ({
       ...prevParams,
@@ -17,6 +42,7 @@ const ResultsFilter = ({ isExpanded, toggleExpand, treeParams, updateTreeParams,
     }))
   }
 
+  // Update the `shouldDisable` state based on `treeParams`.
   useEffect(() => {
     if (treeParams && (treeParams.declarationRate !== 100 || treeParams.minSamplesRatio !== 0)) {
       setShouldDisable(true)
@@ -25,6 +51,7 @@ const ResultsFilter = ({ isExpanded, toggleExpand, treeParams, updateTreeParams,
     }
   }, [treeParams])
 
+  // Update the `disableFilter` state based on `nodeParams.focusView`.
   useEffect(() => {
     if (nodeParams && nodeParams.focusView === "Covariate-shift probabilities") {
       setDisableFilter(true)
@@ -41,6 +68,7 @@ const ResultsFilter = ({ isExpanded, toggleExpand, treeParams, updateTreeParams,
           Filter Results
         </Typography>
         <hr style={{ borderColor: "#868686", borderWidth: "0.5px" }} />
+        {/* Button to toggle expand/collapse state */}
         <button className="btn btn-link p-0" onClick={toggleExpand}>
           {isExpanded ? <FaCompress /> : <FaExpand />}
         </button>

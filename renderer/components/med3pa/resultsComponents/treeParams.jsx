@@ -2,7 +2,27 @@ import React from "react"
 import { Slider, Typography } from "@mui/material"
 import { TbSettingsCog } from "react-icons/tb"
 
+/**
+ *
+ * @param {Object} treeParams The current tree parameters, including declarationRate, maxDepth, minConfidenceLevel, and minSamplesRatio.
+ * @param {Function} setTreeParams Function to update the tree parameters.
+ * @param {boolean} disableFilter Flag to disable or enable certain sliders based on the filter state.
+ * @returns {JSX.Element} the tree parameter sliders.
+ *
+ *
+ * @description
+ * TreeParameters component renders a set of sliders for adjusting tree-related parameters.
+ */
 const TreeParameters = ({ treeParams, setTreeParams, disableFilter }) => {
+  /**
+   *
+   * @param {string} property The name of the tree parameter to be updated.
+   * @param {number} value  The updated value (Input).
+   *
+   *
+   * @description
+   * A function that handle the change event for sliders to update the corresponding parameter.
+   */
   const handleSliderChange = (property, value) => {
     setTreeParams({
       ...treeParams,

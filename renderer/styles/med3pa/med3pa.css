@@ -7,38 +7,39 @@
   width: 100%; /* Ensure the card takes up full width of its container */
   padding: 16px;
 }
+.legend-container {
+  position: relative; /* Ensure the container is positioned relative to the parent */
+  padding: 0.5vw 0.5vw 1vw 2vw; /* Apply different padding values for each side */
+
+  bottom: 15px;
+}
 
 .legend-items {
   display: flex;
   flex-direction: column; /* Display items horizontally */
   align-items: center;
   justify-content: flex-end; /* Align items to the right */
-  margin-bottom: 5px;
 }
-
-.legend-item {
-  display: flex;
-  align-items: center;
-  margin-right: 15px; /* Adjust margin between items */
-}
-
 .threshold-circle {
-  width: 20px;
-  margin-right: 5px; /* Adjust margin between circle and description */
+  display: flex;
+  align-items: flex-start; /* Center items vertically within the circle */
+  justify-content: flex-start; /* Center items horizontally within the circle */
+  width: 20px; /* Set the width of the circle */
+
+  position: relative; /* Allows positioning of child elements inside */
 }
 
 .threshold-description {
-  font-size: 12px;
-  font-family: "Arial", sans-serif; /* Example font family */
-  font-weight: bold; /* Example font weight */
-  color: #3f3f3f; /* Example color */
-  text-transform: uppercase; /* Example text transformation */
-  letter-spacing: 0.5px; /* Example letter spacing */
-  margin-left: -180%; /* Adjust as needed to position to the left of the threshold-circle */
-
-  transform: translateY(-50%);
-
-  white-space: nowrap; /* Ensures text doesn't wrap */
+  font-size: 10px;
+  font-family: "Arial", sans-serif;
+  font-weight: bold;
+  color: #3f3f3f;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap; /* Prevent text from wrapping */
+  position: relative; /* Allows precise positioning within the circle */
+  top: -10%;
+  right: 150%; /* Center the text horizontally within the circle */
 }
 
 .container-paresults {
@@ -196,7 +197,4 @@
 .panode-revert {
   opacity: 40%;
   transform: scale(1);
-}
-.panode-maxdepth {
-  display: none;
 }

@@ -5,9 +5,21 @@ import { Button, OverlayTrigger, Tooltip } from "react-bootstrap"
 import * as Icon from "react-bootstrap-icons"
 import { FlowFunctionsContext } from "../../flow/context/flowFunctionsContext"
 
+/**
+ *
+ * @param {string} id id of the node
+ * @param {Object} data data of the node
+ * @returns {JSX.Element} An UncertaintyMetric node
+ *
+ *
+ * @description
+ * This component is used to display an UNcertaintyMetric node within the MED3pa subworkflow.
+ * It manages the display and interaction of the node, allowing the user to choose
+ * an uncertainty metric from a predefined list.
+ */
 export default function UncertaintyMetricsNode({ id, data }) {
   // context
-  const [showDetails, setShowDetails] = useState(false)
+  const [showDetails, setShowDetails] = useState(false) // Show and hide settings details of the node
   const { updateNode } = useContext(FlowFunctionsContext)
   const [hovered, setHovered] = useState(false)
 
@@ -36,6 +48,15 @@ export default function UncertaintyMetricsNode({ id, data }) {
     })
   }, [])
 
+  /**
+   *
+   * @param {string} key The unique key of the hyperparameter to update
+   * @param {Object} value The input update
+   *
+   *
+   * @description
+   * This function updates the node's data internal settings when an input field changes.
+   */
   const handleInputChange = (key, value) => {
     // Check if the value is an array (multi-select) or a single value (text input)
     const selectedValues = Array.isArray(value.value) ? value.value.map((option) => option) : value.value
@@ -53,6 +74,12 @@ export default function UncertaintyMetricsNode({ id, data }) {
     })
   }
 
+  /**
+   *
+   *
+   * @description
+   * This function switches the state of `showDetails` between `true` and `false`
+   */
   const toggleShowDetails = () => {
     setShowDetails(!showDetails)
   }

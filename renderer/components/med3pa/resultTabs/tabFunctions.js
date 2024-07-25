@@ -1,11 +1,27 @@
+/**
+ * JavaScript file containing utility functions and variables used across multiple tabs.
+ *
+ * Functions and variables in this file are intended to be reused in different tab components
+ * to ensure consistency and reduce code duplication.
+ */
+
 import { loadJsonPath } from "../../../utilities/fileManagementUtils"
 import chroma from "chroma-js"
 import fs from "fs"
 import path from "path"
-export const nodeInformation = ["Node%", "Population%", "Mean confidence level", "Positive%"]
-export let shiftInformation = []
+export const nodeInformation = ["Node%", "Population%", "Mean confidence level", "Positive%"] //Static Node information
+export let shiftInformation = [] //Dynamic Shift Information (Depends on Detectron Strategy)
 
-// Function to format numbers with three decimal places
+/**
+ *
+ *
+ * @param {number | string | null} value The value to format. Can be a number, a string, or null.
+ * @returns {string | null} The formatted value as a string or null if the input is null.
+ *
+ *
+ * @description
+ * The function formats the given value as a string.
+ */
 export const formatValue = (value) => {
   if (value === null) return null
   if (typeof value === "number" && !Number.isInteger(value)) {
@@ -14,24 +30,33 @@ export const formatValue = (value) => {
   return value.toString()
 }
 
+/**
+ *
+ * @param {Object} obj The object to check.
+ * @returns {boolean} Returns true if the object is "lost" (i.e., does not contain profile information); otherwise, false.
+ *
+ *
+ * @description
+ * The function checks if the given object is considered "lost" based on its properties.
+ * - An object is considered "lost" if it does not have any of the following properties:
+ *   - "nodeInformation"
+ *   - "detectronResults"
+ *   - "metrics"
+ */
 export const isLost = (obj) => {
   return !(
     obj &&
     (Object.prototype.hasOwnProperty.call(obj, "nodeInformation") || Object.prototype.hasOwnProperty.call(obj, "detectronResults") || Object.prototype.hasOwnProperty.call(obj, "metrics"))
   )
 }
-// function getClassnameForThreshold(value, threshold) {
-//   if (value >= threshold) {
-//     return "panode-threshold" // Green
-//   } else if (value >= threshold * 0.66) {
-//     return "panode-moderatethreshold" // Yellow
-//   } else if (value >= threshold * 0.33) {
-//     return "panode-warningthreshold" // Orange
-//   } else {
-//     return "panode-criticalthreshold" // Red
-//   }
-// }
-
+/**
+ *
+ * @param {string} dirPath The path to the directory containing JSON files.
+ * @returns {Object} The returned JSON Object
+ *
+ * @description
+ * The function loads JSON files from a specified directory and returns their contents.
+ */
 export const loadJsonFiles = async (dirPath) => {
   if (!dirPath) return {}
 
@@ -65,42 +90,117 @@ export const loadJsonFiles = async (dirPath) => {
     return {}
   }
 }
-
-// Function to generate a color based on the value using chroma.js
+/**
+ *
+ * @param {number} value The value for which to generate a color. Should be between 0 and `max`.
+ * @param {number} max The maximum value for scaling the color. Defines the end of the color scale range.
+ * @returns {string} The hex color code corresponding to the provided value.
+ *
+ * @description
+ * The function generates a color based on a value within a specified range using chroma.js.
+ */
 function getColor(value, max) {
+  // Define a color scale from red to green
   const scale = chroma.scale(["red", "yellow", "green"]).domain([0, max])
   return scale(value).hex()
 }
-
+/**
+ *
+ * @param {number} step The interval between range values, representing percentages (e.g., 10, 20, etc.).
+ * @returns {Array<Object>} - An array of range objects, each containing a description, minimum value, and color.
+ *
+ * @description
+ * The function creates ranges from 0% to 100% with intervals defined by the `step` parameter.
+ * It returns an array of these range objects, useful for visualizing data with a gradient scale.
+ */
 export function calculateRanges(step) {
   const ranges = []
+  const total = 100
 
-  for (let i = 0; i <= 100; i += step) {
-    let description = null // Initialize description as null
+  // If step is greater than or equal to 50, create two intervals
+  if (step >= 50 && step < 100) {
+    ranges.push({
+      description: `0%`,
+      rangemin: 0,
+      rangemax: step,
 
-    // Only set description for multiples of 10%
-    if (i % 10 === 0) {
-      description = `${i}%`
+      color: getColor(0, total) // Color for the first interval
+    })
+
+    ranges.push({
+      description: `${step}%`,
+      rangemin: step,
+      rangemax: total,
+
+      color: getColor(total, total) // Color for the second interval
+    })
+  } else if (step === 100) {
+    ranges.push({
+      description: `${0}%`,
+      rangemin: 0,
+      rangemax: total,
+
+      color: getColor(0, total) // Color for the second interval
+    })
+  } else {
+    // For step values less than 50, create intervals based on the step value
+    for (let i = 0; i < total; i += step) {
+      const next = Math.min(i + step, total)
+
+      ranges.push({
+        description: i % 10 === 0 ? `${i}%` : null,
+        rangemin: i,
+        rangemax: next,
+
+        color: getColor(i, total)
+      })
     }
-
-    const range = {
-      description,
-      rangemin: i,
-      color: getColor(i, 100)
-    }
-
-    ranges.push(range)
   }
+  // Ensure the final range covers the last interval up to 100%
+  ranges.push({
+    description: "100%"
+  })
 
   return ranges
 }
+/**
+ *
+ * @param {number} nodeInf The value to be checked against the range intervals.
+ * @param {number} step The interval size used to define the range boundaries.
+ * @returns {Object|undefined} The range object that matches the value, or `undefined` if no match is found.
+ *
+ *
+ * @description
+ *  The function retrieves the range object that corresponds to a given value based on the defined step intervals.
+ */
 export function getRange(nodeInf, step) {
   const ranges = calculateRanges(step)
+
   const range = ranges.find((range) => {
-    return range.rangemin <= nodeInf && nodeInf < range.rangemin + step
+    const condition = range.rangemin <= nodeInf && nodeInf <= range.rangemax
+
+    return condition
   })
+
   return range
 }
+
+/**
+ *
+ * @param {Array} data The data to be filtered and formatted.
+ * @param {Array} lostData The data representing lost items.
+ * @param {Object} nodeParams Node Parameters used for filtering and formatting the data.
+ * @param {number} maxDepth The maximum depth for Profiles Tree
+ * @returns {Array} The filtered and formatted data.
+ *
+ *
+ * @description
+ * The function creates deep copies of `data` and `lostData`, and filters them based on `maxDepth`.
+ * Further filters and formats items based on `nodeParams.focusView`:
+ *   - **Node information**: Adds node information and colors based on the selected parameter's value.
+ *   - **Covariate-shift probabilities**: Adds detectron results, calculates probabilities, and colors based on the selected parameter.
+ *   - **Metrics**: Adds metrics information and colors based on the selected parameter's value.
+ */
 export const filterData = (data, lostData, nodeParams, maxDepth) => {
   if (!data) return data
 
@@ -193,7 +293,16 @@ export const filterData = (data, lostData, nodeParams, maxDepth) => {
   return filteredData
 }
 
-// Function to check if path1 is a subpath of path2
+/**
+ *
+ * @param {Array} path1 The first path to be checked.
+ * @param {Array} path2 The second path to be checked against.
+ * @returns {boolean}  `true` if `path1` is a subpath of `path2`, otherwise `false`.
+ *
+ *
+ * @description
+ * The function checks if `path1` is a subpath of `path2`.
+ */
 export const isSubPath = (path1, path2) => {
   if (path1.length > path2.length) {
     return false
@@ -206,6 +315,15 @@ export const isSubPath = (path1, path2) => {
   return true
 }
 
+/**
+ *
+ * @param {Object} data The data object containing arrays of lost profiles.
+ * @returns {Object|null} The filtered data object with unique lost profiles, or `null` if the input is falsy.
+ *
+ *
+ * @description
+ * The function filters out duplicate entries in `data` based on their `id`.
+ */
 export const filterUniqueLostProfiles = (data) => {
   if (!data) return null
 
@@ -228,6 +346,18 @@ export const filterUniqueLostProfiles = (data) => {
   return dataCopy
 }
 
+/**
+ *
+ * @param {Object} data The data object containing metrics to be filtered.
+ * @param {Object} nodeParams The parameters used to filter the metrics.
+ * @returns {Object} The filtered data object with metrics based on the provided criteria.
+ *
+ *
+ * @description
+ * The function filters metrics based on `nodeParams.metrics`:
+ *   - If `nodeParams.metrics` is provided, it includes only those metrics specified.
+ *   - If `nodeParams.metrics` is not provided, it includes only a predefined set of metrics, excluding "LogLoss".
+ */
 export const filterMetrics = (data, nodeParams) => {
   if (!data) return data
 
