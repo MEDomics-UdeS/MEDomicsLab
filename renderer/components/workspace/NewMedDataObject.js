@@ -35,6 +35,21 @@ export class MEDDataObject {
   }
 
   /**
+   * Get the child ID with matching name
+   * @param {Dictionary} dict of MEDDataObjects (such as globalData)
+   * @param {String} parentID The ID of the parent directory
+   * @param {String} name The name of the child to find
+   */
+  static getChildIDWithName(dict, parentID, name) {
+    for (const childID of dict[parentID].childrenIDs) {
+      if (dict[childID].name == name) {
+        return childID
+      }
+    }
+    return null
+  }
+
+  /**
    * @description Get the default name for a new object in a dict of MEDDataObjects depending on its type
    * @param {Dictionary} dict of MEDDataObjects (such as globalData)
    * @param {String} type property of MEDDataObject
@@ -303,7 +318,7 @@ export class MEDDataObject {
 
     // Download the content based on the type
     try {
-      if (medDataObject.type != "directory") {
+      if (medDataObject.type != "directory" && medDataObject.type != "medml") {
         await downloadCollectionToFile(id, filePath, medDataObject.type)
       }
 

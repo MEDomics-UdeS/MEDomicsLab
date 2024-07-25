@@ -189,10 +189,16 @@ export async function overwriteMEDDataObjectProperties(id, newData) {
  * @param {Json} jsonData the new data for the MEDDataObject
  */
 export async function overwriteMEDDataObjectContent(id, jsonData) {
-  const db = await connectToMongoDB()
-  const collection = db.collection(id)
-  await collection.deleteMany({})
-  await collection.insertMany(jsonData)
+  try {
+    const db = await connectToMongoDB()
+    const collection = db.collection(id)
+    await collection.deleteMany({})
+    await collection.insertMany(jsonData)
+    return true
+  } catch (error) {
+    console.error("Error in overwriteMEDDataObjectContent", error)
+    return false
+  }
 }
 
 /**
@@ -317,6 +323,17 @@ export async function downloadCollectionToFile(collectionId, filePath, type) {
     const htmlContent = htmlDocuments.join("\n")
     fs.writeFileSync(filePath, htmlContent)
     console.log(`Collection ${collectionId} has been downloaded as HTML to ${filePath}`)
+  } else if (type === "png") {
+    // Check if documents have the 'data' field
+    const imageDocument = documents.find((doc) => doc.data)
+    if (!imageDocument) {
+      console.error(`No valid PNG content found in collection ${collectionId}`)
+      return
+    }
+
+    const imageBuffer = Buffer.from(imageDocument.data.buffer)
+    fs.writeFileSync(filePath, imageBuffer)
+    console.log(`Collection ${collectionId} has been downloaded as PNG to ${filePath}`)
   } else {
     throw new Error("Unsupported file type")
   }

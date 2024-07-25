@@ -7,9 +7,8 @@ import * as Icon from "react-bootstrap-icons"
 import { FlowFunctionsContext } from "../../flow/context/flowFunctionsContext"
 import { Stack } from "react-bootstrap"
 import Form from "react-bootstrap/Form"
-import { DataContext } from "../../workspace/dataContext"
-import MedDataObject from "../../workspace/medDataObject"
 import { LoaderContext } from "../../generalPurpose/loaderContext"
+import { getCollectionColumns } from "../../mongoDB/mongoDBUtils"
 
 /**
  *
@@ -26,7 +25,6 @@ const DatasetNode = ({ id, data }) => {
   const [modalShow, setModalShow] = useState(false) // state of the modal
   const [selection, setSelection] = useState(data.internal.selection || "medomics") // state of the selection (medomics or custom
   const { updateNode } = useContext(FlowFunctionsContext)
-  const { globalData, setGlobalData } = useContext(DataContext)
   const { setLoader } = useContext(LoaderContext)
 
   // update the node internal data when the selection changes
@@ -39,19 +37,6 @@ const DatasetNode = ({ id, data }) => {
     })
   }, [selection])
 
-  // update the node internal data when the selection changes
-  useEffect(() => {
-    if (data.internal.settings.files && data.internal.settings.files.path == "") {
-      data.internal.hasWarning = { state: true, tooltip: <p>No file selected</p> }
-    } else {
-      data.internal.hasWarning = { state: false }
-    }
-    updateNode({
-      id: id,
-      updatedData: data.internal
-    })
-  }, [])
-
   // update the node when the selection changes
   const onSelectionChange = (e) => {
     setSelection(e.target.value)
@@ -59,7 +44,6 @@ const DatasetNode = ({ id, data }) => {
     data.internal.checkedOptions = []
     e.stopPropagation()
     e.preventDefault()
-    console.log("onselectionchange", e.target.value)
   }
 
   /**
@@ -72,9 +56,6 @@ const DatasetNode = ({ id, data }) => {
    */
   const onInputChange = (inputUpdate) => {
     data.internal.settings[inputUpdate.name] = inputUpdate.value
-    if (inputUpdate.name == "files" || inputUpdate.name == "target") {
-      setGlobalData({ ...globalData })
-    }
     updateNode({
       id: id,
       updatedData: data.internal
@@ -105,10 +86,14 @@ const DatasetNode = ({ id, data }) => {
    */
   const onFilesChange = async (inputUpdate) => {
     data.internal.settings[inputUpdate.name] = inputUpdate.value
-    if (inputUpdate.value.path != "") {
+    if (inputUpdate.value.id != "") {
       setLoader(true)
-      let { columnsArray, columnsObject } = await MedDataObject.getColumnsFromPath(inputUpdate.value.path, globalData, setGlobalData)
-      let steps = await MedDataObject.getStepsFromPath(inputUpdate.value.path, globalData, setGlobalData)
+      let columnsArray = await getCollectionColumns(inputUpdate.value.id)
+      let columnsObject = {}
+      columnsArray.forEach((column) => {
+        columnsObject[column] = column
+      })
+      let steps = null //await MedDataObject.getStepsFromPath(inputUpdate.value.path, globalData, setGlobalData)
       setLoader(false)
       steps && (data.internal.settings.steps = steps)
       data.internal.settings.columns = columnsObject
@@ -131,16 +116,19 @@ const DatasetNode = ({ id, data }) => {
    * This function is used to update the node internal data when the files input changes.
    */
   const onMultipleFilesChange = async (inputUpdate) => {
-    console.log("inputUpdate-multiple", inputUpdate)
     data.internal.settings[inputUpdate.name] = inputUpdate.value
     data.internal.settings.tags = []
     if (inputUpdate.value.length > 0) {
       data.internal.settings.multipleColumns = []
       inputUpdate.value.forEach(async (inputUpdateValue) => {
-        if (inputUpdateValue.path != "") {
+        if (inputUpdateValue.name != "") {
           setLoader(true)
-          let { columnsArray, columnsObject } = await MedDataObject.getColumnsFromPath(inputUpdateValue.path, globalData, setGlobalData)
-          let steps = await MedDataObject.getStepsFromPath(inputUpdateValue.path, globalData, setGlobalData)
+          let columnsArray = await getCollectionColumns(inputUpdateValue.id)
+          let columnsObject = {}
+          columnsArray.forEach((column) => {
+            columnsObject[column] = column
+          })
+          let steps = null //await MedDataObject.getStepsFromPath(inputUpdateValue.path, globalData, setGlobalData)
           setLoader(false)
           let timePrefix = inputUpdateValue.name.split("_")[0]
           steps && (data.internal.settings.steps = steps)
@@ -149,7 +137,6 @@ const DatasetNode = ({ id, data }) => {
             acc[timePrefix + "_" + key] = timePrefix + "_" + columnsObject[key]
             return acc
           }, {})
-          console.log("columnsObject", columnsObject)
           let lastMultipleColumns = data.internal.settings.multipleColumns ? data.internal.settings.multipleColumns : []
           data.internal.settings.multipleColumns = { ...lastMultipleColumns, ...columnsObject }
           data.internal.settings.target = columnsArray[columnsArray.length - 1]
@@ -175,7 +162,6 @@ const DatasetNode = ({ id, data }) => {
    * This function is used to update the node internal data when the tags input changes.
    */
   const onMultipleTagsChange = async (inputUpdate) => {
-    console.log("inputUpdate-multiple", inputUpdate)
     data.internal.settings[inputUpdate.name] = inputUpdate.value
     updateNode({
       id: id,
@@ -236,7 +222,7 @@ const DatasetNode = ({ id, data }) => {
                             type: "data-input-multiple",
                             tooltip: "<p>Specify a data file (xlsx, csv, json)</p>"
                           }}
-                          currentValue={data.internal.settings.files || null}
+                          currentValue={data.internal.settings.files || []}
                           onInputChange={onMultipleFilesChange}
                           setHasWarning={handleWarning}
                         />
@@ -269,7 +255,7 @@ const DatasetNode = ({ id, data }) => {
                         />
 
                         <Input
-                          disabled={data.internal.settings.files && data.internal.settings.files.path == ""}
+                          disabled={data.internal.settings.files && data.internal.settings.files.name == ""}
                           name="target"
                           currentValue={data.internal.settings.target}
                           settingInfos={{
@@ -293,12 +279,12 @@ const DatasetNode = ({ id, data }) => {
                             type: "data-input",
                             tooltip: "<p>Specify a data file (xlsx, csv, json)</p>"
                           }}
-                          currentValue={data.internal.settings.files || {}}
+                          currentValue={data.internal.settings.files && data.internal.settings.files.id}
                           onInputChange={onFilesChange}
                           setHasWarning={handleWarning}
                         />
                         <Input
-                          disabled={data.internal.settings.files && data.internal.settings.files.path == ""}
+                          disabled={data.internal.settings.files && data.internal.settings.files.name == ""}
                           name="target"
                           currentValue={data.internal.settings.target}
                           settingInfos={{
@@ -331,7 +317,15 @@ const DatasetNode = ({ id, data }) => {
             <ModalSettingsChooser show={modalShow} onHide={() => setModalShow(false)} options={data.setupParam.possibleSettings.options} data={data} id={id} />
             {/* the inputs for the options */}
             {data.internal.checkedOptions.map((optionName) => {
-              return <Input key={optionName} name={optionName} settingInfos={data.setupParam.possibleSettings.options[optionName]} currentValue={data.internal.settings[optionName]} onInputChange={onInputChange} />
+              return (
+                <Input
+                  key={optionName}
+                  name={optionName}
+                  settingInfos={data.setupParam.possibleSettings.options[optionName]}
+                  currentValue={data.internal.settings[optionName]}
+                  onInputChange={onInputChange}
+                />
+              )
             })}
           </>
         }

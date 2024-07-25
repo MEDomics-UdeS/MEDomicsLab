@@ -43,7 +43,7 @@ class ModelHandler(Node):
         trained_models = None
         trained_models_json = {}
         settings = copy.deepcopy(self.settings)
-        os.chdir(self.global_config_json['paths']['ws'])
+        #os.chdir(self.global_config_json['paths']['ws'])
         if self.type == 'compare_models':
             models = experiment['pycaret_exp'].compare_models(**settings)
             print(models)

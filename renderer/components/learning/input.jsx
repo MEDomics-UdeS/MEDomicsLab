@@ -8,9 +8,7 @@ import { Markup } from "interweave"
 import WsSelect from "../mainPages/dataComponents/wsSelect"
 import WsSelectMultiple from "../mainPages/dataComponents/wsSelectMultiple"
 import TagsSelectMultiple from "../mainPages/dataComponents/tagsSelectMultiple"
-import { customZipFile2Object } from "../../utilities/customZipFile"
 import { DataContext } from "../workspace/dataContext"
-import MedDataObject from "../workspace/medDataObject"
 import { Dropdown } from "primereact/dropdown"
 import { MultiSelect } from "primereact/multiselect"
 import VarsSelectMultiple from "../mainPages/dataComponents/varsSelectMultiple"
@@ -42,7 +40,7 @@ const createOption = (label) => ({
 const Input = ({ name, settingInfos, currentValue, onInputChange, disabled, setHasWarning = () => {}, customProps }) => {
   const [inputUpdate, setInputUpdate] = useState({})
   const [inputValue, setInputValue] = useState("")
-  const { globalData, setGlobalData } = useContext(DataContext)
+  const { globalData } = useContext(DataContext)
 
   /**
    *
@@ -406,9 +404,14 @@ const Input = ({ name, settingInfos, currentValue, onInputChange, disabled, setH
                 acceptedExtensions={["csv"]}
                 acceptFolder={settingInfos.acceptFolder ? settingInfos.acceptFolder : false}
                 onChange={(e) => {
+                  if (!e.target.value) {
+                    setHasWarning({ state: true, tooltip: <p>No file(s) selected</p> })
+                  } else {
+                    setHasWarning({ state: false })
+                  }
                   setInputUpdate({
                     name: name,
-                    value: { id: e.target.value, name: globalData[e.target.value].name },
+                    value: { id: e.target.value, name: globalData[e.target.value]?.name || "" },
                     type: settingInfos.type
                   })
                 }}
@@ -419,9 +422,6 @@ const Input = ({ name, settingInfos, currentValue, onInputChange, disabled, setH
         )
 
       case "data-input-multiple":
-        console.log("currentValue", currentValue)
-        console.log("settingInfos", settingInfos)
-        console.log("name", name)
         return (
           <>
             <WsSelectMultiple
@@ -434,7 +434,6 @@ const Input = ({ name, settingInfos, currentValue, onInputChange, disabled, setH
               matchRegex={new RegExp("T[0-9]*_(w+)?")}
               acceptFolder={settingInfos.acceptFolder ? settingInfos.acceptFolder : false}
               onChange={(value) => {
-                console.log("e", value)
                 if (value.length === 0) {
                   setHasWarning({ state: true, tooltip: <p>No file(s) selected</p> })
                 } else {
@@ -484,7 +483,6 @@ const Input = ({ name, settingInfos, currentValue, onInputChange, disabled, setH
               selectedDatasets={settingInfos.selectedDatasets}
               selectedVars={currentValue}
               onChange={(value) => {
-                console.log("e", value)
                 setInputUpdate({
                   name: name,
                   value: value,
@@ -503,33 +501,17 @@ const Input = ({ name, settingInfos, currentValue, onInputChange, disabled, setH
               <WsSelect
                 selectedPath={currentValue}
                 acceptedExtensions={["medmodel"]}
-                onChange={(e, path) => {
-                  console.log("e", e, path)
+                onChange={(e) => {
+                  if (!e.target.value) {
+                    setHasWarning({ state: true, tooltip: <p>No file(s) selected</p> })
+                  } else {
+                    setHasWarning({ state: false })
+                  }
                   setInputUpdate({
                     name: name,
-                    value: { name: e.target.value, path: path },
+                    value: { id: e.target.value, name: globalData[e.target.value]?.name || "" },
                     type: settingInfos.type
                   })
-                  if (path != "") {
-                    customZipFile2Object(path)
-                      .then((content) => {
-                        setInputUpdate({
-                          name: name,
-                          value: { name: e.target.value, path: path, metadata: content.metadata },
-                          type: settingInfos.type
-                        })
-                        console.log("content", content)
-                        let modelDataObject = MedDataObject.checkIfMedDataObjectInContextbyPath(path, globalData)
-                        modelDataObject.metadata.content = content.metadata
-                        setGlobalData({ ...globalData })
-                      })
-                      .catch((error) => {
-                        console.log("error", error)
-                      })
-                    setHasWarning({ state: false })
-                  } else {
-                    setHasWarning({ state: true, tooltip: <p>No model selected</p> })
-                  }
                 }}
               />
             </FloatingLabel>

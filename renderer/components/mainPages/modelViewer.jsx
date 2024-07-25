@@ -1,41 +1,48 @@
-import React, { useContext, useEffect } from "react"
+import React, { useContext, useEffect, useState } from "react"
+import { getCollectionData } from "../dbComponents/utils"
+import { MEDDataObject } from "../workspace/NewMedDataObject"
+import { DataContext } from "../workspace/dataContext"
 import ModulePage from "./moduleBasics/modulePage"
-import { PageInfosContext } from "./moduleBasics/pageInfosContext"
-import Path from "path"
 
 /**
  *
  * @returns a page that shows the model informations
  */
-const ModelViewer = () => {
-  const { config, configPath } = useContext(PageInfosContext)
+const ModelViewer = ({ id }) => {
+  //const { config, configPath } = useContext(PageInfosContext)
+  const [data, setData] = useState(null)
+  const { globalData } = useContext(DataContext)
+
   useEffect(() => {
-    console.log("model config", config)
-  }, [config])
+    const getData = async () => {
+      let metadataFileID = MEDDataObject.getChildIDWithName(globalData, id, "metadata.json")
+      let localData = await getCollectionData(metadataFileID)
+      setData(localData[0])
+    }
+    getData()
+  }, [id])
 
   return (
     <>
-      {config && (
+      {data && (
         <>
-          <h1>
-            Model informations : <strong>{configPath && Path.basename(configPath)}</strong>
-          </h1>
+          <h1>Model informations : {<strong>{id && globalData[id].name}</strong>}</h1>
           <h3>Required columns</h3>
           <ul>
-            {config.columns.map((col, i) => (
+            {data.columns.map((col, i) => (
               <li key={i}>{col}</li>
             ))}
           </ul>
           <h3>Model target</h3>
-          <p>{config.target}</p>
+          <p>{data.target}</p>
           <h3>Preprocess steps</h3>
           <ol>
-            {config.steps.map((step, i) => (
+            {data.steps?.map((step, i) => (
               <li key={i}>{step.type}</li>
             ))}
           </ol>
           <h3>Machine learning type</h3>
-          <p>{config.ml_type}</p>
+          <p>{data.ml_type}</p>
         </>
       )}
     </>
@@ -52,7 +59,7 @@ const ModelViewerWithContext = ({ pageId, configPath = null }) => {
   return (
     <>
       <ModulePage pageId={pageId} configPath={configPath} shadow>
-        <ModelViewer />
+        <ModelViewer id={pageId} />
       </ModulePage>
     </>
   )
