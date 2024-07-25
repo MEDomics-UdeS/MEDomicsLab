@@ -13,6 +13,7 @@ import dpath.util as dp
 from collections.abc import MutableMapping
 
 # EXAMPLE USAGE
+# cd pythonCode/med_libs/MEDml/utils/settings_generator
 # python settings_generator.py --ml_type classification 
 
 # python scripts arguments
@@ -381,6 +382,8 @@ def specific_case(dict_settings: dict) -> dict:
     del dict_settings['create_model']['options']['experiment_custom_tags']
     del dict_settings['analyze']['plot_model']['options']['fit_kwargs']
     del dict_settings['analyze']['plot_model']['options']['plot_kwargs']
+    del dict_settings['analyze']['dashboard']['options']['dashboard_kwargs']
+    del dict_settings['analyze']['dashboard']['options']['run_kwargs']
     del dict_settings['finalize']['options']['fit_kwargs']
     del dict_settings['finalize']['options']['experiment_custom_tags']
     del dict_settings['load_model']['options']['platform']
@@ -391,8 +394,8 @@ def specific_case(dict_settings: dict) -> dict:
     del dict_settings['ensemble_model']['options']['fit_kwargs']
     del dict_settings['blend_models']['options']['fit_kwargs']
     del dict_settings['stack_models']['options']['fit_kwargs']
-    del dict_settings['calibrate_model']['options']['fit_kwargs']
-
+    if ml_type == "classification":
+        del dict_settings['calibrate_model']['options']['fit_kwargs']
 
     return dict_settings
 

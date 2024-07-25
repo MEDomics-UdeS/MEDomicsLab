@@ -556,16 +556,6 @@ const classificationSettings = {
                     "type": "string",
                     "tooltip": "<p>Render mode for the dashboard. The default is set to dash which will\nrender a dashboard in browser. There are four possible options:</p>\n<ul >\n<li><p>\u2018dash\u2019 - displays the dashboard in browser</p></li>\n<li><p>\u2018inline\u2019 - displays the dashboard in the jupyter notebook cell.</p></li>\n<li><p>\u2018jupyterlab\u2019 - displays the dashboard in jupyterlab pane.</p></li>\n<li><p>\u2018external\u2019 - displays the dashboard in a separate tab. (use in Colab)</p></li>\n</ul>\n",
                     "default_val": "dash"
-                },
-                "dashboard_kwargs": {
-                    "type": "dict",
-                    "tooltip": "<p>Dictionary of arguments passed to the ExplainerDashboard class.</p>\n",
-                    "default_val": "{} (empty dict)"
-                },
-                "run_kwargs": {
-                    "type": "dict",
-                    "tooltip": "<p>Dictionary of arguments passed to the run method of ExplainerDashboard.</p>\n",
-                    "default_val": "{} (empty dict)"
                 }
             },
             "code": "dashboard()",
