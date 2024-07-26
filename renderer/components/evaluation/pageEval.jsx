@@ -78,10 +78,6 @@ const PageEval = ({ run, pageId, config, setChosenModel, updateConfigClick, setC
   // when the run changes, we start the evaluation processes
   useEffect(() => {
     startCalls2Server()
-    /* console.log("run changed-*-**-*--*-*-*-*-*-*-**-*--*-*-*")
-    createCopiesModel().then((modelObjCopies) => {
-      startCalls2Server(modelObjCopies)
-    }) */
   }, [run])
 
   /**
@@ -171,83 +167,6 @@ const PageEval = ({ run, pageId, config, setChosenModel, updateConfigClick, setC
     }
   }, [showHeader])
 
-  /**
-   * @description - This function is used to create two copies of the model, one for the predict and one for the dashboard. This is because the dashboard and the predict processes are running in parallel and they need to have their own copy of the model.
-   */
-  /*   const createCopiesModel = useCallback(() => {
-    let modelPath = config.model.path
-    console.log("creating copies of the model of path:", modelPath)
-    return new Promise((resolve, reject) => {
-      const unpickleMedmodel = (fname, id) => {
-        function writeFile(absPath, data) {
-          return new Promise((resolve, reject) => {
-            try {
-              let dir = Path.dirname(absPath)
-              console.log("dir:", dir)
-              if (!fs.existsSync(dir)) {
-                fsprom.mkdir(dir, { recursive: true }).then(() => {
-                  fsprom.writeFile(absPath, data).then(() => {
-                    console.log("written")
-                    resolve(absPath)
-                  })
-                })
-              } else {
-                fsprom.writeFile(absPath, data).then(() => {
-                  console.log("written")
-                  resolve(absPath)
-                })
-              }
-            } catch (err) {
-              toast.error("Error while writing file (unpickling): " + err)
-              reject(err)
-            }
-          })
-        }
-        return new Promise((resolve, reject) => {
-          console.log("unpickling:", Path.join(fname))
-          try {
-            // list all files in the directory
-            fsprom.readdir(Path.dirname(fname)).then((files) => {
-              console.log("files:", files)
-              fsprom
-                .readFile(Path.join(fname))
-                .then((pkl) => {
-                  console.log("pkl:", pkl)
-                  let absPathPredict = Path.resolve("tmp/predict-" + id + "-model.pkl")
-                  let absPathDashboard = Path.resolve("tmp/dashboard-" + id + "-model.pkl")
-                  let absPaths = [absPathPredict, absPathDashboard]
-                  let promises = absPaths.map((absPath) => writeFile(absPath, pkl))
-                  Promise.all(promises).then((results) => {
-                    resolve(results)
-                  })
-                })
-                .catch((err) => {
-                  console.error("Error while reading file:", err)
-                  reject(err)
-                })
-            })
-          } catch (err) {
-            toast.error("Error while reading file (unpickling): " + err)
-            reject(err)
-          }
-        })
-      }
-
-      modifyZipFileSync(modelPath, async (path) => {
-        console.log("path:", path)
-        return await unpickleMedmodel(path + "/model.pkl", pageId)
-      })
-        .then((modelObjPaths) => {
-          console.log("modelObjPaths 2:", modelObjPaths)
-          resolve({ predict: modelObjPaths[0], dashboard: modelObjPaths[1] })
-        })
-        .catch((err) => {
-          toast.error("Error while creating copies of the model: " + err)
-          reject(err)
-        })
-    })
-  }, [config.model.path]) */
-
   return (
     <div className="evaluation-content">
       <PanelGroup style={{ height: "100%", display: "flex", flexGrow: 1 }} direction="vertical" id={pageId}>
@@ -279,7 +198,7 @@ const PageEval = ({ run, pageId, config, setChosenModel, updateConfigClick, setC
                   <Input
                     name="Choose model to evaluate"
                     settingInfos={{ type: "models-input", tooltip: "" }}
-                    currentValue={config.model}
+                    currentValue={config.model.id}
                     onInputChange={(data) => setChosenModel(data.value)}
                     setHasWarning={setModelHasWarning}
                   />
@@ -296,7 +215,7 @@ const PageEval = ({ run, pageId, config, setChosenModel, updateConfigClick, setC
                   <Input
                     name="Choose dataset"
                     settingInfos={{ type: "data-input", tooltip: "" }}
-                    currentValue={config.dataset}
+                    currentValue={config.dataset.id}
                     onInputChange={(data) => setChosenDataset(data.value)}
                     setHasWarning={setDatasetHasWarning}
                   />

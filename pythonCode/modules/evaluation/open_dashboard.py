@@ -7,9 +7,8 @@ import sys
 from pathlib import Path
 sys.path.append(
     str(Path(os.path.dirname(os.path.abspath(__file__))).parent.parent))
-from med_libs.server_utils import go_print, find_next_available_port, load_csv, get_model_from_path, is_port_in_use, load_med_standard_data
+from med_libs.server_utils import go_print, find_next_available_port, is_port_in_use
 from med_libs.GoExecutionScript import GoExecutionScript, parse_arguments
-from med_libs.CustomZipFile import CustomZipFile
 from med_libs.mongodb_utils import connect_to_mongo, get_child_id_by_name, get_pickled_model_from_collection, get_dataset_as_pd_df
 
 CLASSIFIER_NOT_SUPPORTING_NAN = [
@@ -60,7 +59,6 @@ class GoExecScriptOpenDashboard(GoExecutionScript):
         self.speed = 2  # rows/second
         self.row_count = 10000
         self.ed:ExplainerDashboard = None
-        self.CustZipFileModel = CustomZipFile(".medmodel")
         self.is_calculating = True
         self.progress_thread = threading.Thread(target=self._update_progress_periodically, args=())
         self.progress_thread.daemon = True
