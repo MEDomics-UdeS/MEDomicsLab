@@ -54,7 +54,7 @@ const DetectronResults = ({ detectronResults }) => {
 
     return {
       title: {
-        text: "Chart Pie Representing Shift Probability",
+        text: "Chart Pie Representing Shift Significance",
         left: "center", // Center the title
         top: 0 // Position title at the top
       },

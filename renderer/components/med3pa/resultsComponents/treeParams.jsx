@@ -85,7 +85,7 @@ const TreeParameters = ({ treeParams, setTreeParams, disableFilter }) => {
           />
         </div>
         <div className="slider-container-paresults">
-          <Typography className="default-text-color-paresults">Min Samples Ratio</Typography>
+          <Typography className="default-text-color-paresults">Min Node Percentage</Typography>
           <Slider
             value={treeParams.minSamplesRatio || 0}
             onChange={(e, value) => handleSliderChange("minSamplesRatio", value)}

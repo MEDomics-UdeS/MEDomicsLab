@@ -242,6 +242,20 @@ const deleteFolderRecursive = (folderPath) => {
     })
   })
 }
+
+/**
+ *
+ * @param {string} sourceDir The path to the source directory.
+ * @param {string} destDir The path to the destination directory.
+ * @returns {Promise} Promise that copies folder contents to another
+ *
+ * @description
+ * The function copies contents of one directory to another
+ */
+export async function copyFolderContents(sourceDir, destDir) {
+  fs.cpSync(sourceDir, destDir, { recursive: true })
+}
+
 /**
  * @param {String} path
  * @returns {Object} json object

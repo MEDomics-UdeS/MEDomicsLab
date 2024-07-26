@@ -43,12 +43,14 @@ export const formatValue = (value) => {
  *   - "detectronResults"
  *   - "metrics"
  */
+
 export const isLost = (obj) => {
   return !(
     obj &&
     (Object.prototype.hasOwnProperty.call(obj, "nodeInformation") || Object.prototype.hasOwnProperty.call(obj, "detectronResults") || Object.prototype.hasOwnProperty.call(obj, "metrics"))
   )
 }
+
 /**
  *
  * @param {string} dirPath The path to the directory containing JSON files.
@@ -90,6 +92,7 @@ export const loadJsonFiles = async (dirPath) => {
     return {}
   }
 }
+
 /**
  *
  * @param {number} value The value for which to generate a color. Should be between 0 and `max`.
@@ -104,6 +107,7 @@ function getColor(value, max) {
   const scale = chroma.scale(["red", "yellow", "green"]).domain([0, max])
   return scale(value).hex()
 }
+
 /**
  *
  * @param {number} step The interval between range values, representing percentages (e.g., 10, 20, etc.).
@@ -163,6 +167,7 @@ export function calculateRanges(step) {
 
   return ranges
 }
+
 /**
  *
  * @param {number} nodeInf The value to be checked against the range intervals.

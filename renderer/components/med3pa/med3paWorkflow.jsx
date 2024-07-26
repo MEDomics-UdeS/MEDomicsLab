@@ -3,7 +3,7 @@ import React, { useState, useCallback, useMemo, useEffect, useContext } from "re
 import { toast } from "react-toastify"
 //import { ipcRenderer } from "electron"
 import { useNodesState, useEdgesState, useReactFlow } from "reactflow"
-import { loadJsonSync, deleteFolderRecursive } from "../../utilities/fileManagementUtils"
+import { loadJsonSync, deleteFolderRecursive, copyFolderContents } from "../../utilities/fileManagementUtils"
 import { requestBackend } from "../../utilities/requests"
 import PaWorkflowBase from "./paWorkflowBase.jsx"
 import BtnDiv from "../flow/btnDiv.jsx"
@@ -118,10 +118,6 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
     }),
     []
   )
-
-  useEffect(() => {
-    console.log("SCENE NAME:", sceneName)
-  }, [sceneName])
 
   // When config is changed, we update the workflow
   useEffect(() => {
@@ -936,7 +932,8 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
     setIsResults(true)
     setRunModal(false)
 
-    processPathToResults(jsonResponse.path_to_results, folderPath)
+    processPathToResults(jsonResponse.path_to_results, jsonResponse.models_paths, folderPath)
+    processPathToComparaison(jsonResponse.path_to_comparison, folderPath)
   }
 
   /**
@@ -949,10 +946,17 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
    * This function iterates through each result path, processes the files,
    *  and saves them into the corresponding folders.
    */
-  async function processPathToResults(path_to_results, folderPath) {
-    for (const Element of path_to_results) {
+  async function processPathToResults(path_to_results, models_paths, folderPath) {
+    for (const [index, Element] of path_to_results.entries()) {
       const fileName = `MED3paResults_${Element}_${new Date().toISOString()}`.replace(/[^a-zA-Z0-9-_]/g, "")
+
       const pathElement = [folderPath, Element].join(MedDataObject.getPathSeparator())
+
+      // Check if the model path is not an empty string (To save Pkl)
+      let pathElementModels = ""
+      if (models_paths[index] !== "") {
+        pathElementModels = [folderPath, "SavedModels", models_paths[index]].join(MedDataObject.getPathSeparator())
+      }
       let isDetectron = false
       const tabs = ["infoConfig", "reference", "test"]
 
@@ -961,7 +965,7 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
       if (Element.startsWith("detectron")) {
         isDetectron = true
         filePath = path.join(pathElement, "detectron_results")
-        await loadAndHandleFiles(filePath, fileContent, null)
+        await loadAndHandleFiles(filePath, fileContent.loadedFiles, null)
       } else {
         for (const tab of tabs) {
           filePath = ""
@@ -970,17 +974,17 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
           } else if (tab === "test") {
             if (Element.startsWith("med3pa_detectron")) {
               filePath = path.join(pathElement, "test")
-              await loadAndHandleFiles(filePath, fileContent, "test")
-              await loadAndHandleFiles(path.join(pathElement, "detectron"), fileContent, "detectron_results")
+              await loadAndHandleFiles(filePath, fileContent.loadedFiles, "test")
+              await loadAndHandleFiles(path.join(pathElement, "detectron"), fileContent.loadedFiles, "detectron_results")
             } else if (Element.startsWith("med3")) {
               filePath = path.join(pathElement, "test")
-              await loadAndHandleFiles(filePath, fileContent, "test")
+              await loadAndHandleFiles(filePath, fileContent.loadedFiles, "test")
             }
           } else {
             filePath = pathElement
           }
           if (filePath) {
-            await loadAndHandleFiles(filePath, fileContent, tab)
+            await loadAndHandleFiles(filePath, fileContent.loadedFiles, tab)
           }
         }
       }
@@ -991,10 +995,65 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
           ? "MED3pa & Detectron Experiments"
           : Element.startsWith("med3")
             ? "MED3pa Experiments"
-            : ""
+            : null
 
       if (parentFolder) {
-        const parentFolderPath = [folderPath, parentFolder].join(MedDataObject.getPathSeparator())
+        const parentFolderPath = [folderPath, "Experiments Results", parentFolder, fileName].join(MedDataObject.getPathSeparator())
+        MedDataObject.createFolderFromPath(parentFolderPath)
+
+        await MedDataObject.writeFileSync(fileContent, parentFolderPath, fileName, "MED3paResults")
+          .then(() => {
+            toast.success(`Result generated and saved for ${pathElement}!`)
+          })
+          .catch((error) => {
+            console.error(`Error writing file for ${pathElement}:`, error)
+            toast.error(`Failed to save result for ${pathElement}`, error)
+          })
+
+        if (pathElementModels !== "") {
+          try {
+            await copyFolderContents(pathElementModels, parentFolderPath)
+            console.log("Copy operation completed successfully")
+          } catch (error) {
+            console.error("Copy operation failed:", error)
+          }
+        }
+        MedDataObject.updateWorkspaceDataObject()
+        await deleteFolderRecursive(pathElement)
+        await deleteFolderRecursive([folderPath, "SavedModels"].join(MedDataObject.getPathSeparator()))
+      }
+    }
+  }
+
+  /**
+   *
+   * @param {Array} path_to_comparison The list of compare results paths to be processed.
+   * @param {String} folderPath The base folder path where results will be stored.
+   *
+   *
+   * @description
+   * This function iterates through each comparison path, processes the files,
+   *  and saves them into the corresponding folders.
+   */
+  async function processPathToComparaison(path_to_comparison, folderPath) {
+    for (const Element of path_to_comparison) {
+      const fileName = `Compare_${Element}_${new Date().toISOString()}`.replace(/[^a-zA-Z0-9-_]/g, "")
+      const pathElement = [folderPath, "ComparisonResults", Element].join(MedDataObject.getPathSeparator())
+
+      const fileContent = {}
+
+      await loadAndHandleFiles(pathElement, fileContent, null)
+
+      const parentFolder = Element.startsWith("compare_detectron")
+        ? "Detectron Experiments Comparison"
+        : Element.startsWith("compare_med3pa_detectron")
+          ? "MED3pa & Detectron Experiments Comparison"
+          : Element.startsWith("compare_med3pa")
+            ? "MED3pa Experiments Comparison"
+            : null
+
+      if (parentFolder) {
+        const parentFolderPath = [folderPath, "Comparison Results", parentFolder].join(MedDataObject.getPathSeparator())
         MedDataObject.createFolderFromPath(parentFolderPath)
 
         await MedDataObject.writeFileSync(fileContent, parentFolderPath, fileName, "MED3paResults")
@@ -1006,9 +1065,9 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
             toast.error(`Failed to save result for ${pathElement}`, error)
           })
         MedDataObject.updateWorkspaceDataObject()
-        await deleteFolderRecursive(pathElement)
       }
     }
+    await deleteFolderRecursive([folderPath, "ComparisonResults"].join(MedDataObject.getPathSeparator()))
   }
 
   /**
@@ -1025,9 +1084,9 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
     try {
       const files = await loadJsonFiles(filePath)
       if (tab === null) {
-        fileContent.loadedFiles = files
+        Object.assign(fileContent, files)
       } else {
-        fileContent.loadedFiles[tab] = files
+        fileContent[tab] = files
       }
     } catch (error) {
       console.error(`Error loading ${tab} files:`, error)
