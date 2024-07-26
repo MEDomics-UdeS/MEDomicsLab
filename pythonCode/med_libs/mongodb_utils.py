@@ -1,6 +1,7 @@
 from pymongo import MongoClient
-from pymongo.errors import DuplicateKeyError
+from pymongo.errors import DuplicateKeyError, PyMongoError
 import pickle
+import pandas as pd
 
 def connect_to_mongo():
     client = MongoClient('mongodb://localhost:27017/')
@@ -55,13 +56,35 @@ def insert_med_data_object_if_not_exists(med_data, json_data=None):
                 # Update parent with sorted children
                 collection.update_one({'id': med_data.parentID}, {'$set': {'childrenIDs': children}})
 
-    # Insert the meddataobject data if ther is data
+    # Insert the meddataobject data if there is data
     if json_data:
         data_collection = db[med_data.id]
         result = data_collection.insert_many(json_data)
         print(f"Data inserted with {len(result.inserted_ids)} documents")
 
     return med_data.id
+
+
+def overwrite_med_data_object_content(collection_id, json_data):
+    """
+    Overwrite a MEDDataObject data in the DataBase.
+
+    Args:
+        collection_id (str): The ID of the MEDDataObject data to overwrite.
+        json_data (list[dict]): The new data for the MEDDataObject.
+
+    Returns:
+        bool: True if the operation was successful, False otherwise.
+    """
+    try:
+        db = connect_to_mongo()
+        collection = db[collection_id]
+        collection.delete_many({})
+        collection.insert_many(json_data)
+        return True
+    except PyMongoError as error:
+        print(f"Error in overwrite_med_data_object_content: {error}")
+        return False
 
 def get_child_id_by_name(parent_id, child_name):
     """
@@ -113,3 +136,18 @@ def get_pickled_model_from_collection(collection_name):
         return model
 
     return None
+
+def get_dataset_as_pd_df(collection_name):
+    """
+    Get the pandas dataframe from the specified collection.
+
+    Args:
+        collection_name (str): The name of the collection containing the data.
+
+    Returns:
+        pandas dataframe
+    """
+    db = connect_to_mongo()
+    collection = db[collection_name]
+    collection_data = collection.find({}, {'_id': False})
+    return pd.DataFrame(list(collection_data))

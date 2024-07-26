@@ -1,4 +1,4 @@
-import React, { useCallback, useContext, useEffect, useState } from "react"
+import React, { useContext, useEffect, useState } from "react"
 import { PageInfosContext } from "../mainPages/moduleBasics/pageInfosContext"
 import { DataContext } from "../workspace/dataContext"
 import { LoaderContext } from "../generalPurpose/loaderContext"
@@ -32,56 +32,48 @@ const EvaluationPageContent = () => {
     const fetchData = async () => {
       let configToLoadID = MEDDataObject.getChildIDWithName(globalData, pageId, "metadata.json")
       let configToLoad = await getCollectionData(configToLoadID)
-      updateConfig("useMedStandard", configToLoad[0].useMedStandard)
+      setEvalConfig(configToLoad[0])
     }
     if (globalData && pageId) {
       fetchData()
     }
-  }, [globalData])
+  }, [pageId])
 
   // handle updating the config when the chosen model changes
   useEffect(() => {
-    updateConfig("model", chosenModel)
+    if (!chosenModel.model || chosenModel.model?.length > 0) {
+      let config = { ...evalConfig }
+      config["model"] = chosenModel
+      setEvalConfig(config)
+    }
   }, [chosenModel])
 
   // handle updating the config when the chosen dataset changes
   useEffect(() => {
-    updateConfig("dataset", chosenDataset)
+    if (!chosenDataset.dataset || (chosenDataset.dataset?.length > 0 && (!chosenDataset.selectedDatasets || chosenDataset.selectedDatasets.length > 0))) {
+      let config = { ...evalConfig }
+      config["dataset"] = chosenDataset
+      setEvalConfig(config)
+    }
   }, [chosenDataset])
 
   // when the config changes, we update the warnings
   useEffect(() => {
+    console.log("HERE", evalConfig)
     if (Object.keys(evalConfig).length > 0) {
       updateWarnings(evalConfig.useMedStandard)
     }
   }, [evalConfig])
 
   /**
-   * @description - This function is used to update the config
-   */
-  const updateConfig = useCallback(
-    (type, data) => {
-      let newConfig = { ...evalConfig }
-      if (type == "model") {
-        newConfig.model = data
-      } else if (type == "dataset") {
-        newConfig.dataset = data
-      } else if (type == "useMedStandard") {
-        newConfig.useMedStandard = data
-      }
-      setEvalConfig(newConfig)
-    },
-    [evalConfig]
-  )
-
-  /**
    * @description - This function is used to update the config WHEN THE USER CLICKS ON THE UPDATE CONFIG BUTTON
    */
   const updateConfigClick = async () => {
-    let newConfig = { ...evalConfig }
-    newConfig.isSet = true
+    let config = { ...evalConfig }
+    config["isSet"] = true
+    setEvalConfig(config)
     let configToLoadID = MEDDataObject.getChildIDWithName(globalData, pageId, "metadata.json")
-    let success = await overwriteMEDDataObjectContent(configToLoadID, [newConfig])
+    let success = await overwriteMEDDataObjectContent(configToLoadID, [config])
     if (success) {
       toast.success("Config has been saved successfully")
       requestBackend(
@@ -89,7 +81,6 @@ const EvaluationPageContent = () => {
         "evaluation/close_dashboard/dashboard/" + pageId,
         { pageId: pageId },
         () => {
-          setEvalConfig(newConfig)
           setRun(!run)
         },
         (error) => {

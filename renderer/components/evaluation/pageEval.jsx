@@ -4,15 +4,15 @@ import { PiFlaskFill } from "react-icons/pi"
 import Input from "../learning/input"
 import { Tag } from "primereact/tag"
 import { Tooltip } from "primereact/tooltip"
-import { toast } from "react-toastify"
-import { modifyZipFileSync } from "../../utilities/customZipFile"
+//import { toast } from "react-toastify"
+//import { modifyZipFileSync } from "../../utilities/customZipFile"
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels"
 import { TabView, TabPanel } from "primereact/tabview"
 import PredictPanel from "./predictPanel"
 import Dashboard from "./dashboard"
-import fsprom from "fs/promises"
-import fs from "fs"
-import Path from "path"
+//import fsprom from "fs/promises"
+//import fs from "fs"
+//import Path from "path"
 import { WorkspaceContext } from "../workspace/workspaceContext"
 import { requestBackend } from "../../utilities/requests"
 import { ErrorRequestContext } from "../generalPurpose/errorRequestContext"
@@ -77,10 +77,11 @@ const PageEval = ({ run, pageId, config, setChosenModel, updateConfigClick, setC
 
   // when the run changes, we start the evaluation processes
   useEffect(() => {
-    console.log("run changed-*-**-*--*-*-*-*-*-*-**-*--*-*-*")
+    startCalls2Server()
+    /* console.log("run changed-*-**-*--*-*-*-*-*-*-**-*--*-*-*")
     createCopiesModel().then((modelObjCopies) => {
       startCalls2Server(modelObjCopies)
-    })
+    }) */
   }, [run])
 
   /**
@@ -89,13 +90,13 @@ const PageEval = ({ run, pageId, config, setChosenModel, updateConfigClick, setC
    * @description - This function is used to start the evaluation processes
    */
   const startCalls2Server = useCallback(
-    (modelObjCopies) => {
+    (/* modelObjCopies */) => {
       // start predict
       setIsPredictUpdating(true)
       requestBackend(
         port,
         "evaluation/predict_test/predict/" + pageId,
-        { pageId: pageId, model: config.model, dataset: config.dataset, modelObjPath: modelObjCopies.predict, useMedStandard: useMedStandard },
+        { pageId: pageId, model: config.model, dataset: config.dataset, useMedStandard: useMedStandard },
         (data) => {
           setIsPredictUpdating(false)
           if (data.error) {
@@ -115,7 +116,7 @@ const PageEval = ({ run, pageId, config, setChosenModel, updateConfigClick, setC
       )
 
       // start dashboard
-      requestBackend(
+      /* requestBackend(
         port,
         "evaluation/close_dashboard/dashboard/" + pageId,
         { pageId: pageId },
@@ -133,7 +134,7 @@ const PageEval = ({ run, pageId, config, setChosenModel, updateConfigClick, setC
               dataset: config.dataset,
               sampleSizeFrac: 1,
               dashboardName: config.model.name.split(".")[0],
-              modelObjPath: modelObjCopies.dashboard,
+              //modelObjPath: modelObjCopies.dashboard,
               useMedStandard: useMedStandard
             },
             (data) => {
@@ -155,7 +156,7 @@ const PageEval = ({ run, pageId, config, setChosenModel, updateConfigClick, setC
         (error) => {
           console.log("closeDashboard received error:", error)
         }
-      )
+      ) */
     },
     [config]
   )
@@ -176,7 +177,7 @@ const PageEval = ({ run, pageId, config, setChosenModel, updateConfigClick, setC
   /**
    * @description - This function is used to create two copies of the model, one for the predict and one for the dashboard. This is because the dashboard and the predict processes are running in parallel and they need to have their own copy of the model.
    */
-  const createCopiesModel = useCallback(() => {
+  /*   const createCopiesModel = useCallback(() => {
     let modelPath = config.model.path
     console.log("creating copies of the model of path:", modelPath)
     return new Promise((resolve, reject) => {
@@ -248,7 +249,7 @@ const PageEval = ({ run, pageId, config, setChosenModel, updateConfigClick, setC
           reject(err)
         })
     })
-  }, [config.model.path])
+  }, [config.model.path]) */
 
   return (
     <div className="evaluation-content">
