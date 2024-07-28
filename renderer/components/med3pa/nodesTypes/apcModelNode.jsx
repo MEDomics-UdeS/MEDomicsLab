@@ -35,6 +35,7 @@ export default function APCModelNode({ id, data }) {
   const [loading, setLoading] = useState(true)
   const [gridParams, setGridParams] = useState({}) // State to hold grid_params
   const [useJsonInput, setUseJsonInput] = useState(false) // Load an Existing Fixed
+  const [showGridParamsSection, setShowGridParamsSection] = useState() // Activate/Desactivate Optimize Option
 
   // Initial set up of GridParams state and Loading State
   useEffect(() => {
@@ -181,6 +182,31 @@ export default function APCModelNode({ id, data }) {
 
   /**
    *
+   * @param {string} value The updated value
+   *
+   *
+   * @description
+   * This function sets activates and desactivates the Grid Search Optimization.
+   */
+  const handleShowGridParamsSectionChange = (value) => {
+    setShowGridParamsSection(value.value)
+    if (value) {
+      // Update the node with default settings
+      updateNode({
+        id: id,
+        updatedData: {
+          ...data.internal,
+          settings: {
+            ...data.internal.settings,
+            optimize: value.value
+          }
+        }
+      })
+    }
+  }
+
+  /**
+   *
    * @param {string} paramName The name of the Grid Search parameter from which to remove the last element.
    *
    *
@@ -299,17 +325,23 @@ export default function APCModelNode({ id, data }) {
         </div>
         <hr></hr>
         <div className="mb-3">
-          <p className="fw-bold">Grid Search Parameters:</p>
-          {Object.keys(settings.grid_params).map((key, index) => (
-            <div key={`gridparam-${index}`} className="row mb-2">
-              <div className="col-sm-6">
-                <p className="fw-bold mb-0">{key}</p>
-              </div>
-              <div className="col-sm-6 text-end">
-                <p className="fw-bold mb-0">[{settings.grid_params[key].map((item) => (item === null ? "N/A" : item)).join(", ")}]</p>
-              </div>
-            </div>
-          ))}
+          {data.internal.settings.optimize ? (
+            <>
+              <p className="fw-bold">Grid Search Parameters:</p>
+              {Object.keys(settings.grid_params).map((key, index) => (
+                <div key={`gridparam-${index}`} className="row mb-2">
+                  <div className="col-sm-6">
+                    <p className="fw-bold mb-0">{key}</p>
+                  </div>
+                  <div className="col-sm-6 text-end">
+                    <p className="fw-bold mb-0">[{settings.grid_params[key].map((item) => (item === null ? "N/A" : item)).join(", ")}]</p>
+                  </div>
+                </div>
+              ))}
+            </>
+          ) : (
+            <p className="fw-bold">No optimization set</p>
+          )}
         </div>
       </div>
     )
@@ -552,9 +584,10 @@ export default function APCModelNode({ id, data }) {
         </Modal.Header>
         <Modal.Body>
           <>
+            <h4 className="mt-1">Hyperparameters Section</h4>
             {data.setupParam.possibleSettings?.hyperparameters && (
               <>
-                <div className="d-flex align-items-center mt-3 mb-2">
+                <div className="d-flex align-items-center mt-3 mb-2" style={{ cursor: "pointer" }} onClick={toggleShowHyperParams}>
                   <div className="fw-bold" style={{ color: "#555" }}>
                     <CiEdit
                       style={{
@@ -565,7 +598,7 @@ export default function APCModelNode({ id, data }) {
                     />
                     Edit Hyperparameters
                   </div>
-                  <Icon.ChevronDown style={{ cursor: "pointer", marginLeft: "auto" }} onClick={toggleShowHyperParams} />
+                  <Icon.ChevronDown style={{ marginLeft: "auto" }} onClick={toggleShowHyperParams} />
                 </div>
                 {showHyperParams &&
                   data.setupParam.possibleSettings?.hyperparameters.map((param) => {
@@ -593,10 +626,20 @@ export default function APCModelNode({ id, data }) {
                   })}
               </>
             )}
+            <h4 className="mt-4">Optimization Section</h4>
 
-            {data.setupParam.possibleSettings?.grid_params && (
+            <FlInput
+              key="grid_section"
+              name="Optimize"
+              settingInfos={{
+                ...data.setupParam.possibleSettings.optimize
+              }}
+              currentValue={showGridParamsSection}
+              onInputChange={(value) => handleShowGridParamsSectionChange(value)}
+            />
+            {showGridParamsSection && data.setupParam.possibleSettings?.grid_params && (
               <>
-                <div className="d-flex align-items-center mt-3 mb-2">
+                <div className="d-flex align-items-center mt-3 mb-2" style={{ cursor: "pointer" }} onClick={toggleShowGridParams}>
                   <div className="fw-bold" style={{ color: "#555" }}>
                     <CiEdit
                       style={{
@@ -607,7 +650,7 @@ export default function APCModelNode({ id, data }) {
                     />
                     Edit GridSearch Optimization Parameters
                   </div>
-                  <Icon.ChevronDown style={{ cursor: "pointer", marginLeft: "auto" }} onClick={toggleShowGridParams} />
+                  <Icon.ChevronDown style={{ marginLeft: "auto" }} />
                 </div>
                 {showGridParams &&
                   data.setupParam.possibleSettings.grid_params.map((param, gridIndex) => {

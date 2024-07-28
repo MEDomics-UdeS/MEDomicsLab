@@ -231,13 +231,28 @@ const loadJsonSync = () => {
  */
 const deleteFolderRecursive = (folderPath) => {
   return new Promise((resolve, reject) => {
-    fs.rmdir(folderPath, { recursive: true }, (error) => {
-      if (error) {
-        console.error(`Error deleting folder ${folderPath}:`, error)
-        reject(error)
+    fs.stat(folderPath, (err, stats) => {
+      if (err) {
+        if (err.code === "ENOENT") {
+          console.log(`Folder ${folderPath} does not exist.`)
+          resolve(true) // Indicate success since the folder does not exist
+        } else {
+          console.error(`Error checking folder ${folderPath}:`, err)
+          reject(err)
+        }
+      } else if (stats.isDirectory()) {
+        fs.rmdir(folderPath, { recursive: true }, (error) => {
+          if (error) {
+            console.error(`Error deleting folder ${folderPath}:`, error)
+            reject(error)
+          } else {
+            console.log(`Folder ${folderPath} deleted successfully.`)
+            resolve(true) // Indicate success
+          }
+        })
       } else {
-        console.log(`Folder ${folderPath} deleted successfully.`)
-        resolve(true) // Indicate success
+        console.error(`${folderPath} is not a directory.`)
+        reject(new Error(`${folderPath} is not a directory.`))
       }
     })
   })

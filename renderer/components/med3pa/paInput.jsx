@@ -1,3 +1,11 @@
+/* 
+
+ - This File is a copy of input.jsx of the Learning Module
+ - It uses medDataObject to load files from Workspace
+ - It uses DataContext for inputing models
+
+*/
+
 import React, { useState, useEffect, useContext } from "react"
 import CreatableSelect from "react-select/creatable" // https://react-select.com/creatable
 import FloatingLabel from "react-bootstrap/FloatingLabel"

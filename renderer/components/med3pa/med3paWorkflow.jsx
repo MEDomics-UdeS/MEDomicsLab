@@ -1,3 +1,18 @@
+/* 
+
+This File uses MedDataObject to :
+
+ - Save a Scene to the Workspace:
+    * Function 'createSceneContent' 
+    * Function 'onSave' 
+    
+ - Retrieve Result files created from BackEnd && Generate .MED3PA results files from frontEnd
+    * Function runPaPipeline
+    * Function processPathToResults
+    * Function processPathToComparaison
+
+*/
+
 /* eslint-disable camelcase */
 import React, { useState, useCallback, useMemo, useEffect, useContext } from "react"
 import { toast } from "react-toastify"
@@ -18,7 +33,6 @@ import path from "path"
 import { ErrorRequestContext } from "../generalPurpose/errorRequestContext.jsx"
 import MedDataObject from "../workspace/medDataObject.js"
 import { modifyZipFileSync, createZipFileSync } from "../../utilities/customZipFile.js"
-//import { sceneDescription } from "../../public/setupVariables/learningNodesParams.jsx"
 
 import RunPipelineModal from "./runPipelineModal"
 // here are the different types of nodes implemented in the workflow
@@ -1037,7 +1051,7 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
    */
   async function processPathToComparaison(path_to_comparison, folderPath) {
     for (const Element of path_to_comparison) {
-      const fileName = `Compare_${Element}_${new Date().toISOString()}`.replace(/[^a-zA-Z0-9-_]/g, "")
+      const fileName = `${Element}_${new Date().toISOString()}`.replace(/[^a-zA-Z0-9-_]/g, "")
       const pathElement = [folderPath, "ComparisonResults", Element].join(MedDataObject.getPathSeparator())
 
       const fileContent = {}

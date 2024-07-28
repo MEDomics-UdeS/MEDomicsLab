@@ -29,21 +29,31 @@ const paSettings = {
   ipcModel: {
     model_type: {
       type: "list",
-      tooltip: "Model Types for IPC Model",
+      tooltip: "<p>Model Types for IPC Model</p>",
       options: [],
       default_val: "" // Default Model
+    },
+    optimize: {
+      type: "bool",
+      tooltip: "<p>Activate / Deactivate Grid Search Optimization</p>",
+      default_val: false
     },
     model_settings: {}
   },
 
   apcModel: {
     hyperparameters: {},
-    grid_params: {}
+    grid_params: {},
+    optimize: {
+      type: "bool",
+      tooltip: "<p>Activate / Desactivate Grid Search Optimization</p>",
+      default_val: false
+    }
   },
   uncertaintyMetrics: {
     uncertainty_metric: {
       type: "list",
-      tooltip: "Uncertainty Metric to use for Base Model Error quantification",
+      tooltip: "<p>Uncertainty Metric to use for Base Model Error quantification</p>",
       options: [],
       default_val: ""
     }
@@ -52,27 +62,27 @@ const paSettings = {
   detectron: {
     sample_size: {
       type: "int",
-      tooltip: "The size of the Testing Set N",
+      tooltip: "<p>The size of the Testing Set N</p>",
       default_val: 20 // Default value sample size
     },
     ensemble_size: {
       type: "int",
-      tooltip: "Number of CDCs to train",
+      tooltip: "<p>Number of CDCs to train</p>",
       default_val: 5 // Default value for minimum leaves ratio
     },
     num_rounds: {
       type: "int",
-      tooltip: "Number of rounds to train the ensemble",
+      tooltip: "<p>Number of rounds to train the ensemble</p>",
       default_val: 100 // Default value for minimum leaves ratio
     },
     patience: {
       type: "int",
-      tooltip: "Patience of the Early Stopping",
+      tooltip: "<p>Patience of the Early Stopping</p>",
       default_val: 3 // Default value for minimum leaves ratio
     },
     detectron_test: {
       type: "list-multiple",
-      tooltip: "The types of Detectron test to run",
+      tooltip: "<p>The types of Detectron test to run</p>",
       options: [],
       default_val: [] // Default value for metrics
     }
@@ -119,13 +129,13 @@ export const mergeSettings = (nodeName, staticSettings, dynamicSettings) => {
           hyperparameters: dynamicSettings.ipc_models[model].params.map((param) => ({
             ...param,
             type: param.type,
-            tooltip: `${param.name} for ${model}`,
+            tooltip: `<p>${param.name} for ${model}</p>`,
             default_val: param.default
           })),
           grid_params: dynamicSettings.ipc_models[model].grid_params.map((param) => ({
             ...param,
             type: param.type,
-            tooltip: `${param.name} for Grid Search Optimization`,
+            tooltip: `<p>${param.name} for Grid Search Optimization</p>`,
             default_val: param.default
           }))
         }
@@ -142,13 +152,13 @@ export const mergeSettings = (nodeName, staticSettings, dynamicSettings) => {
         ;(staticSettings.hyperparameters = dynamicSettings.apc_models[model].params.map((param) => ({
           ...param,
           type: param.type,
-          tooltip: `Parameter for ${model}`,
+          tooltip: `<p>Parameter for ${model}</p>`,
           default_val: param.default
         }))),
           (staticSettings.grid_params = dynamicSettings.apc_models[model].grid_params.map((param) => ({
             ...param,
             type: param.type,
-            tooltip: `Grid parameter for ${model}`,
+            tooltip: `<p>Grid parameter for ${model}</p>`,
             default_val: param.default
           })))
       })

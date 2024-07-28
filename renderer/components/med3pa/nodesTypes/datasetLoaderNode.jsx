@@ -1,3 +1,18 @@
+/* 
+
+This File uses MedDataObject to :
+
+ - Handle .csv files change i.e Datasets Loading Operation 
+    * Function 'onFilesChange' 
+
+This File uses DataContext to :
+
+ - Set the globalData and Load .csv Datasets and the target variable
+    * Function 'onFilesChange'
+    * Function 'onInputChange'
+    
+*/
+
 import React, { useState, useContext, useEffect } from "react"
 import Node from "../../flow/node"
 import { Button, Stack, OverlayTrigger, Tooltip } from "react-bootstrap"

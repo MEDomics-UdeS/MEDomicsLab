@@ -36,6 +36,7 @@ export default function IPCModelNode({ id, data }) {
   const [gridParams, setGridParams] = useState({}) // State to hold grid_params
   const [savePickled, setSavePickled] = useState(true) // Save the model
   const [usePklInput, setUsePklInput] = useState(false) // Load an Existing model
+  const [showGridParamsSection, setShowGridParamsSection] = useState() // Activate/Desactivate Optimize Option
 
   // Update the node's internal settings when the model type changes
   useEffect(() => {
@@ -45,6 +46,7 @@ export default function IPCModelNode({ id, data }) {
 
       const defaultSettings = {
         model_type: defaultModelType,
+        optimize: false,
         hyperparameters: {},
         grid_params: {},
         save_pickled: true
@@ -74,6 +76,7 @@ export default function IPCModelNode({ id, data }) {
       setModelType(defaultSettings.model_type)
       setGridParams(defaultSettings.grid_params)
       setLoading(false)
+      setShowGridParamsSection(defaultSettings.optimize)
     }
   }, [modelType])
 
@@ -109,17 +112,23 @@ export default function IPCModelNode({ id, data }) {
         </div>
         <hr></hr>
         <div className="mb-3">
-          <p className="fw-bold">Grid Search Parameters:</p>
-          {Object.keys(settings.grid_params).map((key, index) => (
-            <div key={`gridparam-${index}`} className="row mb-2">
-              <div className="col-sm-6">
-                <p className="fw-bold mb-0">{key}</p>
-              </div>
-              <div className="col-sm-6 text-end">
-                <p className="fw-bold mb-0">[{settings.grid_params[key].map((item) => (item === null ? "N/A" : item)).join(", ")}]</p>
-              </div>
-            </div>
-          ))}
+          {data.internal.settings.optimize ? (
+            <>
+              <p className="fw-bold">Grid Search Parameters:</p>
+              {Object.keys(settings.grid_params).map((key, index) => (
+                <div key={`gridparam-${index}`} className="row mb-2">
+                  <div className="col-sm-6">
+                    <p className="fw-bold mb-0">{key}</p>
+                  </div>
+                  <div className="col-sm-6 text-end">
+                    <p className="fw-bold mb-0">[{settings.grid_params[key].map((item) => (item === null ? "N/A" : item)).join(", ")}]</p>
+                  </div>
+                </div>
+              ))}
+            </>
+          ) : (
+            <p className="fw-bold">No optimization set</p>
+          )}
         </div>
       </div>
     )
@@ -135,6 +144,31 @@ export default function IPCModelNode({ id, data }) {
    */
   const handleModelTypeChange = (selectedModelType) => {
     setModelType(selectedModelType)
+  }
+
+  /**
+   *
+   * @param {string} value The updated value
+   *
+   *
+   * @description
+   * This function sets activates and desactivates the Grid Search Optimization.
+   */
+  const handleShowGridParamsSectionChange = (value) => {
+    setShowGridParamsSection(value.value)
+    if (value) {
+      // Update the node with default settings
+      updateNode({
+        id: id,
+        updatedData: {
+          ...data.internal,
+          settings: {
+            ...data.internal.settings,
+            optimize: value.value
+          }
+        }
+      })
+    }
   }
 
   /**
@@ -597,9 +631,11 @@ export default function IPCModelNode({ id, data }) {
           )}
           {data.internal.settings.model_type && (
             <>
+              <h4 className="mt-4">Hyperparameters Section</h4>
+
               {data.setupParam.possibleSettings.model_settings[modelType]?.hyperparameters && (
                 <>
-                  <div className="d-flex align-items-center mt-3 mb-2">
+                  <div className="d-flex align-items-center mt-3 mb-2" style={{ cursor: "pointer" }} onClick={toggleShowHyperParams}>
                     <div className="fw-bold" style={{ color: "#555" }}>
                       <CiEdit
                         style={{
@@ -610,8 +646,9 @@ export default function IPCModelNode({ id, data }) {
                       />
                       Edit Hyperparameters
                     </div>
-                    <Icon.ChevronDown style={{ cursor: "pointer", marginLeft: "auto" }} onClick={toggleShowHyperParams} />
+                    <Icon.ChevronDown style={{ marginLeft: "auto" }} />
                   </div>
+
                   {showHyperParams &&
                     data.setupParam.possibleSettings.model_settings[modelType].hyperparameters.map((param) => {
                       // Transform choices to objects with a name property if choices exist
@@ -639,9 +676,20 @@ export default function IPCModelNode({ id, data }) {
                 </>
               )}
 
-              {data.setupParam.possibleSettings.model_settings[modelType]?.grid_params && (
+              <h4 className="mt-4">Optimization Section</h4>
+
+              <FlInput
+                key="grid_section"
+                name="Optimize"
+                settingInfos={{
+                  ...data.setupParam.possibleSettings.optimize
+                }}
+                currentValue={showGridParamsSection}
+                onInputChange={(value) => handleShowGridParamsSectionChange(value)}
+              />
+              {showGridParamsSection && data.setupParam.possibleSettings.model_settings[modelType]?.grid_params && (
                 <>
-                  <div className="d-flex align-items-center mt-3 mb-2">
+                  <div className="d-flex align-items-center mt-3 mb-2" style={{ cursor: "pointer" }} onClick={toggleShowGridParams}>
                     <div className="fw-bold" style={{ color: "#555" }}>
                       <CiEdit
                         style={{
@@ -652,7 +700,7 @@ export default function IPCModelNode({ id, data }) {
                       />
                       Edit GridSearch Optimization Parameters
                     </div>
-                    <Icon.ChevronDown style={{ cursor: "pointer", marginLeft: "auto" }} onClick={toggleShowGridParams} />
+                    <Icon.ChevronDown style={{ marginLeft: "auto" }} />
                   </div>
                   {showGridParams &&
                     data.setupParam.possibleSettings.model_settings[modelType].grid_params.map((param, gridIndex) => {
