@@ -178,7 +178,6 @@ const ApplicationPage = ({ pageId }) => {
   const { setLoader } = useContext(LoaderContext)
   const { globalData } = useContext(DataContext)
   const [modelHasWarning, setModelHasWarning] = useState({ state: true, tooltip: "No model selected" })
-  //const [predictionsColumns, setPredictionsColumns] = useState([])
   const [mode, setMode] = useState("unique")
   const [requestSettings, setRequestSettings] = useState({})
 
@@ -236,25 +235,6 @@ const ApplicationPage = ({ pageId }) => {
       }
     )
   }
-
-  // when predictions change, update the columns
-  /*   useEffect(() => {
-    if (predictions && predictions.resultDataset) {
-      let predictionsColumns = []
-      let columns = Object.keys(predictions.resultDataset[0])
-      columns.forEach((col) => {
-        let colInfos = {}
-        colInfos.title = col
-        colInfos.props = {}
-        if (col == "pred_" + modelMetadata.target) {
-          colInfos.props.frozen = true
-          colInfos.props.alignFrozen = "right"
-        }
-        predictionsColumns.push(colInfos)
-      })
-      setPredictionsColumns(predictionsColumns)
-    }
-  }, [predictions]) */
 
   /**
    * @description - This function is used to update the warnings
