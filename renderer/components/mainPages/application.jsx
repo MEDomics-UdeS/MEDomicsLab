@@ -9,16 +9,17 @@ import { WorkspaceContext } from "../workspace/workspaceContext"
 import { ErrorRequestContext } from "../generalPurpose/errorRequestContext"
 import { LoaderContext } from "../generalPurpose/loaderContext"
 import { ToggleButton } from "primereact/togglebutton"
-import MedDataObject from "../workspace/medDataObject"
-import { customZipFile2Object } from "../../utilities/customZipFile"
 import { DataContext } from "../workspace/dataContext"
 import { Tag } from "primereact/tag"
 import { Tooltip } from "primereact/tooltip"
-import DataTableWrapper from "../dataTypeVisualisation/dataTableWrapper"
-import { deepCopy } from "../../utilities/staticFunctions"
+import { MEDDataObject } from "../workspace/NewMedDataObject"
+import { getCollectionData } from "../dbComponents/utils"
+import { getCollectionColumns, insertMEDDataObjectIfNotExists } from "../mongoDB/mongoDBUtils"
+import DataTableFromDB from "../dbComponents/dataTableFromDB"
+import { randomUUID } from "crypto"
 
 /**
- * 
+ *
  * @param {string} pageId The id of the page
  * @param {function} setRequestSettings The function to set the request settings
  * @param {Object} chosenModel The chosen model
@@ -29,8 +30,8 @@ import { deepCopy } from "../../utilities/staticFunctions"
  * @param {function} setIsValid2Predict The function to set the isValid2Predict
  * @param {Object} inputsData The inputs data
  * @param {function} setInputsData The function to set the inputs data
- * 
- * @returns {React.Component} The entry component 
+ *
+ * @returns {React.Component} The entry component
  */
 const Entry = ({ pageId, setRequestSettings, chosenModel, modelMetadata, updateWarnings, mode, setMode, setIsValid2Predict, inputsData, setInputsData }) => {
   const [inputTypeChecked, setInputTypeChecked] = useState(false)
@@ -43,7 +44,6 @@ const Entry = ({ pageId, setRequestSettings, chosenModel, modelMetadata, updateW
     if (modelMetadata) {
       let columns = modelMetadata.columns
       let isValid = true
-      console.log("inputsData", inputsData, columns)
 
       columns.forEach((columnName) => {
         if (columnName != modelMetadata.target) {
@@ -64,7 +64,6 @@ const Entry = ({ pageId, setRequestSettings, chosenModel, modelMetadata, updateW
 
   // when the chosen dataset changes, update the warnings
   useEffect(() => {
-    console.log("chosenDataset", chosenDataset)
     updateWarnings(chosenDataset, setDatasetHasWarning)
   }, [chosenDataset])
 
@@ -81,13 +80,11 @@ const Entry = ({ pageId, setRequestSettings, chosenModel, modelMetadata, updateW
 
   // when the isColsValid changes, update the isValid2Predict
   useEffect(() => {
-    console.log("isColsValid", isColsValid, "mode", mode)
     mode == "unique" && setIsValid2Predict(isColsValid)
   }, [isColsValid])
 
   // when the chosen model changes, update the model metadata
   useEffect(() => {
-    console.log("chosenModel", chosenModel)
     setInputsData({})
     updateWarnings(chosenDataset, setDatasetHasWarning)
   }, [chosenModel])
@@ -107,7 +104,6 @@ const Entry = ({ pageId, setRequestSettings, chosenModel, modelMetadata, updateW
    * @param {Object} inputUpdate The input update
    */
   const handleInputUpdate = (inputUpdate) => {
-    console.log("inputUpdate", inputUpdate)
     let newInputsData = { ...inputsData }
     newInputsData[inputUpdate.name] = [inputUpdate.value]
     setInputsData(newInputsData)
@@ -118,7 +114,6 @@ const Entry = ({ pageId, setRequestSettings, chosenModel, modelMetadata, updateW
    * @param {Object} inputUpdate The input update
    */
   const onDatasetChange = (inputUpdate) => {
-    console.log("inputUpdate", inputUpdate)
     setChosenDataset(inputUpdate.value)
   }
 
@@ -129,7 +124,15 @@ const Entry = ({ pageId, setRequestSettings, chosenModel, modelMetadata, updateW
         <div className="columns-filling">
           {modelMetadata.columns.map((columnName, index) => {
             if (columnName != modelMetadata.target) {
-              return <Input key={index} name={columnName} settingInfos={{ type: "string", tooltip: "" }} currentValue={inputsData[columnName] ? inputsData[columnName] : ""} onInputChange={handleInputUpdate} />
+              return (
+                <Input
+                  key={index}
+                  name={columnName}
+                  settingInfos={{ type: "string", tooltip: "" }}
+                  currentValue={inputsData[columnName] ? inputsData[columnName] : ""}
+                  onInputChange={handleInputUpdate}
+                />
+              )
             }
           })}
         </div>
@@ -149,7 +152,7 @@ const Entry = ({ pageId, setRequestSettings, chosenModel, modelMetadata, updateW
               type: "data-input",
               tooltip: "<p>Specify a data file (csv)</p>"
             }}
-            currentValue={chosenDataset || {}}
+            currentValue={chosenDataset?.id || {}}
             onInputChange={onDatasetChange}
             setHasWarning={setDatasetHasWarning}
           />
@@ -158,7 +161,6 @@ const Entry = ({ pageId, setRequestSettings, chosenModel, modelMetadata, updateW
     </>
   )
 }
-
 
 /**
  *
@@ -174,16 +176,27 @@ const ApplicationPage = ({ pageId }) => {
   const { port } = useContext(WorkspaceContext)
   const { setError } = useContext(ErrorRequestContext)
   const { setLoader } = useContext(LoaderContext)
-  const { globalData, setGlobalData } = useContext(DataContext)
+  const { globalData } = useContext(DataContext)
   const [modelHasWarning, setModelHasWarning] = useState({ state: true, tooltip: "No model selected" })
-  const [predictionsColumns, setPredictionsColumns] = useState([])
+  //const [predictionsColumns, setPredictionsColumns] = useState([])
   const [mode, setMode] = useState("unique")
   const [requestSettings, setRequestSettings] = useState({})
 
   // when the chosen model changes, update the model metadata
   useEffect(() => {
-    console.log("chosenModel", chosenModel)
-    chosenModel && setModelMetadata(chosenModel.metadata)
+    const fetchData = async (metadataObjectID) => {
+      const metadata = await getCollectionData(metadataObjectID)
+      if (metadata) {
+        setModelMetadata(metadata[0])
+        updateWarnings()
+      }
+    }
+    if (chosenModel) {
+      const metadataObjectID = MEDDataObject.getChildIDWithName(globalData, chosenModel.id, "metadata.json")
+      if (metadataObjectID) {
+        fetchData(metadataObjectID)
+      }
+    }
     updateWarnings()
   }, [chosenModel])
 
@@ -191,13 +204,21 @@ const ApplicationPage = ({ pageId }) => {
    *
    * @param {String} type The type of prediction to do
    */
-  const handlePredictClick = () => {
-    console.log("inputsData", inputsData)
+  const handlePredictClick = async () => {
     setLoader(true)
+    const predictionsFolder = new MEDDataObject({
+      id: randomUUID(),
+      name: "predictions",
+      type: "directory",
+      parentID: "DATA",
+      childrenIDs: [],
+      inWorkspace: false
+    })
+    const parentId = await insertMEDDataObjectIfNotExists(predictionsFolder)
     requestBackend(
       port,
       "application/predict/" + pageId,
-      requestSettings,
+      { entry: requestSettings, parentId: parentId },
       (response) => {
         console.log("response", response)
         if (response.error) {
@@ -206,6 +227,7 @@ const ApplicationPage = ({ pageId }) => {
         } else {
           setPredictions(response)
         }
+        MEDDataObject.updateWorkspaceDataObject()
         setLoader(false)
       },
       () => {
@@ -215,11 +237,9 @@ const ApplicationPage = ({ pageId }) => {
     )
   }
 
-
   // when predictions change, update the columns
-  useEffect(() => {
+  /*   useEffect(() => {
     if (predictions && predictions.resultDataset) {
-      console.log("predictions.resultDataset", predictions.resultDataset)
       let predictionsColumns = []
       let columns = Object.keys(predictions.resultDataset[0])
       columns.forEach((col) => {
@@ -233,15 +253,13 @@ const ApplicationPage = ({ pageId }) => {
         predictionsColumns.push(colInfos)
       })
       setPredictionsColumns(predictionsColumns)
-      console.log(predictions.resultDataset)
     }
-  }, [predictions])
+  }, [predictions]) */
 
   /**
    * @description - This function is used to update the warnings
    */
   const updateWarnings = async (chosenDataset, setDatasetHasWarning) => {
-    console.log("updateWarnings")
     setPredictions(null)
 
     /**
@@ -266,7 +284,6 @@ const ApplicationPage = ({ pageId }) => {
                       <p>Needed columns:</p>
                       <ul>
                         {modelData.map((col) => {
-
                           return <li key={col}>{col}</li>
                         })}
                       </ul>
@@ -290,48 +307,15 @@ const ApplicationPage = ({ pageId }) => {
       }
     }
 
-    if (chosenModel && chosenDataset && Object.keys(chosenModel).length > 0 && Object.keys(chosenDataset).length > 0 && chosenModel.name != "No selection" && chosenDataset.name != "No selection") {
+    if (modelMetadata && chosenDataset && modelMetadata.columns && chosenDataset.id) {
       //   getting colummns of the dataset
       setLoader(true)
-      let { columnsArray } = await MedDataObject.getColumnsFromPath(chosenDataset.path, globalData, setGlobalData)
+      let columnsArray = await getCollectionColumns(chosenDataset.id)
       setLoader(false)
-      //   getting colummns of the model
-      let modelDataObject = await MedDataObject.getObjectByPathSync(chosenModel.path, globalData)
-      if (modelDataObject) {
-        console.log("model columns already loaded ?", modelDataObject.metadata.content)
-        if (!modelDataObject.metadata.content) {
-          if (!chosenModel.metadata) {
-            try {
-              customZipFile2Object(chosenModel.path)
-                .then((content) => {
-                  console.log("finish customZipFile2Object", content)
-                  if (content && Object.keys(content).length > 0) {
-                    modelDataObject.metadata.content = content
-                    setGlobalData({ ...globalData })
-                    let modelData = deepCopy(content.columns).filter((col) => col != content.target)
-                    checkWarnings(columnsArray, modelData)
-                  }
-                })
-                .catch((error) => {
-                  console.log("error", error)
-                })
-            } catch (error) {
-              console.log("error", error)
-            }
-          } else {
-            modelDataObject.metadata.content = chosenModel.metadata
-            setGlobalData({ ...globalData })
-            let modelData = deepCopy(chosenModel.metadata.columns).filter((col) => col != chosenModel.metadata.target)
-            checkWarnings(columnsArray, modelData)
-          }
-        } else {
-          console.log("flag1 - false")
 
-          let modelData = deepCopy(modelDataObject.metadata.content.columns).filter((col) => col != modelDataObject.metadata.content.target)  
-          checkWarnings(columnsArray, modelData)
-        }
-        console.log("modelDataObject.metadata.content", modelDataObject.metadata.content)
-      }
+      //   getting colummns of the model
+      let modelColumns = modelMetadata.columns
+      checkWarnings(columnsArray, modelColumns)
     }
   }
 
@@ -347,25 +331,30 @@ const ApplicationPage = ({ pageId }) => {
               </Tooltip>
             </>
           )}
-          <Input name="Choose model" settingInfos={{ type: "models-input", tooltip: "" }} setHasWarning={setModelHasWarning} currentValue={chosenModel} onInputChange={(data) => setChosenModel(data.value)} />
+          <Input
+            name="Choose model"
+            settingInfos={{ type: "models-input", tooltip: "" }}
+            setHasWarning={setModelHasWarning}
+            currentValue={chosenModel.id}
+            onInputChange={(data) => setChosenModel(data.value)}
+          />
         </div>
         {modelMetadata && (
           <>
-            <Entry pageId={pageId} setRequestSettings={setRequestSettings} chosenModel={chosenModel} modelMetadata={modelMetadata} updateWarnings={updateWarnings} mode={mode} setMode={setMode} setIsValid2Predict={setIsValid2Predict} inputsData={inputsData} setInputsData={setInputsData} />
+            <Entry
+              pageId={pageId}
+              setRequestSettings={setRequestSettings}
+              chosenModel={chosenModel}
+              modelMetadata={modelMetadata}
+              updateWarnings={updateWarnings}
+              mode={mode}
+              setMode={setMode}
+              setIsValid2Predict={setIsValid2Predict}
+              inputsData={inputsData}
+              setInputsData={setInputsData}
+            />
             <Button label="Predict" outlined severity="success" onClick={() => handlePredictClick()} disabled={!isValid2Predict} />
-            {predictions && predictions.resultDataset && (
-              <DataTableWrapper
-                data={predictions.resultDataset}
-                tablePropsData={{
-                  scrollable: true,
-                  scrollHeight: "flex",
-                  size: "small",
-                  paginator: true,
-                  rows: 10
-                }}
-                columns={predictionsColumns}
-              />
-            )}
+            {predictions && predictions.collection_id && <DataTableFromDB data={{ id: predictions.collection_id }} isReadOnly={true} />}
           </>
         )}
       </Stack>
@@ -374,10 +363,10 @@ const ApplicationPage = ({ pageId }) => {
 }
 
 /**
- * 
+ *
  * @param {string} pageId The id of the page
  * @param {string} configPath The path of the config file
- *  
+ *
  * @returns {React.Component} The application page with module page
  */
 const ApplicationPageWithModulePage = ({ pageId = "application-456", configPath = null }) => {
