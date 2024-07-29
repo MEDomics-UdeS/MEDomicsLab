@@ -6,7 +6,7 @@ import regressionModelsSettings from "./possibleSettings/learning/regressionMode
 
 export const sceneDescription = {
   extension: "medml",
-  extrenalFolders: ["models", "notebooks"],
+  externalFolders: ["models", "notebooks"],
   internalFolders: ["tmp", "exp"]
 }
 

@@ -4,15 +4,15 @@ import { PiFlaskFill } from "react-icons/pi"
 import Input from "../learning/input"
 import { Tag } from "primereact/tag"
 import { Tooltip } from "primereact/tooltip"
-import { toast } from "react-toastify"
-import { modifyZipFileSync } from "../../utilities/customZipFile"
+//import { toast } from "react-toastify"
+//import { modifyZipFileSync } from "../../utilities/customZipFile"
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels"
 import { TabView, TabPanel } from "primereact/tabview"
 import PredictPanel from "./predictPanel"
 import Dashboard from "./dashboard"
-import fsprom from "fs/promises"
-import fs from "fs"
-import Path from "path"
+//import fsprom from "fs/promises"
+//import fs from "fs"
+//import Path from "path"
 import { WorkspaceContext } from "../workspace/workspaceContext"
 import { requestBackend } from "../../utilities/requests"
 import { ErrorRequestContext } from "../generalPurpose/errorRequestContext"
@@ -77,10 +77,7 @@ const PageEval = ({ run, pageId, config, setChosenModel, updateConfigClick, setC
 
   // when the run changes, we start the evaluation processes
   useEffect(() => {
-    console.log("run changed-*-**-*--*-*-*-*-*-*-**-*--*-*-*")
-    createCopiesModel().then((modelObjCopies) => {
-      startCalls2Server(modelObjCopies)
-    })
+    startCalls2Server()
   }, [run])
 
   /**
@@ -89,13 +86,13 @@ const PageEval = ({ run, pageId, config, setChosenModel, updateConfigClick, setC
    * @description - This function is used to start the evaluation processes
    */
   const startCalls2Server = useCallback(
-    (modelObjCopies) => {
+    (/* modelObjCopies */) => {
       // start predict
       setIsPredictUpdating(true)
       requestBackend(
         port,
         "evaluation/predict_test/predict/" + pageId,
-        { pageId: pageId, model: config.model, dataset: config.dataset, modelObjPath: modelObjCopies.predict, useMedStandard: useMedStandard },
+        { pageId: pageId, model: config.model, dataset: config.dataset, useMedStandard: useMedStandard },
         (data) => {
           setIsPredictUpdating(false)
           if (data.error) {
@@ -119,10 +116,8 @@ const PageEval = ({ run, pageId, config, setChosenModel, updateConfigClick, setC
         port,
         "evaluation/close_dashboard/dashboard/" + pageId,
         { pageId: pageId },
-        (data) => {
-          console.log("closeDashboard received data:", data)
+        () => {
           setIsDashboardUpdating(true)
-          console.log("starting dashboard...")
           // TODO: @NicoLongfield - Let choose sample size
           requestBackend(
             port,
@@ -133,7 +128,6 @@ const PageEval = ({ run, pageId, config, setChosenModel, updateConfigClick, setC
               dataset: config.dataset,
               sampleSizeFrac: 1,
               dashboardName: config.model.name.split(".")[0],
-              modelObjPath: modelObjCopies.dashboard,
               useMedStandard: useMedStandard
             },
             (data) => {
@@ -173,83 +167,6 @@ const PageEval = ({ run, pageId, config, setChosenModel, updateConfigClick, setC
     }
   }, [showHeader])
 
-  /**
-   * @description - This function is used to create two copies of the model, one for the predict and one for the dashboard. This is because the dashboard and the predict processes are running in parallel and they need to have their own copy of the model.
-   */
-  const createCopiesModel = useCallback(() => {
-    let modelPath = config.model.path
-    console.log("creating copies of the model of path:", modelPath)
-    return new Promise((resolve, reject) => {
-      const unpickleMedmodel = (fname, id) => {
-        function writeFile(absPath, data) {
-          return new Promise((resolve, reject) => {
-            try {
-              let dir = Path.dirname(absPath)
-              console.log("dir:", dir)
-              if (!fs.existsSync(dir)) {
-                fsprom.mkdir(dir, { recursive: true }).then(() => {
-                  fsprom.writeFile(absPath, data).then(() => {
-                    console.log("written")
-                    resolve(absPath)
-                  })
-                })
-              } else {
-                fsprom.writeFile(absPath, data).then(() => {
-                  console.log("written")
-                  resolve(absPath)
-                })
-              }
-            } catch (err) {
-              toast.error("Error while writing file (unpickling): " + err)
-              reject(err)
-            }
-          })
-        }
-        return new Promise((resolve, reject) => {
-          console.log("unpickling:", Path.join(fname))
-          try {
-            // list all files in the directory
-            fsprom.readdir(Path.dirname(fname)).then((files) => {
-              console.log("files:", files)
-              fsprom
-                .readFile(Path.join(fname))
-                .then((pkl) => {
-                  console.log("pkl:", pkl)
-                  let absPathPredict = Path.resolve("tmp/predict-" + id + "-model.pkl")
-                  let absPathDashboard = Path.resolve("tmp/dashboard-" + id + "-model.pkl")
-                  let absPaths = [absPathPredict, absPathDashboard]
-                  let promises = absPaths.map((absPath) => writeFile(absPath, pkl))
-                  Promise.all(promises).then((results) => {
-                    resolve(results)
-                  })
-                })
-                .catch((err) => {
-                  console.error("Error while reading file:", err)
-                  reject(err)
-                })
-            })
-          } catch (err) {
-            toast.error("Error while reading file (unpickling): " + err)
-            reject(err)
-          }
-        })
-      }
-
-      modifyZipFileSync(modelPath, async (path) => {
-        console.log("path:", path)
-        return await unpickleMedmodel(path + "/model.pkl", pageId)
-      })
-        .then((modelObjPaths) => {
-          console.log("modelObjPaths 2:", modelObjPaths)
-          resolve({ predict: modelObjPaths[0], dashboard: modelObjPaths[1] })
-        })
-        .catch((err) => {
-          toast.error("Error while creating copies of the model: " + err)
-          reject(err)
-        })
-    })
-  }, [config.model.path])
-
   return (
     <div className="evaluation-content">
       <PanelGroup style={{ height: "100%", display: "flex", flexGrow: 1 }} direction="vertical" id={pageId}>
@@ -281,7 +198,7 @@ const PageEval = ({ run, pageId, config, setChosenModel, updateConfigClick, setC
                   <Input
                     name="Choose model to evaluate"
                     settingInfos={{ type: "models-input", tooltip: "" }}
-                    currentValue={config.model}
+                    currentValue={config.model.id}
                     onInputChange={(data) => setChosenModel(data.value)}
                     setHasWarning={setModelHasWarning}
                   />
@@ -298,7 +215,7 @@ const PageEval = ({ run, pageId, config, setChosenModel, updateConfigClick, setC
                   <Input
                     name="Choose dataset"
                     settingInfos={{ type: "data-input", tooltip: "" }}
-                    currentValue={config.dataset}
+                    currentValue={config.dataset.id}
                     onInputChange={(data) => setChosenDataset(data.value)}
                     setHasWarning={setDatasetHasWarning}
                   />

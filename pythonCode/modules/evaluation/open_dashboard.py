@@ -7,9 +7,9 @@ import sys
 from pathlib import Path
 sys.path.append(
     str(Path(os.path.dirname(os.path.abspath(__file__))).parent.parent))
-from med_libs.server_utils import go_print, find_next_available_port, load_csv, get_model_from_path, is_port_in_use, load_med_standard_data
+from med_libs.server_utils import go_print, find_next_available_port, is_port_in_use
 from med_libs.GoExecutionScript import GoExecutionScript, parse_arguments
-from med_libs.CustomZipFile import CustomZipFile
+from med_libs.mongodb_utils import connect_to_mongo, get_child_id_by_name, get_pickled_model_from_collection, get_dataset_as_pd_df
 
 CLASSIFIER_NOT_SUPPORTING_NAN = [
     "LogisticRegression",
@@ -59,7 +59,6 @@ class GoExecScriptOpenDashboard(GoExecutionScript):
         self.speed = 2  # rows/second
         self.row_count = 10000
         self.ed:ExplainerDashboard = None
-        self.CustZipFileModel = CustomZipFile(".medmodel")
         self.is_calculating = True
         self.progress_thread = threading.Thread(target=self._update_progress_periodically, args=())
         self.progress_thread.daemon = True
@@ -72,16 +71,21 @@ class GoExecScriptOpenDashboard(GoExecutionScript):
         This function is the main script opening the dashboard
         """
         go_print(json.dumps(json_config, indent=4))
+
+        # Initialize data and load model
+        db = connect_to_mongo()
         model_infos = json_config['model']
-        ml_type = model_infos['metadata']['ml_type']
-        dashboard_name = json_config['dashboardName']
+        model_metadata_id = get_child_id_by_name(model_infos['id'], 'metadata.json')
+        model_metadata = dict(db[model_metadata_id].find_one({}))
         dataset_infos = json_config['dataset']
+        ml_type = model_metadata['ml_type']
+        dashboard_name = json_config['dashboardName']
         sample_size = json_config['sampleSizeFrac']
-        pickle_path = json_config['modelObjPath']
-        self.model = get_model_from_path(pickle_path)
-        os.remove(pickle_path)
+        pickle_object_id = get_child_id_by_name(model_infos['id'], "model.pkl")
+        self.model = get_pickled_model_from_collection(pickle_object_id)
 
         go_print(f"model loaded: {self.model}")
+        
         columns_to_keep = None
         # Get the feature names from the model
         if dir(self.model).__contains__('feature_names_in_'):
@@ -91,11 +95,12 @@ class GoExecScriptOpenDashboard(GoExecutionScript):
             columns_to_keep = self.model.__getattribute__('feature_name_')
             
         use_med_standard = json_config['useMedStandard']
-        if use_med_standard:
+        """ if use_med_standard:
             temp_df = load_med_standard_data(dataset_infos['selectedDatasets'], model_infos['metadata']['selectedTags'],
                                          model_infos['metadata']['selectedVariables'], model_infos['metadata']['target'])
         else:
-            temp_df = load_csv(dataset_infos['path'], model_infos['metadata']['target'])
+            temp_df = load_csv(dataset_infos['path'], model_infos['metadata']['target']) """
+        temp_df = get_dataset_as_pd_df(dataset_infos['id'])
         if sample_size < 1:
             temp_df = temp_df.sample(frac=sample_size)
 
@@ -112,13 +117,13 @@ class GoExecScriptOpenDashboard(GoExecutionScript):
 
         if columns_to_keep is not None:
             # Add the target to the columns to keep if it's not already there
-            if model_infos['metadata']['target'] not in columns_to_keep:
-                columns_to_keep.append(model_infos['metadata']['target'])        
+            if model_metadata['target'] not in columns_to_keep:
+                columns_to_keep.append(model_metadata['target'])        
             # Keep only the columns that are in the model
             temp_df = temp_df[columns_to_keep]     
 
-        X_test = temp_df.drop(columns=model_infos['metadata']['target'])
-        y_test = temp_df[model_infos['metadata']['target']]
+        X_test = temp_df.drop(columns=model_metadata['target'])
+        y_test = temp_df[model_metadata['target']]
         explainer = None
         if ml_type == "classification":
             explainer = ClassifierExplainer(self.model, X_test, y_test)
