@@ -5,6 +5,8 @@ import { Tab, Tabs } from "react-bootstrap"
 import { Table } from "react-bootstrap"
 import ReactECharts from "echarts-for-react"
 
+import ResultsRejectionCountsCurve from "./resultsRejectionCountsCurve"
+
 /**
  *
  * @param {Array} detectronResults The array of results from Detectron Experiment.
@@ -17,7 +19,7 @@ import ReactECharts from "echarts-for-react"
  * It initializes and manages the state for the results,
  *  including rendering pie charts for significance descriptions.
  */
-const DetectronResults = ({ detectronResults }) => {
+const DetectronResults = ({ detectronResults, rejectionCounts }) => {
   const [initialized, setInitialized] = useState(false) // If the results are set
   const [activeKey, setActiveKey] = useState("0") // Initialize the active tab
 
@@ -26,7 +28,7 @@ const DetectronResults = ({ detectronResults }) => {
     if (detectronResults && detectronResults.length > 0) {
       setInitialized(true)
     }
-  }, [detectronResults])
+  }, [detectronResults, rejectionCounts])
 
   /**
    *
@@ -205,6 +207,8 @@ const DetectronResults = ({ detectronResults }) => {
           </Tab>
         ))}
       </Tabs>
+      {/* Plot The rejection counts curve*/}
+      {rejectionCounts && <ResultsRejectionCountsCurve rejectionData={rejectionCounts} />}
     </div>
   )
 }

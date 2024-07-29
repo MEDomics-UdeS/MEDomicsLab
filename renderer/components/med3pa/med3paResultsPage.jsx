@@ -40,8 +40,6 @@ const MED3paResultsPage = ({ pageId, configPath = "" }) => {
   // Set active tabs based on fileData changes
   useEffect(() => {
     if (fileData) {
-      console.log("FILEDATA:", fileData)
-
       // Determine the initial active tab based on experiment type
 
       if (fileData.loadedFiles && fileData.isDetectron) {
@@ -67,7 +65,7 @@ const MED3paResultsPage = ({ pageId, configPath = "" }) => {
           {fileData.isDetectron && fileData.loadedFiles ? (
             <Tabs activeKey={activeTab} onSelect={(k) => setActiveTab(k)}>
               <Tab eventKey="results" title="Configuration Results">
-                <DetectronResults detectronResults={fileData.loadedFiles.detectron_results} />
+                <DetectronResults detectronResults={fileData.loadedFiles?.detectron_results} rejectionCounts={fileData.loadedFiles?.rejection_counts} />
               </Tab>
               <Tab eventKey="infoConfig" title="Configuration Information">
                 <MED3paConfigTab loadedFiles={fileData.loadedFiles?.experiment_config} />

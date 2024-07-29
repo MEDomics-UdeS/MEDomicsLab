@@ -44,15 +44,46 @@ const NodeDetails = ({ node, labelColor }) => {
     return Object.entries(obj).map(([key, value]) => {
       const isObject = typeof value === "object" && value !== null
       const uniqueKey = parentKey ? `${parentKey}.${key}` : key
-      // Check if the node label is "Dataset Loader"
 
-      if (key.startsWith("file_")) {
-        const fileIndex = parseInt(key.split("_")[1])
-        key = `file_${["train", "val", "test", "eval"][fileIndex]}`
-      } else if (key.startsWith("target_")) {
-        const targetIndex = parseInt(key.split("_")[1])
-        key = `target_${["train", "val", "test", "eval"][targetIndex]}`
+      // Handle arrays separately
+      if (Array.isArray(value)) {
+        return (
+          <Card key={uniqueKey} className="mb-2" style={{ paddingLeft: depth * 10, backgroundColor: "#f8f9fa", borderRadius: "8px", boxShadow: "0 1px 3px rgba(0,0,0,0.1)" }}>
+            <Card.Body>
+              <div className="d-flex justify-content-between align-items-center">
+                <div>
+                  <strong style={{ color: labelColor }}>{key}:</strong>
+                </div>
+                <div style={{ fontFamily: "Arial, sans-serif", fontSize: "0.9rem", color: "#555" }}>
+                  <ul style={{ paddingLeft: "1em", margin: 0 }}>
+                    {value.map((item, index) => (
+                      <li key={`${uniqueKey}[${index}]`}>{item.toString()}</li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </Card.Body>
+          </Card>
+        )
       }
+
+      // Handle objects
+      if (isObject) {
+        return (
+          <Card key={uniqueKey} className="mb-2" style={{ paddingLeft: depth * 10, backgroundColor: "#f8f9fa", borderRadius: "8px", boxShadow: "0 1px 3px rgba(0,0,0,0.1)" }}>
+            <Card.Body>
+              <div className="d-flex justify-content-between align-items-center">
+                <div>
+                  <strong style={{ color: labelColor }}>{key}:</strong>
+                </div>
+                <div style={{ fontFamily: "Arial, sans-serif", fontSize: "0.9rem", color: "#555" }}>{renderSettings(value, depth + 1, uniqueKey)}</div>
+              </div>
+            </Card.Body>
+          </Card>
+        )
+      }
+
+      // Handle primitive values
       return (
         <Card key={uniqueKey} className="mb-2" style={{ paddingLeft: depth * 10, backgroundColor: "#f8f9fa", borderRadius: "8px", boxShadow: "0 1px 3px rgba(0,0,0,0.1)" }}>
           <Card.Body>
@@ -60,7 +91,7 @@ const NodeDetails = ({ node, labelColor }) => {
               <div>
                 <strong style={{ color: labelColor }}>{key}:</strong>
               </div>
-              <div style={{ fontFamily: "Arial, sans-serif", fontSize: "0.9rem", color: "#555" }}>{isObject ? renderSettings(value, depth + 1, uniqueKey) : value}</div>
+              <div style={{ fontFamily: "Arial, sans-serif", fontSize: "0.9rem", color: "#555" }}>{value.toString()}</div>
             </div>
           </Card.Body>
         </Card>

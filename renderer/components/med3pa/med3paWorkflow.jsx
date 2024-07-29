@@ -1034,9 +1034,9 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
         }
         MedDataObject.updateWorkspaceDataObject()
         await deleteFolderRecursive(pathElement)
-        await deleteFolderRecursive([folderPath, "SavedModels"].join(MedDataObject.getPathSeparator()))
       }
     }
+    await deleteFolderRecursive([folderPath, "SavedModels"].join(MedDataObject.getPathSeparator()))
   }
 
   /**

@@ -4,10 +4,12 @@
 
  */
 import { GrConfigure } from "react-icons/gr"
-import { MdQueryStats } from "react-icons/md"
+import { MdQueryStats, MdSsidChart } from "react-icons/md"
 import { GrDocumentPerformance } from "react-icons/gr"
 import { RiUserSearchFill } from "react-icons/ri"
-import { BiSearchAlt } from "react-icons/bi"
+
+import { LiaChartBar } from "react-icons/lia"
+import { FaUsersBetweenLines } from "react-icons/fa6"
 
 /**
  *
@@ -36,9 +38,22 @@ export const getIconAndNameByType = (type) => {
       icon: <RiUserSearchFill style={{ marginRight: "0.5rem", fontSize: "1.4rem" }} />,
       name: "Profiles Metrics Comparison"
     },
-    detectron_results_comparaison: {
-      icon: <BiSearchAlt style={{ marginRight: "0.5rem", fontSize: "1.4rem" }} />,
-      name: "Detectron Results Comparison"
+    profiles_comparaison: {
+      icon: <RiUserSearchFill style={{ marginRight: "0.5rem", fontSize: "1.4rem" }} />,
+      name: "Profiles Metrics And Detectron Comparison"
+    },
+
+    rejection_counts_comparaison: {
+      icon: <MdSsidChart style={{ marginRight: "0.5rem", fontSize: "1.4rem" }} />,
+      name: "Detectron Rejection Counts Comparison"
+    },
+    model_evaluation_comparaison: {
+      icon: <LiaChartBar style={{ marginRight: "0.5rem", fontSize: "1.4rem" }} />,
+      name: "General Base Model Evaluation Comparison"
+    },
+    profiles_detectron_comparaison: {
+      icon: <FaUsersBetweenLines LiaChartBar style={{ marginRight: "0.5rem", fontSize: "1.4rem" }} />,
+      name: "Profiles Detectron Comparison"
     }
     // Add more mappings here as needed
   }
@@ -56,7 +71,7 @@ export const getIconAndNameByType = (type) => {
  * Transforms a given key by removing trailing numbers and capitalizing each word.
  */
 export const transformKey = (key) => {
-  const trimmedKey = key.replace(/1$/, "").replace(/2$/, "") // Remove trailing 1 or 2
+  const trimmedKey = key.replace(/1$/, " 1").replace(/2$/, " 2") // Remove trailing 1 or 2
   return trimmedKey
     .split("_")
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
