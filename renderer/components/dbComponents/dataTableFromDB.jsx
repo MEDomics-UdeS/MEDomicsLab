@@ -6,11 +6,12 @@ import { Button } from "primereact/button"
 import { ObjectId } from "mongodb"
 import { toast } from "react-toastify"
 import { saveAs } from "file-saver"
-import { getCollectionData } from "./utils"
+import { getCollectionData, collectionExists } from "./utils"
 import InputToolsComponent from "./InputToolsComponent"
 import { Dialog } from "primereact/dialog"
 import { LayoutModelContext } from "../layout/layoutContext"
 import { connectToMongoDB } from "../mongoDB/mongoDBUtils"
+import { randomUUID } from "crypto"
 
 /**
  * DataTableFromDB component
@@ -22,6 +23,7 @@ import { connectToMongoDB } from "../mongoDB/mongoDBUtils"
  * @constructor - DataTableFromDB
  */
 const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly }) => {
+  const [tagData, setTagData] = useState([])
   const [innerData, setInnerData] = useState([])
   const [columns, setColumns] = useState([])
   const [hoveredButton, setHoveredButton] = useState(null)
@@ -310,6 +312,52 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
     dispatchLayout({ type: "openInputToolsDB", payload: { data: newProps } })
   }
 
+  const usePersistentUUID = () => {
+    const [id, setId] = useState("")
+    useEffect(() => {
+      let uuid = localStorage.getItem("myUUID")
+      if (!uuid) {
+        uuid = randomUUID()
+        localStorage.setItem("myUUID", uuid)
+      }
+      setId(uuid)
+    }, [])
+    return id
+  }
+
+  const tagId = usePersistentUUID()
+  const [columnNameToTagsMap, setColumnNameToTagsMap] = useState({})
+
+  useEffect(() => {
+    setColumnNameToTagsMap({})
+    async function fetchData() {
+      console.log("tagId", tagId)
+      const exists = await collectionExists(tagId)
+      if (exists) {
+        const tagCollData = await getCollectionData(tagId)
+        console.log("tagCollData", tagCollData)
+        const map = createColumnNameToTagsMap(tagCollData)
+        setColumnNameToTagsMap(map)
+      }
+    }
+    fetchData()
+  }, [tagId])
+
+  // Function to create a map of column names to tags
+  function createColumnNameToTagsMap(tagCollData) {
+    const map = {}
+    tagCollData.forEach((item) => {
+      map[item.column_name] = item.tags.join(", ")
+    })
+    return map
+  }
+
+  // Function to retrieve tags for a given column name
+  function getColumnTags(columnName) {
+    const tags = columnNameToTagsMap[columnName]
+    return tags ? tags.split(", ") : []
+  }
+
   // Render the DataTable component
   return (
     <>
@@ -367,7 +415,10 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
                             onMouseLeave={() => setHoveredButton(null)}
                           />
                         )}
-                        {col.header}
+                        <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+                          <span>{col.header}</span>
+                          <span style={{ fontSize: "0.75rem", color: "#777" }}>{Array.isArray(getColumnTags(col.field)) ? getColumnTags(col.field).join(", ") : ""}</span>
+                        </div>
                       </div>
                     }
                     editor={!isReadOnly ? (options) => textEditor(options) : undefined}

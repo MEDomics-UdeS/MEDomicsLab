@@ -2,6 +2,26 @@ const MongoClient = require("mongodb").MongoClient
 const mongoUrl = "mongodb://127.0.0.1:27017"
 
 /**
+ * @description Check if a database exists
+ * @param {String} collectionName
+ * @param {String} dbname
+ */
+export const collectionExists = async (collectionName, dbname = "data") => {
+  const client = new MongoClient(mongoUrl)
+  try {
+    await client.connect()
+    const db = client.db(dbname)
+    const collections = await db.listCollections().toArray()
+    return collections.some((collection) => collection.name === collectionName)
+  } catch (error) {
+    console.error("Error checking if collection exists:", error)
+    throw error
+  } finally {
+    await client.close()
+  }
+}
+
+/**
  * @description Get data from collectionName in dbname
  * @param {String} dbname
  * @param {String} collectionName

@@ -1,4 +1,3 @@
-import React from "react"
 import { Panel } from "primereact/panel"
 import BasicToolsDB from "./inputToolsDB/basicToolsDB"
 import TransformColumnToolsDB from "./inputToolsDB/transformColumnToolsDB"
@@ -14,6 +13,7 @@ const InputToolsComponent = ({ data, exportOptions, refreshData, columns, transf
     height: "100%",
     overflow: "auto"
   }
+
   return (
     <div style={panelContainerStyle}>
       <div style={{ textAlign: "center", marginTop: "20px", marginBottom: "20px" }}>
@@ -41,7 +41,7 @@ const InputToolsComponent = ({ data, exportOptions, refreshData, columns, transf
         <FeatureReductionToolsDB data={data} refreshData={refreshData} />
       </Panel>
       <Panel header="Grouping/Tagging Tools" toggleable collapsed={true}>
-        <GroupingTaggingToolsDB currentCollection={data.id} refreshData={refreshData} />
+        <GroupingTaggingToolsDB refreshData={refreshData} />
       </Panel>
     </div>
   )

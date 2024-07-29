@@ -68,7 +68,7 @@ class GoExecScriptCreateTags(GoExecutionScript):
                 columns_by_file[filename].append(column_name)
         print("columns_by_file: ", columns_by_file)
 
-        # SAssociate collections with files
+        # Associate collections with files
         file_to_collection = {filename: collection_id for filename, collection_id in zip(columns_by_file.keys(), collections)}
         print("file_to_collection: ", file_to_collection)
 
