@@ -345,16 +345,15 @@ const ApplicationPage = ({ pageId }) => {
 /**
  *
  * @param {string} pageId The id of the page
- * @param {string} configPath The path of the config file
  *
  * @returns {React.Component} The application page with module page
  */
-const ApplicationPageWithModulePage = ({ pageId = "application-456", configPath = null }) => {
+const ApplicationPageWithModulePage = ({ pageId = "application-456" }) => {
   return (
     <>
-      <ModulePage pageId={pageId} configPath={configPath} shadow>
+      <ModulePage pageId={pageId} shadow>
         <div style={{ padding: "0.5rem" }}>
-          <ApplicationPage pageId={pageId} configPath={configPath} />
+          <ApplicationPage pageId={pageId} />
         </div>
       </ModulePage>
     </>

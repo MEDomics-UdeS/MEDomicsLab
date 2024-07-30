@@ -9,7 +9,6 @@ import { ProgressSpinner } from "primereact/progressspinner"
 /**
  *
  * @param {String} pageId Page identifier
- * @param {String} configPath Path of the config file
  * @param {MedDataObject} MEDclassesFolder Folder containing the generated MEDclasses
  * @param {MedDataObject} MEDprofilesBinaryFile Binary file containing the instantiated MEDprofiles
  *
@@ -20,7 +19,7 @@ import { ProgressSpinner } from "primereact/progressspinner"
  * elements to display and interact with the figure(s) displayed.
  *
  */
-const MEDprofilesViewer = ({ pageId, configPath = "", MEDclassesFolder, MEDprofilesBinaryFile }) => {
+const MEDprofilesViewer = ({ pageId, MEDclassesFolder, MEDprofilesBinaryFile }) => {
   const [jsonFilePath, setJsonFilePath] = useState(null)
   const { port } = useContext(WorkspaceContext) // we get the port for server connexion
   const [jsonDataIsLoaded, setJsonDataIsLoaded] = useState(false)
@@ -63,8 +62,8 @@ const MEDprofilesViewer = ({ pageId, configPath = "", MEDclassesFolder, MEDprofi
 
   return (
     <>
-      <ModulePage pageId={pageId} configPath={configPath}>
-      <h1 className="center">MEDprofiles Viewer</h1>
+      <ModulePage pageId={pageId}>
+        <h1 className="center">MEDprofiles Viewer</h1>
         {!jsonDataIsLoaded && (
           <div className="centered-container">
             <ProgressSpinner />

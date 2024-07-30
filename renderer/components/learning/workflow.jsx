@@ -66,7 +66,7 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
   const { getIntersectingNodes } = useReactFlow() // getIntersectingNodes is used to get the intersecting nodes of a node
 
   const { groupNodeId, changeSubFlow, hasNewConnection } = useContext(FlowFunctionsContext)
-  const { pageId, configPath } = useContext(PageInfosContext) // used to get the page infos such as id and config path
+  const { pageId } = useContext(PageInfosContext) // used to get the page infos such as id and config path
   const { updateFlowResults, isResults } = useContext(FlowResultsContext)
   const { canRun } = useContext(FlowInfosContext)
   const { port } = useContext(WorkspaceContext)
@@ -592,7 +592,7 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
         toast.warn("react flow instance not found")
       }
     },
-    [reactFlowInstance, MLType, nodes, edges, intersections, configPath]
+    [reactFlowInstance, MLType, nodes, edges, intersections]
   )
 
   /**
