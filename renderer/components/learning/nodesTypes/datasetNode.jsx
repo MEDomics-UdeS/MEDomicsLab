@@ -30,7 +30,6 @@ const DatasetNode = ({ id, data }) => {
   // update the node internal data when the selection changes
   useEffect(() => {
     data.internal.selection = selection
-    data.internal.hasWarning = { state: true, tooltip: <p>Some default feilds are missing</p> }
     updateNode({
       id: id,
       updatedData: data.internal
@@ -42,6 +41,7 @@ const DatasetNode = ({ id, data }) => {
     setSelection(e.target.value)
     data.internal.settings = {}
     data.internal.checkedOptions = []
+    data.internal.hasWarning = { state: true, tooltip: <p>Some default fields are missing</p> }
     e.stopPropagation()
     e.preventDefault()
   }
