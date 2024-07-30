@@ -85,27 +85,6 @@ def get_free_space_mb(folder):
     return free / (1024.0 ** 3)
 
 
-def get_model_from_medmodel(medmodel_path: str) -> sklearn.base.BaseEstimator:
-    """
-        This function is used to get the model from a medmodel
-    """
-    import joblib
-    from .CustomZipFile import CustomZipFile
-
-    cust_zip_file_model = CustomZipFile(".medmodel")
-
-    def load_model_from_zip(path):
-        pkl_path = os.path.join(path, "model.pkl")
-        with open(pkl_path, "rb") as f:
-            model = joblib.load(f)
-        if isinstance(model, Pipeline):
-            model = model.steps[-1][1]
-        return model
-
-    return cust_zip_file_model.read_in_zip(
-        medmodel_path, load_model_from_zip)
-
-
 def get_model_from_path(path: str) -> sklearn.base.BaseEstimator:
     """
         This function is used to get the model from a medmodel

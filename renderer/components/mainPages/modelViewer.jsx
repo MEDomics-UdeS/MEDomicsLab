@@ -9,7 +9,6 @@ import ModulePage from "./moduleBasics/modulePage"
  * @returns a page that shows the model informations
  */
 const ModelViewer = ({ id }) => {
-  //const { config, configPath } = useContext(PageInfosContext)
   const [data, setData] = useState(null)
   const { globalData } = useContext(DataContext)
 
@@ -51,14 +50,13 @@ const ModelViewer = ({ id }) => {
 
 /**
  * @param {String} pageId Id of the page for multi-tabs support
- * @param {String} configPath Path to the config file
  *
  * @description This component is the base for all the flow pages. It contains the sidebar, the workflow and the backdrop.
  */
-const ModelViewerWithContext = ({ pageId, configPath = null }) => {
+const ModelViewerWithContext = ({ pageId }) => {
   return (
     <>
-      <ModulePage pageId={pageId} configPath={configPath} shadow>
+      <ModulePage pageId={pageId} shadow>
         <ModelViewer id={pageId} />
       </ModulePage>
     </>

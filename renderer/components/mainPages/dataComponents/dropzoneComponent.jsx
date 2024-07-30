@@ -109,7 +109,6 @@ export default function DropzoneComponent({ children, item = undefined, setIsDro
     for (const folder of folderMap) {
       await insertMEDDataObjectIfNotExists(folder[1])
     }
-    //MEDDataObject.updateWorkspaceDataObject()
     return fileObjects
   }
 

@@ -9,18 +9,18 @@ import HoldoutSetCreationTool from "../input/holdoutSetCreationTool"
 import SubsetCreationTool from "../input/subsetCreationTool"
 import FeatureReductionTool from "../input/featuresReduction/featuresReductionTool"
 import OperationOnColumnTool from "../input/operationOnColumnTool"
-import InputToolsComponent from "../dbComponents/InputToolsComponent"
+
 /**
  * @description - This component is the input page of the application
  * @returns the input page component
  */
-const InputPage = ({ pageId = "42", configPath = null }) => {
+const InputPage = ({ pageId = "42" }) => {
   // eslint-disable-next-line no-unused-vars
   const [activeIndex, setActiveIndex] = useState([0, 2])
 
   return (
     <>
-      <ModulePage pageId={pageId} configPath={configPath} shadow>
+      <ModulePage pageId={pageId} shadow>
         <h1>INPUT MODULE</h1>
         <div className="input-page">
           <Accordion className="card-accordion" defaultActiveKey={["1"]} alwaysOpen>

@@ -30,10 +30,10 @@ const ExploratoryPage = () => {
  * @param {String} pageId The page id
  * @returns the exploratory page with the module page
  */
-const ExploratoryPageWithModulePage = ({ pageId = "exploratory-id", configPath = null }) => {
+const ExploratoryPageWithModulePage = ({ pageId = "exploratory-id" }) => {
   return (
-    <ModulePage pageId={pageId} configPath={configPath} shadow>
-      <ExploratoryPage pageId={pageId} configPath={configPath} />
+    <ModulePage pageId={pageId} shadow>
+      <ExploratoryPage pageId={pageId} />
     </ModulePage>
   )
 }

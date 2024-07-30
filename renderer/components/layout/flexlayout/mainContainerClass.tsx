@@ -595,7 +595,7 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
       const jsonText = JSON.stringify(node.getExtraData().data, null, "\t")
       const html = Prism.highlight(jsonText, Prism.languages.javascript, "javascript")
       return (
-        <ModulePage pageId={"jsonViewer-" + config.path} configPath={config.path} shadow>
+        <ModulePage pageId={"jsonViewer-" + config.path} shadow>
           <pre style={{ tabSize: "20px" }} dangerouslySetInnerHTML={{ __html: html }} />
         </ModulePage>
       )
@@ -658,7 +658,7 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
       if (node.getExtraData().data == null) {
         const config = node.getConfig()
 
-        return <LearningPage pageId={config.id} configPath={config.name} />
+        return <LearningPage pageId={config.id} />
       }
     } else if (component === "InputToolsDB") {
       if (node.getExtraData().data == null) {
@@ -674,7 +674,7 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
         const config = node.getConfig()
 
         if (config.path !== null) {
-          return <InputPage pageId={config.uuid} configPath={config.path} />
+          return <InputPage pageId={config.uuid} />
         } else {
           return <InputPage pageId={"InputPage"} />
         }
@@ -689,7 +689,7 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
       if (node.getExtraData().data == null) {
         const config = node.getConfig()
         if (config.path !== null) {
-          return <ExploratoryPage pageId={config.uuid} configPath={config.path} />
+          return <ExploratoryPage pageId={config.uuid} />
         } else {
           return <ExploratoryPage pageId={"ExploratoryPage"} />
         }
@@ -712,13 +712,13 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
     } else if (component === "evaluationPage") {
       if (node.getExtraData().data == null) {
         const config = node.getConfig()
-        return <EvaluationPage pageId={config.id} configPath={config.name} />
+        return <EvaluationPage pageId={config.id} />
       }
     } else if (component === "extractionTextPage") {
       if (node.getExtraData().data == null) {
         const config = node.getConfig()
         if (config.path !== null) {
-          return <ExtractionTextPage pageId={config.uuid} configPath={config.path} />
+          return <ExtractionTextPage pageId={config.uuid} />
         } else {
           return <ExtractionTextPage pageId={"ExtractionTextPage"} />
         }
@@ -727,7 +727,7 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
       if (node.getExtraData().data == null) {
         const config = node.getConfig()
         if (config.path !== null) {
-          return <MEDprofilesViewer pageId={config.uuid} configPath={config.path} MEDclassesFolder={config?.MEDclassesFolder} MEDprofilesBinaryFile={config?.MEDprofilesBinaryFile} />
+          return <MEDprofilesViewer pageId={config.uuid} MEDclassesFolder={config?.MEDclassesFolder} MEDprofilesBinaryFile={config?.MEDprofilesBinaryFile} />
         } else {
           return <MEDprofilesViewer pageId={"MEDprofilesViewer"} MEDclassesFolder={config?.MEDclassesFolder} MEDprofilesBinaryFile={config?.MEDprofilesBinaryFile} />
         }
@@ -736,7 +736,7 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
       if (node.getExtraData().data == null) {
         const config = node.getConfig()
         if (config.path !== null) {
-          return <ExtractionImagePage pageId={config.uuid} configPath={config.path} />
+          return <ExtractionImagePage pageId={config.uuid} />
         } else {
           return <ExtractionImagePage pageId={"ExtractionImagePage"} />
         }
@@ -745,7 +745,7 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
       if (node.getExtraData().data == null) {
         const config = node.getConfig()
         if (config.path !== null) {
-          return <ExtractionMEDimagePage pageId={config.uuid} configPath={config.path} />
+          return <ExtractionMEDimagePage pageId={config.uuid} />
         } else {
           return <ExtractionMEDimagePage pageId={"ExtractionMEDimagePage"} />
         }
@@ -754,7 +754,7 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
       if (node.getExtraData().data == null) {
         const config = node.getConfig()
         if (config.path !== null) {
-          return <ExtractionTSPage pageId={config.uuid} configPath={config.path} />
+          return <ExtractionTSPage pageId={config.uuid} />
         } else {
           return <ExtractionTSPage pageId={"ExtractionTSPage"} />
         }
@@ -763,7 +763,7 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
       if (node.getExtraData().data == null) {
         const config = node.getConfig()
         if (config.path !== null) {
-          return <MEDflPage pageId={config.uuid} configPath={config.path} />
+          return <MEDflPage pageId={config.uuid} />
         } else {
           return <MEDflPage pageId={"MEDflPage"} />
         }
@@ -772,7 +772,7 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
       if (node.getExtraData().data == null) {
         const config = node.getConfig()
         if (config.path !== null) {
-          return <MED3paPage pageId={config.uuid} configPath={config.path} />
+          return <MED3paPage pageId={config.uuid} />
         } else {
           return <MED3paPage pageId={"MED3paPage"} />
         }
@@ -781,7 +781,7 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
       if (node.getExtraData().data == null) {
         const config = node.getConfig()
         if (config.path !== null) {
-          return <ApplicationPage pageId={config.uuid} configPath={config.path} />
+          return <ApplicationPage pageId={config.uuid} />
         } else {
           return <ApplicationPage pageId={"EvaluationPage"} />
         }
@@ -802,7 +802,7 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
       if (node.getExtraData().data == null) {
         const config = node.getConfig()
         console.log("config", config)
-        return <ModelViewer pageId={config.id} configPath={config.name} />
+        return <ModelViewer pageId={config.id} />
       }
     } else if (component === "htmlViewer") {
       if (node.getExtraData().data == null) {
