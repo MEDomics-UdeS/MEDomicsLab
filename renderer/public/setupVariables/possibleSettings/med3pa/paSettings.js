@@ -44,6 +44,14 @@ const paSettings = {
   apcModel: {
     hyperparameters: {},
     grid_params: {},
+    maximum_min_samples_ratio: {
+      type: "range",
+      tooltip: "<p>Maximum ratio of min_samples_ratio</p>",
+      default_val: 50,
+      min: 0,
+      max: 50,
+      step: 5
+    },
     optimize: {
       type: "bool",
       tooltip: "<p>Activate / Desactivate Grid Search Optimization</p>",

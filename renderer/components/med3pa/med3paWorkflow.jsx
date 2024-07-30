@@ -718,12 +718,12 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
    * The function ensures that the scene content is
    *  properly created and saved within a zip file, allowing for efficient storage and retrieval.
    */
-  const createSceneContent = async (path, useMedStandard) => {
+  const createSceneContent = async (path, sceneName, useMedStandard) => {
     // create custom zip file
 
     await createZipFileSync(path, async (path) => {
       // do custom actions in the folder while it is unzipped
-      await MedDataObject.writeFileSync(useMedStandard, path, "pa_metadata", "json")
+      await MedDataObject.writeFileSync(useMedStandard, path, `pa_${sceneName}_metadata`, "json")
     })
   }
 
@@ -743,11 +743,11 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
           // If configPath is empty, create path to experiments
           let configPath = [getBasePath(EXPERIMENTS), "MED3paWorkflows", sceneName + ".pa"].join(MedDataObject.getPathSeparator())
 
-          createSceneContent(configPath, flow).then(() =>
+          createSceneContent(configPath, sceneName, flow).then(() =>
             // If the ZipFile already exists, modify it
             modifyZipFileSync(configPath, async (path) => {
               // do custom actions in the folder while it is unzipped
-              await MedDataObject.writeFileSync(flow, path, "pa_metadata", "json")
+              await MedDataObject.writeFileSync(flow, path, `pa_${sceneName}_metadata`, "json")
 
               toast.success("Scene has been saved successfully")
             })

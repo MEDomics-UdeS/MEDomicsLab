@@ -402,6 +402,31 @@ export default function APCModelNode({ id, data }) {
 
   /**
    *
+   * @param {Object} value The updated value (Input)
+   *
+   *
+   * @description
+   * This function updates the node's data internal settings of the node based on the inputed value.
+   *  maximum_min_samples_ratio: used to define the maximum range value of the min samples ratio
+   */
+  const handleMaxMinSRChange = (value) => {
+    if (value) {
+      // Update the node with the updated state value
+      updateNode({
+        id: id,
+        updatedData: {
+          ...data.internal,
+          settings: {
+            ...data.internal.settings,
+            maximum_min_samples_ratio: value.value
+          }
+        }
+      })
+    }
+  }
+
+  /**
+   *
    *
    * @description
    * This function switches the state of `showDetails` between `true` and `false`
@@ -473,6 +498,7 @@ export default function APCModelNode({ id, data }) {
                 onInputChange={(value) => handleUseJSONChange(value)}
               />
             </div>
+
             {useJsonInput ? (
               <div className="center mt-3">
                 <FlInput
@@ -489,6 +515,18 @@ export default function APCModelNode({ id, data }) {
               </div>
             ) : (
               <>
+                <div className="center mt-3">
+                  <FlInput
+                    key={"maxMinSRatio"}
+                    name={"Min Samples Ratio Range"}
+                    settingInfos={{
+                      ...data.setupParam.possibleSettings?.maximum_min_samples_ratio
+                    }}
+                    currentValue={data.internal.settings.maximum_min_samples_ratio || {}}
+                    setHasWarning={handleWarning}
+                    onInputChange={(value) => handleMaxMinSRChange(value)}
+                  />
+                </div>
                 <div className="center mt-3">
                   <Button variant="light" className="width-100 btn-contour" onClick={handleModalShow}>
                     {data.internal.settings.target ? "Change Selected Parameters" : "Select APC Model Parameters"}

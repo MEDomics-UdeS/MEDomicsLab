@@ -51,7 +51,8 @@ const MED3paResultsTab = ({ loadedFiles, type }) => {
   // Initial Settings: Evaluation Metrics and Executed Detectron Strategies
   const [settings, setSettings] = useState({
     metrics: null,
-    strategy: null
+    strategy: null,
+    maxMinSRatio: 50
   })
 
   // Initialize Filtering Configurations: Tree Parameters and Nodes Parameters
@@ -164,6 +165,20 @@ const MED3paResultsTab = ({ loadedFiles, type }) => {
     setTreeParams(newTreeParams)
   }
 
+  /**
+   *
+   * @param {Object} data The med3pa data results
+   * @returns {number} The maximum value of the Minimum Samples Ratio
+   *
+   *
+   * @description
+   * This function is used to find the maximum of the minSamplesRatio
+   */
+  const getMaxSamplesRatio = (data) => {
+    const topKeys = Object.keys(data).map((key) => parseInt(key))
+    return Math.max(...topKeys)
+  }
+
   // Runs when `loadedFiles` changes.
 
   useEffect(() => {
@@ -244,6 +259,11 @@ const MED3paResultsTab = ({ loadedFiles, type }) => {
 
         if (filteredData) {
           setTreeData(filteredData)
+
+          setSettings((prevSettings) => ({
+            ...prevSettings,
+            maxMinSRatio: getMaxSamplesRatio(test.profiles)
+          }))
 
           setLostData(test.lost_profiles[treeParams.minSamplesRatio])
 

@@ -371,24 +371,41 @@ const FlInput = ({ name, settingInfos, currentValue, onInputChange, disabled, se
       case "range":
         return (
           <>
-            <FloatingLabel controlId={name} label={name} className=" input-hov">
-              <Form.Control
-                disabled={disabled}
-                type="range"
-                min={settingInfos.min} // specify the minimum value
-                max={settingInfos.max} // specify the maximum value
-                step={settingInfos.step} // specify the step size
-                defaultValue={currentValue}
-                onChange={(e) =>
-                  setInputUpdate({
-                    name: name,
-                    value: e.target.value,
-                    type: settingInfos.type
-                  })
-                }
-              />
-              <div className="range-value">{currentValue}</div> {/* Display current value */}
-            </FloatingLabel>
+            <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
+              <FloatingLabel controlId={name} label={name} className="input-hov" style={{ flex: 1 }}>
+                <Form.Control
+                  disabled={disabled}
+                  type="range"
+                  className="form-control-range"
+                  min={settingInfos.min}
+                  max={settingInfos.max}
+                  step={settingInfos.step}
+                  defaultValue={currentValue}
+                  onChange={(e) =>
+                    setInputUpdate({
+                      name: name,
+                      value: e.target.value,
+                      type: settingInfos.type
+                    })
+                  }
+                  style={{ flex: 1 }} // Ensure the range input takes available space
+                />
+              </FloatingLabel>
+              <div
+                style={{
+                  backgroundColor: "white",
+                  border: "1px solid #ddd",
+                  borderRadius: "4px",
+                  padding: "4px 8px",
+                  marginLeft: "10px", // Space between input and the value box
+                  display: "flex",
+                  alignItems: "center"
+                }}
+              >
+                <span>{currentValue}</span>
+              </div>
+            </div>
+
             {createTooltip(settingInfos.tooltip, name)}
           </>
         )

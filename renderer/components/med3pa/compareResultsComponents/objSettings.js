@@ -7,7 +7,7 @@ import { GrConfigure } from "react-icons/gr"
 import { MdQueryStats, MdSsidChart } from "react-icons/md"
 import { GrDocumentPerformance } from "react-icons/gr"
 import { RiUserSearchFill } from "react-icons/ri"
-
+import { BiSearchAlt } from "react-icons/bi"
 import { LiaChartBar } from "react-icons/lia"
 import { FaUsersBetweenLines } from "react-icons/fa6"
 
@@ -46,6 +46,11 @@ export const getIconAndNameByType = (type) => {
     rejection_counts_comparaison: {
       icon: <MdSsidChart style={{ marginRight: "0.5rem", fontSize: "1.4rem" }} />,
       name: "Detectron Rejection Counts Comparison"
+    },
+
+    detectron_results_comparaison: {
+      icon: <BiSearchAlt style={{ marginRight: "0.5rem", fontSize: "1.4rem" }} />,
+      name: "Detectron Results Comparison"
     },
     model_evaluation_comparaison: {
       icon: <LiaChartBar style={{ marginRight: "0.5rem", fontSize: "1.4rem" }} />,

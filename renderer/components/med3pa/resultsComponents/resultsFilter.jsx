@@ -15,7 +15,7 @@ import FlInput from "../paInput"
  * @param {Object} nodeParams The current parameters for the node.
  * @param {Function} setNodeParams Function to update the node parameters.
  * @param {string} type The type of the filter (IPC or APC Model Filter).
- * @param {Object} settings The settings object containing available metrics.
+ * @param {Object} settings The settings object containing available metrics, detectron strategies and maximum MinSmaplesRatio.
  * @param {Object} tree The tree object used for rendering parameters.
  * @param {boolean} isDetectron Flag indicating if Detectron is executed.
  * @returns {JSX.Element} The rendered component displaying the filter options.
@@ -79,7 +79,7 @@ const ResultsFilter = ({ isExpanded, toggleExpand, treeParams, updateTreeParams,
             {tree ? (
               <div className="row" style={{ flex: "0 0 auto", display: "flex", padding: "1%" }}>
                 <div className="col-md-7 mb-3" style={{ display: "flex", flexDirection: "column" }}>
-                  <TreeParameters treeParams={treeParams} setTreeParams={updateTreeParams} disableFilter={disableFilter} />
+                  <TreeParameters treeParams={treeParams} setTreeParams={updateTreeParams} maxMinSRatio={settings?.maxMinSRatio} disableFilter={disableFilter} />
                 </div>
                 <div className="col-md-5 mb-3" style={{ display: "flex", flex: "1", flexDirection: "column", height: "100%" }}>
                   <NodeParameters parentId={type} nodeParams={nodeParams} setNodeParams={setNodeParams} settings={settings} isDetectron={isDetectron} shouldDisable={shouldDisable} />

@@ -13,7 +13,7 @@ import { TbSettingsCog } from "react-icons/tb"
  * @description
  * TreeParameters component renders a set of sliders for adjusting tree-related parameters.
  */
-const TreeParameters = ({ treeParams, setTreeParams, disableFilter }) => {
+const TreeParameters = ({ treeParams, setTreeParams, maxMinSRatio, disableFilter }) => {
   /**
    *
    * @param {string} property The name of the tree parameter to be updated.
@@ -85,7 +85,7 @@ const TreeParameters = ({ treeParams, setTreeParams, disableFilter }) => {
           />
         </div>
         <div className="slider-container-paresults">
-          <Typography className="default-text-color-paresults">Min Node Percentage</Typography>
+          <Typography className="default-text-color-paresults">Min Population Percentage</Typography>
           <Slider
             value={treeParams.minSamplesRatio || 0}
             onChange={(e, value) => handleSliderChange("minSamplesRatio", value)}
@@ -93,7 +93,7 @@ const TreeParameters = ({ treeParams, setTreeParams, disableFilter }) => {
             sx={{ color: "#F1E7D7" }}
             valueLabelDisplay="auto"
             min={0}
-            max={50}
+            max={maxMinSRatio}
             step={5}
             disabled={disableFilter}
           />

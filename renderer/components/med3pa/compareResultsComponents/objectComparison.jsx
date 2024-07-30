@@ -11,6 +11,7 @@ import { formatValue } from "../resultTabs/tabFunctions"
 import Tooltip from "@mui/material/Tooltip"
 import ConfigComparison from "./configComparison"
 import RejectionCountsCurve from "./rejectionCountsCurve"
+import ComparisonCards from "./compCards"
 
 /**
  *
@@ -201,6 +202,10 @@ const ObjectComparison = ({ loadedFile, type }) => {
     // For Specific comparison results, render a specific react component
     if (name === "Profiles Metrics Comparison") {
       return <ProfMetricsCurve profileMetrics={obj} type="med3pa" />
+    }
+
+    if (name === "Detectron Results Comparison" || name === "General Base Model Evaluation Comparison") {
+      return <ComparisonCards data={obj} />
     }
 
     if (name === "Profiles Metrics And Detectron Comparison") {

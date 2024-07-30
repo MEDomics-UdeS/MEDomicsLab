@@ -27,6 +27,7 @@ const ProfMetricsCurve = ({ profileMetrics, type }) => {
   const [profMetrics, setProfMetrics] = useState() // Store profile metrics state based on the type
   const [detectronProfile, setDetectronProfile] = useState({}) // Store DET3PA Information
   const [toggleStates, setToggleStates] = useState({}) // Toggle Object
+
   /**
    *
    * @param {Object} value The Updated Value (Input)
@@ -255,7 +256,7 @@ const ProfMetricsCurve = ({ profileMetrics, type }) => {
               <Card style={{ padding: "20px", marginBottom: "20px" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
                   <div style={{ flexGrow: 1, width: "50%" }}>
-                    <Typography className="default-text-color-paresults">Min Node Percentage</Typography>
+                    <Typography className="default-text-color-paresults">Min Population Percentage</Typography>
                     <Slider
                       value={minSamplesRatio}
                       onChange={(e, value) => handleSliderChange(value)}
