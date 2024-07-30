@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext } from "react"
+import React, { useEffect, useState, useContext, useMemo } from "react"
 import { DataTable } from "primereact/datatable"
 import { Column } from "primereact/column"
 import { InputText } from "primereact/inputtext"
@@ -11,7 +11,7 @@ import InputToolsComponent from "./InputToolsComponent"
 import { Dialog } from "primereact/dialog"
 import { LayoutModelContext } from "../layout/layoutContext"
 import { connectToMongoDB } from "../mongoDB/mongoDBUtils"
-import { randomUUID } from "crypto"
+import { Chip } from "primereact/chip"
 
 /**
  * DataTableFromDB component
@@ -23,7 +23,6 @@ import { randomUUID } from "crypto"
  * @constructor - DataTableFromDB
  */
 const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly }) => {
-  const [tagData, setTagData] = useState([])
   const [innerData, setInnerData] = useState([])
   const [columns, setColumns] = useState([])
   const [hoveredButton, setHoveredButton] = useState(null)
@@ -317,7 +316,7 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
     useEffect(() => {
       let uuid = localStorage.getItem("myUUID")
       if (!uuid) {
-        uuid = randomUUID()
+        uuid = "column_tags"
         localStorage.setItem("myUUID", uuid)
       }
       setId(uuid)
@@ -358,7 +357,21 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
     return tags ? tags.split(", ") : []
   }
 
-  // Render the DataTable component
+  // Function to generate a random color
+  const [tagColorMapping, setTagColorMapping] = useState({})
+
+  function getColorForTag(tag) {
+    if (tagColorMapping[tag]) {
+      return tagColorMapping[tag]
+    }
+    const r = Math.floor(Math.random() * (255 - 150 + 1)) + 150
+    const g = Math.floor(Math.random() * (255 - 150 + 1)) + 150
+    const b = Math.floor(Math.random() * (255 - 150 + 1)) + 150
+    const newColor = `rgb(${r}, ${g}, ${b})`
+    setTagColorMapping((prevMapping) => ({ ...prevMapping, [tag]: newColor }))
+    return newColor
+  }
+
   return (
     <>
       {innerData.length === 0 ? (
@@ -417,7 +430,24 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
                         )}
                         <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
                           <span>{col.header}</span>
-                          <span style={{ fontSize: "0.75rem", color: "#777" }}>{Array.isArray(getColumnTags(col.field)) ? getColumnTags(col.field).join(", ") : ""}</span>
+                          <div style={{ fontSize: "0.75rem", color: "#777", display: "flex", flexWrap: "wrap", gap: "4px" }}>
+                            {" "}
+                            {Array.isArray(getColumnTags(col.field))
+                              ? getColumnTags(col.field).map((tag) => (
+                                  <Chip
+                                    label={tag}
+                                    key={tag}
+                                    style={{
+                                      backgroundColor: getColorForTag(tag),
+                                      fontSize: "0.75rem",
+                                      padding: "0px 8px",
+                                      margin: "2px",
+                                      border: "0.5px solid black"
+                                    }}
+                                  />
+                                ))
+                              : ""}
+                          </div>
                         </div>
                       </div>
                     }
