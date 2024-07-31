@@ -27,6 +27,7 @@ func AddHandleFunc() {
 	Utils.CreateHandleFunc(prePath+"/compute_correlationsDB/", handleComputeCorrelationsDB)
 	Utils.CreateHandleFunc(prePath+"/compute_spearmanDB/", handleComputeSpearmanDB)
 	Utils.CreateHandleFunc(prePath+"/create_tags/", handleCreateTags)
+	Utils.CreateHandleFunc(prePath+"/delete_tag_from_column/", handleDeleteTagFromColumn)
 }
 
 // handleMerge handles the request to merge the datasets 
@@ -237,11 +238,23 @@ func handleProgress(jsonConfig string, id string) (string, error) {
 	}
 }
 
-// handleComputeSpearman handles the request to compute Spearman for the DB
+// handleCreateTags handles the request to create the tags for the DB
 // It returns the response from the python script
 func handleCreateTags(jsonConfig string, id string) (string, error) {
 	log.Println("Compute Tags Creation", id)
 	response, err := Utils.StartPythonScripts(jsonConfig, "../pythonCode/modules/input/create_tags.py", id)
+	Utils.RemoveIdFromScripts(id)
+	if err != nil {
+		return "", err
+	}
+	return response, nil
+}
+
+// handleDeleteTagFromColumn handles the request to tag deletion for the DB
+// It returns the response from the python script
+func handleDeleteTagFromColumn(jsonConfig string, id string) (string, error) {
+	log.Println("Compute Tag Deletion", id)
+	response, err := Utils.StartPythonScripts(jsonConfig, "../pythonCode/modules/input/delete_tag_from_column.py", id)
 	Utils.RemoveIdFromScripts(id)
 	if err != nil {
 		return "", err

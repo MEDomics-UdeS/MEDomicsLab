@@ -12,6 +12,8 @@ import { Dialog } from "primereact/dialog"
 import { LayoutModelContext } from "../layout/layoutContext"
 import { connectToMongoDB } from "../mongoDB/mongoDBUtils"
 import { Chip } from "primereact/chip"
+import { requestBackend } from "../../utilities/requests"
+import { ServerConnectionContext } from "../serverConnection/connectionContext"
 
 /**
  * DataTableFromDB component
@@ -26,8 +28,10 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
   const [innerData, setInnerData] = useState([])
   const [columns, setColumns] = useState([])
   const [hoveredButton, setHoveredButton] = useState(null)
+  const [hoveredTag, setHoveredTag] = useState({ field: null, index: null })
   const [lastEdit, setLastEdit] = useState(Date.now())
   const { dispatchLayout } = useContext(LayoutModelContext)
+  const { port } = useContext(ServerConnectionContext)
   const exportOptions = [
     {
       label: "CSV",
@@ -372,6 +376,28 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
     return newColor
   }
 
+  // Backend to delete a tag from a column
+  const DeleteTagFromColumn = async (tag) => {
+    let jsonToSend = {}
+    jsonToSend = {
+      tagToDelete: tag,
+      columnName: hoveredTag.field,
+      tagCollection: tagId,
+      databaseName: "data"
+    }
+    console.log("id", tagId)
+    requestBackend(port, "/input/delete_tag_from_column/", jsonToSend, (jsonResponse) => {
+      console.log("jsonResponse", jsonResponse)
+    })
+    // Delete the tag from the column in the frontend
+    const updatedMap = { ...columnNameToTagsMap }
+    const tags = updatedMap[hoveredTag.field]
+    const updatedTags = tags.split(", ").filter((t) => t !== tag)
+    updatedMap[hoveredTag.field] = updatedTags.join(", ")
+    setColumnNameToTagsMap(updatedMap)
+    toast.success("Tag deleted successfully.")
+  }
+
   return (
     <>
       {innerData.length === 0 ? (
@@ -431,20 +457,47 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
                         <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
                           <span>{col.header}</span>
                           <div style={{ fontSize: "0.75rem", color: "#777", display: "flex", flexWrap: "wrap", gap: "4px" }}>
-                            {" "}
                             {Array.isArray(getColumnTags(col.field))
-                              ? getColumnTags(col.field).map((tag) => (
-                                  <Chip
-                                    label={tag}
-                                    key={tag}
-                                    style={{
-                                      backgroundColor: getColorForTag(tag),
-                                      fontSize: "0.75rem",
-                                      padding: "0px 8px",
-                                      margin: "2px",
-                                      border: "0.5px solid black"
-                                    }}
-                                  />
+                              ? getColumnTags(col.field).map((tag, index) => (
+                                  <div
+                                    key={index}
+                                    onMouseEnter={() => setHoveredTag({ field: col.field, index })}
+                                    onMouseLeave={() => setHoveredTag({ field: null, index: null })}
+                                    style={{ position: "relative", display: "inline-block" }}
+                                  >
+                                    <div
+                                      style={{
+                                        position: "absolute",
+                                        top: "0",
+                                        right: "0",
+                                        background: "rgba(255, 0, 0, 1)",
+                                        borderRadius: "50%",
+                                        width: "16px",
+                                        height: "16px",
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                        cursor: "pointer",
+                                        opacity: hoveredTag.field === col.field && hoveredTag.index === index ? 1 : 0,
+                                        transition: "opacity 0.2s, transform 0.2s",
+                                        transform: hoveredTag.field === col.field && hoveredTag.index === index ? "scale(1.2)" : "scale(1)",
+                                        color: "black"
+                                      }}
+                                      onClick={() => DeleteTagFromColumn(tag)}
+                                    >
+                                      x
+                                    </div>
+                                    <Chip
+                                      label={tag}
+                                      style={{
+                                        backgroundColor: getColorForTag(tag),
+                                        fontSize: "0.75rem",
+                                        padding: "0px 8px",
+                                        margin: "2px",
+                                        border: "0.5px solid black"
+                                      }}
+                                    />
+                                  </div>
                                 ))
                               : ""}
                           </div>
