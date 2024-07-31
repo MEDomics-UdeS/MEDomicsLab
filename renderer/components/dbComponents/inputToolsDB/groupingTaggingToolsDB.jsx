@@ -231,6 +231,8 @@ const GroupingTaggingToolsDB = ({ refreshData }) => {
                     newTagsDict = addTagToTagsDict("therapy", "#a832a8", newTagsDict, true)
                     setTagsDict(newTagsDict)
                   }}
+                  tooltip="Add default tags"
+                  tooltipOptions={{ position: "top" }}
                 >
                   <PlusSquare size={15} />
                 </Button>
@@ -245,6 +247,7 @@ const GroupingTaggingToolsDB = ({ refreshData }) => {
                   }}
                   itemTemplate={customChip}
                   style={{ width: "100%", marginTop: "0.15rem" }}
+                  placeholder={Object.keys(tagsDict).length > 0 ? "" : "Tag Name"}
                 />
                 <div style={{ display: "flex", flexDirection: "column", marginLeft: "20px" }}>
                   {Object.keys(tagsDict).map((tag) => (

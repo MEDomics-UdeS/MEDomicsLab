@@ -56,16 +56,20 @@ class GoExecScriptCreateTags(GoExecutionScript):
         
         # In tag_collection_to_work_with, look for the column_name, and if you do, delete the tag_to_delete from tags
         def delete_tag_from_column(tag_collection, column_name, tag_to_delete):
-            for item in tag_collection.find():
-                if item['column_name'] == column_name:
-                    tags = item['tags']
-                    tags.remove(tag_to_delete)
-                    tag_collection.update_one({'column_name': column_name}, {"$set": {'tags': tags}})
-                    return
+            for item in tag_collection.find({"column_name": column_name}):
+                if 'tags' in item and tag_to_delete in item['tags']:
+                    item['tags'].remove(tag_to_delete)
+                    if not item['tags']:
+                        tag_collection.delete_one({'_id': item['_id']})
+                    else:
+                        tag_collection.update_one({'_id': item['_id']}, {"$set": {'tags': item['tags']}})
+
+            if tag_collection.count_documents({}) == 0:
+                tag_collection.drop()
+            else:
+                print('Tag deleted from column.')
         
         delete_tag_from_column(tag_collection_to_work_with, column_name, tag_to_delete)
-       
-        print('Tag deleted from column')
         
         return
 
