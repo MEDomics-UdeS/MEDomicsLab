@@ -297,6 +297,7 @@ const GroupingTaggingToolsDB = ({ refreshData }) => {
               }}
               tooltip="Apply tags to selected columns"
               tooltipOptions={{ position: "top" }}
+              disabled={selectedColumnsToTag.length === 0 || selectedTags.length === 0} // Disable button if either selection is empty
             />
           </div>
         </div>
