@@ -15,6 +15,8 @@ import { WorkspaceContext } from "../workspace/workspaceContext"
 import { ErrorRequestContext } from "../generalPurpose/errorRequestContext.jsx"
 import { sceneDescription } from "../../public/setupVariables/learningNodesParams.jsx"
 import { DataContext } from "../workspace/dataContext.jsx"
+import { randomUUID } from "crypto"
+import { insertMEDDataObjectIfNotExists } from "../mongoDB/mongoDBUtils.js"
 
 // here are the different types of nodes implemented in the workflow
 import StandardNode from "./nodesTypes/standardNode"
@@ -68,7 +70,7 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
   const { groupNodeId, changeSubFlow, hasNewConnection } = useContext(FlowFunctionsContext)
   const { pageId } = useContext(PageInfosContext) // used to get the page infos such as id and config path
   const { updateFlowResults, isResults } = useContext(FlowResultsContext)
-  const { canRun, setSceneName } = useContext(FlowInfosContext)
+  const { canRun, sceneName, setSceneName } = useContext(FlowInfosContext)
   const { port } = useContext(WorkspaceContext)
   const { setError } = useContext(ErrorRequestContext)
   const { globalData } = useContext(DataContext)
@@ -595,8 +597,28 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
           node.data.setupParam = null
         })
 
-        let { success, isValid } = await cleanJson2Send(flow, up2Id)
+        // Create results Folder
+        let resultsFolder = new MEDDataObject({
+          id: randomUUID(),
+          name: sceneName + ".medmlres",
+          type: "medmlres",
+          parentID: globalData[pageId].parentID,
+          childrenIDs: [],
+          inWorkspace: false
+        })
+        let resultsFolderID = await insertMEDDataObjectIfNotExists(resultsFolder)
+        let plotsDirectory = new MEDDataObject({
+          id: randomUUID(),
+          name: "plots",
+          type: "directory",
+          parentID: resultsFolderID,
+          childrenIDs: [],
+          inWorkspace: false
+        })
+        const plotDirectoryID = await insertMEDDataObjectIfNotExists(plotsDirectory)
 
+        // Clean everything before running a new experiment
+        let { success, isValid } = await cleanJson2Send(flow, up2Id, plotDirectoryID)
         if (success) {
           requestBackendRunExperiment(port, backendMetadataFileID, isValid)
         } else {
@@ -621,7 +643,7 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
    * registered and a boolean to know if the default values are set.
    */
   const cleanJson2Send = useCallback(
-    async (json, up2Id) => {
+    async (json, up2Id, plotDirectoryID) => {
       // function to check if default values are set
       const checkDefaultValues = (node) => {
         let isValid = true
@@ -746,6 +768,7 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
       sceneDescription.externalFolders.forEach((folder) => {
         newJson.identifiers[folder] = MEDDataObject.getChildIDWithName(globalData, globalData[pageId].parentID, folder)
       })
+      newJson.identifiers["plots"] = plotDirectoryID
       newJson.nbNodes2Run = nbNodes2Run + 1 // +1 because the results generation is a time consuming task
       let success = await overwriteMEDDataObjectContent(backendMetadataFileID, [newJson])
 

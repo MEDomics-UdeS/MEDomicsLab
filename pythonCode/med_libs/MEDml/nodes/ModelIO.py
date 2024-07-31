@@ -13,7 +13,7 @@ import os
 from pathlib import Path
 sys.path.append(str(Path(os.path.dirname(os.path.abspath(__file__))).parent.parent))
 from MEDDataObject import MEDDataObject
-from mongodb_utils import insert_med_data_object_if_not_exists, get_child_id_by_name, get_pickled_model_from_collection
+from mongodb_utils import insert_med_data_object_if_not_exists, get_child_id_by_name, get_pickled_model_from_collection, overwrite_med_data_object_content
 
 
 DATAFRAME_LIKE = Union[dict, list, tuple, np.ndarray, pd.DataFrame]
@@ -76,7 +76,11 @@ class ModelIO(Node):
                     inWorkspace = False)
 
                     serialized_model = pickle.dumps(model)
-                    insert_med_data_object_if_not_exists(serialized_model_med_object, [{'model': serialized_model}])
+                    serialized_model_id = insert_med_data_object_if_not_exists(serialized_model_med_object, [{'model': serialized_model}])
+                    # If model already existed we overwrite its content
+                    if serialized_model_id != serialized_model_med_object.id:
+                        success_pkl = overwrite_med_data_object_content(serialized_model_id, [{'model': serialized_model}])
+                        print("pickle overwrite succeed : ", success_pkl)
                     
                     # .medmodel metadata
                     metadata_med_object = MEDDataObject(id=str(uuid.uuid4()),
@@ -96,8 +100,12 @@ class ModelIO(Node):
                     if 'selectedVariables' in self.global_config_json:
                         to_write['selectedVariables'] = self.global_config_json['selectedVariables']
 
-                    insert_med_data_object_if_not_exists(metadata_med_object, [to_write])
-                    return_val[model.__class__.__name__] = metadata_med_object.id
+                    metadata_model_id = insert_med_data_object_if_not_exists(metadata_med_object, [to_write])
+                    if metadata_model_id != metadata_med_object.id:
+                        # If model already existed we overwrite its content
+                        success_metadata = overwrite_med_data_object_content(metadata_model_id, [to_write])
+                        print("metadata overwrite succeed : ", success_metadata)
+                    return_val[model.__class__.__name__] = metadata_model_id
 
         elif self.type == 'load_model':
             serialized_model_id = get_child_id_by_name(settings['model_to_load']['id'], "model.pkl")
