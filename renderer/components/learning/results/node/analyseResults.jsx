@@ -21,7 +21,7 @@ const AnalyseResults = ({ selectedResults }) => {
       const imagePaths = []
       for (const { modelName, collectionId } of imagesInfos) {
         const medDataObject = globalData[collectionId]
-        if (!medDataObject.inWorkspace) {
+        if (!medDataObject?.inWorkspace) {
           await MEDDataObject.sync(globalData, collectionId, workspace.workingDirectory.path, false)
         }
 
@@ -57,7 +57,7 @@ const AnalyseResults = ({ selectedResults }) => {
       // Clean up images from workspace when component unmounts
       imagesInfos.forEach(async ({ collectionId }) => {
         const medDataObject = globalData[collectionId]
-        if (medDataObject.inWorkspace) {
+        if (medDataObject?.inWorkspace) {
           MEDDataObject.deleteObjectAndChildrenFromWorkspace(globalData, collectionId, workspace.workingDirectory.path, false)
         }
       })

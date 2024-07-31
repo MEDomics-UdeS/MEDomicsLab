@@ -68,7 +68,7 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
   const { groupNodeId, changeSubFlow, hasNewConnection } = useContext(FlowFunctionsContext)
   const { pageId } = useContext(PageInfosContext) // used to get the page infos such as id and config path
   const { updateFlowResults, isResults } = useContext(FlowResultsContext)
-  const { canRun } = useContext(FlowInfosContext)
+  const { canRun, setSceneName } = useContext(FlowInfosContext)
   const { port } = useContext(WorkspaceContext)
   const { setError } = useContext(ErrorRequestContext)
   const { globalData } = useContext(DataContext)
@@ -89,6 +89,7 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
   // When config is changed, we update the workflow
   useEffect(() => {
     async function getConfig() {
+      // Get Config file
       if (globalData[pageId]?.childrenIDs) {
         let configToLoad = MEDDataObject.getChildIDWithName(globalData, pageId, "metadata.json")
         setMetadataFileID(configToLoad)
@@ -99,6 +100,19 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
           toast.success("Config file has been loaded successfully")
         } else {
           console.log("No config file found for this page, base workflow will be used")
+        }
+      }
+      // Get Results if exists
+      if (globalData[pageId]?.parentID) {
+        const parentID = globalData[pageId].parentID
+        setSceneName(globalData[parentID].name)
+        const existingResultsName = globalData[pageId].name + "res"
+        const existingResultsID = MEDDataObject.getChildIDWithName(globalData, parentID, existingResultsName)
+        if (existingResultsID) {
+          const jsonResultsID = MEDDataObject.getChildIDWithName(globalData, existingResultsID, "results.json")
+          const jsonResults = await getCollectionData(jsonResultsID)
+          delete jsonResults[0]["_id"]
+          updateFlowResults(jsonResults[0], parentID)
         }
       }
     }

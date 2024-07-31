@@ -59,7 +59,7 @@ class Analyze(Node):
 
             # Save Image into MongoDB
             image_med_object = MEDDataObject(id=str(uuid.uuid4()),
-                    name = model.__class__.__name__ + '_' + print_settings['plot'] + '.png',
+                    name = model.__class__.__name__ + '_' + plot_image,
                     type = "png",
                     parentID = self.global_config_json['identifiers']['exp'],
                     childrenIDs = [],

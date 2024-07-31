@@ -93,7 +93,7 @@ const DatasetNode = ({ id, data }) => {
       columnsArray.forEach((column) => {
         columnsObject[column] = column
       })
-      let steps = null //await MedDataObject.getStepsFromPath(inputUpdate.value.path, globalData, setGlobalData)
+      let steps = null
       setLoader(false)
       steps && (data.internal.settings.steps = steps)
       data.internal.settings.columns = columnsObject
