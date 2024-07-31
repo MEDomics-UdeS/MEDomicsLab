@@ -8,6 +8,18 @@ import SubsetCreationToolsDB from "./inputToolsDB/subsetCreationToolsDB"
 import FeatureReductionToolsDB from "./inputToolsDB/featureReductionToolsDB/featureReductionToolsDB"
 import GroupingTaggingToolsDB from "./inputToolsDB/groupingTaggingToolsDB"
 
+/**
+ * @description
+ * This component provides calls all the other components to build the input tools.
+ * @param {Object} props
+ * @param {Object} props.data - Data object
+ * @param {Object[]} props.exportOptions - Export options
+ * @param {Function} props.refreshData - Function to refresh the data
+ * @param {Object[]} props.columns - Columns
+ * @param {Function} props.transformData - Function to transform the data
+ * @param {Object[]} props.innerData - Inner data
+ * @param {Object} props.lastEdit - Last edit
+ */
 const InputToolsComponent = ({ data, exportOptions, refreshData, columns, transformData, innerData, lastEdit }) => {
   const panelContainerStyle = {
     height: "100%",

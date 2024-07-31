@@ -14,6 +14,11 @@ import { InputText } from "primereact/inputtext"
 import { requestBackend } from "../../../utilities/requests"
 import { ServerConnectionContext } from "../../serverConnection/connectionContext"
 
+/**
+ * @description
+ * This component is used to create and apply tags to dataset columns.
+ * It allows the user to select the datasets to tag, create tags, and apply them to the selected columns.
+ */
 const GroupingTaggingToolsDB = ({ refreshData }) => {
   const [options, setOptions] = useState([])
   const { globalData } = useContext(DataContext)
@@ -297,7 +302,7 @@ const GroupingTaggingToolsDB = ({ refreshData }) => {
               }}
               tooltip="Apply tags to selected columns"
               tooltipOptions={{ position: "top" }}
-              disabled={selectedColumnsToTag.length === 0 || selectedTags.length === 0} // Disable button if either selection is empty
+              disabled={selectedColumnsToTag.length === 0 || selectedTags.length === 0}
             />
           </div>
         </div>

@@ -15,6 +15,13 @@ import { DataContext } from "../../workspace/dataContext"
 import { randomUUID } from "crypto"
 import { insertMEDDataObjectIfNotExists } from "../../mongoDB/mongoDBUtils"
 
+/**
+ * @description
+ * This component provides tools to create a subset from a dataset.
+ * @param {Object} props
+ * @param {Function} props.refreshData - Function to refresh the data
+ * @param {string} props.currentCollection - Current collection
+ */
 const SubsetCreationToolsDB = ({ currentCollection, refreshData }) => {
   const [data, setData] = useState([])
   const [columns, setColumns] = useState([])

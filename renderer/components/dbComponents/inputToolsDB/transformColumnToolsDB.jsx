@@ -8,6 +8,13 @@ import { getCollectionData } from "../utils"
 import { connectToMongoDB } from "../../mongoDB/mongoDBUtils"
 import Papa from "papaparse"
 
+/**
+ * @description
+ * This component provides tools to transform columns in a dataset.
+ * @param {Object} props
+ * @param {string} props.currentCollection - Current collection
+ * @param {Function} props.refreshData - Function to refresh the data
+ */
 const TransformColumnToolsDB = ({ currentCollection, refreshData }) => {
   const [isHovered, setIsHovered] = useState(false)
   const [selectedColumns, setSelectedColumns] = useState([])

@@ -4,10 +4,17 @@ import { Button } from "primereact/button"
 import { SplitButton } from "primereact/splitbutton"
 import { Message } from "primereact/message"
 import { toast } from "react-toastify"
-import { MongoClient } from "mongodb"
 import { connectToMongoDB } from "../../mongoDB/mongoDBUtils"
 import { DataContext } from "../../workspace/dataContext"
 
+/**
+ * @description
+ * This component provides basic tools to add rows and columns to a dataset, and export the dataset.
+ * @param {Object} props
+ * @param {Object[]} props.exportOptions - Export options
+ * @param {Function} props.refreshData - Function to refresh the data
+ * @param {string} props.currentCollection - Current collection
+ */
 const BasicToolsDB = ({ exportOptions, refreshData, currentCollection }) => {
   const [newColumnName, setNewColumnName] = useState("")
   const [numRows, setNumRows] = useState("")

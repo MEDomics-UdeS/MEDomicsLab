@@ -18,6 +18,16 @@ import { randomUUID } from "crypto"
 import { MEDDataObject } from "../../workspace/NewMedDataObject"
 import { insertMEDDataObjectIfNotExists } from "../../mongoDB/mongoDBUtils"
 
+/**
+ * @description
+ * This component provides simple cleaning tools to handle missing values within a dataset.
+ * @param {Object} props
+ * @param {string} props.lastEdit - Last edit
+ * @param {Object[]} props.data - Data
+ * @param {Object[]} props.columns - Columns
+ * @param {string} props.currentCollection - Current collection
+ * @param {Function} props.refreshData - Function to refresh the data
+ */
 const SimpleCleaningToolsDB = ({ lastEdit, data, columns, currentCollection, refreshData }) => {
   const [tableData, setTableData] = useState([])
   const [rowData, setRowData] = useState([])

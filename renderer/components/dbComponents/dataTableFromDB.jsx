@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext, useMemo } from "react"
+import React, { useEffect, useState, useContext } from "react"
 import { DataTable } from "primereact/datatable"
 import { Column } from "primereact/column"
 import { InputText } from "primereact/inputtext"
@@ -17,12 +17,11 @@ import { ServerConnectionContext } from "../serverConnection/connectionContext"
 
 /**
  * DataTableFromDB component
+ * This component renders a DataTable from MongoDB data.
  * @param data - MongoDB data
  * @param tablePropsData - DataTable props
  * @param tablePropsColumn - Column props
  * @param isReadOnly - Read-only mode
- * @returns {Element} - DataTable component
- * @constructor - DataTableFromDB
  */
 const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly }) => {
   const [innerData, setInnerData] = useState([])
@@ -233,7 +232,6 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
         return rest
       })
     )
-
     try {
       const db = await connectToMongoDB()
       const collection = db.collection(data.id)
@@ -302,6 +300,7 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
     }
   }
 
+  // Open Input Tools dialog
   const handleDialogClick = () => {
     console.log("Opening Input Tools")
     let newProps = {
@@ -315,6 +314,7 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
     dispatchLayout({ type: "openInputToolsDB", payload: { data: newProps } })
   }
 
+  // Function to generate a random UUID
   const usePersistentUUID = () => {
     const [id, setId] = useState("")
     useEffect(() => {
@@ -364,6 +364,7 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
   // Function to generate a random color
   const [tagColorMapping, setTagColorMapping] = useState({})
 
+  // Function to get a color for a tag
   function getColorForTag(tag) {
     if (tagColorMapping[tag]) {
       return tagColorMapping[tag]

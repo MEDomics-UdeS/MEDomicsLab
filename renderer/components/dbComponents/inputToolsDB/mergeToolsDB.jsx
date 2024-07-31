@@ -14,6 +14,7 @@ import { randomUUID } from "crypto"
 
 /**
  * @description MergeToolsDB component
+ * This component provides tools to merge two collections in a database.
  * @param {[collections]} - Array of collections
  * @param {currentCollection} - Current collection
  */

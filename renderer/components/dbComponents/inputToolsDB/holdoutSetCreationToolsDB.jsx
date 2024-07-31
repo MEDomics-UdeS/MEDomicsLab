@@ -17,6 +17,14 @@ import { DataContext } from "../../workspace/dataContext"
 import { randomUUID } from "crypto"
 import { insertMEDDataObjectIfNotExists } from "../../mongoDB/mongoDBUtils"
 
+/**
+ * @description
+ * This component provides tools to create a holdout set from a dataset.
+ * @param {Object} props
+ * @param {Function} props.refreshData - Function to refresh the data
+ * @param {string} props.currentCollection - Current collection
+ *
+ */
 const HoldoutSetCreationToolsDB = ({ refreshData, currentCollection }) => {
   const [shuffle, setShuffle] = useState(false)
   const [stratify, setStratify] = useState(false)
