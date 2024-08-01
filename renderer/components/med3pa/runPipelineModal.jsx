@@ -57,7 +57,7 @@ const NodeDetails = ({ node, labelColor }) => {
                 <div style={{ fontFamily: "Arial, sans-serif", fontSize: "0.9rem", color: "#555" }}>
                   <ul style={{ paddingLeft: "1em", margin: 0 }}>
                     {value.map((item, index) => (
-                      <li key={`${uniqueKey}[${index}]`}>{item.toString()}</li>
+                      <li key={`${uniqueKey}[${index}]`}>{typeof item === "object" && item !== null ? renderSettings(item, depth + 1, `${uniqueKey}[${index}]`) : item.toString()}</li>
                     ))}
                   </ul>
                 </div>
@@ -122,7 +122,6 @@ const NodeDetails = ({ node, labelColor }) => {
     </Card>
   )
 }
-
 /**
  *
  * @param {boolean} show Indicates if the modal is visible.

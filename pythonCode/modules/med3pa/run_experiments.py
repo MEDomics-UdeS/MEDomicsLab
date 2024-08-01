@@ -88,10 +88,15 @@ def _transform_ipc_model_node(node):
     file_settings = node["settings"].get("file", {})
     file_path = file_settings.get("path", None)  # Default to None if path is not found
     
+    if node["settings"]["optimize"] is True:
+        optimize_params =  node["settings"].get("grid_params", None)
+    else:
+        optimize_params = None
+
     return {
         "model_type": node["settings"].get("model_type", None),
         "hyperparameters": node["settings"].get("hyperparameters", None),
-        "optimize_params": node["settings"].get("grid_params", None),
+        "optimize_params": optimize_params,
         "pretrained_ipc": file_path if file_path is not "" else None,
         "save_ipc": node["settings"].get("save_pickled", False),
     }
@@ -99,11 +104,18 @@ def _transform_ipc_model_node(node):
 def _transform_apc_model_node(node):
     file_settings = node["settings"].get("file", {})
     file_path = file_settings.get("path", None)  # Default to None if path is not found
+
+    if node["settings"]["optimize"] is True:
+        optimize_params =  node["settings"].get("grid_params", None)
+    else:
+        optimize_params = None
+
     return {
         "hyperparameters": node["settings"].get("hyperparameters", None),
-        "optimize_params": node["settings"].get("grid_params", None),
+        "optimize_params": optimize_params,
         "pretrained_apc": file_path if file_path is not "" else None,
         "save_apc": node["settings"].get("save_pickled", False),
+        "max_samples_ratio" : node["settings"].get("maximum_min_samples_ratio", 50)
     }
 
 def _transform_uncertainty_metric_node(node):
@@ -248,7 +260,6 @@ def _handle_detectron_experiment(experiment):
     return experiment_results
 
 def _handle_med3pa_experiment(experiment):
-    # harcoded uncertainty metric and model
     # Ensure the experiment is of type med3pa_experiment
     if experiment.get("experiment_name") != "med3pa_experiment":
         raise ValueError("The provided experiment is not a med3pa_experiment")
@@ -281,6 +292,7 @@ def _handle_med3pa_experiment(experiment):
     apc_hyperparameters = apc_model.get("hyperparameters", None)
     apc_optimize_params = apc_model.get("optimize_params", None)
     pretrained_apc = apc_model.get('pretrained_apc', None)
+    max_samples_ratio = apc_model.get('max_samples_ratio', None)
 
     manager = DatasetsManager()
     manager.set_from_file(dataset_type="training", file=datasets['training']['path'], target_column_name=datasets['training']['target'])
@@ -324,7 +336,7 @@ def _handle_med3pa_experiment(experiment):
         experiment_kwargs["mode"] = mode
     
     experiment_kwargs["evaluate_models"] = True
-    experiment_kwargs["samples_ratio_max"] = 10
+    experiment_kwargs["samples_ratio_max"] = int(max_samples_ratio)
     experiment_kwargs["uncertainty_metric"] = uncertainty_metric
     
     experiment_results = Med3paExperiment.run(**experiment_kwargs)
@@ -371,9 +383,14 @@ def _handle_det3pa_experiment(experiment):
     ipc_hyperparameters = ipc_model.get("hyperparameters", None)
     ipc_optimize_params = ipc_model.get("optimize_params", None)
     ipc_type = ipc_model.get("model_type", "RandomForestRegressor")
+    pretrained_ipc = ipc_model.get('pretrained_ipc', None)
 
     apc_hyperparameters = apc_model.get("hyperparameters", None)
     apc_optimize_params = apc_model.get("optimize_params", None)
+    pretrained_apc = apc_model.get('pretrained_apc', None)
+    max_samples_ratio = apc_model.get('max_samples_ratio', None)
+    
+
 
     manager = DatasetsManager()
     manager.set_from_file(dataset_type="training", file=datasets['training']['path'], target_column_name=datasets['training']['target'])
@@ -403,12 +420,16 @@ def _handle_det3pa_experiment(experiment):
         experiment_kwargs["ipc_params"] = ipc_hyperparameters
     if ipc_optimize_params is not None:
         experiment_kwargs["ipc_grid_params"] = ipc_optimize_params
-    
+    if pretrained_ipc is not None:
+        experiment_kwargs["pretrained_ipc"] = pretrained_ipc
+        
     if apc_hyperparameters is not None:
         experiment_kwargs["apc_params"] = apc_hyperparameters
     if apc_optimize_params is not None:
         experiment_kwargs["apc_grid_params"] = apc_optimize_params
-    
+    if pretrained_apc is not None:
+        experiment_kwargs["pretrained_apc"] = pretrained_apc
+
     if mode is not None:
         experiment_kwargs["mode"] = mode
     
@@ -423,7 +444,7 @@ def _handle_det3pa_experiment(experiment):
         experiment_kwargs["patience"] = patience
 
     experiment_kwargs["evaluate_models"] = True
-    experiment_kwargs["samples_ratio_max"] = 10
+    experiment_kwargs["samples_ratio_max"] = int(max_samples_ratio)
     experiment_kwargs["uncertainty_metric"] = uncertainty_metric
     experiment_kwargs["test_strategies"] = test_strategies
 
@@ -548,7 +569,7 @@ class GoExecScriptRunExperiments(GoExecutionScript):
                 saving_mode = _save_med3pa_models(experiment)
                 if saving_mode in ["all", "ipc", "apc"]:
                     models_saving_path = os.path.join(path_to_models_dir, f'saved_model_{experiment_path}')
-                    results.save_models(models_saving_path, saving_mode)
+                    results.save_models(models_saving_path, saving_mode, experiment_path)
                 else:
                     models_saving_path = ""
             elif experiment_name == 'med3pa_detectron_experiment':

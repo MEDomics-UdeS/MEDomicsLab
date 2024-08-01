@@ -18,7 +18,7 @@ import { LoaderContext } from "../../generalPurpose/loaderContext"
  * @description
  * This component is used to display an APCModel node within the MED3pa subworkflow.
  * It manages the display of the node and the associated modal.
- * The APC Model can accept either a .json file as input
+ * The APC Model can accept either a .pkl file as input
  *  OR general hyperparameters along with grid parameters.
  */
 export default function APCModelNode({ id, data }) {
@@ -34,7 +34,7 @@ export default function APCModelNode({ id, data }) {
   const [savePickled, setSavePickled] = useState(true) // Save the APC Model
   const [loading, setLoading] = useState(true)
   const [gridParams, setGridParams] = useState({}) // State to hold grid_params
-  const [useJsonInput, setUseJsonInput] = useState(false) // Load an Existing Fixed
+  const [usePklInput, setUsePklInput] = useState(false) // Load an Existing Fixed
   const [showGridParamsSection, setShowGridParamsSection] = useState() // Activate/Desactivate Optimize Option
 
   // Initial set up of GridParams state and Loading State
@@ -86,7 +86,22 @@ export default function APCModelNode({ id, data }) {
    * This function is used to update the node internal data when the files input changes.
    */
   const onFilesChange = async (inputUpdate) => {
-    // Update Node internal settings with the updated information!
+    data.internal.settings.file = inputUpdate.value
+
+    if (inputUpdate.value.path !== "") {
+      setLoader(false)
+
+      if (data.internal.settings.file) {
+        data.internal.hasWarning = { state: false }
+      } else {
+        data.internal.hasWarning = { state: true, tooltip: <p>No Fixed Tree Structure selected</p> }
+      }
+    } else {
+      setLoader(true)
+      setTimeout(() => {
+        setLoader(false)
+      }, 1000) // Reset loader to true after 1 second
+    }
     updateNode({
       id: id,
       updatedData: {
@@ -97,22 +112,6 @@ export default function APCModelNode({ id, data }) {
         }
       }
     })
-
-    // Update Warning State
-    if (inputUpdate.value.path !== "") {
-      setLoader(false)
-      if (data.internal.settings.file) {
-        data.internal.hasWarning = { state: false }
-      } else {
-        data.internal.hasWarning = { state: true, tooltip: <p>No Fixed Tree Structure selected</p> }
-      }
-    } else {
-      setLoader(true)
-      data.internal.hasWarning = { state: true, tooltip: <p>No Fixed Tree Structure selected</p> }
-      setTimeout(() => {
-        setLoader(false)
-      }, 1000) // Reset loader to true after 1 second so the App won't stop
-    }
   }
 
   /**
@@ -378,14 +377,14 @@ export default function APCModelNode({ id, data }) {
    *
    *
    * @description
-   * This function updates the node's data internal settings of the node based on 'use_json_input' value.
-   *  If JSON input is enabled,
+   * This function updates the node's data internal settings of the node based on 'use_pkl_input' value.
+   *  If PKL input is enabled,
    * it checks if a file is selected.
    *  If not, it sets a warning to indicate that no fixed tree structure is selected.
-   * If JSON input is disabled, it removes the 'file' property from the settings and clears any warnings.
+   * If PKL input is disabled, it removes the 'file' property from the settings and clears any warnings.
    */
-  const handleUseJSONChange = (value) => {
-    setUseJsonInput(value.value)
+  const handleUsePKLChange = (value) => {
+    setUsePklInput(value.value)
     if (value.value) {
       if (!data.internal.settings.file) {
         data.internal.hasWarning = { state: true, tooltip: <p>No Fixed Tree Structure selected</p> }
@@ -489,23 +488,23 @@ export default function APCModelNode({ id, data }) {
             <div className="center">
               <FlInput
                 key={"FixedTree"}
-                name={"Load a Fixed tree structure"}
+                name={"Load a Pickled Model"}
                 settingInfos={{
                   type: "bool",
-                  tooltip: "<p>Check if you have a fixed tree that you want to load</p>"
+                  tooltip: "<p>Check if you have a ready apc model that you want to load</p>"
                 }}
-                currentValue={useJsonInput}
-                onInputChange={(value) => handleUseJSONChange(value)}
+                currentValue={usePklInput}
+                onInputChange={(value) => handleUsePKLChange(value)}
               />
             </div>
 
-            {useJsonInput ? (
+            {usePklInput ? (
               <div className="center mt-3">
                 <FlInput
                   key={"FixedTree"}
                   name={"Load a Fixed tree structure"}
                   settingInfos={{
-                    type: "json-input",
+                    type: "models-input",
                     tooltip: "<p>Load Tree Structure here</p>"
                   }}
                   currentValue={data.internal.settings.file || {}}
