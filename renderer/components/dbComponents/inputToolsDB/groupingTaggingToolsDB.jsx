@@ -154,7 +154,7 @@ const GroupingTaggingToolsDB = ({ refreshData }) => {
   const handleChangeTagName = (tag, event) => {
     setCurrentTag(tag)
     setTempTagName(tag)
-    op.current.toggle(event) // Show OverlayPanel
+    op.current.toggle(event)
   }
 
   const handleTagChangeConfirm = () => {

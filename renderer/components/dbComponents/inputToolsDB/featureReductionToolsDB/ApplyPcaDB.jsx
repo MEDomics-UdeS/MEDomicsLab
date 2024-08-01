@@ -1,7 +1,6 @@
 import React, { useEffect, useState, useContext } from "react"
 import { Message } from "primereact/message"
 import { Dropdown } from "primereact/dropdown"
-import { ipcRenderer } from "electron"
 import { MultiSelect } from "primereact/multiselect"
 import { getCollectionData } from "../../utils"
 import { Checkbox } from "primereact/checkbox"

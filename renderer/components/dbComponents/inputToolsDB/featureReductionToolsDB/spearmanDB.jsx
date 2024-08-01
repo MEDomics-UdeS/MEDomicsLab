@@ -8,7 +8,6 @@ import { DataTable } from "primereact/datatable"
 import { Column } from "primereact/column"
 import { toast } from "react-toastify"
 import { ServerConnectionContext } from "../../../serverConnection/connectionContext"
-import { ipcRenderer } from "electron"
 import { requestBackend } from "../../../../utilities/requests"
 import { Checkbox } from "primereact/checkbox"
 import { InputText } from "primereact/inputtext"
@@ -20,7 +19,7 @@ import { insertMEDDataObjectIfNotExists } from "../../../mongoDB/mongoDBUtils"
 /**
  * Component that renders the Spearman feature reduction creation tool
  */
-const SpearmanDB = ({ DB, currentCollection, refreshData }) => {
+const SpearmanDB = ({ currentCollection, refreshData }) => {
   const [selectedColumns, setSelectedColumns] = useState([])
   const [columns, setColumns] = useState([])
   const [selectedTarget, setSelectedTarget] = useState("")
