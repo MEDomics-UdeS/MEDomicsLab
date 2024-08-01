@@ -361,22 +361,6 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
     return tags ? tags.split(", ") : []
   }
 
-  // Function to generate a random color
-  const [tagColorMapping, setTagColorMapping] = useState({})
-
-  // Function to get a color for a tag
-  function getColorForTag(tag) {
-    if (tagColorMapping[tag]) {
-      return tagColorMapping[tag]
-    }
-    const r = Math.floor(Math.random() * (255 - 150 + 1)) + 150
-    const g = Math.floor(Math.random() * (255 - 150 + 1)) + 150
-    const b = Math.floor(Math.random() * (255 - 150 + 1)) + 150
-    const newColor = `rgb(${r}, ${g}, ${b})`
-    setTagColorMapping((prevMapping) => ({ ...prevMapping, [tag]: newColor }))
-    return newColor
-  }
-
   // Backend to delete a tag from a column
   const DeleteTagFromColumn = async (tag) => {
     let jsonToSend = {}
@@ -398,6 +382,37 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
     setColumnNameToTagsMap(updatedMap)
     toast.success("Tag deleted successfully.")
   }
+
+  const [tagColorMap, setTagColorMap] = useState(() => {
+    const savedMap = localStorage.getItem("tagColorMap")
+    return savedMap ? JSON.parse(savedMap) : {}
+  })
+
+  // Function to generate a new color for a tag
+  function generateColor() {
+    const r = Math.floor(Math.random() * (255 - 150 + 1)) + 150
+    const g = Math.floor(Math.random() * (255 - 150 + 1)) + 150
+    const b = Math.floor(Math.random() * (255 - 150 + 1)) + 150
+    const newColor = `rgb(${r}, ${g}, ${b})`
+    return newColor
+  }
+
+  function getColorForTag(tag) {
+    if (tagColorMap[tag]) {
+      return tagColorMap[tag]
+    } else {
+      const newColor = generateColor()
+      const updatedMap = { ...tagColorMap, [tag]: newColor }
+      setTagColorMap(updatedMap)
+      localStorage.setItem("tagColorMap", JSON.stringify(updatedMap))
+      return newColor
+    }
+  }
+
+  // Remember to use useEffect to update local storage when tagColorMap changes
+  useEffect(() => {
+    localStorage.setItem("tagColorMap", JSON.stringify(tagColorMap))
+  }, [tagColorMap])
 
   return (
     <>
