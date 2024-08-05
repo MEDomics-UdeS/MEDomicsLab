@@ -293,8 +293,9 @@ export class MEDDataObject {
    * @param {String} id - the id of the MEDDataObject to sync
    * @param {String} workspacePath - the root path of the workspace
    * @param {Boolean} notify - Wether to display a toast message while success
+   * @param {Set} syncedObjects - A set to track already synced objects to avoid infinite loops
    */
-  static async sync(dict, id, workspacePath, notify = true) {
+  static async sync(dict, id, workspacePath, notify = true, syncedObjects = new Set()) {
     const medDataObject = dict[id]
 
     if (!medDataObject) {
@@ -302,9 +303,15 @@ export class MEDDataObject {
       return
     }
 
+    // Check if this object has already been synced to avoid infinite loops
+    if (syncedObjects.has(id)) {
+      return
+    }
+    syncedObjects.add(id)
+
     // Recursively sync parent objects
     if (medDataObject.parentID && medDataObject.parentID !== "ROOT") {
-      await this.sync(dict, medDataObject.parentID, workspacePath, notify)
+      await this.sync(dict, medDataObject.parentID, workspacePath, notify, syncedObjects)
     }
 
     // Define the file path where the content will be downloaded
@@ -318,8 +325,13 @@ export class MEDDataObject {
 
     // Download the content based on the type
     try {
-      if (medDataObject.type != "directory" && medDataObject.type != "medml" && medDataObject.type != "medeval" && medDataObject.type != "medmlres") {
+      if (medDataObject.type != "directory" && medDataObject.type != "medml" && medDataObject.type != "medeval" && medDataObject.type != "medmlres" && medDataObject.type != "medmodel") {
         await downloadCollectionToFile(id, filePath, medDataObject.type)
+      }
+
+      // Sync child objects for specific types
+      if (medDataObject.type === "medml" || medDataObject.type === "medeval" || medDataObject.type === "medmlres" || medDataObject.type === "medmodel") {
+        await this.syncChildren(dict, medDataObject.childrenIDs, workspacePath, notify, syncedObjects)
       }
 
       // Update inWorkspace property to true after successful download
@@ -338,6 +350,26 @@ export class MEDDataObject {
       }
     } catch (error) {
       console.error(`Failed to download collection ${id}: ${error.message}`)
+    }
+  }
+
+  /**
+   * @description Recursively sync child objects
+   * @param {Dictionary} dict - dictionary of all MEDDataObjects
+   * @param {Array} childrenIDs - array of child IDs to sync
+   * @param {String} workspacePath - the root path of the workspace
+   * @param {Boolean} notify - Whether to display a toast message while success
+   * @param {Set} syncedObjects - A set to track already synced objects to avoid infinite loops
+   */
+  static async syncChildren(dict, childrenIDs, workspacePath, notify, syncedObjects) {
+    for (const childID of childrenIDs) {
+      const child = dict[childID]
+      if (!child) {
+        console.log(`Child MEDDataObject with id ${childID} not found`)
+        continue
+      }
+      await this.sync(dict, childID, workspacePath, notify, syncedObjects)
+      await this.syncChildren(dict, child.childrenIDs, workspacePath, notify, syncedObjects)
     }
   }
 

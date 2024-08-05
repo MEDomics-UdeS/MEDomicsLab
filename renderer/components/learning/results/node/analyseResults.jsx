@@ -16,6 +16,7 @@ const AnalyseResults = ({ selectedResults }) => {
 
   useEffect(() => {
     const imagesInfos = Object.entries(selectedResults.data).map(([modelName, collectionId]) => ({ modelName, collectionId }))
+    const alreadyInWorkspace = globalData[globalData[Object.entries(selectedResults.data)[0][1]].parentID].inWorkspace
 
     const downloadImages = async (imagesInfos) => {
       const imagePaths = []
@@ -56,8 +57,7 @@ const AnalyseResults = ({ selectedResults }) => {
     return () => {
       // Clean up images from workspace when component unmounts
       imagesInfos.forEach(async ({ collectionId }) => {
-        const medDataObject = globalData[collectionId]
-        if (medDataObject?.inWorkspace) {
+        if (!alreadyInWorkspace) {
           MEDDataObject.deleteObjectAndChildrenFromWorkspace(globalData, collectionId, workspace.workingDirectory.path, false)
         }
       })
