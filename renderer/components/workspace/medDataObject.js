@@ -3,7 +3,6 @@ import * as fs from "fs-extra"
 import { toast } from "react-toastify"
 import { ipcRenderer } from "electron"
 import process from "process"
-import { generateRandomColor } from "../input/taggingUtils"
 
 /**
  * Represents a data object in the workspace.
@@ -1239,6 +1238,16 @@ export default class MedDataObject {
   }
 
   /**
+   * Generate random color
+   * @returns {string} - Random color
+   * @summary This function is used to generate a random color
+   */
+  generateRandomColor = () => {
+    let color = "#" + Math.floor(Math.random() * 16777215).toString(16)
+    return color
+  }
+
+  /**
    * Checks every columns if they are prefixed with some tags (split by _|_) and add the tags to the metadata
    * @param {Array} columns - The columns of the data object.
    * @returns {Array} - The columns of the data object with the tags added to the metadata.
@@ -1275,7 +1284,7 @@ export default class MedDataObject {
         for (let tag of tags) {
           if (tag !== "") {
             if (this.metadata.tagsDict[tag] === undefined || this.metadata.tagsDict[tag] === null) {
-              this.metadata.tagsDict[tag] = { color: generateRandomColor(), fontColor: "white" }
+              this.metadata.tagsDict[tag] = { color: this.generateRandomColor, fontColor: "white" }
             }
           }
         }

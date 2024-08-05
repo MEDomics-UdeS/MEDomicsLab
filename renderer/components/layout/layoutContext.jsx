@@ -68,8 +68,6 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
     if (developerMode) {
       switch (action.type) {
         /*********** OPEN IN *************/
-        case "openInInputModule":
-          return openInInput(action)
         case "openInDtale":
           return openInDtale(action)
         case "openInExploratoryModule":
@@ -103,8 +101,6 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
         case "openPandasProfiling":
           return openInPandasProfiling(action)
         /*********** OPEN *****************/
-        case "openInputModule":
-          return openInput(action)
         case "openResultsModule":
           return openResults(action)
         case "openApplicationModule":
@@ -486,22 +482,6 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
    */
   const openCodeEditor = (action) => {
     openInDotDotDot(action, "codeEditor")
-  }
-
-  /**
-   * @summary Function that adds an input page with a medDataObject to the layout model
-   * @params {Object} action - The action passed on by the dispatchLayout function, it uses the payload in the action as a JSON object to add a new child to the layout model
-   */
-  const openInInput = (action) => {
-    openInDotDotDot(action, "inputPage")
-  }
-
-  /**
-   * @summary Function that adds an input page without a medDataObject to the layout model
-   * @params {Object} action - The action passed on by the dispatchLayout function
-   */
-  const openInput = (action) => {
-    openGeneric(action, "Input Module", "inputPage")
   }
 
   /**

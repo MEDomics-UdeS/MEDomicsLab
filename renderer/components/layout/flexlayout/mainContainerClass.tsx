@@ -31,7 +31,6 @@ import { loadCSVFromPath, loadJsonPath, loadJSONFromPath, loadXLSXFromPath } fro
 import { LayoutModelContext } from "../layoutContext"
 import { DataContext } from "../../workspace/dataContext"
 import MedDataObject from "../../workspace/medDataObject"
-import InputPage from "../../mainPages/input"
 import ExploratoryPage from "../../mainPages/exploratory"
 import EvaluationPage from "../../mainPages/evaluation"
 import ExtractionTextPage from "../../mainPages/extractionText"
@@ -669,16 +668,6 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
           return <InputToolsComponent {...config} />
         }
       }
-    } else if (component === "inputPage") {
-      if (node.getExtraData().data == null) {
-        const config = node.getConfig()
-
-        if (config.path !== null) {
-          return <InputPage pageId={config.uuid} />
-        } else {
-          return <InputPage pageId={"InputPage"} />
-        }
-      }
     } else if (component === "iFramePage") {
       if (node.getExtraData().data == null) {
         const config = node.getConfig()
@@ -897,7 +886,7 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
       let icon = <span style={{ marginRight: 3 }}>{iconToReturn}</span>
       return icon
     } else {
-      if (component === "inputPage" || component === "InputToolsDB") {
+      if (component === "InputToolsDB") {
         return <span style={{ marginRight: 3 }}>🛢️</span>
       }
       if (component === "exploratoryPage") {

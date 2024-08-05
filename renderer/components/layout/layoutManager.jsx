@@ -4,7 +4,6 @@ import Image from "next/image"
 import resizable from "../../styles/resizable.module.css"
 import IconSidebar from "../layout/iconSidebar"
 import Home from "../mainPages/home"
-import Input from "../mainPages/input"
 import Learning from "../mainPages/learning"
 import ExtractionMEDimagePage from "../mainPages/extractionMEDimage"
 import ExtractionImagePage from "../mainPages/extractionImage"
@@ -113,8 +112,6 @@ const LayoutManager = (props) => {
       switch (activeSidebarItem) {
         case "home":
           return <Home />
-        case "input":
-          return <Input pageId="42" />
         case "learning":
           return <Learning pageId="123" />
         case "extractionMEDimage":
@@ -146,8 +143,6 @@ const LayoutManager = (props) => {
         return <HomeSidebar />
       case "explorer":
         return <ExplorerSidebar />
-      case "input":
-        return <GeneralModuleSidebar pageTitle="Input" />
       case "learning":
         return (
           <GeneralModuleSidebar pageTitle="Learning">
