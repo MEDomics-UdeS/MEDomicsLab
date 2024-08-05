@@ -319,10 +319,12 @@ export async function downloadCollectionToFile(collectionId, filePath, type) {
       console.error(`No valid HTML content found in collection ${collectionId}`)
       return
     }
-
     const htmlContent = htmlDocuments.join("\n")
     fs.writeFileSync(filePath, htmlContent)
     console.log(`Collection ${collectionId} has been downloaded as HTML to ${filePath}`)
+  } else if (type === "json") {
+    fs.writeFileSync(filePath, JSON.stringify(documents, null, 2))
+    console.log(`Collection ${collectionId} has been downloaded as JSON to ${filePath}`)
   } else if (type === "png") {
     // Check if documents have the 'data' field
     const imageDocument = documents.find((doc) => doc.data)
@@ -330,7 +332,6 @@ export async function downloadCollectionToFile(collectionId, filePath, type) {
       console.error(`No valid PNG content found in collection ${collectionId}`)
       return
     }
-
     const imageBuffer = Buffer.from(imageDocument.data.buffer)
     fs.writeFileSync(filePath, imageBuffer)
     console.log(`Collection ${collectionId} has been downloaded as PNG to ${filePath}`)

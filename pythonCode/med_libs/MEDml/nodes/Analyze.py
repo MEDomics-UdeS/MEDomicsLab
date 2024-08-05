@@ -10,7 +10,7 @@ from .NodeObj import Node, format_model
 from typing import Union
 from colorama import Fore
 from MEDDataObject import MEDDataObject
-from mongodb_utils import insert_med_data_object_if_not_exists
+from mongodb_utils import insert_med_data_object_if_not_exists, overwrite_med_data_object_content
 from PIL import Image
 
 DATAFRAME_LIKE = Union[dict, list, tuple, np.ndarray, pd.DataFrame]
@@ -59,9 +59,9 @@ class Analyze(Node):
 
             # Save Image into MongoDB
             image_med_object = MEDDataObject(id=str(uuid.uuid4()),
-                    name = model.__class__.__name__ + '_' + print_settings['plot'] + '.png',
+                    name = model.__class__.__name__ + '_' + plot_image,
                     type = "png",
-                    parentID = self.global_config_json['identifiers']['exp'],
+                    parentID = self.global_config_json['identifiers']['plots'],
                     childrenIDs = [],
                     inWorkspace = False)
             PIL_image = Image.open(plot_image)
@@ -70,12 +70,16 @@ class Analyze(Node):
             image_data = {
                 'data': image_bytes.getvalue()
             }
-            model_med_object_id = insert_med_data_object_if_not_exists(image_med_object, [image_data])
+            image_med_object_id = insert_med_data_object_if_not_exists(image_med_object, [image_data])
+            if image_med_object_id != image_med_object.id:
+                # If image already existed we overwrite its content
+                overwrite_succeed = overwrite_med_data_object_content(image_med_object_id, [image_data])
+                print("image overwrite succeed : ", overwrite_succeed)
 
             # Remove the plot image file
             if os.path.exists(plot_image):
                 os.remove(plot_image)
 
-            plot_paths[model.__class__.__name__] = model_med_object_id
+            plot_paths[model.__class__.__name__] = image_med_object_id
 
         return plot_paths

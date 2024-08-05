@@ -4,7 +4,7 @@ import { MEDDataObject } from "../../workspace/NewMedDataObject"
 import { WorkspaceContext } from "../../workspace/workspaceContext"
 import { toast } from "react-toastify"
 import { randomUUID } from "crypto"
-import { insertMEDDataObjectIfNotExists } from "../../mongoDB/mongoDBUtils"
+import { insertMEDDataObjectIfNotExists, overwriteMEDDataObjectContent } from "../../mongoDB/mongoDBUtils"
 
 // This context is used to store the flowResults (id and type of the workflow)
 const FlowResultsContext = createContext()
@@ -33,7 +33,7 @@ function FlowResultsProvider({ children }) {
       setFlowResults({ ...newResults })
       setIsResults(true)
       if (workspace.hasBeenSet && sceneName) {
-        let sceneObject = new MEDDataObject({
+        let resultsFolder = new MEDDataObject({
           id: randomUUID(),
           name: sceneName + ".medmlres",
           type: "medmlres",
@@ -41,7 +41,20 @@ function FlowResultsProvider({ children }) {
           childrenIDs: [],
           inWorkspace: false
         })
-        await insertMEDDataObjectIfNotExists(sceneObject, null, [newResults])
+        let resultsFolderID = await insertMEDDataObjectIfNotExists(resultsFolder)
+        let resultsObject = new MEDDataObject({
+          id: randomUUID(),
+          name: "results.json",
+          type: "json",
+          parentID: resultsFolderID,
+          childrenIDs: [],
+          inWorkspace: false
+        })
+        let resultsObjectID = await insertMEDDataObjectIfNotExists(resultsObject, null, [newResults])
+        // If MEDDataObject already existed we need to overwrite its content
+        if (resultsObjectID != resultsObject.id) {
+          await overwriteMEDDataObjectContent(resultsObjectID, [newResults])
+        }
         toast.success("Results generated and saved !")
         MEDDataObject.updateWorkspaceDataObject()
       }
