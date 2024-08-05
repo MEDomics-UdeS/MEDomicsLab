@@ -17,6 +17,7 @@ import { getCollectionData } from "../dbComponents/utils"
 import { getCollectionColumns, insertMEDDataObjectIfNotExists } from "../mongoDB/mongoDBUtils"
 import DataTableFromDB from "../dbComponents/dataTableFromDB"
 import { randomUUID } from "crypto"
+import { toast } from "react-toastify"
 
 /**
  *
@@ -225,6 +226,7 @@ const ApplicationPage = ({ pageId }) => {
           setPredictions(null)
         } else {
           setPredictions(response)
+          toast.info('Predictions saved under "DATA/predictions"')
         }
         MEDDataObject.updateWorkspaceDataObject()
         setLoader(false)
