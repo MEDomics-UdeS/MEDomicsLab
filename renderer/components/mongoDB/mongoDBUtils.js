@@ -322,15 +322,6 @@ export async function downloadCollectionToFile(collectionId, filePath, type) {
     const htmlContent = htmlDocuments.join("\n")
     fs.writeFileSync(filePath, htmlContent)
     console.log(`Collection ${collectionId} has been downloaded as HTML to ${filePath}`)
-  } else if (type === "pkl") {
-    // Convert JSON object to pickled object
-    try {
-      console.log("DOC", documents[0]["model"])
-      /* fs.writeFileSync(filePath, pickleData)
-      console.log(`Collection ${collectionId} has been downloaded as PKL to ${filePath}`) */
-    } catch (error) {
-      console.error(`Failed to pickle data: ${error.message}`)
-    }
   } else if (type === "json") {
     fs.writeFileSync(filePath, JSON.stringify(documents, null, 2))
     console.log(`Collection ${collectionId} has been downloaded as JSON to ${filePath}`)
