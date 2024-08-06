@@ -19,7 +19,14 @@ export async function recursivelyRecenseWorkspaceTree(children, parentID) {
   for (const child of children) {
     const stats = fs.lstatSync(child.path)
     let uuid = child.name == "DATA" || child.name == "EXPERIMENTS" ? child.name : randomUUID()
-    let childType = stats.isDirectory() && path.extname(child.path).slice(1) != "medml" ? "directory" : path.extname(child.path).slice(1)
+    let childType =
+      stats.isDirectory() &&
+      path.extname(child.path).slice(1) != "medml" &&
+      path.extname(child.path).slice(1) != "medmlres" &&
+      path.extname(child.path).slice(1) != "medeval" &&
+      path.extname(child.path).slice(1) != "medmodel"
+        ? "directory"
+        : path.extname(child.path).slice(1)
     let childObject = new MEDDataObject({
       id: uuid,
       name: child.name,

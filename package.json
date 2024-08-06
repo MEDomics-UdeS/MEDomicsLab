@@ -24,7 +24,6 @@
         "filter": [
           "**/*"
         ]
-
       },
       "./pythonCode/**/*",
       "./baseFiles/**/*",
