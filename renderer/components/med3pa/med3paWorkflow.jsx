@@ -107,8 +107,6 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
   const { config, pageId, configPath } = useContext(PageInfosContext) // used to get the page infos such as id and config path
   const { canRun } = useContext(FlowInfosContext)
   const { setLoader } = useContext(LoaderContext)
-  // eslint-disable-next-line no-unused-vars
-  const [progressValue, setProgressValue] = useState({ now: 0, currentLabel: "" }) // we use this to store the progress value of the dashboard
 
   // declare node types using useMemo hook to avoid re-creating component types unnecessarily (it memorizes the output) https://www.w3schools.com/react/react_usememo.asp
   const nodeTypes = useMemo(
@@ -244,17 +242,19 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
           const targetNode = nds.find((n) => n.id === intersect.targetId)
 
           if (sourceNode && targetNode) {
+            // Store the default description before changing it
+
+            if (!targetNode.defaultDescription) {
+              targetNode.defaultDescription = targetNode.data.internal.description
+            }
             if ((sourceNode.data.setupParam.nbInput == 0 && targetNode.name === "Start") || (!sourceNode.data.setupParam.nbInput == 0 && targetNode.name === "End")) {
               targetNode.className = "intersect"
-              // Store the default description before changing it
-              if (!targetNode.defaultDescription) {
-                targetNode.defaultDescription = targetNode.data.internal.description
-              }
+
               targetNode.data.internal.description = "This is a valid " + targetNode.name + " Node"
             } else {
               targetNode.className = "intersect2"
               // Check if default description exists, if not use the current description
-              targetNode.data.internal.description = "This is a wrong " + targetNode.name + " Node"
+              targetNode.data.internal.description = "This is an unvalid " + targetNode.name + " Node"
             }
           }
         })
@@ -647,12 +647,11 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
             setLoader(false)
             setIsUpdating(false) // Set the isUpdating to false
             setpaParams(jsonResponse)
-            setProgressValue({ now: 100, currentLabel: jsonResponse["data"] }) // Set the progress value to 100 and show the message that the backend received from the frontend
           }
         },
         function (error) {
           setIsUpdating(false)
-          setProgressValue({ now: 0, currentLabel: "Message sending failed ❌" })
+
           toast.error("Sending failed", error)
         }
       )
@@ -867,8 +866,7 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
       {
         nodeType: "paOptimizeIO",
         name: "Start",
-        description: "Start with an Uncertainty Metric Node. Drop it here.",
-        image: "/icon/dataset.png"
+        description: "Start with an Uncertainty Metric Node. Drop it here."
       },
       "opt-start"
     )
@@ -879,8 +877,7 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
       {
         nodeType: "paOptimizeIO",
         name: "End",
-        description: "MED3pa Configurations can end Differently",
-        image: "/icon/dataset.png"
+        description: "MED3pa Configurations can end Differently"
       },
       "opt-end"
     )
@@ -924,7 +921,7 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
       },
       (error) => {
         setIsUpdating(false)
-        setProgressValue({ now: 0, currentLabel: "Message sending failed ❌" })
+        setProgress({ now: 0, currentLabel: "Message sending failed ❌" })
         toast.error("Sending failed: No configurations set", error)
         console.log(error)
       }
@@ -941,8 +938,8 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
    * This function processes the successful response received from the backend.
    */
   function handleSuccessResponse(jsonResponse, folderPath) {
-    setProgressValue({ now: 100, currentLabel: jsonResponse["data"] })
-    toast.success("Config received from the front end")
+    setProgress({ now: 100, currentLabel: jsonResponse["data"] })
+
     setIsResults(true)
     setRunModal(false)
 
@@ -1118,7 +1115,7 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
   function handleErrorResponse(error) {
     setError(typeof error === "string" ? JSON.parse(error) : error)
     setIsUpdating(false)
-    setProgressValue({ now: 0, currentLabel: "Message sending failed ❌" })
+    setProgress({ now: 0, currentLabel: "Message sending failed ❌" })
     toast.error("Sending failed: No configurations set", error)
     console.log(error)
   }
@@ -1134,7 +1131,7 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
   function handleError(error) {
     console.error("Error during pipeline execution:", error)
     setIsUpdating(false)
-    setProgressValue({ now: 0, currentLabel: "Pipeline execution failed ❌" })
+    setProgress({ now: 0, currentLabel: "Pipeline execution failed ❌" })
     toast.error("Pipeline execution failed", error.message)
   }
 
