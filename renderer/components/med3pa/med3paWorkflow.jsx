@@ -103,7 +103,7 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
   const { groupNodeId, changeSubFlow, hasNewConnection } = useContext(FlowFunctionsContext)
   const [showRunModal, setRunModal] = useState(false)
   // eslint-disable-next-line no-unused-vars
-  const [isUpdating, setIsUpdating] = useState(false) // we use this to store the progress value of the dashboard
+
   const { config, pageId, configPath } = useContext(PageInfosContext) // used to get the page infos such as id and config path
   const { canRun } = useContext(FlowInfosContext)
   const { setLoader } = useContext(LoaderContext)
@@ -632,6 +632,7 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
     const fetchData = () => {
       if (!port) return null
       setLoader(true)
+      setIsProgressUpdating(true)
       requestBackend(
         // Send the request
         port,
@@ -645,12 +646,12 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
             setError(jsonResponse.error)
           } else {
             setLoader(false)
-            setIsUpdating(false) // Set the isUpdating to false
+            setIsProgressUpdating(false)
             setpaParams(jsonResponse)
           }
         },
         function (error) {
-          setIsUpdating(false)
+          setIsProgressUpdating(false)
 
           toast.error("Sending failed", error)
         }
@@ -897,9 +898,8 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
    */
   const runPaPipeline = async (flConfig) => {
     const folderPath = [getBasePath(EXPERIMENTS), "MED3paResults"].join(MedDataObject.getPathSeparator())
-
+    setIsResults(false)
     setIsProgressUpdating(true)
-    setIsUpdating(true)
 
     requestBackend(
       port,
@@ -910,17 +910,22 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
           if (jsonResponse.error) {
             handleErrorResponse(jsonResponse.error)
           } else {
+            setProgress({
+              now: 100,
+              currentLabel: "Done!"
+            })
+            // setIsResults(true)
             handleSuccessResponse(jsonResponse, folderPath)
           }
         } catch (error) {
           handleError(error)
         } finally {
-          setIsUpdating(false)
-          setTimeout(() => setIsProgressUpdating(false), 2000)
+          setIsProgressUpdating(false)
+          setIsResults(false)
         }
       },
       (error) => {
-        setIsUpdating(false)
+        setIsProgressUpdating(false)
         setProgress({ now: 0, currentLabel: "Message sending failed ❌" })
         toast.error("Sending failed: No configurations set", error)
         console.log(error)
@@ -938,11 +943,6 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
    * This function processes the successful response received from the backend.
    */
   function handleSuccessResponse(jsonResponse, folderPath) {
-    setProgress({ now: 100, currentLabel: jsonResponse["data"] })
-
-    setIsResults(true)
-    setRunModal(false)
-
     processPathToResults(jsonResponse.path_to_results, jsonResponse.models_paths, folderPath)
     processPathToComparaison(jsonResponse.path_to_comparison, folderPath)
   }
@@ -1113,9 +1113,9 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
    *This function handles the error response from the backend by updating the error state and UI accordingly.
    */
   function handleErrorResponse(error) {
-    setError(typeof error === "string" ? JSON.parse(error) : error)
-    setIsUpdating(false)
     setProgress({ now: 0, currentLabel: "Message sending failed ❌" })
+    setError(typeof error === "string" ? JSON.parse(error) : error)
+
     toast.error("Sending failed: No configurations set", error)
     console.log(error)
   }
@@ -1130,8 +1130,9 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
 
   function handleError(error) {
     console.error("Error during pipeline execution:", error)
-    setIsUpdating(false)
+
     setProgress({ now: 0, currentLabel: "Pipeline execution failed ❌" })
+    //setIsProgressUpdating(false)
     toast.error("Pipeline execution failed", error.message)
   }
 
@@ -1229,7 +1230,7 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
                   setIsUpdating={setIsProgressUpdating}
                   progress={progress}
                   setProgress={setProgress}
-                  requestTopic={"learning/progress/" + pageId}
+                  requestTopic={"med3pa/progress/" + pageId}
                 />
               )}
             </div>
