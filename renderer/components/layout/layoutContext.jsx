@@ -1,6 +1,8 @@
-import React, { createContext, useState } from "react"
+import React, { createContext, useState, useContext } from "react"
 import { useEffect } from "react"
 import { toast } from "react-toastify"
+import { DataContext } from "../workspace/dataContext"
+import { overwriteMEDDataObjectProperties } from "../mongoDB/mongoDBUtils"
 /**
  * @typedef {React.Context} LayoutModelContext
  * @description Context for the layout model
@@ -64,6 +66,7 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
    * @param {Object} action - The action passed on by the components that use/modify the layout model
    * @description This function is used to dispatch the actions passed on by the components that use/modify the layout model - [Switch case] It dispaches the actions according to their type
    */
+  const { globalData } = useContext(DataContext)
   const dispatchLayout = (action) => {
     if (developerMode) {
       switch (action.type) {
@@ -87,7 +90,7 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
         case "openInCodeEditor":
           return openCodeEditor(action)
         case "openInImageViewer":
-          return openImageViewer(action)
+          return openImageViewer(action, globalData)
         case "openInPDFViewer":
           return openPDFViewer(action)
         case "openInTextEditor":
@@ -204,17 +207,17 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
    * @params {Object} action - The action passed on by the dispatchLayout function
    * @params {String} component - The component to be used in the tab
    */
-  function openInDotDotDot(action, component) {
+  function openInDotDotDot(action, component, globalData) {
     let medObject = action.payload
-    let isAlreadyIn = checkIfIDIsInLayoutModel(medObject.UUID, layoutModel)
+    let isAlreadyIn = checkIfIDIsInLayoutModel(medObject.index, layoutModel)
     if (!isAlreadyIn) {
       const newChild = {
         type: "tab",
-        helpText: medObject.path,
-        name: medObject.name,
-        id: medObject.UUID,
+        helpText: medObject.data,
+        name: medObject.data,
+        id: medObject.index,
         component: component,
-        config: { path: medObject.path, uuid: medObject.UUID, extension: medObject.type }
+        config: { path: globalData[medObject.index].path, uuid: medObject.index, extension: medObject.type }
       }
       let layoutRequestQueueCopy = [...layoutRequestQueue]
       layoutRequestQueueCopy.push({ type: "ADD_TAB", payload: newChild })
@@ -234,6 +237,7 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
     let thoseProps = action.payload.data
     console.log("OPEN INPUT TOOLS DB", thoseProps)
     let isAlreadyIn = checkIfIDIsInLayoutModel(thoseProps.data.uuid, layoutModel)
+    overwriteMEDDataObjectProperties(thoseProps.data.uuid, thoseProps.data)
     if (!isAlreadyIn) {
       const newChild = {
         type: "tab",
@@ -400,7 +404,7 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
    * @params {Object} action - The action passed on by the dispatchLayout function
    */
   const openInDtale = (action) => {
-    openInDotDotDot(action, "dtale")
+    openInDotDotDot(action, "dtale", globalData)
   }
 
   /**
@@ -408,7 +412,7 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
    * @params {Object} action - The action passed on by the dispatchLayout function
    */
   const openInPandasProfiling = (action) => {
-    openInDotDotDot(action, "pandasProfiling")
+    openInDotDotDot(action, "pandasProfiling", globalData)
   }
 
   /**
@@ -416,7 +420,7 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
    * @params {Object} action - The action passed on by the dispatchLayout function
    */
   const openPDFViewer = (action) => {
-    openInDotDotDot(action, "pdfViewer")
+    openInDotDotDot(action, "pdfViewer", globalData)
   }
 
   /**
@@ -424,15 +428,15 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
    * @params {Object} action - The action passed on by the dispatchLayout function
    */
   const openTextEditor = (action) => {
-    openInDotDotDot(action, "textEditor")
+    openInDotDotDot(action, "textEditor", globalData)
   }
 
   /**
    * @summary Function that adds a tab with an image viewer to the layout model
    * @params {Object} action - The action passed on by the dispatchLayout function
    */
-  const openImageViewer = (action) => {
-    openInDotDotDot(action, "imageViewer")
+  const openImageViewer = (action, globalData) => {
+    openInDotDotDot(action, "imageViewer", globalData)
   }
 
   /**
@@ -456,7 +460,7 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
    * @params {Object} action - The action passed on by the dispatchLayout function, it uses the payload in the action as a JSON object to add a tab containing a data table to the layout model
    */
   const openDataTable = (action) => {
-    openInDotDotDot(action, "dataTable")
+    openInDotDotDot(action, "dataTable", globalData)
   }
 
   /**
@@ -481,7 +485,7 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
    * @params {Object} action - The action passed on by the dispatchLayout function
    */
   const openCodeEditor = (action) => {
-    openInDotDotDot(action, "codeEditor")
+    openInDotDotDot(action, "codeEditor", globalData)
   }
 
   /**
@@ -489,7 +493,7 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
    * @params {Object} action - The action passed on by the dispatchLayout function
    */
   const openInExploratory = (action) => {
-    openInDotDotDot(action, "exploratoryPage")
+    openInDotDotDot(action, "exploratoryPage", globalData)
   }
 
   /**
@@ -513,7 +517,7 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
    * @params {Object} action - The action passed on by the dispatchLayout function, it uses the payload in the action as a JSON object to add a new child to the layout model
    */
   const openInExtractionMEDimage = (action) => {
-    openInDotDotDot(action, "extractionMEDimagePage")
+    openInDotDotDot(action, "extractionMEDimagePage", globalData)
   }
 
   /**

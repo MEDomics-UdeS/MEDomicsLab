@@ -18,7 +18,8 @@ export const updateGlobalData = async (workspaceObject) => {
     type: rootType,
     parentID: null,
     childrenIDs: [],
-    inWorkspace: true
+    inWorkspace: true,
+    path: rootPath
   })
   await insertMEDDataObjectIfNotExists(rootDataObject, rootPath)
   await recursivelyRecenseWorkspaceTree(rootChildren, rootParentID)

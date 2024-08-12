@@ -9,13 +9,14 @@ import path from "path"
  * @description class definition of a MEDDataObject
  */
 export class MEDDataObject {
-  constructor({ id, name, type, parentID, childrenIDs, inWorkspace }) {
+  constructor({ id, name, type, parentID, childrenIDs, inWorkspace, path }) {
     this.id = id
     this.name = name
     this.type = type
     this.parentID = parentID
     this.childrenIDs = childrenIDs
     this.inWorkspace = inWorkspace
+    this.path = path
   }
 
   /**

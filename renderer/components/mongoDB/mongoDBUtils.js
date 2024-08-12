@@ -56,6 +56,11 @@ export async function insertMEDDataObjectIfNotExists(medData, path = null, jsonD
     return existingObjectByAttributes.id
   }
 
+  // Add path to medData if not null and not already present
+  if (path && !medData.path) {
+    medData.path = path
+  }
+
   // Insert MEDdataObject if not exists
   const result = await collection.insertOne(medData)
   console.log(`MEDDataObject inserted with _id: ${result.insertedId}`)
@@ -101,6 +106,9 @@ export async function insertMEDDataObjectIfNotExists(medData, path = null, jsonD
         break
       case "html":
         await insertHTMLIntoCollection(path, medData.id)
+        break
+      case "png":
+        await insertPNGIntoCollection(path, medData.id)
         break
       default:
         break
@@ -168,6 +176,25 @@ async function insertHTMLIntoCollection(filePath, collectionName) {
 
   const result = await collection.insertOne(document)
   console.log(`HTML data inserted with _id: ${result.insertedId}`)
+  return result
+}
+
+/**
+ * @description Insert a PNG file in the database based on the associated MEDDataObject id
+ * @param {*} filePath
+ * @param {*} collectionName
+ * @returns
+ */
+async function insertPNGIntoCollection(filePath, collectionName) {
+  const db = await connectToMongoDB()
+  const collection = db.collection(collectionName)
+
+  const imageBuffer = fs.readFileSync(filePath)
+  const document = { path: filePath, data: imageBuffer }
+
+  const result = await collection.insertOne(document)
+  console.log(`PNG data inserted with _id: ${result.insertedId}`)
+  console.log(`PNG data inserted with path: ${filePath}`)
   return result
 }
 
