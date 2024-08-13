@@ -233,7 +233,7 @@ export const filterData = (data, lostData, nodeParams, maxDepth) => {
     if (nodeParams.focusView === "Node information") {
       if (item.className === "panode-lost") return newItem
       newItem.nodeInformation = item["node information"]
-      if (parseFloat(newItem.nodeInformation[nodeParams.selectedParameter])) {
+      if ((parseFloat(newItem.nodeInformation[nodeParams.selectedParameter]) || parseFloat(newItem.nodeInformation[nodeParams.selectedParameter]) === 0) && customThreshold !== 0) {
         newItem.className = getRange(parseFloat(newItem.nodeInformation[nodeParams.selectedParameter]), customThreshold).color
       }
       return newItem
@@ -268,7 +268,7 @@ export const filterData = (data, lostData, nodeParams, maxDepth) => {
           }
         })
 
-        if (parseFloat(newItem.detectronResults[nodeParams.selectedParameter])) {
+        if (customThreshold !== 0 && (parseFloat(newItem.detectronResults[nodeParams.selectedParameter]) || parseFloat(newItem.detectronResults[nodeParams.selectedParameter]) === 0)) {
           if (nodeParams.selectedParameter.includes("value")) {
             newItem.className = getRange(parseFloat(newItem.detectronResults[nodeParams.selectedParameter]) * 100, customThreshold).color
           } else {
@@ -288,7 +288,7 @@ export const filterData = (data, lostData, nodeParams, maxDepth) => {
           newItem.metrics[metric.name] = item.metrics[metric.name] !== null ? item.metrics[metric.name] : "-"
         }
       }
-      if (parseFloat(newItem.metrics[nodeParams.selectedParameter]) || newItem.metrics[nodeParams.selectedParameter] === 0) {
+      if ((parseFloat(newItem.metrics[nodeParams.selectedParameter]) || newItem.metrics[nodeParams.selectedParameter] === 0) && customThreshold !== 0) {
         newItem.className = getRange(parseFloat(newItem.metrics[nodeParams.selectedParameter]) * 100, customThreshold).color
       }
       return newItem

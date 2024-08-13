@@ -459,7 +459,7 @@ const MED3paResultsTab = ({ loadedFiles, type }) => {
       // Create a visual effect
       setTimeout(() => {
         setLoadingTree(true)
-      }, 300)
+      }, 500)
     }
   }
 
