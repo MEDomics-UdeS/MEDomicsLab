@@ -813,23 +813,6 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
       })
       return
     }
-    if (targetNode.type === "baseModelNode" || targetNode.type === "ipcModelNode") {
-      let isConnected = edges.some((edge) => edge.target === target && nodes.find((node) => node.id === edge.source)?.type === sourceNode.type && edge.source !== source)
-      if (isConnected) {
-        setEdges((prevEdges) => prevEdges.filter((edge) => !(edge.source === source && edge.target === target)))
-        toast.error(targetNode.name + " Node is already connected to another source node.", {
-          position: "bottom-right",
-          autoClose: 2000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
-          theme: "light"
-        })
-        return
-      }
-    }
   }
 
   /**
