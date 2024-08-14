@@ -1,4 +1,4 @@
-const { MongoClient } = require("mongodb")
+const { MongoClient, GridFSBucket } = require("mongodb")
 const fs = require("fs")
 const Papa = require("papaparse")
 
@@ -130,6 +130,67 @@ export async function insertMEDDataObjectIfNotExists(medData, path = null, jsonD
 }
 
 /**
+ * Uploads a large CSV file to MongoDB by storing it in chunks.
+ * @param {String} filePath - The path to the CSV file.
+ * @param {String} collectionName - The name of the MongoDB collection to store the chunks.
+ * @param {Number} chunkSize - The size of each chunk in bytes. Default is 2MB.
+ */
+async function uploadAndProcessFile(filePath, collectionName) {
+  const db = await connectToMongoDB()
+  const bucket = new GridFSBucket(db, { bucketName: collectionName })
+  fs.createReadStream(filePath)
+    .pipe(bucket.openUploadStream(filePath))
+    .on("error", function (error) {
+      console.error("Error uploading file to GridFS", error)
+    })
+    .on("finish", function () {
+      console.log("File upload to GridFS complete")
+    })
+}
+
+// NOT USED, IN DEVELOPMENT
+export async function retrieveFileFromGridFS(fileName, collectionName) {
+  const db = await connectToMongoDB()
+  const bucket = new GridFSBucket(db, { bucketName: collectionName })
+  const downloadStream = bucket.openDownloadStreamByName(fileName)
+
+  let data = ""
+  downloadStream.on("data", (chunk) => {
+    data += chunk.toString() // Assuming the file is text
+  })
+
+  return new Promise((resolve, reject) => {
+    downloadStream.on("error", reject)
+    downloadStream.on("end", () => resolve(data))
+  })
+}
+
+// NOT USED, IN DEVELOPMENT
+export async function displayDataInDatatable(data, collectionName) {
+  const lines = data.split("\n")
+  const headers = lines[0].split(",")
+  const rows = lines.slice(1).map((line) => line.split(","))
+
+  // Create a new collection and add the data in it
+  const db = await connectToMongoDB()
+  const collection = db.collection(collectionName)
+  await collection.insertMany(rows.map((row) => Object.fromEntries(headers.map((header, index) => [header, row[index]]))))
+}
+
+/**
+ * @description Get the MEDDataObject specified by id from the DB
+ * @param {*} id
+ * @returns
+ */
+export async function getPathFromMEDDataObject(id) {
+  const db = await connectToMongoDB()
+  const collection = db.collection("medDataObjects")
+  const query = { id: id }
+  const document = await collection.findOne(query)
+  return document.path
+}
+
+/**
  * @description Insert a CSV file in the database based on the associated MEDDataObject id
  * @param {String} filePath path of the file to import in the database
  * @param {String} collectionName name of the collection in which we want to import the data
@@ -138,26 +199,32 @@ export async function insertMEDDataObjectIfNotExists(medData, path = null, jsonD
  */
 async function insertCSVIntoCollection(filePath, collectionName) {
   const db = await connectToMongoDB()
-  const collection = db.collection(collectionName)
+  const fileSize = fs.statSync(filePath).size
+  const maxBSONSize = 16 * 1024 * 1024 // 16MB
 
-  return new Promise((resolve, reject) => {
-    Papa.parse(fs.createReadStream(filePath), {
-      header: true,
-      dynamicTyping: true, // Automatically convert numeric fields to numbers
-      complete: async (results) => {
-        try {
-          const result = await collection.insertMany(results.data)
-          console.log(`CSV data inserted with ${result.insertedCount} documents`)
-          resolve(result)
-        } catch (error) {
+  if (fileSize <= maxBSONSize) {
+    const collection = db.collection(collectionName)
+    return new Promise((resolve, reject) => {
+      Papa.parse(fs.createReadStream(filePath), {
+        header: true,
+        dynamicTyping: true, // Automatically convert numeric fields to numbers
+        complete: async (results) => {
+          try {
+            const result = await collection.insertMany(results.data)
+            console.log(`CSV data inserted with ${result.insertedCount} documents`)
+            resolve(result)
+          } catch (error) {
+            reject(error)
+          }
+        },
+        error: (error) => {
           reject(error)
         }
-      },
-      error: (error) => {
-        reject(error)
-      }
+      })
     })
-  })
+  } else {
+    return uploadAndProcessFile(filePath, collectionName)
+  }
 }
 
 /**
