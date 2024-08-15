@@ -234,7 +234,7 @@ const Input = ({ name, settingInfos, currentValue, onInputChange, disabled, setH
         return (
           <>
             <FloatingLabel controlId={name} label={name} className=" input-hov">
-              <Form.Select
+              <Form.Control
                 disabled={disabled}
                 defaultValue={currentValue}
                 onChange={(e) => {
@@ -257,11 +257,7 @@ const Input = ({ name, settingInfos, currentValue, onInputChange, disabled, setH
                     type: settingInfos.type
                   })
                 }}
-              >
-                <option value="" hidden></option>
-                <option value="True">True</option>
-                <option value="False">False</option>
-              </Form.Select>
+              />
             </FloatingLabel>
             {createTooltip(settingInfos.tooltip, name)}
           </>
@@ -397,6 +393,34 @@ const Input = ({ name, settingInfos, currentValue, onInputChange, disabled, setH
         )
 
       case "data-input":
+        return (
+          <>
+            <FloatingLabel id={name} controlId={name} label={name} className=" input-hov">
+              <WsSelect
+                disabled={disabled}
+                selectedPath={currentValue}
+                acceptedExtensions={["csv"]}
+                acceptFolder={settingInfos.acceptFolder ? settingInfos.acceptFolder : false}
+                onChange={(e, path) => {
+                  console.log("e", e, path)
+                  if (path == "") {
+                    setHasWarning({ state: true, tooltip: <p>No file selected</p> })
+                  } else {
+                    setHasWarning({ state: false })
+                  }
+                  setInputUpdate({
+                    name: name,
+                    value: { name: e.target.value, path: path },
+                    type: settingInfos.type
+                  })
+                }}
+              />
+            </FloatingLabel>
+            {createTooltip(settingInfos.tooltip, name)}
+          </>
+        )
+
+      case "dataframe":
         return (
           <>
             <FloatingLabel id={name} controlId={name} label={name} className=" input-hov">

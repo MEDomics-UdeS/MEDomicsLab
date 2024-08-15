@@ -135,10 +135,5 @@ def is_experiment_exist(id_):
         os.makedirs(local_path)
     return os.path.exists(os.path.join(local_path, 'MEDexperiment_' + id_ + '.medexp'))
 
-
-# save json_params_dict to a file
-with open('json_params_dict.json', 'w') as f:
-    json.dump(json_params_dict, f, indent=4)
-
 run_experiment = GoExecScriptRunExperiment(json_params_dict, id_, True)
 run_experiment.start()

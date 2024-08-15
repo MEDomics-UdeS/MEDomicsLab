@@ -1,0 +1,839 @@
+{
+    "MLType": "classification",
+    "nodes": {
+        "Dataset_node_7ca364a2-3209-40a8-94c8-5d9da34a5ec4": {
+            "width": 230,
+            "height": 99,
+            "id": "Dataset_node_7ca364a2-3209-40a8-94c8-5d9da34a5ec4",
+            "type": "datasetNode",
+            "name": "Dataset",
+            "position": {
+                "x": -129.8892918286092,
+                "y": 143.1886986704983
+            },
+            "data": {
+                "internal": {
+                    "name": "Dataset",
+                    "img": "dataset.png",
+                    "type": "dataset",
+                    "results": {
+                        "checked": false,
+                        "contextChecked": true
+                    },
+                    "hasRun": true,
+                    "code": "",
+                    "settings": {
+                        "files": [
+                            {
+                                "name": "T1_learning.csv",
+                                "path": "C:\\Users\\gblai\\Documents\\github\\MEDomics\\WS_DEMO\\DATA\\learning\\T1_learning.csv",
+                                "tags": [
+                                    "tslab",
+                                    "nradiology",
+                                    "image",
+                                    "demographic",
+                                    "tschart",
+                                    "tsprocedure"
+                                ],
+                                "columnsTags": {
+                                    "attr_Platelet_Count__mean": [
+                                        "tslab"
+                                    ],
+                                    "attr_Platelet_Count__minimum": [
+                                        "tslab"
+                                    ],
+                                    "attr_Platelet_Count__root_mean_square": [
+                                        "tslab"
+                                    ],
+                                    "attr_Platelet_Count__median": [
+                                        "tslab"
+                                    ],
+                                    "attr_Platelet_Count__absolute_maximum": [
+                                        "tslab"
+                                    ],
+                                    "attr_Platelet_Count__maximum": [
+                                        "tslab"
+                                    ],
+                                    "attr_MCHC__absolute_maximum": [
+                                        "tslab"
+                                    ],
+                                    "attr_MCHC__maximum": [
+                                        "tslab"
+                                    ],
+                                    "attr_MCH__maximum": [
+                                        "tslab"
+                                    ],
+                                    "attr_MCH__absolute_maximum": [
+                                        "tslab"
+                                    ],
+                                    "attr0": [
+                                        "nradiology"
+                                    ],
+                                    "attr1": [
+                                        "nradiology"
+                                    ],
+                                    "attr2": [
+                                        "nradiology"
+                                    ],
+                                    "attr3": [
+                                        "nradiology"
+                                    ],
+                                    "attr4": [
+                                        "nradiology"
+                                    ],
+                                    "attr5": [
+                                        "nradiology"
+                                    ],
+                                    "attr6": [
+                                        "nradiology"
+                                    ],
+                                    "attr7": [
+                                        "nradiology"
+                                    ],
+                                    "attr8": [
+                                        "nradiology"
+                                    ],
+                                    "attr9": [
+                                        "nradiology"
+                                    ],
+                                    "attr0_(1)": [
+                                        "image"
+                                    ],
+                                    "attr1_(1)": [
+                                        "image"
+                                    ],
+                                    "attr2_(1)": [
+                                        "image"
+                                    ],
+                                    "attr3_(1)": [
+                                        "image"
+                                    ],
+                                    "attr4_(1)": [
+                                        "image"
+                                    ],
+                                    "attr5_(1)": [
+                                        "image"
+                                    ],
+                                    "attr6_(1)": [
+                                        "image"
+                                    ],
+                                    "attr7_(1)": [
+                                        "image"
+                                    ],
+                                    "attr8_(1)": [
+                                        "image"
+                                    ],
+                                    "attr9_(1)": [
+                                        "image"
+                                    ],
+                                    "anchor_age": [
+                                        "demographic"
+                                    ],
+                                    "gender_int": [
+                                        "demographic"
+                                    ],
+                                    "ethnicity_int": [
+                                        "demographic"
+                                    ],
+                                    "marital_status_int": [
+                                        "demographic"
+                                    ],
+                                    "language_int": [
+                                        "demographic"
+                                    ],
+                                    "insurance_int": [
+                                        "demographic"
+                                    ],
+                                    "attr_GCS_Eye_Opening__median": [
+                                        "tschart"
+                                    ],
+                                    "attr_GCS_Verbal_Response__median": [
+                                        "tschart"
+                                    ],
+                                    "attr_GCS_Motor_Response__median": [
+                                        "tschart"
+                                    ],
+                                    "attr_GCS_Motor_Response__mean": [
+                                        "tschart"
+                                    ],
+                                    "attr_GCS_Motor_Response__root_mean_square": [
+                                        "tschart"
+                                    ],
+                                    "attr_Heart_Rate__root_mean_square": [
+                                        "tschart"
+                                    ],
+                                    "attr_Heart_Rate__mean": [
+                                        "tschart"
+                                    ],
+                                    "attr_GCS_Motor_Response__minimum": [
+                                        "tschart"
+                                    ],
+                                    "attr_GCS_Eye_Opening__root_mean_square": [
+                                        "tschart"
+                                    ],
+                                    "attr_GCS_Eye_Opening__maximum": [
+                                        "tschart"
+                                    ],
+                                    "attr_EEG__sum_values": [
+                                        "tsprocedure"
+                                    ],
+                                    "attr_Dialysis_CRRT__absolute_maximum": [
+                                        "tsprocedure"
+                                    ],
+                                    "attr_Dialysis_CRRT__maximum": [
+                                        "tsprocedure"
+                                    ],
+                                    "attr_Dialysis_CRRT__median": [
+                                        "tsprocedure"
+                                    ],
+                                    "attr_Peritoneal_Dialysis__minimum": [
+                                        "tsprocedure"
+                                    ],
+                                    "attr_Dialysis_CRRT__root_mean_square": [
+                                        "tsprocedure"
+                                    ],
+                                    "attr_Dialysis_CRRT__mean": [
+                                        "tsprocedure"
+                                    ],
+                                    "attr_Peritoneal_Dialysis__length": [
+                                        "tsprocedure"
+                                    ],
+                                    "attr_Chest_Tube_Removed__length": [
+                                        "tsprocedure"
+                                    ],
+                                    "attr_Chest_Tube_Removed__sum_values": [
+                                        "tsprocedure"
+                                    ]
+                                }
+                            }
+                        ],
+                        "tags": [
+                            "tslab"
+                        ],
+                        "multipleColumns": {
+                            "T1_subject_id": "T1_subject_id",
+                            "T1_attr_Platelet_Count__mean": "T1_attr_Platelet_Count__mean",
+                            "T1_attr_Platelet_Count__minimum": "T1_attr_Platelet_Count__minimum",
+                            "T1_attr_Platelet_Count__root_mean_square": "T1_attr_Platelet_Count__root_mean_square",
+                            "T1_attr_Platelet_Count__median": "T1_attr_Platelet_Count__median",
+                            "T1_attr_Platelet_Count__absolute_maximum": "T1_attr_Platelet_Count__absolute_maximum",
+                            "T1_attr_Platelet_Count__maximum": "T1_attr_Platelet_Count__maximum",
+                            "T1_attr_MCHC__absolute_maximum": "T1_attr_MCHC__absolute_maximum",
+                            "T1_attr_MCHC__maximum": "T1_attr_MCHC__maximum",
+                            "T1_attr_MCH__maximum": "T1_attr_MCH__maximum",
+                            "T1_attr_MCH__absolute_maximum": "T1_attr_MCH__absolute_maximum",
+                            "T1_attr0": "T1_attr0",
+                            "T1_attr1": "T1_attr1",
+                            "T1_attr2": "T1_attr2",
+                            "T1_attr3": "T1_attr3",
+                            "T1_attr4": "T1_attr4",
+                            "T1_attr5": "T1_attr5",
+                            "T1_attr6": "T1_attr6",
+                            "T1_attr7": "T1_attr7",
+                            "T1_attr8": "T1_attr8",
+                            "T1_attr9": "T1_attr9",
+                            "T1_attr0_(1)": "T1_attr0_(1)",
+                            "T1_attr1_(1)": "T1_attr1_(1)",
+                            "T1_attr2_(1)": "T1_attr2_(1)",
+                            "T1_attr3_(1)": "T1_attr3_(1)",
+                            "T1_attr4_(1)": "T1_attr4_(1)",
+                            "T1_attr5_(1)": "T1_attr5_(1)",
+                            "T1_attr6_(1)": "T1_attr6_(1)",
+                            "T1_attr7_(1)": "T1_attr7_(1)",
+                            "T1_attr8_(1)": "T1_attr8_(1)",
+                            "T1_attr9_(1)": "T1_attr9_(1)",
+                            "T1_anchor_age": "T1_anchor_age",
+                            "T1_gender_int": "T1_gender_int",
+                            "T1_ethnicity_int": "T1_ethnicity_int",
+                            "T1_marital_status_int": "T1_marital_status_int",
+                            "T1_language_int": "T1_language_int",
+                            "T1_insurance_int": "T1_insurance_int",
+                            "T1_attr_GCS_Eye_Opening__median": "T1_attr_GCS_Eye_Opening__median",
+                            "T1_attr_GCS_Verbal_Response__median": "T1_attr_GCS_Verbal_Response__median",
+                            "T1_attr_GCS_Motor_Response__median": "T1_attr_GCS_Motor_Response__median",
+                            "T1_attr_GCS_Motor_Response__mean": "T1_attr_GCS_Motor_Response__mean",
+                            "T1_attr_GCS_Motor_Response__root_mean_square": "T1_attr_GCS_Motor_Response__root_mean_square",
+                            "T1_attr_Heart_Rate__root_mean_square": "T1_attr_Heart_Rate__root_mean_square",
+                            "T1_attr_Heart_Rate__mean": "T1_attr_Heart_Rate__mean",
+                            "T1_attr_GCS_Motor_Response__minimum": "T1_attr_GCS_Motor_Response__minimum",
+                            "T1_attr_GCS_Eye_Opening__root_mean_square": "T1_attr_GCS_Eye_Opening__root_mean_square",
+                            "T1_attr_GCS_Eye_Opening__maximum": "T1_attr_GCS_Eye_Opening__maximum",
+                            "T1_attr_EEG__sum_values": "T1_attr_EEG__sum_values",
+                            "T1_attr_Dialysis_CRRT__absolute_maximum": "T1_attr_Dialysis_CRRT__absolute_maximum",
+                            "T1_attr_Dialysis_CRRT__maximum": "T1_attr_Dialysis_CRRT__maximum",
+                            "T1_attr_Dialysis_CRRT__median": "T1_attr_Dialysis_CRRT__median",
+                            "T1_attr_Peritoneal_Dialysis__minimum": "T1_attr_Peritoneal_Dialysis__minimum",
+                            "T1_attr_Dialysis_CRRT__root_mean_square": "T1_attr_Dialysis_CRRT__root_mean_square",
+                            "T1_attr_Dialysis_CRRT__mean": "T1_attr_Dialysis_CRRT__mean",
+                            "T1_attr_Peritoneal_Dialysis__length": "T1_attr_Peritoneal_Dialysis__length",
+                            "T1_attr_Chest_Tube_Removed__length": "T1_attr_Chest_Tube_Removed__length",
+                            "T1_attr_Chest_Tube_Removed__sum_values": "T1_attr_Chest_Tube_Removed__sum_values",
+                            "T1_target": "T1_target"
+                        },
+                        "steps": [],
+                        "columns": {
+                            "subject_id": "subject_id",
+                            "attr_Platelet_Count__mean": "attr_Platelet_Count__mean",
+                            "attr_Platelet_Count__minimum": "attr_Platelet_Count__minimum",
+                            "attr_Platelet_Count__root_mean_square": "attr_Platelet_Count__root_mean_square",
+                            "attr_Platelet_Count__median": "attr_Platelet_Count__median",
+                            "attr_Platelet_Count__absolute_maximum": "attr_Platelet_Count__absolute_maximum",
+                            "attr_Platelet_Count__maximum": "attr_Platelet_Count__maximum",
+                            "attr_MCHC__absolute_maximum": "attr_MCHC__absolute_maximum",
+                            "attr_MCHC__maximum": "attr_MCHC__maximum",
+                            "attr_MCH__maximum": "attr_MCH__maximum",
+                            "attr_MCH__absolute_maximum": "attr_MCH__absolute_maximum",
+                            "attr0": "attr0",
+                            "attr1": "attr1",
+                            "attr2": "attr2",
+                            "attr3": "attr3",
+                            "attr4": "attr4",
+                            "attr5": "attr5",
+                            "attr6": "attr6",
+                            "attr7": "attr7",
+                            "attr8": "attr8",
+                            "attr9": "attr9",
+                            "attr0_(1)": "attr0_(1)",
+                            "attr1_(1)": "attr1_(1)",
+                            "attr2_(1)": "attr2_(1)",
+                            "attr3_(1)": "attr3_(1)",
+                            "attr4_(1)": "attr4_(1)",
+                            "attr5_(1)": "attr5_(1)",
+                            "attr6_(1)": "attr6_(1)",
+                            "attr7_(1)": "attr7_(1)",
+                            "attr8_(1)": "attr8_(1)",
+                            "attr9_(1)": "attr9_(1)",
+                            "anchor_age": "anchor_age",
+                            "gender_int": "gender_int",
+                            "ethnicity_int": "ethnicity_int",
+                            "marital_status_int": "marital_status_int",
+                            "language_int": "language_int",
+                            "insurance_int": "insurance_int",
+                            "attr_GCS_Eye_Opening__median": "attr_GCS_Eye_Opening__median",
+                            "attr_GCS_Verbal_Response__median": "attr_GCS_Verbal_Response__median",
+                            "attr_GCS_Motor_Response__median": "attr_GCS_Motor_Response__median",
+                            "attr_GCS_Motor_Response__mean": "attr_GCS_Motor_Response__mean",
+                            "attr_GCS_Motor_Response__root_mean_square": "attr_GCS_Motor_Response__root_mean_square",
+                            "attr_Heart_Rate__root_mean_square": "attr_Heart_Rate__root_mean_square",
+                            "attr_Heart_Rate__mean": "attr_Heart_Rate__mean",
+                            "attr_GCS_Motor_Response__minimum": "attr_GCS_Motor_Response__minimum",
+                            "attr_GCS_Eye_Opening__root_mean_square": "attr_GCS_Eye_Opening__root_mean_square",
+                            "attr_GCS_Eye_Opening__maximum": "attr_GCS_Eye_Opening__maximum",
+                            "attr_EEG__sum_values": "attr_EEG__sum_values",
+                            "attr_Dialysis_CRRT__absolute_maximum": "attr_Dialysis_CRRT__absolute_maximum",
+                            "attr_Dialysis_CRRT__maximum": "attr_Dialysis_CRRT__maximum",
+                            "attr_Dialysis_CRRT__median": "attr_Dialysis_CRRT__median",
+                            "attr_Peritoneal_Dialysis__minimum": "attr_Peritoneal_Dialysis__minimum",
+                            "attr_Dialysis_CRRT__root_mean_square": "attr_Dialysis_CRRT__root_mean_square",
+                            "attr_Dialysis_CRRT__mean": "attr_Dialysis_CRRT__mean",
+                            "attr_Peritoneal_Dialysis__length": "attr_Peritoneal_Dialysis__length",
+                            "attr_Chest_Tube_Removed__length": "attr_Chest_Tube_Removed__length",
+                            "attr_Chest_Tube_Removed__sum_values": "attr_Chest_Tube_Removed__sum_values",
+                            "target": "target"
+                        },
+                        "target": "target",
+                        "variables": [
+                            "attr_Platelet_Count__mean_T1",
+                            "attr_Platelet_Count__minimum_T1"
+                        ]
+                    },
+                    "selection": "medomics",
+                    "checkedOptions": [],
+                    "subflowId": "MAIN",
+                    "hasWarning": {
+                        "state": false
+                    }
+                },
+                "tooltipBy": "type",
+                "setupParam": null
+            },
+            "draggable": true,
+            "hidden": false,
+            "zIndex": 1010,
+            "className": "",
+            "selected": true,
+            "positionAbsolute": {
+                "x": -129.8892918286092,
+                "y": 143.1886986704983
+            },
+            "dragging": false
+        },
+        "Train_model_1_node_5f6845c2-2d04-4017-b176-ef1da1b6fee3": {
+            "width": 200,
+            "height": 48,
+            "id": "Train_model_1_node_5f6845c2-2d04-4017-b176-ef1da1b6fee3",
+            "type": "standardNode",
+            "name": "Train model",
+            "position": {
+                "x": 157.01999550973483,
+                "y": 109.30066346977608
+            },
+            "data": {
+                "internal": {
+                    "name": "Train model 1",
+                    "img": "create_model.png",
+                    "type": "train_model",
+                    "results": {
+                        "checked": false,
+                        "contextChecked": false
+                    },
+                    "hasRun": true,
+                    "code": "",
+                    "settings": {},
+                    "selection": false,
+                    "checkedOptions": [],
+                    "subflowId": "MAIN",
+                    "hasWarning": {
+                        "state": false
+                    }
+                },
+                "tooltipBy": "type",
+                "setupParam": null
+            },
+            "draggable": true,
+            "hidden": false,
+            "zIndex": 1010,
+            "className": "",
+            "selected": false,
+            "positionAbsolute": {
+                "x": 157.01999550973483,
+                "y": 109.30066346977608
+            },
+            "dragging": false
+        },
+        "model_lr_node_6caabf1a-b27b-427e-a7ea-891378838348": {
+            "width": 200,
+            "height": 99,
+            "id": "model_lr_node_6caabf1a-b27b-427e-a7ea-891378838348",
+            "type": "selectionNode",
+            "name": "Model",
+            "position": {
+                "x": -101.82237929476122,
+                "y": 10.130113630404708
+            },
+            "data": {
+                "internal": {
+                    "name": "Model",
+                    "img": "model.png",
+                    "type": "model",
+                    "results": {
+                        "checked": false,
+                        "contextChecked": false
+                    },
+                    "hasRun": true,
+                    "code": "",
+                    "settings": {},
+                    "selection": "lr",
+                    "checkedOptions": [],
+                    "subflowId": "MAIN",
+                    "hasWarning": {
+                        "state": false
+                    }
+                },
+                "tooltipBy": "type",
+                "setupParam": null
+            },
+            "draggable": true,
+            "hidden": false,
+            "zIndex": 1010,
+            "className": "",
+            "selected": false,
+            "positionAbsolute": {
+                "x": -101.82237929476122,
+                "y": 10.130113630404708
+            },
+            "dragging": false
+        },
+        "Train_model_2_node_663c2909-e423-4a1f-b4d6-3286a10ff512": {
+            "width": 200,
+            "height": 48,
+            "id": "Train_model_2_node_663c2909-e423-4a1f-b4d6-3286a10ff512",
+            "type": "standardNode",
+            "name": "Train model",
+            "position": {
+                "x": 163.94829282791034,
+                "y": 251.5828965966706
+            },
+            "data": {
+                "internal": {
+                    "name": "Train model 2",
+                    "img": "create_model.png",
+                    "type": "train_model",
+                    "results": {
+                        "checked": false,
+                        "contextChecked": false
+                    },
+                    "hasRun": true,
+                    "code": "",
+                    "settings": {},
+                    "selection": false,
+                    "checkedOptions": [],
+                    "subflowId": "MAIN",
+                    "hasWarning": {
+                        "state": false
+                    }
+                },
+                "tooltipBy": "type",
+                "setupParam": null
+            },
+            "draggable": true,
+            "hidden": false,
+            "zIndex": 1010,
+            "className": "",
+            "selected": false,
+            "positionAbsolute": {
+                "x": 163.94829282791034,
+                "y": 251.5828965966706
+            },
+            "dragging": false
+        },
+        "model_et_node_00776cb8-8ca4-49e3-b11e-a72538cec68a": {
+            "width": 200,
+            "height": 99,
+            "id": "model_et_node_00776cb8-8ca4-49e3-b11e-a72538cec68a",
+            "type": "selectionNode",
+            "name": "Model",
+            "position": {
+                "x": -99.3444466438001,
+                "y": 287.2393625036184
+            },
+            "data": {
+                "internal": {
+                    "name": "Model",
+                    "img": "model.png",
+                    "type": "model",
+                    "results": {
+                        "checked": false,
+                        "contextChecked": false
+                    },
+                    "hasRun": true,
+                    "code": "",
+                    "settings": {},
+                    "selection": "et",
+                    "checkedOptions": [],
+                    "subflowId": "MAIN",
+                    "hasWarning": {
+                        "state": false
+                    }
+                },
+                "tooltipBy": "type",
+                "setupParam": null
+            },
+            "draggable": true,
+            "hidden": false,
+            "zIndex": 1010,
+            "className": "",
+            "selected": false,
+            "positionAbsolute": {
+                "x": -99.3444466438001,
+                "y": 287.2393625036184
+            },
+            "dragging": false
+        },
+        "optimize_node_ad2a1fca-cad0-44dd-9fa5-f59e3a80eb3d": {
+            "width": 200,
+            "height": 48,
+            "id": "optimize_node_ad2a1fca-cad0-44dd-9fa5-f59e3a80eb3d",
+            "type": "groupNode",
+            "name": "Optimize",
+            "position": {
+                "x": 441.7625204490579,
+                "y": 128.20258090777264
+            },
+            "data": {
+                "internal": {
+                    "name": "Optimize",
+                    "img": "optimize.png",
+                    "type": "optimize",
+                    "results": {
+                        "checked": false,
+                        "contextChecked": false
+                    },
+                    "hasRun": true,
+                    "code": "",
+                    "settings": {},
+                    "selection": false,
+                    "checkedOptions": [],
+                    "subflowId": "MAIN",
+                    "hasWarning": {
+                        "state": false
+                    }
+                },
+                "tooltipBy": "type",
+                "setupParam": null
+            },
+            "draggable": true,
+            "hidden": false,
+            "zIndex": 1010,
+            "className": "",
+            "selected": false,
+            "positionAbsolute": {
+                "x": 441.7625204490579,
+                "y": 128.20258090777264
+            },
+            "dragging": false
+        },
+        "analyze_node_8924ae1b-e583-4437-bb75-e491826fa708": {
+            "width": 200,
+            "height": 99,
+            "id": "analyze_node_8924ae1b-e583-4437-bb75-e491826fa708",
+            "type": "selectionNode",
+            "name": "Analyze",
+            "position": {
+                "x": 691.9396174904222,
+                "y": 150.90067018194006
+            },
+            "data": {
+                "internal": {
+                    "name": "Analyze",
+                    "img": "analyze.png",
+                    "type": "analyze",
+                    "results": {
+                        "checked": false,
+                        "contextChecked": true
+                    },
+                    "hasRun": true,
+                    "code": "",
+                    "settings": {
+                        "plot": "error"
+                    },
+                    "selection": "plot_model",
+                    "checkedOptions": [
+                        "plot"
+                    ],
+                    "subflowId": "MAIN",
+                    "hasWarning": {
+                        "state": false
+                    }
+                },
+                "tooltipBy": "type",
+                "setupParam": null
+            },
+            "draggable": true,
+            "hidden": false,
+            "zIndex": 1010,
+            "className": "",
+            "selected": false,
+            "positionAbsolute": {
+                "x": 691.9396174904222,
+                "y": 150.90067018194006
+            },
+            "dragging": false
+        },
+        "blend_models_node_7055ab95-57fc-4223-8040-997c12e54d7a": {
+            "width": 200,
+            "height": 48,
+            "id": "blend_models_node_7055ab95-57fc-4223-8040-997c12e54d7a",
+            "type": "standardNode",
+            "name": "Blend models",
+            "position": {
+                "x": 300.04182913477325,
+                "y": 407.01562873967856
+            },
+            "data": {
+                "internal": {
+                    "name": "Blend models",
+                    "img": "optimize.png",
+                    "type": "blend_models",
+                    "results": {
+                        "checked": false,
+                        "contextChecked": false
+                    },
+                    "hasRun": true,
+                    "code": "",
+                    "settings": {},
+                    "selection": false,
+                    "checkedOptions": [],
+                    "subflowId": "optimize_node_ad2a1fca-cad0-44dd-9fa5-f59e3a80eb3d",
+                    "hasWarning": {
+                        "state": false
+                    }
+                },
+                "tooltipBy": "type",
+                "setupParam": null
+            },
+            "draggable": true,
+            "hidden": true,
+            "zIndex": 1010,
+            "className": "intersect",
+            "selected": false,
+            "positionAbsolute": {
+                "x": 300.04182913477325,
+                "y": 407.01562873967856
+            },
+            "dragging": false
+        },
+        "tune_model_node_a1df5f5b-5fe2-4037-ba3c-786b9997a499": {
+            "width": 200,
+            "height": 48,
+            "id": "tune_model_node_a1df5f5b-5fe2-4037-ba3c-786b9997a499",
+            "type": "standardNode",
+            "name": "Tune model",
+            "position": {
+                "x": 596.7334824047107,
+                "y": 333.08927703443345
+            },
+            "data": {
+                "internal": {
+                    "name": "Tune model",
+                    "img": "optimize.png",
+                    "type": "tune_model",
+                    "results": {
+                        "checked": false,
+                        "contextChecked": false
+                    },
+                    "hasRun": true,
+                    "code": "",
+                    "settings": {},
+                    "selection": false,
+                    "checkedOptions": [],
+                    "subflowId": "optimize_node_ad2a1fca-cad0-44dd-9fa5-f59e3a80eb3d",
+                    "hasWarning": {
+                        "state": false
+                    }
+                },
+                "tooltipBy": "type",
+                "setupParam": null
+            },
+            "draggable": true,
+            "hidden": true,
+            "zIndex": 1010,
+            "className": "intersect",
+            "selected": false,
+            "positionAbsolute": {
+                "x": 596.7334824047107,
+                "y": 333.08927703443345
+            },
+            "dragging": false
+        },
+        "tune_model_node_a9f62f7f-e342-484a-bea1-491db9839b6d": {
+            "width": 200,
+            "height": 48,
+            "id": "tune_model_node_a9f62f7f-e342-484a-bea1-491db9839b6d",
+            "type": "standardNode",
+            "name": "Tune model",
+            "position": {
+                "x": 352.7200568382623,
+                "y": 293.58478766764887
+            },
+            "data": {
+                "internal": {
+                    "name": "Tune model",
+                    "img": "optimize.png",
+                    "type": "tune_model",
+                    "results": {
+                        "checked": false,
+                        "contextChecked": false
+                    },
+                    "hasRun": true,
+                    "code": "",
+                    "settings": {},
+                    "selection": false,
+                    "checkedOptions": [],
+                    "subflowId": "optimize_node_ad2a1fca-cad0-44dd-9fa5-f59e3a80eb3d",
+                    "hasWarning": {
+                        "state": false
+                    }
+                },
+                "tooltipBy": "type",
+                "setupParam": null
+            },
+            "draggable": true,
+            "hidden": true,
+            "zIndex": 1010,
+            "className": "intersect",
+            "selected": false,
+            "positionAbsolute": {
+                "x": 352.7200568382623,
+                "y": 293.58478766764887
+            },
+            "dragging": false
+        },
+        "group_models_node_aee4f9f8-4f33-417c-ac2b-4713942f111b": {
+            "width": 200,
+            "height": 48,
+            "id": "group_models_node_aee4f9f8-4f33-417c-ac2b-4713942f111b",
+            "type": "standardNode",
+            "name": "Group models",
+            "position": {
+                "x": 442.0548513958196,
+                "y": 222.83229227614873
+            },
+            "data": {
+                "internal": {
+                    "name": "Group models",
+                    "img": "group_models.png",
+                    "type": "group_models",
+                    "results": {
+                        "checked": true,
+                        "contextChecked": false
+                    },
+                    "hasRun": true,
+                    "code": "",
+                    "settings": {},
+                    "selection": false,
+                    "checkedOptions": [],
+                    "subflowId": "MAIN",
+                    "hasWarning": {
+                        "state": false
+                    }
+                },
+                "tooltipBy": "type",
+                "setupParam": null
+            },
+            "draggable": true,
+            "hidden": false,
+            "zIndex": 1010,
+            "className": "",
+            "selected": false,
+            "positionAbsolute": {
+                "x": 442.0548513958196,
+                "y": 222.83229227614873
+            },
+            "dragging": false
+        }
+    },
+    "pipelines": {
+        "Dataset_node_7ca364a2-3209-40a8-94c8-5d9da34a5ec4": {
+            "Train_model_1_node_5f6845c2-2d04-4017-b176-ef1da1b6fee3*model_lr_node_6caabf1a-b27b-427e-a7ea-891378838348": {
+                "group_models_node_aee4f9f8-4f33-417c-ac2b-4713942f111b*Train_model_2_node_663c2909-e423-4a1f-b4d6-3286a10ff512.Train_model_1_node_5f6845c2-2d04-4017-b176-ef1da1b6fee3": {
+                    "analyze_node_8924ae1b-e583-4437-bb75-e491826fa708": {}
+                },
+                "tune_model_node_a9f62f7f-e342-484a-bea1-491db9839b6d": {
+                    "analyze_node_8924ae1b-e583-4437-bb75-e491826fa708": {}
+                },
+                "blend_models_node_7055ab95-57fc-4223-8040-997c12e54d7a": {
+                    "tune_model_node_a1df5f5b-5fe2-4037-ba3c-786b9997a499": {
+                        "analyze_node_8924ae1b-e583-4437-bb75-e491826fa708": {}
+                    }
+                }
+            },
+            "Train_model_2_node_663c2909-e423-4a1f-b4d6-3286a10ff512*model_et_node_00776cb8-8ca4-49e3-b11e-a72538cec68a": {
+                "group_models_node_aee4f9f8-4f33-417c-ac2b-4713942f111b*Train_model_2_node_663c2909-e423-4a1f-b4d6-3286a10ff512.Train_model_1_node_5f6845c2-2d04-4017-b176-ef1da1b6fee3": {
+                    "analyze_node_8924ae1b-e583-4437-bb75-e491826fa708": {}
+                },
+                "tune_model_node_a9f62f7f-e342-484a-bea1-491db9839b6d": {
+                    "analyze_node_8924ae1b-e583-4437-bb75-e491826fa708": {}
+                },
+                "blend_models_node_7055ab95-57fc-4223-8040-997c12e54d7a": {
+                    "tune_model_node_a1df5f5b-5fe2-4037-ba3c-786b9997a499": {
+                        "analyze_node_8924ae1b-e583-4437-bb75-e491826fa708": {}
+                    }
+                }
+            }
+        }
+    },
+    "pageId": "ccfdea84-595f-4886-98b8-e53c4b96e17f",
+    "path_seperator": "\\",
+    "paths": {
+        "ws": "C:\\Users\\gblai\\Documents\\github\\MEDomics\\WS_DEMO\\EXPERIMENTS\\test",
+        "models": "C:\\Users\\gblai\\Documents\\github\\MEDomics\\WS_DEMO\\EXPERIMENTS\\test\\models",
+        "notebooks": "C:\\Users\\gblai\\Documents\\github\\MEDomics\\WS_DEMO\\EXPERIMENTS\\test\\notebooks"
+    },
+    "internalPaths": {
+        "tmp": "C:\\Users\\gblai\\Documents\\github\\MEDomics\\WS_DEMO\\EXPERIMENTS\\test\\test\\tmp",
+        "exp": "C:\\Users\\gblai\\Documents\\github\\MEDomics\\WS_DEMO\\EXPERIMENTS\\test\\test\\exp"
+    },
+    "configPath": "C:\\Users\\gblai\\Documents\\github\\MEDomics\\WS_DEMO\\EXPERIMENTS\\test\\test.medml",
+    "nbNodes2Run": 18
+}

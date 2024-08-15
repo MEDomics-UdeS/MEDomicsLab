@@ -72,6 +72,10 @@ class GoExecutionScript(ABC):
         self._progress = {"now": 0, "currentLabel": ""}
         self._id = _id
         self._debug = debug
+        if self._debug:
+            # save json_params_dict to a file
+            with open('json_params_dict.json', 'w') as f:
+                json.dump(json_params, f, indent=4)
 
     def start(self):
         """
