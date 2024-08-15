@@ -77,6 +77,55 @@ const FlInput = ({ name, settingInfos, currentValue, onInputChange, disabled, se
     }
   }
 
+  // This is used for model types
+
+  const handleModelInputChange = (e, path, name, settingInfos, globalData, setGlobalData, setInputUpdate, setHasWarning) => {
+    console.log("e", e, path)
+
+    const updateInput = (metadata = null) => {
+      setInputUpdate({
+        name,
+        value: { name: e.target.value, path, metadata },
+        type: settingInfos.type
+      })
+
+      if (metadata) {
+        let modelDataObject = MedDataObject.checkIfMedDataObjectInContextbyPath(path, globalData)
+        modelDataObject.metadata.content = metadata
+        setGlobalData({ ...globalData })
+      }
+    }
+
+    if (path && !e.target.value?.endsWith(".pkl")) {
+      customZipFile2Object(path)
+        .then((content) => {
+          console.log("content", content)
+          updateInput(content.metadata)
+        })
+        .catch((error) => {
+          console.log("error", error)
+        })
+      setHasWarning({ state: false })
+    } else {
+      setHasWarning({ state: true, tooltip: <p>No model selected</p> })
+      updateInput()
+    }
+  }
+
+  const renderInputField = (name, settingInfos, currentValue, globalData, setGlobalData, setInputUpdate, setHasWarning, rootDir = undefined) => (
+    <>
+      <FloatingLabel id={name} controlId={name} label={name} className="input-hov">
+        <WsSelect
+          selectedPath={currentValue}
+          acceptedExtensions={["medmodel", "pkl"]}
+          rootDir={rootDir}
+          onChange={(e, path) => handleModelInputChange(e, path, name, settingInfos, globalData, setGlobalData, setInputUpdate, setHasWarning)}
+        />
+      </FloatingLabel>
+      {createTooltip(settingInfos.tooltip, name)}
+    </>
+  )
+
   const createTooltip = (tooltip, tooltipId) => {
     return (
       <Tooltip className="tooltip" anchorSelect={`#${tooltipId}`} delayShow={1000} place="left">
@@ -593,48 +642,14 @@ const FlInput = ({ name, settingInfos, currentValue, onInputChange, disabled, se
             {createTooltip(settingInfos.tooltip, name)}
           </>
         )
-
       case "models-input":
-        return (
-          <>
-            <FloatingLabel id={name} controlId={name} label={name} className="input-hov">
-              <WsSelect
-                selectedPath={currentValue}
-                acceptedExtensions={["medmodel", "pkl"]}
-                onChange={(e, path) => {
-                  console.log("e", e, path)
-                  setInputUpdate({
-                    name: name,
-                    value: { name: e.target.value, path: path },
-                    type: settingInfos.type
-                  })
+        return renderInputField(name, settingInfos, currentValue, globalData, setGlobalData, setInputUpdate, setHasWarning)
 
-                  if (path != "" && !e.target.value?.endsWith(".pkl")) {
-                    customZipFile2Object(path)
-                      .then((content) => {
-                        setInputUpdate({
-                          name: name,
-                          value: { name: e.target.value, path: path, metadata: content.metadata },
-                          type: settingInfos.type
-                        })
-                        console.log("content", content)
-                        let modelDataObject = MedDataObject.checkIfMedDataObjectInContextbyPath(path, globalData)
-                        modelDataObject.metadata.content = content.metadata
-                        setGlobalData({ ...globalData })
-                      })
-                      .catch((error) => {
-                        console.log("error", error)
-                      })
-                    setHasWarning({ state: false })
-                  } else {
-                    setHasWarning({ state: true, tooltip: <p>No model selected</p> })
-                  }
-                }}
-              />
-            </FloatingLabel>
-            {createTooltip(settingInfos.tooltip, name)}
-          </>
-        )
+      case "basemodel-input":
+        return renderInputField(name, settingInfos, currentValue, globalData, setGlobalData, setInputUpdate, setHasWarning, "DATA")
+
+      case "med3pamodels-input":
+        return renderInputField(name, settingInfos, currentValue, globalData, setGlobalData, setInputUpdate, setHasWarning, "EXPERIMENTS")
 
       // for all the other types of input (basically a string input for now)
       default:

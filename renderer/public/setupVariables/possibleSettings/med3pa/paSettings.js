@@ -71,7 +71,7 @@ const paSettings = {
     sample_size: {
       type: "int",
       tooltip: "<p>The size of the Testing Set N</p>",
-      default_val: 20 // Default value sample size
+      default_val: 10 // Default value sample size
     },
     ensemble_size: {
       type: "int",

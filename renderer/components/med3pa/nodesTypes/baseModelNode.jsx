@@ -221,8 +221,8 @@ export default function BaseModelNode({ id, data }) {
         <FlInput
           name="file"
           settingInfos={{
-            type: "models-input",
-            tooltip: "<p>Specify a model file (model)</p>"
+            type: "basemodel-input",
+            tooltip: "<p>Specify a base model file (model)</p>"
           }}
           currentValue={data.internal.settings.file || {}}
           onInputChange={onFilesChange}

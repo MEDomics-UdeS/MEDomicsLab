@@ -34,20 +34,25 @@ export default function APCModelNode({ id, data }) {
   const [savePickled, setSavePickled] = useState(true) // Save the APC Model
   const [loading, setLoading] = useState(true)
   const [gridParams, setGridParams] = useState({}) // State to hold grid_params
-  const [usePklInput, setUsePklInput] = useState(false) // Load an Existing Fixed
+  const [usePklInput, setUsePklInput] = useState() // Load an Existing Fixed
   const [showGridParamsSection, setShowGridParamsSection] = useState() // Activate/Desactivate Optimize Option
 
   // Initial set up of GridParams state and Loading State
   useEffect(() => {
     if (data.setupParam.possibleSettings && data.internal.settings) {
-      setGridParams(data.internal.settings.grid_params)
       setLoading(false)
+    }
+    const hasHyperparameters = data?.internal?.settings?.hyperparameters
+    if (hasHyperparameters) {
+      setUsePklInput(false)
+    } else {
+      setUsePklInput(true)
     }
   }, [])
 
   // Update Internal Node Data when the data.internal.settings change and "save_pickled" is not initialized
   useEffect(() => {
-    if (!("save_pickled" in data.internal.settings)) {
+    if (!("save_pickled" in data.internal.settings) && !data.internal.settings.file) {
       updateNode({
         id: id,
         updatedData: {
@@ -71,6 +76,7 @@ export default function APCModelNode({ id, data }) {
    */
   const handleWarning = (hasWarning) => {
     data.internal.hasWarning = hasWarning
+
     updateNode({
       id: id,
       updatedData: data.internal
@@ -86,7 +92,11 @@ export default function APCModelNode({ id, data }) {
    * This function is used to update the node internal data when the files input changes.
    */
   const onFilesChange = async (inputUpdate) => {
-    data.internal.settings.file = inputUpdate.value
+    // eslint-disable-next-line no-unused-vars
+    const { metadata, ...rest } = inputUpdate.value
+
+    // Now rest contains everything except metadata
+    data.internal.settings.file = rest
 
     if (inputUpdate.value.path !== "") {
       setLoader(false)
@@ -107,8 +117,7 @@ export default function APCModelNode({ id, data }) {
       updatedData: {
         ...data.internal,
         settings: {
-          ...data.internal.settings,
-          file: inputUpdate.value
+          file: rest
         }
       }
     })
@@ -188,19 +197,66 @@ export default function APCModelNode({ id, data }) {
    * This function sets activates and desactivates the Grid Search Optimization.
    */
   const handleShowGridParamsSectionChange = (value) => {
-    setShowGridParamsSection(value.value)
-    if (value) {
-      // Update the node with default settings
+    const { value: optimize } = value
+
+    setShowGridParamsSection(optimize)
+
+    let updatedSettings = {
+      ...data.internal.settings,
+      optimize
+    }
+
+    // Update the node with the optimize setting first
+    updateNode({
+      id,
+      updatedData: {
+        ...data.internal,
+        settings: updatedSettings
+      }
+    })
+
+    // If optimize is true, add grid_params to settings
+    if (optimize) {
+      let gridParams = {}
+
+      if (data.setupParam.possibleSettings?.grid_params) {
+        data.setupParam.possibleSettings.grid_params.forEach((param) => {
+          gridParams[param.name] = param.default_val
+        })
+      }
+
+      updatedSettings = {
+        ...updatedSettings,
+        grid_params: gridParams
+      }
+
       updateNode({
-        id: id,
+        id,
         updatedData: {
           ...data.internal,
-          settings: {
-            ...data.internal.settings,
-            optimize: value.value
-          }
+          settings: updatedSettings
         }
       })
+
+      setGridParams(gridParams)
+    } else {
+      // If optimize is false, remove grid_params from settings
+      // eslint-disable-next-line no-unused-vars
+      const { grid_params, ...rest } = updatedSettings
+
+      updatedSettings = {
+        ...rest
+      }
+
+      updateNode({
+        id,
+        updatedData: {
+          ...data.internal,
+          settings: updatedSettings
+        }
+      })
+
+      setGridParams({})
     }
   }
 
@@ -392,11 +448,35 @@ export default function APCModelNode({ id, data }) {
         data.internal.hasWarning = { state: false }
       }
     } else {
-      // eslint-disable-next-line no-unused-vars
-      const { file, ...rest } = data.internal.settings
+      setLoading(true)
       data.internal.hasWarning = { state: false }
-      data.internal.settings = rest
+      if (data.setupParam.possibleSettings) {
+        const defaultSettings = {
+          optimize: data.setupParam.possibleSettings.optimize.default_val,
+          maximum_min_samples_ratio: data.setupParam.possibleSettings.maximum_min_samples_ratio.default_val,
+          hyperparameters: {},
+
+          save_pickled: true
+        }
+
+        // Populate hyperparameters and grid_params with default values
+        if (data.setupParam.possibleSettings) {
+          data.setupParam.possibleSettings.hyperparameters.forEach((param) => {
+            defaultSettings.hyperparameters[param.name] = param.default_val
+          })
+        }
+
+        // Update the node with default settings
+        data.internal.settings = defaultSettings
+
+        // Set initial state
+
+        setGridParams(defaultSettings.grid_params)
+
+        setShowGridParamsSection(defaultSettings.optimize)
+      }
     }
+    setLoading(false)
   }
 
   /**
@@ -504,7 +584,7 @@ export default function APCModelNode({ id, data }) {
                   key={"FixedTree"}
                   name={"Load a Fixed tree structure"}
                   settingInfos={{
-                    type: "models-input",
+                    type: "med3pamodels-input",
                     tooltip: "<p>Load Tree Structure here</p>"
                   }}
                   currentValue={data.internal.settings.file || {}}
@@ -671,10 +751,10 @@ export default function APCModelNode({ id, data }) {
               settingInfos={{
                 ...data.setupParam.possibleSettings.optimize
               }}
-              currentValue={showGridParamsSection}
+              currentValue={data.internal.settings.optimize || showGridParamsSection}
               onInputChange={(value) => handleShowGridParamsSectionChange(value)}
             />
-            {showGridParamsSection && data.setupParam.possibleSettings?.grid_params && (
+            {(showGridParamsSection || data.internal.settings.optimize) && data.setupParam.possibleSettings?.grid_params && (
               <>
                 <div className="d-flex align-items-center mt-3 mb-2" style={{ cursor: "pointer" }} onClick={toggleShowGridParams}>
                   <div className="fw-bold" style={{ color: "#555" }}>

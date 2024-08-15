@@ -35,31 +35,39 @@ export default function IPCModelNode({ id, data }) {
   const [loading, setLoading] = useState(true)
   const [gridParams, setGridParams] = useState({}) // State to hold grid_params
   const [savePickled, setSavePickled] = useState(true) // Save the model
-  const [usePklInput, setUsePklInput] = useState(false) // Load an Existing model
+  const [usePklInput, setUsePklInput] = useState() // Load an Existing model
   const [showGridParamsSection, setShowGridParamsSection] = useState() // Activate/Desactivate Optimize Option
+
+  // Initialize the node's usePklInput
+  useEffect(() => {
+    const hasFile = data?.internal?.settings?.file
+
+    if (hasFile) {
+      setUsePklInput(true)
+    } else {
+      setUsePklInput(false)
+      setModelType(data.setupParam.possibleSettings.model_type)
+    }
+  }, [])
 
   // Update the node's internal settings when the model type changes
   useEffect(() => {
+    if (usePklInput) return
     if (data.setupParam.possibleSettings.model_type) {
       // Initialize default model type and settings
       const defaultModelType = data.setupParam.possibleSettings.model_type.default_val
 
       const defaultSettings = {
         model_type: defaultModelType,
-        optimize: false,
+        optimize: data.internal.settings?.optimize,
         hyperparameters: {},
-        grid_params: {},
         save_pickled: true
       }
 
-      // Populate hyperparameters and grid_params with default values
+      // Populate hyperparameters with default values
       if (defaultModelType && data.setupParam.possibleSettings.model_settings[defaultModelType]) {
         data.setupParam.possibleSettings.model_settings[defaultModelType].hyperparameters.forEach((param) => {
           defaultSettings.hyperparameters[param.name] = param.default_val
-        })
-
-        data.setupParam.possibleSettings.model_settings[defaultModelType].grid_params.forEach((param) => {
-          defaultSettings.grid_params[param.name] = param.default_val
         })
       }
 
@@ -74,7 +82,7 @@ export default function IPCModelNode({ id, data }) {
 
       // Set initial state
       setModelType(defaultSettings.model_type)
-      setGridParams(defaultSettings.grid_params)
+
       setLoading(false)
       setShowGridParamsSection(defaultSettings.optimize)
     }
@@ -155,19 +163,56 @@ export default function IPCModelNode({ id, data }) {
    * This function sets activates and desactivates the Grid Search Optimization.
    */
   const handleShowGridParamsSectionChange = (value) => {
-    setShowGridParamsSection(value.value)
-    if (value) {
-      // Update the node with default settings
+    const optimize = value.value // Extract optimize value directly
+
+    setShowGridParamsSection(optimize)
+
+    // Create an initial copy of the current settings
+    let updatedSettings = {
+      ...data.internal.settings,
+      optimize: optimize // Update the optimize setting
+    }
+
+    // If optimize is true, add grid_params to settings
+    if (optimize) {
+      let gridParams = {}
+
+      if (modelType && data.setupParam.possibleSettings.model_settings[modelType]) {
+        data.setupParam.possibleSettings.model_settings[modelType].grid_params.forEach((param) => {
+          gridParams[param.name] = param.default_val
+        })
+      }
+
+      // Add grid_params to updatedSettings
+      updatedSettings.grid_params = gridParams
+
+      // Update the node with new settings
       updateNode({
         id: id,
         updatedData: {
           ...data.internal,
-          settings: {
-            ...data.internal.settings,
-            optimize: value.value
-          }
+          settings: updatedSettings
         }
       })
+
+      setGridParams(gridParams)
+    } else {
+      // If optimize is false, remove grid_params from settings
+      // eslint-disable-next-line no-unused-vars
+      const { grid_params, ...rest } = updatedSettings
+
+      // Update settings without grid_params
+      updatedSettings = rest
+
+      updateNode({
+        id,
+        updatedData: {
+          ...data.internal,
+          settings: updatedSettings
+        }
+      })
+
+      setGridParams({})
     }
   }
 
@@ -375,12 +420,16 @@ export default function IPCModelNode({ id, data }) {
         data.internal.hasWarning = { state: true, tooltip: <p>No Fixed Tree Structure selected</p> }
       } else {
         data.internal.hasWarning = { state: false }
+        // eslint-disable-next-line no-unused-vars
+        const { file, ...rest } = data.internal.settings
+
+        data.internal.settings = file
       }
     } else {
       // eslint-disable-next-line no-unused-vars
-      const { file, ...rest } = data.internal.settings
+      setModelType(data.setupParam.possibleSettings.model_type)
+
       data.internal.hasWarning = { state: false }
-      data.internal.settings = rest
     }
   }
 
@@ -409,7 +458,11 @@ export default function IPCModelNode({ id, data }) {
    * This function is used to update the node internal data when the files input changes.
    */
   const onFilesChange = async (inputUpdate) => {
-    data.internal.settings.file = inputUpdate.value
+    // eslint-disable-next-line no-unused-vars
+    const { metadata, ...rest } = inputUpdate.value
+
+    // Now rest contains everything except metadata
+    data.internal.settings.file = rest
 
     if (inputUpdate.value.path !== "") {
       setLoader(false)
@@ -430,8 +483,7 @@ export default function IPCModelNode({ id, data }) {
       updatedData: {
         ...data.internal,
         settings: {
-          ...data.internal.settings,
-          file: inputUpdate.value
+          file: rest
         }
       }
     })
@@ -516,7 +568,7 @@ export default function IPCModelNode({ id, data }) {
                   key={"PickledModel"}
                   name={"Load a pickled model"}
                   settingInfos={{
-                    type: "models-input",
+                    type: "med3pamodels-input",
                     tooltip: "<p>Load file .pkl here</p>"
                   }}
                   currentValue={data.internal.settings.file || {}}
@@ -684,10 +736,10 @@ export default function IPCModelNode({ id, data }) {
                 settingInfos={{
                   ...data.setupParam.possibleSettings.optimize
                 }}
-                currentValue={showGridParamsSection}
+                currentValue={data.internal.settings.optimize || showGridParamsSection}
                 onInputChange={(value) => handleShowGridParamsSectionChange(value)}
               />
-              {showGridParamsSection && data.setupParam.possibleSettings.model_settings[modelType]?.grid_params && (
+              {(showGridParamsSection || data.internal.settings.optimize) && data.setupParam.possibleSettings.model_settings[modelType]?.grid_params && (
                 <>
                   <div className="d-flex align-items-center mt-3 mb-2" style={{ cursor: "pointer" }} onClick={toggleShowGridParams}>
                     <div className="fw-bold" style={{ color: "#555" }}>

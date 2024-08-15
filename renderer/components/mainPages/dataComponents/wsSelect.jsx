@@ -27,18 +27,41 @@ const WsSelect = ({ selectedPath, onChange, rootDir, acceptFolder = false, accep
 
       let datasetListToShow = [{ name: "No selection", path: "", isFolder: false, default: true }]
       uuids.forEach((uuid) => {
-        // in this case, we want to show only the files in the selected root directory
-        if (rootDir != undefined) {
-          if (globalData[globalData[uuid].parentID]) {
-            if (globalData[globalData[uuid].parentID].originalName == rootDir) {
-              if (!(!acceptFolder && globalData[uuid].type == "folder")) {
-                if (acceptedExtensions.includes("all") || acceptedExtensions.includes(globalData[uuid].extension)) {
-                  datasetListToShow.push({ name: globalData[uuid].name, path: globalData[uuid].path, isFolder: globalData[uuid].type == "folder" })
+        if (rootDir !== undefined) {
+          const parentID = globalData[uuid].parentID
+          const parentData = globalData[parentID]
+
+          if (parentData && parentData.originalName === rootDir) {
+            const processNode = (nodeUUID) => {
+              const nodeData = globalData[nodeUUID]
+              if (!(!acceptFolder && nodeData.type === "folder")) {
+                if (acceptedExtensions.includes("all") || acceptedExtensions.includes(nodeData.extension)) {
+                  datasetListToShow.push({
+                    name: nodeData.name,
+                    path: nodeData.path,
+                    isFolder: nodeData.type === "folder"
+                  })
                 }
               }
             }
+
+            // Process the selected root directory
+            processNode(uuid)
+
+            // Process children recursively
+            const processChildren = (parentUUID) => {
+              Object.keys(globalData).forEach((key) => {
+                if (globalData[key].parentID === parentUUID) {
+                  processNode(key)
+                  if (globalData[key].type === "folder") {
+                    processChildren(key) // Recursively process child folders
+                  }
+                }
+              })
+            }
+
+            processChildren(uuid)
           }
-          // else, we want to add any file (or folder) from acceptedExtensions
         } else {
           if (acceptedExtensions.includes(globalData[uuid].extension) || acceptedExtensions.includes("all")) {
             if (acceptedExtensions.includes("all") || acceptedExtensions.includes(globalData[uuid].extension)) {

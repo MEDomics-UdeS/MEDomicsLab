@@ -308,7 +308,7 @@ def _handle_med3pa_experiment(experiment):
     apc_hyperparameters = apc_model.get("hyperparameters", None)
     apc_optimize_params = apc_model.get("optimize_params", None)
     pretrained_apc = apc_model.get('pretrained_apc', None)
-    max_samples_ratio = apc_model.get('max_samples_ratio', None)
+    max_samples_ratio = apc_model.get('max_samples_ratio', 10)
 
     manager = DatasetsManager()
     manager.set_from_file(dataset_type="training", file=datasets['training']['path'],
@@ -499,18 +499,25 @@ def _save_med3pa_models(experiment):
 
 def _compare_detectron_experiments(base_path, experiment1, experiment2, name1, name2):
     comparison = DetectronComparison(experiment1, experiment2)
-    comparison.compare_experiments()
-    saving_dir = os.path.join(base_path, f"compare_{name1}_{name2}")
-    comparison.save(saving_dir)
-    return f"compare_{name1}_{name2}"
+    if comparison.is_comparable():
+        comparison.compare_experiments()
+        saving_dir = os.path.join(base_path, f"compare_{name1}_{name2}")
+        comparison.save(saving_dir)
+        return f"compare_{name1}_{name2}"
+    else:
+        comparison.compare_config()
+        return ""
 
 
 def _compare_med3pa_experiments(base_path, experiment1, experiment2, name1, name2):
     comparison = Med3paComparison(experiment1, experiment2)
-    comparison.compare_experiments()
-    saving_dir = os.path.join(base_path, f"compare_{name1}_{name2}")
-    comparison.save(saving_dir)
-    return f"compare_{name1}_{name2}"
+    if comparison.is_comparable():
+        comparison.compare_experiments()
+        saving_dir = os.path.join(base_path, f"compare_{name1}_{name2}")
+        comparison.save(saving_dir)
+        return f"compare_{name1}_{name2}"
+    else:
+        return ""
 
 
 def _compare_experiments(saving_paths: dict, experiments_names: dict, base_path) -> dict:
@@ -542,7 +549,8 @@ def _compare_experiments(saving_paths: dict, experiments_names: dict, base_path)
                 else:
                     comparison_path = _compare_med3pa_experiments(base_path, path1, path2, name1, name2)
 
-                comparison_results.append(comparison_path)
+                if comparison_path != "":
+                    comparison_results.append(comparison_path)
 
     return comparison_results
 
@@ -623,12 +631,11 @@ class GoExecScriptRunExperiments(GoExecutionScript):
                 saving_paths[experiment_name] = []
             saving_paths[experiment_name].append(saving_path)
 
-        self.set_progress(label=f"Finished Processing all experiments!", now=100)
         comparison_paths = _compare_experiments(saving_paths, experiments_names, path_to_comparison_dir)
         self.results = {'path_to_results': paths, 'path_to_comparison': comparison_paths,
                         'models_paths': model_saving_paths}
         go_print("RECEIVED RESULTS:" + str(self.results))
-
+        self.set_progress(label="Finished Processing all experiments!", now=100)
         return self.results
 
 

@@ -91,7 +91,7 @@ const NodeDetails = ({ node, labelColor }) => {
               <div>
                 <strong style={{ color: labelColor }}>{key}:</strong>
               </div>
-              <div style={{ fontFamily: "Arial, sans-serif", fontSize: "0.9rem", color: "#555" }}>{value.toString()}</div>
+              {value !== null && <div style={{ fontFamily: "Arial, sans-serif", fontSize: "0.9rem", color: "#555" }}>{value.toString()}</div>}
             </div>
           </Card.Body>
         </Card>

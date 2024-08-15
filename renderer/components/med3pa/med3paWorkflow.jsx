@@ -25,7 +25,7 @@ import BtnDiv from "../flow/btnDiv.jsx"
 import ProgressBarRequests from "../generalPurpose/progressBarRequests.jsx"
 import { PageInfosContext } from "../mainPages/moduleBasics/pageInfosContext.jsx"
 //import { defaultValueFromType } from "../../utilities/learning/inputTypesUtils.js"
-import { FlowResultsContext } from "../flow/context/flowResultsContext"
+
 import { LoaderContext } from "../generalPurpose/loaderContext.jsx"
 import { WorkspaceContext, EXPERIMENTS } from "../workspace/workspaceContext"
 import path from "path"
@@ -86,7 +86,7 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
   const [sceneName, setSceneName] = useState("") // Scene Name (Flow Name)
   const { setViewport } = useReactFlow() // setViewport is used to update the viewport of the workflow
   const { getIntersectingNodes } = useReactFlow() // getIntersectingNodes is used to get the intersecting nodes of a node
-  const { isResults, setIsResults } = useContext(FlowResultsContext)
+
   const { port, getBasePath } = useContext(WorkspaceContext)
 
   const [paParams, setpaParams] = useState() // State to store MED3pa parameters retrieved from the backend
@@ -102,6 +102,7 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
   const [paWorkflowSettings, setPaWorkflowSettings] = useState({})
   const { groupNodeId, changeSubFlow, hasNewConnection } = useContext(FlowFunctionsContext)
   const [showRunModal, setRunModal] = useState(false)
+  const [hideProgressBar, setHideProgressBar] = useState(true)
   // eslint-disable-next-line no-unused-vars
 
   const { config, pageId, configPath } = useContext(PageInfosContext) // used to get the page infos such as id and config path
@@ -130,6 +131,24 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
     }),
     []
   )
+
+  useEffect(() => {
+    console.log("PROGRESS:", progress.now)
+    if (progress.now === 0) return
+    else if (progress.now === 100) {
+      // Delay hiding the progress bar by 2 seconds (2000 ms)
+      const timer = setTimeout(() => {
+        setIsProgressUpdating(false)
+
+        setHideProgressBar(true) // To hide the progress bar with a delay
+      }, 2000) // Adjust the delay as needed
+
+      // Cleanup timer if the component unmounts before the delay
+      return () => clearTimeout(timer)
+    } else {
+      setHideProgressBar(false)
+    }
+  }, [progress])
 
   // When config is changed, we update the workflow
   useEffect(() => {
@@ -169,16 +188,6 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
       })
     )
   }, [])
-
-  // when isResults is changed, we set the progressBar to completed state
-  useEffect(() => {
-    if (isResults) {
-      setProgress({
-        now: 100,
-        currentLabel: "Done!"
-      })
-    }
-  }, [isResults])
 
   // execute this when groupNodeId change. I put it in useEffect because it assures groupNodeId is updated
   useEffect(() => {
@@ -472,16 +481,13 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
           })
         } else if (newNode.type === "apcModelNode") {
           tempDefaultSettings = {
-            hyperparameters: {},
-            grid_params: {}
+            hyperparameters: {}
           }
 
           // Iterate through possible settings and populate tempDefaultSettings accordingly
           Object.entries(possibleSettings).forEach(([settingName, settingValue]) => {
             if (settingName === "grid_params") {
-              settingValue.forEach((p) => {
-                tempDefaultSettings.grid_params[p.name] = p.default_val
-              })
+              // Do nothing
             } else if (settingName === "hyperparameters") {
               settingValue.forEach((p) => {
                 tempDefaultSettings.hyperparameters[p.name] = p.default_val
@@ -632,7 +638,7 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
     const fetchData = () => {
       if (!port) return null
       setLoader(true)
-      setIsProgressUpdating(true)
+
       requestBackend(
         // Send the request
         port,
@@ -646,13 +652,11 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
             setError(jsonResponse.error)
           } else {
             setLoader(false)
-            setIsProgressUpdating(false)
+
             setpaParams(jsonResponse)
           }
         },
         function (error) {
-          setIsProgressUpdating(false)
-
           toast.error("Sending failed", error)
         }
       )
@@ -857,7 +861,7 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
 
     newNodeStart = addSpecificToNode(newNodeStart, newId)
     let newNodeEnd = createBaseNode(
-      { x: 500, y: 200 },
+      { x: 1000, y: 200 },
       {
         nodeType: "paOptimizeIO",
         name: "End",
@@ -881,7 +885,7 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
    */
   const runPaPipeline = async (flConfig) => {
     const folderPath = [getBasePath(EXPERIMENTS), "MED3paResults"].join(MedDataObject.getPathSeparator())
-    setIsResults(false)
+    setHideProgressBar(false)
     setIsProgressUpdating(true)
 
     requestBackend(
@@ -893,25 +897,25 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
           if (jsonResponse.error) {
             handleErrorResponse(jsonResponse.error)
           } else {
+            handleSuccessResponse(jsonResponse, folderPath)
             setProgress({
               now: 100,
               currentLabel: "Done!"
             })
-            // setIsResults(true)
-            handleSuccessResponse(jsonResponse, folderPath)
           }
         } catch (error) {
           handleError(error)
         } finally {
+          // Introduce a delay before hiding the progress bar
+          await new Promise((resolve) => setTimeout(resolve, 1000)) // 1-second delay
           setIsProgressUpdating(false)
-          setIsResults(false)
         }
       },
       (error) => {
-        setIsProgressUpdating(false)
         setProgress({ now: 0, currentLabel: "Message sending failed ❌" })
         toast.error("Sending failed: No configurations set", error)
         console.log(error)
+        setIsProgressUpdating(false)
       }
     )
   }
@@ -1206,7 +1210,7 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
           <>
             {/* bottom center - progress bar */}
             <div className="panel-bottom-center">
-              {isProgressUpdating && (
+              {!hideProgressBar && (
                 <ProgressBarRequests
                   progressBarProps={{ animated: true, variant: "success" }}
                   isUpdating={isProgressUpdating}
