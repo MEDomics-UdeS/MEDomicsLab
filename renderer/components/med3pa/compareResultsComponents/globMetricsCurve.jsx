@@ -40,13 +40,14 @@ const GlobalMetricsCurve = ({ globalMetrics }) => {
     }
 
     // Determine available metric keys
-    const sampleKey = Object.keys(globalMetrics)[0]
+    const sampleKey = Object.keys(globalMetrics)[100]
     const metricKeys = ["metrics_dr_1", "metrics_dr_2", "metrics_1", "metrics_2"]
 
     const availableMetricKeys = metricKeys.filter((key) => globalMetrics[sampleKey]?.[key] !== undefined)
 
     // Extract metric names from the first available metric key
     const firstAvailableMetricKey = availableMetricKeys[0]
+
     let metricNames
     if (firstAvailableMetricKey !== "metrics_dr_1") {
       metricNames = Object.keys(globalMetrics[sampleKey][firstAvailableMetricKey])
