@@ -12,6 +12,7 @@ import { Tooltip } from "primereact/tooltip"
 import { WorkspaceContext } from "../../../workspace/workspaceContext"
 import { rename, onPaste, onDeleteSequentially, createFolder, onDrop, fromJSONtoTree, evaluateIfTargetIsAChild } from "./utils"
 import { MEDDataObject } from "../../../workspace/NewMedDataObject"
+import { ConvertBinaryToOriginalData } from "../../../mongoDB/mongoDBUtils"
 
 /**
  * @description - This component is the sidebar tools component that will be used in the sidebar component
@@ -263,6 +264,7 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
    */
   const onDBClickItem = (event, item) => {
     if (developerMode) {
+      console.log("item", item)
       if (item.type == "medml") {
         dispatchLayout({ type: "openInLearningModule", payload: item })
       } else if (item.type == "medimg") {

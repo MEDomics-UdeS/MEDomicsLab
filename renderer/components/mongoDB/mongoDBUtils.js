@@ -135,9 +135,13 @@ export async function insertMEDDataObjectIfNotExists(medData, path = null, jsonD
  * @param {String} collectionName - The name of the MongoDB collection to store the chunks.
  * @param {Number} chunkSize - The size of each chunk in bytes. Default is 2MB.
  */
-async function uploadAndProcessFile(filePath, collectionName) {
+
+let globalBucket = null
+
+async function insertBigCSVIntoCollection(filePath, collectionName) {
   const db = await connectToMongoDB()
   const bucket = new GridFSBucket(db, { bucketName: collectionName })
+  globalBucket = bucket
   fs.createReadStream(filePath)
     .pipe(bucket.openUploadStream(filePath))
     .on("error", function (error) {
@@ -148,33 +152,45 @@ async function uploadAndProcessFile(filePath, collectionName) {
     })
 }
 
-// NOT USED, IN DEVELOPMENT
-export async function retrieveFileFromGridFS(fileName, collectionName) {
+export async function ConvertBinaryToOriginalData(globalData, item) {
+  if (!globalBucket) {
+    console.error("GridFSBucket not initialized")
+    return
+  }
   const db = await connectToMongoDB()
-  const bucket = new GridFSBucket(db, { bucketName: collectionName })
-  const downloadStream = bucket.openDownloadStreamByName(fileName)
+  const fileDocument = await db.collection(item.index + ".files").findOne({ filename: globalData[item.index].path })
+  console.log("fileDocument", fileDocument)
+  if (!fileDocument) {
+    console.error("File not found in GridFS")
+    return
+  }
+  const downloadStream = globalBucket.openDownloadStream(fileDocument._id)
+  let chunks = []
 
-  let data = ""
   downloadStream.on("data", (chunk) => {
-    data += chunk.toString() // Assuming the file is text
+    chunks.push(chunk) // Collect chunks from the stream
+  })
+  downloadStream.on("end", () => {
+    db.collection(item.index).insertMany(
+      chunks.map((chunk, index) => ({
+        index,
+        data: Buffer.from(chunk, "base64").toString("utf-8") // Decode each chunk
+      })),
+      (error) => {
+        if (error) {
+          console.error("Failed to insert chunks:", error)
+        } else {
+          console.log("Inserted chunks into new MongoDB collection")
+        }
+        db.close()
+      }
+    )
   })
 
-  return new Promise((resolve, reject) => {
-    downloadStream.on("error", reject)
-    downloadStream.on("end", () => resolve(data))
+  downloadStream.on("error", (error) => {
+    console.error("Stream error:", error)
   })
-}
-
-// NOT USED, IN DEVELOPMENT
-export async function displayDataInDatatable(data, collectionName) {
-  const lines = data.split("\n")
-  const headers = lines[0].split(",")
-  const rows = lines.slice(1).map((line) => line.split(","))
-
-  // Create a new collection and add the data in it
-  const db = await connectToMongoDB()
-  const collection = db.collection(collectionName)
-  await collection.insertMany(rows.map((row) => Object.fromEntries(headers.map((header, index) => [header, row[index]]))))
+  return
 }
 
 /**
@@ -199,11 +215,12 @@ export async function getPathFromMEDDataObject(id) {
  */
 async function insertCSVIntoCollection(filePath, collectionName) {
   const db = await connectToMongoDB()
+  const collection = db.collection(collectionName)
+
   const fileSize = fs.statSync(filePath).size
   const maxBSONSize = 16 * 1024 * 1024 // 16MB
 
   if (fileSize <= maxBSONSize) {
-    const collection = db.collection(collectionName)
     return new Promise((resolve, reject) => {
       Papa.parse(fs.createReadStream(filePath), {
         header: true,
@@ -223,7 +240,7 @@ async function insertCSVIntoCollection(filePath, collectionName) {
       })
     })
   } else {
-    return uploadAndProcessFile(filePath, collectionName)
+    insertBigCSVIntoCollection(filePath, collectionName)
   }
 }
 
@@ -432,4 +449,11 @@ export async function downloadCollectionToFile(collectionId, filePath, type) {
   } else {
     throw new Error("Unsupported file type")
   }
+}
+
+// Function to check if a collection exists in the database
+export async function collectionExists(collectionName) {
+  const db = await connectToMongoDB()
+  const collections = await db.listCollections({ name: collectionName }).toArray()
+  return collections.length > 0
 }

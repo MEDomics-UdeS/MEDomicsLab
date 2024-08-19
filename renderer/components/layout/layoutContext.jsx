@@ -2,7 +2,8 @@ import React, { createContext, useState, useContext } from "react"
 import { useEffect } from "react"
 import { toast } from "react-toastify"
 import { DataContext } from "../workspace/dataContext"
-import { getPathFromMEDDataObject, overwriteMEDDataObjectProperties, retrieveFileFromGridFS, displayDataInDatatable } from "../mongoDB/mongoDBUtils"
+import { ConvertBinaryToOriginalData, connectToMongoDB, overwriteMEDDataObjectProperties, collectionExists } from "../mongoDB/mongoDBUtils"
+import { Pause } from "react-bootstrap-icons"
 
 /**
  * @typedef {React.Context} LayoutModelContext
@@ -468,8 +469,22 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
    * @summary Function that adds a tab with a data table to the layout model
    * @params {Object} action - The action passed on by the dispatchLayout function, it uses the payload in the action as a JSON object to add a tab containing a data table to the layout model
    */
-  const openDataTableFromDB = (action) => {
-    openInTab(action, "dataTableFromDB")
+  const openDataTableFromDB = async (action) => {
+    const fs = require("fs")
+    let object = action.payload
+    const fileSize = fs.statSync(globalData[object.index].path).size
+    const maxBSONSize = 16 * 1024 * 1024 // 16MB
+    const doesCollectionExists = await collectionExists(object.index)
+
+    if (!doesCollectionExists) {
+      console.log(doesCollectionExists)
+      if (fileSize > maxBSONSize) {
+        await ConvertBinaryToOriginalData(globalData, object)
+        setTimeout(() => openInTab(action, "dataTableFromDB"), 1500)
+      }
+    } else {
+      openInTab(action, "dataTableFromDB")
+    }
   }
 
   /**
