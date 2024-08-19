@@ -457,3 +457,12 @@ export async function collectionExists(collectionName) {
   const collections = await db.listCollections({ name: collectionName }).toArray()
   return collections.length > 0
 }
+
+// Function to check if a document exists in the 'medDataObjects' collection by it's name
+export async function findMEDDataObjectByName(name) {
+  const db = await connectToMongoDB()
+  const collection = db.collection("medDataObjects")
+  const query = { name: name }
+  const document = await collection.findOne(query)
+  return document
+}

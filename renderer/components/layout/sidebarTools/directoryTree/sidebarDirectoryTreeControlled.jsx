@@ -12,8 +12,10 @@ import { Tooltip } from "primereact/tooltip"
 import { WorkspaceContext } from "../../../workspace/workspaceContext"
 import { rename, onPaste, onDeleteSequentially, createFolder, onDrop, fromJSONtoTree, evaluateIfTargetIsAChild } from "./utils"
 import { MEDDataObject } from "../../../workspace/NewMedDataObject"
-import { ConvertBinaryToOriginalData } from "../../../mongoDB/mongoDBUtils"
-
+import { requestBackend } from "../../../../utilities/requests"
+import { ServerConnectionContext } from "../../../serverConnection/connectionContext"
+import { randomUUID } from "crypto"
+import { insertMEDDataObjectIfNotExists, findMEDDataObjectByName } from "../../../mongoDB/mongoDBUtils"
 /**
  * @description - This component is the sidebar tools component that will be used in the sidebar component
  * @param {Object} props - Props passed from parent component
@@ -44,6 +46,9 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
   const { workspace } = useContext(WorkspaceContext)
 
   const delayOptions = { showDelay: 750, hideDelay: 0 }
+
+  //For Backend Requests
+  const { port } = useContext(ServerConnectionContext)
 
   /**
    * This useEffect hook updates the directory tree when the global data changes.
@@ -262,7 +267,7 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
    * @param {Object} item - The item that was double clicked
    * @returns {void}
    */
-  const onDBClickItem = (event, item) => {
+  const onDBClickItem = async (event, item) => {
     if (developerMode) {
       console.log("item", item)
       if (item.type == "medml") {
@@ -287,6 +292,41 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
         dispatchLayout({ type: "openInTextEditor", payload: item })
       } else if (item.type == "medmodel") {
         dispatchLayout({ type: "openInModelViewer", payload: item })
+      } else if (item.type == "pkl") {
+        const objectName = globalData[item.index].name + "_toCSV"
+        const objectExists = await findMEDDataObjectByName(objectName)
+
+        if (objectExists) {
+          toast.warn("This .pkl file has already been converted to .csv")
+        } else {
+          // If the object does not exist, proceed with the conversion
+          const id = randomUUID()
+
+          const object = new MEDDataObject({
+            id: id,
+            name: objectName,
+            type: "csv",
+            parentID: "ROOT",
+            childrenIDs: [],
+            inWorkspace: false,
+            path: globalData[item.index].path
+          })
+
+          let jsonToSend = {}
+          jsonToSend = {
+            path: globalData[item.index].path,
+            databaseName: "data",
+            newCollectionName: id
+          }
+
+          await requestBackend(port, "/input/handle_pkl/", jsonToSend, (jsonResponse) => {
+            console.log("received results:", jsonResponse)
+          })
+
+          await insertMEDDataObjectIfNotExists(object)
+          MEDDataObject.updateWorkspaceDataObject()
+          toast.success(".pkl file converted to .csv for viewing")
+        }
       } else {
         console.log("DBCLICKED", event, item)
       }

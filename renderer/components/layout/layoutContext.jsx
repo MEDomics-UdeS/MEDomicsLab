@@ -132,7 +132,6 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
           return openGeneric(action, "Settings", "Settings")
         case "openInputToolsDB":
           return openInputToolsDB(action, "InputToolsDB")
-
         case "add":
           return add(action)
         case "remove":

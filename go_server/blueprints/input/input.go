@@ -20,6 +20,7 @@ func AddHandleFunc() {
 	Utils.CreateHandleFunc(prePath+"/compute_spearmanDB/", handleComputeSpearmanDB)
 	Utils.CreateHandleFunc(prePath+"/create_tags/", handleCreateTags)
 	Utils.CreateHandleFunc(prePath+"/delete_tag_from_column/", handleDeleteTagFromColumn)
+	Utils.CreateHandleFunc(prePath+"/handle_pkl/", handlePKL)
 }
 
 
@@ -155,6 +156,18 @@ func handleCreateTags(jsonConfig string, id string) (string, error) {
 func handleDeleteTagFromColumn(jsonConfig string, id string) (string, error) {
 	log.Println("Compute Tag Deletion", id)
 	response, err := Utils.StartPythonScripts(jsonConfig, "../pythonCode/modules/input/delete_tag_from_column.py", id)
+	Utils.RemoveIdFromScripts(id)
+	if err != nil {
+		return "", err
+	}
+	return response, nil
+}
+
+// handlePKL handles the request to handle the pkl file
+// It returns the response from the python script
+func handlePKL(jsonConfig string, id string) (string, error) {
+	log.Println("handling .pkl filetype", id)
+	response, err := Utils.StartPythonScripts(jsonConfig, "../pythonCode/modules/input/handle_pkl.py", id)
 	Utils.RemoveIdFromScripts(id)
 	if err != nil {
 		return "", err
