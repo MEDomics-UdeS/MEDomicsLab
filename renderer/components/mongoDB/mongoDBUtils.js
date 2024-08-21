@@ -110,6 +110,9 @@ export async function insertMEDDataObjectIfNotExists(medData, path = null, jsonD
       case "png":
         await insertPNGIntoCollection(path, medData.id)
         break
+      case "pkl":
+        await insertPKLIntoCollection(path, medData.id)
+        break
       default:
         break
     }
@@ -130,14 +133,28 @@ export async function insertMEDDataObjectIfNotExists(medData, path = null, jsonD
 }
 
 /**
+ * @description Insert a PKL file in the database based on the associated MEDDataObject id
+ * @param {String} filePath path of the file to import in the database
+ * @param {String} collectionName name of the collection in which we want to import the data
+ */
+async function insertPKLIntoCollection(filePath, collectionName) {
+  const db = await connectToMongoDB()
+  const collection = db.collection(collectionName)
+
+  const pklContent = fs.readFileSync(filePath)
+  const document = { pklContent: pklContent }
+
+  const result = await collection.insertOne(document)
+  console.log(`PKL data inserted with _id: ${result.insertedId}`)
+  return result
+}
+
+/**
  * Uploads a large CSV file to MongoDB by storing it in chunks.
  * @param {String} filePath - The path to the CSV file.
  * @param {String} collectionName - The name of the MongoDB collection to store the chunks.
- * @param {Number} chunkSize - The size of each chunk in bytes. Default is 2MB.
  */
-
 let globalBucket = null
-
 async function insertBigCSVIntoCollection(filePath, collectionName) {
   const db = await connectToMongoDB()
   const bucket = new GridFSBucket(db, { bucketName: collectionName })
@@ -150,60 +167,6 @@ async function insertBigCSVIntoCollection(filePath, collectionName) {
     .on("finish", function () {
       console.log("File upload to GridFS complete")
     })
-}
-
-export async function ConvertBinaryToOriginalData(globalData, item) {
-  if (!globalBucket) {
-    console.error("GridFSBucket not initialized")
-    return
-  }
-  const db = await connectToMongoDB()
-  const fileDocument = await db.collection(item.index + ".files").findOne({ filename: globalData[item.index].path })
-  console.log("fileDocument", fileDocument)
-  if (!fileDocument) {
-    console.error("File not found in GridFS")
-    return
-  }
-  const downloadStream = globalBucket.openDownloadStream(fileDocument._id)
-  let chunks = []
-
-  downloadStream.on("data", (chunk) => {
-    chunks.push(chunk) // Collect chunks from the stream
-  })
-  downloadStream.on("end", () => {
-    db.collection(item.index).insertMany(
-      chunks.map((chunk, index) => ({
-        index,
-        data: Buffer.from(chunk, "base64").toString("utf-8") // Decode each chunk
-      })),
-      (error) => {
-        if (error) {
-          console.error("Failed to insert chunks:", error)
-        } else {
-          console.log("Inserted chunks into new MongoDB collection")
-        }
-        db.close()
-      }
-    )
-  })
-
-  downloadStream.on("error", (error) => {
-    console.error("Stream error:", error)
-  })
-  return
-}
-
-/**
- * @description Get the MEDDataObject specified by id from the DB
- * @param {*} id
- * @returns
- */
-export async function getPathFromMEDDataObject(id) {
-  const db = await connectToMongoDB()
-  const collection = db.collection("medDataObjects")
-  const query = { id: id }
-  const document = await collection.findOne(query)
-  return document.path
 }
 
 /**
@@ -278,7 +241,6 @@ async function insertPNGIntoCollection(filePath, collectionName) {
 
   const result = await collection.insertOne(document)
   console.log(`PNG data inserted with _id: ${result.insertedId}`)
-  console.log(`PNG data inserted with path: ${filePath}`)
   return result
 }
 
@@ -451,18 +413,86 @@ export async function downloadCollectionToFile(collectionId, filePath, type) {
   }
 }
 
-// Function to check if a collection exists in the database
+/**
+ * @description Check if a collection exists in the database
+ * @param {*} collectionName
+ * @returns
+ */
 export async function collectionExists(collectionName) {
   const db = await connectToMongoDB()
   const collections = await db.listCollections({ name: collectionName }).toArray()
   return collections.length > 0
 }
 
-// Function to check if a document exists in the 'medDataObjects' collection by it's name
+/**
+ * @description Get the MEDDataObject specified by name from the DB
+ * @param {*} name
+ * @returns
+ */
 export async function findMEDDataObjectByName(name) {
   const db = await connectToMongoDB()
   const collection = db.collection("medDataObjects")
   const query = { name: name }
   const document = await collection.findOne(query)
   return document
+}
+
+/**
+ * @description Get the MEDDataObject specified by id from the DB
+ * @param {*} id
+ * @returns
+ */
+export async function getPathFromMEDDataObject(id) {
+  const db = await connectToMongoDB()
+  const collection = db.collection("medDataObjects")
+  const query = { id: id }
+  const document = await collection.findOne(query)
+  return document.path
+}
+
+/**
+ * @description Convert the data of a collection stored use GridFS for viewing as a csv file
+ * @param {*} globalData
+ * @param {*} item
+ * @returns
+ */
+export async function ConvertBinaryToOriginalData(globalData, item) {
+  if (!globalBucket) {
+    console.error("GridFSBucket not initialized")
+    return
+  }
+  const db = await connectToMongoDB()
+  const fileDocument = await db.collection(item.index + ".files").findOne({ filename: globalData[item.index].path })
+  console.log("fileDocument", fileDocument)
+  if (!fileDocument) {
+    console.error("File not found in GridFS")
+    return
+  }
+  const downloadStream = globalBucket.openDownloadStream(fileDocument._id)
+  let chunks = []
+
+  downloadStream.on("data", (chunk) => {
+    chunks.push(chunk) // Collect chunks from the stream
+  })
+  downloadStream.on("end", () => {
+    db.collection(item.index).insertMany(
+      chunks.map((chunk, index) => ({
+        index,
+        data: Buffer.from(chunk, "base64").toString("utf-8") // Decode each chunk
+      })),
+      (error) => {
+        if (error) {
+          console.error("Failed to insert chunks:", error)
+        } else {
+          console.log("Inserted chunks into new MongoDB collection")
+        }
+        db.close()
+      }
+    )
+  })
+
+  downloadStream.on("error", (error) => {
+    console.error("Stream error:", error)
+  })
+  return
 }

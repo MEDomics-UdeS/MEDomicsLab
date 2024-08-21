@@ -1,6 +1,7 @@
 /* eslint-disable no-undef */
 import React, { useContext, useRef, useState, useEffect } from "react"
-import { Trash, BoxArrowUpRight, Eraser, FolderPlus, ArrowClockwise, EyeFill, EyeSlashFill, ArrowRepeat } from "react-bootstrap-icons"
+import { Trash, BoxArrowUpRight, Eraser, FolderPlus, ArrowClockwise, EyeFill, EyeSlashFill, ArrowRepeat, BoxArrowUp } from "react-bootstrap-icons"
+import { FiFolder } from "react-icons/fi"
 import { Accordion, Stack } from "react-bootstrap"
 import { ControlledTreeEnvironment, Tree } from "react-complex-tree"
 import { DataContext } from "../../../workspace/dataContext"
@@ -188,7 +189,9 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
    *  @param {string} param0.id - The id of the context menu action
    *  @param {Object} param0.props - The props of the context menu action
    */
-  function handleContextMenuAction({ id, props }) {
+  async function handleContextMenuAction({ id, props }) {
+    const objectName = globalData[props.index].name.replace("pkl", "csv")
+    const objectExists = await findMEDDataObjectByName(objectName)
     if (developerMode) {
       switch (id) {
         case "openInDataTableFromDBViewer":
@@ -255,6 +258,40 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
             toast.error("Error: No item selected")
           }
           break
+        case "unpack":
+          if (objectExists) {
+            toast.warn("This .pkl file has already been converted to .csv")
+          } else {
+            // If the object does not exist, proceed with the conversion
+            const id = randomUUID()
+
+            const object = new MEDDataObject({
+              id: id,
+              name: objectName,
+              type: "csv",
+              parentID: "ROOT",
+              childrenIDs: [],
+              inWorkspace: false,
+              path: globalData[props.index].path
+            })
+
+            let jsonToSend = {
+              path: globalData[props.index].path,
+              databaseName: "data",
+              newCollectionName: id
+            }
+
+            requestBackend(port, "/input/handle_pkl/", jsonToSend, (jsonResponse) => {
+              console.log("received results:", jsonResponse)
+            })
+
+            await insertMEDDataObjectIfNotExists(object)
+            MEDDataObject.updateWorkspaceDataObject()
+            toast.success(".pkl file converted to .csv for viewing")
+          }
+          break
+        default:
+          break
       }
     } else {
       toast.error("Error: Developer mode is enabled")
@@ -293,40 +330,7 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
       } else if (item.type == "medmodel") {
         dispatchLayout({ type: "openInModelViewer", payload: item })
       } else if (item.type == "pkl") {
-        const objectName = globalData[item.index].name + "_toCSV"
-        const objectExists = await findMEDDataObjectByName(objectName)
-
-        if (objectExists) {
-          toast.warn("This .pkl file has already been converted to .csv")
-        } else {
-          // If the object does not exist, proceed with the conversion
-          const id = randomUUID()
-
-          const object = new MEDDataObject({
-            id: id,
-            name: objectName,
-            type: "csv",
-            parentID: "ROOT",
-            childrenIDs: [],
-            inWorkspace: false,
-            path: globalData[item.index].path
-          })
-
-          let jsonToSend = {}
-          jsonToSend = {
-            path: globalData[item.index].path,
-            databaseName: "data",
-            newCollectionName: id
-          }
-
-          await requestBackend(port, "/input/handle_pkl/", jsonToSend, (jsonResponse) => {
-            console.log("received results:", jsonResponse)
-          })
-
-          await insertMEDDataObjectIfNotExists(object)
-          MEDDataObject.updateWorkspaceDataObject()
-          toast.success(".pkl file converted to .csv for viewing")
-        }
+        toast.warn("Unpack the .pkl file first to view the contents")
       } else {
         console.log("DBCLICKED", event, item)
       }
@@ -547,7 +551,7 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
             </Item>
           </Submenu>
           <Item id="revealInFileExplorer" onClick={handleContextMenuAction}>
-            {/* <BoxArrowUpRight size={"1rem"} className="context-menu-icon" /> */}
+            <FiFolder size={"1rem"} className="context-menu-icon" />
             Reveal in File Explorer
           </Item>
           <Item id="sync" onClick={handleContextMenuAction}>
@@ -588,7 +592,7 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
             </Item>
           </Submenu>
           <Item id="revealInFileExplorer" onClick={handleContextMenuAction}>
-            {/* <BoxArrowUpRight size={"1rem"} className="context-menu-icon" /> */}
+            <FiFolder size={"1rem"} className="context-menu-icon" />
             Reveal in File Explorer
           </Item>
           <Item id="sync" onClick={handleContextMenuAction}>
@@ -624,7 +628,7 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
             </Item>
           </Submenu>
           <Item id="revealInFileExplorer" onClick={handleContextMenuAction}>
-            {/* <BoxArrowUpRight size={"1rem"} className="context-menu-icon" /> */}
+            <FiFolder size={"1rem"} className="context-menu-icon" />
             Reveal in File Explorer
           </Item>
           <Item id="sync" onClick={handleContextMenuAction}>
@@ -647,7 +651,7 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
 
         <Menu id="MENU_FOLDER">
           <Item id="revealInFileExplorer" onClick={handleContextMenuAction}>
-            {/* <BoxArrowUpRight size={"1rem"} className="context-menu-icon" /> */}
+            <FiFolder size={"1rem"} className="context-menu-icon" />
             Reveal in File Explorer
           </Item>
           <Item id="sync" onClick={handleContextMenuAction}>
@@ -690,12 +694,12 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
               Jupyter Notebook
             </Item>
             <Item id="openInVSCode" onClick={() => require("electron").shell.openPath(globalData[selectedItems[0]].path)}>
-              {/* <BoxArrowUpRight size={"1rem"} className="context-menu-icon" /> */}
+              <FiFolder size={"1rem"} className="context-menu-icon" />
               VSCode
             </Item>
           </Submenu>
           <Item id="revealInFileExplorer" onClick={handleContextMenuAction}>
-            {/* <BoxArrowUpRight size={"1rem"} className="context-menu-icon" /> */}
+            <FiFolder size={"1rem"} className="context-menu-icon" />
             Reveal in File Explorer
           </Item>
           <Item id="sync" onClick={handleContextMenuAction}>
@@ -731,7 +735,7 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
             </Item>
           </Submenu>
           <Item id="revealInFileExplorer" onClick={handleContextMenuAction}>
-            {/* <BoxArrowUpRight size={"1rem"} className="context-menu-icon" /> */}
+            <FiFolder size={"1rem"} className="context-menu-icon" />
             Reveal in File Explorer
           </Item>
           <Item id="sync" onClick={handleContextMenuAction}>
@@ -767,7 +771,7 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
             </Item>
           </Submenu>
           <Item id="revealInFileExplorer" onClick={handleContextMenuAction}>
-            {/* <BoxArrowUpRight size={"1rem"} className="context-menu-icon" /> */}
+            <FiFolder size={"1rem"} className="context-menu-icon" />
             Reveal in File Explorer
           </Item>
           <Item id="sync" onClick={handleContextMenuAction}>
@@ -801,7 +805,7 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
             <Item>Text editor (default)</Item>
           </Submenu>
           <Item id="revealInFileExplorer" onClick={handleContextMenuAction}>
-            {/* <BoxArrowUpRight size={"1rem"} className="context-menu-icon" /> */}
+            <FiFolder size={"1rem"} className="context-menu-icon" />
             Reveal in File Explorer
           </Item>
           <Item id="sync" onClick={handleContextMenuAction}>
@@ -843,7 +847,7 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
             </Item>
           </Submenu>
           <Item id="revealInFileExplorer" onClick={handleContextMenuAction}>
-            {/* <BoxArrowUpRight size={"1rem"} className="context-menu-icon" /> */}
+            <FiFolder size={"1rem"} className="context-menu-icon" />
             Reveal in File Explorer
           </Item>
           <Item id="sync" onClick={handleContextMenuAction}>
@@ -862,11 +866,15 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
             <Trash size={"1rem"} className="context-menu-icon" />
             Remove from Workspace
           </Item>
+          <Item id="unpack" onClick={handleContextMenuAction}>
+            <BoxArrowUp size={"1rem"} className="context-menu-icon" />
+            Unpack
+          </Item>
         </Menu>
 
         <Menu id="MENU_DEFAULT">
           <Item id="revealInFileExplorer" onClick={handleContextMenuAction}>
-            {/* <BoxArrowUpRight size={"1rem"} className="context-menu-icon" /> */}
+            <FiFolder size={"1rem"} className="context-menu-icon" />
             Reveal in File Explorer
           </Item>
           <Item id="sync" onClick={handleContextMenuAction}>
