@@ -123,7 +123,21 @@ const nodesParams = {
     img: "save_model.png",
     title: "Save model",
     possibleSettings: { classification: classificationSettings["save_model"], regression: regressionSettings["save_model"] }
+  },
+  
+  outer_cv: {         
+    type: "OuterCVNode",         
+    classes: "action outer_cv run",         
+    nbInput: 1,         
+    nbOutput: 1,         
+    input: ["dataset"],         
+    output: ["finalize"],         
+    img: "outer_cv.png",         
+    title: "Outer CV", 
+    possibleSettings: { classification: classificationSettings["outer_cv"], regression: regressionSettings["outer_cv"]}
   }
+ 
+
 }
 
 export default nodesParams

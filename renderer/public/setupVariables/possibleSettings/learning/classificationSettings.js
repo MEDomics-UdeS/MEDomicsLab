@@ -730,6 +730,7 @@ const classificationSettings = {
             }
         }
     },
+    
     "tune_model": {
         "options": {
             "fold": {
@@ -1081,9 +1082,38 @@ const classificationSettings = {
                 "default_val": "False"
             }
         },
+    
         "ml_types": "classification",
         "code": "calibrate_model()",
         "default": {}
+    },
+    "outer_cv": {
+        "options": {
+            "cv_type": {
+                "type": "string",
+                "tooltip": "<p>Type of cross-validation to use. Options are 'kfold' or 'stratified_kfold'.</p>",
+                "default_val": "kfold"
+            },
+            "n_splits": {
+                "type": "int",
+                "tooltip": "<p>Number of splits/folds in the cross-validation.</p>",
+                "default_val": "5"
+            },
+            "shuffle": {
+                "type": "bool",
+                "tooltip": "<p>Whether to shuffle the data before splitting into batches.</p>",
+                "default_val": "False"
+            },
+            "random_state": {
+                "type": "int",
+                "tooltip": "<p>Seed used by the random number generator for reproducibility. Set to None for random behavior.</p>",
+                "default_val": "42"
+            }
+        },
+        "ml_types": "classification regression",
+        "code": "",
+        "default": {}
     }
+
 }; 
  export default classificationSettings;

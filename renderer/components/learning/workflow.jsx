@@ -25,6 +25,7 @@ import GroupNode from "../flow/groupNode"
 import OptimizeIO from "./nodesTypes/optimizeIO"
 import DatasetNode from "./nodesTypes/datasetNode"
 import LoadModelNode from "./nodesTypes/loadModelNode"
+import OuterCVNode from "./nodesTypes/OuterCVNode.jsx"  
 
 // here are the parameters of the nodes
 import nodesParams from "../../public/setupVariables/allNodesParams"
@@ -76,7 +77,8 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
       groupNode: GroupNode,
       optimizeIO: OptimizeIO,
       datasetNode: DatasetNode,
-      loadModelNode: LoadModelNode
+      loadModelNode: LoadModelNode,
+      OuterCVNode: OuterCVNode
     }),
     []
   )
@@ -426,9 +428,26 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
     // if the node is not a static node for a optimize subflow, it needs possible settings
     let setupParams = {}
     if (!newNode.id.includes("opt")) {
-      setupParams = deepCopy(staticNodesParams[workflowType][newNode.data.internal.type])
-      setupParams.possibleSettings = setupParams["possibleSettings"][MLType]
+      setupParams = deepCopy(staticNodesParams[workflowType][newNode.data.internal.type]);
+    
+      // setupParams is valid
+      if (setupParams) {
+        newNode.data.setupParam = setupParams;
+        newNode.data.internal.code = "";
+    
+        // verifies that setupParams has 'classes'
+        if (setupParams.classes) {
+          newNode.className = setupParams.classes;
+        } else {
+          console.error("Erreur : setupParams ou setupParams.classes est null ou undefined");
+          // if classes is null
+        }
+      } else {
+        console.error("Erreur : setupParams est null ou undefined");
+      }
     }
+    
+    
     newNode.id = `${newNode.id}${associatedNode ? `.${associatedNode}` : ""}` // if the node is a sub-group node, it has the id of the parent node seperated by a dot. useful when processing only ids
     newNode.hidden = newNode.type == "optimizeIO"
     newNode.zIndex = newNode.type == "optimizeIO" ? 1 : 1010

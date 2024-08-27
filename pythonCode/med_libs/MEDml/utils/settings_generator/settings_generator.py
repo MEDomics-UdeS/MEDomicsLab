@@ -163,6 +163,10 @@ nodes_options = {
         "info": ['load_model'],
         "code": """"""
     },
+    'outer_cv': {
+        "info": ['outer_cv'],
+        "code": """"""
+    }
 
 }
 
@@ -271,6 +275,10 @@ def convert_to_medomics_standards(settings: dict, types_conv: dict, nodes_includ
     # SAVE_MODEL SETTINGS
     standard_settings['save_model']['options'] = settings['save_model']['options']
     standard_settings['save_model']['code'] = nodes_include['save_model']['code']
+
+    # OUTER_CV SETTINGS
+    standard_settings['outer_cv']['options'] = settings['outer_cv']['options']
+    standard_settings['outer_cv']['code'] = nodes_include['outer_cv']['code']
 
     # print(json.dumps(standard_settings, indent=4))
 
