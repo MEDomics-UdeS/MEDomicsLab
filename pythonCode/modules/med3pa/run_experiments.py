@@ -308,7 +308,7 @@ def _handle_med3pa_experiment(experiment):
     apc_hyperparameters = apc_model.get("hyperparameters", None)
     apc_optimize_params = apc_model.get("optimize_params", None)
     pretrained_apc = apc_model.get('pretrained_apc', None)
-    max_samples_ratio = apc_model.get('max_samples_ratio', 10)
+    max_samples_ratio = apc_model.get('max_samples_ratio', 50)
 
     manager = DatasetsManager()
     manager.set_from_file(dataset_type="training", file=datasets['training']['path'],
@@ -409,7 +409,7 @@ def _handle_det3pa_experiment(experiment):
     apc_hyperparameters = apc_model.get("hyperparameters", None)
     apc_optimize_params = apc_model.get("optimize_params", None)
     pretrained_apc = apc_model.get('pretrained_apc', None)
-    max_samples_ratio = apc_model.get('max_samples_ratio', None)
+    max_samples_ratio = apc_model.get('max_samples_ratio', 50)
 
     manager = DatasetsManager()
     manager.set_from_file(dataset_type="training", file=datasets['training']['path'],

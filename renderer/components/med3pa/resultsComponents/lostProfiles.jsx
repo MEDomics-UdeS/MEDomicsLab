@@ -134,7 +134,7 @@ const LostProfiles = ({ lostData, filters, onElementClick }) => {
     toolbox: {
       feature: {
         saveAsImage: {
-          type: "svg",
+          // type: "svg",
           backgroundColor: "transparent"
         }
       }
