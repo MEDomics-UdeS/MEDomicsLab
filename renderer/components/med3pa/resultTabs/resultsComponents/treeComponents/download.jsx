@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react"
 import { Panel, getNodesBounds, getViewportForBounds } from "reactflow"
-import { toPng, toSvg } from "html-to-image"
+import { toPng } from "html-to-image"
 import { GoDownload } from "react-icons/go"
 import Tooltip from "@mui/material/Tooltip"
 import { IconButton } from "@mui/material"
@@ -48,20 +48,8 @@ function DownloadButton({ reactFlowInstance, reactFlowRef }) {
 
     // Function to add a file to the ZIP archive
     const addToZip = (fileName, dataUrl) => {
-      if (!dataUrl) {
-        console.error(`No data URL for ${fileName}`)
-        return
-      }
-
-      // Handle SVG data URL directly
-      if (fileName.endsWith(".svg")) {
-          const svgData = decodeURIComponent(dataUrl.split(",")[1]);
-          zip.file(fileName, svgData);
-      } else {
-        // For PNG or other formats
-        const base64Data = dataUrl.split("base64,")[1]
-        zip.file(fileName, base64Data, { base64: true })
-      }
+      const base64Data = dataUrl.split("base64,")[1]
+      zip.file(fileName, base64Data, { base64: true })
     }
 
     // Function to initiate the ZIP download
@@ -72,7 +60,7 @@ function DownloadButton({ reactFlowInstance, reactFlowRef }) {
     }
 
     // Capture React Flow viewport image
-    toSvg(reactFlowRef.querySelector(".react-flow__viewport"), {
+    toPng(reactFlowRef.querySelector(".react-flow__viewport"), {
       width: imageWidth,
       height: imageHeight,
       imageSmoothingEnabled: true,
@@ -85,7 +73,7 @@ function DownloadButton({ reactFlowInstance, reactFlowRef }) {
         const legendItems = reactFlowRef.querySelector(".legend-container")
 
         if (legendItems) {
-          return toSvg(legendItems)
+          return toPng(legendItems)
         } else {
           return Promise.resolve(null) // Return a resolved promise if legend-items don't exist
         }
