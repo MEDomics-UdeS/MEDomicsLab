@@ -74,6 +74,7 @@ const MDRCurve = ({ curveData, clickedLostElement, onFullScreenClicked, fullscre
       toolbox: {
         feature: {
           saveAsImage: {
+            name: "mdrcurves",
             type: "svg",
             backgroundColor: "transparent"
           }
@@ -174,7 +175,7 @@ const MDRCurve = ({ curveData, clickedLostElement, onFullScreenClicked, fullscre
       </div>
       <hr style={{ borderColor: "#868686", borderWidth: "0.5px", width: "100%" }} />
       <div style={{ width: "100%", height: "100%" }}>
-        <ReactECharts key={JSON.stringify(options)} option={options} />
+        <ReactECharts key={JSON.stringify(options)} option={options} opts={{ renderer: "svg" }} />
       </div>
     </div>
   )
