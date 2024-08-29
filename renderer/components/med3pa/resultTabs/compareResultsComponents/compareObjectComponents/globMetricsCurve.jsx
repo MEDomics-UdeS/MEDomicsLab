@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react"
 import ReactECharts from "echarts-for-react"
-import FlInput from "../paInput"
+import FlInput from "../../../baseComponents/paInput"
 
 /**
  *

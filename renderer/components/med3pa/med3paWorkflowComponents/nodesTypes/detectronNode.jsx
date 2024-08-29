@@ -1,9 +1,9 @@
 import React, { useState, useContext, useEffect } from "react"
-import Node from "../../flow/node"
-import FlInput from "../paInput"
+import Node from "../../../flow/node"
+import FlInput from "../../baseComponents/paInput"
 import { Button } from "react-bootstrap" // Ensure Dropdown is imported from react-bootstrap
 import * as Icon from "react-bootstrap-icons"
-import { FlowFunctionsContext } from "../../flow/context/flowFunctionsContext"
+import { FlowFunctionsContext } from "../../../flow/context/flowFunctionsContext"
 import { OverlayTrigger, Tooltip } from "react-bootstrap"
 
 /**

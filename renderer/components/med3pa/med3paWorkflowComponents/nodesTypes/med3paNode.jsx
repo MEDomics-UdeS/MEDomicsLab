@@ -1,10 +1,10 @@
 import React from "react"
-import Node from "../../flow/node"
+import Node from "../../../flow/node"
 import { Button } from "react-bootstrap"
 import { PiFloppyDisk } from "react-icons/pi"
 
 // MED3pa context
-import { useMED3paContext } from "../../workspace/med3paContext"
+import { useMED3paContext } from "../../../workspace/med3paContext"
 
 /**
  *

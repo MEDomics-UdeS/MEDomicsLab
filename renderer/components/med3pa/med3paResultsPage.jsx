@@ -5,9 +5,9 @@ import { Tabs, Tab } from "react-bootstrap"
 import "bootstrap/dist/css/bootstrap.min.css"
 
 import MED3paResultsTab from "./resultTabs/med3paResultsTab.jsx"
-import DetectronResults from "./resultsComponents/detectronResults.jsx"
+import DetectronResults from "./resultTabs/resultsComponents/detectronResults.jsx"
 import MED3paConfigTab from "./resultTabs/med3paConfigTab.jsx"
-import MED3paCompareResults from "./med3paCompareResults.jsx"
+import MED3paCompareResults from "./resultTabs/med3paCompareResultsTab.jsx"
 
 /**
  *

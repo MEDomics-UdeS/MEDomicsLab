@@ -13,15 +13,16 @@ import Form from "react-bootstrap/Form"
 import { toast } from "react-toastify" // https://www.npmjs.com/package/react-toastify
 import { Tooltip } from "react-tooltip"
 import { Markup } from "interweave"
-import WsSelect from "../mainPages/dataComponents/wsSelect"
-import WsSelectMultiple from "../mainPages/dataComponents/wsSelectMultiple"
-import TagsSelectMultiple from "../mainPages/dataComponents/tagsSelectMultiple"
-import { customZipFile2Object } from "../../utilities/customZipFile"
-import { DataContext } from "../workspace/dataContext"
-import MedDataObject from "../workspace/medDataObject"
+import WsSelect from "../../mainPages/dataComponents/wsSelect"
+import WsSelectMultiple from "../../mainPages/dataComponents/wsSelectMultiple"
+
+import TagsSelectMultiple from "../../mainPages/dataComponents/tagsSelectMultiple"
+import { customZipFile2Object } from "../../../utilities/customZipFile"
+import { DataContext } from "../../workspace/dataContext"
+import MedDataObject from "../../workspace/medDataObject"
 import { Dropdown } from "primereact/dropdown"
 import { MultiSelect } from "primereact/multiselect"
-import VarsSelectMultiple from "../mainPages/dataComponents/varsSelectMultiple"
+import VarsSelectMultiple from "../../mainPages/dataComponents/varsSelectMultiple"
 import { Message } from "primereact/message"
 
 /**

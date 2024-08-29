@@ -14,14 +14,15 @@ This File uses DataContext to :
 */
 
 import React, { useState, useContext, useEffect } from "react"
-import Node from "../../flow/node"
+import Node from "../../../flow/node"
 import { Button, Stack, OverlayTrigger, Tooltip } from "react-bootstrap"
 import * as Icon from "react-bootstrap-icons"
-import { FlowFunctionsContext } from "../../flow/context/flowFunctionsContext"
-import { DataContext } from "../../workspace/dataContext"
-import MedDataObject from "../../workspace/medDataObject"
-import { LoaderContext } from "../../generalPurpose/loaderContext"
-import FlInput from "../paInput"
+import { FlowFunctionsContext } from "../../../flow/context/flowFunctionsContext"
+import { DataContext } from "../../../workspace/dataContext"
+import MedDataObject from "../../../workspace/medDataObject"
+import { LoaderContext } from "../../../generalPurpose/loaderContext"
+
+import FlInput from "../../baseComponents/paInput"
 
 /**
  *

@@ -1,6 +1,6 @@
 import React from "react"
 import { Modal, Button } from "react-bootstrap"
-import FlInput from "./paInput"
+import FlInput from "../../baseComponents/paInput"
 
 /**
  *

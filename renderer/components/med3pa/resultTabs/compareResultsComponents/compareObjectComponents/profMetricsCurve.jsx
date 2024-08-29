@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from "react"
 
-import FlInput from "../paInput"
+import FlInput from "../../../baseComponents/paInput"
 import GlobalMetricsCurve from "./globMetricsCurve"
 import { Slider, Tooltip, Typography } from "@mui/material"
 import { Card, Col, Container, Row } from "react-bootstrap"
 import { MdExpandMore, MdOutlineInfo } from "react-icons/md"
-import { formatValue } from "../resultTabs/tabFunctions"
+import { formatValue } from "../../../resultTabs/tabFunctions"
 import { BiSearchAlt } from "react-icons/bi"
-import { transformKey } from "./objSettings"
+import { transformKey } from "../objSettings"
 
 /**
  *

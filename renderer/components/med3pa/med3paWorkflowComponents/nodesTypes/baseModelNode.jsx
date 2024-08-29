@@ -1,11 +1,12 @@
 /* eslint-disable camelcase */
 import React, { useState, useContext, useEffect } from "react"
-import Node from "../../flow/node"
+import Node from "../../../flow/node"
 import { Button, OverlayTrigger, Tooltip } from "react-bootstrap"
 import * as Icon from "react-bootstrap-icons"
-import { FlowFunctionsContext } from "../../flow/context/flowFunctionsContext"
-import { LoaderContext } from "../../generalPurpose/loaderContext"
-import FlInput from "../paInput"
+import { FlowFunctionsContext } from "../../../flow/context/flowFunctionsContext"
+import { LoaderContext } from "../../../generalPurpose/loaderContext"
+
+import FlInput from "../../baseComponents/paInput"
 
 /**
  *

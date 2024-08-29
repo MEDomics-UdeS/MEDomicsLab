@@ -2,9 +2,9 @@ import React, { useEffect, useState } from "react"
 import { Typography } from "@mui/material"
 import { TbFilterCog } from "react-icons/tb"
 import { FaCompress, FaExpand } from "react-icons/fa"
-import TreeParameters from "./treeParams"
-import NodeParameters from "./nodeParams"
-import FlInput from "../paInput"
+import TreeParameters from "./FilterResultComponents/treeParams"
+import NodeParameters from "./FilterResultComponents/nodeParams"
+import FlInput from "../../baseComponents/paInput"
 
 /**
  *
