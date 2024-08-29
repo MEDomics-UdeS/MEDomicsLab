@@ -134,7 +134,8 @@ const LostProfiles = ({ lostData, filters, onElementClick }) => {
     toolbox: {
       feature: {
         saveAsImage: {
-          // type: "svg",
+          name: "lost_profiles",
+          type: "svg",
           backgroundColor: "transparent"
         }
       }
@@ -223,7 +224,7 @@ const LostProfiles = ({ lostData, filters, onElementClick }) => {
       </Typography>
       <hr style={{ borderColor: "#868686", borderWidth: "0.5px", width: "100%" }} />
       <div style={{ width: "100%", height: "100%" }}>
-        <ReactECharts ref={chartRef} option={option} onEvents={onEvents} />
+        <ReactECharts ref={chartRef} option={option} onEvents={onEvents} opts={{renderer: 'svg'}} />
       </div>
     </div>
   )
