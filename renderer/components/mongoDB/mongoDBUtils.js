@@ -113,6 +113,9 @@ export async function insertMEDDataObjectIfNotExists(medData, path = null, jsonD
       case "pkl":
         await insertPKLIntoCollection(path, medData.id)
         break
+      case "jpg":
+        await insertJPGIntoCollection(path, medData.id)
+        break
       default:
         break
     }
@@ -241,6 +244,24 @@ async function insertPNGIntoCollection(filePath, collectionName) {
 
   const result = await collection.insertOne(document)
   console.log(`PNG data inserted with _id: ${result.insertedId}`)
+  return result
+}
+
+/**
+ * @description Insert a JPG file in the database based on the associated MEDDataObject id
+ * @param {*} filePath
+ * @param {*} collectionName
+ * @returns
+ */
+async function insertJPGIntoCollection(filePath, collectionName) {
+  const db = await connectToMongoDB()
+  const collection = db.collection(collectionName)
+
+  const imageBuffer = fs.readFileSync(filePath)
+  const document = { path: filePath, data: imageBuffer }
+
+  const result = await collection.insertOne(document)
+  console.log(`JPG data inserted with _id: ${result.insertedId}`)
   return result
 }
 
