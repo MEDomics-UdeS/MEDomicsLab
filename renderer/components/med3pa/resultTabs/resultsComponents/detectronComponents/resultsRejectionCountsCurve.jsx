@@ -61,13 +61,23 @@ const ResultsRejectionCountsCurve = ({ rejectionData }) => {
       yAxis: {
         type: "value"
       },
+      toolbox: {
+        feature: {
+          saveAsImage: {
+            name: "rejection_counts",
+            type: "svg",
+
+            backgroundColor: "transparent"
+          }
+        }
+      },
       series
     }
 
     setOptions(newOptions)
   }, [rejectionData])
 
-  return <ReactECharts option={options} style={{ height: "500px", width: "100%" }} />
+  return <ReactECharts option={options} style={{ height: "500px", width: "100%" }} opts={{ renderer: "svg" }} />
 }
 
 export default ResultsRejectionCountsCurve

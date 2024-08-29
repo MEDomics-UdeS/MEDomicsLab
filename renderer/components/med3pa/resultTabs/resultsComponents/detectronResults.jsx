@@ -64,6 +64,16 @@ const DetectronResults = ({ detectronResults, rejectionCounts }) => {
         trigger: "item",
         formatter: "{b}: {c}%"
       },
+      toolbox: {
+        feature: {
+          saveAsImage: {
+            name: "significance_shift",
+            type: "svg",
+
+            backgroundColor: "transparent"
+          }
+        }
+      },
       legend: {
         type: "scroll",
         orient: "horizontal",
@@ -195,7 +205,7 @@ const DetectronResults = ({ detectronResults, rejectionCounts }) => {
                       ) : activeKey === index.toString() ? (
                         <tr key={key}>
                           <td colSpan="2">
-                            <ReactECharts option={getPieChartOptions(value)} style={{ height: "300px", width: "100%" }} />
+                            <ReactECharts option={getPieChartOptions(value)} style={{ height: "300px", width: "100%" }} opts={{ renderer: "svg" }} />
                           </td>
                         </tr>
                       ) : null

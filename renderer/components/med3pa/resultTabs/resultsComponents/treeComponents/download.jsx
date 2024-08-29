@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react"
 import { Panel, getNodesBounds, getViewportForBounds } from "reactflow"
-import { toPng, toSvg } from "html-to-image"
+import { toSvg } from "html-to-image"
 import { GoDownload } from "react-icons/go"
 import Tooltip from "@mui/material/Tooltip"
 import { IconButton } from "@mui/material"
