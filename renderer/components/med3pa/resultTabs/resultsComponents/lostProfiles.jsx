@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react"
 import ReactECharts from "echarts-for-react"
-import { filterUniqueLostProfiles } from "../resultTabs/tabFunctions"
+import { filterUniqueLostProfiles } from "../tabFunctions"
 import { MdGroupRemove } from "react-icons/md"
 import { Typography } from "@mui/material"
 
@@ -134,7 +134,7 @@ const LostProfiles = ({ lostData, filters, onElementClick }) => {
     toolbox: {
       feature: {
         saveAsImage: {
-          // type: "svg",
+          type: "svg",
           backgroundColor: "transparent"
         }
       }

@@ -1,8 +1,8 @@
 import React, { useEffect } from "react"
 import { Typography, FormControl, RadioGroup, FormControlLabel, Radio, Switch } from "@mui/material"
-import FlInput from "../paInput"
+import FlInput from "../../../baseComponents/paInput"
 import { TbSettingsCog } from "react-icons/tb"
-import { nodeInformation, shiftInformation } from "../resultTabs/tabFunctions"
+import { nodeInformation, shiftInformation } from "../../tabFunctions"
 
 /**
  *

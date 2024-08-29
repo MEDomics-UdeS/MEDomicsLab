@@ -2,16 +2,16 @@
 import React, { useRef, useCallback, useEffect, useContext, useState } from "react"
 import { toast } from "react-toastify"
 import ReactFlow, { Controls, ControlButton, Background, MiniMap, addEdge, useReactFlow } from "reactflow"
-import { FlowFunctionsContext } from "../flow/context/flowFunctionsContext"
-import { PageInfosContext } from "../mainPages/moduleBasics/pageInfosContext"
-import { FlowInfosContext } from "../flow/context/flowInfosContext"
-import { FlowResultsContext } from "../flow/context/flowResultsContext"
-import { getId, deepCopy } from "../../utilities/staticFunctions"
+import { FlowFunctionsContext } from "../../flow/context/flowFunctionsContext"
+import { PageInfosContext } from "../../mainPages/moduleBasics/pageInfosContext"
+import { FlowInfosContext } from "../../flow/context/flowInfosContext"
+import { FlowResultsContext } from "../../flow/context/flowResultsContext"
+import { getId, deepCopy } from "../../../utilities/staticFunctions"
 import { ToggleButton } from "primereact/togglebutton"
 import Row from "react-bootstrap/Row"
 import Col from "react-bootstrap/Col"
 import { Button } from "primereact/button"
-import { ErrorRequestContext } from "../generalPurpose/errorRequestContext"
+import { ErrorRequestContext } from "../../generalPurpose/errorRequestContext"
 
 /**
  *

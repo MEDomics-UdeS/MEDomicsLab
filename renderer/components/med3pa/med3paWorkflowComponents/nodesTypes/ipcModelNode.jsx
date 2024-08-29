@@ -1,12 +1,13 @@
 /* eslint-disable camelcase */
 import React, { useState, useContext, useEffect } from "react"
-import Node from "../../flow/node"
-import FlInput from "../paInput"
+import Node from "../../../flow/node"
+
+import FlInput from "../../baseComponents/paInput"
 import { Button, Modal } from "react-bootstrap"
 import * as Icon from "react-bootstrap-icons"
-import { FlowFunctionsContext } from "../../flow/context/flowFunctionsContext"
+import { FlowFunctionsContext } from "../../../flow/context/flowFunctionsContext"
 import { CiEdit } from "react-icons/ci"
-import { LoaderContext } from "../../generalPurpose/loaderContext"
+import { LoaderContext } from "../../../generalPurpose/loaderContext"
 
 /**
  *

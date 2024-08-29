@@ -5,15 +5,15 @@ import { TbBinaryTree } from "react-icons/tb"
 import { BiFilter, BiRefresh } from "react-icons/bi"
 import { AiOutlineFullscreen, AiOutlineFullscreenExit } from "react-icons/ai"
 import ReactFlow, { useNodesState, useEdgesState, Controls, addEdge, useReactFlow, ReactFlowProvider } from "reactflow"
-import TreeNode from "../nodesTypes/treeNode.jsx"
+import TreeNode from "./treeComponents/treeNode.jsx"
 import { Typography } from "@mui/material"
 import { Button } from "react-bootstrap"
-import { deepCopy } from "../../../utilities/staticFunctions.js"
+import { deepCopy } from "../../../../utilities/staticFunctions.js"
 
-import DownloadButton from "./download.jsx"
+import DownloadButton from "./treeComponents/download.jsx"
 
-import TreeLegend from "./treeLegend.jsx"
-import SelectedNodePath from "./selectedNodePath.jsx"
+import TreeLegend from "./treeComponents/download.jsx"
+import SelectedNodePath from "./treeComponents/selectedNodePath.jsx"
 
 /**
  *

@@ -1,5 +1,5 @@
 import React from "react"
-import { calculateRanges } from "../resultTabs/tabFunctions"
+import { calculateRanges } from "../../resultTabs/tabFunctions"
 import { Panel } from "reactflow"
 
 /**

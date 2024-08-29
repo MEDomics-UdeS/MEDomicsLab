@@ -5,7 +5,7 @@ import { Tab, Tabs } from "react-bootstrap"
 import { Table } from "react-bootstrap"
 import ReactECharts from "echarts-for-react"
 
-import ResultsRejectionCountsCurve from "./resultsRejectionCountsCurve"
+import ResultsRejectionCountsCurve from "./detectronComponents/resultsRejectionCountsCurve"
 
 /**
  *

@@ -1,7 +1,7 @@
 import React from "react"
 import { Handle } from "reactflow"
 import { MdOutlineGroups3 } from "react-icons/md"
-import { formatValue } from "../resultTabs/tabFunctions"
+import { formatValue } from "../../tabFunctions"
 
 import { BsFillCheckCircleFill } from "react-icons/bs"
 import { VscError } from "react-icons/vsc"

@@ -20,7 +20,7 @@ import { toast } from "react-toastify"
 import { useNodesState, useEdgesState, useReactFlow } from "reactflow"
 import { loadJsonSync, deleteFolderRecursive, copyFolderContents } from "../../utilities/fileManagementUtils"
 import { requestBackend } from "../../utilities/requests"
-import PaWorkflowBase from "./paWorkflowBase.jsx"
+import PaWorkflowBase from "./med3paWorkflowComponents/paWorkflowBase.jsx"
 import BtnDiv from "../flow/btnDiv.jsx"
 import ProgressBarRequests from "../generalPurpose/progressBarRequests.jsx"
 import { PageInfosContext } from "../mainPages/moduleBasics/pageInfosContext.jsx"
@@ -34,7 +34,7 @@ import { ErrorRequestContext } from "../generalPurpose/errorRequestContext.jsx"
 import MedDataObject from "../workspace/medDataObject.js"
 import { modifyZipFileSync, createZipFileSync } from "../../utilities/customZipFile.js"
 
-import RunPipelineModal from "./runPipelineModal"
+import RunPipelineModal from "./med3paWorkflowComponents/modalComponents/runPipelineModal"
 // here are the different types of nodes implemented in the workflow
 
 // here are the parameters of the nodes
@@ -48,23 +48,23 @@ import StandardNode from "../learning/nodesTypes/standardNode.jsx"
 import SelectionNode from "../learning/nodesTypes/selectionNode.jsx"
 import { FlowFunctionsContext } from "../flow/context/flowFunctionsContext"
 
-import PaOptimizeIO from "./nodesTypes/paOptimizeIO.jsx"
+import PaOptimizeIO from "./med3paWorkflowComponents/nodesTypes/paOptimizeIO.jsx"
 
 import GroupNode from "../flow/groupNode.jsx"
 import LoadModelNode from "../learning/nodesTypes/loadModelNode.jsx"
-import DatasetLoaderNode from "./nodesTypes/datasetLoaderNode.jsx"
-import BaseModelNode from "./nodesTypes/baseModelNode.jsx"
+import DatasetLoaderNode from "./med3paWorkflowComponents/nodesTypes/datasetLoaderNode.jsx"
+import BaseModelNode from "./med3paWorkflowComponents/nodesTypes/baseModelNode.jsx"
 
-import MED3paNode from "./nodesTypes/med3paNode.jsx"
-import IPCModelNode from "./nodesTypes/ipcModelNode.jsx"
-import APCModelNode from "./nodesTypes/apcModelNode.jsx"
-import MPCModelNode from "./nodesTypes/mpcModelNode.jsx"
-import UncertaintyMetricsNode from "./nodesTypes/uncertainyMetricsNode.jsx"
+import MED3paNode from "./med3paWorkflowComponents/nodesTypes/med3paNode.jsx"
+import IPCModelNode from "./med3paWorkflowComponents/nodesTypes/ipcModelNode.jsx"
+import APCModelNode from "./med3paWorkflowComponents/nodesTypes/apcModelNode.jsx"
+import MPCModelNode from "./med3paWorkflowComponents/nodesTypes/mpcModelNode.jsx"
+import UncertaintyMetricsNode from "./med3paWorkflowComponents/nodesTypes/uncertainyMetricsNode.jsx"
 
-import DetectronNode from "./nodesTypes/detectronNode.jsx"
+import DetectronNode from "./med3paWorkflowComponents/nodesTypes/detectronNode.jsx"
 import { mergeSettings } from "../../public/setupVariables/possibleSettings/med3pa/paSettings.js"
 import { loadJsonFiles } from "./resultTabs/tabFunctions.js"
-import SaveSceneModal from "./saveSceneModal.jsx"
+import SaveSceneModal from "./med3paWorkflowComponents/modalComponents/saveSceneModal.jsx"
 
 const staticNodesParams = nodesParams // represents static nodes parameters
 

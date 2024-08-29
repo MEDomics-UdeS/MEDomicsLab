@@ -2,8 +2,8 @@ import React from "react"
 import { Card, CardContent, Typography } from "@mui/material"
 import { MdStar } from "react-icons/md" // Icon to highlight the best option
 import Tooltip from "@mui/material/Tooltip"
-import { formatValue } from "../resultTabs/tabFunctions"
-import { transformKey } from "./objSettings"
+import { formatValue } from "../../tabFunctions"
+import { transformKey } from "../objSettings"
 import { MdOutlineAnalytics } from "react-icons/md"
 
 /**

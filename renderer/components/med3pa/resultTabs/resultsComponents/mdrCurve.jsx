@@ -74,7 +74,7 @@ const MDRCurve = ({ curveData, clickedLostElement, onFullScreenClicked, fullscre
       toolbox: {
         feature: {
           saveAsImage: {
-            // type: "svg",
+            type: "svg",
             backgroundColor: "transparent"
           }
         }

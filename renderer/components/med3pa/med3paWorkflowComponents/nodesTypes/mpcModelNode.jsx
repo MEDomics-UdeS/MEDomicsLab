@@ -1,4 +1,4 @@
-import Node from "../../flow/node"
+import Node from "../../../flow/node"
 /**
  *
  * @param {string} id id of the node

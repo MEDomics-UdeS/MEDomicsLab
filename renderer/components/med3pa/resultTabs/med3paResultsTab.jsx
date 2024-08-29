@@ -1,14 +1,14 @@
 /* eslint-disable camelcase */
 import React, { useState, useEffect } from "react"
 
-import MDRCurve from "../resultsComponents/mdrCurve"
-import FlowWithProvider from "../resultsComponents/treeWorkflow"
+import MDRCurve from "./resultsComponents/mdrCurve"
+import FlowWithProvider from "./resultsComponents/treeWorkflow"
 
-import DetectronResults from "../resultsComponents/detectronResults"
+import DetectronResults from "./resultsComponents/detectronResults"
 import { filterData, filterMetrics, isLost, isSubPath } from "./tabFunctions"
-import LostProfiles from "../resultsComponents/lostProfiles"
-import ResultsFilter from "../resultsComponents/resultsFilter"
-import PaModelsEval from "../resultsComponents/paModelsEval"
+import LostProfiles from "./resultsComponents/lostProfiles"
+import ResultsFilter from "./resultsComponents/resultsFilter"
+import PaModelsEval from "./resultsComponents/paModelsEval"
 
 /**
  *

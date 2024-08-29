@@ -69,7 +69,7 @@ function DownloadButton({ reactFlowInstance, reactFlowRef }) {
       }
     })
       .then((dataUrl) => {
-        addToZip("Profiles_tree.png", dataUrl)
+        addToZip("Profiles_tree.svg", dataUrl)
         const legendItems = reactFlowRef.querySelector(".legend-container")
 
         if (legendItems) {
@@ -80,7 +80,7 @@ function DownloadButton({ reactFlowInstance, reactFlowRef }) {
       })
       .then((dataUrl) => {
         if (dataUrl) {
-          addToZip("Legend_Threshold.png", dataUrl)
+          addToZip("Legend_Threshold.svg", dataUrl)
         }
         // Initiate ZIP download when all images are added
         downloadZip()
