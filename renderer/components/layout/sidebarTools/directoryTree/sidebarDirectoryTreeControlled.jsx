@@ -13,10 +13,6 @@ import { Tooltip } from "primereact/tooltip"
 import { WorkspaceContext } from "../../../workspace/workspaceContext"
 import { rename, onPaste, onDeleteSequentially, createFolder, onDrop, fromJSONtoTree, evaluateIfTargetIsAChild } from "./utils"
 import { MEDDataObject } from "../../../workspace/NewMedDataObject"
-import { requestBackend } from "../../../../utilities/requests"
-import { ServerConnectionContext } from "../../../serverConnection/connectionContext"
-import { randomUUID } from "crypto"
-import { insertMEDDataObjectIfNotExists, findMEDDataObjectByName } from "../../../mongoDB/mongoDBUtils"
 /**
  * @description - This component is the sidebar tools component that will be used in the sidebar component
  * @param {Object} props - Props passed from parent component
@@ -47,9 +43,6 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
   const { workspace } = useContext(WorkspaceContext)
 
   const delayOptions = { showDelay: 750, hideDelay: 0 }
-
-  //For Backend Requests
-  const { port } = useContext(ServerConnectionContext)
 
   /**
    * This useEffect hook updates the directory tree when the global data changes.
@@ -190,8 +183,6 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
    *  @param {Object} param0.props - The props of the context menu action
    */
   async function handleContextMenuAction({ id, props }) {
-    const objectName = globalData[props.index].name.replace("pkl", "csv")
-    const objectExists = await findMEDDataObjectByName(objectName)
     if (developerMode) {
       switch (id) {
         case "openInDataTableFromDBViewer":
@@ -258,38 +249,6 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
             toast.error("Error: No item selected")
           }
           break
-        case "unpack":
-          if (objectExists) {
-            toast.warn("This .pkl file has already been converted to .csv")
-          } else {
-            // If the object does not exist, proceed with the conversion
-            const id = randomUUID()
-
-            const object = new MEDDataObject({
-              id: id,
-              name: objectName,
-              type: "csv",
-              parentID: "ROOT",
-              childrenIDs: [],
-              inWorkspace: false,
-              path: globalData[props.index].path
-            })
-
-            let jsonToSend = {
-              path: globalData[props.index].path,
-              databaseName: "data",
-              newCollectionName: id
-            }
-
-            requestBackend(port, "/input/handle_pkl/", jsonToSend, (jsonResponse) => {
-              console.log("received results:", jsonResponse)
-            })
-
-            await insertMEDDataObjectIfNotExists(object)
-            MEDDataObject.updateWorkspaceDataObject()
-            toast.success(".pkl file converted to .csv for viewing")
-          }
-          break
         default:
           break
       }
@@ -329,8 +288,6 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
         dispatchLayout({ type: "openInTextEditor", payload: item })
       } else if (item.type == "medmodel") {
         dispatchLayout({ type: "openInModelViewer", payload: item })
-      } else if (item.type == "pkl") {
-        toast.warn("Unpack the .pkl file first to view the contents")
       } else {
         console.log("DBCLICKED", event, item)
       }
@@ -865,10 +822,6 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
           <Item id="rmFromWs" onClick={handleContextMenuAction}>
             <Trash size={"1rem"} className="context-menu-icon" />
             Remove from Workspace
-          </Item>
-          <Item id="unpack" onClick={handleContextMenuAction}>
-            <BoxArrowUp size={"1rem"} className="context-menu-icon" />
-            Unpack
           </Item>
         </Menu>
 
