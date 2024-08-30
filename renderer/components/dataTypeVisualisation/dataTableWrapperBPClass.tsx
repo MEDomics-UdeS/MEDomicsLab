@@ -691,7 +691,7 @@ export class DataTableWrapperBPClass extends React.PureComponent<{}, {}> {
     // Check if any value in modifiedData contains a comma, if yes, replace it with a point.
     for (let i = 0; i < modifiedData.length; i++) {
       for (let j = 0; j < this.state.columnsNames.length; j++) {
-        if (modifiedData[i][this.state.columnsNames[j]].includes(",")) {
+        if (String(modifiedData[i][this.state.columnsNames[j]]).includes(",")) {
           modifiedData[i][this.state.columnsNames[j]] = modifiedData[i][this.state.columnsNames[j]].replace(",", ".")
         }
       }

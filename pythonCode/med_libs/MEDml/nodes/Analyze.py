@@ -8,6 +8,7 @@ from sklearn.pipeline import Pipeline
 from .NodeObj import Node, format_model
 from typing import Union
 from colorama import Fore
+from med_libs.server_utils import go_print
 
 DATAFRAME_LIKE = Union[dict, list, tuple, np.ndarray, pd.DataFrame]
 TARGET_LIKE = Union[int, str, list, tuple, np.ndarray, pd.Series]
@@ -32,7 +33,7 @@ class Analyze(Node):
         """
         selection = self.config_json['data']['internal']['selection']
         print()
-        print(Fore.BLUE + "=== Analysing === " + 'paths' +
+        print(Fore.BLUE + "=== Analysing === " +
               Fore.YELLOW + f"({self.username})" + Fore.RESET)
         print(Fore.CYAN + f"Using {selection}" + Fore.RESET)
         settings = copy.deepcopy(self.settings)

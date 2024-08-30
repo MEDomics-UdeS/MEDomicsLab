@@ -5,6 +5,7 @@ import time
 import json
 import sys
 from pathlib import Path
+
 sys.path.append(
     str(Path(os.path.dirname(os.path.abspath(__file__))).parent.parent))
 from med_libs.server_utils import go_print
@@ -29,7 +30,7 @@ class GoExecScriptRunExperiment(GoExecutionScript):
     """
 
     def __init__(self, json_params: dict, _id: str = None, isProgressInThread: bool = False):
-        super().__init__(json_params, _id)
+        super().__init__(json_params, _id, debug=False)
         self.storing_mode = USE_RAM_FOR_EXPERIMENTS_STORING
         # self.storing_mode = USE_SAVE_FOR_EXPERIMENTS_STORING
         self.current_experiment = None
@@ -50,7 +51,7 @@ class GoExecScriptRunExperiment(GoExecutionScript):
             with open(path_to_load, 'r') as f:
                 json_config = json.load(f)
             os.remove(path_to_load)
-            
+
         go_print(json.dumps(json_config, indent=4))
         scene_id = json_config['pageId']
         # check if experiment already exists
@@ -100,7 +101,7 @@ def save_experiment(experiment: MEDexperimentLearning):
     local_path = os.path.join(basePath, 'local_dir')
     if not os.path.exists(local_path):
         os.makedirs(local_path)
-    with open(os.path.join(local_path,'MEDexperiment_' + experiment.id + '.medexp'), 'wb') as f:
+    with open(os.path.join(local_path, 'MEDexperiment_' + experiment.id + '.medexp'), 'wb') as f:
         pickle.dump(experiment, f)
         del experiment
 
@@ -116,7 +117,7 @@ def load_experiment(id_):
     local_path = os.path.join(basePath, 'local_dir')
     if not os.path.exists(local_path):
         os.makedirs(local_path)
-    with open(os.path.join(local_path,'MEDexperiment_' + id_ + '.medexp'), 'rb') as f:
+    with open(os.path.join(local_path, 'MEDexperiment_' + id_ + '.medexp'), 'rb') as f:
         experiment = pickle.load(f)
         experiment.init_obj()
         return experiment
@@ -132,8 +133,12 @@ def is_experiment_exist(id_):
     local_path = os.path.join(basePath, 'local_dir')
     if not os.path.exists(local_path):
         os.makedirs(local_path)
-    return os.path.exists(os.path.join(local_path,'MEDexperiment_' + id_ + '.medexp'))
+    return os.path.exists(os.path.join(local_path, 'MEDexperiment_' + id_ + '.medexp'))
 
+
+# save json_params_dict to a file
+with open('json_params_dict.json', 'w') as f:
+    json.dump(json_params_dict, f, indent=4)
 
 run_experiment = GoExecScriptRunExperiment(json_params_dict, id_, True)
 run_experiment.start()

@@ -42,22 +42,18 @@ const downloadFile = (exportObj, exportName) => {
   downloadAnchorNode.remove()
 }
 
+
 /**
- *
- * @param {String} path path to the file
- *
- * @description
- * This function takes a path and downloads the file
+ * @description Fake download, only copy the file from the source to a destination set by the user in the dialog
+ * @param {String} source Path to the file to be downloaded
+ * @returns {Promise} Promise that resolves to the file content
  */
-const downloadFilePath = (path) => {
-  toLocalPath(path).then((localPath) => {
-    var downloadAnchorNode = document.createElement("a")
-    downloadAnchorNode.setAttribute("href", "./tmp/" + Path.basename(localPath))
-    downloadAnchorNode.setAttribute("download", Path.basename(localPath))
-    document.body.appendChild(downloadAnchorNode) // required for firefox
-    downloadAnchorNode.click()
-    downloadAnchorNode.remove()
-  })
+const downloadFilePath = (source) => {
+  return new Promise((resolve) => {
+    ipcRenderer.invoke("appCopyFile", source).then((destination) => {
+      resolve(destination)
+    }
+    )})
 }
 
 /**
@@ -287,49 +283,25 @@ const loadCSVPath = (absPath, whenLoaded) => {
  */
 const loadCSVFromPath = (path, whenLoaded) => {
   let csvPath = path
-  fs.readFile(csvPath, "utf8", (err, data) => {
-    if (err) {
-      console.error("Error reading file:", err)
-    } else {
-      console.log("File read successfully")
-      let array = []
-      Papa.parse(data, {
-        step: function (row) {
-          array.push(row.data)
-        }
-      })
-      let columns = array.shift()
-      // Check if the number of columns corresponds to the number of column names\
-      if (columns.length !== array[0].length) {
-        console.warn("Number of columns does not match the number of column names")
-        if (columns.length > array[0].length) {
-          console.warn("Removing extra column names")
-          // Check if there are empty column names and remove them
-          let emptyColumns = columns.filter((column) => column === "")
-          if (emptyColumns.length > 0) {
-            console.warn("Removing empty column names")
-            columns = columns.filter((column) => column !== "")
-          }
-        }
+  dfdNode
+    .readCSV(csvPath)
+    .then((df) => {
+      if (df.$columns[df.$columns.length - 1] == "__parsed_extra" && df.$dtypes[df.$dtypes.length - 2] == "string") {
+        let lastCol = df.$columns[df.$columns.length - 1]
+        let beforeLastCol = df.$columns[df.$columns.length - 2]
+        df.addColumn(
+          beforeLastCol,
+          df[beforeLastCol].apply((val, i) => (df.$data[i] && df.$data[i][df.$columns.length - 1] ? val + df.$data[i][df.$columns.length - 1] : val)),
+          { inplace: true }
+        )
+        df.drop({ columns: [lastCol], inplace: true })
       }
-      let df = null
-      let dfJSON = null
-      // Sometimes the df only contains the columns names and no data
-      if (columns.length !== array[0].length && array[0].length < 2) {
-        df = new dfd.DataFrame(columns)
-        let tmp = {}
-        df.$data.forEach((value, index) => {
-          tmp[index] = value
-        })
-        dfJSON = [tmp]
-      } else {
-        df = new dfd.DataFrame(array, { columns: columns })
-        df.drop(removeEmptyRows(df, 5))
-        dfJSON = dfd.toJSON(df)
-      }
+      let dfJSON = dfd.toJSON(df)
       whenLoaded(dfJSON)
-    }
-  })
+    })
+    .catch((err) => {
+      console.log(err)
+    })
 }
 
 /**

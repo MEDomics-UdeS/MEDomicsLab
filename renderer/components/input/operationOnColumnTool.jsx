@@ -129,6 +129,7 @@ const OperationOnColumnTool = ({ operationType }) => {
   const reinitializeData = () => {
     setDf(null)
     setDataset(null)
+    setSelectedDataset(null)
     setSelectedDatasetColumns([])
     setSelectedColumnsOptions([])
     setSelectedColumns([])

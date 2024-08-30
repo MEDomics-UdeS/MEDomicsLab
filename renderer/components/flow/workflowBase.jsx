@@ -154,15 +154,16 @@ const WorkflowBase = ({ isGoodConnection, groupNodeHandlingDefault, onDeleteNode
       }
 
       const setHasRunRec = (obj) => {
+        console.log("obj", obj)
         Object.keys(obj).forEach((id) => {
           setHasRun(id)
-          setHasRunRec(obj[id].next_nodes)
+          obj[id].next_nodes && setHasRunRec(obj[id].next_nodes)
         })
       }
       if (Object.keys(flowResults).length > 0) {
         Object.keys(flowResults).forEach((id) => {
           setHasRun(id)
-          setHasRunRec(flowResults[id].next_nodes)
+          flowResults[id].next_nodes && setHasRunRec(flowResults[id].next_nodes)
         })
       } else {
         nodes.forEach((node) => {
@@ -245,10 +246,12 @@ const WorkflowBase = ({ isGoodConnection, groupNodeHandlingDefault, onDeleteNode
 
       const setHasRunRec = (obj) => {
         Object.keys(obj).forEach((id) => {
-          Object.keys(obj[id].next_nodes).forEach((nextId) => {
-            setHasRun(id, nextId)
-          })
-          setHasRunRec(obj[id].next_nodes)
+          if (obj[id].next_nodes) {
+            Object.keys(obj[id].next_nodes).forEach((nextId) => {
+              setHasRun(id, nextId)
+            })
+            obj[id].next_nodes && setHasRunRec(obj[id].next_nodes)
+          }
         })
       }
 
@@ -256,7 +259,7 @@ const WorkflowBase = ({ isGoodConnection, groupNodeHandlingDefault, onDeleteNode
         Object.keys(flowResults[id].next_nodes).forEach((nextId) => {
           setHasRun(id, nextId)
         })
-        setHasRunRec(flowResults[id].next_nodes)
+        flowResults[id].next_nodes && setHasRunRec(flowResults[id].next_nodes)
       })
       edges.forEach((edge) => {
         edge.data ? (edge.data.hasRun = edgesHasRun.includes(edge.id)) : (edge.data = { hasRun: edgesHasRun.includes(edge.id) })
@@ -567,7 +570,22 @@ const WorkflowBase = ({ isGoodConnection, groupNodeHandlingDefault, onDeleteNode
   return (
     <div className="height-100 width-100">
       {/* here is the reactflow component which handles a lot of features listed below */}
-      <ReactFlow nodes={nodes} edges={edges} onNodesChange={onNodesChange} onEdgesChange={onEdgesChange} onInit={setReactFlowInstance} nodeTypes={nodeTypes} onNodeDrag={onNodeDrag} onConnect={onConnect} onDrop={onDrop} onDragOver={onDragOver} onEdgeUpdate={onEdgeUpdate} onEdgeUpdateStart={onEdgeUpdateStart} onEdgeUpdateEnd={onEdgeUpdateEnd} fitView>
+      <ReactFlow
+        nodes={nodes}
+        edges={edges}
+        onNodesChange={onNodesChange}
+        onEdgesChange={onEdgesChange}
+        onInit={setReactFlowInstance}
+        nodeTypes={nodeTypes}
+        onNodeDrag={onNodeDrag}
+        onConnect={onConnect}
+        onDrop={onDrop}
+        onDragOver={onDragOver}
+        onEdgeUpdate={onEdgeUpdate}
+        onEdgeUpdateStart={onEdgeUpdateStart}
+        onEdgeUpdateEnd={onEdgeUpdateEnd}
+        fitView
+      >
         <Background />
         {miniMapState && <MiniMap className="minimapStyle" zoomable pannable />}
         <Controls>
@@ -581,8 +599,26 @@ const WorkflowBase = ({ isGoodConnection, groupNodeHandlingDefault, onDeleteNode
         <div className="flow-btn-panel-top">
           <Row className="margin-0" style={{ justifyContent: "space-between" }}>
             <Col md="auto" className="left">
-              <ToggleButton onIcon="pi pi-list" offIcon="pi pi-times" onLabel="" offLabel="" checked={!showAvailableNodes} onChange={(e) => setShowAvailableNodes(!e.value)} className="btn-ctl-available-nodes" />
-              <ToggleButton onLabel="Results mode on" offLabel="See results" onIcon="pi pi-chart-bar" offIcon="pi pi-eye" disabled={!isResults} checked={showResultsPane} onChange={(e) => setShowResultsPane(e.value)} severity="success" className="btn-show-results" />
+              <ToggleButton
+                onIcon="pi pi-list"
+                offIcon="pi pi-times"
+                onLabel=""
+                offLabel=""
+                checked={!showAvailableNodes}
+                onChange={(e) => setShowAvailableNodes(!e.value)}
+                className="btn-ctl-available-nodes"
+              />
+              <ToggleButton
+                onLabel="Results mode on"
+                offLabel="See results"
+                onIcon="pi pi-chart-bar"
+                offIcon="pi pi-eye"
+                disabled={!isResults}
+                checked={showResultsPane}
+                onChange={(e) => setShowResultsPane(e.value)}
+                severity="success"
+                className="btn-show-results"
+              />
               {uiTopLeft}
             </Col>
             <Col md="auto" className="center">
@@ -594,7 +630,19 @@ const WorkflowBase = ({ isGoodConnection, groupNodeHandlingDefault, onDeleteNode
           </Row>
         </div>
 
-        <div className="flow-btn-panel-left-vertical">{hasBeenAnError && <Button icon="pi pi-exclamation-circle" rounded severity="danger" aria-label="Cancel" tooltip="See last error" tooltipOptions={{ showDelay: 1000, hideDelay: 300 }} onClick={() => setShowError(true)} />}</div>
+        <div className="flow-btn-panel-left-vertical">
+          {hasBeenAnError && (
+            <Button
+              icon="pi pi-exclamation-circle"
+              rounded
+              severity="danger"
+              aria-label="Cancel"
+              tooltip="See last error"
+              tooltipOptions={{ showDelay: 1000, hideDelay: 300 }}
+              onClick={() => setShowError(true)}
+            />
+          )}
+        </div>
       </ReactFlow>
     </div>
   )
