@@ -471,6 +471,12 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
   const openDataTableFromDB = async (action) => {
     const fs = require("fs")
     let object = action.payload
+
+    // Check if the path is null before proceeding. Useful for input tools generated files
+    if (!globalData[object.index].path) {
+      openInTab(action, "dataTableFromDB")
+      return
+    }
     const fileSize = fs.statSync(globalData[object.index].path).size
     const maxBSONSize = 16 * 1024 * 1024 // 16MB
     const doesCollectionExists = await collectionExists(object.index)
