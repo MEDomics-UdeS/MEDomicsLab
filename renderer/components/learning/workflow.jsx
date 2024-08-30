@@ -431,7 +431,8 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
     let setupParams = {}
     if (!newNode.id.includes("opt")) {
       setupParams = deepCopy(staticNodesParams[workflowType][newNode.data.internal.type]);
-    
+      setupParams.possibleSettings = setupParams["possibleSettings"][MLType]
+
       // setupParams is valid
       if (setupParams) {
         newNode.data.setupParam = setupParams;
