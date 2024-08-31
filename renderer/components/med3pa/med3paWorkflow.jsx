@@ -745,7 +745,7 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
 
         if (configPath === "") {
           // If configPath is empty, create path to experiments
-          let configPath = [getBasePath(EXPERIMENTS), "MED3paWorkflows", sceneName + ".pa"].join(MedDataObject.getPathSeparator())
+          let configPath = [getBasePath(EXPERIMENTS), "MED3paWorkflows", sceneName + ".rar"].join(MedDataObject.getPathSeparator())
 
           createSceneContent(configPath, sceneName, flow).then(() =>
             // If the ZipFile already exists, modify it
