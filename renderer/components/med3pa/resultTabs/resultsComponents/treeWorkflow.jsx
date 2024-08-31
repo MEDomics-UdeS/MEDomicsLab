@@ -12,7 +12,7 @@ import { deepCopy } from "../../../../utilities/staticFunctions.js"
 
 import DownloadButton from "./treeComponents/download.jsx"
 
-import TreeLegend from "./treeComponents/download.jsx"
+import TreeLegend from "./treeComponents/treeLegend.jsx"
 import SelectedNodePath from "./treeComponents/selectedNodePath.jsx"
 
 /**

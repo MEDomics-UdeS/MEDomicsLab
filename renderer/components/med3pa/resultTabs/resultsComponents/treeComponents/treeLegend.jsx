@@ -1,5 +1,5 @@
 import React from "react"
-import { calculateRanges } from "../../resultTabs/tabFunctions"
+import { calculateRanges } from "../../tabFunctions"
 import { Panel } from "reactflow"
 
 /**
@@ -15,7 +15,7 @@ import { Panel } from "reactflow"
 const TreeLegend = ({ customThreshold }) => {
   // Calculate color ranges based on customThreshold (Step)
   const calculatedRanges = calculateRanges(customThreshold)
-
+  console.log("RAGES:", calculateRanges)
   // Render the component conditionally based on customThreshold
   return customThreshold !== 0 ? (
     <Panel position="bottom-right">
