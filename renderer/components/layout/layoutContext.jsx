@@ -484,8 +484,9 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
     if (!doesCollectionExists) {
       console.log(doesCollectionExists)
       if (fileSize > maxBSONSize) {
-        await ConvertBinaryToOriginalData(globalData, object)
-        setTimeout(() => openInTab(action, "dataTableFromDB"), 1500)
+        // await ConvertBinaryToOriginalData(globalData, object)
+        // setTimeout(() => openInTab(action, "dataTableFromDB"), 1500)
+        toast.warn("The file is too large to be displayed in the data table.")
       }
     } else {
       openInTab(action, "dataTableFromDB")
