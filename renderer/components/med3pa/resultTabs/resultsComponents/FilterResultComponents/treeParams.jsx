@@ -55,13 +55,13 @@ const TreeParameters = ({ treeParams, setTreeParams, maxMinSRatio, disableFilter
         <div className="slider-container-paresults">
           <Typography className="default-text-color-paresults">Max Depth</Typography>
           <Slider
-            value={treeParams.maxDepth || 0}
-            onChange={(e, value) => handleSliderChange("maxDepth", value)}
+            value={treeParams.maxDepth - 1 || 0}
+            onChange={(e, value) => handleSliderChange("maxDepth", value + 1)}
             aria-labelledby="max-depth-slider"
             sx={{ color: "#D2EBE1" }}
             valueLabelDisplay="auto"
-            min={1}
-            max={5}
+            min={0}
+            max={4}
             step={1}
           />
         </div>

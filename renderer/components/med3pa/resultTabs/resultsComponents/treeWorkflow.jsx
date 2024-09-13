@@ -283,11 +283,10 @@ const TreeWorkflow = ({ treeData, maxDepth, customThreshold, onButtonClicked, on
     // Dynamically set the initial spacing based on the maximum depth
     const initialX = 0
     const initialY = 0
-    const initialSpacing = 800 * maxDepth // Adjust multiplier as needed
-
+    const initialSpacing = 80 * maxDepth // Adjust multiplier as needed
     // Position the root nodes and their children
     rootNodes.forEach((rootNode, index) => {
-      positionNodes(rootNode.id, initialX + index * initialSpacing, initialY, initialSpacing / 2)
+      positionNodes(rootNode.id, initialX + index * initialSpacing, initialY, initialSpacing * maxDepth)
     })
 
     return tree
