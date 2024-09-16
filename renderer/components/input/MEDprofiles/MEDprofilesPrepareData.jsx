@@ -556,10 +556,12 @@ const MEDprofilesPrepareData = () => {
               <i className="pi pi-info-circle" />
               &nbsp; This tool is an implementation of the
               <i>
-                <a href="https://github.com/MEDomics-UdeS/MEDprofiles" target="_blank">
-                  {" "}
-                  MEDprofiles package
-                </a>
+                <b>
+                  <a href="https://github.com/MEDomics-UdeS/MEDprofiles" target="_blank">
+                    {" "}
+                    MEDprofiles package
+                  </a>
+                </b>
               </i>
               .
             </div>
