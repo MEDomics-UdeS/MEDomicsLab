@@ -167,6 +167,10 @@ function App() {
       })
     })
 
+    ipcRenderer.on("setRecentWorkspacesInApp", (event, data) => {
+      ipcRenderer.invoke("updateWorkspace", data) // Update recent workspaces
+    })
+
     ipcRenderer.on("updateDirectory", (event, data) => {
       let workspace = { ...data }
       setWorkspaceObject(workspace)
