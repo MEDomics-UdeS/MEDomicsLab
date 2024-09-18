@@ -17,6 +17,7 @@ import React, { useContext, useEffect, useState } from "react"
 import { requestBackend } from "../../../utilities/requests"
 import { toast } from "react-toastify"
 import { WorkspaceContext } from "../../workspace/workspaceContext"
+import { getPathSeparator } from "../../../utilities/fileManagementUtils"
 
 /**
  *
@@ -70,7 +71,7 @@ const MEDprofilesPrepareData = () => {
     let keys = Object.keys(globalData)
     let folderListToShow = []
     keys.forEach((key) => {
-      if (globalData[key].type == "folder" && globalData[key].path.includes("DATA")) {
+      if (globalData[key].type == "directory" && globalData[key].path.includes("DATA")) {
         folderListToShow.push(globalData[key])
       }
     })
@@ -85,7 +86,7 @@ const MEDprofilesPrepareData = () => {
     let keys = Object.keys(globalData)
     let tmpList = []
     keys.forEach((key) => {
-      if (globalData[key].type == "file" && globalData[key].extension == "pkl" && globalData[key].path.includes("DATA")) {
+      if (globalData[key].type == "pkl" && globalData[key].path.includes("DATA")) {
         tmpList.push(globalData[key])
       }
     })
@@ -100,7 +101,7 @@ const MEDprofilesPrepareData = () => {
     let keys = Object.keys(globalData)
     let tmpList = []
     keys.forEach((key) => {
-      if (globalData[key].path.includes(dataFolder.path) && globalData[key].type == "file" && globalData[key].extension == "csv") {
+      if (globalData[key].path.includes(dataFolder.path) && globalData[key].type == "csv") {
         tmpList.push(globalData[key].path)
       }
     })
@@ -116,7 +117,7 @@ const MEDprofilesPrepareData = () => {
     let folderListToShow = []
     keys.forEach((key) => {
       if (
-        globalData[key].type == "folder" &&
+        globalData[key].type == "directory" &&
         globalData[key].name == "MEDclasses" &&
         globalData[key].path.includes("DATA") &&
         globalData[key]?.parentID &&
@@ -223,12 +224,12 @@ const MEDprofilesPrepareData = () => {
       "/MEDprofiles/create_master_table/" + pageId,
       {
         csvPaths: csvPaths,
-        masterTableFolder: MEDprofilesFolderPath + MedDataObject.getPathSeparator() + "master_tables",
+        masterTableFolder: MEDprofilesFolderPath + getPathSeparator() + "master_tables",
         filename: masterFilename,
         pageId: pageId
       },
       (jsonResponse) => {
-        console.log("received results:", jsonResponse)
+        console.log("createMasterTable received results:", jsonResponse)
         if (!jsonResponse.error) {
           MedDataObject.updateWorkspaceDataObject()
           setGeneratedMasterPath(jsonResponse["master_table_path"])
@@ -280,6 +281,21 @@ const MEDprofilesPrepareData = () => {
 
   /**
    * @description
+   * This function checks if the MEDprofiles folder exists and creates it if it doesn't.
+   */
+  const checkMEDprofilesFolder = () => {
+    let keys = Object.keys(globalData)
+    let folderExists = false
+    keys.forEach((key) => {
+      if (globalData[key].path == MEDprofilesFolderPath) {
+        folderExists = true
+      }
+    })
+    return folderExists
+  }
+
+  /**
+   * @description
    * This function calls the create_MEDprofiles_folder method in the MEDprofiles server
    */
   const createMEDprofilesFolder = () => {
@@ -299,6 +315,8 @@ const MEDprofilesPrepareData = () => {
         } else {
           toast.error(`Creation failed: ${jsonResponse.error.message}`)
           setError(jsonResponse.error)
+          setLoadingMasterTables(false)
+          setLoadingSubMasterTables(false)
         }
       },
       function (err) {
@@ -323,14 +341,25 @@ const MEDprofilesPrepareData = () => {
         pageId: pageId
       },
       (jsonResponse) => {
-        console.log("received results:", jsonResponse)
         if (!jsonResponse.error) {
-          getListOfGeneratedElement(jsonResponse["master_csv"], setMasterTableFileList)
-          getListOfGeneratedElement(jsonResponse["submaster_csv"], setSubMasterTableFileList)
+          if (jsonResponse["master_csv"].length == 0) {
+            console.warn("No csv matching the master table format found in the selected folder")
+            toast.warn("No csv matching the master table format found in the selected folder")
+          } else {
+            getListOfGeneratedElement(jsonResponse["master_csv"], setMasterTableFileList)
+          }
+          if (jsonResponse["submaster_csv"].length == 0) {
+            console.warn("No csv matching the submaster table format found in the selected folder")
+            toast.warn("No csv matching the submaster table format found in the selected folder")
+          } else {
+            getListOfGeneratedElement(jsonResponse["submaster_csv"], setSubMasterTableFileList)
+          }
           setLoadingMasterTables(false)
           setLoadingSubMasterTables(false)
         } else {
           toast.error(`Loading csv matching formats failed: ${jsonResponse.error.message}`)
+          setLoadingMasterTables(false)
+          setLoadingSubMasterTables(false)
           setError(jsonResponse.error)
         }
       },
@@ -439,7 +468,14 @@ const MEDprofilesPrepareData = () => {
 
   // Look of items in the MEDclasses DataView
   const MEDclassesDisplay = (element) => {
-    return <div>{globalData[element]?.nameWithoutExtension}</div>
+    let name = globalData[element]?.name
+    console.log("Calisse", name)
+    //console.log("element", name.slice(0, -1).join("."))
+    if (name.includes(".")) {
+      return <div>{name.split(".").slice(0, -1).join(".")}</div>
+    } else {
+      return
+    }
   }
 
   // Called when csvPathsList is updated, in order to load the matching files for submastertable and mastertable
@@ -487,17 +523,19 @@ const MEDprofilesPrepareData = () => {
       let keys = Object.keys(globalData)
       keys.forEach((key) => {
         if (
-          globalData[key].type == "folder" &&
+          globalData[key].type == "directory" &&
           globalData[key].name == "master_tables" &&
           globalData[key].path?.includes("DATA") &&
           globalData[key].path?.includes("MEDprofiles") &&
           globalData[key].childrenIDs?.length > 0
         ) {
           setDataFolder(globalData[key])
-        } else if (dataFolder == null && globalData[key].type == "folder" && globalData[key].name == "extracted_features" && globalData[key].path?.includes("DATA")) {
+        } else if (dataFolder == null && globalData[key].type == "directory" && globalData[key].name == "extracted_features" && globalData[key].path?.includes("DATA")) {
           setDataFolder(globalData[key])
-        } else if (globalData[key].type == "folder" && globalData[key].name == "DATA" && globalData[key].parentID == "UUID_ROOT") {
-          setRootDataFolder(globalData[key])
+        } else if (globalData[key].type == "directory" && globalData[key].name == "DATA" && (globalData[key].parentID == "UUID_ROOT" || globalData[key].parentID == "ROOT")) {
+          if (globalData[key] !== rootDataFolder){
+            setRootDataFolder(globalData[key])
+          }
         }
       })
     }
@@ -505,7 +543,7 @@ const MEDprofilesPrepareData = () => {
 
   // Called while rootDataFolder is updated in order to create the MEDprofiles folder
   useEffect(() => {
-    if (rootDataFolder) {
+    if (rootDataFolder && !checkMEDprofilesFolder()) {
       createMEDprofilesFolder()
     }
   }, [rootDataFolder])
