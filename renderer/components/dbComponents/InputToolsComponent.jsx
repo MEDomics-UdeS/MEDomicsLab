@@ -7,6 +7,8 @@ import HoldoutSetCreationToolsDB from "./inputToolsDB/holdoutSetCreationToolsDB"
 import SubsetCreationToolsDB from "./inputToolsDB/subsetCreationToolsDB"
 import FeatureReductionToolsDB from "./inputToolsDB/featureReductionToolsDB/featureReductionToolsDB"
 import GroupingTaggingToolsDB from "./inputToolsDB/groupingTaggingToolsDB"
+import MEDprofilesPrepareData from "../input/MEDprofiles/MEDprofilesPrepareData"
+import ModulePage from "../mainPages/moduleBasics/modulePage"
 
 /**
  * @description
@@ -54,6 +56,11 @@ const InputToolsComponent = ({ data, exportOptions, refreshData, columns, transf
       </Panel>
       <Panel header="Grouping/Tagging Tools" toggleable collapsed={true}>
         <GroupingTaggingToolsDB refreshData={refreshData} />
+      </Panel>
+      <Panel header="MEDprofiles" toggleable collapsed={true}>
+        <ModulePage>
+            <MEDprofilesPrepareData />
+        </ModulePage>
       </Panel>
     </div>
   )
