@@ -1,4 +1,5 @@
 import { toast } from "react-toastify"
+import process from "process"
 
 const fs = require("fs")
 const Path = require("path")
@@ -21,6 +22,31 @@ const toLocalPath = (path) => {
       resolve(`local://${filePath}`)
     })
   })
+}
+
+/**
+ * Returns the path separator based on the operating system.
+ * @returns {string} - The path separator.
+ */
+function getPathSeparator() {
+  // eslint-disable-next-line no-undef
+  let process = require("process")
+  if (process.platform === "win32") {
+    return "\\"
+  } else if (typeof process !== "undefined" && process.platform !== "win32") {
+    return "/"
+  }
+}
+
+/**
+   * Creates a folder in the file system if it does not exist.
+   * @param {string} path - The path of the folder to create.
+   */
+function createFolderFromPath(path) {
+  if (!fs.existsSync(path)) {
+    let test = fs.mkdirSync(path, { recursive: true })
+    console.log("fileManagement createFolderFromPath Folder created at ", test)
+  }
 }
 
 /**
@@ -411,6 +437,8 @@ const getFileReadingMethodFromExtension = {
 }
 
 export {
+  getPathSeparator,
+  createFolderFromPath,
   toLocalPath,
   downloadFile,
   downloadPath,
