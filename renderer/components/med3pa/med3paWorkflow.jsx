@@ -137,11 +137,11 @@ const Med3paWorkflow = ({ setWorkflowType, workflowType }) => {
     if (progress.now === 0) return
     else if (progress.now === 100) {
       // Delay hiding the progress bar by 2 seconds (2000 ms)
-      const timer = setTimeout(() => {
-        setIsProgressUpdating(false)
+      setIsProgressUpdating(false)
 
+      const timer = setTimeout(() => {
         setHideProgressBar(true) // To hide the progress bar with a delay
-      }, 2000) // Adjust the delay as needed
+      }, 1000) // Adjust the delay as needed
 
       // Cleanup timer if the component unmounts before the delay
       return () => clearTimeout(timer)
