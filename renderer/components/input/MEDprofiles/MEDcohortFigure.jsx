@@ -11,7 +11,7 @@ import { ToggleButton } from "primereact/togglebutton"
 import { Dropdown } from "primereact/dropdown"
 import { Button } from "primereact/button"
 import { MultiSelect } from "primereact/multiselect"
-import MedDataObject from "../../workspace/medDataObject"
+import { getPathSeparator, createFolderFromPath } from "../../../utilities/fileManagementUtils"
 import { toast } from "react-toastify"
 import { confirmDialog } from "primereact/confirmdialog"
 import { Spinner } from "react-bootstrap"
@@ -842,7 +842,7 @@ class MEDcohortFigureClass extends React.Component {
     })
 
     // Create a folder to store the time point CSV files
-    let separator = MedDataObject.getPathSeparator()
+    let separator = getPathSeparator()
     let folderPath = this.props.jsonFilePath.split(separator)
     folderPath.pop()
     folderPath = folderPath.join(separator)
@@ -881,7 +881,7 @@ class MEDcohortFigureClass extends React.Component {
             // Remove the folder
             fsx.removeSync(folderPath)
             // Create a new folder
-            MedDataObject.createFolderFromPath(folderPath)
+            createFolderFromPath(folderPath)
             // Export the time point data to CSV files
             Object.keys(timePointsData).forEach((timePoint) => {
               this.timePointToCsv(timePoint, timePointsData[timePoint], folderPath)
@@ -896,7 +896,7 @@ class MEDcohortFigureClass extends React.Component {
         })
     } else {
       // Create a new folder
-      MedDataObject.createFolderFromPath(folderPath)
+      createFolderFromPath(folderPath)
       // Export the time point data to CSV files
       Object.keys(timePointsData).forEach((timePoint) => {
         this.timePointToCsv(timePoint, timePointsData[timePoint], folderPath)
