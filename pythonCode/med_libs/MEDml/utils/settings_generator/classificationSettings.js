@@ -1,4 +1,8 @@
 /* eslint-disable */
+import React from 'react';
+import DropdownSelect from './components/generalPurpose/DropdownSelect'; 
+
+
 const classificationSettings = {
     "clean": {
         "options": {
@@ -1088,9 +1092,13 @@ const classificationSettings = {
     "outer_cv": {
         "options": {
             "cv_type": {
-                "type": "string",
+                "type": "dropdown",
                 "tooltip": "<p>Type of cross-validation to use. Options are 'kfold' or 'stratified_kfold'.</p>",
-                "default_val": "kfold"
+                "choices": [  
+                { label: 'Stratified K-fold', value: 'stratified_kfold' },
+                { label: 'K-fold', value: 'kfold' }
+                ],
+                "default_val": "stratified_kfold"
             },
             "n_splits": {
                 "type": "int",

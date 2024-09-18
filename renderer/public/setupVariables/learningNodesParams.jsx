@@ -142,7 +142,7 @@ const nodesParams = {
     nbInput: 1,         
     nbOutput: 1,         
     input: ["dataset"],         
-    output: ["finalize"],         
+    output: ["dataset"],         
     img: "outer_cv.png",         
     title: "Outer CV", 
     possibleSettings: { classification: classificationSettings["outer_cv"], regression: regressionSettings["outer_cv"]}

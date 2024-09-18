@@ -109,6 +109,13 @@ const implementedTypesDescription = [
     type: "int-float-str",
     description: "int-float-str",
     default: ""
+  },
+  {
+    type: "dropdown",  // new droptown type
+    description: "for dropdown input (select a single option from a list)",
+    default: (optionsList) => {
+      return optionsList.length > 0 ? optionsList[0] : null;  // the first option is selected by default
+    }
   }
 
 ]
