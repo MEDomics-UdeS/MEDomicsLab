@@ -469,8 +469,6 @@ const MEDprofilesPrepareData = () => {
   // Look of items in the MEDclasses DataView
   const MEDclassesDisplay = (element) => {
     let name = globalData[element]?.name
-    console.log("Calisse", name)
-    //console.log("element", name.slice(0, -1).join("."))
     if (name.includes(".")) {
       return <div>{name.split(".").slice(0, -1).join(".")}</div>
     } else {
