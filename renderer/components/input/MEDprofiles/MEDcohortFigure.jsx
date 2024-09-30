@@ -1,29 +1,29 @@
 /* eslint-disable camelcase */
-import React from "react"
-import { loadJsonPath } from "../../../utilities/fileManagementUtils"
-import { deepCopy } from "../../../utilities/staticFunctions"
-import { XSquare } from "react-bootstrap-icons"
+import * as d3 from "d3"
+import * as dfd from "danfojs-node"
 import * as echarts from "echarts"
 import ReactECharts from "echarts-for-react"
-import * as d3 from "d3"
-import { Col, Row } from "react-bootstrap"
-import { ToggleButton } from "primereact/togglebutton"
-import { Dropdown } from "primereact/dropdown"
 import { Button } from "primereact/button"
-import { MultiSelect } from "primereact/multiselect"
-import { getPathSeparator, createFolderFromPath } from "../../../utilities/fileManagementUtils"
-import { toast } from "react-toastify"
-import { confirmDialog } from "primereact/confirmdialog"
-import { Spinner } from "react-bootstrap"
 import { Checkbox } from "primereact/checkbox"
-import * as dfd from "danfojs-node"
+import { confirmDialog } from "primereact/confirmdialog"
+import { Dropdown } from "primereact/dropdown"
+import { MultiSelect } from "primereact/multiselect"
+import { ToggleButton } from "primereact/togglebutton"
+import React from "react"
+import { Col, Row, Spinner } from "react-bootstrap"
+import { XSquare } from "react-bootstrap-icons"
+import { toast } from "react-toastify"
+import { createFolderFromPath } from "../../../utilities/fileManagementUtils"
+import { deepCopy } from "../../../utilities/staticFunctions"
+import { connectToMongoDB } from "../../mongoDB/mongoDBUtils"
+
 
 /**
  * @class MEDcohortFigureClass
  * @category Components
  * @classdesc Class component that renders a figure of the MEDcohort data.
  * @param {Object} props
- * @param {String} props.jsonFilePath - Path to the MEDcohort json file.
+ * @param {String} props.jsonID - Path to the MEDcohort json file.
  * @param {Object} props.jsonDataIsLoaded - If MEDcohort json data is loaded. Spinner is showed by the parent component.
  */
 class MEDcohortFigureClass extends React.Component {
@@ -89,11 +89,54 @@ class MEDcohortFigureClass extends React.Component {
    * @function
    * @returns {void}
    */
-  componentDidMount() {
-    this.setState({ jsonData: loadJsonPath(this.props.jsonFilePath) }, () => {
-      this.generateEchartsOptions()
-      this.props.setJsonDataIsLoaded(true)
-    })
+  async componentDidMount() {
+    // Connect to mongDB
+    const db = await connectToMongoDB()
+    
+    // Load the JSON data from GridFS
+    const { GridFSBucket } = require("mongodb")
+    const gridFSBucket = new GridFSBucket(db);
+
+    // Find the file in GridFS and get its _id
+    const filesCursor = gridFSBucket.find({ filename: "MEDprofiles.json" });
+    const file = await filesCursor.next(); // Get the first matching file (if it exists)
+    
+    if (!file) {
+        console.error("File 'MEDprofiles.json' not found in GridFS")
+        return;
+    }
+    
+    // Open a readable stream to retrieve the JSON data
+    const stream = gridFSBucket.openDownloadStreamByName("MEDprofiles.json");
+    
+    let jsonData = "";
+
+    // Collect data from stream
+    stream.on("data", chunk => {
+        jsonData += chunk.toString();
+    });
+
+    // On the end of the stream, update the state
+    stream.on("end", async () => {
+        try {
+            const parsedData = JSON.parse(jsonData);
+            console.log("componentDidMount parsedData", parsedData);
+
+            // Update the state with the loaded JSON data
+            this.setState({ jsonData: parsedData }, () => {
+                this.generateEchartsOptions(); // Call the chart generation method
+                this.props.setJsonDataIsLoaded(true); // Notify that the data is loaded
+            });
+          
+        } catch (error) {
+            console.error("Error parsing JSON data from GridFS:", error);
+        }
+    });
+
+    stream.on("error", err => {
+        console.error("Error loading data from GridFS:", err);
+    });
+
     this.setState({ darkMode: window.matchMedia("(prefers-color-scheme)").matches ? "dark" : "light" }) // Set the initial theme type
     window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", (e) => {
       if (e.matches) {
@@ -610,7 +653,9 @@ class MEDcohortFigureClass extends React.Component {
     if (this.state.echartsOptions !== null) {
       if (this.state.echartsOptions.series !== undefined) {
         if (this.state.echartsOptions.series.length !== newEchartsOption.series.length) {
-          toast.error("The number of patients has changed. The reloading time will be affected. Check your data for NaN values in the Date/Time values." + " If you are using the relative time, check if the selected class for relative time is not null for every patient." + " Problematic Patient IDs: " + profilesToHide.join(", "))
+          let error_message = "The number of patients has changed. The reloading time will be affected. Check your data for NaN values in the Date/Time values." + " If you are using the relative time, check if the selected class for relative time is not null for every patient." + " Problematic Patient IDs: " + profilesToHide.join(", ")
+          toast.error(error_message)
+          console.error(error_message)
 
           this.chartRef.current.getEchartsInstance().setOption(newEchartsOption, { notMerge: true })
         }
@@ -842,12 +887,7 @@ class MEDcohortFigureClass extends React.Component {
     })
 
     // Create a folder to store the time point CSV files
-    let separator = getPathSeparator()
-    let folderPath = this.props.jsonFilePath.split(separator)
-    folderPath.pop()
-    folderPath = folderPath.join(separator)
-    folderPath = folderPath + separator + "timePoints" + separator
-    this.confirmOverwriteFolder(timePointsData, folderPath)
+    this.confirmOverwriteFolder(timePointsData)
   }
 
   /**

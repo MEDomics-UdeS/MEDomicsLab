@@ -1,23 +1,24 @@
-import Button from "react-bootstrap/Button"
-import { DataContext } from "../../workspace/dataContext"
+import { randomUUID } from "crypto"
 import { DataFrame } from "danfojs"
+import { Button } from 'primereact/button'
 import { DataView } from "primereact/dataview"
 import { Dropdown } from "primereact/dropdown"
-import { ErrorRequestContext } from "../../generalPurpose/errorRequestContext"
 import { InputText } from "primereact/inputtext"
-import { LayoutModelContext } from "../../layout/layoutContext"
-import { loadCSVPath } from "../../../utilities/fileManagementUtils"
-import MedDataObject from "../../workspace/medDataObject"
 import { Message } from "primereact/message"
 import { MultiSelect } from "primereact/multiselect"
-import { PageInfosContext } from "../../mainPages/moduleBasics/pageInfosContext"
-import ProgressBar from "react-bootstrap/ProgressBar"
 import { ProgressSpinner } from "primereact/progressspinner"
 import React, { useContext, useEffect, useState } from "react"
-import { requestBackend } from "../../../utilities/requests"
+import ProgressBar from "react-bootstrap/ProgressBar"
 import { toast } from "react-toastify"
+import { loadCSVPath } from "../../../utilities/fileManagementUtils"
+import { requestBackend } from "../../../utilities/requests"
+import { ErrorRequestContext } from "../../generalPurpose/errorRequestContext"
+import { LayoutModelContext } from "../../layout/layoutContext"
+import { PageInfosContext } from "../../mainPages/moduleBasics/pageInfosContext"
+import { connectToMongoDB, insertMEDDataObjectIfNotExists } from "../../mongoDB/mongoDBUtils"
+import { DataContext } from "../../workspace/dataContext"
+import { MEDDataObject } from "../../workspace/NewMedDataObject"
 import { WorkspaceContext } from "../../workspace/workspaceContext"
-import { getPathSeparator } from "../../../utilities/fileManagementUtils"
 
 /**
  *
@@ -25,29 +26,22 @@ import { getPathSeparator } from "../../../utilities/fileManagementUtils"
  *
  * @description
  * Component of the input module as an Accordion, MEDprofilesPrepareDara allows the user to
- * create MEDclasses from a master table, instantiate his master table data as MEDprofiles,
+ * creates MEDclasses from a master table, instantiate his master table data as MEDprofiles,
  * and finally open the generated data in MEDprofilesViewer.
  *
  */
 const MEDprofilesPrepareData = () => {
   const [binaryFileList, setBinaryFileList] = useState([]) // list of available binary files
   const [binaryFilename, setBinaryFilename] = useState("MEDprofiles_bin.pkl") // name under which the MEDprofiles binary file will be saved
-  const [creatingMEDclasses, setCreatingMEDclasses] = useState(false) // boolean telling if the process of MEDclasses creation is running
-  const [csvPathsList, setCsvPathsList] = useState([]) // list of csv paths in data folder
   const [dataFolder, setDataFolder] = useState(null) // folder where the csv files will be examinated and where the MEDprofiles data will be saved
-  const [folderList, setFolderList] = useState([]) // list of available folders in DATA folder
   const [generatedClassesFolder, setGeneratedClassesFolder] = useState(null) // folder containing the generated MEDclasses
-  const [generatedClassesFolderPath, setGeneratedClassesFolderPath] = useState(null) // path of the folder containing the generated MEDclasses
-  const [generatedMasterPath, setGeneratedMasterPath] = useState(null) // path of the last generated master table
   const [generatedMEDprofilesFile, setGeneratedMEDprofilesFile] = useState(null) // file containing the generated MEDprofiles binary file
-  const [generatedMEDprofilesFilePath, setGeneratedMEDprofilesFilePath] = useState(null) // path of the file containing the generated MEDprofiles binary file
   const [instantiatingMEDprofiles, setInstantiatingMEDprofiles] = useState(false) // boolean telling if the process of instantiating MEDprofiles is running
   const [loadingMasterTables, setLoadingMasterTables] = useState(false) // boolean telling if the csv analyse for mastertable is processing
   const [loadingSubMasterTables, setLoadingSubMasterTables] = useState(false) // boolean telling if the csv analyse for submaster is processing
   const [masterFilename, setMasterFilename] = useState("master_table.csv") // name under which the created master_table will be saved
   const [masterTableFileList, setMasterTableFileList] = useState([]) // list of csv data matching the "MasterTable" format
   const [matchingIdColumns, setMatchingIdColumns] = useState(true) // boolean false if the selected submaster tables doesn't have the same id columns types
-  const [MEDclassesFolderList, setMEDclassesFolderList] = useState([]) // list of the folder that may contain MEDclasses
   const [MEDprofilesFolderPath, setMEDprofilesFolderPath] = useState(null) // MEDprofiles folder path
   const [progressNumber, setProgressNumber] = useState(0) // Progress number
   const [progressStep, setProgressStep] = useState("") // Progress step
@@ -63,19 +57,19 @@ const MEDprofilesPrepareData = () => {
   const { port } = useContext(WorkspaceContext) // we get the port for server connexion
   const { setError } = useContext(ErrorRequestContext) // used to diplay the errors
 
+
   /**
-   * @description
-   * This functions get all folders from the DataContext DATA folder and update folderList.
-   */
-  function getFolderListFromDataContext() {
+   * @description This functions gets the MEDclasses folder if found in globalData and update generatedClassesFolder.
+   * */
+  function getGeneratedClassesFolder() {
     let keys = Object.keys(globalData)
-    let folderListToShow = []
+    let MEDClassesFolder = null
     keys.forEach((key) => {
-      if (globalData[key].type == "directory" && globalData[key].path.includes("DATA")) {
-        folderListToShow.push(globalData[key])
+      if (globalData[key].type == "directory" && globalData[key].name == "MEDclasses" && globalData[key].path.includes("DATA")) {
+        MEDClassesFolder = globalData[key]
       }
     })
-    setFolderList(folderListToShow)
+    setGeneratedClassesFolder(MEDClassesFolder)
   }
 
   /**
@@ -86,7 +80,7 @@ const MEDprofilesPrepareData = () => {
     let keys = Object.keys(globalData)
     let tmpList = []
     keys.forEach((key) => {
-      if (globalData[key].type == "pkl" && globalData[key].path.includes("DATA")) {
+      if (globalData[key].type == "pkl" && globalData[key].parentID == getMEDprofilesFolderId()) {
         tmpList.push(globalData[key])
       }
     })
@@ -94,63 +88,8 @@ const MEDprofilesPrepareData = () => {
   }
 
   /**
-   * @description
-   * This functions get all binary files from the DataContext DATA folder and update binaryFileList.
-   */
-  function getCsvPathList() {
-    let keys = Object.keys(globalData)
-    let tmpList = []
-    keys.forEach((key) => {
-      if (globalData[key].path.includes(dataFolder.path) && globalData[key].type == "csv") {
-        tmpList.push(globalData[key].path)
-      }
-    })
-    setCsvPathsList(tmpList)
-  }
-
-  /**
-   * @description
-   * This functions get all the MEDclasses folders from the DataContext DATA folder and update MEDclassesFolderList.
-   */
-  function getMEDclassesFolderList() {
-    let keys = Object.keys(globalData)
-    let folderListToShow = []
-    keys.forEach((key) => {
-      if (
-        globalData[key].type == "directory" &&
-        globalData[key].name == "MEDclasses" &&
-        globalData[key].path.includes("DATA") &&
-        globalData[key]?.parentID &&
-        globalData[globalData[key]?.parentID].name == "MEDclasses"
-      ) {
-        folderListToShow.push(globalData[key])
-      }
-    })
-    setMEDclassesFolderList(folderListToShow)
-  }
-
-  /**
    *
-   * @param {String} path
-   * @param {Function} setter
-   *
-   * @description
-   * This functions is called when the MEDclasses or the MEDprofiles'
-   * binary file have been generated.
-   *
-   */
-  function getGeneratedElement(path, setter) {
-    let keys = Object.keys(globalData)
-    keys.forEach((key) => {
-      if (globalData[key].path == path) {
-        setter(globalData[key])
-      }
-    })
-  }
-
-  /**
-   *
-   * @param {List[String]} pathList
+   * @param {List[String]} iDList
    * @param {Function} setter
    *
    * @description
@@ -158,11 +97,11 @@ const MEDprofilesPrepareData = () => {
    * master and submaster format have been returned.
    *
    */
-  function getListOfGeneratedElement(pathList, setter) {
+  function getListOfGeneratedElement(iDList, setter) {
     let keys = Object.keys(globalData)
     let tmpList = []
     keys.forEach((key) => {
-      if (pathList.includes(globalData[key].path)) {
+      if (iDList.includes(globalData[key].id)) {
         tmpList.push(globalData[key])
       }
     })
@@ -174,7 +113,16 @@ const MEDprofilesPrepareData = () => {
    * Open the MEDprofilesViewerPage, depending on generatedClassesFolder and generatedMEDprofilesFile
    */
   function openMEDprofilesViewer() {
-    dispatchLayout({ type: `openMEDprofilesViewerModule`, payload: { pageId: "MEDprofilesViewer", MEDclassesFolder: generatedClassesFolder, MEDprofilesBinaryFile: generatedMEDprofilesFile } })
+    dispatchLayout(
+      { 
+        type: `openMEDprofilesViewerModule`, 
+        payload: { 
+          pageId: "MEDprofilesViewer", 
+          MEDclassesFolder: generatedClassesFolder, 
+          MEDprofilesBinaryFile: generatedMEDprofilesFile 
+        } 
+      }
+    )
   }
 
   /**
@@ -211,28 +159,72 @@ const MEDprofilesPrepareData = () => {
    * @description
    * Calls the create_master_table method in the MEDprofiles server
    */
-  const createMasterTable = () => {
-    // Get paths of the MedDataObjects
-    let keys = Object.keys(selectedSubMasterTableFiles)
-    let csvPaths = []
-    keys.forEach((key) => {
-      csvPaths.push(selectedSubMasterTableFiles[key].path)
+  const createMasterTable = async () => {
+    // Create the MEDDataObject
+    const id = randomUUID()
+    const object = new MEDDataObject({
+      id: id,
+      name: masterFilename,
+      type: "csv",
+      parentID: "ROOT",
+      childrenIDs: [],
+      inWorkspace: false
     })
-    // Run extraction process
+
+    // Get IDs of the selected csv files to create the master table
+    let keys = Object.keys(selectedSubMasterTableFiles)
+    let csvCollections = []
+    keys.forEach((key) => {
+      csvCollections.push(selectedSubMasterTableFiles[key].id)
+    })
+
+    // Run creation process
     requestBackend(
       port,
       "/MEDprofiles/create_master_table/" + pageId,
       {
-        csvPaths: csvPaths,
-        masterTableFolder: MEDprofilesFolderPath + getPathSeparator() + "master_tables",
-        filename: masterFilename,
-        pageId: pageId
+        id: id,
+        csvCollections: csvCollections,
       },
       (jsonResponse) => {
         console.log("createMasterTable received results:", jsonResponse)
         if (!jsonResponse.error) {
-          MedDataObject.updateWorkspaceDataObject()
-          setGeneratedMasterPath(jsonResponse["master_table_path"])
+          toast.success("Master table created and added to database.")
+          setSelectedSubMasterTableFiles(null)
+        } else {
+          toast.error(`Creation failed: ${jsonResponse.error.message}`)
+          setError(jsonResponse.error)
+        }
+      },
+      function (err) {
+        console.error(err)
+        toast.error(`Creation failed: ${err}`)
+      }
+    )
+
+    // Insert the new MEDDataObject in the database
+    await insertMEDDataObjectIfNotExists(object)
+    MEDDataObject.updateWorkspaceDataObject()
+    getMasterSubMasterCsv()
+  }
+
+  /**
+   * @description
+   * This function calls the create_MEDclasses method in the MEDprofiles server
+   */
+  const createMEDclasses = async () => {
+    // Run extraction process
+    requestBackend(
+      port,
+      "/MEDprofiles/create_MEDclasses/" + pageId,
+      {
+        masterTableID: selectedMasterTable.id,
+        MEDprofilesFolderPath: MEDprofilesFolderPath,
+      },
+      (jsonResponse) => {
+        console.log("received results:", jsonResponse)
+        if (!jsonResponse.error) {
+          MEDDataObject.updateWorkspaceDataObject()
         } else {
           toast.error(`Creation failed: ${jsonResponse.error.message}`)
           setError(jsonResponse.error)
@@ -247,36 +239,17 @@ const MEDprofilesPrepareData = () => {
 
   /**
    * @description
-   * This function calls the create_MEDclasses method in the MEDprofiles server
+   * This functions returns the MEDprofiles folder id if it exists.
    */
-  const createMEDclasses = () => {
-    setCreatingMEDclasses(true)
-    // Run extraction process
-    requestBackend(
-      port,
-      "/MEDprofiles/create_MEDclasses/" + pageId,
-      {
-        masterTablePath: selectedMasterTable.path,
-        MEDprofilesFolderPath: MEDprofilesFolderPath,
-        pageId: pageId
-      },
-      (jsonResponse) => {
-        console.log("received results:", jsonResponse)
-        if (!jsonResponse.error) {
-          MedDataObject.updateWorkspaceDataObject()
-          setGeneratedClassesFolderPath(jsonResponse["generated_MEDclasses_folder"])
-        } else {
-          toast.error(`Creation failed: ${jsonResponse.error.message}`)
-          setError(jsonResponse.error)
-        }
-        setCreatingMEDclasses(false)
-      },
-      function (err) {
-        console.error(err)
-        toast.error(`Creation failed: ${err}`)
-        setCreatingMEDclasses(false)
+  const getMEDprofilesFolderId = () => {
+    let keys = Object.keys(globalData)
+    let folderId = null
+    keys.forEach((key) => {
+      if (globalData[key].path == MEDprofilesFolderPath) {
+        folderId = globalData[key].id
       }
-    )
+    })
+    return folderId
   }
 
   /**
@@ -287,7 +260,8 @@ const MEDprofilesPrepareData = () => {
     let keys = Object.keys(globalData)
     let folderExists = false
     keys.forEach((key) => {
-      if (globalData[key].path == MEDprofilesFolderPath) {
+      if (globalData[key].type == "directory" && globalData[key].name == "MEDprofiles" && globalData[key].parentID == "DATA") {
+        setMEDprofilesFolderPath(globalData[key].path)
         folderExists = true
       }
     })
@@ -305,12 +279,11 @@ const MEDprofilesPrepareData = () => {
       "/MEDprofiles/create_MEDprofiles_folder/" + pageId,
       {
         rootDataFolder: rootDataFolder.path,
-        pageId: pageId
       },
       (jsonResponse) => {
         console.log("received results:", jsonResponse)
         if (!jsonResponse.error) {
-          MedDataObject.updateWorkspaceDataObject()
+          MEDDataObject.updateWorkspaceDataObject()
           setMEDprofilesFolderPath(jsonResponse["MEDprofiles_folder"])
         } else {
           toast.error(`Creation failed: ${jsonResponse.error.message}`)
@@ -328,20 +301,40 @@ const MEDprofilesPrepareData = () => {
 
   /**
    * @description
+   * This function returns the root workspace directory path.
+   * @returns {String} the root workspace directory path
+   */
+  const getRootWorkspacePath = () => {
+    let keys = Object.keys(globalData)
+    let rootWorkspacePath = null
+    keys.forEach((key) => {
+      if (globalData[key].type == "directory" && globalData[key].id == "ROOT") {
+        rootWorkspacePath = globalData[key].path
+      }
+    })
+    return rootWorkspacePath
+  }
+
+  /**
+   * @description
    * This function calls the get_master_csv method in the MEDprofiles server
    * It updates list of masterTableFileList and submasterTableFileList
    */
   const getMasterSubMasterCsv = () => {
+    // Get IDs of the csv files in the database
+    let  csvEntries = Object.values(globalData).filter((entry) => entry.type === "csv")
+    let csvCollections = csvEntries.map((entry) => entry.id)
+
     // Run extraction process
     requestBackend(
       port,
       "/MEDprofiles/get_master_csv/" + pageId,
       {
-        csvPaths: csvPathsList,
-        pageId: pageId
+        csvCollections: csvCollections,
       },
       (jsonResponse) => {
         if (!jsonResponse.error) {
+          console.log("received results:", jsonResponse)
           if (jsonResponse["master_csv"].length == 0) {
             console.warn("No csv matching the master table format found in the selected folder")
             toast.warn("No csv matching the master table format found in the selected folder")
@@ -354,18 +347,18 @@ const MEDprofilesPrepareData = () => {
           } else {
             getListOfGeneratedElement(jsonResponse["submaster_csv"], setSubMasterTableFileList)
           }
-          setLoadingMasterTables(false)
-          setLoadingSubMasterTables(false)
         } else {
           toast.error(`Loading csv matching formats failed: ${jsonResponse.error.message}`)
-          setLoadingMasterTables(false)
-          setLoadingSubMasterTables(false)
           setError(jsonResponse.error)
         }
+        setLoadingMasterTables(false)
+        setLoadingSubMasterTables(false)
       },
       function (err) {
         console.error(err)
         toast.error(`Loading csv matching formats failed: ${err}`)
+        setLoadingMasterTables(false)
+        setLoadingSubMasterTables(false)
       }
     )
   }
@@ -382,10 +375,8 @@ const MEDprofilesPrepareData = () => {
         port,
         "/MEDprofiles/initialize_MEDprofiles_instantiation/" + pageId,
         {
-          masterTablePath: selectedMasterTable.path,
+          masterTableID: selectedMasterTable.id,
           MEDprofilesFolderPath: MEDprofilesFolderPath,
-          filename: binaryFilename,
-          pageId: pageId
         },
         (response) => resolve(response),
         (error) => reject(error)
@@ -400,15 +391,40 @@ const MEDprofilesPrepareData = () => {
    *
    * @returns extractedData
    */
-  async function runMEDprofilesInstantiation(processingList, destinationFile) {
+  async function runMEDprofilesInstantiation(processingList) {
+    // Check if a pickle file already 
+    const db = await connectToMongoDB()
+    let collection = db.collection("medDataObjects")
+    let object = await collection.findOne({ name: binaryFilename, type: "pkl", parentID: getMEDprofilesFolderId() })
+    if (!object) {
+      // If object not in the DB we create it
+      object = new MEDDataObject({
+        id: randomUUID(),
+        name: binaryFilename,
+        type: "pkl",
+        parentID: getMEDprofilesFolderId(),
+        childrenIDs: [],
+        inWorkspace: false
+      })
+      await insertMEDDataObjectIfNotExists(object)
+    } else {
+      // If object already in the DB delete its content
+      collection = db.collection(object.id)
+      await collection.deleteMany({})
+    }
     let progress = 10
     let chunkSize = 25
     let chunks = []
+    let lastChunk = false
     for (let i = 0; i < processingList.length; i += chunkSize) {
       const chunk = processingList.slice(i, i + chunkSize)
       chunks.push(chunk)
     }
     for (const subList of chunks) {
+      // check if last chunk
+      if (subList === chunks[chunks.length - 1]) {
+        lastChunk = true
+      }
       try {
         const jsonResponse = await new Promise((resolve, reject) => {
           progress += (1 / chunks.length) * 80
@@ -417,19 +433,22 @@ const MEDprofilesPrepareData = () => {
             port,
             "/MEDprofiles/instantiate_MEDprofiles/" + pageId,
             {
-              masterTablePath: selectedMasterTable.path,
-              MEDprofilesFolderPath: MEDprofilesFolderPath,
-              destinationFile: destinationFile,
+              masterTableID: selectedMasterTable.id,
+              MEDclassesFolder: generatedClassesFolder.path,
+              pickleFileObject: object,
               patientList: subList,
-              pageId: pageId
+              rootDir: getRootWorkspacePath(),
+              lastChunk: lastChunk,
             },
             (response) => resolve(response),
             (error) => reject(error)
           )
         })
         if (jsonResponse.error) {
+          console.error(jsonResponse.error)
           toast.error(`Instantiation failed: ${jsonResponse.error.message}`)
           setError(jsonResponse.error)
+          return
         }
       } catch (err) {
         console.error(err)
@@ -437,6 +456,7 @@ const MEDprofilesPrepareData = () => {
         return
       }
     }
+    MEDDataObject.updateWorkspaceDataObject()
   }
 
   /**
@@ -444,20 +464,25 @@ const MEDprofilesPrepareData = () => {
    * This function calls the instantiate_MEDprofiles method in the MEDprofiles server
    */
   const instantiateMEDprofiles = async () => {
+    // Create MEDclasses
+    await createMEDclasses()
+
+    // Set the progress information
     setInstantiatingMEDprofiles(true)
     setShowProgressBar(true)
     setProgressNumber(0)
     setProgressStep("Initialization")
+
     // Initialize instantiation process
     let jsonInitialization = await initializeMEDprofilesInstantiation()
+
     // Run MEDprofiles instantiation process
     setProgressStep("Instantiating data")
     if (!jsonInitialization.error) {
+      // If no error, run the instantiation process
       let processingList = jsonInitialization["patient_list"]
-      let destinationFile = jsonInitialization["destination_file"]
-      await runMEDprofilesInstantiation(processingList, destinationFile)
-      MedDataObject.updateWorkspaceDataObject()
-      setGeneratedMEDprofilesFilePath(destinationFile)
+      await runMEDprofilesInstantiation(processingList)
+      toast.success("Instantiation completed")
     } else {
       toast.error(`Instantiation failed: ${jsonInitialization.error.message}`)
       setError(jsonInitialization.error)
@@ -469,55 +494,51 @@ const MEDprofilesPrepareData = () => {
   // Look of items in the MEDclasses DataView
   const MEDclassesDisplay = (element) => {
     let name = globalData[element]?.name
+    let style = {
+      border: "1px solid #dfe1e5",
+      borderRadius: "10px",
+      padding: "10px",
+      margin: "10px 0",
+      backgroundColor: "#f9f9f9",
+      boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+      textAlign: "center",
+      transition: "background-color 0.3s ease",
+      cursor: "pointer",
+    }
     if (name.includes(".")) {
-      return <div>{name.split(".").slice(0, -1).join(".")}</div>
+      return <div 
+        style={style}
+        onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#e0f7fa")}
+        onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#f9f9f9")}>
+          <span style={{ fontWeight: "bold", fontSize: "16px", color: "#333" }}>
+            {name.split(".").slice(0, -1).join(".")}
+          </span>
+        </div>
     } else {
       return
     }
   }
 
-  // Called when csvPathsList is updated, in order to load the matching files for submastertable and mastertable
+  // Called when the page is loaded in order to fill all the options
   useEffect(() => {
-    if (csvPathsList.length > 0) {
-      getMasterSubMasterCsv()
-    } else {
-      setLoadingMasterTables(false)
-      setLoadingSubMasterTables(false)
-    }
-  }, [csvPathsList])
+    setLoadingMasterTables(true)
+    setLoadingSubMasterTables(true)
+    setSubMasterTableFileList([])
+    setMasterTableFileList([])
+    setSelectedSubMasterTableFiles(null)
+    setSelectedMasterTable(null)
+    getMasterSubMasterCsv()
+    getBinaryFileList()
+    getGeneratedClassesFolder()
+  }, [])
 
-  // Called when dataFolder is updated, in order to load the matching files for submastertable and mastertable
-  useEffect(() => {
-    if (dataFolder !== null) {
-      setLoadingMasterTables(true)
-      setLoadingSubMasterTables(true)
-      setSubMasterTableFileList([])
-      setMasterTableFileList([])
-      setSelectedSubMasterTableFiles(null)
-      setSelectedMasterTable(null)
-      getCsvPathList()
-      //getSubMasterTableFileList(dataFolder)
-      //getMasterTableFileList(dataFolder)
-    } else {
-      setSelectedSubMasterTableFiles(null)
-      setSelectedMasterTable(null)
-    }
-  }, [dataFolder])
-
-  // Called while global data is updated in order to get the DATA folder, to update the available folder list,
-  // to set default selected folder to "MEDprofiles/master_tables" or "extracted_features" if one of the folder exists
-  // and to get the generated classes folder and the MEDprofiles binary file
+  // Called while global data is updated in order to get the DATA folder, to update the available fields (csv filesm pkl, etc.)
+  // and create the MEDprofiles folder if it doesn't exist
   useEffect(() => {
     if (globalData !== undefined) {
-      getFolderListFromDataContext()
+      setSelectedSubMasterTableFiles(null)
       getBinaryFileList()
-      getMEDclassesFolderList()
-      if (generatedClassesFolderPath) {
-        getGeneratedElement(generatedClassesFolderPath, setGeneratedClassesFolder)
-      }
-      if (generatedMEDprofilesFilePath) {
-        getGeneratedElement(generatedMEDprofilesFilePath, setGeneratedMEDprofilesFile)
-      }
+      getGeneratedClassesFolder()
       let keys = Object.keys(globalData)
       keys.forEach((key) => {
         if (
@@ -541,8 +562,10 @@ const MEDprofilesPrepareData = () => {
 
   // Called while rootDataFolder is updated in order to create the MEDprofiles folder
   useEffect(() => {
-    if (rootDataFolder && !checkMEDprofilesFolder()) {
-      createMEDprofilesFolder()
+    if (rootDataFolder && MEDprofilesFolderPath == null) {
+      if (!checkMEDprofilesFolder()){
+        createMEDprofilesFolder()
+      }
     }
   }, [rootDataFolder])
 
@@ -605,24 +628,6 @@ const MEDprofilesPrepareData = () => {
         />
       </div>
       <div>
-        <div className="margin-top-15 centered-container">
-          <h5>Select the location of your master table data folder &nbsp;</h5>
-          <div className="margin-top-15">
-            {folderList.length > 0 ? (
-              <Dropdown
-                value={dataFolder}
-                options={folderList}
-                filter
-                optionLabel="name"
-                onChange={(event) => setDataFolder(event.value)}
-                placeholder="Select a folder"
-                disabled={loadingMasterTables || loadingSubMasterTables}
-              />
-            ) : (
-              <Dropdown placeholder="No folder to show" disabled />
-            )}
-          </div>
-        </div>
         <hr></hr>
         <div className="margin-top-15">
           <h5 className="align-center">Create or Select your master table</h5>
@@ -631,9 +636,8 @@ const MEDprofilesPrepareData = () => {
           </div>
           <div className="align-center">{!matchingIdColumns && <Message severity="warn" text="Your selected csv for master table creation contains different types for identifier columns" />}</div>
         </div>
-        <div className="margin-top-15 flex-container">
+        <div className="margin-top-15 flex-container"> 
           <div className="mergeToolMultiSelect">
-            {loadingSubMasterTables == true && <ProgressSpinner style={{ width: "40px", height: "40px" }} />}
             {subMasterTableFileList?.length > 0 ? (
               <MultiSelect
                 style={{ maxWidth: "200px" }}
@@ -650,35 +654,34 @@ const MEDprofilesPrepareData = () => {
             ) : (
               <MultiSelect placeholder="No CSV files to show" disabled />
             )}
-            <div>
-              <Button disabled={!selectedSubMasterTableFiles || selectedSubMasterTableFiles?.length < 1 || !matchingIdColumns} onClick={createMasterTable}>
-                Create Master Table
-              </Button>
-            </div>
           </div>
           <div>
             Save master table as : &nbsp;
             <InputText value={masterFilename} onChange={(e) => handleMasterFilenameChange(e.target.value)} />
           </div>
+            <div>
+                <Button 
+                  label="Create Master Table"
+                  raised 
+                  loading={loadingMasterTables}
+                  disabled={!selectedSubMasterTableFiles || selectedSubMasterTableFiles?.length < 1 || !matchingIdColumns} 
+                  onClick={createMasterTable}
+                  />
+              </div>
           <div className="vertical-divider"></div>
           <div>{loadingMasterTables == true && <ProgressSpinner style={{ width: "40px", height: "40px" }} />}</div>
           <div>
             {masterTableFileList.length > 0 ? (
-              <Dropdown value={selectedMasterTable} options={masterTableFileList} optionLabel="name" onChange={(event) => setSelectedMasterTable(event.value)} placeholder="Select a master table" />
-            ) : loadingMasterTables == true ? (
-              <Dropdown placeholder="Loading..." disabled />
-            ) : (
-              <Dropdown placeholder="No CSV files to show" disabled />
+              <Dropdown 
+                value={selectedMasterTable} 
+                options={masterTableFileList} 
+                optionLabel="name" 
+                onChange={(event) => setSelectedMasterTable(event.value)} 
+                placeholder="Select a master table" />) : loadingMasterTables == true ? (
+              <Dropdown placeholder="Loading..." disabled /> ) : ( <Dropdown placeholder="No CSV files to show" disabled />
             )}
           </div>
         </div>
-        <div className="margin-top-15">{generatedMasterPath && <>Master Table generated at : {generatedMasterPath}</>}</div>
-      </div>
-      <hr></hr>
-      <div className="centered-container">
-        <Button disabled={!selectedMasterTable || creatingMEDclasses} onClick={createMEDclasses}>
-          Create MEDclasses
-        </Button>
       </div>
       {generatedClassesFolder?.childrenIDs && (
         <div className="card data-view">
@@ -692,9 +695,11 @@ const MEDprofilesPrepareData = () => {
           <InputText value={binaryFilename} onChange={(e) => handleBinaryFilenameChange(e.target.value)} />
         </div>
         <div>
-          <Button disabled={!selectedMasterTable || instantiatingMEDprofiles || !generatedClassesFolder?.childrenIDs} onClick={instantiateMEDprofiles}>
-            Instantiate MEDprofiles
-          </Button>
+          <Button 
+            label='Instantiate MEDprofiles' 
+            raised disabled={!selectedMasterTable || instantiatingMEDprofiles} 
+            onClick={instantiateMEDprofiles}
+          />
         </div>
       </div>
       <div className="margin-top-15 extraction-progress">
@@ -708,21 +713,6 @@ const MEDprofilesPrepareData = () => {
       <hr></hr>
       <h5 className="margin-top-15 align-center">Visualize your MEDprofiles data</h5>
       <div className="margin-top-15 flex-container">
-        <div>
-          MEDclasses folder : &nbsp;
-          {MEDclassesFolderList.length > 0 ? (
-            <Dropdown
-              style={{ width: "250px" }}
-              value={generatedClassesFolder}
-              options={MEDclassesFolderList}
-              onChange={(event) => setGeneratedClassesFolder(event.value)}
-              optionLabel="path"
-              placeholder="Select your MEDclasses folder"
-            />
-          ) : (
-            <Dropdown placeholder="No Folder to show" disabled />
-          )}
-        </div>
         <div>
           MEDprofiles binary file : &nbsp;
           {binaryFileList.length > 0 ? (
@@ -739,9 +729,7 @@ const MEDprofilesPrepareData = () => {
           )}
         </div>
         <div>
-          <Button disabled={!generatedClassesFolder || !generatedMEDprofilesFile} onClick={openMEDprofilesViewer}>
-            Open MEDprofiles Viewer
-          </Button>
+          <Button raised disabled={!generatedMEDprofilesFile} onClick={openMEDprofilesViewer} label="Open MEDprofiles Viewer"/>
         </div>
       </div>
     </>
