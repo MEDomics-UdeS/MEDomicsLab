@@ -1,4 +1,5 @@
 /* eslint-disable camelcase */
+import { randomUUID } from "crypto"
 import * as d3 from "d3"
 import * as dfd from "danfojs-node"
 import * as echarts from "echarts"
@@ -13,9 +14,9 @@ import React from "react"
 import { Col, Row, Spinner } from "react-bootstrap"
 import { XSquare } from "react-bootstrap-icons"
 import { toast } from "react-toastify"
-import { createFolderFromPath } from "../../../utilities/fileManagementUtils"
 import { deepCopy } from "../../../utilities/staticFunctions"
-import { connectToMongoDB } from "../../mongoDB/mongoDBUtils"
+import { connectToMongoDB, insertMEDDataObjectIfNotExists } from "../../mongoDB/mongoDBUtils"
+import { MEDDataObject } from "../../workspace/NewMedDataObject"
 
 
 /**
@@ -886,64 +887,12 @@ class MEDcohortFigureClass extends React.Component {
       })
     })
 
-    // Create a folder to store the time point CSV files
-    this.confirmOverwriteFolder(timePointsData)
+    // Export the time point data to CSV files
+    Object.keys(timePointsData).forEach((timePoint) => {
+      this.timePointToCsv(timePoint, timePointsData[timePoint])
+    })
   }
-
-  /**
-   * This function exports the data for each time point to a separate CSV file.
-   * @description It shows a confirmation dialog if the folder already exists.
-   * @param {Object} timePointsData - The data for each time point.
-   * @param {string} folderPath - The path to the folder to store the CSV files.
-   * @returns {void}
-   */
-  confirmOverwriteFolder = async (timePointsData, folderPath) => {
-    // eslint-disable-next-line no-undef
-    const fsx = require("fs-extra")
-    if (fsx.existsSync(folderPath)) {
-      await new Promise((resolve) => {
-        confirmDialog({
-          closable: false,
-          message: `The folder ${folderPath} already exists. Do you want to overwrite it?`,
-          header: "Confirmation",
-          icon: "pi pi-exclamation-triangle",
-          accept: () => {
-            resolve(true)
-          },
-          reject: () => {
-            // Do nothing
-            resolve(false)
-          }
-        })
-      })
-        .then((res) => {
-          if (res) {
-            // Remove the folder
-            fsx.removeSync(folderPath)
-            // Create a new folder
-            createFolderFromPath(folderPath)
-            // Export the time point data to CSV files
-            Object.keys(timePointsData).forEach((timePoint) => {
-              this.timePointToCsv(timePoint, timePointsData[timePoint], folderPath)
-            })
-          }
-        })
-        .then(() => {
-          this.setState({ isWorking: false })
-        })
-        .catch(() => {
-          // Do nothing
-        })
-    } else {
-      // Create a new folder
-      createFolderFromPath(folderPath)
-      // Export the time point data to CSV files
-      Object.keys(timePointsData).forEach((timePoint) => {
-        this.timePointToCsv(timePoint, timePointsData[timePoint], folderPath)
-      })
-      this.setState({ isWorking: false })
-    }
-  }
+  
 
   /**
    * This method returns the median of an array.
@@ -1096,10 +1045,9 @@ class MEDcohortFigureClass extends React.Component {
    * This function exports the data for a given time point to a CSV file.
    * @param {number} timePoint - The time point to export.
    * @param {Object} timePointData - The data for the time point.
-   * @param {string} folderPath - The path to the folder to store the CSV file.
    * @returns {void}
    */
-  timePointToCsv = (timePoint, timePointData, folderPath) => {
+  timePointToCsv = async (timePoint, timePointData) => {
     // eslint-disable-next-line no-undef
     const dfd = require("danfojs-node")
     if (timePointData === undefined) return
@@ -1126,14 +1074,78 @@ class MEDcohortFigureClass extends React.Component {
         let mergedDfData = this.mergeTimePointData(dfData)
         dfData = new dfd.concat({ dfList: Object.values(mergedDfData), axis: 0 })
       }
-      let filePath = folderPath + "T" + timePoint + ".csv" // Create the file path
+      let fileName = "T" + timePoint + ".csv" // Create the file path
+      let jsonData = dfd.toJSON(dfData) // Convert the dataframe to JSON
       try {
-        // Save the data to a CSV file
-        dfd.toCSV(dfData, { filePath: filePath })
+        // connect to the database and create the file object
+        const db = await connectToMongoDB()
+        let collection = db.collection("medDataObjects")
+        const id = randomUUID()
+        const object = new MEDDataObject({
+          id: id,
+          name: fileName,
+          type: "csv",
+          parentID: "ROOT",
+          childrenIDs: [],
+          inWorkspace: false
+        })
+
+        // check if file already exists
+        const existingObjectByAttributes = await collection.findOne({ name: object.name, type: object.type, parentID: object.parentID })
+        if (existingObjectByAttributes) {
+          // If object already in the DB, show a confirmation dialog to overwrite it
+          await new Promise((resolve) => {
+            confirmDialog({
+              closable: false,
+              message: `The file ${fileName} already exists in the ROOT folder. Do you want to overwrite it?`,
+              header: "Confirmation",
+              icon: "pi pi-exclamation-triangle",
+              accept: () => {
+                resolve(true)
+              },
+              reject: () => {
+                // Do nothing
+                resolve(false)
+                this.setState({ isWorking: false })
+              }
+            })
+          })
+            .then(async (res) => {
+              if (res) {
+                // If the user accepts, remove the existing file
+                collection = db.collection(existingObjectByAttributes.id)
+                await collection.deleteMany({})
+                // Save the data to a CSV file inside mongo database
+                collection.insertMany(jsonData)
+                // Update workspace
+                MEDDataObject.updateWorkspaceDataObject()
+                // Show a success message
+                toast.success(`Time point ${timePoint} exported to the database`)
+              }
+            })
+            .catch(() => {
+              // Do nothing
+              this.setState({ isWorking: false })
+            })
+        } else {
+          // Save the data to a CSV file inside mongo database
+          await db.createCollection(object.id)
+          collection = db.collection(object.id)
+          await collection.insertMany(jsonData)
+
+          // insert the object into the database and update workspace
+          await insertMEDDataObjectIfNotExists(object)
+          MEDDataObject.updateWorkspaceDataObject()
+          
+          // Show a success message
+          toast.success(`Time point ${timePoint} exported to the database`)
+        }
       } catch (error) {
-        console.log("error", error)
+        console.error("error", error)
+        toast.error("Error exporting time point to the database")
       } finally {
-        toast.success(`Time point ${timePoint} exported to ${filePath}`)
+        // Do nothing
+        this.setState({ isWorking: false })
       }
       return
     }
