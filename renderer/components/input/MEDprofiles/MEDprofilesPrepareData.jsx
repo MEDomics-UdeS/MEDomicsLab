@@ -242,10 +242,13 @@ const MEDprofilesPrepareData = () => {
    * This functions returns the MEDprofiles folder id if it exists.
    */
   const getMEDprofilesFolderId = () => {
+    if (MEDprofilesFolderPath == null) {
+      checkMEDprofilesFolder()
+    }
     let keys = Object.keys(globalData)
     let folderId = null
     keys.forEach((key) => {
-      if (globalData[key].path == MEDprofilesFolderPath) {
+      if (globalData[key].type == "directory" && globalData[key].name == "MEDprofiles" && globalData[key].parentID == "DATA") {
         folderId = globalData[key].id
       }
     })
@@ -537,21 +540,10 @@ const MEDprofilesPrepareData = () => {
   useEffect(() => {
     if (globalData !== undefined) {
       setSelectedSubMasterTableFiles(null)
-      getBinaryFileList()
       getGeneratedClassesFolder()
       let keys = Object.keys(globalData)
       keys.forEach((key) => {
-        if (
-          globalData[key].type == "directory" &&
-          globalData[key].name == "master_tables" &&
-          globalData[key].path?.includes("DATA") &&
-          globalData[key].path?.includes("MEDprofiles") &&
-          globalData[key].childrenIDs?.length > 0
-        ) {
-          setDataFolder(globalData[key])
-        } else if (dataFolder == null && globalData[key].type == "directory" && globalData[key].name == "extracted_features" && globalData[key].path?.includes("DATA")) {
-          setDataFolder(globalData[key])
-        } else if (globalData[key].type == "directory" && globalData[key].name == "DATA" && (globalData[key].parentID == "UUID_ROOT" || globalData[key].parentID == "ROOT")) {
+        if (globalData[key].type == "directory" && globalData[key].name == "DATA" && (globalData[key].parentID == "UUID_ROOT" || globalData[key].parentID == "ROOT")) {
           if (globalData[key] !== rootDataFolder){
             setRootDataFolder(globalData[key])
           }
