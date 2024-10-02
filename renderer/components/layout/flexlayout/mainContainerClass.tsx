@@ -51,7 +51,7 @@ import NotebookEditor from "../../mainPages/notebookEditor"
 import OutputPage from "../../mainPages/output"
 import SettingsPage from "../../mainPages/settings"
 import TerminalPage from "../../mainPages/terminal"
-import { updateMEDDataObjectName } from "../../mongoDB/mongoDBUtils"
+import { updateMEDDataObjectName, updateMEDDataObjectPath } from "../../mongoDB/mongoDBUtils"
 import { DataContext } from "../../workspace/dataContext"
 import { MEDDataObject } from "../../workspace/NewMedDataObject"
 import { LayoutModelContext } from "../layoutContext"
@@ -522,12 +522,18 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
           console.error("Failed to update MEDDataObject name")
           return null
         }
+        // Update the path
+        let oldPath = medObject.path
+        let newPath = oldPath.split(getPathSeparator()).slice(0, -1).join(getPathSeparator()) + getPathSeparator() + newName
+        success = updateMEDDataObjectPath(medObject.id, newPath)
+        if (!success) {
+          toast.error("Failed to update MEDDataObject path of the file")
+          console.error("Failed to update MEDDataObject path")
+          return null
+        }
         // Update the local filename
         if (medObject.inWorkspace){
-          let oldPath = medObject.path
-          let newPath = oldPath.split(getPathSeparator()).slice(0, -1).join(getPathSeparator()) + getPathSeparator() + newName
           fs.renameSync(oldPath, newPath)
-
           // Update the workspace data object
           MEDDataObject.updateWorkspaceDataObject()
         }
