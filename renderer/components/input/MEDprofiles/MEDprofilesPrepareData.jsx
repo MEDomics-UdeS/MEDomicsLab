@@ -539,7 +539,14 @@ const MEDprofilesPrepareData = () => {
   // and create the MEDprofiles folder if it doesn't exist
   useEffect(() => {
     if (globalData !== undefined) {
+      setLoadingMasterTables(true)
+      setLoadingSubMasterTables(true)
+      setSubMasterTableFileList([])
+      setMasterTableFileList([])
       setSelectedSubMasterTableFiles(null)
+      setSelectedMasterTable(null)
+      getMasterSubMasterCsv()
+      getBinaryFileList()
       getGeneratedClassesFolder()
       let keys = Object.keys(globalData)
       keys.forEach((key) => {
