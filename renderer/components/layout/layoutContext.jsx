@@ -482,12 +482,12 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
     const doesCollectionExists = await collectionExists(object.index)
 
     if (!doesCollectionExists) {
-      console.log(doesCollectionExists)
-      if (fileSize > maxBSONSize) {
+      toast.error("The collection does not exist in the database. Try reloading the page.")
+      /* if (fileSize > maxBSONSize) {
         // await ConvertBinaryToOriginalData(globalData, object)
         // setTimeout(() => openInTab(action, "dataTableFromDB"), 1500)
         toast.warn("The file is too large to be displayed in the data table.")
-      }
+      } */
     } else {
       openInTab(action, "dataTableFromDB")
     }

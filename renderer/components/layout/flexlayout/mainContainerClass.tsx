@@ -2,8 +2,6 @@
 /* eslint-disable no-undef */
 /* eslint-disable camelcase */
 
-import * as React from "react"
-import * as Prism from "prismjs"
 import {
   Action,
   Actions,
@@ -22,40 +20,45 @@ import {
   TabNode,
   TabSetNode
 } from "flexlayout-react"
+import fs from "fs"
+import Image from "next/image"
+import * as Prism from "prismjs"
+import "prismjs/themes/prism-coy.css"
+import * as React from "react"
+import * as Icons from "react-bootstrap-icons"
+import Iframe from "react-iframe"
+import { toast } from "react-toastify"
+import { getPathSeparator, loadCSVFromPath, loadJSONFromPath, loadJsonPath, loadXLSXFromPath } from "../../../utilities/fileManagementUtils"
+import DataTableWrapperBPClass from "../../dataTypeVisualisation/dataTableWrapperBPClass"
+import DataTableFromDB from "../../dbComponents/dataTableFromDB"
+import InputToolsComponent from "../../dbComponents/InputToolsComponent"
+import MEDprofilesViewer from "../../input/MEDprofiles/MEDprofilesViewer"
+import ApplicationPage from "../../mainPages/application"
+import EvaluationPage from "../../mainPages/evaluation"
+import ExploratoryPage from "../../mainPages/exploratory"
+import ExtractionImagePage from "../../mainPages/extractionImage"
+import ExtractionMEDimagePage from "../../mainPages/extractionMEDimage"
+import ExtractionTextPage from "../../mainPages/extractionText"
+import ExtractionTSPage from "../../mainPages/extractionTS"
+import HomePage from "../../mainPages/home"
+import HtmlViewer from "../../mainPages/htmlViewer"
+import LearningPage from "../../mainPages/learning"
+import MED3paPage from "../../mainPages/med3pa"
+import MEDflPage from "../../mainPages/medfl"
+import ModelViewer from "../../mainPages/modelViewer"
+import ModulePage from "../../mainPages/moduleBasics/modulePage"
+import NotebookEditor from "../../mainPages/notebookEditor"
+import OutputPage from "../../mainPages/output"
+import SettingsPage from "../../mainPages/settings"
+import TerminalPage from "../../mainPages/terminal"
+import { updateMEDDataObjectName, updateMEDDataObjectPath } from "../../mongoDB/mongoDBUtils"
+import { DataContext } from "../../workspace/dataContext"
+import { MEDDataObject } from "../../workspace/NewMedDataObject"
+import { LayoutModelContext } from "../layoutContext"
 import { showPopup } from "./popupMenu"
 import { TabStorage } from "./tabStorage"
 import { Utils } from "./utils"
-import "prismjs/themes/prism-coy.css"
-import LearningPage from "../../mainPages/learning"
-import { loadCSVFromPath, loadJsonPath, loadJSONFromPath, loadXLSXFromPath } from "../../../utilities/fileManagementUtils"
-import { LayoutModelContext } from "../layoutContext"
-import { DataContext } from "../../workspace/dataContext"
-import MedDataObject from "../../workspace/medDataObject"
-import ExploratoryPage from "../../mainPages/exploratory"
-import EvaluationPage from "../../mainPages/evaluation"
-import ExtractionTextPage from "../../mainPages/extractionText"
-import ExtractionImagePage from "../../mainPages/extractionImage"
-import ExtractionMEDimagePage from "../../mainPages/extractionMEDimage"
-import ExtractionTSPage from "../../mainPages/extractionTS"
-import MEDflPage from "../../mainPages/medfl"
-import MED3paPage from "../../mainPages/med3pa"
-import MEDprofilesViewer from "../../input/MEDprofiles/MEDprofilesViewer"
-import HomePage from "../../mainPages/home"
-import TerminalPage from "../../mainPages/terminal"
-import OutputPage from "../../mainPages/output"
-import ApplicationPage from "../../mainPages/application"
-import SettingsPage from "../../mainPages/settings"
-import ModulePage from "../../mainPages/moduleBasics/modulePage"
-import * as Icons from "react-bootstrap-icons"
-import Image from "next/image"
 import ZoomPanPinchComponent from "./zoomPanPinchComponent"
-import DataTableWrapperBPClass from "../../dataTypeVisualisation/dataTableWrapperBPClass"
-import HtmlViewer from "../../mainPages/htmlViewer"
-import ModelViewer from "../../mainPages/modelViewer"
-import NotebookEditor from "../../mainPages/notebookEditor"
-import Iframe from "react-iframe"
-import DataTableFromDB from "../../dbComponents/dataTableFromDB"
-import InputToolsComponent from "../../dbComponents/InputToolsComponent"
 
 var fields = ["Name", "Field1", "Field2", "Field3", "Field4", "Field5"]
 
@@ -512,7 +515,28 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
       let medObject = globalData[action.data.node]
       console.log("medObject", medObject)
       if (medObject) {
-        MedDataObject.handleNameChange(medObject, newName, globalData, setGlobalData)
+        // update the medDataObject name
+        let success = updateMEDDataObjectName(medObject.id, newName)
+        if (!success) {
+          toast.error("Failed to update MEDDataObject name of the file")
+          console.error("Failed to update MEDDataObject name")
+          return null
+        }
+        // Update the path
+        let oldPath = medObject.path
+        let newPath = oldPath.split(getPathSeparator()).slice(0, -1).join(getPathSeparator()) + getPathSeparator() + newName
+        success = updateMEDDataObjectPath(medObject.id, newPath)
+        if (!success) {
+          toast.error("Failed to update MEDDataObject path of the file")
+          console.error("Failed to update MEDDataObject path")
+          return null
+        }
+        // Update the local filename
+        if (medObject.inWorkspace){
+          fs.renameSync(oldPath, newPath)
+          // Update the workspace data object
+          MEDDataObject.updateWorkspaceDataObject()
+        }
       }
     }
     return action

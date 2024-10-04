@@ -64,6 +64,11 @@ const iconExtension = {
     <span>
       <Icon.Image className="icon-offset" style={{ color: "#5b95ff" }} />
     </span>
+  ),
+  rar: (
+    <span>
+      <Icon.ArchiveFill className="icon-offset" style={{ color: "#5b95ff" }} />
+    </span>
   )
 
   // 📗📙📘📒📑📈📊🧮🎯💊🧬🔬🧰💾📄🗒️💥🎛️⚙️

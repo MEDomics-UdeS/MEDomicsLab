@@ -32,6 +32,18 @@ export async function updateMEDDataObjectName(id, newName) {
 }
 
 /**
+ * @description Update the path of a MEDDataObject specified by id in the DB
+ * @param {String} id Id of the MEDDataObject to update
+ * @param {String} newPath New path for the MEDDataObject to update
+ * @returns bool true if succeed
+ */
+export async function updateMEDDataObjectPath(id, newPath) {
+  const db = await connectToMongoDB()
+  const result = await db.collection("medDataObjects").updateOne({ id: id }, { $set: { path: newPath } })
+  return result.modifiedCount > 0
+}
+
+/**
  * @description Insert a MEDDataObject in the database if not exists
  * @param {MEDDataObject} medData MEDDataObject to insert in the database
  * @param {String} path path of the data we want to import in the database
