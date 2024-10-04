@@ -14,6 +14,7 @@ import React from "react"
 import { Col, Row, Spinner } from "react-bootstrap"
 import { XSquare } from "react-bootstrap-icons"
 import { toast } from "react-toastify"
+import { createFolderFromPath } from "../../../utilities/fileManagementUtils"
 import { deepCopy } from "../../../utilities/staticFunctions"
 import { connectToMongoDB, insertMEDDataObjectIfNotExists } from "../../mongoDB/mongoDBUtils"
 import { MEDDataObject } from "../../workspace/NewMedDataObject"
@@ -888,9 +889,9 @@ class MEDcohortFigureClass extends React.Component {
     })
 
     // Export the time point data to CSV files
-    Object.keys(timePointsData).forEach((timePoint) => {
-      this.timePointToCsv(timePoint, timePointsData[timePoint])
-    })
+    for (const timePoint of Object.keys(timePointsData)) {
+      await this.timePointToCsv(timePoint, timePointsData[timePoint]);
+    }
   }
   
 
@@ -1041,6 +1042,95 @@ class MEDcohortFigureClass extends React.Component {
     return newData
   }
 
+  exportTimePointToDatabase = async (fileName, jsonData, timePoint, folderPath) => {
+    let timePointsFolderId = null;
+  
+    // Connect to the database
+    const db = await connectToMongoDB();
+    let collection = db.collection("medDataObjects");
+  
+    // Find MEDprofiles folder
+    const MEDProfilesFolder = await collection.findOne({ name: "MEDprofiles", type: "directory", parentID: "DATA" });
+  
+    // Find timePoints folder
+    let timePointsFolder = await collection.findOne({ name: "timePoints", type: "directory", parentID: MEDProfilesFolder.id });
+  
+    if (timePointsFolder) {
+      timePointsFolderId = timePointsFolder.id;
+    } else {
+      // Create the time points folder locally
+      folderPath = folderPath + getPathSeparator() + "timePoints" + getPathSeparator();
+      createFolderFromPath(folderPath);
+  
+      // Create timePoints folder MEDDataObject
+      const timePointsFolderObject = new MEDDataObject({
+        id: randomUUID(),
+        name: "timePoints",
+        type: "directory",
+        parentID: MEDProfilesFolder.id,
+        childrenIDs: [],
+        inWorkspace: true,
+      });
+      await insertMEDDataObjectIfNotExists(timePointsFolderObject);
+      MEDDataObject.updateWorkspaceDataObject();
+      timePointsFolderId = timePointsFolderObject.id;
+    }
+  
+    // Create a new MEDDataObject for the file
+    const id = randomUUID();
+    const object = new MEDDataObject({
+      id: id,
+      name: fileName,
+      type: "csv",
+      parentID: timePointsFolderId,
+      childrenIDs: [],
+      inWorkspace: false,
+    });
+  
+    // Check if the file already exists
+    const existingObjectByAttributes = await collection.findOne({ name: object.name, type: object.type, parentID: object.parentID });
+  
+    if (existingObjectByAttributes) {
+      // If object already in the DB, show a confirmation dialog to overwrite it
+      const overwriteConfirmation = await new Promise((resolve) => {
+        confirmDialog({
+          closable: false,
+          message: `The file ${fileName} already exists in the ROOT folder. Do you want to overwrite it?`,
+          header: "Confirmation",
+          icon: "pi pi-exclamation-triangle",
+          accept: () => resolve(true),
+          reject: () => {
+            resolve(false);
+            this.setState({ isWorking: false });
+          },
+        });
+      });
+  
+      if (overwriteConfirmation) {
+        // If the user accepts, remove the existing file
+        collection = db.collection(existingObjectByAttributes.id);
+        await collection.deleteMany({});
+  
+        // Save the new data to the CSV file inside the MongoDB database
+        await collection.insertMany(jsonData);
+        MEDDataObject.updateWorkspaceDataObject();
+        toast.success(`Time point ${timePoint} exported to the database`);
+      }
+    } else {
+      // Create a new collection and insert data
+      await db.createCollection(object.id);
+      collection = db.collection(object.id);
+      await collection.insertMany(jsonData);
+  
+      // Insert the object into the database and update workspace
+      await insertMEDDataObjectIfNotExists(object);
+      MEDDataObject.updateWorkspaceDataObject();
+  
+      // Show a success message
+      toast.success(`Time point ${timePoint} exported to the database`);
+    }
+  }
+  
   /**
    * This function exports the data for a given time point to a CSV file.
    * @param {number} timePoint - The time point to export.
@@ -1077,69 +1167,8 @@ class MEDcohortFigureClass extends React.Component {
       let fileName = "T" + timePoint + ".csv" // Create the file path
       let jsonData = dfd.toJSON(dfData) // Convert the dataframe to JSON
       try {
-        // connect to the database and create the file object
-        const db = await connectToMongoDB()
-        let collection = db.collection("medDataObjects")
-        const id = randomUUID()
-        const object = new MEDDataObject({
-          id: id,
-          name: fileName,
-          type: "csv",
-          parentID: "ROOT",
-          childrenIDs: [],
-          inWorkspace: false
-        })
-
-        // check if file already exists
-        const existingObjectByAttributes = await collection.findOne({ name: object.name, type: object.type, parentID: object.parentID })
-        if (existingObjectByAttributes) {
-          // If object already in the DB, show a confirmation dialog to overwrite it
-          await new Promise((resolve) => {
-            confirmDialog({
-              closable: false,
-              message: `The file ${fileName} already exists in the ROOT folder. Do you want to overwrite it?`,
-              header: "Confirmation",
-              icon: "pi pi-exclamation-triangle",
-              accept: () => {
-                resolve(true)
-              },
-              reject: () => {
-                // Do nothing
-                resolve(false)
-                this.setState({ isWorking: false })
-              }
-            })
-          })
-            .then(async (res) => {
-              if (res) {
-                // If the user accepts, remove the existing file
-                collection = db.collection(existingObjectByAttributes.id)
-                await collection.deleteMany({})
-                // Save the data to a CSV file inside mongo database
-                collection.insertMany(jsonData)
-                // Update workspace
-                MEDDataObject.updateWorkspaceDataObject()
-                // Show a success message
-                toast.success(`Time point ${timePoint} exported to the database`)
-              }
-            })
-            .catch(() => {
-              // Do nothing
-              this.setState({ isWorking: false })
-            })
-        } else {
-          // Save the data to a CSV file inside mongo database
-          await db.createCollection(object.id)
-          collection = db.collection(object.id)
-          await collection.insertMany(jsonData)
-
-          // insert the object into the database and update workspace
-          await insertMEDDataObjectIfNotExists(object)
-          MEDDataObject.updateWorkspaceDataObject()
-          
-          // Show a success message
-          toast.success(`Time point ${timePoint} exported to the database`)
-        }
+        // Export the data to the database
+        await this.exportTimePointToDatabase(fileName, jsonData, timePoint, this.state.folderPath)
       } catch (error) {
         console.error("error", error)
         toast.error("Error exporting time point to the database")
