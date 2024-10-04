@@ -93,7 +93,7 @@ const MergeToolsDB = ({ currentCollection }) => {
     const id = randomUUID()
     const object = new MEDDataObject({
       id: id,
-      name: globalData[selectedCollections[0]].name + "_" + globalData[selectedCollections[1]].name + "_" + selectedMergeType,
+      name: globalData[selectedCollections[0]].name.replace(".csv", "") + "_" + globalData[selectedCollections[1]].name.replace(".csv", "") + "_" + selectedMergeType,
       type: "csv",
       parentID: "ROOT",
       childrenIDs: [],

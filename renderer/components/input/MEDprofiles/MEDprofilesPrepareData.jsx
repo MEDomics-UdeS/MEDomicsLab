@@ -53,9 +53,7 @@ const MEDprofilesPrepareData = () => {
 
   const { dispatchLayout } = useContext(LayoutModelContext) // used to open the MEDprofiles Viewer tab
   const { globalData } = useContext(DataContext) // we get the global data from the context to retrieve the directory tree of the workspace, thus retrieving the data files
-  const { pageId } = useContext(PageInfosContext) // used to get the pageId
   const { port } = useContext(WorkspaceContext) // we get the port for server connexion
-  const { setError } = useContext(ErrorRequestContext) // used to diplay the errors
 
 
   /**
@@ -634,10 +632,12 @@ const MEDprofilesPrepareData = () => {
               <i className="pi pi-info-circle" />
               &nbsp; This tool is an implementation of the
               <i>
-                <a href="https://github.com/MEDomics-UdeS/MEDprofiles" target="_blank">
-                  {" "}
-                  MEDprofiles package
-                </a>
+                <b>
+                  <a href="https://github.com/MEDomics-UdeS/MEDprofiles" target="_blank">
+                    {" "}
+                    MEDprofiles package
+                  </a>
+                </b>
               </i>
               .
             </div>
