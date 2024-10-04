@@ -166,7 +166,7 @@ const MEDprofilesPrepareData = () => {
       id: id,
       name: masterFilename,
       type: "csv",
-      parentID: "ROOT",
+      parentID: (getMastersTablesFolderId() === null) ? "ROOT" : getMastersTablesFolderId(),
       childrenIDs: [],
       inWorkspace: false
     })
@@ -235,6 +235,24 @@ const MEDprofilesPrepareData = () => {
         toast.error(`Creation failed: ${err}`)
       }
     )
+  }
+
+  /**
+   * @description
+   * This functions returns the master tables folder id if it exists.
+   */
+  const getMastersTablesFolderId = () => {
+    let keys = Object.keys(globalData)
+    let folderId = null
+    keys.forEach((key) => {
+      if (globalData[key].type == "directory" && globalData[key].name == "master_tables" && globalData[key].parentID == getMEDprofilesFolderId()) {
+        folderId = globalData[key].id
+      }
+    })
+    if (folderId == null) {
+      createMEDprofilesFolder()
+    }
+    return folderId
   }
 
   /**
