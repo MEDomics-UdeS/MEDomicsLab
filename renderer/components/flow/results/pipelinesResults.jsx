@@ -1,21 +1,23 @@
-import React, { useEffect, useCallback, useState, useContext } from "react"
+import { randomUUID } from "crypto"
+import Path from "path"
 import { Accordion, AccordionTab } from "primereact/accordion"
+import { Button } from "primereact/button"
+import { SelectButton } from "primereact/selectbutton"
+import process from "process"
+import React, { useCallback, useContext, useEffect, useState } from "react"
+import * as Icon from "react-bootstrap-icons"
+import { toast } from "react-toastify"
+import { getPathSeparator, loadJsonPath } from "../../../utilities/fileManagementUtils"
 import { deepCopy } from "../../../utilities/staticFunctions"
+import AnalyseResults from "../../learning/results/node/analyseResults"
 import DataParamResults from "../../learning/results/node/dataParamResults"
 import ModelsResults from "../../learning/results/node/modelsResults"
-import AnalyseResults from "../../learning/results/node/analyseResults"
 import SaveModelResults from "../../learning/results/node/saveModelResults"
-import { SelectButton } from "primereact/selectbutton"
-import MedDataObject from "../../workspace/medDataObject"
-import { FlowResultsContext } from "../context/flowResultsContext"
+import { findMEDDataObjectByPath, insertMEDDataObjectIfNotExists } from "../../mongoDB/mongoDBUtils"
+import { MEDDataObject } from "../../workspace/NewMedDataObject"
+import { EXPERIMENTS, WorkspaceContext } from "../../workspace/workspaceContext"
 import { FlowInfosContext } from "../context/flowInfosContext"
-import { Button } from "primereact/button"
-import { toast } from "react-toastify"
-import * as Icon from "react-bootstrap-icons"
-import { WorkspaceContext, EXPERIMENTS } from "../../workspace/workspaceContext"
-import { loadJsonPath } from "../../../utilities/fileManagementUtils"
-import process from "process"
-import Path from "path"
+import { FlowResultsContext } from "../context/flowResultsContext"
 
 /**
  *
@@ -227,9 +229,9 @@ const PipelinesResults = ({ pipelines, selectionMode, flowContent }) => {
        * This function is used to create the notebook document corresponding to the pipeline's code and imports.
        * It first loads the existing notebook or get an empty one and then fills it with the code and the imports.
        */
-      const createNoteBookDoc = (code, imports) => {
+      const createNoteBookDoc = async (code, imports) => {
         let newLineChar = "\n" // before was process.platform === "linux" ? "\n" : ""
-        let notebook = loadJsonPath([getBasePath(EXPERIMENTS), sceneName, "notebooks", pipeline.map((id) => getName(id)).join("-")].join(MedDataObject.getPathSeparator()) + ".ipynb")
+        let notebook = loadJsonPath([getBasePath(EXPERIMENTS), sceneName, "notebooks", pipeline.map((id) => getName(id)).join("-")].join(getPathSeparator()) + ".ipynb")
         notebook = notebook ? deepCopy(notebook) : deepCopy(loadJsonPath(isProd ? Path.join(process.resourcesPath, "baseFiles", "emptyNotebook.ipynb") : "./baseFiles/emptyNotebook.ipynb"))
         notebook.cells = []
         let lastType = "md"
@@ -283,9 +285,30 @@ const PipelinesResults = ({ pipelines, selectionMode, flowContent }) => {
         })
         compileLines(linesOfSameType)
 
-        MedDataObject.writeFileSync(notebook, [getBasePath(EXPERIMENTS), sceneName, "notebooks"], pipeline.map((id) => getName(id)).join("-"), "ipynb").then(() => {
-          toast.success("Notebook generated and saved !")
+        // Save the notebook locally
+        const pathToCreate = MEDDataObject.writeFileSync(
+          notebook,
+          [getBasePath(EXPERIMENTS), sceneName, "notebooks"],
+          pipeline.map((id) => getName(id)).join("-"),
+          "ipynb"
+        )
+        // If the file is written successfully, display the success toast
+        toast.success("Notebook generated and saved locally!")
+        // Save the notebook in the database
+        let parentFolderPath = [getBasePath(EXPERIMENTS), sceneName, "notebooks"].join(getPathSeparator())
+        const notebookObj = new MEDDataObject({
+          id: randomUUID(),
+          name: pipeline.map((id) => getName(id)).join("-"),
+          type: "ipynb",
+          parentID: findMEDDataObjectByPath(parentFolderPath, "directory").id,
+          childrenIDs: [],
+          path: pathToCreate,
+          inWorkspace: true
         })
+
+        // Insert the notebook in the database
+        await insertMEDDataObjectIfNotExists(notebookObj)
+        MEDDataObject.updateWorkspaceDataObject()
       }
 
       return (
