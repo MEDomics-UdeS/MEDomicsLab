@@ -61,6 +61,7 @@ const InputToolsComponent = ({ data, exportOptions, refreshData, columns, transf
         <ModulePage>
             <MEDprofilesPrepareData />
         </ModulePage>
+
       </Panel>
     </div>
   )
