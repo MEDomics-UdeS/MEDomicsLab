@@ -33,7 +33,6 @@ import { WorkspaceContext } from "../../workspace/workspaceContext"
 const MEDprofilesPrepareData = () => {
   const [binaryFileList, setBinaryFileList] = useState([]) // list of available binary files
   const [binaryFilename, setBinaryFilename] = useState("MEDprofiles_bin.pkl") // name under which the MEDprofiles binary file will be saved
-  const [dataFolder, setDataFolder] = useState(null) // folder where the csv files will be examinated and where the MEDprofiles data will be saved
   const [generatedClassesFolder, setGeneratedClassesFolder] = useState(null) // folder containing the generated MEDclasses
   const [generatedMEDprofilesFile, setGeneratedMEDprofilesFile] = useState(null) // file containing the generated MEDprofiles binary file
   const [instantiatingMEDprofiles, setInstantiatingMEDprofiles] = useState(false) // boolean telling if the process of instantiating MEDprofiles is running
@@ -54,6 +53,8 @@ const MEDprofilesPrepareData = () => {
   const { dispatchLayout } = useContext(LayoutModelContext) // used to open the MEDprofiles Viewer tab
   const { globalData } = useContext(DataContext) // we get the global data from the context to retrieve the directory tree of the workspace, thus retrieving the data files
   const { port } = useContext(WorkspaceContext) // we get the port for server connexion
+  const { pageId } = useContext(PageInfosContext) // used to get the pageId
+  const { setError } = useContext(ErrorRequestContext) // used to diplay the errors
 
 
   /**
