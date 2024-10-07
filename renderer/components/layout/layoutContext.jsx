@@ -112,6 +112,8 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
           return openApplication(action)
         case "openEvaluationModule":
           return openEvaluation(action)
+        case "openInputModule":
+          return openInput(action)
         case "openExploratoryModule":
           return openExploratory(action)
         case "openExtractionTSModule":
@@ -318,6 +320,14 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
    */
   const openEvaluation = (action) => {
     openGeneric(action, "Evaluation", "evaluationPage")
+  }
+
+  /**
+   * @summary Function that adds a tab of the Input Module to the layout model
+   * @params {Object} action - The action passed on by the dispatchLayout function
+   */
+  const openInput = (action) => {
+    openGeneric(action, "Input Module", "inputPage")
   }
 
   /**

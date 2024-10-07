@@ -8,6 +8,7 @@ import { Tooltip } from "primereact/tooltip"
 import { LayoutModelContext } from "./layoutContext"
 import { PiFlaskFill } from "react-icons/pi"
 import { FaMagnifyingGlassChart } from "react-icons/fa6"
+import { FaDatabase } from "react-icons/fa6"
 import { LuNetwork } from "react-icons/lu"
 import { Button } from "primereact/button"
 import { TbFileExport } from "react-icons/tb"
@@ -96,6 +97,7 @@ const IconSidebar = ({ onSidebarItemSelect }) => {
         {/* ------------------------------------------- Tooltips ----------------------------------------- */}
         <Tooltip target=".homeNavIcon" {...delayOptions} className="tooltip-icon-sidebar" />
         <Tooltip target=".explorerNav" {...delayOptions} className="tooltip-icon-sidebar" />
+        <Tooltip target=".inputNav" {...delayOptions} className="tooltip-icon-sidebar" />
         <Tooltip target=".extractionNav" {...delayOptions} className="tooltip-icon-sidebar" data-pr-disabled={extractionBtnstate} />
         <Tooltip target=".exploratoryNav" {...delayOptions} className="tooltip-icon-sidebar" />
         <Tooltip target=".learningNav" {...delayOptions} className="tooltip-icon-sidebar" />
@@ -142,6 +144,22 @@ const IconSidebar = ({ onSidebarItemSelect }) => {
           <NavDropdown.Divider className="icon-sidebar-divider" style={{ height: "3rem" }} />
           <div className="medomics-layer design">
             <div className="sidebar-icons">
+
+              <Nav.Link
+                className="inputNav btnSidebar align-center"
+                data-pr-at="right center"
+                data-pr-my="left center"
+                data-pr-tooltip="Input"
+                eventKey="input"
+                data-tooltip-id="tooltip-input"
+                onDoubleClick={(event) => handleDoubleClick(event, "Input")}
+                onClick={(event) => handleClick(event, "input")}
+                disabled={disabledIcon}
+              >
+                {" "}
+                <FaDatabase style={{ height: "1.7rem", width: "auto" }} />
+              </Nav.Link>
+
               <Nav.Link
                 className="extractionNav btnSidebar align-center"
                 data-pr-at="right center"
