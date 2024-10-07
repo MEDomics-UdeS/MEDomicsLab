@@ -355,13 +355,13 @@ const MEDprofilesPrepareData = () => {
       (jsonResponse) => {
         if (!jsonResponse.error) {
           console.log("received results:", jsonResponse)
-          if (jsonResponse["master_csv"].length == 0) {
+          if (!jsonResponse["master_csv"] || jsonResponse["master_csv"].length == 0) {
             console.warn("No csv matching the master table format found in the selected folder")
             toast.warn("No csv matching the master table format found in the selected folder")
           } else {
             getListOfGeneratedElement(jsonResponse["master_csv"], setMasterTableFileList)
           }
-          if (jsonResponse["submaster_csv"].length == 0) {
+          if (!jsonResponse["submaster_csv"] || jsonResponse["submaster_csv"].length == 0) {
             console.warn("No csv matching the submaster table format found in the selected folder")
             toast.warn("No csv matching the submaster table format found in the selected folder")
           } else {
