@@ -41,7 +41,9 @@ function findAvailablePort(startPort, endPort = 8000) {
             resolve(port)
           } else {
             if (killProcess) {
-              let PID = stdout.trim().split(/\s+/)[stdout.trim().split(/\s+/).length - 1].split("/")[0]
+              // Split the stdout into individual lines and use the first line to get the PID
+              let line = stdout.trim().split('\n')[0]
+              let PID = line.trim().split(/\s+/)[line.trim().split(/\s+/).length - 1].split("/")[0]
               exec(`${platform == "win32" ? "taskkill /f /t /pid" : "kill"} ${PID}`, (err, stdout, stderr) => {
                 if (!err) {
                   console.log("Previous server instance was killed successfully")
@@ -65,9 +67,8 @@ function findAvailablePort(startPort, endPort = 8000) {
   })
 }
 
-export function runServer(isProd, serverPort, serverProcess, serverIsRunning, condaPath = null) {
+export async function runServer(isProd, serverPort, serverProcess, serverState, condaPath = null) {
   // Runs the server
-
   let pythonEnvironment = getPythonEnvironment()
   if (process.platform !== "win32" && condaPath === null) {
     condaPath = pythonEnvironment
@@ -86,20 +87,26 @@ export function runServer(isProd, serverPort, serverProcess, serverIsRunning, co
       args.push(condaPath)
     }
 
-    findAvailablePort(MEDconfig.defaultPort)
+    await findAvailablePort(MEDconfig.defaultPort)
       .then((port) => {
         serverPort = port
-        serverIsRunning = true
+        serverState.serverIsRunning = true
         serverProcess = execFile(`${process.platform == "win32" ? "main.exe" : "./main"}`, args, {
           windowsHide: false,
           cwd: path.join(process.cwd(), "go_server")
         })
         if (serverProcess) {
           serverProcess.stdout.on("data", function (data) {
-            console.log("data: ", data.toString("utf8"))
+            console.log(`data: ${data.toString("utf8")}`)
           })
           serverProcess.stderr.on("data", (data) => {
-            console.log(`stderr: ${data}`)
+            console.log(`stderr: ${data.toString("utf8")}`)
+          })
+          serverProcess.on('error', (err) => {
+            console.log(`error: ${err}`)
+          })
+          serverProcess.on('disconnect', () => {
+            console.log(`disconnected`)
           })
           serverProcess.on("close", (code) => {
             serverIsRunning = false
@@ -119,7 +126,7 @@ export function runServer(isProd, serverPort, serverProcess, serverIsRunning, co
       args.push(condaPath)
     }
 
-    findAvailablePort(MEDconfig.defaultPort)
+    await findAvailablePort(MEDconfig.defaultPort)
       .then((port) => {
         serverPort = port
         console.log("_dirname: ", __dirname)
@@ -129,17 +136,17 @@ export function runServer(isProd, serverPort, serverProcess, serverIsRunning, co
           serverProcess = execFile(path.join(process.resourcesPath, "go_executables\\server_go_win32.exe"), args, {
             windowsHide: false
           })
-          serverIsRunning = true
+          serverState.serverIsRunning = true
         } else if (process.platform == "linux") {
           serverProcess = execFile(path.join(process.resourcesPath, "go_executables/server_go_linux"), args, {
             windowsHide: false
           })
-          serverIsRunning = true
+          serverState.serverIsRunning = true
         } else if (process.platform == "darwin") {
           serverProcess = execFile(path.join(process.resourcesPath, "go_executables/server_go_mac"), args, {
             windowsHide: false
           })
-          serverIsRunning = true
+          serverState.serverIsRunning = true
         }
         if (serverProcess) {
           serverProcess.stdout.on("data", function (data) {
@@ -147,10 +154,10 @@ export function runServer(isProd, serverPort, serverProcess, serverIsRunning, co
           })
           serverProcess.stderr.on("data", (data) => {
             console.log(`stderr: ${data}`)
-            serverIsRunning = true
+            serverState.serverIsRunning = true
           })
           serverProcess.on("close", (code) => {
-            serverIsRunning = false
+            serverState.serverIsRunning = false
             console.log(`my server child process close all stdio with code ${code}`)
           })
         }
@@ -159,5 +166,5 @@ export function runServer(isProd, serverPort, serverProcess, serverIsRunning, co
         console.error(err)
       })
   }
-  return serverIsRunning
+  return serverProcess
 }

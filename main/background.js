@@ -12,11 +12,11 @@ var path = require("path")
 let mongoProcess = null
 const dirTree = require("directory-tree")
 const { exec, spawn } = require("child_process")
-var serverProcess = null
+let serverProcess = null
+const serverState = { serverIsRunning: false }
 var serverPort = MEDconfig.defaultPort
 var hasBeenSet = false
 const isProd = process.env.NODE_ENV === "production"
-var serverIsRunning = false
 let splashScreen // The splash screen is the window that is displayed while the application is loading
 var mainWindow // The main window is the window of the application
 
@@ -163,7 +163,14 @@ if (isProd) {
   console.log("running mode:", isProd ? "production" : "development")
   console.log(MEDconfig.runServerAutomatically ? "Server will start automatically here (in background of the application)" : "Server must be started manually")
   if (MEDconfig.runServerAutomatically) {
-    runServer(isProd, serverPort, serverProcess, serverIsRunning)
+    runServer(isProd, serverPort, serverProcess, serverState)
+      .then((process) => {
+        serverProcess = process
+        console.log("Server process started: ", serverProcess)
+      })
+      .catch((err) => {
+        console.error("Failed to start server: ", err)
+      });
   } else {
     //**** NO SERVER ****//
     findAvailablePort(MEDconfig.defaultPort)
@@ -281,7 +288,7 @@ if (isProd) {
    * @returns {Boolean} True if the server is running, false otherwise
    */
   ipcMain.handle("server-is-running", async () => {
-    return serverIsRunning
+    return serverState.serverIsRunning
   })
 
   /**
@@ -292,7 +299,7 @@ if (isProd) {
   ipcMain.handle("kill-server", async () => {
     if (serverProcess) {
       let success = await serverProcess.kill()
-      serverIsRunning = false
+      serverState.serverIsRunning = false
       return success
     } else {
       return null
@@ -312,10 +319,19 @@ if (isProd) {
       serverProcess.kill()
     }
     if (MEDconfig.runServerAutomatically) {
-      let success = runServer(isProd, serverPort, serverProcess, serverIsRunning, condaPath)
-      return success
+      runServer(isProd, serverPort, serverProcess, serverState, condaPath)
+      .then((process) => {
+        serverProcess = process
+        console.log(`success: ${serverState.serverIsRunning}`)
+        return serverState.serverIsRunning
+      })
+      .catch((err) => {
+        console.error("Failed to start server: ", err)
+        serverState.serverIsRunning = false
+        return false
+      });  
     }
-    return serverIsRunning
+    return serverState.serverIsRunning
   })
 
   /**
