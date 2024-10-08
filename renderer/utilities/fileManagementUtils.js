@@ -1,4 +1,5 @@
 import { toast } from "react-toastify"
+import process from "process"
 
 const fs = require("fs")
 const Path = require("path")
@@ -21,6 +22,44 @@ const toLocalPath = (path) => {
       resolve(`local://${filePath}`)
     })
   })
+}
+
+/**
+ * Returns the path separator based on the operating system.
+ * @returns {string} - The path separator.
+ */
+function getPathSeparator() {
+  // eslint-disable-next-line no-undef
+  let process = require("process")
+  if (process.platform === "win32") {
+    return "\\"
+  } else if (typeof process !== "undefined" && process.platform !== "win32") {
+    return "/"
+  }
+}
+
+/**
+ * Splits the provided `string` at the last occurrence of the provided `separator`.
+ * @param {string} string - The string to split.
+ * @param {string} separator - The separator to split the string at.
+ * @returns {Array} - An array containing the first elements of the split string and the last element of the split string.
+ */
+function splitStringAtTheLastSeparator(string, separator) {
+  let splitString = string.split(separator)
+  let lastElement = splitString.pop()
+  let firstElements = splitString.join(separator)
+  return [firstElements, lastElement]
+}
+
+/**
+   * Creates a folder in the file system if it does not exist.
+   * @param {string} path - The path of the folder to create.
+   */
+function createFolderFromPath(path) {
+  if (!fs.existsSync(path)) {
+    let test = fs.mkdirSync(path, { recursive: true })
+    console.log("fileManagement createFolderFromPath Folder created at ", test)
+  }
 }
 
 /**
@@ -411,6 +450,9 @@ const getFileReadingMethodFromExtension = {
 }
 
 export {
+  getPathSeparator,
+  splitStringAtTheLastSeparator,
+  createFolderFromPath,
   toLocalPath,
   downloadFile,
   downloadPath,

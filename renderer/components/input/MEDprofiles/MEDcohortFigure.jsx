@@ -1,29 +1,31 @@
 /* eslint-disable camelcase */
-import React from "react"
-import { loadJsonPath } from "../../../utilities/fileManagementUtils"
-import { deepCopy } from "../../../utilities/staticFunctions"
-import { XSquare } from "react-bootstrap-icons"
+import { randomUUID } from "crypto"
+import * as d3 from "d3"
+import * as dfd from "danfojs-node"
 import * as echarts from "echarts"
 import ReactECharts from "echarts-for-react"
-import * as d3 from "d3"
-import { Col, Row } from "react-bootstrap"
-import { ToggleButton } from "primereact/togglebutton"
-import { Dropdown } from "primereact/dropdown"
 import { Button } from "primereact/button"
-import { MultiSelect } from "primereact/multiselect"
-import MedDataObject from "../../workspace/medDataObject"
-import { toast } from "react-toastify"
-import { confirmDialog } from "primereact/confirmdialog"
-import { Spinner } from "react-bootstrap"
 import { Checkbox } from "primereact/checkbox"
-import * as dfd from "danfojs-node"
+import { confirmDialog } from "primereact/confirmdialog"
+import { Dropdown } from "primereact/dropdown"
+import { MultiSelect } from "primereact/multiselect"
+import { ToggleButton } from "primereact/togglebutton"
+import React from "react"
+import { Col, Row, Spinner } from "react-bootstrap"
+import { XSquare } from "react-bootstrap-icons"
+import { toast } from "react-toastify"
+import { createFolderFromPath } from "../../../utilities/fileManagementUtils"
+import { deepCopy } from "../../../utilities/staticFunctions"
+import { connectToMongoDB, insertMEDDataObjectIfNotExists } from "../../mongoDB/mongoDBUtils"
+import { MEDDataObject } from "../../workspace/NewMedDataObject"
+
 
 /**
  * @class MEDcohortFigureClass
  * @category Components
  * @classdesc Class component that renders a figure of the MEDcohort data.
  * @param {Object} props
- * @param {String} props.jsonFilePath - Path to the MEDcohort json file.
+ * @param {String} props.jsonID - Path to the MEDcohort json file.
  * @param {Object} props.jsonDataIsLoaded - If MEDcohort json data is loaded. Spinner is showed by the parent component.
  */
 class MEDcohortFigureClass extends React.Component {
@@ -89,11 +91,54 @@ class MEDcohortFigureClass extends React.Component {
    * @function
    * @returns {void}
    */
-  componentDidMount() {
-    this.setState({ jsonData: loadJsonPath(this.props.jsonFilePath) }, () => {
-      this.generateEchartsOptions()
-      this.props.setJsonDataIsLoaded(true)
-    })
+  async componentDidMount() {
+    // Connect to mongDB
+    const db = await connectToMongoDB()
+    
+    // Load the JSON data from GridFS
+    const { GridFSBucket } = require("mongodb")
+    const gridFSBucket = new GridFSBucket(db);
+
+    // Find the file in GridFS and get its _id
+    const filesCursor = gridFSBucket.find({ filename: "MEDprofiles.json" });
+    const file = await filesCursor.next(); // Get the first matching file (if it exists)
+    
+    if (!file) {
+        console.error("File 'MEDprofiles.json' not found in GridFS")
+        return;
+    }
+    
+    // Open a readable stream to retrieve the JSON data
+    const stream = gridFSBucket.openDownloadStreamByName("MEDprofiles.json");
+    
+    let jsonData = "";
+
+    // Collect data from stream
+    stream.on("data", chunk => {
+        jsonData += chunk.toString();
+    });
+
+    // On the end of the stream, update the state
+    stream.on("end", async () => {
+        try {
+            const parsedData = JSON.parse(jsonData);
+            console.log("componentDidMount parsedData", parsedData);
+
+            // Update the state with the loaded JSON data
+            this.setState({ jsonData: parsedData }, () => {
+                this.generateEchartsOptions(); // Call the chart generation method
+                this.props.setJsonDataIsLoaded(true); // Notify that the data is loaded
+            });
+          
+        } catch (error) {
+            console.error("Error parsing JSON data from GridFS:", error);
+        }
+    });
+
+    stream.on("error", err => {
+        console.error("Error loading data from GridFS:", err);
+    });
+
     this.setState({ darkMode: window.matchMedia("(prefers-color-scheme)").matches ? "dark" : "light" }) // Set the initial theme type
     window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", (e) => {
       if (e.matches) {
@@ -610,7 +655,9 @@ class MEDcohortFigureClass extends React.Component {
     if (this.state.echartsOptions !== null) {
       if (this.state.echartsOptions.series !== undefined) {
         if (this.state.echartsOptions.series.length !== newEchartsOption.series.length) {
-          toast.error("The number of patients has changed. The reloading time will be affected. Check your data for NaN values in the Date/Time values." + " If you are using the relative time, check if the selected class for relative time is not null for every patient." + " Problematic Patient IDs: " + profilesToHide.join(", "))
+          let error_message = "The number of patients has changed. The reloading time will be affected. Check your data for NaN values in the Date/Time values." + " If you are using the relative time, check if the selected class for relative time is not null for every patient." + " Problematic Patient IDs: " + profilesToHide.join(", ")
+          toast.error(error_message)
+          console.error(error_message)
 
           this.chartRef.current.getEchartsInstance().setOption(newEchartsOption, { notMerge: true })
         }
@@ -841,69 +888,12 @@ class MEDcohortFigureClass extends React.Component {
       })
     })
 
-    // Create a folder to store the time point CSV files
-    let separator = MedDataObject.getPathSeparator()
-    let folderPath = this.props.jsonFilePath.split(separator)
-    folderPath.pop()
-    folderPath = folderPath.join(separator)
-    folderPath = folderPath + separator + "timePoints" + separator
-    this.confirmOverwriteFolder(timePointsData, folderPath)
-  }
-
-  /**
-   * This function exports the data for each time point to a separate CSV file.
-   * @description It shows a confirmation dialog if the folder already exists.
-   * @param {Object} timePointsData - The data for each time point.
-   * @param {string} folderPath - The path to the folder to store the CSV files.
-   * @returns {void}
-   */
-  confirmOverwriteFolder = async (timePointsData, folderPath) => {
-    // eslint-disable-next-line no-undef
-    const fsx = require("fs-extra")
-    if (fsx.existsSync(folderPath)) {
-      await new Promise((resolve) => {
-        confirmDialog({
-          closable: false,
-          message: `The folder ${folderPath} already exists. Do you want to overwrite it?`,
-          header: "Confirmation",
-          icon: "pi pi-exclamation-triangle",
-          accept: () => {
-            resolve(true)
-          },
-          reject: () => {
-            // Do nothing
-            resolve(false)
-          }
-        })
-      })
-        .then((res) => {
-          if (res) {
-            // Remove the folder
-            fsx.removeSync(folderPath)
-            // Create a new folder
-            MedDataObject.createFolderFromPath(folderPath)
-            // Export the time point data to CSV files
-            Object.keys(timePointsData).forEach((timePoint) => {
-              this.timePointToCsv(timePoint, timePointsData[timePoint], folderPath)
-            })
-          }
-        })
-        .then(() => {
-          this.setState({ isWorking: false })
-        })
-        .catch(() => {
-          // Do nothing
-        })
-    } else {
-      // Create a new folder
-      MedDataObject.createFolderFromPath(folderPath)
-      // Export the time point data to CSV files
-      Object.keys(timePointsData).forEach((timePoint) => {
-        this.timePointToCsv(timePoint, timePointsData[timePoint], folderPath)
-      })
-      this.setState({ isWorking: false })
+    // Export the time point data to CSV files
+    for (const timePoint of Object.keys(timePointsData)) {
+      await this.timePointToCsv(timePoint, timePointsData[timePoint]);
     }
   }
+  
 
   /**
    * This method returns the median of an array.
@@ -1052,14 +1042,102 @@ class MEDcohortFigureClass extends React.Component {
     return newData
   }
 
+  exportTimePointToDatabase = async (fileName, jsonData, timePoint, folderPath) => {
+    let timePointsFolderId = null;
+  
+    // Connect to the database
+    const db = await connectToMongoDB();
+    let collection = db.collection("medDataObjects");
+  
+    // Find MEDprofiles folder
+    const MEDProfilesFolder = await collection.findOne({ name: "MEDprofiles", type: "directory", parentID: "DATA" });
+  
+    // Find timePoints folder
+    let timePointsFolder = await collection.findOne({ name: "timePoints", type: "directory", parentID: MEDProfilesFolder.id });
+  
+    if (timePointsFolder) {
+      timePointsFolderId = timePointsFolder.id;
+    } else {
+      // Create the time points folder locally
+      folderPath = folderPath + getPathSeparator() + "timePoints" + getPathSeparator();
+      createFolderFromPath(folderPath);
+  
+      // Create timePoints folder MEDDataObject
+      const timePointsFolderObject = new MEDDataObject({
+        id: randomUUID(),
+        name: "timePoints",
+        type: "directory",
+        parentID: MEDProfilesFolder.id,
+        childrenIDs: [],
+        inWorkspace: true,
+      });
+      await insertMEDDataObjectIfNotExists(timePointsFolderObject);
+      MEDDataObject.updateWorkspaceDataObject();
+      timePointsFolderId = timePointsFolderObject.id;
+    }
+  
+    // Create a new MEDDataObject for the file
+    const id = randomUUID();
+    const object = new MEDDataObject({
+      id: id,
+      name: fileName,
+      type: "csv",
+      parentID: timePointsFolderId,
+      childrenIDs: [],
+      inWorkspace: false,
+    });
+  
+    // Check if the file already exists
+    const existingObjectByAttributes = await collection.findOne({ name: object.name, type: object.type, parentID: object.parentID });
+  
+    if (existingObjectByAttributes) {
+      // If object already in the DB, show a confirmation dialog to overwrite it
+      const overwriteConfirmation = await new Promise((resolve) => {
+        confirmDialog({
+          closable: false,
+          message: `The file ${fileName} already exists in the ROOT folder. Do you want to overwrite it?`,
+          header: "Confirmation",
+          icon: "pi pi-exclamation-triangle",
+          accept: () => resolve(true),
+          reject: () => {
+            resolve(false);
+            this.setState({ isWorking: false });
+          },
+        });
+      });
+  
+      if (overwriteConfirmation) {
+        // If the user accepts, remove the existing file
+        collection = db.collection(existingObjectByAttributes.id);
+        await collection.deleteMany({});
+  
+        // Save the new data to the CSV file inside the MongoDB database
+        await collection.insertMany(jsonData);
+        MEDDataObject.updateWorkspaceDataObject();
+        toast.success(`Time point ${timePoint} exported to the database`);
+      }
+    } else {
+      // Create a new collection and insert data
+      await db.createCollection(object.id);
+      collection = db.collection(object.id);
+      await collection.insertMany(jsonData);
+  
+      // Insert the object into the database and update workspace
+      await insertMEDDataObjectIfNotExists(object);
+      MEDDataObject.updateWorkspaceDataObject();
+  
+      // Show a success message
+      toast.success(`Time point ${timePoint} exported to the database`);
+    }
+  }
+  
   /**
    * This function exports the data for a given time point to a CSV file.
    * @param {number} timePoint - The time point to export.
    * @param {Object} timePointData - The data for the time point.
-   * @param {string} folderPath - The path to the folder to store the CSV file.
    * @returns {void}
    */
-  timePointToCsv = (timePoint, timePointData, folderPath) => {
+  timePointToCsv = async (timePoint, timePointData) => {
     // eslint-disable-next-line no-undef
     const dfd = require("danfojs-node")
     if (timePointData === undefined) return
@@ -1086,14 +1164,17 @@ class MEDcohortFigureClass extends React.Component {
         let mergedDfData = this.mergeTimePointData(dfData)
         dfData = new dfd.concat({ dfList: Object.values(mergedDfData), axis: 0 })
       }
-      let filePath = folderPath + "T" + timePoint + ".csv" // Create the file path
+      let fileName = "T" + timePoint + ".csv" // Create the file path
+      let jsonData = dfd.toJSON(dfData) // Convert the dataframe to JSON
       try {
-        // Save the data to a CSV file
-        dfd.toCSV(dfData, { filePath: filePath })
+        // Export the data to the database
+        await this.exportTimePointToDatabase(fileName, jsonData, timePoint, this.state.folderPath)
       } catch (error) {
-        console.log("error", error)
+        console.error("error", error)
+        toast.error("Error exporting time point to the database")
       } finally {
-        toast.success(`Time point ${timePoint} exported to ${filePath}`)
+        // Do nothing
+        this.setState({ isWorking: false })
       }
       return
     }

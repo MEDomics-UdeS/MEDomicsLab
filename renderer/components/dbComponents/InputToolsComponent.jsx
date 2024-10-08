@@ -8,6 +8,7 @@ import SubsetCreationToolsDB from "./inputToolsDB/subsetCreationToolsDB"
 import FeatureReductionToolsDB from "./inputToolsDB/featureReductionToolsDB/featureReductionToolsDB"
 import GroupingTaggingToolsDB from "./inputToolsDB/groupingTaggingToolsDB"
 import MEDprofilesPrepareData from "../input/MEDprofiles/MEDprofilesPrepareData"
+import ModulePage from "../mainPages/moduleBasics/modulePage"
 
 /**
  * @description
@@ -57,7 +58,10 @@ const InputToolsComponent = ({ data, exportOptions, refreshData, columns, transf
         <GroupingTaggingToolsDB refreshData={refreshData} />
       </Panel>
       <Panel header="MEDprofiles" toggleable collapsed={true}>
-        <MEDprofilesPrepareData />
+        <ModulePage>
+            <MEDprofilesPrepareData />
+        </ModulePage>
+
       </Panel>
     </div>
   )

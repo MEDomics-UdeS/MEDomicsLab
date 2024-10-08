@@ -40,6 +40,7 @@ export function setWorkingDirectory(event, mainWindow) {
               if (result.response === 0) {
                 // If the user clicks on "Yes"
                 mainWindow.webContents.send("setWorkingDirectoryInApp", file)
+                mainWindow.webContents.send("setRecentWorkspacesInApp", file)
               } else if (result.response === 1) {
                 // If the user clicks on "No"
                 console.log("Dialog was canceled")
@@ -106,7 +107,7 @@ function saveWorkspaces(workspaces) {
  * Updates the recent workspaces
  * @param {String} workspacePath The path of the workspace to update
  */
-function updateWorkspace(workspacePath) {
+export function updateWorkspace(workspacePath) {
   const workspaces = loadWorkspaces()
   const workspaceIndex = workspaces.findIndex((workspace) => workspace.path === workspacePath)
   if (workspaceIndex !== -1) {

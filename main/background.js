@@ -5,7 +5,7 @@ import { createWindow } from "./helpers"
 import { installExtension, REACT_DEVELOPER_TOOLS } from "electron-extension-installer"
 import MEDconfig from "../medomics.dev"
 import { runServer } from "./utils/server"
-import { setWorkingDirectory, getRecentWorkspacesOptions, loadWorkspaces, createMedomicsDirectory } from "./utils/workspace"
+import { setWorkingDirectory, getRecentWorkspacesOptions, loadWorkspaces, createMedomicsDirectory, updateWorkspace } from "./utils/workspace"
 
 const fs = require("fs")
 var path = require("path")
@@ -191,6 +191,13 @@ if (isProd) {
       // If the message is "requestRecentWorkspaces", the function getRecentWorkspaces is called
       getRecentWorkspacesOptions(event, mainWindow, hasBeenSet)
     }
+  })
+
+  ipcMain.handle("updateWorkspace", async (event, data) => {
+    // Receives a message from Next.js to update workspace
+    console.error("updateWorkspace : ", data)
+    console.error("updateWorkspace event : ", event)
+    updateWorkspace(data)
   })
 
   ipcMain.handle("setWorkingDirectory", async (event, data) => {
