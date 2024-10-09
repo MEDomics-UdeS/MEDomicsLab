@@ -8,6 +8,7 @@ import { PiGraph } from "react-icons/pi"
 const iconExtension = {
   folder: (isExpanded) => (isExpanded ? <span style={{ paddingBottom: "0.15rem" }}>📂</span> : <span style={{ paddingBottom: "0.15rem" }}>📁</span>),
   csv: <span className="emoji">🛢️</span>,
+  view: <span className="emoji">👁️</span>,
   json: (
     <span>
       <Icon.Braces className="icon-offset" style={{ color: "yellow" }} />

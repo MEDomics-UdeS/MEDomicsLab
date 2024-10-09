@@ -272,7 +272,7 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
         dispatchLayout({ type: "openInExtractionMEDimageModule", payload: item })
       } else if (item.type == "medeval") {
         dispatchLayout({ type: "openInEvaluationModule", payload: item })
-      } else if (item.type == "csv" || item.type == "tsv" || item.type == "xlsx") {
+      } else if (item.type == "csv" || item.type == "tsv" || item.type == "xlsx" || item.type == "view") {
         dispatchLayout({ type: "openInDataTableFromDBViewer", payload: item })
       } else if (item.type == "json") {
         dispatchLayout({ type: "openInJSONViewer", payload: item })
@@ -317,7 +317,7 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
         event: e,
         props: data
       })
-    } else if (data.type == "csv" || data.type == "tsv" || data.type == "xlsx") {
+    } else if (data.type == "csv" || data.type == "tsv" || data.type == "xlsx" || data.type == "view") {
       show({
         id: "MENU_DATA",
         event: e,
