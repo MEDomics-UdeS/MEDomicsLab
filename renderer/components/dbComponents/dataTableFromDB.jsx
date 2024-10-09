@@ -8,6 +8,7 @@ import { confirmDialog } from "primereact/confirmdialog"
 import { DataTable } from "primereact/datatable"
 import { Dialog } from "primereact/dialog"
 import { InputText } from "primereact/inputtext"
+import { Message } from "primereact/message"
 import { Skeleton } from 'primereact/skeleton'
 import React, { useContext, useEffect, useState } from "react"
 import { toast } from "react-toastify"
@@ -58,7 +59,8 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
   const [columnToDelete, setColumnToDelete] = useState(null)
   const [lastPipeline, setLastPipeline] = useState([])
   const [loadingData, setLoadingData] = useState(true)
-  const items = Array.from({ length: 7 }, (v, i) => i); //  Fake items for the skeleton upload
+  const items = Array.from({ length: 7 }, (v, i) => i) //  Fake items for the skeleton upload
+  const forbiddenCharacters = /[\\."$*<>:|?]/
   const buttonStyle = (id) => ({
     borderRadius: "10px",
     backgroundColor: hoveredButton === id ? "#d32f2f" : "#cccccc",
@@ -668,10 +670,26 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
             {/* Second Column with View Name Input and Save as View button */}
             <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
             <div className="p-inputgroup w-full md:w-30rem">
-              <InputText placeholder="Enter view name" suffix="test" style={{width: "300px"}} value={userSetViewName} onChange={(e) => setUserSetViewName(e.target.value)}/>
+              <InputText 
+                className={forbiddenCharacters.test(userSetViewName) ? "p-invalid" : ""}
+                placeholder="Enter view name" 
+                suffix="test" style={{width: "300px"}} 
+                value={userSetViewName} 
+                onChange={(e) => setUserSetViewName(e.target.value)}
+                />
               <span className="p-inputgroup-addon">.csv</span>
+              {forbiddenCharacters.test(userSetViewName) && <Message severity="error" text="Character not allowed" />}
             </div>
-              <Button label="Save as a view" disabled={!userSetViewName}severity="info" rounded text raised icon="pi pi-eye" onClick={saveView} />
+              <Button 
+                label="Save as a view" 
+                disabled={!userSetViewName || forbiddenCharacters.test(userSetViewName)}
+                severity="info" 
+                rounded 
+                text 
+                raised 
+                icon="pi pi-eye" 
+                onClick={saveView}
+              />
             </div>
           </div>
         }
