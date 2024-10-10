@@ -109,7 +109,7 @@ export async function runServer(isProd, serverPort, serverProcess, serverState, 
             console.log(`disconnected`)
           })
           serverProcess.on("close", (code) => {
-            serverIsRunning = false
+            serverState.serverIsRunning = false
             console.log(`server child process close all stdio with code ${code}`)
           })
         }
