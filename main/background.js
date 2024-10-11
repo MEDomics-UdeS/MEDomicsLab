@@ -5,7 +5,7 @@ import { createWindow } from "./helpers"
 import { installExtension, REACT_DEVELOPER_TOOLS } from "electron-extension-installer"
 import MEDconfig from "../medomics.dev"
 import { runServer } from "./utils/server"
-import { setWorkingDirectory, getRecentWorkspacesOptions, loadWorkspaces, createMedomicsDirectory, updateWorkspace } from "./utils/workspace"
+import { setWorkingDirectory, getRecentWorkspacesOptions, loadWorkspaces, createMedomicsDirectory, updateWorkspace, createWorkingDirectory } from "./utils/workspace"
 
 const fs = require("fs")
 var path = require("path")
@@ -88,12 +88,12 @@ if (isProd) {
     splashScreen.focus()
     splashScreen.setAlwaysOnTop(true)
   })
-  const openRecentWorkspacesSubmenuOptions = getRecentWorkspacesOptions(null, mainWindow, hasBeenSet)
+  const openRecentWorkspacesSubmenuOptions = getRecentWorkspacesOptions(null, mainWindow, hasBeenSet, serverPort)
   console.log("openRecentWorkspacesSubmenuOptions", JSON.stringify(openRecentWorkspacesSubmenuOptions, null, 2))
   const menuTemplate = [
     {
       label: "File",
-      submenu: [{ label: "Open recent", submenu: getRecentWorkspacesOptions(null, mainWindow, hasBeenSet) }, { type: "separator" }, { role: "quit" }]
+      submenu: [{ label: "Open recent", submenu: getRecentWorkspacesOptions(null, mainWindow, hasBeenSet, serverPort) }, { type: "separator" }, { role: "quit" }]
     },
     {
       label: "Edit",
@@ -189,7 +189,7 @@ if (isProd) {
     console.log("GetRecentWorkspaces : ", data)
     if (data === "requestRecentWorkspaces") {
       // If the message is "requestRecentWorkspaces", the function getRecentWorkspaces is called
-      getRecentWorkspacesOptions(event, mainWindow, hasBeenSet)
+      getRecentWorkspacesOptions(event, mainWindow, hasBeenSet, serverPort)
     }
   })
 
@@ -202,7 +202,8 @@ if (isProd) {
 
   ipcMain.handle("setWorkingDirectory", async (event, data) => {
     app.setPath("sessionData", data)
-    console.log("setWorkingDirectory : ", data)
+    createWorkingDirectory()  // Create DATA & EXPERIMENTS directories
+    console.log(`setWorkingDirectory : ${data}`)
     createMedomicsDirectory(data)
     hasBeenSet = true
     try {
@@ -212,7 +213,7 @@ if (isProd) {
       startMongoDB(data, mongoProcess)
       return {
         workingDirectory: dirTree(app.getPath("sessionData")),
-        hasBeenSet: true,
+        hasBeenSet: hasBeenSet,
         newPort: serverPort
       }
     } catch (error) {
@@ -497,6 +498,7 @@ async function stopMongoDB(mongoProcess) {
       })
       try {
         mongoProcess.kill()
+        resolve()
       } catch (error) {
         console.log("Error while stopping MongoDB ", error)
         reject()
