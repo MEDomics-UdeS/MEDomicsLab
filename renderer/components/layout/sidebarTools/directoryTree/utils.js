@@ -37,7 +37,7 @@ export function fromJSONtoTree(data) {
   const namesYouCantRename = ["DATA", "EXPERIMENTS"] // These names cannot be renamed
   Object.keys(data).forEach((key) => {
     let element = data[key]
-    if (element.name != ".medomics") {
+    if (element.name != ".medomics" && element.name != ".ipynb_checkpoints") {
       let ableToRename = !namesYouCantRename.includes(element.name)
       tree[element.id] = {
         index: element.id,
