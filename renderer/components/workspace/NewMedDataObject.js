@@ -149,6 +149,28 @@ export class MEDDataObject {
   }
 
   /**
+   * @description Creates an empty folder in the file system.
+   * @param {string} name
+   * @param {string} path
+  */
+  static createFolderFSsync(path) {
+    // eslint-disable-next-line no-undef
+    let fs = require("fs")
+    const fsPromises = fs.promises
+    this.updateWorkspaceDataObject(1000)
+    return new Promise((resolve) => {
+      fsPromises
+        .mkdir(path, { recursive: true })
+        .then(function () {
+          resolve(path)
+        })
+        .catch(function () {
+          console.error("failed to create directory")
+        })
+    })
+  }
+
+  /**
    *
    * @param {Object} exportObj object to be exported
    * @param {String} path path to the folder where the file will be saved
