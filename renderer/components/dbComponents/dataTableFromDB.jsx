@@ -1,19 +1,20 @@
-import React, { useEffect, useState, useContext } from "react"
-import { DataTable } from "primereact/datatable"
-import { Column } from "primereact/column"
-import { InputText } from "primereact/inputtext"
-import { Button } from "primereact/button"
-import { ObjectId } from "mongodb"
-import { toast } from "react-toastify"
 import { saveAs } from "file-saver"
-import { getCollectionData, collectionExists } from "./utils"
-import InputToolsComponent from "./InputToolsComponent"
+import { ObjectId } from "mongodb"
+import { Button } from "primereact/button"
+import { Chip } from "primereact/chip"
+import { Column } from "primereact/column"
+import { DataTable } from "primereact/datatable"
 import { Dialog } from "primereact/dialog"
+import { InputText } from "primereact/inputtext"
+import { Skeleton } from 'primereact/skeleton'
+import React, { useContext, useEffect, useState } from "react"
+import { toast } from "react-toastify"
+import { requestBackend } from "../../utilities/requests"
 import { LayoutModelContext } from "../layout/layoutContext"
 import { connectToMongoDB } from "../mongoDB/mongoDBUtils"
-import { Chip } from "primereact/chip"
-import { requestBackend } from "../../utilities/requests"
 import { ServerConnectionContext } from "../serverConnection/connectionContext"
+import InputToolsComponent from "./InputToolsComponent"
+import { collectionExists, getCollectionData } from "./utils"
 
 /**
  * DataTableFromDB component
@@ -45,7 +46,8 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
       }
     }
   ]
-
+  const [loadingData, setLoadingData] = useState(true)
+  const items = Array.from({ length: 7 }, (v, i) => i); //  Fake items for the skeleton upload
   const buttonStyle = (id) => ({
     borderRadius: "10px",
     backgroundColor: hoveredButton === id ? "#d32f2f" : "#cccccc",
@@ -81,7 +83,10 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
         })
         .catch((error) => {
           console.error("Failed to fetch data:", error)
-        })
+        }).finally(() => {
+          // Set loading to false after data has been fetched (whether successful or failed)
+          setLoadingData(false);
+        });
     } else {
       console.warn("Invalid data prop:", data)
     }
@@ -101,6 +106,13 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
     }
   }, [innerData])
 
+  // Monitor innerData changes and updated loading state
+  useEffect(() => {
+    if (innerData.length > 0) {
+      setLoadingData(false)
+    }
+  })
+
   // Log columns when updated
   useEffect(() => {
     console.log("columns updated:", columns)
@@ -118,6 +130,7 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
   // Update data in MongoDB
   const updateDatabaseData = async (dbname, collectionName, id, field, newValue) => {
     try {
+      setLoadingData(true)
       const db = await connectToMongoDB()
       const collection = db.collection(collectionName)
       console.log(`Updating document with _id: ${id}, setting ${field} to ${newValue}`)
@@ -126,14 +139,17 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
       if (result.modifiedCount === 0) {
         console.error("No documents were updated")
       }
+      setLoadingData(false)
     } catch (error) {
       console.error("Error updating data:", error)
+      setLoadingData(false)
     }
   }
 
   // Delete data from MongoDB
   const deleteDatabaseData = async (dbname, collectionName, id) => {
     try {
+      setLoadingData(true)
       const db = await connectToMongoDB()
       const collection = db.collection(collectionName)
       console.log(`Deleting document with _id: ${id}`)
@@ -144,27 +160,33 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
       } else {
         setInnerData(innerData.filter((item) => item._id !== id))
       }
+      setLoadingData(false)
     } catch (error) {
       console.error("Error deleting data:", error)
+      setLoadingData(false)
     }
   }
 
   // Insert data into MongoDB
   const insertDatabaseData = async (dbname, collectionName, data) => {
     try {
+      setLoadingData(true)
       const db = await connectToMongoDB()
       const collection = db.collection(collectionName)
       console.log(`Inserting document: ${JSON.stringify(data)}`)
       const result = await collection.insertOne(data)
       console.log("Insert result:", result)
+      setLoadingData(false)
       return result.insertedId.toString()
     } catch (error) {
       console.error("Error inserting data:", error)
+      setLoadingData(false)
     }
   }
 
   // Handle cell edit completion
   const onCellEditComplete = (e) => {
+    setLoadingData(true)
     let { rowData, newValue, field } = e
     if (newValue === "" || newValue === null) {
       newValue = null
@@ -208,10 +230,12 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
           console.error("Failed to update database:", error)
         })
     }
+    setLoadingData(false)
   }
 
   // Handle row deletion
   const onDeleteRow = (rowData) => {
+    setLoadingData(true)
     const { _id } = rowData
     console.log("Deleting row with _id:", _id)
     deleteDatabaseData(data.path, data.id, _id)
@@ -221,10 +245,12 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
       .catch((error) => {
         console.error("Failed to delete row:", error)
       })
+    setLoadingData(false)
   }
 
   // Handle column deletion
   const onDeleteColumn = async (field) => {
+    setLoadingData(true)
     setColumns(columns.filter((column) => column.field !== field))
     setInnerData(
       innerData.map((row) => {
@@ -244,6 +270,7 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
     } catch (error) {
       console.error("Error deleting column:", error)
     }
+    setLoadingData(false)
   }
 
   // Text editor for cell editing
@@ -254,6 +281,7 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
   // Refresh data from MongoDB
   const refreshData = () => {
     if (data && data.id) {
+      setLoadingData(true)
       getCollectionData(data.id)
         .then((fetchedData) => {
           let collData = fetchedData.map((item) => {
@@ -270,6 +298,7 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
         .catch((error) => {
           console.error("Failed to fetch data:", error)
         })
+        setLoadingData(false)
     } else {
       console.warn("Invalid data prop:", data)
     }
@@ -277,6 +306,7 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
 
   // Export data to CSV or JSON
   function handleExport(format) {
+    setLoadingData(true)
     if (format === "CSV") {
       const headers = columns.map((column) => column.field)
       const csvData = [headers.join(",")]
@@ -298,6 +328,7 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
     } else {
       toast.warn("Please select a format to export")
     }
+    setLoadingData(false)
   }
 
   // Open Input Tools dialog
@@ -417,7 +448,17 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
   return (
     <>
       {innerData.length === 0 ? (
+        loadingData ? (
+          <DataTable header={"Loading content..."} value={items} className="p-datatable-striped">
+              <Column header="" style={{ width: '20%' }} body={<Skeleton />}></Column>
+              <Column header="" style={{ width: '20%' }} body={<Skeleton />}></Column>
+              <Column header="" style={{ width: '20%' }} body={<Skeleton />}></Column>
+              <Column header="" style={{ width: '20%' }} body={<Skeleton />}></Column>
+              <Column header="" style={{ width: '20%' }} body={<Skeleton />}></Column>
+          </DataTable>
+        ) : (
         <p style={{ color: "red", fontSize: "20px", textAlign: "center", margin: "30px" }}>No data found in {data.name}</p>
+        )
       ) : (
         <div style={dataTableStyle}>
           <DataTable

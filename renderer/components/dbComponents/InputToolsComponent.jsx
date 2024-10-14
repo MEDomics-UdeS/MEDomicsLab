@@ -1,14 +1,20 @@
+import { Card } from 'primereact/card'
+import { Dropdown } from "primereact/dropdown"
 import { Panel } from "primereact/panel"
-import BasicToolsDB from "./inputToolsDB/basicToolsDB"
-import TransformColumnToolsDB from "./inputToolsDB/transformColumnToolsDB"
-import MergeToolsDB from "./inputToolsDB/mergeToolsDB"
-import SimpleCleaningToolsDB from "./inputToolsDB/simpleCleaningToolsDB"
-import HoldoutSetCreationToolsDB from "./inputToolsDB/holdoutSetCreationToolsDB"
-import SubsetCreationToolsDB from "./inputToolsDB/subsetCreationToolsDB"
-import FeatureReductionToolsDB from "./inputToolsDB/featureReductionToolsDB/featureReductionToolsDB"
-import GroupingTaggingToolsDB from "./inputToolsDB/groupingTaggingToolsDB"
+import { useContext, useEffect, useState } from "react"
 import MEDprofilesPrepareData from "../input/MEDprofiles/MEDprofilesPrepareData"
 import ModulePage from "../mainPages/moduleBasics/modulePage"
+import { DataContext } from "../workspace/dataContext"
+import BasicToolsDB from "./inputToolsDB/basicToolsDB"
+import FeatureReductionToolsDB from "./inputToolsDB/featureReductionToolsDB/featureReductionToolsDB"
+import GroupingTaggingToolsDB from "./inputToolsDB/groupingTaggingToolsDB"
+import HoldoutSetCreationToolsDB from "./inputToolsDB/holdoutSetCreationToolsDB"
+import MergeToolsDB from "./inputToolsDB/mergeToolsDB"
+import SimpleCleaningToolsDB from "./inputToolsDB/simpleCleaningToolsDB"
+import SubsetCreationToolsDB from "./inputToolsDB/subsetCreationToolsDB"
+import TransformColumnToolsDB from "./inputToolsDB/transformColumnToolsDB"
+import { getCollectionData } from "./utils"
+
 
 /**
  * @description
@@ -23,36 +29,109 @@ import ModulePage from "../mainPages/moduleBasics/modulePage"
  * @param {Object} props.lastEdit - Last edit
  */
 const InputToolsComponent = ({ data, exportOptions, refreshData, columns, transformData, innerData, lastEdit }) => {
+  const { globalData } = useContext(DataContext) // We get the global data from the context
+  const [altData, setAltData] = useState(data)
+  const [altColumns, setAltColumns] = useState(columns)
   const panelContainerStyle = {
     height: "100%",
     overflow: "auto"
   }
+  exportOptions = [
+    {
+      label: "CSV",
+      command: () => {
+        handleExport("CSV")
+      }
+    },
+    {
+      label: "JSON",
+      command: () => {
+        handleExport("JSON")
+      }
+    }
+  ]
+
+  // Fetch data from MongoDB on component mount
+  useEffect(() => {
+    if (altData && altData.id && !innerData) {
+      getCollectionData(altData.id)
+        .then((fetchedData) => {
+          console.log("Fetched data:", fetchedData)
+          let collData = fetchedData.map((item) => {
+            let keys = Object.keys(item)
+            let values = Object.values(item)
+            let dataObject = {}
+            for (let i = 0; i < keys.length; i++) {
+              dataObject[keys[i]] = keys[i] === "_id" ? item[keys[i]].toString() : values[i]
+            }
+            return dataObject
+          })
+          if (collData && collData.length > 0 && !columns) {
+            const allKeys = new Set()
+            collData.forEach((item) => {
+              Object.keys(item).forEach((key) => allKeys.add(key))
+            })
+            const keys = Array.from(allKeys).filter((key) => key !== "_id")
+            columns = keys.map((key) => ({ field: key, header: key }))
+            setAltColumns(columns)
+          }
+        })
+        .catch((error) => {
+          console.error("Failed to fetch data:", error)
+        })
+    } else {
+      console.warn("Invalid data prop:", altData)
+    }
+  }, [altData])
+
+  const selectedCSVFiles = Object.values(globalData).filter((item) => item.type === "csv")
 
   return (
     <div style={panelContainerStyle}>
       <div style={{ textAlign: "center", marginTop: "20px", marginBottom: "20px" }}>
         <h1>Database Input Tools</h1>
-      </div>
+    </div>
+    {!data ? (
+      <Card className="cute-box"
+        title="Select a CSV to get started"
+        style={{ 
+          marginTop: "10px",
+          backgroundColor: "#cfcfcfa4",
+        }}>
+        <Dropdown
+          filter
+          style={{ maxWidth: "300px" }}
+          value={altData}
+          onChange={(e) => setAltData(e.value)}
+          options={selectedCSVFiles}
+          optionLabel="name"
+          className="w-full md:w-14rem margintop8px"
+          display="chip"
+          placeholder="Select CSV files"
+        />
+      </Card>
+    ) : null}
+    {!altData ? (<></>) : (<>
       <Panel header="Basic Tools" toggleable collapsed={true}>
-        <BasicToolsDB exportOptions={exportOptions} refreshData={refreshData} currentCollection={data.id} />
+        <BasicToolsDB exportOptions={exportOptions} refreshData={refreshData} currentCollection={!altData? null : altData.id} />
       </Panel>
       <Panel header="Transform Column Tools" toggleable collapsed={true}>
-        <TransformColumnToolsDB columns={columns} transformData={transformData} currentCollection={data.id} refreshData={refreshData} />
+        <TransformColumnToolsDB columns={columns} transformData={transformData} currentCollection={!altData? null : altData.id} refreshData={refreshData} />
       </Panel>
       <Panel header="Merge Tools" toggleable collapsed={true}>
-        <MergeToolsDB refreshData={refreshData} currentCollection={data.id} />
+        <MergeToolsDB refreshData={refreshData} currentCollection={!altData? null : altData.id} />
       </Panel>
       <Panel header="Simple Cleaning Tools" toggleable collapsed={true}>
-        <SimpleCleaningToolsDB refreshData={refreshData} lastEdit={lastEdit} data={innerData} columns={columns} currentCollection={data.id} />
+        <SimpleCleaningToolsDB refreshData={refreshData} lastEdit={lastEdit} data={altData} columns={altColumns} currentCollection={!altData? null : altData.id} />
       </Panel>
       <Panel header="Holdout Set Creation Tools" toggleable collapsed={true}>
-        <HoldoutSetCreationToolsDB refreshData={refreshData} data={innerData} currentCollection={data.id} />
+        <HoldoutSetCreationToolsDB refreshData={refreshData} data={altData} currentCollection={!altData? null : altData.id} />
       </Panel>
       <Panel header="Subset Creation Tools" toggleable collapsed={true}>
-        <SubsetCreationToolsDB currentCollection={data.id} data={innerData} refreshData={refreshData} />
+        <SubsetCreationToolsDB currentCollection={!altData? null : altData.id} data={altData} refreshData={refreshData} />
       </Panel>
       <Panel header="Feature Reduction Tools" toggleable collapsed={true}>
-        <FeatureReductionToolsDB data={data} refreshData={refreshData} />
+        <FeatureReductionToolsDB data={altData} refreshData={refreshData} />
       </Panel>
       <Panel header="Grouping/Tagging Tools" toggleable collapsed={true}>
         <GroupingTaggingToolsDB refreshData={refreshData} />
@@ -61,8 +140,8 @@ const InputToolsComponent = ({ data, exportOptions, refreshData, columns, transf
         <ModulePage>
             <MEDprofilesPrepareData />
         </ModulePage>
-
-      </Panel>
+      </Panel></>
+    )}
     </div>
   )
 }
