@@ -672,7 +672,6 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
             >
               Jupyter Notebook
             </Item>
-            {console.log("Selected items", selectedItems, "gloablData", globalData)}
             <Item id="openInVSCode" onClick={() => openInVSCode(globalData[selectedItems[0]].path)}>
               <FiFolder size={"1rem"} className="context-menu-icon" />
               VSCode
