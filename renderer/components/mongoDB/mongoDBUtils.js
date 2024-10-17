@@ -32,6 +32,18 @@ export async function updateMEDDataObjectName(id, newName) {
 }
 
 /**
+ * @description Update the usedIn list of a MEDDataObject specified by id in the DB
+ * @param {String} id Id of the MEDDataObject to update
+ * @param {String} usedIn New name for the MEDDataObject to update
+ * @returns bool true if succeed
+ */
+export async function updateMEDDataObjectUsedInList(id, usedIn) {
+  const db = await connectToMongoDB()
+  const result = await db.collection("medDataObjects").updateOne({ id: id }, { $set: { usedIn: usedIn } })
+  return result.modifiedCount > 0
+}
+
+/**
  * @description Update the path of a MEDDataObject specified by id in the DB
  * @param {String} id Id of the MEDDataObject to update
  * @param {String} newPath New path for the MEDDataObject to update

@@ -13,7 +13,7 @@ import AnalyseResults from "../../learning/results/node/analyseResults"
 import DataParamResults from "../../learning/results/node/dataParamResults"
 import ModelsResults from "../../learning/results/node/modelsResults"
 import SaveModelResults from "../../learning/results/node/saveModelResults"
-import { findMEDDataObjectByPath, insertMEDDataObjectIfNotExists } from "../../mongoDB/mongoDBUtils"
+import { connectToMongoDB, insertMEDDataObjectIfNotExists, updateMEDDataObjectUsedInList } from "../../mongoDB/mongoDBUtils"
 import { MEDDataObject } from "../../workspace/NewMedDataObject"
 import { EXPERIMENTS, WorkspaceContext } from "../../workspace/workspaceContext"
 import { FlowInfosContext } from "../context/flowInfosContext"
@@ -151,6 +151,38 @@ const PipelinesResults = ({ pipelines, selectionMode, flowContent }) => {
   }, [showResultsPane])
 
   /**
+   * @param {Array} results The results of the pipeline
+   * @param {string} notebookID The id of the notebook
+   * @returns {boolean} true if the results are in the correct format, false otherwise
+   * @description This function is used to lock the dataset to avoid the user to modify or delete it
+   */
+  const lockDataset = (results, notebookID) => {
+    let datasetId = null
+    if (!results) {
+      // if results are null, return false
+      toast.error("The results are not in the correct format")
+      return false
+    }
+    // check if the results are in the correct format
+    const isValidFormat = (results) => {
+      let key = selectedResultsId ? selectedResultsId : Object.keys(results)[0]
+      return results[key].results ? true : false
+    }
+    // get the dataset id
+    if (isValidFormat(results)) {
+      let key = selectedResultsId ? selectedResultsId : Object.keys(results)[0]
+      if (results[key].results && results[key].results.data && results[key].results.data.paths) {
+        if (results[key].results.data.paths[0].id) {
+          datasetId = results[key].results.data.paths[0].id
+        }
+      }
+    }
+    // lock and update the dataset
+    MEDDataObject.lockMedDataObject(datasetId)
+    updateMEDDataObjectUsedInList(datasetId, notebookID)
+  }
+
+  /**
    * @returns {JSX.Element} The title of the accordion tab
    *
    * @description
@@ -194,7 +226,7 @@ const PipelinesResults = ({ pipelines, selectionMode, flowContent }) => {
        * This function is used to generate the notebook corresponding to the pipeline.
        * It first gets the code and the imports of each node in the pipeline and then call the createNoteBookDoc function.
        */
-      const codeGeneration = (e) => {
+      const codeGeneration = async (e) => {
         e.preventDefault()
         e.stopPropagation()
         let finalCode = []
@@ -216,7 +248,8 @@ const PipelinesResults = ({ pipelines, selectionMode, flowContent }) => {
         })
         console.log("final code:")
         console.log(finalImports)
-        createNoteBookDoc(finalCode, finalImports)
+        let notebookID = await createNoteBookDoc(finalCode, finalImports)
+        lockDataset(flowResults, notebookID)  // Lock the dataset to avoid the user to modify or delete it
       }
 
       /**
@@ -292,23 +325,33 @@ const PipelinesResults = ({ pipelines, selectionMode, flowContent }) => {
           pipeline.map((id) => getName(id)).join("-"),
           "ipynb"
         )
-        // If the file is written successfully, display the success toast
-        toast.success("Notebook generated and saved locally!")
+
+        // Update the notebooks MEDDATAObject path
+        const db = await connectToMongoDB()
+        const collection = db.collection("medDataObjects")
+        const notebooksFolder = await collection.findOne({ name: "notebooks", type: "directory" })
+        await collection.updateOne({ id: notebooksFolder.id }, { $set: { path: pathToCreate } })
+
         // Save the notebook in the database
-        let parentFolderPath = [getBasePath(EXPERIMENTS), sceneName, "notebooks"].join(getPathSeparator())
         const notebookObj = new MEDDataObject({
           id: randomUUID(),
-          name: pipeline.map((id) => getName(id)).join("-"),
+          name: pipeline.map((id) => getName(id)).join("-") + ".ipynb",
           type: "ipynb",
-          parentID: findMEDDataObjectByPath(parentFolderPath, "directory").id,
+          parentID: notebooksFolder.id,
           childrenIDs: [],
           path: pathToCreate,
+          isLocked: false,
           inWorkspace: true
         })
 
         // Insert the notebook in the database
-        await insertMEDDataObjectIfNotExists(notebookObj)
+        let notebookID = await insertMEDDataObjectIfNotExists(notebookObj)
         MEDDataObject.updateWorkspaceDataObject()
+
+        // If the file is written successfully, display the success toast
+        toast.success("Notebook generated and saved locally!")
+
+        return notebookID
       }
 
       return (

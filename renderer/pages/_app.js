@@ -1,59 +1,60 @@
-import { ToastContainer } from "react-toastify"
-import React, { useEffect, useState } from "react"
-import Head from "next/head"
-import LayoutManager from "../components/layout/layoutManager"
-import { LayoutModelProvider } from "../components/layout/layoutContext"
-import { WorkspaceProvider } from "../components/workspace/workspaceContext"
-import { ipcRenderer } from "electron"
-import { DataContextProvider } from "../components/workspace/dataContext"
-import { ActionContextProvider } from "../components/layout/actionContext"
 import { HotkeysProvider } from "@blueprintjs/core"
-import { ConfirmPopup } from "primereact/confirmpopup"
+import { ipcRenderer } from "electron"
+import Head from "next/head"
 import { ConfirmDialog } from "primereact/confirmdialog"
+import { ConfirmPopup } from "primereact/confirmpopup"
+import React, { useEffect, useState } from "react"
+import { ToastContainer } from "react-toastify"
+import { ActionContextProvider } from "../components/layout/actionContext"
+import { LayoutModelProvider } from "../components/layout/layoutContext"
+import LayoutManager from "../components/layout/layoutManager"
 import { ServerConnectionProvider } from "../components/serverConnection/connectionContext"
+import { DataContextProvider } from "../components/workspace/dataContext"
+import { MEDDataObject } from "../components/workspace/NewMedDataObject"
+import { WorkspaceProvider } from "../components/workspace/workspaceContext"
 import { loadMEDDataObjects, updateGlobalData } from "./appUtils/globalDataUtils"
 
 // CSS
 import "bootstrap/dist/css/bootstrap.min.css"
 // import 'bootswatch/dist/lux/bootstrap.min.css';
+import "react-simple-tree-menu/dist/main.css"
 import "react-toastify/dist/ReactToastify.css"
 import "react-tooltip/dist/react-tooltip.css"
-import "react-simple-tree-menu/dist/main.css"
 
 // --primereact
+import "primeicons/primeicons.css"
 import "primereact/resources/primereact.min.css"
 import "primereact/resources/themes/lara-light-indigo/theme.css"
-import "primeicons/primeicons.css"
 
 // blueprintjs
 import "@blueprintjs/core/lib/css/blueprint.css"
 import "@blueprintjs/table/lib/css/table.css"
 
+import "flexlayout-react/style/light.css"
 import "react-complex-tree/lib/style-modern.css"
 import "react-contexify/dist/ReactContexify.css"
-import "flexlayout-react/style/light.css"
 
 // --my styles (priority over bootstrap and other dist styles)
-import "../styles/flow/reactFlow.css"
-import "../styles/globals.css"
-import "../styles/learning/learning.css"
+import "../styles/application/application.css"
+import "../styles/customPrimeReact.css"
+import "../styles/datatableWrapper.css"
+import "../styles/DBtreeSidebar.css"
+import "../styles/evaluation/evaluation.css"
+import "../styles/exploratory/exploratory.css"
 import "../styles/extraction/extractionMEDimage.css"
 import "../styles/extraction/extractionTabular.css"
-import "../styles/input/MEDprofiles.css"
-import "../styles/workspaceSidebar.css"
-import "../styles/iconSidebar.css"
-import "../styles/DBtreeSidebar.css"
-import "../styles/learning/sidebar.css"
+import "../styles/flow/reactFlow.css"
 import "../styles/flow/results.css"
-import "../styles/sidebarTree.css"
-import "../styles/customPrimeReact.css"
+import "../styles/globals.css"
+import "../styles/iconSidebar.css"
 import "../styles/imageContainer.css"
-import "../styles/datatableWrapper.css"
+import "../styles/input/MEDprofiles.css"
 import "../styles/inputPage.css"
-import "../styles/evaluation/evaluation.css"
+import "../styles/learning/learning.css"
+import "../styles/learning/sidebar.css"
 import "../styles/output.css"
-import "../styles/exploratory/exploratory.css"
-import "../styles/application/application.css"
+import "../styles/sidebarTree.css"
+import "../styles/workspaceSidebar.css"
 
 /**
  * This is the main app component. It is the root component of the app.
@@ -209,6 +210,7 @@ function App() {
   // This useEffect hook is called whenever the `globalData` state changes.
   useEffect(() => {
     console.log("globalData changed", globalData)
+    MEDDataObject.verifyLockedObjects(globalData)
   }, [globalData])
 
   // This useEffect hook is called whenever the `layoutModel` state changes.

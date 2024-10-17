@@ -442,6 +442,7 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
                         e.preventDefault()
                         e.stopPropagation()
                         MEDDataObject.updateWorkspaceDataObject()
+                        MEDDataObject.verifyLockedObjects(globalData)
                       }}
                     >
                       <ArrowClockwise size={"1rem"} className="context-menu-icon refresh-icon" data-pr-at="right bottom" data-pr-tooltip="Refresh" data-pr-my="left top" />
@@ -477,7 +478,8 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
                     onDBClickItem,
                     setSelectedItems,
                     setIsDropping,
-                    isDropping
+                    isDropping,
+                    dirTree
                   })
                 }
                 getItemTitle={(item) => item.data}
