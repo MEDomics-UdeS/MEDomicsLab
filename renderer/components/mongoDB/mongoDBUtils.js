@@ -32,6 +32,18 @@ export async function updateMEDDataObjectName(id, newName) {
 }
 
 /**
+ * @description Update the usedIn list of a MEDDataObject specified by id in the DB
+ * @param {String} id Id of the MEDDataObject to update
+ * @param {String} usedIn New name for the MEDDataObject to update
+ * @returns bool true if succeed
+ */
+export async function updateMEDDataObjectUsedInList(id, usedIn) {
+  const db = await connectToMongoDB()
+  const result = await db.collection("medDataObjects").updateOne({ id: id }, { $set: { usedIn: usedIn } })
+  return result.modifiedCount > 0
+}
+
+/**
  * @description Update the path of a MEDDataObject specified by id in the DB
  * @param {String} id Id of the MEDDataObject to update
  * @param {String} newPath New path for the MEDDataObject to update
@@ -466,6 +478,25 @@ export async function findMEDDataObjectByName(name) {
   const db = await connectToMongoDB()
   const collection = db.collection("medDataObjects")
   const query = { name: name }
+  const document = await collection.findOne(query)
+  return document
+}
+
+/**
+ * @description Get the MEDDataObject specified by path from the DB
+ * @param {*} path // path of the MEDDataObject
+ * @param {*} type // type of the MEDDataObject
+ * @returns
+ */
+export async function findMEDDataObjectByPath(path, type = null) {
+  const db = await connectToMongoDB()
+  const collection = db.collection("medDataObjects")
+  let query = null
+  if (!type) {
+    query = { path: path }
+  } else {
+    query = { path: path, type: type }
+  }
   const document = await collection.findOne(query)
   return document
 }

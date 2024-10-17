@@ -1,15 +1,16 @@
-import { ipcRenderer } from "electron"
-import { deleteMEDDataObject, insertMEDDataObjectIfNotExists, updateMEDDataObjectName, downloadCollectionToFile, overwriteMEDDataObjectProperties } from "../mongoDB/mongoDBUtils"
 import { randomUUID } from "crypto"
-import { toast } from "react-toastify"
+import { ipcRenderer } from "electron"
 import fs from "fs"
 import path from "path"
+import { toast } from "react-toastify"
+import { getPathSeparator } from "../../utilities/fileManagementUtils"
+import { deleteMEDDataObject, downloadCollectionToFile, insertMEDDataObjectIfNotExists, overwriteMEDDataObjectProperties, updateMEDDataObjectName } from "../mongoDB/mongoDBUtils"
 
 /**
  * @description class definition of a MEDDataObject
  */
 export class MEDDataObject {
-  constructor({ id, name, type, parentID, childrenIDs, inWorkspace, path }) {
+  constructor({ id, name, type, parentID, childrenIDs, inWorkspace, path, isLocked, usedIn }) {
     this.id = id
     this.name = name
     this.type = type
@@ -17,6 +18,8 @@ export class MEDDataObject {
     this.childrenIDs = childrenIDs
     this.inWorkspace = inWorkspace
     this.path = path
+    this.isLocked = isLocked
+    this.usedIn = usedIn
   }
 
   /**
@@ -148,6 +151,78 @@ export class MEDDataObject {
   }
 
   /**
+   * @description Creates an empty folder in the file system.
+   * @param {string} name
+   * @param {string} path
+  */
+  static createFolderFSsync(path) {
+    // eslint-disable-next-line no-undef
+    let fs = require("fs")
+    const fsPromises = fs.promises
+    this.updateWorkspaceDataObject(1000)
+    return new Promise((resolve) => {
+      fsPromises
+        .mkdir(path, { recursive: true })
+        .then(function () {
+          resolve(path)
+        })
+        .catch(function () {
+          console.error("failed to create directory")
+        })
+    })
+  }
+
+  /**
+   *
+   * @param {Object} exportObj object to be exported
+   * @param {String} path path to the folder where the file will be saved
+   * @param {String} name name of the exported file
+   * @param {String} extension extension of the exported file (json or even custom (e.g. abc)))
+   *
+   * @description
+   * This function takes an object, a path and a name and saves the object as a json file with a custom extension
+   * @returns {String} pathToCreate the path where the file was saved
+   */
+  static writeFileSync(exportObj, path, name, extension) {
+    let newPath = typeof path === "string" ? path : path.join(getPathSeparator())
+    const pathToCreate = `${newPath}${getPathSeparator()}${name}.${extension}`
+    if (!fs.existsSync(newPath)) {
+      this.createFolderFSsync(newPath).then(() => {
+        let convertedExportObj = typeof exportObj === "string" ? exportObj : JSON.stringify(exportObj, null, 2)
+        const fsPromises = fs.promises
+        // this.updateWorkspaceDataObject(1000)
+        new Promise((resolve) => {
+          fsPromises
+            .writeFile(pathToCreate, convertedExportObj)
+            .then(function () {
+              console.log("file created at " + pathToCreate)
+              resolve(pathToCreate)
+            })
+            .catch(function (e) {
+              console.error("failed to create directory", e)
+            })
+        })
+      })
+    } else {
+      let convertedExportObj = typeof exportObj === "string" ? exportObj : JSON.stringify(exportObj, null, 2)
+      const fsPromises = fs.promises
+      this.updateWorkspaceDataObject(1000)
+      new Promise((resolve) => {
+        fsPromises
+          .writeFile(pathToCreate, convertedExportObj)
+          .then(function () {
+            console.log("file created at " + pathToCreate)
+            resolve(pathToCreate)
+          })
+          .catch(function (e) {
+            console.error("failed to create directory", e)
+          })
+      })
+    }
+    return pathToCreate
+  }
+
+  /**
    * @description Delete a MEDDataObject and its children from the dictionary and the local workspace
    * @param {Dictionary} dict - dictionary of all MEDDataObjects
    * @param {String} id - the id of the object to delete
@@ -248,6 +323,61 @@ export class MEDDataObject {
 
     // Save the updated dictionary
     this.updateWorkspaceDataObject()
+  }
+
+  /**
+   * @description Lock a MEDDataObject to prevent it from being deleted
+   * @param {String} id - the id of the MEDDataObject to lock
+   * 
+   * @returns {void}
+   */
+  static async lockMedDataObject(id) {
+    const success = await overwriteMEDDataObjectProperties(id, { isLocked: true })
+    if (success) {
+      console.log(`Locked MEDDataObject with id ${id}`)
+    } else {
+      console.error(`Failed to lock MEDDataObject with id ${id}`)
+    }
+    this.updateWorkspaceDataObject()
+  }
+
+  /**
+   * @description Unlock a MEDDataObject to allow it to be deleted
+   * @param {String} id - the id of the MEDDataObject to unlock
+   * 
+   * @returns {void}
+   */
+  static async unlockMedDataObject(id) {
+    const success = await overwriteMEDDataObjectProperties(id, { isLocked: false })
+    if (success) {
+      console.log(`Unlocked MEDDataObject with id ${id}`)
+    } else {
+      console.error(`Failed to unlock MEDDataObject with id ${id}`)
+    }
+    this.updateWorkspaceDataObject()
+  }
+  
+  /**
+   * @description Verify locked objects in the workspace and unlock them if not linked to any other object
+   * @param {Dictionary} dict - dictionary of all MEDDataObjects
+   * 
+   * @returns {void}
+   */
+  static verifyLockedObjects(dict) {
+    for (const [, object] of Object.entries(dict)) {
+      if (object.isLocked) {
+        let isUsed = false
+        for (const [, obj] of Object.entries(dict)) {
+          if (object.usedIn === obj.id) {
+            isUsed = true
+            break
+          }
+        }
+        if (!isUsed) {
+          this.unlockMedDataObject(object.id)
+        }
+      }
+    }
   }
 
   /**

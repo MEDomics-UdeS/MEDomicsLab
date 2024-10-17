@@ -692,6 +692,11 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
           return <InputToolsComponent {...config} />
         }
       }
+    } else if (component === "inputPage") {
+      if (node.getExtraData().data == null) {
+        const config = node.getConfig().thoseProps
+        return <InputToolsComponent {...config} />
+      }
     } else if (component === "iFramePage") {
       if (node.getExtraData().data == null) {
         const config = node.getConfig()
@@ -910,7 +915,7 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
       let icon = <span style={{ marginRight: 3 }}>{iconToReturn}</span>
       return icon
     } else {
-      if (component === "InputToolsDB") {
+      if (component === "InputToolsDB" || component === "inputPage") {
         return <span style={{ marginRight: 3 }}>🛢️</span>
       }
       if (component === "exploratoryPage") {

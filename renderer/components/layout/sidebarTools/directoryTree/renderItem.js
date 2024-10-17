@@ -8,6 +8,7 @@ import { PiGraph } from "react-icons/pi"
 const iconExtension = {
   folder: (isExpanded) => (isExpanded ? <span style={{ paddingBottom: "0.15rem" }}>📂</span> : <span style={{ paddingBottom: "0.15rem" }}>📁</span>),
   csv: <span className="emoji">🛢️</span>,
+  view: <span className="emoji">👁️</span>,
   json: (
     <span>
       <Icon.Braces className="icon-offset" style={{ color: "yellow" }} />
@@ -233,6 +234,7 @@ const renderItem = ({ item, depth, children, title, context, arrow }, additional
                 <div>
                   {iconExtension[item.type]}
                   <span className="label">{title}</span>
+                  {item.isLocked && <span className="emoji" title={`This item is used in ${additionalParams.dirTree[item.usedIn] ? additionalParams.dirTree[item.usedIn].data : "a generated notebook"}`}>🔒</span>}
                 </div>
               </InteractiveComponent>
             </div>

@@ -23,6 +23,7 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
   const tree = useRef() // This ref is used to get the directory tree
   const MENU_ID = "tree-2" // This is the id of the context menu
   const { show } = useContextMenu() // This is the context menu
+  const { exec } = require("child_process")
 
   const [focusedItem, setFocusedItem] = useState() // This state is used to keep track of the item that is currently focused
   const [expandedItems, setExpandedItems] = useState([]) // This state is used to keep track of the items that are currently expanded
@@ -272,7 +273,7 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
         dispatchLayout({ type: "openInExtractionMEDimageModule", payload: item })
       } else if (item.type == "medeval") {
         dispatchLayout({ type: "openInEvaluationModule", payload: item })
-      } else if (item.type == "csv" || item.type == "tsv" || item.type == "xlsx") {
+      } else if (item.type == "csv" || item.type == "tsv" || item.type == "xlsx" || item.type == "view") {
         dispatchLayout({ type: "openInDataTableFromDBViewer", payload: item })
       } else if (item.type == "json") {
         dispatchLayout({ type: "openInJSONViewer", payload: item })
@@ -305,6 +306,7 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
    */
   function displayMenu(e, data) {
     console.log("DISPLAY MENU", e, data)
+    setSelectedItems([data.index])
     if (data.isFolder) {
       show({
         id: "MENU_FOLDER",
@@ -317,7 +319,7 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
         event: e,
         props: data
       })
-    } else if (data.type == "csv" || data.type == "tsv" || data.type == "xlsx") {
+    } else if (data.type == "csv" || data.type == "tsv" || data.type == "xlsx" || data.type == "view") {
       show({
         id: "MENU_DATA",
         event: e,
@@ -380,6 +382,26 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
   }
 
   /**
+   * This function opens a given file in visual code studio.
+   * @param {string} filePath - The file path to open
+   * @returns {void}
+   */
+  function openInVSCode(filePath) {
+    exec(`code "${filePath}"`, (error, stdout, stderr) => {
+      if (error) {
+        console.error(`exec error: ${error}`)
+        toast.error("Error: Could not open in Visual Studio Code")
+        return
+      }
+      console.log(`stdout: ${stdout}`)
+      if (stderr){
+        console.error(`stderr: ${stderr}`)
+      }
+    })
+  }
+
+
+  /**
    * Add event listener to handle if the user clicks outside the directory tree and, if so, deselect the selected items.
    */
   useEffect(() => {
@@ -420,6 +442,7 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
                         e.preventDefault()
                         e.stopPropagation()
                         MEDDataObject.updateWorkspaceDataObject()
+                        MEDDataObject.verifyLockedObjects(globalData)
                       }}
                     >
                       <ArrowClockwise size={"1rem"} className="context-menu-icon refresh-icon" data-pr-at="right bottom" data-pr-tooltip="Refresh" data-pr-my="left top" />
@@ -455,7 +478,8 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
                     onDBClickItem,
                     setSelectedItems,
                     setIsDropping,
-                    isDropping
+                    isDropping,
+                    dirTree
                   })
                 }
                 getItemTitle={(item) => item.data}
@@ -650,7 +674,7 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
             >
               Jupyter Notebook
             </Item>
-            <Item id="openInVSCode" onClick={() => require("electron").shell.openPath(globalData[selectedItems[0]].path)}>
+            <Item id="openInVSCode" onClick={() => openInVSCode(globalData[selectedItems[0]].path)}>
               <FiFolder size={"1rem"} className="context-menu-icon" />
               VSCode
             </Item>

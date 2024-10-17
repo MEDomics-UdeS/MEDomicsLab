@@ -37,7 +37,7 @@ export function fromJSONtoTree(data) {
   const namesYouCantRename = ["DATA", "EXPERIMENTS"] // These names cannot be renamed
   Object.keys(data).forEach((key) => {
     let element = data[key]
-    if (element.name != ".medomics") {
+    if (element.name != ".medomics" && element.name != ".ipynb_checkpoints") {
       let ableToRename = !namesYouCantRename.includes(element.name)
       tree[element.id] = {
         index: element.id,
@@ -46,7 +46,9 @@ export function fromJSONtoTree(data) {
         children: element.childrenIDs ? reorderArrayOfFoldersAndFiles(element.childrenIDs, data) : [],
         data: element.name,
         canRename: ableToRename,
-        type: element.type
+        type: element.type,
+        isLocked: element.isLocked,
+        usedIn: element.usedIn
       }
     }
   })
@@ -119,8 +121,30 @@ export function onPaste(globalData, copiedObjectId, placeToCopyId) {
  * @returns {void}
  * @note - This function is called when the user deletes files or folders in the directory tree, either by pressing the delete key or by right-clicking and selecting "Delete".
  */
-export function onDeleteSequentially(globalData, workspacePath, setIsDialogShowing, items, index = 0) {
+export async function onDeleteSequentially(globalData, workspacePath, setIsDialogShowing, items, index = 0) {
+  MEDDataObject.updateWorkspaceDataObject()  // Update the workspace data object before deleting
+  MEDDataObject.verifyLockedObjects(globalData)  // Verify if the locked objects and unlock them if they are not linked to any other object
   const id = items[index]
+  // check if the item is locked
+  if (globalData[id] && globalData[id].isLocked) {
+    let notebookName = globalData[id].usedIn ? globalData[globalData[id].usedIn].name : "a generated notebook"
+    confirmDialog({
+      message: `${globalData[id].name} is linked to ${notebookName}, deleting it will break the notebook. Are you sure you want to delete it?`,
+      header: "Delete Confirmation",
+      icon: "pi pi-info-circle",
+      closable: false,
+      accept: async () => {
+        await MEDDataObject.deleteObjectAndChildren(globalData, id, workspacePath)
+        toast.success(`Deleted ${globalData[id].name}`)
+        setIsDialogShowing(false)
+      },
+      reject: () => {
+        setIsDialogShowing(false)
+      }
+    })
+    MEDDataObject.updateWorkspaceDataObject()  // Update the workspace data object
+    return
+  }
   if (index >= items.length || !globalData[id]) {
     return // All items have been processed
   }
