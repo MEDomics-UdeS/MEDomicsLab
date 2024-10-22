@@ -54,6 +54,12 @@ class Dataset(Node):
         mongo_client = pymongo.MongoClient("mongodb://localhost:27017/")
         database = mongo_client["data"]
 
+        # Update code
+        self.CodeHandler.add_line("code", "# MongoDB setup")
+        self.CodeHandler.add_line("code", "mongo_client = pymongo.MongoClient('mongodb://localhost:27017/')")
+        self.CodeHandler.add_line("code", "database = mongo_client['data']")
+        self.CodeHandler.add_seperator()
+
         if self.entry_file_type == FOLDER:
             # TODO SCALABILITY
             """ self.load_csv_in_folder(self.settings['files'])
@@ -109,7 +115,9 @@ class Dataset(Node):
             self.CodeHandler.add_line("code", "elif T_in_name:", indent=2)
             self.CodeHandler.add_line("code", "break", indent=3)
             self.CodeHandler.add_line("code", "if len(number) > 0:", indent=1)
-            self.CodeHandler.add_line("code", "df_dict['_T' + number] = pd.read_csv(df_path_list[i], sep=',', encoding='utf-8')", indent=2)
+            self.CodeHandler.add_line("code", "collection = database[df_ids_list[i]]", indent=2)
+            self.CodeHandler.add_line("code", "collection_data = collection.find({}, {'_id': False})", indent=2)
+            self.CodeHandler.add_line("code", "df_dict['_T' + number] = pd.DataFrame(list(collection_data))", indent=2)
             self.CodeHandler.add_line("code", f"first_col = '{first_col}'")
             self.CodeHandler.add_line("code", f"target = '{target}'")
             self.CodeHandler.add_line("code", "# for each dataframe, add a suffix to their columns")
