@@ -1,9 +1,10 @@
-import { ipcRenderer } from "electron"
-import { deleteMEDDataObject, insertMEDDataObjectIfNotExists, updateMEDDataObjectName, downloadCollectionToFile, overwriteMEDDataObjectProperties } from "../mongoDB/mongoDBUtils"
 import { randomUUID } from "crypto"
-import { toast } from "react-toastify"
+import { ipcRenderer } from "electron"
 import fs from "fs"
 import path from "path"
+import { toast } from "react-toastify"
+import { getPathSeparator } from "../../utilities/fileManagementUtils"
+import { deleteMEDDataObject, downloadCollectionToFile, insertMEDDataObjectIfNotExists, overwriteMEDDataObjectProperties, updateMEDDataObjectName } from "../mongoDB/mongoDBUtils"
 
 /**
  * @description class definition of a MEDDataObject
@@ -145,6 +146,56 @@ export class MEDDataObject {
       }
     }
     return path.join(workspacePath, ...pathParts)
+  }
+
+  /**
+   *
+   * @param {Object} exportObj object to be exported
+   * @param {String} path path to the folder where the file will be saved
+   * @param {String} name name of the exported file
+   * @param {String} extension extension of the exported file (json or even custom (e.g. abc)))
+   *
+   * @description
+   * This function takes an object, a path and a name and saves the object as a json file with a custom extension
+   * @returns {String} pathToCreate the path where the file was saved
+   */
+  static writeFileSync(exportObj, path, name, extension) {
+    let newPath = typeof path === "string" ? path : path.join(getPathSeparator())
+    const pathToCreate = `${newPath}${getPathSeparator()}${name}.${extension}`
+    if (!fs.existsSync(newPath)) {
+      this.createFolderFSsync(newPath).then(() => {
+        let convertedExportObj = typeof exportObj === "string" ? exportObj : JSON.stringify(exportObj, null, 2)
+        const fsPromises = fs.promises
+        // this.updateWorkspaceDataObject(1000)
+        new Promise((resolve) => {
+          fsPromises
+            .writeFile(pathToCreate, convertedExportObj)
+            .then(function () {
+              console.log("file created at " + pathToCreate)
+              resolve(pathToCreate)
+            })
+            .catch(function (e) {
+              console.error("failed to create directory", e)
+            })
+        })
+      })
+    } else {
+      let convertedExportObj = typeof exportObj === "string" ? exportObj : JSON.stringify(exportObj, null, 2)
+      const fsPromises = fs.promises
+      this.updateWorkspaceDataObject(1000)
+      new Promise((resolve) => {
+        fsPromises
+          .writeFile(pathToCreate, convertedExportObj)
+          .then(function () {
+            console.log("file created at " + pathToCreate)
+            resolve(pathToCreate)
+          })
+          .catch(function (e) {
+            console.error("failed to create directory", e)
+          })
+      })
+    }
+    return pathToCreate
   }
 
   /**

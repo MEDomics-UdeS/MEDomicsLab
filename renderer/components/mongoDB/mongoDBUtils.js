@@ -471,6 +471,25 @@ export async function findMEDDataObjectByName(name) {
 }
 
 /**
+ * @description Get the MEDDataObject specified by path from the DB
+ * @param {*} path // path of the MEDDataObject
+ * @param {*} type // type of the MEDDataObject
+ * @returns
+ */
+export async function findMEDDataObjectByPath(path, type = null) {
+  const db = await connectToMongoDB()
+  const collection = db.collection("medDataObjects")
+  let query = null
+  if (!type) {
+    query = { path: path }
+  } else {
+    query = { path: path, type: type }
+  }
+  const document = await collection.findOne(query)
+  return document
+}
+
+/**
  * @description Get the MEDDataObject specified by id from the DB
  * @param {*} id
  * @returns
