@@ -1,14 +1,13 @@
-import React, { useState, useContext, useEffect } from "react"
-import Node from "../../flow/node"
-import Input from "../input"
-import { Button } from "react-bootstrap"
-import ModalSettingsChooser from "../modalSettingsChooser"
+import React, { useContext, useEffect, useState } from "react"
+import { Button, Stack } from "react-bootstrap"
 import * as Icon from "react-bootstrap-icons"
-import { FlowFunctionsContext } from "../../flow/context/flowFunctionsContext"
-import { Stack } from "react-bootstrap"
 import Form from "react-bootstrap/Form"
+import { FlowFunctionsContext } from "../../flow/context/flowFunctionsContext"
+import Node from "../../flow/node"
 import { LoaderContext } from "../../generalPurpose/loaderContext"
 import { getCollectionColumns } from "../../mongoDB/mongoDBUtils"
+import Input from "../input"
+import ModalSettingsChooser from "../modalSettingsChooser"
 
 /**
  *
@@ -26,6 +25,15 @@ const DatasetNode = ({ id, data }) => {
   const [selection, setSelection] = useState(data.internal.selection || "medomics") // state of the selection (medomics or custom
   const { updateNode } = useContext(FlowFunctionsContext)
   const { setLoader } = useContext(LoaderContext)
+  const [tagId, setTagId] = useState(localStorage.getItem("myUUID"))
+
+  useEffect(() => {
+    if (!tagId) {
+      let uuid = "column_tags"
+      localStorage.setItem("myUUID", uuid)
+      setTagId(uuid)
+    }
+  }, [])
 
   // update the node internal data when the selection changes
   useEffect(() => {
