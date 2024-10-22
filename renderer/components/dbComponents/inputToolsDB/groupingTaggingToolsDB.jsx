@@ -32,7 +32,15 @@ const GroupingTaggingToolsDB = ({ refreshData }) => {
   const [selectedTags, setSelectedTags] = useState([])
   const { port } = useContext(ServerConnectionContext)
   const op = useRef(null)
-  const tagId = localStorage.getItem("myUUID")
+  const [tagId, setTagId] = useState(localStorage.getItem("myUUID"))
+
+  useEffect(() => {
+    if (!tagId) {
+      let uuid = "column_tags"
+      localStorage.setItem("myUUID", uuid)
+      setTagId(uuid)
+    }
+  }, [])
 
   useEffect(() => {
     console.log("selectedTags", selectedTags)
