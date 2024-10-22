@@ -13,6 +13,7 @@ import { DataContextProvider } from "../components/workspace/dataContext"
 import { MEDDataObject } from "../components/workspace/NewMedDataObject"
 import { WorkspaceProvider } from "../components/workspace/workspaceContext"
 import { loadMEDDataObjects, updateGlobalData } from "./appUtils/globalDataUtils"
+import { NotificationContextProvider } from "../components/generalPurpose/notificationContext"
 
 // CSS
 import "bootstrap/dist/css/bootstrap.min.css"
@@ -243,28 +244,30 @@ function App() {
       <div style={{ height: "100%", width: "100%" }}>
         <HotkeysProvider>
           <ActionContextProvider>
-            <DataContextProvider globalData={globalData} setGlobalData={setGlobalData}>
-              <WorkspaceProvider
-                workspace={workspaceObject}
-                setWorkspace={setWorkspaceObject}
-                port={port}
-                setPort={setPort}
-                recentWorkspaces={recentWorkspaces}
-                setRecentWorkspaces={setRecentWorkspaces}
-              >
-                <ServerConnectionProvider port={port} setPort={setPort}>
-                  <LayoutModelProvider // This is the LayoutContextProvider, which provides the layout model to all the children components of the LayoutManager
-                    layoutModel={layoutModel}
-                    setLayoutModel={setLayoutModel}
-                  >
-                    {/* This is the WorkspaceProvider, which provides the workspace model to all the children components of the LayoutManager */}
-                    {/* This is the LayoutContextProvider, which provides the layout model to all the children components of the LayoutManager */}
-                    <LayoutManager layout={initialLayout} />
-                    {/** We pass the initialLayout as a parameter */}
-                  </LayoutModelProvider>
-                </ServerConnectionProvider>
-              </WorkspaceProvider>
-            </DataContextProvider>
+            <NotificationContextProvider>
+              <DataContextProvider globalData={globalData} setGlobalData={setGlobalData}>
+                <WorkspaceProvider
+                  workspace={workspaceObject}
+                  setWorkspace={setWorkspaceObject}
+                  port={port}
+                  setPort={setPort}
+                  recentWorkspaces={recentWorkspaces}
+                  setRecentWorkspaces={setRecentWorkspaces}
+                >
+                  <ServerConnectionProvider port={port} setPort={setPort}>
+                    <LayoutModelProvider // This is the LayoutContextProvider, which provides the layout model to all the children components of the LayoutManager
+                      layoutModel={layoutModel}
+                      setLayoutModel={setLayoutModel}
+                    >
+                      {/* This is the WorkspaceProvider, which provides the workspace model to all the children components of the LayoutManager */}
+                      {/* This is the LayoutContextProvider, which provides the layout model to all the children components of the LayoutManager */}
+                      <LayoutManager layout={initialLayout} />
+                      {/** We pass the initialLayout as a parameter */}
+                    </LayoutModelProvider>
+                  </ServerConnectionProvider>
+                </WorkspaceProvider>
+              </DataContextProvider>
+            </NotificationContextProvider>
           </ActionContextProvider>
         </HotkeysProvider>
         <ConfirmPopup />

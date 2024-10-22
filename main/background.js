@@ -1,24 +1,25 @@
-import { app, ipcMain, Menu, dialog, BrowserWindow, protocol } from "electron"
+import { app, ipcMain, Menu, dialog, BrowserWindow, protocol, shell } from "electron"
 import axios from "axios"
 import serve from "electron-serve"
 import { createWindow } from "./helpers"
 import { installExtension, REACT_DEVELOPER_TOOLS } from "electron-extension-installer"
 import MEDconfig from "../medomics.dev"
-import { runServer } from "./utils/server"
+import { runServer, killProcessOnPort } from "./utils/server"
 import { setWorkingDirectory, getRecentWorkspacesOptions, loadWorkspaces, createMedomicsDirectory, updateWorkspace, createWorkingDirectory } from "./utils/workspace"
-
+import { getBundledPythonEnvironment, getInstalledPythonPackages, installPythonPackage, installBundledPythonExecutable } from "./utils/pythonEnv"
+import { installMongoDB } from "./utils/installation"
 const fs = require("fs")
 var path = require("path")
 let mongoProcess = null
 const dirTree = require("directory-tree")
-const { exec, spawn } = require("child_process")
+const { exec, spawn, execSync } = require("child_process")
 let serverProcess = null
 const serverState = { serverIsRunning: false }
 var serverPort = MEDconfig.defaultPort
 var hasBeenSet = false
 const isProd = process.env.NODE_ENV === "production"
 let splashScreen // The splash screen is the window that is displayed while the application is loading
-var mainWindow // The main window is the window of the application
+export var mainWindow // The main window is the window of the application
 
 //**** LOG ****// This is used to send the console.log messages to the main window
 const originalConsoleLog = console.log
@@ -170,7 +171,7 @@ if (isProd) {
       })
       .catch((err) => {
         console.error("Failed to start server: ", err)
-      });
+      })
   } else {
     //**** NO SERVER ****//
     findAvailablePort(MEDconfig.defaultPort)
@@ -202,13 +203,25 @@ if (isProd) {
 
   ipcMain.handle("setWorkingDirectory", async (event, data) => {
     app.setPath("sessionData", data)
-    createWorkingDirectory()  // Create DATA & EXPERIMENTS directories
+    createWorkingDirectory() // Create DATA & EXPERIMENTS directories
     console.log(`setWorkingDirectory : ${data}`)
     createMedomicsDirectory(data)
     hasBeenSet = true
     try {
       // Stop MongoDB if it's running
       await stopMongoDB(mongoProcess)
+      if (process.platform === "win32") {
+        // Kill the process on the port
+        // killProcessOnPort(serverPort)
+      } else if (process.platform === "darwin") {
+        execSync("pkill -f mongod")
+      } else {
+        try {
+          execSync("killall mongod")
+        } catch (error) {
+          console.warn("Failed to kill mongod: ", error)
+        }
+      }
       // Start MongoDB with the new configuration
       startMongoDB(data, mongoProcess)
       return {
@@ -328,16 +341,16 @@ if (isProd) {
     }
     if (MEDconfig.runServerAutomatically) {
       runServer(isProd, serverPort, serverProcess, serverState, condaPath)
-      .then((process) => {
-        serverProcess = process
-        console.log(`success: ${serverState.serverIsRunning}`)
-        return serverState.serverIsRunning
-      })
-      .catch((err) => {
-        console.error("Failed to start server: ", err)
-        serverState.serverIsRunning = false
-        return false
-      });  
+        .then((process) => {
+          serverProcess = process
+          console.log(`success: ${serverState.serverIsRunning}`)
+          return serverState.serverIsRunning
+        })
+        .catch((err) => {
+          console.error("Failed to start server: ", err)
+          serverState.serverIsRunning = false
+          return false
+        })
     }
     return serverState.serverIsRunning
   })
@@ -413,6 +426,23 @@ ipcMain.handle("request", async (_, axios_request) => {
   return { data: result.data, status: result.status }
 })
 
+// Python environment handling
+ipcMain.handle("getInstalledPythonPackages", async (event, pythonPath) => {
+  return getInstalledPythonPackages(pythonPath)
+})
+
+ipcMain.handle("installMongoDB", async (event) => {
+  return installMongoDB()
+})
+
+ipcMain.handle("getBundledPythonEnvironment", async (event) => {
+  return getBundledPythonEnvironment()
+})
+
+ipcMain.handle("installBundledPythonExecutable", async (event) => {
+  return installBundledPythonExecutable(mainWindow)
+})
+
 app.on("window-all-closed", () => {
   console.log("app quit")
   stopMongoDB(mongoProcess)
@@ -463,9 +493,13 @@ function openWindowFromURL(url) {
 function startMongoDB(workspacePath) {
   const mongoConfigPath = path.join(workspacePath, ".medomics", "mongod.conf")
   if (fs.existsSync(mongoConfigPath)) {
-    console.log("Starting MongoDB with config: ", mongoConfigPath)
-    mongoProcess = spawn("mongod", ["--config", mongoConfigPath])
-
+    console.log("Starting MongoDB with config: " + mongoConfigPath)
+    let mongod = getMongoDBPath()
+    if (process.platform !== "darwin") {
+      mongoProcess = spawn(mongod, ["--config", mongoConfigPath])
+    } else {
+      mongoProcess = spawn("/opt/homebrew/Cellar/mongodb-community/7.0.12/bin/mongod", ["--config", mongoConfigPath], { shell: true })
+    }
     mongoProcess.stdout.on("data", (data) => {
       console.log(`MongoDB stdout: ${data}`)
     })
@@ -480,7 +514,7 @@ function startMongoDB(workspacePath) {
 
     mongoProcess.on("error", (err) => {
       console.error("Failed to start MongoDB: ", err)
-      reject(err)
+      // reject(err)
     })
   } else {
     const errorMsg = `MongoDB config file does not exist: ${mongoConfigPath}`
@@ -501,10 +535,45 @@ async function stopMongoDB(mongoProcess) {
         resolve()
       } catch (error) {
         console.log("Error while stopping MongoDB ", error)
-        reject()
+        // reject()
       }
     } else {
       resolve()
     }
   })
+}
+
+export function getMongoDBPath() {
+  if (process.platform === "win32") {
+    // Check if mongod is in the process.env.PATH
+    const paths = process.env.PATH.split(path.delimiter)
+    for (let i = 0; i < paths.length; i++) {
+      const binPath = path.join(paths[i], "mongod.exe")
+      if (fs.existsSync(binPath)) {
+        return binPath
+      }
+    }
+
+    // Check if mongod is in the default installation path on Windows - C:\Program Files\MongoDB\Server\<version to establish>\bin\mongod.exe
+    const programFilesPath = process.env["ProgramFiles"]
+    if (programFilesPath) {
+      const mongoPath = path.join(programFilesPath, "MongoDB", "Server")
+      // Check if the MongoDB directory exists
+      if (!fs.existsSync(mongoPath)) {
+        console.error("MongoDB directory not found")
+        return null
+      }
+      const dirs = fs.readdirSync(mongoPath)
+      for (let i = 0; i < dirs.length; i++) {
+        const binPath = path.join(mongoPath, dirs[i], "bin", "mongod.exe")
+        if (fs.existsSync(binPath)) {
+          return binPath
+        }
+      }
+    }
+    console.error("mongod not found")
+    return null
+  } else {
+    return "mongod"
+  }
 }

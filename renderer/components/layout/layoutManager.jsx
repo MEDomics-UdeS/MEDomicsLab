@@ -24,6 +24,8 @@ import { LayoutModelContext } from "./layoutContext"
 import { WorkspaceContext } from "../workspace/workspaceContext"
 import { requestBackend } from "../../utilities/requests"
 import { toast } from "react-toastify"
+import NotificationOverlay from "../generalPurpose/notificationOverlay"
+
 import os from "os"
 
 const LayoutManager = (props) => {
@@ -257,6 +259,7 @@ const LayoutManager = (props) => {
               {renderContentComponent({ props })} {/* Render content component based on activeNavItem state */}
             </Panel>
           </PanelGroup>
+          <NotificationOverlay />
           <div className="quebec-flag-div">
             <Image
               className="quebec-flag"

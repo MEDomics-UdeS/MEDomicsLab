@@ -1,6 +1,9 @@
 import { app } from "electron"
 const fs = require("fs")
 var path = require("path")
+const util = require("util")
+const { execSync } = require("child_process")
+const exec = util.promisify(require("child_process").exec)
 
 export function getPythonEnvironment(medCondaEnv = "med_conda_env") {
   // Returns the python environment
@@ -137,4 +140,160 @@ function getThePythonExecutablePath(condaPath, envName) {
     pythonExecutablePath = path.join(condaPath, "envs", envName, "bin", "python")
   }
   return pythonExecutablePath
+}
+
+export function getBundledPythonEnvironment() {
+  let pythonEnvironment = null
+
+  let bundledPythonPath = path.join(process.cwd(), "python")
+  if (process.env.NODE_ENV === "production") {
+    // Get the user path followed by .medomics
+    let userPath = process.env.HOME
+    let medomicsPath = path.join(userPath, ".medomics")
+    // Check if the .medomics directory exists
+    if (fs.existsSync(medomicsPath)) {
+      // Check if the python directory exists
+      let pythonPath = path.join(medomicsPath, "python")
+      if (fs.existsSync(pythonPath)) {
+        bundledPythonPath = pythonPath
+      }
+    } else {
+      // Create the .medomics directory
+      fs.mkdirSync(medomicsPath)
+    }
+    bundledPythonPath = path.join(userPath, ".medomics", "python")
+  }
+
+  pythonEnvironment = path.join(bundledPythonPath, "bin", "python")
+  if (process.platform == "win32") {
+    pythonEnvironment = path.join(bundledPythonPath, "python.exe")
+  }
+  console.log("Python Environment bundledPythonPath: ", bundledPythonPath)
+  console.log("Python Environment: ", pythonEnvironment)
+  if (!fs.existsSync(pythonEnvironment)) {
+    pythonEnvironment = null
+  }
+  return pythonEnvironment
+}
+
+export function getInstalledPythonPackages(pythonPath = null) {
+  let pythonPackages = []
+  if (pythonPath === null) {
+    pythonPath = getPythonEnvironment()
+  }
+
+  let pythonPackagesOutput = ""
+  try {
+    pythonPackagesOutput = execSync(`${pythonPath} -m pip list --format=json`).toString()
+  } catch (error) {
+    console.warn("Error retrieving python packages:", error)
+  }
+  try {
+    pythonPackages = JSON.parse(pythonPackagesOutput)
+  } catch (error) {
+    console.warn(error)
+  }
+  return pythonPackages
+}
+
+export async function installPythonPackage(mainWindow, pythonPath, packageName = null, requirementsFilePath = null) {
+  console.log("Installing python package: ", packageName, requirementsFilePath, " with pythonPath: ", pythonPath)
+  let execSyncResult = null
+  mainWindow.webContents.send("notification", { id: "pythonPackageInstall", message: `Installing python package: ${packageName}`, header: "Python Package Installation in progress" })
+  let pipUpgradePromise = exec(`${pythonPath} -m pip install --upgrade pip`)
+  execCallbacksForChildWithNotifications(pipUpgradePromise.child, "Python pip Upgrade", mainWindow)
+  await pipUpgradePromise
+  if (requirementsFilePath !== null) {
+    let installPythonPackagePromise = exec(`${pythonPath} -m pip install -r ${requirementsFilePath}`)
+    execCallbacksForChildWithNotifications(installPythonPackagePromise.child, "Python Package Installation from requirements", mainWindow)
+    await installPythonPackagePromise
+  } else {
+    let installPythonPackagePromise = exec(`${pythonPath} -m pip install ${packageName}`)
+    execCallbacksForChildWithNotifications(installPythonPackagePromise.child, "Python Package Installation", mainWindow)
+    await installPythonPackagePromise
+  }
+}
+
+export function execCallbacksForChildWithNotifications(child, id, mainWindow) {
+  mainWindow.webContents.send("notification", { id: id, message: `Starting...`, header: `${id} in progress` })
+  child.stdout.on("data", (data) => {
+    mainWindow.webContents.send("notification", { id: id, message: `stdout: ${data}`, header: `${id} in progress` })
+  })
+  child.stderr.on("data", (data) => {
+    mainWindow.webContents.send("notification", { id: id, message: `stderr: ${data}`, header: `${id} Error` })
+  })
+  child.on("close", (code) => {
+    mainWindow.webContents.send("notification", { id: id, message: `${id} exited with code ${code}`, header: `${id} Finished` })
+  })
+}
+
+export async function installBundledPythonExecutable(mainWindow) {
+  let bundledPythonPath = path.join(process.cwd(), "python")
+  if (process.env.NODE_ENV === "production") {
+    bundledPythonPath = path.join(process.cwd(), "python")
+  }
+  // Check if the python executable is already installed
+  let pythonExecutablePath = null
+  if (process.platform == "win32") {
+    pythonExecutablePath = path.join(bundledPythonPath, "python.exe")
+  } else {
+    pythonExecutablePath = path.join(bundledPythonPath, "bin", "python")
+  }
+  if (!fs.existsSync(pythonExecutablePath)) {
+    // If the python executable is not installed, download the python executable
+    if (process.platform == "win32") {
+      // Download the python executable
+      let url = "https://github.com/indygreg/python-build-standalone/releases/download/20240224/cpython-3.9.18+20240224-x86_64-pc-windows-msvc-static-install_only.tar.gz"
+      let outputFileName = "cpython-3.9.18+20240224-x86_64-pc-windows-msvc-static-install_only.tar.gz"
+
+      let downloadPromise = exec(`wget ${url} -O ${outputFileName}`, { shell: "powershell.exe" })
+
+      execCallbacksForChildWithNotifications(downloadPromise.child, "Python Downloading", mainWindow)
+
+      const { stdout, stderr } = await downloadPromise
+      let extractCommand = `tar -xvf ${outputFileName}`
+      let extractionPromise = exec(extractCommand, { shell: "powershell.exe" })
+      execCallbacksForChildWithNotifications(extractionPromise.child, "Python Exec. Extracting", mainWindow)
+
+      const { stdout: extrac, stderr: extracErr } = await extractionPromise
+      // Install the required python packages
+      installPythonPackage(mainWindow, pythonExecutablePath, null, path.join(process.cwd(), "pythonEnv", "requirements.txt"))
+
+      // Extract the python executable
+    } else if (process.platform == "darwin") {
+      // Download the right python executable (arm64 or x86_64)
+      let isArm64 = process.arch === "arm64"
+      let url = "https://github.com/indygreg/python-build-standalone/releases/download/20240224/cpython-3.9.18+20240224-x86_64-apple-darwin-install_only.tar.gz"
+      let extractCommand = `tar -xvf cpython-3.9.18+20240224-x86_64-apple-darwin-install_only.tar.gz`
+      if (isArm64 === "arm64") {
+        url = "https://github.com/indygreg/python-build-standalone/releases/download/20240224/cpython-3.9.18+20240224-aarch64-apple-darwin-install_only.tar.gz"
+        extractCommand = `tar -xvf cpython-3.9.18+20240224-aarch64-apple-darwin-install_only.tar.gz`
+      }
+      let downloadPromise = exec(`/bin/bash -c "$(curl -fsSLO ${url})"`)
+      execCallbacksForChildWithNotifications(downloadPromise.child, "Python Downloading", mainWindow)
+      const { stdout, stderr } = await downloadPromise
+
+      // Extract the python executable
+      let extractionPromise = exec(extractCommand)
+      execCallbacksForChildWithNotifications(extractionPromise.child, "Python Exec. Extracting", mainWindow)
+      const { stdout: extrac, stderr: extracErr } = await extractionPromise
+      // Install the required python packages
+      installPythonPackage(mainWindow, pythonExecutablePath, null, path.join(process.cwd(), "pythonEnv", "requirements_mac.txt"))
+    } else if (process.platform == "linux") {
+      // Download the right python executable (arm64 or x86_64)
+
+      let url = "https://github.com/indygreg/python-build-standalone/releases/download/20240224/cpython-3.9.18+20240224-x86_64_v4-unknown-linux-gnu-install_only.tar.gz"
+      let extractCommand = `tar -xvf cpython-3.9.18+20240224-x86_64_v4-unknown-linux-gnu-install_only.tar.gz`
+
+      let downloadPromise = exec(`wget ${url}`)
+      execCallbacksForChildWithNotifications(downloadPromise.child, "Python Downloading", mainWindow)
+      const { stdout, stderr } = await downloadPromise
+      // Extract the python executable
+      let extractionPromise = exec(extractCommand)
+      execCallbacksForChildWithNotifications(extractionPromise.child, "Python Exec. Extracting", mainWindow)
+      const { stdout: extrac, stderr: extracErr } = await extractionPromise
+      // Install the required python packages
+      installPythonPackage(mainWindow, pythonExecutablePath, null, path.join(process.cwd(), "pythonEnv", "requirements.txt"))
+    }
+  }
 }
