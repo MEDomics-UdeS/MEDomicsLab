@@ -1,17 +1,18 @@
-import os
 import copy
-import pandas as pd
-import os
-import numpy as np
-import json
-import uuid
 import io
-from .NodeObj import Node, format_model
+import json
+import os
+import uuid
 from typing import Union
+
+import numpy as np
+import pandas as pd
 from colorama import Fore
 from MEDDataObject import MEDDataObject
-from mongodb_utils import insert_med_data_object_if_not_exists, overwrite_med_data_object_content
+from mongodb_utils import (insert_med_data_object_if_not_exists, overwrite_med_data_object_content)
 from PIL import Image
+
+from .NodeObj import Node, format_model
 
 DATAFRAME_LIKE = Union[dict, list, tuple, np.ndarray, pd.DataFrame]
 TARGET_LIKE = Union[int, str, list, tuple, np.ndarray, pd.Series]
@@ -55,15 +56,20 @@ class Analyze(Node):
             "code", f"pycaret_exp.{selection}(model, {self.CodeHandler.convert_dict_to_params(print_settings)})", 1)
         for model in kwargs['models']:
             model = format_model(model)
+            # Convert plot settings to lowercase
+            if 'plot' in settings and type(settings['plot']) == str:
+                settings['plot'] = settings['plot'].lower()
             plot_image = experiment['pycaret_exp'].plot_model(model, **settings)
 
             # Save Image into MongoDB
-            image_med_object = MEDDataObject(id=str(uuid.uuid4()),
-                    name = model.__class__.__name__ + '_' + plot_image,
-                    type = "png",
-                    parentID = self.global_config_json['identifiers']['plots'],
-                    childrenIDs = [],
-                    inWorkspace = False)
+            image_med_object = MEDDataObject(
+                id=str(uuid.uuid4()),
+                name = model.__class__.__name__ + '_' + plot_image,
+                type = "png",
+                parentID = self.global_config_json['identifiers']['plots'],
+                childrenIDs = [],
+                inWorkspace = False
+            )
             PIL_image = Image.open(plot_image)
             image_bytes = io.BytesIO()
             PIL_image.save(image_bytes, format='PNG')
