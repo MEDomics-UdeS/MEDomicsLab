@@ -61,6 +61,21 @@ const FirstSetupModal = ({ visible, onHide, closable, setRequirementsMet }) => {
     ipcRenderer.invoke("installMongoDB")
   }
 
+  const startSetup = () => {
+    if (!mongoDBIsInstalled) installMongoDB()
+    if (!pythonIsInstalled) installPython()
+  }
+
+  const closeFirstSetupModal = () => {
+    setRequirementsMet(true)
+    ipcRenderer.invoke("getBundledPythonEnvironment").then((pythonPath) => {
+      console.log("Starting the go server with the bundled python environment: ", pythonPath)
+      ipcRenderer.invoke("start-server", pythonPath).then((serverProcess) => {
+        console.log("Server process: ", serverProcess)
+      })
+    })
+  }
+
   useEffect(() => {
     checkMongoDB()
     checkPython()
@@ -82,7 +97,7 @@ const FirstSetupModal = ({ visible, onHide, closable, setRequirementsMet }) => {
     let accumulatedPythonProgress = 0
     let numMongoDBNotifications = 0
     let accumulatedMongoDBProgress = 0
-    let totalNumberOfPythonNotifications = 2000
+    let totalNumberOfPythonNotifications = 6250
 
     let newPythonNotifications = { ...pythonNotifications }
     let newMongoDBNotifications = { ...mongoDBNotifications }
@@ -127,30 +142,44 @@ const FirstSetupModal = ({ visible, onHide, closable, setRequirementsMet }) => {
     }
 
     if (!mongoDBIsInstalled) {
+      setMongoDBIsInstalling(true)
       let numberOfSteps = 3
       for (let notification in newMongoDBNotifications) {
         let mongoDBNotification = newMongoDBNotifications[notification]
-        if (!mongoDBNotification.done) {
+        if (mongoDBNotification.done) {
           accumulatedMongoDBProgress += 1
         }
       }
-      if (accumulatedMongoDBProgress == numberOfSteps) {
-        setMongoDBIsInstalled(true)
-      }
-      if (accumulatedMongoDBProgress == 0) {
-      }
-      setMongoDBInstallationProgress(((accumulatedMongoDBProgress / numberOfSteps) * 100).toFixed(2))
+
+      setMongoDBInstallationProgress(((accumulatedMongoDBProgress / numberOfSteps) * 100).toFixed(1))
     }
 
-    if (!pythonIsInstalled) {
-      let numberOfSteps = 6
+    if (!pythonIsInstalled || pythonIsInstalling) {
+      setPythonIsInstalling(true)
+      let totalMessages = 0
+      let numberOfPythonSteps = 5
       for (let notification in newPythonNotifications) {
         let pythonNotification = newPythonNotifications[notification]
-        if (!pythonNotification.done) {
+        totalMessages += pythonNotification.messages_count
+        if (pythonNotification.done) {
           accumulatedPythonProgress += 1
         }
       }
-      setPythonInstallationProgress(((accumulatedPythonProgress / numberOfSteps) * 100).toFixed(2))
+      if (accumulatedPythonProgress == numberOfPythonSteps) {
+        setPythonInstallationProgress(100)
+      } else {
+        let progress = -2 + (totalMessages / totalNumberOfPythonNotifications) * 100
+
+        if (progress > 100) {
+          progress = 100
+        }
+        if (progress < 0) {
+          progress = 0
+        }
+
+        setPythonInstallationProgress(progress.toFixed(1))
+      }
+      console.log("Total messages: ", totalMessages)
     }
     setPythonNotifications(newPythonNotifications)
     setMongoDBNotifications(newMongoDBNotifications)
@@ -171,12 +200,12 @@ const FirstSetupModal = ({ visible, onHide, closable, setRequirementsMet }) => {
         setCheckIsRunning(false)
         let pythonIsFullyInstalled = false
         if (data.pythonInstalled) {
-          setPythonIsInstalled(true)
           // Check if the python requirements are met
           ipcRenderer.invoke("checkPythonRequirements").then((pythonRequirements) => {
             console.log("Python requirements met: ", pythonRequirements)
             if (pythonRequirements) {
               setPythonIsInstalled(true)
+              setPythonInstallationProgress(100)
               console.log("Python requirements met 2: ", pythonRequirements)
               pythonIsFullyInstalled = true
             }
@@ -207,18 +236,15 @@ const FirstSetupModal = ({ visible, onHide, closable, setRequirementsMet }) => {
           <h4>Thank you for installing the MEDomicsLab application!</h4>
           <p>Before you can start using it, we need to perform some initial setup.</p>
           <p>Ensure you are connected to the internet and click the button below to start the setup.</p>
-          <p>Once the setup is complete, the application will automatically start.</p>
+          <p>Once the setup is complete, you will be able to start using the application.</p>
         </div>
         <div className="p-col-12 p-md-4">
-          {/* <button className="p-button p-button-primary" onClick={onHide}> */}
-          <button className="p-button p-button-primary" onClick={() => setRequirementsMet(true)}>
+          <button className="p-button p-button-primary" onClick={startSetup} style={{ display: "flex", alignContent: "center", marginBottom: "1rem" }}>
             Start setup
           </button>
         </div>
         <div className="p-col-12 p-md-4">
-          <button className="p-button p-button-primary" onClick={installMongoDB}>
-            Install MongoDB
-          </button>
+          <h4>MongoDB Installation</h4>
           {/* Progress bar */}
           <ProgressBar
             value={mongoDBInstallationProgress}
@@ -229,11 +255,6 @@ const FirstSetupModal = ({ visible, onHide, closable, setRequirementsMet }) => {
         </div>
         <div className="p-col-12 p-md-4">
           <h4>Python Installation</h4>
-          <p>Python is required to run the application.</p>
-          <p>Click the button below to install the bundled Python executable.</p>
-          <button className="p-button p-button-primary" onClick={installPython}>
-            Install Python
-          </button>
           {/* Progress bar */}
           <ProgressBar
             value={pythonInstallationProgress}
@@ -242,13 +263,16 @@ const FirstSetupModal = ({ visible, onHide, closable, setRequirementsMet }) => {
             color={pythonInstallationProgress == 100 ? "#22c55e" : ""}
           />
         </div>
+        <div className="p-end p-row-12" style={{ display: "flex", flexDirection: "row-reverse" }}>
+          {localRequirementsMet && (
+            <>
+              <Button onClick={closeFirstSetupModal} style={{ marginTop: "1rem" }}>
+                Close
+              </Button>
+            </>
+          )}
+        </div>
       </div>
-      {localRequirementsMet && (
-        <>
-          <Button onClick={() => setRequirementsMet(true)}>Close</Button>
-          <Button onClick={() => ipcRenderer.send("restartApp")}>Restart the app</Button>
-        </>
-      )}
     </Dialog>
   )
 }

@@ -164,14 +164,18 @@ if (isProd) {
   console.log("running mode:", isProd ? "production" : "development")
   console.log(MEDconfig.runServerAutomatically ? "Server will start automatically here (in background of the application)" : "Server must be started manually")
   if (MEDconfig.runServerAutomatically) {
-    runServer(isProd, serverPort, serverProcess, serverState)
-      .then((process) => {
-        serverProcess = process
-        console.log("Server process started: ", serverProcess)
-      })
-      .catch((err) => {
-        console.error("Failed to start server: ", err)
-      })
+    // Find the bundled python environment
+    let bundledPythonPath = getBundledPythonEnvironment()
+    if (bundledPythonPath !== null) {
+      runServer(isProd, serverPort, serverProcess, serverState, bundledPythonPath)
+        .then((process) => {
+          serverProcess = process
+          console.log("Server process started: ", serverProcess)
+        })
+        .catch((err) => {
+          console.error("Failed to start server: ", err)
+        })
+    }
   } else {
     //**** NO SERVER ****//
     findAvailablePort(MEDconfig.defaultPort)
@@ -334,7 +338,6 @@ if (isProd) {
    * @returns {Boolean} True if the server is running, false otherwise
    */
   ipcMain.handle("start-server", async (_event, condaPath = null) => {
-    console.log("CONDA PATH: ", condaPath)
     if (serverProcess) {
       // kill the server if it is already running
       serverProcess.kill()

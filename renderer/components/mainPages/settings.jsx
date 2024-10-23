@@ -301,17 +301,6 @@ const SettingsPage = (pageId = "settings") => {
                   />
 
                   <Button
-                    label="Install MongoDB"
-                    className="p-button-info"
-                    onClick={() => {
-                      ipcRenderer.invoke("installMongoDB").then((result) => {
-                        console.log("MongoDB installed: ", result)
-                      })
-                    }}
-                    style={{ backgroundColor: serverIsRunning ? "#d55757" : "grey", borderColor: serverIsRunning ? "#d55757" : "grey" }}
-                    // disabled={!serverIsRunning}
-                  />
-                  <Button
                     label="Show first setup modal"
                     className="p-button-info"
                     onClick={() => {

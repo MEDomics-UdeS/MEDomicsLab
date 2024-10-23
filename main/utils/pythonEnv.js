@@ -274,7 +274,23 @@ export function execCallbacksForChildWithNotifications(child, id, mainWindow) {
 export async function installBundledPythonExecutable(mainWindow) {
   let bundledPythonPath = path.join(process.cwd(), "python")
   if (process.env.NODE_ENV === "production") {
-    bundledPythonPath = path.join(process.cwd(), "python")
+    let userPath = process.env.HOME
+    let medomicsPath = path.join(userPath, ".medomics")
+    let pythonPath = path.join(medomicsPath, "python")
+    // Check if the .medomics directory exists
+    if (fs.existsSync(medomicsPath)) {
+      // Check if the python directory exists
+      if (fs.existsSync(pythonPath)) {
+        bundledPythonPath = pythonPath
+      } else {
+        fs.mkdirSync(pythonPath)
+      }
+    } else {
+      // Create the .medomics directory
+      fs.mkdirSync(medomicsPath)
+      fs.mkdirSync(pythonPath)
+    }
+    bundledPythonPath = pythonPath
   }
   // Check if the python executable is already installed
   let pythonExecutablePath = null
