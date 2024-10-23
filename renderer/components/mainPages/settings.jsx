@@ -15,7 +15,7 @@ import { InputNumber } from "primereact/inputnumber"
 import { DataTable } from "primereact/datatable"
 import { Column } from "primereact/column"
 import { WorkspaceContext } from "../workspace/workspaceContext"
-import FirstSetupModal from "../generalPurpose/firstSetupModal"
+import FirstSetupModal from "../generalPurpose/installation/firstSetupModal"
 
 /**
  * Settings page

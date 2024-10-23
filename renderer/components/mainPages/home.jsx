@@ -4,6 +4,7 @@ import myimage from "../../../resources/medomics_transparent_bg.png"
 import { Button, Stack } from "react-bootstrap"
 import { WorkspaceContext } from "../workspace/workspaceContext"
 import { ipcRenderer } from "electron"
+import FirstSetupModal from "../generalPurpose/installation/firstSetupModal"
 
 /**
  *
@@ -13,9 +14,23 @@ const HomePage = () => {
   const { workspace, setWorkspace, recentWorkspaces } = useContext(WorkspaceContext)
   const [hasBeenSet, setHasBeenSet] = useState(workspace.hasBeenSet)
 
+  const [requirementsMet, setRequirementsMet] = useState(true)
+
   async function handleWorkspaceChange() {
     ipcRenderer.send("messageFromNext", "requestDialogFolder")
   }
+
+  // Check if the requirements are met
+  useEffect(() => {
+    ipcRenderer.invoke("checkRequirements").then((data) => {
+      console.log("Requirements: ", data)
+      if (data.pythonInstalled && data.mongoDBInstalled) {
+        setRequirementsMet(true)
+      } else {
+        setRequirementsMet(false)
+      }
+    })
+  }, [])
 
   // We set the workspace hasBeenSet state
   useEffect(() => {
@@ -75,6 +90,7 @@ const HomePage = () => {
           )}
         </Stack>
       </div>
+      <FirstSetupModal visible={!requirementsMet} closable={false} setRequirementsMet={setRequirementsMet} />
     </>
   )
 }

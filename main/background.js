@@ -6,8 +6,8 @@ import { installExtension, REACT_DEVELOPER_TOOLS } from "electron-extension-inst
 import MEDconfig from "../medomics.dev"
 import { runServer, killProcessOnPort } from "./utils/server"
 import { setWorkingDirectory, getRecentWorkspacesOptions, loadWorkspaces, createMedomicsDirectory, updateWorkspace, createWorkingDirectory } from "./utils/workspace"
-import { getBundledPythonEnvironment, getInstalledPythonPackages, installPythonPackage, installBundledPythonExecutable } from "./utils/pythonEnv"
-import { installMongoDB } from "./utils/installation"
+import { getBundledPythonEnvironment, getInstalledPythonPackages, installPythonPackage, installBundledPythonExecutable, checkPythonRequirements } from "./utils/pythonEnv"
+import { installMongoDB, checkRequirements } from "./utils/installation"
 const fs = require("fs")
 var path = require("path")
 let mongoProcess = null
@@ -432,7 +432,14 @@ ipcMain.handle("getInstalledPythonPackages", async (event, pythonPath) => {
 })
 
 ipcMain.handle("installMongoDB", async (event) => {
-  return installMongoDB()
+  // Check if MongoDB is installed
+  let mongoDBInstalled = getMongoDBPath()
+  if (mongoDBInstalled === null) {
+    // If MongoDB is not installed, install it
+    return installMongoDB()
+  } else {
+    return true
+  }
 })
 
 ipcMain.handle("getBundledPythonEnvironment", async (event) => {
@@ -440,7 +447,26 @@ ipcMain.handle("getBundledPythonEnvironment", async (event) => {
 })
 
 ipcMain.handle("installBundledPythonExecutable", async (event) => {
-  return installBundledPythonExecutable(mainWindow)
+  // Check if Python is installed
+  let pythonInstalled = getBundledPythonEnvironment()
+  if (pythonInstalled === null) {
+    // If Python is not installed, install it
+    return installBundledPythonExecutable(mainWindow)
+  } else {
+    return true
+  }
+})
+
+ipcMain.handle("checkRequirements", async (event) => {
+  return checkRequirements()
+})
+
+ipcMain.handle("checkPythonRequirements", async (event) => {
+  return checkPythonRequirements()
+})
+
+ipcMain.handle("checkMongoDBisInstalled", async (event) => {
+  return getMongoDBPath()
 })
 
 app.on("window-all-closed", () => {
@@ -550,10 +576,10 @@ export function getMongoDBPath() {
     for (let i = 0; i < paths.length; i++) {
       const binPath = path.join(paths[i], "mongod.exe")
       if (fs.existsSync(binPath)) {
+        console.log("mongod found in PATH")
         return binPath
       }
     }
-
     // Check if mongod is in the default installation path on Windows - C:\Program Files\MongoDB\Server\<version to establish>\bin\mongod.exe
     const programFilesPath = process.env["ProgramFiles"]
     if (programFilesPath) {

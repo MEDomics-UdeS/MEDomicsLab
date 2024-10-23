@@ -176,6 +176,51 @@ export function getBundledPythonEnvironment() {
   return pythonEnvironment
 }
 
+function comparePythonInstalledPackages(pythonPackages, requirements) {
+  let missingPackages = []
+  for (let i = 0; i < requirements.length; i++) {
+    let requirement = requirements[i]
+    let requirementParts = requirement.split("==")
+    let requirementName = requirementParts[0]
+    let requirementVersion = requirementParts[1]
+    let found = false
+    for (let j = 0; j < pythonPackages.length; j++) {
+      let pythonPackage = pythonPackages[j]
+      if (pythonPackage.name === requirementName && pythonPackage.version === requirementVersion) {
+        found = true
+        break
+      }
+    }
+    if (!found) {
+      missingPackages.push({ name: requirementName, version: requirementVersion })
+    }
+  }
+  console.log("Missing packages: " + JSON.stringify(missingPackages))
+  return missingPackages
+}
+
+export function checkPythonRequirements(pythonPath = null, requirementsFilePath = null) {
+  let pythonRequirementsMet = false
+  if (pythonPath === null) {
+    // pythonPath = getPythonEnvironment()
+    pythonPath = getBundledPythonEnvironment()
+  }
+  if (requirementsFilePath === null) {
+    requirementsFilePath = path.join(process.cwd(), "pythonEnv", "merged_requirements.txt")
+  }
+  let pythonPackages = getInstalledPythonPackages(pythonPath)
+  let requirements = fs.readFileSync(requirementsFilePath, "utf8").split("\n")
+  // # Remove empty lines and \r
+  requirements = requirements.filter((line) => line.trim() !== "")
+  requirements = requirements.map((line) => line.replace("\r", ""))
+
+  let missingPackages = comparePythonInstalledPackages(pythonPackages, requirements)
+  if (missingPackages.length === 0) {
+    pythonRequirementsMet = true
+  }
+  return pythonRequirementsMet
+}
+
 export function getInstalledPythonPackages(pythonPath = null) {
   let pythonPackages = []
   if (pythonPath === null) {
@@ -256,6 +301,12 @@ export async function installBundledPythonExecutable(mainWindow) {
       execCallbacksForChildWithNotifications(extractionPromise.child, "Python Exec. Extracting", mainWindow)
 
       const { stdout: extrac, stderr: extracErr } = await extractionPromise
+
+      let removeCommand = `rm ${outputFileName}`
+      let removePromise = exec(removeCommand, { shell: "powershell.exe" })
+      execCallbacksForChildWithNotifications(removePromise.child, "Python Exec. Removing", mainWindow)
+      const { stdout: remove, stderr: removeErr } = await removePromise
+
       // Install the required python packages
       installPythonPackage(mainWindow, pythonExecutablePath, null, path.join(process.cwd(), "pythonEnv", "requirements.txt"))
 
@@ -263,12 +314,13 @@ export async function installBundledPythonExecutable(mainWindow) {
     } else if (process.platform == "darwin") {
       // Download the right python executable (arm64 or x86_64)
       let isArm64 = process.arch === "arm64"
-      let url = "https://github.com/indygreg/python-build-standalone/releases/download/20240224/cpython-3.9.18+20240224-x86_64-apple-darwin-install_only.tar.gz"
-      let extractCommand = `tar -xvf cpython-3.9.18+20240224-x86_64-apple-darwin-install_only.tar.gz`
+      let file = "cpython-3.9.18+20240224-x86_64-apple-darwin-install_only.tar.gz"
       if (isArm64 === "arm64") {
-        url = "https://github.com/indygreg/python-build-standalone/releases/download/20240224/cpython-3.9.18+20240224-aarch64-apple-darwin-install_only.tar.gz"
-        extractCommand = `tar -xvf cpython-3.9.18+20240224-aarch64-apple-darwin-install_only.tar.gz`
+        file = `cpython-3.9.18+20240224-aarch64-apple-darwin-install_only.tar.gz`
       }
+
+      let url = `https://github.com/indygreg/python-build-standalone/releases/download/20240224/${file}`
+      let extractCommand = `tar -xvf ${file}`
       let downloadPromise = exec(`/bin/bash -c "$(curl -fsSLO ${url})"`)
       execCallbacksForChildWithNotifications(downloadPromise.child, "Python Downloading", mainWindow)
       const { stdout, stderr } = await downloadPromise
@@ -277,13 +329,20 @@ export async function installBundledPythonExecutable(mainWindow) {
       let extractionPromise = exec(extractCommand)
       execCallbacksForChildWithNotifications(extractionPromise.child, "Python Exec. Extracting", mainWindow)
       const { stdout: extrac, stderr: extracErr } = await extractionPromise
+
+      // Remove the downloaded file
+      let removeCommand = `rm ${file}`
+      let removePromise = exec(removeCommand)
+      execCallbacksForChildWithNotifications(removePromise.child, "Python Exec. Removing", mainWindow)
+      const { stdout: remove, stderr: removeErr } = await removePromise
+
       // Install the required python packages
       installPythonPackage(mainWindow, pythonExecutablePath, null, path.join(process.cwd(), "pythonEnv", "requirements_mac.txt"))
     } else if (process.platform == "linux") {
       // Download the right python executable (arm64 or x86_64)
-
-      let url = "https://github.com/indygreg/python-build-standalone/releases/download/20240224/cpython-3.9.18+20240224-x86_64_v4-unknown-linux-gnu-install_only.tar.gz"
-      let extractCommand = `tar -xvf cpython-3.9.18+20240224-x86_64_v4-unknown-linux-gnu-install_only.tar.gz`
+      let file = "cpython-3.9.18+20240224-x86_64_v4-unknown-linux-gnu-install_only.tar.gz"
+      let url = `https://github.com/indygreg/python-build-standalone/releases/download/20240224/${file}`
+      let extractCommand = `tar -xvf ${file}`
 
       let downloadPromise = exec(`wget ${url}`)
       execCallbacksForChildWithNotifications(downloadPromise.child, "Python Downloading", mainWindow)
@@ -292,6 +351,13 @@ export async function installBundledPythonExecutable(mainWindow) {
       let extractionPromise = exec(extractCommand)
       execCallbacksForChildWithNotifications(extractionPromise.child, "Python Exec. Extracting", mainWindow)
       const { stdout: extrac, stderr: extracErr } = await extractionPromise
+
+      // Remove the downloaded file
+      let removeCommand = `rm ${file}`
+      let removePromise = exec(removeCommand)
+      execCallbacksForChildWithNotifications(removePromise.child, "Python Exec. Removing", mainWindow)
+      const { stdout: remove, stderr: removeErr } = await removePromise
+
       // Install the required python packages
       installPythonPackage(mainWindow, pythonExecutablePath, null, path.join(process.cwd(), "pythonEnv", "requirements.txt"))
     }

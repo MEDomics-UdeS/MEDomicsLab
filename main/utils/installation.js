@@ -1,9 +1,38 @@
 import { app } from "electron"
 import { execCallbacksForChildWithNotifications } from "../utils/pythonEnv"
 import { mainWindow, getMongoDBPath } from "../background"
+import { getBundledPythonEnvironment } from "../utils/pythonEnv"
+
+//**** LOG ****// This is used to send the console.log messages to the main window
+const originalConsoleLog = console.log
+/**
+ * @description Sends the console.log messages to the main window
+ * @param {*} message The message to send
+ * @summary We redefine the console.log function to send the messages to the main window
+ */
+console.log = function () {
+  try {
+    originalConsoleLog(...arguments)
+    if (mainWindow !== undefined) {
+      mainWindow.webContents.send("log", ...arguments)
+    }
+  } catch (error) {
+    console.error(error)
+  }
+}
+
 var path = require("path")
 const util = require("util")
 const exec = util.promisify(require("child_process").exec)
+
+export const checkRequirements = async () => {
+  let mongoDBInstalled = getMongoDBPath()
+  let pythonInstalled = getBundledPythonEnvironment()
+
+  console.log("MongoDB installed: " + mongoDBInstalled)
+  console.log("Python installed: " + pythonInstalled)
+  return { pythonInstalled: pythonInstalled, mongoDBInstalled: mongoDBInstalled }
+}
 
 export const installMongoDB = async () => {
   if (process.platform === "win32") {
