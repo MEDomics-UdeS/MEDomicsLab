@@ -163,19 +163,17 @@ if (isProd) {
 
   console.log("running mode:", isProd ? "production" : "development")
   console.log(MEDconfig.runServerAutomatically ? "Server will start automatically here (in background of the application)" : "Server must be started manually")
-  if (MEDconfig.runServerAutomatically) {
+  let bundledPythonPath = getBundledPythonEnvironment()
+  if (MEDconfig.runServerAutomatically && bundledPythonPath !== null) {
     // Find the bundled python environment
-    let bundledPythonPath = getBundledPythonEnvironment()
-    if (bundledPythonPath !== null) {
-      runServer(isProd, serverPort, serverProcess, serverState, bundledPythonPath)
-        .then((process) => {
-          serverProcess = process
-          console.log("Server process started: ", serverProcess)
-        })
-        .catch((err) => {
-          console.error("Failed to start server: ", err)
-        })
-    }
+    runServer(isProd, serverPort, serverProcess, serverState, bundledPythonPath)
+      .then((process) => {
+        serverProcess = process
+        console.log("Server process started: ", serverProcess)
+      })
+      .catch((err) => {
+        console.error("Failed to start server: ", err)
+      })
   } else {
     //**** NO SERVER ****//
     findAvailablePort(MEDconfig.defaultPort)
