@@ -15,6 +15,7 @@ import { InputNumber } from "primereact/inputnumber"
 import { DataTable } from "primereact/datatable"
 import { Column } from "primereact/column"
 import { WorkspaceContext } from "../workspace/workspaceContext"
+import FirstSetupModal from "../generalPurpose/firstSetupModal"
 
 /**
  * Settings page
@@ -162,6 +163,7 @@ const SettingsPage = () => {
     }
   }
 
+  const [firstSetupModalVisible, setFirstSetupModalVisible] = useState(false)
   /**
    *
    */
@@ -276,13 +278,23 @@ const SettingsPage = () => {
                   />
                   <Button
                     label="Install MongoDB"
-                    className="p-button-secondary"
+                    className="p-button-info"
                     onClick={() => {
                       ipcRenderer.invoke("installMongoDB").then((result) => {
                         console.log("MongoDB installed: ", result)
                       })
                     }}
                     style={{ backgroundColor: serverIsRunning ? "#d55757" : "grey", borderColor: serverIsRunning ? "#d55757" : "grey" }}
+                    // disabled={!serverIsRunning}
+                  />
+                  <Button
+                    label="Show first setup modal"
+                    className="p-button-info"
+                    onClick={() => {
+                      console.log("show first setup modal")
+                      setFirstSetupModalVisible(true)
+                    }}
+                    // style={{ backgroundColor: serverIsRunning ? "#d55757" : "grey", borderColor: serverIsRunning ? "#d55757" : "grey" }}
                     // disabled={!serverIsRunning}
                   />
                 </Col>
@@ -327,6 +339,7 @@ const SettingsPage = () => {
           </TabPanel>
         </TabView>
       </ModulePage>
+      <FirstSetupModal visible={firstSetupModalVisible} onHide={() => setFirstSetupModalVisible(false)} closable={false} />
     </>
   )
 }
