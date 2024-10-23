@@ -118,7 +118,7 @@ class GoExecScriptDenseNetExtraction(GoExecutionScript):
         master_table_compatible = json_config["relativeToExtractionType"]["masterTableCompatible"]
 
         # MongoDB setup
-        mongo_client = pymongo.MongoClient("mongodb://localhost:27017/")
+        mongo_client = pymongo.MongoClient("mongodb://localhost:54017/")
         database = mongo_client[json_config["DBName"]]
         result_collection = database[json_config["resultCollectionName"]]
 

@@ -16,13 +16,14 @@ import { DataTable } from "primereact/datatable"
 import { Column } from "primereact/column"
 import { WorkspaceContext } from "../workspace/workspaceContext"
 import FirstSetupModal from "../generalPurpose/installation/firstSetupModal"
+import { requestBackend } from "../../utilities/requests"
 
 /**
  * Settings page
  * @returns {JSX.Element} Settings page
  */
-const SettingsPage = () => {
-  const { workspace } = useContext(WorkspaceContext)
+const SettingsPage = (pageId = "settings") => {
+  const { workspace, port } = useContext(WorkspaceContext)
   const [settings, setSettings] = useState(null) // Settings object
   const [serverIsRunning, setServerIsRunning] = useState(false) // Boolean to know if the server is running
   const [mongoServerIsRunning, setMongoServerIsRunning] = useState(false) // Boolean to know if the server is running
@@ -31,6 +32,39 @@ const SettingsPage = () => {
   const [seed, setSeed] = useState(54288) // Seed for random number generation
   const [pythonEmbedded, setPythonEmbedded] = useState({}) // Boolean to know if python is embedded
   const [showPythonPackages, setShowPythonPackages] = useState(false) // Boolean to know if python packages are shown
+
+  /**
+   * Check if the mongo server is running and set the state
+   * @returns {void}
+   */
+  const checkMongoIsRunning = () => {
+    console.log("Checking if MongoDB is running")
+    ipcRenderer.invoke("checkMongoIsRunning").then((status) => {
+      console.log("MongoDB is running: ", status)
+      setMongoServerIsRunning(status)
+    })
+  }
+
+  /**
+   * Check if the server is running
+   */
+  const checkServer = () => {
+    requestBackend(
+      port,
+      "get_server_health",
+      { pageId: pageId },
+      (data) => {
+        console.log("Server health: ", data)
+        if (data) {
+          setServerIsRunning(true)
+        }
+      },
+      () => {
+        setServerIsRunning(false)
+      }
+    )
+  }
+
   /**
    * Get the settings from the main process
    * if the conda path is defined in the settings, set it
@@ -47,10 +81,12 @@ const SettingsPage = () => {
         setSeed(receivedSettings?.seed)
       }
     })
-    ipcRenderer.invoke("server-is-running").then((status) => {
-      setServerIsRunning(status)
-      console.log("server is running", status)
-    })
+    // ipcRenderer.invoke("server-is-running").then((status) => {
+    //   setServerIsRunning(status)
+    //   console.log("server is running", status)
+    // })
+    checkMongoIsRunning()
+    checkServer()
   }, [])
 
   /**
@@ -72,10 +108,12 @@ const SettingsPage = () => {
    */
   useEffect(() => {
     const interval = setInterval(() => {
-      ipcRenderer.invoke("server-is-running").then((status) => {
-        setServerIsRunning(status)
-        console.log("server is running", status)
-      })
+      // ipcRenderer.invoke("server-is-running").then((status) => {
+      //   setServerIsRunning(status)
+      //   console.log("server is running", status)
+      // })
+      checkServer()
+      checkMongoIsRunning()
       ipcRenderer.invoke("getBundledPythonEnvironment").then((res) => {
         console.log("Python imbedded: ", res)
 
@@ -185,8 +223,7 @@ const SettingsPage = () => {
                     onClick={() => {
                       console.log("conda path", condaPath)
                       ipcRenderer.invoke("start-server", condaPath).then((status) => {
-                        setServerIsRunning(true)
-                        console.log("server is running", status)
+                        console.log("Server started manually", status)
                       })
                     }}
                     style={{ backgroundColor: serverIsRunning ? "grey" : "#54a559", borderColor: serverIsRunning ? "grey" : "#54a559", marginRight: "1rem" }}
@@ -262,20 +299,7 @@ const SettingsPage = () => {
                     style={{ backgroundColor: mongoServerIsRunning ? "grey" : "#54a559", borderColor: mongoServerIsRunning ? "grey" : "#54a559", marginRight: "1rem" }}
                     disabled={mongoServerIsRunning}
                   />
-                  <Button
-                    label="Stop server"
-                    className="p-button-danger"
-                    onClick={() => {
-                      ipcRenderer.invoke("kill-server").then((stopped) => {
-                        if (stopped) {
-                          setServerIsRunning(false)
-                          console.log("server was stopped", stopped)
-                        }
-                      })
-                    }}
-                    style={{ backgroundColor: serverIsRunning ? "#d55757" : "grey", borderColor: serverIsRunning ? "#d55757" : "grey" }}
-                    disabled={!serverIsRunning}
-                  />
+
                   <Button
                     label="Install MongoDB"
                     className="p-button-info"

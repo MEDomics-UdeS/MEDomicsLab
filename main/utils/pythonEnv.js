@@ -244,7 +244,6 @@ export function getInstalledPythonPackages(pythonPath = null) {
 export async function installPythonPackage(mainWindow, pythonPath, packageName = null, requirementsFilePath = null) {
   console.log("Installing python package: ", packageName, requirementsFilePath, " with pythonPath: ", pythonPath)
   let execSyncResult = null
-  mainWindow.webContents.send("notification", { id: "pythonPackageInstall", message: `Installing python package: ${packageName}`, header: "Python Package Installation in progress" })
   let pipUpgradePromise = exec(`${pythonPath} -m pip install --upgrade pip`)
   execCallbacksForChildWithNotifications(pipUpgradePromise.child, "Python pip Upgrade", mainWindow)
   await pipUpgradePromise

@@ -50,7 +50,7 @@ class GoExecScriptMerge(GoExecutionScript):
         database_name = json_config["databaseName"]
 
         # Connect to MongoDB
-        client = MongoClient('localhost', 27017)
+        client = MongoClient('localhost', 54017)
         db = client[database_name]
         collection1 = db[collection_1]
         collection2 = db[collection_2]

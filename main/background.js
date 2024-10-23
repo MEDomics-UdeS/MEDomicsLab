@@ -469,6 +469,22 @@ ipcMain.handle("checkMongoDBisInstalled", async (event) => {
   return getMongoDBPath()
 })
 
+ipcMain.on("restartApp", (event, data, args) => {
+  app.relaunch()
+  app.quit()
+})
+
+ipcMain.handle("checkMongoIsRunning", async (event) => {
+  // Check if something is running on the port MEDconfig.mongoPort
+  let port = MEDconfig.mongoPort
+  let isRunning = false
+  if (process.platform === "win32") {
+    isRunning = execSync(`netstat -ano | findstr :${port}`).toString().trim() !== ""
+  }
+
+  return isRunning
+})
+
 app.on("window-all-closed", () => {
   console.log("app quit")
   stopMongoDB(mongoProcess)

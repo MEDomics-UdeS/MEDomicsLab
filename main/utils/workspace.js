@@ -1,4 +1,6 @@
 import { app, dialog, ipcRenderer } from "electron"
+import MEDconfig from "../../medomics.dev"
+
 const fs = require("fs")
 var path = require("path")
 const dirTree = require("directory-tree")
@@ -213,7 +215,7 @@ export const createMedomicsDirectory = (directoryPath) => {
       dbPath: ${mongoDataDir}
     net:
       bindIp: localhost
-      port: 54017
+      port: ${MEDconfig.mongoPort}
     `
     fs.writeFileSync(mongoConfigPath, mongoConfig)
   }

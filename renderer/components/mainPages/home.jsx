@@ -90,7 +90,7 @@ const HomePage = () => {
           )}
         </Stack>
       </div>
-      <FirstSetupModal visible={!requirementsMet} closable={false} setRequirementsMet={setRequirementsMet} />
+      {!requirementsMet && <FirstSetupModal visible={!requirementsMet} closable={false} setRequirementsMet={setRequirementsMet} />}
     </>
   )
 }

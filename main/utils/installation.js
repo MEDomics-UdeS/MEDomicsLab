@@ -48,6 +48,10 @@ export const installMongoDB = async () => {
     execCallbacksForChildWithNotifications(installMongoDBPromise.child, "Installing MongoDB", mainWindow)
     await installMongoDBPromise
 
+    let removeMongoDBInstallerPromise = exec(`rm ${downloadPath}`, { shell: "powershell" })
+    execCallbacksForChildWithNotifications(removeMongoDBInstallerPromise.child, "Removing MongoDB installer", mainWindow)
+    await removeMongoDBInstallerPromise
+
     return getMongoDBPath() !== null
   } else if (process.platform === "darwin") {
     // Download MongoDB installer

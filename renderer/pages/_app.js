@@ -90,7 +90,10 @@ function App() {
       tabEnableClose: true,
       tabEnableRenderOnDemand: false,
       tabEnableRename: false,
-      autoSelectTab: true
+      autoSelectTab: true,
+      tabEnablePopout: false,
+      tabEnablePopoutOverlay: false,
+      tabEnablePopoutIcon: false
     }, // this is a global setting for all tabs in the layout, it enables the close button on all tabs
     borders: [
       // this is the border model for the layout, it defines the borders and their children

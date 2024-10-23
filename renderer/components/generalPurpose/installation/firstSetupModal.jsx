@@ -3,14 +3,17 @@ import React, { useState, useContext, useEffect } from "react"
 import { NotificationContext } from "../notificationContext"
 import { ipcRenderer } from "electron"
 import { ProgressBar } from "primereact/progressbar"
+import { Button } from "react-bootstrap"
 
 /**
  *
  * @param {*} param0
  * @returns
  */
-const FirstSetupModal = ({ visible, onHide, closable, setRequirementsMet = null }) => {
+const FirstSetupModal = ({ visible, onHide, closable, setRequirementsMet }) => {
   const { notifications, setNotifications } = useContext(NotificationContext)
+  const [pythonNotifications, setPythonNotifications] = useState({})
+  const [mongoDBNotifications, setMongoDBNotifications] = useState({})
   const [pythonIsInstalled, setPythonIsInstalled] = useState(false)
   const [pythonIsInstalling, setPythonIsInstalling] = useState(false)
   const [pythonInstallationProgress, setPythonInstallationProgress] = useState(0)
@@ -20,19 +23,26 @@ const FirstSetupModal = ({ visible, onHide, closable, setRequirementsMet = null 
   const [mongoDBInstallationProgress, setMongoDBInstallationProgress] = useState(0)
   const [numberOfPythonNotifications, setNumberOfPythonNotifications] = useState(0)
   const [checkIsRunning, setCheckIsRunning] = useState(false)
+  const [localRequirementsMet, setLocalRequirementsMet] = useState(false)
 
   const checkPython = () => {
     ipcRenderer.invoke("getBundledPythonEnvironment").then((data) => {
       if (data) {
-        setPythonIsInstalled(true)
-        setPythonInstallationProgress(100)
+        ipcRenderer.invoke("checkPythonRequirements").then((data) => {
+          console.log("Python requirements: ", data)
+          if (data) {
+            setPythonIsInstalled(true)
+            setPythonInstallationProgress(100)
+          }
+        })
       }
     })
   }
 
   const checkMongoDB = () => {
     ipcRenderer.invoke("checkMongoDBisInstalled").then((data) => {
-      if (data) {
+      console.log("MongoDB is installed: ", data)
+      if (data !== null) {
         setMongoDBIsInstalled(true)
         setMongoDBInstallationProgress(100)
       } else {
@@ -57,7 +67,16 @@ const FirstSetupModal = ({ visible, onHide, closable, setRequirementsMet = null 
   }, [])
 
   useEffect(() => {
+    console.log("FirstSetupModal pythonNotifications: ", pythonNotifications)
+  }, [pythonNotifications])
+
+  useEffect(() => {
+    console.log("FirstSetupModal mongoDBNotifications: ", mongoDBNotifications)
+  }, [mongoDBNotifications])
+
+  useEffect(() => {
     console.log("FirstSetupModal notifications: ", notifications)
+
     // Count the number of Python notifications and calculate the progress
     let numPythonNotifications = 0
     let accumulatedPythonProgress = 0
@@ -65,29 +84,76 @@ const FirstSetupModal = ({ visible, onHide, closable, setRequirementsMet = null 
     let accumulatedMongoDBProgress = 0
     let totalNumberOfPythonNotifications = 2000
 
+    let newPythonNotifications = { ...pythonNotifications }
+    let newMongoDBNotifications = { ...mongoDBNotifications }
+
     for (let notification of notifications) {
       if (notification.header.includes("Python")) {
-        numPythonNotifications += 1
+        // Check if the notification is already in the dictionary
+        if (newPythonNotifications[notification.id] === undefined) {
+          notification.messages = [notification.message]
+          notification.messages_count = 1
+          notification.done = false
+          newPythonNotifications[notification.id] = notification
+        } else {
+          // Update the notification
+          let newPythonNotification = newPythonNotifications[notification.id]
+          newPythonNotification.messages.push(notification.message)
+          newPythonNotification.messages_count = newPythonNotification.messages_count + 1
+          newPythonNotifications[notification.id] = newPythonNotification
+        }
+
         if (notification.message.includes("exited with code 0")) {
-          accumulatedPythonProgress += 1
+          newPythonNotifications[notification.id].done = true
         }
       } else if (notification.header.toLowerCase().includes("mongodb")) {
-        numMongoDBNotifications += 1
+        if (newMongoDBNotifications[notification.id] === undefined) {
+          notification.messages = [notification.message]
+          notification.messages_count = 1
+          notification.done = false
+          newMongoDBNotifications[notification.id] = notification
+        } else {
+          // Update the notification
+          let newMongoDBNotification = newMongoDBNotifications[notification.id]
+          newMongoDBNotification.messages.push(notification.message)
+          newMongoDBNotification.messages_count = newMongoDBNotification.messages_count + 1
+          newMongoDBNotifications[notification.id] = newMongoDBNotification
+        }
+
         if (notification.message.includes("exited with code 0")) {
-          accumulatedMongoDBProgress += 1
+          newMongoDBNotifications[notification.id].done = true
         }
       }
     }
 
     if (!mongoDBIsInstalled) {
-      setMongoDBInstallationProgress((accumulatedMongoDBProgress / numMongoDBNotifications) * 100)
+      let numberOfSteps = 3
+      for (let notification in newMongoDBNotifications) {
+        let mongoDBNotification = newMongoDBNotifications[notification]
+        if (!mongoDBNotification.done) {
+          accumulatedMongoDBProgress += 1
+        }
+      }
+      if (accumulatedMongoDBProgress == numberOfSteps) {
+        setMongoDBIsInstalled(true)
+      }
+      if (accumulatedMongoDBProgress == 0) {
+      }
+      setMongoDBInstallationProgress(((accumulatedMongoDBProgress / numberOfSteps) * 100).toFixed(2))
     }
+
     if (!pythonIsInstalled) {
-      setPythonInstallationProgress((accumulatedPythonProgress / totalNumberOfPythonNotifications) * 100)
+      let numberOfSteps = 6
+      for (let notification in newPythonNotifications) {
+        let pythonNotification = newPythonNotifications[notification]
+        if (!pythonNotification.done) {
+          accumulatedPythonProgress += 1
+        }
+      }
+      setPythonInstallationProgress(((accumulatedPythonProgress / numberOfSteps) * 100).toFixed(2))
     }
-    let newNumberOfPythonNotifications = numberOfPythonNotifications + 1
-    setNumberOfPythonNotifications(newNumberOfPythonNotifications)
-    console.log("Number of Python notifications: ", newNumberOfPythonNotifications)
+    setPythonNotifications(newPythonNotifications)
+    setMongoDBNotifications(newMongoDBNotifications)
   }, [notifications])
 
   /**
@@ -99,30 +165,37 @@ const FirstSetupModal = ({ visible, onHide, closable, setRequirementsMet = null 
    */
   useEffect(() => {
     const interval = setInterval(() => {
-      if (!pythonIsInstalled || !mongoDBIsInstalled) {
-        setCheckIsRunning(true)
-        ipcRenderer.invoke("checkRequirements").then((data) => {
-          console.log("Requirements: ", data)
-          setCheckIsRunning(false)
-          let pythonIsFullyInstalled = false
-          if (data.pythonInstalled) {
-            setPythonIsInstalled(true)
-            // Check if the python requirements are met
-            ipcRenderer.invoke("checkPythonRequirements").then((data) => {
-              if (data) {
-                setPythonIsInstalled(true)
-                pythonIsFullyInstalled = true
+      setCheckIsRunning(true)
+      ipcRenderer.invoke("checkRequirements").then((data) => {
+        console.log("Requirements: ", data)
+        setCheckIsRunning(false)
+        let pythonIsFullyInstalled = false
+        if (data.pythonInstalled) {
+          setPythonIsInstalled(true)
+          // Check if the python requirements are met
+          ipcRenderer.invoke("checkPythonRequirements").then((pythonRequirements) => {
+            console.log("Python requirements met: ", pythonRequirements)
+            if (pythonRequirements) {
+              setPythonIsInstalled(true)
+              console.log("Python requirements met 2: ", pythonRequirements)
+              pythonIsFullyInstalled = true
+            }
+
+            if (data.mongoDBInstalled) {
+              setMongoDBIsInstalled(true)
+            }
+
+            if (data.mongoDBInstalled && pythonIsFullyInstalled) {
+              console.log("REQUIREMENTS MET")
+              try {
+                setLocalRequirementsMet(true)
+              } catch (error) {
+                console.warn(error)
               }
-            })
-          }
-          if (data.mongoDBInstalled) {
-            setMongoDBIsInstalled(true)
-          }
-          if (data.pythonInstalled && data.mongoDBInstalled && setRequirementsMet && pythonIsFullyInstalled) {
-            setRequirementsMet(true)
-          }
-        })
-      }
+            }
+          })
+        }
+      })
     }, 5000)
     return () => clearInterval(interval)
   }, [])
@@ -137,7 +210,8 @@ const FirstSetupModal = ({ visible, onHide, closable, setRequirementsMet = null 
           <p>Once the setup is complete, the application will automatically start.</p>
         </div>
         <div className="p-col-12 p-md-4">
-          <button className="p-button p-button-primary" onClick={onHide}>
+          {/* <button className="p-button p-button-primary" onClick={onHide}> */}
+          <button className="p-button p-button-primary" onClick={() => setRequirementsMet(true)}>
             Start setup
           </button>
         </div>
@@ -165,10 +239,16 @@ const FirstSetupModal = ({ visible, onHide, closable, setRequirementsMet = null 
             value={pythonInstallationProgress}
             displayValueTemplate={() => `${pythonInstallationProgress}%`}
             mode={checkIsRunning ? "indeterminate" : "determinate"}
-            color={pythonIsInstalled ? "#22c55e" : ""}
+            color={pythonInstallationProgress == 100 ? "#22c55e" : ""}
           />
         </div>
       </div>
+      {localRequirementsMet && (
+        <>
+          <Button onClick={() => setRequirementsMet(true)}>Close</Button>
+          <Button onClick={() => ipcRenderer.send("restartApp")}>Restart the app</Button>
+        </>
+      )}
     </Dialog>
   )
 }
