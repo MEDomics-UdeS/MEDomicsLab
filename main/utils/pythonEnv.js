@@ -249,7 +249,7 @@ export async function installPythonPackage(mainWindow, pythonPath, packageName =
   await pipUpgradePromise
   if (requirementsFilePath !== null) {
     let installPythonPackagePromise = exec(`${pythonPath} -m pip install -r ${requirementsFilePath}`)
-    execCallbacksForChildWithNotifications(installPythonPackagePromise.child, "Python Package Installation from requirements", mainWindow)
+    execCallbacksForChildWithNotifications(installPythonPackagePromise.child, "Python Package Installation - requirements", mainWindow)
     await installPythonPackagePromise
   } else {
     let installPythonPackagePromise = exec(`${pythonPath} -m pip install ${packageName}`)

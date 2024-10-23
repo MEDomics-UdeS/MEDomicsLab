@@ -15,7 +15,7 @@ const path = require("path")
  * @description This function is used to recursively recense the directory tree and add the files and folders to the global data object
  * It is called when the working directory is set
  */
-export async function recursivelyRecenseWorkspaceTree(children, parentID) {
+export default async function recursivelyRecenseWorkspaceTree(children, parentID) {
   for (const child of children) {
     const stats = fs.lstatSync(child.path)
     let uuid = child.name == "DATA" || child.name == "EXPERIMENTS" ? child.name : randomUUID()

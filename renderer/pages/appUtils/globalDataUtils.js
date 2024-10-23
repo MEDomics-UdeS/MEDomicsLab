@@ -6,7 +6,7 @@ import { connectToMongoDB, insertMEDDataObjectIfNotExists } from "../../componen
  * @description Used to update the data present in the DB with local files not present in the database
  * @param {Object} workspaceObject
  */
-export const updateGlobalData = async (workspaceObject) => {
+const updateGlobalData = async (workspaceObject) => {
   let rootChildren = workspaceObject.workingDirectory.children
   let rootParentID = "ROOT"
   let rootName = workspaceObject.workingDirectory.name
@@ -49,3 +49,5 @@ export async function loadMEDDataObjects() {
   }
   return medDataObjectsDict
 }
+
+export default updateGlobalData
