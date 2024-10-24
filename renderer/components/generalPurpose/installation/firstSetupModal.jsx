@@ -17,11 +17,8 @@ const FirstSetupModal = ({ visible, onHide, closable, setRequirementsMet }) => {
   const [pythonIsInstalled, setPythonIsInstalled] = useState(false)
   const [pythonIsInstalling, setPythonIsInstalling] = useState(false)
   const [pythonInstallationProgress, setPythonInstallationProgress] = useState(0)
-  const [pythonEmbedded, setPythonEmbedded] = useState({ pythonEmbedded: null, pythonPackages: [] })
   const [mongoDBIsInstalled, setMongoDBIsInstalled] = useState(false)
-  const [mongoDBIsInstalling, setMongoDBIsInstalling] = useState(false)
   const [mongoDBInstallationProgress, setMongoDBInstallationProgress] = useState(0)
-  const [numberOfPythonNotifications, setNumberOfPythonNotifications] = useState(0)
   const [checkIsRunning, setCheckIsRunning] = useState(false)
   const [localRequirementsMet, setLocalRequirementsMet] = useState(false)
 
@@ -57,7 +54,6 @@ const FirstSetupModal = ({ visible, onHide, closable, setRequirementsMet }) => {
   }
 
   const installMongoDB = () => {
-    setMongoDBIsInstalling(true)
     ipcRenderer.invoke("installMongoDB")
   }
 
@@ -67,6 +63,7 @@ const FirstSetupModal = ({ visible, onHide, closable, setRequirementsMet }) => {
   }
 
   const closeFirstSetupModal = () => {
+    setNotifications([])
     setRequirementsMet(true)
     ipcRenderer.invoke("getBundledPythonEnvironment").then((pythonPath) => {
       console.log("Starting the go server with the bundled python environment: ", pythonPath)
@@ -93,9 +90,7 @@ const FirstSetupModal = ({ visible, onHide, closable, setRequirementsMet }) => {
     console.log("FirstSetupModal notifications: ", notifications)
 
     // Count the number of Python notifications and calculate the progress
-    let numPythonNotifications = 0
     let accumulatedPythonProgress = 0
-    let numMongoDBNotifications = 0
     let accumulatedMongoDBProgress = 0
     let totalNumberOfPythonNotifications = 6250
 
@@ -107,14 +102,14 @@ const FirstSetupModal = ({ visible, onHide, closable, setRequirementsMet }) => {
         // Check if the notification is already in the dictionary
         if (newPythonNotifications[notification.id] === undefined) {
           notification.messages = [notification.message]
-          notification.messages_count = 1
+          notification.messagesCount = 1
           notification.done = false
           newPythonNotifications[notification.id] = notification
         } else {
           // Update the notification
           let newPythonNotification = newPythonNotifications[notification.id]
           newPythonNotification.messages.push(notification.message)
-          newPythonNotification.messages_count = newPythonNotification.messages_count + 1
+          newPythonNotification.messagesCount = newPythonNotification.messagesCount + 1
           newPythonNotifications[notification.id] = newPythonNotification
         }
 
@@ -124,14 +119,14 @@ const FirstSetupModal = ({ visible, onHide, closable, setRequirementsMet }) => {
       } else if (notification.header.toLowerCase().includes("mongodb")) {
         if (newMongoDBNotifications[notification.id] === undefined) {
           notification.messages = [notification.message]
-          notification.messages_count = 1
+          notification.messagesCount = 1
           notification.done = false
           newMongoDBNotifications[notification.id] = notification
         } else {
           // Update the notification
           let newMongoDBNotification = newMongoDBNotifications[notification.id]
           newMongoDBNotification.messages.push(notification.message)
-          newMongoDBNotification.messages_count = newMongoDBNotification.messages_count + 1
+          newMongoDBNotification.messagesCount = newMongoDBNotification.messagesCount + 1
           newMongoDBNotifications[notification.id] = newMongoDBNotification
         }
 
@@ -142,7 +137,6 @@ const FirstSetupModal = ({ visible, onHide, closable, setRequirementsMet }) => {
     }
 
     if (!mongoDBIsInstalled) {
-      setMongoDBIsInstalling(true)
       let numberOfSteps = 3
       for (let notification in newMongoDBNotifications) {
         let mongoDBNotification = newMongoDBNotifications[notification]
@@ -150,8 +144,11 @@ const FirstSetupModal = ({ visible, onHide, closable, setRequirementsMet }) => {
           accumulatedMongoDBProgress += 1
         }
       }
-
-      setMongoDBInstallationProgress(((accumulatedMongoDBProgress / numberOfSteps) * 100).toFixed(1))
+      if(accumulatedMongoDBProgress == numberOfSteps) {
+        setMongoDBInstallationProgress(100)
+      } else {
+        setMongoDBInstallationProgress(((accumulatedMongoDBProgress / numberOfSteps) * 100).toFixed(1))
+        }
     }
 
     if (!pythonIsInstalled || pythonIsInstalling) {
@@ -160,7 +157,7 @@ const FirstSetupModal = ({ visible, onHide, closable, setRequirementsMet }) => {
       let numberOfPythonSteps = 5
       for (let notification in newPythonNotifications) {
         let pythonNotification = newPythonNotifications[notification]
-        totalMessages += pythonNotification.messages_count
+        totalMessages += pythonNotification.messagesCount
         if (pythonNotification.done) {
           accumulatedPythonProgress += 1
         }
