@@ -4,7 +4,7 @@ const { exec, execFile } = require("child_process")
 const os = require("os")
 var path = require("path")
 
-function findAvailablePort(startPort, endPort = 8000) {
+export function findAvailablePort(startPort, endPort = 8000) {
   let killProcess = MEDconfig.portFindingMethod === PORT_FINDING_METHOD.FIX || !MEDconfig.runServerAutomatically
   let platform = process.platform
   return new Promise((resolve, reject) => {
