@@ -145,7 +145,7 @@ function getThePythonExecutablePath(condaPath, envName) {
 export function getBundledPythonEnvironment() {
   let pythonEnvironment = null
 
-  let bundledPythonPath = path.join(process.cwd(), "python")
+  let bundledPythonPath = null
   if (process.env.NODE_ENV === "production") {
     // Get the user path followed by .medomics
     let userPath = process.env.HOME
@@ -162,6 +162,8 @@ export function getBundledPythonEnvironment() {
       fs.mkdirSync(medomicsPath)
     }
     bundledPythonPath = path.join(userPath, ".medomics", "python")
+  } else {
+    bundledPythonPath = path.join(process.cwd(), "python")
   }
 
   pythonEnvironment = path.join(bundledPythonPath, "bin", "python")

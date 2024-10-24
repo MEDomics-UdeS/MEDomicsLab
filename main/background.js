@@ -162,10 +162,12 @@ if (isProd) {
   ]
 
   console.log("running mode:", isProd ? "production" : "development")
+  console.log("process.resourcesPath: ", process.resourcesPath)
   console.log(MEDconfig.runServerAutomatically ? "Server will start automatically here (in background of the application)" : "Server must be started manually")
-  if (MEDconfig.runServerAutomatically) {
+  let bundledPythonPath = getBundledPythonEnvironment()
+  console.log("bundledPythonPath: ", bundledPythonPath)
+  if (MEDconfig.runServerAutomatically && bundledPythonPath !== null) {
     // Find the bundled python environment
-    let bundledPythonPath = getBundledPythonEnvironment()
     if (bundledPythonPath !== null) {
       runServer(isProd, serverPort, serverProcess, serverState, bundledPythonPath)
         .then((process) => {
