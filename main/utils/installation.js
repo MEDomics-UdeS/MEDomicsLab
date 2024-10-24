@@ -3,6 +3,7 @@ import { execCallbacksForChildWithNotifications } from "../utils/pythonEnv"
 import { mainWindow, getMongoDBPath } from "../background"
 import { getBundledPythonEnvironment } from "../utils/pythonEnv"
 
+
 //**** LOG ****// This is used to send the console.log messages to the main window
 const originalConsoleLog = console.log
 /**
@@ -25,9 +26,58 @@ var path = require("path")
 const util = require("util")
 const exec = util.promisify(require("child_process").exec)
 
+
+
+export const checkIsBrewInstalled = async () => {
+  let isBrewInstalled = false
+  try {
+    let { stdout, stderr } = await exec(`brew --version`)
+    isBrewInstalled = stdout !== "" && stderr === ""
+  } catch (error) {
+    isBrewInstalled = false
+  }
+  return isBrewInstalled
+}
+
+export const checkIsXcodeSelectInstalled = async () => {
+  let isXcodeSelectInstalled = false
+  try {
+    let { stdout, stderr } = await exec(`xcode-select -p`)
+    isXcodeSelectInstalled = stdout !== "" && stderr === ""
+  } catch (error) {
+    isXcodeSelectInstalled = false
+  }
+}
+
+export const installBrew = async () => {
+  let installBrewPromise = exec(`/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"`)
+  execCallbacksForChildWithNotifications(installBrewPromise.child, "Installing Homebrew", mainWindow)
+  await installBrewPromise
+  return true
+}
+
+export const installXcodeSelect = async () => {
+  let installXcodeSelectPromise = exec(`xcode-select --install`)
+  execCallbacksForChildWithNotifications(installXcodeSelectPromise.child, "Installing Xcode Command Line Tools", mainWindow)
+  await installXcodeSelectPromise
+  return true
+}
+
+
+
+
+
+
 export const checkRequirements = async () => {
+
   let mongoDBInstalled = getMongoDBPath()
   let pythonInstalled = getBundledPythonEnvironment()
+  if (process.platform === "darwin") {
+    let isBrewInstalled = await checkIsBrewInstalled()
+    console.log("Homebrew installed: " + isBrewInstalled)
+    let isXcodeSelectInstalled = await checkIsXcodeSelectInstalled()
+    console.log("Xcode Command Line Tools installed: " + isXcodeSelectInstalled)
+  }
 
   console.log("MongoDB installed: " + mongoDBInstalled)
   console.log("Python installed: " + pythonInstalled)
@@ -54,17 +104,20 @@ export const installMongoDB = async () => {
 
     return getMongoDBPath() !== null
   } else if (process.platform === "darwin") {
-    // Download MongoDB installer
-    const downloadUrl = "https://fastdl.mongodb.org/osx/mongodb-macos-x86_64-7.0.12-signed.dmg"
-    const downloadPath = path.join(app.getPath("downloads"), "mongodb-macos-x86_64-7.0.12-signed.dmg")
-    let downloadMongoDBPromise = exec(`curl -o ${downloadPath} ${downloadUrl}`)
-    execCallbacksForChildWithNotifications(downloadMongoDBPromise.child, "Downloading MongoDB installer", mainWindow)
-    await downloadMongoDBPromise
+    // Check if Homebrew is installed
+    let isBrewInstalled = await checkIsBrewInstalled()
+    if (!isBrewInstalled) {
+      await installBrew()
+    }
+    // Check if Xcode Command Line Tools are installed
+    let isXcodeSelectInstalled = await checkIsXcodeSelectInstalled()
+    if (!isXcodeSelectInstalled) {
+      await installXcodeSelect()
+    }
     // Install MongoDB
-    let installMongoDBPromise = exec(
-      `hdiutil attach ${downloadPath} && cp -R /Volumes/mongodb-macos-x86_64-7.0.12-signed/* /Applications && hdiutil detach /Volumes/mongodb-macos-x86_64-7.0.12-signed`
-    )
+    let installMongoDBPromise = exec(`brew tap mongodb/brew && brew install mongodb-community@7.0.12`)
     execCallbacksForChildWithNotifications(installMongoDBPromise.child, "Installing MongoDB", mainWindow)
+    
     await installMongoDBPromise
 
     return getMongoDBPath() !== null

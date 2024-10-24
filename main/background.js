@@ -4,7 +4,7 @@ import serve from "electron-serve"
 import { createWindow } from "./helpers"
 import { installExtension, REACT_DEVELOPER_TOOLS } from "electron-extension-installer"
 import MEDconfig from "../medomics.dev"
-import { runServer, killProcessOnPort } from "./utils/server"
+import { runServer, findAvailablePort } from "./utils/server"
 import { setWorkingDirectory, getRecentWorkspacesOptions, loadWorkspaces, createMedomicsDirectory, updateWorkspace, createWorkingDirectory } from "./utils/workspace"
 import { getBundledPythonEnvironment, getInstalledPythonPackages, installPythonPackage, installBundledPythonExecutable, checkPythonRequirements } from "./utils/pythonEnv"
 import { installMongoDB, checkRequirements } from "./utils/installation"
@@ -620,7 +620,23 @@ export function getMongoDBPath() {
     }
     console.error("mongod not found")
     return null
-  } else {
-    return "mongod"
+  } else if (process.platform === "darwin"){
+
+    // Check if mongod is in the process.env.PATH
+    const paths = process.env.PATH.split(path.delimiter)
+    for (let i = 0; i < paths.length; i++) {
+      const binPath = path.join(paths[i], "mongod")
+      if (fs.existsSync(binPath)) {
+        console.log("mongod found in PATH")
+        return binPath
+      }
+    }
+    // Check if mongod is in the default installation path on macOS - /usr/local/bin/mongod
+    const binPath = "/usr/local/bin/mongod"
+    if (fs.existsSync(binPath)) {
+      return binPath
+    }
+    console.error("mongod not found")
+    return null
   }
 }
