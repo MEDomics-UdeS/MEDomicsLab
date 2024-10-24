@@ -43,6 +43,9 @@ jobs:
           go build main.go 
           cd ..
 
+      - name: Prebuild libmongocrypt
+        run: bash ./utilScripts/libmongocrypt_prebuild.sh
+
       - name: Build for Linux
         run: npm run build:linux
 
