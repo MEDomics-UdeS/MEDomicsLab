@@ -148,8 +148,13 @@ export function getBundledPythonEnvironment() {
   let bundledPythonPath = null
   if (process.env.NODE_ENV === "production") {
     // Get the user path followed by .medomics
+    console.log("process.env.HOME: ", process.env.HOME)
+    console.log("process.env.USERPROFILE: ", process.env.USERPROFILE)
     let userPath = process.env.HOME
+    console.log("userPath: ", userPath)
+
     let medomicsPath = path.join(userPath, ".medomics")
+    console.log("medomicsPath: ", medomicsPath)
     // Check if the .medomics directory exists
     if (fs.existsSync(medomicsPath)) {
       // Check if the python directory exists
@@ -159,8 +164,10 @@ export function getBundledPythonEnvironment() {
       }
     } else {
       // Create the .medomics directory
+      console.log("Creating .medomics directory")
       fs.mkdirSync(medomicsPath)
     }
+
     bundledPythonPath = path.join(userPath, ".medomics", "python")
   } else {
     bundledPythonPath = path.join(process.cwd(), "python")
