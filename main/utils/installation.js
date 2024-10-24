@@ -54,19 +54,22 @@ export const installMongoDB = async () => {
 
     return getMongoDBPath() !== null
   } else if (process.platform === "darwin") {
-    // Download MongoDB installer
-    const downloadUrl = "https://fastdl.mongodb.org/osx/mongodb-macos-x86_64-7.0.12-signed.dmg"
-    const downloadPath = path.join(app.getPath("downloads"), "mongodb-macos-x86_64-7.0.12-signed.dmg")
-    let downloadMongoDBPromise = exec(`curl -o ${downloadPath} ${downloadUrl}`)
-    execCallbacksForChildWithNotifications(downloadMongoDBPromise.child, "Downloading MongoDB installer", mainWindow)
-    await downloadMongoDBPromise
-    // Install MongoDB
-    let installMongoDBPromise = exec(
-      `hdiutil attach ${downloadPath} && cp -R /Volumes/mongodb-macos-x86_64-7.0.12-signed/* /Applications && hdiutil detach /Volumes/mongodb-macos-x86_64-7.0.12-signed`
-    )
-    execCallbacksForChildWithNotifications(installMongoDBPromise.child, "Installing MongoDB", mainWindow)
-    await installMongoDBPromise
+    // Check if Homebrew is installed
+    let isBrewInstalled = await checkIsBrewInstalled()
+    if (!isBrewInstalled) {
+      await installBrew()
+    }
+    // Check if Xcode Command Line Tools are installed
+    let isXcodeSelectInstalled = await checkIsXcodeSelectInstalled()
+    if (!isXcodeSelectInstalled) {
+      await installXcodeSelect()
+    }
 
+    let installMongoDBPromise = exec(`brew tap mongodb/brew && brew install mongodb-community@7.0.12`)
+    execCallbacksForChildWithNotifications(installMongoDBPromise.child, "Installing MongoDB", mainWindow)
+    
+
+    
     return getMongoDBPath() !== null
   } else if (process.platform === "linux") {
     // Download MongoDB installer

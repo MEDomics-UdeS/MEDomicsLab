@@ -620,7 +620,25 @@ export function getMongoDBPath() {
     }
     console.error("mongod not found")
     return null
-  } else {
+  } else if (process.platform === "darwin") {
+    // Check if mongod is in the process.env.PATH
+    const paths = process.env.PATH.split(path.delimiter)
+    for (let i = 0; i < paths.length; i++) {
+      const binPath = path.join(paths[i], "mongod")
+      if (fs.existsSync(binPath)) {
+        console.log("mongod found in PATH")
+        return binPath
+      }
+    }
+    // Check if mongod is in the default installation path on macOS - /usr/local/bin/mongod
+    const binPath = "/usr/local/bin/mongod"
+    if (fs.existsSync(binPath)) {
+      return binPath
+    }
+    console.error("mongod not found")
+    return null
+  }
+  else {
     return "mongod"
   }
 }
