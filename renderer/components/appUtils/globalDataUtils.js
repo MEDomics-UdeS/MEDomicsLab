@@ -1,5 +1,5 @@
 import { MEDDataObject } from "../../components/workspace/NewMedDataObject"
-import { recursivelyRecenseWorkspaceTree } from "./workspaceUtils"
+import { recursivelyRecenseWorkspaceTree } from "../appUtils/workspaceUtils"
 import { connectToMongoDB, insertMEDDataObjectIfNotExists } from "../../components/mongoDB/mongoDBUtils"
 
 /**

@@ -12,7 +12,7 @@ import { ServerConnectionProvider } from "../components/serverConnection/connect
 import { DataContextProvider } from "../components/workspace/dataContext"
 import { MEDDataObject } from "../components/workspace/NewMedDataObject"
 import { WorkspaceProvider } from "../components/workspace/workspaceContext"
-import { loadMEDDataObjects, updateGlobalData } from "./appUtils/globalDataUtils"
+import { loadMEDDataObjects, updateGlobalData } from "../components/appUtils/globalDataUtils"
 import { NotificationContextProvider } from "../components/generalPurpose/notificationContext"
 
 // CSS
