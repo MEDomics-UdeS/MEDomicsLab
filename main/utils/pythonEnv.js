@@ -151,6 +151,7 @@ export function getBundledPythonEnvironment() {
     console.log("process.env.USERPROFILE: ", process.env.USERPROFILE)
     let userPath = process.env.USERPROFILE
     let medomicsPath = path.join(userPath, ".medomics")
+
     console.log("medomicsPath: ", medomicsPath)
     // Check if the .medomics directory exists
     if (fs.existsSync(medomicsPath)) {
@@ -278,9 +279,11 @@ export function execCallbacksForChildWithNotifications(child, id, mainWindow) {
 }
 
 export async function installBundledPythonExecutable(mainWindow) {
-  let bundledPythonPath = path.join(process.cwd(), "python")
+  let bundledPythonPath = null
   if (process.env.NODE_ENV === "production") {
+    console.log("process.env.USERPROFILE: ", process.env.USERPROFILE)
     let userPath = process.env.USERPROFILE
+
     let medomicsPath = path.join(userPath, ".medomics")
     let pythonPath = path.join(medomicsPath, "python")
     // Check if the .medomics directory exists
