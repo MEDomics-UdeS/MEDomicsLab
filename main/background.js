@@ -6,7 +6,14 @@ import { installExtension, REACT_DEVELOPER_TOOLS } from "electron-extension-inst
 import MEDconfig from "../medomics.dev"
 import { runServer, findAvailablePort } from "./utils/server"
 import { setWorkingDirectory, getRecentWorkspacesOptions, loadWorkspaces, createMedomicsDirectory, updateWorkspace, createWorkingDirectory } from "./utils/workspace"
-import { getBundledPythonEnvironment, getInstalledPythonPackages, installPythonPackage, installBundledPythonExecutable, checkPythonRequirements } from "./utils/pythonEnv"
+import {
+  getBundledPythonEnvironment,
+  getInstalledPythonPackages,
+  installPythonPackage,
+  installBundledPythonExecutable,
+  checkPythonRequirements,
+  installRequiredPythonPackages
+} from "./utils/pythonEnv"
 import { installMongoDB, checkRequirements } from "./utils/installation"
 const fs = require("fs")
 var path = require("path")
@@ -458,7 +465,14 @@ ipcMain.handle("installBundledPythonExecutable", async (event) => {
     // If Python is not installed, install it
     return installBundledPythonExecutable(mainWindow)
   } else {
-    return true
+    // Check if the required packages are installed
+    let requirementsInstalled = checkPythonRequirements()
+    if (requirementsInstalled) {
+      return true
+    } else {
+      await installRequiredPythonPackages(mainWindow)
+      return true
+    }
   }
 })
 
@@ -637,8 +651,7 @@ export function getMongoDBPath() {
     }
     console.error("mongod not found")
     return null
-  }
-  else {
+  } else {
     return "mongod"
   }
 }
