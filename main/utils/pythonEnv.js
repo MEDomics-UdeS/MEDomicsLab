@@ -213,7 +213,11 @@ export function checkPythonRequirements(pythonPath = null, requirementsFilePath 
     pythonPath = getBundledPythonEnvironment()
   }
   if (requirementsFilePath === null) {
-    requirementsFilePath = path.join(process.cwd(), "pythonEnv", "merged_requirements.txt")
+    if (process.env.NODE_ENV === "production") {
+      requirementsFilePath = path.join(process.resourcesPath, "pythonEnv", "merged_requirements.txt")
+    } else {
+      requirementsFilePath = path.join(process.cwd(), "pythonEnv", "merged_requirements.txt")
+    }
   }
   let pythonPackages = getInstalledPythonPackages(pythonPath)
   let requirements = fs.readFileSync(requirementsFilePath, "utf8").split("\n")
