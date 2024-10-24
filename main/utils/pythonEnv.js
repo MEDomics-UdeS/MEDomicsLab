@@ -331,8 +331,11 @@ export async function installBundledPythonExecutable(mainWindow) {
       const { stdout: extrac, stderr: extracErr } = await extractionPromise
 
       // Install the required python packages
-      installPythonPackage(mainWindow, pythonExecutablePath, null, path.join(process.cwd(), "pythonEnv", "requirements.txt"))
-
+      if (process.env.NODE_ENV === "production") {
+        installPythonPackage(mainWindow, pythonExecutablePath, null, path.join(process.cwd(), "resources", "pythonEnv", "requirements.txt"))
+      } else {
+        installPythonPackage(mainWindow, pythonExecutablePath, null, path.join(process.cwd(), "pythonEnv", "requirements.txt"))
+      }
       let removeCommand = `rm ${outputFileName}`
       let removePromise = exec(removeCommand, { shell: "powershell.exe" })
       execCallbacksForChildWithNotifications(removePromise.child, "Python Exec. Removing", mainWindow)
@@ -363,7 +366,11 @@ export async function installBundledPythonExecutable(mainWindow) {
       const { stdout: remove, stderr: removeErr } = await removePromise
 
       // Install the required python packages
-      installPythonPackage(mainWindow, pythonExecutablePath, null, path.join(process.cwd(), "pythonEnv", "requirements_mac.txt"))
+      if (process.env.NODE_ENV === "production") {
+        installPythonPackage(mainWindow, pythonExecutablePath, null, path.join(process.resourcesPath, "pythonEnv", "requirements_mac.txt"))
+      } else {
+        installPythonPackage(mainWindow, pythonExecutablePath, null, path.join(process.cwd(), "pythonEnv", "requirements_mac.txt"))
+      }
     } else if (process.platform == "linux") {
       // Download the right python executable (arm64 or x86_64)
       let file = "cpython-3.9.18+20240224-x86_64_v4-unknown-linux-gnu-install_only.tar.gz"
@@ -385,7 +392,11 @@ export async function installBundledPythonExecutable(mainWindow) {
       const { stdout: remove, stderr: removeErr } = await removePromise
 
       // Install the required python packages
-      installPythonPackage(mainWindow, pythonExecutablePath, null, path.join(process.cwd(), "pythonEnv", "requirements.txt"))
+      if (process.env.NODE_ENV === "production") {
+        installPythonPackage(mainWindow, pythonExecutablePath, null, path.join(process.resourcesPath, "pythonEnv", "requirements.txt"))
+      } else {
+        installPythonPackage(mainWindow, pythonExecutablePath, null, path.join(process.cwd(), "pythonEnv", "requirements.txt"))
+      }
     }
   }
 }
