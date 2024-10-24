@@ -4,7 +4,7 @@ export const PORT_FINDING_METHOD = {
 }
 
 const config = {
-  runServerAutomatically: true,
+  runServerAutomatically: false,
   useReactDevTools: false,
   defaultPort: 54288,
   mongoPort: 54017,
