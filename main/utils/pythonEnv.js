@@ -280,11 +280,15 @@ export function execCallbacksForChildWithNotifications(child, id, mainWindow) {
 
 export async function installBundledPythonExecutable(mainWindow) {
   let bundledPythonPath = null
+
+  let medomicsPath = null
+  let pythonParentFolderExtractString = ""
   if (process.env.NODE_ENV === "production") {
     console.log("process.env.USERPROFILE: ", process.env.USERPROFILE)
     let userPath = process.env.USERPROFILE
 
-    let medomicsPath = path.join(userPath, ".medomics")
+    medomicsPath = path.join(userPath, ".medomics")
+    pythonParentFolderExtractString = "-C " + medomicsPath
     let pythonPath = path.join(medomicsPath, "python")
     // Check if the .medomics directory exists
     if (fs.existsSync(medomicsPath)) {
@@ -320,21 +324,19 @@ export async function installBundledPythonExecutable(mainWindow) {
       execCallbacksForChildWithNotifications(downloadPromise.child, "Python Downloading", mainWindow)
 
       const { stdout, stderr } = await downloadPromise
-      let extractCommand = `tar -xvf ${outputFileName}`
+      let extractCommand = `tar -xvf ${outputFileName} ${pythonParentFolderExtractString}`
       let extractionPromise = exec(extractCommand, { shell: "powershell.exe" })
       execCallbacksForChildWithNotifications(extractionPromise.child, "Python Exec. Extracting", mainWindow)
 
       const { stdout: extrac, stderr: extracErr } = await extractionPromise
 
+      // Install the required python packages
+      installPythonPackage(mainWindow, pythonExecutablePath, null, path.join(process.cwd(), "pythonEnv", "requirements.txt"))
+
       let removeCommand = `rm ${outputFileName}`
       let removePromise = exec(removeCommand, { shell: "powershell.exe" })
       execCallbacksForChildWithNotifications(removePromise.child, "Python Exec. Removing", mainWindow)
       const { stdout: remove, stderr: removeErr } = await removePromise
-
-      // Install the required python packages
-      installPythonPackage(mainWindow, pythonExecutablePath, null, path.join(process.cwd(), "pythonEnv", "requirements.txt"))
-
-      // Extract the python executable
     } else if (process.platform == "darwin") {
       // Download the right python executable (arm64 or x86_64)
       let isArm64 = process.arch === "arm64"
@@ -344,7 +346,7 @@ export async function installBundledPythonExecutable(mainWindow) {
       }
 
       let url = `https://github.com/indygreg/python-build-standalone/releases/download/20240224/${file}`
-      let extractCommand = `tar -xvf ${file}`
+      let extractCommand = `tar -xvf ${file} ${pythonParentFolderExtractString}`
       let downloadPromise = exec(`/bin/bash -c "$(curl -fsSLO ${url})"`)
       execCallbacksForChildWithNotifications(downloadPromise.child, "Python Downloading", mainWindow)
       const { stdout, stderr } = await downloadPromise
@@ -366,7 +368,7 @@ export async function installBundledPythonExecutable(mainWindow) {
       // Download the right python executable (arm64 or x86_64)
       let file = "cpython-3.9.18+20240224-x86_64_v4-unknown-linux-gnu-install_only.tar.gz"
       let url = `https://github.com/indygreg/python-build-standalone/releases/download/20240224/${file}`
-      let extractCommand = `tar -xvf ${file}`
+      let extractCommand = `tar -xvf ${file}  ${pythonParentFolderExtractString}`
 
       let downloadPromise = exec(`wget ${url}`)
       execCallbacksForChildWithNotifications(downloadPromise.child, "Python Downloading", mainWindow)
