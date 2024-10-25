@@ -51,6 +51,9 @@
       "icon": "resources/icons",
       "maintainer": "medomicslab.udes@gmail.com"
     },
+    "deb": {
+      "afterInstall": "build/after-install.sh"
+    },
     "publish": null
   },
   "scripts": {
