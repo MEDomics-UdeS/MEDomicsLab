@@ -146,18 +146,11 @@ export function getBundledPythonEnvironment() {
   let pythonEnvironment = null
 
   let bundledPythonPath = null
-  console.log("process.env.NODE_ENV: ", process.env.NODE_ENV)
-  console.log("process.resourcesPath: ", process.resourcesPath)
-  console.log("process.cwd(): ", process.cwd())
-  console.log("process.USERPROFILE: ", getHomePath())
-  console.log("process.HOME: ", process.env.HOME)
   if (process.env.NODE_ENV === "production") {
     // Get the user path followed by .medomics
-    console.log("getHomePath(): ", getHomePath())
     let userPath = getHomePath()
     let medomicsPath = path.join(userPath, ".medomics")
 
-    console.log("medomicsPath: ", medomicsPath)
     // Check if the .medomics directory exists
     if (fs.existsSync(medomicsPath)) {
       // Check if the python directory exists
@@ -167,7 +160,6 @@ export function getBundledPythonEnvironment() {
       }
     } else {
       // Create the .medomics directory
-      console.log("Creating .medomics directory")
       fs.mkdirSync(medomicsPath)
     }
 
@@ -180,8 +172,6 @@ export function getBundledPythonEnvironment() {
   if (process.platform == "win32") {
     pythonEnvironment = path.join(bundledPythonPath, "python.exe")
   }
-  console.log("Python Environment bundledPythonPath: " + bundledPythonPath)
-  console.log("Python Environment: " + pythonEnvironment)
   if (!fs.existsSync(pythonEnvironment)) {
     pythonEnvironment = null
   }

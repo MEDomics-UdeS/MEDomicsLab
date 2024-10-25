@@ -38,7 +38,6 @@ const SettingsPage = (pageId = "settings") => {
    * @returns {void}
    */
   const checkMongoIsRunning = () => {
-    console.log("Checking if MongoDB is running")
     ipcRenderer.invoke("checkMongoIsRunning").then((status) => {
       console.log("MongoDB is running: ", status)
       setMongoServerIsRunning(status)
@@ -115,7 +114,7 @@ const SettingsPage = (pageId = "settings") => {
       checkServer()
       checkMongoIsRunning()
       ipcRenderer.invoke("getBundledPythonEnvironment").then((res) => {
-        console.log("Python imbedded: ", res)
+        console.log("Python embedded: ", res)
 
         if (res !== null) {
           ipcRenderer.invoke("getInstalledPythonPackages", res).then((pythonPackages) => {
@@ -307,17 +306,20 @@ const SettingsPage = (pageId = "settings") => {
                     style={{ backgroundColor: mongoServerIsRunning ? "grey" : "#54a559", borderColor: mongoServerIsRunning ? "grey" : "#54a559", marginRight: "1rem" }}
                     disabled={mongoServerIsRunning}
                   />
-
+                  {process.env.NODE_ENV === "development" && (
+                    <>
                   <Button
                     label="Show first setup modal"
                     className="p-button-info"
                     onClick={() => {
                       console.log("show first setup modal")
                       setFirstSetupModalVisible(true)
+
                     }}
                     // style={{ backgroundColor: serverIsRunning ? "#d55757" : "grey", borderColor: serverIsRunning ? "#d55757" : "grey" }}
                     // disabled={!serverIsRunning}
                   />
+                  </>)}
                 </Col>
                 <Col xs={12} md={12} style={{ display: "flex", flexDirection: "row", justifyContent: "flex-start", alignItems: "center", flexWrap: "wrap", marginTop: ".75rem" }}>
                   <Col xs={12} md="auto" style={{ display: "flex", flexDirection: "row", justifyContent: "flex-start", alignItems: "center", flexWrap: "wrap" }}>
