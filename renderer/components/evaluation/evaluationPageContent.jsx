@@ -1,16 +1,16 @@
 import React, { useContext, useEffect, useState } from "react"
-import { PageInfosContext } from "../mainPages/moduleBasics/pageInfosContext"
-import { DataContext } from "../workspace/dataContext"
-import { LoaderContext } from "../generalPurpose/loaderContext"
 import { Col, Row } from "react-bootstrap"
 import { toast } from "react-toastify"
-import { WorkspaceContext } from "../workspace/workspaceContext"
 import { requestBackend } from "../../utilities/requests"
+import { getCollectionData } from "../dbComponents/utils"
+import { LoaderContext } from "../generalPurpose/loaderContext"
+import { PageInfosContext } from "../mainPages/moduleBasics/pageInfosContext"
+import { getCollectionColumns, overwriteMEDDataObjectContent } from "../mongoDB/mongoDBUtils"
+import { DataContext } from "../workspace/dataContext"
+import { MEDDataObject } from "../workspace/NewMedDataObject"
+import { WorkspaceContext } from "../workspace/workspaceContext"
 import PageConfig from "./pageConfig"
 import PageEval from "./pageEval"
-import { MEDDataObject } from "../workspace/NewMedDataObject"
-import { getCollectionColumns, overwriteMEDDataObjectContent } from "../mongoDB/mongoDBUtils"
-import { getCollectionData } from "../dbComponents/utils"
 
 /**
  * @description - This component is the evaluation page content component, it handles medeval config and evaluation
@@ -30,27 +30,32 @@ const EvaluationPageContent = () => {
 
   useEffect(() => {
     const fetchData = async () => {
+      let config = {}
+      if (chosenModel.id && chosenModel.name) {
+        config = { ...evalConfig, model: chosenModel }
+      }
       let configToLoadID = MEDDataObject.getChildIDWithName(globalData, pageId, "metadata.json")
       let configToLoad = await getCollectionData(configToLoadID)
-      setEvalConfig(configToLoad[0])
+      // Get the model's metadata if a model is selected
+      if (Object.keys(chosenModel).length > 0) {
+        let modelMetadataID = MEDDataObject.getChildIDWithName(globalData, chosenModel.id, "metadata.json")
+        let modelData = await getCollectionData(modelMetadataID)
+        if (config) {
+          config = {...config, ...configToLoad[0], ...modelData[0]}
+        }
+      } else {
+          config = {...config, ...configToLoad[0]}
+      }
+      setEvalConfig(config)
     }
     if (globalData && pageId) {
       fetchData()
     }
-  }, [pageId])
-
-  // handle updating the config when the chosen model changes
-  useEffect(() => {
-    if (!chosenModel.model || chosenModel.model?.length > 0) {
-      let config = { ...evalConfig }
-      config["model"] = chosenModel
-      setEvalConfig(config)
-    }
-  }, [chosenModel])
+  }, [pageId, chosenModel])
 
   // handle updating the config when the chosen dataset changes
   useEffect(() => {
-    if (!chosenDataset.dataset || (chosenDataset.dataset?.length > 0 && (!chosenDataset.selectedDatasets || chosenDataset.selectedDatasets.length > 0))) {
+    if (!chosenDataset.selectedDatasets || (chosenDataset.selectedDatasets?.length > 0 && chosenDataset.selectedDatasets[0].name && chosenDataset.selectedDatasets[0].id)) {
       let config = { ...evalConfig }
       config["dataset"] = chosenDataset
       setEvalConfig(config)
@@ -59,7 +64,6 @@ const EvaluationPageContent = () => {
 
   // when the config changes, we update the warnings
   useEffect(() => {
-    console.log("HERE", evalConfig)
     if (Object.keys(evalConfig).length > 0) {
       updateWarnings(evalConfig.useMedStandard)
     }
