@@ -21,7 +21,8 @@ const WsSelectMultiple = ({
   disabled,
   placeholder,
   whenEmpty = null,
-  setHasWarning = null
+  setHasWarning = null,
+  customProps = {}
 }) => {
   const { globalData } = useContext(DataContext) // We get the global data from the context to retrieve the directory tree of the workspace, thus retrieving the data files
   const [datasetList, setDatasetList] = useState([])
@@ -120,6 +121,7 @@ const WsSelectMultiple = ({
           options={datasetList}
           optionLabel="name"
           display="chip"
+          style={customProps}
         />
       ) : (
         whenEmpty

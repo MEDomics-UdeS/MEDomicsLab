@@ -447,6 +447,7 @@ const Input = ({ name, settingInfos, currentValue, onInputChange, disabled, setH
               }}
               setHasWarning={setHasWarning}
               whenEmpty={<Message severity="warn" text="No file(s) found in the workspace under '/learning' folder containing 'TX_' prefix (X is a number)" />}
+              customProps={customProps}
             />
             {createTooltip(settingInfos.tooltip, name)}
           </>
