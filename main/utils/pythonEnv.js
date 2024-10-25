@@ -146,10 +146,15 @@ export function getBundledPythonEnvironment() {
   let pythonEnvironment = null
 
   let bundledPythonPath = null
+  console.log("process.env.NODE_ENV: ", process.env.NODE_ENV)
+  console.log("process.resourcesPath: ", process.resourcesPath)
+  console.log("process.cwd(): ", process.cwd())
+  console.log("process.USERPROFILE: ", getHomePath())
+  console.log("process.HOME: ", process.env.HOME)
   if (process.env.NODE_ENV === "production") {
     // Get the user path followed by .medomics
-    console.log("process.env.USERPROFILE: ", process.env.USERPROFILE)
-    let userPath = process.env.USERPROFILE
+    console.log("getHomePath(): ", getHomePath())
+    let userPath = getHomePath()
     let medomicsPath = path.join(userPath, ".medomics")
 
     console.log("medomicsPath: ", medomicsPath)
@@ -282,14 +287,25 @@ export function execCallbacksForChildWithNotifications(child, id, mainWindow) {
   })
 }
 
+function getHomePath() {
+  let homePath = null
+  if (process.platform === "win32") {
+    homePath = process.env.USERPROFILE
+  } else {
+    homePath = process.env.HOME
+  }
+  return homePath
+}
+
 export async function installBundledPythonExecutable(mainWindow) {
   let bundledPythonPath = null
 
   let medomicsPath = null
   let pythonParentFolderExtractString = ""
   if (process.env.NODE_ENV === "production") {
-    console.log("process.env.USERPROFILE: ", process.env.USERPROFILE)
-    let userPath = process.env.USERPROFILE
+    
+    console.log("getHomePath(): ", getHomePath())
+    let userPath = getHomePath()
 
     medomicsPath = path.join(userPath, ".medomics")
     pythonParentFolderExtractString = "-C " + medomicsPath

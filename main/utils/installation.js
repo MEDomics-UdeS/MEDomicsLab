@@ -21,6 +21,43 @@ console.log = function () {
   }
 }
 
+
+export const checkIsBrewInstalled = async () => {
+  let isBrewInstalled = false
+  try {
+    let { stdout, stderr } = await exec(`brew --version`)
+    isBrewInstalled = stdout !== "" && stderr === ""
+  } catch (error) {
+    isBrewInstalled = false
+  }
+  return isBrewInstalled
+}
+
+export const checkIsXcodeSelectInstalled = async () => {
+  let isXcodeSelectInstalled = false
+  try {
+    let { stdout, stderr } = await exec(`xcode-select -p`)
+    isXcodeSelectInstalled = stdout !== "" && stderr === ""
+  } catch (error) {
+    isXcodeSelectInstalled = false
+  }
+}
+
+export const installBrew = async () => {
+  let installBrewPromise = exec(`/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"`)
+  execCallbacksForChildWithNotifications(installBrewPromise.child, "Installing Homebrew", mainWindow)
+  await installBrewPromise
+  return true
+}
+
+export const installXcodeSelect = async () => {
+  let installXcodeSelectPromise = exec(`xcode-select --install`)
+  execCallbacksForChildWithNotifications(installXcodeSelectPromise.child, "Installing Xcode Command Line Tools", mainWindow)
+  await installXcodeSelectPromise
+  return true
+}
+
+
 var path = require("path")
 const util = require("util")
 const exec = util.promisify(require("child_process").exec)

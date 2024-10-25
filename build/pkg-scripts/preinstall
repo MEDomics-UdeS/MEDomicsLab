@@ -1,0 +1,78 @@
+#!/bin/bash
+# Install MongoDB Community Edition on MacOS
+# https://docs.mongodb.com/manual/tutorial/install-mongodb-on-os-x/
+# Create a log file
+# LOG_FILE=/tmp/medomics_preinstall.log
+
+# xcode-select --install
+
+# MEDOMICS_DIR=~/.medomics
+# echo "Creating directory $MEDOMICS_DIR" >>$LOG_FILE
+# if [ ! -d "$MEDOMICS_DIR" ]; then
+#     mkdir $MEDOMICS_DIR
+#     echo "Directory $MEDOMICS_DIR created" >>$LOG_FILE
+# fi
+
+# echo "Checking if Homebrew is installed..." >>$LOG_FILE
+# test $(which brew) >>$LOG_FILE
+# # Check if Homebrew is installed
+# if test $(which brew); then
+#     echo "Installing Homebrew..." >>$LOG_FILE
+#     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
+# fi
+
+# echo "Checking if MongoDB is installed..." >>$LOG_FILE
+# test $(which mongod) >>$LOG_FILE
+# # Check if MongoDB is installed
+# if test $(which mongod); then
+#     echo "MongoDB is already installed" >>$LOG_FILE
+# else
+#     echo "Installing MongoDB..." >>$LOG_FILE
+#     # Tap the MongoDB Homebrew Tap
+#     brew tap mongodb/brew
+#     brew install mongodb-community@7.0
+#     echo "MongoDB installed" >>$LOG_FILE
+# fi
+
+# # Download Python and install it in the .medomics directory under the python directory
+# # let file = "cpython-3.9.18+20240224-x86_64-apple-darwin-install_only.tar.gz"
+# #       if (isArm64 === "arm64") {
+# #         file = `cpython-3.9.18+20240224-aarch64-apple-darwin-install_only.tar.gz`
+# #       }
+# # Check if arm64 or x86_64
+# if [ "$(uname -m)" == "arm64" ]; then
+#     echo "Downloading Python for arm64" >>$LOG_FILE
+#     PYTHON_URL=https://github.com/indygreg/python-build-standalone/releases/download/20240224/cpython-3.9.18+20240224-aarch64-apple-darwin-install_only.tar.gz
+#     PYTHON_FILE=cpython-3.9.18+20240224-aarch64-apple-darwin-install_only.tar.gz
+# else
+#     echo "Downloading Python for x86_64" >>$LOG_FILE
+#     PYTHON_URL=https://github.com/indygreg/python-build-standalone/releases/download/20240224/cpython-3.9.18+20240224-x86_64-apple-darwin-install_only.tar.gz
+#     PYTHON_FILE=cpython-3.9.18+20240224-x86_64-apple-darwin-install_only.tar.gz
+# fi
+
+# /bin/bash -c "$(curl -fsSLO $PYTHON_URL)" >>$LOG_FILE
+# echo "Python downloaded" >>$LOG_FILE
+# tar -xvf $PYTHON_FILE -C $MEDOMICS_DIR >>$LOG_FILE
+# echo "Python installed in $MEDOMICS_DIR" >>$LOG_FILE
+# rm $PYTHON_FILE >>$LOG_FILE
+
+# # Upgrade pip
+# echo "Upgrading pip" >>$LOG_FILE
+# if [ -f "$MEDOMICS_DIR/python/bin/pip3" ]; then
+#     $MEDOMICS_DIR/python/bin/pip3 install --upgrade pip >>$LOG_FILE
+# fi
+
+# echo "Requirements installation" >>$LOG_FILE
+# REQUIREMNTS_FILE=merged_requirements.txt
+# REQUIREMNTS_FULL_PATH=$PACKAGE_PATH/Contents/Resources/pythonEnv/$REQUIREMNTS_FILE
+# # REQUIREMNTS_FULL_PATH=/Users/nicolas/Documents/GitHub/MEDomicsLab/pythonEnv/requirements_mac.txt
+# echo "Checking if $REQUIREMNTS_FULL_PATH exists" >>$LOG_FILE
+# if [ -f "$MEDOMICS_DIR/python/bin/pip3" ]; then
+#     echo "Installing requirements from $REQUIREMNTS_FULL_PATH" >>$LOG_FILE
+#     $MEDOMICS_DIR/python/bin/pip3 install -r $REQUIREMNTS_FULL_PATH >>$LOG_FILE
+# fi
+
+# echo "Requirements installed" >>$LOG_FILE
+# echo "Preinstall script completed" >>$LOG_FILE
+
+exit 0
