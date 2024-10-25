@@ -180,12 +180,21 @@ export function getBundledPythonEnvironment() {
   if (process.platform == "win32") {
     pythonEnvironment = path.join(bundledPythonPath, "python.exe")
   }
-  console.log("Python Environment bundledPythonPath: ", bundledPythonPath)
-  console.log("Python Environment: ", pythonEnvironment)
+  console.log("Python Environment bundledPythonPath: " + bundledPythonPath)
+  console.log("Python Environment: " + pythonEnvironment)
   if (!fs.existsSync(pythonEnvironment)) {
     pythonEnvironment = null
   }
   return pythonEnvironment
+}
+
+export async function installRequiredPythonPackages(mainWindow) {
+  let requirementsFileName = process.platform === "darwin" ? "requirements_mac.txt" : "requirements.txt"
+  if (process.env.NODE_ENV === "production") {
+    installPythonPackage(mainWindow, pythonExecutablePath, null, path.join(process.cwd(), "resources", "pythonEnv", requirementsFileName))
+  } else {
+    installPythonPackage(mainWindow, pythonExecutablePath, null, path.join(process.cwd(), "pythonEnv", requirementsFileName))
+  }
 }
 
 function comparePythonInstalledPackages(pythonPackages, requirements) {

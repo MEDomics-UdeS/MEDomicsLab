@@ -113,7 +113,7 @@ const NotificationOverlay = () => {
       <div className="notification-overlay" style={styleCard}>
         {/*  */}
         <Button icon="pi pi-bell" text aria-label="Notification" onClick={(e) => op.current.toggle(e)} style={style}>
-          {localNotifications.length > 0 && <Badge value={localNotifications.length} severity="danger"></Badge>}
+          {notifications.length > 0 && <Badge value={notifications.length} severity="danger"></Badge>}
         </Button>
         <OverlayPanel ref={op} style={style2} dismissable={false}>
           <p

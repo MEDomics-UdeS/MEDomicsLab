@@ -59,14 +59,17 @@ const FirstSetupModal = ({ visible, onHide, closable, setRequirementsMet }) => {
 
   const startSetup = () => {
     if (!mongoDBIsInstalled) installMongoDB()
-    if (!pythonIsInstalled) installPython()
+    installPython()
   }
 
   const closeFirstSetupModal = () => {
     setNotifications([])
-    setRequirementsMet(true)
+    // Check if setRequirementsMet is a function before calling it
+    if (typeof setRequirementsMet === "function") {
+      setRequirementsMet(true)
+    }
     ipcRenderer.invoke("getBundledPythonEnvironment").then((pythonPath) => {
-      console.log("Starting the go server with the bundled python environment: ", pythonPath)
+      console.log("Starting the go server with the bundled python environment: " + pythonPath)
       ipcRenderer.invoke("start-server", pythonPath).then((serverProcess) => {
         console.log("Server process: ", serverProcess)
       })
@@ -144,11 +147,11 @@ const FirstSetupModal = ({ visible, onHide, closable, setRequirementsMet }) => {
           accumulatedMongoDBProgress += 1
         }
       }
-      if(accumulatedMongoDBProgress == numberOfSteps) {
+      if (accumulatedMongoDBProgress == numberOfSteps) {
         setMongoDBInstallationProgress(100)
       } else {
         setMongoDBInstallationProgress(((accumulatedMongoDBProgress / numberOfSteps) * 100).toFixed(1))
-        }
+      }
     }
 
     if (!pythonIsInstalled || pythonIsInstalling) {
@@ -209,6 +212,7 @@ const FirstSetupModal = ({ visible, onHide, closable, setRequirementsMet }) => {
 
             if (data.mongoDBInstalled) {
               setMongoDBIsInstalled(true)
+              setMongoDBInstallationProgress(100)
             }
 
             if (data.mongoDBInstalled && pythonIsFullyInstalled) {
