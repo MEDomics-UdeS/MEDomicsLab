@@ -33,8 +33,13 @@
     ],
     "extends": null,
     "mac": {
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false,
       "category": "public.app-category.developer-tools",
       "target": "pkg"
+    },
+    "pkg": {
+      "isRelocatable": false
     },
     "win": {
       "target": "nsis",

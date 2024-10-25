@@ -90,7 +90,7 @@ const HomePage = () => {
           )}
         </Stack>
       </div>
-      {!requirementsMet && <FirstSetupModal visible={!requirementsMet} closable={false} setRequirementsMet={setRequirementsMet} />}
+      {!requirementsMet && process.platform !=="darwin" && <FirstSetupModal visible={!requirementsMet} closable={false} setRequirementsMet={setRequirementsMet} />}
     </>
   )
 }

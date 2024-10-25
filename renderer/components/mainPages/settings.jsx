@@ -196,6 +196,14 @@ const SettingsPage = (pageId = "settings") => {
       }
       console.error("mongod not found")
       return null
+    } else if (process.platform === "darwin") {
+      if (process.env.NODE_ENV === "production") {
+        if (fs.existsSync(path.join(process.env.HOME, ".medomics", "mongodb", "bin", "mongod"))) {
+          return path.join(process.env.HOME, ".medomics", "mongodb", "bin", "mongod")
+        }
+      } else {
+        return "mongod"
+      }
     } else {
       return "mongod"
     }
