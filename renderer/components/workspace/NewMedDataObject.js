@@ -10,7 +10,7 @@ import { deleteMEDDataObject, downloadCollectionToFile, insertMEDDataObjectIfNot
  * @description class definition of a MEDDataObject
  */
 export class MEDDataObject {
-  constructor({ id, name, type, parentID, childrenIDs, inWorkspace, path }) {
+  constructor({ id, name, type, parentID, childrenIDs, inWorkspace, path, isLocked, usedIn }) {
     this.id = id
     this.name = name
     this.type = type
@@ -18,6 +18,8 @@ export class MEDDataObject {
     this.childrenIDs = childrenIDs
     this.inWorkspace = inWorkspace
     this.path = path
+    this.isLocked = isLocked
+    this.usedIn = usedIn
   }
 
   /**
@@ -146,6 +148,28 @@ export class MEDDataObject {
       }
     }
     return path.join(workspacePath, ...pathParts)
+  }
+
+  /**
+   * @description Creates an empty folder in the file system.
+   * @param {string} name
+   * @param {string} path
+  */
+  static createFolderFSsync(path) {
+    // eslint-disable-next-line no-undef
+    let fs = require("fs")
+    const fsPromises = fs.promises
+    this.updateWorkspaceDataObject(1000)
+    return new Promise((resolve) => {
+      fsPromises
+        .mkdir(path, { recursive: true })
+        .then(function () {
+          resolve(path)
+        })
+        .catch(function () {
+          console.error("failed to create directory")
+        })
+    })
   }
 
   /**
@@ -299,6 +323,61 @@ export class MEDDataObject {
 
     // Save the updated dictionary
     this.updateWorkspaceDataObject()
+  }
+
+  /**
+   * @description Lock a MEDDataObject to prevent it from being deleted
+   * @param {String} id - the id of the MEDDataObject to lock
+   * 
+   * @returns {void}
+   */
+  static async lockMedDataObject(id) {
+    const success = await overwriteMEDDataObjectProperties(id, { isLocked: true })
+    if (success) {
+      console.log(`Locked MEDDataObject with id ${id}`)
+    } else {
+      console.error(`Failed to lock MEDDataObject with id ${id}`)
+    }
+    this.updateWorkspaceDataObject()
+  }
+
+  /**
+   * @description Unlock a MEDDataObject to allow it to be deleted
+   * @param {String} id - the id of the MEDDataObject to unlock
+   * 
+   * @returns {void}
+   */
+  static async unlockMedDataObject(id) {
+    const success = await overwriteMEDDataObjectProperties(id, { isLocked: false })
+    if (success) {
+      console.log(`Unlocked MEDDataObject with id ${id}`)
+    } else {
+      console.error(`Failed to unlock MEDDataObject with id ${id}`)
+    }
+    this.updateWorkspaceDataObject()
+  }
+  
+  /**
+   * @description Verify locked objects in the workspace and unlock them if not linked to any other object
+   * @param {Dictionary} dict - dictionary of all MEDDataObjects
+   * 
+   * @returns {void}
+   */
+  static verifyLockedObjects(dict) {
+    for (const [, object] of Object.entries(dict)) {
+      if (object.isLocked) {
+        let isUsed = false
+        for (const [, obj] of Object.entries(dict)) {
+          if (object.usedIn === obj.id) {
+            isUsed = true
+            break
+          }
+        }
+        if (!isUsed) {
+          this.unlockMedDataObject(object.id)
+        }
+      }
+    }
   }
 
   /**

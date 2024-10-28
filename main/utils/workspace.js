@@ -130,10 +130,11 @@ export function updateWorkspace(workspacePath) {
  * Generate recent workspaces options
  * @param {*} event The event
  * @param {*} mainWindow The main window
+ * @param {*} hasBeenSet A boolean indicating if the workspace has been set
  * @param {*} workspacesArray The array of workspaces, if null, the function will load the workspaces
  * @returns {Array} An array of recent workspaces options
  */
-export function getRecentWorkspacesOptions(event, mainWindow, hasBeenSet, workspacesArray = null) {
+export function getRecentWorkspacesOptions(event, mainWindow, hasBeenSet, serverPort, workspacesArray = null) {
   let workspaces
   if (workspacesArray === null) {
     workspaces = loadWorkspaces()
@@ -160,6 +161,29 @@ export function getRecentWorkspacesOptions(event, mainWindow, hasBeenSet, worksp
     }
   })
   return recentWorkspacesOptions
+}
+
+// Function to create the working directory
+export function createWorkingDirectory() {
+  // See the workspace menuTemplate in the repository
+  createFolder("DATA")
+  createFolder("EXPERIMENTS")
+}
+
+// Function to create a folder from a given path
+function createFolder(folderString) {
+  // Creates a folder in the working directory
+  const folderPath = path.join(app.getPath("sessionData"), folderString)
+  // Check if the folder already exists
+  if (!fs.existsSync(folderPath)) {
+    fs.mkdir(folderPath, { recursive: true }, (err) => {
+      if (err) {
+        console.error(err)
+        return
+      }
+      console.log("Folder created successfully!")
+    })
+  }
 }
 
 // Function to create the .medomics directory and necessary files

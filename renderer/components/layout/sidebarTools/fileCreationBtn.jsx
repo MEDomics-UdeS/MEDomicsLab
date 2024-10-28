@@ -111,7 +111,6 @@ const FileCreationBtn = ({ createEmptyFile, label = "Create Page", piIcon = "pi-
             <div className="button-group">
               <Button label="Create" type="submit" icon="pi pi-plus" iconPos="left" disabled={!btnCreateSceneState} onClick={handleFileCreation} />
               <Button label="Cancel" icon="pi pi-times" iconPos="left" onClick={(e) => createSceneRef.current.toggle(e)} />
-              
             </div>
           </div>
         </div>
