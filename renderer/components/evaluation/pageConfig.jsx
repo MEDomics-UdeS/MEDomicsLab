@@ -41,11 +41,6 @@ const PageConfig = ({
   useEffect(() => {
     setChosenDataset({ selectedDatasets })
     updateWarnings(useMedStandard)
-  }, [])
-
-  useEffect(() => {
-    setChosenDataset({ selectedDatasets })
-    updateWarnings(useMedStandard)
   }, [selectedDatasets])
 
   // header template

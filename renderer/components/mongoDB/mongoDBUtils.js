@@ -409,6 +409,20 @@ export async function getCollectionColumns(collectionId) {
 }
 
 /**
+ * @description Get the tags of a collection specified by id
+ * @param {String} collectionId Id of the collection to retrieve tags from
+ * @returns {Array} An array of tags
+ */
+export async function getCollectionTags(collectionId) {
+  let tagsUUID = localStorage.getItem("tagsUUID") ? localStorage.getItem("tagsUUID") : "column_tags"
+  const db = await connectToMongoDB()
+  const collection = db.collection(tagsUUID)
+  const result = await collection.find({ collection_id: collectionId })
+
+  return result
+}
+
+/**
  * @description Download the content of a MongoDB collection to a file.
  * @param {String} collectionId The ID of the collection.
  * @param {String} filePath The path where the file should be saved.
