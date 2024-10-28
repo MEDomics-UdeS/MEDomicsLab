@@ -184,14 +184,16 @@ const ApplicationPage = ({ pageId }) => {
 
   // when the chosen model changes, update the model metadata
   useEffect(() => {
+    setModelMetadata(null)
     const fetchData = async (metadataObjectID) => {
+      setModelMetadata(null)
       const metadata = await getCollectionData(metadataObjectID)
       if (metadata) {
         setModelMetadata(metadata[0])
         updateWarnings()
       }
     }
-    if (chosenModel) {
+    if (chosenModel.id) {
       const metadataObjectID = MEDDataObject.getChildIDWithName(globalData, chosenModel.id, "metadata.json")
       if (metadataObjectID) {
         fetchData(metadataObjectID)
