@@ -1,99 +1,99 @@
-# MEDomicsLab - Develop branch 🛠️
+# MEDomicsLab: Integrative Modeling of Heterogeneous Data in Medicine
 
-[![GitHub build](https://img.shields.io/github/workflow/status/MEDomics-UdeS/MEDomicsLab/Build%20and%20test%20electron%20app%20on%20push%20to%20develop%20branch)]()
-[![GitHub last commit](https://img.shields.io/github/last-commit/MEDomics-UdeS/MEDomicsLab)]()
-[![GitHub contributors](https://img.shields.io/github/contributors/MEDomics-UdeS/MEDomicsLab)]()
-[![GitHub issues](https://img.shields.io/github/issues/MEDomics-UdeS/MEDomicsLab)]()
+<div align="center">
+  <picture>
+    <img
+      width="200"
+      src="./resources/MEDomicsLabWithShadow700.png"
+      alt="MEDomicsLab logo white text"
+    />
+  </picture>
+</div>
+
 [![GitHub forks](https://img.shields.io/github/forks/MEDomics-UdeS/MEDomicsLab)]()
 [![GitHub stars](https://img.shields.io/github/stars/MEDomics-UdeS/MEDomicsLab)]()
 [![GitHub release](https://img.shields.io/github/release/MEDomics-UdeS/MEDomicsLab)]()
 [![GitHub license](https://img.shields.io/github/license/MEDomics-UdeS/MEDomicsLab)]()
+[![Gitbook docs](https://img.shields.io/badge/GitBook-Documentation-lg?logo=gitbook&logoColor=white)](https://medomics-udes.gitbook.io/medomicslab-docs)
+[![YouTube Channel](https://img.shields.io/badge/YouTube-Channel-red?logo=youtube&logoColor=white)](https://www.youtube.com/@MEDomicsLab)
 
-Here is the develop branch of the MEDomicsLab project. This branch is used to develop new features and fix bugs. The main branch is used to publish the latest stable version of the project. The develop branch is merged into the main branch when a new stable version is ready to be published.
 
-### Main documentation 👉 [here](https://medomics-udes.gitbook.io/medomicslab-docs/). 👈
 
-### Development documentation 👇
 
-# Getting started - Development
+## What is MEDomicsLab?
+**MEDomicsLab** is an open-source platform designed to advance medical AI by bridging 
+clinical and computational research. It empowers clinicians to design experiments, 
+enables computer scientists to customize and adapt them, and refines processes with a 
+flexible backend. The platform offers multiple usage levels: intuitive built-in pipelines, 
+customizable settings, automatic code generation, and modular Python libraries—enhancing 
+collaboration and innovation across healthcare professionals and data scientists.
 
-This is considering that you are a developper and want to contribute to the project.
+## MEDomicsLab overview
+**MEDomicsLab** is focused on integrative modeling of heterogeneous medical data to 
+support personalized treatments. The platform offers an environment for manipulating 
+heterogeneous medical data and developing predictive models to enable the characterization 
+of biological processes. The end-goal is to give researchers the ability to leverage diverse 
+data types contributing to more personalized and effective treatment models by enhancing the 
+synergy between several disciplines.
 
-- I am a **user** and want to **install** the latest release: [Go here](https://medomics-udes.gitbook.io/medomicslab-docs/quick-start)
-- I am a **developper** and want to **setup the project**: [Go here](https://medomics-udes.gitbook.io/medomicslab-docs/contributing)
-- I am a **developper** and i **already setup** the required softwares: **You are at the right place !**
+<div align="center">
+  <picture width="600">
+    <img
+      width="600"
+      src="./resources/overview.webp"
+      alt="MEDomicsLab logo white text"
+    />
+  </picture>
+</div>
 
-## 1. Git clone the project
+## MEDomicsLab modules
+**MEDomicsLab** platform uses a modular workflow, detailing how patient data is processed 
+to develop and test predictive models for clinical use. The workflow consists of several 
+key modules:
 
-```
-git clone git@github.com:MEDomics-UdeS/MEDomicsLab.git      # via SSH (recommended)
-git clone https://github.com/MEDomics-UdeS/MEDomicsLab.git  # via HTTPS
-```
+1. [**Input Module**](https://medomics-udes.gitbook.io/medomicslab-docs/tutorials/design/input-module).
+2. [**Extraction Module**](https://medomics-udes.gitbook.io/medomicslab-docs/tutorials/design/extraction-modules).
+3. [**Exploratory Module**](https://medomics-udes.gitbook.io/medomicslab-docs/tutorials/design/exploratory-module).
+4. [**Learning Module**](https://medomics-udes.gitbook.io/medomicslab-docs/tutorials/development/learning-module).
+5. [**Evaluation Module**](https://medomics-udes.gitbook.io/medomicslab-docs/tutorials/development/evaluation-module).
+6. [**Application Module**](https://medomics-udes.gitbook.io/medomicslab-docs/tutorials/deployment/application-module).
 
-## 2. Initialize submodules when cloning the project
+Each module supports the transition from raw data to clinically relevant predictive modeling 
+in a customizable way.
 
-```
-cd <.../MEDomicsLab/>
-git submodule init
-git submodule update --init --recursive --remote
-cd pythonCode/submodules/MEDimage
-git checkout dev_lab
-cd ../MEDprofiles
-git checkout fusion_MEDomicsLab
-```
+<div align="center">
+  <picture width="600">
+    <img
+      width="600"
+      src="./resources/MEDomicsLabModelsOverview.png"
+      alt="MEDomicsLab logo white text"
+    />
+  </picture>
+</div>
 
-## 3. Be sure to have the npm packages installed
+## MEDomicsLab in Action
+Explore MEDomicsLab's powerful features through these snapshots, 
+highlighting its intuitive interface and versatile tools for medical data analysis.
 
-```
-cd <.../MEDomicsLab/>
-npm install
-```
+<p float="left">
+  <img src="./resources/DataTable.png" width="350" />
+  <img src="./resources/InputModule.png" width="350" />
+  <img src="./resources/ExtractionModule.png" width="310" /> 
+  <img src="./resources/MEDprofilesViewer.png" width="350" />
+  <img src="./resources/LearningModule.png" width="350" />
+  <img src="./resources/ExploratoryModule.png" width="350" />
+</p>
 
-## 4. When you modify .go files, you need to rebuild the executable
+## Installation and Usage
+[Get started here](https://medomics-udes.gitbook.io/medomicslab-docs/quick-start).
+![Operating systems supported by MEDomicsLab](./resources/OSSystemsSupport.png)
 
-- You can do it manually by running `go build main.go` in the `go_server` folder
-- You can also use a script that you can run from the root folder of the project:
-  - Windows : `.\utilScripts\pack_GO.bat`
-  - Linux : `bash utilScripts/pack_GO_linux.sh`
-  - MacOS : `bash utilScripts/pack_GO_mac.sh`
+### Explore documentation
+Detailed documentation for MEDomicsLab can be found 
+[here](https://medomics-udes.gitbook.io/medomicslab-docs/).
 
-## 5. Python environment
+### Engage in MEDomicsLab
+Explore our [contribution page](https://medomics-udes.gitbook.io/medomicslab-docs/contributing) 
+for resources on contributing to MEDomicsLab and setting up your development environment.
 
-The python environment is created automatically with the scripts in the `pythonEnv` folder.
-You have to run it manually by executing the following commands:
-
-- Windows : `.\pythonEnv\create_conda_env_win.bat`
-- Linux : `bash pythonEnv/create_conda_env_linux.sh`
-
-The script will create a conda environment named `med_conda_env`, install the required packages in it and create an environment variable named `MED_ENV` that contains the path to the environment.
-
-When developping python code, you may need to install new packages. To do so, you can activate the environment and install the package with pip:
-
-```
-conda activate med_conda_env
-pip install <package_name>
-```
-
-## 6. Run the Electron app in development mode
-
-`npm run dev`
-
-### Modify startup settings
-
-1. Go to file `medomics.dev.js`
-2. Here is a description of the Object:
-
-```javascript
-const config = {
-  // If true, the server will be run automatically when the app is launched
-  runServerAutomatically: true,
-  // If true, use the react dev tools
-  useRactDevTools: false,
-  // the default port to use for the server, be sure that no programs use it by default
-  defaultPort: 5000,
-  // Either "FIX" or "AVAILABLE" (case sensitive)
-  // FIX 		-­> if defaultPort is used, force terminate and use defaultPort
-  // AVAILABLE 	-> if defaultPort is used, iterate to find next available port
-  portFindingMethod: PORT_FINDING_METHOD.FIX
-}
-```
+<img src="./resources/ContributingTools.png"/>
