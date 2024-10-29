@@ -13,11 +13,9 @@
 [![GitHub forks](https://img.shields.io/github/forks/MEDomics-UdeS/MEDomicsLab)]()
 [![GitHub stars](https://img.shields.io/github/stars/MEDomics-UdeS/MEDomicsLab)]()
 [![GitHub release](https://img.shields.io/github/release/MEDomics-UdeS/MEDomicsLab)]()
-[![GitHub license](https://img.shields.io/github/license/MEDomics-UdeS/MEDomicsLab)]()
+[![GitHub license](https://img.shields.io/github/license/MEDomics-UdeS/MEDomicsLab)](https://opensource.org/license/gpl-3-0)
 [![Gitbook docs](https://img.shields.io/badge/GitBook-Documentation-lg?logo=gitbook&logoColor=white)](https://medomics-udes.gitbook.io/medomicslab-docs)
 [![YouTube Channel](https://img.shields.io/badge/YouTube-Channel-red?logo=youtube&logoColor=white)](https://www.youtube.com/@MEDomicsLab)
-
-
 
 
 ## What is MEDomicsLab?
@@ -76,16 +74,17 @@ Explore MEDomicsLab's powerful features through these snapshots,
 highlighting its intuitive interface and versatile tools for medical data analysis.
 
 <p float="left">
-  <img src="./resources/DataTable.png" width="350" />
-  <img src="./resources/InputModule.png" width="350" />
+  <img src="./resources/DataTable.PNG" width="350" />
+  <img src="./resources/InputModule.PNG" width="350" />
   <img src="./resources/ExtractionModule.png" width="310" /> 
   <img src="./resources/MEDprofilesViewer.png" width="350" />
-  <img src="./resources/LearningModule.png" width="350" />
+  <img src="./resources/LearningModule.PNG" width="350" />
   <img src="./resources/ExploratoryModule.png" width="350" />
 </p>
 
 ## Installation and Usage
 [Get started here](https://medomics-udes.gitbook.io/medomicslab-docs/quick-start).
+
 ![Operating systems supported by MEDomicsLab](./resources/OSSystemsSupport.png)
 
 ### Explore documentation
