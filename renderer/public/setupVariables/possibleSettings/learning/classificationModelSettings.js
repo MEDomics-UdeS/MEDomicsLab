@@ -5,57 +5,57 @@ const classificationModelSettings = {
             "penalty": {
                 "type": "string",
                 "default_val": "l2",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "{‘l1’, ‘l2’}, default=’l2’ Specifies the norm used in the penalization. The ‘l2’ penalty is the standard used in SVC. The ‘l1’ leads to coef_ vectors that are sparse."
             },
             "dual": {
                 "type": "bool",
                 "default_val": "False",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "bool, default=”false” Select the algorithm to either solve the dual or primal optimization problem. Prefer dual=False when n_samples > n_features."
             },
             "tol": {
                 "type": "float",
                 "default_val": "0.0001",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "float, default=0.0001. Tolerance for stopping criteria."
             },
             "C": {
                 "type": "float",
                 "default_val": "1.0",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "float, default=1.0. Regularization parameter. The strength of the regularization is inversely proportional to C. Must be strictly positive."
             },
             "fit_intercept": {
                 "type": "bool",
                 "default_val": "True",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "Bool. default=True. Whether to calculate the intercept for this model. If set to False, no intercept will be used in calculations (i.e. data is expected to be centered)."
             },
             "intercept_scaling": {
                 "type": "int",
                 "default_val": "1",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "int, default=1. When fit_intercept is True, the instance vector x becomes [x_1, ..., x_n, intercept_scaling], i.e. a “synthetic” feature with a constant value equal to intercept_scaling is appended to the instance vector. The intercept becomes intercept_scaling * synthetic feature weight. Note that liblinear internally penalizes the intercept, treating it like any other term in the feature vector. To reduce the impact of the regularization on the intercept, the intercept_scaling parameter can be set to a value greater than 1; the higher the value of intercept_scaling, the lower the impact of regularization on it. Then, the weights become [w_x_1, ..., w_x_n, w_intercept*intercept_scaling], where w_x_1, ..., w_x_n represent the feature weights and the intercept weight is scaled by intercept_scaling. This scaling allows the intercept term to have a different regularization behavior compared to the other features."
             },
             "class_weight": {
                 "type": "NoneType",
                 "default_val": "None",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "NoneType, default=None. Set the parameter C of class i to class_weight[i]*C for SVC. If not given, all classes are supposed to have weight one. The “balanced” mode uses the values of y to automatically adjust weights inversely proportional to class frequencies in the input data as n_samples / (n_classes * np.bincount(y))."
             },
             "random_state": {
                 "type": "int",
                 "default_val": "1334",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "int, default=1334. Controls the pseudo random number generation for shuffling the data for the dual coordinate descent (if dual=True). When dual=False the underlying implementation of LinearSVC is not random and random_state has no effect on the results. Pass an int for reproducible output across multiple function calls."
             },
             "solver": {
                 "type": "string",
                 "default_val": "lbfgs",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "string, default=’lbfgs’. Algorithm to use in the optimization problem."
             },
             "max_iter": {
                 "type": "int",
                 "default_val": "1000",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "int, default=1000. The maximum number of iterations to be run."
             },
             "multi_class": {
                 "type": "string",
                 "default_val": "auto",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "String, default='auto' Determines the multi-class strategy if y contains more than two classes."
             },
             "verbose": {
                 "type": "int",
@@ -65,12 +65,12 @@ const classificationModelSettings = {
             "warm_start": {
                 "type": "bool",
                 "default_val": "False",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "bool, default=False. When set to True, reuse the solution of the previous call to fit as initialization, otherwise, just erase the previous solution."
             },
             "n_jobs": {
                 "type": "NoneType",
                 "default_val": "None",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "NoneType, default=None. Number of CPU cores used when parallelizing over classes if multi_class=’ovr’”. This parameter is ignored when the solver is set to ‘liblinear’ regardless of whether ‘multi_class’ is specified or not."
             },
             "l1_ratio": {
                 "type": "NoneType",
@@ -120,7 +120,7 @@ const classificationModelSettings = {
             "n_jobs": {
                 "type": "int",
                 "default_val": "-1",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "int, default=-1. Number of CPU cores used when parallelizing over classes if multi_class=’ovr’”. This parameter is ignored when the solver is set to ‘liblinear’ regardless of whether ‘multi_class’ is specified or not."
             },
             "weights": {
                 "type": "string",
@@ -190,7 +190,7 @@ const classificationModelSettings = {
             "random_state": {
                 "type": "int",
                 "default_val": "1334",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "int, default=1334. Controls the pseudo random number generation for shuffling the data for the dual coordinate descent (if dual=True). When dual=False the underlying implementation of LinearSVC is not random and random_state has no effect on the results. Pass an int for reproducible output across multiple function calls."
             },
             "min_impurity_decrease": {
                 "type": "float",
@@ -200,7 +200,7 @@ const classificationModelSettings = {
             "class_weight": {
                 "type": "NoneType",
                 "default_val": "None",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "NoneType, default=None. Set the parameter C of class i to class_weight[i]*C for SVC. If not given, all classes are supposed to have weight one. The “balanced” mode uses the values of y to automatically adjust weights inversely proportional to class frequencies in the input data as n_samples / (n_classes * np.bincount(y))."
             },
             "ccp_alpha": {
                 "type": "float",
@@ -220,7 +220,7 @@ const classificationModelSettings = {
             "penalty": {
                 "type": "string",
                 "default_val": "l2",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "{‘l1’, ‘l2’}, default=’l2’ Specifies the norm used in the penalization. The ‘l2’ penalty is the standard used in SVC. The ‘l1’ leads to coef_ vectors that are sparse."
             },
             "learning_rate": {
                 "type": "string",
@@ -240,7 +240,7 @@ const classificationModelSettings = {
             "C": {
                 "type": "float",
                 "default_val": "1.0",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "float, default=1.0. Regularization parameter. The strength of the regularization is inversely proportional to C. Must be strictly positive."
             },
             "l1_ratio": {
                 "type": "float",
@@ -250,7 +250,7 @@ const classificationModelSettings = {
             "fit_intercept": {
                 "type": "bool",
                 "default_val": "True",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "Bool. default=True. Whether to calculate the intercept for this model. If set to False, no intercept will be used in calculations (i.e. data is expected to be centered)."
             },
             "shuffle": {
                 "type": "bool",
@@ -260,7 +260,7 @@ const classificationModelSettings = {
             "random_state": {
                 "type": "int",
                 "default_val": "1334",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "int, default=1334. Controls the pseudo random number generation for shuffling the data for the dual coordinate descent (if dual=True). When dual=False the underlying implementation of LinearSVC is not random and random_state has no effect on the results. Pass an int for reproducible output across multiple function calls."
             },
             "verbose": {
                 "type": "int",
@@ -295,7 +295,7 @@ const classificationModelSettings = {
             "warm_start": {
                 "type": "bool",
                 "default_val": "False",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "bool, default=False. When set to True, reuse the solution of the previous call to fit as initialization, otherwise, just erase the previous solution."
             },
             "average": {
                 "type": "bool",
@@ -305,22 +305,22 @@ const classificationModelSettings = {
             "max_iter": {
                 "type": "int",
                 "default_val": "1000",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "int, default=1000. The maximum number of iterations to be run."
             },
             "tol": {
                 "type": "float",
                 "default_val": "0.001",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "float, default=0.001. Tolerance for stopping criteria."
             },
             "class_weight": {
                 "type": "NoneType",
                 "default_val": "None",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "NoneType, default=None. Set the parameter C of class i to class_weight[i]*C for SVC. If not given, all classes are supposed to have weight one. The “balanced” mode uses the values of y to automatically adjust weights inversely proportional to class frequencies in the input data as n_samples / (n_classes * np.bincount(y))."
             },
             "n_jobs": {
                 "type": "int",
                 "default_val": "-1",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "int, default=-1. Number of CPU cores used when parallelizing over classes if multi_class=’ovr’”. This parameter is ignored when the solver is set to ‘liblinear’ regardless of whether ‘multi_class’ is specified or not."
             }
         },
         "code": "svm"
@@ -360,12 +360,12 @@ const classificationModelSettings = {
             "tol": {
                 "type": "float",
                 "default_val": "0.001",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "float, default=0.001. Tolerance for stopping criteria."
             },
             "C": {
                 "type": "float",
                 "default_val": "1.0",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "float, default=1.0. Regularization parameter. The strength of the regularization is inversely proportional to C. Must be strictly positive."
             },
             "nu": {
                 "type": "float",
@@ -395,7 +395,7 @@ const classificationModelSettings = {
             "class_weight": {
                 "type": "NoneType",
                 "default_val": "None",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "NoneType, default=None. Set the parameter C of class i to class_weight[i]*C for SVC. If not given, all classes are supposed to have weight one. The “balanced” mode uses the values of y to automatically adjust weights inversely proportional to class frequencies in the input data as n_samples / (n_classes * np.bincount(y))."
             },
             "verbose": {
                 "type": "bool",
@@ -405,12 +405,12 @@ const classificationModelSettings = {
             "max_iter": {
                 "type": "int",
                 "default_val": "-1",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "int, default=-1. The maximum number of iterations to be run."
             },
             "random_state": {
                 "type": "int",
                 "default_val": "1334",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "int, default=1334. Controls the pseudo random number generation for shuffling the data for the dual coordinate descent (if dual=True). When dual=False the underlying implementation of LinearSVC is not random and random_state has no effect on the results. Pass an int for reproducible output across multiple function calls."
             }
         },
         "code": "rbfsvm"
@@ -440,7 +440,7 @@ const classificationModelSettings = {
             "warm_start": {
                 "type": "bool",
                 "default_val": "False",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "bool, default=False. When set to True, reuse the solution of the previous call to fit as initialization, otherwise, just erase the previous solution."
             },
             "copy_X_train": {
                 "type": "bool",
@@ -450,17 +450,17 @@ const classificationModelSettings = {
             "random_state": {
                 "type": "int",
                 "default_val": "1334",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "int, default=1334. Controls the pseudo random number generation for shuffling the data for the dual coordinate descent (if dual=True). When dual=False the underlying implementation of LinearSVC is not random and random_state has no effect on the results. Pass an int for reproducible output across multiple function calls."
             },
             "multi_class": {
                 "type": "string",
                 "default_val": "one_vs_rest",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "String, default='one_vs_rest'. Determines the multi-class strategy if y contains more than two classes."
             },
             "n_jobs": {
                 "type": "int",
                 "default_val": "-1",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "int, default=-1. Number of CPU cores used when parallelizing over classes if multi_class=’ovr’”. This parameter is ignored when the solver is set to ‘liblinear’ regardless of whether ‘multi_class’ is specified or not."
             }
         },
         "code": "gpc"
@@ -475,7 +475,7 @@ const classificationModelSettings = {
             "solver": {
                 "type": "string",
                 "default_val": "adam",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "string, default=’adam’. Algorithm to use in the optimization problem."
             },
             "alpha": {
                 "type": "float",
@@ -505,7 +505,7 @@ const classificationModelSettings = {
             "max_iter": {
                 "type": "int",
                 "default_val": "500",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "int, default=500. The maximum number of iterations to be run."
             },
             "loss": {
                 "type": "string",
@@ -525,12 +525,12 @@ const classificationModelSettings = {
             "random_state": {
                 "type": "int",
                 "default_val": "1334",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "int, default=1334. Controls the pseudo random number generation for shuffling the data for the dual coordinate descent (if dual=True). When dual=False the underlying implementation of LinearSVC is not random and random_state has no effect on the results. Pass an int for reproducible output across multiple function calls."
             },
             "tol": {
                 "type": "float",
                 "default_val": "0.0001",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "float, default=0.0001. Tolerance for stopping criteria."
             },
             "verbose": {
                 "type": "bool",
@@ -540,7 +540,7 @@ const classificationModelSettings = {
             "warm_start": {
                 "type": "bool",
                 "default_val": "False",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "bool, default=False. When set to True, reuse the solution of the previous call to fit as initialization, otherwise, just erase the previous solution."
             },
             "momentum": {
                 "type": "float",
@@ -600,7 +600,7 @@ const classificationModelSettings = {
             "fit_intercept": {
                 "type": "bool",
                 "default_val": "True",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "Bool. default=True. Whether to calculate the intercept for this model. If set to False, no intercept will be used in calculations (i.e. data is expected to be centered)."
             },
             "copy_X": {
                 "type": "bool",
@@ -610,17 +610,17 @@ const classificationModelSettings = {
             "max_iter": {
                 "type": "NoneType",
                 "default_val": "None",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "NoneType, default=None. The maximum number of iterations to be run."
             },
             "tol": {
                 "type": "float",
                 "default_val": "0.0001",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "float, default=0.0001. Tolerance for stopping criteria."
             },
             "solver": {
                 "type": "string",
                 "default_val": "auto",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "string, default=’auto’. Algorithm to use in the optimization problem."
             },
             "positive": {
                 "type": "bool",
@@ -630,12 +630,12 @@ const classificationModelSettings = {
             "random_state": {
                 "type": "int",
                 "default_val": "1334",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "int, default=1334. Controls the pseudo random number generation for shuffling the data for the dual coordinate descent (if dual=True). When dual=False the underlying implementation of LinearSVC is not random and random_state has no effect on the results. Pass an int for reproducible output across multiple function calls."
             },
             "class_weight": {
                 "type": "NoneType",
                 "default_val": "None",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "NoneType, default=None. Set the parameter C of class i to class_weight[i]*C for SVC. If not given, all classes are supposed to have weight one. The “balanced” mode uses the values of y to automatically adjust weights inversely proportional to class frequencies in the input data as n_samples / (n_classes * np.bincount(y))."
             }
         },
         "code": "ridge"
@@ -675,12 +675,12 @@ const classificationModelSettings = {
             "n_jobs": {
                 "type": "int",
                 "default_val": "-1",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "int, default=-1. Number of CPU cores used when parallelizing over classes if multi_class=’ovr’”. This parameter is ignored when the solver is set to ‘liblinear’ regardless of whether ‘multi_class’ is specified or not."
             },
             "random_state": {
                 "type": "int",
                 "default_val": "1334",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "int, default=1334. Controls the pseudo random number generation for shuffling the data for the dual coordinate descent (if dual=True). When dual=False the underlying implementation of LinearSVC is not random and random_state has no effect on the results. Pass an int for reproducible output across multiple function calls."
             },
             "verbose": {
                 "type": "int",
@@ -690,12 +690,12 @@ const classificationModelSettings = {
             "warm_start": {
                 "type": "bool",
                 "default_val": "False",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "bool, default=False. When set to True, reuse the solution of the previous call to fit as initialization, otherwise, just erase the previous solution."
             },
             "class_weight": {
                 "type": "NoneType",
                 "default_val": "None",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "NoneType, default=None. Set the parameter C of class i to class_weight[i]*C for SVC. If not given, all classes are supposed to have weight one. The “balanced” mode uses the values of y to automatically adjust weights inversely proportional to class frequencies in the input data as n_samples / (n_classes * np.bincount(y))."
             },
             "max_samples": {
                 "type": "NoneType",
@@ -770,7 +770,7 @@ const classificationModelSettings = {
             "tol": {
                 "type": "float",
                 "default_val": "0.0001",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "float, default=0.0001. Tolerance for stopping criteria."
             }
         },
         "code": "qda"
@@ -805,7 +805,7 @@ const classificationModelSettings = {
             "random_state": {
                 "type": "int",
                 "default_val": "1334",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "int, default=1334. Controls the pseudo random number generation for shuffling the data for the dual coordinate descent (if dual=True). When dual=False the underlying implementation of LinearSVC is not random and random_state has no effect on the results. Pass an int for reproducible output across multiple function calls."
             },
             "algorithm": {
                 "type": "string",
@@ -885,7 +885,7 @@ const classificationModelSettings = {
             "random_state": {
                 "type": "int",
                 "default_val": "1334",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "int, default=1334. Controls the pseudo random number generation for shuffling the data for the dual coordinate descent (if dual=True). When dual=False the underlying implementation of LinearSVC is not random and random_state has no effect on the results. Pass an int for reproducible output across multiple function calls."
             },
             "alpha": {
                 "type": "float",
@@ -905,7 +905,7 @@ const classificationModelSettings = {
             "warm_start": {
                 "type": "bool",
                 "default_val": "False",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "bool, default=False. When set to True, reuse the solution of the previous call to fit as initialization, otherwise, just erase the previous solution."
             },
             "validation_fraction": {
                 "type": "float",
@@ -920,7 +920,7 @@ const classificationModelSettings = {
             "tol": {
                 "type": "float",
                 "default_val": "0.0001",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "float, default=0.0001. Tolerance for stopping criteria."
             }
         },
         "code": "gbc"
@@ -930,7 +930,7 @@ const classificationModelSettings = {
             "solver": {
                 "type": "string",
                 "default_val": "svd",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "string, default=’svd’. Algorithm to use in the optimization problem."
             },
             "shrinkage": {
                 "type": "NoneType",
@@ -955,7 +955,7 @@ const classificationModelSettings = {
             "tol": {
                 "type": "float",
                 "default_val": "0.0001",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "float, default=0.0001. Tolerance for stopping criteria."
             },
             "covariance_estimator": {
                 "type": "NoneType",
@@ -1000,12 +1000,12 @@ const classificationModelSettings = {
             "n_jobs": {
                 "type": "int",
                 "default_val": "-1",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "int, default=-1. Number of CPU cores used when parallelizing over classes if multi_class=’ovr’”. This parameter is ignored when the solver is set to ‘liblinear’ regardless of whether ‘multi_class’ is specified or not."
             },
             "random_state": {
                 "type": "int",
                 "default_val": "1334",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "int, default=1334. Controls the pseudo random number generation for shuffling the data for the dual coordinate descent (if dual=True). When dual=False the underlying implementation of LinearSVC is not random and random_state has no effect on the results. Pass an int for reproducible output across multiple function calls."
             },
             "verbose": {
                 "type": "int",
@@ -1015,12 +1015,12 @@ const classificationModelSettings = {
             "warm_start": {
                 "type": "bool",
                 "default_val": "False",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "bool, default=False. When set to True, reuse the solution of the previous call to fit as initialization, otherwise, just erase the previous solution."
             },
             "class_weight": {
                 "type": "NoneType",
                 "default_val": "None",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "NoneType, default=None. Set the parameter C of class i to class_weight[i]*C for SVC. If not given, all classes are supposed to have weight one. The “balanced” mode uses the values of y to automatically adjust weights inversely proportional to class frequencies in the input data as n_samples / (n_classes * np.bincount(y))."
             },
             "max_samples": {
                 "type": "NoneType",
@@ -1155,12 +1155,12 @@ const classificationModelSettings = {
             "random_state": {
                 "type": "int",
                 "default_val": "1334",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "int, default=1334. Controls the pseudo random number generation for shuffling the data for the dual coordinate descent (if dual=True). When dual=False the underlying implementation of LinearSVC is not random and random_state has no effect on the results. Pass an int for reproducible output across multiple function calls."
             },
             "n_jobs": {
                 "type": "int",
                 "default_val": "-1",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "int, default=-1. Number of CPU cores used when parallelizing over classes if multi_class=’ovr’”. This parameter is ignored when the solver is set to ‘liblinear’ regardless of whether ‘multi_class’ is specified or not."
             },
             "importance_type": {
                 "type": "string",
@@ -1170,7 +1170,7 @@ const classificationModelSettings = {
             "class_weight": {
                 "type": "NoneType",
                 "default_val": "None",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "NoneType, default=None. Set the parameter C of class i to class_weight[i]*C for SVC. If not given, all classes are supposed to have weight one. The “balanced” mode uses the values of y to automatically adjust weights inversely proportional to class frequencies in the input data as n_samples / (n_classes * np.bincount(y))."
             }
         },
         "code": "lightgbm"
@@ -1185,7 +1185,7 @@ const classificationModelSettings = {
             "random_state": {
                 "type": "int",
                 "default_val": "1334",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "int, default=1334. Controls the pseudo random number generation for shuffling the data for the dual coordinate descent (if dual=True). When dual=False the underlying implementation of LinearSVC is not random and random_state has no effect on the results. Pass an int for reproducible output across multiple function calls."
             },
             "constant": {
                 "type": "NoneType",

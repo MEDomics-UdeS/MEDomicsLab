@@ -19,7 +19,7 @@ var survivalAnalysisModelsSettings = {
 			"n_jobs": {
 				"type": "int",
 				"default_val": "-1",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "int, default=-1. Number of CPU cores used when parallelizing over classes if multi_class=’ovr’”. This parameter is ignored when the solver is set to ‘liblinear’ regardless of whether ‘multi_class’ is specified or not."
 			},
 			"positive": {
 				"type": "bool",
@@ -44,7 +44,7 @@ var survivalAnalysisModelsSettings = {
 			"fit_intercept": {
 				"type": "bool",
 				"default_val": "True",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "Bool. default=True. Whether to calculate the intercept for this model. If set to False, no intercept will be used in calculations (i.e. data is expected to be centered)."
 			},
 			"normalize": {
 				"type": "string",
@@ -59,7 +59,7 @@ var survivalAnalysisModelsSettings = {
 			"max_iter": {
 				"type": "int",
 				"default_val": "1000",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "int, default=1000. The maximum number of iterations to be run."
 			},
 			"copy_X": {
 				"type": "bool",
@@ -69,12 +69,12 @@ var survivalAnalysisModelsSettings = {
 			"tol": {
 				"type": "float",
 				"default_val": "0.0001",
-				"tooltip": "tooltip not implemented"
+				"tooltip": "float, default=0.0001. Tolerance for stopping criteria."
 			},
 			"warm_start": {
 				"type": "bool",
 				"default_val": "False",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "bool, default=False. When set to True, reuse the solution of the previous call to fit as initialization, otherwise, just erase the previous solution."
 			},
 			"positive": {
 				"type": "bool",
@@ -104,7 +104,7 @@ var survivalAnalysisModelsSettings = {
 			"fit_intercept": {
 				"type": "bool",
 				"default_val": "True",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "Bool. default=True. Whether to calculate the intercept for this model. If set to False, no intercept will be used in calculations (i.e. data is expected to be centered)."
 			},
 			"normalize": {
 				"type": "string",
@@ -119,17 +119,17 @@ var survivalAnalysisModelsSettings = {
 			"max_iter": {
 				"type": "NoneType",
 				"default_val": "None",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "NoneType, default=None. The maximum number of iterations to be run."
 			},
 			"tol": {
 				"type": "float",
 				"default_val": "0.001",
-				"tooltip": "tooltip not implemented"
+				"tooltip": "float, default=0.001. Tolerance for stopping criteria."
 			},
 			"solver": {
 				"type": "string",
 				"default_val": "auto",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "string, default=’auto’. Algorithm to use in the optimization problem."
 			},
 			"positive": {
 				"type": "bool",
@@ -159,7 +159,7 @@ var survivalAnalysisModelsSettings = {
 			"fit_intercept": {
 				"type": "bool",
 				"default_val": "True",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "Bool. default=True. Whether to calculate the intercept for this model. If set to False, no intercept will be used in calculations (i.e. data is expected to be centered)."
 			},
 			"normalize": {
 				"type": "string",
@@ -174,7 +174,7 @@ var survivalAnalysisModelsSettings = {
 			"max_iter": {
 				"type": "int",
 				"default_val": "1000",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "int, default=1000. The maximum number of iterations to be run."
 			},
 			"copy_X": {
 				"type": "bool",
@@ -184,12 +184,12 @@ var survivalAnalysisModelsSettings = {
 			"tol": {
 				"type": "float",
 				"default_val": "0.0001",
-				"tooltip": "tooltip not implemented"
+				"tooltip": "float, default=0.0001. Tolerance for stopping criteria."
 			},
 			"warm_start": {
 				"type": "bool",
 				"default_val": "False",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "bool, default=False. When set to True, reuse the solution of the previous call to fit as initialization, otherwise, just erase the previous solution."
 			},
 			"positive": {
 				"type": "bool",
@@ -214,7 +214,7 @@ var survivalAnalysisModelsSettings = {
 			"fit_intercept": {
 				"type": "bool",
 				"default_val": "True",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "Bool. default=True. Whether to calculate the intercept for this model. If set to False, no intercept will be used in calculations (i.e. data is expected to be centered)."
 			},
 			"verbose": {
 				"type": "bool",
@@ -274,12 +274,12 @@ var survivalAnalysisModelsSettings = {
 			"fit_intercept": {
 				"type": "bool",
 				"default_val": "True",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "Bool. default=True. Whether to calculate the intercept for this model. If set to False, no intercept will be used in calculations (i.e. data is expected to be centered)."
 			},
 			"max_iter": {
 				"type": "int",
 				"default_val": "500",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "int, default=500. The maximum number of iterations to be run."
 			},
 			"verbose": {
 				"type": "bool",
@@ -339,12 +339,12 @@ var survivalAnalysisModelsSettings = {
 			"tol": {
 				"type": "NoneType",
 				"default_val": "None",
-				"tooltip": "tooltip not implemented"
+				"tooltip": "NoneType, default=None. Tolerance for stopping criteria."
 			},
 			"fit_intercept": {
 				"type": "bool",
 				"default_val": "True",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "Bool. default=True. Whether to calculate the intercept for this model. If set to False, no intercept will be used in calculations (i.e. data is expected to be centered)."
 			},
 			"normalize": {
 				"type": "string",
@@ -369,7 +369,7 @@ var survivalAnalysisModelsSettings = {
 			"tol": {
 				"type": "float",
 				"default_val": "0.001",
-				"tooltip": "tooltip not implemented"
+				"tooltip": "float, default=0.001. Tolerance for stopping criteria."
 			},
 			"alpha_1": {
 				"type": "float",
@@ -409,7 +409,7 @@ var survivalAnalysisModelsSettings = {
 			"fit_intercept": {
 				"type": "bool",
 				"default_val": "True",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "Bool. default=True. Whether to calculate the intercept for this model. If set to False, no intercept will be used in calculations (i.e. data is expected to be centered)."
 			},
 			"normalize": {
 				"type": "string",
@@ -439,12 +439,12 @@ var survivalAnalysisModelsSettings = {
 			"tol": {
 				"type": "float",
 				"default_val": "0.001",
-				"tooltip": "tooltip not implemented"
+				"tooltip": "float, default=0.001. Tolerance for stopping criteria."
 			},
 			"fit_intercept": {
 				"type": "bool",
 				"default_val": "True",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "Bool. default=True. Whether to calculate the intercept for this model. If set to False, no intercept will be used in calculations (i.e. data is expected to be centered)."
 			},
 			"normalize": {
 				"type": "string",
@@ -504,7 +504,7 @@ var survivalAnalysisModelsSettings = {
 			"penalty": {
 				"type": "NoneType",
 				"default_val": "None",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "NoneType, default=’None’ Specifies the norm used in the penalization. The ‘l2’ penalty is the standard used in SVC. The ‘l1’ leads to coef_ vectors that are sparse."
 			},
 			"learning_rate": {
 				"type": "string",
@@ -524,7 +524,7 @@ var survivalAnalysisModelsSettings = {
 			"C": {
 				"type": "float",
 				"default_val": "1.0",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "float, default=1.0. Regularization parameter. The strength of the regularization is inversely proportional to C. Must be strictly positive."
 			},
 			"l1_ratio": {
 				"type": "int",
@@ -534,7 +534,7 @@ var survivalAnalysisModelsSettings = {
 			"fit_intercept": {
 				"type": "bool",
 				"default_val": "True",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "Bool. default=True. Whether to calculate the intercept for this model. If set to False, no intercept will be used in calculations (i.e. data is expected to be centered)."
 			},
 			"shuffle": {
 				"type": "bool",
@@ -579,7 +579,7 @@ var survivalAnalysisModelsSettings = {
 			"warm_start": {
 				"type": "bool",
 				"default_val": "False",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "bool, default=False. When set to True, reuse the solution of the previous call to fit as initialization, otherwise, just erase the previous solution."
 			},
 			"average": {
 				"type": "bool",
@@ -589,12 +589,12 @@ var survivalAnalysisModelsSettings = {
 			"max_iter": {
 				"type": "int",
 				"default_val": "1000",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "int, default=1000. The maximum number of iterations to be run."
 			},
 			"tol": {
 				"type": "float",
 				"default_val": "0.001",
-				"tooltip": "tooltip not implemented"
+				"tooltip": "float, default=0.001. Tolerance for stopping criteria."
 			}
 		},
 		"code": "par"
@@ -674,7 +674,7 @@ var survivalAnalysisModelsSettings = {
 			"fit_intercept": {
 				"type": "bool",
 				"default_val": "True",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "Bool. default=True. Whether to calculate the intercept for this model. If set to False, no intercept will be used in calculations (i.e. data is expected to be centered)."
 			},
 			"copy_X": {
 				"type": "bool",
@@ -694,12 +694,12 @@ var survivalAnalysisModelsSettings = {
 			"max_iter": {
 				"type": "int",
 				"default_val": "1000",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "int, default=1000. The maximum number of iterations to be run."
 			},
 			"tol": {
 				"type": "float",
 				"default_val": "0.001",
-				"tooltip": "tooltip not implemented"
+				"tooltip": "float, default=0.001. Tolerance for stopping criteria."
 			},
 			"random_state": {
 				"type": "int",
@@ -709,7 +709,7 @@ var survivalAnalysisModelsSettings = {
 			"n_jobs": {
 				"type": "int",
 				"default_val": "-1",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "int, default=-1. Number of CPU cores used when parallelizing over classes if multi_class=’ovr’”. This parameter is ignored when the solver is set to ‘liblinear’ regardless of whether ‘multi_class’ is specified or not."
 			},
 			"verbose": {
 				"type": "bool",
@@ -729,7 +729,7 @@ var survivalAnalysisModelsSettings = {
 			"max_iter": {
 				"type": "int",
 				"default_val": "100",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "int, default=100. The maximum number of iterations to be run."
 			},
 			"alpha": {
 				"type": "float",
@@ -739,17 +739,17 @@ var survivalAnalysisModelsSettings = {
 			"warm_start": {
 				"type": "bool",
 				"default_val": "False",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "bool, default=False. When set to True, reuse the solution of the previous call to fit as initialization, otherwise, just erase the previous solution."
 			},
 			"fit_intercept": {
 				"type": "bool",
 				"default_val": "True",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "Bool. default=True. Whether to calculate the intercept for this model. If set to False, no intercept will be used in calculations (i.e. data is expected to be centered)."
 			},
 			"tol": {
 				"type": "float",
 				"default_val": "1e-05",
-				"tooltip": "tooltip not implemented"
+				"tooltip": "float, default=1e-05. Tolerance for stopping criteria."
 			}
 		},
 		"code": "huber"
@@ -814,12 +814,12 @@ var survivalAnalysisModelsSettings = {
 			"tol": {
 				"type": "float",
 				"default_val": "0.001",
-				"tooltip": "tooltip not implemented"
+				"tooltip": "float, default=0.001. Tolerance for stopping criteria."
 			},
 			"C": {
 				"type": "float",
 				"default_val": "1.0",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "float, default=1.0. Regularization parameter. The strength of the regularization is inversely proportional to C. Must be strictly positive."
 			},
 			"nu": {
 				"type": "float",
@@ -849,7 +849,7 @@ var survivalAnalysisModelsSettings = {
 			"class_weight": {
 				"type": "NoneType",
 				"default_val": "None",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "NoneType, default=None. Set the parameter C of class i to class_weight[i]*C for SVC. If not given, all classes are supposed to have weight one. The “balanced” mode uses the values of y to automatically adjust weights inversely proportional to class frequencies in the input data as n_samples / (n_classes * np.bincount(y))."
 			},
 			"verbose": {
 				"type": "bool",
@@ -859,7 +859,7 @@ var survivalAnalysisModelsSettings = {
 			"max_iter": {
 				"type": "int",
 				"default_val": "-1",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "int, default=-1. The maximum number of iterations to be run."
 			},
 			"random_state": {
 				"type": "NoneType",
@@ -909,7 +909,7 @@ var survivalAnalysisModelsSettings = {
 			"n_jobs": {
 				"type": "int",
 				"default_val": "-1",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "int, default=-1. Number of CPU cores used when parallelizing over classes if multi_class=’ovr’”. This parameter is ignored when the solver is set to ‘liblinear’ regardless of whether ‘multi_class’ is specified or not."
 			},
 			"weights": {
 				"type": "string",
@@ -974,7 +974,7 @@ var survivalAnalysisModelsSettings = {
 			"class_weight": {
 				"type": "NoneType",
 				"default_val": "None",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "NoneType, default=None. Set the parameter C of class i to class_weight[i]*C for SVC. If not given, all classes are supposed to have weight one. The “balanced” mode uses the values of y to automatically adjust weights inversely proportional to class frequencies in the input data as n_samples / (n_classes * np.bincount(y))."
 			},
 			"ccp_alpha": {
 				"type": "float",
@@ -1014,7 +1014,7 @@ var survivalAnalysisModelsSettings = {
 			"n_jobs": {
 				"type": "int",
 				"default_val": "-1",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "int, default=-1. Number of CPU cores used when parallelizing over classes if multi_class=’ovr’”. This parameter is ignored when the solver is set to ‘liblinear’ regardless of whether ‘multi_class’ is specified or not."
 			},
 			"random_state": {
 				"type": "int",
@@ -1029,12 +1029,12 @@ var survivalAnalysisModelsSettings = {
 			"warm_start": {
 				"type": "bool",
 				"default_val": "False",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "bool, default=False. When set to True, reuse the solution of the previous call to fit as initialization, otherwise, just erase the previous solution."
 			},
 			"class_weight": {
 				"type": "NoneType",
 				"default_val": "None",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "NoneType, default=None. Set the parameter C of class i to class_weight[i]*C for SVC. If not given, all classes are supposed to have weight one. The “balanced” mode uses the values of y to automatically adjust weights inversely proportional to class frequencies in the input data as n_samples / (n_classes * np.bincount(y))."
 			},
 			"max_samples": {
 				"type": "NoneType",
@@ -1119,7 +1119,7 @@ var survivalAnalysisModelsSettings = {
 			"n_jobs": {
 				"type": "int",
 				"default_val": "-1",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "int, default=-1. Number of CPU cores used when parallelizing over classes if multi_class=’ovr’”. This parameter is ignored when the solver is set to ‘liblinear’ regardless of whether ‘multi_class’ is specified or not."
 			},
 			"random_state": {
 				"type": "int",
@@ -1134,12 +1134,12 @@ var survivalAnalysisModelsSettings = {
 			"warm_start": {
 				"type": "bool",
 				"default_val": "False",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "bool, default=False. When set to True, reuse the solution of the previous call to fit as initialization, otherwise, just erase the previous solution."
 			},
 			"class_weight": {
 				"type": "NoneType",
 				"default_val": "None",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "NoneType, default=None. Set the parameter C of class i to class_weight[i]*C for SVC. If not given, all classes are supposed to have weight one. The “balanced” mode uses the values of y to automatically adjust weights inversely proportional to class frequencies in the input data as n_samples / (n_classes * np.bincount(y))."
 			},
 			"max_samples": {
 				"type": "NoneType",
@@ -1319,7 +1319,7 @@ var survivalAnalysisModelsSettings = {
 			"warm_start": {
 				"type": "bool",
 				"default_val": "False",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "bool, default=False. When set to True, reuse the solution of the previous call to fit as initialization, otherwise, just erase the previous solution."
 			},
 			"validation_fraction": {
 				"type": "float",
@@ -1334,7 +1334,7 @@ var survivalAnalysisModelsSettings = {
 			"tol": {
 				"type": "float",
 				"default_val": "0.0001",
-				"tooltip": "tooltip not implemented"
+				"tooltip": "float, default=0.0001. Tolerance for stopping criteria."
 			}
 		},
 		"code": "gbr"
@@ -1349,7 +1349,7 @@ var survivalAnalysisModelsSettings = {
 			"solver": {
 				"type": "string",
 				"default_val": "adam",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "string, default=’adam’. Algorithm to use in the optimization problem."
 			},
 			"alpha": {
 				"type": "float",
@@ -1379,7 +1379,7 @@ var survivalAnalysisModelsSettings = {
 			"max_iter": {
 				"type": "int",
 				"default_val": "500",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "int, default=500. The maximum number of iterations to be run."
 			},
 			"loss": {
 				"type": "string",
@@ -1404,7 +1404,7 @@ var survivalAnalysisModelsSettings = {
 			"tol": {
 				"type": "float",
 				"default_val": "0.0001",
-				"tooltip": "tooltip not implemented"
+				"tooltip": "float, default=0.0001. Tolerance for stopping criteria."
 			},
 			"verbose": {
 				"type": "bool",
@@ -1414,7 +1414,7 @@ var survivalAnalysisModelsSettings = {
 			"warm_start": {
 				"type": "bool",
 				"default_val": "False",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "bool, default=False. When set to True, reuse the solution of the previous call to fit as initialization, otherwise, just erase the previous solution."
 			},
 			"momentum": {
 				"type": "float",
@@ -1549,7 +1549,7 @@ var survivalAnalysisModelsSettings = {
 			"n_jobs": {
 				"type": "int",
 				"default_val": "-1",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "int, default=-1. Number of CPU cores used when parallelizing over classes if multi_class=’ovr’”. This parameter is ignored when the solver is set to ‘liblinear’ regardless of whether ‘multi_class’ is specified or not."
 			},
 			"silent": {
 				"type": "string",
@@ -1564,7 +1564,7 @@ var survivalAnalysisModelsSettings = {
 			"class_weight": {
 				"type": "NoneType",
 				"default_val": "None",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "NoneType, default=None. Set the parameter C of class i to class_weight[i]*C for SVC. If not given, all classes are supposed to have weight one. The “balanced” mode uses the values of y to automatically adjust weights inversely proportional to class frequencies in the input data as n_samples / (n_classes * np.bincount(y))."
 			}
 		},
 		"code": "lightgbm"
