@@ -236,7 +236,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: mac-built
-          path: ./build/dist/MEDomicsLab-${{ env.VERSION }}-mac.dmg
+          path: ./build/dist/MEDomicsLab-${{ env.VERSION }}-mac.pkg
         env:
           VERSION: ${{ steps.get-tag.outputs.VERSION }}
 
@@ -297,10 +297,7 @@ jobs:
           files: |
             ./MEDomicsLab-${{ env.VERSION }}-win.exe
             ./MEDomicsLab-${{ env.VERSION }}-ubuntu.deb
-            ./MEDomicsLab-${{ env.VERSION }}-mac.dmg
-            ./MEDomicsLab-PythonEnv-win.zip
-            ./MEDomicsLab-PythonEnv-linux.zip
-            ./MEDomicsLab-PythonEnv-mac.zip
+            ./MEDomicsLab-${{ env.VERSION }}-mac.pkg
           name: MEDomicsLab-${{ env.VERSION }}
           body: |
             MEDomicsLab-${{ env.VERSION }}
