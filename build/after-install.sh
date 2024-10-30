@@ -46,37 +46,37 @@ sudo apt-get install -y mongodb-org >>$LOG_FILE
 
 # Start the MongoDB service
 echo "Starting MongoDB" >>$LOG_FILE
-sudo systemctl daemon-reload
+sudo systemctl daemon-reload >>$LOG_FILE
 echo "Daemon reloaded" >>$LOG_FILE
 
-sudo systemctl start mongod
+sudo systemctl start mongod >>$LOG_FILE
 echo "MongoDB started" >>$LOG_FILE
 
-# Create the .medomics directory
-MEDOMICS_DIR=~/.medomics
-echo "MEDOMICS_DIR: $MEDOMICS_DIR" >>$LOG_FILE
-if [ ! -d "$MEDOMICS_DIR" ]; then
-    mkdir $MEDOMICS_DIR
-fi
+# # Create the .medomics directory
+# MEDOMICS_DIR=~/.medomics
+# echo "MEDOMICS_DIR: $MEDOMICS_DIR" >>$LOG_FILE
+# if [ ! -d "$MEDOMICS_DIR" ]; then
+#     mkdir $MEDOMICS_DIR
+# fi
 
-# Python installation
-# Download the Python tarball
-wget https://github.com/indygreg/python-build-standalone/releases/download/20240224/cpython-3.9.18+20240224-x86_64_v4-unknown-linux-gnu-install_only.tar.gz >>/tmp/after-install.log
-tar -xzf cpython-3.9.18+20240224-x86_64_v4-unknown-linux-gnu-install_only.tar.gz -C $MEDOMICS_DIR
+# # Python installation
+# # Download the Python tarball
+# wget https://github.com/indygreg/python-build-standalone/releases/download/20240224/cpython-3.9.18+20240224-x86_64_v4-unknown-linux-gnu-install_only.tar.gz >>/tmp/after-install.log
+# tar -xzf cpython-3.9.18+20240224-x86_64_v4-unknown-linux-gnu-install_only.tar.gz -C $MEDOMICS_DIR
 
-# Install requirements
-# Get the requirements file from the resources directory
-# https://raw.githubusercontent.com/MEDomics-UdeS/MEDomicsLab/refs/heads/second_packaging_attempt/pythonEnv/merged_requirements.txt
+# # Install requirements
+# # Get the requirements file from the resources directory
+# # https://raw.githubusercontent.com/MEDomics-UdeS/MEDomicsLab/refs/heads/second_packaging_attempt/pythonEnv/merged_requirements.txt
 
-requirements_url="https://raw.githubusercontent.com/MEDomics-UdeS/MEDomicsLab/refs/heads/second_packaging_attempt/pythonEnv/merged_requirements.txt"
-wget $requirements_url -O $MEDOMICS_DIR/requirements.txt >>$LOG_FILE
-chown -R $SUDO_USER:$SUDO_USER $MEDOMICS_DIR
+# requirements_url="https://raw.githubusercontent.com/MEDomics-UdeS/MEDomicsLab/refs/heads/second_packaging_attempt/pythonEnv/merged_requirements.txt"
+# wget $requirements_url -O $MEDOMICS_DIR/requirements.txt >>$LOG_FILE
+# chown -R $SUDO_USER:$SUDO_USER $MEDOMICS_DIR
 
-/bin/bash $MEDOMICS_DIR/python/bin/pip install --upgrade pip >>$LOG_FILE
-/bin/bash $MEDOMICS_DIR/python/bin/pip install -r $MEDOMICS_DIR/requirements.txt >>$LOG_FILE
+# /bin/bash $MEDOMICS_DIR/python/bin/pip install --upgrade pip >>$LOG_FILE
+# /bin/bash $MEDOMICS_DIR/python/bin/pip install -r $MEDOMICS_DIR/requirements.txt >>$LOG_FILE
 
-# Remove the tarball
-rm cpython-3.9.18+20240224-x86_64_v4-unknown-linux-gnu-install_only.tar.gz*
+# # Remove the tarball
+# rm cpython-3.9.18+20240224-x86_64_v4-unknown-linux-gnu-install_only.tar.gz*
 
-chown -R $SUDO_USER:$SUDO_USER $MEDOMICS_DIR
-chmod -R 755 $MEDOMICS_DIR
+# chown -R $SUDO_USER:$SUDO_USER $MEDOMICS_DIR
+# chmod -R 755 $MEDOMICS_DIR
