@@ -40,8 +40,7 @@ const classificationModelSettings = {
             "random_state": {
                 "type": "int",
                 "default_val": "1334",
-                "tooltip": "int, default=1334. Controls the pseudo random number generation for shuffling the data for the dual coordinate descent (if dual=True). When dual=False the underlying implementation of LinearSVC is not random and random_state has no effect on the results. Pass an int for reproducible output across multiple function calls."
-            },
+                "tooltip": "tooltip not implemented"            },
             "solver": {
                 "type": "string",
                 "default_val": "lbfgs",
@@ -75,7 +74,7 @@ const classificationModelSettings = {
             "l1_ratio": {
                 "type": "NoneType",
                 "default_val": "None",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "NoneType, default='None'. The ElasticNet mixing parameter, with 0 <= l1_ratio <= 1. For l1_ratio = 0 the penalty is an L2 penalty. For l1_ratio = 1 it is an L1 penalty. For 0 < l1_ratio < 1, the penalty is a combination of L1 and L2."
             }
         },
         "code": "lr"
@@ -85,37 +84,37 @@ const classificationModelSettings = {
             "n_neighbors": {
                 "type": "int",
                 "default_val": "5",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "int, default=5. Number of neighboring samples to use for imputation."
             },
             "radius": {
                 "type": "NoneType",
                 "default_val": "None",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "NoneType, default=None. Limiting distance of neighbors to return. If radius is a float, then n_neighbors must be set to None."
             },
             "algorithm": {
                 "type": "string",
                 "default_val": "auto",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "String, default=’auto’. Algorithm used to compute the nearest neighbors:‘ball_tree’ will use BallTree.‘kd_tree’ will use KDTree.‘brute’ will use a brute-force search.‘auto’ will attempt to decide the most appropriate algorithm based on the values passed to fit method. (default)"
             },
             "leaf_size": {
                 "type": "int",
                 "default_val": "30",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "int, default=30. Leaf size passed to BallTree or KDTree. This can affect the speed of the construction and query, as well as the memory required to store the tree. The optimal value depends on the nature of the problem."
             },
             "metric": {
                 "type": "string",
                 "default_val": "minkowski",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "String, default=’minkowski’. Distance metric for searching neighbors."
             },
             "metric_params": {
                 "type": "NoneType",
                 "default_val": "None",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "NoneType, default=None. Additional keyword arguments for the metric function."
             },
             "p": {
                 "type": "int",
                 "default_val": "2",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "float, default=2. Parameter for the Minkowski metric from pairwise_distances. When p = 1, this is equivalent to using manhattan_distance (l1), and euclidean_distance (l2) for p = 2. For arbitrary p, minkowski_distance (l_p) is used."
             },
             "n_jobs": {
                 "type": "int",
@@ -125,7 +124,7 @@ const classificationModelSettings = {
             "weights": {
                 "type": "string",
                 "default_val": "uniform",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "String, default=’uniform’. Weight function used in prediction. Possible values: ‘uniform’ : Uniform weights. All points in each neighborhood are weighted equally. ‘Distance’ : weight points by the inverse of their distance. in this case, closer neighbors of a query point will have a greater influence than neighbors which are further away. Callable : a user-defined function which accepts an array of distances, and returns an array of the same shape containing the weights."
             }
         },
         "code": "knn"
@@ -150,52 +149,51 @@ const classificationModelSettings = {
             "criterion": {
                 "type": "string",
                 "default_val": "gini",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "String, default=”gini”. The function to measure the quality of a split. Supported criteria are “gini” for the Gini impurity and “log_loss” and “entropy” both for the Shannon information gain"
             },
             "splitter": {
                 "type": "string",
                 "default_val": "best",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "String, default=”best”. The strategy used to choose the split at each node. Supported strategies are “best” to choose the best split and “random” to choose the best random split."
             },
             "max_depth": {
                 "type": "NoneType",
                 "default_val": "None",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "NoneType, default=None. The maximum depth of the tree. If None, then nodes are expanded until all leaves are pure or until all leaves contain less than min_samples_split samples."
             },
             "min_samples_split": {
                 "type": "int",
                 "default_val": "2",
-                "tooltip": "tooltip not implemented"
+				"tooltip": "int, default=2. The minimum number of samples required to split an internal node:"
             },
             "min_samples_leaf": {
                 "type": "int",
                 "default_val": "1",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "int, default=1. The minimum number of samples required to be at a leaf node. A split point at any depth will only be considered if it leaves at least min_samples_leaf training samples in each of the left and right branches. This may have the effect of smoothing the model, especially in regression."
             },
             "min_weight_fraction_leaf": {
                 "type": "float",
                 "default_val": "0.0",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "float, default=0.0. The minimum weighted fraction of the sum total of weights (of all the input samples) required to be at a leaf node. Samples have equal weight when sample_weight is not provided."
             },
             "max_features": {
                 "type": "NoneType",
                 "default_val": "None",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "NoneType, default=”None”. The number of features to consider when looking for the best split: If int, then consider max_features features at each split. If float, then max_features is a fraction and max(1, int(max_features * n_features_in_)) features are considered at each split. If “sqrt”, then max_features=sqrt(n_features).If “log2”, then max_features=log2(n_features) If None, then max_features=n_features."
             },
             "max_leaf_nodes": {
                 "type": "NoneType",
                 "default_val": "None",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "NoneType, default=None. Grow a tree with max_leaf_nodes in best-first fashion. Best nodes are defined as relative reduction in impurity. If None then unlimited number of leaf nodes."
             },
             "random_state": {
                 "type": "int",
                 "default_val": "1334",
-                "tooltip": "int, default=1334. Controls the pseudo random number generation for shuffling the data for the dual coordinate descent (if dual=True). When dual=False the underlying implementation of LinearSVC is not random and random_state has no effect on the results. Pass an int for reproducible output across multiple function calls."
-            },
+                "tooltip": "tooltip not implemented"            },
             "min_impurity_decrease": {
                 "type": "float",
                 "default_val": "0.0",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "float, default=0.0. A node will be split if this split induces a decrease of the impurity greater than or equal to this value."
             },
             "class_weight": {
                 "type": "NoneType",
@@ -205,7 +203,7 @@ const classificationModelSettings = {
             "ccp_alpha": {
                 "type": "float",
                 "default_val": "0.0",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "float, default=0.0. Complexity parameter used for Minimal Cost-Complexity Pruning. The subtree with the largest cost complexity that is smaller than ccp_alpha will be chosen. By default, no pruning is performed."
             }
         },
         "code": "dt"
@@ -215,7 +213,7 @@ const classificationModelSettings = {
             "loss": {
                 "type": "string",
                 "default_val": "hinge",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "String, default=’hinge’. The loss function to be used. ‘Hinge’ gives a linear SVM. ‘Log_loss’ gives logistic regression, a probabilistic classifier. ‘Modified_huber’ is another smooth loss that brings tolerance to outliers as well as probability estimates. ‘Squared_hinge’ is like hinge but is quadratically penalized. ‘Perceptron’ is the linear loss used by the perceptron algorithm. The other losses, ‘Squared_error’, ‘Huber’, ‘Epsilon_insensitive’ and ‘Squared_epsilon_insensitive’ are designed for regression but can be useful in classification as well"
             },
             "penalty": {
                 "type": "string",
@@ -225,7 +223,7 @@ const classificationModelSettings = {
             "learning_rate": {
                 "type": "string",
                 "default_val": "optimal",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "String, default=’optimal’. The learning rate schedule:‘constant’: eta = eta0‘ Pptimal’: eta = 1.0 / (alpha * (t + t0)) where t0 is chosen by a heuristic proposed by Leon Bottou. ‘Invscaling’: eta = eta0 / pow(t, power_t) ‘Adaptive’: eta = eta0, as long as the training keeps decreasing. Each time n_iter_no_change consecutive epochs fail to decrease the training loss by tol or fail to increase validation score by tol if early_stopping is True, the current learning rate is divided by 5."
             },
             "epsilon": {
                 "type": "float",
@@ -235,7 +233,7 @@ const classificationModelSettings = {
             "alpha": {
                 "type": "float",
                 "default_val": "0.0001",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "float, default=0.0001. Constant that multiplies the penalty terms."
             },
             "C": {
                 "type": "float",
@@ -245,7 +243,7 @@ const classificationModelSettings = {
             "l1_ratio": {
                 "type": "float",
                 "default_val": "0.15",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "float, default=0.15. The ElasticNet mixing parameter, with 0 <= l1_ratio <= 1. For l1_ratio = 0 the penalty is an L2 penalty. For l1_ratio = 1 it is an L1 penalty. For 0 < l1_ratio < 1, the penalty is a combination of L1 and L2."
             },
             "fit_intercept": {
                 "type": "bool",
@@ -260,8 +258,7 @@ const classificationModelSettings = {
             "random_state": {
                 "type": "int",
                 "default_val": "1334",
-                "tooltip": "int, default=1334. Controls the pseudo random number generation for shuffling the data for the dual coordinate descent (if dual=True). When dual=False the underlying implementation of LinearSVC is not random and random_state has no effect on the results. Pass an int for reproducible output across multiple function calls."
-            },
+                "tooltip": "tooltip not implemented"            },
             "verbose": {
                 "type": "int",
                 "default_val": "0",
@@ -280,7 +277,7 @@ const classificationModelSettings = {
             "early_stopping": {
                 "type": "bool",
                 "default_val": "False",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "bool, default='False'. Use early stopping to stop fitting to a hyperparameter configuration if it performs poorly. Ignored when search_library is scikit-learn, or if the estimator does not have ‘partial_fit’ attribute. If False or None, early stopping will not be used. "
             },
             "validation_fraction": {
                 "type": "float",
@@ -410,8 +407,7 @@ const classificationModelSettings = {
             "random_state": {
                 "type": "int",
                 "default_val": "1334",
-                "tooltip": "int, default=1334. Controls the pseudo random number generation for shuffling the data for the dual coordinate descent (if dual=True). When dual=False the underlying implementation of LinearSVC is not random and random_state has no effect on the results. Pass an int for reproducible output across multiple function calls."
-            }
+                "tooltip": "tooltip not implemented"            }
         },
         "code": "rbfsvm"
     },
@@ -450,8 +446,7 @@ const classificationModelSettings = {
             "random_state": {
                 "type": "int",
                 "default_val": "1334",
-                "tooltip": "int, default=1334. Controls the pseudo random number generation for shuffling the data for the dual coordinate descent (if dual=True). When dual=False the underlying implementation of LinearSVC is not random and random_state has no effect on the results. Pass an int for reproducible output across multiple function calls."
-            },
+                "tooltip": "tooltip not implemented"            },
             "multi_class": {
                 "type": "string",
                 "default_val": "one_vs_rest",
@@ -480,7 +475,7 @@ const classificationModelSettings = {
             "alpha": {
                 "type": "float",
                 "default_val": "0.0001",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "float, default=0.0001. Constant that multiplies the penalty terms."
             },
             "batch_size": {
                 "type": "string",
@@ -490,7 +485,7 @@ const classificationModelSettings = {
             "learning_rate": {
                 "type": "string",
                 "default_val": "constant",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "String, default=’constant’. The learning rate schedule:‘constant’: eta = eta0‘ Pptimal’: eta = 1.0 / (alpha * (t + t0)) where t0 is chosen by a heuristic proposed by Leon Bottou. ‘Invscaling’: eta = eta0 / pow(t, power_t) ‘Adaptive’: eta = eta0, as long as the training keeps decreasing. Each time n_iter_no_change consecutive epochs fail to decrease the training loss by tol or fail to increase validation score by tol if early_stopping is True, the current learning rate is divided by 5."
             },
             "learning_rate_init": {
                 "type": "float",
@@ -510,7 +505,7 @@ const classificationModelSettings = {
             "loss": {
                 "type": "string",
                 "default_val": "log_loss",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "String, default=’log_loss’. The loss function to be used. ‘Hinge’ gives a linear SVM. ‘Log_loss’ gives logistic regression, a probabilistic classifier. ‘Modified_huber’ is another smooth loss that brings tolerance to outliers as well as probability estimates. ‘Squared_hinge’ is like hinge but is quadratically penalized. ‘Perceptron’ is the linear loss used by the perceptron algorithm. The other losses, ‘Squared_error’, ‘Huber’, ‘Epsilon_insensitive’ and ‘Squared_epsilon_insensitive’ are designed for regression but can be useful in classification as well"
             },
             "hidden_layer_sizes": {
                 "type": "tuple",
@@ -525,8 +520,7 @@ const classificationModelSettings = {
             "random_state": {
                 "type": "int",
                 "default_val": "1334",
-                "tooltip": "int, default=1334. Controls the pseudo random number generation for shuffling the data for the dual coordinate descent (if dual=True). When dual=False the underlying implementation of LinearSVC is not random and random_state has no effect on the results. Pass an int for reproducible output across multiple function calls."
-            },
+                "tooltip": "tooltip not implemented"            },
             "tol": {
                 "type": "float",
                 "default_val": "0.0001",
@@ -555,7 +549,7 @@ const classificationModelSettings = {
             "early_stopping": {
                 "type": "bool",
                 "default_val": "False",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "bool, default='False'. Use early stopping to stop fitting to a hyperparameter configuration if it performs poorly. Ignored when search_library is scikit-learn, or if the estimator does not have ‘partial_fit’ attribute. If False or None, early stopping will not be used. "
             },
             "validation_fraction": {
                 "type": "float",
@@ -595,7 +589,7 @@ const classificationModelSettings = {
             "alpha": {
                 "type": "float",
                 "default_val": "1.0",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "float, default=1.0. Constant that multiplies the penalty terms."
             },
             "fit_intercept": {
                 "type": "bool",
@@ -630,8 +624,7 @@ const classificationModelSettings = {
             "random_state": {
                 "type": "int",
                 "default_val": "1334",
-                "tooltip": "int, default=1334. Controls the pseudo random number generation for shuffling the data for the dual coordinate descent (if dual=True). When dual=False the underlying implementation of LinearSVC is not random and random_state has no effect on the results. Pass an int for reproducible output across multiple function calls."
-            },
+                "tooltip": "tooltip not implemented"            },
             "class_weight": {
                 "type": "NoneType",
                 "default_val": "None",
@@ -645,7 +638,7 @@ const classificationModelSettings = {
             "estimator": {
                 "type": "DecisionTreeClassifier",
                 "default_val": "DecisionTreeClassifier(ccp_alpha=0.0, class_weight=None, criterion='gini',\n                       max_depth=None, max_features=None, max_leaf_nodes=None,\n                       min_impurity_decrease=0.0, min_samples_leaf=1,\n                       min_samples_split=2, min_weight_fraction_leaf=0.0,\n                       random_state=None, splitter='best')",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "Object, default='DecisionTreeClassifier'. The base estimator from which the boosted ensemble is built. Support for sample weighting is required, as well as proper classes_ and n_classes_ attributes. If None, then the base estimator is DecisionTreeClassifier initialized with max_depth=1."
             },
             "n_estimators": {
                 "type": "int",
@@ -680,8 +673,7 @@ const classificationModelSettings = {
             "random_state": {
                 "type": "int",
                 "default_val": "1334",
-                "tooltip": "int, default=1334. Controls the pseudo random number generation for shuffling the data for the dual coordinate descent (if dual=True). When dual=False the underlying implementation of LinearSVC is not random and random_state has no effect on the results. Pass an int for reproducible output across multiple function calls."
-            },
+                "tooltip": "tooltip not implemented"            },
             "verbose": {
                 "type": "int",
                 "default_val": "0",
@@ -705,47 +697,47 @@ const classificationModelSettings = {
             "criterion": {
                 "type": "string",
                 "default_val": "gini",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "String, default=”gini”. The function to measure the quality of a split. Supported criteria are “gini” for the Gini impurity and “log_loss” and “entropy” both for the Shannon information gain"
             },
             "max_depth": {
                 "type": "NoneType",
                 "default_val": "None",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "NoneType, default=None. The maximum depth of the tree. If None, then nodes are expanded until all leaves are pure or until all leaves contain less than min_samples_split samples."
             },
             "min_samples_split": {
                 "type": "int",
                 "default_val": "2",
-                "tooltip": "tooltip not implemented"
+				"tooltip": "int, default=2. The minimum number of samples required to split an internal node:"
             },
             "min_samples_leaf": {
                 "type": "int",
                 "default_val": "1",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "int, default=1. The minimum number of samples required to be at a leaf node. A split point at any depth will only be considered if it leaves at least min_samples_leaf training samples in each of the left and right branches. This may have the effect of smoothing the model, especially in regression."
             },
             "min_weight_fraction_leaf": {
                 "type": "float",
                 "default_val": "0.0",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "float, default=0.0. The minimum weighted fraction of the sum total of weights (of all the input samples) required to be at a leaf node. Samples have equal weight when sample_weight is not provided."
             },
             "max_features": {
                 "type": "string",
                 "default_val": "sqrt",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "String, default=”sqrt”. The number of features to consider when looking for the best split: If int, then consider max_features features at each split. If float, then max_features is a fraction and max(1, int(max_features * n_features_in_)) features are considered at each split. If “sqrt”, then max_features=sqrt(n_features).If “log2”, then max_features=log2(n_features) If None, then max_features=n_features."
             },
             "max_leaf_nodes": {
                 "type": "NoneType",
                 "default_val": "None",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "NoneType, default=None. Grow a tree with max_leaf_nodes in best-first fashion. Best nodes are defined as relative reduction in impurity. If None then unlimited number of leaf nodes."
             },
             "min_impurity_decrease": {
                 "type": "float",
                 "default_val": "0.0",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "float, default=0.0. A node will be split if this split induces a decrease of the impurity greater than or equal to this value."
             },
             "ccp_alpha": {
                 "type": "float",
                 "default_val": "0.0",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "float, default=0.0. Complexity parameter used for Minimal Cost-Complexity Pruning. The subtree with the largest cost complexity that is smaller than ccp_alpha will be chosen. By default, no pruning is performed."
             }
         },
         "code": "rf"
@@ -780,7 +772,7 @@ const classificationModelSettings = {
             "estimator": {
                 "type": "NoneType",
                 "default_val": "None",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "NoneType, default='None'. The base estimator from which the boosted ensemble is built. Support for sample weighting is required, as well as proper classes_ and n_classes_ attributes. If None, then the base estimator is DecisionTreeClassifier initialized with max_depth=1."
             },
             "n_estimators": {
                 "type": "int",
@@ -800,17 +792,16 @@ const classificationModelSettings = {
             "learning_rate": {
                 "type": "float",
                 "default_val": "1.0",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "float, default=1.0. Weight applied to each classifier at each boosting iteration. A higher learning rate increases the contribution of each classifier. There is a trade-off between the learning_rate and n_estimators parameters. Values must be in the range (0.0, inf)."
             },
             "random_state": {
                 "type": "int",
                 "default_val": "1334",
-                "tooltip": "int, default=1334. Controls the pseudo random number generation for shuffling the data for the dual coordinate descent (if dual=True). When dual=False the underlying implementation of LinearSVC is not random and random_state has no effect on the results. Pass an int for reproducible output across multiple function calls."
-            },
+                "tooltip": "tooltip not implemented"            },
             "algorithm": {
                 "type": "string",
                 "default_val": "SAMME.R",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "String, default=’SAMME.R’. If ‘SAMME.R’ then use the SAMME.R real boosting algorithm. estimator must support calculation of class probabilities. If ‘SAMME’ then use the SAMME discrete boosting algorithm. The SAMME.R algorithm typically converges faster than SAMME, achieving a lower test error with fewer boosting iterations."
             }
         },
         "code": "ada"
@@ -825,32 +816,32 @@ const classificationModelSettings = {
             "learning_rate": {
                 "type": "float",
                 "default_val": "0.1",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "float, default=0.1. Weight applied to each classifier at each boosting iteration. A higher learning rate increases the contribution of each classifier. There is a trade-off between the learning_rate and n_estimators parameters. Values must be in the range (0.0, inf)."
             },
             "loss": {
                 "type": "string",
                 "default_val": "log_loss",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "String, default=’log_loss’. The loss function to be used. ‘Hinge’ gives a linear SVM. ‘Log_loss’ gives logistic regression, a probabilistic classifier. ‘Modified_huber’ is another smooth loss that brings tolerance to outliers as well as probability estimates. ‘Squared_hinge’ is like hinge but is quadratically penalized. ‘Perceptron’ is the linear loss used by the perceptron algorithm. The other losses, ‘Squared_error’, ‘Huber’, ‘Epsilon_insensitive’ and ‘Squared_epsilon_insensitive’ are designed for regression but can be useful in classification as well"
             },
             "criterion": {
                 "type": "string",
                 "default_val": "friedman_mse",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "String, default=”friedman_mse”. The function to measure the quality of a split. Supported criteria are “gini” for the Gini impurity and “log_loss” and “entropy” both for the Shannon information gain"
             },
             "min_samples_split": {
                 "type": "int",
                 "default_val": "2",
-                "tooltip": "tooltip not implemented"
+				"tooltip": "int, default=2. The minimum number of samples required to split an internal node:"
             },
             "min_samples_leaf": {
                 "type": "int",
                 "default_val": "1",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "int, default=1. The minimum number of samples required to be at a leaf node. A split point at any depth will only be considered if it leaves at least min_samples_leaf training samples in each of the left and right branches. This may have the effect of smoothing the model, especially in regression."
             },
             "min_weight_fraction_leaf": {
                 "type": "float",
                 "default_val": "0.0",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "float, default=0.0. The minimum weighted fraction of the sum total of weights (of all the input samples) required to be at a leaf node. Samples have equal weight when sample_weight is not provided."
             },
             "subsample": {
                 "type": "float",
@@ -860,22 +851,22 @@ const classificationModelSettings = {
             "max_features": {
                 "type": "NoneType",
                 "default_val": "None",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "NoneType, default=”None”. The number of features to consider when looking for the best split: If int, then consider max_features features at each split. If float, then max_features is a fraction and max(1, int(max_features * n_features_in_)) features are considered at each split. If “sqrt”, then max_features=sqrt(n_features).If “log2”, then max_features=log2(n_features) If None, then max_features=n_features."
             },
             "max_depth": {
                 "type": "int",
                 "default_val": "3",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "int, default=3. The maximum depth of the tree. If None, then nodes are expanded until all leaves are pure or until all leaves contain less than min_samples_split samples."
             },
             "min_impurity_decrease": {
                 "type": "float",
                 "default_val": "0.0",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "float, default=0.0. A node will be split if this split induces a decrease of the impurity greater than or equal to this value."
             },
             "ccp_alpha": {
                 "type": "float",
                 "default_val": "0.0",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "float, default=0.0. Complexity parameter used for Minimal Cost-Complexity Pruning. The subtree with the largest cost complexity that is smaller than ccp_alpha will be chosen. By default, no pruning is performed."
             },
             "init": {
                 "type": "NoneType",
@@ -885,12 +876,11 @@ const classificationModelSettings = {
             "random_state": {
                 "type": "int",
                 "default_val": "1334",
-                "tooltip": "int, default=1334. Controls the pseudo random number generation for shuffling the data for the dual coordinate descent (if dual=True). When dual=False the underlying implementation of LinearSVC is not random and random_state has no effect on the results. Pass an int for reproducible output across multiple function calls."
-            },
+                "tooltip": "tooltip not implemented"            },
             "alpha": {
                 "type": "float",
                 "default_val": "0.9",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "float, default=0.9. Constant that multiplies the penalty terms."
             },
             "verbose": {
                 "type": "int",
@@ -900,7 +890,7 @@ const classificationModelSettings = {
             "max_leaf_nodes": {
                 "type": "NoneType",
                 "default_val": "None",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "NoneType, default=None. Grow a tree with max_leaf_nodes in best-first fashion. Best nodes are defined as relative reduction in impurity. If None then unlimited number of leaf nodes."
             },
             "warm_start": {
                 "type": "bool",
@@ -970,7 +960,7 @@ const classificationModelSettings = {
             "estimator": {
                 "type": "ExtraTreeClassifier",
                 "default_val": "ExtraTreeClassifier(ccp_alpha=0.0, class_weight=None, criterion='gini',\n                    max_depth=None, max_features='sqrt', max_leaf_nodes=None,\n                    min_impurity_decrease=0.0, min_samples_leaf=1,\n                    min_samples_split=2, min_weight_fraction_leaf=0.0,\n                    random_state=None, splitter='random')",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "Object, default='ExtraTreeClassifier'. The base estimator from which the boosted ensemble is built. Support for sample weighting is required, as well as proper classes_ and n_classes_ attributes. If None, then the base estimator is DecisionTreeClassifier initialized with max_depth=1."
             },
             "n_estimators": {
                 "type": "int",
@@ -1005,8 +995,7 @@ const classificationModelSettings = {
             "random_state": {
                 "type": "int",
                 "default_val": "1334",
-                "tooltip": "int, default=1334. Controls the pseudo random number generation for shuffling the data for the dual coordinate descent (if dual=True). When dual=False the underlying implementation of LinearSVC is not random and random_state has no effect on the results. Pass an int for reproducible output across multiple function calls."
-            },
+                "tooltip": "tooltip not implemented"            },
             "verbose": {
                 "type": "int",
                 "default_val": "0",
@@ -1030,47 +1019,47 @@ const classificationModelSettings = {
             "criterion": {
                 "type": "string",
                 "default_val": "gini",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "String, default=”gini”. The function to measure the quality of a split. Supported criteria are “gini” for the Gini impurity and “log_loss” and “entropy” both for the Shannon information gain"
             },
             "max_depth": {
                 "type": "NoneType",
                 "default_val": "None",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "NoneType, default=None. The maximum depth of the tree. If None, then nodes are expanded until all leaves are pure or until all leaves contain less than min_samples_split samples."
             },
             "min_samples_split": {
                 "type": "int",
                 "default_val": "2",
-                "tooltip": "tooltip not implemented"
+				"tooltip": "int, default=2. The minimum number of samples required to split an internal node:"
             },
             "min_samples_leaf": {
                 "type": "int",
                 "default_val": "1",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "int, default=1. The minimum number of samples required to be at a leaf node. A split point at any depth will only be considered if it leaves at least min_samples_leaf training samples in each of the left and right branches. This may have the effect of smoothing the model, especially in regression."
             },
             "min_weight_fraction_leaf": {
                 "type": "float",
                 "default_val": "0.0",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "float, default=0.0. The minimum weighted fraction of the sum total of weights (of all the input samples) required to be at a leaf node. Samples have equal weight when sample_weight is not provided."
             },
             "max_features": {
                 "type": "string",
                 "default_val": "sqrt",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "String, default=”sqrt”. The number of features to consider when looking for the best split: If int, then consider max_features features at each split. If float, then max_features is a fraction and max(1, int(max_features * n_features_in_)) features are considered at each split. If “sqrt”, then max_features=sqrt(n_features).If “log2”, then max_features=log2(n_features) If None, then max_features=n_features."
             },
             "max_leaf_nodes": {
                 "type": "NoneType",
                 "default_val": "None",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "NoneType, default=None. Grow a tree with max_leaf_nodes in best-first fashion. Best nodes are defined as relative reduction in impurity. If None then unlimited number of leaf nodes."
             },
             "min_impurity_decrease": {
                 "type": "float",
                 "default_val": "0.0",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "float, default=0.0. A node will be split if this split induces a decrease of the impurity greater than or equal to this value."
             },
             "ccp_alpha": {
                 "type": "float",
                 "default_val": "0.0",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "float, default=0.0. Complexity parameter used for Minimal Cost-Complexity Pruning. The subtree with the largest cost complexity that is smaller than ccp_alpha will be chosen. By default, no pruning is performed."
             }
         },
         "code": "et"
@@ -1095,12 +1084,12 @@ const classificationModelSettings = {
             "max_depth": {
                 "type": "int",
                 "default_val": "-1",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "int, default=-1. The maximum depth of the tree. If None, then nodes are expanded until all leaves are pure or until all leaves contain less than min_samples_split samples."
             },
             "learning_rate": {
                 "type": "float",
                 "default_val": "0.1",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "float, default=0.1. Weight applied to each classifier at each boosting iteration. A higher learning rate increases the contribution of each classifier. There is a trade-off between the learning_rate and n_estimators parameters. Values must be in the range (0.0, inf)."
             },
             "n_estimators": {
                 "type": "int",
@@ -1155,8 +1144,7 @@ const classificationModelSettings = {
             "random_state": {
                 "type": "int",
                 "default_val": "1334",
-                "tooltip": "int, default=1334. Controls the pseudo random number generation for shuffling the data for the dual coordinate descent (if dual=True). When dual=False the underlying implementation of LinearSVC is not random and random_state has no effect on the results. Pass an int for reproducible output across multiple function calls."
-            },
+                "tooltip": "tooltip not implemented"            },
             "n_jobs": {
                 "type": "int",
                 "default_val": "-1",
@@ -1185,8 +1173,7 @@ const classificationModelSettings = {
             "random_state": {
                 "type": "int",
                 "default_val": "1334",
-                "tooltip": "int, default=1334. Controls the pseudo random number generation for shuffling the data for the dual coordinate descent (if dual=True). When dual=False the underlying implementation of LinearSVC is not random and random_state has no effect on the results. Pass an int for reproducible output across multiple function calls."
-            },
+                "tooltip": "tooltip not implemented"            },
             "constant": {
                 "type": "NoneType",
                 "default_val": "None",
