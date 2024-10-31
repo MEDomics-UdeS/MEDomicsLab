@@ -4,7 +4,7 @@ var survivalAnalysisModelsSettings = {
 			"fit_intercept": {
 				"type": "bool",
 				"default_val": "True",
-				"tooltip": "tooltip not implemented"
+				"tooltip": "bool, default=True. Whether to calculate the intercept for this model."
 			},
 			"normalize": {
 				"type": "string",
@@ -24,7 +24,7 @@ var survivalAnalysisModelsSettings = {
 			"positive": {
 				"type": "bool",
 				"default_val": "False",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "bool, default=False. When set to True, forces the coefficients to be positive."
 			}
 		},
 		"code": "lr"
@@ -294,7 +294,7 @@ var survivalAnalysisModelsSettings = {
 			"positive": {
 				"type": "bool",
 				"default_val": "False",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "bool, default=False. When set to True, forces the coefficients to be positive."
 			},
 			"precompute": {
 				"type": "string",
@@ -529,7 +529,7 @@ var survivalAnalysisModelsSettings = {
 			"l1_ratio": {
 				"type": "int",
 				"default_val": "0",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "int, default=0. The ElasticNet mixing parameter."
 			},
 			"fit_intercept": {
 				"type": "bool",
@@ -544,12 +544,12 @@ var survivalAnalysisModelsSettings = {
 			"random_state": {
 				"type": "int",
 				"default_val": "4573",
-				"tooltip": "tooltip not implemented"
+				"tooltip": "int, default=4573. Used to shuffle the training data."
 			},
 			"verbose": {
 				"type": "int",
 				"default_val": "0",
-				"tooltip": "tooltip not implemented"
+				"tooltip": "int, default=0. The verbosity level."
 			},
 			"eta0": {
 				"type": "float",
@@ -760,7 +760,7 @@ var survivalAnalysisModelsSettings = {
 			"alpha": {
 				"type": "int",
 				"default_val": "1",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "int, default=1. Regularization strength."
 			},
 			"kernel": {
 				"type": "string",
@@ -780,12 +780,12 @@ var survivalAnalysisModelsSettings = {
 			"coef0": {
 				"type": "int",
 				"default_val": "1",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "int, default=1. Zero coefficient for polynomial and sigmoid kernels. Ignored by other kernels."
 			},
 			"kernel_params": {
 				"type": "NoneType",
 				"default_val": "None",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "NoneType, default=None. Additional parameters (keyword arguments) for kernel function passed as callable object."
 			}
 		},
 		"code": "kr"
@@ -855,7 +855,7 @@ var survivalAnalysisModelsSettings = {
 			"verbose": {
 				"type": "bool",
 				"default_val": "False",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "bool, default=False. Enable verbose output."
 			},
 			"max_iter": {
 				"type": "int",
@@ -865,7 +865,7 @@ var survivalAnalysisModelsSettings = {
 			"random_state": {
 				"type": "NoneType",
 				"default_val": "None",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "NoneType, default=None. The seed of the pseudo random number generator to use when shuffling the data."        
 			}
 		},
 		"code": "svm"
@@ -964,7 +964,7 @@ var survivalAnalysisModelsSettings = {
 			"random_state": {
 				"type": "int",
 				"default_val": "4573",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "int, default=4573. Controls the randomness of the estimator."         
 			},
 			"min_impurity_decrease": {
 				"type": "float",
@@ -999,7 +999,7 @@ var survivalAnalysisModelsSettings = {
 			"estimator_params": {
 				"type": "tuple",
 				"default_val": "('criterion', 'max_depth', 'min_samples_split', 'min_samples_leaf', 'min_weight_fraction_leaf', 'max_features', 'max_leaf_nodes', 'min_impurity_decrease', 'random_state', 'ccp_alpha')",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "tuple, default=('criterion', 'max_depth', 'min_samples_split', 'min_samples_leaf', 'min_weight_fraction_leaf', 'max_features', 'max_leaf_nodes', 'min_impurity_decrease', 'random_state', 'ccp_alpha')"
 			},
 			"bootstrap": {
 				"type": "bool",
@@ -1104,7 +1104,7 @@ var survivalAnalysisModelsSettings = {
 			"estimator_params": {
 				"type": "tuple",
 				"default_val": "('criterion', 'max_depth', 'min_samples_split', 'min_samples_leaf', 'min_weight_fraction_leaf', 'max_features', 'max_leaf_nodes', 'min_impurity_decrease', 'random_state', 'ccp_alpha')",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "tuple, default=('criterion', 'max_depth', 'min_samples_split', 'min_samples_leaf', 'min_weight_fraction_leaf', 'max_features', 'max_leaf_nodes', 'min_impurity_decrease', 'random_state', 'ccp_alpha')"
 			},
 			"bootstrap": {
 				"type": "bool",
@@ -1209,7 +1209,7 @@ var survivalAnalysisModelsSettings = {
 			"estimator_params": {
 				"type": "tuple",
 				"default_val": "()",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "tuple, default='()'"
 			},
 			"learning_rate": {
 				"type": "float",
@@ -1219,7 +1219,7 @@ var survivalAnalysisModelsSettings = {
 			"random_state": {
 				"type": "int",
 				"default_val": "4573",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "int, default=4573. Controls the random seed given at each estimator at each boosting iteration."
 			},
 			"loss": {
 				"type": "string",
@@ -1294,12 +1294,12 @@ var survivalAnalysisModelsSettings = {
 			"init": {
 				"type": "NoneType",
 				"default_val": "None",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "NoneType, default=None, An estimator object that is used to compute the initial predictions."
 			},
 			"random_state": {
 				"type": "int",
 				"default_val": "4573",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "int, default=4573. Controls the random seed given to each Tree estimator at each boosting iteration."
 			},
 			"alpha": {
 				"type": "float",
@@ -1309,7 +1309,7 @@ var survivalAnalysisModelsSettings = {
 			"verbose": {
 				"type": "int",
 				"default_val": "0",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "int, default=0. Enable verbose output."
 			},
 			"max_leaf_nodes": {
 				"type": "NoneType",
@@ -1554,7 +1554,7 @@ var survivalAnalysisModelsSettings = {
 			"silent": {
 				"type": "string",
 				"default_val": "warn",
-				"tooltip": "tooltip not implemented"
+				"tooltip": "String, default='warn'. When 'warn' or 'true', suppresses most training output, providing a cleaner training process when verbose logs are not necessary."
 			},
 			"importance_type": {
 				"type": "string",

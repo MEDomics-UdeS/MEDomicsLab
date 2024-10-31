@@ -20,7 +20,7 @@ const regressionModelSettings = {
             "positive": {
                 "type": "bool",
                 "default_val": "False",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "bool, default=False. When set to True, forces the coefficients to be positive."
             }
         },
         "code": "lr"
@@ -275,7 +275,7 @@ const regressionModelSettings = {
             "positive": {
                 "type": "bool",
                 "default_val": "False",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "bool, default=False. When set to True, forces the coefficients to be positive."
             },
             "precompute": {
                 "type": "string",
@@ -500,7 +500,7 @@ const regressionModelSettings = {
             "l1_ratio": {
                 "type": "int",
                 "default_val": "0",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "int, default=0. The ElasticNet mixing parameter."
             },
             "fit_intercept": {
                 "type": "bool",
@@ -515,11 +515,12 @@ const regressionModelSettings = {
             "random_state": {
                 "type": "int",
                 "default_val": "8771",
-                "tooltip": "tooltip not implemented"            },
+                "tooltip": "int, default=0. Used to shuffle the training data."
+                        },
             "verbose": {
                 "type": "int",
                 "default_val": "0",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "int, default=0. The verbosity level."
             },
             "eta0": {
                 "type": "float",
@@ -729,7 +730,7 @@ const regressionModelSettings = {
             "alpha": {
                 "type": "int",
                 "default_val": "1",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "int, default=1. Regularization strength."
             },
             "kernel": {
                 "type": "string",
@@ -749,12 +750,12 @@ const regressionModelSettings = {
             "coef0": {
                 "type": "int",
                 "default_val": "1",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "int, default=1. Zero coefficient for polynomial and sigmoid kernels. Ignored by other kernels."
             },
             "kernel_params": {
                 "type": "NoneType",
                 "default_val": "None",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "NoneType, default=None. Additional parameters (keyword arguments) for kernel function passed as callable object."
             }
         },
         "code": "kr"
@@ -824,7 +825,7 @@ const regressionModelSettings = {
             "verbose": {
                 "type": "bool",
                 "default_val": "False",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "bool, default=False. Enable verbose output."
             },
             "max_iter": {
                 "type": "int",
@@ -834,7 +835,8 @@ const regressionModelSettings = {
             "random_state": {
                 "type": "NoneType",
                 "default_val": "None",
-                "tooltip": "tooltip not implemented"            }
+                "tooltip": "NoneType, default=None. The seed of the pseudo random number generator to use when shuffling the data."        
+                }
         },
         "code": "svm"
     },
@@ -933,7 +935,8 @@ const regressionModelSettings = {
             "random_state": {
                 "type": "int",
                 "default_val": "8771",
-                "tooltip": "tooltip not implemented"            },
+                "tooltip": "int, default=8771. Controls the randomness of the estimator."         
+             },
             "min_impurity_decrease": {
                 "type": "float",
                 "default_val": "0.0",
@@ -967,7 +970,7 @@ const regressionModelSettings = {
             "estimator_params": {
                 "type": "tuple",
                 "default_val": "('criterion', 'max_depth', 'min_samples_split', 'min_samples_leaf', 'min_weight_fraction_leaf', 'max_features', 'max_leaf_nodes', 'min_impurity_decrease', 'random_state', 'ccp_alpha')",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "tuple, default=('criterion', 'max_depth', 'min_samples_split', 'min_samples_leaf', 'min_weight_fraction_leaf', 'max_features', 'max_leaf_nodes', 'min_impurity_decrease', 'random_state', 'ccp_alpha')"
             },
             "base_estimator": {
                 "type": "string",
@@ -1077,7 +1080,7 @@ const regressionModelSettings = {
             "estimator_params": {
                 "type": "tuple",
                 "default_val": "('criterion', 'max_depth', 'min_samples_split', 'min_samples_leaf', 'min_weight_fraction_leaf', 'max_features', 'max_leaf_nodes', 'min_impurity_decrease', 'random_state', 'ccp_alpha')",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "tuple, default=('criterion', 'max_depth', 'min_samples_split', 'min_samples_leaf', 'min_weight_fraction_leaf', 'max_features', 'max_leaf_nodes', 'min_impurity_decrease', 'random_state', 'ccp_alpha')"
             },
             "base_estimator": {
                 "type": "string",
@@ -1187,7 +1190,7 @@ const regressionModelSettings = {
             "estimator_params": {
                 "type": "tuple",
                 "default_val": "()",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "tuple, default='()'"
             },
             "base_estimator": {
                 "type": "string",
@@ -1202,7 +1205,8 @@ const regressionModelSettings = {
             "random_state": {
                 "type": "int",
                 "default_val": "8771",
-                "tooltip": "tooltip not implemented"            },
+                "tooltip": "int, default=8771. Controls the random seed given at each estimator at each boosting iteration."
+              },
             "loss": {
                 "type": "string",
                 "default_val": "linear",
@@ -1276,21 +1280,22 @@ const regressionModelSettings = {
             "init": {
                 "type": "NoneType",
                 "default_val": "None",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "NoneType, default=None, An estimator object that is used to compute the initial predictions."
             },
             "random_state": {
                 "type": "int",
                 "default_val": "8771",
-                "tooltip": "tooltip not implemented"            },
+                "tooltip": "int, default=8771. Controls the random seed given to each Tree estimator at each boosting iteration."
+                        },
             "alpha": {
                 "type": "float",
                 "default_val": "0.9",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "float, default=0.9. The alpha-quantile of the huber loss function and the quantile loss function."
             },
             "verbose": {
                 "type": "int",
                 "default_val": "0",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "int, default=0. Enable verbose output."
             },
             "max_leaf_nodes": {
                 "type": "NoneType",
