@@ -228,7 +228,7 @@ const classificationModelSettings = {
             "epsilon": {
                 "type": "float",
                 "default_val": "0.1",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "float, default=0.1. Epsilon in the epsilon-insensitive loss functions; only if loss is ‘huber’, ‘epsilon_insensitive’, or ‘squared_epsilon_insensitive’. For ‘huber’, determines the threshold at which it becomes less important to get the prediction exactly right. For epsilon-insensitive, any differences between the current prediction and the correct label are ignored if they are less than this threshold. Values must be in the range [0.0, inf)"
             },
             "alpha": {
                 "type": "float",
@@ -253,7 +253,7 @@ const classificationModelSettings = {
             "shuffle": {
                 "type": "bool",
                 "default_val": "True",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "bool, default=True. Whether or not the training data should be shuffled after each epoch."
             },
             "random_state": {
                 "type": "int",
@@ -267,12 +267,12 @@ const classificationModelSettings = {
             "eta0": {
                 "type": "float",
                 "default_val": "0.001",
-                "tooltip": "tooltip not implemented"
+				"tooltip": "float, default=0.001. The initial learning rate for the ‘constant’, ‘invscaling’ or ‘adaptive’ schedules. The default value is 0.0 as eta0 is not used by the default schedule ‘optimal’. Values must be in the range [0.0, inf)."
             },
             "power_t": {
                 "type": "float",
                 "default_val": "0.5",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "float, default=0.5. The exponent for inverse scaling learning rate. Values must be in the range (-inf, inf)."
             },
             "early_stopping": {
                 "type": "bool",
@@ -282,12 +282,12 @@ const classificationModelSettings = {
             "validation_fraction": {
                 "type": "float",
                 "default_val": "0.1",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "float, default=0.1. The proportion of training data to set aside as validation set for early stopping. Must be between 0 and 1. Only used if early_stopping is True. Values must be in the range (0.0, 1.0)."
             },
             "n_iter_no_change": {
                 "type": "int",
                 "default_val": "5",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "int, default=5. Number of iterations with no improvement to wait before stopping fitting. Convergence is checked against the training loss or the validation loss depending on the early_stopping parameter. Integer values must be in the range [1, max_iter)."
             },
             "warm_start": {
                 "type": "bool",
@@ -297,7 +297,7 @@ const classificationModelSettings = {
             "average": {
                 "type": "bool",
                 "default_val": "False",
-                "tooltip": "tooltip not implemented"
+				"tooltip": "bool, default=False. When set to True, computes the averaged SGD weights across all updates and stores the result in the coef_ attribute."
             },
             "max_iter": {
                 "type": "int",
@@ -327,32 +327,32 @@ const classificationModelSettings = {
             "decision_function_shape": {
                 "type": "string",
                 "default_val": "ovr",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "String, default=’ovr’. Whether to return a one-vs-rest (‘ovr’) decision function of shape (n_samples, n_classes) as all other classifiers, or the original one-vs-one (‘ovo’) decision function of libsvm which has shape (n_samples, n_classes * (n_classes - 1) / 2). "
             },
             "break_ties": {
                 "type": "bool",
                 "default_val": "False",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "bool, default=False. If true, decision_function_shape='ovr', and number of classes > 2, predict will break ties according to the confidence values of decision_function; otherwise the first class among the tied classes is returned. "
             },
             "kernel": {
                 "type": "string",
                 "default_val": "rbf",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "String, default=’rbf’, Specifies the kernel type to be used in the algorithm."
             },
             "degree": {
                 "type": "int",
                 "default_val": "3",
-                "tooltip": "tooltip not implemented"
+				"tooltip": "int, default=3. Degree of the polynomial kernel function (‘poly’). Must be non-negative. Ignored by all other kernels."
             },
             "gamma": {
                 "type": "string",
                 "default_val": "auto",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "String, default=’auto’. Kernel coefficient for ‘rbf’, ‘poly’ and ‘sigmoid’."
             },
             "coef0": {
                 "type": "float",
                 "default_val": "0.0",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "float, default=0.0. Independent term in kernel function. It is only significant in ‘poly’ and ‘sigmoid’."
             },
             "tol": {
                 "type": "float",
@@ -367,27 +367,27 @@ const classificationModelSettings = {
             "nu": {
                 "type": "float",
                 "default_val": "0.0",
-                "tooltip": "tooltip not implemented"
+				"tooltip": "float, default=0.0. An upper bound on the fraction of margin errors and a lower bound of the fraction of support vectors."
             },
             "epsilon": {
                 "type": "float",
                 "default_val": "0.0",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "float, default=0.0. Epsilon in the epsilon-insensitive loss functions; only if loss is ‘huber’, ‘epsilon_insensitive’, or ‘squared_epsilon_insensitive’. For ‘huber’, determines the threshold at which it becomes less important to get the prediction exactly right. For epsilon-insensitive, any differences between the current prediction and the correct label are ignored if they are less than this threshold. Values must be in the range [0.0, inf)"
             },
             "shrinking": {
                 "type": "bool",
                 "default_val": "True",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "bool, default=True. Whether to use the shrinking heuristic."
             },
             "probability": {
                 "type": "bool",
                 "default_val": "True",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "bool, default=True. Whether to enable probability estimates."
             },
             "cache_size": {
                 "type": "int",
                 "default_val": "200",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "int, default=200. Specify the size of the kernel cache (in MB)."
             },
             "class_weight": {
                 "type": "NoneType",
@@ -416,22 +416,22 @@ const classificationModelSettings = {
             "kernel": {
                 "type": "NoneType",
                 "default_val": "None",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "NoneType, default=’None’, Specifies the kernel type to be used in the algorithm."
             },
             "optimizer": {
                 "type": "string",
                 "default_val": "fmin_l_bfgs_b",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "String, default=’fmin_l_bfgs_b’. Can either be one of the internally supported optimizers for optimizing the kernel’s parameters, specified by a string, or an externally defined optimizer passed as a callable."
             },
             "n_restarts_optimizer": {
                 "type": "int",
                 "default_val": "0",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "int, default=0. The number of restarts of the optimizer for finding the kernel’s parameters which maximize the log-marginal likelihood."
             },
             "max_iter_predict": {
                 "type": "int",
                 "default_val": "100",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "int, default=100. he maximum number of iterations in Newton’s method for approximating the posterior during predict."
             },
             "warm_start": {
                 "type": "bool",
@@ -441,12 +441,13 @@ const classificationModelSettings = {
             "copy_X_train": {
                 "type": "bool",
                 "default_val": "False",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "bool, default=False. If True, a persistent copy of the training data is stored in the object. Otherwise, just a reference to the training data is stored, which might cause predictions to change if the data is modified externally."
             },
             "random_state": {
                 "type": "int",
                 "default_val": "1334",
-                "tooltip": "tooltip not implemented"            },
+                "tooltip": "int, default=1334. Determines random number generation used to initialize the centers. Pass an int for reproducible results across multiple function calls. "          
+              },
             "multi_class": {
                 "type": "string",
                 "default_val": "one_vs_rest",
@@ -465,12 +466,12 @@ const classificationModelSettings = {
             "activation": {
                 "type": "string",
                 "default_val": "relu",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "String, default=’relu’. Activation function for the hidden layer."
             },
             "solver": {
                 "type": "string",
                 "default_val": "adam",
-                "tooltip": "string, default=’adam’. Algorithm to use in the optimization problem."
+                "tooltip": "String, default=’adam’. Algorithm to use in the optimization problem."
             },
             "alpha": {
                 "type": "float",
@@ -480,7 +481,7 @@ const classificationModelSettings = {
             "batch_size": {
                 "type": "string",
                 "default_val": "auto",
-                "tooltip": "tooltip not implemented"
+				"tooltip": "String, default=’auto’. Size of minibatches for stochastic optimizers."
             },
             "learning_rate": {
                 "type": "string",
@@ -490,12 +491,12 @@ const classificationModelSettings = {
             "learning_rate_init": {
                 "type": "float",
                 "default_val": "0.001",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "float, default=0.001. The initial learning rate used. It controls the step-size in updating the weights."
             },
             "power_t": {
                 "type": "float",
                 "default_val": "0.5",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "float, default=0.5. The exponent for inverse scaling learning rate. Values must be in the range (-inf, inf)."
             },
             "max_iter": {
                 "type": "int",
@@ -510,17 +511,18 @@ const classificationModelSettings = {
             "hidden_layer_sizes": {
                 "type": "tuple",
                 "default_val": "(100,)",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "tuple, default=(100,). The ith element represents the number of neurons in the ith hidden layer."
             },
             "shuffle": {
                 "type": "bool",
                 "default_val": "True",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "bool, default=True. Whether or not the training data should be shuffled after each epoch."
             },
             "random_state": {
                 "type": "int",
                 "default_val": "1334",
-                "tooltip": "tooltip not implemented"            },
+                "tooltip": "int, default=1334. Determines random number generation for weights and bias initialization"           
+             },
             "tol": {
                 "type": "float",
                 "default_val": "0.0001",
@@ -529,7 +531,7 @@ const classificationModelSettings = {
             "verbose": {
                 "type": "bool",
                 "default_val": "False",
-                "tooltip": "tooltip not implemented"
+				"tooltip": "bool, default=False. Whether to print progress messages to stdout."
             },
             "warm_start": {
                 "type": "bool",
@@ -539,12 +541,12 @@ const classificationModelSettings = {
             "momentum": {
                 "type": "float",
                 "default_val": "0.9",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "float, default=0.9. Momentum for gradient descent update. Should be between 0 and 1."
             },
             "nesterovs_momentum": {
                 "type": "bool",
                 "default_val": "True",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "bool, default=True. Whether to use Nesterov’s momentum."
             },
             "early_stopping": {
                 "type": "bool",
@@ -554,32 +556,32 @@ const classificationModelSettings = {
             "validation_fraction": {
                 "type": "float",
                 "default_val": "0.1",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "float, default=0.1. The proportion of training data to set aside as validation set for early stopping. Must be between 0 and 1. Only used if early_stopping is True. Values must be in the range (0.0, 1.0)."
             },
             "beta_1": {
                 "type": "float",
                 "default_val": "0.9",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "float, default=0.9. Exponential decay rate for estimates of first moment vector in adam, should be in [0, 1)."
             },
             "beta_2": {
                 "type": "float",
                 "default_val": "0.999",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "float, default=0.999. Exponential decay rate for estimates of second moment vector in adam, should be in [0, 1)."
             },
             "epsilon": {
                 "type": "float",
                 "default_val": "1e-08",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "float, default=1e-08. Epsilon in the epsilon-insensitive loss functions; only if loss is ‘huber’, ‘epsilon_insensitive’, or ‘squared_epsilon_insensitive’. For ‘huber’, determines the threshold at which it becomes less important to get the prediction exactly right. For epsilon-insensitive, any differences between the current prediction and the correct label are ignored if they are less than this threshold. Values must be in the range [0.0, inf)"
             },
             "n_iter_no_change": {
                 "type": "int",
                 "default_val": "10",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "int, default=10. Number of iterations with no improvement to wait before stopping fitting. Convergence is checked against the training loss or the validation loss depending on the early_stopping parameter. Integer values must be in the range [1, max_iter)."
             },
             "max_fun": {
                 "type": "int",
                 "default_val": "15000",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "int, default=15000. Only used when solver=’lbfgs’. Maximum number of loss function calls."
             }
         },
         "code": "mlp"
@@ -599,7 +601,7 @@ const classificationModelSettings = {
             "copy_X": {
                 "type": "bool",
                 "default_val": "True",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "bool, default=True. If True, X will be copied; else, it may be overwritten."
             },
             "max_iter": {
                 "type": "NoneType",
@@ -619,12 +621,13 @@ const classificationModelSettings = {
             "positive": {
                 "type": "bool",
                 "default_val": "False",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "bool, default=False. When set to True, forces the coefficients to be positive."
             },
             "random_state": {
                 "type": "int",
                 "default_val": "1334",
-                "tooltip": "tooltip not implemented"            },
+                "tooltip": "int, default=1334. Used when solver == ‘sag’ or ‘saga’ to shuffle the data."     
+                   },
             "class_weight": {
                 "type": "NoneType",
                 "default_val": "None",
@@ -643,7 +646,7 @@ const classificationModelSettings = {
             "n_estimators": {
                 "type": "int",
                 "default_val": "100",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "int, default=100. The maximum number of estimators at which boosting is terminated. In case of perfect fit, the learning procedure is stopped early. Values must be in the range [1, inf)."
             },
             "estimator_params": {
                 "type": "tuple",
@@ -653,17 +656,17 @@ const classificationModelSettings = {
             "base_estimator": {
                 "type": "string",
                 "default_val": "deprecated",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "String, default='deprecated'. The base estimator from which the ensemble is grown."
             },
             "bootstrap": {
                 "type": "bool",
                 "default_val": "True",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "bool, default=True. Whether samples are drawn with replacement. If False, sampling without replacement is performed."
             },
             "oob_score": {
                 "type": "bool",
                 "default_val": "False",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "bool, default=False. Whether to use out-of-bag samples to estimate the generalization error. Only available if bootstrap=True."
             },
             "n_jobs": {
                 "type": "int",
@@ -673,11 +676,12 @@ const classificationModelSettings = {
             "random_state": {
                 "type": "int",
                 "default_val": "1334",
-                "tooltip": "tooltip not implemented"            },
+                "tooltip": "int, default=1334. Controls the random resampling of the original dataset (sample wise and feature wise). "          
+              },
             "verbose": {
                 "type": "int",
                 "default_val": "0",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "int, default=0. Controls the verbosity when fitting and predicting."
             },
             "warm_start": {
                 "type": "bool",
@@ -692,7 +696,7 @@ const classificationModelSettings = {
             "max_samples": {
                 "type": "NoneType",
                 "default_val": "None",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "NoneType, default=None. The number of samples to draw from X to train each base estimator "
             },
             "criterion": {
                 "type": "string",
@@ -747,17 +751,17 @@ const classificationModelSettings = {
             "priors": {
                 "type": "NoneType",
                 "default_val": "None",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "NoneType, default=None. Class priors. By default, the class proportions are inferred from the training data."
             },
             "reg_param": {
                 "type": "float",
                 "default_val": "0.0",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "float, default=0.0. Regularizes the per-class covariance estimates by transforming S2 as S2 = (1 - reg_param) * S2 + reg_param * np.eye(n_features), where S2 corresponds to the scaling_ attribute of a given class."
             },
             "store_covariance": {
                 "type": "bool",
                 "default_val": "False",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "bool, default=False. If True, the class covariance matrices are explicitly computed and stored in the self.covariance_ attribute."
             },
             "tol": {
                 "type": "float",
@@ -777,7 +781,7 @@ const classificationModelSettings = {
             "n_estimators": {
                 "type": "int",
                 "default_val": "50",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "int, default=50. The maximum number of estimators at which boosting is terminated. In case of perfect fit, the learning procedure is stopped early. Values must be in the range [1, inf)."
             },
             "estimator_params": {
                 "type": "tuple",
@@ -787,7 +791,7 @@ const classificationModelSettings = {
             "base_estimator": {
                 "type": "string",
                 "default_val": "deprecated",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "String, default='deprecated'. The base estimator from which the ensemble is grown."
             },
             "learning_rate": {
                 "type": "float",
@@ -811,7 +815,7 @@ const classificationModelSettings = {
             "n_estimators": {
                 "type": "int",
                 "default_val": "100",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "int, default=100. The maximum number of estimators at which boosting is terminated. In case of perfect fit, the learning procedure is stopped early. Values must be in the range [1, inf)."
             },
             "learning_rate": {
                 "type": "float",
@@ -846,7 +850,7 @@ const classificationModelSettings = {
             "subsample": {
                 "type": "float",
                 "default_val": "1.0",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "float, default=1.0. The fraction of samples to be used for fitting the individual base learners."
             },
             "max_features": {
                 "type": "NoneType",
@@ -871,12 +875,13 @@ const classificationModelSettings = {
             "init": {
                 "type": "NoneType",
                 "default_val": "None",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "NoneType, default=None. An estimator object that is used to compute the initial predictions. "
             },
             "random_state": {
                 "type": "int",
                 "default_val": "1334",
-                "tooltip": "tooltip not implemented"            },
+                "tooltip": "int, default=1334. Controls the random seed given to each Tree estimator at each boosting iteration. "           
+             },
             "alpha": {
                 "type": "float",
                 "default_val": "0.9",
@@ -885,7 +890,7 @@ const classificationModelSettings = {
             "verbose": {
                 "type": "int",
                 "default_val": "0",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "int, default=0. Enable verbose output. If 1 then it prints progress and performance once in a while (the more trees the lower the frequency)"
             },
             "max_leaf_nodes": {
                 "type": "NoneType",
@@ -900,12 +905,12 @@ const classificationModelSettings = {
             "validation_fraction": {
                 "type": "float",
                 "default_val": "0.1",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "float, default=0.1. The proportion of training data to set aside as validation set for early stopping. Must be between 0 and 1. Only used if early_stopping is True. Values must be in the range (0.0, 1.0)."
             },
             "n_iter_no_change": {
                 "type": "NoneType",
                 "default_val": "None",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "NoneType, default=None. Number of iterations with no improvement to wait before stopping fitting. Convergence is checked against the training loss or the validation loss depending on the early_stopping parameter. Integer values must be in the range [1, max_iter)."
             },
             "tol": {
                 "type": "float",
@@ -925,22 +930,22 @@ const classificationModelSettings = {
             "shrinkage": {
                 "type": "NoneType",
                 "default_val": "None",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "NoneType, default=None Shrinkage parameter, possible values: None: no shrinkage (default). ‘auto’: automatic shrinkage using the Ledoit-Wolf lemma. float between 0 and 1: fixed shrinkage parameter."
             },
             "priors": {
                 "type": "NoneType",
                 "default_val": "None",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "NoneType, default=None. The class prior probabilities. By default, the class proportions are inferred from the training data."
             },
             "n_components": {
                 "type": "NoneType",
                 "default_val": "None",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "NoneType, default=None. Number of components (<= min(n_classes - 1, n_features)) for dimensionality reduction."
             },
             "store_covariance": {
                 "type": "bool",
                 "default_val": "False",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "bool, default=False. If True, the class covariance matrices are explicitly computed and stored in the self.covariance_ attribute."
             },
             "tol": {
                 "type": "float",
@@ -950,7 +955,7 @@ const classificationModelSettings = {
             "covariance_estimator": {
                 "type": "NoneType",
                 "default_val": "None",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "NoneType, default=None. If not None, covariance_estimator is used to estimate the covariance matrices instead of relying on the empirical covariance estimator (with potential shrinkage). "
             }
         },
         "code": "lda"
@@ -965,7 +970,7 @@ const classificationModelSettings = {
             "n_estimators": {
                 "type": "int",
                 "default_val": "100",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "int, default=100. The maximum number of estimators at which boosting is terminated. In case of perfect fit, the learning procedure is stopped early. Values must be in the range [1, inf)."
             },
             "estimator_params": {
                 "type": "tuple",
@@ -975,17 +980,17 @@ const classificationModelSettings = {
             "base_estimator": {
                 "type": "string",
                 "default_val": "deprecated",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "String, default='deprecated'. The base estimator from which the ensemble is grown."
             },
             "bootstrap": {
                 "type": "bool",
                 "default_val": "False",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "bool, default=False. Whether samples are drawn with replacement. If False, sampling without replacement is performed."
             },
             "oob_score": {
                 "type": "bool",
                 "default_val": "False",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "bool, default=False. Whether to use out-of-bag samples to estimate the generalization error. Only available if bootstrap=True."
             },
             "n_jobs": {
                 "type": "int",
@@ -995,11 +1000,12 @@ const classificationModelSettings = {
             "random_state": {
                 "type": "int",
                 "default_val": "1334",
-                "tooltip": "tooltip not implemented"            },
+                "tooltip": "int, default=1334. Controls the random resampling of the original dataset (sample wise and feature wise). "          
+                  },
             "verbose": {
                 "type": "int",
                 "default_val": "0",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "int, default=0. Controls the verbosity when fitting and predicting."
             },
             "warm_start": {
                 "type": "bool",
@@ -1014,7 +1020,7 @@ const classificationModelSettings = {
             "max_samples": {
                 "type": "NoneType",
                 "default_val": "None",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "NoneType, default=None. The number of samples to draw from X to train each base estimator "
             },
             "criterion": {
                 "type": "string",
@@ -1069,17 +1075,17 @@ const classificationModelSettings = {
             "boosting_type": {
                 "type": "string",
                 "default_val": "gbdt",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "String, default='gbdt'. traditional Gradient Boosting Decision Tree."
             },
             "objective": {
                 "type": "NoneType",
                 "default_val": "None",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "NoneType, default=None. Specify the learning task and the corresponding learning objective or a custom objective function to be used "
             },
             "num_leaves": {
                 "type": "int",
                 "default_val": "31",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "int, default=31. Maximum tree leaves for base learners."
             },
             "max_depth": {
                 "type": "int",
@@ -1094,57 +1100,58 @@ const classificationModelSettings = {
             "n_estimators": {
                 "type": "int",
                 "default_val": "100",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "int, default=100. The maximum number of estimators at which boosting is terminated. In case of perfect fit, the learning procedure is stopped early. Values must be in the range [1, inf)."
             },
             "subsample_for_bin": {
                 "type": "int",
                 "default_val": "200000",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "int, default=200000.  Number of samples for constructing bins."
             },
             "min_split_gain": {
                 "type": "float",
                 "default_val": "0.0",
-                "tooltip": "tooltip not implemented"
+                "tooltip": " float, default=0. Minimum loss reduction required to make a further partition on a leaf node of the tree."
             },
             "min_child_weight": {
                 "type": "float",
                 "default_val": "0.001",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "float, default=0.001. Minimum sum of instance weight (Hessian) needed in a child (leaf)."
             },
             "min_child_samples": {
                 "type": "int",
                 "default_val": "20",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "int, default=20. Minimum number of data needed in a child (leaf)."
             },
             "subsample": {
                 "type": "float",
                 "default_val": "1.0",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "float, default=1.0. The fraction of samples to be used for fitting the individual base learners."
             },
             "subsample_freq": {
                 "type": "int",
                 "default_val": "0",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "int, default=0. Frequency of subsample, <=0 means no enable."
             },
             "colsample_bytree": {
                 "type": "float",
                 "default_val": "1.0",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "float, default=1. Subsample ratio of columns when constructing each tree."
             },
             "reg_alpha": {
                 "type": "float",
                 "default_val": "0.0",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "float, default=0. L1 regularization term on weights."
             },
             "reg_lambda": {
                 "type": "float",
                 "default_val": "0.0",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "float, default=0. L2 regularization term on weights."
             },
             "random_state": {
                 "type": "int",
                 "default_val": "1334",
-                "tooltip": "tooltip not implemented"            },
+                "tooltip": "int, default=1334. Random number seed. If int, this number is used to seed the C++ code. "  
+                      },
             "n_jobs": {
                 "type": "int",
                 "default_val": "-1",
@@ -1153,7 +1160,7 @@ const classificationModelSettings = {
             "importance_type": {
                 "type": "string",
                 "default_val": "split",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "String, default='split'. The type of feature importance to be filled into feature_importances_."
             },
             "class_weight": {
                 "type": "NoneType",
@@ -1168,16 +1175,17 @@ const classificationModelSettings = {
             "strategy": {
                 "type": "string",
                 "default_val": "prior",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "String, default=”prior”. Strategy to use to generate predictions. “prior”: the predict method always returns the most frequent class label in the observed y argument passed to fit (like “most_frequent”)."
             },
             "random_state": {
                 "type": "int",
                 "default_val": "1334",
-                "tooltip": "tooltip not implemented"            },
+                "tooltip": "int, default=1334. Controls the randomness to generate the predictions when strategy='stratified' or strategy='uniform'. Pass an int for reproducible output across multiple function calls."
+                        },
             "constant": {
                 "type": "NoneType",
                 "default_val": "None",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "NoneType, default=None. The explicit constant as predicted by the “constant” strategy."
             }
         },
         "code": "dummy"

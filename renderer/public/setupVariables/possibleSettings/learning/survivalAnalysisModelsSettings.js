@@ -9,12 +9,12 @@ var survivalAnalysisModelsSettings = {
 			"normalize": {
 				"type": "string",
 				"default_val": "deprecated",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "deprecated"
 			},
 			"copy_X": {
 				"type": "bool",
 				"default_val": "True",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "bool, default=True. If True, X will be copied; else, it may be overwritten."
 			},
 			"n_jobs": {
 				"type": "int",
@@ -49,12 +49,12 @@ var survivalAnalysisModelsSettings = {
 			"normalize": {
 				"type": "string",
 				"default_val": "deprecated",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "deprecated"
 			},
 			"precompute": {
 				"type": "bool",
 				"default_val": "False",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "bool, default=False. Whether to use a precomputed Gram matrix to speed up calculations."
 			},
 			"max_iter": {
 				"type": "int",
@@ -64,7 +64,7 @@ var survivalAnalysisModelsSettings = {
 			"copy_X": {
 				"type": "bool",
 				"default_val": "True",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "bool, default=True. If True, X will be copied; else, it may be overwritten."
 			},
 			"tol": {
 				"type": "float",
@@ -79,17 +79,17 @@ var survivalAnalysisModelsSettings = {
 			"positive": {
 				"type": "bool",
 				"default_val": "False",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "bool, default=False. When set to True, forces the coefficients to be positive."
 			},
 			"random_state": {
 				"type": "int",
 				"default_val": "4573",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "int, default=4573. The seed of the pseudo random number generator that selects a random feature to update."          
 			},
 			"selection": {
 				"type": "string",
 				"default_val": "cyclic",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "String, default=’cyclic’. If set to ‘random’, a random coefficient is updated every iteration rather than looping over features sequentially by default."
 			}
 		},
 		"code": "lasso"
@@ -109,12 +109,12 @@ var survivalAnalysisModelsSettings = {
 			"normalize": {
 				"type": "string",
 				"default_val": "deprecated",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "deprecated"
 			},
 			"copy_X": {
 				"type": "bool",
 				"default_val": "True",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "bool, default=True. If True, X will be copied; else, it may be overwritten."
 			},
 			"max_iter": {
 				"type": "NoneType",
@@ -134,12 +134,12 @@ var survivalAnalysisModelsSettings = {
 			"positive": {
 				"type": "bool",
 				"default_val": "False",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "bool, default=False. When set to True, forces the coefficients to be positive."
 			},
 			"random_state": {
 				"type": "int",
 				"default_val": "4573",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "int, default=4573. Used when solver == ‘sag’ or ‘saga’ to shuffle the data."     
 			}
 		},
 		"code": "ridge"
@@ -164,12 +164,12 @@ var survivalAnalysisModelsSettings = {
 			"normalize": {
 				"type": "string",
 				"default_val": "deprecated",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "deprecated"
 			},
 			"precompute": {
 				"type": "bool",
 				"default_val": "False",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "bool, default=False. Whether to use a precomputed Gram matrix to speed up calculations."
 			},
 			"max_iter": {
 				"type": "int",
@@ -179,7 +179,7 @@ var survivalAnalysisModelsSettings = {
 			"copy_X": {
 				"type": "bool",
 				"default_val": "True",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "bool, default=True. If True, X will be copied; else, it may be overwritten."
 			},
 			"tol": {
 				"type": "float",
@@ -194,17 +194,17 @@ var survivalAnalysisModelsSettings = {
 			"positive": {
 				"type": "bool",
 				"default_val": "False",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "bool, default=False. When set to True, forces the coefficients to be positive."
 			},
 			"random_state": {
 				"type": "int",
 				"default_val": "4573",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "int, default=4573. The seed of the pseudo random number generator that selects a random feature to update."          
 			},
 			"selection": {
 				"type": "string",
 				"default_val": "cyclic",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "String, default=’cyclic’. If set to ‘random’, a random coefficient is updated every iteration rather than looping over features sequentially by default."
 			}
 		},
 		"code": "en"
@@ -219,47 +219,47 @@ var survivalAnalysisModelsSettings = {
 			"verbose": {
 				"type": "bool",
 				"default_val": "False",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "bool, default=False. Sets the verbosity amount."
 			},
 			"normalize": {
 				"type": "string",
 				"default_val": "deprecated",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "deprecated"
 			},
 			"precompute": {
 				"type": "string",
 				"default_val": "auto",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "String, default=’auto’. Whether to use a precomputed Gram matrix to speed up calculations."
 			},
 			"n_nonzero_coefs": {
 				"type": "int",
 				"default_val": "500",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "int, default=500. Target number of non-zero coefficients."
 			},
 			"eps": {
 				"type": "float64",
 				"default_val": "2.220446049250313e-16",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "float64, default=2.220446049250313e-16. The machine-precision regularization in the computation of the Cholesky diagonal factors."
 			},
 			"copy_X": {
 				"type": "bool",
 				"default_val": "True",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "bool, default=True. If True, X will be copied; else, it may be overwritten."
 			},
 			"fit_path": {
 				"type": "bool",
 				"default_val": "True",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "bool, default=True. If True the full path is stored in the coef_path_ attribute."
 			},
 			"jitter": {
 				"type": "NoneType",
 				"default_val": "None",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "NoneType, default=None. Upper bound on a uniform noise parameter to be added to the y values, to satisfy the model’s assumption of one-at-a-time computations."
 			},
 			"random_state": {
 				"type": "int",
 				"default_val": "4573",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "int, default=4573. Determines random number generation for jittering."       
 			}
 		},
 		"code": "lar"
@@ -284,12 +284,12 @@ var survivalAnalysisModelsSettings = {
 			"verbose": {
 				"type": "bool",
 				"default_val": "False",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "bool, default=False. Sets the verbosity amount."
 			},
 			"normalize": {
 				"type": "string",
 				"default_val": "deprecated",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "deprecated"
 			},
 			"positive": {
 				"type": "bool",
@@ -299,32 +299,32 @@ var survivalAnalysisModelsSettings = {
 			"precompute": {
 				"type": "string",
 				"default_val": "auto",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "String, default=’auto’. Whether to use a precomputed Gram matrix to speed up calculations."
 			},
 			"copy_X": {
 				"type": "bool",
 				"default_val": "True",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "bool, default=True. If True, X will be copied; else, it may be overwritten."
 			},
 			"eps": {
 				"type": "float64",
 				"default_val": "2.220446049250313e-16",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "float64, default=2.220446049250313e-16. The machine-precision regularization in the computation of the Cholesky diagonal factors."
 			},
 			"fit_path": {
 				"type": "bool",
 				"default_val": "True",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "bool, default=True. If True the full path is stored in the coef_path_ attribute."
 			},
 			"jitter": {
 				"type": "NoneType",
 				"default_val": "None",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "NoneType, default=None. Upper bound on a uniform noise parameter to be added to the y values, to satisfy the model’s assumption of one-at-a-time computations."
 			},
 			"random_state": {
 				"type": "int",
 				"default_val": "4573",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "int, default=4573. Determines random number generation for jittering."       
 			}
 		},
 		"code": "llar"
@@ -334,7 +334,7 @@ var survivalAnalysisModelsSettings = {
 			"n_nonzero_coefs": {
 				"type": "NoneType",
 				"default_val": "None",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "NoneType, default=None. Desired number of non-zero entries in the solution."
 			},
 			"tol": {
 				"type": "NoneType",
@@ -349,12 +349,12 @@ var survivalAnalysisModelsSettings = {
 			"normalize": {
 				"type": "string",
 				"default_val": "deprecated",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "deprecated"
 			},
 			"precompute": {
 				"type": "string",
 				"default_val": "auto",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "String, default=’auto’. Whether to use a precomputed Gram matrix to speed up calculations."
 			}
 		},
 		"code": "omp"
@@ -364,7 +364,7 @@ var survivalAnalysisModelsSettings = {
 			"n_iter": {
 				"type": "int",
 				"default_val": "300",
-				"tooltip": "tooltip not implemented"
+				"tooltip": "int, default=300. Used to determine when to “early stop”. "
 			},
 			"tol": {
 				"type": "float",
@@ -374,37 +374,37 @@ var survivalAnalysisModelsSettings = {
 			"alpha_1": {
 				"type": "float",
 				"default_val": "1e-06",
-				"tooltip": "tooltip not implemented"
+				"tooltip": "float, default=1e-06. Hyper-parameter : shape parameter for the Gamma distribution prior over the alpha parameter."
 			},
 			"alpha_2": {
 				"type": "float",
 				"default_val": "1e-06",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "float, default=1e-06. Hyper-parameter : inverse scale parameter (rate parameter) for the Gamma distribution prior over the alpha parameter."
 			},
 			"lambda_1": {
 				"type": "float",
 				"default_val": "1e-06",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "float, default=1e-06. Hyper-parameter : shape parameter for the Gamma distribution prior over the lambda parameter."
 			},
 			"lambda_2": {
 				"type": "float",
 				"default_val": "1e-06",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "float, default=1e-06. Hyper-parameter : inverse scale parameter (rate parameter) for the Gamma distribution prior over the lambda parameter."
 			},
 			"alpha_init": {
 				"type": "NoneType",
 				"default_val": "None",
-				"tooltip": "tooltip not implemented"
+				"tooltip": "NoneType, default=None. Initial value for alpha (precision of the noise)."
 			},
 			"lambda_init": {
 				"type": "NoneType",
 				"default_val": "None",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "NoneType, default=None. Initial value for lambda (precision of the weights). If not set, lambda_init is 1."
 			},
 			"compute_score": {
 				"type": "bool",
 				"default_val": "False",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "bool, default=False. If True, compute the objective function at each step of the model."
 			},
 			"fit_intercept": {
 				"type": "bool",
@@ -414,17 +414,17 @@ var survivalAnalysisModelsSettings = {
 			"normalize": {
 				"type": "string",
 				"default_val": "deprecated",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "deprecated"
 			},
 			"copy_X": {
 				"type": "bool",
 				"default_val": "True",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "bool, default=True. If True, X will be copied; else, it may be overwritten."
 			},
 			"verbose": {
 				"type": "bool",
 				"default_val": "False",
-				"tooltip": "tooltip not implemented"
+				"tooltip": "bool, default=False. Verbose mode when fitting the model."
 			}
 		},
 		"code": "br"
@@ -434,7 +434,7 @@ var survivalAnalysisModelsSettings = {
 			"n_iter": {
 				"type": "int",
 				"default_val": "1000",
-				"tooltip": "tooltip not implemented"
+				"tooltip": "int, default=1000, The actual number of iterations to reach the stopping criterion."
 			},
 			"tol": {
 				"type": "float",
@@ -449,47 +449,47 @@ var survivalAnalysisModelsSettings = {
 			"normalize": {
 				"type": "string",
 				"default_val": "deprecated",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "deprecated"
 			},
 			"alpha_1": {
 				"type": "float",
 				"default_val": "1e-06",
-				"tooltip": "tooltip not implemented"
+				"tooltip": "float, default=1e-06. Hyper-parameter : shape parameter for the Gamma distribution prior over the alpha parameter."
 			},
 			"alpha_2": {
 				"type": "float",
 				"default_val": "1e-06",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "float, default=1e-06. Hyper-parameter : inverse scale parameter (rate parameter) for the Gamma distribution prior over the alpha parameter."
 			},
 			"lambda_1": {
 				"type": "float",
 				"default_val": "1e-06",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "float, default=1e-06. Hyper-parameter : shape parameter for the Gamma distribution prior over the lambda parameter."
 			},
 			"lambda_2": {
 				"type": "float",
 				"default_val": "1e-06",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "float, default=1e-06. Hyper-parameter : inverse scale parameter (rate parameter) for the Gamma distribution prior over the lambda parameter."
 			},
 			"compute_score": {
 				"type": "bool",
 				"default_val": "False",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "bool, default=False. If True, compute the objective function at each step of the model."
 			},
 			"threshold_lambda": {
 				"type": "float",
 				"default_val": "10000.0",
-				"tooltip": "tooltip not implemented"
+				"tooltip": "float, default=10000.0. Threshold for removing (pruning) weights with high precision from the computation."
 			},
 			"copy_X": {
 				"type": "bool",
 				"default_val": "True",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "bool, default=True. If True, X will be copied; else, it may be overwritten."
 			},
 			"verbose": {
 				"type": "bool",
 				"default_val": "False",
-				"tooltip": "tooltip not implemented"
+				"tooltip": "bool, default=False. Verbose mode when fitting the model."
 			}
 		},
 		"code": "ard"
@@ -514,7 +514,7 @@ var survivalAnalysisModelsSettings = {
 			"epsilon": {
 				"type": "float",
 				"default_val": "0.1",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "float, default=0.1. Epsilon in the epsilon-insensitive loss functions; only if loss is ‘huber’, ‘epsilon_insensitive’, or ‘squared_epsilon_insensitive’. For ‘huber’, determines the threshold at which it becomes less important to get the prediction exactly right. For epsilon-insensitive, any differences between the current prediction and the correct label are ignored if they are less than this threshold. Values must be in the range [0.0, inf)"
 			},
 			"alpha": {
 				"type": "float",
@@ -539,7 +539,7 @@ var survivalAnalysisModelsSettings = {
 			"shuffle": {
 				"type": "bool",
 				"default_val": "True",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "bool, default=True. Whether or not the training data should be shuffled after each epoch."
 			},
 			"random_state": {
 				"type": "int",
@@ -554,12 +554,12 @@ var survivalAnalysisModelsSettings = {
 			"eta0": {
 				"type": "float",
 				"default_val": "1.0",
-				"tooltip": "tooltip not implemented"
+				"tooltip": "float, default=1.0. The initial learning rate for the ‘constant’, ‘invscaling’ or ‘adaptive’ schedules. The default value is 0.0 as eta0 is not used by the default schedule ‘optimal’. Values must be in the range [0.0, inf)."
 			},
 			"power_t": {
 				"type": "float",
 				"default_val": "0.25",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "float, default=0.25. The exponent for inverse scaling learning rate. Values must be in the range (-inf, inf)."
 			},
 			"early_stopping": {
 				"type": "bool",
@@ -569,12 +569,12 @@ var survivalAnalysisModelsSettings = {
 			"validation_fraction": {
 				"type": "float",
 				"default_val": "0.1",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "float, default=0.1. The proportion of training data to set aside as validation set for early stopping. Must be between 0 and 1. Only used if early_stopping is True. Values must be in the range (0.0, 1.0)."
 			},
 			"n_iter_no_change": {
 				"type": "int",
 				"default_val": "5",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "int, default=5. Number of iterations with no improvement to wait before stopping fitting. Convergence is checked against the training loss or the validation loss depending on the early_stopping parameter. Integer values must be in the range [1, max_iter)."
 			},
 			"warm_start": {
 				"type": "bool",
@@ -584,7 +584,7 @@ var survivalAnalysisModelsSettings = {
 			"average": {
 				"type": "bool",
 				"default_val": "False",
-				"tooltip": "tooltip not implemented"
+				"tooltip": "bool, default=False. When set to True, computes the averaged SGD weights across all updates and stores the result in the coef_ attribute."
 			},
 			"max_iter": {
 				"type": "int",
@@ -609,52 +609,52 @@ var survivalAnalysisModelsSettings = {
 			"min_samples": {
 				"type": "NoneType",
 				"default_val": "None",
-				"tooltip": "tooltip not implemented"
+				"tooltip": "NoneType, default=None. Minimum number of samples chosen randomly from original data"
 			},
 			"residual_threshold": {
 				"type": "NoneType",
 				"default_val": "None",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "NoneType, default=None. Maximum residual for a data sample to be classified as an inlier. "
 			},
 			"is_data_valid": {
 				"type": "NoneType",
 				"default_val": "None",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "NoneType, default=None. This function is called with the randomly selected data before the model is fitted to it:"
 			},
 			"is_model_valid": {
 				"type": "NoneType",
 				"default_val": "None",
-				"tooltip": "tooltip not implemented"
+				"tooltip": "NoneType, default=None. This function is called with the estimated model and the randomly selected data:"
 			},
 			"max_trials": {
 				"type": "int",
 				"default_val": "100",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "int, default=100. Maximum number of iterations for random sample selection."
 			},
 			"max_skips": {
 				"type": "float",
 				"default_val": "inf",
-				"tooltip": "tooltip not implemented"
+				"tooltip": "int, default=inf. Maximum number of iterations that can be skipped due to finding zero inliers or invalid data"
 			},
 			"stop_n_inliers": {
 				"type": "float",
 				"default_val": "inf",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "int, default=inf. Stop iteration if at least this number of inliers are found."
 			},
 			"stop_score": {
 				"type": "float",
 				"default_val": "inf",
-				"tooltip": "tooltip not implemented"
+				"tooltip": "float, default=inf. Stop iteration if score is greater equal than this threshold."
 			},
 			"stop_probability": {
 				"type": "float",
 				"default_val": "0.99",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "float, default=0.99. RANSAC iteration stops if at least one outlier-free set of the training data is sampled in RANSAC. "
 			},
 			"random_state": {
 				"type": "int",
 				"default_val": "4573",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "int, default=4753, The generator used to initialize the centers"          
 			},
 			"loss": {
 				"type": "string",
@@ -664,7 +664,7 @@ var survivalAnalysisModelsSettings = {
 			"base_estimator": {
 				"type": "string",
 				"default_val": "deprecated",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "String, default='deprecated'. The base estimator from which the ensemble is grown."
 			}
 		},
 		"code": "ransac"
@@ -679,17 +679,17 @@ var survivalAnalysisModelsSettings = {
 			"copy_X": {
 				"type": "bool",
 				"default_val": "True",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "bool, default=True. If True, X will be copied; else, it may be overwritten."
 			},
 			"max_subpopulation": {
 				"type": "float",
 				"default_val": "10000.0",
-				"tooltip": "tooltip not implemented"
+				"tooltip": "int, default=10000.0. Instead of computing with a set of cardinality ‘n choose k’, where n is the number of samples and k is the number of subsamples (at least number of features), consider only a stochastic subpopulation of a given maximal size if ‘n choose k’ is larger than max_subpopulation. "
 			},
 			"n_subsamples": {
 				"type": "NoneType",
 				"default_val": "None",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "NoneType, default=None. Number of samples to calculate the parameters. This is at least the number of features (plus 1 if fit_intercept=True) and the number of samples as a maximum."
 			},
 			"max_iter": {
 				"type": "int",
@@ -704,7 +704,8 @@ var survivalAnalysisModelsSettings = {
 			"random_state": {
 				"type": "int",
 				"default_val": "4573",
-				"tooltip": "tooltip not implemented"
+				"tooltip": "int, default=4573. A random number generator instance to define the state of the random permutations generator. "      
+		
 			},
 			"n_jobs": {
 				"type": "int",
@@ -714,7 +715,7 @@ var survivalAnalysisModelsSettings = {
 			"verbose": {
 				"type": "bool",
 				"default_val": "False",
-				"tooltip": "tooltip not implemented"
+				"tooltip": "bool, default=False. Verbose mode when fitting the model."
 			}
 		},
 		"code": "tr"
@@ -724,7 +725,7 @@ var survivalAnalysisModelsSettings = {
 			"epsilon": {
 				"type": "float",
 				"default_val": "1.35",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "float, default=1.35. Epsilon in the epsilon-insensitive loss functions; only if loss is ‘huber’, ‘epsilon_insensitive’, or ‘squared_epsilon_insensitive’. For ‘huber’, determines the threshold at which it becomes less important to get the prediction exactly right. For epsilon-insensitive, any differences between the current prediction and the correct label are ignored if they are less than this threshold. Values must be in the range [0.0, inf)"
 			},
 			"max_iter": {
 				"type": "int",
@@ -764,17 +765,17 @@ var survivalAnalysisModelsSettings = {
 			"kernel": {
 				"type": "string",
 				"default_val": "linear",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "String, default=’linear’, Specifies the kernel type to be used in the algorithm."
 			},
 			"gamma": {
 				"type": "NoneType",
 				"default_val": "None",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "NoneType, default=None. Kernel coefficient for ‘rbf’, ‘poly’ and ‘sigmoid’."
 			},
 			"degree": {
 				"type": "int",
 				"default_val": "3",
-				"tooltip": "tooltip not implemented"
+				"tooltip": "int, default=3. Degree of the polynomial kernel function (‘poly’). Must be non-negative. Ignored by all other kernels."
 			},
 			"coef0": {
 				"type": "int",
@@ -794,22 +795,22 @@ var survivalAnalysisModelsSettings = {
 			"kernel": {
 				"type": "string",
 				"default_val": "rbf",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "String, default=’rbf’, Specifies the kernel type to be used in the algorithm."
 			},
 			"degree": {
 				"type": "int",
 				"default_val": "3",
-				"tooltip": "tooltip not implemented"
+				"tooltip": "int, default=3. Degree of the polynomial kernel function (‘poly’). Must be non-negative. Ignored by all other kernels."
 			},
 			"gamma": {
 				"type": "string",
 				"default_val": "scale",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "String, default=’scale’. Kernel coefficient for ‘rbf’, ‘poly’ and ‘sigmoid’."
 			},
 			"coef0": {
 				"type": "float",
 				"default_val": "0.0",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "float, default=0.0. Independent term in kernel function. It is only significant in ‘poly’ and ‘sigmoid’."
 			},
 			"tol": {
 				"type": "float",
@@ -824,27 +825,27 @@ var survivalAnalysisModelsSettings = {
 			"nu": {
 				"type": "float",
 				"default_val": "0.0",
-				"tooltip": "tooltip not implemented"
+				"tooltip": "float, default=0.0. An upper bound on the fraction of margin errors and a lower bound of the fraction of support vectors."
 			},
 			"epsilon": {
 				"type": "float",
 				"default_val": "0.1",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "float, default=0.1. Epsilon in the epsilon-insensitive loss functions; only if loss is ‘huber’, ‘epsilon_insensitive’, or ‘squared_epsilon_insensitive’. For ‘huber’, determines the threshold at which it becomes less important to get the prediction exactly right. For epsilon-insensitive, any differences between the current prediction and the correct label are ignored if they are less than this threshold. Values must be in the range [0.0, inf)"
 			},
 			"shrinking": {
 				"type": "bool",
 				"default_val": "True",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "bool, default=True. Whether to use the shrinking heuristic."
 			},
 			"probability": {
 				"type": "bool",
 				"default_val": "False",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "bool, default=False. Whether to enable probability estimates."
 			},
 			"cache_size": {
 				"type": "int",
 				"default_val": "200",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "int, default=200. Specify the size of the kernel cache (in MB)."
 			},
 			"class_weight": {
 				"type": "NoneType",
@@ -988,12 +989,12 @@ var survivalAnalysisModelsSettings = {
 			"base_estimator": {
 				"type": "DecisionTreeRegressor",
 				"default_val": "DecisionTreeRegressor()",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "DecisionTreeRegressor, default='DecisionTreeRegressor()'. The base estimator from which the ensemble is grown."
 			},
 			"n_estimators": {
 				"type": "int",
 				"default_val": "100",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "int, default=100. The maximum number of estimators at which boosting is terminated. In case of perfect fit, the learning procedure is stopped early. Values must be in the range [1, inf)."
 			},
 			"estimator_params": {
 				"type": "tuple",
@@ -1003,12 +1004,12 @@ var survivalAnalysisModelsSettings = {
 			"bootstrap": {
 				"type": "bool",
 				"default_val": "True",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "bool, default=True. Whether samples are drawn with replacement. If False, sampling without replacement is performed."
 			},
 			"oob_score": {
 				"type": "bool",
 				"default_val": "False",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "bool, default=False. Whether to use out-of-bag samples to estimate the generalization error. Only available if bootstrap=True."
 			},
 			"n_jobs": {
 				"type": "int",
@@ -1018,12 +1019,12 @@ var survivalAnalysisModelsSettings = {
 			"random_state": {
 				"type": "int",
 				"default_val": "4573",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "int, default=4573. Controls the random resampling of the original dataset (sample wise and feature wise). "          
 			},
 			"verbose": {
 				"type": "int",
 				"default_val": "0",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "int, default=0. Controls the verbosity when fitting and predicting."
 			},
 			"warm_start": {
 				"type": "bool",
@@ -1038,7 +1039,7 @@ var survivalAnalysisModelsSettings = {
 			"max_samples": {
 				"type": "NoneType",
 				"default_val": "None",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "NoneType, default=None. The number of samples to draw from X to train each base estimator "
 			},
 			"criterion": {
 				"type": "string",
@@ -1093,12 +1094,12 @@ var survivalAnalysisModelsSettings = {
 			"base_estimator": {
 				"type": "ExtraTreeRegressor",
 				"default_val": "ExtraTreeRegressor()",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "ExtraTreeRegressor, default='ExtraTreeRegressor()'. The base estimator from which the ensemble is grown."
 			},
 			"n_estimators": {
 				"type": "int",
 				"default_val": "100",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "int, default=100. The maximum number of estimators at which boosting is terminated. In case of perfect fit, the learning procedure is stopped early. Values must be in the range [1, inf)."
 			},
 			"estimator_params": {
 				"type": "tuple",
@@ -1108,12 +1109,12 @@ var survivalAnalysisModelsSettings = {
 			"bootstrap": {
 				"type": "bool",
 				"default_val": "False",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "bool, default=False. Whether samples are drawn with replacement. If False, sampling without replacement is performed."
 			},
 			"oob_score": {
 				"type": "bool",
 				"default_val": "False",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "bool, default=False. Whether to use out-of-bag samples to estimate the generalization error. Only available if bootstrap=True."
 			},
 			"n_jobs": {
 				"type": "int",
@@ -1123,12 +1124,12 @@ var survivalAnalysisModelsSettings = {
 			"random_state": {
 				"type": "int",
 				"default_val": "4573",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "int, default=4573. Controls the random resampling of the original dataset (sample wise and feature wise). "          
 			},
 			"verbose": {
 				"type": "int",
 				"default_val": "0",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "int, default=0. Controls the verbosity when fitting and predicting."
 			},
 			"warm_start": {
 				"type": "bool",
@@ -1143,7 +1144,7 @@ var survivalAnalysisModelsSettings = {
 			"max_samples": {
 				"type": "NoneType",
 				"default_val": "None",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "NoneType, default=None. The number of samples to draw from X to train each base estimator "
 			},
 			"criterion": {
 				"type": "string",
@@ -1198,12 +1199,12 @@ var survivalAnalysisModelsSettings = {
 			"base_estimator": {
 				"type": "NoneType",
 				"default_val": "None",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "NoneType, default='None'. The base estimator from which the ensemble is grown."
 			},
 			"n_estimators": {
 				"type": "int",
 				"default_val": "50",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "int, default=50. The maximum number of estimators at which boosting is terminated. In case of perfect fit, the learning procedure is stopped early. Values must be in the range [1, inf)."
 			},
 			"estimator_params": {
 				"type": "tuple",
@@ -1233,7 +1234,7 @@ var survivalAnalysisModelsSettings = {
 			"n_estimators": {
 				"type": "int",
 				"default_val": "100",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "int, default=100. The maximum number of estimators at which boosting is terminated. In case of perfect fit, the learning procedure is stopped early. Values must be in the range [1, inf)."
 			},
 			"learning_rate": {
 				"type": "float",
@@ -1268,7 +1269,7 @@ var survivalAnalysisModelsSettings = {
 			"subsample": {
 				"type": "float",
 				"default_val": "1.0",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "float, default=1.0. The fraction of samples to be used for fitting the individual base learners."
 			},
 			"max_features": {
 				"type": "NoneType",
@@ -1323,12 +1324,12 @@ var survivalAnalysisModelsSettings = {
 			"validation_fraction": {
 				"type": "float",
 				"default_val": "0.1",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "float, default=0.1. The proportion of training data to set aside as validation set for early stopping. Must be between 0 and 1. Only used if early_stopping is True. Values must be in the range (0.0, 1.0)."
 			},
 			"n_iter_no_change": {
 				"type": "NoneType",
 				"default_val": "None",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "NoneType, default=None. Number of iterations with no improvement to wait before stopping fitting. Convergence is checked against the training loss or the validation loss depending on the early_stopping parameter. Integer values must be in the range [1, max_iter)."
 			},
 			"tol": {
 				"type": "float",
@@ -1343,7 +1344,7 @@ var survivalAnalysisModelsSettings = {
 			"activation": {
 				"type": "string",
 				"default_val": "relu",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "String, default=’relu’. Activation function for the hidden layer."
 			},
 			"solver": {
 				"type": "string",
@@ -1358,7 +1359,7 @@ var survivalAnalysisModelsSettings = {
 			"batch_size": {
 				"type": "string",
 				"default_val": "auto",
-				"tooltip": "tooltip not implemented"
+				"tooltip": "String, default=’auto’. Size of minibatches for stochastic optimizers."
 			},
 			"learning_rate": {
 				"type": "string",
@@ -1368,12 +1369,12 @@ var survivalAnalysisModelsSettings = {
 			"learning_rate_init": {
 				"type": "float",
 				"default_val": "0.001",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "float, default=0.001. The initial learning rate used. It controls the step-size in updating the weights."
 			},
 			"power_t": {
 				"type": "float",
 				"default_val": "0.5",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "float, default=0.5. The exponent for inverse scaling learning rate. Values must be in the range (-inf, inf)."
 			},
 			"max_iter": {
 				"type": "int",
@@ -1388,17 +1389,17 @@ var survivalAnalysisModelsSettings = {
 			"hidden_layer_sizes": {
 				"type": "tuple",
 				"default_val": "(100,)",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "tuple, default=(100,). The ith element represents the number of neurons in the ith hidden layer."
 			},
 			"shuffle": {
 				"type": "bool",
 				"default_val": "True",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "bool, default=True. Whether or not the training data should be shuffled after each epoch."
 			},
 			"random_state": {
 				"type": "int",
 				"default_val": "4573",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "int, default=4573. Determines random number generation for weights and bias initialization"           
 			},
 			"tol": {
 				"type": "float",
@@ -1408,7 +1409,7 @@ var survivalAnalysisModelsSettings = {
 			"verbose": {
 				"type": "bool",
 				"default_val": "False",
-				"tooltip": "tooltip not implemented"
+				"tooltip": "bool, default=False. Whether to print progress messages to stdout."
 			},
 			"warm_start": {
 				"type": "bool",
@@ -1418,12 +1419,12 @@ var survivalAnalysisModelsSettings = {
 			"momentum": {
 				"type": "float",
 				"default_val": "0.9",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "float, default=0.9. Momentum for gradient descent update. Should be between 0 and 1."
 			},
 			"nesterovs_momentum": {
 				"type": "bool",
 				"default_val": "True",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "bool, default=True. Whether to use Nesterov’s momentum."
 			},
 			"early_stopping": {
 				"type": "bool",
@@ -1433,32 +1434,32 @@ var survivalAnalysisModelsSettings = {
 			"validation_fraction": {
 				"type": "float",
 				"default_val": "0.1",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "float, default=0.1. The proportion of training data to set aside as validation set for early stopping. Must be between 0 and 1. Only used if early_stopping is True. Values must be in the range (0.0, 1.0)."
 			},
 			"beta_1": {
 				"type": "float",
 				"default_val": "0.9",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "float, default=0.9. Exponential decay rate for estimates of first moment vector in adam, should be in [0, 1)."
 			},
 			"beta_2": {
 				"type": "float",
 				"default_val": "0.999",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "float, default=0.999. Exponential decay rate for estimates of second moment vector in adam, should be in [0, 1)."
 			},
 			"epsilon": {
 				"type": "float",
 				"default_val": "1e-08",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "float, default=1e-08. Epsilon in the epsilon-insensitive loss functions; only if loss is ‘huber’, ‘epsilon_insensitive’, or ‘squared_epsilon_insensitive’. For ‘huber’, determines the threshold at which it becomes less important to get the prediction exactly right. For epsilon-insensitive, any differences between the current prediction and the correct label are ignored if they are less than this threshold. Values must be in the range [0.0, inf)"
 			},
 			"n_iter_no_change": {
 				"type": "int",
 				"default_val": "10",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "int, default=10. Number of iterations with no improvement to wait before stopping fitting. Convergence is checked against the training loss or the validation loss depending on the early_stopping parameter. Integer values must be in the range [1, max_iter)."
 			},
 			"max_fun": {
 				"type": "int",
 				"default_val": "15000",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "int, default=15000. Only used when solver=’lbfgs’. Maximum number of loss function calls."
 			}
 		},
 		"code": "mlp"
@@ -1468,17 +1469,17 @@ var survivalAnalysisModelsSettings = {
 			"boosting_type": {
 				"type": "string",
 				"default_val": "gbdt",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "String, default='gbdt'. traditional Gradient Boosting Decision Tree."
 			},
 			"objective": {
 				"type": "NoneType",
 				"default_val": "None",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "NoneType, default=None. Specify the learning task and the corresponding learning objective or a custom objective function to be used "
 			},
 			"num_leaves": {
 				"type": "int",
 				"default_val": "31",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "int, default=31. Maximum tree leaves for base learners."
 			},
 			"max_depth": {
 				"type": "int",
@@ -1493,57 +1494,57 @@ var survivalAnalysisModelsSettings = {
 			"n_estimators": {
 				"type": "int",
 				"default_val": "100",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "int, default=100. The maximum number of estimators at which boosting is terminated. In case of perfect fit, the learning procedure is stopped early. Values must be in the range [1, inf)."
 			},
 			"subsample_for_bin": {
 				"type": "int",
 				"default_val": "200000",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "int, default=200000.  Number of samples for constructing bins."
 			},
 			"min_split_gain": {
 				"type": "float",
 				"default_val": "0.0",
-				"tooltip": "tooltip not implemented"
+                "tooltip": " float, default=0. Minimum loss reduction required to make a further partition on a leaf node of the tree."
 			},
 			"min_child_weight": {
 				"type": "float",
 				"default_val": "0.001",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "float, default=0.001. Minimum sum of instance weight (Hessian) needed in a child (leaf)."
 			},
 			"min_child_samples": {
 				"type": "int",
 				"default_val": "20",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "int, default=20. Minimum number of data needed in a child (leaf)."
 			},
 			"subsample": {
 				"type": "float",
 				"default_val": "1.0",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "float, default=1.0. The fraction of samples to be used for fitting the individual base learners."
 			},
 			"subsample_freq": {
 				"type": "int",
 				"default_val": "0",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "int, default=0. Frequency of subsample, <=0 means no enable."
 			},
 			"colsample_bytree": {
 				"type": "float",
 				"default_val": "1.0",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "float, default=1. Subsample ratio of columns when constructing each tree."
 			},
 			"reg_alpha": {
 				"type": "float",
 				"default_val": "0.0",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "float, default=0. L1 regularization term on weights."
 			},
 			"reg_lambda": {
 				"type": "float",
 				"default_val": "0.0",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "float, default=0. L2 regularization term on weights."
 			},
 			"random_state": {
 				"type": "int",
 				"default_val": "4573",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "int, default=4573. Random number seed. If int, this number is used to seed the C++ code. "  
 			},
 			"n_jobs": {
 				"type": "int",
@@ -1558,7 +1559,7 @@ var survivalAnalysisModelsSettings = {
 			"importance_type": {
 				"type": "string",
 				"default_val": "split",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "String, default='split'. The type of feature importance to be filled into feature_importances_."
 			},
 			"class_weight": {
 				"type": "NoneType",
@@ -1573,17 +1574,17 @@ var survivalAnalysisModelsSettings = {
 			"strategy": {
 				"type": "string",
 				"default_val": "mean",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "String, default=”mean”. Strategy to use to generate predictions. “mean”: always predicts the mean of the training set."
 			},
 			"constant": {
 				"type": "NoneType",
 				"default_val": "None",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "NoneType, default=None. The explicit constant as predicted by the “constant” strategy. This parameter is useful only for the “constant” strategy."
 			},
 			"quantile": {
 				"type": "NoneType",
 				"default_val": "None",
-				"tooltip": "tooltip not implemented"
+                "tooltip": "NoneType, default=None. The quantile to predict using the “quantile” strategy."
 			}
 		},
 		"code": "dummy"
