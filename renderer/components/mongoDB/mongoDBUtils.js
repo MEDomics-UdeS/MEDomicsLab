@@ -417,6 +417,8 @@ export async function getCollectionTags(collectionId) {
   let tagsUUID = localStorage.getItem("tagsUUID") ? localStorage.getItem("tagsUUID") : "column_tags"
   const db = await connectToMongoDB()
   const collection = db.collection(tagsUUID)
+  
+  // eslint-disable-next-line camelcase
   const result = await collection.find({ collection_id: collectionId })
 
   return result
