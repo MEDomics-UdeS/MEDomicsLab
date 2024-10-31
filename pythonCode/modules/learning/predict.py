@@ -59,6 +59,43 @@ class GoExecScriptPredict(GoExecutionScript):
         else:
             data = json_config['entry']['data']
             dataset = pd.DataFrame(data)
+
+            # Convert data if it's not in the right format
+            #TODO : preserve data type in mongoDB to avoid this conversion
+            def convert_column_to_type(col):
+                # First, convert everything to string
+                col = col.astype(str)
+                
+                # Now check each value to see if it's an integer or a float
+                def convert_value(value):
+                    try:
+                        # Try to convert to float
+                        value = float(value)
+                        # Check if integer
+                        if value.is_integer():
+                            value = int(value)
+                        return value
+                    except ValueError:
+                        pass
+                    
+                    try:
+                        # Try to convert to string if integer conversion fails
+                        value = str(value)
+                        return value
+                    except ValueError:
+                        pass
+                    
+                    # Return as it is if it's neither integer nor float
+                    return value
+                
+                # Apply the conversion to each element in the column
+                return col.apply(convert_value)
+
+            # Loop through each column and apply the conversion function
+            for col in dataset.columns:
+                if dataset[col].dtype == 'object':  #TODO : preserve data type in mongoDB to avoid this conversion
+                    dataset[col] = convert_column_to_type(dataset[col])
+            
             y_pred = model.predict(dataset)
             pred_name = str("pred_" + model_metadata['target']) + ".csv"
 

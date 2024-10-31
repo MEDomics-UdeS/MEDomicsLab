@@ -1,16 +1,17 @@
-import React, { useCallback, useContext, useEffect, useState, useRef } from "react"
 import { Button } from "primereact/button"
-import { PiFlaskFill } from "react-icons/pi"
-import Input from "../learning/input"
+import { TabPanel, TabView } from "primereact/tabview"
 import { Tag } from "primereact/tag"
 import { Tooltip } from "primereact/tooltip"
+import React, { useCallback, useContext, useEffect, useRef, useState } from "react"
+import { PiFlaskFill } from "react-icons/pi"
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels"
-import { TabView, TabPanel } from "primereact/tabview"
-import PredictPanel from "./predictPanel"
-import Dashboard from "./dashboard"
-import { WorkspaceContext } from "../workspace/workspaceContext"
+import { toast } from "react-toastify"
 import { requestBackend } from "../../utilities/requests"
 import { ErrorRequestContext } from "../generalPurpose/errorRequestContext"
+import Input from "../learning/input"
+import { WorkspaceContext } from "../workspace/workspaceContext"
+import Dashboard from "./dashboard"
+import PredictPanel from "./predictPanel"
 
 /**
  *@param {Object} run Object containing the run state and the run function
@@ -27,7 +28,7 @@ import { ErrorRequestContext } from "../generalPurpose/errorRequestContext"
  *
  * @returns the evaluation page content
  */
-const PageEval = ({ run, pageId, config, setChosenModel, updateConfigClick, setChosenDataset, modelHasWarning, setModelHasWarning, datasetHasWarning, setDatasetHasWarning, useMedStandard }) => {
+const PageEval = ({ run, pageId, config, updateWarnings, setChosenModel, updateConfigClick, setChosenDataset, modelHasWarning, setModelHasWarning, datasetHasWarning, setDatasetHasWarning, useMedStandard }) => {
   const evaluationHeaderPanelRef = useRef(null)
   const [showHeader, setShowHeader] = useState(true)
   const [isDashboardUpdating, setIsDashboardUpdating] = useState(false)
@@ -35,6 +36,13 @@ const PageEval = ({ run, pageId, config, setChosenModel, updateConfigClick, setC
   const [predictedData, setPredictedData] = useState(undefined) // we use this to store the predicted data
   const { port } = useContext(WorkspaceContext) // we get the port for server connexion
   const { setError } = useContext(ErrorRequestContext)
+
+  const [selectedDatasets, setSelectedDatasets] = config.dataset.selectedDatasets ? useState(config.dataset.selectedDatasets) : useState([])
+
+  useEffect(() => {
+    setChosenDataset({ selectedDatasets })
+    updateWarnings(useMedStandard)
+  }, [selectedDatasets])
 
   // close everything when the page is closed
   useEffect(() => {
@@ -87,7 +95,7 @@ const PageEval = ({ run, pageId, config, setChosenModel, updateConfigClick, setC
       requestBackend(
         port,
         "evaluation/predict_test/predict/" + pageId,
-        { pageId: pageId, model: config.model, dataset: config.dataset, useMedStandard: useMedStandard },
+        { pageId: pageId, ...config, useMedStandard: useMedStandard },
         (data) => {
           setIsPredictUpdating(false)
           if (data.error) {
@@ -97,6 +105,7 @@ const PageEval = ({ run, pageId, config, setChosenModel, updateConfigClick, setC
             setError(data.error)
           } else {
             setPredictedData(data)
+            toast.success("Predicted data is ready")
           }
           console.log("predict_test received data:", data)
         },
@@ -119,8 +128,7 @@ const PageEval = ({ run, pageId, config, setChosenModel, updateConfigClick, setC
             "evaluation/open_dashboard/dashboard/" + pageId,
             {
               pageId: pageId,
-              model: config.model,
-              dataset: config.dataset,
+              ...config,
               sampleSizeFrac: 1,
               dashboardName: config.model.name.split(".")[0],
               useMedStandard: useMedStandard
@@ -133,6 +141,8 @@ const PageEval = ({ run, pageId, config, setChosenModel, updateConfigClick, setC
                   data.error = JSON.parse(data.error)
                 }
                 setError(data.error)
+              } else {
+                toast.success("Dashboard is ready")
               }
             },
             (error) => {

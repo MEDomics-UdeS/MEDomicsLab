@@ -1,18 +1,18 @@
-import React, { useState, useContext, useEffect, useRef } from "react" // Corrected imports
-import { toast } from "react-toastify" // Assuming toast is from react-toastify
-import { DataContext } from "../../workspace/dataContext"
+import { Button } from "primereact/button"
+import { Chip } from "primereact/chip"
+import { Chips } from "primereact/chips"
+import { InputText } from "primereact/inputtext"
 import { Message } from "primereact/message"
 import { MultiSelect } from "primereact/multiselect"
-import { getCollectionColumns } from "../../mongoDB/mongoDBUtils"
-import { Chips } from "primereact/chips"
-import { Button } from "primereact/button"
-import { PlusSquare } from "react-bootstrap-icons"
-import { Chip } from "primereact/chip"
-import { TreeSelect } from "primereact/treeselect"
 import { OverlayPanel } from "primereact/overlaypanel"
-import { InputText } from "primereact/inputtext"
+import { TreeSelect } from "primereact/treeselect"
+import React, { useContext, useEffect, useRef, useState } from "react"; // Corrected imports
+import { PlusSquare } from "react-bootstrap-icons"
+import { toast } from "react-toastify"; // Assuming toast is from react-toastify
 import { requestBackend } from "../../../utilities/requests"
+import { getCollectionColumns } from "../../mongoDB/mongoDBUtils"
 import { ServerConnectionContext } from "../../serverConnection/connectionContext"
+import { DataContext } from "../../workspace/dataContext"
 
 /**
  * @description
@@ -68,6 +68,7 @@ const GroupingTaggingToolsDB = ({ refreshData }) => {
   }, [selectedCollections])
 
   useEffect(() => {
+    setSelectedColumnsToTag([])
     const updatedTreeSelectData = treeSelectData.filter((item) => selectedCollections.includes(item.key))
     setTreeSelectData(updatedTreeSelectData)
   }, [selectedCollections])
@@ -82,6 +83,7 @@ const GroupingTaggingToolsDB = ({ refreshData }) => {
         selectable: true
       }))
     }))
+    setSelectedColumnsToTag([])
     setTreeSelectData(treeFinalData)
   }, [columnsByCollection])
 
@@ -192,9 +194,14 @@ const GroupingTaggingToolsDB = ({ refreshData }) => {
     }
     console.log("id", tagId)
     requestBackend(port, "/input/create_tags/", jsonToSend, (jsonResponse) => {
+      if (jsonResponse.error) {
+        toast.error("Error detected while creating tags.")
+        console.log("error while creating tags", jsonResponse.error)
+        return
+      }
       console.log("jsonResponse", jsonResponse)
-      refreshData()
       toast.success("Tags created successfully.")
+      refreshData()
     })
   }
 
@@ -222,7 +229,7 @@ const GroupingTaggingToolsDB = ({ refreshData }) => {
                 options={options}
                 onChange={(e) => handleSelectChange(e.value)}
                 placeholder={"Select Collections"}
-                style={{ width: "200px", marginTop: "0.25rem" }}
+                style={{ width: "280px", marginTop: "0.25rem" }}
               />
             </div>
             <div>
@@ -261,14 +268,53 @@ const GroupingTaggingToolsDB = ({ refreshData }) => {
                 <div style={{ display: "flex", flexDirection: "column", marginLeft: "20px" }}>
                   {Object.keys(tagsDict).map((tag) => (
                     <div key={tag} style={{ display: "flex", alignItems: "center", marginBottom: "10px" }}>
-                      <Chip label={tag} style={{ backgroundColor: tagsDict[tag].color, color: tagsDict[tag].fontColor, padding: "2px 6px", fontSize: "12px", fontWeight: "bold" }} />
-                      <input type="color" value={tagsDict[tag].color} onChange={() => handleChangeColor(tag, event)} className="margin-left-10" />
-                      <Button icon="pi pi-refresh" onClick={() => handleToggleFontColor(tag)} className="margin-left-10" style={{ padding: "4px 8px", fontSize: "12px" }} />
-                      <Button icon="pi pi-pencil" onClick={(event) => handleChangeTagName(tag, event)} className="margin-left-10" style={{ padding: "4px 8px", fontSize: "12px" }} />
-                      <Button icon="pi pi-trash" onClick={() => handleDeleteTag(tag)} className="margin-left-10" style={{ padding: "4px 8px", fontSize: "12px" }} />
+                      <div style={{ width: "150px" }}>
+                        <Chip
+                          label={tag}
+                          style={{
+                            backgroundColor: tagsDict[tag].color,
+                            color: tagsDict[tag].fontColor,
+                            padding: "2px 6px",
+                            fontSize: "12px",
+                            fontWeight: "bold",
+                            textAlign: "center",
+                          }}
+                        />
+                      </div>
+                      <div style={{ marginLeft: "10px", marginRight: "10px" }}>
+                        <input
+                          type="color"
+                          value={tagsDict[tag].color}
+                          onChange={() => handleChangeColor(tag, event)}
+                          style={{ width: "40px", height: "30px", padding: "2px" }}
+                        />
+                      </div>
+                      <Button
+                        icon="pi pi-refresh"
+                        onClick={() => handleToggleFontColor(tag)}
+                        className="margin-left-10"
+                        style={{ padding: "4px 8px", fontSize: "12px", marginLeft: "10px" }}
+                      />
+                      <Button
+                        icon="pi pi-pencil"
+                        onClick={(event) => handleChangeTagName(tag, event)}
+                        className="margin-left-10"
+                        style={{ padding: "4px 8px", fontSize: "12px", marginLeft: "10px" }}
+                      />
+                      <Button
+                        icon="pi pi-trash"
+                        onClick={() => handleDeleteTag(tag)}
+                        className="margin-left-10"
+                        style={{ padding: "4px 8px", fontSize: "12px", marginLeft: "10px" }}
+                      />
                       <OverlayPanel ref={op} dismissable>
                         <div>
-                          <InputText placeholder="Change Tag Name" type="text" value={tempTagName} onChange={(e) => setTempTagName(e.target.value)} />
+                          <InputText
+                            placeholder="Change Tag Name"
+                            type="text"
+                            value={tempTagName}
+                            onChange={(e) => setTempTagName(e.target.value)}
+                          />
                           <Button onClick={handleTagChangeConfirm}>Confirm</Button>
                         </div>
                       </OverlayPanel>
@@ -282,8 +328,15 @@ const GroupingTaggingToolsDB = ({ refreshData }) => {
       </div>
       <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
         <div style={{ display: "flex", flexDirection: "column", marginRight: "20px" }}>
-          <h6 style={{ paddingBottom: "0.25rem", margin: "0rem", marginInline: "0.5rem", height: "1.5rem" }}>Select the columns you want to tag</h6>
-          <div style={{ display: "flex", justifyContent: "center", alignItems: "center", marginTop: "5px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "465px" }}>
+            {/* Column Selection Title */}
+            <h6 style={{ margin: "0rem", height: "1.5rem" }}>Select columns to tag</h6>
+            {/* Tag Selection Title */}
+            <h6 style={{ margin: "0rem", height: "1.5rem" }}>Select tags to apply</h6>
+          </div>
+
+          <div style={{ display: "flex", justifyContent: "center", alignItems: "center", marginTop: "10px" }}>
+            {/* TreeSelect for Columns */}
             <TreeSelect
               value={selectedColumnsToTag}
               options={treeSelectData}
@@ -295,6 +348,7 @@ const GroupingTaggingToolsDB = ({ refreshData }) => {
               panelClassName="groupingToolTree"
               style={{ width: "300px", height: "50px", marginRight: "20px" }}
             />
+            {/* MultiSelect for Tags */}
             <MultiSelect
               value={selectedTags}
               options={Object.keys(tagsDict).map((key) => ({ label: key, value: key }))}
@@ -302,19 +356,15 @@ const GroupingTaggingToolsDB = ({ refreshData }) => {
               placeholder="Select Tags"
               style={{ width: "300px", height: "50px", marginRight: "20px" }}
             />
+            {/* Apply Button */}
             <Button
               icon={"pi pi-check"}
-              onClick={() => {
-                applyTagsToColumns(selectedColumnsToTag, selectedTags)
-              }}
+              onClick={() => applyTagsToColumns(selectedColumnsToTag, selectedTags)}
               className="p-button-success"
-              style={{
-                width: "100px",
-                marginRight: "20px"
-              }}
+              style={{ width: "100px" }}
               tooltip="Apply tags to selected columns"
               tooltipOptions={{ position: "top" }}
-              disabled={selectedColumnsToTag.length === 0 || selectedTags.length === 0}
+              disabled={Object.keys(selectedColumnsToTag).length === 0 || selectedTags.length === 0}
             />
           </div>
         </div>

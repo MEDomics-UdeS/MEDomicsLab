@@ -1,20 +1,19 @@
-import pandas as pd
-from itertools import chain, combinations
-import os
-import numpy as np
 import json
-from .NodeObj import *
-from typing import Union
-import sys
 import os
-import pymongo
+import sys
+from itertools import chain, combinations
 from pathlib import Path
+from typing import Union
+
+import numpy as np
+import pandas as pd
+import pymongo
 
 from ...server_utils import go_print
+from .NodeObj import *
 
 sys.path.append(str(Path(os.path.dirname(os.path.abspath(__file__))).parent))
 from utils.loading import Loader
-
 
 DATAFRAME_LIKE = Union[dict, list, tuple, np.ndarray, pd.DataFrame]
 TARGET_LIKE = Union[int, str, list, tuple, np.ndarray, pd.Series]
@@ -55,6 +54,12 @@ class Dataset(Node):
         mongo_client = pymongo.MongoClient("mongodb://localhost:54017/")
         database = mongo_client["data"]
 
+        # Update code
+        self.CodeHandler.add_line("code", "# MongoDB setup")
+        self.CodeHandler.add_line("code", "mongo_client = pymongo.MongoClient('mongodb://localhost:27017/')")
+        self.CodeHandler.add_line("code", "database = mongo_client['data']")
+        self.CodeHandler.add_seperator()
+
         if self.entry_file_type == FOLDER:
             # TODO SCALABILITY
             """ self.load_csv_in_folder(self.settings['files'])
@@ -69,9 +74,8 @@ class Dataset(Node):
             self.CodeHandler.add_seperator()
             
         elif self.entry_file_type == FILES: # Time points detection and add _T{X} suffix to columns
-            # TODO SCALABILITY
-            """ df_dict = {} # dict containing time points to their associated files
-            df_path_list = [file['path'] for file in self.settings['files']]
+            df_dict = {} # dict containing time points to their associated files
+            df_ids_list = [file['id'] for file in self.settings['files']]
             df_name_list = [file['name'] for file in self.settings['files']]
             for i, name in enumerate(df_name_list): # if the filename not contains T+number we don't keep it, else we associate it to his time point number
                 number = ''
@@ -84,7 +88,9 @@ class Dataset(Node):
                     elif T_in_name:
                         break
                 if len(number) > 0:
-                    df_dict['_T' + number] = pd.read_csv(df_path_list[i], sep=',', encoding='utf-8')
+                    collection = database[df_ids_list[i]]
+                    collection_data = collection.find({}, {'_id': False})
+                    df_dict['_T' + number] = pd.DataFrame(list(collection_data))
             first_col = df_dict['_T' + number].columns[0]
             target = self.settings['target']
 
@@ -95,7 +101,7 @@ class Dataset(Node):
             sorted_keys = sorted(df_dict.keys(), key=lambda x: int(x.split('_T')[1]))
             df_list = [df_dict[key] for key in sorted_keys]
 
-            self.CodeHandler.add_line("code", f"df_path_list = {str([d['path'] for d in self.settings['files']])}")
+            self.CodeHandler.add_line("code", f"df_ids_list = {str([d['id'] for d in self.settings['files']])}")
             self.CodeHandler.add_line("code", f"df_name_list = {str([d['name'] for d in self.settings['files']])}")
             self.CodeHandler.add_line("code", "df_dict = {} # dict containing time points to their associated files")
             self.CodeHandler.add_line("code", "for i, name in enumerate(df_name_list): # if the filename not contains T+number we don't keep it, else we associate it to his time point number")
@@ -109,7 +115,9 @@ class Dataset(Node):
             self.CodeHandler.add_line("code", "elif T_in_name:", indent=2)
             self.CodeHandler.add_line("code", "break", indent=3)
             self.CodeHandler.add_line("code", "if len(number) > 0:", indent=1)
-            self.CodeHandler.add_line("code", "df_dict['_T' + number] = pd.read_csv(df_path_list[i], sep=',', encoding='utf-8')", indent=2)
+            self.CodeHandler.add_line("code", "collection = database[df_ids_list[i]]", indent=2)
+            self.CodeHandler.add_line("code", "collection_data = collection.find({}, {'_id': False})", indent=2)
+            self.CodeHandler.add_line("code", "df_dict['_T' + number] = pd.DataFrame(list(collection_data))", indent=2)
             self.CodeHandler.add_line("code", f"first_col = '{first_col}'")
             self.CodeHandler.add_line("code", f"target = '{target}'")
             self.CodeHandler.add_line("code", "# for each dataframe, add a suffix to their columns")
@@ -119,7 +127,7 @@ class Dataset(Node):
             self.CodeHandler.add_line("code", "df_list = [df_dict[key] for key in sorted_keys]")
             self.CodeHandler.add_seperator()
 
-            self.df = self.combine_df_timepoint_tags(df_list, self.settings['tags'], self.settings['variables']) """
+            self.df = self.combine_df_timepoint_tags(df_list, self.settings['tags'], self.settings['variables'])
 
         self._info_for_next_node['target'] = self.settings['target']
         return {}
@@ -212,7 +220,6 @@ class Dataset(Node):
             comb_name = ""
             for elem in combination:
                 if comb_name == "":
-                    # print(elem)
                     (k, v), = elem.items()
                     comb_name = comb_name + k
                     df_temp = v

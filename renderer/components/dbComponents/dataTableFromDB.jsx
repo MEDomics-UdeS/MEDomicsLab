@@ -14,7 +14,7 @@ import React, { useContext, useEffect, useState } from "react"
 import { toast } from "react-toastify"
 import { requestBackend } from "../../utilities/requests"
 import { LayoutModelContext } from "../layout/layoutContext"
-import { connectToMongoDB, insertMEDDataObjectIfNotExists } from "../mongoDB/mongoDBUtils"
+import { connectToMongoDB, getCollectionTags, insertMEDDataObjectIfNotExists } from "../mongoDB/mongoDBUtils"
 import { ServerConnectionContext } from "../serverConnection/connectionContext"
 import { MEDDataObject } from "../workspace/NewMedDataObject"
 import InputToolsComponent from "./InputToolsComponent"
@@ -384,8 +384,8 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
       console.log("tagId", tagId)
       const exists = await collectionExists(tagId)
       if (exists) {
-        const tagCollData = await getCollectionData(tagId)
-        console.log("tagCollData", tagCollData)
+        let tagCollData = await getCollectionTags(data.id)
+        tagCollData = await tagCollData.toArray()
         const map = createColumnNameToTagsMap(tagCollData)
         setColumnNameToTagsMap(map)
       }

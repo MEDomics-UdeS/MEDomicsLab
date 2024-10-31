@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useContext } from "react"
-import { DataContext } from "../../workspace/dataContext"
 import { MultiSelect } from "primereact/multiselect"
-import { deepCopy } from "../../../utilities/staticFunctions"
+import React, { useContext, useEffect, useState } from "react"
+import { getCollectionTags } from "../../mongoDB/mongoDBUtils"
+import { DataContext } from "../../workspace/dataContext"
 
 /**
  * @typedef {React.FunctionComponent} WsSelectMultiple
@@ -21,7 +21,8 @@ const WsSelectMultiple = ({
   disabled,
   placeholder,
   whenEmpty = null,
-  setHasWarning = null
+  setHasWarning = null,
+  customProps = {}
 }) => {
   const { globalData } = useContext(DataContext) // We get the global data from the context to retrieve the directory tree of the workspace, thus retrieving the data files
   const [datasetList, setDatasetList] = useState([])
@@ -31,55 +32,81 @@ const WsSelectMultiple = ({
    * @returns {void} calls the generateDatasetListFromDataContext function
    */
   useEffect(() => {
-    if (globalData !== undefined) {
-      let ids = Object.keys(globalData)
-      let datasetListToShow = []
-      ids.forEach((id) => {
-        // in this case, we want to show only the files in the selected root directory
-        if (rootDir != undefined) {
-          if (globalData[globalData[id].parentID]) {
-            if (rootDir.includes(globalData[globalData[id].parentID].name) || rootDir.includes(globalData[globalData[id].parentID].originalName)) {
-              if (!(!acceptFolder && globalData[id].type == "directory")) {
-                if (acceptedExtensions.includes("all") || acceptedExtensions.includes(globalData[id].type)) {
-                  if (!matchRegex || matchRegex.test(globalData[id].name)) {
-                    let columnsTag = deepCopy(globalData[id].metadata?.columnsTag)
-                    let timePrefix = globalData[id].name.split("_")[0]
-                    if (columnsTag) {
-                      columnsTag = Object.keys(columnsTag).reduce((acc, key) => {
-                        acc[timePrefix + "_" + key] = columnsTag[key]
-                        return acc
-                      }, {})
+    const processData = async () => {
+      if (globalData !== undefined) {
+        let ids = Object.keys(globalData)
+        let datasetListToShow = await Promise.all(ids.map(async (id) => {
+          // Only process files in the selected root directory
+          if (rootDir != undefined) {
+            if (globalData[globalData[id].parentID]) {
+              if (rootDir.includes(globalData[globalData[id].parentID].name) || rootDir.includes(globalData[globalData[id].parentID].originalName)) {
+                if (!(!acceptFolder && globalData[id].type == "directory")) {
+                  if (acceptedExtensions.includes("all") || acceptedExtensions.includes(globalData[id].type)) {
+                    if (!matchRegex || matchRegex.test(globalData[id].name)) {
+                      // Initializations
+                      let columnsTags = {}
+                      let tags = []
+                      let tagsCollections = await getCollectionTags(id) // Get the tags of the file from db
+                      tagsCollections = await tagsCollections.toArray() // Convert to array
+                      // Process the tags and link them to columns: {column_name: [tags]}
+                      tagsCollections.map((tagCollection) => {
+                        let tempColName = tagCollection.column_name
+                        if (tagCollection.column_name.includes("_|_")) {
+                          tempColName = tagCollection.column_name.split("_|_")[1]
+                        }
+                        columnsTags[tempColName] = tagCollection.tags
+                        tags = tags.concat(tagCollection.tags)
+                      })
+                      tags = [...new Set(tags)] // Remove duplicates
+                      
+                      // Add the file to the list
+                      return {
+                        id: id,
+                        name: globalData[id].name,
+                        tags: tags,
+                        columnsTags: columnsTags
+                      }
                     }
-                    datasetListToShow.push({
-                      id: id,
-                      name: globalData[id].name,
-                      tags: globalData[id].metadata?.tagsDict ? Object.keys(globalData[id].metadata.tagsDict) : [],
-                      columnsTags: globalData[id].metadata?.columnsTag ? globalData[id].metadata.columnsTag : []
-                    })
                   }
                 }
               }
             }
-          }
-          // else, we want to add any file (or folder) from acceptedExtensions
-        } else {
-          if (acceptedExtensions.includes(globalData[id].extension) || acceptedExtensions.includes("all")) {
-            if (acceptedExtensions.includes("all") || acceptedExtensions.includes(globalData[id].extension)) {
-              datasetListToShow.push({
+            // else, we want to add any file (or folder) from acceptedExtensions
+          } else {
+            if (acceptedExtensions.includes(globalData[id].extension) || acceptedExtensions.includes("all")) {
+              let columnsTags = {}
+              let tags = []
+              let tagsCollections = await getCollectionTags(id)
+              tagsCollections = await tagsCollections.toArray()
+              tagsCollections.map((tagCollection) => {
+                columnsTags[tagCollection.column_name] = tagCollection.tags
+                tags = tags.concat(tagCollection.tags)
+              })
+              return {
                 id: id,
                 name: globalData[id].name,
-                tags: Object.keys(globalData[id].metadata?.tagsDict),
-                columnsTags: globalData[id].metadata?.columnsTag
-              })
+                tags: tags,
+                columnsTags: columnsTags
+              }
             }
           }
-        }
-      })
-      setDatasetList(datasetListToShow)
-      if (datasetListToShow.length == 0) {
-        setHasWarning({ state: true, tooltip: "No data file found in the workspace" })
+          // Return empty list if the item doesn't meet the conditions
+          return null;
+        })
+      )
+
+      // Filter out any null values
+      datasetListToShow = datasetListToShow.filter((item) => item !== null);
+
+      console.log("datasetListToShow", datasetListToShow);
+      setDatasetList(datasetListToShow);
+
+      if (datasetListToShow.length === 0) {
+        setHasWarning({ state: true, tooltip: "No data file found in the workspace" });
       }
     }
+  }
+  processData()
   }, [globalData])
 
   return (
@@ -94,6 +121,7 @@ const WsSelectMultiple = ({
           options={datasetList}
           optionLabel="name"
           display="chip"
+          style={customProps}
         />
       ) : (
         whenEmpty

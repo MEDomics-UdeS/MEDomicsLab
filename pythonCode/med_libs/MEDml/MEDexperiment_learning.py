@@ -114,6 +114,7 @@ class MEDexperimentLearning(MEDexperiment):
         # add the imports
         node.CodeHandler.add_import("import numpy as np")
         node.CodeHandler.add_import("import pandas as pd")
+        node.CodeHandler.add_import("import pymongo")
         node.CodeHandler.add_import(
             f"from pycaret.{self.global_json_config['MLType']} import *")
 
