@@ -40,7 +40,8 @@ const classificationModelSettings = {
             "random_state": {
                 "type": "int",
                 "default_val": "1334",
-                "tooltip": "tooltip not implemented"            },
+                "tooltip": "int, default=None. Used when solver == ‘sag’, ‘saga’ or ‘liblinear’ to shuffle the data."          
+              },
             "solver": {
                 "type": "string",
                 "default_val": "lbfgs",
@@ -59,7 +60,7 @@ const classificationModelSettings = {
             "verbose": {
                 "type": "int",
                 "default_val": "0",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "int, default=0. For the liblinear and lbfgs solvers set verbose to any positive number for verbosity."
             },
             "warm_start": {
                 "type": "bool",
@@ -134,12 +135,12 @@ const classificationModelSettings = {
             "priors": {
                 "type": "NoneType",
                 "default_val": "None",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "NoneType, default=None. Prior probabilities of the classes. If specified, the priors are not adjusted according to the data."
             },
             "var_smoothing": {
                 "type": "float",
                 "default_val": "1e-09",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "float, default=1e-09. Portion of the largest variance of all features that is added to variances for calculation stability."
             }
         },
         "code": "nb"
@@ -189,7 +190,8 @@ const classificationModelSettings = {
             "random_state": {
                 "type": "int",
                 "default_val": "1334",
-                "tooltip": "tooltip not implemented"            },
+                "tooltip": "int, default=1334. Controls the randomness of the estimator."         
+               },
             "min_impurity_decrease": {
                 "type": "float",
                 "default_val": "0.0",
@@ -258,11 +260,12 @@ const classificationModelSettings = {
             "random_state": {
                 "type": "int",
                 "default_val": "1334",
-                "tooltip": "tooltip not implemented"            },
+                "tooltip": "int, default=1334. The seed of the pseudo random number generator to use when shuffling the data."        
+                },
             "verbose": {
                 "type": "int",
                 "default_val": "0",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "int, default=0. The verbosity level."
             },
             "eta0": {
                 "type": "float",
@@ -397,7 +400,7 @@ const classificationModelSettings = {
             "verbose": {
                 "type": "bool",
                 "default_val": "False",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "bool, default=False. Enable verbose output."
             },
             "max_iter": {
                 "type": "int",
@@ -407,7 +410,8 @@ const classificationModelSettings = {
             "random_state": {
                 "type": "int",
                 "default_val": "1334",
-                "tooltip": "tooltip not implemented"            }
+                "tooltip": "int, default=1334. Controls the pseudo random number generation for shuffling the data for probability estimates."
+                        }
         },
         "code": "rbfsvm"
     },
@@ -651,7 +655,7 @@ const classificationModelSettings = {
             "estimator_params": {
                 "type": "tuple",
                 "default_val": "('criterion', 'max_depth', 'min_samples_split', 'min_samples_leaf', 'min_weight_fraction_leaf', 'max_features', 'max_leaf_nodes', 'min_impurity_decrease', 'random_state', 'ccp_alpha')",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "tuple, default_val=('criterion', 'max_depth', 'min_samples_split', 'min_samples_leaf', 'min_weight_fraction_leaf', 'max_features', 'max_leaf_nodes', 'min_impurity_decrease', 'random_state', 'ccp_alpha')"
             },
             "base_estimator": {
                 "type": "string",
@@ -786,7 +790,7 @@ const classificationModelSettings = {
             "estimator_params": {
                 "type": "tuple",
                 "default_val": "()",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "tuple, default='()'"
             },
             "base_estimator": {
                 "type": "string",
@@ -801,7 +805,8 @@ const classificationModelSettings = {
             "random_state": {
                 "type": "int",
                 "default_val": "1334",
-                "tooltip": "tooltip not implemented"            },
+                "tooltip": "int, default=1334. Controls the random seed given at each estimator at each boosting iteration."
+                        },
             "algorithm": {
                 "type": "string",
                 "default_val": "SAMME.R",
@@ -975,7 +980,7 @@ const classificationModelSettings = {
             "estimator_params": {
                 "type": "tuple",
                 "default_val": "('criterion', 'max_depth', 'min_samples_split', 'min_samples_leaf', 'min_weight_fraction_leaf', 'max_features', 'max_leaf_nodes', 'min_impurity_decrease', 'random_state', 'ccp_alpha')",
-                "tooltip": "tooltip not implemented"
+                "tooltip": "tuple, default=('criterion', 'max_depth', 'min_samples_split', 'min_samples_leaf', 'min_weight_fraction_leaf', 'max_features', 'max_leaf_nodes', 'min_impurity_decrease', 'random_state', 'ccp_alpha')"
             },
             "base_estimator": {
                 "type": "string",
