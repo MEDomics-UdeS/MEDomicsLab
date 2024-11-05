@@ -432,7 +432,7 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
                       onClick={(e) => {
                         e.preventDefault()
                         e.stopPropagation()
-                        createFolder(globalData, selectedItems)
+                        createFolder(globalData, selectedItems, workspace.workingDirectory.path)
                       }}
                     >
                       <FolderPlus size={"1rem"} className="context-menu-icon add-folder-icon" data-pr-at="right bottom" data-pr-tooltip="New Folder" data-pr-my="left top" />
