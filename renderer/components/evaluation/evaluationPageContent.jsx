@@ -37,7 +37,7 @@ const EvaluationPageContent = () => {
       let configToLoadID = MEDDataObject.getChildIDWithName(globalData, pageId, "metadata.json")
       let configToLoad = await getCollectionData(configToLoadID)
       // Get the model's metadata if a model is selected
-      if (Object.keys(chosenModel).length > 0) {
+      if (chosenModel.id && chosenModel.name && Object.keys(chosenModel).length > 0) {
         let modelMetadataID = MEDDataObject.getChildIDWithName(globalData, chosenModel.id, "metadata.json")
         let modelData = await getCollectionData(modelMetadataID)
         if (config) {

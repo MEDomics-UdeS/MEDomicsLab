@@ -122,9 +122,12 @@ class GoExecScriptOpenDashboard(GoExecutionScript):
         if ml_type == "classification" and self.model.__class__.__name__ in CLASSIFIER_NOT_SUPPORTING_NAN:
             # temp_df.fillna(temp_df.mean(), inplace=True)
             temp_df.dropna(how='any', inplace=True)
-
+        
+        # Remove columns with spaces in the name
+        temp_df.columns = temp_df.columns.str.replace(' ', '_')
+        
+        # Add the target to the columns to keep if it's not already there
         if columns_to_keep is not None:
-            # Add the target to the columns to keep if it's not already there
             if target not in columns_to_keep:
                 columns_to_keep.append(target)        
             # Keep only the columns that are in the model
