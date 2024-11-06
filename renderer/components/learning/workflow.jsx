@@ -112,9 +112,11 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
         const existingResultsID = MEDDataObject.getChildIDWithName(globalData, parentID, existingResultsName)
         if (existingResultsID) {
           const jsonResultsID = MEDDataObject.getChildIDWithName(globalData, existingResultsID, "results.json")
-          const jsonResults = await getCollectionData(jsonResultsID)
-          delete jsonResults[0]["_id"]
-          updateFlowResults(jsonResults[0], parentID)
+          if (jsonResultsID) {
+            const jsonResults = await getCollectionData(jsonResultsID)
+            delete jsonResults[0]["_id"]
+            updateFlowResults(jsonResults[0], parentID)
+          }
         }
       }
     }
