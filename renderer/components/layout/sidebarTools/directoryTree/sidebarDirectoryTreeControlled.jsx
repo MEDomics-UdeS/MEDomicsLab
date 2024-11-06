@@ -239,12 +239,12 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
           MEDDataObject.deleteObjectAndChildrenFromWorkspace(globalData, props.index, workspace.workingDirectory.path)
           break
         case "revealInFileExplorer":
-          if (globalData[props.index] !== undefined) {
-            if (globalData[props.index].path !== undefined) {
+          if (globalData[props.index]) {
+            if (globalData[props.index].path) {
               // eslint-disable-next-line no-undef
               require("electron").shell.showItemInFolder(globalData[props.index].path)
             } else {
-              toast.error("Error: No path found")
+              toast.error("Error: No path found. The item is not saved locally")
             }
           } else {
             toast.error("Error: No item selected")
