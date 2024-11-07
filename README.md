@@ -24,8 +24,8 @@
 - [MEDomicsLab Components](#medomicslab-components)
 - [MEDomicsLab in Action](#medomicslab-in-action)
 - [Installation and Usage](#installation-and-usage)
-- [Explore Documentation](#explore-documentation)
-- [Engage in MEDomicsLab](#engage-in-medomicslab)
+  - [Explore Documentation](#explore-documentation)
+  - [Engage in MEDomicsLab](#engage-in-medomicslab)
 - [Acknowledgement](#acknowledgement)
 
 
@@ -47,7 +47,7 @@ of biological processes.
 </div>
 
 **The end-goal** is to give researchers the ability to leverage diverse 
-data types contributing to more personalized and effective treatment models by enhancing the synergy between computer scientists and clinical researchers, in particular, through the code generation feature that allows for the automatic generation of Python code from the graphically created pipelines as depicted below.
+data types contributing to more personalized and effective treatment models **by enhancing the synergy between computer scientists and clinical researchers**, in particular, through the code generation feature that allows for the automatic generation of Python code from the graphically created pipelines as depicted below.
 
 <div align="center">
   <picture width="600">
@@ -113,7 +113,7 @@ Explore our [contribution page](https://medomics-udes.gitbook.io/medomicslab-doc
 
 <img src="./resources/ContributingTools.png"/>
 
-### Acknowledgement
+## Acknowledgement
 
 This project relies on the following open-source packages, and we are grateful to their developers:
 
