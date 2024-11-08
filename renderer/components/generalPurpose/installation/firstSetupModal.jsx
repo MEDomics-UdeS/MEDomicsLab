@@ -50,8 +50,11 @@ const FirstSetupModal = ({ visible, onHide, closable, setRequirementsMet }) => {
 
   const installPython = () => {
     setPythonIsInstalling(true)
-    ipcRenderer.invoke("installBundledPythonExecutable")
-  }
+    ipcRenderer.invoke("installBundledPythonExecutable").then((data) => {
+      console.log("Python installation: ", data)
+  
+    }
+  )}
 
   const installMongoDB = () => {
     ipcRenderer.invoke("installMongoDB")

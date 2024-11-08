@@ -323,6 +323,8 @@ export async function installBundledPythonExecutable(mainWindow) {
       fs.mkdirSync(pythonPath)
     }
     bundledPythonPath = pythonPath
+  } else {
+    bundledPythonPath = path.join(process.cwd(), "python")
   }
   // Check if the python executable is already installed
   let pythonExecutablePath = null
@@ -392,13 +394,18 @@ export async function installBundledPythonExecutable(mainWindow) {
       }
     } else if (process.platform == "linux") {
       // Download the right python executable (arm64 or x86_64)
-      let file = "cpython-3.9.18+20240224-x86_64_v4-unknown-linux-gnu-install_only.tar.gz"
+      // https://github.com/indygreg/python-build-standalone/releases/download/20240224/cpython-3.9.18+20240224-x86_64_v4-unknown-linux-gnu-install_only.tar.gz      let file = "cpython-3.9.18+20240224-x86_64_v4-unknown-linux-gnu-install_only.tar.gz"
+      let file = "cpython-3.9.18+20240224-x86_64_v4-unknown-linux-gnu-install_only.tar.gz" 
+      if (process.arch === "arm64") {
+        file = "cpython-3.9.18+20240224-aarch64-unknown-linux-gnu-install_only.tar.gz"
+      } 
+      
       let url = `https://github.com/indygreg/python-build-standalone/releases/download/20240224/${file}`
       let extractCommand = `tar -xvf ${file}  ${pythonParentFolderExtractString}`
 
       let downloadPromise = exec(`wget ${url}`)
       execCallbacksForChildWithNotifications(downloadPromise.child, "Python Downloading", mainWindow)
-      const { stdout, stderr } = await downloadPromise
+      const { stdout: download, stderr: downlaodErr } = await downloadPromise
       // Extract the python executable
       let extractionPromise = exec(extractCommand)
       execCallbacksForChildWithNotifications(extractionPromise.child, "Python Exec. Extracting", mainWindow)
@@ -410,6 +417,9 @@ export async function installBundledPythonExecutable(mainWindow) {
       execCallbacksForChildWithNotifications(removePromise.child, "Python Exec. Removing", mainWindow)
       const { stdout: remove, stderr: removeErr } = await removePromise
 
+      console.log("pythonExecutablePath: ", pythonExecutablePath)
+      console.log("process.cwd(): ", process)
+      console.log("process.resourcesPath: ", process.resourcesPath)
       // Install the required python packages
       if (process.env.NODE_ENV === "production") {
         installPythonPackage(mainWindow, pythonExecutablePath, null, path.join(process.resourcesPath, "pythonEnv", "requirements.txt"))
