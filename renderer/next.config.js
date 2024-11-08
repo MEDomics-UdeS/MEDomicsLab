@@ -8,7 +8,7 @@ module.exports = {
 			test: /\.node$/,
 			use: "node-loader"
 		})
-  
+		
 		return config
 	},
 	images: { unoptimized : true }

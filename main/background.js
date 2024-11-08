@@ -668,6 +668,27 @@ export function getMongoDBPath() {
   }
     console.error("mongod not found")
     return null
+  } else if (process.platform === "linux") {
+    // Check if mongod is in the process.env.PATH
+    const paths = process.env.PATH.split(path.delimiter)
+    for (let i = 0; i < paths.length; i++) {
+      const binPath = path.join(paths[i], "mongod")
+      if (fs.existsSync(binPath)) {
+        return binPath
+      }
+    }
+    console.error("mongod not found in PATH"+paths)
+    // Check if mongod is in the default installation path on Linux - /usr/bin/mongod
+    if (fs.existsSync("/usr/bin/mongod")) {
+      return "/usr/bin/mongod"
+    }
+    console.error("mongod not found in /usr/bin/mongod")
+    
+    if (fs.existsSync("/home/"+process.env.USER+"/.medomics/mongodb/bin/mongod")) {
+      return "/home/"+process.env.USER+"/.medomics/mongodb/bin/mongod"
+    }
+    return null
+
   } else {
     return "mongod"
   }

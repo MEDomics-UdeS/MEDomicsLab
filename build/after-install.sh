@@ -38,8 +38,11 @@ elif [ "$VERSION" = "22.04" ]; then
 elif [ "$VERSION" = "24.04" ]; then
     echo "deb [ arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb-server-8.0.gpg ] https://repo.mongodb.org/apt/ubuntu noble/mongodb-org/8.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-8.0.list
 fi
+
 echo "Sources list created" >>$LOG_FILE
-sudo apt-get update -y >>$LOG_FILE
+# Try to update the package list, ignore errors
+echo "Updating package list" >>$LOG_FILE
+sudo apt-get update >>$LOG_FILE
 
 echo "Installing MongoDB" >>$LOG_FILE
 sudo apt-get install -y mongodb-org >>$LOG_FILE
