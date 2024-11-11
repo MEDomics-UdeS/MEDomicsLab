@@ -1,5 +1,5 @@
 import MEDconfig, { PORT_FINDING_METHOD } from "../../medomics.dev"
-import { getPythonEnvironment } from "./pythonEnv"
+import { getPythonEnvironment, getBundledPythonEnvironment } from "./pythonEnv"
 const { exec, execFile } = require("child_process")
 const os = require("os")
 var path = require("path")
@@ -117,6 +117,20 @@ export async function runServer(isProd, serverPort, serverProcess, serverState, 
     }
   }
 
+  let env = process.env
+  let bundledPythonPath = getBundledPythonEnvironment()
+
+  if (bundledPythonPath !== null) {
+    bundledPythonPath = bundledPythonPath.replace("python.exe", "")
+
+    let scriptPath = path.join(bundledPythonPath, "Scripts")
+    let libPath = path.join(bundledPythonPath, "Lib")
+    let pythonPath = path.join(bundledPythonPath, "python.exe")
+
+    env.PATH = `${bundledPythonPath};${scriptPath};${libPath};${env.PATH}`
+    console.log("env.PATH: " + env.PATH)
+  }
+
   if (!isProd) {
     //**** DEVELOPMENT ****//
     let args = [serverPort, "dev", process.cwd()]
@@ -133,7 +147,8 @@ export async function runServer(isProd, serverPort, serverProcess, serverState, 
         serverState.serverIsRunning = true
         serverProcess = execFile(`${process.platform == "win32" ? "main.exe" : "./main"}`, args, {
           windowsHide: false,
-          cwd: path.join(process.cwd(), "go_server")
+          cwd: path.join(process.cwd(), "go_server"),
+          env: env
         })
         if (serverProcess) {
           serverProcess.stdout.on("data", function (data) {
@@ -174,7 +189,8 @@ export async function runServer(isProd, serverPort, serverProcess, serverState, 
 
         if (process.platform == "win32") {
           serverProcess = execFile(path.join(process.resourcesPath, "go_executables\\server_go_win32.exe"), args, {
-            windowsHide: false
+            windowsHide: false,
+            env: env
           })
           serverState.serverIsRunning = true
         } else if (process.platform == "linux") {

@@ -302,7 +302,6 @@ export async function installBundledPythonExecutable(mainWindow) {
   let medomicsPath = null
   let pythonParentFolderExtractString = ""
   if (process.env.NODE_ENV === "production") {
-    
     console.log("getHomePath(): ", getHomePath())
     let userPath = getHomePath()
 
@@ -337,8 +336,8 @@ export async function installBundledPythonExecutable(mainWindow) {
     // If the python executable is not installed, download the python executable
     if (process.platform == "win32") {
       // Download the python executable
-      let url = "https://github.com/indygreg/python-build-standalone/releases/download/20240224/cpython-3.9.18+20240224-x86_64-pc-windows-msvc-static-install_only.tar.gz"
-      let outputFileName = "cpython-3.9.18+20240224-x86_64-pc-windows-msvc-static-install_only.tar.gz"
+      let url = "https://github.com/indygreg/python-build-standalone/releases/download/20240224/cpython-3.9.18+20240224-x86_64-pc-windows-msvc-shared-install_only.tar.gz"
+      let outputFileName = "cpython-3.9.18+20240224-x86_64-pc-windows-msvc-shared-install_only.tar.gz"
 
       let downloadPromise = exec(`wget ${url} -O ${outputFileName}`, { shell: "powershell.exe" })
 
@@ -395,11 +394,11 @@ export async function installBundledPythonExecutable(mainWindow) {
     } else if (process.platform == "linux") {
       // Download the right python executable (arm64 or x86_64)
       // https://github.com/indygreg/python-build-standalone/releases/download/20240224/cpython-3.9.18+20240224-x86_64_v4-unknown-linux-gnu-install_only.tar.gz      let file = "cpython-3.9.18+20240224-x86_64_v4-unknown-linux-gnu-install_only.tar.gz"
-      let file = "cpython-3.9.18+20240224-x86_64_v4-unknown-linux-gnu-install_only.tar.gz" 
+      let file = "cpython-3.9.18+20240224-x86_64_v4-unknown-linux-gnu-install_only.tar.gz"
       if (process.arch === "arm64") {
         file = "cpython-3.9.18+20240224-aarch64-unknown-linux-gnu-install_only.tar.gz"
-      } 
-      
+      }
+
       let url = `https://github.com/indygreg/python-build-standalone/releases/download/20240224/${file}`
       let extractCommand = `tar -xvf ${file}  ${pythonParentFolderExtractString}`
 

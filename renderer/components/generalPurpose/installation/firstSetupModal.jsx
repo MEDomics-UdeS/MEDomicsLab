@@ -21,6 +21,7 @@ const FirstSetupModal = ({ visible, onHide, closable, setRequirementsMet }) => {
   const [mongoDBInstallationProgress, setMongoDBInstallationProgress] = useState(0)
   const [checkIsRunning, setCheckIsRunning] = useState(false)
   const [localRequirementsMet, setLocalRequirementsMet] = useState(false)
+  const [clicked, setClicked] = useState(false)
 
   const checkPython = () => {
     ipcRenderer.invoke("getBundledPythonEnvironment").then((data) => {
@@ -52,15 +53,15 @@ const FirstSetupModal = ({ visible, onHide, closable, setRequirementsMet }) => {
     setPythonIsInstalling(true)
     ipcRenderer.invoke("installBundledPythonExecutable").then((data) => {
       console.log("Python installation: ", data)
-  
-    }
-  )}
+    })
+  }
 
   const installMongoDB = () => {
     ipcRenderer.invoke("installMongoDB")
   }
 
   const startSetup = () => {
+    setClicked(true)
     if (!mongoDBIsInstalled) installMongoDB()
     installPython()
   }
@@ -173,8 +174,8 @@ const FirstSetupModal = ({ visible, onHide, closable, setRequirementsMet }) => {
       } else {
         let progress = -2 + (totalMessages / totalNumberOfPythonNotifications) * 100
 
-        if (progress > 100) {
-          progress = 100
+        if (progress >= 100) {
+          progress = 99.9
         }
         if (progress < 0) {
           progress = 0
@@ -243,7 +244,7 @@ const FirstSetupModal = ({ visible, onHide, closable, setRequirementsMet }) => {
           <p>Once the setup is complete, you will be able to start using the application.</p>
         </div>
         <div className="p-col-12 p-md-4">
-          <button className="p-button p-button-primary" onClick={startSetup} style={{ display: "flex", alignContent: "center", marginBottom: "1rem" }}>
+          <button className="p-button p-button-primary" onClick={startSetup} disabled={clicked} style={{ display: "flex", alignContent: "center", marginBottom: "1rem" }}>
             Start setup
           </button>
         </div>
@@ -264,7 +265,7 @@ const FirstSetupModal = ({ visible, onHide, closable, setRequirementsMet }) => {
             value={pythonInstallationProgress}
             displayValueTemplate={() => `${pythonInstallationProgress}%`}
             mode={checkIsRunning ? "indeterminate" : "determinate"}
-            color={pythonInstallationProgress == 100 ? "#22c55e" : ""}
+            color={pythonInstallationProgress == 100 && pythonIsInstalled ? "#22c55e" : ""}
           />
         </div>
         <div className="p-end p-row-12" style={{ display: "flex", flexDirection: "row-reverse" }}>
