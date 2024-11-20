@@ -272,7 +272,7 @@ const SettingsPage = (pageId = "settings") => {
                 </Col>
                 <Col xs={12} md={12} style={{ display: "flex", flexDirection: "row", justifyContent: "flex-start", alignItems: "center", flexWrap: "wrap", marginTop: ".75rem" }}>
                   <Col xs={12} md="auto" style={{ display: "flex", flexDirection: "row", justifyContent: "flex-start", alignItems: "center", flexWrap: "wrap" }}>
-                    <h5>Python - Conda environment path : </h5>
+                    <h5>Python environment path : </h5>
                   </Col>
                   <Col xs={12} md="auto" style={{ display: "flex", flexDirection: "row", justifyContent: "flex-start", alignItems: "center", flexWrap: "nowrap", flexGrow: "1" }}>
                     <InputText
