@@ -66,7 +66,7 @@ const FirstSetupModal = ({ visible, onHide, closable, setRequirementsMet }) => {
     installPython()
   }
 
-  const closeFirstSetupModal = () => {
+  const closeFirstSetupModal = (onHide) => {
     setNotifications([])
     // Check if setRequirementsMet is a function before calling it
     if (typeof setRequirementsMet === "function") {
@@ -78,6 +78,9 @@ const FirstSetupModal = ({ visible, onHide, closable, setRequirementsMet }) => {
         console.log("Server process: ", serverProcess)
       })
     })
+    if (onHide) {
+      onHide()
+    }
   }
 
   useEffect(() => {
@@ -99,7 +102,7 @@ const FirstSetupModal = ({ visible, onHide, closable, setRequirementsMet }) => {
     // Count the number of Python notifications and calculate the progress
     let accumulatedPythonProgress = 0
     let accumulatedMongoDBProgress = 0
-    let totalNumberOfPythonNotifications = 6250
+    let totalNumberOfPythonNotifications = 6857
 
     let newPythonNotifications = { ...pythonNotifications }
     let newMongoDBNotifications = { ...mongoDBNotifications }
@@ -244,7 +247,7 @@ const FirstSetupModal = ({ visible, onHide, closable, setRequirementsMet }) => {
           <p>Once the setup is complete, you will be able to start using the application.</p>
         </div>
         <div className="p-col-12 p-md-4">
-          <button className="p-button p-button-primary" onClick={startSetup} disabled={clicked} style={{ display: "flex", alignContent: "center", marginBottom: "1rem" }}>
+          <button className="p-button p-button-primary" onClick={startSetup} disabled={clicked} style={{ display: "flex", alignContent: "center", marginBottom: "0.5rem" }}>
             Start setup
           </button>
         </div>
@@ -271,13 +274,33 @@ const FirstSetupModal = ({ visible, onHide, closable, setRequirementsMet }) => {
         <div className="p-end p-row-12" style={{ display: "flex", flexDirection: "row-reverse" }}>
           {localRequirementsMet && (
             <>
-              <Button onClick={closeFirstSetupModal} style={{ marginTop: "1rem" }}>
+              <Button onClick={closeFirstSetupModal(onHide)} style={{ marginTop: "1rem" }}>
                 Close
               </Button>
             </>
           )}
         </div>
       </div>
+      {/* Terminal Notification Panel */}
+      {(clicked) && <div
+        style={{
+          backgroundColor: "#000",
+          color: "#00ff00",
+          padding: "1rem",
+          borderRadius: "5px",
+          marginTop: "1rem",
+          marginBottom: "1rem",
+          height: "200px",
+          overflowY: "scroll",
+          fontFamily: "monospace",
+        }}
+      >
+        {notifications.map((notification, index) => (
+          <div key={index}>
+            <strong>{notification.header}:</strong> {notification.message}
+          </div>
+        ))}
+      </div>}
     </Dialog>
   )
 }
