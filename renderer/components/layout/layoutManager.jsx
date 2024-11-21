@@ -25,7 +25,6 @@ import { WorkspaceContext } from "../workspace/workspaceContext"
 import { requestBackend } from "../../utilities/requests"
 import { toast } from "react-toastify"
 import NotificationOverlay from "../generalPurpose/notificationOverlay"
-import { getBundledPythonEnvironment } from "../../../main/utils/pythonEnv"
 
 import os from "os"
 
@@ -49,22 +48,19 @@ const LayoutManager = (props) => {
   useEffect(() => {
     console.log("port set to: ", port)
     if (port) {
-      let bundledPythonPath = getBundledPythonEnvironment()
-      if (bundledPythonPath !== null) {
-        requestBackend(
-          port,
-          "clearAll",
-          { data: "clearAll" },
-          (data) => {
-            console.log("clearAll received data:", data)
-            toast.success("Go server is connected and ready !")
-          },
-          (error) => {
-            console.log("clearAll error:", error)
-            toast.error("Go server is not connected !")
-          }
-        )
-      }
+      requestBackend(
+        port,
+        "clearAll",
+        { data: "clearAll" },
+        (data) => {
+          console.log("clearAll received data:", data)
+          toast.success("Go server is connected and ready !")
+        },
+        (error) => {
+          console.log("clearAll error:", error)
+          toast.error("Go server is not connected !")
+        }
+      )
     }
   }, [port])
 
