@@ -18,7 +18,7 @@ import { connectToMongoDB, getCollectionTags, insertMEDDataObjectIfNotExists } f
 import { ServerConnectionContext } from "../serverConnection/connectionContext"
 import { MEDDataObject } from "../workspace/NewMedDataObject"
 import InputToolsComponent from "./InputToolsComponent"
-import { collectionExists, getCollectionData } from "./utils"
+import {collectionExists, getCollectionData, getCollectionPreservedColumnTypes} from "./utils"
 
 /**
  * DataTableFromDB component
@@ -83,6 +83,7 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
       let collectionName = data.extension === "view" ? data.name : data.id
       getCollectionData(collectionName)
         .then((fetchedData) => {
+          console.log("Column types of fetched data: ", getCollectionPreservedColumnTypes(collectionName))
           console.log("Fetched data:", fetchedData)
           let collData = fetchedData.map((item) => {
             let keys = Object.keys(item)
@@ -108,7 +109,6 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
 
   // Update columns when innerData changes
   useEffect(() => {
-    console.log("innerData updated:", innerData)
     if (innerData.length > 0) {
       const allKeys = new Set()
       innerData.forEach((item) => {
@@ -386,7 +386,6 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
   useEffect(() => {
     setColumnNameToTagsMap({})
     async function fetchData() {
-      console.log("tagId", tagId)
       const exists = await collectionExists(tagId)
       if (exists) {
         let tagCollData = await getCollectionTags(data.id)

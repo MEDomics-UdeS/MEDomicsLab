@@ -123,3 +123,60 @@ export const getCollectionColumnTypes = async (collectionName, dbname = "data") 
     await client.close()
   }
 }
+
+export const getCollectionPreservedColumnTypes = async (collectionName, dbname = "data") => {
+  const client = new MongoClient(mongoUrl, { useNewUrlParser: true, useUnifiedTopology: true })
+  try {
+    await client.connect()
+    const db = client.db(dbname)
+    const collection = db.collection(collectionName)
+
+    // Sample a number of documents to determine column types
+    const sampleSize = 100
+    const sampleDocs = await collection.aggregate([{ $sample: { size: sampleSize } }]).toArray()
+
+    // Determine column types
+    const columnTypes = {}
+
+    sampleDocs.forEach((doc) => {
+      Object.keys(doc).forEach((key) => {
+        let type
+
+        const value = doc[key]
+        if (typeof value === "string") {
+          // Check if the string is a date
+          const date = new Date(value)
+          if (!isNaN(date.getTime())) {
+            type = Date
+          } else {
+            type = String
+          }
+        } else if (typeof value === "number") {
+          // Check if the number is an integer or float
+          type = Number.isInteger(value) ? Number : Number
+        } else {
+          // Fallback to typeof for other types
+          type = value.constructor
+        }
+
+        if (!columnTypes[key]) {
+          columnTypes[key] = new Set()
+        }
+
+        columnTypes[key].add(type)
+      })
+    })
+
+    // Convert sets to arrays
+    Object.keys(columnTypes).forEach((key) => {
+      columnTypes[key] = Array.from(columnTypes[key])
+    })
+
+    return columnTypes
+  } catch (error) {
+    console.error("Error determining column types:", error)
+    throw error
+  } finally {
+    await client.close()
+  }
+}
