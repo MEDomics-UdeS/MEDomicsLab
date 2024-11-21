@@ -674,7 +674,7 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
 
       return (
         <>
-          <DataTableFromDB data={node.getConfig()} isReadOnly={false} />
+          <DataTableFromDB data={node.getConfig()} isReadOnly={(node.getConfig().extension === "view") ? true : false} />
         </>
       )
     } else if (component === "learningPage") {

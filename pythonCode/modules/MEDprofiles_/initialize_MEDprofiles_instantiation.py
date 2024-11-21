@@ -18,7 +18,7 @@ SUBMODULE_DIR = str(Path(os.path.dirname(os.path.abspath(__file__))).parent.pare
 sys.path.append(SUBMODULE_DIR)
 
 
-from submodules.MEDprofiles.MEDprofiles.src.back.instantiate_data_from_master_table import get_patient_id_list
+from submodules.MEDprofiles.MEDprofiles.src.back.instantiate_data_from_master_table import *
 from submodules.MEDprofiles.MEDprofiles.src.back.constant import *
 
 json_params_dict, id_ = parse_arguments()

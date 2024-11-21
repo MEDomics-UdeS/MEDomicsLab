@@ -82,6 +82,9 @@ class GoExecScriptPredictTest(GoExecutionScript):
             print("Dataset has no ID and is not MEDomicsLab standard")
             raise ValueError("Dataset has no ID and is not MEDomicsLab standard")
 
+        # Remove columns with spaces in the name
+        dataset.columns = dataset.columns.str.replace(' ', '_')
+
         if columns_to_keep is not None:
             # Add the target to the columns to keep if it's not already there
             if model_metadata['target'] not in columns_to_keep:

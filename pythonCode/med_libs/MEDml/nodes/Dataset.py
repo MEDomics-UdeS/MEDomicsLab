@@ -69,8 +69,9 @@ class Dataset(Node):
             collection = database[self.settings['files']["id"]]
             collection_data = collection.find({}, {'_id': False})
             self.df = pd.DataFrame(list(collection_data))
-            self.CodeHandler.add_line(
-                "code", f"df = pd.read_csv({json.dumps(self.settings['files'])}, sep=',', encoding='utf-8')")
+            self.CodeHandler.add_line("code", f"collection = database['{str(self.settings['files']['id'])}']",)
+            self.CodeHandler.add_line("code", "collection_data = collection.find({}, {'_id': False})")
+            self.CodeHandler.add_line("code", "df = pd.DataFrame(list(collection_data))")
             self.CodeHandler.add_seperator()
             
         elif self.entry_file_type == FILES: # Time points detection and add _T{X} suffix to columns

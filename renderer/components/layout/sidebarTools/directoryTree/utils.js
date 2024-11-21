@@ -1,8 +1,10 @@
-import { MEDDataObject } from "../../../workspace/NewMedDataObject"
-import { toast } from "react-toastify"
-import { confirmDialog } from "primereact/confirmdialog"
 import { randomUUID } from "crypto"
+import fs from "fs"
+import path from "path"
+import { confirmDialog } from "primereact/confirmdialog"
+import { toast } from "react-toastify"
 import { insertMEDDataObjectIfNotExists } from "../../../mongoDB/mongoDBUtils"
+import { MEDDataObject } from "../../../workspace/NewMedDataObject"
 
 const untouchableIDs = ["ROOT", "DATA", "EXPERIMENTS"]
 
@@ -184,14 +186,27 @@ export async function onDeleteSequentially(globalData, workspacePath, setIsDialo
  * @param {Array} selectedItems - The array of selected items in the directory tree
  * @returns {void}
  */
-export async function createFolder(globalData, selectedItems) {
+export async function createFolder(globalData, selectedItems, workspacePath) {
   if (selectedItems && selectedItems.length > 0) {
     const item = globalData[selectedItems[0]]
     let parentID = null
+    // Check if the selected item is a directory or a file
     if (item.type == "directory") {
       parentID = item.id
-    } else {
+    } else if (item.parentID) {
       parentID = item.parentID
+    } else {
+      toast.warning("Selected item is not a directory and has no parent. Setting parent to ROOT.") 
+      parentID = "ROOT"
+    }
+    // Check if the selected item is in the workspace and has a valid path
+    let current_path = null
+    if (!item.inWorkspace || !item.path) {
+      toast.warning("Selected item is not in the workspace or has no path. Setting parent to ROOT.")
+      parentID = "ROOT"
+      current_path = workspacePath
+    } else {
+      current_path = item.path
     }
     const medObject = new MEDDataObject({
       id: randomUUID(),
@@ -199,10 +214,22 @@ export async function createFolder(globalData, selectedItems) {
       type: "directory",
       parentID: parentID,
       childrenIDs: [],
-      inWorkspace: false
+      inWorkspace: true
     })
+    medObject.path = path.join(current_path, medObject.name)
     await insertMEDDataObjectIfNotExists(medObject)
     MEDDataObject.updateWorkspaceDataObject()
+    
+    // Check if the folder already exists
+    if (!fs.existsSync(medObject.path)) {
+      fs.mkdir(medObject.path, { recursive: true }, (err) => {
+        if (err) {
+          console.error(err)
+          return
+        }
+        console.log("Folder created successfully!")
+      })
+    }
   } else {
     toast.warning("Please select a directory")
   }

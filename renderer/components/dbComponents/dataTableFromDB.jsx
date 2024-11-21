@@ -117,6 +117,13 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
       })
       const keys = Array.from(allKeys).filter((key) => key !== "_id")
       const newColumns = keys.map((key) => ({ field: key, header: key }))
+      // Check if any column name has an empty space
+      let hasEmptySpace = newColumns.filter((column) => column.field.includes(" "))
+      hasEmptySpace = hasEmptySpace.map((column) => column.field)
+      if (hasEmptySpace.length > 0) {
+        toast.warn("Warning: column names should not contain empty spaces. Check console for more details.")
+        console.warn("The following column names contain empty spaces:", hasEmptySpace, " This will cause issues for machine learning modules.")
+      }
       setColumns(newColumns)
     }
   }, [innerData])

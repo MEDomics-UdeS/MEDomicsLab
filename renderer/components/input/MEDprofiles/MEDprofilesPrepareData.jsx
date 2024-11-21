@@ -15,7 +15,7 @@ import { requestBackend } from "../../../utilities/requests"
 import { ErrorRequestContext } from "../../generalPurpose/errorRequestContext"
 import { LayoutModelContext } from "../../layout/layoutContext"
 import { PageInfosContext } from "../../mainPages/moduleBasics/pageInfosContext"
-import { connectToMongoDB, insertMEDDataObjectIfNotExists } from "../../mongoDB/mongoDBUtils"
+import { insertMEDDataObjectIfNotExists } from "../../mongoDB/mongoDBUtils"
 import { DataContext } from "../../workspace/dataContext"
 import { MEDDataObject } from "../../workspace/NewMedDataObject"
 import { WorkspaceContext } from "../../workspace/workspaceContext"
@@ -159,6 +159,20 @@ const MEDprofilesPrepareData = () => {
    * Calls the create_master_table method in the MEDprofiles server
    */
   const createMasterTable = async () => {
+    // Check if the master table already exists
+    if (masterFilename) {
+      let keys = Object.keys(globalData)
+      let masterTableExists = false
+      keys.forEach((key) => {
+        if (globalData[key].type == "csv" && globalData[key].name == masterFilename) {
+          masterTableExists = true
+        }
+      })
+      if (masterTableExists) {
+        toast.warn(`Master table ${masterFilename} already exists in the database, please choose another name.`)
+        return
+      }
+    }
     // Create the MEDDataObject
     const id = randomUUID()
     const object = new MEDDataObject({
@@ -262,9 +276,8 @@ const MEDprofilesPrepareData = () => {
     if (MEDprofilesFolderPath == null) {
       checkMEDprofilesFolder()
     }
-    let keys = Object.keys(globalData)
     let folderId = null
-    keys.forEach((key) => {
+    Object.keys(globalData).forEach((key) => {
       if (globalData[key].type == "directory" && globalData[key].name == "MEDprofiles" && globalData[key].parentID == "DATA") {
         folderId = globalData[key].id
       }
@@ -277,11 +290,16 @@ const MEDprofilesPrepareData = () => {
    * This function checks if the MEDprofiles folder exists and creates it if it doesn't.
    */
   const checkMEDprofilesFolder = () => {
-    let keys = Object.keys(globalData)
     let folderExists = false
-    keys.forEach((key) => {
+    let folder_id = null
+    Object.keys(globalData).forEach((key) => {
+      // Check MEDprofiles folder
       if (globalData[key].type == "directory" && globalData[key].name == "MEDprofiles" && globalData[key].parentID == "DATA") {
         setMEDprofilesFolderPath(globalData[key].path)
+        folder_id = globalData[key].id
+      }
+      // Check master_tables folder
+      if (globalData[key].type == "directory" && globalData[key].name == "master_tables" && globalData[key].parentID == folder_id) {
         folderExists = true
       }
     })
@@ -292,31 +310,36 @@ const MEDprofilesPrepareData = () => {
    * @description
    * This function calls the create_MEDprofiles_folder method in the MEDprofiles server
    */
-  const createMEDprofilesFolder = () => {
-    // Run extraction process
-    requestBackend(
-      port,
-      "/MEDprofiles/create_MEDprofiles_folder/" + pageId,
-      {
-        rootDataFolder: rootDataFolder.path,
-      },
-      (jsonResponse) => {
-        console.log("received results:", jsonResponse)
-        if (!jsonResponse.error) {
-          MEDDataObject.updateWorkspaceDataObject()
-          setMEDprofilesFolderPath(jsonResponse["MEDprofiles_folder"])
-        } else {
-          toast.error(`Creation failed: ${jsonResponse.error.message}`)
-          setError(jsonResponse.error)
-          setLoadingMasterTables(false)
-          setLoadingSubMasterTables(false)
+  const createMEDprofilesFolder = async () => {
+    return new Promise((resolve, reject) => {
+      // Run extraction process
+      requestBackend(
+        port,
+        "/MEDprofiles/create_MEDprofiles_folder/" + pageId,
+        {
+          rootDataFolder: rootDataFolder.path,
+        },
+        async (jsonResponse) => {
+          console.log("received results:", jsonResponse)
+          if (!jsonResponse.error) {
+            MEDDataObject.updateWorkspaceDataObject()
+            setMEDprofilesFolderPath(jsonResponse["MEDprofiles_folder"])
+            resolve()
+          } else {
+            toast.error(`Creation failed: ${jsonResponse.error.message}`)
+            setError(jsonResponse.error)
+            setLoadingMasterTables(false)
+            setLoadingSubMasterTables(false)
+            reject(jsonResponse.error)
+          }
+        },
+        (err) => {
+          console.error(err)
+          toast.error(`Creation failed: ${err}`)
+          reject(err)
         }
-      },
-      function (err) {
-        console.error(err)
-        toast.error(`Creation failed: ${err}`)
-      }
-    )
+      )
+    })
   }
 
   /**
@@ -357,13 +380,11 @@ const MEDprofilesPrepareData = () => {
           console.log("received results:", jsonResponse)
           if (!jsonResponse["master_csv"] || jsonResponse["master_csv"].length == 0) {
             console.warn("No csv matching the master table format found in the selected folder")
-            toast.warn("No csv matching the master table format found in the selected folder")
           } else {
             getListOfGeneratedElement(jsonResponse["master_csv"], setMasterTableFileList)
           }
           if (!jsonResponse["submaster_csv"] || jsonResponse["submaster_csv"].length == 0) {
             console.warn("No csv matching the submaster table format found in the selected folder")
-            toast.warn("No csv matching the submaster table format found in the selected folder")
           } else {
             getListOfGeneratedElement(jsonResponse["submaster_csv"], setSubMasterTableFileList)
           }
@@ -413,25 +434,27 @@ const MEDprofilesPrepareData = () => {
    */
   async function runMEDprofilesInstantiation(processingList) {
     // Check if a pickle file already 
-    const db = await connectToMongoDB()
-    let collection = db.collection("medDataObjects")
-    let object = await collection.findOne({ name: binaryFilename, type: "pkl", parentID: getMEDprofilesFolderId() })
-    if (!object) {
-      // If object not in the DB we create it
-      object = new MEDDataObject({
-        id: randomUUID(),
-        name: binaryFilename,
-        type: "pkl",
-        parentID: getMEDprofilesFolderId(),
-        childrenIDs: [],
-        inWorkspace: false
+    if (binaryFilename) {
+      let pklFileExists = false
+      Object.keys(globalData).forEach((key) => {
+        if (globalData[key].type == "pkl" && globalData[key].name == binaryFilename) {
+          pklFileExists = true
+        }
       })
-      await insertMEDDataObjectIfNotExists(object)
-    } else {
-      // If object already in the DB delete its content
-      collection = db.collection(object.id)
-      await collection.deleteMany({})
+      if (pklFileExists) {
+        toast.warn(`Binary file ${binaryFilename} already exists in the database, please choose another name.`)
+        return
+      }
     }
+    // If object not in the DB we create it
+    let object = new MEDDataObject({
+      id: randomUUID(),
+      name: binaryFilename,
+      type: "pkl",
+      parentID: getMEDprofilesFolderId(),
+      childrenIDs: [],
+      inWorkspace: false
+    })
     let progress = 10
     let chunkSize = 25
     let chunks = []
@@ -477,6 +500,8 @@ const MEDprofilesPrepareData = () => {
       }
     }
     MEDDataObject.updateWorkspaceDataObject()
+
+    return object
   }
 
   /**
@@ -498,14 +523,20 @@ const MEDprofilesPrepareData = () => {
 
     // Run MEDprofiles instantiation process
     setProgressStep("Instantiating data")
-    if (!jsonInitialization.error) {
+    if (jsonInitialization.patient_list) {
       // If no error, run the instantiation process
       let processingList = jsonInitialization["patient_list"]
-      await runMEDprofilesInstantiation(processingList)
-      toast.success("Instantiation completed")
-    } else {
+      let pklObject = await runMEDprofilesInstantiation(processingList)
+      // add the new object to the database
+      if (pklObject) {
+        await insertMEDDataObjectIfNotExists(pklObject)
+        toast.success("Instantiation completed")
+      }
+    } else if (jsonInitialization.error) {
       toast.error(`Instantiation failed: ${jsonInitialization.error.message}`)
       setError(jsonInitialization.error)
+    } else {
+      toast.error("Instantiation failed: invalid dataset")
     }
     setShowProgressBar(false)
     setInstantiatingMEDprofiles(false)
@@ -525,17 +556,19 @@ const MEDprofilesPrepareData = () => {
       transition: "background-color 0.3s ease",
       cursor: "pointer",
     }
-    if (name.includes(".")) {
-      return <div 
-        style={style}
-        onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#e0f7fa")}
-        onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#f9f9f9")}>
-          <span style={{ fontWeight: "bold", fontSize: "16px", color: "#333" }}>
-            {name.split(".").slice(0, -1).join(".")}
-          </span>
-        </div>
-    } else {
-      return
+    if (name){
+      if (name.includes(".")) {
+        return <div 
+          style={style}
+          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#e0f7fa")}
+          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#f9f9f9")}>
+            <span style={{ fontWeight: "bold", fontSize: "16px", color: "#333" }}>
+              {name.split(".").slice(0, -1).join(".")}
+            </span>
+          </div>
+      } else {
+        return
+      }
     }
   }
 
@@ -578,7 +611,7 @@ const MEDprofilesPrepareData = () => {
 
   // Called while rootDataFolder is updated in order to create the MEDprofiles folder
   useEffect(() => {
-    if (rootDataFolder && MEDprofilesFolderPath == null) {
+    if (rootDataFolder) {
       if (!checkMEDprofilesFolder()){
         createMEDprofilesFolder()
       }
