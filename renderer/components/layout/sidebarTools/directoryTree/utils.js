@@ -200,13 +200,13 @@ export async function createFolder(globalData, selectedItems, workspacePath) {
       parentID = "ROOT"
     }
     // Check if the selected item is in the workspace and has a valid path
-    let current_path = null
+    let currentPath = null
     if (!item.inWorkspace || !item.path) {
       toast.warning("Selected item is not in the workspace or has no path. Setting parent to ROOT.")
       parentID = "ROOT"
-      current_path = workspacePath
+      currentPath = workspacePath
     } else {
-      current_path = item.path
+      currentPath = item.path
     }
     const medObject = new MEDDataObject({
       id: randomUUID(),
@@ -216,7 +216,7 @@ export async function createFolder(globalData, selectedItems, workspacePath) {
       childrenIDs: [],
       inWorkspace: true
     })
-    medObject.path = path.join(current_path, medObject.name)
+    medObject.path = path.join(currentPath, medObject.name)
     await insertMEDDataObjectIfNotExists(medObject)
     MEDDataObject.updateWorkspaceDataObject()
     

@@ -18,7 +18,7 @@ import { createFolderFromPath } from "../../../utilities/fileManagementUtils"
 import { deepCopy } from "../../../utilities/staticFunctions"
 import { connectToMongoDB, insertMEDDataObjectIfNotExists } from "../../mongoDB/mongoDBUtils"
 import { MEDDataObject } from "../../workspace/NewMedDataObject"
-
+import { getPathSeparator } from "../../../utilities/fileManagementUtils"
 
 /**
  * @class MEDcohortFigureClass
@@ -94,50 +94,49 @@ class MEDcohortFigureClass extends React.Component {
   async componentDidMount() {
     // Connect to mongDB
     const db = await connectToMongoDB()
-    
+
     // Load the JSON data from GridFS
     const { GridFSBucket } = require("mongodb")
-    const gridFSBucket = new GridFSBucket(db);
+    const gridFSBucket = new GridFSBucket(db)
 
     // Find the file in GridFS and get its _id
-    const filesCursor = gridFSBucket.find({ filename: "MEDprofiles.json" });
-    const file = await filesCursor.next(); // Get the first matching file (if it exists)
-    
+    const filesCursor = gridFSBucket.find({ filename: "MEDprofiles.json" })
+    const file = await filesCursor.next() // Get the first matching file (if it exists)
+
     if (!file) {
-        console.error("File 'MEDprofiles.json' not found in GridFS")
-        return;
+      console.error("File 'MEDprofiles.json' not found in GridFS")
+      return
     }
-    
+
     // Open a readable stream to retrieve the JSON data
-    const stream = gridFSBucket.openDownloadStreamByName("MEDprofiles.json");
-    
-    let jsonData = "";
+    const stream = gridFSBucket.openDownloadStreamByName("MEDprofiles.json")
+
+    let jsonData = ""
 
     // Collect data from stream
-    stream.on("data", chunk => {
-        jsonData += chunk.toString();
-    });
+    stream.on("data", (chunk) => {
+      jsonData += chunk.toString()
+    })
 
     // On the end of the stream, update the state
     stream.on("end", async () => {
-        try {
-            const parsedData = JSON.parse(jsonData);
-            console.log("componentDidMount parsedData", parsedData);
+      try {
+        const parsedData = JSON.parse(jsonData)
+        console.log("componentDidMount parsedData", parsedData)
 
-            // Update the state with the loaded JSON data
-            this.setState({ jsonData: parsedData }, () => {
-                this.generateEchartsOptions(); // Call the chart generation method
-                this.props.setJsonDataIsLoaded(true); // Notify that the data is loaded
-            });
-          
-        } catch (error) {
-            console.error("Error parsing JSON data from GridFS:", error);
-        }
-    });
+        // Update the state with the loaded JSON data
+        this.setState({ jsonData: parsedData }, () => {
+          this.generateEchartsOptions() // Call the chart generation method
+          this.props.setJsonDataIsLoaded(true) // Notify that the data is loaded
+        })
+      } catch (error) {
+        console.error("Error parsing JSON data from GridFS:", error)
+      }
+    })
 
-    stream.on("error", err => {
-        console.error("Error loading data from GridFS:", err);
-    });
+    stream.on("error", (err) => {
+      console.error("Error loading data from GridFS:", err)
+    })
 
     this.setState({ darkMode: window.matchMedia("(prefers-color-scheme)").matches ? "dark" : "light" }) // Set the initial theme type
     window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", (e) => {
@@ -655,7 +654,11 @@ class MEDcohortFigureClass extends React.Component {
     if (this.state.echartsOptions !== null) {
       if (this.state.echartsOptions.series !== undefined) {
         if (this.state.echartsOptions.series.length !== newEchartsOption.series.length) {
-          let error_message = "The number of patients has changed. The reloading time will be affected. Check your data for NaN values in the Date/Time values." + " If you are using the relative time, check if the selected class for relative time is not null for every patient." + " Problematic Patient IDs: " + profilesToHide.join(", ")
+          let error_message =
+            "The number of patients has changed. The reloading time will be affected. Check your data for NaN values in the Date/Time values." +
+            " If you are using the relative time, check if the selected class for relative time is not null for every patient." +
+            " Problematic Patient IDs: " +
+            profilesToHide.join(", ")
           toast.error(error_message)
           console.error(error_message)
 
@@ -890,10 +893,9 @@ class MEDcohortFigureClass extends React.Component {
 
     // Export the time point data to CSV files
     for (const timePoint of Object.keys(timePointsData)) {
-      await this.timePointToCsv(timePoint, timePointsData[timePoint]);
+      await this.timePointToCsv(timePoint, timePointsData[timePoint])
     }
   }
-  
 
   /**
    * This method returns the median of an array.
@@ -1043,25 +1045,25 @@ class MEDcohortFigureClass extends React.Component {
   }
 
   exportTimePointToDatabase = async (fileName, jsonData, timePoint, folderPath) => {
-    let timePointsFolderId = null;
-  
+    let timePointsFolderId = null
+
     // Connect to the database
-    const db = await connectToMongoDB();
-    let collection = db.collection("medDataObjects");
-  
+    const db = await connectToMongoDB()
+    let collection = db.collection("medDataObjects")
+
     // Find MEDprofiles folder
-    const MEDProfilesFolder = await collection.findOne({ name: "MEDprofiles", type: "directory", parentID: "DATA" });
-  
+    const MEDProfilesFolder = await collection.findOne({ name: "MEDprofiles", type: "directory", parentID: "DATA" })
+
     // Find timePoints folder
-    let timePointsFolder = await collection.findOne({ name: "timePoints", type: "directory", parentID: MEDProfilesFolder.id });
-  
+    let timePointsFolder = await collection.findOne({ name: "timePoints", type: "directory", parentID: MEDProfilesFolder.id })
+
     if (timePointsFolder) {
-      timePointsFolderId = timePointsFolder.id;
+      timePointsFolderId = timePointsFolder.id
     } else {
       // Create the time points folder locally
-      folderPath = folderPath + getPathSeparator() + "timePoints" + getPathSeparator();
-      createFolderFromPath(folderPath);
-  
+      folderPath = folderPath + getPathSeparator() + "timePoints" + getPathSeparator()
+      createFolderFromPath(folderPath)
+
       // Create timePoints folder MEDDataObject
       const timePointsFolderObject = new MEDDataObject({
         id: randomUUID(),
@@ -1069,27 +1071,27 @@ class MEDcohortFigureClass extends React.Component {
         type: "directory",
         parentID: MEDProfilesFolder.id,
         childrenIDs: [],
-        inWorkspace: true,
-      });
-      await insertMEDDataObjectIfNotExists(timePointsFolderObject);
-      MEDDataObject.updateWorkspaceDataObject();
-      timePointsFolderId = timePointsFolderObject.id;
+        inWorkspace: true
+      })
+      await insertMEDDataObjectIfNotExists(timePointsFolderObject)
+      MEDDataObject.updateWorkspaceDataObject()
+      timePointsFolderId = timePointsFolderObject.id
     }
-  
+
     // Create a new MEDDataObject for the file
-    const id = randomUUID();
+    const id = randomUUID()
     const object = new MEDDataObject({
       id: id,
       name: fileName,
       type: "csv",
       parentID: timePointsFolderId,
       childrenIDs: [],
-      inWorkspace: false,
-    });
-  
+      inWorkspace: false
+    })
+
     // Check if the file already exists
-    const existingObjectByAttributes = await collection.findOne({ name: object.name, type: object.type, parentID: object.parentID });
-  
+    const existingObjectByAttributes = await collection.findOne({ name: object.name, type: object.type, parentID: object.parentID })
+
     if (existingObjectByAttributes) {
       // If object already in the DB, show a confirmation dialog to overwrite it
       const overwriteConfirmation = await new Promise((resolve) => {
@@ -1100,37 +1102,37 @@ class MEDcohortFigureClass extends React.Component {
           icon: "pi pi-exclamation-triangle",
           accept: () => resolve(true),
           reject: () => {
-            resolve(false);
-            this.setState({ isWorking: false });
-          },
-        });
-      });
-  
+            resolve(false)
+            this.setState({ isWorking: false })
+          }
+        })
+      })
+
       if (overwriteConfirmation) {
         // If the user accepts, remove the existing file
-        collection = db.collection(existingObjectByAttributes.id);
-        await collection.deleteMany({});
-  
+        collection = db.collection(existingObjectByAttributes.id)
+        await collection.deleteMany({})
+
         // Save the new data to the CSV file inside the MongoDB database
-        await collection.insertMany(jsonData);
-        MEDDataObject.updateWorkspaceDataObject();
-        toast.success(`Time point ${timePoint} exported to the database`);
+        await collection.insertMany(jsonData)
+        MEDDataObject.updateWorkspaceDataObject()
+        toast.success(`Time point ${timePoint} exported to the database`)
       }
     } else {
       // Create a new collection and insert data
-      await db.createCollection(object.id);
-      collection = db.collection(object.id);
-      await collection.insertMany(jsonData);
-  
+      await db.createCollection(object.id)
+      collection = db.collection(object.id)
+      await collection.insertMany(jsonData)
+
       // Insert the object into the database and update workspace
-      await insertMEDDataObjectIfNotExists(object);
-      MEDDataObject.updateWorkspaceDataObject();
-  
+      await insertMEDDataObjectIfNotExists(object)
+      MEDDataObject.updateWorkspaceDataObject()
+
       // Show a success message
-      toast.success(`Time point ${timePoint} exported to the database`);
+      toast.success(`Time point ${timePoint} exported to the database`)
     }
   }
-  
+
   /**
    * This function exports the data for a given time point to a CSV file.
    * @param {number} timePoint - The time point to export.
@@ -1203,16 +1205,57 @@ class MEDcohortFigureClass extends React.Component {
       <>
         <Row style={{ display: "flex", flexDirection: "row", width: "100%", height: "100%", justifyContent: "space-evenly", margin: "0rem" }}>
           <Col lg={8} className="MEDcohort-figure center" style={{ display: "flex", flexDirection: "column", boxShadow: "2px 2px 4px rgba(0, 0, 0, 0.25)", borderRadius: " 1rem", padding: "0" }}>
-            {echartsOptions && <ReactECharts className="echarts-custom" ref={this.chartRef} option={newEchartsOption} theme={themeName} onEvents={{ brushselected: this.handleSelectData }} style={{ width: "100%", height: "100%" }} lazyUpdate={true} class={"echarts-scatter"} />}
+            {echartsOptions && (
+              <ReactECharts
+                className="echarts-custom"
+                ref={this.chartRef}
+                option={newEchartsOption}
+                theme={themeName}
+                onEvents={{ brushselected: this.handleSelectData }}
+                style={{ width: "100%", height: "100%" }}
+                lazyUpdate={true}
+                class={"echarts-scatter"}
+              />
+            )}
           </Col>
 
           <Col lg={4} style={{ display: "flex", flexDirection: "column", justifyContent: "space-evenly" }}>
-            <Row className="justify-content-md-center medprofile-buttons" style={{ display: "flex", flexDirection: "row", alignContent: "center", alignItems: "center", width: "100%", justifyContent: "center", boxShadow: "2px 2px 4px rgba(0, 0, 0, 0.25)", padding: "1rem", borderRadius: "1rem", margin: "0.5rem" }}>
+            <Row
+              className="justify-content-md-center medprofile-buttons"
+              style={{
+                display: "flex",
+                flexDirection: "row",
+                alignContent: "center",
+                alignItems: "center",
+                width: "100%",
+                justifyContent: "center",
+                boxShadow: "2px 2px 4px rgba(0, 0, 0, 0.25)",
+                padding: "1rem",
+                borderRadius: "1rem",
+                margin: "0.5rem"
+              }}
+            >
               <Col xxl="6" style={{ display: "flex", flexDirection: "row", justifyContent: "center", marginBottom: "1rem" }}>
-                <ToggleButton className="separate-toggle-button" checked={separateHorizontally} onChange={(e) => this.setState({ separateHorizontally: e.value })} onLabel="Overlap horizontally" offLabel="Separate horizontally" onIcon="pi pi-check" offIcon="pi pi-times" />
+                <ToggleButton
+                  className="separate-toggle-button"
+                  checked={separateHorizontally}
+                  onChange={(e) => this.setState({ separateHorizontally: e.value })}
+                  onLabel="Overlap horizontally"
+                  offLabel="Separate horizontally"
+                  onIcon="pi pi-check"
+                  offIcon="pi pi-times"
+                />
               </Col>
               <Col xxl="6" style={{ display: "flex", flexDirection: "row", justifyContent: "center", marginBottom: "1rem" }}>
-                <ToggleButton className="separate-toggle-button" checked={separateVertically} onChange={(e) => this.setState({ separateVertically: e.value })} onLabel="Overlap vertically" offLabel="Separate vertically" onIcon="pi pi-check" offIcon="pi pi-times" />
+                <ToggleButton
+                  className="separate-toggle-button"
+                  checked={separateVertically}
+                  onChange={(e) => this.setState({ separateVertically: e.value })}
+                  onLabel="Overlap vertically"
+                  offLabel="Separate vertically"
+                  onIcon="pi pi-check"
+                  offIcon="pi pi-times"
+                />
               </Col>
               <Col style={{ display: "flex", flexDirection: "column", justifyContent: "center", marginBottom: "1rem" }}>
                 <label htmlFor="dd-city">Select the class for relative time</label>
@@ -1242,7 +1285,12 @@ class MEDcohortFigureClass extends React.Component {
                 <Col style={{ display: "flex", flexDirection: "row", justifyContent: "center", marginTop: "0rem" }}>
                   <div style={{ width: "100%" }} className="p-inputgroup ">
                     <Dropdown className="medcohort-drop" value={timePoint} options={timePoints} onChange={(e) => this.setState({ timePoint: e.value })} />
-                    <Button className="separate-toggle-button" style={{ borderRadius: "0 4px 4px 0", padding: "0rem", minWidth: "3rem" }} onClick={this.handleSetTimePoint} label={`Set T${timePoint}`} />
+                    <Button
+                      className="separate-toggle-button"
+                      style={{ borderRadius: "0 4px 4px 0", padding: "0rem", minWidth: "3rem" }}
+                      onClick={this.handleSetTimePoint}
+                      label={`Set T${timePoint}`}
+                    />
                   </div>
                 </Col>
               </Col>
@@ -1250,8 +1298,19 @@ class MEDcohortFigureClass extends React.Component {
                 <label htmlFor="dd-city">Set time points by classes</label>
                 <Col style={{ display: "flex", flexDirection: "row", justifyContent: "center", marginTop: "0rem" }}>
                   <div style={{ width: "100%" }} className="p-inputgroup ">
-                    <MultiSelect className="medcohort-drop" value={selectedClassesToSetTimePoint} options={this.getClassesOptions()} onChange={(e) => this.setState({ selectedClassesToSetTimePoint: e.value })} />
-                    <Button className="separate-toggle-button" style={{ borderRadius: "0 4px 4px 0", padding: "0rem", minWidth: "3rem" }} onClick={this.handleSetTimePointByClass} disabled={!selectedClassesToSetTimePoint || selectedClassesToSetTimePoint.length < 1} label={`Set T${timePoint}`} />
+                    <MultiSelect
+                      className="medcohort-drop"
+                      value={selectedClassesToSetTimePoint}
+                      options={this.getClassesOptions()}
+                      onChange={(e) => this.setState({ selectedClassesToSetTimePoint: e.value })}
+                    />
+                    <Button
+                      className="separate-toggle-button"
+                      style={{ borderRadius: "0 4px 4px 0", padding: "0rem", minWidth: "3rem" }}
+                      onClick={this.handleSetTimePointByClass}
+                      disabled={!selectedClassesToSetTimePoint || selectedClassesToSetTimePoint.length < 1}
+                      label={`Set T${timePoint}`}
+                    />
                   </div>
                 </Col>
               </Col>
@@ -1317,7 +1376,13 @@ class MEDcohortFigureClass extends React.Component {
                 <label htmlFor="dd-city">Set merging method for timepoints</label>
                 <Col style={{ display: "flex", flexDirection: "row", justifyContent: "center", marginTop: "0rem" }}>
                   <div style={{ width: "100%" }} className="p-inputgroup ">
-                    <Dropdown className="medcohort-drop" disabled={timePoints.length <= 1 || this.state.isWorking} value={this.state.selectedMergingMethod} options={this.mergingMethodsOptions} onChange={(e) => this.setState({ selectedMergingMethod: e.value })} />
+                    <Dropdown
+                      className="medcohort-drop"
+                      disabled={timePoints.length <= 1 || this.state.isWorking}
+                      value={this.state.selectedMergingMethod}
+                      options={this.mergingMethodsOptions}
+                      onChange={(e) => this.setState({ selectedMergingMethod: e.value })}
+                    />
                   </div>
                 </Col>
               </Col>

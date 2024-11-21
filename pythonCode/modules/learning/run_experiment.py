@@ -46,7 +46,7 @@ class GoExecScriptRunExperiment(GoExecutionScript):
         """
 
         # MongoDB setup
-        mongo_client = pymongo.MongoClient("mongodb://localhost:27017/")
+        mongo_client = pymongo.MongoClient("mongodb://localhost:54017/")
         database = mongo_client[json_config["DBName"]]
         collection = database[json_config["id"]]
         flow = list(collection.find({}, {'_id': False}))[0]

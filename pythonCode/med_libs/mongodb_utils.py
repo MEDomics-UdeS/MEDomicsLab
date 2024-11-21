@@ -4,7 +4,7 @@ import pickle
 import pandas as pd
 
 def connect_to_mongo():
-    client = MongoClient('mongodb://localhost:27017/')
+    client = MongoClient('mongodb://localhost:54017/')
     db = client['data']
     return db
 

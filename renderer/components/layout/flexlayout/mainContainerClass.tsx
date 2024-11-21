@@ -532,7 +532,7 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
           return null
         }
         // Update the local filename
-        if (medObject.inWorkspace){
+        if (medObject.inWorkspace) {
           fs.renameSync(oldPath, newPath)
           // Update the workspace data object
           MEDDataObject.updateWorkspaceDataObject()
@@ -1136,6 +1136,7 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
           onContextMenu={this.onContextMenu}
           onAuxMouseClick={this.onAuxMouseClick}
           onTabSetPlaceHolder={this.onTabSetPlaceHolder}
+          supportsPopout={false}
         />
       )
     }

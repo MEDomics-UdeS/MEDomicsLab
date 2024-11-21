@@ -234,7 +234,11 @@ const renderItem = ({ item, depth, children, title, context, arrow }, additional
                 <div>
                   {iconExtension[item.type]}
                   <span className="label">{title}</span>
-                  {item.isLocked && <span className="emoji" title={`This item is used in ${additionalParams.dirTree[item.usedIn] ? additionalParams.dirTree[item.usedIn].data : "a generated notebook"}`}>🔒</span>}
+                  {item.isLocked && (
+                    <span className="emoji" title={`This item is used in ${additionalParams.dirTree[item.usedIn] ? additionalParams.dirTree[item.usedIn].data : "a generated notebook"}`}>
+                      🔒
+                    </span>
+                  )}
                 </div>
               </InteractiveComponent>
             </div>

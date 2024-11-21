@@ -45,7 +45,7 @@ class GoExecScriptCreateTags(GoExecutionScript):
         new_collection_name = json_config["newCollectionName"]
 
         # Connect to the DB
-        client = MongoClient('localhost', 27017)
+        client = MongoClient('localhost', 54017)
         db = client[database_name]
         DBcollections = db.list_collection_names()
 

@@ -291,15 +291,15 @@ const MEDprofilesPrepareData = () => {
    */
   const checkMEDprofilesFolder = () => {
     let folderExists = false
-    let folder_id = null
+    let folderId = null
     Object.keys(globalData).forEach((key) => {
       // Check MEDprofiles folder
       if (globalData[key].type == "directory" && globalData[key].name == "MEDprofiles" && globalData[key].parentID == "DATA") {
         setMEDprofilesFolderPath(globalData[key].path)
-        folder_id = globalData[key].id
+        folderId = globalData[key].id
       }
       // Check master_tables folder
-      if (globalData[key].type == "directory" && globalData[key].name == "master_tables" && globalData[key].parentID == folder_id) {
+      if (globalData[key].type == "directory" && globalData[key].name == "master_tables" && globalData[key].parentID == folderId) {
         folderExists = true
       }
     })

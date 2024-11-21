@@ -156,6 +156,7 @@ const GroupingTaggingToolsDB = ({ refreshData }) => {
   }
 
   const handleDeleteTag = (tag) => {
+    // eslint-disable-next-line no-unused-vars
     const { [tag]: oldTag, ...rest } = tagsDict
     setTagsDict(rest)
     setSelectedTags(selectedTags.filter((selectedTag) => selectedTag !== tag))

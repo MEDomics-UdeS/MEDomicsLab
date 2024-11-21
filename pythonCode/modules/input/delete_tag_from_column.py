@@ -50,7 +50,7 @@ class GoExecScriptCreateTags(GoExecutionScript):
         print("database_name", database_name)
 
         # Connect to the database and connect to the tag_collection
-        client = MongoClient('localhost', 27017)
+        client = MongoClient('localhost', 54017)
         db = client[database_name]
         tag_collection_to_work_with = db[tag_collection]
         

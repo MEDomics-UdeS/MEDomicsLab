@@ -49,7 +49,7 @@ class GoExecScriptComputeCorrelations(GoExecutionScript):
             columns.remove(target)
         
         # Connect to MongoDB
-        client = MongoClient('localhost', 27017)
+        client = MongoClient('localhost', 54017)
         db = client[database_name]
         collection = db[collection_name]
 

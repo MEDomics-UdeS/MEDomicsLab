@@ -1,6 +1,6 @@
 /* eslint-disable no-undef */
 import React, { useContext, useRef, useState, useEffect } from "react"
-import { Trash, BoxArrowUpRight, Eraser, FolderPlus, ArrowClockwise, EyeFill, EyeSlashFill, ArrowRepeat, BoxArrowUp } from "react-bootstrap-icons"
+import { Trash, BoxArrowUpRight, Eraser, FolderPlus, ArrowClockwise, EyeFill, EyeSlashFill, ArrowRepeat } from "react-bootstrap-icons"
 import { FiFolder } from "react-icons/fi"
 import { Accordion, Stack } from "react-bootstrap"
 import { ControlledTreeEnvironment, Tree } from "react-complex-tree"
@@ -394,12 +394,11 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
         return
       }
       console.log(`stdout: ${stdout}`)
-      if (stderr){
+      if (stderr) {
         console.error(`stderr: ${stderr}`)
       }
     })
   }
-
 
   /**
    * Add event listener to handle if the user clicks outside the directory tree and, if so, deselect the selected items.

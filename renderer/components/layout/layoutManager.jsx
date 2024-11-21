@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback, useRef, useContext } from "react"
+import { ipcRenderer } from "electron"
 import { PanelGroup, Panel, PanelResizeHandle } from "react-resizable-panels"
 import Image from "next/image"
 import resizable from "../../styles/resizable.module.css"
@@ -24,6 +25,8 @@ import { LayoutModelContext } from "./layoutContext"
 import { WorkspaceContext } from "../workspace/workspaceContext"
 import { requestBackend } from "../../utilities/requests"
 import { toast } from "react-toastify"
+import NotificationOverlay from "../generalPurpose/notificationOverlay"
+
 import os from "os"
 
 const LayoutManager = (props) => {
@@ -46,19 +49,25 @@ const LayoutManager = (props) => {
   useEffect(() => {
     console.log("port set to: ", port)
     if (port) {
-      requestBackend(
-        port,
-        "clearAll",
-        { data: "clearAll" },
-        (data) => {
-          console.log("clearAll received data:", data)
-          toast.success("Go server is connected and ready !")
-        },
-        (error) => {
-          console.log("clearAll error:", error)
-          toast.error("Go server is not connected !")
+      ipcRenderer.invoke("getBundledPythonEnvironment").then((res) => {
+        console.log("Python imbedded: ", res)
+        if (res !== null) {
+          requestBackend(
+            port,
+            "clearAll",
+            { data: "clearAll" },
+            (data) => {
+              console.log("clearAll received data:", data)
+              toast.success("Go server is connected and ready !")
+            },
+            (error) => {
+              console.log("clearAll error:", error)
+              toast.error("Go server is not connected !")
+            }
+          )
+
         }
-      )
+      })
     }
   }, [port])
 
@@ -257,6 +266,7 @@ const LayoutManager = (props) => {
               {renderContentComponent({ props })} {/* Render content component based on activeNavItem state */}
             </Panel>
           </PanelGroup>
+          <NotificationOverlay />
           <div className="quebec-flag-div">
             <Image
               className="quebec-flag"

@@ -1,10 +1,10 @@
 import MEDconfig, { PORT_FINDING_METHOD } from "../../medomics.dev"
-import { getPythonEnvironment } from "./pythonEnv"
+import { getPythonEnvironment, getBundledPythonEnvironment } from "./pythonEnv"
 const { exec, execFile } = require("child_process")
 const os = require("os")
 var path = require("path")
 
-function findAvailablePort(startPort, endPort = 8000) {
+export function findAvailablePort(startPort, endPort = 8000) {
   let killProcess = MEDconfig.portFindingMethod === PORT_FINDING_METHOD.FIX || !MEDconfig.runServerAutomatically
   let platform = process.platform
   return new Promise((resolve, reject) => {
@@ -42,7 +42,7 @@ function findAvailablePort(startPort, endPort = 8000) {
           } else {
             if (killProcess) {
               // Split the stdout into individual lines and use the first line to get the PID
-              let line = stdout.trim().split('\n')[0]
+              let line = stdout.trim().split("\n")[0]
               let PID = line.trim().split(/\s+/)[line.trim().split(/\s+/).length - 1].split("/")[0]
               exec(`${platform == "win32" ? "taskkill /f /t /pid" : "kill"} ${PID}`, (err, stdout, stderr) => {
                 if (!err) {
@@ -67,6 +67,46 @@ function findAvailablePort(startPort, endPort = 8000) {
   })
 }
 
+export function killProcessOnPort(port) {
+  let platform = process.platform
+  return new Promise((resolve, reject) => {
+    if (platform == "darwin") {
+      exec(`lsof -i:${port}`, (err, stdout, stderr) => {
+        if (err) {
+          console.log(`Port ${port} is available !`)
+          resolve(port)
+        } else {
+          exec("kill -9 $(lsof -t -i:" + port + ")", (err, stdout, stderr) => {
+            if (!err) {
+              console.log("Previous server instance was killed successfully")
+              console.log(`Port ${port} is now available !`)
+              resolve(port)
+            }
+            stdout && console.log(stdout)(stderr) && console.log(stderr)
+          })
+        }
+      })
+    } else {
+      exec(`netstat ${platform == "win32" ? "-ano | find" : "-ltnup | grep"} ":${port}"`, (err, stdout, stderr) => {
+        if (err) {
+          console.log(`Port ${port} is available !`)
+          resolve(port)
+        } else {
+          let PID = stdout.trim().split(/\s+/)[stdout.trim().split(/\s+/).length - 1].split("/")[0]
+          exec(`${platform == "win32" ? "taskkill /f /t /pid" : "kill"} ${PID}`, (err, stdout, stderr) => {
+            if (!err) {
+              console.log("Previous server instance was killed successfully")
+              console.log(`Port ${port} is now available !`)
+              resolve(port)
+            }
+            stdout && console.log(stdout)(stderr) && console.log(stderr)
+          })
+        }
+      })
+    }
+  })
+}
+
 export async function runServer(isProd, serverPort, serverProcess, serverState, condaPath = null) {
   // Runs the server
   let pythonEnvironment = getPythonEnvironment()
@@ -75,6 +115,20 @@ export async function runServer(isProd, serverPort, serverProcess, serverState, 
     if (pythonEnvironment !== undefined) {
       condaPath = pythonEnvironment
     }
+  }
+
+  let env = process.env
+  let bundledPythonPath = getBundledPythonEnvironment()
+
+  if (bundledPythonPath !== null) {
+    bundledPythonPath = bundledPythonPath.replace("python.exe", "")
+
+    let scriptPath = path.join(bundledPythonPath, "Scripts")
+    let libPath = path.join(bundledPythonPath, "Lib")
+    let pythonPath = path.join(bundledPythonPath, "python.exe")
+
+    env.PATH = `${bundledPythonPath};${scriptPath};${libPath};${env.PATH}`
+    console.log("env.PATH: " + env.PATH)
   }
 
   if (!isProd) {
@@ -93,7 +147,8 @@ export async function runServer(isProd, serverPort, serverProcess, serverState, 
         serverState.serverIsRunning = true
         serverProcess = execFile(`${process.platform == "win32" ? "main.exe" : "./main"}`, args, {
           windowsHide: false,
-          cwd: path.join(process.cwd(), "go_server")
+          cwd: path.join(process.cwd(), "go_server"),
+          env: env
         })
         if (serverProcess) {
           serverProcess.stdout.on("data", function (data) {
@@ -102,10 +157,10 @@ export async function runServer(isProd, serverPort, serverProcess, serverState, 
           serverProcess.stderr.on("data", (data) => {
             console.log(`stderr: ${data.toString("utf8")}`)
           })
-          serverProcess.on('error', (err) => {
+          serverProcess.on("error", (err) => {
             console.log(`error: ${err}`)
           })
-          serverProcess.on('disconnect', () => {
+          serverProcess.on("disconnect", () => {
             console.log(`disconnected`)
           })
           serverProcess.on("close", (code) => {
@@ -134,7 +189,8 @@ export async function runServer(isProd, serverPort, serverProcess, serverState, 
 
         if (process.platform == "win32") {
           serverProcess = execFile(path.join(process.resourcesPath, "go_executables\\server_go_win32.exe"), args, {
-            windowsHide: false
+            windowsHide: false,
+            env: env
           })
           serverState.serverIsRunning = true
         } else if (process.platform == "linux") {

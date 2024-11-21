@@ -189,7 +189,7 @@ const DatasetNode = ({ id, data }) => {
         return (
           <div style={{ display: 'flex', flexDirection: 'column' }}>
             {data.internal.settings.files.map((file) => (
-              <Button raised text label={file.name} style={{width: '100%', height: '40px'}} severity='secondary' icon='pi pi-database' size='normal'/>
+              <Button key={file.name} raised text label={file.name} style={{width: '100%', height: '40px'}} severity='secondary' icon='pi pi-database' size='normal'/>
             ))}
           </div>
         )} else {

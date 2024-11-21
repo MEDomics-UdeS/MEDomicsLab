@@ -48,7 +48,7 @@ class GoExecScriptHandlePKL(GoExecutionScript):
         new_collection_name = json_config["newCollectionName"]
 
         # Connect to MongoDB
-        client = MongoClient('localhost', 27017)
+        client = MongoClient('localhost', 54017)
         db = client[database_name]
 
         # Attempt to create a dataframe from the pkl file
