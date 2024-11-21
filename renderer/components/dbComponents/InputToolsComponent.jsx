@@ -6,6 +6,7 @@ import MEDprofilesPrepareData from "../input/MEDprofiles/MEDprofilesPrepareData"
 import ModulePage from "../mainPages/moduleBasics/modulePage"
 import { DataContext } from "../workspace/dataContext"
 import BasicToolsDB from "./inputToolsDB/basicToolsDB"
+import DropDuplicatesToolsDB from "./inputToolsDB/dropDuplicatesToolsDB"
 import FeatureReductionToolsDB from "./inputToolsDB/featureReductionToolsDB/featureReductionToolsDB"
 import GroupingTaggingToolsDB from "./inputToolsDB/groupingTaggingToolsDB"
 import HoldoutSetCreationToolsDB from "./inputToolsDB/holdoutSetCreationToolsDB"
@@ -49,7 +50,7 @@ const InputToolsComponent = ({ data, exportOptions, refreshData, columns, transf
         handleExport("JSON")
       }
     }
-  ]
+  ]  
 
   // Fetch data from MongoDB on component mount
   useEffect(() => {
@@ -114,6 +115,9 @@ const InputToolsComponent = ({ data, exportOptions, refreshData, columns, transf
     {!altData ? (<></>) : (<>
       <Panel header="Basic Tools" toggleable collapsed={true}>
         <BasicToolsDB exportOptions={exportOptions} refreshData={refreshData} currentCollection={!altData? null : altData.id} />
+      </Panel>
+      <Panel header="Drop Duplicates Tools" toggleable collapsed={true}>
+        <DropDuplicatesToolsDB exportOptions={exportOptions} refreshData={refreshData} currentCollection={!altData? null : altData.id} />
       </Panel>
       <Panel header="Transform Column Tools" toggleable collapsed={true}>
         <TransformColumnToolsDB columns={columns} transformData={transformData} currentCollection={!altData? null : altData.id} refreshData={refreshData} />
