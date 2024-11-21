@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback, useRef, useContext } from "react"
+import { ipcRenderer } from "electron"
 import { PanelGroup, Panel, PanelResizeHandle } from "react-resizable-panels"
 import Image from "next/image"
 import resizable from "../../styles/resizable.module.css"
@@ -48,19 +49,25 @@ const LayoutManager = (props) => {
   useEffect(() => {
     console.log("port set to: ", port)
     if (port) {
-      requestBackend(
-        port,
-        "clearAll",
-        { data: "clearAll" },
-        (data) => {
-          console.log("clearAll received data:", data)
-          toast.success("Go server is connected and ready !")
-        },
-        (error) => {
-          console.log("clearAll error:", error)
-          toast.error("Go server is not connected !")
+      ipcRenderer.invoke("getBundledPythonEnvironment").then((res) => {
+        console.log("Python imbedded: ", res)
+        if (res !== null) {
+          requestBackend(
+            port,
+            "clearAll",
+            { data: "clearAll" },
+            (data) => {
+              console.log("clearAll received data:", data)
+              toast.success("Go server is connected and ready !")
+            },
+            (error) => {
+              console.log("clearAll error:", error)
+              toast.error("Go server is not connected !")
+            }
+          )
+
         }
-      )
+      })
     }
   }, [port])
 
