@@ -77,20 +77,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Download Windows
-        uses: actions/download-artifact@v3
-        with:
-          name: windows-built
-
       - name: Download Linux Ubuntu
         uses: actions/download-artifact@v3
         with:
           name: linux-built-ubuntu
-
-      - name: Download Mac
-        uses: actions/download-artifact@v3
-        with:
-          name: mac-built
 
       - name: Install zip
         run: sudo apt-get install zip
@@ -106,14 +96,10 @@ jobs:
           mv ./pythonEnv/create_conda_env_mac.sh ./create_conda_env_mac.sh
           ls -R
 
-      - name: zip Windows
-        run: zip -r MEDomicsLab-PythonEnv-win.zip ./requirements.txt ./create_conda_env_win.bat
 
       - name: zip Linux
         run: zip -r MEDomicsLab-PythonEnv-linux.zip ./requirements.txt ./create_conda_env_linux.sh
 
-      - name: zip Mac
-        run: zip -r MEDomicsLab-PythonEnv-mac.zip ./create_conda_env_mac.sh ./requirements_mac.txt
       - name: Get tag name
         id: get-tag
         run: |
@@ -124,9 +110,7 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            ./MEDomicsLab-${{ env.VERSION }}-win.exe
             ./MEDomicsLab-${{ env.VERSION }}-ubuntu.deb
-            ./MEDomicsLab-${{ env.VERSION }}-mac.pkg
           name: MEDomicsLab-${{ env.VERSION }}
           body: |
             MEDomicsLab-${{ env.VERSION }}
