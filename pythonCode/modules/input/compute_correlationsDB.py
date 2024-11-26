@@ -63,7 +63,7 @@ class GoExecScriptComputeCorrelations(GoExecutionScript):
 
         # Compute correlation
         df_corr = extracted_features.corr(method='spearman')
-        corr_with_target = df_corr['target'].abs().sort_values(ascending=False).drop(target)
+        corr_with_target = df_corr[target].abs().sort_values(ascending=False).drop(target)
         results = corr_with_target.to_dict()
 
         # Get results
