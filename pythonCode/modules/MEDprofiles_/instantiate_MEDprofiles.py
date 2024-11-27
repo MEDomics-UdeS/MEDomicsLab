@@ -112,7 +112,7 @@ class GoExecInstantiateMEDprofiles(GoExecutionScript):
         # Get data for each MEDPatient
         for patientID, _ in zip(patient_id_list, tqdm(range(len(patient_id_list)))):
             # To set dynamically the required attributes (without knowing their names), we have to pass through a dictionary
-            init = {FIXED_COLUMNS[0]: patientID}
+            init = {FIXED_COLUMNS[0]: patientID, 'list_MEDtab': None}
             med_profile = medclasses_module.MEDprofile(**init)
             profile_data = df_master.loc[df_master[FIXED_COLUMNS[0]].astype(str) == patientID].dropna(how='all')
             med_tab_list = []
