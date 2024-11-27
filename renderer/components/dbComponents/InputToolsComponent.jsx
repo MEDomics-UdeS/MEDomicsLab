@@ -1,4 +1,4 @@
-import { Card } from 'primereact/card'
+import { Card } from "primereact/card"
 import { Dropdown } from "primereact/dropdown"
 import { Panel } from "primereact/panel"
 import { useContext, useEffect, useState } from "react"
@@ -15,7 +15,6 @@ import SimpleCleaningToolsDB from "./inputToolsDB/simpleCleaningToolsDB"
 import SubsetCreationToolsDB from "./inputToolsDB/subsetCreationToolsDB"
 import TransformColumnToolsDB from "./inputToolsDB/transformColumnToolsDB"
 import { getCollectionData } from "./utils"
-
 
 /**
  * @description
@@ -50,7 +49,7 @@ const InputToolsComponent = ({ data, exportOptions, refreshData, columns, transf
         handleExport("JSON")
       }
     }
-  ]  
+  ]
 
   // Fetch data from MongoDB on component mount
   useEffect(() => {
@@ -91,61 +90,67 @@ const InputToolsComponent = ({ data, exportOptions, refreshData, columns, transf
     <div style={panelContainerStyle}>
       <div style={{ textAlign: "center", marginTop: "20px", marginBottom: "20px" }}>
         <h1>Database Input Tools</h1>
-    </div>
-    {!data ? (
-      <Card className="cute-box"
-        title="Select a CSV to get started"
-        style={{ 
-          marginTop: "10px",
-          backgroundColor: "#cfcfcfa4",
-        }}>
-        <Dropdown
-          filter
-          style={{ maxWidth: "300px" }}
-          value={altData}
-          onChange={(e) => setAltData(e.value)}
-          options={selectedCSVFiles}
-          optionLabel="name"
-          className="w-full md:w-14rem margintop8px"
-          display="chip"
-          placeholder="Select CSV files"
-        />
-      </Card>
-    ) : null}
-    {!altData ? (<></>) : (<>
-      <Panel header="Basic Tools" toggleable collapsed={true}>
-        <BasicToolsDB exportOptions={exportOptions} refreshData={refreshData} currentCollection={!altData? null : altData.id} />
-      </Panel>
-      <Panel header="Drop Duplicates Tools" toggleable collapsed={true}>
-        <DropDuplicatesToolsDB exportOptions={exportOptions} currentCollection={!altData? null : altData.id} />
-      </Panel>
-      <Panel header="Transform Column Tools" toggleable collapsed={true}>
-        <TransformColumnToolsDB columns={columns} transformData={transformData} currentCollection={!altData? null : altData.id} refreshData={refreshData} />
-      </Panel>
-      <Panel header="Merge Tools" toggleable collapsed={true}>
-        <MergeToolsDB refreshData={refreshData} currentCollection={!altData? null : altData.id} />
-      </Panel>
-      <Panel header="Simple Cleaning Tools" toggleable collapsed={true}>
-        <SimpleCleaningToolsDB refreshData={refreshData} lastEdit={lastEdit} data={altData} columns={altColumns} currentCollection={!altData? null : altData.id} />
-      </Panel>
-      <Panel header="Holdout Set Creation Tools" toggleable collapsed={true}>
-        <HoldoutSetCreationToolsDB refreshData={refreshData} data={altData} currentCollection={!altData? null : altData.id} />
-      </Panel>
-      <Panel header="Subset Creation Tools" toggleable collapsed={true}>
-        <SubsetCreationToolsDB currentCollection={!altData? null : altData.id} data={altData} refreshData={refreshData} />
-      </Panel>
-      <Panel header="Feature Reduction Tools" toggleable collapsed={true}>
-        <FeatureReductionToolsDB data={altData} refreshData={refreshData} />
-      </Panel>
-      <Panel header="Grouping/Tagging Tools" toggleable collapsed={true}>
-        <GroupingTaggingToolsDB refreshData={refreshData} />
-      </Panel>
-      <Panel header="MEDprofiles" toggleable collapsed={true}>
-        <ModulePage>
-            <MEDprofilesPrepareData />
-        </ModulePage>
-      </Panel></>
-    )}
+      </div>
+      {!data ? (
+        <Card
+          className="cute-box"
+          title="Select a CSV to get started"
+          style={{
+            marginTop: "10px",
+            backgroundColor: "#cfcfcfa4"
+          }}
+        >
+          <Dropdown
+            filter
+            style={{ maxWidth: "300px" }}
+            value={altData}
+            onChange={(e) => setAltData(e.value)}
+            options={selectedCSVFiles}
+            optionLabel="name"
+            className="w-full md:w-14rem margintop8px"
+            display="chip"
+            placeholder="Select CSV files"
+          />
+        </Card>
+      ) : null}
+      {!altData ? (
+        <></>
+      ) : (
+        <>
+          <Panel header="Basic Tools" toggleable collapsed={true}>
+            <BasicToolsDB exportOptions={exportOptions} refreshData={refreshData} currentCollection={!altData ? null : altData.id} />
+          </Panel>
+          <Panel header="Drop Duplicates Tools" toggleable collapsed={true}>
+            <DropDuplicatesToolsDB exportOptions={exportOptions} currentCollection={!altData ? null : altData.id} />
+          </Panel>
+          <Panel header="Transform Column Tools" toggleable collapsed={true}>
+            <TransformColumnToolsDB columns={columns} transformData={transformData} currentCollection={!altData ? null : altData.id} refreshData={refreshData} />
+          </Panel>
+          <Panel header="Merge Tools" toggleable collapsed={true}>
+            <MergeToolsDB refreshData={refreshData} currentCollection={!altData ? null : altData.id} />
+          </Panel>
+          <Panel header="Simple Cleaning Tools" toggleable collapsed={true}>
+            <SimpleCleaningToolsDB refreshData={refreshData} lastEdit={lastEdit} data={altData} columns={altColumns} currentCollection={!altData ? null : altData.id} />
+          </Panel>
+          <Panel header="Holdout Set Creation Tools" toggleable collapsed={true}>
+            <HoldoutSetCreationToolsDB refreshData={refreshData} data={altData} currentCollection={!altData ? null : altData.id} />
+          </Panel>
+          <Panel header="Subset Creation Tools" toggleable collapsed={true}>
+            <SubsetCreationToolsDB currentCollection={!altData ? null : altData.id} data={altData} refreshData={refreshData} />
+          </Panel>
+          <Panel header="Feature Reduction Tools" toggleable collapsed={true}>
+            <FeatureReductionToolsDB data={altData} refreshData={refreshData} />
+          </Panel>
+          <Panel header="Grouping/Tagging Tools" toggleable collapsed={true}>
+            <GroupingTaggingToolsDB refreshData={refreshData} />
+          </Panel>
+          <Panel header="MEDprofiles" toggleable collapsed={true}>
+            <ModulePage>
+              <MEDprofilesPrepareData />
+            </ModulePage>
+          </Panel>
+        </>
+      )}
     </div>
   )
 }
