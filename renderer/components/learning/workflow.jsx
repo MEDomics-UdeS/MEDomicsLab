@@ -545,7 +545,7 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
    */
   function requestBackendRunExperiment(port, flowID, isValid) {
     if (isValid) {
-      console.log("sended flow", flowID)
+      console.log("flow sent", flowID)
       setIsProgressUpdating(true)
       requestBackend(
         port,
@@ -746,6 +746,18 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
               }
             }
             nbNodes2Run++
+          }
+
+          // Check true or false values for current node
+          let currentNodeCanModify = json.nodes.find((node) => node.id === key)
+          if (currentNodeCanModify.data.internal.settings) {
+            Object.entries(currentNodeCanModify.data.internal.settings).forEach(([key, value]) => {
+              if (typeof value == "string" && value.toLocaleLowerCase() == "true") {
+                currentNodeCanModify.data.internal.settings[key] = true
+              } else if (typeof value == "string" && value.toLocaleLowerCase() == "false") {
+                currentNodeCanModify.data.internal.settings[key] = false
+              }
+            })
           }
         })
         return children
