@@ -67,15 +67,21 @@ const TransformColumnToolsDB = ({ currentCollection, refreshData }) => {
     await collection.deleteMany({})
     await collection.insertMany(newTransformedData)
     toast.success("Data transformed to " + type + " successfully")
-    refreshData()
   }
 
   // Handle exporting selected columns
-  const handleExportColumns = () => {
+  const handleExportColumns = async () => {
     if (selectedColumns.length > 0) {
-      const csvString = selectedColumns.join(",")
+      let csvString = selectedColumns.join(",")
+      const db = await connectToMongoDB()
+      const collection = db.collection(currentCollection)
+      const data = await collection.find({}).toArray()
+      data.forEach((row) => {
+        csvString += "\n" + selectedColumns.map((col) => row[col]).join(",")
+      })
       const blob = new Blob([csvString], { type: "text/csv;charset=utf-8" })
       saveAs(blob, "selected_columns.csv")
+      toast.success("Columns exported successfully")
     } else {
       toast.warn("No columns selected for export")
     }
@@ -99,7 +105,6 @@ const TransformColumnToolsDB = ({ currentCollection, refreshData }) => {
       setColumns(Object.keys(newTransformedData[0]))
       setSelectedColumns([])
       toast.success("Columns deleted successfully")
-      refreshData()
     }
   }
 

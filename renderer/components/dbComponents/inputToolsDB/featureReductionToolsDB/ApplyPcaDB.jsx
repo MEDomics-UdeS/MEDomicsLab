@@ -64,7 +64,7 @@ const ApplyPCADB = ({ currentCollection, refreshData }) => {
           label: name,
           value: id
         }))
-        let filteredCollections = newOptions.filter((collection) => collection.label.includes("PCA_TRANSFORMATIONS"))
+        let filteredCollections = newOptions.filter((collection) => collection.label.toLowerCase().includes("pca_transformations"))
         setCollections(filteredCollections)
       } catch (error) {
         console.error("Error fetching collections:", error)
@@ -110,19 +110,37 @@ const ApplyPCADB = ({ currentCollection, refreshData }) => {
       newCollectionName: id,
       transformationCollection: transformationCollection
     }
-    requestBackend(port, "/input/apply_pcaDB/", jsonToSend, (jsonResponse) => {
-      console.log("received results:", jsonResponse)
-      refreshData()
-      toast.success("PCA applied successfully")
-    })
-    if (!overwrite) {
-      await insertMEDDataObjectIfNotExists(object)
-      MEDDataObject.updateWorkspaceDataObject()
-      toast.success("PCA applied successfully")
-    } else {
-      MEDDataObject.updateWorkspaceDataObject()
-      toast.success("PCA applied successfully")
-    }
+
+    // Send the request to the backend
+    requestBackend(
+      port,
+      "/input/apply_pcaDB/",
+      jsonToSend,
+      async (jsonResponse) => {
+        console.log("jsonResponse", jsonResponse)
+        if (jsonResponse.error) {
+          if (jsonResponse.error.message) {
+            console.error(jsonResponse.error.message)
+            toast.error(jsonResponse.error.message)
+          } else {
+            console.error(jsonResponse.error)
+            toast.error(jsonResponse.error)
+          }
+        } else {
+          if (!overwrite) {
+            await insertMEDDataObjectIfNotExists(object)
+            MEDDataObject.updateWorkspaceDataObject()
+          } else {
+            MEDDataObject.updateWorkspaceDataObject()
+          }
+          toast.success("PCA applied successfully")
+        }
+      },
+      (error) => {
+        console.log(error)
+        toast.error("Error applying PCA" + error)
+      }
+    )
   }
 
   return (
@@ -148,7 +166,7 @@ const ApplyPCADB = ({ currentCollection, refreshData }) => {
             onChange={(e) => setSelectedColumns(e.value)}
             options={columns.filter((col) => col !== "_id")}
             placeholder="Select columns"
-            style={{ maxWidth: "1000px" }}
+            style={{ maxWidth: "800px" }}
           />
         </div>
         <div className="margin-top-15 center">

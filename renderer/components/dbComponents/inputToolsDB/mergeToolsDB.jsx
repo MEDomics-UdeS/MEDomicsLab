@@ -109,12 +109,32 @@ const MergeToolsDB = ({ currentCollection }) => {
       collection1: globalData[selectedCollections[0]].id,
       collection2: globalData[selectedCollections[1]].id
     }
-    requestBackend(port, "/input/merge_datasets_DB/", jsonToSend, (jsonResponse) => {
-      console.log("jsonResponse", jsonResponse)
-      toast.success("Datasets merged successfully.")
-    })
-    await insertMEDDataObjectIfNotExists(object)
-    MEDDataObject.updateWorkspaceDataObject()
+    // Send the request to the backend
+    requestBackend(
+      port,
+      "/input/merge_datasets_DB/",
+      jsonToSend,
+      async (jsonResponse) => {
+        console.log("jsonResponse", jsonResponse)
+        if (jsonResponse.error) {
+          if (jsonResponse.error.message) {
+            console.error(jsonResponse.error.message)
+            toast.error(jsonResponse.error.message)
+          } else {
+            console.error(jsonResponse.error)
+            toast.error(jsonResponse.error)
+          }
+        } else {
+          await insertMEDDataObjectIfNotExists(object)
+          MEDDataObject.updateWorkspaceDataObject()
+          toast.success("Datasets merged successfully.")
+        }
+      },
+      (error) => {
+        console.log(error)
+        toast.error("Error merging data " + error)
+      }
+    )
   }
 
   return (

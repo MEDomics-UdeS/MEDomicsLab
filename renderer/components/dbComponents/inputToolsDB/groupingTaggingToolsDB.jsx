@@ -201,7 +201,6 @@ const GroupingTaggingToolsDB = ({ refreshData }) => {
       }
       console.log("jsonResponse", jsonResponse)
       toast.success("Tags created successfully.")
-      refreshData()
     })
   }
 
