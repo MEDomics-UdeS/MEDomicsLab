@@ -60,7 +60,7 @@ const MEDprofilesPrepareData = () => {
   /**
    * @description This functions gets the MEDclasses folder if found in globalData and update generatedClassesFolder.
    * */
-  function getGeneratedClassesFolder() {
+  async function getGeneratedClassesFolder() {
     let keys = Object.keys(globalData)
     let MEDClassesFolder = null
     keys.forEach((key) => {
@@ -467,6 +467,10 @@ const MEDprofilesPrepareData = () => {
       // check if last chunk
       if (subList === chunks[chunks.length - 1]) {
         lastChunk = true
+      }
+      // Check if generated classes folder is defined
+      if (!generatedClassesFolder.path) {
+        await getGeneratedClassesFolder()
       }
       try {
         const jsonResponse = await new Promise((resolve, reject) => {
