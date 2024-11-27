@@ -7,15 +7,17 @@ import { toast } from "react-toastify";
 import { connectToMongoDB } from "../../mongoDB/mongoDBUtils";
 import { DataContext } from "../../workspace/dataContext";
 
-const DropDuplicatesToolsDB = ({ currentCollection, refreshData }) => {
+const DropDuplicatesToolsDB = ({ currentCollection }) => {
   const { globalData } = useContext(DataContext);
   const [data, setData] = useState([]);
   const [columns, setColumns] = useState([]);
   const [duplicateColumns, setDuplicateColumns] = useState([]);
   const [selectedColumn, setSelectedColumn] = useState(null);
+  const [loadingData, setLoadingData] = useState(false)
 
-  useEffect(() => {
+  
     const fetchData = async () => {
+      setLoadingData(true)
       if (!currentCollection) {
         toast.warn("No collection selected.");
         return;
@@ -45,10 +47,12 @@ const DropDuplicatesToolsDB = ({ currentCollection, refreshData }) => {
         console.error("Error fetching data:", error);
         toast.error("An error occurred while fetching data.");
       }
+      finally {
+        setLoadingData(false)
+      }
     };
 
-    fetchData();
-  }, [currentCollection]);
+
 
   const findDuplicateColumns = async (allKeys, collection) => {
     let duplicatePairs = [];
@@ -94,14 +98,20 @@ const DropDuplicatesToolsDB = ({ currentCollection, refreshData }) => {
       await collection.updateMany({}, { $unset: { [selectedColumn]: "" } });
 
       toast.success(`Column "${selectedColumn}" has been deleted.`);
-      refreshData();
+      setSelectedColumn(null)
+      await fetchData();
     } catch (error) {
       console.error("Error deleting column:", error);
       toast.error("An error occurred while deleting the column.");
     }
   };
 
+  useEffect(() => {
+    fetchData();
+  }, [currentCollection])
+
   return (
+    
     <div
       style={{
         display: "flex",
@@ -111,6 +121,7 @@ const DropDuplicatesToolsDB = ({ currentCollection, refreshData }) => {
         padding: "5px",
       }}
     >
+      {loadingData && <Message severity="info" text="Loading..." style={{ marginBottom:  '15px' }} /> }
       <Message
         severity="info"
         text="This tool identifies duplicate columns in your dataset and allows you to choose one for deletion."
@@ -139,24 +150,29 @@ const DropDuplicatesToolsDB = ({ currentCollection, refreshData }) => {
           ))}
         </DataTable>
       )}
-      {duplicateColumns.length > 0 && (
-        <div style={{ marginTop: "20px" }}>
-          <h4>Duplicate Columns</h4>
-          <ul>
-            {duplicateColumns.map((pair, index) => (
-              <li key={index}>
-                {pair.column1} and {pair.column2}{" "}
-                <Button
-                  label={`Delete ${pair.column2}`}
-                  className="p-button-danger"
-                  onClick={() => setSelectedColumn(pair.column2)}
-                  style={{ marginLeft: "10px" }}
-                />
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
+     {duplicateColumns.length > 0 && (
+  <div style={{ marginTop: "20px" }}>
+    <h4>Duplicate Columns</h4>
+    <ul style={{ listStyleType: "none", padding: 0 }}>
+      {duplicateColumns.map((pair, index) => (
+        <li key={index} style={{ marginBottom: "10px" }}>
+          {pair.column1} and {pair.column2}{" "}
+          <Button
+            label={`Delete ${pair.column2}`}
+            className="p-button-danger"
+            onClick={() => setSelectedColumn(pair.column2)}
+            style={{
+              marginLeft: "10px",
+              marginTop: "5px",
+              display: "inline-block",
+            }}
+          />
+        </li>
+      ))}
+    </ul>
+  </div>
+)}
+
       {selectedColumn && (
         <div style={{ marginTop: "20px", textAlign: "center" }}>
           <h4>Selected Column: {selectedColumn}</h4>

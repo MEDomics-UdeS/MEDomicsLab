@@ -117,7 +117,7 @@ const InputToolsComponent = ({ data, exportOptions, refreshData, columns, transf
         <BasicToolsDB exportOptions={exportOptions} refreshData={refreshData} currentCollection={!altData? null : altData.id} />
       </Panel>
       <Panel header="Drop Duplicates Tools" toggleable collapsed={true}>
-        <DropDuplicatesToolsDB exportOptions={exportOptions} refreshData={refreshData} currentCollection={!altData? null : altData.id} />
+        <DropDuplicatesToolsDB exportOptions={exportOptions} currentCollection={!altData? null : altData.id} />
       </Panel>
       <Panel header="Transform Column Tools" toggleable collapsed={true}>
         <TransformColumnToolsDB columns={columns} transformData={transformData} currentCollection={!altData? null : altData.id} refreshData={refreshData} />
