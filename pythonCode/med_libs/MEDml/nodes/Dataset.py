@@ -51,12 +51,12 @@ class Dataset(Node):
         This function is used to execute the node.
         """
         # MongoDB setup
-        mongo_client = pymongo.MongoClient("mongodb://localhost:27017/")
+        mongo_client = pymongo.MongoClient("mongodb://localhost:54017/")
         database = mongo_client["data"]
 
         # Update code
         self.CodeHandler.add_line("code", "# MongoDB setup")
-        self.CodeHandler.add_line("code", "mongo_client = pymongo.MongoClient('mongodb://localhost:27017/')")
+        self.CodeHandler.add_line("code", "mongo_client = pymongo.MongoClient('mongodb://localhost:54017/')")
         self.CodeHandler.add_line("code", "database = mongo_client['data']")
         self.CodeHandler.add_seperator()
 

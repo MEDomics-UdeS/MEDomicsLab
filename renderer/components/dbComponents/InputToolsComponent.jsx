@@ -40,12 +40,16 @@ const InputToolsComponent = ({ data, exportOptions, refreshData, columns, transf
     {
       label: "CSV",
       command: () => {
+        // handleExport is undefined here @MahdiAll99
+        // eslint-disable-next-line no-undef
         handleExport("CSV")
       }
     },
     {
       label: "JSON",
       command: () => {
+        // handleExport is undefined here @MahdiAll99
+        // eslint-disable-next-line no-undef
         handleExport("JSON")
       }
     }

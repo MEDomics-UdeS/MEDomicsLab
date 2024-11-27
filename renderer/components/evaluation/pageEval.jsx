@@ -37,6 +37,8 @@ const PageEval = ({ run, pageId, config, updateWarnings, setChosenModel, updateC
   const { port } = useContext(WorkspaceContext) // we get the port for server connexion
   const { setError } = useContext(ErrorRequestContext)
 
+
+  // eslint-disable-next-line react-hooks/rules-of-hooks , no-unused-vars
   const [selectedDatasets, setSelectedDatasets] = config.dataset.selectedDatasets ? useState(config.dataset.selectedDatasets) : useState([])
 
   useEffect(() => {

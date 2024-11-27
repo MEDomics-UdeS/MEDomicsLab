@@ -77,7 +77,7 @@ class GoExecScriptDTale(GoExecutionScript):
         This function is used to run the dashboard
         """
         # MongoDB setup
-        mongo_client = pymongo.MongoClient("mongodb://localhost:27017/")
+        mongo_client = pymongo.MongoClient("mongodb://localhost:54017/")
         database = mongo_client["data"]
         collection = database[self.json_config["dataset"]["id"]]
         collection_data = collection.find({}, {'_id': False})

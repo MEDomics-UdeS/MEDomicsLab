@@ -36,7 +36,7 @@ class StartYDataProfiling(GoExecutionScript):
         go_print(json.dumps(json_config, indent=4))
 
         # MongoDB setup
-        mongo_client = pymongo.MongoClient("mongodb://localhost:27017/")
+        mongo_client = pymongo.MongoClient("mongodb://localhost:54017/")
         database = mongo_client["data"]
         collection1 = database[json_config["mainDataset"]["id"]]
 

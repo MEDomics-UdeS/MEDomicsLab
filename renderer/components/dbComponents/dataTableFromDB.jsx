@@ -9,7 +9,7 @@ import { DataTable } from "primereact/datatable"
 import { Dialog } from "primereact/dialog"
 import { InputText } from "primereact/inputtext"
 import { Message } from "primereact/message"
-import { Skeleton } from 'primereact/skeleton'
+import { Skeleton } from "primereact/skeleton"
 import React, { useContext, useEffect, useState } from "react"
 import { toast } from "react-toastify"
 import { requestBackend } from "../../utilities/requests"
@@ -97,10 +97,11 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
         })
         .catch((error) => {
           console.error("Failed to fetch data:", error)
-        }).finally(() => {
+        })
+        .finally(() => {
           // Set loading to false after data has been fetched (whether successful or failed)
-          setLoadingData(false);
-        });
+          setLoadingData(false)
+        })
     } else {
       console.warn("Invalid data prop:", data)
     }
@@ -275,6 +276,7 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
     setColumns(columns.filter((column) => column.field !== field))
     setInnerData(
       innerData.map((row) => {
+        // eslint-disable-next-line no-unused-vars
         const { [field]: _, ...rest } = row
         return rest
       })
@@ -319,7 +321,7 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
         .catch((error) => {
           console.error("Failed to fetch data:", error)
         })
-        setLoadingData(false)
+      setLoadingData(false)
     } else {
       console.warn("Invalid data prop:", data)
     }
@@ -465,7 +467,7 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
    * @description Function to show a preview of the changes made to the data (row deletion)
    * @param {Object} rowData - The row data
    * @returns {void}
-  */
+   */
   const viewRowDeletion = async (rowData) => {
     // Connect to mongoDB and get the current collection
     const db = await connectToMongoDB()
@@ -477,19 +479,18 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
     let view = "DeletingRow_" + rowIndex + "_" + data.name
 
     // Drop the view if it exists (optional)
-    await db.command({ drop: view }).catch(() => {console.warn("View does not exist")});
+    await db.command({ drop: view }).catch(() => {
+      console.warn("View does not exist")
+    })
 
     // Create a view with aggregation pipeline
-    let pipeline = [
-      { $match: { _id: { $ne: ObjectId.createFromHexString(rowData._id) } } }
-    ]
-    await db.createCollection(
-      view, {
+    let pipeline = [{ $match: { _id: { $ne: ObjectId.createFromHexString(rowData._id) } } }]
+    await db.createCollection(view, {
       viewOn: data.id, // The source collection
       pipeline: pipeline
     })
     setLastPipeline(pipeline) // Save the pipeline for future use
-    
+
     // Fetch the data from the view
     const newcollection = db.collection(view)
     let fetchedData = await newcollection.find({}).toArray()
@@ -506,7 +507,7 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
    * @description Function to show a preview of the changes made to the data (column deletion)
    * @param {Object} colName - The column name to delete
    * @returns {void}
-  */
+   */
   const viewColumnDeletion = async (colName) => {
     // Connect to mongoDB and get the current collection
     const db = await connectToMongoDB()
@@ -515,7 +516,9 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
     let view = "DeletingColumn_" + colName + "_" + data.name
 
     // Drop the view if it exists (optional)
-    await db.command({ drop: view }).catch(() => {console.warn("View does not exist")});
+    await db.command({ drop: view }).catch(() => {
+      console.warn("View does not exist")
+    })
 
     // Create a view with aggregation pipeline
     let pepeline = [
@@ -526,13 +529,13 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
     await db.createCollection(view, {
       viewOn: data.id, // The source collection
       pipeline: pepeline
-    });
+    })
     setLastPipeline(pepeline) // Save the pipeline for future use
-    
+
     // Fetch the data from the view
     const newcollection = db.collection(view)
     let fetchedData = await newcollection.find({}).toArray()
-    
+
     // Update view information
     setViewName(view)
     setRowToDelete(null)
@@ -540,8 +543,7 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
     setViewData(fetchedData)
     setViewMode(true)
   }
-  
-  
+
   /**
    * @description Function to confirm the deletion of a row or column
    * @returns {void}
@@ -581,29 +583,32 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
           header: "Confirmation",
           icon: "pi pi-exclamation-triangle",
           accept: () => resolve(true),
-          reject: () => resolve(false),
-        });
-      });
+          reject: () => resolve(false)
+        })
+      })
     }
     if (!overwriteConfirmation) {
       return
     } else {
       // drop the old view
-      await db.command({ drop: userSetViewName + ".csv" }).catch(() => {console.warn(`View ${userSetViewName} does not exist`)});
+      await db.command({ drop: userSetViewName + ".csv" }).catch(() => {
+        console.warn(`View ${userSetViewName} does not exist`)
+      })
     }
-    
+
     // Drop the old view
     console.log("Dropping view", viewName)
-    await db.command({ drop: viewName }).catch(() => {console.warn(`View ${viewName} does not exist`)});
+    await db.command({ drop: viewName }).catch(() => {
+      console.warn(`View ${viewName} does not exist`)
+    })
 
     // Create view using the last used pipeline
     let view = userSetViewName + ".csv"
-    await db.createCollection(
-      view, {
+    await db.createCollection(view, {
       viewOn: data.id, // The source collection
       pipeline: lastPipeline
-    });
-    
+    })
+
     // Insert the view into the MEDDataObject collection
     // Get data parent ID
     const collection = db.collection("medDataObjects")
@@ -626,7 +631,9 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
     MEDDataObject.updateWorkspaceDataObject()
 
     // Drop the old view
-    await db.command({ drop: viewName }).catch(() => {console.warn(`View ${viewName} does not exist`)});
+    await db.command({ drop: viewName }).catch(() => {
+      console.warn(`View ${viewName} does not exist`)
+    })
 
     // Hide the panel
     toast.success("View saved successfully!")
@@ -643,7 +650,9 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
     setUserSetViewName("")
     // Delete the view
     const db = await connectToMongoDB()
-    await db.command({ drop: viewName }).catch(() => {console.warn(`View ${viewName} does not exist`)});
+    await db.command({ drop: viewName }).catch(() => {
+      console.warn(`View ${viewName} does not exist`)
+    })
   }
 
   // Remember to use useEffect to update local storage when tagColorMap changes
@@ -653,68 +662,60 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
 
   return (
     <>
-    <Dialog visible={viewMode} header="Preview changes" style={{ width: "80%", height: "80%" }} modal={true} onHide={() => onCancelChanges()}>
-      <DataTable
-        className="p-datatable-striped p-datatable-gridlines"
-        value={viewData}
-        scrollable
-        height={"100%"}
-        width={"100%"}
-        paginator
-        rows={20}
-        rowsPerPageOptions={[20, 40, 80, 100]}
-        emptyMessage="The view generated no data" 
-        {...tablePropsData}
-        /*Confirm & cancel buttons*/
-        footer={
-          <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100%", gap: "40px" }}>
-            {/* First Column with Confirm and Cancel buttons */}
-            <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-              <Button label="Confirm changes" severity="success" rounded text raised icon="pi pi-check" onClick={onConfirmDeletion} />
-              <Button label="Cancel changes" severity="danger" rounded text raised icon="pi pi-times" onClick={onCancelChanges} />
-            </div>
+      <Dialog visible={viewMode} header="Preview changes" style={{ width: "80%", height: "80%" }} modal={true} onHide={() => onCancelChanges()}>
+        <DataTable
+          className="p-datatable-striped p-datatable-gridlines"
+          value={viewData}
+          scrollable
+          height={"100%"}
+          width={"100%"}
+          paginator
+          rows={20}
+          rowsPerPageOptions={[20, 40, 80, 100]}
+          emptyMessage="The view generated no data"
+          {...tablePropsData}
+          /*Confirm & cancel buttons*/
+          footer={
+            <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100%", gap: "40px" }}>
+              {/* First Column with Confirm and Cancel buttons */}
+              <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                <Button label="Confirm changes" severity="success" rounded text raised icon="pi pi-check" onClick={onConfirmDeletion} />
+                <Button label="Cancel changes" severity="danger" rounded text raised icon="pi pi-times" onClick={onCancelChanges} />
+              </div>
 
-            {/* Second Column with View Name Input and Save as View button */}
-            <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-            <div className="p-inputgroup w-full md:w-30rem">
-              <InputText 
-                className={forbiddenCharacters.test(userSetViewName) ? "p-invalid" : ""}
-                placeholder="Enter view name" 
-                suffix="test" style={{width: "300px"}} 
-                value={userSetViewName} 
-                onChange={(e) => setUserSetViewName(e.target.value)}
-                />
-              <span className="p-inputgroup-addon">.csv</span>
-              {forbiddenCharacters.test(userSetViewName) && <Message severity="error" text="Character not allowed" />}
+              {/* Second Column with View Name Input and Save as View button */}
+              <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                <div className="p-inputgroup w-full md:w-30rem">
+                  <InputText
+                    className={forbiddenCharacters.test(userSetViewName) ? "p-invalid" : ""}
+                    placeholder="Enter view name"
+                    suffix="test"
+                    style={{ width: "300px" }}
+                    value={userSetViewName}
+                    onChange={(e) => setUserSetViewName(e.target.value)}
+                  />
+                  <span className="p-inputgroup-addon">.csv</span>
+                  {forbiddenCharacters.test(userSetViewName) && <Message severity="error" text="Character not allowed" />}
+                </div>
+                <Button label="Save as a view" disabled={!userSetViewName || forbiddenCharacters.test(userSetViewName)} severity="info" rounded text raised icon="pi pi-eye" onClick={saveView} />
+              </div>
             </div>
-              <Button 
-                label="Save as a view" 
-                disabled={!userSetViewName || forbiddenCharacters.test(userSetViewName)}
-                severity="info" 
-                rounded 
-                text 
-                raised 
-                icon="pi pi-eye" 
-                onClick={saveView}
-              />
-            </div>
-          </div>
-        }
-      >
-        {getColumnsFromData(viewData)}
-      </DataTable>
-    </Dialog>
+          }
+        >
+          {getColumnsFromData(viewData)}
+        </DataTable>
+      </Dialog>
       {innerData.length === 0 ? (
         loadingData ? (
           <DataTable header={"Loading content..."} value={items} className="p-datatable-striped">
-              <Column header="" style={{ width: '20%' }} body={<Skeleton />}></Column>
-              <Column header="" style={{ width: '20%' }} body={<Skeleton />}></Column>
-              <Column header="" style={{ width: '20%' }} body={<Skeleton />}></Column>
-              <Column header="" style={{ width: '20%' }} body={<Skeleton />}></Column>
-              <Column header="" style={{ width: '20%' }} body={<Skeleton />}></Column>
+            <Column header="" style={{ width: "20%" }} body={<Skeleton />}></Column>
+            <Column header="" style={{ width: "20%" }} body={<Skeleton />}></Column>
+            <Column header="" style={{ width: "20%" }} body={<Skeleton />}></Column>
+            <Column header="" style={{ width: "20%" }} body={<Skeleton />}></Column>
+            <Column header="" style={{ width: "20%" }} body={<Skeleton />}></Column>
           </DataTable>
         ) : (
-        <p style={{ color: "red", fontSize: "20px", textAlign: "center", margin: "30px" }}>No data found in {data.name}</p>
+          <p style={{ color: "red", fontSize: "20px", textAlign: "center", margin: "30px" }}>No data found in {data.name}</p>
         )
       ) : (
         <div style={dataTableStyle}>

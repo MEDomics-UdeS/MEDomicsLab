@@ -49,7 +49,7 @@ class GoExecScriptComputeCorrelations(GoExecutionScript):
             columns.remove(target)
         
         # Connect to MongoDB
-        client = MongoClient('localhost', 27017)
+        client = MongoClient('localhost', 54017)
         db = client[database_name]
         collection = db[collection_name]
 
@@ -63,7 +63,7 @@ class GoExecScriptComputeCorrelations(GoExecutionScript):
 
         # Compute correlation
         df_corr = extracted_features.corr(method='spearman')
-        corr_with_target = df_corr['target'].abs().sort_values(ascending=False).drop(target)
+        corr_with_target = df_corr[target].abs().sort_values(ascending=False).drop(target)
         results = corr_with_target.to_dict()
 
         # Get results

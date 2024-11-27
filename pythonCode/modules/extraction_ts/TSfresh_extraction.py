@@ -186,7 +186,7 @@ class GoExecScriptTSfreshExtraction(GoExecutionScript):
             frequency = datetime.timedelta(hours=json_config["relativeToExtractionType"]["hourRange"])
 
         # MongoDB setup
-        mongo_client = pymongo.MongoClient("mongodb://localhost:27017/")
+        mongo_client = pymongo.MongoClient("mongodb://localhost:54017/")
         database = mongo_client[json_config["DBName"]]
         collection = database[json_config["collectionName"]]
         result_collection = database[json_config["resultCollectionName"]]

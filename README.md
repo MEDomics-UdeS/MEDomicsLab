@@ -120,7 +120,7 @@ This project relies on the following open-source packages, and we are grateful t
 <div align="center">
   <picture width="600">
     <img
-      src="./resources/PackagesUsed.png"
+      src="./resources/PackagesUsed-NoBG.png"
       alt="MEDomicsLab workflow"
     />
   </picture>

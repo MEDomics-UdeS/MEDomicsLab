@@ -18,16 +18,10 @@
       "resources/**/*"
     ],
     "extraResources": [
-      {
-        "from": "python",
-        "to": "python",
-        "filter": [
-          "**/*"
-        ]
-      },
       "./pythonCode/**/*",
       "./baseFiles/**/*",
       "./go_executables/**/*",
+      "./pythonEnv/**/*",
       "!./pythonCode/venv/**/*",
       "!./pythonCode/.idea/**/*",
       "!*.git/**/*"
@@ -39,8 +33,13 @@
     ],
     "extends": null,
     "mac": {
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false,
       "category": "public.app-category.developer-tools",
-      "target": "dmg"
+      "target": "pkg"
+    },
+    "pkg": {
+      "isRelocatable": false
     },
     "win": {
       "target": "nsis",
@@ -51,6 +50,9 @@
       "target": "deb",
       "icon": "resources/icons",
       "maintainer": "medomicslab.udes@gmail.com"
+    },
+    "deb": {
+      "afterInstall": "build/after-install.sh"
     },
     "publish": null
   },
@@ -107,6 +109,7 @@
     "lodash": "^4.17.21",
     "mongodb": "^6.6.2",
     "mongodb-client-encryption": "^6.0.1",
+    "node-sys": "^1.2.4",
     "papaparse": "^5.4.1",
     "primeicons": "^7.0.0",
     "primereact": "^9.6.2",
