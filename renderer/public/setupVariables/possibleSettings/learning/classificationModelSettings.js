@@ -78,7 +78,8 @@ const classificationModelSettings = {
                 "tooltip": "NoneType, default='None'. The ElasticNet mixing parameter, with 0 <= l1_ratio <= 1. For l1_ratio = 0 the penalty is an L2 penalty. For l1_ratio = 1 it is an L1 penalty. For 0 < l1_ratio < 1, the penalty is a combination of L1 and L2."
             }
         },
-        "code": "lr"
+        "code": "lr",
+        "label": "Logistic Regression"
     },
     "knn": {
         "options": {
@@ -128,7 +129,8 @@ const classificationModelSettings = {
                 "tooltip": "String, default=’uniform’. Weight function used in prediction. Possible values: ‘uniform’ : Uniform weights. All points in each neighborhood are weighted equally. ‘Distance’ : weight points by the inverse of their distance. in this case, closer neighbors of a query point will have a greater influence than neighbors which are further away. Callable : a user-defined function which accepts an array of distances, and returns an array of the same shape containing the weights."
             }
         },
-        "code": "knn"
+        "code": "knn",
+        "label": "K-Nearest Neighbors"
     },
     "nb": {
         "options": {
@@ -143,7 +145,8 @@ const classificationModelSettings = {
                 "tooltip": "float, default=1e-09. Portion of the largest variance of all features that is added to variances for calculation stability."
             }
         },
-        "code": "nb"
+        "code": "nb",
+        "label": "Naive Bayes"
     },
     "dt": {
         "options": {
@@ -208,7 +211,8 @@ const classificationModelSettings = {
                 "tooltip": "float, default=0.0. Complexity parameter used for Minimal Cost-Complexity Pruning. The subtree with the largest cost complexity that is smaller than ccp_alpha will be chosen. By default, no pruning is performed."
             }
         },
-        "code": "dt"
+        "code": "dt",
+        "label": "Decision Tree"
     },
     "svm": {
         "options": {
@@ -323,7 +327,8 @@ const classificationModelSettings = {
                 "tooltip": "int, default=-1. Number of CPU cores used when parallelizing over classes if multi_class=’ovr’”. This parameter is ignored when the solver is set to ‘liblinear’ regardless of whether ‘multi_class’ is specified or not."
             }
         },
-        "code": "svm"
+        "code": "svm",
+        "label": "Support Vector Machine"
     },
     "rbfsvm": {
         "options": {
@@ -413,7 +418,8 @@ const classificationModelSettings = {
                 "tooltip": "int, default=1334. Controls the pseudo random number generation for shuffling the data for probability estimates."
                         }
         },
-        "code": "rbfsvm"
+        "code": "rbfsvm",
+        "label": "RBF Kernel-SVM"
     },
     "gpc": {
         "options": {
@@ -463,7 +469,8 @@ const classificationModelSettings = {
                 "tooltip": "int, default=-1. Number of CPU cores used when parallelizing over classes if multi_class=’ovr’”. This parameter is ignored when the solver is set to ‘liblinear’ regardless of whether ‘multi_class’ is specified or not."
             }
         },
-        "code": "gpc"
+        "code": "gpc",
+        "label": "Gaussian Process Classifier"
     },
     "mlp": {
         "options": {
@@ -588,7 +595,8 @@ const classificationModelSettings = {
                 "tooltip": "int, default=15000. Only used when solver=’lbfgs’. Maximum number of loss function calls."
             }
         },
-        "code": "mlp"
+        "code": "mlp",
+        "label": "Multi-Layer Perceptron"
     },
     "ridge": {
         "options": {
@@ -638,7 +646,8 @@ const classificationModelSettings = {
                 "tooltip": "NoneType, default=None. Set the parameter C of class i to class_weight[i]*C for SVC. If not given, all classes are supposed to have weight one. The “balanced” mode uses the values of y to automatically adjust weights inversely proportional to class frequencies in the input data as n_samples / (n_classes * np.bincount(y))."
             }
         },
-        "code": "ridge"
+        "code": "ridge",
+        "label": "Ridge Classifier"
     },
     "rf": {
         "options": {
@@ -748,7 +757,8 @@ const classificationModelSettings = {
                 "tooltip": "float, default=0.0. Complexity parameter used for Minimal Cost-Complexity Pruning. The subtree with the largest cost complexity that is smaller than ccp_alpha will be chosen. By default, no pruning is performed."
             }
         },
-        "code": "rf"
+        "code": "rf",
+        "label": "Random Forest"
     },
     "qda": {
         "options": {
@@ -773,7 +783,8 @@ const classificationModelSettings = {
                 "tooltip": "float, default=0.0001. Tolerance for stopping criteria."
             }
         },
-        "code": "qda"
+        "code": "qda",
+        "label": "Quadratic Discriminant Analysis"
     },
     "ada": {
         "options": {
@@ -813,7 +824,8 @@ const classificationModelSettings = {
                 "tooltip": "String, default=’SAMME.R’. If ‘SAMME.R’ then use the SAMME.R real boosting algorithm. estimator must support calculation of class probabilities. If ‘SAMME’ then use the SAMME discrete boosting algorithm. The SAMME.R algorithm typically converges faster than SAMME, achieving a lower test error with fewer boosting iterations."
             }
         },
-        "code": "ada"
+        "code": "ada",
+        "label": "AdaBoost"
     },
     "gbc": {
         "options": {
@@ -923,7 +935,8 @@ const classificationModelSettings = {
                 "tooltip": "float, default=0.0001. Tolerance for stopping criteria."
             }
         },
-        "code": "gbc"
+        "code": "gbc",
+        "label": "Gradient Boosting Classifier"
     },
     "lda": {
         "options": {
@@ -963,7 +976,8 @@ const classificationModelSettings = {
                 "tooltip": "NoneType, default=None. If not None, covariance_estimator is used to estimate the covariance matrices instead of relying on the empirical covariance estimator (with potential shrinkage). "
             }
         },
-        "code": "lda"
+        "code": "lda",
+        "label": "Linear Discriminant Analysis"
     },
     "et": {
         "options": {
@@ -1073,7 +1087,8 @@ const classificationModelSettings = {
                 "tooltip": "float, default=0.0. Complexity parameter used for Minimal Cost-Complexity Pruning. The subtree with the largest cost complexity that is smaller than ccp_alpha will be chosen. By default, no pruning is performed."
             }
         },
-        "code": "et"
+        "code": "et",
+        "label": "Extra Trees"
     },
     "lightgbm": {
         "options": {
@@ -1173,7 +1188,8 @@ const classificationModelSettings = {
                 "tooltip": "NoneType, default=None. Set the parameter C of class i to class_weight[i]*C for SVC. If not given, all classes are supposed to have weight one. The “balanced” mode uses the values of y to automatically adjust weights inversely proportional to class frequencies in the input data as n_samples / (n_classes * np.bincount(y))."
             }
         },
-        "code": "lightgbm"
+        "code": "lightgbm",
+        "label": "LightGBM"
     },
     "dummy": {
         "options": {
@@ -1193,7 +1209,8 @@ const classificationModelSettings = {
                 "tooltip": "NoneType, default=None. The explicit constant as predicted by the “constant” strategy."
             }
         },
-        "code": "dummy"
+        "code": "dummy",
+        "label": "Dummy Classifier"
     }
 };
  export default classificationModelSettings;

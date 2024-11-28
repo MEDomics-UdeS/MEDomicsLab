@@ -70,6 +70,7 @@ const SelectionNode = ({ id, data, type }) => {
                   <option
                     key={optionName}
                     value={optionName}
+                    label={data.setupParam.possibleSettings[optionName].label}
                     // selected={optionName === selection}
                   >
                     {optionName}
