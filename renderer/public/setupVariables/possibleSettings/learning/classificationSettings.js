@@ -396,7 +396,7 @@ const classificationSettings = {
         "options": {
             "include": {
                 "type": "list-multiple",
-                "tooltip": "<p>To train and evaluate select models, list containing model ID or scikit-learn\ncompatible object can be passed in include param. To see a list of all models\navailable in the model library use the models function.</p>\n",
+                "tooltip": "<p>To train and evaluate select models, list containing model ID or scikit-learn\ncompatible object can be passed in include param. To see a list of all models\navailable in the model library use the Model node.</p>\n",
                 "default_val": "None",
                 "choices": {
                     "lr": "Logistic Regression",
@@ -421,7 +421,7 @@ const classificationSettings = {
             },
             "exclude": {
                 "type": "custom-list",
-                "tooltip": "<p>To omit certain models from training and evaluation, pass a list containing\nmodel id in the exclude parameter. To see a list of all models available\nin the model library use the models function.</p>\n",
+                "tooltip": "<p>To omit certain models from training and evaluation, pass a list containing\nmodel id in the exclude parameter. To see a list of all models available\nin the model library use the Model node.</p>\n",
                 "default_val": "None"
             },
             "fold": {
