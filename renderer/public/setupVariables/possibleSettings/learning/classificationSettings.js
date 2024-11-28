@@ -414,15 +414,37 @@ const classificationSettings = {
                     "gbc": "Gradient Boosting Classifier",
                     "lda": "Linear Discriminant Analysis",
                     "et": "Extra Trees Classifier",
+                    "dummy": "Dummy Classifier",
                     "xgboost": "Extreme Gradient Boosting",
                     "lightgbm": "Light Gradient Boosting Machine",
                     "catboost": "CatBoost Classifier"
                 }
             },
             "exclude": {
-                "type": "custom-list",
+                "type": "list-multiple",
                 "tooltip": "<p>To omit certain models from training and evaluation, pass a list containing\nmodel id in the exclude parameter. To see a list of all models available\nin the model library use the Model node.</p>\n",
-                "default_val": "None"
+                "default_val": "None",
+                "choices": {
+                    "lr": "Logistic Regression",
+                    "knn": "K Neighbors Classifier",
+                    "nb": "Naive Bayes",
+                    "dt": "Decision Tree Classifier",
+                    "svm": "SVM - Linear Kernel",
+                    "rbfsvm": "SVM - Radial Kernel",
+                    "gpc": "Gaussian Process Classifier",
+                    "mlp": "MLP Classifier",
+                    "ridge": "Ridge Classifier",
+                    "rf": "Random Forest Classifier",
+                    "qda": "Quadratic Discriminant Analysis",
+                    "ada": "Ada Boost Classifier",
+                    "gbc": "Gradient Boosting Classifier",
+                    "lda": "Linear Discriminant Analysis",
+                    "et": "Extra Trees Classifier",
+                    "dummy": "Dummy Classifier",
+                    "xgboost": "Extreme Gradient Boosting",
+                    "lightgbm": "Light Gradient Boosting Machine",
+                    "catboost": "CatBoost Classifier"
+                }
             },
             "fold": {
                 "type": "int",
