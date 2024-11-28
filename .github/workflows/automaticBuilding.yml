@@ -18,9 +18,15 @@ jobs:
       
       - name: Update submodules to correct branch
         run: |
-          git submodule foreach 'git fetch origin && git checkout $branch && git pull origin $branch'
-        env:
-          branch: fusion_MEDomicsLab
+          git submodule foreach '
+          if [ "$name" = "pythonCode/submodules/MEDimage" ]; then
+            git fetch origin && git checkout -B dev_lab origin/dev_lab && git pull origin dev_lab
+          elif [ "$name" = "pythonCode/submodules/MEDprofiles" ]; then
+            git fetch origin && git checkout -B main origin/main && git pull origin main
+          else
+            echo "No branch specified for $name"
+          fi
+          '
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
