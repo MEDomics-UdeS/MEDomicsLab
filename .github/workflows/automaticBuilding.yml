@@ -15,6 +15,12 @@ jobs:
         with:
           submodules: recursive
           fetch-depth: 0 # Fetch full history for branches
+      
+      - name: Update submodules to correct branch
+        run: |
+          git submodule foreach 'git fetch origin && git checkout $branch && git pull origin $branch'
+        env:
+          branch: fusion_MEDomicsLab
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
