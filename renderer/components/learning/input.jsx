@@ -274,12 +274,13 @@ const Input = ({ name, settingInfos, currentValue, onInputChange, disabled, setH
                 {...customProps}
                 disabled={disabled}
                 value={{ name: currentValue }}
-                onChange={(e) =>
+                onChange={(e) =>{
                   setInputUpdate({
                     name: name,
                     value: e.target.value.name,
                     type: settingInfos.type
                   })
+                }
                 }
                 options={Object.entries(settingInfos.choices).map(([option]) => {
                   return {
@@ -299,17 +300,21 @@ const Input = ({ name, settingInfos, currentValue, onInputChange, disabled, setH
             <MultiSelect
               key={name}
               disabled={disabled}
-              value={currentValue ? currentValue.value : []}
+              value={currentValue ? currentValue : []}
               onChange={(newValue) =>
+              {
                 setInputUpdate({
                   name: name,
-                  value: newValue,
+                  value: newValue.value,
                   type: settingInfos.type
                 })
+                currentValue = {name: newValue.value[0]}
               }
-              options={Object.entries(currentValue).map(([option]) => {
+              }
+              options={Object.entries(settingInfos.choices).map(([option]) => {
                 return {
-                  label: option,
+                  name: settingInfos.choices[option],
+                  label: settingInfos.choices[option],
                   value: option
                 }
               })}

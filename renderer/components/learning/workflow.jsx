@@ -702,26 +702,6 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
             hasModels = true
           }
 
-          // refomat multiple list to backend to understand
-          if (nodeType == "compare_models") {
-            const reformatMultipleList = (list) => {
-              let newList = []
-              list.forEach((item) => {
-                newList.push(item.value)
-              })
-              return newList
-            }
-            let currentNodeCanModify = json.nodes.find((node) => node.id === key)
-            if (currentNode.data.internal.settings.include) {
-              let reformattedList = reformatMultipleList(currentNode.data.internal.settings.include)
-              currentNodeCanModify.data.internal.settings.include = reformattedList
-            }
-            if (currentNode.data.internal.settings.exclude) {
-              let reformattedList = reformatMultipleList(currentNode.data.internal.settings.exclude)
-              currentNodeCanModify.data.internal.settings.exclude = reformattedList
-            }
-          }
-
           // check if node has default values
           isValidDefault = isValidDefault && checkDefaultValues(currentNode)
 
