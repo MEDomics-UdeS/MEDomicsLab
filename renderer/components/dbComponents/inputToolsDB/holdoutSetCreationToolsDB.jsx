@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import React, { useContext, useEffect, useState } from "react"
 import { Checkbox } from "primereact/checkbox"
 import { MultiSelect } from "primereact/multiselect"
