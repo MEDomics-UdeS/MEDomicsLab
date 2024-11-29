@@ -251,6 +251,7 @@ const FirstSetupModal = ({ visible, onHide, closable, setRequirementsMet }) => {
             style={{ display: "flex", alignContent: "center", marginBottom: "0.5rem" }}
             label="Start setup"
             disabled={clicked || localRequirementsMet}
+            onClick={startSetup}
           />
         </div>
         <div className="p-col-12 p-md-4">
