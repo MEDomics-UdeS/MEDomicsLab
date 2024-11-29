@@ -4,5 +4,5 @@
 	branch = dev_lab
 [submodule "pythonCode/submodules/MEDprofiles"]
 	path = pythonCode/submodules/MEDprofiles
-	url = https://github.com/MEDomics-UdeS/MEDprofiles.git
+	url = git@github.com:MEDomics-UdeS/MEDprofiles.git
 	branch = fusion_MEDomicsLab
