@@ -22,7 +22,7 @@ jobs:
           if [ "$name" = "pythonCode/submodules/MEDimage" ]; then
             git fetch origin && git checkout -B dev_lab origin/dev_lab && git pull origin dev_lab
           elif [ "$name" = "pythonCode/submodules/MEDprofiles" ]; then
-            git fetch origin && git checkout -B main origin/main && git pull origin main
+            git fetch origin && git checkout -B fusion_MEDomicsLab origin/fusion_MEDomicsLab && git pull origin fusion_MEDomicsLab
           else
             echo "No branch specified for $name"
           fi
