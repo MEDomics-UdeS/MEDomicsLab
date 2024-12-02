@@ -47,6 +47,12 @@ class StartSweetviz(GoExecutionScript):
         collection1_df = pd.DataFrame(list(collection1_data))
         collection1_name = json_config["mainDataset"]['name'].split(".")[0].capitalize()
 
+        # Set pairwise_analysis
+        if collection1_df.columns.size > 200:
+            pairwise_analysis = 'off'   # Turn off pairwise analysis for large datasets, very time consuming
+        else:
+            pairwise_analysis = 'auto'
+
         # Set second collection as pandas dataframe
         if json_config["compDataset"] != "":
             self.set_progress(label="Loading dataset", now=50)
@@ -55,10 +61,10 @@ class StartSweetviz(GoExecutionScript):
             collection2_df = pd.DataFrame(list(collection2_data))
             collection2_name = json_config["compDataset"]['name'].split(".")[0].capitalize()
             self.set_progress(label="Comparing reports", now=75)
-            final_report = sv.compare([collection1_df, collection1_name], [collection2_df, collection2_name], target)
+            final_report = sv.compare([collection1_df, collection1_name], [collection2_df, collection2_name], target, pairwise_analysis=pairwise_analysis)
         else:
             self.set_progress(label="Calculating report", now=75)
-            final_report = sv.analyze(collection1_df, target)
+            final_report = sv.analyze(collection1_df, target, pairwise_analysis=pairwise_analysis)
 
         # Save report to HTML
         self.set_progress(label="Saving report", now=90)
