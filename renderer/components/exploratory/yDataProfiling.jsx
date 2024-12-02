@@ -6,8 +6,8 @@ import { ToggleButton } from "primereact/togglebutton"
 import { Card } from "primereact/card"
 import { LayoutModelContext } from "../layout/layoutContext"
 import { requestBackend } from "../../utilities/requests"
-import Path from "path"
 import { Stack } from "react-bootstrap"
+import { toast } from "react-toastify"
 import Input from "../learning/input"
 import ProgressBarRequests from "../generalPurpose/progressBarRequests"
 import { randomUUID } from "crypto"
@@ -53,7 +53,7 @@ const YDataProfiling = ({ pageId, port, setError }) => {
   /**
    * @description Load the generated report in database
    */
-  const setReportInDB = async (htmlFilePath) => {
+  const setReportInDB = async (htmlFileID) => {
     let globalDataCopy = { ...globalData }
     const ydataprofilingFolder = new MEDDataObject({
       id: randomUUID(),
@@ -69,17 +69,21 @@ const YDataProfiling = ({ pageId, port, setError }) => {
       globalDataCopy[parentId] = ydataprofilingFolder
     }
     let medObjectName =
-      compDataset && compareChecked ? path.basename(mainDataset.value.name, ".csv") + "_" + path.basename(compDataset.name, ".csv") + ".html" : path.basename(mainDataset.value.name, ".csv") + ".html"
+      compDataset && compareChecked ? 
+      path.basename(mainDataset.value.name, ".csv") + 
+      "_" + path.basename(compDataset.name, ".csv") + 
+      ".html" : path.basename(mainDataset.value.name, ".csv") + 
+      ".html"
     medObjectName = MEDDataObject.getUniqueNameForCopy(globalDataCopy, medObjectName, parentId)
     const newReport = new MEDDataObject({
-      id: randomUUID(),
+      id: htmlFileID,
       name: medObjectName,
       type: "html",
       parentID: parentId,
       childrenIDs: [],
       inWorkspace: false
     })
-    await insertMEDDataObjectIfNotExists(newReport, htmlFilePath)
+    await insertMEDDataObjectIfNotExists(newReport)
     setReport(newReport)
     MEDDataObject.updateWorkspaceDataObject()
   }
@@ -88,25 +92,28 @@ const YDataProfiling = ({ pageId, port, setError }) => {
    * @description This function is used to open the html viewer with the given file path
    */
   const generateReport = () => {
-    const basePath = process.env.NODE_ENV == "production" ? process.resourcesPath : process.cwd()
-    const savingPath = Path.join(basePath, "tmp", "ydata_report.html")
+    const htmlFileID = randomUUID()
     setIsCalculating(true)
     setReport(null)
     requestBackend(
       port,
       "exploratory/start_ydata_profiling/" + pageId,
-      { mainDataset: mainDataset.value, compDataset: compDataset && compareChecked ? compDataset : "", savingPath: savingPath },
+      { mainDataset: mainDataset.value, compDataset: compDataset && compareChecked ? compDataset : "", htmlFileID: htmlFileID },
       (response) => {
         console.log(response)
         if (response.error) {
           setError(response.error)
+          toast.error("Error generating report")
         } else {
-          setReportInDB(response.savingPath)
+          setReportInDB(htmlFileID)
+          toast.success("Report generated successfully")
         }
         setIsCalculating(false)
       },
       (error) => {
         console.log(error)
+        setError(error)
+        toast.error("Error generating report")
       }
     )
   }

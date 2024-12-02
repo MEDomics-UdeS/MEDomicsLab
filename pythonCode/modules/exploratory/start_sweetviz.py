@@ -80,6 +80,7 @@ class StartSweetviz(GoExecutionScript):
         database[json_config['htmlFileID']].insert_one({"htmlContent": html_content})
 
         # Get results
+        self.set_progress(label="Done!", now=100)
         return self.results
 
 
