@@ -1,15 +1,16 @@
-import os
 import json
-import pandas as pd
-import sweetviz as sv
+import os
 import sys
-import pymongo
-
+import tempfile
 from pathlib import Path
-sys.path.append(
-    str(Path(os.path.dirname(os.path.abspath(__file__))).parent.parent))
-from med_libs.server_utils import go_print
+
+import pandas as pd
+import pymongo
+import sweetviz as sv
+
+sys.path.append(str(Path(os.path.dirname(os.path.abspath(__file__))).parent.parent))
 from med_libs.GoExecutionScript import GoExecutionScript, parse_arguments
+from med_libs.server_utils import go_print
 
 json_params_dict, id_ = parse_arguments()
 go_print("running script.py:" + id_)
@@ -59,11 +60,18 @@ class StartSweetviz(GoExecutionScript):
             self.set_progress(label="Calculating report", now=75)
             final_report = sv.analyze(collection1_df, target)
 
+        # Save report to HTML
         self.set_progress(label="Saving report", now=90)
-        if not os.path.exists(os.path.dirname(json_config['savingPath'])):
-            os.makedirs(os.path.dirname(json_config['savingPath']))
-        final_report.show_html(json_config['savingPath'], False, 'vertical')
-        self.results["savingPath"] = json_config['savingPath']
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".html") as f:
+            temp_html_path = f.name
+            final_report.show_html(f.name, False, 'vertical')
+        # Read the HTML content from the temporary file
+        with open(temp_html_path, "r", encoding="utf-8") as html_file:
+            html_content = html_file.read()
+        # Remove the temporary file
+        os.remove(temp_html_path)
+        # Save to mongoDB
+        database[json_config['htmlFileID']].insert_one({"htmlContent": html_content})
 
         # Get results
         return self.results
