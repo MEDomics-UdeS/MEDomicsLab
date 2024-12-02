@@ -312,7 +312,7 @@ const SettingsPage = (pageId = "settings") => {
                   </Col>
                 </Col>
                 {/* Mongo Status */}
-                <Col xs={12} md={10} style={{ display: "flex", flexDirection: "row", justifyContent: "flex-start", alignItems: "center", flexWrap: "wrap" }}>
+                <Col xs={12} md={10} style={{ display: "flex", flexDirection: "row", justifyContent: "flex-start", alignItems: "center", flexWrap: "wrap", marginTop: ".75rem" }}>
                   <h5 style={{ marginBottom: "0rem" }}>MongoDB status : </h5>
                   <h5 style={{ marginBottom: "0rem", marginLeft: "1rem", color: mongoServerIsRunning ? "green" : "#d55757" }}>{mongoServerIsRunning ? "Running" : "Stopped"}</h5>
                   {mongoServerIsRunning ? <Check2Circle size="30" style={{ marginInline: "1rem", color: "green" }} /> : <XCircleFill size="25" style={{ marginInline: "1rem", color: "#d55757" }} />}

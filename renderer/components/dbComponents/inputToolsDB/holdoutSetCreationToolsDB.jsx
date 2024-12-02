@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import React, { useContext, useEffect, useState } from "react"
 import { Checkbox } from "primereact/checkbox"
 import { MultiSelect } from "primereact/multiselect"
@@ -96,14 +97,47 @@ const HoldoutSetCreationToolsDB = ({ refreshData, currentCollection }) => {
       nanMethod: cleaningOption,
       randomState: seed
     }
-    requestBackend(port, "/input/create_holdout_set_DB/", JSONToSend, (jsonResponse) => {
-      console.log("jsonResponse", jsonResponse)
-      refreshData()
-      toast.success("Holdout set created successfully")
-    })
-    await insertMEDDataObjectIfNotExists(object)
-    await insertMEDDataObjectIfNotExists(object2)
-    MEDDataObject.updateWorkspaceDataObject()
+
+    // Check if the collection already exists
+    let exists = false
+    for (const item of Object.keys(globalData)) {
+      if (globalData[item].name && globalData[item].name === object.name) {
+        toast.warn("Files with the same name already exist, consider changing the name or deleting the existing files")
+        exists = true
+        break
+      }
+    }
+    if (exists) {
+      return
+    }
+
+    // Send the request to the backend
+    requestBackend(
+      port,
+      "/input/create_holdout_set_DB/",
+      JSONToSend,
+      async (jsonResponse) => {
+        console.log("jsonResponse", jsonResponse)
+        if (jsonResponse.error) {
+          if (jsonResponse.error.message) {
+            console.error(jsonResponse.error.message)
+            toast.error(jsonResponse.error.message)
+          } else {
+            console.error(jsonResponse.error)
+            toast.error(jsonResponse.error)
+          }
+        } else {
+          await insertMEDDataObjectIfNotExists(object)
+          await insertMEDDataObjectIfNotExists(object2)
+          MEDDataObject.updateWorkspaceDataObject()
+          toast.success("Holdout set created successfully")
+        }
+      },
+      (error) => {
+        console.log(error)
+        toast.error("Error cleaning data:" + error)
+      }
+    )
   }
 
   return (
@@ -122,11 +156,11 @@ const HoldoutSetCreationToolsDB = ({ refreshData, currentCollection }) => {
             <div>
               <i className="pi pi-info-circle" />
               &nbsp; The Holdout Set Creation tool serves as a visual representation of the{" "}
-              <i>
+              <i><b>
                 <a href="https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.train_test_split.html" target="_blank">
                   scikit-learn Python package's model_selection train_test_split function
                 </a>
-              </i>
+              </b></i>
               . This tool will create a folder containing your holdout and learning sets.
             </div>
           }

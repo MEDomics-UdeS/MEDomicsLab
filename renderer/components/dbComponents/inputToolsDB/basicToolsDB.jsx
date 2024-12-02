@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import React, { useContext, useState } from "react"
 import { InputText } from "primereact/inputtext"
 import { Button } from "primereact/button"
@@ -40,7 +41,6 @@ const BasicToolsDB = ({ exportOptions, refreshData, currentCollection }) => {
         setInnerData(newInnerData)
         setNewColumnName("")
         await collection.updateMany({}, { $set: { [newColumnName]: "" } })
-        refreshData()
         toast.success("Column " + newColumnName + " added successfully")
       } catch (error) {
         console.error("Error adding column:", error)
@@ -68,7 +68,6 @@ const BasicToolsDB = ({ exportOptions, refreshData, currentCollection }) => {
       const collection = db.collection(globalData[currentCollection].id)
       await collection.insertMany(newRows)
       setNumRows("")
-      refreshData()
       setInnerData([...innerData, ...newRows])
       toast.success(numRows + " rows added successfully")
     } catch (error) {

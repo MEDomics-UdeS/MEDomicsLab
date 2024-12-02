@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import { Button } from "primereact/button"
 import { Chip } from "primereact/chip"
 import { Chips } from "primereact/chips"
@@ -201,7 +202,6 @@ const GroupingTaggingToolsDB = ({ refreshData }) => {
       }
       console.log("jsonResponse", jsonResponse)
       toast.success("Tags created successfully.")
-      refreshData()
     })
   }
 

@@ -2,7 +2,6 @@ import React, { useState, useContext } from "react"
 import { LayoutModelContext } from "../layout/layoutContext"
 import { MEDDataObject } from "../workspace/NewMedDataObject"
 import { requestBackend } from "../../utilities/requests"
-import Path from "path"
 import { Stack } from "react-bootstrap"
 import { Tag } from "primereact/tag"
 import { Tooltip } from "primereact/tooltip"
@@ -15,6 +14,7 @@ import { getCollectionColumns } from "../mongoDB/mongoDBUtils"
 import { randomUUID } from "crypto"
 import { insertMEDDataObjectIfNotExists } from "../mongoDB/mongoDBUtils"
 import { DataContext } from "../workspace/dataContext"
+import { toast } from "react-toastify"
 
 /**
  *
@@ -68,7 +68,7 @@ const SweetViz = ({ pageId, port, setError }) => {
   /**
    * @description Load the generated report in database
    */
-  const setReportInDB = async (htmlFilePath) => {
+  const setReportInDB = async (htmlFileID) => {
     let globalDataCopy = { ...globalData }
     const sweetvizFolder = new MEDDataObject({
       id: randomUUID(),
@@ -88,15 +88,15 @@ const SweetViz = ({ pageId, port, setError }) => {
       compDataset && compareChecked ? path.basename(mainDataset.value.name, ".csv") + "_" + path.basename(compDataset.name, ".csv") + ".html" : path.basename(mainDataset.value.name, ".csv") + ".html"
     medObjectName = MEDDataObject.getUniqueNameForCopy(globalDataCopy, medObjectName, parentId)
     const newReport = new MEDDataObject({
-      id: randomUUID(),
+      id: htmlFileID,
       name: medObjectName,
       type: "html",
       parentID: parentId,
       childrenIDs: [],
       inWorkspace: false
     })
-    console.log("path", htmlFilePath)
-    await insertMEDDataObjectIfNotExists(newReport, htmlFilePath)
+    console.log("htmlFileID", htmlFileID)
+    await insertMEDDataObjectIfNotExists(newReport)
     setReport(newReport)
     MEDDataObject.updateWorkspaceDataObject()
   }
@@ -119,25 +119,28 @@ const SweetViz = ({ pageId, port, setError }) => {
    * @description This function is used to open the html viewer with the given file path
    */
   const generateReport = () => {
-    const basePath = process.env.NODE_ENV == "production" ? process.resourcesPath : process.cwd()
-    const savingPath = Path.join(basePath, "tmp", "SweetViz_report.html")
+    const htmlFileID = randomUUID()
     setIsCalculating(true)
     setReport(null)
     requestBackend(
       port,
       "exploratory/start_sweetviz/" + pageId,
-      { mainDataset: mainDataset.value, compDataset: compDataset && compareChecked ? compDataset : "", savingPath: savingPath, target: mainDatasetTarget },
+      { mainDataset: mainDataset.value, compDataset: compDataset && compareChecked ? compDataset : "", htmlFileID: htmlFileID, target: mainDatasetTarget },
       (response) => {
         console.log(response)
         if (response.error) {
           setError(response.error)
+          toast.error("Error generating report")
         } else {
-          setReportInDB(response.savingPath)
+          setReportInDB(htmlFileID)
+          toast.success("Report generated successfully")
         }
         setIsCalculating(false)
       },
       (error) => {
         console.log(error)
+        setError(error)
+        toast.error("Error generating report")
       }
     )
   }

@@ -1,15 +1,16 @@
-import os
 import json
-import pandas as pd
-import sweetviz as sv
+import os
 import sys
-import pymongo
-
+import tempfile
 from pathlib import Path
-sys.path.append(
-    str(Path(os.path.dirname(os.path.abspath(__file__))).parent.parent))
-from med_libs.server_utils import go_print
+
+import pandas as pd
+import pymongo
+import sweetviz as sv
+
+sys.path.append(str(Path(os.path.dirname(os.path.abspath(__file__))).parent.parent))
 from med_libs.GoExecutionScript import GoExecutionScript, parse_arguments
+from med_libs.server_utils import go_print
 
 json_params_dict, id_ = parse_arguments()
 go_print("running script.py:" + id_)
@@ -46,6 +47,12 @@ class StartSweetviz(GoExecutionScript):
         collection1_df = pd.DataFrame(list(collection1_data))
         collection1_name = json_config["mainDataset"]['name'].split(".")[0].capitalize()
 
+        # Set pairwise_analysis
+        if collection1_df.columns.size > 200:
+            pairwise_analysis = 'off'   # Turn off pairwise analysis for large datasets, very time consuming
+        else:
+            pairwise_analysis = 'auto'
+
         # Set second collection as pandas dataframe
         if json_config["compDataset"] != "":
             self.set_progress(label="Loading dataset", now=50)
@@ -54,16 +61,23 @@ class StartSweetviz(GoExecutionScript):
             collection2_df = pd.DataFrame(list(collection2_data))
             collection2_name = json_config["compDataset"]['name'].split(".")[0].capitalize()
             self.set_progress(label="Comparing reports", now=75)
-            final_report = sv.compare([collection1_df, collection1_name], [collection2_df, collection2_name], target)
+            final_report = sv.compare([collection1_df, collection1_name], [collection2_df, collection2_name], target, pairwise_analysis=pairwise_analysis)
         else:
             self.set_progress(label="Calculating report", now=75)
-            final_report = sv.analyze(collection1_df, target)
+            final_report = sv.analyze(collection1_df, target, pairwise_analysis=pairwise_analysis)
 
+        # Save report to HTML
         self.set_progress(label="Saving report", now=90)
-        if not os.path.exists(os.path.dirname(json_config['savingPath'])):
-            os.makedirs(os.path.dirname(json_config['savingPath']))
-        final_report.show_html(json_config['savingPath'], False, 'vertical')
-        self.results["savingPath"] = json_config['savingPath']
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".html") as f:
+            temp_html_path = f.name
+            final_report.show_html(f.name, False, 'vertical')
+        # Read the HTML content from the temporary file
+        with open(temp_html_path, "r", encoding="utf-8") as html_file:
+            html_content = html_file.read()
+        # Remove the temporary file
+        os.remove(temp_html_path)
+        # Save to mongoDB
+        database[json_config['htmlFileID']].insert_one({"htmlContent": html_content})
 
         # Get results
         return self.results

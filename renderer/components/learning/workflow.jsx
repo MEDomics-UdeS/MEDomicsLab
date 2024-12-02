@@ -545,7 +545,7 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
    */
   function requestBackendRunExperiment(port, flowID, isValid) {
     if (isValid) {
-      console.log("sended flow", flowID)
+      console.log("flow sent", flowID)
       setIsProgressUpdating(true)
       requestBackend(
         port,
@@ -702,26 +702,6 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
             hasModels = true
           }
 
-          // refomat multiple list to backend to understand
-          if (nodeType == "compare_models") {
-            const reformatMultipleList = (list) => {
-              let newList = []
-              list.forEach((item) => {
-                newList.push(item.value)
-              })
-              return newList
-            }
-            let currentNodeCanModify = json.nodes.find((node) => node.id === key)
-            if (currentNode.data.internal.settings.include) {
-              let reformattedList = reformatMultipleList(currentNode.data.internal.settings.include)
-              currentNodeCanModify.data.internal.settings.include = reformattedList
-            }
-            if (currentNode.data.internal.settings.exclude) {
-              let reformattedList = reformatMultipleList(currentNode.data.internal.settings.exclude)
-              currentNodeCanModify.data.internal.settings.exclude = reformattedList
-            }
-          }
-
           // check if node has default values
           isValidDefault = isValidDefault && checkDefaultValues(currentNode)
 
@@ -746,6 +726,18 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
               }
             }
             nbNodes2Run++
+          }
+
+          // Check true or false values for current node
+          let currentNodeCanModify = json.nodes.find((node) => node.id === key)
+          if (currentNodeCanModify.data.internal.settings) {
+            Object.entries(currentNodeCanModify.data.internal.settings).forEach(([key, value]) => {
+              if (typeof value == "string" && value.toLocaleLowerCase() == "true") {
+                currentNodeCanModify.data.internal.settings[key] = true
+              } else if (typeof value == "string" && value.toLocaleLowerCase() == "false") {
+                currentNodeCanModify.data.internal.settings[key] = false
+              }
+            })
           }
         })
         return children

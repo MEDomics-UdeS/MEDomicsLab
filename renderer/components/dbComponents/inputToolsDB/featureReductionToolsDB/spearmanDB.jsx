@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import React, { useEffect, useState, useContext } from "react"
 import { Message } from "primereact/message"
 import { MultiSelect } from "primereact/multiselect"
@@ -80,7 +81,6 @@ const SpearmanDB = ({ currentCollection, refreshData }) => {
               value: data[key]
             }))
           )
-          refreshData()
           toast.success("Computation successful")
         } else {
           toast.error(`Computation failed: ${jsonResponse.error.message}`)
@@ -110,6 +110,14 @@ const SpearmanDB = ({ currentCollection, refreshData }) => {
       inWorkspace: false
     })
 
+    // Check if object already exists
+    for (const item of Object.keys(globalData)) {
+      if (globalData[item].name && globalData[item].name === object.name) {
+        toast.error(`A subset with the name ${object.name} already exists.`)
+        return
+      }
+    }
+
     let jsonToSend = {}
     jsonToSend = {
       selectedColumns: selectedColumns,
@@ -122,19 +130,37 @@ const SpearmanDB = ({ currentCollection, refreshData }) => {
       newCollectionName: id,
       overwrite: overwrite
     }
-    requestBackend(port, "/input/compute_spearmanDB/", jsonToSend, (jsonResponse) => {
-      console.log("received results:", jsonResponse)
-      refreshData()
-    })
 
-    if (!overwrite) {
-      await insertMEDDataObjectIfNotExists(object)
-      MEDDataObject.updateWorkspaceDataObject()
-      toast.success("Spearman applied successfully")
-    } else {
-      MEDDataObject.updateWorkspaceDataObject()
-      toast.success("Spearman applied successfully")
-    }
+    // Send the request to the backend
+    requestBackend(
+      port,
+      "/input/compute_spearmanDB/",
+      jsonToSend,
+      async (jsonResponse) => {
+        console.log("received results:", jsonResponse)
+        if (jsonResponse.error) {
+          if (jsonResponse.error.message) {
+            console.error(jsonResponse.error.message)
+            toast.error(jsonResponse.error.message)
+          } else {
+            console.error(jsonResponse.error)
+            toast.error(jsonResponse.error)
+          }
+        } else {
+          if (!overwrite) {
+            await insertMEDDataObjectIfNotExists(object)
+            MEDDataObject.updateWorkspaceDataObject()
+          } else {
+            MEDDataObject.updateWorkspaceDataObject()
+          }
+          toast.success("Spearman applied successfully")
+        }
+      },
+      (error) => {
+        console.log(error)
+        toast.error("Error computing Spearman correlation" + error)
+      }
+    )
   }
 
   return (
@@ -152,7 +178,7 @@ const SpearmanDB = ({ currentCollection, refreshData }) => {
             options={columns.filter((col) => col !== "_id")}
             onChange={(e) => setSelectedColumns(e.value)}
             placeholder="Select columns"
-            style={{ marginTop: "10px", maxWidth: "1000px" }}
+            style={{ marginTop: "10px", maxWidth: "900px" }}
             display="chip"
           />
           <hr></hr>
@@ -176,7 +202,15 @@ const SpearmanDB = ({ currentCollection, refreshData }) => {
         <div className="margin-top-15 center">
           <b>Select columns to keep</b>
           <div className="margin-top-15 maxwidth-80 mx-auto">
-            <DataTable value={correlations} size={"small"} selectionMode="checkbox" selection={selectedSpearmanRows} onSelectionChange={(e) => setSelectedSpearmanRows(e.value)} paginator rows={3}>
+            <DataTable 
+              value={correlations} 
+              size={"small"} 
+              selectionMode="checkbox" 
+              selection={selectedSpearmanRows} 
+              onSelectionChange={(e) => setSelectedSpearmanRows(e.value)} 
+              paginator 
+              rows={6}
+            >
               <Column selectionMode="multiple"></Column>
               {correlationsColumns.map((col) => (
                 <Column key={col.field} field={col.field} header={col.header} />

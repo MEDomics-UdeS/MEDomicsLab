@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import { useContext, useEffect, useState } from "react"
 import { Message } from "primereact/message"
 import { MultiSelect } from "primereact/multiselect"
@@ -92,6 +93,7 @@ const CreatePCADB = ({ currentCollection, refreshData }) => {
               setExplainedVar(data.map((value, index) => ({ index: index + 1, value })))
             }
           }
+          toast.success("Eigenvalues computed successfully!")
         } else {
           toast.error(`Computation failed: ${jsonResponse.error.message}`)
           return
@@ -148,35 +150,45 @@ const CreatePCADB = ({ currentCollection, refreshData }) => {
       newCollectionName: id,
       newPCATransformationName: id2
     }
-
-    requestBackend(port, "/input/create_pcaDB/", jsonToSend, (jsonResponse) => {
-      console.log("received results:", jsonResponse)
-      refreshData()
-    })
-    if (exportTransformation) {
-      // Creates 1 collection with the PCA transformations
-      if (overwrite) {
-        await insertMEDDataObjectIfNotExists(object2)
-        MEDDataObject.updateWorkspaceDataObject()
-        toast.success("PCA applied successfully")
-        // Create 2 collections with the PCA transformations and the results with the PCA applied
-      } else {
-        await insertMEDDataObjectIfNotExists(object)
-        await insertMEDDataObjectIfNotExists(object2)
-        MEDDataObject.updateWorkspaceDataObject()
-        toast.success("PCA applied successfully")
+    
+    requestBackend(
+      port,
+      "/input/create_pcaDB/",
+      jsonToSend,
+      async (jsonResponse) => {
+        console.log("received results:", jsonResponse)
+        if (!jsonResponse.error) {
+          if (exportTransformation) {
+            // Creates 1 collection with the PCA transformations
+            if (overwrite) {
+              await insertMEDDataObjectIfNotExists(object2)
+              MEDDataObject.updateWorkspaceDataObject()
+              // Create 2 collections with the PCA transformations and the results with the PCA applied
+            } else {
+              await insertMEDDataObjectIfNotExists(object)
+              await insertMEDDataObjectIfNotExists(object2)
+              MEDDataObject.updateWorkspaceDataObject()
+            }
+          } else {
+            // Creates 1 collection with the results of the PCA applied
+            if (!overwrite) {
+              await insertMEDDataObjectIfNotExists(object)
+              MEDDataObject.updateWorkspaceDataObject()
+            } else {
+              MEDDataObject.updateWorkspaceDataObject()
+            }
+          }
+          toast.success("PCA applied successfully!")
+        } else {
+          toast.error(`Computation failed: ${jsonResponse.error.message}`)
+          return
+        }
+      },
+      function (err) {
+        console.error(err)
+        toast.error(`Computation failed: ${err}`)
       }
-    } else {
-      // Creates 1 collection with the results of the PCA applied
-      if (!overwrite) {
-        await insertMEDDataObjectIfNotExists(object)
-        MEDDataObject.updateWorkspaceDataObject()
-        toast.success("PCA applied successfully")
-      } else {
-        MEDDataObject.updateWorkspaceDataObject()
-        toast.success("PCA applied successfully")
-      }
-    }
+    )
   }
 
   return (
@@ -194,7 +206,7 @@ const CreatePCADB = ({ currentCollection, refreshData }) => {
             display="chip"
             onChange={(e) => setSelectedColumns(e.value)}
             placeholder="Select columns"
-            style={{ marginTop: "10px", maxWidth: "1000px" }}
+            style={{ marginTop: "10px", maxWidth: "900px" }}
           />
           <hr />
         </div>
@@ -222,12 +234,12 @@ const CreatePCADB = ({ currentCollection, refreshData }) => {
         <div className="margin-top-15 flex-container-wrap">
           {/* Save data */}
           <div>
-            Merge unselected columns in the result dataset &nbsp;
             <Checkbox onChange={(e) => setKeepUnselectedColumns(e.checked)} checked={keepUnselectedColumns}></Checkbox>
+            &nbsp;Merge unselected columns in the result dataset&nbsp;
           </div>
           <div>
-            Export transformation &nbsp;
             <Checkbox onChange={(e) => setExportTransformation(e.checked)} checked={exportTransformation}></Checkbox>
+            &nbsp;Export transformation&nbsp;
           </div>
           <div>
             {/* Text input for column names */}

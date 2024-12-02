@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import { useState, useEffect, useContext } from "react"
 import { Message } from "primereact/message"
 import * as React from "react"
@@ -14,6 +15,7 @@ import { MEDDataObject } from "../../workspace/NewMedDataObject"
 import { DataContext } from "../../workspace/dataContext"
 import { randomUUID } from "crypto"
 import { insertMEDDataObjectIfNotExists } from "../../mongoDB/mongoDBUtils"
+import { Card } from "primereact/card"
 
 /**
  * @description
@@ -84,7 +86,6 @@ const SubsetCreationToolsDB = ({ currentCollection, refreshData }) => {
     await collection.deleteMany({})
     await collection.insertMany(filteredData)
     toast.success(`Data in ${globalData[currentCollection].name} overwritten with filtered data.`)
-    refreshData()
   }
 
   const createNewCollectionSubset = async (newCollectionName) => {
@@ -129,24 +130,26 @@ const SubsetCreationToolsDB = ({ currentCollection, refreshData }) => {
         text="The Subset Creation tool enables the creation of a subset of rows from a dataset by applying filters to columns."
       />
       <Message style={{ marginBottom: "15px" }} severity="success" text={`Current Collection: ${globalData[currentCollection].name}`} />
-      <DataTable
-        onValueChange={(e) => {
-          setFilteredData(e)
-        }}
-        className="p-datatable-striped p-datatable-gridlines"
-        value={data}
-        paginator={true}
-        rows={5}
-        rowsPerPageOptions={[5, 10, 15, 20]}
-        size={"small"}
-        removableSort={true}
-        filters={filters}
-        filterDisplay={filterDisplay}
-        globalFilterFields={columns.map((col) => col.field)}
-      >
-        {columns.length > 0 &&
-          columns.map((col) => <Column key={col} field={col.field} header={col.header} sortable={true} filter filterPlaceholder={`Search by ${col.header}`} filterField={col.field} />)}
-      </DataTable>
+      <Card style={{width: "900px"}}>
+        <DataTable
+          onValueChange={(e) => {
+            setFilteredData(e)
+          }}
+          className="p-datatable-striped p-datatable-gridlines"
+          value={data}
+          paginator={true}
+          rows={7}
+          rowsPerPageOptions={[5, 10, 15, 20]}
+          size={"small"}
+          removableSort={true}
+          filters={filters}
+          filterDisplay={filterDisplay}
+          globalFilterFields={columns.map((col) => col.field)}
+        >
+          {columns.length > 0 &&
+            columns.map((col) => <Column key={col} field={col.field} header={col.header} sortable={true} filter filterPlaceholder={`Search by ${col.header}`} filterField={col.field} />)}
+        </DataTable>
+      </Card>
 
       <Row className={"card"} style={{ display: "flex", justifyContent: "space-evenly", flexDirection: "row", marginTop: "0.5rem", backgroundColor: "transparent", padding: "0.5rem" }}>
         <h6>

@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import React, { useContext, useEffect, useState } from "react"
 import { Message } from "primereact/message"
 import { DataTable } from "primereact/datatable"
@@ -150,13 +151,31 @@ const SimpleCleaningToolsDB = ({ lastEdit, data, columns, currentCollection, ref
         newDatasetName: id
       }
     }
-    requestBackend(port, "/input/cleanDB/", jsonToSend, (jsonResponse) => {
-      console.log("jsonResponse", jsonResponse)
-      refreshData()
-      toast.success("Data cleaned successfully.")
-    })
-    await insertMEDDataObjectIfNotExists(object)
-    MEDDataObject.updateWorkspaceDataObject()
+    requestBackend(
+      port,
+      "/input/cleanDB/",
+      jsonToSend,
+      async (jsonResponse) => {
+        console.log("jsonResponse", jsonResponse)
+        if (jsonResponse.error) {
+          if (jsonResponse.error.message) {
+            console.error(jsonResponse.error.message)
+            toast.error(jsonResponse.error.message)
+          } else {
+            console.error(jsonResponse.error)
+            toast.error(jsonResponse.error)
+          }
+        } else {
+          await insertMEDDataObjectIfNotExists(object)
+          MEDDataObject.updateWorkspaceDataObject()
+          toast.success("Data cleaned successfully.")
+        }
+      },
+      (error) => {
+        console.log(error)
+        toast.error("Error cleaning data:" + error)
+      }
+    )
   }
 
   return (
