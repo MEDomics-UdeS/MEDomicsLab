@@ -2,7 +2,7 @@
   "private": true,
   "name": "medomicslab-application",
   "description": "MEDomicsLab application",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "author": "MEDomicsLab Team",
   "main": "app/background.js",
   "build": {
