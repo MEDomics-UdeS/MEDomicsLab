@@ -1,0 +1,23 @@
+.centered-carousel-item {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  text-align: left;
+}
+
+.margin-top-bottom_15 {
+  margin-top: 15px;
+  margin-bottom: 15px;
+}
+
+.margin-top-30-text-center {
+  margin-top: 30px;
+  text-align: center;
+}
+
+.vertical-divider {
+  width: 2px;
+  margin: 6px 0;
+  background: lightgray;
+}

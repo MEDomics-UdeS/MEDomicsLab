@@ -1,0 +1,22 @@
+#!/bin/bash
+# Install MongoDB Community Edition on MacOS
+# https://docs.mongodb.com/manual/tutorial/install-mongodb-on-os-x/
+# Create a log file
+LOG_FILE=/tmp/medomics_postinstall.log
+
+MEDOMICS_DIR=~/.medomics
+
+echo "Requirements installation" >>$LOG_FILE
+REQUIREMENTS_FILE=merged_requirements.txt
+REQUIREMENTS_FULL_PATH=/Applications/MEDomicsLab.app/Contents/Resources/pythonEnv/$REQUIREMENTS_FILE
+
+echo "Checking if $REQUIREMENTS_FULL_PATH exists" >>$LOG_FILE
+if [ -f "$MEDOMICS_DIR/python/bin/pip3" ]; then
+    echo "Installing requirements from $REQUIREMENTS_FULL_PATH" >>$LOG_FILE
+    $MEDOMICS_DIR/python/bin/pip3 install -r $REQUIREMENTS_FULL_PATH >>$LOG_FILE
+fi
+
+echo "Requirements installed" >>$LOG_FILE
+echo "Postinstall script completed" >>$LOG_FILE
+
+exit 0

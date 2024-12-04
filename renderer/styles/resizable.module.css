@@ -1,0 +1,99 @@
+.sidebar {
+    height: 100%;
+    background-color: #f0f0f0;
+  }
+  
+.handle {
+    background-color: #c7c7c7;
+    width: 10px;
+    height: 100%;
+    position: absolute;
+    right: 0;
+    top: 0;
+    cursor: col-resize;
+    z-index: 1;
+  }
+
+  .Container {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  .TopRow {
+    flex: 0 0 auto;
+    text-align: center;
+  }
+  .BottomRow {
+    flex: 1 1 auto;
+  }
+  
+  .Panel {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .PanelContent {
+    height: 100%;
+    width: 100%;
+    background-color: var(--color-panel-background);
+    display: flex;
+    flex-direction: row;
+    /* align-items: center; */
+    /* justify-content: center; */
+    overflow: hidden;
+    border-radius: 0rem;
+  }
+  
+  .ResizeHandleOuter {
+    flex: 0 0 0.5em;
+    position: relative;
+    outline: none;
+  
+    --background-color: transparent;
+  }
+  .ResizeHandleOuter:active {
+    --background-color: var(--color-solid-resize-bar-handle-active);
+  }
+  .ResizeHandleOuter[data-resize-handle-active] {
+    --background-color: var(--color-solid-resize-bar-handle);
+  }
+  
+  .ResizeHandleInner {
+    position: relative;
+    height: 100%;
+    width: 5px;
+    background-color: rgba(64, 122, 230, 0);
+    transition: background-color 0.2s linear;
+  }
+  
+  .ResizeHandleInner:active {
+    background-color: rgba(64, 122, 230, 0.703);
+  }
+  .Button {
+    color: var(--color-default);
+    background-color: var(--color-button-background);
+    border: 1px solid var(--color-button-border);
+    border-radius: 0.25rem;
+    padding: 0.25rem 0.5rem;
+    cursor: pointer;
+  }
+  .Button:hover {
+    background-color: var(--color-button-background-hover);
+  }
+  
+  .Link {
+    display: block;
+    color: var(--color-link);
+    margin-bottom: 0.5rem;
+  }
+  
+  .Icon {
+    width: 1em;
+    height: 1em;
+    position: absolute;
+    left: calc(50% - 0.5rem);
+    top: calc(50% - 0.5rem);
+  }
+  

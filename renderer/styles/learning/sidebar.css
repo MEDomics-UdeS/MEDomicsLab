@@ -1,0 +1,68 @@
+.btn-sidebar {
+  margin: 0.25rem;
+}
+
+.btn-sidebar svg {
+  width: 1.4rem;
+  height: 1.4rem;
+  margin-left: 1rem;
+  margin-right: 1rem;
+}
+
+.p-dialog .p-dialog-content {
+  padding: 1.2rem 1.5rem 0.5rem 1.5rem;
+}
+
+.text-red {
+  color: #ff0000;
+}
+
+.create-scene-overlayPanel .p-overlaypanel-content {
+  display: flex;
+  justify-content: center;
+  text-align: center;
+}
+
+.create-scene-overlayPanel .p-overlaypanel-content .header {
+  min-height: 0px;
+  height: 1.5rem;
+}
+
+.create-scene-overlayPanel .p-overlaypanel-content .header h5 {
+  padding: 0px;
+}
+
+.create-scene-overlayPanel .p-overlaypanel-content .p-inputtext {
+  padding: 0.35rem 0.35rem;
+}
+
+.create-scene-overlayPanel .p-overlaypanel-content .p-float-label {
+  margin: 0.35rem 0;
+}
+
+.create-scene-overlayPanel .p-overlaypanel-content .p-float-label label {
+  left: 2rem;
+}
+
+.create-scene-overlayPanel-body {
+  width: 15rem;
+  margin-top: 2rem;
+}
+
+.create-scene-overlayPanel-body .p-field-checkbox {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0 0.5rem;
+  width: 100%;
+  margin-top: 0.25rem;
+  margin-bottom: 0.25rem;
+}
+
+.button-group {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 0.5rem;
+}

@@ -1,0 +1,45 @@
+{
+  "global": {
+    "tabEnableFloat": true,
+    "tabSetMinHeight": 100,
+    "tabSetMinWidth": 100,
+    "borderMinSize": 100,
+    "tabEnablePopoutOverlay": false,
+    "tabEnablePopoutIcon": false,
+    "tabEnablePopout": false
+  },
+  "layout": {
+    "type": "row",
+    "children": [
+      {
+        "type": "tabset",
+        "weight": 12.5,
+        "active": true,
+        "children": []
+      }
+    ],
+    "supportsPopout": false
+  },
+  "borders": [
+    {
+      "type": "border",
+      "location": "bottom",
+      "children": [
+        {
+          "type": "tab",
+          "enableClose": false,
+          "name": "Output",
+          "component": "output",
+          "icon": "images/bar_chart.svg"
+        },
+        {
+          "type": "tab",
+          "enableClose": false,
+          "name": "Terminal",
+          "component": "terminal",
+          "icon": "images/terminal.svg"
+        }
+      ]
+    }
+  ]
+}
