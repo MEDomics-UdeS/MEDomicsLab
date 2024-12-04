@@ -375,10 +375,6 @@ const regressionSettings = {
         },
         "code": "",
         "default": {
-            "data": {
-                "type": "dataframe",
-                "tooltip": "<p>Data set with shape (n_samples, n_features), where n_samples is the\nnumber of samples and n_features is the number of features. If data\nis not a pandas dataframe, it\u2019s converted to one using default column\nnames.</p>\n"
-            },
             "files": {
                 "type": "data-input",
                 "tooltip": "<p>Specify path to csv file or to medomics folder</p>"
