@@ -94,7 +94,7 @@ const PipelineResult = ({ pipeline, selectionMode, flowContent }) => {
         let type = selectedNode.data.internal.type
         console.log("type", type)
         if (type == "dataset" || type == "clean") {
-          toReturn = <DataParamResults selectedResults={selectedResults} />
+          toReturn = <DataParamResults selectedResults={selectedResults} type={type}/>
         } else if (["train_model", "compare_models", "stack_models", "ensemble_model", "tune_model", "blend_models", "calibrate_model"].includes(type)) {
           toReturn = <ModelsResults selectedResults={selectedResults} />
         } else if (type == "analyze") {
