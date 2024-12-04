@@ -85,7 +85,7 @@ const regressionModelSettings = {
             }
         },
         "code": "lasso",
-        "label": "Lasso"
+        "label": "Lasso Regression"
     },
     "ridge": {
         "options": {
@@ -131,7 +131,7 @@ const regressionModelSettings = {
              }
         },
         "code": "ridge",
-        "label": "Ridge"
+        "label": "Ridge Regression"
     },
     "en": {
         "options": {
