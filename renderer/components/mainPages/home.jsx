@@ -3,7 +3,6 @@ import Image from "next/image"
 import myimage from "../../../resources/medomics_transparent_bg.png"
 import { Button, Stack } from "react-bootstrap"
 import { WorkspaceContext } from "../workspace/workspaceContext"
-// import { DataContext } from "../workspace/dataContext"
 import { ipcRenderer } from "electron"
 import FirstSetupModal from "../generalPurpose/installation/firstSetupModal"
 
@@ -13,8 +12,6 @@ import FirstSetupModal from "../generalPurpose/installation/firstSetupModal"
  */
 const HomePage = () => {
   const { workspace, setWorkspace, recentWorkspaces } = useContext(WorkspaceContext)
-  // const { globalData } = useContext(DataContext)
-  
   const [hasBeenSet, setHasBeenSet] = useState(workspace.hasBeenSet)
 
   const [requirementsMet, setRequirementsMet] = useState(true)
@@ -37,7 +34,6 @@ const HomePage = () => {
 
   // We set the workspace hasBeenSet state
   useEffect(() => {
-    console.log("Workspace: ", workspace)
     if (workspace.hasBeenSet == false) {
       setHasBeenSet(true)
     } else {
@@ -68,43 +64,29 @@ const HomePage = () => {
               </Button>
               <h5>Or open a recent workspace</h5>
               <Stack direction="vertical" gap={0} style={{ padding: "0 0 0 0", alignContent: "center" }}>
-                {recentWorkspaces.map((recentWorkspace, index) => {
+                {recentWorkspaces.map((workspace, index) => {
                   if (index > 4) return
                   return (
                     <a
                       key={index}
                       onClick={() => {
-                        if (Object.prototype.hasOwnProperty.call(recentWorkspace, "path")){
-                        ipcRenderer.invoke("setWorkingDirectory", recentWorkspace.path).then((data) => {
-                          if (recentWorkspace !== data) {
+                        ipcRenderer.invoke("setWorkingDirectory", workspace.path).then((data) => {
+                          if (workspace !== data) {
                             let workspaceToSet = { ...data }
                             setWorkspace(workspaceToSet)
-                            ipcRenderer.send("messageFromNext", "updateWorkingDirectory")
                           }
                         })
-                      }
                       }}
                       style={{ margin: "0rem", color: "var(--blue-600)" }}
                     >
-                      <h6>{recentWorkspace.path}</h6>
+                      <h6>{workspace.path}</h6>
                     </a>
                   )
                 })}
               </Stack>
             </>
           ) : (
-            // Check if the workspace.WorkingDirectory.path is not undefined
-            // workspace.workingDirectory.path !== undefined && (
-
-            Object.prototype.hasOwnProperty.call(workspace.workingDirectory, "path")
-             && (
-              // If it is not undefined, we display the path
-              // If it is undefined, we display the message
-              // Workspace is set to {workspace.workingDirectory.path}
-              // Workspace is not set
-              // <h5>_</h5>
-              <h5>Workspace is set to {workspace.workingDirectory.path}</h5>
-            )
+            <h5>Workspace is set to {workspace.workingDirectory.path}</h5>
           )}
         </Stack>
       </div>
