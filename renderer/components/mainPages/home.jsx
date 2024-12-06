@@ -64,14 +64,14 @@ const HomePage = () => {
               </Button>
               <h5>Or open a recent workspace</h5>
               <Stack direction="vertical" gap={0} style={{ padding: "0 0 0 0", alignContent: "center" }}>
-                {recentWorkspaces.map((workspace, index) => {
+                {recentWorkspaces.map((recentWorkspace, index) => {
                   if (index > 4) return
                   return (
                     <a
                       key={index}
                       onClick={() => {
-                        ipcRenderer.invoke("setWorkingDirectory", workspace.path).then((data) => {
-                          if (workspace !== data) {
+                        ipcRenderer.invoke("setWorkingDirectory", recentWorkspace.path).then((data) => {
+                          if (recentWorkspace !== data) {
                             let workspaceToSet = { ...data }
                             setWorkspace(workspaceToSet)
                           }
@@ -79,14 +79,15 @@ const HomePage = () => {
                       }}
                       style={{ margin: "0rem", color: "var(--blue-600)" }}
                     >
-                      <h6>{workspace.path}</h6>
+                      <h6>{recentWorkspace.path}</h6>
                     </a>
                   )
                 })}
               </Stack>
             </>
           ) : (
-            <h5>Workspace is set to {workspace.workingDirectory.path}</h5>
+            // <h5>Workspace is set to {workspace.workingDirectory.path}</h5>
+            <h5>Workspace is set</h5>
           )}
         </Stack>
       </div>
