@@ -50,7 +50,7 @@ const LayoutManager = (props) => {
     console.log("port set to: ", port)
     if (port) {
       ipcRenderer.invoke("getBundledPythonEnvironment").then((res) => {
-        console.log("Python imbedded: ", res)
+        console.log("Python embedded: " + res)
         if (res !== null) {
           requestBackend(
             port,

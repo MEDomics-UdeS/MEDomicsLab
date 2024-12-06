@@ -146,6 +146,10 @@ export function getBundledPythonEnvironment() {
   let pythonEnvironment = null
 
   let bundledPythonPath = null
+
+  // Check if the python path can be found in the .medomics directory
+  let medomicsDirExists = fs.existsSync(path.join(app.getPath("home"), ".medomics", "python"))
+
   if (process.env.NODE_ENV === "production") {
     // Get the user path followed by .medomics
     let userPath = getHomePath()
@@ -165,7 +169,11 @@ export function getBundledPythonEnvironment() {
 
     bundledPythonPath = path.join(userPath, ".medomics", "python")
   } else {
-    bundledPythonPath = path.join(process.cwd(), "python")
+    if (medomicsDirExists) {
+      bundledPythonPath = path.join(getHomePath(), ".medomics", "python")
+    } else {
+      bundledPythonPath = path.join(process.cwd(), "python")
+    }
   }
 
   pythonEnvironment = path.join(bundledPythonPath, "bin", "python")
