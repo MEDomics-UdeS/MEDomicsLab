@@ -15,6 +15,8 @@ import { TbFileExport } from "react-icons/tb"
 import { VscChromeClose } from "react-icons/vsc"
 import { PiGraphFill } from "react-icons/pi"
 import { MdOutlineGroups3 } from "react-icons/md"
+import { SiApachesuperset  } from "react-icons/si"
+
 /**
  * @description Sidebar component containing icons for each page
  * @param {function} onSidebarItemSelect - function to handle sidebar item selection
@@ -100,6 +102,7 @@ const IconSidebar = ({ onSidebarItemSelect }) => {
         <Tooltip target=".inputNav" {...delayOptions} className="tooltip-icon-sidebar" />
         <Tooltip target=".extractionNav" {...delayOptions} className="tooltip-icon-sidebar" data-pr-disabled={extractionBtnstate} />
         <Tooltip target=".exploratoryNav" {...delayOptions} className="tooltip-icon-sidebar" />
+        <Tooltip target=".supersetNav" {...delayOptions} className="tooltip-icon-sidebar" />
         <Tooltip target=".learningNav" {...delayOptions} className="tooltip-icon-sidebar" />
         <Tooltip target=".resultsNav" {...delayOptions} className="tooltip-icon-sidebar" />
         <Tooltip target=".evaluationNav" {...delayOptions} className="tooltip-icon-sidebar" />
@@ -268,6 +271,22 @@ const IconSidebar = ({ onSidebarItemSelect }) => {
                 {" "}
                 <FaMagnifyingGlassChart style={{ height: "1.7rem", width: "auto" }} />
               </Nav.Link>
+
+              <Nav.Link
+                className="supersetNav btnSidebar align-center"
+                data-pr-at="right center"
+                data-pr-my="left center"
+                data-pr-tooltip="Superset"
+                eventKey="superset"
+                data-tooltip-id="tooltip-superset"
+                onDoubleClick={(event) => handleDoubleClick(event, "Superset")}
+                onClick={(event) => handleClick(event, "superset")}
+                disabled={disabledIcon}
+              >
+                {" "}
+                <SiApachesuperset style={{ height: "1.7rem", width: "auto" }} />
+              </Nav.Link>
+
             </div>
             <div className="medomics-layer-text">Design</div>
           </div>
