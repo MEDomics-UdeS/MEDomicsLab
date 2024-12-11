@@ -31,6 +31,9 @@ import { shell } from "electron"
  * @param {JSX.Element} nodeSpecific jsx element to display specific settings of the node inside the offcanvas
  * @param {JSX.Element} nodeBody jsx element to display the body of the node
  * @param {JSX.Element} defaultSettings jsx element to display default settings of the node inside the offcanvas
+ * @param {function} onClickCustom function to call when the node is clicked
+ * @param {boolean} isGroupNode boolean to know if the node is a group node
+ * @param {string} nodeLink link to the documentation of the node
  *
  * @returns {JSX.Element} A node
  *
@@ -40,7 +43,7 @@ import { shell } from "electron"
  * Note: all JSX.Element props are not mandatory
  * Note: see Powerpoint for additionnal
  */
-const NodeObject = ({ id, data, nodeSpecific, nodeBody, defaultSettings, onClickCustom, isGroupNode }) => {
+const NodeObject = ({ id, data, nodeSpecific, nodeBody, defaultSettings, onClickCustom, isGroupNode, nodeLink }) => {
   const [nodeName, setNodeName] = useState(data.internal.name) // used to store the name of the node
   const { flowInfos, canRun } = useContext(FlowInfosContext) // used to get the flow infos
   const { showResultsPane } = useContext(FlowResultsContext) // used to get the flow results
@@ -184,7 +187,7 @@ const NodeObject = ({ id, data, nodeSpecific, nodeBody, defaultSettings, onClick
                 <AiOutlineInfoCircle
                   className="btn-info-node"
                   onClick={() => {
-                    shell.openExternal("http://google.com")
+                    shell.openExternal(nodeLink)
                   }}
                 />
               </div>

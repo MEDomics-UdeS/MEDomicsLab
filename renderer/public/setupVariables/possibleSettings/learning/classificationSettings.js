@@ -33,9 +33,16 @@ const classificationSettings = {
                 "default_val": "lightgbm"
             },
             "numeric_imputation": {
-                "type": "int-float-str",
+                "type": "list",
                 "tooltip": "<p>Imputing strategy for numerical columns. Ignored when imputation_type= iterative. Choose from:</p>\n<blockquote>\n<div><ul >\n<li><p>\u201cdrop\u201d: Drop rows containing missing values.</p></li>\n<li><p>\u201cmean\u201d: Impute with mean of column.</p></li>\n<li><p>\u201cmedian\u201d: Impute with median of column.</p></li>\n<li><p>\u201cmode\u201d: Impute with most frequent value.</p></li>\n<li><p>\u201cknn\u201d: Impute using a K-Nearest Neighbors approach.</p></li>\n<li><p>int or float: Impute with provided numerical value.</p></li>\n</ul>\n</div></blockquote>\n",
-                "default_val": "mean"
+                "default_val": "mean",
+                "choices": {
+                    "drop": "Drop rows containing missing values",
+                    "mean": "Impute with mean of column",
+                    "median": "Impute with median of column",
+                    "mode": "Impute with most frequent value",
+                    "knn": "Impute using a K-Nearest Neighbors approach"
+                }
             },
             "numeric_iterative_imputer": {
                 "type": "string",

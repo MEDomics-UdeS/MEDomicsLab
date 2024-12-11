@@ -115,6 +115,8 @@ const SelectionNode = ({ id, data, type }) => {
             })}
           </>
         }
+        // Link to documentation
+        nodeLink={"https://medomics-udes.gitbook.io/medomicslab-docs/tutorials/development/learning-module"}
       />
     </>
   )

@@ -23,7 +23,8 @@ const regressionModelSettings = {
                 "tooltip": "bool, default=False. When set to True, forces the coefficients to be positive."
             }
         },
-        "code": "lr"
+        "code": "lr",
+        "label": "Linear Regression"
     },
     "lasso": {
         "options": {
@@ -83,7 +84,8 @@ const regressionModelSettings = {
                 "tooltip": "String, default=’cyclic’. If set to ‘random’, a random coefficient is updated every iteration rather than looping over features sequentially by default."
             }
         },
-        "code": "lasso"
+        "code": "lasso",
+        "label": "Lasso Regression"
     },
     "ridge": {
         "options": {
@@ -128,7 +130,8 @@ const regressionModelSettings = {
                 "tooltip": "int, default=8771. Used when solver == ‘sag’ or ‘saga’ to shuffle the data."     
              }
         },
-        "code": "ridge"
+        "code": "ridge",
+        "label": "Ridge Regression"
     },
     "en": {
         "options": {
@@ -188,7 +191,8 @@ const regressionModelSettings = {
                 "tooltip": "String, default=’cyclic’. If set to ‘random’, a random coefficient is updated every iteration rather than looping over features sequentially by default."
             }
         },
-        "code": "en"
+        "code": "en",
+        "label": "Elastic Net"
     },
     "lar": {
         "options": {
@@ -243,7 +247,8 @@ const regressionModelSettings = {
                 "tooltip": "int, default=8771. Determines random number generation for jittering."       
                  }
         },
-        "code": "lar"
+        "code": "lar",
+        "label": "Least Angle Regression"
     },
     "llar": {
         "options": {
@@ -308,7 +313,8 @@ const regressionModelSettings = {
                 "tooltip": "int, default=8771. Determines random number generation for jittering."       
                }
         },
-        "code": "llar"
+        "code": "llar",
+        "label": "Lasso Least Angle Regression"
     },
     "omp": {
         "options": {
@@ -338,7 +344,8 @@ const regressionModelSettings = {
                 "tooltip": "String, default=’auto’. Whether to use a precomputed Gram matrix to speed up calculations."
             }
         },
-        "code": "omp"
+        "code": "omp",
+        "label": "Orthogonal Matching Pursuit"
     },
     "br": {
         "options": {
@@ -403,7 +410,8 @@ const regressionModelSettings = {
 				"tooltip": "bool, default=False. Verbose mode when fitting the model."
             }
         },
-        "code": "br"
+        "code": "br",
+        "label": "Bayesian Ridge"
     },
     "ard": {
         "options": {
@@ -463,7 +471,8 @@ const regressionModelSettings = {
 				"tooltip": "bool, default=False. Verbose mode when fitting the model."
             }
         },
-        "code": "ard"
+        "code": "ard",
+        "label": "Automatic Relevance Determination"
     },
     "par": {
         "options": {
@@ -568,7 +577,8 @@ const regressionModelSettings = {
                 "tooltip": "float, default=0.001. Tolerance for stopping criteria."
             }
         },
-        "code": "par"
+        "code": "par",
+        "label": "Passive Aggressive Regressor"
     },
     "ransac": {
         "options": {
@@ -638,7 +648,8 @@ const regressionModelSettings = {
                 "tooltip": "String, default='deprecated'. The base estimator from which the ensemble is grown."
             }
         },
-        "code": "ransac"
+        "code": "ransac",
+        "label": "RANSAC Regressor"
     },
     "tr": {
         "options": {
@@ -688,7 +699,8 @@ const regressionModelSettings = {
 				"tooltip": "bool, default=False. Verbose mode when fitting the model."
             }
         },
-        "code": "tr"
+        "code": "tr",
+        "label": "Theil-Sen Regressor"
     },
     "huber": {
         "options": {
@@ -723,7 +735,8 @@ const regressionModelSettings = {
                 "tooltip": "float, default=1e-05. Tolerance for stopping criteria."
             }
         },
-        "code": "huber"
+        "code": "huber",
+        "label": "Huber Regressor"
     },
     "kr": {
         "options": {
@@ -758,7 +771,8 @@ const regressionModelSettings = {
                 "tooltip": "NoneType, default=None. Additional parameters (keyword arguments) for kernel function passed as callable object."
             }
         },
-        "code": "kr"
+        "code": "kr",
+        "label": "Kernel Ridge"
     },
     "svm": {
         "options": {
@@ -838,7 +852,8 @@ const regressionModelSettings = {
                 "tooltip": "NoneType, default=None. The seed of the pseudo random number generator to use when shuffling the data."        
                 }
         },
-        "code": "svm"
+        "code": "svm",
+        "label": "Support Vector Machine"
     },
     "knn": {
         "options": {
@@ -888,7 +903,8 @@ const regressionModelSettings = {
                 "tooltip": "String, default=’uniform’. Weight function used in prediction. Possible values: ‘uniform’ : Uniform weights. All points in each neighborhood are weighted equally. ‘Distance’ : weight points by the inverse of their distance. in this case, closer neighbors of a query point will have a greater influence than neighbors which are further away. Callable : a user-defined function which accepts an array of distances, and returns an array of the same shape containing the weights."
             }
         },
-        "code": "knn"
+        "code": "knn",
+        "label": "K-Nearest Neighbors"
     },
     "dt": {
         "options": {
@@ -953,7 +969,8 @@ const regressionModelSettings = {
                 "tooltip": "float, default=0.0. Complexity parameter used for Minimal Cost-Complexity Pruning. The subtree with the largest cost complexity that is smaller than ccp_alpha will be chosen. By default, no pruning is performed."
             }
         },
-        "code": "dt"
+        "code": "dt",
+        "label": "Decision Tree Regressor"
     },
     "rf": {
         "options": {
@@ -1063,7 +1080,8 @@ const regressionModelSettings = {
                 "tooltip": "float, default=0.0. Complexity parameter used for Minimal Cost-Complexity Pruning. The subtree with the largest cost complexity that is smaller than ccp_alpha will be chosen. By default, no pruning is performed."
             }
         },
-        "code": "rf"
+        "code": "rf",
+        "label": "Random Forest Regressor"
     },
     "et": {
         "options": {
@@ -1173,7 +1191,8 @@ const regressionModelSettings = {
                 "tooltip": "float, default=0.0. Complexity parameter used for Minimal Cost-Complexity Pruning. The subtree with the largest cost complexity that is smaller than ccp_alpha will be chosen. By default, no pruning is performed."
             }
         },
-        "code": "et"
+        "code": "et",
+        "label": "Extra Trees Regressor"
     },
     "ada": {
         "options": {
@@ -1213,7 +1232,8 @@ const regressionModelSettings = {
                 "tooltip": "String, default=’linear’. The loss function to be used. ‘Hinge’ gives a linear SVM. ‘Log_loss’ gives logistic regression, a probabilistic classifier. ‘Modified_huber’ is another smooth loss that brings tolerance to outliers as well as probability estimates. ‘Squared_hinge’ is like hinge but is quadratically penalized. ‘Perceptron’ is the linear loss used by the perceptron algorithm. The other losses, ‘Squared_error’, ‘Huber’, ‘Epsilon_insensitive’ and ‘Squared_epsilon_insensitive’ are designed for regression but can be useful in classification as well"
             }
         },
-        "code": "ada"
+        "code": "ada",
+        "label": "AdaBoost Regressor"
     },
     "gbr": {
         "options": {
@@ -1323,7 +1343,8 @@ const regressionModelSettings = {
                 "tooltip": "float, default=0.0001. Tolerance for stopping criteria."
             }
         },
-        "code": "gbr"
+        "code": "gbr",
+        "label": "Gradient Boosting Regressor"
     },
     "mlp": {
         "options": {
@@ -1448,7 +1469,8 @@ const regressionModelSettings = {
                 "tooltip": "int, default=15000. Only used when solver=’lbfgs’. Maximum number of loss function calls."
             }
         },
-        "code": "mlp"
+        "code": "mlp",
+        "label": "Multi-layer Perceptron Regressor"
     },
     "lightgbm": {
         "options": {
@@ -1548,7 +1570,8 @@ const regressionModelSettings = {
                 "tooltip": "NoneType, default=None. Set the parameter C of class i to class_weight[i]*C for SVC. If not given, all classes are supposed to have weight one. The “balanced” mode uses the values of y to automatically adjust weights inversely proportional to class frequencies in the input data as n_samples / (n_classes * np.bincount(y))."
             }
         },
-        "code": "lightgbm"
+        "code": "lightgbm",
+        "label": "LightGBM Regressor"
     },
     "dummy": {
         "options": {
@@ -1568,7 +1591,8 @@ const regressionModelSettings = {
                 "tooltip": "NoneType, default=None. The quantile to predict using the “quantile” strategy."
             }
         },
-        "code": "dummy"
+        "code": "dummy",
+        "label": "Dummy Regressor"
     }
 };
  export default regressionModelSettings;

@@ -4,10 +4,11 @@ from ydata_profiling import ProfileReport
 import pandas as pd
 import sys
 import pymongo
-
+import tempfile
 from pathlib import Path
-sys.path.append(
-    str(Path(os.path.dirname(os.path.abspath(__file__))).parent.parent))
+
+sys.path.append(str(Path(os.path.dirname(os.path.abspath(__file__))).parent.parent))
+
 from med_libs.server_utils import go_print
 from med_libs.GoExecutionScript import GoExecutionScript, parse_arguments
 
@@ -60,16 +61,22 @@ class StartYDataProfiling(GoExecutionScript):
             collection2_report = ProfileReport(collection2_df, title=collection2_name, minimal=True)
             self.set_progress(label="Comparing reports", now=75)
             final_report = collection1_report.compare(collection2_report)
-
-        # Save results
+        
+        # Save report to HTML
         self.set_progress(label="Saving report", now=90)
-        if not os.path.exists(os.path.dirname(json_config['savingPath'])):
-            os.makedirs(os.path.dirname(json_config['savingPath']))
-        final_report.to_file(json_config['savingPath'])
-        self.results["savingPath"] = json_config['savingPath']
-        self.set_progress(label="Done!", now=100)
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".html") as f:
+            temp_html_path = f.name
+            final_report.to_file(f.name)
+        # Read the HTML content from the temporary file
+        with open(temp_html_path, "r", encoding="utf-8") as html_file:
+            html_content = html_file.read()
+        # Remove the temporary file
+        os.remove(temp_html_path)
+        # Save to mongoDB
+        database[json_config['htmlFileID']].insert_one({"htmlContent": html_content})
 
         # Get results
+        self.set_progress(label="Done!", now=100)
         return self.results
 
 

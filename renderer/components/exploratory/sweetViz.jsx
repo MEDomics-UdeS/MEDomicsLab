@@ -85,7 +85,11 @@ const SweetViz = ({ pageId, port, setError }) => {
       console.log("COPY", globalDataCopy)
     }
     let medObjectName =
-      compDataset && compareChecked ? path.basename(mainDataset.value.name, ".csv") + "_" + path.basename(compDataset.name, ".csv") + ".html" : path.basename(mainDataset.value.name, ".csv") + ".html"
+      compDataset && compareChecked ? 
+      path.basename(mainDataset.value.name, ".csv") + 
+      "_" + path.basename(compDataset.name, ".csv") + 
+      ".html" : path.basename(mainDataset.value.name, ".csv") + 
+      ".html"
     medObjectName = MEDDataObject.getUniqueNameForCopy(globalDataCopy, medObjectName, parentId)
     const newReport = new MEDDataObject({
       id: htmlFileID,
