@@ -226,7 +226,7 @@ if (isProd) {
         // Kill the process on the port
         // killProcessOnPort(serverPort)
       } else if (process.platform === "darwin") {
-        execSync("pkill -f mongod")
+        exec("pkill -f mongod")
       } else {
         try {
           execSync("killall mongod")
