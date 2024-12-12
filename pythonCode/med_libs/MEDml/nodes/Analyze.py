@@ -2,6 +2,9 @@ import copy
 import io
 import json
 import os
+from pathlib import Path
+import platform
+import tempfile
 import uuid
 from typing import Union
 
@@ -59,6 +62,9 @@ class Analyze(Node):
             # Convert plot settings to lowercase
             if 'plot' in settings and type(settings['plot']) == str:
                 settings['plot'] = settings['plot'].lower()
+            # Set saving path for plot_model
+            if 'save' in settings and settings['save']:
+                settings['save'] = Path("/tmp") if platform.system().lower() == "darwin" else True
             plot_image = experiment['pycaret_exp'].plot_model(model, **settings)
 
             # Save Image into MongoDB
