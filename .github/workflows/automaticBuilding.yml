@@ -6,6 +6,153 @@ on:
 permissions:
   contents: write
 jobs:
+  build-windows:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0 # Fetch full history for branches
+      
+      - name: Checking out the correct branches for submodules
+        run: |
+          git submodule foreach '
+          if [ "$name" = "pythonCode/submodules/MEDimage" ]; then
+            git fetch origin && git checkout -B dev_lab origin/dev_lab && git pull origin dev_lab
+          elif [ "$name" = "pythonCode/submodules/MEDprofiles" ]; then
+            git fetch origin && git checkout -B fusion_MEDomicsLab origin/fusion_MEDomicsLab && git pull origin fusion_MEDomicsLab
+          else
+            echo "No branch specified for $name"
+          fi
+          '
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18.13
+
+      - name: Get tag name
+        shell: bash
+        run: |
+          VERSION=${GITHUB_REF/refs\/tags\//} # Remove "refs/tags/" from the beginning of the tag name 
+          NEW_VERSION="${VERSION}"
+          node -p "let pkg=require('./package.json'); pkg.version='$NEW_VERSION'; require('fs').writeFileSync('package.json', JSON.stringify(pkg, null, 2));"
+
+      - name: Print package.json
+        run: Get-Content package.json
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Setup Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: 1.21
+
+      - name: Build go
+        run: |
+          cd go_server
+          go build main.go 
+          cd ..
+
+      - name: Prebuild libmongocrypt
+        run: bash ./utilScripts/libmongocrypt_prebuild.sh
+
+      - name: Build for Windows
+        run: npm run build:win
+
+      - name: Get tag name
+        id: get-tag
+        shell: bash
+        run: |
+          VERSION=${GITHUB_REF/refs\/tags\//}
+          echo "::set-output name=VERSION::${VERSION#v}"
+
+      - name: Archive Windows
+        uses: actions/upload-artifact@v3
+        with:
+          name: windows-built
+          path: ./build/dist/MEDomicsLab-${{ env.VERSION }}-win.exe
+        env:
+          VERSION: ${{ steps.get-tag.outputs.VERSION }}
+
+  build-linux-ubuntu:
+    runs-on: ubuntu-20.04
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0 # Fetch full history for branches
+      
+      - name: Checking out the correct branches for submodules
+        run: |
+          git submodule foreach '
+          if [ "$name" = "pythonCode/submodules/MEDimage" ]; then
+            git fetch origin && git checkout -B dev_lab origin/dev_lab && git pull origin dev_lab
+          elif [ "$name" = "pythonCode/submodules/MEDprofiles" ]; then
+            git fetch origin && git checkout -B fusion_MEDomicsLab origin/fusion_MEDomicsLab && git pull origin fusion_MEDomicsLab
+          else
+            echo "No branch specified for $name"
+          fi
+          '
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18.13
+
+      - name: Get tag name
+        run: |
+          VERSION=${GITHUB_REF/refs\/tags\//}
+          NEW_VERSION="${VERSION}"
+          node -p "let pkg=require('./package.json'); pkg.version='$NEW_VERSION'; require('fs').writeFileSync('package.json', JSON.stringify(pkg, null, 2));"
+
+      - name: Print package.json
+        run: cat package.json
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Setup Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: 1.21
+
+      - name: Build go
+        run: |
+          cd go_server
+          go build main.go 
+          cd ..
+
+      - name: Prebuild libmongocrypt
+        run: bash ./utilScripts/libmongocrypt_prebuild.sh
+
+      - name: Build for Linux
+        run: npm run build:linux
+
+      - name: Get tag name
+        id: get-tag
+        run: |
+          VERSION=${GITHUB_REF/refs\/tags\//}
+          echo "::set-output name=VERSION::${VERSION#v}"
+
+      - name: Rename Linux
+        run: mv ./build/dist/MEDomicsLab-${{ env.VERSION }}-linux.deb ./build/dist/MEDomicsLab-${{ env.VERSION }}-ubuntu.deb
+        env:
+          VERSION: ${{ steps.get-tag.outputs.VERSION }}
+
+      - name: Archive Linux
+        uses: actions/upload-artifact@v3
+        with:
+          name: linux-built-ubuntu
+          path: ./build/dist/MEDomicsLab-${{ env.VERSION }}-ubuntu.deb
+        env:
+          VERSION: ${{ steps.get-tag.outputs.VERSION }}
+
   build-mac:
     runs-on: macos-latest
 
@@ -136,11 +283,21 @@ jobs:
 
   # Publish to GitHub
   publish:
-    needs: [build-mac]
+    needs: [build-windows, build-linux-ubuntu, build-mac]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Download Windows
+        uses: actions/download-artifact@v3
+        with:
+          name: windows-built
+
+      - name: Download Linux Ubuntu
+        uses: actions/download-artifact@v3
+        with:
+          name: linux-built-ubuntu
 
       - name: Download Mac
         uses: actions/download-artifact@v3
@@ -179,6 +336,8 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           files: |
+            ./MEDomicsLab-${{ env.VERSION }}-win.exe
+            ./MEDomicsLab-${{ env.VERSION }}-ubuntu.deb
             ./MEDomicsLab-${{ env.VERSION }}-mac.pkg
           name: MEDomicsLab-${{ env.VERSION }}
           body: |
