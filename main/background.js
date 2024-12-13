@@ -226,7 +226,7 @@ if (isProd) {
         // Kill the process on the port
         // killProcessOnPort(serverPort)
       } else if (process.platform === "darwin") {
-        execSync("pkill -f mongod")
+        exec("pkill -f mongod")
       } else {
         try {
           execSync("killall mongod")
@@ -497,11 +497,11 @@ ipcMain.handle("checkMongoIsRunning", async (event) => {
   let port = MEDconfig.mongoPort
   let isRunning = false
   if (process.platform === "win32") {
-    isRunning = execSync(`netstat -ano | findstr :${port}`).toString().trim() !== ""
+    isRunning = exec(`netstat -ano | findstr :${port}`).toString().trim() !== ""
   } else if (process.platform === "darwin") {
-    isRunning = execSync(`lsof -i :${port}`).toString().trim() !== ""
+    isRunning = exec(`lsof -i :${port}`).toString().trim() !== ""
   } else {
-    isRunning = execSync(`netstat -tuln | grep ${port}`).toString().trim() !== ""
+    isRunning = exec(`netstat -tuln | grep ${port}`).toString().trim() !== ""
   }
 
   return isRunning
@@ -562,8 +562,8 @@ function startMongoDB(workspacePath) {
     if (process.platform !== "darwin") {
       mongoProcess = spawn(mongod, ["--config", mongoConfigPath])
     } else {
-      if (process.env.NODE_ENV === "production") {
-        mongoProcess = spawn(path.join(process.env.HOME, ".medomics", "mongodb", "bin", "mongod"), ["--config", mongoConfigPath])
+      if (fs.existsSync(getMongoDBPath())) {
+        mongoProcess = spawn(getMongoDBPath(), ["--config", mongoConfigPath])
       } else {
       mongoProcess = spawn("/opt/homebrew/Cellar/mongodb-community/7.0.12/bin/mongod", ["--config", mongoConfigPath], { shell: true })
       }
@@ -642,14 +642,13 @@ export function getMongoDBPath() {
     console.error("mongod not found")
     return null
   } else if (process.platform === "darwin") {
-    // Check if it is installed in the .medomics directory
-    if (process.env.NODE_ENV === "production") {
-      const binPath = path.join(app.getPath("sessionData"), ".medomics", "mongodb", "bin", "mongod")
+    // Check if it is installed in the .medomics directory    
+      const binPath = path.join(process.env.HOME, ".medomics", "mongodb", "bin", "mongod")
       if (fs.existsSync(binPath)) {
         console.log("mongod found in .medomics directory")
         return binPath
       }
-    } else {
+    if (process.env.NODE_ENV !== "production") {
 
     // Check if mongod is in the process.env.PATH
     const paths = process.env.PATH.split(path.delimiter)
