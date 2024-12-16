@@ -226,7 +226,7 @@ if (isProd) {
         // Kill the process on the port
         // killProcessOnPort(serverPort)
       } else if (process.platform === "darwin") {
-        execSync("pkill -f mongod")
+        exec("pkill -f mongod")
       } else {
         try {
           execSync("killall mongod")
@@ -497,11 +497,11 @@ ipcMain.handle("checkMongoIsRunning", async (event) => {
   let port = MEDconfig.mongoPort
   let isRunning = false
   if (process.platform === "win32") {
-    isRunning = execSync(`netstat -ano | findstr :${port}`).toString().trim() !== ""
+    isRunning = exec(`netstat -ano | findstr :${port}`).toString().trim() !== ""
   } else if (process.platform === "darwin") {
-    isRunning = execSync(`lsof -i :${port}`).toString().trim() !== ""
+    isRunning = exec(`lsof -i :${port}`).toString().trim() !== ""
   } else {
-    isRunning = execSync(`netstat -tuln | grep ${port}`).toString().trim() !== ""
+    isRunning = exec(`netstat -tuln | grep ${port}`).toString().trim() !== ""
   }
 
   return isRunning
