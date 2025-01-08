@@ -127,7 +127,7 @@ jobs:
           echo "::set-output name=VERSION::${VERSION#v}"
 
       - name: Sign binary
-        uses: lando/code-sign-action@v2
+        uses: lando/code-sign-action@v3
         with:
           file: ./build/dist/MEDomicsLab-${{ env.VERSION }}-mac.pkg
           certificate-data: ${{ secrets.APPLE_CERT_DATA }}
@@ -136,6 +136,7 @@ jobs:
           apple-notary-password: ${{ secrets.APPLE_NOTARY_PASSWORD }}
           apple-notary-tool: altool
           apple-team-id: ${{ secrets.APPLE_TEAM_ID }}
+          certificate-id: ${{ secrets.APPLE_TEAM_ID }}
           apple-product-id: com.medomicslab.medapp
           options: --options runtime --entitlements build/entitlements.mac.plist
         env:

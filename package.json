@@ -55,6 +55,7 @@
       "afterInstall": "build/after-install.sh"
     },
     "publish": null
+
   },
   "scripts": {
     "dev": "nextron",
@@ -150,6 +151,7 @@
     "@next/eslint-plugin-next": "^14.0.2",
     "bootstrap": "^5.2.3",
     "bootswatch": "^5.2.3",
+    "dotenv": "^16.4.7",
     "electron": "^21.4.4",
     "electron-builder": "^23.6.0",
     "eslint": "^8.44.0",
