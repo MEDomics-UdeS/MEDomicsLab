@@ -133,12 +133,14 @@ jobs:
           echo "APPLE_TEAM_ID=${{ secrets.APPLE_TEAM_ID }}" >> .env
           echo "VERSION=${{ steps.get-tag.outputs.VERSION }}" >> .env
           echo "APPLE_PRODUCT_ID=com.medomicslab.medapp" >> .env
-          echo "FILE_NAME=./build/dist/MEDomicsLab-${{ steps.get-tag.outputs.VERSION }}-mac.pkg" >> .env
+          echo "FILE_NAME=/build/dist/MEDomicsLab-${{ steps.get-tag.outputs.VERSION }}-mac.pkg" >> .env
+          echo "PWD2=$(pwd)" >> .env
           export CSC_IDENTITY_AUTO_DISCOVERY=false
           export CSC_LINK=${{ secrets.APPLE_CERT_DATA }}
           export CSC_KEY_PASSWORD=${{ secrets.APPLE_CERT_PASSWORD }}
           export CSC_INSTALLER_LINK=${{ secrets.APPLE_CERT_DATA }}
           export CSC_INSTALLER_KEY_PASSWORD=${{ secrets.APPLE_CERT_PASSWORD }}
+     
       - name: Build for Mac
         run: npm run build:mac
 
