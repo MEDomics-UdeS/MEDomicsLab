@@ -7,7 +7,6 @@ exports.default = async function notarizing(context) {
   }
 
   const appName = context.packager.appInfo.productFilename;
-  console.log(`Notarizing ${appName}... at ${appOutDir}/${appName}.pkg`);
 
   console.log('Notarizing... with process.env.APPLE_TEAM_ID:', process.env.APPLE_TEAM_ID);
   console.log('Notarizing... with process.env.APPLE_NOTARY_USER:', process.env.APPLE_NOTARY_USER);

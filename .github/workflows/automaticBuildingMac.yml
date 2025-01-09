@@ -138,21 +138,21 @@ jobs:
       - name: Build for Mac
         run: npm run build:mac
 
-      - name: Sign binary
-        uses: lando/code-sign-action@v3
-        with:
-          file: ./build/dist/MEDomicsLab-${{ env.VERSION }}-mac.pkg
-          certificate-data: ${{ secrets.APPLE_CERT_DATA }}
-          certificate-password: ${{ secrets.APPLE_CERT_PASSWORD }}
-          apple-notary-user: ${{ secrets.APPLE_NOTARY_USER }}
-          apple-notary-password: ${{ secrets.APPLE_NOTARY_PASSWORD }}
-          apple-notary-tool: altool
-          apple-team-id: ${{ secrets.APPLE_TEAM_ID }}
-          certificate-id: ${{ secrets.APPLE_TEAM_ID }}
-          apple-product-id: com.medomicslab.medapp
-          options: --options runtime --entitlements build/entitlements.mac.plist
-        env:
-          VERSION: ${{ steps.get-tag.outputs.VERSION }}
+      # - name: Sign binary
+      #   uses: lando/code-sign-action@v3
+      #   with:
+      #     file: ./build/dist/MEDomicsLab-${{ env.VERSION }}-mac.pkg
+      #     certificate-data: ${{ secrets.APPLE_CERT_DATA }}
+      #     certificate-password: ${{ secrets.APPLE_CERT_PASSWORD }}
+      #     apple-notary-user: ${{ secrets.APPLE_NOTARY_USER }}
+      #     apple-notary-password: ${{ secrets.APPLE_NOTARY_PASSWORD }}
+      #     apple-notary-tool: altool
+      #     apple-team-id: ${{ secrets.APPLE_TEAM_ID }}
+      #     certificate-id: ${{ secrets.APPLE_TEAM_ID }}
+      #     apple-product-id: com.medomicslab.medapp
+      #     options: --options runtime --entitlements build/entitlements.mac.plist
+      #   env:
+      #     VERSION: ${{ steps.get-tag.outputs.VERSION }}
 
 
       - name: Archive Mac
