@@ -117,14 +117,26 @@ jobs:
       - name: Allocate more memory
         run: export NODE_OPTIONS=--max-old-space-size=8192
 
-      - name: Build for Mac
-        run: npm run build:mac
-
       - name: Get tag name
         id: get-tag
         run: |
           VERSION=${GITHUB_REF/refs\/tags\//}
           echo "::set-output name=VERSION::${VERSION#v}"
+        
+      - name: Create a .env file (Remove the existing one if it exists)
+        run: |
+          rm -f .env
+          echo "APPLE_CERT_DATA=${{ secrets.APPLE_CERT_DATA }}" >> .env
+          echo "APPLE_CERT_PASSWORD=${{ secrets.APPLE_CERT_PASSWORD }}" >> .env
+          echo "APPLE_NOTARY_USER=${{ secrets.APPLE_NOTARY_USER }}" >> .env
+          echo "APPLE_NOTARY_PASSWORD=${{ secrets.APPLE_NOTARY_PASSWORD }}" >> .env
+          echo "APPLE_TEAM_ID=${{ secrets.APPLE_TEAM_ID }}" >> .env
+          echo "VERSION=${{ steps.get-tag.outputs.VERSION }}" >> .env
+          echo "APPLE_PRODUCT_ID=com.medomicslab.medapp" >> .env
+          echo "FILE_NAME=MEDomicsLab-${{ steps.get-tag.outputs.VERSION }}-mac.pkg" >> .env
+
+      - name: Build for Mac
+        run: npm run build:mac
 
       - name: Sign binary
         uses: lando/code-sign-action@v3

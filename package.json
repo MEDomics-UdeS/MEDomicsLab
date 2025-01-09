@@ -54,7 +54,8 @@
     "deb": {
       "afterInstall": "build/after-install.sh"
     },
-    "publish": null
+    "publish": null,
+    "afterSign": "build/notarize.js"
 
   },
   "scripts": {
