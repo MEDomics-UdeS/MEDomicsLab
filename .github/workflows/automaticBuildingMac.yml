@@ -133,7 +133,7 @@ jobs:
           echo "APPLE_TEAM_ID=${{ secrets.APPLE_TEAM_ID }}" >> .env
           echo "VERSION=${{ steps.get-tag.outputs.VERSION }}" >> .env
           echo "APPLE_PRODUCT_ID=com.medomicslab.medapp" >> .env
-          echo "FILE_NAME=MEDomicsLab-${{ steps.get-tag.outputs.VERSION }}-mac.pkg" >> .env
+          echo "FILE_NAME=./build/dist/MEDomicsLab-${{ steps.get-tag.outputs.VERSION }}-mac.pkg" >> .env
 
       - name: Build for Mac
         run: npm run build:mac
