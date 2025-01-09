@@ -16,6 +16,31 @@ jobs:
           submodules: recursive
           fetch-depth: 0 # Fetch full history for branches
       
+      - name: Keys and certificates
+        env:
+          APPLE_CERT_DATA: ${{ secrets.APPLE_CERT_DATA }}
+          APPLE_CERT_PASSWORD: ${{ secrets.APPLE_CERT_PASSWORD }}
+          DEVELOPER_APP_CER: ${{ secrets.DEVELOPER_APP_CER }}
+          DEVELOPER_APP_KEY: ${{ secrets.DEVELOPER_APP_KEY }}
+
+          # echo ${{ secrets.APPLE_CERT_DATA }} | base64 --decode > certificate_installer.cer
+          # echo ${{ secrets.APPLE_CERT_PASSWORD }} | base64 --decode > certificate_installer.key
+          # echo ${{ secrets.DEVELOPER_APP_CER }} | base64 --decode > certificate_application.cer
+          # echo ${{ secrets.DEVELOPER_APP_KEY }} | base64 --decode > certificate_application.key
+        run: |
+          CERTIFICATE_PATH=$RUNNER_TEMP/build_certificate.p12
+          echo -n "$APPLE_CERT_DATA" | base64 --decode -o certificate_installer.p12
+          echo -n "$DEVELOPER_APP_CER" | base64 --decode -o certificate_application.p12
+
+          KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
+          security create-keychain -p "${{ secrets.APPLE_CERT_PASSWORD }}" $KEYCHAIN_PATH
+          security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
+          security unlock-keychain -p "${{ secrets.APPLE_CERT_PASSWORD }}" $KEYCHAIN_PATH
+
+          security import certificate_installer.p12 -P "${{ secrets.APPLE_CERT_PASSWORD }}" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+          security import certificate_application.p12 -P "${{ secrets.APPLE_CERT_PASSWORD }}" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+          security list-keychain -d user -s $KEYCHAIN_PATH
+  
       - name: Checking out the correct branches for submodules
         run: |
           git submodule foreach '
@@ -51,18 +76,8 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: 3.9
-      - name: Bash python 1st try
-        run: |
-          echo $PATH
-          python --version
-          which python
-      - name: Bash python 2nd try
-        run: |
-          echo $PATH
-          python --version
-          which python
-        shell: bash {0}
-      - name: Bash python 3rd try
+      
+      - name: Bash python version
         run: |
           echo $PATH
           python --version
@@ -81,7 +96,6 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - uses: actions/checkout@v4
 
       - name: Cache node modules
         id: cache-npm
@@ -123,43 +137,24 @@ jobs:
           VERSION=${GITHUB_REF/refs\/tags\//}
           echo "::set-output name=VERSION::${VERSION#v}"
         
-      - name: Create a .env file (Remove the existing one if it exists)
-        run: |
-          rm -f .env
-          echo "APPLE_CERT_DATA=${{ secrets.APPLE_CERT_DATA }}" >> .env
-          echo "APPLE_CERT_PASSWORD=${{ secrets.APPLE_CERT_PASSWORD }}" >> .env
-          echo "APPLE_NOTARY_USER=${{ secrets.APPLE_NOTARY_USER }}" >> .env
-          echo "APPLE_NOTARY_PASSWORD=${{ secrets.APPLE_NOTARY_PASSWORD }}" >> .env
-          echo "APPLE_TEAM_ID=${{ secrets.APPLE_TEAM_ID }}" >> .env
-          echo "VERSION=${{ steps.get-tag.outputs.VERSION }}" >> .env
-          echo "APPLE_PRODUCT_ID=com.medomicslab.medapp" >> .env
-          echo "FILE_NAME=/build/dist/MEDomicsLab-${{ steps.get-tag.outputs.VERSION }}-mac.pkg" >> .env
-          echo "PWD2=$(pwd)" >> .env
-          export CSC_IDENTITY_AUTO_DISCOVERY=false
-          export CSC_LINK=${{ secrets.APPLE_CERT_DATA }}
-          export CSC_KEY_PASSWORD=${{ secrets.APPLE_CERT_PASSWORD }}
-          export CSC_INSTALLER_LINK=${{ secrets.APPLE_CERT_DATA }}
-          export CSC_INSTALLER_KEY_PASSWORD=${{ secrets.APPLE_CERT_PASSWORD }}
-     
       - name: Build for Mac
         run: npm run build:mac
 
-      # - name: Sign binary
-      #   uses: lando/code-sign-action@v3
-      #   with:
-      #     file: ./build/dist/MEDomicsLab-${{ env.VERSION }}-mac.pkg
-      #     certificate-data: ${{ secrets.APPLE_CERT_DATA }}
-      #     certificate-password: ${{ secrets.APPLE_CERT_PASSWORD }}
-      #     apple-notary-user: ${{ secrets.APPLE_NOTARY_USER }}
-      #     apple-notary-password: ${{ secrets.APPLE_NOTARY_PASSWORD }}
-      #     apple-notary-tool: altool
-      #     apple-team-id: ${{ secrets.APPLE_TEAM_ID }}
-      #     certificate-id: ${{ secrets.APPLE_TEAM_ID }}
-      #     apple-product-id: com.medomicslab.medapp
-      #     options: --options runtime --entitlements build/entitlements.mac.plist
-      #   env:
-      #     VERSION: ${{ steps.get-tag.outputs.VERSION }}
+      - name: Sign the .pkg
+        env:
+          VERSION: ${{ steps.get-tag.outputs.VERSION }}
+        run: |
+          productsign --sign "${{ secrets.DEVELOPER_ID_INSTALLER }}" ./build/dist/MEDomicsLab-${{ env.VERSION }}-mac.pkg ./build/dist/MEDomicsLab-${{ env.VERSION }}-mac-signed.pkg
 
+      - name: Remove the unsigned .pkg
+        run: rm ./build/dist/MEDomicsLab-${{ env.VERSION }}-mac.pkg
+        env:
+          VERSION: ${{ steps.get-tag.outputs.VERSION }}
+
+      - name: Rename the signed .pkg
+        run: mv ./build/dist/MEDomicsLab-${{ env.VERSION }}-mac-signed.pkg ./build/dist/MEDomicsLab-${{ env.VERSION }}-mac.pkg
+        env:
+          VERSION: ${{ steps.get-tag.outputs.VERSION }}
 
       - name: Archive Mac
         uses: actions/upload-artifact@v3
@@ -168,10 +163,51 @@ jobs:
           path: ./build/dist/MEDomicsLab-${{ env.VERSION }}-mac.pkg
         env:
           VERSION: ${{ steps.get-tag.outputs.VERSION }}
+  
+  notarize-mac:
+    needs: [build-mac]
+    runs-on: macos-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download Mac
+        uses: actions/download-artifact@v3
+        with:
+          name: mac-built
+
+      - name: Get tag name
+        id: get-tag
+        run: |
+          VERSION=${GITHUB_REF/refs\/tags\//}
+          echo "::set-output name=VERSION::${VERSION#v}"
+
+      - name: Folder tree
+        run: ls -R
+
+      - name: "Notarize and Staple Release Build"
+        uses: GuillaumeFalourd/notary-tools@v1
+        with:
+          product_path: MEDomicsLab-${{ env.VERSION }}-mac.pkg
+          apple_id: ${{ secrets.APPLE_NOTARY_USER }}
+          password: ${{ secrets.APPLE_NOTARY_PASSWORD }}
+          team_id: ${{ secrets.APPLE_TEAM_ID }}
+          staple: true
+          xcode_path: "/Applications/Xcode.app"
+        env:
+          VERSION: ${{ steps.get-tag.outputs.VERSION }}
+
+      - name: Archive Mac signed
+        uses: actions/upload-artifact@v3
+        with:
+          name: mac-signed
+          path: ./MEDomicsLab-${{ env.VERSION }}-mac.pkg
+        env:
+          VERSION: ${{ steps.get-tag.outputs.VERSION }}
 
   # Publish to GitHub
   publish:
-    needs: [build-mac]
+    needs: [build-mac, notarize-mac]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code

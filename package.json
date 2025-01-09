@@ -35,6 +35,8 @@
     "mac": {
       "hardenedRuntime": true,
       "gatekeeperAssess": false,
+      "entitlements": "build/entitlements.mac.plist",
+      "entitlementsInherit": "build/entitlements.mac.plist",
       "category": "public.app-category.developer-tools",
       "target": "pkg"
     },
@@ -54,9 +56,7 @@
     "deb": {
       "afterInstall": "build/after-install.sh"
     },
-    "publish": null,
-    "afterSign": "build/notarize.js"
-
+    "publish": null
   },
   "scripts": {
     "dev": "nextron",
