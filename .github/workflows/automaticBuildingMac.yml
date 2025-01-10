@@ -2,7 +2,7 @@ name: Full build and publish with versioning
 on:
   push:
     tags:
-      - "m*" # Push events to matching v*, i.e. v1.0, v20.15.10
+      - "v*" # Push events to matching v*, i.e. v1.0, v20.15.10
 permissions:
   contents: write
 jobs:
@@ -145,9 +145,11 @@ jobs:
         env: 
           VERSION: ${{ steps.get-tag.outputs.VERSION }}
         run : |
-          cp ./utilScripts/sign_files.sh ./sign_files.sh
-          chmod +x ./sign_files.sh
-          sh ./sign_files.sh ${{ secrets.DEVELOPER_ID_APP }} ${{ env.VERSION }}
+          # For all files in the current directory, sign them
+          for file in $(ls -1); do
+            echo "Signing $file"
+            codesign -s "${{ secrets.DEVELOPER_ID_APP }}" -f --timestamp --options runtime --entitlements ./utilScripts/entitlements.plist $file
+          done
 
 
       - name: Build for Mac
