@@ -154,7 +154,7 @@ jobs:
           export APPLE_API_KEY_ID="${{ secrets.APPLE_API_KEY_ID }}"
           export APPLE_API_KEY="${{ secrets.APPLE_API_KEY }}"
           export APPLE_API_ISSUER="${{ secrets.APPLE_API_ISSUER }}"
-          
+
           
       - name: Build for Mac
         run: npm run build:mac-alone
@@ -177,17 +177,18 @@ jobs:
       # - name: Folder tree
       #   run: ls -R
 
-      # - name: "Notarize and Staple Release Build"
-      #   uses: GuillaumeFalourd/notary-tools@v1
-      #   with:
-      #     product_path: MEDomicsLab-${{ env.VERSION }}.pkg
-      #     apple_id: ${{ secrets.APPLE_NOTARY_USER }}
-      #     password: ${{ secrets.APPLE_NOTARY_PASSWORD }}
-      #     team_id: ${{ secrets.APPLE_TEAM_ID }}
-      #     staple: true
-      #     xcode_path: "/Applications/Xcode.app"
-      #   env:
-      #     VERSION: ${{ steps.get-tag.outputs.VERSION }}
+      - name: "Notarize and Staple Release Build"
+        uses: GuillaumeFalourd/notary-tools@v1
+        with:
+          product_path: MEDomicsLab-${{ env.VERSION }}-mac.pkg
+          # product_path: MEDomicsLab-${{ env.VERSION }}.pkg
+          apple_id: ${{ secrets.APPLE_NOTARY_USER }}
+          password: ${{ secrets.APPLE_NOTARY_PASSWORD }}
+          team_id: ${{ secrets.APPLE_TEAM_ID }}
+          staple: true
+          xcode_path: "/Applications/Xcode.app"
+        env:
+          VERSION: ${{ steps.get-tag.outputs.VERSION }}
 
       # - name: Archive Mac signed
       #   uses: actions/upload-artifact@v3
