@@ -148,7 +148,7 @@ jobs:
           # For all files in the current directory, sign them
           for file in $(ls -1); do
             echo "Signing $file"
-            codesign -s "${{ secrets.DEVELOPER_ID_APP }}" -f --timestamp --options runtime --entitlements ./utilScripts/entitlements.plist $file
+            codesign -s "${{ secrets.DEVELOPER_ID_APP }}" -f --timestamp --options runtime --entitlements ./build/entitlements.mac.plist $file
           done
 
 
