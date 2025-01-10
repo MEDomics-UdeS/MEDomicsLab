@@ -16,6 +16,7 @@ import { connectToMongoDB, insertMEDDataObjectIfNotExists } from "../../mongoDB/
 import { MEDDataObject } from "../../workspace/NewMedDataObject"
 import { DataContext } from "../../workspace/dataContext"
 import { getCollectionColumnTypes, getCollectionData } from "../utils"
+import { Checkbox } from "primereact/checkbox"
 
 /**
  * @description
@@ -33,6 +34,8 @@ const SubsetCreationToolsDB = ({ currentCollection, refreshData }) => {
   const [filteredData, setFilteredData] = useState([])
   const { globalData } = useContext(DataContext)
   const filterDisplay = "menu"
+  const [tagName, setTagName] = useState("")
+  const [isTagNameEnabled, setIsTagNameEnabled] = useState(false)
 
   useEffect(() => {
     const fetchData = async () => {
@@ -133,76 +136,131 @@ const SubsetCreationToolsDB = ({ currentCollection, refreshData }) => {
     await insertMEDDataObjectIfNotExists(object)
     MEDDataObject.updateWorkspaceDataObject()
     toast.success(`New subset ${collectionName} created with filtered data.`)
-  }
+
+    // Create row_tags collection if it doesn't exist and tagName is not empty
+    if (tagName) {
+      const rowTagsCollection = db.collection("row_tags");
+      const rowTagsExists = await rowTagsCollection.findOne({});
+      if (!rowTagsExists) {
+        await db.createCollection("row_tags");
+      }
+
+      // Create a single document for all row tags
+      const rowTagsDocument = {
+        // eslint-disable-next-line camelcase
+        collection_id: id,
+        tags: filteredData.map((row) => ({
+          // eslint-disable-next-line camelcase
+          row_id: row._id,
+          tags: [tagName]
+        })),
+        filename: collectionName
+      };
+      await rowTagsCollection.insertOne(rowTagsDocument);
+      toast.success(`Tags added to rows in row_tags collection.`);
+    }
+  };
 
   return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "center",
-        alignItems: "center",
-        padding: "5px"
-      }}
-    >
-      <Message
-        className="margin-top-15 margin-bottom-15 center"
-        severity="info"
-        text="The Subset Creation tool enables the creation of a subset of rows from a dataset by applying filters to columns."
-      />
-      <Message style={{ marginBottom: "15px" }} severity="success" text={`Current Collection: ${globalData[currentCollection].name}`} />
-      <Card style={{width: "900px"}}>
-        <DataTable
-          onValueChange={(e) => {
-            setFilteredData(e)
+      <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+            alignItems: "center",
+            padding: "5px"
           }}
-          className="p-datatable-striped p-datatable-gridlines"
-          value={data}
-          paginator={true}
-          rows={7}
-          rowsPerPageOptions={[5, 10, 15, 20]}
-          size={"small"}
-          removableSort={true}
-          filters={filters}
-          filterDisplay={filterDisplay}
-          globalFilterFields={columns.map((col) => col.field)}
-        >
-          {columns.length > 0 &&
-            columns.map((col) => <Column key={col} field={col.field} header={col.header} sortable={true} filter filterPlaceholder={`Search by ${col.header}`} filterField={col.field} />)}
-        </DataTable>
-      </Card>
+      >
+        <Message
+            className="margin-top-15 margin-bottom-15 center"
+            severity="info"
+            text="The Subset Creation tool enables the creation of a subset of rows from a dataset by applying filters to columns."
+        />
+        <Message style={{marginBottom: "15px"}} severity="success"
+                 text={`Current Collection: ${globalData[currentCollection].name}`}/>
+        <Card style={{width: "900px"}}>
+          <DataTable
+              onValueChange={(e) => {
+                setFilteredData(e)
+              }}
+              className="p-datatable-striped p-datatable-gridlines"
+              value={data}
+              paginator={true}
+              rows={7}
+              rowsPerPageOptions={[5, 10, 15, 20]}
+              size={"small"}
+              removableSort={true}
+              filters={filters}
+              filterDisplay={filterDisplay}
+              globalFilterFields={columns.map((col) => col.field)}
+          >
+            {columns.length > 0 &&
+                columns.map((col) => <Column key={col} field={col.field} header={col.header} sortable={true} filter
+                                             filterPlaceholder={`Search by ${col.header}`} filterField={col.field}/>)}
+          </DataTable>
+        </Card>
 
-      <Row className={"card"} style={{ display: "flex", justifyContent: "space-evenly", flexDirection: "row", marginTop: "0.5rem", backgroundColor: "transparent", padding: "0.5rem" }}>
-        <h6>
-          Rows selected : <b>{filteredData.length}</b>&nbsp; of &nbsp;
-          <b>{data ? data.length : 0}</b>
-        </h6>
-      </Row>
-      <div style={{ display: "flex", justifyContent: "center", alignItems: "center", marginTop: "1rem" }}>
-        <Button
-          className="p-button-danger"
-          label="Overwrite"
-          style={{ margin: "5px", fontSize: "1rem", padding: "6px 10px" }}
-          onClick={overwriteCollection}
-          tooltip="Overwrite current collection with filtered data"
-          tooltipOptions={{ position: "top" }}
-        />
-        <div className="p-inputgroup w-full md:w-30rem" style={{ margin: "10px", fontSize: "1rem", width: "230px", marginTop: "5px" }}>
-          <InputText 
-            value={newCollectionName} 
-            onChange={(e) => setNewCollectionName(e.target.value)} 
-            placeholder="New subset name"
+        <Row className={"card"} style={{
+          display: "flex",
+          justifyContent: "space-evenly",
+          flexDirection: "row",
+          marginTop: "0.5rem",
+          backgroundColor: "transparent",
+          padding: "0.5rem"
+        }}>
+          <h6>
+            Rows selected : <b>{filteredData.length}</b>&nbsp; of &nbsp;
+            <b>{data ? data.length : 0}</b>
+          </h6>
+        </Row>
+        <div style={{display: "flex", alignItems: "center", marginTop: "2rem"}}>
+          <Checkbox
+              inputId="tagNameCheckbox"
+              checked={isTagNameEnabled}
+              onChange={(e) => {
+                setIsTagNameEnabled(e.checked);
+                if (!e.checked) {
+                  setTagName("");
+                }
+              }}
+              tooltip="Tag name is optional, use it if you want to tag your subset"
+              tooltipOptions={{ position: "top" }}
           />
-          <span className="p-inputgroup-addon">.csv</span>
+          <label htmlFor="tagNameCheckbox" style={{marginLeft: "0.5rem"}}>Enable Tag Name</label>
         </div>
-        <Button
-          icon="pi pi-plus"
-          onClick={() => createNewCollectionSubset(newCollectionName)}
-          tooltip="Create subset"
-          tooltipOptions={{ position: "top" }}
+        <InputText
+            value={tagName}
+            onChange={(e) => setTagName(e.target.value)}
+            placeholder="Tag Name"
+            style={{ margin: "5px", fontSize: "1rem", padding: "6px 10px", marginTop: "2rem" }}
+            disabled={!isTagNameEnabled}
         />
+        <div style={{display: "flex", justifyContent: "center", alignItems: "center", marginTop: "1rem"}}>
+          <Button
+              className="p-button-danger"
+              label="Overwrite"
+              style={{margin: "5px", fontSize: "1rem", padding: "6px 10px"}}
+              onClick={overwriteCollection}
+              tooltip="Overwrite current collection with filtered data"
+              tooltipOptions={{position: "top"}}
+          />
+          <div className="p-inputgroup w-full md:w-30rem"
+               style={{margin: "10px", fontSize: "1rem", width: "230px", marginTop: "5px"}}>
+            <InputText
+                value={newCollectionName}
+                onChange={(e) => setNewCollectionName(e.target.value)}
+                placeholder="New subset name"
+            />
+            <span className="p-inputgroup-addon">.csv</span>
+          </div>
+          <Button
+              icon="pi pi-plus"
+              onClick={() => createNewCollectionSubset(newCollectionName)}
+              tooltip="Create subset"
+              tooltipOptions={{position: "top"}}
+          />
+        </div>
       </div>
-    </div>
   )
 }
 

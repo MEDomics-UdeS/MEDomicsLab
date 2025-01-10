@@ -76,36 +76,72 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
     overflow: "auto"
   }
 
+  const [rowTags, setRowTags] = useState({}); // State to store row tags
+  const [documentExists, setDocumentExists] = useState(false);
+
   // Fetch data from MongoDB on component mount
   useEffect(() => {
     if (data && data.id) {
-      console.log("Fetching data with:", data)
-      let collectionName = data.extension === "view" ? data.name : data.id
-      getCollectionData(collectionName)
-        .then((fetchedData) => {
-          console.log("Fetched data:", fetchedData)
-          let collData = fetchedData.map((item) => {
-            let keys = Object.keys(item)
-            let values = Object.values(item)
-            let dataObject = {}
+      console.log("Fetching data with:", data);
+      let collectionName = data.extension === "view" ? data.name : data.id;
+
+      const fetchData = async () => {
+        setLoadingData(true);
+        try {
+          const db = await connectToMongoDB();
+          const fetchedData = await getCollectionData(collectionName);
+
+          console.log("Fetched data:", fetchedData);
+
+          const collData = fetchedData.map((item) => {
+            let keys = Object.keys(item);
+            let values = Object.values(item);
+            let dataObject = {};
             for (let i = 0; i < keys.length; i++) {
-              dataObject[keys[i]] = keys[i] === "_id" ? item[keys[i]].toString() : values[i]
+              dataObject[keys[i]] = keys[i] === "_id" ? item[keys[i]].toString() : values[i];
             }
-            return dataObject
-          })
-          setInnerData(collData)
-        })
-        .catch((error) => {
-          console.error("Failed to fetch data:", error)
-        })
-        .finally(() => {
-          // Set loading to false after data has been fetched (whether successful or failed)
-          setLoadingData(false)
-        })
+            return dataObject;
+          });
+
+          // Fetch tags from 'row_tags' collection
+          const tagsCollection = db.collection("row_tags");
+          const tagsData = await tagsCollection.find({}).toArray();
+          const tagsMap = tagsData.reduce((acc, document) => {
+            if (document.tags) {
+              document.tags.forEach((tagItem) => {
+                const rowId = tagItem.row_id?.$oid || tagItem.row_id?.toString();
+                if (rowId) {
+                  acc[rowId] = (acc[rowId] || []).concat(tagItem.tags);
+                }
+              });
+            }
+            return acc;
+          }, {});
+
+          console.log("tagsMap", tagsMap);
+          setRowTags(tagsMap || {});
+          setInnerData(collData);
+
+          const dbRow = await connectToMongoDB();
+          const rowTagsCollection = dbRow.collection("row_tags");
+          // eslint-disable-next-line camelcase
+          const document = await rowTagsCollection.findOne({ collection_id: data.id });
+          setDocumentExists(!!document);
+
+        } catch (error) {
+          console.error("Failed to fetch data:", error);
+          toast.error("Error fetching data");
+        } finally {
+          setLoadingData(false);
+        }
+      };
+
+      fetchData();
     } else {
-      console.warn("Invalid data prop:", data)
+      console.warn("Invalid data prop:", data);
     }
-  }, [data])
+  }, [data, data.id]);
+
 
   // Update columns when innerData changes
   useEffect(() => {
@@ -660,6 +696,46 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
     localStorage.setItem("tagColorMap", JSON.stringify(tagColorMap))
   }, [tagColorMap])
 
+  const renderRowTags = (rowData) => {
+    const tags = rowTags[rowData._id] || [];
+    console.log("tags", tags);
+    return (
+        <div style={{ display: "flex", flexDirection: "row", gap: "5px" }}>
+          <Button
+              icon="pi pi-trash"
+              style={{ borderRadius: "10px", backgroundColor: "#cccccc", color: "white", border: "none" }}
+              onClick={() => viewRowDeletion(rowData)}
+          />
+          {documentExists && tags.map((tag, index) => (
+              <Chip
+                  key={index}
+                  label={tag}
+                  style={{ backgroundColor: "#e0e0e0", fontSize: "0.8rem", border: "1px solid #ccc" }}
+              />
+          ))}
+        </div>
+    );
+  };
+
+  // Function to remove the document in row_tags collection
+  const removeTagDocument = async () => {
+    try {
+      const db = await connectToMongoDB();
+      const rowTagsCollection = db.collection("row_tags");
+      // eslint-disable-next-line camelcase
+      await rowTagsCollection.deleteOne({ collection_id: data.id });
+      toast.success("Row tags removed successfully.");
+      // Check if the collection is empty
+      const remainingDocuments = await rowTagsCollection.countDocuments();
+      if (remainingDocuments === 0) {
+        await rowTagsCollection.drop();
+        }
+    } catch (error) {
+      console.error("Failed to remove tag document:", error);
+      toast.error("Error removing tag document.");
+    }
+  };
+
   return (
     <>
       <Dialog visible={viewMode} header="Preview changes" style={{ width: "80%", height: "80%" }} modal={true} onHide={() => onCancelChanges()}>
@@ -740,18 +816,23 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
             }
           >
             {!isReadOnly && (
-              <Column
-                field="delete"
-                body={(rowData) => (
-                  <Button
-                    icon="pi pi-trash"
-                    style={buttonStyle(rowData._id)}
-                    onClick={() => viewRowDeletion(rowData)}
-                    onMouseEnter={() => setHoveredButton(rowData._id)}
-                    onMouseLeave={() => setHoveredButton(null)}
-                  />
-                )}
-              />
+                <Column
+                    header={
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                        {documentExists && (
+                            <Button
+                                label="Remove Tag"
+                                icon="pi pi-trash"
+                                className="p-button-danger"
+                                onClick={removeTagDocument}
+                                style={{ marginLeft: "10px", padding: "4px 8px", fontSize: "0.8rem" }}
+                            />
+                        )}
+                      </div>
+                    }
+                    body={renderRowTags}
+                    style={{ width: "20%" }}
+                />
             )}
             {columns.length > 0
               ? columns.map((col) => (

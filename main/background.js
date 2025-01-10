@@ -226,14 +226,8 @@ if (isProd) {
         // Kill the process on the port
         // killProcessOnPort(serverPort)
       } else if (process.platform === "darwin") {
-        await new Promise((resolve, reject) => {
+        await new Promise((resolve) => {
           exec("pkill -f mongod", (error, stdout, stderr) => {
-            if (error) {
-              console.error(`exec error: ${error}`)
-              reject(error)
-            }
-            console.log(`stdout: ${stdout}`)
-            console.error(`stderr: ${stderr}`)
             resolve()
           })
         }
