@@ -7,7 +7,8 @@ permissions:
   contents: write
 jobs:
   build-mac:
-    runs-on: macos-latest
+    # runs-on: macos-latest
+    runs-on: self-hosted
 
     steps:
       - name: Checkout code
@@ -136,37 +137,37 @@ jobs:
         run: |
           VERSION=${GITHUB_REF/refs\/tags\//}
           echo "::set-output name=VERSION::${VERSION#v}"
-        
+
+      - name: Run prebuild script for Mac
+        run: npm run prebuild:mac
+
+      - name: Sign all the files
+        env: 
+          VERSION: ${{ steps.get-tag.outputs.VERSION }}
+        run : |
+          sh ./utilScripts/sign_files.sh ${{ secrets.DEVELOPER_ID_APP }} ${{ env.VERSION }}
+
+
       - name: Build for Mac
-        run: npm run build:mac
+        run: npm run build:mac-alone
 
       - name: Sign the .pkg
         env:
           VERSION: ${{ steps.get-tag.outputs.VERSION }}
         run: |
-          productsign --sign "${{ secrets.DEVELOPER_ID_INSTALLER }}" ./build/dist/MEDomicsLab-${{ env.VERSION }}-mac.pkg ./build/dist/MEDomicsLab-${{ env.VERSION }}-mac-signed.pkg
-
-      - name: Remove the unsigned .pkg
-        run: rm ./build/dist/MEDomicsLab-${{ env.VERSION }}-mac.pkg
-        env:
-          VERSION: ${{ steps.get-tag.outputs.VERSION }}
-
-      - name: Rename the signed .pkg
-        run: mv ./build/dist/MEDomicsLab-${{ env.VERSION }}-mac-signed.pkg ./build/dist/MEDomicsLab-${{ env.VERSION }}-mac.pkg
-        env:
-          VERSION: ${{ steps.get-tag.outputs.VERSION }}
+          productsign --sign "${{ secrets.DEVELOPER_ID_INSTALLER }}" ./build/dist/MEDomicsLab-${{ env.VERSION }}-mac.pkg ./build/dist/MEDomicsLab-${{ env.VERSION }}.pkg
 
       - name: Archive Mac
         uses: actions/upload-artifact@v3
         with:
           name: mac-built
-          path: ./build/dist/MEDomicsLab-${{ env.VERSION }}-mac.pkg
+          path: ./build/dist/MEDomicsLab-${{ env.VERSION }}.pkg
         env:
           VERSION: ${{ steps.get-tag.outputs.VERSION }}
   
   notarize-mac:
     needs: [build-mac]
-    runs-on: macos-latest
+    runs-on: self-hosted
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -188,7 +189,7 @@ jobs:
       - name: "Notarize and Staple Release Build"
         uses: GuillaumeFalourd/notary-tools@v1
         with:
-          product_path: MEDomicsLab-${{ env.VERSION }}-mac.pkg
+          product_path: MEDomicsLab-${{ env.VERSION }}.pkg
           apple_id: ${{ secrets.APPLE_NOTARY_USER }}
           password: ${{ secrets.APPLE_NOTARY_PASSWORD }}
           team_id: ${{ secrets.APPLE_TEAM_ID }}
@@ -201,7 +202,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: mac-signed
-          path: ./MEDomicsLab-${{ env.VERSION }}-mac.pkg
+          path: ./MEDomicsLab-${{ env.VERSION }}.pkg
         env:
           VERSION: ${{ steps.get-tag.outputs.VERSION }}
 
@@ -216,7 +217,7 @@ jobs:
       - name: Download Mac
         uses: actions/download-artifact@v3
         with:
-          name: mac-built
+          name: mac-signed
 
       - name: Install zip
         run: sudo apt-get install zip
