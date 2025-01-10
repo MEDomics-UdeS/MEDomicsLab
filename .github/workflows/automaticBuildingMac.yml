@@ -145,11 +145,8 @@ jobs:
         env: 
           VERSION: ${{ steps.get-tag.outputs.VERSION }}
         run : |
-          # For all files in the current directory, sign them
-          for file in $(ls -1); do
-            echo "Signing $file"
-            codesign -s "${{ secrets.DEVELOPER_ID_APP }}" -f --timestamp --options runtime --entitlements ./build/entitlements.mac.plist $file
-          done
+          # Recursively sign all files in the specified directories
+          find . -type f \( -name "*.app" -o -name "*.dylib" -o -name "*.so" -o -name "*.node" \) -exec codesign -s "${{ secrets.DEVELOPER_ID_APP }}" -f --timestamp --options runtime --entitlements ./build/entitlements.mac.plist {} \;
 
 
       - name: Build for Mac
