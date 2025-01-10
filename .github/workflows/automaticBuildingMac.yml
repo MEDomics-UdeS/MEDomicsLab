@@ -165,6 +165,20 @@ jobs:
       #   run: |
       #     productsign --sign "${{ secrets.DEVELOPER_ID_INSTALLER }}" ./build/dist/MEDomicsLab-${{ env.VERSION }}-mac.pkg ./build/dist/MEDomicsLab-${{ env.VERSION }}.pkg
 
+
+      - name: "Notarize and Staple Release Build"
+        uses: GuillaumeFalourd/notary-tools@v1
+        with:
+          product_path: ./build/dist/MEDomicsLab-${{ env.VERSION }}-mac.pkg
+          # product_path: MEDomicsLab-${{ env.VERSION }}.pkg
+          apple_id: ${{ secrets.APPLE_NOTARY_USER }}
+          password: ${{ secrets.APPLE_NOTARY_PASSWORD }}
+          team_id: ${{ secrets.APPLE_TEAM_ID }}
+          staple: true
+          xcode_path: "/Applications/Xcode.app"
+        env:
+          VERSION: ${{ steps.get-tag.outputs.VERSION }}
+
       - name: Archive Mac
         uses: actions/upload-artifact@v3
         with:
@@ -177,18 +191,7 @@ jobs:
       # - name: Folder tree
       #   run: ls -R
 
-      - name: "Notarize and Staple Release Build"
-        uses: GuillaumeFalourd/notary-tools@v1
-        with:
-          product_path: MEDomicsLab-${{ env.VERSION }}-mac.pkg
-          # product_path: MEDomicsLab-${{ env.VERSION }}.pkg
-          apple_id: ${{ secrets.APPLE_NOTARY_USER }}
-          password: ${{ secrets.APPLE_NOTARY_PASSWORD }}
-          team_id: ${{ secrets.APPLE_TEAM_ID }}
-          staple: true
-          xcode_path: "/Applications/Xcode.app"
-        env:
-          VERSION: ${{ steps.get-tag.outputs.VERSION }}
+      
 
       # - name: Archive Mac signed
       #   uses: actions/upload-artifact@v3
