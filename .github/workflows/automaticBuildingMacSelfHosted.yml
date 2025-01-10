@@ -2,7 +2,7 @@ name: Full build and publish with versioning
 on:
   push:
     tags:
-      - "m*" # Push events to matching v*, i.e. v1.0, v20.15.10
+      - "v*" # Push events to matching v*, i.e. v1.0, v20.15.10
 permissions:
   contents: write
 jobs:
@@ -72,27 +72,6 @@ jobs:
 
       - name: Mac OS X with M1 chip
         run: uname -m
-
-      - name: Install Python 2.7
-        uses: actions/setup-python@v2
-        with:
-          python-version: 3.9
-      
-      - name: Bash python version
-        run: |
-          echo $PATH
-          python --version
-          which python
-        shell: bash -l {0}
-
-      - name: Check if Python2.7 is installed
-        run: |
-          if ! which python2.7 > /dev/null; then
-            curl -O https://www.python.org/ftp/python/2.7.18/python-2.7.18-macosx10.9.pkg
-            sudo installer -pkg python-2.7.18-macosx10.9.pkg -target /
-          else
-            echo "Python 2.7 is already installed"
-          fi
 
       - name: Install dependencies
         run: npm install
