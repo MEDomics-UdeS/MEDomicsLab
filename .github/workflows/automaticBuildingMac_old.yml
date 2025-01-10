@@ -2,7 +2,7 @@ name: Full build and publish with versioning
 on:
   push:
     tags:
-      - "v*" # Push events to matching v*, i.e. v1.0, v20.15.10
+      - "_v*" # Push events to matching v*, i.e. v1.0, v20.15.10
 permissions:
   contents: write
 jobs:
@@ -148,55 +148,28 @@ jobs:
           # Recursively sign all files in the specified directories
           find . -type f \( -name "*.app" -o -name "*.dylib" -o -name "*.so" -o -name "*.node" \) -exec codesign -s "${{ secrets.DEVELOPER_ID_APP }}" -f --timestamp --options runtime --entitlements ./build/entitlements.mac.plist {} \;
 
-      - name: Export electron-builder required env variables
-      # 1. APPLE_API_KEY, APPLE_API_KEY_ID and APPLE_API_ISSUER are required for notarization
-        run: |
-          
+
       - name: Build for Mac
         run: npm run build:mac-alone
 
-      # - name: Sign the .pkg
-      #   env:
-      #     VERSION: ${{ steps.get-tag.outputs.VERSION }}
-      #   run: |
-      #     productsign --sign "${{ secrets.DEVELOPER_ID_INSTALLER }}" ./build/dist/MEDomicsLab-${{ env.VERSION }}-mac.pkg ./build/dist/MEDomicsLab-${{ env.VERSION }}.pkg
+      - name: Sign the .pkg
+        env:
+          VERSION: ${{ steps.get-tag.outputs.VERSION }}
+        run: |
+          productsign --sign "${{ secrets.DEVELOPER_ID_INSTALLER }}" ./build/dist/MEDomicsLab-${{ env.VERSION }}-mac.pkg ./build/dist/MEDomicsLab-${{ env.VERSION }}.pkg
 
       - name: Archive Mac
         uses: actions/upload-artifact@v3
         with:
           name: mac-built
-          # path: ./build/dist/MEDomicsLab-${{ env.VERSION }}.pkg
-          path: ./build/dist/MEDomicsLab-${{ env.VERSION }}-mac.pkg
+          path: ./build/dist/MEDomicsLab-${{ env.VERSION }}.pkg
         env:
           VERSION: ${{ steps.get-tag.outputs.VERSION }}
   
-      # - name: Folder tree
-      #   run: ls -R
-
-      # - name: "Notarize and Staple Release Build"
-      #   uses: GuillaumeFalourd/notary-tools@v1
-      #   with:
-      #     product_path: MEDomicsLab-${{ env.VERSION }}.pkg
-      #     apple_id: ${{ secrets.APPLE_NOTARY_USER }}
-      #     password: ${{ secrets.APPLE_NOTARY_PASSWORD }}
-      #     team_id: ${{ secrets.APPLE_TEAM_ID }}
-      #     staple: true
-      #     xcode_path: "/Applications/Xcode.app"
-      #   env:
-      #     VERSION: ${{ steps.get-tag.outputs.VERSION }}
-
-      # - name: Archive Mac signed
-      #   uses: actions/upload-artifact@v3
-      #   with:
-      #     name: mac-signed
-      #     path: ./MEDomicsLab-${{ env.VERSION }}.pkg
-      #   env:
-      #     VERSION: ${{ steps.get-tag.outputs.VERSION }}
-
-  # Publish to GitHub
-  publish:
+  notarize-mac:
     needs: [build-mac]
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
+    # runs-on: self-hosted
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -205,8 +178,49 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: mac-built
-          # name: mac-signed
-          
+
+      - name: Get tag name
+        id: get-tag
+        run: |
+          VERSION=${GITHUB_REF/refs\/tags\//}
+          echo "::set-output name=VERSION::${VERSION#v}"
+
+      - name: Folder tree
+        run: ls -R
+
+      - name: "Notarize and Staple Release Build"
+        uses: GuillaumeFalourd/notary-tools@v1
+        with:
+          product_path: MEDomicsLab-${{ env.VERSION }}.pkg
+          apple_id: ${{ secrets.APPLE_NOTARY_USER }}
+          password: ${{ secrets.APPLE_NOTARY_PASSWORD }}
+          team_id: ${{ secrets.APPLE_TEAM_ID }}
+          staple: true
+          xcode_path: "/Applications/Xcode.app"
+        env:
+          VERSION: ${{ steps.get-tag.outputs.VERSION }}
+
+      - name: Archive Mac signed
+        uses: actions/upload-artifact@v3
+        with:
+          name: mac-signed
+          path: ./MEDomicsLab-${{ env.VERSION }}.pkg
+        env:
+          VERSION: ${{ steps.get-tag.outputs.VERSION }}
+
+  # Publish to GitHub
+  publish:
+    needs: [build-mac, notarize-mac]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download Mac
+        uses: actions/download-artifact@v3
+        with:
+          name: mac-signed
+
       - name: Install zip
         run: sudo apt-get install zip
 
