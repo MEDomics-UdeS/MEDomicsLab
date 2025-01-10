@@ -151,6 +151,10 @@ jobs:
       - name: Export electron-builder required env variables
       # 1. APPLE_API_KEY, APPLE_API_KEY_ID and APPLE_API_ISSUER are required for notarization
         run: |
+          export APPLE_API_KEY_ID="${{ secrets.APPLE_API_KEY_ID }}"
+          export APPLE_API_KEY="${{ secrets.APPLE_API_KEY }}"
+          export APPLE_API_ISSUER="${{ secrets.APPLE_API_ISSUER }}"
+          
           
       - name: Build for Mac
         run: npm run build:mac-alone
