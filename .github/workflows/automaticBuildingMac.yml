@@ -152,15 +152,14 @@ jobs:
       #     # Recursively sign all files in the specified directories
       #     find . -type f \( -name "*.app" -o -name "*.dylib" -o -name "*.so" -o -name "*.node" \) -exec codesign -s "${{ secrets.DEVELOPER_ID_APP }}" -f --timestamp --options runtime --entitlements ./build/entitlements.mac.plist {} \;
 
-      - name: Export electron-builder required env variables
-      # 1. APPLE_API_KEY, APPLE_API_KEY_ID and APPLE_API_ISSUER are required for notarization
-        run: |
-          export APPLE_ID="${{ secrets.APPLE_NOTARY_USER }}"
-          export APPLE_APP_SPECIFIC_PASSWORD="${{ secrets.APPLE_NOTARY_PASSWORD }}"
-          export APPLE_TEAM_ID="${{ secrets.APPLE_TEAM_ID }}"
-
       - name: Build for Mac
-        run: npm run build:mac
+        run: |
+          export APPLE_ID="${{ secrets.APPLE_ID }}"
+          export APPLE_ID_PASSWORD="${{ secrets.APPLE_ID_PASSWORD }}"
+          export APPLE_TEAM_ID="${{ secrets.APPLE_TEAM_ID }}"
+          npm run build:mac
+
+      
             
       # - name: Build for Mac
       #   run: npm run build:mac-alone
