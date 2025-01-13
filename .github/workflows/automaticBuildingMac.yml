@@ -138,15 +138,15 @@ jobs:
           VERSION=${GITHUB_REF/refs\/tags\//}
           echo "::set-output name=VERSION::${VERSION#v}"
 
-      - name: Run prebuild script for Mac
-        run: npm run prebuild:mac
+      # - name: Run prebuild script for Mac
+      #   run: npm run prebuild:mac
 
-      - name: Sign all the files
-        env: 
-          VERSION: ${{ steps.get-tag.outputs.VERSION }}
-        run : |
-          # Recursively sign all files in the specified directories
-          find . -type f \( -name "*.app" -o -name "*.dylib" -o -name "*.so" -o -name "*.node" \) -exec codesign -s "${{ secrets.DEVELOPER_ID_APP }}" -f --timestamp --options runtime --entitlements ./build/entitlements.mac.plist {} \;
+      # - name: Sign all the files
+      #   env: 
+      #     VERSION: ${{ steps.get-tag.outputs.VERSION }}
+      #   run : |
+      #     # Recursively sign all files in the specified directories
+      #     find . -type f \( -name "*.app" -o -name "*.dylib" -o -name "*.so" -o -name "*.node" \) -exec codesign -s "${{ secrets.DEVELOPER_ID_APP }}" -f --timestamp --options runtime --entitlements ./build/entitlements.mac.plist {} \;
 
       - name: Export electron-builder required env variables
       # 1. APPLE_API_KEY, APPLE_API_KEY_ID and APPLE_API_ISSUER are required for notarization
@@ -155,21 +155,23 @@ jobs:
           export APPLE_API_KEY="${{ secrets.APPLE_API_KEY }}"
           export APPLE_API_ISSUER="${{ secrets.APPLE_API_ISSUER }}"
 
-          
       - name: Build for Mac
-        run: npm run build:mac-alone
+        run: npm run build:mac
+            
+      # - name: Build for Mac
+      #   run: npm run build:mac-alone
 
-      # - name: Sign the .pkg
-      #   env:
-      #     VERSION: ${{ steps.get-tag.outputs.VERSION }}
-      #   run: |
-      #     productsign --sign "${{ secrets.DEVELOPER_ID_INSTALLER }}" ./build/dist/MEDomicsLab-${{ env.VERSION }}-mac.pkg ./build/dist/MEDomicsLab-${{ env.VERSION }}.pkg
+      - name: Sign the .pkg
+        env:
+          VERSION: ${{ steps.get-tag.outputs.VERSION }}
+        run: |
+          productsign --sign "${{ secrets.DEVELOPER_ID_INSTALLER }}" ./build/dist/MEDomicsLab-${{ env.VERSION }}-mac.pkg ./build/dist/MEDomicsLab-${{ env.VERSION }}.pkg
 
 
       - name: "Notarize and Staple Release Build"
         uses: GuillaumeFalourd/notary-tools@v1
         with:
-          product_path: ./build/dist/MEDomicsLab-${{ env.VERSION }}-mac.pkg
+          product_path: ./build/dist/MEDomicsLab-${{ env.VERSION }}.pkg
           # product_path: MEDomicsLab-${{ env.VERSION }}.pkg
           apple_id: ${{ secrets.APPLE_NOTARY_USER }}
           password: ${{ secrets.APPLE_NOTARY_PASSWORD }}
@@ -183,23 +185,14 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: mac-built
-          # path: ./build/dist/MEDomicsLab-${{ env.VERSION }}.pkg
-          path: ./build/dist/MEDomicsLab-${{ env.VERSION }}-mac.pkg
+          path: ./build/dist/MEDomicsLab-${{ env.VERSION }}.pkg
+          # path: ./build/dist/MEDomicsLab-${{ env.VERSION }}-mac.pkg
         env:
           VERSION: ${{ steps.get-tag.outputs.VERSION }}
   
       # - name: Folder tree
       #   run: ls -R
 
-      
-
-      # - name: Archive Mac signed
-      #   uses: actions/upload-artifact@v3
-      #   with:
-      #     name: mac-signed
-      #     path: ./MEDomicsLab-${{ env.VERSION }}.pkg
-      #   env:
-      #     VERSION: ${{ steps.get-tag.outputs.VERSION }}
 
   # Publish to GitHub
   publish:
@@ -241,7 +234,7 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            ./MEDomicsLab-${{ env.VERSION }}-mac.pkg
+            ./MEDomicsLab-${{ env.VERSION }}.pkg
           name: MEDomicsLab-${{ env.VERSION }}
           body: |
             MEDomicsLab-${{ env.VERSION }}
