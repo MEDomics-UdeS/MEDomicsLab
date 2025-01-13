@@ -165,17 +165,17 @@ jobs:
       # - name: Build for Mac
       #   run: npm run build:mac-alone
 
-      - name: Sign the .pkg
-        env:
-          VERSION: ${{ steps.get-tag.outputs.VERSION }}
-        run: |
-          productsign --sign "${{ secrets.DEVELOPER_ID_INSTALLER }}" ./build/dist/MEDomicsLab-${{ env.VERSION }}-mac.pkg ./build/dist/MEDomicsLab-${{ env.VERSION }}.pkg
+      # - name: Sign the .pkg
+      #   env:
+      #     VERSION: ${{ steps.get-tag.outputs.VERSION }}
+      #   run: |
+      #     productsign --sign "${{ secrets.DEVELOPER_ID_INSTALLER }}" ./build/dist/MEDomicsLab-${{ env.VERSION }}-mac.pkg ./build/dist/MEDomicsLab-${{ env.VERSION }}.pkg
 
 
       - name: "Notarize and Staple Release Build"
         uses: GuillaumeFalourd/notary-tools@v1
         with:
-          product_path: ./build/dist/MEDomicsLab-${{ env.VERSION }}.pkg
+          product_path: ./build/dist/MEDomicsLab-${{ env.VERSION }}-mac-signed.pkg
           # product_path: MEDomicsLab-${{ env.VERSION }}.pkg
           apple_id: ${{ secrets.APPLE_NOTARY_USER }}
           password: ${{ secrets.APPLE_NOTARY_PASSWORD }}
@@ -189,7 +189,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: mac-built
-          path: ./build/dist/MEDomicsLab-${{ env.VERSION }}.pkg
+          path: ./build/dist/MEDomicsLab-${{ env.VERSION }}-mac-signed.pkg
           # path: ./build/dist/MEDomicsLab-${{ env.VERSION }}-mac.pkg
         env:
           VERSION: ${{ steps.get-tag.outputs.VERSION }}
@@ -238,7 +238,7 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            ./MEDomicsLab-${{ env.VERSION }}.pkg
+            ./MEDomicsLab-${{ env.VERSION }}-mac-signed.pkg
           name: MEDomicsLab-${{ env.VERSION }}
           body: |
             MEDomicsLab-${{ env.VERSION }}
