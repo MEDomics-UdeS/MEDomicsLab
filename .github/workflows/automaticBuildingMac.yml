@@ -11,7 +11,7 @@ jobs:
     # runs-on: self-hosted
     env:
       APPLE_ID: ${{ secrets.APPLE_ID }}
-      APPLE_ID_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
+      APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
       APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
       
     steps:
@@ -151,7 +151,7 @@ jobs:
           echo "DEVELOPER_ID_APP=${{ secrets.DEVELOPER_ID_APP }}" >> .env
           echo "DEVELOPER_ID_INSTALLER=${{ secrets.DEVELOPER_ID_INSTALLER }}" >> .env
           echo "APPLE_ID=${{ secrets.APPLE_ID }}" >> .env
-          echo "APPLE_ID_PASSWORD=${{ secrets.APPLE_ID_PASSWORD }}" >> .env
+          echo "APPLE_APP_SPECIFIC_PASSWORD=${{ secrets.APPLE_ID_PASSWORD }}" >> .env
           echo "APPLE_TEAM_ID=${{ secrets.APPLE_TEAM_ID }}" >> .env
           echo "APPLE_NOTARY_USER=${{ secrets.APPLE_NOTARY_USER }}" >> .env
           echo "APPLE_NOTARY_PASSWORD=${{ secrets.APPLE_NOTARY_PASSWORD }}" >> .env
