@@ -45,8 +45,11 @@ jobs:
           security import certificate_installer.p12 -P "${{ secrets.APPLE_CERT_PASSWORD }}" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
           security import certificate_application.p12 -P "${{ secrets.APPLE_CERT_PASSWORD }}" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
           security list-keychain -d user -s $KEYCHAIN_PATH
-      
 
+          # Store as a keychain profile (for signing)
+
+          # Encode the Apple API key to .p8 format
+          echo -n "$APPLE_API_KEY_BASE64" | base64 --decode -o AuthKey_${{ secrets.APPLE_API_KEY_ID }}.p8
 
       - name: keychain profile
         env:
@@ -55,7 +58,7 @@ jobs:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         run: |
           xcrun notarytool store-credentials "notarytool-password" --apple-id "$APPLE_NOTARY_USER" --team-id "$APPLE_TEAM_ID" --password "$APPLE_NOTARY_PASSWORD"
-
+          
       
       - name: Checking out the correct branches for submodules
         run: |
@@ -153,29 +156,23 @@ jobs:
           VERSION=${GITHUB_REF/refs\/tags\//}
           echo "::set-output name=VERSION::${VERSION#v}"
       
-      - name: dotenv file
-        run: |
-          echo "DEVELOPER_ID_APP=${{ secrets.DEVELOPER_ID_APP }}" >> .env
-          echo "DEVELOPER_ID_INSTALLER=${{ secrets.DEVELOPER_ID_INSTALLER }}" >> .env
-          echo "APPLE_ID=${{ secrets.APPLE_ID }}" >> .env
-          echo "APPLE_APP_SPECIFIC_PASSWORD=${{ secrets.APPLE_ID_PASSWORD }}" >> .env
-          echo "APPLE_TEAM_ID=${{ secrets.APPLE_TEAM_ID }}" >> .env
-          echo "APPLE_NOTARY_USER=${{ secrets.APPLE_NOTARY_USER }}" >> .env
-          echo "APPLE_NOTARY_PASSWORD=${{ secrets.APPLE_NOTARY_PASSWORD }}" >> .env
-     
-      - name: Run prebuild script for Mac
-        run: npm run prebuild:mac
+      
+      # - name: Run prebuild script for Mac
+      #   run: npm run prebuild:mac
 
-      - name: Sign all the files
-        env: 
-          VERSION: ${{ steps.get-tag.outputs.VERSION }}
-        run : |
-          # Recursively sign all files in the specified directories
-          find . -type f \( -name "*.app" -o -name "*.dylib" -o -name "*.so" -o -name "*.node" \) -exec codesign -s "${{ secrets.DEVELOPER_ID_APP }}" -f --timestamp --options runtime --entitlements ./build/entitlements.mac.plist {} \;
+      # - name: Sign all the files
+      #   env: 
+      #     VERSION: ${{ steps.get-tag.outputs.VERSION }}
+      #   run : |
+      #     # Recursively sign all files in the specified directories
+      #     find . -type f \( -name "*.app" -o -name "*.dylib" -o -name "*.so" -o -name "*.node" \) -exec codesign -s "${{ secrets.DEVELOPER_ID_APP }}" -f --timestamp --options runtime --entitlements ./build/entitlements.mac.plist {} \;
 
       - name: Build for Mac
         run: |
-          npm run build:mac-alone
+          export APPLE_API_KEY_ID=${{ secrets.APPLE_API_KEY_ID }}
+          export APPLE_API_ISSUER=${{ secrets.APPLE_API_ISSUER }}
+          export APPLE_API_KEY=$PWD/AuthKey_${{ secrets.APPLE_API_KEY_ID }}.p8
+          npm run build
 
 
       - name: Check signing
@@ -190,27 +187,21 @@ jobs:
         env:
           VERSION: ${{ steps.get-tag.outputs.VERSION }}
         run: |
-          productsign --sign "Developer ID Installer: NICOLAS LONGCHAMPS (5ML683U677)" build/dist/MEDomicsLab-${{ env.VERSION }}-mac-signed.pkg build/dist/MEDomicsLab-${{ env.VERSION }}-signed-again.pkg
+          productsign --sign "Developer ID Installer: NICOLAS LONGCHAMPS (5ML683U677)" build/dist/MEDomicsLab-${{ env.VERSION }}-mac.pkg build/dist/MEDomicsLab-${{ env.VERSION }}-signed.pkg
       
-
-      - name: Notarize and Staple Release Build
+      - name: "Notarize and Staple Release Build"
+        uses: GuillaumeFalourd/notary-tools@v1
+        continue-on-error: true  # Added continue-on-error
+        with:
+          product_path: ./build/dist/MEDomicsLab-${{ env.VERSION }}-mac-signed.pkg
+          # product_path: MEDomicsLab-${{ env.VERSION }}.pkg
+          apple_id: ${{ secrets.APPLE_NOTARY_USER }}
+          password: ${{ secrets.APPLE_NOTARY_PASSWORD }}
+          team_id: ${{ secrets.APPLE_TEAM_ID }}
+          staple: true
+          xcode_path: "/Applications/Xcode.app"
         env:
           VERSION: ${{ steps.get-tag.outputs.VERSION }}
-        run: |
-          xcrun notarytool submit build/dist/MEDomicsLab-${{ env.VERSION }}-signed-again.pkg --keychain-profile "notarytool-password" --wait
-          xcrun stapler staple build/dist/MEDomicsLab-${{ env.VERSION }}-signed-again.pkg
-      # - name: "Notarize and Staple Release Build"
-      #   uses: GuillaumeFalourd/notary-tools@v1
-      #   with:
-      #     product_path: ./build/dist/MEDomicsLab-${{ env.VERSION }}-mac-signed.pkg
-      #     # product_path: MEDomicsLab-${{ env.VERSION }}.pkg
-      #     apple_id: ${{ secrets.APPLE_NOTARY_USER }}
-      #     password: ${{ secrets.APPLE_NOTARY_PASSWORD }}
-      #     team_id: ${{ secrets.APPLE_TEAM_ID }}
-      #     staple: true
-      #     xcode_path: "/Applications/Xcode.app"
-      #   env:
-      #     VERSION: ${{ steps.get-tag.outputs.VERSION }}
 
       - name: Archive Mac
         uses: actions/upload-artifact@v3

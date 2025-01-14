@@ -58,7 +58,6 @@
       "afterInstall": "build/after-install.sh"
     },
     "afterPack": "build/afterPack.js",
-    "afterAllArtifactBuild": "build/afterAllArtifactBuild.js",
     "publish": null
   },
   "scripts": {
