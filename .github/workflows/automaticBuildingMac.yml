@@ -166,26 +166,20 @@ jobs:
           echo "APPLE_TEAM_ID=${{ secrets.APPLE_TEAM_ID }}" >> .env
           echo "APPLE_NOTARY_USER=${{ secrets.APPLE_NOTARY_USER }}" >> .env
           echo "APPLE_NOTARY_PASSWORD=${{ secrets.APPLE_NOTARY_PASSWORD }}" >> .env
-      # - name: Run prebuild script for Mac
-      #   run: npm run prebuild:mac
+     
+      - name: Run prebuild script for Mac
+        run: npm run prebuild:mac
 
-      # - name: Sign all the files
-      #   env: 
-      #     VERSION: ${{ steps.get-tag.outputs.VERSION }}
-      #   run : |
-      #     # Recursively sign all files in the specified directories
-      #     find . -type f \( -name "*.app" -o -name "*.dylib" -o -name "*.so" -o -name "*.node" \) -exec codesign -s "${{ secrets.DEVELOPER_ID_APP }}" -f --timestamp --options runtime --entitlements ./build/entitlements.mac.plist {} \;
+      - name: Sign all the files
+        env: 
+          VERSION: ${{ steps.get-tag.outputs.VERSION }}
+        run : |
+          # Recursively sign all files in the specified directories
+          find . -type f \( -name "*.app" -o -name "*.dylib" -o -name "*.so" -o -name "*.node" \) -exec codesign -s "${{ secrets.DEVELOPER_ID_APP }}" -f --timestamp --options runtime --entitlements ./build/entitlements.mac.plist {} \;
 
       - name: Build for Mac
-        env:
-          APPLE_ID: ${{ secrets.APPLE_ID }}
-          APPLE_ID_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
-          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         run: |
-          export APPLE_ID="${{ secrets.APPLE_ID }}"
-          export APPLE_ID_PASSWORD="${{ secrets.APPLE_ID_PASSWORD }}"
-          export APPLE_TEAM_ID="${{ secrets.APPLE_TEAM_ID }}"
-          npm run build
+          npm run build:mac-alone
 
 
       - name: Check signing
@@ -200,23 +194,15 @@ jobs:
         env:
           VERSION: ${{ steps.get-tag.outputs.VERSION }}
         run: |
-          productsign --sign "${{ secrets.DEVELOPER_ID_INSTALLER }}" build/dist/MEDomicsLab-${{ env.VERSION }}-mac.pkg build/dist/MEDomicsLab-${{ env.VERSION }}.pkg
+          productsign --sign ${{ secrets.DEVELOPER_ID_INSTALLER }} build/dist/MEDomicsLab-${{ env.VERSION }}-mac-signed.pkg build/dist/MEDomicsLab-${{ env.VERSION }}-signed-again.pkg
       
-      - name: Signing and notarizing checks
-        env:
-          VERSION: ${{ steps.get-tag.outputs.VERSION }}
-        run: |
-          pkgutil --check-signature build/dist/MEDomicsLab-${{ env.VERSION }}.pkg
-          spctl -a -t install -vv build/dist/MEDomicsLab-${{ env.VERSION }}.pkg
-          spctl -a -t install -vv build/dist/MEDomicsLab-${{ env.VERSION }}-mac-signed.pkg
-
 
       - name: Notarize and Staple Release Build
         env:
           VERSION: ${{ steps.get-tag.outputs.VERSION }}
         run: |
-          xcrun notarytool submit build/dist/MEDomicsLab-${{ env.VERSION }}.pkg --keychain-profile "notarytool-password" --wait
-          xcrun stapler staple build/dist/MEDomicsLab-${{ env.VERSION }}.pkg
+          xcrun notarytool submit build/dist/MEDomicsLab-${{ env.VERSION }}-signed-again.pkg --keychain-profile "notarytool-password" --wait
+          xcrun stapler staple build/dist/MEDomicsLab-${{ env.VERSION }}-signed-again.pkg
       # - name: "Notarize and Staple Release Build"
       #   uses: GuillaumeFalourd/notary-tools@v1
       #   with:

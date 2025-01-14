@@ -35,7 +35,7 @@ exports.default = async function(context) {
         console.log('Signed pkg file:', signedPkgFile);
 
         // Sign the pkg file
-        execSync(`productsign --sign "${DEVELOPER_ID_INSTALLER}" "${path.join(context.outDir, pkgFile)}" "${path.join(context.outDir, signedPkgFile)}"`);
+        execSync(`productsign --sign ${DEVELOPER_ID_INSTALLER} "${path.join(context.outDir, pkgFile)}" "${path.join(context.outDir, signedPkgFile)}"`);
         
 
         console.log('AfterAllArtifactBuild: Signing completed successfully');
