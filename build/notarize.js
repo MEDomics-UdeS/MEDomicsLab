@@ -16,15 +16,15 @@ exports.default = async function notarizing(context) {
   const appId = "com.medomicslab.medapp";
 
   let appPath = `${appOutDir}/${appName}.app`;
-  let { APPLE_ID, APPLE_ID_PASSWORD, APPLE_TEAM_ID } = process.env;
+  // let { APPLE_ID, APPLE_ID_PASSWORD, APPLE_TEAM_ID } = process.env;
   console.log(`  • Notarizing ${appPath}`);
 
   return await notarize({
     tool: "notarytool",
     appBundleId: appId,
     appPath,
-    appleId: APPLE_ID,
-    appleIdPassword: APPLE_ID_PASSWORD,
-    teamId: APPLE_TEAM_ID,
+    appleId: process.env.APPLE_ID,
+    appleIdPassword: process.env.APPLE_APP_SPECIFIC_PASSWORD,
+    teamId: process.env.APPLE_TEAM_ID
   });
 };
