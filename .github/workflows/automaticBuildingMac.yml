@@ -45,7 +45,18 @@ jobs:
           security import certificate_installer.p12 -P "${{ secrets.APPLE_CERT_PASSWORD }}" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
           security import certificate_application.p12 -P "${{ secrets.APPLE_CERT_PASSWORD }}" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
           security list-keychain -d user -s $KEYCHAIN_PATH
-  
+      
+
+
+      - name: keychain profile
+        env:
+          APPLE_NOTARY_USER: ${{ secrets.APPLE_NOTARY_USER }}
+          APPLE_NOTARY_PASSWORD: ${{ secrets.APPLE_NOTARY_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          xcrun notarytool store-credentials "notarytool-password" --apple-id "$APPLE_NOTARY_USER" --team-id "$APPLE_TEAM_ID" --password "$APPLE_NOTARY_PASSWORD"
+
+      
       - name: Checking out the correct branches for submodules
         run: |
           git submodule foreach '
@@ -170,7 +181,7 @@ jobs:
           export APPLE_ID="${{ secrets.APPLE_ID }}"
           export APPLE_ID_PASSWORD="${{ secrets.APPLE_ID_PASSWORD }}"
           export APPLE_TEAM_ID="${{ secrets.APPLE_TEAM_ID }}"
-          npm run build:mac
+          npm run build
 
       
             
@@ -182,20 +193,31 @@ jobs:
       #     VERSION: ${{ steps.get-tag.outputs.VERSION }}
       #   run: |
       #     productsign --sign "${{ secrets.DEVELOPER_ID_INSTALLER }}" ./build/dist/MEDomicsLab-${{ env.VERSION }}-mac.pkg ./build/dist/MEDomicsLab-${{ env.VERSION }}.pkg
-
-
-      - name: "Notarize and Staple Release Build"
-        uses: GuillaumeFalourd/notary-tools@v1
-        with:
-          product_path: ./build/dist/MEDomicsLab-${{ env.VERSION }}-mac-signed.pkg
-          # product_path: MEDomicsLab-${{ env.VERSION }}.pkg
-          apple_id: ${{ secrets.APPLE_NOTARY_USER }}
-          password: ${{ secrets.APPLE_NOTARY_PASSWORD }}
-          team_id: ${{ secrets.APPLE_TEAM_ID }}
-          staple: true
-          xcode_path: "/Applications/Xcode.app"
+      
+      - name: Signing and notarizing checks
         env:
           VERSION: ${{ steps.get-tag.outputs.VERSION }}
+        run: |
+          pkgutil --check-signature build/dist/MEDomicsLab-${{ env.VERSION }}-mac-signed.pkg
+        
+
+      - name: Notarize and Staple Release Build
+        env:
+          VERSION: ${{ steps.get-tag.outputs.VERSION }}
+        run: |
+          xcrun notarytool submit build/dist/MEDomicsLab-${{ env.VERSION }}-mac-signed.pkg --keychain-profile "notarytool-password" --wait
+      # - name: "Notarize and Staple Release Build"
+      #   uses: GuillaumeFalourd/notary-tools@v1
+      #   with:
+      #     product_path: ./build/dist/MEDomicsLab-${{ env.VERSION }}-mac-signed.pkg
+      #     # product_path: MEDomicsLab-${{ env.VERSION }}.pkg
+      #     apple_id: ${{ secrets.APPLE_NOTARY_USER }}
+      #     password: ${{ secrets.APPLE_NOTARY_PASSWORD }}
+      #     team_id: ${{ secrets.APPLE_TEAM_ID }}
+      #     staple: true
+      #     xcode_path: "/Applications/Xcode.app"
+      #   env:
+      #     VERSION: ${{ steps.get-tag.outputs.VERSION }}
 
       - name: Archive Mac
         uses: actions/upload-artifact@v3
