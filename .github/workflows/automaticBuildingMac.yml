@@ -68,11 +68,7 @@ jobs:
             echo "No branch specified for $name"
           fi
           '
-      - name: Add (dotenv) .env file with the required keys
-        run: |
-          echo "DEVELOPER_ID_APP=${{ secrets.DEVELOPER_ID_APP }}" >> .env
-          echo "DEVELOPER_ID_INSTALLER=${{ secrets.DEVELOPER_ID_INSTALLER }}" >> .env
-          
+
       - name: Setup Go
         uses: actions/setup-go@v4
         with:
