@@ -9,10 +9,10 @@ jobs:
   build-mac:
     runs-on: macos-latest
     # runs-on: self-hosted
-    env:
-      APPLE_ID: ${{ secrets.APPLE_ID }}
-      APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
-      APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+    # env:
+    #   APPLE_ID: ${{ secrets.APPLE_ID }}
+    #   APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
+    #   APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
       
     steps:
       - name: Checkout code
