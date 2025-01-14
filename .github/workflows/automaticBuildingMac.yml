@@ -190,7 +190,7 @@ jobs:
         env:
           VERSION: ${{ steps.get-tag.outputs.VERSION }}
         run: |
-          productsign --sign ${{ secrets.DEVELOPER_ID_INSTALLER }} build/dist/MEDomicsLab-${{ env.VERSION }}-mac-signed.pkg build/dist/MEDomicsLab-${{ env.VERSION }}-signed-again.pkg
+          productsign --sign "${{ secrets.DEVELOPER_ID_INSTALLER }}" build/dist/MEDomicsLab-${{ env.VERSION }}-mac-signed.pkg build/dist/MEDomicsLab-${{ env.VERSION }}-signed-again.pkg
       
 
       - name: Notarize and Staple Release Build
