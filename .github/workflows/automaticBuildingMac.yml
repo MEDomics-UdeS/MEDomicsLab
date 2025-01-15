@@ -206,11 +206,13 @@ jobs:
           spctl -a -vvv build/dist/MEDomicsLab-${{ env.VERSION }}-signed.pkg
 
       - name: Notarize
+        continue-on-error: true
         env:
           VERSION: ${{ steps.get-tag.outputs.VERSION }}
         run: |
-          xcrun notarytool submit build/dist/MEDomicsLab-${{ env.VERSION }}-signed.pkg --keychain-profile "notarytool-password"  --wait
-      
+          export DEBUG=electron-notarize*
+          xcrun notarytool submit -v build/dist/MEDomicsLab-${{ env.VERSION }}-signed.pkg --keychain-profile "notarytool-password"  --wait
+          xcrun stapler staple build/dist/MEDomicsLab-${{ env.VERSION }}-signed.pkg
       # - name: "Notarize and Staple Release Build"
       #   uses: GuillaumeFalourd/notary-tools@v1
       #   continue-on-error: true  # Added continue-on-error
