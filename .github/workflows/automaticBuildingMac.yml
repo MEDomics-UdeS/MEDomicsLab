@@ -49,7 +49,7 @@ jobs:
           # Store as a keychain profile (for signing)
 
           # Encode the Apple API key to .p8 format
-          echo -n "$APPLE_API_KEY_BASE64" | base64 --decode -o AuthKey_${{ secrets.APPLE_API_KEY_ID }}.p8
+          # echo -n "$APPLE_API_KEY_BASE64" | base64 --decode -o AuthKey_${{ secrets.APPLE_API_KEY_ID }}.p8
 
       - name: keychain profile
         env:
@@ -194,22 +194,36 @@ jobs:
       - name: Sign the .pkg
         env:
           VERSION: ${{ steps.get-tag.outputs.VERSION }}
+          DEVELOPER_ID_INSTALLER: ${{ secrets.DEVELOPER_ID_INSTALLER }}
         run: |
-          productsign --sign "Developer ID Installer: NICOLAS LONGCHAMPS (5ML683U677)" build/dist/MEDomicsLab-${{ env.VERSION }}-mac.pkg build/dist/MEDomicsLab-${{ env.VERSION }}-signed.pkg
+          productsign --sign "$DEVELOPER_ID_INSTALLER" build/dist/MEDomicsLab-${{ env.VERSION }}-mac.pkg build/dist/MEDomicsLab-${{ env.VERSION }}-signed.pkg
       
-      - name: "Notarize and Staple Release Build"
-        uses: GuillaumeFalourd/notary-tools@v1
-        continue-on-error: true  # Added continue-on-error
-        with:
-          product_path: ./build/dist/MEDomicsLab-${{ env.VERSION }}-signed.pkg
-          # product_path: MEDomicsLab-${{ env.VERSION }}.pkg
-          apple_id: ${{ secrets.APPLE_NOTARY_USER }}
-          password: ${{ secrets.APPLE_NOTARY_PASSWORD }}
-          team_id: ${{ secrets.APPLE_TEAM_ID }}
-          staple: true
-          xcode_path: "/Applications/Xcode.app"
+      - name: Check signing
+        continue-on-error: true
         env:
           VERSION: ${{ steps.get-tag.outputs.VERSION }}
+        run: |
+          spctl -a -vvv build/dist/MEDomicsLab-${{ env.VERSION }}-signed.pkg
+
+      - name: Notarize
+        env:
+          VERSION: ${{ steps.get-tag.outputs.VERSION }}
+        run: |
+          xcrun notarytool submit build/dist/MEDomicsLab-${{ env.VERSION }}-signed.pkg --keychain-profile "notarytool-password"  --wait
+      
+      # - name: "Notarize and Staple Release Build"
+      #   uses: GuillaumeFalourd/notary-tools@v1
+      #   continue-on-error: true  # Added continue-on-error
+      #   with:
+      #     product_path: ./build/dist/MEDomicsLab-${{ env.VERSION }}-signed.pkg
+      #     # product_path: MEDomicsLab-${{ env.VERSION }}.pkg
+      #     apple_id: ${{ secrets.APPLE_NOTARY_USER }}
+      #     password: ${{ secrets.APPLE_NOTARY_PASSWORD }}
+      #     team_id: ${{ secrets.APPLE_TEAM_ID }}
+      #     staple: true
+      #     xcode_path: "/Applications/Xcode.app"
+      #   env:
+      #     VERSION: ${{ steps.get-tag.outputs.VERSION }}
 
       - name: Archive Mac
         uses: actions/upload-artifact@v3
