@@ -17,6 +17,8 @@ import { MEDDataObject } from "../../workspace/NewMedDataObject"
 import { DataContext } from "../../workspace/dataContext"
 import { getCollectionColumnTypes, getCollectionData } from "../utils"
 import { Checkbox } from "primereact/checkbox"
+import { requestBackend } from "../../../utilities/requests"
+import {ServerConnectionContext} from "../../serverConnection/connectionContext";
 
 /**
  * @description
@@ -33,9 +35,12 @@ const SubsetCreationToolsDB = ({ currentCollection, refreshData }) => {
   const [newCollectionName, setNewCollectionName] = useState("")
   const [filteredData, setFilteredData] = useState([])
   const { globalData } = useContext(DataContext)
+  const { port } = useContext(ServerConnectionContext)
   const filterDisplay = "menu"
-  const [tagName, setTagName] = useState("")
-  const [isTagNameEnabled, setIsTagNameEnabled] = useState(false)
+  const [groupName, setGroupName] = useState("")
+  const [isGroupNameEnabled, setIsGroupNameEnabled] = useState(false)
+  const [showInfoBox, setShowInfoBox] = useState(false)
+  const [loading, setLoading] = useState(false)
 
   useEffect(() => {
     const fetchData = async () => {
@@ -136,30 +141,41 @@ const SubsetCreationToolsDB = ({ currentCollection, refreshData }) => {
     await insertMEDDataObjectIfNotExists(object);
     MEDDataObject.updateWorkspaceDataObject();
     toast.success(`New subset ${collectionName} created with filtered data.`);
-
-    // Create row_tags collection if it doesn't exist and tagName is not empty
-    if (tagName) {
-      const rowTagsCollection = db.collection("row_tags");
-      const rowTagsExists = await rowTagsCollection.findOne({});
-      if (!rowTagsExists) {
-        await db.createCollection("row_tags");
-      }
-
-      // Create a single document for all row tags
-      const rowTagsDocument = {
-        // eslint-disable-next-line camelcase
-        collection_id: id,
-        tags: filteredData.map((row) => ({
-          // eslint-disable-next-line camelcase
-          row_id: row._id,
-          tags: [tagName]
-        })),
-        filename: collectionName
-      };
-      await rowTagsCollection.insertOne(rowTagsDocument);
-      toast.success(`Tags added to rows in row_tags collection.`);
-    }
   };
+
+  function createGroup(groupName) {
+    let jsonToSend = {}
+    jsonToSend = {
+        collectionName: currentCollection,
+        groupName: groupName,
+        data: filteredData
+    }
+
+    setLoading(true)
+
+    requestBackend(
+        port,
+        "/input/create_group_DB/",
+        jsonToSend,
+        async (jsonResponse) => {
+          console.log("jsonResponse", jsonResponse)
+          setLoading(false)
+          if (jsonResponse.error) {
+            if (jsonResponse.error.message) {
+              console.error(jsonResponse.error.message)
+              toast.error(jsonResponse.error.message)
+            } else {
+              console.error(jsonResponse.error)
+              toast.error(jsonResponse.error)
+            }
+          } else {
+            refreshData()
+            toast.success("Group created successfully.")
+          }
+        }
+    )
+
+  }
 
   return (
       <div
@@ -213,28 +229,46 @@ const SubsetCreationToolsDB = ({ currentCollection, refreshData }) => {
             <b>{data ? data.length : 0}</b>
           </h6>
         </Row>
-        <div style={{display: "flex", alignItems: "center", marginTop: "2rem"}}>
+        {showInfoBox && (
+            <Message
+                style={{ marginBottom: "15px", marginTop: "2rem", textAlign: "justify" }}
+                severity="info"
+                text="Enabling this will create a column named 'Group' in the existing dataset and assign every row in the current subset to this group. This action does not create a new subset; it simply groups the selected rows within the existing dataset by adding them to the 'Group' column."
+                icon="pi pi-info-circle"
+                iconPos="left"
+                iconstyle={{ fontSize: "2rem" }}
+            />
+        )}
+        <div style={{display: "flex", alignItems: "center", marginTop: "1rem"}}>
           <Checkbox
-              inputId="tagNameCheckbox"
-              checked={isTagNameEnabled}
+              inputId="groupNameCheckbox"
+              checked={isGroupNameEnabled}
               onChange={(e) => {
-                setIsTagNameEnabled(e.checked);
+                setIsGroupNameEnabled(e.checked);
+                setShowInfoBox(e.checked);
                 if (!e.checked) {
-                  setTagName("");
+                  setGroupName("");
                 }
               }}
-              tooltip="Tag name is optional, use it if you want to tag your subset"
-              tooltipOptions={{ position: "top" }}
+              style={{marginRight: "0.5rem"}}
+              tooltip={"Enable to create a group with the selected rows"}
+                tooltipOptions={{position: "top"}}
           />
-          <label htmlFor="tagNameCheckbox" style={{marginLeft: "0.5rem"}}>Enable Tag Name</label>
+          <InputText
+              value={groupName}
+              onChange={(e) => setGroupName(e.target.value)}
+              placeholder="Group Name"
+              style={{margin: "5px", fontSize: "1rem", padding: "6px 10px"}}
+              disabled={!isGroupNameEnabled}
+          />
+          <Button
+              label="Create Group"
+              onClick={() => {createGroup(groupName)}}
+              style={{ marginLeft: "0.5rem", fontSize: "1rem", padding: "6px 10px" }}
+              disabled={!isGroupNameEnabled || !groupName}
+              loading={loading}
+          />
         </div>
-        <InputText
-            value={tagName}
-            onChange={(e) => setTagName(e.target.value)}
-            placeholder="Tag Name"
-            style={{ margin: "5px", fontSize: "1rem", padding: "6px 10px", marginTop: "2rem" }}
-            disabled={!isTagNameEnabled}
-        />
         <div style={{display: "flex", justifyContent: "center", alignItems: "center", marginTop: "1rem"}}>
           <Button
               className="p-button-danger"
