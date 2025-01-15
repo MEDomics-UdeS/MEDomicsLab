@@ -76,9 +76,6 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
     overflow: "auto"
   }
 
-  const [rowTags, setRowTags] = useState({}); // State to store row tags
-  const [documentExists, setDocumentExists] = useState(false);
-
   // Fetch data from MongoDB on component mount
   useEffect(() => {
     if (data && data.id) {
@@ -102,31 +99,7 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
             }
             return dataObject;
           });
-
-          // Fetch tags from 'row_tags' collection
-          const tagsCollection = db.collection("row_tags");
-          const tagsData = await tagsCollection.find({}).toArray();
-          const tagsMap = tagsData.reduce((acc, document) => {
-            if (document.tags) {
-              document.tags.forEach((tagItem) => {
-                const rowId = tagItem.row_id?.$oid || tagItem.row_id?.toString();
-                if (rowId) {
-                  acc[rowId] = (acc[rowId] || []).concat(tagItem.tags);
-                }
-              });
-            }
-            return acc;
-          }, {});
-
-          console.log("tagsMap", tagsMap);
-          setRowTags(tagsMap || {});
           setInnerData(collData);
-
-          const dbRow = await connectToMongoDB();
-          const rowTagsCollection = dbRow.collection("row_tags");
-          // eslint-disable-next-line camelcase
-          const document = await rowTagsCollection.findOne({ collection_id: data.id });
-          setDocumentExists(!!document);
 
         } catch (error) {
           console.error("Failed to fetch data:", error);
@@ -696,44 +669,18 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
     localStorage.setItem("tagColorMap", JSON.stringify(tagColorMap))
   }, [tagColorMap])
 
-  const renderRowTags = (rowData) => {
-    const tags = rowTags[rowData._id] || [];
-    console.log("tags", tags);
+  const renderDeleteIconRow = (rowData) => {
     return (
         <div style={{ display: "flex", flexDirection: "row", gap: "5px" }}>
           <Button
               icon="pi pi-trash"
-              style={{ borderRadius: "10px", backgroundColor: "#cccccc", color: "white", border: "none" }}
+              style={buttonStyle(rowData._id)}
               onClick={() => viewRowDeletion(rowData)}
+              onMouseEnter={() => setHoveredButton(rowData._id)}
+              onMouseLeave={() => setHoveredButton(null)}
           />
-          {documentExists && tags.map((tag, index) => (
-              <Chip
-                  key={index}
-                  label={tag}
-                  style={{ backgroundColor: "#e0e0e0", fontSize: "0.8rem", border: "1px solid #ccc" }}
-              />
-          ))}
         </div>
     );
-  };
-
-  // Function to remove the document in row_tags collection
-  const removeTagDocument = async () => {
-    try {
-      const db = await connectToMongoDB();
-      const rowTagsCollection = db.collection("row_tags");
-      // eslint-disable-next-line camelcase
-      await rowTagsCollection.deleteOne({ collection_id: data.id });
-      toast.success("Row tags removed successfully.");
-      // Check if the collection is empty
-      const remainingDocuments = await rowTagsCollection.countDocuments();
-      if (remainingDocuments === 0) {
-        await rowTagsCollection.drop();
-        }
-    } catch (error) {
-      console.error("Failed to remove tag document:", error);
-      toast.error("Error removing tag document.");
-    }
   };
 
   return (
@@ -817,21 +764,7 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
           >
             {!isReadOnly && (
                 <Column
-                    header={
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                        {documentExists && (
-                            <Button
-                                label="Remove Tag"
-                                icon="pi pi-trash"
-                                className="p-button-danger"
-                                onClick={removeTagDocument}
-                                style={{ marginLeft: "10px", padding: "4px 8px", fontSize: "0.8rem" }}
-                            />
-                        )}
-                      </div>
-                    }
-                    body={renderRowTags}
-                    style={{ width: "20%" }}
+                    body={renderDeleteIconRow}
                 />
             )}
             {columns.length > 0
