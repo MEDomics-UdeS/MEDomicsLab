@@ -201,7 +201,7 @@ jobs:
         uses: GuillaumeFalourd/notary-tools@v1
         continue-on-error: true  # Added continue-on-error
         with:
-          product_path: ./build/dist/MEDomicsLab-${{ env.VERSION }}-mac-signed.pkg
+          product_path: ./build/dist/MEDomicsLab-${{ env.VERSION }}-signed.pkg
           # product_path: MEDomicsLab-${{ env.VERSION }}.pkg
           apple_id: ${{ secrets.APPLE_NOTARY_USER }}
           password: ${{ secrets.APPLE_NOTARY_PASSWORD }}
@@ -215,7 +215,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: mac-built
-          path: ./build/dist/MEDomicsLab-${{ env.VERSION }}-mac-signed.pkg
+          path: ./build/dist/MEDomicsLab-${{ env.VERSION }}-signed.pkg
           # path: ./build/dist/MEDomicsLab-${{ env.VERSION }}-mac.pkg
         env:
           VERSION: ${{ steps.get-tag.outputs.VERSION }}
