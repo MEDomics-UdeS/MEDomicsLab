@@ -92,8 +92,8 @@ const SubsetCreationToolsDB = ({ currentCollection, refreshData }) => {
   }
 
   const createNewCollectionSubset = async (newCollectionName) => {
-    let collectionName = newCollectionName + ".csv"
-    const id = randomUUID()
+    let collectionName = newCollectionName + ".csv";
+    const id = randomUUID();
     const object = new MEDDataObject({
       id: id,
       name: collectionName,
@@ -101,19 +101,19 @@ const SubsetCreationToolsDB = ({ currentCollection, refreshData }) => {
       parentID: globalData[currentCollection].parentID,
       childrenIDs: [],
       inWorkspace: false
-    })
+    });
 
     // Check if the collection already exists
-    let exists = false
+    let exists = false;
     for (const item of Object.keys(globalData)) {
-      if (globalData[item].name && globalData[item].name === globalData[currentCollection].name) {
-        exists = true
-        break
+      if (globalData[item].name && globalData[item].name === collectionName) {
+        exists = true;
+        break;
       }
     }
 
     // If the collection already exists, ask the user if they want to overwrite it
-    let overwriteConfirmation = true
+    let overwriteConfirmation = true;
     if (exists) {
       overwriteConfirmation = await new Promise((resolve) => {
         confirmDialog({
@@ -123,19 +123,19 @@ const SubsetCreationToolsDB = ({ currentCollection, refreshData }) => {
           icon: "pi pi-exclamation-triangle",
           accept: () => resolve(true),
           reject: () => resolve(false)
-        })
-      })
+        });
+      });
     }
     if (!overwriteConfirmation) {
-      return
+      return;
     }
 
-    const db = await connectToMongoDB()
-    const newCollection = await db.createCollection(id)
-    await newCollection.insertMany(filteredData)
-    await insertMEDDataObjectIfNotExists(object)
-    MEDDataObject.updateWorkspaceDataObject()
-    toast.success(`New subset ${collectionName} created with filtered data.`)
+    const db = await connectToMongoDB();
+    const newCollection = await db.createCollection(id);
+    await newCollection.insertMany(filteredData);
+    await insertMEDDataObjectIfNotExists(object);
+    MEDDataObject.updateWorkspaceDataObject();
+    toast.success(`New subset ${collectionName} created with filtered data.`);
 
     // Create row_tags collection if it doesn't exist and tagName is not empty
     if (tagName) {
