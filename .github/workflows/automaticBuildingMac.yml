@@ -156,10 +156,10 @@ jobs:
           VERSION=${GITHUB_REF/refs\/tags\//}
           echo "::set-output name=VERSION::${VERSION#v}"
       
-      # - name: dotenv file
-      #   run: |
-      #     echo "DEVELOPER_ID_APP=${{ secrets.DEVELOPER_ID_APP }}" >> .env
-      #     echo "DEVELOPER_ID_INSTALLER=${{ secrets.DEVELOPER_ID_INSTALLER }}" >> .env
+      - name: dotenv file
+        run: |
+          echo "DEVELOPER_ID_APP=${{ secrets.DEVELOPER_ID_APP }}" >> .env
+          echo "DEVELOPER_ID_INSTALLER=${{ secrets.DEVELOPER_ID_INSTALLER }}" >> .env
           
       # - name: Run prebuild script for Mac
       #   run: npm run prebuild:mac
