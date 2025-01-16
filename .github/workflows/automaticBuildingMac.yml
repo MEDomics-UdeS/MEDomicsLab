@@ -21,43 +21,43 @@ jobs:
           submodules: recursive
           fetch-depth: 0 # Fetch full history for branches
       
-      # - name: Keys and certificates
-      #   env:
-      #     APPLE_CERT_DATA: ${{ secrets.APPLE_CERT_DATA }}
-      #     APPLE_CERT_PASSWORD: ${{ secrets.APPLE_CERT_PASSWORD }}
-      #     DEVELOPER_APP_CER: ${{ secrets.DEVELOPER_APP_CER }}
-      #     DEVELOPER_APP_KEY: ${{ secrets.DEVELOPER_APP_KEY }}
+      - name: Keys and certificates
+        env:
+          APPLE_CERT_DATA: ${{ secrets.APPLE_CERT_DATA }}
+          APPLE_CERT_PASSWORD: ${{ secrets.APPLE_CERT_PASSWORD }}
+          DEVELOPER_APP_CER: ${{ secrets.DEVELOPER_APP_CER }}
+          DEVELOPER_APP_KEY: ${{ secrets.DEVELOPER_APP_KEY }}
 
-      #     # echo ${{ secrets.APPLE_CERT_DATA }} | base64 --decode > certificate_installer.cer
-      #     # echo ${{ secrets.APPLE_CERT_PASSWORD }} | base64 --decode > certificate_installer.key
-      #     # echo ${{ secrets.DEVELOPER_APP_CER }} | base64 --decode > certificate_application.cer
-      #     # echo ${{ secrets.DEVELOPER_APP_KEY }} | base64 --decode > certificate_application.key
-      #   run: |
-      #     CERTIFICATE_PATH=$RUNNER_TEMP/build_certificate.p12
-      #     echo -n "$APPLE_CERT_DATA" | base64 --decode -o certificate_installer.p12
-      #     echo -n "$DEVELOPER_APP_CER" | base64 --decode -o certificate_application.p12
+          # echo ${{ secrets.APPLE_CERT_DATA }} | base64 --decode > certificate_installer.cer
+          # echo ${{ secrets.APPLE_CERT_PASSWORD }} | base64 --decode > certificate_installer.key
+          # echo ${{ secrets.DEVELOPER_APP_CER }} | base64 --decode > certificate_application.cer
+          # echo ${{ secrets.DEVELOPER_APP_KEY }} | base64 --decode > certificate_application.key
+        run: |
+          CERTIFICATE_PATH=$RUNNER_TEMP/build_certificate.p12
+          echo -n "$APPLE_CERT_DATA" | base64 --decode -o certificate_installer.p12
+          echo -n "$DEVELOPER_APP_CER" | base64 --decode -o certificate_application.p12
 
-      #     KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
-      #     security create-keychain -p "${{ secrets.APPLE_CERT_PASSWORD }}" $KEYCHAIN_PATH
-      #     security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
-      #     security unlock-keychain -p "${{ secrets.APPLE_CERT_PASSWORD }}" $KEYCHAIN_PATH
+          KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
+          security create-keychain -p "${{ secrets.APPLE_CERT_PASSWORD }}" $KEYCHAIN_PATH
+          security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
+          security unlock-keychain -p "${{ secrets.APPLE_CERT_PASSWORD }}" $KEYCHAIN_PATH
 
-      #     security import certificate_installer.p12 -P "${{ secrets.APPLE_CERT_PASSWORD }}" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
-      #     security import certificate_application.p12 -P "${{ secrets.APPLE_CERT_PASSWORD }}" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
-      #     security list-keychain -d user -s $KEYCHAIN_PATH
+          security import certificate_installer.p12 -P "${{ secrets.APPLE_CERT_PASSWORD }}" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+          security import certificate_application.p12 -P "${{ secrets.APPLE_CERT_PASSWORD }}" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+          security list-keychain -d user -s $KEYCHAIN_PATH
 
-      #     # Store as a keychain profile (for signing)
+          # Store as a keychain profile (for signing)
 
-      #     # Encode the Apple API key to .p8 format
-      #     # echo -n "$APPLE_API_KEY_BASE64" | base64 --decode -o AuthKey_${{ secrets.APPLE_API_KEY_ID }}.p8
+          # Encode the Apple API key to .p8 format
+          # echo -n "$APPLE_API_KEY_BASE64" | base64 --decode -o AuthKey_${{ secrets.APPLE_API_KEY_ID }}.p8
 
-      # - name: keychain profile
-      #   env:
-      #     APPLE_NOTARY_USER: ${{ secrets.APPLE_NOTARY_USER }}
-      #     APPLE_NOTARY_PASSWORD: ${{ secrets.APPLE_NOTARY_PASSWORD }}
-      #     APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-      #   run: |
-      #     xcrun notarytool store-credentials "notarytool-password" --apple-id "$APPLE_NOTARY_USER" --team-id "$APPLE_TEAM_ID" --password "$APPLE_NOTARY_PASSWORD"
+      - name: keychain profile
+        env:
+          APPLE_NOTARY_USER: ${{ secrets.APPLE_NOTARY_USER }}
+          APPLE_NOTARY_PASSWORD: ${{ secrets.APPLE_NOTARY_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          xcrun notarytool store-credentials "notarytool-password" --apple-id "$APPLE_NOTARY_USER" --team-id "$APPLE_TEAM_ID" --password "$APPLE_NOTARY_PASSWORD"
           
       
       - name: Checking out the correct branches for submodules
