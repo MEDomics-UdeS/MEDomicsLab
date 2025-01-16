@@ -251,8 +251,8 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: mac-built
-          path: ./build/dist/MEDomicsLab-${{ env.VERSION }}-signed.pkg
-          # path: ./build/dist/MEDomicsLab-${{ env.VERSION }}-mac.pkg
+          # path: ./build/dist/MEDomicsLab-${{ env.VERSION }}-signed.pkg
+          path: ./build/dist/MEDomicsLab-${{ env.VERSION }}-mac.pkg
         env:
           VERSION: ${{ steps.get-tag.outputs.VERSION }}
   
@@ -300,7 +300,7 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            ./MEDomicsLab-${{ env.VERSION }}-mac-signed.pkg
+            ./MEDomicsLab-${{ env.VERSION }}-mac.pkg
           name: MEDomicsLab-${{ env.VERSION }}
           body: |
             MEDomicsLab-${{ env.VERSION }}
