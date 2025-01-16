@@ -39,7 +39,7 @@
       "entitlementsInherit": "build/entitlements.mac.plist",
       "category": "public.app-category.developer-tools",
       "target": "pkg",
-      "notarize": false
+      "notarize": true
     },
     "pkg": {
       "isRelocatable": false
@@ -58,7 +58,6 @@
       "afterInstall": "build/after-install.sh"
     },
     "afterPack": "build/afterPack.js",
-    "afterSign": "build/notarize.js",
     "publish": null
   },
   "scripts": {
