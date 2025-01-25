@@ -10,6 +10,8 @@ from pathlib import Path
 from abc import ABC, abstractmethod
 import sys
 sys.path.append(str(Path(os.path.dirname(os.path.abspath(__file__))).parent))
+from server_utils import get_repo_path
+from CustomZipFile import CustomZipFile
 
 DATAFRAME_LIKE = Union[dict, list, tuple, np.ndarray, pd.DataFrame]
 TARGET_LIKE = Union[int, str, list, tuple, np.ndarray, pd.Series]
@@ -63,6 +65,25 @@ class MEDexperiment(ABC):
         self._nb_nodes_done: float = 0.0
         self.global_json_config['unique_id'] = 0
         self.pipelines_objects = self.create_next_nodes(self.pipelines, {})
+        self.sceneZipFile = CustomZipFile(
+            path=global_json_config['configPath'])
+        if self.global_json_config['paths']['ws'][0] == '.':
+            for key, value in self.global_json_config['paths'].items():
+                self.global_json_config['paths'][key] = get_repo_path(
+                ) + value[1:]
+        os.chdir(str(Path(os.path.dirname(os.path.abspath(__file__))).parent.parent))
+        print("current working directory: ", os.getcwd())
+        print(json.dumps(self.pipelines, indent=4))
+
+        def clear_tmp_folder(path):
+            """
+                Function that clear the tmp folder of the experiment.
+            """
+            for f in os.listdir(os.path.join(path, 'tmp')):
+                if f != '.gitkeep':
+                    os.remove(os.path.join(path, 'tmp', f))
+
+        self.sceneZipFile.write_to_zip(custom_actions=clear_tmp_folder)
 
     def update(self, global_json_config: json = None):
         """Updates the experiment with the pipelines and the global configuration.
@@ -103,11 +124,12 @@ class MEDexperiment(ABC):
                     self.global_json_config['nodes'][current_node_id] = self.global_json_config['nodes'][tmp_subid_list[0]]
                     self.global_json_config['nodes'][current_node_id]['associated_id'] = tmp_subid_list[1]
                     self.global_json_config['nodes'][current_node_id]['id'] = current_node_id
+
+                # if self.global_json_config['nodes'][current_node_id]['data']['internal']['type'] == 'group_models':
+
                 # then, we create the node normally
-                node = self.create_Node(
-                    self.global_json_config['nodes'][current_node_id])
-                nodes[current_node_id] = self.handle_node_creation(
-                    node, pipelines_objects)
+                node = self.create_Node(self.global_json_config['nodes'][current_node_id])
+                nodes[current_node_id] = self.handle_node_creation(node, pipelines_objects)
                 nodes[current_node_id]['obj'].just_run = False
                 # if the node has next nodes
                 if current_node_id in pipelines_objects:
@@ -255,7 +277,6 @@ class MEDexperiment(ABC):
                         self.modify_node_info(node_info, node, new_experiment)
                         node_info['experiment'] = new_experiment
                         exp_to_return = new_experiment
-
                     else:
                         self.modify_node_info(node_info, node, experiment)
                         node_info['experiment'] = experiment
@@ -353,9 +374,6 @@ class MEDexperiment(ABC):
                     try:
                         json.dumps(value)
                         return_dict[key] = value
-                    except TypeError:
-                        pass
-
                     except TypeError:
                         pass
 
