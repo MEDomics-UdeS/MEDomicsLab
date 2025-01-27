@@ -50,6 +50,8 @@ import ModulePage from "../../mainPages/moduleBasics/modulePage"
 import NotebookEditor from "../../mainPages/notebookEditor"
 import OutputPage from "../../mainPages/output"
 import SettingsPage from "../../mainPages/settings"
+import Superset from "../../mainPages/superset"
+import TestSuperset from "../../mainPages/TestSuperset"
 import TerminalPage from "../../mainPages/terminal"
 import { updateMEDDataObjectName, updateMEDDataObjectPath } from "../../mongoDB/mongoDBUtils"
 import { DataContext } from "../../workspace/dataContext"
@@ -59,6 +61,7 @@ import { showPopup } from "./popupMenu"
 import { TabStorage } from "./tabStorage"
 import { Utils } from "./utils"
 import ZoomPanPinchComponent from "./zoomPanPinchComponent"
+import { SiApachesuperset  } from "react-icons/si"
 
 var fields = ["Name", "Field1", "Field2", "Field3", "Field4", "Field5"]
 
@@ -804,6 +807,24 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
           return <ApplicationPage pageId={"EvaluationPage"} />
         }
       }
+    } else if (component === "supersetPage") {
+      if (node.getExtraData().data == null) {
+        const config = node.getConfig()
+        if (config.path !== null) {
+          return <Superset pageId={config.uuid} />
+        } else {
+          return <Superset pageId={"supersetPage"} />
+        }
+      }
+    } else if (component === "TestsupersetPage") {
+      if (node.getExtraData().data == null) {
+        const config = node.getConfig()
+        if (config.path !== null) {
+          return <TestSuperset pageId={config.uuid} />
+        } else {
+          return <TestSuperset pageId={"supersetPage"} />
+        }
+      }
     } else if (component === "terminal") {
       if (node.getExtraData().data == null) {
         const config = node.getConfig()
@@ -962,6 +983,9 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
       }
       if (component === "Settings") {
         return <span style={{ marginRight: 3 }}>⚙️</span>
+      }
+      if (component === "supersetPage") {
+        return <SiApachesuperset style={{ marginRight: 3 }} />
       }
     }
   }
