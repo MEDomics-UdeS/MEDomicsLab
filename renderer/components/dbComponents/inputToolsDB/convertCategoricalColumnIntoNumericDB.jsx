@@ -142,6 +142,7 @@ const ConvertCategoricalColumnIntoNumericDB = ({ currentCollection }) => {
       setData(previousData) // Restaurer les données
       setColumns(previousColumns) // Restaurer les colonnes
       setHighlightedColumns([]) // Réinitialiser les colonnes mises en évidence
+      setModifiedColumns([])
       toast.info("Changes have been undone.")
     } else {
       toast.warn("No changes to undo.")
@@ -215,17 +216,22 @@ const ConvertCategoricalColumnIntoNumericDB = ({ currentCollection }) => {
               marginBottom: "10px"
             }}
           >
-            {categoricalColumns.map((col, index) => (
-              <li key={index} style={{ marginBottom: "10px" }}>
-                <span style={{ marginRight: "10px" }}>Convert Categorical Column into Numeric :</span>
-                <Button label={col} className="p-button-success" onClick={() => convertColumnToOneHot(col)} style={{ marginLeft: "10px", marginTop: "5px", display: "inline-block" }} />
-              </li>
-            ))}
+            {modifiedColumns.length == 0 && (
+              <span>
+                {" "}
+                {categoricalColumns.map((col, index) => (
+                  <li key={index} style={{ marginBottom: "10px" }}>
+                    <span style={{ marginRight: "10px" }}>Convert Categorical Column into Numeric :</span>
+                    <Button label={col} onClick={() => convertColumnToOneHot(col)} style={{ marginLeft: "10px", marginTop: "5px", display: "inline-block" }} />
+                  </li>
+                ))}
+              </span>
+            )}
           </ul>
         </div>
       )}
-      {isDataModified() && <Button label="Undo" className="p-button-warning" onClick={undoChanges} style={{ marginTop: "20px", marginRight: "10px" }} />}
-      {isDataModified() && <Button label="Save Modified Date into MongoDB" className="p-button-primary" onClick={saveEncodedDataToDB} style={{ marginTop: "20px" }} />}{" "}
+      {modifiedColumns.length > 0 && <Button label={`Undo Changes:  ${modifiedColumns}`} className="p-button-danger" onClick={undoChanges} style={{ marginTop: "20px", marginRight: "10px" }} />}
+      {isDataModified() && <Button label="Save Modified Date into MongoDB" className="p-button-success" onClick={saveEncodedDataToDB} style={{ marginTop: "20px" }} />}{" "}
     </div>
   )
 }
