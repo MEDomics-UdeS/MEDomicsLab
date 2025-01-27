@@ -158,8 +158,8 @@ const ConvertCategoricalColumnIntoNumericDB = ({ currentCollection }) => {
       // Supprimer les anciennes données et insérer les nouvelles
       await collection.deleteMany({})
       await collection.insertMany(data)
-      setModifiedColumns([])
-      setHighlightedColumns([])
+      setModifiedColumns([]) // Réinitialiser les colonnes modifié
+      setHighlightedColumns([]) // Réinitialiser les colonnes mises en évidence
       fetchData()
 
       toast.success("Encoded data has been saved to the database!")
@@ -198,11 +198,11 @@ const ConvertCategoricalColumnIntoNumericDB = ({ currentCollection }) => {
                 sortable
                 style={{
                   color: categoricalColumns.includes(col.field) ? "red" : "inherit", // Rouge si catégorique
-                  color: highlightedColumns.includes(col.field) ? "red" : "inherit"
+                  color: highlightedColumns.includes(col.field) ? "red" : "inherit" // Rouge si mises en évidence
                 }}
                 bodyStyle={{
-                  color: highlightedColumns.includes(col.field) ? "red" : "inherit",
-                  background: categoricalColumns.includes(col.field) ? "red" : "inherit" // Rouge pour les cellules si catégorique
+                  color: highlightedColumns.includes(col.field) ? "red" : "inherit", // Rouge pour les cellules si modifié
+                  background: categoricalColumns.includes(col.field) ? "red" : "inherit" // Rouge pour les cellules si mises en évidence
                 }}
               />
             ))}
