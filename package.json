@@ -76,6 +76,7 @@
     "@popperjs/core": "^2.11.6",
     "@react-three/drei": "^9.86.0",
     "@react-three/fiber": "^8.14.3",
+    "@superset-ui/embedded-sdk": "^0.1.1",
     "@tanstack/react-table": "^8.9.3",
     "@tensorflow/tfjs-node": "^3.18.0",
     "ace-builds": "^1.24.1",
