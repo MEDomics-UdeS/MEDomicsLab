@@ -149,7 +149,7 @@ const ConvertCategoricalColumnIntoNumericDB = ({ currentCollection }) => {
     }
   }
 
-  // Sauvegarder les données encodées dans MongoDB
+  // Sauvegarder les données encodees dans MongoDB
   const saveEncodedDataToDB = async () => {
     try {
       const db = await connectToMongoDB()
@@ -158,6 +158,9 @@ const ConvertCategoricalColumnIntoNumericDB = ({ currentCollection }) => {
       // Supprimer les anciennes données et insérer les nouvelles
       await collection.deleteMany({})
       await collection.insertMany(data)
+      setModifiedColumns([])
+      setHighlightedColumns([])
+      fetchData()
 
       toast.success("Encoded data has been saved to the database!")
     } catch (error) {
