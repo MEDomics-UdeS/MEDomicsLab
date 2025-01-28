@@ -143,12 +143,21 @@ const SubsetCreationToolsDB = ({ currentCollection, refreshData }) => {
     toast.success(`New subset ${collectionName} created with filtered data.`);
   };
 
+  
   function createGroup(groupName) {
+
+    // Check if filteredData is empty
+    if (filteredData.length === 0) {
+      toast.error("No rows selected.")
+      return
+    }
+
     let jsonToSend = {}
     jsonToSend = {
         collectionName: currentCollection,
         groupName: groupName,
-        data: filteredData
+        data: filteredData,
+        databaseName: "data",
     }
 
     setLoading(true)
@@ -169,7 +178,6 @@ const SubsetCreationToolsDB = ({ currentCollection, refreshData }) => {
               toast.error(jsonResponse.error)
             }
           } else {
-            refreshData()
             toast.success("Group created successfully.")
           }
         }
