@@ -1,6 +1,6 @@
 import { shell } from "electron";
 import { Button } from "primereact/button";
-import React, { useContext } from 'react';
+import React, { useContext, useState } from 'react';
 import { SiApachesuperset } from "react-icons/si";
 import { LayoutModelContext } from "../../layout/layoutContext";
 import { SupersetRequestContext } from "./supersetRequestContext";
@@ -11,6 +11,7 @@ import { SupersetRequestContext } from "./supersetRequestContext";
  * @returns the superset panel
  */
 const Panel = () => {
+  const [toggle, setToggle] = useState(false)
   const { dispatchLayout } = useContext(LayoutModelContext)
   const { supersetPort, launched } = useContext(SupersetRequestContext)
   const cardStyle = {
@@ -22,9 +23,23 @@ const Panel = () => {
     backgroundColor: "rgb(53, 53, 53)" 
   }
 
+  const toggleSuperset = () => {
+    setToggle(!toggle)
+  }
+
   return (
+    <>
+    <div className="flex-container" style={{ gap: "5px", maxHeight:"5px", paddingBottom: "45px"}}>
+      <hr color="white" style={{border: "2px solid white", width:"7vw", alignItems: "left"}}></hr>
+      <button onClick={toggleSuperset} style={{border: "0px"}}>
+        {toggle ? 
+          (<i className="pi pi-chevron-down" style={{color: "gray", fontSize: "2rem"}}></i>) 
+          : (<i className="pi pi-chevron-up" style={{color: "gray", fontSize: "2rem"}}></i>)}
+      </button>
+      <hr color="white" style={{border: "2px solid white", width:"7vw", alignItems: "right"}}></hr>
+    </div>
+    {toggle && (
     <div style={{textAlign: "center", backgroundColor: "rgb(53, 53, 53)", padding: "5px"}}>
-      <hr style={{border: "2px solid white"}}></hr>
       <div style={{display: "flex", justifyContent: "center"}}>
         <SiApachesuperset style={{color:"white", fontSize: "50px", marginRight:"5px"}}/>
         <header style={{textAlign: "center", fontSize: "1.5rem", color: "white"}}>
@@ -73,6 +88,8 @@ const Panel = () => {
         </span>
       </div>
     </div>
+    )}
+    </>
   )
 }
 
