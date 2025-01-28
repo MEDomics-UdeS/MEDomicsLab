@@ -131,8 +131,8 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
           return openMED3pa(action)
         case "openSupersetModule":
           return openSuperset(action)
-        case "openTestsupersetModule":
-          return openTestSuperset(action)
+        case "openSupersetFrameModule":
+          return openSupersetFrame(action)
         case "openSettings":
           return openGeneric(action, "Settings", "Settings")
         case "openInputToolsDB":
@@ -401,8 +401,8 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
    * @summary Function that adds a tab of the Superset Module to the layout model
    * @params {Object} action - The action passed on by the dispatchLayout function
    */
-  const openTestSuperset = (action) => {
-    openGeneric(action, "TestSuperset", "TestsupersetPage")
+  const openSupersetFrame = (action) => {
+    openGeneric(action, "Superset", "SupersetFramePage")
   }
 
   /**

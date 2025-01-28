@@ -50,8 +50,8 @@ import ModulePage from "../../mainPages/moduleBasics/modulePage"
 import NotebookEditor from "../../mainPages/notebookEditor"
 import OutputPage from "../../mainPages/output"
 import SettingsPage from "../../mainPages/settings"
-import Superset from "../../mainPages/superset"
-import TestSuperset from "../../mainPages/TestSuperset"
+import Superset from "../../mainPages/superset/supersetEmbedder"
+import SupersetFrame from "../../mainPages/superset/SupersetFrame"
 import TerminalPage from "../../mainPages/terminal"
 import { updateMEDDataObjectName, updateMEDDataObjectPath } from "../../mongoDB/mongoDBUtils"
 import { DataContext } from "../../workspace/dataContext"
@@ -816,13 +816,13 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
           return <Superset pageId={"supersetPage"} />
         }
       }
-    } else if (component === "TestsupersetPage") {
+    } else if (component === "SupersetFramePage") {
       if (node.getExtraData().data == null) {
         const config = node.getConfig()
         if (config.path !== null) {
-          return <TestSuperset pageId={config.uuid} />
+          return <SupersetFrame pageId={config.uuid} />
         } else {
-          return <TestSuperset pageId={"supersetPage"} />
+          return <SupersetFrame pageId={"supersetPage"} />
         }
       }
     } else if (component === "terminal") {
@@ -985,6 +985,9 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
         return <span style={{ marginRight: 3 }}>⚙️</span>
       }
       if (component === "supersetPage") {
+        return <SiApachesuperset style={{ marginRight: 3 }} />
+      }
+      if (component === "SupersetFramePage") {
         return <SiApachesuperset style={{ marginRight: 3 }} />
       }
     }
