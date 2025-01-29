@@ -241,7 +241,7 @@ const SubsetCreationToolsDB = ({ currentCollection, refreshData }) => {
             <Message
                 style={{ marginBottom: "15px", marginTop: "2rem", textAlign: "justify" }}
                 severity="info"
-                text="Enabling this will create a column named 'Group' in the existing dataset and assign every row in the current subset to this group. This action does not create a new subset; it simply groups the selected rows within the existing dataset by adding them to the 'Group' column."
+                text="Enabling this will add a tag to the selected rows in the dataset."
                 icon="pi pi-info-circle"
                 iconPos="left"
                 iconstyle={{ fontSize: "2rem" }}

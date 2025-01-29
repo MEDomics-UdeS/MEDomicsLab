@@ -52,31 +52,47 @@ class GoExecScriptCreateGroupDB(GoExecutionScript):
         # Connect to MongoDB
         client = MongoClient('localhost', 54017)
         db = client[db_name]
-        collection = db[collectionName]
 
-        # Check if groupName already exists under the 'Group' Column
-        if collection.find_one({"Group": groupName}):
-            return {"error": f"The Group '{groupName}' already exists in the collection."}
-        
+        # Create or get the 'row_tags' collection
+        row_tags_collection = db["row_tags"]
 
-        # Step 1: Add the 'Group' column to all documents if it doesn't exist
-        collection.update_many(
-            {"Group": {"$exists": False}},  # Only update documents without the 'Group' field
-            {"$set": {"Group": None}}  # Add the 'Group' field with a default value of None
-        )
+        # Create a document to hold the group information
+        group_document = {
+            "collectionName": collectionName,
+            "data": [{"row": row, "groupNames": [groupName]} for row in data]  # Store groupName as a list
+        }
 
-        # Step 2: Update the 'Group' field only for the documents in `data`
-        for document in data:
-            # Ensure the `_id` is properly formatted as an ObjectId
-            document_id = ObjectId(document["_id"]) if not isinstance(document["_id"], ObjectId) else document["_id"]
-            # print(f"Updating document with _id: {document_id}") -- Uncomment to see prints
-            collection.update_one(
-                {"_id": document_id},  # Match the document by its unique _id
-                {"$set": {"Group": groupName}}  # Set the group name
-            )
+        # Check if a document for this collectionName already exists
+        existing_document = row_tags_collection.find_one({"collectionName": collectionName})
 
-        return {"data": f"Group '{groupName}' added to {len(data)} documents successfully"}
+        if existing_document:
+            # Prepare to update existing document
+            for i, new_entry in enumerate(group_document["data"]):
+                existing_row = existing_document["data"][i]
+                # Check if the row already exists
+                if existing_row["row"] == new_entry["row"]:
+                    # If so, add the new group name to the list
+                    existing_group_names = existing_row.get("groupNames", [])
+                    # Only add the group name if it's not already present
+                    if groupName not in existing_group_names:
+                        existing_group_names.append(groupName)
+                    # Update the existing document
+                    row_tags_collection.update_one(
+                        {"collectionName": collectionName, "data.row": new_entry["row"]},
+                        {"$set": {"data.$.groupNames": existing_group_names}}
+                    )
+                else:
+                    # If the row does not exist, insert it as a new entry
+                    row_tags_collection.update_one(
+                        {"collectionName": collectionName},
+                        {"$addToSet": {"data": new_entry}}  # Use $addToSet to avoid duplicates
+                    )
+        else:
+            # Insert the new document
+            row_tags_collection.insert_one(group_document)
+            return {"data": f"Created new group '{groupName}' for collection '{collectionName}'."}
 
+        return {"data": f"Updated group '{groupName}' for collection '{collectionName}'."}
 
 
 script = GoExecScriptCreateGroupDB(json_params_dict, id_)

@@ -22,6 +22,7 @@ func AddHandleFunc() {
 	Utils.CreateHandleFunc(prePath+"/delete_tag_from_column/", handleDeleteTagFromColumn)
 	Utils.CreateHandleFunc(prePath+"/handle_pkl/", handlePKL)
 	Utils.CreateHandleFunc(prePath+"/create_group_DB/", handleCreateGroupDB)
+	Utils.CreateHandleFunc(prePath+"/delete_row_tag_DB/", handleDeleteRowTagDB)
 }
 
 
@@ -181,6 +182,18 @@ func handlePKL(jsonConfig string, id string) (string, error) {
 func handleCreateGroupDB(jsonConfig string, id string) (string, error) {
     log.Println("Create Group DB", id)
     response, err := Utils.StartPythonScripts(jsonConfig, "../pythonCode/modules/input/create_group_DB.py", id)
+    Utils.RemoveIdFromScripts(id)
+    if err != nil {
+        return "", err
+    }
+    return response, nil
+}
+
+// deleteRowTagDB handles the request to delete the row tag for the DB
+// It returns the response from the python script
+func handleDeleteRowTagDB(jsonConfig string, id string) (string, error) {
+    log.Println("Delete Row Tag DB", id)
+    response, err := Utils.StartPythonScripts(jsonConfig, "../pythonCode/modules/input/delete_row_tag_DB.py", id)
     Utils.RemoveIdFromScripts(id)
     if err != nil {
         return "", err
