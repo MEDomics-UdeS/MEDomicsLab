@@ -733,7 +733,7 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
     const uniqueGroupNames = Array.from(groupNames);
 
     return (
-        <div style={{ display: "flex", flexDirection: "row", gap: "5px", alignItems: "center" }}>
+        <div style={{display: "flex", flexDirection: "row", gap: "5px", alignItems: "center"}}>
           <Button
               icon="pi pi-trash"
               style={buttonStyle(rowData._id)}
@@ -741,12 +741,21 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
               onMouseEnter={() => setHoveredButton(rowData._id)}
               onMouseLeave={() => setHoveredButton(null)}
           />
+          {uniqueGroupNames.length > 0 && (
+              <div style={{
+                width: "2px",
+                height: "24px",
+                backgroundColor: "lightgrey",
+                margin: "0 10px",
+                borderRadius: "2px"
+              }}></div>
+          )}
           {uniqueGroupNames.map((group, index) => (
               <div
                   key={index}
-                  onMouseEnter={() => setHoveredTag({ field: rowData._id, index })}
-                  onMouseLeave={() => setHoveredTag({ field: null, index: null })}
-                  style={{ position: "relative", display: "inline-block" }}
+                  onMouseEnter={() => setHoveredTag({field: rowData._id, index})}
+                  onMouseLeave={() => setHoveredTag({field: null, index: null})}
+                  style={{position: "relative", display: "inline-block"}}
               >
                 <div
                     style={{
@@ -788,8 +797,8 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
   };
 
   return (
-    <>
-      <Dialog visible={viewMode} header="Preview changes" style={{ width: "80%", height: "80%" }} modal={true} onHide={() => onCancelChanges()}>
+      <>
+        <Dialog visible={viewMode} header="Preview changes" style={{ width: "80%", height: "80%" }} modal={true} onHide={() => onCancelChanges()}>
         <DataTable
           className="p-datatable-striped p-datatable-gridlines"
           value={viewData}
