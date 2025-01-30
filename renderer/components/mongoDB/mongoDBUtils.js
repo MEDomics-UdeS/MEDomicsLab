@@ -181,19 +181,60 @@ async function insertPKLIntoCollection(filePath, collectionName) {
  * @param {String} filePath - The path to the CSV file.
  * @param {String} collectionName - The name of the MongoDB collection to store the chunks.
  */
-let globalBucket = null
 async function insertBigCSVIntoCollection(filePath, collectionName) {
   const db = await connectToMongoDB()
-  const bucket = new GridFSBucket(db, { bucketName: collectionName })
-  globalBucket = bucket
-  fs.createReadStream(filePath)
-    .pipe(bucket.openUploadStream(filePath))
-    .on("error", function (error) {
-      console.error("Error uploading file to GridFS", error)
-    })
-    .on("finish", function () {
-      console.log("File upload to GridFS complete")
-    })
+  const collection = db.collection(collectionName)
+
+  const maxBSONSize = 16 * 1024 * 1024 // 16MB
+  const readStream = fs.createReadStream(filePath)
+  let buffer = ""
+  let chunkSize = 0
+  const maxChunkSize = maxBSONSize - 1024 * 1024 // 1MB buffer for safety
+
+  readStream.on("data", (chunk) => {
+    buffer += chunk
+    chunkSize += chunk.length
+
+    if (chunkSize >= maxChunkSize) {
+      readStream.pause()
+      Papa.parse(buffer, {
+        header: true,
+        dynamicTyping: true,
+        complete: async (results) => {
+          try {
+            await collection.insertMany(results.data)
+            buffer = ""
+            chunkSize = 0
+            readStream.resume()
+          } catch (error) {
+            console.error("Error inserting chunk", error)
+            readStream.destroy()
+          }
+        }
+      })
+    }
+  })
+
+  readStream.on("end", () => {
+    if (buffer.length > 0) {
+      Papa.parse(buffer, {
+        header: true,
+        dynamicTyping: true,
+        complete: async (results) => {
+          try {
+            await collection.insertMany(results.data)
+            console.log("Final chunk inserted")
+          } catch (error) {
+            console.error("Error inserting final chunk", error)
+          }
+        }
+      })
+    }
+  })
+
+  readStream.on("error", (error) => {
+    console.error("Error reading file", error)
+  })
 }
 
 /**
@@ -230,7 +271,7 @@ async function insertCSVIntoCollection(filePath, collectionName) {
       })
     })
   } else {
-    insertBigCSVIntoCollection(filePath, collectionName)
+    await insertBigCSVIntoCollection(filePath, collectionName)
   }
 }
 
