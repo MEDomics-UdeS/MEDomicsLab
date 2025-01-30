@@ -11,7 +11,7 @@ import { SupersetRequestContext } from "./supersetRequestContext";
  * @returns the superset panel
  */
 const Panel = () => {
-  const [toggle, setToggle] = useState(false)
+  const [toggle, setToggle] = useState(true)
   const { dispatchLayout } = useContext(LayoutModelContext)
   const { supersetPort, launched } = useContext(SupersetRequestContext)
   const cardStyle = {
