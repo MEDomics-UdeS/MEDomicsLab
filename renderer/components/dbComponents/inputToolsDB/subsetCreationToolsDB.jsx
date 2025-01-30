@@ -243,7 +243,7 @@ const SubsetCreationToolsDB = ({ currentCollection, refreshData }) => {
                 severity="info"
                 text="Enabling this will add a tag to the selected rows in the dataset."
                 icon="pi pi-info-circle"
-                iconPos="left"
+                iconpos="left"
                 iconstyle={{ fontSize: "2rem" }}
             />
         )}
