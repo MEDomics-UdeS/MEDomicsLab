@@ -49,9 +49,9 @@ func main() {
 
 	if len(os.Args) == 6 {
 		condaEnv = os.Args[5]
-	} 
-	
-	
+	}
+
+
 	log.Println("Conda env: " + condaEnv)
 	os.Setenv("MED_ENV", condaEnv)
 	os.Setenv("MED_TMP", os.Args[4])

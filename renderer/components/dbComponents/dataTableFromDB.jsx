@@ -723,8 +723,8 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
     // Loop through each tag to find the group names for the current rowData
     rowTags.forEach(tag => {
       tag.data.forEach(item => {
-        if (item.row._id === rowData._id) { 
-          item.groupNames.forEach(groupName => groupNames.add(groupName)); 
+        if (item.row._id === rowData._id) {
+          item.groupNames.forEach(groupName => groupNames.add(groupName));
         }
       });
     });
