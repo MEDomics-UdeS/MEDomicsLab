@@ -271,7 +271,7 @@ async function insertCSVIntoCollection(filePath, collectionName) {
       })
     })
   } else {
-    insertBigCSVIntoCollection(filePath, collectionName)
+    await insertBigCSVIntoCollection(filePath, collectionName)
   }
 }
 
