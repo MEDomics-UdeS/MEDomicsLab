@@ -5,7 +5,6 @@ import { Accordion, AccordionTab } from 'primereact/accordion'
 import { Button } from "primereact/button"
 import { Card } from "primereact/card"
 import { confirmDialog } from 'primereact/confirmdialog'
-import { InputNumber } from 'primereact/inputnumber'
 import { InputText } from 'primereact/inputtext'
 import { OverlayPanel } from 'primereact/overlaypanel'
 import { Password } from 'primereact/password'
@@ -16,6 +15,7 @@ import { toast } from "react-toastify"
 import { requestBackend } from "../../../utilities/requests"
 import { ErrorRequestContext } from "../../generalPurpose/errorRequestContext"
 import ProgressBarRequests from "../../generalPurpose/progressBarRequests"
+import { LayoutModelContext } from "../../layout/layoutContext"
 import { WorkspaceContext } from "../../workspace/workspaceContext"
 import ModulePage from "../moduleBasics/modulePage"
 import { SupersetRequestContext } from "./supersetRequestContext"
@@ -32,13 +32,14 @@ const SupersetDashboard = () => {
   const [newLastName, setNewLastName] = useState(null)
   const [newUserEmail, setNewUserEmail] = useState(null)
   const [isEmailValid, setIsEmailValid] = useState(true)
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
   const [progress, setProgress] = useState(0)
   const [loadingUser, setLoadingUser] = useState(false)
   const [refresh, setRefresh] = useState(0)
   const sleep = ms => new Promise(r => setTimeout(r, ms));
   const { port } = useContext(WorkspaceContext)
   const { setError } = useContext(ErrorRequestContext)
+  const { dispatchLayout } = useContext(LayoutModelContext)
   const { url, supersetPort, launched, setUrl, setSupersetPort, setLaunched } = useContext(SupersetRequestContext)
   const op = useRef(null)
   const [services, setServices] = useState([])
@@ -151,12 +152,6 @@ const SupersetDashboard = () => {
         setLoading(false)
       }
     )
-  }
-
-  async function connectSuperset() {
-    setUrl("http://localhost:" + dashboardPort)
-    setLaunched(true)
-    refreshSuperset()
   }
 
   async function createUser() {
@@ -291,7 +286,6 @@ const SupersetDashboard = () => {
           setSupersetPort(null)
           toast.success("Process killed successfully")
         })
-        return
       }
       // Linux or MacOS
       else {
@@ -307,6 +301,8 @@ const SupersetDashboard = () => {
           toast.success("Process killed successfully")
         })
       }
+      // Close tab
+      dispatchLayout({ type: "DELETE_DATA_OBJECT", payload: {uuid: "Superset"} })
     }
     const reject = () => {
       return
@@ -345,7 +341,7 @@ const SupersetDashboard = () => {
   }
 
   async function refreshSuperset() {
-    await sleep(5000)
+    await sleep(3000)
     setRefresh(refresh+1)
     getSupersetProcesses()
   }
@@ -369,7 +365,7 @@ const SupersetDashboard = () => {
 
   useEffect(() => {
     refreshSuperset()
-  }, [url])
+  }, [url, launched])
 
   useEffect(() => {
     if (dashboardPort){
@@ -384,6 +380,13 @@ const SupersetDashboard = () => {
       }
     }
   }, [url, launched])
+
+  // Launch superset on mount
+  useEffect(() => {
+    if (!launched){
+      launchSuperset()
+    }
+  }, [])
 
   return (
     <>
@@ -418,42 +421,25 @@ const SupersetDashboard = () => {
           ></Iframe>
         </div>
       ) : (
-        <div className="center-page config-page">
-          <Card title="Superset port selection" subTitle="Enter the port of your Superset server, if you haven't launched Superset, click Launch.">
-          <div className="card flex justify-content-center flex-column gap-2" style={{borderWidth: "0px"}}>
-            <div className="p-inputgroup">
-              <span className="p-inputgroup-addon">
-                <i className="pi pi-sitemap"></i>
-              </span>
-              <InputNumber placeholder="Port" useGrouping={false} onChange={(e) => setDashboardPort(e.value)}/>
-            </div>
-            <Button label="Connect" severity="info" disabled={dashboardPort === null} onClick={() => connectSuperset()}/>
-            <Button 
-              label="Launch Superset For Me" 
-              tooltip={"This will change and override your superset configuration file and launch superset in the background.\
-                \nDo not click if you have a running instance of superset or if you want to keep your current configuration."} 
-              tooltipOptions={{ position: 'bottom' }}
-              loading={loading} 
-              severity="info" 
-              onClick={() => launchSuperset()}
-            />
-            </div>
+        <div style={{justifyContent: "center", textAlign: "center", maxWidth: "80%", marginLeft: "auto", marginRight: "auto", marginTop: "20%"}}>
+          <Card 
+            title="Launching superset..."
+            subTitle="This process will change and override your superset configuration file and launch superset in the background.
+                Avoid using Superset within MEDomicsLab if you have a running instance of superset or if you want to keep your current configuration.">
+            {loading && (
+              <ProgressBarRequests
+                progressBarProps={{ animated: true, variant: "success" }}
+                isUpdating={loading}
+                setIsUpdating={setLoading}
+                progress={progress}
+                setProgress={setProgress}
+                requestTopic={"superset/progress/"}
+              />
+            )}
           </Card>
         </div>
       )}
-      {/* bottom center - progress bar */}
-      <div className="panel-bottom-center">
-        {loading && (
-          <ProgressBarRequests
-            progressBarProps={{ animated: true, variant: "success" }}
-            isUpdating={loading}
-            setIsUpdating={setLoading}
-            progress={progress}
-            setProgress={setProgress}
-            requestTopic={"superset/progress/"}
-          />
-        )}
-      </div>
+      {/* bottom center - progress bar <div className="panel-bottom-center">*/}
     </>
   )
 }

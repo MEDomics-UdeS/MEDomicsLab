@@ -47,7 +47,7 @@ const Panel = () => {
         </header>
       </div>
       <div className="card flex justify-content-center flex-column gap-1" style={{borderWidth: "0px", backgroundColor: "rgb(53, 53, 53)"}}>
-        <Button label="Open" severity="info"  onClick={() => dispatchLayout({ type: "openSupersetFrameModule"})}/>
+        <Button label="Launch Superset" severity="info"  onClick={() => dispatchLayout({ type: "openSupersetFrameModule"})}/>
         {(launched && supersetPort) && (
           <div
           style={{
