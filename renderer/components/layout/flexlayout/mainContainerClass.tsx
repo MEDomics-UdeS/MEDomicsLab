@@ -161,7 +161,7 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
       let uuidToCheck = idMap[key]._attributes.config?.uuid
       // let dataObject = uuidToCheck?.uuid
       console.log("dataObject", dataObject)
-      if (uuidToCheck !== undefined && uuidToCheck === dataObject._UUID) {
+      if (uuidToCheck !== undefined && uuidToCheck === dataObject.uuid) {
         tabsToDelete.push(idMap[key])
       }
     })
