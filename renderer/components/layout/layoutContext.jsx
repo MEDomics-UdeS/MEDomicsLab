@@ -394,7 +394,7 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
    * @params {Object} action - The action passed on by the dispatchLayout function
    */
   const openSuperset = (action) => {
-    openGeneric(action, "Superset", "supersetPage")
+    openGeneric(action, "Dashboard Viewer", "supersetPage")
   }
 
   /**
