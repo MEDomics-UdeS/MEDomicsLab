@@ -75,6 +75,7 @@ class GoExecScriptPredict(GoExecutionScript):
         """
         # Prepare environment variables
         env = os.environ.copy()
+        path_superset = os.path.join(path_superset, "superset")
         env["FLASK_APP"] = "superset"
 
         # Create an admin user
