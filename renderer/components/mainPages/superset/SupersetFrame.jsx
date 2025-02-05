@@ -1,5 +1,6 @@
 import { error } from "console"
 import { ipcRenderer } from "electron"
+import { readdir } from 'fs/promises'
 import os from "os"
 import { Accordion, AccordionTab } from 'primereact/accordion'
 import { Button } from "primereact/button"
@@ -25,7 +26,6 @@ import { SupersetRequestContext } from "./supersetRequestContext"
  * @returns the superset page
  */
 const SupersetDashboard = () => {
-  const [dashboardPort, setDashboardPort] = useState(null)
   const [newUserUsername, setNewUserUsername] = useState(null)
   const [newUserPassword, setNewUserPassword] = useState(null)
   const [newFirstName, setNewFirstName] = useState(null)
@@ -42,9 +42,42 @@ const SupersetDashboard = () => {
   const { dispatchLayout } = useContext(LayoutModelContext)
   const { url, supersetPort, launched, setUrl, setSupersetPort, setLaunched } = useContext(SupersetRequestContext)
   const op = useRef(null)
-  const [services, setServices] = useState([])
+
+  async function getSupersetPath(){
+    let pythonPath = await ipcRenderer.invoke("getBundledPythonEnvironment")
+    let system = os.platform()
+    let scriptsPath = null
+    if (system === "win32") {
+      scriptsPath = pythonPath.split(".medomics")[0] + ".medomics\\python\\Scripts"
+    } else {
+      scriptsPath = pythonPath.split(".medomics")[0] + ".medomics/python/bin"
+    }
+    let SupersetLibPath = null
+    if (system === "win32") {
+      SupersetLibPath = pythonPath.split(".medomics")[0] + ".medomics\\python\\Lib\\site-packages\\superset"
+    } else {
+      // Find python directory
+      const getDirectories = async source =>
+        (await readdir(source, { withFileTypes: true }))
+          .filter(dirent => (dirent.isDirectory() && dirent.name.startsWith("python")))
+          .map(dirent => dirent.name)
+        
+      const pythonDirs = await getDirectories(pythonPath.split(".medomics")[0] + ".medomics/python/lib")
+      if(pythonDirs.length === 0){
+        console.error("Could not find python directory", pythonDirs)
+        toast.error("Could not find python directory", {autoClose: 5000})
+        setLoading(false)
+        setLaunched(false)
+        return
+      }
+      SupersetLibPath = pythonPath.split(".medomics")[0] + ".medomics/python/lib/" + pythonDirs[0] + "/site-packages/superset"
+    }
+
+    return {scriptsPath, SupersetLibPath}
+  }
 
   async function getSupersetProcesses() {
+    // For windows only
     // Run tasklist
     const { exec } = require('child_process')
     const system = os.platform()
@@ -67,43 +100,17 @@ const SupersetDashboard = () => {
           let match = stdout.split(/\s+/g)
           match = match.filter((el) => el !== "")
 
-          // Update services
+          // Return PID
           resolve(match[1])
         })
       })
       return pid
     }
-    // Linux or MacOS
-    else {
-      exec(`lsof -i :8080`, (err, stdout, stderr) => {
-        if (err) {
-          console.error(err)
-          return
-        }
-        console.log("stdout", stdout)
-        console.log("stderr", stderr)
-
-        // Parse stdout
-        let match = stdout.split(/\s+/g)
-        match = match.filter((el) => el !== "")
-
-        // Update services
-        const PID = match[1]
-        const onPort = match[8]
-        let supersetService = [{
-          pid: PID,
-          port: onPort
-        }]
-        setServices(supersetService)
-      })
-    }
   }
 
   async function launchSuperset() {
     let freePort = 8080 // in the future maybe we'll use getPort() from get-port package
-    let pythonPath = await ipcRenderer.invoke("getBundledPythonEnvironment")
-    let scriptsPath = pythonPath.split(".medomics")[0] + ".medomics\\python\\Scripts"
-    let SupersetLibPath = pythonPath.split(".medomics")[0] + ".medomics\\python\\Lib\\site-packages\\superset"
+    let {scriptsPath, SupersetLibPath} = await getSupersetPath()
 
     // Send the request to the backend
     let jsonToSend = {
@@ -156,12 +163,11 @@ const SupersetDashboard = () => {
 
   async function createUser() {
     // get superset path
-    let pythonPath = await ipcRenderer.invoke("getBundledPythonEnvironment")
-    const supersetPath = pythonPath.split(".medomics")[0] + ".medomics\\python\\Scripts\\superset"
+    let {scriptsPath, SupersetLibPath} = await getSupersetPath()
 
     // Send the request to the backend
     let jsonToSend = {
-      "supersetPath": supersetPath,
+      "supersetPath": scriptsPath,
       "username": newUserUsername,
       "password": newUserPassword,
       "firstname": newFirstName,
@@ -259,21 +265,23 @@ const SupersetDashboard = () => {
   }
 
   async function killProcess() {
-    // Get PID of the process
-    const pid = await getSupersetProcesses()
-    
-    // Confirm dialog
-    if (!pid) {
-      toast.error("Superset's PID not found", {autoClose: 5000})
-      return
-    }
-    const accept = () => {
-      // Kill the process
-      const { exec } = require('child_process')
-      const system = os.platform()
+     // Get system
+     const { exec } = require('child_process')
+     const system = os.platform()
 
+    // Get PID of the process for windows
+    let pid = null
+    if (system === "win32") {
+      pid = await getSupersetProcesses()
+    }
+    // Confirm dialog
+    const accept = () => {
       // Windows
       if (system === "win32") {
+        if (!pid) {
+          toast.error("Superset's PID not found", {autoClose: 5000})
+          return
+        }
         exec(`taskkill /F /PID ${pid}`, (err, stdout, stderr) => {
           if (err) {
             console.error(err)
@@ -286,10 +294,9 @@ const SupersetDashboard = () => {
           setSupersetPort(null)
           toast.success("Process killed successfully")
         })
-      }
-      // Linux or MacOS
-      else {
-        exec(`kill -9 ${pid}`, (err, stdout, stderr) => {
+      } else {
+        // Linux or MacOS
+        exec(`killall superset`, (err, stdout, stderr) => {
           if (err) {
             console.error(err)
             return
@@ -358,27 +365,7 @@ const SupersetDashboard = () => {
   }, [newUserEmail])
 
   useEffect(() => {
-    if (services.length === 0) {
-      setRefresh(refresh+1)
-    }
-  }, [services])
-
-  useEffect(() => {
     refreshSuperset()
-  }, [url, launched])
-
-  useEffect(() => {
-    if (dashboardPort){
-      // Check if Iframe body is not empty
-      const iframe = document.getElementById("superset-frame")
-      if (iframe) {
-        if (iframe.contentDocument.body.innerHTML === "") {
-          setLaunched(false)
-          toast.error("Superset is not running on port " + dashboardPort, {autoClose: 5000})
-          setDashboardPort(null)
-        }
-      }
-    }
   }, [url, launched])
 
   // Launch superset on mount
