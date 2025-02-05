@@ -44,15 +44,14 @@ class GoExecScriptPredict(GoExecutionScript):
         """Run a shell command and print its output."""
         try:
             result = subprocess.run(command, shell=True, env=env, check=True, text=True, capture_output=capture_output, timeout=timeout)
-            print(f"DEBUG result got it {command}")
-            print(f"DEBUG error {result.stderr}")
-            print(f"DEBUG output {result.stdout}")
+            print(f"error {result.stderr}")
+            print(f"output {result.stdout}")
             print(result.stdout)
             return {}
         except subprocess.CalledProcessError as e:
             print(f"Error while running command: {command}")
             print(e.stderr)
-            return {"stdout": f"Error while running command: {command}. Full error log:" + e.stderr}
+            return {"error": f"Error while running command: {command}. Full error log:" + e.stderr}
             
 
     def setup_superset(self, port, scripts_path, superset_lib_path):
@@ -102,16 +101,12 @@ class GoExecScriptPredict(GoExecutionScript):
             elif line.startswith('    "EMBEDDED_SUPERSET": False,'):
                 updated_lines.append('    "EMBEDDED_SUPERSET": True,\n')
             elif line.startswith('ENABLE_CORS = False'):
-                print("DEBUG enabling CORS")
                 updated_lines.append('ENABLE_CORS = True\n')
             elif line.startswith('CORS_OPTIONS: dict[Any, Any] = \{\}'):
-                print("DEBUG enabling CORS_OPTIONS")
                 updated_lines.append('CORS_OPTIONS = { "supports_credentials": True, "allow_headers": ["*"], "resources":["*"], "origins": ["*"] }\n')
             elif line.startswith('WTF_CSRF_ENABLED = True'):
-                print("DEBUG disabling WTF_CSRF_ENABLED")
                 updated_lines.append('WTF_CSRF_ENABLED = False\n')
             elif line.startswith('GUEST_ROLE_NAME = "Public"'):
-                print("DEBUG changing GUEST_ROLE_NAME")
                 updated_lines.append('GUEST_ROLE_NAME = "Gamma"\n')
             else:
                 updated_lines.append(line)
