@@ -13,7 +13,6 @@ import { Skeleton } from "primereact/skeleton"
 import React, { useContext, useEffect, useState } from "react"
 import { toast } from "react-toastify"
 import { requestBackend } from "../../utilities/requests"
-import { LayoutModelContext } from "../layout/layoutContext"
 import { connectToMongoDB, getCollectionTags, insertMEDDataObjectIfNotExists } from "../mongoDB/mongoDBUtils"
 import { ServerConnectionContext } from "../serverConnection/connectionContext"
 import { MEDDataObject } from "../workspace/NewMedDataObject"
@@ -34,8 +33,17 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
   const [hoveredButton, setHoveredButton] = useState(null)
   const [hoveredTag, setHoveredTag] = useState({ field: null, index: null })
   const [lastEdit, setLastEdit] = useState(Date.now())
-  const { dispatchLayout } = useContext(LayoutModelContext)
   const { port } = useContext(ServerConnectionContext)
+  const [viewData, setViewData] = useState([])
+  const [viewMode, setViewMode] = useState(false)
+  const [viewName, setViewName] = useState("")
+  const [userSetViewName, setUserSetViewName] = useState("")
+  const [rowToDelete, setRowToDelete] = useState(null)
+  const [columnToDelete, setColumnToDelete] = useState(null)
+  const [lastPipeline, setLastPipeline] = useState([])
+  const [loadingData, setLoadingData] = useState(true)
+  const items = Array.from({ length: 7 }, (v, i) => i) //  Fake items for the skeleton upload
+  const forbiddenCharacters = /[\\."$*<>:|?]/
   const exportOptions = [
     {
       label: "CSV",
@@ -51,16 +59,6 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
     }
   ]
 
-  const [viewData, setViewData] = useState([])
-  const [viewMode, setViewMode] = useState(false)
-  const [viewName, setViewName] = useState("")
-  const [userSetViewName, setUserSetViewName] = useState("")
-  const [rowToDelete, setRowToDelete] = useState(null)
-  const [columnToDelete, setColumnToDelete] = useState(null)
-  const [lastPipeline, setLastPipeline] = useState([])
-  const [loadingData, setLoadingData] = useState(true)
-  const items = Array.from({ length: 7 }, (v, i) => i) //  Fake items for the skeleton upload
-  const forbiddenCharacters = /[\\."$*<>:|?]/
   const buttonStyle = (id) => ({
     borderRadius: "10px",
     backgroundColor: hoveredButton === id ? "#d32f2f" : "#cccccc",
@@ -140,6 +138,7 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
     console.log("columns updated:", columns)
   }, [columns])
 
+  // Get columns from data
   const getColumnsFromData = (data) => {
     if (data.length > 0) {
       return Object.keys(data[0])
@@ -373,6 +372,7 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
 
   useEffect(() => {
     setColumnNameToTagsMap({})
+
     async function fetchData() {
       console.log("tagId", tagId)
       const exists = await collectionExists(tagId)
@@ -383,6 +383,7 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
         setColumnNameToTagsMap(map)
       }
     }
+
     fetchData()
   }, [tagId])
 
@@ -662,7 +663,15 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
           {...tablePropsData}
           /*Confirm & cancel buttons*/
           footer={
-            <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100%", gap: "40px" }}>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                height: "100%",
+                gap: "40px"
+              }}
+            >
               {/* First Column with Confirm and Cancel buttons */}
               <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
                 <Button label="Confirm changes" severity="success" rounded text raised icon="pi pi-check" onClick={onConfirmDeletion} />
@@ -748,15 +757,39 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
                             onMouseLeave={() => setHoveredButton(null)}
                           />
                         )}
-                        <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+                        <div
+                          style={{
+                            display: "flex",
+                            flexDirection: "column",
+                            alignItems: "center"
+                          }}
+                        >
                           <span>{col.header}</span>
-                          <div style={{ fontSize: "0.75rem", color: "#777", display: "flex", flexWrap: "wrap", gap: "4px" }}>
+                          <div
+                            style={{
+                              fontSize: "0.75rem",
+                              color: "#777",
+                              display: "flex",
+                              flexWrap: "wrap",
+                              gap: "4px"
+                            }}
+                          >
                             {Array.isArray(getColumnTags(col.field))
                               ? getColumnTags(col.field).map((tag, index) => (
                                   <div
                                     key={index}
-                                    onMouseEnter={() => setHoveredTag({ field: col.field, index })}
-                                    onMouseLeave={() => setHoveredTag({ field: null, index: null })}
+                                    onMouseEnter={() =>
+                                      setHoveredTag({
+                                        field: col.field,
+                                        index
+                                      })
+                                    }
+                                    onMouseLeave={() =>
+                                      setHoveredTag({
+                                        field: null,
+                                        index: null
+                                      })
+                                    }
                                     style={{ position: "relative", display: "inline-block" }}
                                   >
                                     <div

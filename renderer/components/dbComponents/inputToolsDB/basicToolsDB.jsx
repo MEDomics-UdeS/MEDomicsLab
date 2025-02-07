@@ -18,7 +18,6 @@ const BasicToolsDB = ({ collectionSize, currentCollection }) => {
   const [numRows, setNumRows] = useState("")
   const [columns, setColumns] = useState([])
   const [innerData, setInnerData] = useState([])
-  const maxCollectionSize = 16777216
   const { globalData } = useContext(DataContext)
 
   // Export options with the split button
@@ -26,18 +25,18 @@ const BasicToolsDB = ({ collectionSize, currentCollection }) => {
     {
       label: "CSV",
       command: () => {
-        handleExport("CSV")
+        handleExport("CSV").then(r => console.log(r))
       }
     },
     {
       label: "JSON",
       command: () => {
-        handleExport("JSON")
+        handleExport("JSON").then(r => console.log(r))
       }
     }
   ]
 
-  // console.log the current collection
+  // Monitor the current collection and collection size
   useEffect(() => {
     console.log("currentCollection", currentCollection)
     console.log("collectionSize", collectionSize)

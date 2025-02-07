@@ -14,7 +14,7 @@ import MergeToolsDB from "./inputToolsDB/mergeToolsDB"
 import SimpleCleaningToolsDB from "./inputToolsDB/simpleCleaningToolsDB"
 import SubsetCreationToolsDB from "./inputToolsDB/subsetCreationToolsDB"
 import TransformColumnToolsDB from "./inputToolsDB/transformColumnToolsDB"
-import { getAllCollections, getCollectionSize } from "../mongoDB/mongoDBUtils.js"
+import { getCollectionSize } from "../mongoDB/mongoDBUtils.js"
 
 /**
  * @description
@@ -36,24 +36,6 @@ const InputToolsComponent = ({ exportOptions, transformData, lastEdit }) => {
     height: "100%",
     overflow: "auto"
   }
-  exportOptions = [
-    {
-      label: "CSV",
-      command: () => {
-        // handleExport is undefined here @MahdiAll99
-        // eslint-disable-next-line no-undef
-        handleExport("CSV")
-      }
-    },
-    {
-      label: "JSON",
-      command: () => {
-        // handleExport is undefined here @MahdiAll99
-        // eslint-disable-next-line no-undef
-        handleExport("JSON")
-      }
-    }
-  ]
 
   const selectedCSVFiles = Object.values(globalData).filter((item) => item.type === "csv")
 

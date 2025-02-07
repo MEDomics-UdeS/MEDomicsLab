@@ -486,6 +486,7 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
       return
     }
     const doesCollectionExists = await collectionExists(object.index)
+
     // 16mb max BSON size
     const maxBSONSize = 16777216
     const fileSize = await getCollectionSize(object.index)
@@ -494,7 +495,7 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
     if (!doesCollectionExists) {
       toast.error("The collection does not exist in the database. Try reloading the page.")
     } else if (fileSize > maxBSONSize) {
-      toast.warn("The file is too large to be displayed in the data table. You can still use it via the Input Tools.")
+      toast.warn("The file is too large to be displayed in the data table, but you can still use it freely in the application.")
     } else {
       openInTab(action, "dataTableFromDB")
     }
