@@ -354,20 +354,6 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
     setLoadingData(false)
   }
 
-  // Open Input Tools dialog
-  const handleDialogClick = () => {
-    console.log("Opening Input Tools")
-    let newProps = {
-      data: { ...data },
-      exportOptions: exportOptions,
-      refreshData: refreshData,
-      columns: columns,
-      innerData: { ...innerData },
-      lastEdit: { ...lastEdit }
-    }
-    dispatchLayout({ type: "openInputToolsDB", payload: { data: newProps } })
-  }
-
   // Function to generate a random UUID
   const usePersistentUUID = () => {
     const [id, setId] = useState("")
@@ -731,13 +717,6 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
             rows={20}
             rowsPerPageOptions={[20, 40, 80, 100]}
             {...tablePropsData}
-            footer={
-              !isReadOnly && (
-                <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100%" }}>
-                  <Button icon="pi pi-file-edit" onClick={handleDialogClick} tooltip="Open Input Tools" tooltipOptions={{ position: "bottom" }} />
-                </div>
-              )
-            }
           >
             {!isReadOnly && (
               <Column

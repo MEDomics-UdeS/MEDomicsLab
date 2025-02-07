@@ -1,5 +1,4 @@
-/* eslint-disable no-unused-vars */
-import React, { useContext, useState } from "react"
+import React, { useContext, useEffect, useState } from "react"
 import { InputText } from "primereact/inputtext"
 import { Button } from "primereact/button"
 import { SplitButton } from "primereact/splitbutton"
@@ -12,68 +11,77 @@ import { DataContext } from "../../workspace/dataContext"
  * @description
  * This component provides basic tools to add rows and columns to a dataset, and export the dataset.
  * @param {Object} props
- * @param {Function} props.refreshData - Function to refresh the data
  * @param {string} props.currentCollection - Current collection
  */
-const BasicToolsDB = ({ refreshData, currentCollection }) => {
+const BasicToolsDB = ({ collectionSize, currentCollection }) => {
   const [newColumnName, setNewColumnName] = useState("")
   const [numRows, setNumRows] = useState("")
   const [columns, setColumns] = useState([])
   const [innerData, setInnerData] = useState([])
+  const maxCollectionSize = 16777216
   const { globalData } = useContext(DataContext)
+
+  // Export options with the split button
   const exportOptions = [
     {
       label: "CSV",
       command: () => {
-        // handleExport is undefined here @MahdiAll99
-        // eslint-disable-next-line no-undef
         handleExport("CSV")
       }
     },
     {
       label: "JSON",
       command: () => {
-        // handleExport is undefined here @MahdiAll99
-        // eslint-disable-next-line no-undef
         handleExport("JSON")
       }
     }
   ]
 
-  // Export the dataset
+  // console.log the current collection
+  useEffect(() => {
+    console.log("currentCollection", currentCollection)
+    console.log("collectionSize", collectionSize)
+  }, [currentCollection, collectionSize])
+
+  /**
+   * @description Export the dataset in CSV or JSON format
+   * @param format - Format to export the dataset
+   */
   const handleExport = async (format) => {
     const db = await connectToMongoDB()
-    const collection = db.collection(globalData[currentCollection].id)
+    const collection = db.collection(currentCollection)
     const data = await collection.find({}).toArray()
 
     if (format === "CSV") {
-        const csv = data.map((row) => Object.values(row).join(",")).join("\n")
-        const blob = new Blob([csv], { type: "text/csv" })
-        const url = URL.createObjectURL(blob)
-        const a = document.createElement("a")
-        a.href = url
-        a.download = globalData[currentCollection].name + ".csv"
-        a.click()
+      const csv = data.map((row) => Object.values(row).join(",")).join("\n")
+      const blob = new Blob([csv], { type: "text/csv" })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement("a")
+      a.href = url
+      a.download = globalData[currentCollection].name + ".csv"
+      a.click()
     }
 
     if (format === "JSON") {
-        const json = JSON.stringify(data, null, 2)
-        const blob = new Blob([json], { type: "application/json" })
-        const url = URL.createObjectURL(blob)
-        const a = document.createElement("a")
-        a.href = url
-        a.download = globalData[currentCollection].name + ".json"
-        a.click()
+      const json = JSON.stringify(data, null, 2)
+      const blob = new Blob([json], { type: "application/json" })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement("a")
+      a.href = url
+      a.download = globalData[currentCollection].name + ".json"
+      a.click()
     }
   }
 
-  // Add a new column to the table
+  /**
+   * @description Add a new column to the table
+   */
   const handleAddColumn = async () => {
     if (newColumnName !== "") {
       try {
         console.log("currentCollection", currentCollection)
         const db = await connectToMongoDB()
-        const collection = db.collection(globalData[currentCollection].id)
+        const collection = db.collection(currentCollection)
         const existingDocument = await collection.findOne({})
         if (existingDocument && newColumnName in existingDocument) {
           toast.warn("Column name already exists, please use a different column name")
@@ -95,7 +103,9 @@ const BasicToolsDB = ({ refreshData, currentCollection }) => {
     }
   }
 
-  // Add a new row to the table
+  /**
+   * @description Add rows to the table
+   */
   const handleAddRow = async () => {
     if (!numRows || isNaN(numRows)) {
       toast.warn("Please enter a valid number for # of rows")
@@ -109,7 +119,7 @@ const BasicToolsDB = ({ refreshData, currentCollection }) => {
 
     try {
       const db = await connectToMongoDB()
-      const collection = db.collection(globalData[currentCollection].id)
+      const collection = db.collection(currentCollection)
       await collection.insertMany(newRows)
       setNumRows("")
       setInnerData([...innerData, ...newRows])
@@ -134,26 +144,30 @@ const BasicToolsDB = ({ refreshData, currentCollection }) => {
           flexWrap: "wrap"
         }}
       >
-        <div style={{ display: "flex", marginLeft: "100px" }}>
-          <InputText id="numRows" value={numRows} onChange={(e) => setNumRows(e.target.value)} style={{ width: "100px" }} placeholder="# of Rows" />
-          <Button
-            icon="pi pi-plus"
-            onClick={handleAddRow}
-            style={{
-              width: "50px"
-            }}
-          />
-        </div>
-        <div style={{ display: "flex" }}>
-          <InputText id="newColumnName" value={newColumnName} style={{ width: "130px" }} onChange={(e) => setNewColumnName(e.target.value)} placeholder="Column Name" />
-          <Button
-            icon="pi pi-plus"
-            onClick={() => handleAddColumn()}
-            style={{
-              width: "50px"
-            }}
-          />
-        </div>
+        {collectionSize <= maxCollectionSize && (
+          <>
+            <div style={{ display: "flex", marginLeft: "100px" }}>
+              <InputText id="numRows" value={numRows} onChange={(e) => setNumRows(e.target.value)} style={{ width: "100px" }} placeholder="# of Rows" />
+              <Button
+                icon="pi pi-plus"
+                onClick={handleAddRow}
+                style={{
+                  width: "50px"
+                }}
+              />
+            </div>
+            <div style={{ display: "flex" }}>
+              <InputText id="newColumnName" value={newColumnName} style={{ width: "130px" }} onChange={(e) => setNewColumnName(e.target.value)} placeholder="Column Name" />
+              <Button
+                icon="pi pi-plus"
+                onClick={() => handleAddColumn()}
+                style={{
+                  width: "50px"
+                }}
+              />
+            </div>
+          </>
+        )}
         <SplitButton icon="pi pi-file-export" model={exportOptions} className="p-button-success" style={{ marginRight: "100px" }} tooltip="Export the dataset" tooltipOptions={{ position: "top" }} />
       </div>
     </>

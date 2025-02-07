@@ -572,48 +572,24 @@ export async function getPathFromMEDDataObject(id) {
 }
 
 /**
- * @description Convert the data of a collection stored use GridFS for viewing as a csv file
- * @param {*} globalData
- * @param {*} item
+ * @description Get the size of a collection specified by id
+ * @param {*} collectionId
  * @returns
  */
-export async function ConvertBinaryToOriginalData(globalData, item) {
-  if (!globalBucket) {
-    console.error("GridFSBucket not initialized")
-    return
-  }
+export async function getCollectionSize(collectionId) {
   const db = await connectToMongoDB()
-  const fileDocument = await db.collection(item.index + ".files").findOne({ filename: globalData[item.index].path })
-  console.log("fileDocument", fileDocument)
-  if (!fileDocument) {
-    console.error("File not found in GridFS")
-    return
-  }
-  const downloadStream = globalBucket.openDownloadStream(fileDocument._id)
-  let chunks = []
-
-  downloadStream.on("data", (chunk) => {
-    chunks.push(chunk) // Collect chunks from the stream
-  })
-  downloadStream.on("end", () => {
-    db.collection(item.index).insertMany(
-      chunks.map((chunk, index) => ({
-        index,
-        data: Buffer.from(chunk, "base64").toString("utf-8") // Decode each chunk
-      })),
-      (error) => {
-        if (error) {
-          console.error("Failed to insert chunks:", error)
-        } else {
-          console.log("Inserted chunks into new MongoDB collection")
-        }
-        db.close()
-      }
-    )
-  })
-
-  downloadStream.on("error", (error) => {
-    console.error("Stream error:", error)
-  })
-  return
+  const stats = await db.command({ collStats: collectionId })
+  return stats.size
 }
+
+/**
+ * @description Get all the collections in the database
+ * @returns
+ */
+export async function getAllCollections() {
+  const db = await connectToMongoDB()
+  const collections = await db.listCollections().toArray()
+  return collections
+}
+
+

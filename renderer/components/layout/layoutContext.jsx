@@ -2,7 +2,7 @@ import React, { createContext, useState, useContext } from "react"
 import { useEffect } from "react"
 import { toast } from "react-toastify"
 import { DataContext } from "../workspace/dataContext"
-import { overwriteMEDDataObjectProperties, collectionExists } from "../mongoDB/mongoDBUtils"
+import {overwriteMEDDataObjectProperties, collectionExists, getCollectionSize} from "../mongoDB/mongoDBUtils"
 
 /**
  * @typedef {React.Context} LayoutModelContext
@@ -486,14 +486,15 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
       return
     }
     const doesCollectionExists = await collectionExists(object.index)
+    // 16mb max BSON size
+    const maxBSONSize = 16777216
+    const fileSize = await getCollectionSize(object.index)
+    console.log('size', fileSize)
 
     if (!doesCollectionExists) {
       toast.error("The collection does not exist in the database. Try reloading the page.")
-      /* if (fileSize > maxBSONSize) {
-        // await ConvertBinaryToOriginalData(globalData, object)
-        // setTimeout(() => openInTab(action, "dataTableFromDB"), 1500)
-        toast.warn("The file is too large to be displayed in the data table.")
-      } */
+    } else if (fileSize > maxBSONSize) {
+      toast.warn("The file is too large to be displayed in the data table. You can still use it via the Input Tools.")
     } else {
       openInTab(action, "dataTableFromDB")
     }
