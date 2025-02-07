@@ -12,16 +12,60 @@ import { DataContext } from "../../workspace/dataContext"
  * @description
  * This component provides basic tools to add rows and columns to a dataset, and export the dataset.
  * @param {Object} props
- * @param {Object[]} props.exportOptions - Export options
  * @param {Function} props.refreshData - Function to refresh the data
  * @param {string} props.currentCollection - Current collection
  */
-const BasicToolsDB = ({ exportOptions, refreshData, currentCollection }) => {
+const BasicToolsDB = ({ refreshData, currentCollection }) => {
   const [newColumnName, setNewColumnName] = useState("")
   const [numRows, setNumRows] = useState("")
   const [columns, setColumns] = useState([])
   const [innerData, setInnerData] = useState([])
   const { globalData } = useContext(DataContext)
+  const exportOptions = [
+    {
+      label: "CSV",
+      command: () => {
+        // handleExport is undefined here @MahdiAll99
+        // eslint-disable-next-line no-undef
+        handleExport("CSV")
+      }
+    },
+    {
+      label: "JSON",
+      command: () => {
+        // handleExport is undefined here @MahdiAll99
+        // eslint-disable-next-line no-undef
+        handleExport("JSON")
+      }
+    }
+  ]
+
+  // Export the dataset
+  const handleExport = async (format) => {
+    const db = await connectToMongoDB()
+    const collection = db.collection(globalData[currentCollection].id)
+    const data = await collection.find({}).toArray()
+
+    if (format === "CSV") {
+        const csv = data.map((row) => Object.values(row).join(",")).join("\n")
+        const blob = new Blob([csv], { type: "text/csv" })
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement("a")
+        a.href = url
+        a.download = globalData[currentCollection].name + ".csv"
+        a.click()
+    }
+
+    if (format === "JSON") {
+        const json = JSON.stringify(data, null, 2)
+        const blob = new Blob([json], { type: "application/json" })
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement("a")
+        a.href = url
+        a.download = globalData[currentCollection].name + ".json"
+        a.click()
+    }
+  }
 
   // Add a new column to the table
   const handleAddColumn = async () => {
