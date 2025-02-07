@@ -588,8 +588,7 @@ export async function getCollectionSize(collectionId) {
  */
 export async function getAllCollections() {
   const db = await connectToMongoDB()
-  const collections = await db.listCollections().toArray()
-  return collections
+  return await db.listCollections().toArray()
 }
 
 

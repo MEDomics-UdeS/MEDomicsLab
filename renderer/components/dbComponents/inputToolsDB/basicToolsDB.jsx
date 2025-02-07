@@ -144,30 +144,26 @@ const BasicToolsDB = ({ collectionSize, currentCollection }) => {
           flexWrap: "wrap"
         }}
       >
-        {collectionSize <= maxCollectionSize && (
-          <>
-            <div style={{ display: "flex", marginLeft: "100px" }}>
-              <InputText id="numRows" value={numRows} onChange={(e) => setNumRows(e.target.value)} style={{ width: "100px" }} placeholder="# of Rows" />
-              <Button
-                icon="pi pi-plus"
-                onClick={handleAddRow}
-                style={{
-                  width: "50px"
-                }}
-              />
-            </div>
-            <div style={{ display: "flex" }}>
-              <InputText id="newColumnName" value={newColumnName} style={{ width: "130px" }} onChange={(e) => setNewColumnName(e.target.value)} placeholder="Column Name" />
-              <Button
-                icon="pi pi-plus"
-                onClick={() => handleAddColumn()}
-                style={{
-                  width: "50px"
-                }}
-              />
-            </div>
-          </>
-        )}
+        <div style={{ display: "flex", marginLeft: "100px" }}>
+          <InputText id="numRows" value={numRows} onChange={(e) => setNumRows(e.target.value)} style={{ width: "100px" }} placeholder="# of Rows" />
+          <Button
+            icon="pi pi-plus"
+            onClick={handleAddRow}
+            style={{
+              width: "50px"
+            }}
+          />
+        </div>
+        <div style={{ display: "flex" }}>
+          <InputText id="newColumnName" value={newColumnName} style={{ width: "130px" }} onChange={(e) => setNewColumnName(e.target.value)} placeholder="Column Name" />
+          <Button
+            icon="pi pi-plus"
+            onClick={() => handleAddColumn()}
+            style={{
+              width: "50px"
+            }}
+          />
+        </div>
         <SplitButton icon="pi pi-file-export" model={exportOptions} className="p-button-success" style={{ marginRight: "100px" }} tooltip="Export the dataset" tooltipOptions={{ position: "top" }} />
       </div>
     </>
