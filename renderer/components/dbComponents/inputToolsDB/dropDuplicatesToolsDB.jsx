@@ -25,7 +25,7 @@ const DropDuplicatesToolsDB = ({ currentCollection }) => {
 
     try {
       const db = await connectToMongoDB()
-      const collection = db.collection(globalData[currentCollection].id)
+      const collection = db.collection(currentCollection)
 
       const documents = await collection.find({}).limit(10).toArray()
       setData(documents)
