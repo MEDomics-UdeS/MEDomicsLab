@@ -2,7 +2,7 @@ import React, { createContext, useState, useContext } from "react"
 import { useEffect } from "react"
 import { toast } from "react-toastify"
 import { DataContext } from "../workspace/dataContext"
-import {overwriteMEDDataObjectProperties, collectionExists, getCollectionSize} from "../mongoDB/mongoDBUtils"
+import { overwriteMEDDataObjectProperties, collectionExists, getCollectionSize } from "../mongoDB/mongoDBUtils"
 
 /**
  * @typedef {React.Context} LayoutModelContext
@@ -490,7 +490,7 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
     // 16mb max BSON size
     const maxBSONSize = 16777216
     const fileSize = await getCollectionSize(object.index)
-    console.log('size', fileSize)
+    console.log("size", fileSize)
 
     if (!doesCollectionExists) {
       toast.error("The collection does not exist in the database. Try reloading the page.")

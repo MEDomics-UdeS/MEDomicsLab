@@ -25,13 +25,13 @@ const BasicToolsDB = ({ collectionSize, currentCollection }) => {
     {
       label: "CSV",
       command: () => {
-        handleExport("CSV").then(r => console.log(r))
+        handleExport("CSV").then((r) => console.log(r))
       }
     },
     {
       label: "JSON",
       command: () => {
-        handleExport("JSON").then(r => console.log(r))
+        handleExport("JSON").then((r) => console.log(r))
       }
     }
   ]
