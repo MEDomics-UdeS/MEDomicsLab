@@ -7,6 +7,9 @@ import { toast } from "react-toastify"
 import { connectToMongoDB } from "../../mongoDB/mongoDBUtils"
 import { DataContext } from "../../workspace/dataContext"
 import { Card } from "primereact/card"
+import { Slider } from "primereact/slider"
+import { InputNumber } from "primereact/inputnumber"
+import { ObjectId } from "mongodb"
 
 const ConvertCategoricalColumnIntoNumericDB = ({ currentCollection }) => {
   const { globalData } = useContext(DataContext)
@@ -19,8 +22,11 @@ const ConvertCategoricalColumnIntoNumericDB = ({ currentCollection }) => {
   const [highlightedColumns, setHighlightedColumns] = useState([])
   const [previousData, setPreviousData] = useState(null)
   const [previousColumns, setPreviousColumns] = useState(null)
+  const [categoricalThreshold, setCategoricalThreshold] = useState(20)
+  const [categoricalThresholdPercentage, setCategoricalThresholdPercentage] = useState("100%")
+  const [allKeys, setAllKeys] = useState([])
+  const [cleanedDocuments, setCleanedDocuments] = useState([])
 
-  // Fonction pour récupérer les données
   const fetchData = async () => {
     setLoadingData(true)
     if (!currentCollection) {
@@ -33,10 +39,12 @@ const ConvertCategoricalColumnIntoNumericDB = ({ currentCollection }) => {
       const collection = db.collection(globalData[currentCollection].id)
 
       const documents = await collection.find({}).limit(10).toArray()
-      const cleanedDocuments = cleanData(documents) // Nettoyer les données
+      // Clean all the data
+      const cleanedDocuments = cleanData(documents)
 
       setData(cleanedDocuments)
-      setOriginalData(cleanedDocuments) // Stocker les données originales
+      // Stock the original data
+      setOriginalData(cleanedDocuments)
 
       const allKeys = Object.keys(cleanedDocuments[0] || {}).filter((key) => key !== "_id")
       const columnStructure = allKeys.map((key) => ({
@@ -45,6 +53,8 @@ const ConvertCategoricalColumnIntoNumericDB = ({ currentCollection }) => {
       }))
 
       setColumns(columnStructure)
+      setAllKeys(allKeys)
+      setCleanedDocuments(cleanedDocuments)
       identifyCategoricalColumns(allKeys, cleanedDocuments)
     } catch (error) {
       console.error("Error fetching data:", error)
@@ -54,7 +64,7 @@ const ConvertCategoricalColumnIntoNumericDB = ({ currentCollection }) => {
     }
   }
 
-  // Fonction pour nettoyer les données (convertir les objets complexes en chaînes)
+  // Convert complex object into strings
   const cleanData = (documents) => {
     return documents.map((doc) => {
       const cleanedDoc = { ...doc }
@@ -70,26 +80,28 @@ const ConvertCategoricalColumnIntoNumericDB = ({ currentCollection }) => {
   }
 
   const markColumnAsModified = (column) => {
-    setModifiedColumns((prev) => [...new Set([...prev, column])]) // Ajoute la colonne de manière unique
+    // Mark the column as modified
+    setModifiedColumns((prev) => [...new Set([...prev, column])])
   }
 
   const isDataModified = () => {
-    // Compare les deux tableaux pour vérifier les modifications
+    // Compare both data to dectect any modification
     return JSON.stringify(data) !== JSON.stringify(originalData)
   }
 
-  // Identifier les colonnes catégoriques
+  // Identify categorical columns
   const identifyCategoricalColumns = (allKeys, documents) => {
     const detectedColumns = allKeys.filter((key) => {
       const uniqueValues = [...new Set(documents.map((doc) => doc[key]))]
-      return uniqueValues.length <= 10 && uniqueValues.some((val) => isNaN(parseFloat(val)))
+      console.log("THRESHOLD", categoricalThreshold)
+      // Categorical threshold represent the minimum number of different value a column must have to be consider categorical
+      return uniqueValues.length <= categoricalThreshold && uniqueValues.some((val) => isNaN(parseFloat(val)))
     })
 
     setCategoricalColumns(detectedColumns)
-    toast.info(`${detectedColumns.length} categorical columns detected.`)
   }
 
-  // Effectuer le One-Hot Encoding sur une colonne
+  //One-hot Encoding on the selected column
   const oneHotEncodeColumn = (data, column) => {
     const uniqueValues = [...new Set(data.map((row) => row[column]))]
 
@@ -100,16 +112,19 @@ const ConvertCategoricalColumnIntoNumericDB = ({ currentCollection }) => {
         encodedRow[`${value}`] = row[column] === value ? 1 : 0
       })
 
-      delete encodedRow[column] // Supprimer la colonne originale si nécessaire
+      // Delete the original column
+      delete encodedRow[column]
       return encodedRow
     })
   }
 
-  // Convertir une colonne catégorique en One-Hot Encoding
+  // Convert a column into a One-Hot encoding one
   const convertColumnToOneHot = async (column) => {
     try {
-      setPreviousData([...data]) // Copie des données actuelles
-      setPreviousColumns([...columns]) // Copie des colonnes actuelles
+      // Copy data before encoding
+      setPreviousData([...data])
+      // Copy the column before encoding
+      setPreviousColumns([...columns])
 
       const encodedData = oneHotEncodeColumn(data, column)
 
@@ -119,16 +134,19 @@ const ConvertCategoricalColumnIntoNumericDB = ({ currentCollection }) => {
         header: `${value}`
       }))
 
-      // Mettre à jour l'état des colonnes et des données
+      // Update column and data
       setColumns((prevColumns) => [
-        ...prevColumns.filter((col) => col.field !== column), // Supprime la colonne d'origine
-        ...newColumns // Ajoute les colonnes encodées
+        // Delete the original column
+        ...prevColumns.filter((col) => col.field !== column),
+        // Add the new encoded Column
+        ...newColumns
       ])
 
       setData(encodedData)
       setHighlightedColumns(newColumns.map((col) => col.field))
 
-      markColumnAsModified(column) // Marquer la colonne comme modifiée
+      // Mark the modified column
+      markColumnAsModified(column)
 
       toast.success(`Column "${column}" has been one-hot encoded.`)
     } catch (error) {
@@ -139,9 +157,12 @@ const ConvertCategoricalColumnIntoNumericDB = ({ currentCollection }) => {
 
   const undoChanges = () => {
     if (previousData && previousColumns) {
-      setData(previousData) // Restaurer les données
-      setColumns(previousColumns) // Restaurer les colonnes
-      setHighlightedColumns([]) // Réinitialiser les colonnes mises en évidence
+      // Restorve previous data
+      setData(previousData)
+      // Restore previous column
+      setColumns(previousColumns)
+      // Reset highlighted column to null
+      setHighlightedColumns([])
       setModifiedColumns([])
       toast.info("Changes have been undone.")
     } else {
@@ -149,17 +170,20 @@ const ConvertCategoricalColumnIntoNumericDB = ({ currentCollection }) => {
     }
   }
 
-  // Sauvegarder les données encodees dans MongoDB
-  const saveEncodedDataToDB = async () => {
+  // Save encoded data to MongoDb
+  // OVERWRITE the old data
+  const overwriteEncodedDataToDB = async () => {
     try {
       const db = await connectToMongoDB()
       const collection = db.collection(globalData[currentCollection].id)
 
-      // Supprimer les anciennes données et insérer les nouvelles
+      // Overwrite old data to save encoded one
       await collection.deleteMany({})
       await collection.insertMany(data)
-      setModifiedColumns([]) // Réinitialiser les colonnes modifié
-      setHighlightedColumns([]) // Réinitialiser les colonnes mises en évidence
+      // Reset modified column to null
+      setModifiedColumns([])
+      // Reset highlighted column to null
+      setHighlightedColumns([])
       fetchData()
 
       toast.success("Encoded data has been saved to the database!")
@@ -169,11 +193,56 @@ const ConvertCategoricalColumnIntoNumericDB = ({ currentCollection }) => {
     }
   }
 
+  const appendEncodedDataToDB = async () => {
+    try {
+      const db = await connectToMongoDB()
+      const collection = db.collection(globalData[currentCollection].id)
+
+      // Extract the id of each row and update it
+      for (const row of data) {
+        const { _id, ...updatedFields } = row
+
+        // Verification :_id must exist and be valid
+        if (!_id) {
+          console.error("Skipping row without _id:", row)
+          continue
+        }
+
+        // if id is not valid, try to convert it in an ObjectId
+        const mongoId = ObjectId.isValid(_id) ? ObjectId(_id) : _id
+
+        // Verification : updatedFields must be an object
+        if (typeof updatedFields !== "object" || updatedFields === null) {
+          console.error("Skipping invalid updatedFields:", updatedFields)
+          continue
+        }
+
+        // Update or add new column
+        const result = await collection.updateOne(
+          { _id: mongoId },
+          // Add of update each column in updateFields
+          { $set: updatedFields },
+          { upsert: false }
+        )
+
+        console.log(`Update result for _id ${_id}:`, result)
+      }
+
+      setModifiedColumns([])
+      setHighlightedColumns([])
+      fetchData()
+
+      toast.success("New columns have been appended to the database!")
+    } catch (error) {
+      console.error("Error appending encoded data:", error)
+      toast.error("An error occurred while appending the data.")
+    }
+  }
+
   useEffect(() => {
     fetchData()
   }, [currentCollection])
 
-  // Rendu du composant
   return (
     <div
       style={{
@@ -187,6 +256,42 @@ const ConvertCategoricalColumnIntoNumericDB = ({ currentCollection }) => {
       {loadingData && <Message severity="info" text="Loading..." style={{ marginBottom: "15px" }} />}
       <Message severity="info" text="This tool identifies categorical columns in your dataset and converts them to numeric using One-Hot Encoding." style={{ marginBottom: "15px" }} />
       <Message severity="success" text={`Current Collection: ${globalData[currentCollection]?.name || "None"}`} style={{ marginBottom: "15px" }} />
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          width: "100%",
+          marginBottom: "20px",
+          marginLeft: "10px",
+          marginRight: "10px"
+        }}
+      >
+        <Slider
+          value={categoricalThreshold}
+          onChange={(e) => {
+            setCategoricalThreshold(e.value)
+            setCategoricalThresholdPercentage(`${e.value}%`)
+            identifyCategoricalColumns(allKeys, cleanedDocuments)
+          }}
+          style={{ width: "70%", marginLeft: "10px", marginRight: "10px" }}
+          min={1}
+          max={20}
+        />
+        <InputNumber
+          value={categoricalThresholdPercentage.replace("%", "")}
+          onValueChange={(e) => {
+            setCategoricalThreshold(e.value)
+            setCategoricalThresholdPercentage(`${e.value}%`)
+            identifyCategoricalColumns(allKeys, cleanedDocuments)
+          }}
+          mode="decimal"
+          min={1}
+          max={20}
+          useGrouping={false}
+          showButtons
+          style={{ width: "80px", marginLeft: "10px" }}
+        />
+      </div>
       {data.length > 0 && (
         <Card style={{ width: "900px" }}>
           <DataTable value={data} paginator rows={5} rowsPerPageOptions={[5, 10, 15]} className="p-datatable-gridlines">
@@ -197,12 +302,16 @@ const ConvertCategoricalColumnIntoNumericDB = ({ currentCollection }) => {
                 header={col.header}
                 sortable
                 style={{
-                  color: categoricalColumns.includes(col.field) ? "red" : "inherit", // Rouge si catégorique
-                  color: highlightedColumns.includes(col.field) ? "red" : "inherit" // Rouge si mises en évidence
+                  // Red if categorical
+                  color: categoricalColumns.includes(col.field) ? "red" : "inherit",
+                  // Red if highlighted
+                  color: highlightedColumns.includes(col.field) ? "red" : "inherit"
                 }}
                 bodyStyle={{
-                  color: highlightedColumns.includes(col.field) ? "red" : "inherit", // Rouge pour les cellules si modifié
-                  background: categoricalColumns.includes(col.field) ? "red" : "inherit" // Rouge pour les cellules si mises en évidence
+                  // Red for modified cells
+                  color: highlightedColumns.includes(col.field) ? "red" : "inherit",
+                  // Red for highlighted cell
+                  background: categoricalColumns.includes(col.field) ? "red" : "inherit"
                 }}
               />
             ))}
@@ -234,7 +343,8 @@ const ConvertCategoricalColumnIntoNumericDB = ({ currentCollection }) => {
         </div>
       )}
       {modifiedColumns.length > 0 && <Button label={`Undo Changes:  ${modifiedColumns}`} className="p-button-danger" onClick={undoChanges} style={{ marginTop: "20px", marginRight: "10px" }} />}
-      {isDataModified() && <Button label="Save Modified Date into MongoDB" className="p-button-success" onClick={saveEncodedDataToDB} style={{ marginTop: "20px" }} />}{" "}
+      {isDataModified() && <Button label="OVERWRITE Modified Data and Save it into MongoDB" className="p-button-success" onClick={overwriteEncodedDataToDB} style={{ marginTop: "20px" }} />}{" "}
+      {isDataModified() && <Button label="Save New Columns and Append to MongoDB" className="p-button-success" onClick={appendEncodedDataToDB} style={{ marginTop: "20px" }} />}{" "}
     </div>
   )
 }
