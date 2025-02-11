@@ -48,7 +48,17 @@ class GoExecScriptOverwrite(GoExecutionScript):
             collection_name = json_config["collectionName"]
             new_data = json_config["data"]
 
-            
+            # column_to_transform = json_config.get("columnToTransform", "")
+            # transformed_data = []
+            # for record in new_data:
+            #     transformed_record = {}
+            #     for key, value in record.items():
+            #         # Ajouter un préfixe uniquement si nécessaire
+            #         if key.startswith(column_to_transform):
+            #             transformed_record[f"{column_to_transform}__{key}"] = value
+            #         else:
+            #             transformed_record[key] = value
+            #     transformed_data.append(transformed_record)
 
             # Connect to MongoDB
             client = MongoClient('localhost', 54017)
@@ -65,7 +75,7 @@ class GoExecScriptOverwrite(GoExecutionScript):
             self.results = {"status": "success", "message": "Data overwritten successfully."}
         except Exception as e:
             # Handle exceptions
-            self.results = {"status": "error", "jambon": str(e)}
+            self.results = {"status": "error", "message": str(e)}
             go_print(f"Error: {str(e)}")
 
         return self.results

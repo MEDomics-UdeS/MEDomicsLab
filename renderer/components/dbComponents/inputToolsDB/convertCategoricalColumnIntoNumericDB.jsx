@@ -111,8 +111,10 @@ const ConvertCategoricalColumnIntoNumericDB = ({ currentCollection }) => {
     return data.map((row) => {
       const encodedRow = { ...row }
 
+      //Add the old column name as a prefix like oldColumn__
       uniqueValues.forEach((value) => {
-        encodedRow[`${value}`] = row[column] === value ? 1 : 0
+        const newColumnName = `${column}__${value}`
+        encodedRow[newColumnName] = row[column] === value ? 1 : 0
       })
 
       // Delete the original column
@@ -133,8 +135,8 @@ const ConvertCategoricalColumnIntoNumericDB = ({ currentCollection }) => {
 
       const uniqueValues = [...new Set(data.map((row) => row[column]))]
       const newColumns = uniqueValues.map((value) => ({
-        field: `${value}`,
-        header: `${value}`
+        field: `${column}__${value}`,
+        header: `${column}__${value}`
       }))
 
       // Update column and data
