@@ -3,6 +3,7 @@ package input
 import (
 	Utils "go_module/src"
 	"log"
+	"fmt"
 )
 
 var prePath = "input"
@@ -21,7 +22,12 @@ func AddHandleFunc() {
 	Utils.CreateHandleFunc(prePath+"/create_tags/", handleCreateTags)
 	Utils.CreateHandleFunc(prePath+"/delete_tag_from_column/", handleDeleteTagFromColumn)
 	Utils.CreateHandleFunc(prePath+"/handle_pkl/", handlePKL)
+	Utils.CreateHandleFunc(prePath+"/overwrite_encoded_data", handleOverwriteEncodedData)
+	Utils.CreateHandleFunc(prePath+"/append_encoded_data", handleAppendEncodedData)
 }
+
+
+
 
 
 // handleMerge handles the request to merge the datasets for the DB
@@ -172,5 +178,42 @@ func handlePKL(jsonConfig string, id string) (string, error) {
 	if err != nil {
 		return "", err
 	}
+	return response, nil
+}
+
+func handleOverwriteEncodedData(jsonConfig string, id string) (string, error) {
+
+	response, err := Utils.StartPythonScripts(jsonConfig, "../pythonCode/modules/input/overwrite_encoded_data.py", id)
+	if err != nil {
+		log.Println("Error executing Python script:", err)
+		return "", err
+	}
+
+	// Log to verify response
+	log.Println("Python script response:", response)
+
+	if response == "" {
+		return "", fmt.Errorf("Empty response from Python script")
+	}
+
+	return response, nil
+}
+
+
+
+func handleAppendEncodedData(jsonConfig string, id string) (string, error) {
+	response, err := Utils.StartPythonScripts(jsonConfig, "../pythonCode/modules/input/append_encoded_data.py", id)
+	if err != nil {
+		log.Println("Error executing Python script:", err)
+		return "", err
+	}
+
+
+	log.Println("Python script response:", response)
+
+	if response == "" {
+		return "", fmt.Errorf("Empty response from Python script")
+	}
+
 	return response, nil
 }

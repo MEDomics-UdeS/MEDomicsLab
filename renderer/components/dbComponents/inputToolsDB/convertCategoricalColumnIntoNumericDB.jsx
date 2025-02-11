@@ -10,6 +10,8 @@ import { Card } from "primereact/card"
 import { Slider } from "primereact/slider"
 import { InputNumber } from "primereact/inputnumber"
 import { ObjectId } from "mongodb"
+import { requestBackend } from "../../../utilities/requests"
+import { ServerConnectionContext } from "../../serverConnection/connectionContext"
 
 const ConvertCategoricalColumnIntoNumericDB = ({ currentCollection }) => {
   const { globalData } = useContext(DataContext)
@@ -26,6 +28,7 @@ const ConvertCategoricalColumnIntoNumericDB = ({ currentCollection }) => {
   const [categoricalThresholdPercentage, setCategoricalThresholdPercentage] = useState("100%")
   const [allKeys, setAllKeys] = useState([])
   const [cleanedDocuments, setCleanedDocuments] = useState([])
+  const { port } = useContext(ServerConnectionContext)
 
   const fetchData = async () => {
     setLoadingData(true)
@@ -170,72 +173,154 @@ const ConvertCategoricalColumnIntoNumericDB = ({ currentCollection }) => {
     }
   }
 
-  // Save encoded data to MongoDb
-  // OVERWRITE the old data
+  // //Save encoded data to MongoDb
+  // //OVERWRITE the old data
+  // const overwriteEncodedDataToDB = async () => {
+  //   try {
+  //     const db = await connectToMongoDB()
+  //     const collection = db.collection(globalData[currentCollection].id)
+
+  //     console.log("DB", db)
+  //     console.log("collection", collection)
+  //     console.log("Data", data)
+
+  //     // Overwrite old data to save encoded one
+  //     await collection.deleteMany({})
+  //     await collection.insertMany(data)
+  //     // Reset modified column to null
+  //     setModifiedColumns([])
+  //     // Reset highlighted column to null
+  //     setHighlightedColumns([])
+  //     fetchData()
+
+  //     toast.success("Encoded data has been saved to the database!")
+  //   } catch (error) {
+  //     console.error("Error saving encoded data:", error)
+  //     toast.error("An error occurred while saving the data.")
+  //   }
+  // }
+
+  // const appendEncodedDataToDB = async () => {
+  //   try {
+  //     const db = await connectToMongoDB()
+  //     const collection = db.collection(globalData[currentCollection].id)
+
+  //     // Extract the id of each row and update it
+  //     for (const row of data) {
+  //       const { _id, ...updatedFields } = row
+
+  //       // Verification :_id must exist and be valid
+  //       if (!_id) {
+  //         console.error("Skipping row without _id:", row)
+  //         continue
+  //       }
+
+  //       // if id is not valid, try to convert it in an ObjectId
+  //       const mongoId = ObjectId.isValid(_id) ? ObjectId(_id) : _id
+
+  //       // Verification : updatedFields must be an object
+  //       if (typeof updatedFields !== "object" || updatedFields === null) {
+  //         console.error("Skipping invalid updatedFields:", updatedFields)
+  //         continue
+  //       }
+
+  //       // Update or add new column
+  //       const result = await collection.updateOne(
+  //         { _id: mongoId },
+  //         // Add of update each column in updateFields
+  //         { $set: updatedFields },
+  //         { upsert: false }
+  //       )
+
+  //       console.log(`Update result for _id ${_id}:`, result)
+  //     }
+
+  //     setModifiedColumns([])
+  //     setHighlightedColumns([])
+  //     fetchData()
+
+  //     toast.success("New columns have been appended to the database!")
+  //   } catch (error) {
+  //     console.error("Error appending encoded data:", error)
+  //     toast.error("An error occurred while appending the data.")
+  //   }
+  // }
+
   const overwriteEncodedDataToDB = async () => {
     try {
-      const db = await connectToMongoDB()
-      const collection = db.collection(globalData[currentCollection].id)
+      if (!globalData || !currentCollection || !data.length) {
+        throw new Error("Missing database configuration or data")
+      }
 
-      // Overwrite old data to save encoded one
-      await collection.deleteMany({})
-      await collection.insertMany(data)
-      // Reset modified column to null
-      setModifiedColumns([])
-      // Reset highlighted column to null
-      setHighlightedColumns([])
-      fetchData()
+      const requestBody = {
+        databaseName: "data",
+        collectionName: globalData[currentCollection]?.id,
+        data
+      }
 
-      toast.success("Encoded data has been saved to the database!")
+      requestBackend(
+        port,
+        "/input/overwrite_encoded_data",
+        requestBody,
+        (response) => {
+          console.log("Response from backend:", response)
+          if (response?.status === "success") {
+            toast.success("Encoded data has been overwritten in the database!")
+            // Reset modified column to null
+            setModifiedColumns([])
+            // Reset highlighted column to null
+            setHighlightedColumns([])
+            fetchData()
+          } else {
+            throw new Error("Failed to overwrite data")
+          }
+        },
+        (error) => {
+          console.error("Error from backend:", error)
+        }
+      )
     } catch (error) {
-      console.error("Error saving encoded data:", error)
-      toast.error("An error occurred while saving the data.")
+      console.error("Error overwriting encoded data:", error)
+      toast.error("An unexpected error occurred.")
     }
   }
 
-  const appendEncodedDataToDB = async () => {
+  const appendEncodedDataToDB = () => {
     try {
-      const db = await connectToMongoDB()
-      const collection = db.collection(globalData[currentCollection].id)
-
-      // Extract the id of each row and update it
-      for (const row of data) {
-        const { _id, ...updatedFields } = row
-
-        // Verification :_id must exist and be valid
-        if (!_id) {
-          console.error("Skipping row without _id:", row)
-          continue
-        }
-
-        // if id is not valid, try to convert it in an ObjectId
-        const mongoId = ObjectId.isValid(_id) ? ObjectId(_id) : _id
-
-        // Verification : updatedFields must be an object
-        if (typeof updatedFields !== "object" || updatedFields === null) {
-          console.error("Skipping invalid updatedFields:", updatedFields)
-          continue
-        }
-
-        // Update or add new column
-        const result = await collection.updateOne(
-          { _id: mongoId },
-          // Add of update each column in updateFields
-          { $set: updatedFields },
-          { upsert: false }
-        )
-
-        console.log(`Update result for _id ${_id}:`, result)
+      if (!globalData || !currentCollection || !data.length) {
+        throw new Error("Missing database configuration or data")
       }
 
-      setModifiedColumns([])
-      setHighlightedColumns([])
-      fetchData()
+      const requestBody = {
+        databaseName: "data",
+        collectionName: globalData[currentCollection]?.id,
+        data
+      }
 
-      toast.success("New columns have been appended to the database!")
+      requestBackend(
+        port,
+        "/input/append_encoded_data",
+        requestBody,
+        (response) => {
+          console.log("Response from backendS:", response)
+          if (response?.status === "success") {
+            toast.success("Encoded data has been append in the database!")
+            // Reset modified column to null
+            setModifiedColumns([])
+            // Reset highlighted column to null
+            setHighlightedColumns([])
+            fetchData()
+          } else {
+            throw new Error("Failed to append data")
+          }
+        },
+        (error) => {
+          console.error("Error from backend:", error)
+        }
+      )
     } catch (error) {
       console.error("Error appending encoded data:", error)
-      toast.error("An error occurred while appending the data.")
+      toast.error("An unexpected error occurred.")
     }
   }
 
