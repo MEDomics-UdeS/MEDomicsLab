@@ -68,6 +68,7 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
   const { canRun } = useContext(FlowInfosContext)
   const { port } = useContext(WorkspaceContext)
   const { setError } = useContext(ErrorRequestContext)
+  const [finalMetrics, setFinalMetrics] = useState(null)
 
   // declare node types using useMemo hook to avoid re-creating component types unnecessarily (it memorizes the output) https://www.w3schools.com/react/react_usememo.asp
   const nodeTypes = useMemo(
@@ -209,6 +210,7 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
       }
     })
   }, [intersections, hasNewConnection])
+  
 
   /**
    *
@@ -572,6 +574,10 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
               currentLabel: "Done!"
             })
             setIsProgressUpdating(false)
+
+            // Mettre à jour finalMetrics avec les résultats
+            setFinalMetrics(jsonResponse.final_metrics)
+
           } else {
             setProgress({
               now: 0,

@@ -4,6 +4,9 @@ const createConstants = () => {
   let implementedTypes = []
   implementedTypesDescription.map((typeInfo) => {
     defaultValue[typeInfo.type] = typeInfo.default
+    if (typeInfo.type === "dropdown" && typeInfo.choices) {
+      defaultValue[typeInfo.type] = typeInfo.choices[0].value; // Set the default value to the first choice if the type is dropdown
+    }
     implementedTypes.push(typeInfo.type)
   })
   return {
