@@ -1,33 +1,25 @@
 import React, { useState } from 'react';
 import { Dropdown } from 'primereact/dropdown';
 
-// Define the DropdownSelect component that accepts two props:
-// `options` (the options to be displayed in the dropdown) and `onSelect` (the callback function when a selection is made)
-const DropdownSelect = ({ options, onSelect }) => {
-  const [selectedValue, setSelectedValue] = useState(null);
+const DropdownSelect = ({ choices, selectedValue, onSelect }) => {
+  const [value, setValue] = useState(selectedValue || null);
 
-  // Function to handle the selection of an option
-  const handleSelect = (e) => {
-    // Update the state with the newly selected value
-    setSelectedValue(e.value);
-    // If the onSelect function is provided as a prop, call it with the selected value
+  const handleChange = (e) => {
+    setValue(e.value);
     if (onSelect) {
       onSelect(e.value);
     }
   };
 
   return (
-    <div className="card">
-      {/* PrimeReact Dropdown component */}
-      <Dropdown
-        value={selectedValue}
-        options={choices}
-        onChange={handleSelect}
-        placeholder="Select an option"
-        optionLabel="label"
-        className="w-full"
-      />
-    </div>
+    <Dropdown
+      value={value}
+      options={choices}   // Dropdown choices from the settings
+      onChange={handleChange}
+      optionLabel="label" // Label to display
+      placeholder="Select an option"
+      className="w-full"
+    />
   );
 };
 

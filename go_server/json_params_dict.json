@@ -1,0 +1,306 @@
+{
+    "MLType": "classification",
+    "nodes": {
+        "node_98d13657-5c8e-4d28-bcf9-067a98ca0c5c": {
+            "id": "node_98d13657-5c8e-4d28-bcf9-067a98ca0c5c",
+            "type": "datasetNode",
+            "name": "Dataset",
+            "position": {
+                "x": -933.1959837338931,
+                "y": 68.23919911249314
+            },
+            "data": {
+                "internal": {
+                    "name": "Dataset",
+                    "img": "dataset.png",
+                    "type": "dataset",
+                    "results": {
+                        "checked": true,
+                        "contextChecked": false
+                    },
+                    "hasRun": true,
+                    "code": "",
+                    "settings": {
+                        "files": {
+                            "name": "learning_heart_transformed.csv",
+                            "path": "/home/local/USHERBROOKE/kalm7073/T\u00e9l\u00e9chargements/ws2/DATA/heartdataHoldout/learning_heart_transformed.csv"
+                        },
+                        "steps": [],
+                        "columns": {
+                            "Age": "Age",
+                            "Sex": "Sex",
+                            "ChestPainType": "ChestPainType",
+                            "RestingBP": "RestingBP",
+                            "Cholesterol": "Cholesterol",
+                            "FastingBS": "FastingBS",
+                            "RestingECG": "RestingECG",
+                            "MaxHR": "MaxHR",
+                            "ExerciseAngina": "ExerciseAngina",
+                            "Oldpeak": "Oldpeak",
+                            "ST_Slope": "ST_Slope",
+                            "HeartDisease": "HeartDisease"
+                        },
+                        "target": "HeartDisease"
+                    },
+                    "selection": "custom",
+                    "checkedOptions": [],
+                    "subflowId": "MAIN",
+                    "hasWarning": {
+                        "state": false
+                    }
+                },
+                "tooltipBy": "type",
+                "setupParam": null
+            },
+            "draggable": false,
+            "hidden": false,
+            "zIndex": 1010,
+            "className": "",
+            "width": 234,
+            "height": 99,
+            "selected": false,
+            "positionAbsolute": {
+                "x": -933.1959837338931,
+                "y": 68.23919911249314
+            },
+            "dragging": false
+        },
+        "node_a15e8cc2-e56b-48db-882b-b6e6717e8d03": {
+            "id": "node_a15e8cc2-e56b-48db-882b-b6e6717e8d03",
+            "type": "standardNode",
+            "name": "Train model",
+            "position": {
+                "x": -290.3342585372414,
+                "y": 267.4895066668134
+            },
+            "data": {
+                "internal": {
+                    "name": "Train model",
+                    "img": "create_model.png",
+                    "type": "train_model",
+                    "results": {
+                        "checked": true,
+                        "contextChecked": false
+                    },
+                    "hasRun": true,
+                    "code": "",
+                    "settings": {},
+                    "selection": false,
+                    "checkedOptions": [],
+                    "subflowId": "MAIN",
+                    "hasWarning": {
+                        "state": false
+                    }
+                },
+                "tooltipBy": "type",
+                "setupParam": null
+            },
+            "draggable": false,
+            "className": "",
+            "hidden": false,
+            "zIndex": 1010,
+            "width": 200,
+            "height": 48,
+            "positionAbsolute": {
+                "x": -290.3342585372414,
+                "y": 267.4895066668134
+            },
+            "selected": true
+        },
+        "node_897edb8f-f87c-42fe-9678-21efa0c4ff0b": {
+            "id": "node_897edb8f-f87c-42fe-9678-21efa0c4ff0b",
+            "type": "selectionNode",
+            "name": "Model",
+            "position": {
+                "x": -613.2944874794549,
+                "y": 407.2991295855205
+            },
+            "data": {
+                "internal": {
+                    "name": "Model",
+                    "img": "model.png",
+                    "type": "model",
+                    "results": {
+                        "checked": false,
+                        "contextChecked": false
+                    },
+                    "hasRun": true,
+                    "code": "",
+                    "settings": {},
+                    "selection": "lightgbm",
+                    "checkedOptions": [],
+                    "subflowId": "MAIN",
+                    "hasWarning": {
+                        "state": false
+                    }
+                },
+                "tooltipBy": "type",
+                "setupParam": null
+            },
+            "draggable": false,
+            "className": "",
+            "hidden": false,
+            "zIndex": 1010,
+            "width": 200,
+            "height": 99,
+            "selected": false,
+            "dragging": false,
+            "positionAbsolute": {
+                "x": -613.2944874794549,
+                "y": 407.2991295855205
+            }
+        },
+        "node_f02edb20-f656-4c36-956f-3b0965015c00": {
+            "id": "node_f02edb20-f656-4c36-956f-3b0965015c00",
+            "type": "standardNode",
+            "name": "Finalize",
+            "position": {
+                "x": -164.50559791040496,
+                "y": 436.659150398449
+            },
+            "data": {
+                "internal": {
+                    "name": "Finalize",
+                    "img": "finalize.png",
+                    "type": "finalize",
+                    "results": {
+                        "checked": true,
+                        "contextChecked": false
+                    },
+                    "hasRun": true,
+                    "code": "",
+                    "settings": {},
+                    "selection": false,
+                    "checkedOptions": [],
+                    "subflowId": "MAIN",
+                    "hasWarning": {
+                        "state": false
+                    }
+                },
+                "tooltipBy": "type",
+                "setupParam": null
+            },
+            "draggable": false,
+            "className": "",
+            "hidden": false,
+            "zIndex": 1010,
+            "width": 200,
+            "height": 48,
+            "positionAbsolute": {
+                "x": -164.50559791040496,
+                "y": 436.659150398449
+            },
+            "selected": false
+        },
+        "node_d4f0f6ce-06ac-40b0-a283-5c5ce926bb18": {
+            "id": "node_d4f0f6ce-06ac-40b0-a283-5c5ce926bb18",
+            "type": "standardNode",
+            "name": "Clean",
+            "position": {
+                "x": -813.2222482532061,
+                "y": 219.954234874453
+            },
+            "data": {
+                "internal": {
+                    "name": "Clean",
+                    "img": "clean.png",
+                    "type": "clean",
+                    "results": {
+                        "checked": true,
+                        "contextChecked": false
+                    },
+                    "hasRun": true,
+                    "code": "",
+                    "settings": {},
+                    "selection": false,
+                    "checkedOptions": [],
+                    "subflowId": "MAIN",
+                    "hasWarning": {
+                        "state": false
+                    }
+                },
+                "tooltipBy": "type",
+                "setupParam": null
+            },
+            "draggable": false,
+            "className": "",
+            "hidden": false,
+            "zIndex": 1010,
+            "width": 200,
+            "height": 48,
+            "selected": false,
+            "positionAbsolute": {
+                "x": -813.2222482532061,
+                "y": 219.954234874453
+            },
+            "dragging": false
+        },
+        "node_34e75ae3-21f3-4a90-bf37-ce80836ac1d8": {
+            "id": "node_34e75ae3-21f3-4a90-bf37-ce80836ac1d8",
+            "type": "OuterCVNode",
+            "name": "Outer CV",
+            "position": {
+                "x": -565.7592156870944,
+                "y": 161.23419324859594
+            },
+            "data": {
+                "internal": {
+                    "name": "Outer CV",
+                    "img": "outer_cv.png",
+                    "type": "outer_cv",
+                    "results": {
+                        "checked": true,
+                        "contextChecked": false
+                    },
+                    "hasRun": true,
+                    "code": "",
+                    "settings": {},
+                    "selection": false,
+                    "checkedOptions": [],
+                    "subflowId": "MAIN",
+                    "hasWarning": {
+                        "state": false
+                    }
+                },
+                "tooltipBy": "type",
+                "setupParam": null
+            },
+            "draggable": false,
+            "className": "",
+            "hidden": false,
+            "zIndex": 1010,
+            "width": 200,
+            "height": 48,
+            "selected": false,
+            "dragging": false,
+            "positionAbsolute": {
+                "x": -565.7592156870944,
+                "y": 161.23419324859594
+            }
+        }
+    },
+    "pipelines": {
+        "node_98d13657-5c8e-4d28-bcf9-067a98ca0c5c": {
+            "node_d4f0f6ce-06ac-40b0-a283-5c5ce926bb18": {
+                "node_34e75ae3-21f3-4a90-bf37-ce80836ac1d8": {
+                    "node_a15e8cc2-e56b-48db-882b-b6e6717e8d03*node_897edb8f-f87c-42fe-9678-21efa0c4ff0b": {
+                        "node_f02edb20-f656-4c36-956f-3b0965015c00": {}
+                    }
+                }
+            }
+        }
+    },
+    "pageId": "34f84a73-40e3-4750-b95c-815582e5ca64",
+    "path_seperator": "/",
+    "paths": {
+        "ws": "/home/local/USHERBROOKE/kalm7073/T\u00e9l\u00e9chargements/ws2/EXPERIMENTS/scene",
+        "models": "/home/local/USHERBROOKE/kalm7073/T\u00e9l\u00e9chargements/ws2/EXPERIMENTS/scene/models",
+        "notebooks": "/home/local/USHERBROOKE/kalm7073/T\u00e9l\u00e9chargements/ws2/EXPERIMENTS/scene/notebooks"
+    },
+    "internalPaths": {
+        "tmp": "/home/local/USHERBROOKE/kalm7073/T\u00e9l\u00e9chargements/ws2/EXPERIMENTS/scene/scene/tmp",
+        "exp": "/home/local/USHERBROOKE/kalm7073/T\u00e9l\u00e9chargements/ws2/EXPERIMENTS/scene/scene/exp"
+    },
+    "configPath": "/home/local/USHERBROOKE/kalm7073/T\u00e9l\u00e9chargements/ws2/EXPERIMENTS/scene/scene.medml",
+    "nbNodes2Run": 6
+}

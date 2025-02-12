@@ -2,7 +2,42 @@
 import React from 'react';
 import DropdownSelect from './components/generalPurpose/DropdownSelect'; 
 
-
+// Function to render dropdowns for multiple settings sections
+const renderDropdowns = (sections) => {
+    let dropdowns = [];
+  
+    // Iterate through all sections of settings
+    Object.keys(sections).forEach((sectionKey) => {
+      const section = sections[sectionKey];
+  
+      // Now iterate through each setting within the section
+      Object.keys(section.options).forEach((settingKey) => {
+        const setting = section.options[settingKey];
+  
+        // Only handle dropdown settings
+        if (setting.type === 'dropdown') {
+          dropdowns.push(
+            <div key={sectionKey + '-' + settingKey}>
+              <label dangerouslySetInnerHTML={{ __html: setting.tooltip }}></label>
+              <DropdownSelect
+                choices={setting.choices}           // Pass dropdown choices
+                selectedValue={setting.default_val}  // Default value for dropdown
+                onSelect={(value) => console.log(`${settingKey} selected:`, value)}
+              />
+            </div>
+          );
+        }
+      });
+    });
+  
+    return dropdowns;
+  };
+  
+  // Component for rendering dropdown settings from multiple sections
+  const DropdownSettingsComponent = ({ settings }) => {
+    return <div>{renderDropdowns(settings)}</div>;
+  };
+  
 const classificationSettings = {
     "clean": {
         "options": {
@@ -1119,7 +1154,7 @@ const classificationSettings = {
         "ml_types": "classification regression",
         "code": "",
         "default": {}
-    }
+    } 
 
 }; 
  export default classificationSettings;

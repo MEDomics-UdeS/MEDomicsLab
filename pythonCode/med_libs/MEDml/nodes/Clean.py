@@ -57,6 +57,17 @@ class Clean(Node):
                 "code", f"pycaret_exp.setup(data=temp_df, {self.CodeHandler.convert_dict_to_params(setup_settings)})")
         self.CodeHandler.add_line(
             "code", f"dataset = pycaret_exp.get_config('X').join(pycaret_exp.get_config('y'))")
+        dataset = pycaret_exp.get_config('X').join(pycaret_exp.get_config('y'))
+
+        print('DEBUG datasdet columns', dataset.columns)
+        
+        print(kwargs, "%$$$$$$$$$$$$$$$$$$$$$4889*******")
+        # Pass the splits to the next node
+        self._info_for_next_node = {
+            'dataset': dataset,
+            'target': kwargs["setup_settings"]["target"]
+        
+        }
         return {
             "experiment": {
             'pycaret_exp': pycaret_exp,
@@ -64,4 +75,7 @@ class Clean(Node):
             },
             "table": "dataset",
             "paths": ["path"],
+        
         }
+
+        

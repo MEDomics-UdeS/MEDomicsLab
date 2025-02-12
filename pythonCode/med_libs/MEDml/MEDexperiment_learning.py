@@ -77,6 +77,9 @@ class MEDexperimentLearning(MEDexperiment):
         elif node_type == "group_models":
             from med_libs.MEDml.nodes.GroupModels import GroupModels
             return GroupModels(node_config['id'], self.global_json_config)
+        elif node_type == "outer_cv":
+            from med_libs.MEDml.nodes.OuterCV import OuterCV
+            return OuterCV(node_config['id'], self.global_json_config)
 
     def setup_dataset(self, node: Node):
         """Sets up the dataset for the experiment.\n

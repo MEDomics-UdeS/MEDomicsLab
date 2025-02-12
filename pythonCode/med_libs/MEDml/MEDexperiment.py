@@ -128,10 +128,12 @@ class MEDexperiment(ABC):
                 # if self.global_json_config['nodes'][current_node_id]['data']['internal']['type'] == 'group_models':
 
                 # then, we create the node normally
+                print('DEBUG current node£ ', self.global_json_config['nodes'][current_node_id], current_node_id)
                 node = self.create_Node(self.global_json_config['nodes'][current_node_id])
                 nodes[current_node_id] = self.handle_node_creation(node, pipelines_objects)
                 nodes[current_node_id]['obj'].just_run = False
-                # if the node has next nodes
+                # if the node has next 
+                print('DEBUG pipelines', pipelines_objects)
                 if current_node_id in pipelines_objects:
                     nodes[current_node_id]['next_nodes'] = \
                         self.create_next_nodes(next_nodes_id_json,
@@ -139,6 +141,7 @@ class MEDexperiment(ABC):
                 else:
                     nodes[current_node_id]['next_nodes'] = \
                         self.create_next_nodes(next_nodes_id_json, {})
+                print('DEBUG created node;;;', nodes[current_node_id]['next_nodes'])
         return nodes
 
     def handle_node_creation(self, node: Node, pipelines_objects: dict) -> dict:
@@ -202,7 +205,6 @@ class MEDexperiment(ABC):
                     'next_nodes': copy.deepcopy(next_nodes_id_json),
                     'results': copy.deepcopy(node_info['results'])
                 }
-                print()
                 self.execute_next_nodes(
                     prev_node=node,
                     next_nodes_to_execute=next_nodes_id_json,
@@ -240,7 +242,7 @@ class MEDexperiment(ABC):
         pass
 
     def execute_next_nodes(self, prev_node: Node, next_nodes_to_execute: json, next_nodes: json, results: json,
-                           experiment: json):
+                           experiment: json, last_node_results= None):
         """Recursive function that executes the next nodes of the experiment pipeline.
 
         Args:
@@ -249,7 +251,10 @@ class MEDexperiment(ABC):
             next_nodes (json): The next nodes of the experiment.
             results (json): The results of the experiment.
             experiment (json): The experiment object (pycaret).
+            last_node_results : last nodes results.
+            
         """
+        
         if next_nodes_to_execute != {}:
             for current_node_id, next_nodes_id_json in next_nodes_to_execute.items():
 
@@ -262,15 +267,20 @@ class MEDexperiment(ABC):
                 if not node.has_run() or prev_node.has_changed():
                     if node.type == 'group_models':
                         print("group_models")
-                        data = node.execute(experiment, **prev_node.get_info_for_next_node())
+                        data = node.execute(experiment, {**prev_node.get_info_for_next_node(), "last_results": last_node_results})
                         node_can_go = data['prev_node_complete']
                     else:
+                        print("***********", prev_node, "---------", node)
                         data = node.execute(experiment, **prev_node.get_info_for_next_node())
 
+                    info_for_next_node = {**prev_node.get_info_for_next_node()}
                     node_info['results'] = {
                         'prev_node_id': prev_node.id,
                         'data': data,
+                        'final_metrics': info_for_next_node['final_metrics'] if 'final_metrics' in info_for_next_node else None
+
                     }
+                    print("Node info final metrics", prev_node, "second part ", )
                     # Clean node return experiment
                     if "experiment" in node_info['results']['data']:
                         new_experiment = node_info['results']['data']['experiment']
@@ -292,13 +302,15 @@ class MEDexperiment(ABC):
                     'next_nodes': copy.deepcopy(next_nodes_id_json),
                     'results': node_info['results']
                 }
+                print(node_info['results'],"$$$$$$$$$4")
                 if node_can_go:
                     self.execute_next_nodes(
                         prev_node=node,
                         next_nodes_to_execute=next_nodes_id_json,
                         next_nodes=node_info['next_nodes'],
                         results=results[current_node_id]['next_nodes'],
-                        experiment=exp_to_return
+                        experiment=exp_to_return,
+                        last_node_results = node_info['results']
                     )
                 print(f'END-{node.username}')
 

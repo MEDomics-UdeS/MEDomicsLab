@@ -3,6 +3,7 @@ import { Accordion, AccordionTab } from "primereact/accordion"
 import { deepCopy } from "../../../utilities/staticFunctions"
 import DataParamResults from "../../learning/results/node/dataParamResults"
 import ModelsResults from "../../learning/results/node/modelsResults"
+import OuterCVResults from "../../learning/results/node/OuterCVResults"
 import AnalyseResults from "../../learning/results/node/analyseResults"
 import SaveModelResults from "../../learning/results/node/saveModelResults"
 import { SelectButton } from "primereact/selectbutton"
@@ -51,6 +52,7 @@ const PipelineResult = ({ pipeline, selectionMode, flowContent }) => {
   const { flowResults, selectedResultsId } = useContext(FlowResultsContext)
   const [body, setBody] = useState(<></>)
   const [selectedId, setSelectedId] = useState(null)
+  
 
   useEffect(() => {
     setSelectedId(!selectedResultsId || selectionMode == "Compare Mode" ? selectedResultsId : selectedResultsId[pipeline.join("-")])
@@ -75,13 +77,16 @@ const PipelineResult = ({ pipeline, selectionMode, flowContent }) => {
   const createBody = useCallback(() => {
     let toReturn = <></>
     if (selectedId) {
+      console.log('selected ID pipelinesresults', selectedId)
       let selectedNode = flowContent.nodes.find((node) => node.id == selectedId)
+      console.log('selected node pipelinesresults', selectedNode)
       let resultsCopy = deepCopy(flowResults)
       let selectedResults = false
       pipeline.forEach((id) => {
         resultsCopy = checkIfObjectContainsId(resultsCopy, id)
         if (resultsCopy) {
           if (id == selectedId) {
+            console.log('selected results pipelinesresults', resultsCopy)
             selectedResults = resultsCopy.results
           } else {
             resultsCopy = resultsCopy.next_nodes
@@ -90,10 +95,10 @@ const PipelineResult = ({ pipeline, selectionMode, flowContent }) => {
           !selectedNode.data.internal.hasRun && (toReturn = <div className="pipe-name-notRun">Has not been run yet !</div>)
         }
       })
-      console.log("selectedResults", selectedResults)
+      console.log("selectedResults DEBUG", selectedResults)
       if (selectedResults) {
         let type = selectedNode.data.internal.type
-        console.log("type", type)
+        console.log("DUBUG type", type)
         if (type == "dataset" || type == "clean") {
           toReturn = <DataParamResults selectedResults={selectedResults} />
         } else if (["train_model", "compare_models", "stack_models", "ensemble_model", "tune_model", "blend_models", "calibrate_model"].includes(type)) {
@@ -102,6 +107,8 @@ const PipelineResult = ({ pipeline, selectionMode, flowContent }) => {
           toReturn = <AnalyseResults selectedResults={selectedResults} />
         } else if (type == "save_model") {
           toReturn = <SaveModelResults selectedResults={selectedResults} />
+        } else if (type == "outer_cv") {  // Ajout pour le type `outer_cv`
+          toReturn = <OuterCVResults selectedResults={selectedResults} /> 
         } else {
           toReturn = <div>Results not available for this node type</div>
         }

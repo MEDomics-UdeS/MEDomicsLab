@@ -12,6 +12,8 @@ import Row from "react-bootstrap/Row"
 import Col from "react-bootstrap/Col"
 import { Button } from "primereact/button"
 import { ErrorRequestContext } from "../generalPurpose/errorRequestContext"
+import OuterCVResults from "../learning/results/node/OuterCVResults"
+
 
 /**
  *
@@ -59,6 +61,7 @@ const WorkflowBase = ({ isGoodConnection, groupNodeHandlingDefault, onDeleteNode
   const [miniMapState, setMiniMapState] = useState(true) // used to get the flow infos
   const [numberOfNodes, setNumberOfNodes] = useState(0) // used to get the flow infos
   const { fitView } = useReactFlow()
+  const [finalMetrics, setFinalMetrics] = useState(null)
 
   useEffect(() => {
     if (showError) {
@@ -289,6 +292,30 @@ const WorkflowBase = ({ isGoodConnection, groupNodeHandlingDefault, onDeleteNode
       })
     )
   }, [showResultsPane])
+
+  // fetch the finalMetrics from the outer cv loops from the node
+  useEffect(() => {
+    const findFinalMetrics = (nodes) => {
+      if (!nodes) return null;
+      
+      for (const nodeId in nodes) {
+        const node = nodes[nodeId];
+        if (node.results && node.results.final_metrics) {
+          return node.results.final_metrics;
+        }
+        
+        const foundMetrics = findFinalMetrics(node.next_nodes);
+        if (foundMetrics) return foundMetrics;
+      }
+      
+      return null;
+    };
+    
+    const metrics = findFinalMetrics(flowResults);
+    setFinalMetrics(metrics);
+}, [flowResults]);
+  
+
 
   /**
    * @param {object} params
@@ -644,6 +671,14 @@ const WorkflowBase = ({ isGoodConnection, groupNodeHandlingDefault, onDeleteNode
           )}
         </div>
       </ReactFlow>
+
+      {/* Affichage des résultats ici */}
+    {finalMetrics && (
+      <div className="results-panel">
+      <h3>Displaying Results</h3>
+      <OuterCVResults selectedResults={finalMetrics} />
+    </div>
+    )}
     </div>
   )
 }
