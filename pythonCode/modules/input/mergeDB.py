@@ -14,9 +14,6 @@ import pandas as pd
 from pymongo import MongoClient
 import math
 
-# to deal with big csv when using cross join
-import dask.dataframe as dd
-
 json_params_dict, id_ = parse_arguments()
 go_print("running script.py:" + id_)
 
