@@ -23,6 +23,7 @@ func AddHandleFunc() {
 	Utils.CreateHandleFunc(prePath+"/handle_pkl/", handlePKL)
 	Utils.CreateHandleFunc(prePath+"/delete_columns/", deleteColumns)
 	Utils.CreateHandleFunc(prePath+"/transform_columns/", transformColumns)
+	Utils.CreateHandleFunc(prePath+"/get_row_column_missing_values/", handleGetMissingValues)
 }
 
 
@@ -194,6 +195,18 @@ func deleteColumns(jsonConfig string, id string) (string, error) {
 func transformColumns(jsonConfig string, id string) (string, error) {
 	log.Println("Transforming Columns", id)
 	response, err := Utils.StartPythonScripts(jsonConfig, "../pythonCode/modules/input/transform_columns.py", id)
+	Utils.RemoveIdFromScripts(id)
+	if err != nil {
+		return "", err
+	}
+	return response, nil
+}
+
+// handleGetMissingValues handles the request to get the missing values from the DB
+// It returns the response from the python script
+func handleGetMissingValues(jsonConfig string, id string) (string, error) {
+	log.Println("Getting Missing Values", id)
+	response, err := Utils.StartPythonScripts(jsonConfig, "../pythonCode/modules/input/get_row_column_missing_values.py", id)
 	Utils.RemoveIdFromScripts(id)
 	if err != nil {
 		return "", err

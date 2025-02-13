@@ -142,6 +142,7 @@ const TransformColumnToolsDB = ({ currentCollection }) => {
           onChange={(e) => {
             setSelectedColumns(e.value)
           }}
+          filter
           placeholder="Select Columns"
           style={{ marginRight: "5px", width: "200px" }}
         />

@@ -28,7 +28,7 @@ import { getCollectionSize } from "../mongoDB/mongoDBUtils.js"
  * @param {Object[]} props.innerData - Inner data
  * @param {Object} props.lastEdit - Last edit
  */
-const InputToolsComponent = ({ exportOptions, lastEdit }) => {
+const InputToolsComponent = ({ exportOptions }) => {
   const { globalData } = useContext(DataContext) // We get the global data from the context
   const [collectionId, setCollectionId] = useState(null)
   const [collectionSize, setCollectionSize] = useState(0)
@@ -105,7 +105,7 @@ const InputToolsComponent = ({ exportOptions, lastEdit }) => {
             <MergeToolsDB currentCollection={!collectionId ? null : collectionId} />
           </Panel>
           <Panel header="Simple Cleaning Tools" toggleable collapsed={true}>
-            <SimpleCleaningToolsDB lastEdit={lastEdit} currentCollection={!collectionId ? null : collectionId} />
+            <SimpleCleaningToolsDB currentCollection={!collectionId ? null : collectionId} />
           </Panel>
           <Panel header="Holdout Set Creation Tools" toggleable collapsed={true}>
             <HoldoutSetCreationToolsDB currentCollection={!collectionId ? null : collectionId} />
