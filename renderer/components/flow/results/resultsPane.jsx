@@ -139,7 +139,6 @@ const ResultsPane = () => {
         explore(id, [id])
       }
     })
-
     return result
   }
 

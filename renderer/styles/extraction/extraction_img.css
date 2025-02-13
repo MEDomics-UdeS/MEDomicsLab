@@ -113,7 +113,7 @@
 }
 
 .standard-form {
-  width: 350px;
+  width: 100%;
 }
 
 .features-node-body {
@@ -152,4 +152,4 @@
 .extraction-progress label {
   background-color: transparent;
   color: rgba(0, 0, 0, 0.74);
-} 
+}

@@ -391,14 +391,11 @@ const ResultsPaneMEDimage = () => {
   const handleClose = () => setShowResultsPane(false)
 
   useEffect(() => {
-    console.log("flowContent", flowContent)
     if (flowContent.nodes) {
-      console.log("flowContent.nodes", flowContent.nodes)
       let experiments = []
       let histograms = []
       flowContent.nodes.map((node) => {
         if (node.type === "Analyze"){
-          console.log("Found analyze node")
           // Images
           if (node.data.internal.results.hasOwnProperty("figures")){
             console.log("Found figures", node.data.internal.results.figures)
@@ -500,7 +497,6 @@ const ResultsPaneMEDimage = () => {
 
   return (
     <>
-    {console.log("generated pipelines", generatedPipelines)}
       <Col className=" padding-0 results-Panel">
         <Card>
           <Card.Header className="d-flex justify-content-between align-items-center">

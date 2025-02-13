@@ -3,7 +3,7 @@ import React, { useCallback, useContext, useEffect, useMemo, useState } from "re
 import { toast } from "react-toastify"
 
 // Import utilities
-import { downloadFile, loadJsonSync, processBatchSettings } from "../../utilities/fileManagementUtils"
+import { loadJsonSync, processBatchSettings } from "../../utilities/fileManagementUtils"
 import { requestBackend } from "../../utilities/requests"
 import ProgressBarRequests from "../generalPurpose/progressBarRequests"
 
@@ -36,6 +36,12 @@ import { Button } from 'primereact/button'
 import { OverlayPanel } from 'primereact/overlaypanel'
 import { SelectButton } from "primereact/selectbutton"
 import { useRef } from "react"
+import { FlowInfosContext } from "../flow/context/flowInfosContext"
+import { overwriteMEDDataObjectContent } from "../mongoDB/mongoDBUtils"
+import { DataContext } from "../workspace/dataContext"
+import { MEDDataObject } from "../workspace/NewMedDataObject"
+import { PageInfosContext } from "../mainPages/moduleBasics/pageInfosContext"
+import { getCollectionData } from "../dbComponents/utils"
 
 // Static nodes parameters
 const staticNodesParams = nodesParams
@@ -57,21 +63,20 @@ const FlowCanvas = ({ workflowType, setWorkflowType }) => {
   const { setViewport } = useReactFlow() // setViewport is used to update the viewport of the workflow
   const [treeData, setTreeData] = useState({}) // treeData is used to set the data of the tree menu
   const [isProgressUpdating, setIsProgressUpdating] = useState(false) // progress is used to store the progress of the workflow execution
+  const [metadataFileID, setMetadataFileID] = useState(null) // the metadata file in the .medml folder containing the frontend workflow
   const [progress, setProgress] = useState({
     now: 0,
     currentLabel: ""
   })
   const { groupNodeId, changeSubFlow, updateNode, setNode2Run, nodeUpdate } = useContext(FlowFunctionsContext)
-  const { port } = useContext(WorkspaceContext)
+  const { setCanRun } = useContext(FlowInfosContext)
+  const { workspace, port } = useContext(WorkspaceContext)
   const { setError, setShowError } = useContext(ErrorRequestContext)
-  const pageId = "extractionMEDimage" // pageId is used to identify the page in the backend
-  const op = useRef(null);
-  const modalities = [
-    {name : "MR"},
-    {name : "CT"},
-    {name : "PET"}
-  ];
-  const [selectedModalities, setSelectModalities] = useState([]);
+  const { globalData } = useContext(DataContext)
+  const { pageId } = useContext(PageInfosContext) // used to get the page infos such as id and config path
+  const op = useRef(null)
+  const modalities = [{ name: "MR" }, { name: "CT" }, { name: "PET" }]
+  const [selectedModalities, setSelectModalities] = useState([])
 
   /**
    * @param {String} sourceNode id of the group that is active
@@ -82,7 +87,9 @@ const FlowCanvas = ({ workflowType, setWorkflowType }) => {
    */
   const UpdateFilePath = (sourceNode, targetNode) => {
     // Check if there are any connections between the source and target nodes
-    let SourceTargetConnections = edges.filter((edge) => (nodes.find((node) => node.id === edge.source).data.internal.type === sourceNode && nodes.find((node) => node.id === edge.target).data.internal.type === targetNode))
+    let SourceTargetConnections = edges.filter(
+      (edge) => nodes.find((node) => node.id === edge.source).data.internal.type === sourceNode && nodes.find((node) => node.id === edge.target).data.internal.type === targetNode
+    )
 
     // Update the segmentation node's data with the ROIs from the input node
     SourceTargetConnections.forEach((connection) => {
@@ -92,10 +99,10 @@ const FlowCanvas = ({ workflowType, setWorkflowType }) => {
       let sourceNode = nodes.find((node) => node.id === sourNodeId)
       let targetNode = nodes.find((node) => node.id === targetNodeId)
 
-      if (targetNode.data.internal.settings === undefined){
+      if (targetNode.data.internal.settings === undefined) {
         targetNode.data.internal.settings = {}
       }
-      if (sourceNode.data.internal.settings === undefined){
+      if (sourceNode.data.internal.settings === undefined) {
         sourceNode.data.internal.settings = {}
       }
 
@@ -111,7 +118,7 @@ const FlowCanvas = ({ workflowType, setWorkflowType }) => {
 
       // MEDscan filepath
       let inputScan = sourceNode.data.internal.settings.filepath
-      
+
       targetNode.data.internal.settings["filepath"] = inputScan
 
       // Update the segmentation node
@@ -129,24 +136,36 @@ const FlowCanvas = ({ workflowType, setWorkflowType }) => {
   // Hook executed upon modification of edges to verify the connections between input and segmentation nodes
   useEffect(() => {
     // Check if there are any connections between an input and segmentation node
-    const inputSegmentationConnections = edges.filter((edge) => (nodes.find((node) => node.id === edge.source).data.internal.type === "input" && nodes.find((node) => node.id === edge.target).data.internal.type === "segmentation") || (nodes.find((node) => node.id === edge.source).data.internal.type === "segmentation" && nodes.find((node) => node.id === edge.target).data.internal.type === "inputNode"))
+    const inputSegmentationConnections = edges.filter(
+      (edge) =>
+        (nodes.find((node) => node.id === edge.source).data.internal.type === "input" && nodes.find((node) => node.id === edge.target).data.internal.type === "segmentation") ||
+        (nodes.find((node) => node.id === edge.source).data.internal.type === "segmentation" && nodes.find((node) => node.id === edge.target).data.internal.type === "inputNode")
+    )
+
     nodes.forEach((node) => {
-      if (node.data.internal.type === "segmentation" && inputSegmentationConnections.some((connection) => connection.target === node.id)) {
-        let inputNode = nodes.find((node) => node.data.internal.type === "input")
-        if (inputNode) {
-          let inputROIs = inputNode.data.internal.settings.rois
-          node.data.internal.settings.rois = inputROIs
-          setNodes((prevNodes) =>
-            prevNodes.map((n) => {
-              if (n.id === node.id) {
-                return node
-              }
-              return n
-            }
-          )
-        )
+      if (node.data.internal.type === "segmentation") {
+        // If the node is a segmentation node and it is connected to an input node, update the ROIs
+        if (inputSegmentationConnections.some((connection) => connection.target === node.id)) {
+          let inputNode = nodes.find((node) => node.data.internal.type === "input")
+          if (inputNode) {
+            let inputROIs = inputNode.data.internal.settings.rois
+            node.data.internal.settings.rois = inputROIs
+          }
+        } else {
+          // If the node is a segmentation node and it is not connected to an input node, reset ROIs
+          if (Object.keys(node.data.internal.settings.rois).length > 0) {
+            node.data.internal.settings.rois = {}
+            node.data.internal.settings.rois_data = ""
+            node.data.internal.settings.selected_rois = {}
+          }
+        }
+
+        // Update the node
+        updateNode({
+          id: node.id,
+          updatedData: node.data.internal
+        })
       }
-    }
     })
 
     UpdateFilePath("input", "segmentation")
@@ -161,12 +180,15 @@ const FlowCanvas = ({ workflowType, setWorkflowType }) => {
     UpdateFilePath("filter", "roi_extraction")
     UpdateFilePath("roi_extraction", "roi_extraction")
     UpdateFilePath("roi_extraction", "discretization")
-    
   }, [edges])
 
   useEffect(() => {
     // Check if there are any connections between an input and segmentation node
-    const inputSegmentationConnections = edges.filter((edge) => (nodes.find((node) => node.id === edge.source).data.internal.type === "input" && nodes.find((node) => node.id === edge.target).data.internal.type === "segmentation") || (nodes.find((node) => node.id === edge.source).data.internal.type === "segmentation" && nodes.find((node) => node.id === edge.target).data.internal.type === "inputNode"))
+    const inputSegmentationConnections = edges.filter(
+      (edge) =>
+        (nodes.find((node) => node.id === edge.source).data.internal.type === "input" && nodes.find((node) => node.id === edge.target).data.internal.type === "segmentation") ||
+        (nodes.find((node) => node.id === edge.source).data.internal.type === "segmentation" && nodes.find((node) => node.id === edge.target).data.internal.type === "inputNode")
+    )
     nodes.forEach((node) => {
       if (node.data.internal.type === "segmentation" && inputSegmentationConnections.some((connection) => connection.target === node.id)) {
         let inputNode = nodes.find((node) => node.data.internal.type === "input")
@@ -179,11 +201,10 @@ const FlowCanvas = ({ workflowType, setWorkflowType }) => {
                 return node
               }
               return n
-            }
+            })
           )
-        )
+        }
       }
-    }
     })
   }, [nodeUpdate])
 
@@ -198,6 +219,25 @@ const FlowCanvas = ({ workflowType, setWorkflowType }) => {
     }),
     []
   )
+
+  // When config is changed, we update the workflow
+  useEffect(() => {
+    async function getConfig() {
+      // Get Config file
+      if (globalData[pageId]?.childrenIDs) {
+        let configToLoad = MEDDataObject.getChildIDWithName(globalData, pageId, "metadata.json")
+        setMetadataFileID(configToLoad)
+        if (configToLoad) {
+          let jsonContent = await getCollectionData(configToLoad)
+          updateScene(jsonContent[0])
+          toast.success("Config file has been loaded successfully")
+        } else {
+          console.log("No config file found for this page, base workflow will be used")
+        }
+      }
+    }
+    getConfig()
+  }, [pageId])
 
   // Executes setTreeData when there is a change in nodes or edges arrays.
   useEffect(() => {
@@ -228,13 +268,13 @@ const FlowCanvas = ({ workflowType, setWorkflowType }) => {
       nodeExtractionExists = nodes.find((node) => node.data.internal.type === "extraction")
       let possibleFeatures = ["MORPH", "LI", "STATS", "IH", "IVH", "GLCM", "GLDZM", "GLRLM", "GLSZM", "NGLDM", "NGTDM"]
       if (nodeExtractionExists) {
-        if (possibleFeatures.includes(node.name)){
+        if (possibleFeatures.includes(node.name)) {
           foundExtractionNode = true
           return
         }
       }
     })
-    if (nodeExtractionExists && Object.keys(nodeExtractionExists).length > 0 && !foundExtractionNode){
+    if (nodeExtractionExists && Object.keys(nodeExtractionExists).length > 0 && !foundExtractionNode) {
       nodeExtractionExists.data.internal.hasWarning = { state: true, tooltip: <p>No features selected! Click on node to select the features to extract.</p> }
     }
   }, [nodes])
@@ -342,6 +382,13 @@ const FlowCanvas = ({ workflowType, setWorkflowType }) => {
 
     // Initialize settings in node data to put the parameters selected by the user
     let featuresNodeDefaultSettings = { features: ["extract_all"] }
+    if (["GLCM", "GLRLM"].includes(newNode.name)) {
+      featuresNodeDefaultSettings = {
+        features: ["extract_all"],
+        dist_correction: "false",
+        merge_method: "vol_merge"
+      }
+    }
     newNode.data.internal.settings = newNode.type === "featuresNode" ? featuresNodeDefaultSettings : newNode.data.setupParam.possibleSettings.defaultSettings
 
     newNode.data.internal.subflowId = !associatedNode ? groupNodeId.id : associatedNode
@@ -414,8 +461,7 @@ const FlowCanvas = ({ workflowType, setWorkflowType }) => {
     // If the reactFlowInstance exists
     if (reactFlowInstance) {
       let flow = JSON.parse(JSON.stringify(reactFlowInstance.toObject()))
-      console.log("The current React Flow instance is : ")
-      console.log(flow)
+      console.log("The current React Flow instance is : ", flow)
 
       flow.nodes.forEach((node) => {
         const nodeID = node.id
@@ -553,6 +599,7 @@ const FlowCanvas = ({ workflowType, setWorkflowType }) => {
   const runNode = useCallback(
     (id) => {
       if (id) {
+        setCanRun(false)
         console.log("Running node", id)
 
         // Transform the flow instance to a dictionary compatible with the backend
@@ -560,7 +607,7 @@ const FlowCanvas = ({ workflowType, setWorkflowType }) => {
         console.log("Flow dictionary sent to backend is : ", newFlow)
 
         try {
-        // Get the node from id
+          // Get the node from id
           let nodeName = newFlow.drawflow.Home.data[id] ? newFlow.drawflow.Home.data[id].name : "extraction"
 
           // POST request to /extraction_MEDimage/run for the current node by sending form_data
@@ -568,82 +615,114 @@ const FlowCanvas = ({ workflowType, setWorkflowType }) => {
             id: id,
             name: nodeName,
             // eslint-disable-next-line camelcase
-            json_scene: newFlow
+            json_scene: newFlow,
+            workspace: workspace.workingDirectory.path
           }
 
-          requestBackend(
-            port, 
-            "/extraction_MEDimage/run_all/node" + pageId, 
-            formData, 
-            (response) => {
-              if (response.error) {
-                // show error message
-                toast.error(response.error)
-                console.log("error", response.error)
+          // Activate progress if node is extraction node
+          if (nodeName === "extraction") {
+            // Start progress bar
+            setProgress({ now: 0, currentLabel: progress.currentLabel })
+            setIsProgressUpdating(true)
+          }
 
-                // check if error has message or not
-                if (response.error.message){
-                  console.log("error message", response.error.message)
-                  setError(response.error)
-                } else {
-                  console.log("error no message", response.error)
-                  setError({"message": response.error})
-                }
-                setShowError(true)
+          // Activate progress if node is extraction node
+          if (nodeName === "extraction") {
+            // Start progress bar
+            setProgress({ now: 0, currentLabel: progress.currentLabel })
+            setIsProgressUpdating(true)
+          }
+
+          requestBackend(port, "/extraction_MEDimage/run_all/node" + pageId, formData, (response) => {
+            setCanRun(true)
+            if (response.error) {
+              // show error message
+              toast.error(response.error)
+              console.log("error", response.error)
+
+              // check if error has message or not
+              if (response.error.message) {
+                console.log("error message", response.error.message)
+                setError(response.error)
               } else {
-                toast.success("Node executed successfully")
-                console.log("Response from backend is: ", response)
+                console.log("error no message", response.error)
+                setError({ "message": response.error })
+              }
+              setShowError(true)
 
-                // Update node 2 run
-                setNode2Run(null)
+              // Update progress
+              if (nodeName === "extraction") {
+                // Update progress
+                setIsProgressUpdating(false)
+                setProgress({
+                  now: 0,
+                  currentLabel: ""
+                })
+              }
+            } else {
+              toast.success("Node executed successfully")
+              console.log("Response from backend is: ", response)
 
-                // Get all the nodes in the executed pipeline
-                let executedNodes = []
-                for (let files in response) {
-                  for (let pipeline in response[files]) {
-                    let pipelineNodeIds = pipeline.match(/node_[a-f0-9-]+/g)
-                    executedNodes = mergeWithoutDuplicates(executedNodes, pipelineNodeIds)
-                  }
+              // Update node 2 run
+              setNode2Run(null)
+
+              // Get all the nodes in the executed pipeline
+              let executedNodes = []
+              for (let files in response) {
+                for (let pipeline in response[files]) {
+                  let pipelineNodeIds = pipeline.match(/node_[a-f0-9-]+/g)
+                  executedNodes = mergeWithoutDuplicates(executedNodes, pipelineNodeIds)
                 }
+              }
 
-                // Update the extractionNode data with the response from the backend
-                // And enable the view button of the nodes
-                setNodes((prevNodes) =>
-                  prevNodes.map((node) => {
-                    if (node.id === id && node.type === "extractionNode") {
-                      console.log("Updating node extractionNode runNode", node)
-                      // Get the results that were in the node
-                      let oldResults = node.data.internal.results
-                      let newResults = handleExtractionResults(oldResults, response)
+              // Update progress
+              if (nodeName === "extraction") {
+                setIsProgressUpdating(false)
+                setProgress({
+                  now: 100,
+                  currentLabel: "Done!"
+                })
+              }
 
-                      return {
-                        ...node,
-                        data: {
-                          ...node.data,
-                          internal: {
-                            ...node.data.internal,
-                            results: newResults // Update the results data with the response
-                          }
+              // Update the extractionNode data with the response from the backend
+              // And enable the view button of the nodes
+              setNodes((prevNodes) =>
+                prevNodes.map((node) => {
+                  if (node.id === id && node.type === "extractionNode") {
+                    console.log("Updating node extractionNode runNode", node)
+                    // Get the results that were in the node
+                    let oldResults = node.data.internal.results
+                    let newResults = handleExtractionResults(oldResults, response)
+
+                    return {
+                      ...node,
+                      data: {
+                        ...node.data,
+                        internal: {
+                          ...node.data.internal,
+                          results: newResults // Update the results data with the response
                         }
                       }
                     }
+                  }
 
-                    if (executedNodes.includes(node.id)) {
-                      // Enable the view button of the node
-                      node.data.internal.enableView = true
-                      updateNode({
-                        id: node.id,
-                        updatedData: node.data.internal
-                      })
-                    }
+                  if (executedNodes.includes(node.id)) {
+                    // Enable the view button of the node
+                    node.data.internal.enableView = true
+                    updateNode({
+                      id: node.id,
+                      updatedData: node.data.internal
+                    })
+                  }
 
-                    return node
-                  })
-                )
-              }
+                  return node
+                })
+              )
+            }
           })
         } catch (error) {
           toast.error("Error running node : ", error)
+          setCanRun(true)
         }
       }
     },
@@ -659,11 +738,20 @@ const FlowCanvas = ({ workflowType, setWorkflowType }) => {
 
     // Transform the flow instance to a dictionnary compatible with the backend
     let newFlow = transformFlowInstance()
-    console.log("Flow dictionnary sent to back end is : ")
-    console.log(newFlow)
+
+    // If there is nothing in the flow, cancel the run
+    if (Object.keys(newFlow["drawflow"]["Home"]["data"]).length === 0) {
+      toast.warn("No workflow to run")
+      return
+    }
+
+    console.log("Flow dictionnary sent to back end is : ", newFlow)
+
+    // Add workspace to the form data
+    newFlow.workspace = workspace.workingDirectory.path
 
     // Start progress bar
-    setProgress({now: 0, currentLabel: progress.currentLabel})
+    setProgress({ now: 0, currentLabel: progress.currentLabel })
     setIsProgressUpdating(true)
 
     // Post request to extraction_MEDimage/run_all for current workflow
@@ -672,75 +760,84 @@ const FlowCanvas = ({ workflowType, setWorkflowType }) => {
       "/extraction_MEDimage/run_all/" + pageId, 
       newFlow, 
       (response) => {
-      if (response.error) {
-        // show error message
-        toast.error(response.error)
-        console.log("error", response.error)
+        if (response.error) {
+          // show error message
+          toast.error(response.error)
+          console.log("error", response.error)
 
-        // Update progress
-        setIsProgressUpdating(false)
+          // Update progress
+          setIsProgressUpdating(false)
           setProgress({
             now: 0,
             currentLabel: ""
           })
 
-        // check if error has message or not
-        if (response.error.message){
-          console.log("error message", response.error.message)
-          setError(response.error)
+          // check if error has message or not
+          if (response.error.message) {
+            console.log("error message", response.error.message)
+            setError(response.error)
+          } else {
+            console.log("error no message", response.error)
+            setError({
+              message: response.error
+            })
+          }
+          setShowError(true)
         } else {
-          console.log("error no message", response.error)
-          setError({
-            "message": response.error
-          })
-        }
-        setShowError(true)
-      } else {
-        console.log("Response from the backend :", response)
-        toast.success("Workflow executed successfully")
+          console.log("Response from the backend :", response)
+          toast.success("Workflow executed successfully")
 
-        // Update progress
-        setIsProgressUpdating(false)
+          // Update progress
+          setIsProgressUpdating(false)
           setProgress({
             now: 100,
             currentLabel: "Done!"
           })
 
-        // A response from the backend is only given if there are e
+          // A response from the backend is only given if there are e
+          setNodes((prevNodes) =>
+            prevNodes.map((node) => {
+              // If the type of the node is extractionNode, update the results according
+              // to the response from the backend
+              if (node.type === "extractionNode") {
+                // Get the results that were in the node
+                let oldResults = node.data.internal.results
+                let newResults = handleExtractionResults(oldResults, response)
 
-        setNodes((prevNodes) =>
-          prevNodes.map((node) => {
-            // If the type of the node is extractionNode, update the results according
-            // to the response from the backend
-            if (node.type === "extractionNode") {
-              // Get the results that were in the node
-              let oldResults = node.data.internal.results
-              let newResults = handleExtractionResults(oldResults, response)
-
-              return {
-                ...node,
-                data: {
-                  ...node.data,
-                  internal: {
-                    ...node.data.internal,
-                    results: newResults // Update the results data with the response
+                return {
+                  ...node,
+                  data: {
+                    ...node.data,
+                    internal: {
+                      ...node.data.internal,
+                      results: newResults // Update the results data with the response
+                    }
                   }
                 }
               }
-            }
 
-            // Enable the view button of the node
-            node.data.internal.enableView = true
-            updateNode({
-              id: node.id,
-              updatedData: node.data.internal
+              // Enable the view button of the node
+              node.data.internal.enableView = true
+              updateNode({
+                id: node.id,
+                updatedData: node.data.internal
+              })
+
+              return node
             })
-
-            return node
-          })
-        )
+          )
+        }
+      },
+      (error) => {
+        toast.error("Error running workflow : ", error)
+        // Update progress
+        setIsProgressUpdating(false)
+        setProgress({
+          now: 0,
+          currentLabel: ""
+        })
       }
-    })
+    )
   }, [nodes, edges, reactFlowInstance])
 
   /**
@@ -748,12 +845,13 @@ const FlowCanvas = ({ workflowType, setWorkflowType }) => {
    * Clear the canvas if the user confirms
    */
   const onClear = useCallback(() => {
-    console.log(reactFlowInstance.toObject())
-    if (reactFlowInstance & (nodes.length > 0)) {
+    // Check if the workflow exists and there are nodes in the workflow
+    if (reactFlowInstance && nodes.length > 0) {
       let confirmation = confirm("Are you sure you want to clear the canvas?\nEvery data will be lost.")
       if (confirmation) {
         setNodes([])
         setEdges([])
+        toast.success("Canvas has been cleared successfully")
       }
     } else {
       toast.warn("No workflow to clear")
@@ -764,9 +862,9 @@ const FlowCanvas = ({ workflowType, setWorkflowType }) => {
    * @description
    * Save the workflow as a json file
    */
-  const onSave = useCallback(() => {
-    if (reactFlowInstance && nodes.length > 0) {
-      const flow = JSON.parse(JSON.stringify(reactFlowInstance.toObject()))
+  const onSave = useCallback(async () => {
+    if (reactFlowInstance && metadataFileID) {
+      const flow = deepCopy(reactFlowInstance.toObject())
       flow.nodes.forEach((node) => {
         node.data.setupParam = null
         // Set enableView to false because only the scene is saved
@@ -775,10 +873,12 @@ const FlowCanvas = ({ workflowType, setWorkflowType }) => {
         node.data.enableView = false
       })
       console.log("flow", flow)
-      downloadFile(flow, "experiment.json")
-    } else {
-      // Warn the user if there is no workflow to save
-      toast.warn("No workflow to save!")
+      let success = await overwriteMEDDataObjectContent(metadataFileID, [flow])
+      if (success) {
+        toast.success("Scene has been saved successfully")
+      } else {
+        toast.error("Error while saving scene")
+      }
     }
   }, [reactFlowInstance, nodes])
 
@@ -794,60 +894,58 @@ const FlowCanvas = ({ workflowType, setWorkflowType }) => {
       confirmation = confirm("Are you sure you want to import a new experiment?\nEvery data will be lost.")
     }
     if (confirmation) {
-      // If the user confirms, load the json file
       const restoreFlow = async () => {
-        try {
-          // Ask user for the json file to open
-          const flow = await loadJsonSync() // wait for the json file to be loaded (see /utilities/fileManagementUtils.js)
-          console.log("loaded flow", flow)
-
-          // TODO : should have conditions regarding json file used for import!
-          // For each nodes in the json file, add the specific parameters
-          Object.values(flow.nodes).forEach((node) => {
-            // the line below is important because functions are not serializable
-            // set workflow type
-            let subworkflowType = node.data.internal.subflowId != "MAIN" ? "extraction" : "features"
-            // set node type
-            let setupParams = deepCopy(staticNodesParams[subworkflowType][node.name.toLowerCase().replaceAll(" ", "_")])
-            node.data.setupParam = setupParams
-          })
-
-          if (flow) {
-            const { x = 0, y = 0, zoom = 1 } = flow.viewport
-            setNodes(flow.nodes || [])
-            setEdges(flow.edges || [])
-            setViewport({ x, y, zoom })
-          }
-        } catch (error) {
-          toast.warn("Error loading file : ", error)
-        }
+        const newScene = await loadJsonSync()
+        updateScene(newScene)
       }
-
-      // Call the async function
       restoreFlow()
     }
   }, [setNodes, setViewport, nodes])
 
   /**
+   *
+   * @param {Object} newScene new scene to update the workflow
+   *
+   * This function updates the workflow with the new scene
+   */
+  const updateScene = (newScene) => {
+    if (newScene) {
+      // For each nodes in the json file, add the specific parameters
+      Object.values(newScene.nodes).forEach((node) => {
+        // the line below is important because functions are not serializable
+        // set workflow type and get default parameters
+        let subworkflowType = node.data.internal.subflowId === "MAIN" ? "extraction" : "features"
+        let setupParams = deepCopy(staticNodesParams[subworkflowType][node.name.toLowerCase().replaceAll(" ", "_").replaceAll("-", "_")])
+        node.data.setupParam = setupParams
+      })
+      const { x = 0, y = 0, zoom = 1 } = newScene.viewport
+      setNodes(newScene.nodes || [])
+      setEdges(newScene.edges || [])
+      setViewport({ x, y, zoom })
+    }
+  }
+
+  /**
    * @description
    * Export the settings of the workflow as a json file for batch extraction
-  */
- const onExport = useCallback(() => {
-  if (reactFlowInstance && nodes.length > 0) {
-    const flow = JSON.parse(JSON.stringify(reactFlowInstance.toObject()))
-    flow.nodes.forEach((node) => {
-      node.data.setupParam = null
-      // Set enableView to false because only the scene is saved
-      // and importing it back would not reload the volumes that
-      // were loaded in the viewer
-      node.data.enableView = false
-    })
-    processBatchSettings(flow, selectedModalities, "extraction_settings.json")
-    //downloadFile(flow, "experiment.json")
-  } else {
-    // Warn the user if there is no workflow to save
-    toast.warn("No workflow to export!")
-  }}, [reactFlowInstance, nodes])
+   */
+  const onExport = useCallback(() => {
+    if (reactFlowInstance && nodes.length > 0) {
+      const flow = JSON.parse(JSON.stringify(reactFlowInstance.toObject()))
+      flow.nodes.forEach((node) => {
+        node.data.setupParam = null
+        // Set enableView to false because only the scene is saved
+        // and importing it back would not reload the volumes that
+        // were loaded in the viewer
+        node.data.enableView = false
+      })
+      processBatchSettings(flow, selectedModalities, "extraction_settings.json")
+      //downloadFile(flow, "experiment.json")
+    } else {
+      // Warn the user if there is no workflow to save
+      toast.warn("No workflow to export!")
+    }
+  }, [reactFlowInstance, nodes])
 
   /**
    * @description
@@ -928,22 +1026,16 @@ const FlowCanvas = ({ workflowType, setWorkflowType }) => {
                     { type: "run", onClick: onRun },
                     { type: "clear", onClick: onClear },
                     { type: "save", onClick: onSave },
-                    { type: "load", onClick: onLoad },
-                    { type: "export", onClick: onExport}
+                    { type: "export", onClick: onExport }
                   ]}
                   op={op}
                 />
-                  <OverlayPanel showCloseIcon ref={op}>
-                    <div className="card flex flex-wrap justify-content-center gap-3">
-                    <SelectButton
-                      value={selectedModalities} 
-                      onChange={(e) => setSelectModalities(e.value)} 
-                      optionLabel="name" 
-                      options={modalities} 
-                      multiple />
-                    <Button onClick={onExport} label="Export"/>
-                    </div>
-                  </OverlayPanel>
+                <OverlayPanel showCloseIcon ref={op}>
+                  <div className="card flex flex-wrap justify-content-center gap-3">
+                    <SelectButton value={selectedModalities} onChange={(e) => setSelectModalities(e.value)} optionLabel="name" options={modalities} multiple />
+                    <Button onClick={onExport} label="Export" />
+                  </div>
+                </OverlayPanel>
               </>
             ) : (
               <BtnDiv buttonsList={[{ type: "back", onClick: onBack }]} />
@@ -952,7 +1044,18 @@ const FlowCanvas = ({ workflowType, setWorkflowType }) => {
         }
         ui={
           <>
-            <div className="panel-bottom-center">{isProgressUpdating && <ProgressBarRequests progressBarProps={{ animated: true, variant: "success" }} isUpdating={isProgressUpdating} setIsUpdating={setIsProgressUpdating} progress={progress} setProgress={setProgress} requestTopic={"extraction_MEDimage/progress/" + pageId} />}</div>
+            <div className="panel-bottom-center">
+              {isProgressUpdating && (
+                <ProgressBarRequests
+                  progressBarProps={{ animated: true, variant: "success" }}
+                  isUpdating={isProgressUpdating}
+                  setIsUpdating={setIsProgressUpdating}
+                  progress={progress}
+                  setProgress={setProgress}
+                  requestTopic={"extraction_MEDimage/progress/" + pageId}
+                />
+              )}
+            </div>
           </>
         }
       />

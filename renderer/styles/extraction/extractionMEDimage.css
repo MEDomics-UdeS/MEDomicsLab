@@ -3,6 +3,7 @@
 /* Documentation link styles */
 .docLink {
   display: "flex";
+  justify-content: center;
   align-items: "center";
   margin-top: "10px";
 }
@@ -113,7 +114,7 @@
 }
 
 .standard-form {
-  width: 350px;
+  width: 100%;
 }
 
 .features-node-body {
@@ -137,19 +138,14 @@
 }
 
 .small-results-button:hover {
-  background-color: rgba(
-    26,
-    70,
-    37,
-    0.705
-  ); /* Change to a more transparent color on hover */
+  background-color: rgba(26, 70, 37, 0.705); /* Change to a more transparent color on hover */
 }
 
 .tree-menu-container {
   max-width: 500px;
 }
-              
+
 .extraction-progress label {
   background-color: transparent;
   color: rgba(0, 0, 0, 0.74);
-} 
+}

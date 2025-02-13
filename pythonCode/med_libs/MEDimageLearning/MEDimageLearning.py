@@ -10,9 +10,6 @@ import jupytext
 import pandas as pd
 from numpyencoder import NumpyEncoder
 
-SUBMODULE_DIR = str(Path(os.path.dirname(os.path.abspath(__file__))).parent.parent / 'submodules' / 'MEDimage')
-sys.path.append(SUBMODULE_DIR)
-
 pp = pprint.PrettyPrinter(width=1)  # allow pretty print of datatypes in console
 
 import MEDimage

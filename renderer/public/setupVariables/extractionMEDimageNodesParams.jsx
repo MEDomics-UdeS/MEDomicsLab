@@ -2,8 +2,8 @@ import extractionMEDimageDefaultSettings from "./possibleSettings/extractionMEDi
 
 export const sceneDescription = {
   extension: "medimg",
-  extrenalFolders: [],
-  internalFolders: ["tmp", "exp"]
+  externalFolders: [],
+  internalFolders: []
 }
 
 // Node parameters for Home module of extraction tab

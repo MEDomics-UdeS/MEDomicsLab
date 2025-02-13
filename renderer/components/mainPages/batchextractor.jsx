@@ -1,15 +1,20 @@
-import { Button } from 'primereact/button';
-import { Column } from 'primereact/column';
-import { Dialog } from 'primereact/dialog';
-import { Tooltip } from 'primereact/tooltip';
-import { TreeTable } from 'primereact/treetable';
-import React, { useContext, useEffect, useState } from 'react';
-import { Alert, Card, Col, Form, ProgressBar, Row } from 'react-bootstrap';
-import { toast } from 'react-toastify';
-import { requestBackend } from "../../utilities/requests";
-import { WorkspaceContext } from "../workspace/workspaceContext";
-import SettingsEditor from "./dataComponents/settingsEditor";
-import ModulePage from './moduleBasics/modulePage';
+import { Button } from 'primereact/button'
+import { Column } from 'primereact/column'
+import { Dialog } from 'primereact/dialog'
+import { Tooltip } from 'primereact/tooltip'
+import { TreeTable } from 'primereact/treetable'
+import React, { useContext, useEffect, useState } from 'react'
+import { Alert, Card, Col, Form, ProgressBar, Row } from 'react-bootstrap'
+import { toast } from 'react-toastify'
+import { requestBackend } from "../../utilities/requests"
+import DocLink from '../extractionMEDimage/docLink'
+import { WorkspaceContext } from "../workspace/workspaceContext"
+import SettingsEditor from "./dataComponents/settingsEditor"
+import { Dropdown } from 'primereact/dropdown'
+import { DataContext } from '../workspace/dataContext'
+import { ErrorRequestContext } from '../generalPurpose/errorRequestContext'
+import { MEDDataObject } from '../workspace/NewMedDataObject'
+import { InputSwitch } from 'primereact/inputswitch'
 
 /**
  * @param {Object} nodeForm form associated to the discretization node
@@ -21,20 +26,79 @@ import ModulePage from './moduleBasics/modulePage';
  * This component is used to display a InputForm.
  */
 const BatchExtractor = ({ pageId, configPath = "" }) => {
-  const { port } = useContext(WorkspaceContext); // Get the port of the backend
-  const [progress, setProgress] = useState(0);
-  const [refreshEnabled, setRefreshEnabled] = useState(false); // A boolean variable to control refresh
-  const [selectedReadFolder, setSelectedReadFolder] = useState('');
-  const [selectedSaveFolder, setSelectedSaveFolder] = useState('');
-  const [selectedNBatch, setSelectedNBatch] = useState(12);
-  const [selectedCSVFile, setSelectedCSVFile] = useState('');
-  const [selectedSettingsFile, setSelectedSettingsFile] = useState('');
-  const [settings, setSettings] = useState({}); // Settings of the node
-  const [nscans, setNscans] = useState(0); // Number of scans to be processed
-  const [saveFolder, setSaveFolder] = useState(''); // Path of the folder where the results are saved
+  const { port } = useContext(WorkspaceContext) // Get the port of the backend
+  const { globalData } = useContext(DataContext) // Get the global data of the workspace
+  const { setError } = useContext(ErrorRequestContext) // Get the function to set the error request
+  const [progress, setProgress] = useState(0)
+  const [loadingEdit, setLoadingEdit] = useState(false)
+  const [refreshEnabled, setRefreshEnabled] = useState(false) // A boolean variable to control refresh
+  const [selectedReadFolder, setSelectedReadFolder] = useState('')
+  const [selectedSaveFolder, setSelectedSaveFolder] = useState('')
+  const [selectedNBatch, setSelectedNBatch] = useState(12)
+  const [selectedCSVFile, setSelectedCSVFile] = useState('')
+  const [selectedSettingsFile, setSelectedSettingsFile] = useState('')
+  const [listWSFolders, setListWSFolders] = useState([]) // List of folders in the workspace
+  const [listCSVFiles, setListCSVFiles] = useState([]) // List of csv files in the workspace
+  const [listSettingsFiles, setListSettingsFiles] = useState([]) // List of settings files in the workspace
+  const [settings, setSettings] = useState({}) // Settings of the node
+  const [nscans, setNscans] = useState(0) // Number of scans to be processed
+  const [skipExisting, setSkipExisting] = useState(false) // Skip existing extractions
+  const [activeIndex, setActiveIndex] = useState(false)
+  const [saveFolder, setSaveFolder] = useState('') // Path of the folder where the results are saved
   const [showRadiomicsResults, setShowRadiomicsResults] = useState(false) // used to display the extraction results
   const [showEdit, setShowEdit] = useState(false) // used to display the extraction results
-  const [nodes, setNodes] = useState([]);
+  const [nodes, setNodes] = useState([])
+
+  useEffect(() => {
+    updateWSfolder()
+    updateCSVFilesList()
+    updateSettingsFilesList()
+  }, [])
+  
+  useEffect(() => {
+    updateWSfolder()
+    updateCSVFilesList()
+    updateSettingsFilesList()
+  }, [globalData])
+
+  const updateWSfolder = () => {
+    if (globalData !== undefined) {
+      let keys = Object.keys(globalData)
+      let wsFolders = []
+      keys.forEach((key) => {
+        if (globalData[key].type === "directory" && !globalData[key].name.startsWith(".")) {
+          wsFolders.push({ name: globalData[key].name, value: globalData[key].path })
+        }
+      })
+      setListWSFolders(wsFolders)
+    }
+  }
+
+  const updateCSVFilesList = () => {
+    if (globalData !== undefined) {
+      let keys = Object.keys(globalData)
+      let csvFiles = []
+      keys.forEach((key) => {
+        if (globalData[key].type === "csv") {
+          csvFiles.push({ name: globalData[key].name, value: globalData[key].path })
+        }
+      })
+      setListCSVFiles(csvFiles)
+    }
+  }
+
+  const updateSettingsFilesList = () => {
+    if (globalData !== undefined) {
+      let keys = Object.keys(globalData)
+      let settingsFiles = []
+      keys.forEach((key) => {
+        if (globalData[key].type === "json" && !globalData[key].name.includes("metadata")) {
+          settingsFiles.push({ name: globalData[key].name, value: globalData[key].path })
+        }
+      })
+      setListSettingsFiles(settingsFiles)
+    }
+  }
 
   const fs = require('fs');
 
@@ -146,13 +210,14 @@ const BatchExtractor = ({ pageId, configPath = "" }) => {
    */
   function fillNodesData(folderPath) {
     try {
+      let results = []
       const files = fs.readdirSync(folderPath);
       for (const file of files) {
         if (file.split('.').pop() === 'csv') {
           let modality = file.substring(file.indexOf('__') + 2, file.indexOf('(') );
           let roi = file.substring(file.indexOf('(') + 1, file.indexOf(')') );
           let space = file.substring(file.indexOf(')') + 3, file.indexOf('.csv') );
-          nodes.push({
+          results.push({
             data: {
               modality: modality,
               roi: roi,
@@ -161,6 +226,7 @@ const BatchExtractor = ({ pageId, configPath = "" }) => {
           });
         }
       }
+      setNodes(results)
     } catch (error) {
       console.error('Error filling nodes data:', error);
       return 0;
@@ -168,36 +234,45 @@ const BatchExtractor = ({ pageId, configPath = "" }) => {
   }
 
   const handleEditClick = () => {
+    setLoadingEdit(true)
     // Make a POST request to the backend API
-    if(Object.keys(settings).length === 0){
-      requestBackend(
-        port, 
-        '/extraction_MEDimage/run_all/be_json', 
-        {selectedSettingsFile}, 
-        (response) => {
-          console.log("response", response);
-          if (response.error) {
-            console.error('Error:', response.error);
-            toast.error('Error: ' + response.error);
-            setShowEdit(false);
+    requestBackend(
+      port, 
+      '/extraction_MEDimage/run_all/be_json', 
+      {selectedSettingsFile}, 
+      (response) => {
+        console.log("response", response)
+        setLoadingEdit(false)
+        if (response.error) {
+          console.error('Error:', response.error)
+          toast.error('Error: ' + response.error)
+          setShowEdit(false)
+          if (!response.error.hasOwnProperty('message')) {
+            setError({"message": response.error})
           } else {
-            // Handle the response from the backend if needed
-            console.log('Response from backend:', response);
-
-            // set settings
-            setSettings(response);
-
-            // show edit dialog
-            setShowEdit(true);
-
-            // toast message
-            toast.success('Settings loaded!');
+            setError(response.error)
           }
+        } else {
+          // Handle the response from the backend if needed
+          console.log('Response from backend:', response)
+
+          // set settings
+          setSettings(response)
+
+          // show edit dialog
+          setShowEdit(true)
+
+          // toast message
+          toast.success('Settings loaded!')
         }
-      );
-  } else {
-    setShowEdit(true);
-  }
+      },
+      (error) => {
+        setLoadingEdit(false)
+        console.error('Error:', error)
+        toast.error('Error: ' + error)
+        setShowEdit(false)
+      }
+    )
   }
 
   const handleOpenFolderClick = () => {
@@ -205,11 +280,11 @@ const BatchExtractor = ({ pageId, configPath = "" }) => {
     shell.openPath(saveFolder);
   }
 
-  const handleRunClick = () => {
+  const handleRunClick = async () => {
 
     // Simulate page refresh
-    setRefreshEnabled(true);
-    setProgress(0);
+    setRefreshEnabled(true)
+    setProgress(0)
 
     // Create an object with the input values
     const requestData = {
@@ -218,7 +293,8 @@ const BatchExtractor = ({ pageId, configPath = "" }) => {
       path_csv: selectedCSVFile,
       path_save: selectedSaveFolder,
       n_batch: parseInt(selectedNBatch),
-    };
+      skip_existing: skipExisting
+    }
 
     console.log("requestData", requestData);
 
@@ -228,18 +304,29 @@ const BatchExtractor = ({ pageId, configPath = "" }) => {
       '/extraction_MEDimage/run_all/be_count', 
       requestData, 
       (response) => {
+        console.log("response", response)
         if (response.error) {
-          console.error('Error:', response.error);
-          toast.error('Error: ' + response.error);
-          setRefreshEnabled(false);
+          console.error('Error:', response.error)
+          toast.error('Error: ' + response.error)
+          setError(response.error)
+          setRefreshEnabled(false)
+          setProgress(0)
+          return
         } else {
           // Handle the response from the backend if needed
           setNscans(response.n_scans);
           setSaveFolder(response.folder_save_path);
           console.log('Response from backend:', response);
         }
+      },
+      (error) => {
+        console.error('Error:', error)
+        toast.error('Error: ' + error)
+        setRefreshEnabled(false)
+        setProgress(0)
+        return
       }
-    );
+    )
 
     // Make a POST request to the backend API to run BatchExtractor
     requestBackend(
@@ -247,22 +334,36 @@ const BatchExtractor = ({ pageId, configPath = "" }) => {
       '/extraction_MEDimage/run_all/be', 
       requestData, 
       (response) => {
+        setRefreshEnabled(false)
+        setProgress(0)
+        console.log("response", response)
+        MEDDataObject.updateWorkspaceDataObject()
         if (response.error) {
-          console.error('Error:', response.error);
-          toast.error('Error: ' + response.error);
-          setRefreshEnabled(false);
+          console.error('Error:', response.error)
+          toast.error('Error: ' + response.error)
+          if (!response.error.hasOwnProperty('message')) {
+            setError({"message": response.error})
+          } else {
+            setError(response.error)
+          }
         } else {
           // Handle the response from the backend if needed
-          console.log('Response from backend:', response);
-          toast.success('Finished extraction!');
-          setRefreshEnabled(false);
+          console.log('Response from backend:', response)
+          toast.success('Finished extraction!')
           // fill nodes data
           if (saveFolder !== '') {
-            fillNodesData(saveFolder);
-          };
+            fillNodesData(saveFolder)
+          }
         }
-      });
-  };
+      },
+      (error) => {
+        console.error('Error:', error)
+        toast.error('Error: ' + error)
+        setRefreshEnabled(false)
+        setProgress(0)
+      }
+    )
+  }
 
   // Function to fetch and update data (your front-end function)
   const fetchData = () => {
@@ -312,7 +413,7 @@ const BatchExtractor = ({ pageId, configPath = "" }) => {
   const renderEdit = () => {
     if (selectedSettingsFile && showEdit) {
       return (
-        <SettingsEditor showEdit={showEdit} setShowEdit={setShowEdit} settings={settings} pathSettings={selectedSettingsFile}/>
+        <SettingsEditor showEdit={showEdit} setShowEdit={setShowEdit} settings={settings} pathSettings={selectedSettingsFile} onHideBE={setLoadingEdit}/>
       )
     }
   }
@@ -368,14 +469,18 @@ const BatchExtractor = ({ pageId, configPath = "" }) => {
 
   return (
     <>
-    <ModulePage pageId={pageId} configPath={configPath}>
-      {renderResults()}
-      {renderEdit()}
+    {renderResults()}
+    {renderEdit()}
     <div>
     <Card className="text-center">
       <Card.Body>
         <Card.Header>
-            <h4>Batch Extractor - Radiomics</h4>
+          <h4>Batch Extractor - Radiomics</h4>
+          <DocLink 
+            linkString={"https://medimage.readthedocs.io/en/latest/tutorials.html#batchextractor"} 
+            name={"What is BatchExtractor?"} 
+            image={"https://www.svgrepo.com/show/521262/warning-circle.svg"} 
+          />
         </Card.Header>
 
       <Form method="post" encType="multipart/form-data" className="inputFile">
@@ -389,7 +494,8 @@ const BatchExtractor = ({ pageId, configPath = "" }) => {
             htmlFor="file">
               NPY dataset folder (MEDscan objects)
           </Form.Label>
-          <Col style={{ width: "150px" }}>
+          <Col>
+            <h6>Select a local foler</h6>
             <Form.Group controlId="enterFile">
               <Form.Control
                 name="path_read"
@@ -399,6 +505,20 @@ const BatchExtractor = ({ pageId, configPath = "" }) => {
                 onChange={handleReadFolderChange}
               />
             </Form.Group>
+          </Col>
+          <Col>
+            <Tooltip target=".csv-file-ws"/>
+            <h6>Select from workspace</h6>
+            <Dropdown
+              style={{ maxWidth: "100%", height: "auto", width: "auto" }}
+              filter
+              value={selectedReadFolder}
+              onChange={(e) => setSelectedReadFolder(e.value)}
+              options={listWSFolders}
+              optionLabel="name"
+              display="chip"
+              placeholder="Select a folder"
+            />
           </Col>
         </Row>
 
@@ -412,7 +532,8 @@ const BatchExtractor = ({ pageId, configPath = "" }) => {
             htmlFor="file">
               Settings File
           </Form.Label>
-          <Col xs={10}>
+          <Col>
+            <h6>Load a Local File</h6>
             <Form.Group controlId="enterFile">
               <Form.Control
                 accept='.json'
@@ -423,6 +544,21 @@ const BatchExtractor = ({ pageId, configPath = "" }) => {
             </Form.Group>
           </Col>
           <Col>
+            <Tooltip target=".csv-file-ws"/>
+            <h6>Select From Workspace</h6>
+            <Dropdown
+              style={{ maxWidth: "100%", height: "auto", width: "auto" }}
+              filter
+              value={selectedSettingsFile}
+              onChange={(e) => setSelectedSettingsFile(e.value)}
+              options={listSettingsFiles}
+              optionLabel="name"
+              display="chip"
+              placeholder="Select a file"
+            />
+          </Col>
+          <Col>
+          <h6>Edit the selected file</h6>
             <Button
               type="button"
               severity="info"
@@ -430,6 +566,7 @@ const BatchExtractor = ({ pageId, configPath = "" }) => {
               name="EditSettingsButton"
               onClick={handleEditClick}
               disabled={(!selectedSettingsFile)}
+              loading={loadingEdit}
               icon="pi pi-pencil"
               iconPos="left"
               raised
@@ -449,7 +586,8 @@ const BatchExtractor = ({ pageId, configPath = "" }) => {
           htmlFor="file">
             Path to CSV File
         </Form.Label>
-          <Col style={{ width: "150px" }}>
+          <Col>
+            <h6>Select a Local File</h6>
             <Form.Group controlId="enterFile">
               <Form.Control
                 name="path_csv"
@@ -459,6 +597,20 @@ const BatchExtractor = ({ pageId, configPath = "" }) => {
                 onChange={handleCSVFileChange}
               />
             </Form.Group>
+          </Col>
+          <Col>
+            <Tooltip target=".csv-file-ws"/>
+            <h6>Select From Workspace</h6>
+            <Dropdown
+              style={{ maxWidth: "100%", height: "auto", width: "auto" }}
+              filter
+              value={selectedCSVFile}
+              onChange={(e) => setSelectedCSVFile(e.value)}
+              options={listCSVFiles}
+              optionLabel="name"
+              display="chip"
+              placeholder="Select a file"
+            />
           </Col>
         </Row>
 
@@ -472,7 +624,8 @@ const BatchExtractor = ({ pageId, configPath = "" }) => {
             htmlFor="file">
               Save folder
           </Form.Label>
-          <Col style={{ width: "150px" }}>
+          <Col>
+          <h6>Select a Local Folder</h6>
             <Form.Group controlId="enterFile">
               <Form.Control
                 name="path_save"
@@ -483,27 +636,57 @@ const BatchExtractor = ({ pageId, configPath = "" }) => {
               />
             </Form.Group>
           </Col>
+          <Col>
+            <Tooltip target=".csv-file-ws"/>
+            <h6>Select From Workspace</h6>
+            <Dropdown
+              style={{ maxWidth: "100%", height: "auto", width: "auto" }}
+              filter
+              value={selectedSaveFolder}
+              onChange={(e) => setSelectedSaveFolder(e.value)}
+              options={listWSFolders}
+              optionLabel="name"
+              display="chip"
+              placeholder="Select a folder"
+            />
+          </Col>
         </Row>
 
       {/* NUMBER OF BATCH*/}
       <Row className="form-group-box">
         <Col>
-        <Form.Group controlId="n_batch" style={{ paddingTop: "10px" }}>
-            <Tooltip target=".nbatch"/>
+        <Form.Group controlId="n_cores" style={{ paddingTop: "10px" }}>
+            <Tooltip target=".ncores"/>
             <Form.Label 
-              className="nbatch" 
+              className="ncores" 
               data-pr-tooltip="Number of cores to use for the parallel extraction of features"
               data-pr-position="bottom">
                 Number of cores to use :
             </Form.Label>
             <Form.Control
-              name="n_batch"
+              name="n_cores"
               type="number"
               defaultValue={12}
               placeholder={"Default: " + 12}
               onChange={handleNBatchChange}
             />
         </Form.Group>
+        </Col>
+        <Col style={{display: "flex", flexDirection:"column", justifyContent: "center", alignItems: "center"}}>
+          <Tooltip target=".skip"/>
+          <Form.Label 
+            className="skip" 
+            data-pr-tooltip="Skip extractions if they are already present in the save folder"
+            data-pr-position="bottom">
+              Skip Existing Extractions :
+          </Form.Label>
+          <InputSwitch
+            checked={skipExisting}
+            onChange={(e) => {
+              setSkipExisting(e.value)
+              setActiveIndex(!activeIndex)
+            }}
+          />
         </Col>
       </Row>
 
@@ -516,7 +699,7 @@ const BatchExtractor = ({ pageId, configPath = "" }) => {
                   label="RUN"
                   name="ProcessButton"
                   onClick={handleRunClick}
-                  disabled={(!selectedReadFolder || !selectedSaveFolder || refreshEnabled || !selectedSettingsFile)}
+                  disabled={(!selectedReadFolder || !selectedSaveFolder || !selectedCSVFile || refreshEnabled || !selectedSettingsFile)}
                   icon="pi pi-play"
                   raised
                   rounded
@@ -543,46 +726,27 @@ const BatchExtractor = ({ pageId, configPath = "" }) => {
         <React.Fragment>
           <br />
           <br />
-          <br />
-          <br />
         </React.Fragment>
         )}
     {(progress === 0) && (refreshEnabled) &&(
-      <Card>
-        <Card.Body>
         <div className="progress-bar-requests">
           <label>Processing</label>
             <ProgressBar animated striped variant="danger" now={100} label={'Preparing data...'} />
         </div>
-          {/* <ProgressBarRequests progress={progress} setProgress={setProgress} variant="success" /> */}
-        </Card.Body>
-      </Card>)}
+      )}
     {progress !== 0 && progress !== 100 && (
-      <Card>
-        <Card.Body>
-          <div className="progress-bar-requests">
-            <label>Extracting features</label>
-              <ProgressBar animated striped variant="info" now={progress} label={`${progress}%`} />
-          </div>
-          {/* <ProgressBarRequests progress={progress} setProgress={setProgress} variant="success" /> */}
-        </Card.Body>
-      </Card>
+        <div className="progress-bar-requests">
+          <label>Extracting features</label>
+            <ProgressBar animated striped variant="info" now={progress} label={`${progress}%`} />
+        </div>
       )}
       {progress === 100 && (
-      <Card>
-        <Card.Body>
           <div className="progress-bar-requests">
             <label>Done!</label>
               <ProgressBar animated striped variant="success" now={progress} label={`${progress}%`} />
           </div>
-          {/* <ProgressBarRequests progress={progress} setProgress={setProgress} variant="success" /> */}
-        </Card.Body>
-      </Card>
       )}
-
   </div>
-  </ModulePage>
-
   </>
   );
 }

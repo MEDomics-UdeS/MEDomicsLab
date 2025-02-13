@@ -2,9 +2,9 @@ import learningMEDimageDefaultSettings from "./possibleSettings/learningMEDimage
 /* eslint-disable */
 
 export const sceneDescription = {
-  extension: "medml",
-  extrenalFolders: ["models", "notebooks"],
-  internalFolders: ["tmp", "exp"]
+  extension: "medimg.ml",
+  externalFolders: ["models", "notebooks"],
+  internalFolders: []
 }
 
 const nodesParams = {

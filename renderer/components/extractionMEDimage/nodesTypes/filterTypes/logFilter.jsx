@@ -14,12 +14,10 @@ import DocLink from "../../docLink"
 const LogFilter = ({ changeFilterForm, data }) => {
   return (
     <Form.Group as={Row} controlId="filter-log">
-      <DocLink
-        linkString={
-          "https://medimage.readthedocs.io/en/latest/configuration_file.html#log"
-        }
-        name={"Log filter documentation"}
-        image={"../icon/extraction_img/exclamation.svg"}
+      <DocLink 
+        linkString={"https://medimage.readthedocs.io/en/latest/configurations_file.html#log"} 
+        name={"Log filter documentation"} 
+        image={"https://www.svgrepo.com/show/521262/warning-circle.svg"} 
       />
 
       <Form.Group as={Row} controlId="ndims">
@@ -30,13 +28,8 @@ const LogFilter = ({ changeFilterForm, data }) => {
             name="ndims"
             type="number"
             value={data.internal.settings.log.ndims}
-            placeholder={
-              "Default : " +
-              data.setupParam.possibleSettings.defaultSettings.log.ndims
-            }
-            onChange={(event) =>
-              changeFilterForm(event.target.name, event.target.value)
-            }
+            placeholder={"Default : " + data.setupParam.possibleSettings.defaultSettings.log.ndims}
+            onChange={changeFilterForm}
           />
         </Col>
       </Form.Group>
@@ -48,13 +41,8 @@ const LogFilter = ({ changeFilterForm, data }) => {
             name="sigma"
             type="number"
             value={data.internal.settings.log.sigma}
-            placeholder={
-              "Default : " +
-              data.setupParam.possibleSettings.defaultSettings.log.sigma
-            }
-            onChange={(event) =>
-              changeFilterForm(event.target.name, event.target.value)
-            }
+            placeholder={"Default : " + data.setupParam.possibleSettings.defaultSettings.log.sigma}
+            onChange={changeFilterForm}
           />
         </Col>
       </Form.Group>
@@ -62,14 +50,7 @@ const LogFilter = ({ changeFilterForm, data }) => {
       <Form.Group as={Row} controlId="orthogonal_rot">
         <Form.Label column>Orthogonal rotation:</Form.Label>
         <Col>
-          <Form.Control
-            as="select"
-            name="orthogonal_rot"
-            value={data.internal.settings.log.orthogonal_rot}
-            onChange={(event) =>
-              changeFilterForm(event.target.name, event.target.value)
-            }
-          >
+          <Form.Control as="select" name="orthogonal_rot" value={data.internal.settings.log.orthogonal_rot} onChange={changeFilterForm}>
             <option value="false">False</option>
             <option value="true">True</option>
           </Form.Control>
@@ -79,14 +60,7 @@ const LogFilter = ({ changeFilterForm, data }) => {
       <Form.Group as={Row} controlId="padding">
         <Form.Label column>Padding:</Form.Label>
         <Col>
-          <Form.Control
-            as="select"
-            name="padding"
-            value={data.internal.settings.log.padding}
-            onChange={(event) =>
-              changeFilterForm(event.target.name, event.target.value)
-            }
-          >
+          <Form.Control as="select" name="padding" value={data.internal.settings.log.padding} onChange={changeFilterForm}>
             <option value="constant">Constant</option>
             <option value="edge">Edge</option>
             <option value="linear_ramp">Linear ramp</option>
@@ -109,12 +83,8 @@ const LogFilter = ({ changeFilterForm, data }) => {
             name="name_save"
             type="text"
             value={data.internal.settings.log.name_save}
-            placeholder={
-              data.setupParam.possibleSettings.defaultSettings.log.name_save
-            }
-            onChange={(event) =>
-              changeFilterForm(event.target.name, event.target.value)
-            }
+            placeholder={data.setupParam.possibleSettings.defaultSettings.log.name_save}
+            onChange={changeFilterForm}
           />
         </Col>
       </Form.Group>

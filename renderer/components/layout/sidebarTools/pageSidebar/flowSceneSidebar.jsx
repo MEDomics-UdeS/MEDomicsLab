@@ -1,15 +1,15 @@
-import React, { useContext, useEffect, useState } from "react"
-import { Stack } from "react-bootstrap"
-import { EXPERIMENTS, WorkspaceContext } from "../../../workspace/workspaceContext"
-import SidebarDirectoryTreeControlled from "../directoryTree/sidebarDirectoryTreeControlled"
-import { loadJsonPath } from "../../../../utilities/fileManagementUtils"
-import { Accordion } from "react-bootstrap"
-import MedDataObject from "../../../workspace/medDataObject"
-import { DataContext, UUID_ROOT } from "../../../workspace/dataContext"
-import { createZipFileSync } from "../../../../utilities/customZipFile"
+import { randomUUID } from "crypto"
 import Path from "path"
-import { sceneDescription as learningSceneDescription } from "../../../../public/setupVariables/learningNodesParams"
+import React, { useContext, useEffect, useState } from "react"
+import { toast } from "react-toastify"
 import { sceneDescription as extractionMEDimageSceneDescription } from "../../../../public/setupVariables/extractionMEDimageNodesParams"
+import { sceneDescription as learningMEDimageDefaultSettings } from "../../../../public/setupVariables/learningMEDimageNodesParams"
+import { sceneDescription as learningSceneDescription } from "../../../../public/setupVariables/learningNodesParams"
+import { loadJsonPath } from "../../../../utilities/fileManagementUtils"
+import { insertMEDDataObjectIfNotExists } from "../../../mongoDB/mongoDBUtils"
+import { MEDDataObject } from "../../../workspace/NewMedDataObject"
+import { DataContext } from "../../../workspace/dataContext"
+import { WorkspaceContext } from "../../../workspace/workspaceContext"
 import FileCreationBtn from "../fileCreationBtn"
 
 const typeInfo = {
@@ -18,8 +18,12 @@ const typeInfo = {
     ...learningSceneDescription
   },
   extractionMEDimage: {
-    title: "Extraction MEDimage",
+    title: "MEDimage Extraction",
     ...extractionMEDimageSceneDescription
+  },
+  learningMEDimage: {
+    title: "MEDimage Learning",
+    ...learningMEDimageDefaultSettings
   }
 }
 
@@ -36,20 +40,34 @@ const FlowSceneSidebar = ({ type }) => {
 
   // We use the useEffect hook to update the experiment list state when the workspace changes
   useEffect(() => {
-    let experimentList = []
-    let expFolderUUID = MedDataObject.checkIfMedDataObjectInContextbyName(EXPERIMENTS, globalData, UUID_ROOT)
-    if (globalData && expFolderUUID && globalData[expFolderUUID] && globalData[expFolderUUID].childrenIDs) {
-      globalData[expFolderUUID].childrenIDs.forEach((childId) => {
-        if (globalData[childId] && globalData[childId].name) {
-          experimentList.push(globalData[childId].name)
-        }
-      })
+    let localExperimentList = []
+    for (const experimentId of globalData["EXPERIMENTS"].childrenIDs) {
+      localExperimentList.push(globalData[experimentId].name)
     }
-    setExperimentList(experimentList)
+    setExperimentList(localExperimentList)
   }, [workspace, globalData]) // We log the workspace when it changes
 
   const checkIsNameValid = (name) => {
     return name != "" && !experimentList.includes(name) && !name.includes(" ")
+  }
+
+  const checkExistingFolders = () => {
+    let extractionExists = false
+    let extractionFolder = null
+    let learningExists = false
+    let learningFolder = null
+    let keys = Object.keys(globalData)
+    keys.forEach((key) => {
+      if (globalData[key].type === "directory" && globalData[key].parentID === "EXPERIMENTS" && globalData[key].name === "EXTRACTION") {
+        extractionExists = true
+        extractionFolder = globalData[key]
+      }
+      if (globalData[key].type === "directory" && globalData[key].parentID === "EXPERIMENTS" && globalData[key].name === "LEARNING") {
+        learningExists = true
+        learningFolder = globalData[key]
+      }
+    })
+    return { extractionExists, learningExists, extractionFolder, learningFolder }
   }
 
   /**
@@ -58,56 +76,145 @@ const FlowSceneSidebar = ({ type }) => {
    * @description - This function is used to create an empty scene
    */
   const createEmptyScene = async (name) => {
-    let path = Path.join(globalData[UUID_ROOT].path, EXPERIMENTS)
-    createSceneContent(path, name, typeInfo[type].extension)
+    createSceneContent("EXPERIMENTS", name, typeInfo[type].extension)
   }
 
   /**
    *
-   * @param {String} path The path of the folder where the scene will be created
+   * @param {String} parentId The id of the folder where the scene will be created
    * @param {String} sceneName The name of the scene
    * @param {String} extension The extension of the scene
    */
-  const createSceneContent = (path, sceneName, extension) => {
-    const emptyScene = loadJsonPath(isProd ? Path.join(process.resourcesPath, "baseFiles", "emptyScene.json") : "./baseFiles/emptyScene.json")
-    MedDataObject.createEmptyFolderFSsync(sceneName, path).then(async (sceneFolderPath) => {
-      // create folder models in the experiment folder
-      typeInfo[type].extrenalFolders.forEach(async (folder) => {
-        await MedDataObject.createEmptyFolderFSsync(folder, sceneFolderPath, false)
-      })
-      // create custom zip file
-      console.log("zipFilePath", Path.join(sceneFolderPath, sceneName + "." + extension))
-      await createZipFileSync(Path.join(sceneFolderPath, sceneName + "." + extension), async (path) => {
-        // do custom actions in the folder while it is unzipped
-        await MedDataObject.writeFileSync(emptyScene, path, "metadata", "json")
-
-        typeInfo[type].internalFolders.forEach(async (folder) => {
-          await MedDataObject.createEmptyFolderFSsync(folder, path, false)
+  const createSceneContent = async (parentId, sceneName, extension) => {
+    // Check if EXTRACTION and LEARNING folders exist
+    let { extractionExists, learningExists, extractionFolder, learningFolder } = checkExistingFolders()
+    let sceneFolder = null
+    if (extension == "medimg.ml"){
+      // Create LEARNING folder if it does not exist
+      if (!learningExists) {
+        learningFolder = new MEDDataObject({
+          id: randomUUID(),
+          name: "LEARNING",
+          type: "directory",
+          parentID: "EXPERIMENTS",
+          childrenIDs: [],
+          inWorkspace: true
         })
+        await insertMEDDataObjectIfNotExists(learningFolder)
+      }
+      // Create scene folder
+      sceneFolder = new MEDDataObject({
+        id: randomUUID(),
+        name: sceneName,
+        type: "directory",
+        parentID: learningFolder.id,
+        childrenIDs: [],
+        inWorkspace: true
       })
+    } else if (extension == "medimg"){
+      // Create EXTRACTION folder if it does not exist
+      if (!extractionExists) {
+        extractionFolder = new MEDDataObject({
+          id: randomUUID(),
+          name: "EXTRACTION",
+          type: "directory",
+          parentID: "EXPERIMENTS",
+          childrenIDs: [],
+          inWorkspace: true
+        })
+        await insertMEDDataObjectIfNotExists(extractionFolder)
+      }
+      // Create scene folder
+      sceneFolder = new MEDDataObject({
+        id: randomUUID(),
+        name: sceneName,
+        type: "directory",
+        parentID: extractionFolder.id,
+        childrenIDs: [],
+        inWorkspace: true
+      })
+    } else {
+      // Create scene folder
+      sceneFolder = new MEDDataObject({
+        id: randomUUID(),
+        name: sceneName,
+        type: "directory",
+        parentID: parentId,
+        childrenIDs: [],
+        inWorkspace: false
+      })
+    }
+    if (sceneFolder === null){
+      console.error("Scene folder is null", sceneFolder, learningFolder, extractionFolder)
+      toast.error("Error occurred while creating scene")
+      return
+    }
+    let sceneFolderId = await insertMEDDataObjectIfNotExists(sceneFolder)
+
+    // Create folder models and notebooks in the scene folder
+    for (const folder of typeInfo[type].externalFolders) {
+      let medObject = new MEDDataObject({
+        id: randomUUID(),
+        name: folder,
+        type: "directory",
+        parentID: sceneFolderId,
+        childrenIDs: [],
+        inWorkspace: false
+      })
+      await insertMEDDataObjectIfNotExists(medObject)
+    }
+
+    // Create custom zip file
+    let sceneObject = new MEDDataObject({
+      id: randomUUID(),
+      name: sceneName + "." + extension,
+      type: extension,
+      parentID: sceneFolderId,
+      childrenIDs: [],
+      inWorkspace: false
     })
+    let sceneObjectId = await insertMEDDataObjectIfNotExists(sceneObject)
+    // Create hidden metadata file
+    const emptyScene = [loadJsonPath(isProd ? Path.join(process.resourcesPath, "baseFiles", "emptyScene.json") : "./baseFiles/emptyScene.json")]
+    let metadataObject = new MEDDataObject({
+      id: randomUUID(),
+      name: "metadata.json",
+      type: "json",
+      parentID: sceneObjectId,
+      childrenIDs: [],
+      inWorkspace: false
+    })
+    await insertMEDDataObjectIfNotExists(metadataObject, null, emptyScene)
+    // Create hidden metadata file for backend
+    let backendMetadataObject = new MEDDataObject({
+      id: randomUUID(),
+      name: "backend_metadata.json",
+      type: "json",
+      parentID: sceneObjectId,
+      childrenIDs: [],
+      inWorkspace: false
+    })
+    await insertMEDDataObjectIfNotExists(backendMetadataObject, null, emptyScene)
+    // Create hidden folders
+    for (const folder of typeInfo[type].internalFolders) {
+      let medObject = new MEDDataObject({
+        id: randomUUID(),
+        name: folder,
+        type: "directory",
+        parentID: sceneObjectId,
+        childrenIDs: [],
+        inWorkspace: false
+      })
+      await insertMEDDataObjectIfNotExists(medObject)
+    }
+
+    // Load everything in globalData
+    MEDDataObject.updateWorkspaceDataObject()
   }
 
   return (
     <>
-      <Stack direction="vertical" gap={0}>
-        <p
-          style={{
-            color: "#a3a3a3",
-            font: "Arial",
-            fontSize: "12px",
-            padding: "0.75rem 0.25rem 0.75rem 0.75rem",
-            margin: "0 0 0 0"
-          }}
-        >
-          {typeInfo[type].title} Module
-        </p>
-        <FileCreationBtn label="Create scene" piIcon="pi-plus" createEmptyFile={createEmptyScene} checkIsNameValid={checkIsNameValid} />
-
-        <Accordion defaultActiveKey={["dirTree"]} alwaysOpen>
-          <SidebarDirectoryTreeControlled />
-        </Accordion>
-      </Stack>
+      <FileCreationBtn label="Create scene" piIcon="pi-plus" createEmptyFile={createEmptyScene} checkIsNameValid={checkIsNameValid} />
     </>
   )
 }

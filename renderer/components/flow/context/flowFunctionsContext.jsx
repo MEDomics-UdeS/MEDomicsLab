@@ -78,7 +78,11 @@ function FlowFunctionsProvider({ children }) {
    *
    * @param {String} nodeId id of the node to run
    */
-  const runNode = (nodeId) => {
+  const runNode = async (nodeId) => {
+    // Check if it's the same node
+    if (nodeId === node2Run) {
+      await setNode2Run(null)
+    }
     setNode2Run(nodeId)
   }
 

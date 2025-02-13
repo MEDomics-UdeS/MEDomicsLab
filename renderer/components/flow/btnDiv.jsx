@@ -31,16 +31,38 @@ export default BtnDiv
 const buttonType = {
   clear: (onClear, disabled = false) => {
     return (
-      <Button key="clear" variant="outline margin-left-10 padding-5" onClick={onClear} disabled={disabled}>
+      <>
+      <Tooltip key="clearTip" target=".clearBtn"/>
+      <Button
+        className="clearBtn"
+        key="clear" 
+        data-pr-tooltip="Clear the scene"
+        data-pr-position="bottom"
+        variant="outline margin-left-10 padding-5" 
+        onClick={onClear}
+        disabled={disabled}
+        >
         <Icon.Trash width="30px" height="30px" />
       </Button>
+      </>
     )
   },
   save: (onSave, disabled = false) => {
     return (
-      <Button key="save" variant="outline margin-left-10 padding-5" onClick={onSave} disabled={disabled}>
-        <TfiSave style={{ width: "30px", height: "auto", padding: "2px" }} />
+      <>
+      <Tooltip key="saveTip" target=".saveBtn"/>
+      <Button
+        className="saveBtn"
+        key="save" 
+        data-pr-tooltip="Save the scene"
+        data-pr-position="bottom"
+        variant="outline margin-left-10 padding-5" 
+        onClick={onSave}
+        disabled={disabled}
+        >
+        <TfiSave style={{ width: "30px", height: "auto" }} />
       </Button>
+      </>
     )
   },
   download: (onDownload, disabled = false) => {
@@ -52,16 +74,38 @@ const buttonType = {
   },
   load: (onLoad, disabled = false) => {
     return (
-      <Button key="load" variant="outline margin-left-10 padding-5" onClick={onLoad} disabled={disabled}>
+      <>
+      <Tooltip key="loadTip" target=".loadBtn"/>
+      <Button
+        className="loadBtn"
+        key="load" 
+        data-pr-tooltip="Load a scene"
+        data-pr-position="bottom"
+        variant="outline margin-left-10 padding-5" 
+        onClick={onLoad}
+        disabled={disabled}
+        >
         <AiOutlineImport style={{ width: "30px", height: "auto" }} />
       </Button>
+      </>
     )
   },
   run: (onRun, disabled = false) => {
     return (
-      <Button key="run" variant="outline margin-left-10 padding-5" onClick={onRun} disabled={disabled}>
+      <>
+      <Tooltip key="runTip" target=".runBtn"/>
+      <Button
+        className="runBtn"
+        key="run" 
+        data-pr-tooltip="Run the workflow"
+        data-pr-position="bottom"
+        variant="outline margin-left-10 padding-5" 
+        onClick={onRun}
+        disabled={disabled}
+        >
         <Icon.PlayCircle width="30px" height="30px" />
       </Button>
+      </>
     )
   },
   back: (onBack, disabled = false) => {

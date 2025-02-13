@@ -47,8 +47,8 @@ const StandardNode = ({ id, data }) => {
    */
   const changeNodeForm = useCallback(
     (event) => {
-      const { name, value } = event.target
-      const updatedValue = value // TODO : Check terniary on updatedValue
+      const { name, value, type } = event.target
+      const updatedValue = type === "number" && !isNaN(value) ? parseFloat(value) : value
 
       setNodeForm((prevNodeForm) => ({
         ...prevNodeForm,
@@ -84,19 +84,8 @@ const StandardNode = ({ id, data }) => {
         data={data}
         type={nodeSpecificType}
         setupParam={data.setupParam}
-        defaultSettings={
-          <ViewButton id={id} data={data} type={nodeSpecificType} />
-        }
-        nodeSpecific={
-          SpecificNodeComponent ? (
-            <SpecificNodeComponent
-              nodeForm={nodeForm}
-              changeNodeForm={changeNodeForm}
-              data={data}
-              enableView={enableView}
-            />
-          ) : null
-        }
+        defaultSettings={<ViewButton id={id} data={data} type={nodeSpecificType} />}
+        nodeSpecific={SpecificNodeComponent ? <SpecificNodeComponent nodeForm={nodeForm} changeNodeForm={changeNodeForm} data={data} enableView={enableView} /> : null}
       />
     </>
   )

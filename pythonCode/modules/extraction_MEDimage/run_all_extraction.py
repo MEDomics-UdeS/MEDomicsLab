@@ -38,9 +38,7 @@ class GoExecScriptRunExperiment(GoExecutionScript):
         self.current_experiment = MEDimageExtraction(json_config)
 
         # Run all pipelines
-        if self._id.lower().startswith("node"):
-            results_pipeline = self.current_experiment.run()
-        elif self._id == "dm":
+        if self._id == "dm":
             results_pipeline = self.current_experiment.run_dm()
         elif self._id.lower() == "prechecks":
             results_pipeline = self.current_experiment.run_pre_checks()
@@ -53,7 +51,7 @@ class GoExecScriptRunExperiment(GoExecutionScript):
         elif self._id.lower() == "be_save_json":
             results_pipeline = self.current_experiment.run_be_save_json()
         else:
-            results_pipeline = self.current_experiment.run_all()
+            results_pipeline = self.current_experiment.run()
 
         return results_pipeline
     

@@ -27,11 +27,11 @@ const DocLink = ({ linkString, name, image }) => {
 
   return (
     <>
-      <p className="docLink">
-        {image && <Image className="docLink-image" />}
-        <a href={linkString} onClick={handleLinkClick}>
+      <p className="docLink" style={{marginTop: "10px"}}>
+        {<img src={image} alt="Documentation" width="24" height="24"/>}
+        <u><a href={linkString} onClick={handleLinkClick}>
           {name}
-        </a>
+        </a></u>
       </p>
     </>
   )

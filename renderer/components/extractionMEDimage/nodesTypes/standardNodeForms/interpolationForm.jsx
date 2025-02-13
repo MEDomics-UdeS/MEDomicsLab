@@ -34,18 +34,14 @@ const InterpolationForm = ({ nodeForm, changeNodeForm, data }) => {
     // If the scale name is scale_non_text, the format expected is an array
     if (scale_name === "scale_non_text") {
       // If the user deleted the value (empty), set to the default value
-      let scale_value =
-        value !== "" ? parseInt(value) : defaultValues[scale_name][scale_number]
+      let scale_value = value !== "" ? parseFloat(value) : defaultValues[scale_name][scale_number]
       scale[scale_number] = scale_value
     } else if (scale_name === "scale_text") {
       // If the scale name is scale_text, the format expected is an array of arrays
       // NOTE : scale_text as of MEDimage documentation are lists of size 3 of the new voxel size for texture
       // features (features will be computed for each list). Since there are no option at the moment for multiple
       // list given by the user, scale_text is a list of size one, containing the only list for the new voxel size.
-      let scale_value =
-        value !== ""
-          ? parseInt(value)
-          : defaultValues[scale_name][0][scale_number]
+      let scale_value = value !== "" ? parseFloat(value) : defaultValues[scale_name][0][scale_number]
       scale[0][scale_number] = scale_value
     }
 
@@ -65,12 +61,10 @@ const InterpolationForm = ({ nodeForm, changeNodeForm, data }) => {
 
   return (
     <Form className="standard-form">
-      <DocLink
-        linkString={
-          "https://medimage.readthedocs.io/en/latest/configuration_file.html#interp"
-        }
+      <DocLink 
+        linkString={"https://medimage.readthedocs.io/en/latest/configurations_file.html#interp"}
         name={"Interpolation documentation"}
-        image={"../icon/extraction_img/exclamation.svg"}
+        image={"https://www.svgrepo.com/show/521262/warning-circle.svg"}
       />
 
       <Form.Group controlId="scale_non_text" style={{ paddingTop: "10px" }}>
@@ -83,9 +77,7 @@ const InterpolationForm = ({ nodeForm, changeNodeForm, data }) => {
               type="number"
               min="0"
               defaultValue={nodeForm.scale_non_text[0]}
-              placeholder={
-                "Default: " + String(defaultValues.scale_non_text[0])
-              }
+              placeholder={"Default: " + String(defaultValues.scale_non_text[0])}
               onChange={handleScale}
             />
           </Col>
@@ -96,9 +88,7 @@ const InterpolationForm = ({ nodeForm, changeNodeForm, data }) => {
               type="number"
               min="0"
               defaultValue={nodeForm.scale_non_text[1]}
-              placeholder={
-                "Default: " + String(defaultValues.scale_non_text[1])
-              }
+              placeholder={"Default: " + String(defaultValues.scale_non_text[1])}
               onChange={handleScale}
             />
           </Col>
@@ -109,9 +99,7 @@ const InterpolationForm = ({ nodeForm, changeNodeForm, data }) => {
               type="number"
               min="0"
               defaultValue={nodeForm.scale_non_text[2]}
-              placeholder={
-                "Default: " + String(defaultValues.scale_non_text[2])
-              }
+              placeholder={"Default: " + String(defaultValues.scale_non_text[2])}
               onChange={handleScale}
             />
           </Col>
@@ -159,12 +147,7 @@ const InterpolationForm = ({ nodeForm, changeNodeForm, data }) => {
 
       <Form.Group controlId="vol_interp" style={{ paddingTop: "10px" }}>
         <Form.Label>Volume interpolation method :</Form.Label>
-        <Form.Control
-          as="select"
-          name="vol_interp"
-          value={nodeForm.vol_interp}
-          onChange={changeNodeForm}
-        >
+        <Form.Control as="select" name="vol_interp" value={nodeForm.vol_interp} onChange={changeNodeForm}>
           <option value="linear">Linear</option>
           <option value="spline">Spline</option>
           <option value="cubic">Cubic</option>
@@ -172,39 +155,22 @@ const InterpolationForm = ({ nodeForm, changeNodeForm, data }) => {
       </Form.Group>
 
       <Form.Group controlId="gl_round" style={{ paddingTop: "10px" }}>
-        <Form.Label>Rounding value (only for CT scan) :</Form.Label>
-        <Form.Control
-          name="gl_round"
-          type="number"
-          defaultValue={nodeForm.gl_round}
-          placeholder={"Default: " + String(defaultValues.gl_round)}
-          onChange={changeNodeForm}
-        />
+        <Form.Label>Rounding value (Leave empty if not a CT scan):</Form.Label>
+        <Form.Control name="gl_round" type="number" defaultValue={nodeForm.gl_round} placeholder={"Default: " + String(defaultValues.gl_round)} onChange={changeNodeForm} />
       </Form.Group>
 
       <Form.Group controlId="roi_interp" style={{ paddingTop: "10px" }}>
         <Form.Label>ROI interpolation method :</Form.Label>
-        <Form.Control
-          as="select"
-          name="roi_interp"
-          value={nodeForm.roi_interp}
-          onChange={changeNodeForm}
-        >
+        <Form.Control as="select" name="roi_interp" value={nodeForm.roi_interp} onChange={changeNodeForm}>
+          <option value="nearest">Nearest</option>
           <option value="linear">Linear</option>
-          <option value="spline">Spline</option>
           <option value="cubic">Cubic</option>
         </Form.Control>
       </Form.Group>
 
       <Form.Group controlId="roi_pv" style={{ paddingTop: "10px" }}>
         <Form.Label>Rounding value for ROI intensities :</Form.Label>
-        <Form.Control
-          name="roi_pv"
-          type="number"
-          defaultValue={nodeForm.roi_pv}
-          placeholder={"Default: " + String(defaultValues.roi_pv)}
-          onChange={changeNodeForm}
-        />
+        <Form.Control name="roi_pv" type="number" defaultValue={nodeForm.roi_pv} placeholder={"Default: " + String(defaultValues.roi_pv)} onChange={changeNodeForm} />
       </Form.Group>
     </Form>
   )

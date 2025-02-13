@@ -43,7 +43,7 @@ class ModelHandler(Node):
         trained_models = None
         trained_models_json = {}
         settings = copy.deepcopy(self.settings)
-        os.chdir(self.global_config_json['paths']['ws'])
+        #os.chdir(self.global_config_json['paths']['ws'])
         if self.type == 'compare_models':
             models = experiment['pycaret_exp'].compare_models(**settings)
             print(models)
@@ -60,12 +60,12 @@ class ModelHandler(Node):
 
         elif self.type == 'train_model':
             settings.update(self.config_json['data']['estimator']['settings'])
-            settings.update(
-                {'estimator': self.config_json['data']['estimator']['type']})
-            trained_models = [
-                experiment['pycaret_exp'].create_model(**settings)]
+            settings.update({'estimator': self.config_json['data']['estimator']['type']})
+            trained_models = [experiment['pycaret_exp'].create_model(**settings)]
             self.CodeHandler.add_line(
-                "code", f"trained_models = [pycaret_exp.create_model({self.CodeHandler.convert_dict_to_params(settings)})]")
+                "code", 
+                f"trained_models = [pycaret_exp.create_model({self.CodeHandler.convert_dict_to_params(settings)})]"
+            )
         trained_models_copy = trained_models.copy()
         self._info_for_next_node = {'models': trained_models}
         for model in trained_models_copy:
@@ -73,8 +73,7 @@ class ModelHandler(Node):
             trained_models_json[model_copy.__class__.__name__] = model_copy.__dict__
             for key, value in model_copy.__dict__.items():
                 if isinstance(value, np.ndarray):
-                    trained_models_json[model_copy.__class__.__name__][key] = value.tolist(
-                    )
+                    trained_models_json[model_copy.__class__.__name__][key] = value.tolist()
         return trained_models_json
 
     def set_model(self, model_id: str) -> None:

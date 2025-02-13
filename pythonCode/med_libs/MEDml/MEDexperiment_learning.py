@@ -114,6 +114,7 @@ class MEDexperimentLearning(MEDexperiment):
         # add the imports
         node.CodeHandler.add_import("import numpy as np")
         node.CodeHandler.add_import("import pandas as pd")
+        node.CodeHandler.add_import("import pymongo")
         node.CodeHandler.add_import(
             f"from pycaret.{self.global_json_config['MLType']} import *")
 
@@ -148,12 +149,14 @@ class MEDexperimentLearning(MEDexperiment):
         self.global_json_config["columns"] = copy.deepcopy(list(
             temp_df.columns.values.tolist()))
         self.global_json_config["target_column"] = kwargs['target']
-        self.global_json_config["steps"] = node.settings['steps']
+        if "steps" in node.settings:
+            self.global_json_config["steps"] = node.settings['steps']
+        else:
+            self.global_json_config["steps"] = None
         if 'tags' in node.settings:
             self.global_json_config["selectedTags"] = node.settings['tags']
         if 'variables' in node.settings:
             self.global_json_config["selectedVariables"] = node.settings['variables']
-        self.global_json_config["steps"] = node.settings['steps']
         self.pipelines_objects[node.id]['results']['data'] = {
             "table": dataset_metaData['dataset'].to_json(orient='records'),
             "paths": node.get_path_list(),
@@ -166,32 +169,3 @@ class MEDexperimentLearning(MEDexperiment):
             'df': temp_df
         }
 
-    def _make_save_ready_rec(self, next_nodes: dict):
-        for node_id, node_content in next_nodes.items():
-            saved_path = os.path.join(
-                self.global_json_config['internalPaths']['exp'], f"exp_{node_id.replace('*', '--')}.pycaretexp")
-            if 'exp_path' in node_content['experiment']:
-                saved_path = node_content['experiment']['exp_path']
-
-            data = node_content['experiment']['pycaret_exp'].data
-            self.sceneZipFile.write_to_zip(
-                custom_actions=lambda path: node_content['experiment']['pycaret_exp'].save_experiment(saved_path))
-            node_content['experiment']['exp_path'] = saved_path
-            node_content['experiment']['dataset'] = data
-            node_content['experiment']['pycaret_exp'] = None
-            self._make_save_ready_rec(node_content['next_nodes'])
-
-    def _init_obj_rec(self, next_nodes: dict):
-        for node_id, node_content in next_nodes.items():
-            data = node_content['experiment']['dataset']
-            pycaret_exp = create_pycaret_exp(
-                ml_type=self.global_json_config['MLType'])
-            saved_path = node_content['experiment']['exp_path']
-
-            def get_experiment(pycaret_exp, data, saved_path):
-                return pycaret_exp.load_experiment(saved_path, data=data)
-
-            node_content['experiment']['pycaret_exp'] = self.sceneZipFile.read_in_zip(
-                custom_actions=lambda path: get_experiment(pycaret_exp, data, saved_path))
-
-            self._init_obj_rec(node_content['next_nodes'])

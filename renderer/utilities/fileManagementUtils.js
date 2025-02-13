@@ -1,5 +1,6 @@
 import defaultBatchSettings from "./defaultBatchSettings"
 import { toast } from "react-toastify"
+import process from "process"
 
 const fs = require("fs")
 const Path = require("path")
@@ -22,6 +23,44 @@ const toLocalPath = (path) => {
       resolve(`local://${filePath}`)
     })
   })
+}
+
+/**
+ * Returns the path separator based on the operating system.
+ * @returns {string} - The path separator.
+ */
+function getPathSeparator() {
+  // eslint-disable-next-line no-undef
+  let process = require("process")
+  if (process.platform === "win32") {
+    return "\\"
+  } else if (typeof process !== "undefined" && process.platform !== "win32") {
+    return "/"
+  }
+}
+
+/**
+ * Splits the provided `string` at the last occurrence of the provided `separator`.
+ * @param {string} string - The string to split.
+ * @param {string} separator - The separator to split the string at.
+ * @returns {Array} - An array containing the first elements of the split string and the last element of the split string.
+ */
+function splitStringAtTheLastSeparator(string, separator) {
+  let splitString = string.split(separator)
+  let lastElement = splitString.pop()
+  let firstElements = splitString.join(separator)
+  return [firstElements, lastElement]
+}
+
+/**
+   * Creates a folder in the file system if it does not exist.
+   * @param {string} path - The path of the folder to create.
+   */
+function createFolderFromPath(path) {
+  if (!fs.existsSync(path)) {
+    let test = fs.mkdirSync(path, { recursive: true })
+    console.log("fileManagement createFolderFromPath Folder created at ", test)
+  }
 }
 
 /**
@@ -103,15 +142,12 @@ const processBatchSettings = (exportObj, selectedModalities, exportName) => {
  * @description
  * This function takes a path and downloads the file
  */
-const downloadFilePath = (path) => {
-  toLocalPath(path).then((localPath) => {
-    var downloadAnchorNode = document.createElement("a")
-    downloadAnchorNode.setAttribute("href", "./tmp/" + Path.basename(localPath))
-    downloadAnchorNode.setAttribute("download", Path.basename(localPath))
-    document.body.appendChild(downloadAnchorNode) // required for firefox
-    downloadAnchorNode.click()
-    downloadAnchorNode.remove()
-  })
+const downloadFilePath = (source) => {
+  return new Promise((resolve) => {
+    ipcRenderer.invoke("appCopyFile", source).then((destination) => {
+      resolve(destination)
+    }
+    )})
 }
 
 /**
@@ -341,37 +377,25 @@ const loadCSVPath = (absPath, whenLoaded) => {
  */
 const loadCSVFromPath = (path, whenLoaded) => {
   let csvPath = path
-  fs.readFile(csvPath, "utf8", (err, data) => {
-    if (err) {
-      console.error("Error reading file:", err)
-    } else {
-      console.log("File read successfully")
-      let array = []
-      Papa.parse(data, {
-        step: function (row) {
-          array.push(row.data)
-        }
-      })
-      let columns = array.shift()
-      // Check if the number of columns corresponds to the number of column names\
-      if (columns.length !== array[0].length) {
-        console.warn("Number of columns does not match the number of column names")
-        if (columns.length > array[0].length) {
-          console.warn("Removing extra column names")
-          // Check if there are empty column names and remove them
-          let emptyColumns = columns.filter((column) => column === "")
-          if (emptyColumns.length > 0) {
-            console.warn("Removing empty column names")
-            columns = columns.filter((column) => column !== "")
-          }
-        }
+  dfdNode
+    .readCSV(csvPath)
+    .then((df) => {
+      if (df.$columns[df.$columns.length - 1] == "__parsed_extra" && df.$dtypes[df.$dtypes.length - 2] == "string") {
+        let lastCol = df.$columns[df.$columns.length - 1]
+        let beforeLastCol = df.$columns[df.$columns.length - 2]
+        df.addColumn(
+          beforeLastCol,
+          df[beforeLastCol].apply((val, i) => (df.$data[i] && df.$data[i][df.$columns.length - 1] ? val + df.$data[i][df.$columns.length - 1] : val)),
+          { inplace: true }
+        )
+        df.drop({ columns: [lastCol], inplace: true })
       }
-      let df = new dfd.DataFrame(array, { columns: columns })
-      df.drop(removeEmptyRows(df, 5))
       let dfJSON = dfd.toJSON(df)
       whenLoaded(dfJSON)
-    }
-  })
+    })
+    .catch((err) => {
+      console.log(err)
+    })
 }
 
 /**
@@ -480,4 +504,26 @@ const getFileReadingMethodFromExtension = {
   xlsx: (path, whenLoaded) => loadXLSXFromPath(path, whenLoaded)
 }
 
-export { toLocalPath, processBatchSettings, downloadFile, downloadPath, downloadFilePath, loadFileFromPathSync, writeFile, writeJson, writeJsonSync, loadJson, loadJsonSync, loadJsonPath, loadCSVPath, loadCSVFromPath, createFolder, createFolderSync, loadJSONFromPath, loadXLSXFromPath, getFileReadingMethodFromExtension }
+export {
+  getPathSeparator,
+  splitStringAtTheLastSeparator,
+  createFolderFromPath,
+  toLocalPath,
+  downloadFile,
+  downloadPath,
+  downloadFilePath,
+  loadFileFromPathSync,
+  writeFile,
+  writeJson,
+  writeJsonSync,
+  loadJson,
+  loadJsonSync,
+  loadJsonPath,
+  loadCSVPath,
+  loadCSVFromPath,
+  createFolder,
+  createFolderSync,
+  loadJSONFromPath,
+  loadXLSXFromPath,
+  getFileReadingMethodFromExtension
+}

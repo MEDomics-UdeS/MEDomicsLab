@@ -40,7 +40,7 @@ func handleGetUpload(jsonConfig string, id string) (string, error) {
 // handleGetView handles the request to view the scan/image uploaded to the server
 // It returns the response from the python script
 func handleGetView(jsonConfig string, id string) (string, error) {
-	log.Println("Running get upload for MEDimage extraction")
+	log.Println("Running get view for MEDimage extraction")
 	response, err := Utils.StartPythonScripts(jsonConfig, "../pythonCode/modules/extraction_MEDimage/get_view.py", "extractionMEDimage")
 	if err != nil {
 		return "", err

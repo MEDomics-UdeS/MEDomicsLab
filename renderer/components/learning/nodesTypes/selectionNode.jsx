@@ -70,6 +70,7 @@ const SelectionNode = ({ id, data, type }) => {
                   <option
                     key={optionName}
                     value={optionName}
+                    label={data.setupParam.possibleSettings[optionName].label}
                     // selected={optionName === selection}
                   >
                     {optionName}
@@ -114,6 +115,8 @@ const SelectionNode = ({ id, data, type }) => {
             })}
           </>
         }
+        // Link to documentation
+        nodeLink={"https://medomics-udes.gitbook.io/medomicslab-docs/tutorials/development/learning-module"}
       />
     </>
   )

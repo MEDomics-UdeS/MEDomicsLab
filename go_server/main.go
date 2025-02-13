@@ -14,6 +14,8 @@ import (
 	Input "go_module/blueprints/input"
 	Learning "go_module/blueprints/learning"
 	LearningMEDimage "go_module/blueprints/learningMEDimage"
+	MED3pa "go_module/blueprints/med3pa"
+	MEDfl "go_module/blueprints/medfl"
 	Utils "go_module/src"
 	"log"
 	"net/http"
@@ -36,6 +38,8 @@ func main() {
 	Input.AddHandleFunc()
 	MEDprofiles.AddHandleFunc()
 	Application.AddHandleFunc()
+	MED3pa.AddHandleFunc()
+	MEDfl.AddHandleFunc()
 	Utils.CreateHandleFunc("get_server_health", handleGetServerHealth)
 	Utils.CreateHandleFunc("removeId/", handleRemoveId)
 	Utils.CreateHandleFunc("clearAll", handleClearAll)

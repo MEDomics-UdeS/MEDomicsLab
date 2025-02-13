@@ -26,22 +26,19 @@ const LawsFilter = ({ changeFilterForm, data }) => {
       let newConfig = data.internal.settings.laws.config
       newConfig[configNumber] = value
 
-      changeFilterForm(
-        "config",
-        newConfig.filter((value) => value !== "")
-      )
+      event.name = "config"
+      event.value = newConfig.filter((value) => value !== "")
+      changeFilterForm(event)
     },
     [data.internal.settings]
   )
 
   return (
     <Form.Group as={Row} controlId="filter-laws">
-      <DocLink
-        linkString={
-          "https://medimage.readthedocs.io/en/latest/configuration_file.html#laws"
-        }
-        name={"Laws filter documentation"}
-        image={"../icon/extraction_img/exclamation.svg"}
+      <DocLink 
+        linkString={"https://medimage.readthedocs.io/en/latest/configurations_file.html#laws"} 
+        name={"Laws filter documentation"} 
+        image={"https://www.svgrepo.com/show/521262/warning-circle.svg"} 
       />
       <Form.Group as={Row} controlId="config">
         <Row>
@@ -50,12 +47,7 @@ const LawsFilter = ({ changeFilterForm, data }) => {
           </Col>
           <Col>
             <Form.Group as={Row} controlId="config_0">
-              <Form.Control
-                as="select"
-                name="config_0"
-                value={data.internal.settings.laws.config[0]}
-                onChange={handleConfigChange}
-              >
+              <Form.Control as="select" name="config_0" value={data.internal.settings.laws.config[0]} onChange={handleConfigChange}>
                 <option value="L3">L3</option>
                 <option value="L5">L5</option>
                 <option value="E3">E3</option>
@@ -69,12 +61,7 @@ const LawsFilter = ({ changeFilterForm, data }) => {
           </Col>
           <Col>
             <Form.Group as={Row} controlId="config_1">
-              <Form.Control
-                as="select"
-                name="config_1"
-                value={data.internal.settings.laws.config[1]}
-                onChange={handleConfigChange}
-              >
+              <Form.Control as="select" name="config_1" value={data.internal.settings.laws.config[1]} onChange={handleConfigChange}>
                 <option value=""></option>
                 <option value="L3">L3</option>
                 <option value="L5">L5</option>
@@ -89,12 +76,7 @@ const LawsFilter = ({ changeFilterForm, data }) => {
           </Col>
           <Col>
             <Form.Group as={Row} controlId="config_2">
-              <Form.Control
-                as="select"
-                name="config_2"
-                value={data.internal.settings.laws.config[2]}
-                onChange={handleConfigChange}
-              >
+              <Form.Control as="select" name="config_2" value={data.internal.settings.laws.config[2]} onChange={handleConfigChange}>
                 <option value=""></option>
                 <option value="L3">L3</option>
                 <option value="L5">L5</option>
@@ -117,14 +99,8 @@ const LawsFilter = ({ changeFilterForm, data }) => {
             name="energy_distance"
             type="number"
             value={data.internal.settings.laws.energy_distance}
-            placeholder={
-              "Default : " +
-              data.setupParam.possibleSettings.defaultSettings.laws
-                .energy_distance
-            }
-            onChange={(event) =>
-              changeFilterForm(event.target.name, event.target.value)
-            }
+            placeholder={"Default : " + data.setupParam.possibleSettings.defaultSettings.laws.energy_distance}
+            onChange={changeFilterForm}
           />
         </Col>
       </Form.Group>
@@ -132,14 +108,7 @@ const LawsFilter = ({ changeFilterForm, data }) => {
       <Form.Group as={Row} controlId="rot_invariance">
         <Form.Label column>Rotational invariance:</Form.Label>
         <Col>
-          <Form.Control
-            as="select"
-            name="rot_invariance"
-            value={data.internal.settings.laws.rot_invariance}
-            onChange={(event) =>
-              changeFilterForm(event.target.name, event.target.value)
-            }
-          >
+          <Form.Control as="select" name="rot_invariance" value={data.internal.settings.laws.rot_invariance} onChange={changeFilterForm}>
             <option value="false">False</option>
             <option value="true">True</option>
           </Form.Control>
@@ -149,14 +118,7 @@ const LawsFilter = ({ changeFilterForm, data }) => {
       <Form.Group as={Row} controlId="orthogonal_rot">
         <Form.Label column>Orthogonal rotation:</Form.Label>
         <Col>
-          <Form.Control
-            as="select"
-            name="orthogonal_rot"
-            value={data.internal.settings.laws.orthogonal_rot}
-            onChange={(event) =>
-              changeFilterForm(event.target.name, event.target.value)
-            }
-          >
+          <Form.Control as="select" name="orthogonal_rot" value={data.internal.settings.laws.orthogonal_rot} onChange={changeFilterForm}>
             <option value="false">False</option>
             <option value="true">True</option>
           </Form.Control>
@@ -166,14 +128,7 @@ const LawsFilter = ({ changeFilterForm, data }) => {
       <Form.Group as={Row} controlId="energy_image">
         <Form.Label column>Energy images:</Form.Label>
         <Col>
-          <Form.Control
-            as="select"
-            name="energy_image"
-            value={data.internal.settings.laws.energy_image}
-            onChange={(event) =>
-              changeFilterForm(event.target.name, event.target.value)
-            }
-          >
+          <Form.Control as="select" name="energy_image" value={data.internal.settings.laws.energy_image} onChange={changeFilterForm}>
             <option value="false">False</option>
             <option value="true">True</option>
           </Form.Control>
@@ -183,14 +138,7 @@ const LawsFilter = ({ changeFilterForm, data }) => {
       <Form.Group as={Row} controlId="padding">
         <Form.Label column>Padding:</Form.Label>
         <Col>
-          <Form.Control
-            as="select"
-            name="padding"
-            value={data.internal.settings.laws.padding}
-            onChange={(event) =>
-              changeFilterForm(event.target.name, event.target.value)
-            }
-          >
+          <Form.Control as="select" name="padding" value={data.internal.settings.laws.padding} onChange={changeFilterForm}>
             <option value="constant">Constant</option>
             <option value="edge">Edge</option>
             <option value="linear_ramp">Linear ramp</option>
@@ -213,12 +161,8 @@ const LawsFilter = ({ changeFilterForm, data }) => {
             name="name_save"
             type="text"
             value={data.internal.settings.laws.name_save}
-            placeholder={
-              data.setupParam.possibleSettings.defaultSettings.laws.name_save
-            }
-            onChange={(event) =>
-              changeFilterForm(event.target.name, event.target.value)
-            }
+            placeholder={data.setupParam.possibleSettings.defaultSettings.laws.name_save}
+            onChange={changeFilterForm}
           />
         </Col>
       </Form.Group>

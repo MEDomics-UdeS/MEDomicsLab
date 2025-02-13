@@ -8,6 +8,7 @@ import { Stack } from "react-bootstrap"
 import * as Icon from "react-bootstrap-icons"
 import { AiOutlineInfoCircle } from "react-icons/ai"
 import { BsPlay } from "react-icons/bs"
+import { BsPause } from "react-icons/bs"
 import { IoClose } from "react-icons/io5"
 import EditableLabel from "react-simple-editlabel"
 import { toast } from "react-toastify"; // https://www.npmjs.com/package/react-toastify
@@ -40,7 +41,7 @@ import NodeWrapperResults from "./nodeWrapperResults"
  * Note: all JSX.Element props are not mandatory
  * Note: see Powerpoint for additionnal
  */
-const NodeObject = ({ id, data, nodeSpecific, nodeBody, defaultSettings, onClickCustom, isGroupNode }) => {
+const NodeObject = ({ id, data, nodeSpecific, nodeBody, defaultSettings, onClickCustom, isGroupNode, nodeLink = "https://medomics-udes.gitbook.io/medimage-app-docs" }) => {
   const [nodeName, setNodeName] = useState(data.internal.name) // used to store the name of the node
   const { flowInfos, canRun } = useContext(FlowInfosContext) // used to get the flow infos
   const { showResultsPane } = useContext(FlowResultsContext) // used to get the flow results
@@ -140,16 +141,34 @@ const NodeObject = ({ id, data, nodeSpecific, nodeBody, defaultSettings, onClick
                 {/* if the node is a run node (by checking setupParam classes), a button to run the node is displayed*/}
                 {data.setupParam!== null && data.setupParam.classes.split(" ").includes("run") && (
                   <>
+                  { canRun ? 
                     <BsPlay
                       className="btn-run-node"
                       onClick={(e) => {
+                        console.log("canRun", canRun)
+                        console.log("showResultsPane", showResultsPane)
                         if (canRun && !showResultsPane) {
+                          console.log("run node")
+                          e.stopPropagation()
+                          runNode(id)
+                        }
+                      }}
+                      disabled={showResultsPane || !canRun}
+                    /> :
+                    <BsPause
+                      className="btn-run-node"
+                      onClick={(e) => {
+                        console.log("canRun", canRun)
+                        console.log("showResultsPane", showResultsPane)
+                        if (canRun && !showResultsPane) {
+                          console.log("run node")
                           e.stopPropagation()
                           runNode(id)
                         }
                       }}
                       disabled={showResultsPane || !canRun}
                     />
+                  }
                   </>
                 )}
               </div>
@@ -163,7 +182,7 @@ const NodeObject = ({ id, data, nodeSpecific, nodeBody, defaultSettings, onClick
       {!isGroupNode && (
         <>
           {/* here is an overlay panel that is displayed when the user clicks on the node name. It contains the settings of the node*/}
-          <OverlayPanel className="options-overlayPanel" ref={op} onMouseLeave={(e) => op.current.hide(e)}>
+          <OverlayPanel className="options-overlayPanel" ref={op}>
             <Stack direction="vertical" gap={1}>
               <div className="header">
                 <div className="editable-node-name">
@@ -184,7 +203,7 @@ const NodeObject = ({ id, data, nodeSpecific, nodeBody, defaultSettings, onClick
                 <AiOutlineInfoCircle
                   className="btn-info-node"
                   onClick={() => {
-                    shell.openExternal("http://google.com")
+                    shell.openExternal(nodeLink)
                   }}
                 />
               </div>
@@ -233,7 +252,7 @@ export default Node
  */
 export const updateHasWarning = (data) => {
   data.internal.hasWarning = { state: false }
-  if ("default" in data.setupParam.possibleSettings) {
+  if (data && data.setupParam && data.setupParam.possibleSettings && data.setupParam.possibleSettings.default) {
     Object.entries(data.setupParam.possibleSettings.default).map(([settingName, setting]) => {
       if (settingName in data.internal.settings) {
         let value = deepCopy(data.internal.settings[settingName])
@@ -251,16 +270,13 @@ export const updateHasWarning = (data) => {
     })
   }
   // segmentation node check if ROI list is empty
-  if (data.setupParam.type === "segmentationNode") {
+  if (data && data.setupParam && data.setupParam.type === "segmentationNode") {
     if (Object.keys(data.internal.settings.rois).length === 0) {
       data.internal.hasWarning = { state: true, tooltip: <p>Upload an image and link an input node</p> }
-    } else if (data.internal.settings.rois_data === "") {
-      data.internal.hasWarning = { state: true, tooltip: <p>Select at least one ROI to analyze</p> }
     }
   }
   // Split node check if all the mandatory fields are filled
-  if (data.setupParam.type === "Split") {
-    console.log("FOUND SPLIT NODE")
+  if (data && data.setupParam && data.setupParam.type === "Split") {
     if (data.internal.settings.outcome_name === "") {
       data.internal.hasWarning = { state: true, tooltip: <p>No outcome name is given!</p> }
       return
@@ -276,7 +292,7 @@ export const updateHasWarning = (data) => {
     }
   }
   // Design node check if all the mandatory fields are filled
-  if (data.setupParam.type === "Design") {
+  if (data && data.setupParam && data.setupParam.type === "Design") {
     if (data.internal.settings.expName === "") {
       data.internal.hasWarning = { state: true, tooltip: <p>No experiment name is given!</p> }
       return
@@ -324,9 +340,9 @@ export const updateHasWarning = (data) => {
     }
   }
   // Data node check if all the mandatory fields are filled
-  if (data.setupParam.type === "Data") {
+  if (data && data.setupParam && data.setupParam.type === "Data") {
     if (data.internal.settings.featuresFiles.length === 0) {
-      data.internal.hasWarning = { state: true, tooltip: <p>No features file is given!</p> }
+      data.internal.hasWarning = { state: true, tooltip: <p>No features files selected!</p> }
       return
     } else {
       data.internal.hasWarning = { state: false }
@@ -334,7 +350,7 @@ export const updateHasWarning = (data) => {
     }
   }
   // CLeaning node check if all the mandatory fields are filled
-  if (data.setupParam.type === "Cleaning") {
+  if (data && data.setupParam && data.setupParam.type === "Cleaning") {
     if (data.internal.settings.default.feature.continuous.covCutoff === null || data.internal.settings.default.feature.continuous.covCutoff === "") {
       data.internal.hasWarning = { state: true, tooltip: <p>Minimum coefficient of variation cutoff is not given!</p> }
       return
@@ -350,7 +366,7 @@ export const updateHasWarning = (data) => {
     }
   }
   // Feature reduction node check if all the mandatory fields are filled
-  if (data.setupParam.type === "FeatureReduction") {
+  if (data && data.setupParam && data.setupParam.type === "FeatureReduction") {
     if (data.internal.settings.FDA.minNfeat === null || data.internal.settings.FDA.minNfeat === "") {
       data.internal.hasWarning = { state: true, tooltip: <p>Final number of features is not given!</p> }
       return
@@ -378,7 +394,7 @@ export const updateHasWarning = (data) => {
     }
   }
   // Radiomics Learner node check if all the mandatory fields are filled
-  if (data.setupParam.type === "RadiomicsLearner") {
+  if (data && data.setupParam && data.setupParam.type === "RadiomicsLearner") {
     if (data.internal.settings.XGBoost.nameSave === null || data.internal.settings.XGBoost.nameSave === "") {
       data.internal.hasWarning = { state: true, tooltip: <p>Save name for the model is not given!</p> }
       return

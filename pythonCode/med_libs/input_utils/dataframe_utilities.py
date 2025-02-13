@@ -1,5 +1,8 @@
 
 import pandas as pd
+import numpy as np
+import math
+from bson import ObjectId
 
 def assert_no_nan_values_for_each_column(df: pd.DataFrame, cols: list = None):
     """
@@ -31,11 +34,11 @@ def save_dataframe(path, extension, df, tags=None):
     """
     if tags is not None:
         df = add_tags_to_column_names(df, tags)
-    if extension == ".csv":
+    if extension == "csv":
         df.to_csv(path, index=False)
-    elif extension == ".xlsx":
+    elif extension == "xlsx":
         df.to_excel(path, index=False)
-    elif extension == ".json":
+    elif extension == "json":
         df.to_json(path, orient="records")
     else:
         print("Extension not supported, cannot save the file")
@@ -104,4 +107,61 @@ def add_tags_to_column_names(df: pd.DataFrame, tags_dict: dict):
                 df.rename(columns={col: tag + "_|_" + col}, inplace=True)
     return df
 
+def clean_columns(df: pd.DataFrame, columns:list, method:str):
+    """
+    Clean dataframes columns
+    Args:
+        df: DataFrame to handle
+        columns: The columns to clean
+        method: The method to use for cleaning
 
+    Returns: Handled DataFrame
+    """
+    if method == 'drop':
+        df = df.drop(columns=columns)
+    elif method == 'drop empty':
+        df = df.dropna(subset=columns)
+    elif method == "random fill":
+        for column in columns:
+            df.loc[:, column] = df.loc[:, column].fillna(np.random.choice(df.loc[:, column][~df.loc[:, column].isna()]))
+    elif method == "mean fill":
+        df.loc[:, columns] = df.loc[:, columns].fillna(df.loc[:, columns].mean())
+    elif method == "median fill":
+        df.loc[:, columns] = df.loc[:, columns].fillna(df.loc[:, columns].median())
+    elif method == "mode fill":
+        df.loc[:, columns] = df.loc[:, columns].fillna(df.loc[:, columns].mode().iloc[0])
+    elif method == "bfill":
+        df.loc[:, columns] = df.loc[:, columns].bfill()
+    elif method == "ffill":
+        df.loc[:, columns] = df.loc[:, columns].ffill()
+    return df
+
+def clean_rows(df: pd.DataFrame, rows:list, method:str):
+    """
+    Clean dataframes rows
+    Args:
+        df: DataFrame to handle
+        rows: The rows to clean
+        method: The method to use for cleaning
+
+    Returns: Handled DataFrame
+    """
+    if method == 'drop':
+        df = df.drop(index=rows)
+    elif method == "random fill":
+        for row in rows:
+            for column in df.columns:
+                value = df.loc[row, column]
+                if not isinstance(value, ObjectId) and math.isnan(value):
+                    df.loc[row, column] = np.random.choice(df.loc[:, column][~df.loc[:, column].isna()])
+    elif method == "mean fill":
+        df.loc[rows] = df.loc[rows].fillna(df.mean())
+    elif method == "median fill":
+        df.loc[rows] = df.loc[rows].fillna(df.median())
+    elif method == "mode fill":
+        df.loc[rows] = df.loc[rows].fillna(df.mode().iloc[0])
+    elif method == "bfill":
+        df.loc[rows] = df.bfill().loc[rows]
+    elif method == "ffill":
+        df.loc[rows] = df.ffill().loc[rows]
+    return df

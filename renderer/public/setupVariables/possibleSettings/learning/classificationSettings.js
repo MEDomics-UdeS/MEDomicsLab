@@ -33,9 +33,16 @@ const classificationSettings = {
                 "default_val": "lightgbm"
             },
             "numeric_imputation": {
-                "type": "int-float-str",
+                "type": "list",
                 "tooltip": "<p>Imputing strategy for numerical columns. Ignored when imputation_type= iterative. Choose from:</p>\n<blockquote>\n<div><ul >\n<li><p>\u201cdrop\u201d: Drop rows containing missing values.</p></li>\n<li><p>\u201cmean\u201d: Impute with mean of column.</p></li>\n<li><p>\u201cmedian\u201d: Impute with median of column.</p></li>\n<li><p>\u201cmode\u201d: Impute with most frequent value.</p></li>\n<li><p>\u201cknn\u201d: Impute using a K-Nearest Neighbors approach.</p></li>\n<li><p>int or float: Impute with provided numerical value.</p></li>\n</ul>\n</div></blockquote>\n",
-                "default_val": "mean"
+                "default_val": "mean",
+                "choices": {
+                    "drop": "Drop rows containing missing values",
+                    "mean": "Impute with mean of column",
+                    "median": "Impute with median of column",
+                    "mode": "Impute with most frequent value",
+                    "knn": "Impute using a K-Nearest Neighbors approach"
+                }
             },
             "numeric_iterative_imputer": {
                 "type": "string",
@@ -396,7 +403,7 @@ const classificationSettings = {
         "options": {
             "include": {
                 "type": "list-multiple",
-                "tooltip": "<p>To train and evaluate select models, list containing model ID or scikit-learn\ncompatible object can be passed in include param. To see a list of all models\navailable in the model library use the models function.</p>\n",
+                "tooltip": "<p>To train and evaluate select models, list containing model ID or scikit-learn\ncompatible object can be passed in include param. To see a list of all models\navailable in the model library use the Model node.</p>\n",
                 "default_val": "None",
                 "choices": {
                     "lr": "Logistic Regression",
@@ -414,15 +421,37 @@ const classificationSettings = {
                     "gbc": "Gradient Boosting Classifier",
                     "lda": "Linear Discriminant Analysis",
                     "et": "Extra Trees Classifier",
+                    "dummy": "Dummy Classifier",
                     "xgboost": "Extreme Gradient Boosting",
                     "lightgbm": "Light Gradient Boosting Machine",
                     "catboost": "CatBoost Classifier"
                 }
             },
             "exclude": {
-                "type": "custom-list",
-                "tooltip": "<p>To omit certain models from training and evaluation, pass a list containing\nmodel id in the exclude parameter. To see a list of all models available\nin the model library use the models function.</p>\n",
-                "default_val": "None"
+                "type": "list-multiple",
+                "tooltip": "<p>To omit certain models from training and evaluation, pass a list containing\nmodel id in the exclude parameter. To see a list of all models available\nin the model library use the Model node.</p>\n",
+                "default_val": "None",
+                "choices": {
+                    "lr": "Logistic Regression",
+                    "knn": "K Neighbors Classifier",
+                    "nb": "Naive Bayes",
+                    "dt": "Decision Tree Classifier",
+                    "svm": "SVM - Linear Kernel",
+                    "rbfsvm": "SVM - Radial Kernel",
+                    "gpc": "Gaussian Process Classifier",
+                    "mlp": "MLP Classifier",
+                    "ridge": "Ridge Classifier",
+                    "rf": "Random Forest Classifier",
+                    "qda": "Quadratic Discriminant Analysis",
+                    "ada": "Ada Boost Classifier",
+                    "gbc": "Gradient Boosting Classifier",
+                    "lda": "Linear Discriminant Analysis",
+                    "et": "Extra Trees Classifier",
+                    "dummy": "Dummy Classifier",
+                    "xgboost": "Extreme Gradient Boosting",
+                    "lightgbm": "Light Gradient Boosting Machine",
+                    "catboost": "CatBoost Classifier"
+                }
             },
             "fold": {
                 "type": "int",
@@ -588,7 +617,7 @@ const classificationSettings = {
                 },
                 "verbose": {
                     "type": "bool",
-                    "tooltip": "<p>When set to False, progress bar is not displayed.</p>\n",
+                    "tooltip": "<p>When set to False, backend's progress bar is not displayed.</p>\n",
                     "default_val": "True"
                 },
                 "display_format": {

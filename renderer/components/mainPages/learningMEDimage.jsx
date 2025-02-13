@@ -1,7 +1,7 @@
 import React, { useState } from "react"
 import FlowPageBase from "../flow/flowPageBase"
 import ModulePage from "./moduleBasics/modulePage"
-import FlowCanvas from "../learninMEDimage/flowCanvas"
+import FlowCanvas from "../learningMEDimage/flowCanvas"
 
 // Extraction tab referred to in pages/_app.js.
 // Shows sideBar nodes in a div on the left of the page,

@@ -233,59 +233,31 @@ def gen_dict_extract(key, var):
                         yield result
 
 # Instantiates image figure when calling view on node from app_extraction_blueprint.py
-def image_viewer(medimage_list, data, runs):
-    # Check if the node to view is input
-    if data["name"] == "input":
-        fig_title = "3D Volume of \"" + data["file_loaded"] + "\""
+def image_viewer(image_volume, image_name, roi_volume=None):
+    fig = Figure(image_volume, image_name, roi_volume)
 
-        vol = medimage_list[data["file_loaded"]].data.volume.array
+    fig.add_data()
+    fig.create_figure_sliders()
+    fig.update_figure_layout()
+    fig.show_figure()
 
-        fig = Figure(vol, fig_title)
-        fig.add_data()
-        fig.create_figure_sliders()
-        fig.update_figure_layout()
-        fig.show_figure()
-
-    # If node is not input, need to retrace pipeline
+# Convert numpy types to python types in a nested dictionary
+def convert_np_to_py(obj):
+    if isinstance(obj, dict):
+        return {key: convert_np_to_py(value) for key, value in obj.items()}
+    elif isinstance(obj, list):
+        return [convert_np_to_py(element) for element in obj]
+    elif isinstance(obj, tuple):
+        return tuple(convert_np_to_py(element) for element in obj)
+    elif isinstance(obj, np.integer):
+        return int(obj)
+    elif isinstance(obj, np.floating):
+        return float(obj)
+    elif isinstance(obj, np.ndarray):
+        return obj.tolist()
+    elif isinstance(obj, np.bool_):
+        return bool(obj)
+    elif isinstance(obj, float) and np.isinf(obj):
+        return str(obj)  # Handle Python's float('inf') and float('-inf')
     else:
-        mask = None
-        last_run = list(runs)[-1]
-        # 3D view created for each pip related to the view button clicked
-        for pip_idx, pip in enumerate(runs[last_run]):
-            for id in runs[last_run][pip]:
-
-                if (str(id) == str(data["id"])):
-                    if (data["name"] == "segmentationNode" or data["name"] == "re_segmentation"):
-                        # Code cleaning for ROI contour tracing
-                        mask = runs[last_run][pip][id]['output']['roi']
-                        if type(mask) != np.ndarray:
-                            mask = mask.data
-                        
-                        if data["name"] == "re_segmentation":
-                            id_before_reseg = pip[-82:-41]
-                            vol = runs[last_run][pip][id_before_reseg]['output']['vol']
-                        else:
-                            vol = runs[last_run][pip][id]['output']['vol']
-                        
-                        if type(vol) != np.ndarray:
-                            vol = vol.data
-                    else:
-                        vol = runs[last_run][pip][id]['output']['vol']  # display VOL for others nodes
-
-                    if type(vol) != np.ndarray:
-                        vol = vol.data
-
-                    # Figure title
-                    fig_title = ""
-                    if (runs[last_run][pip][id]["type"] == "filter"):
-                        fig_title = '3D Volume - Pipeline ' + str(pip_idx + 1) + " - " + runs[last_run][pip][id]["settings"][
-                            "filter_type"] + \
-                                    " " + runs[last_run][pip][id]["type"] + " output."
-                    else:
-                        fig_title = '3D Volume - Pipeline ' + str(pip_idx + 1) + " - " + runs[last_run][pip][id]["type"] + " output."
-
-                    fig = Figure(vol, fig_title, mask)
-                    fig.add_data()
-                    fig.create_figure_sliders()
-                    fig.update_figure_layout()
-                    fig.show_figure()
+        return obj

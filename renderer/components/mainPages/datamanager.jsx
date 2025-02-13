@@ -1,19 +1,20 @@
+import { Button } from "primereact/button"
+import { Dialog } from 'primereact/dialog'
+import { Dropdown } from "primereact/dropdown"
+import { Galleria } from 'primereact/galleria'
+import { Image } from "primereact/image"
+import { InputText } from 'primereact/inputtext'
+import { MultiSelect } from 'primereact/multiselect'
+import { Tooltip } from 'primereact/tooltip'
+import React, { useContext, useEffect, useState } from 'react'
+import { Alert, Card, Col, Container, Form, Offcanvas, ProgressBar, Row } from 'react-bootstrap'
+import Table from 'react-bootstrap/Table'
+import { toast } from 'react-toastify'
+import { requestBackend } from "../../utilities/requests"
+import { ErrorRequestContext } from "../generalPurpose/errorRequestContext"
+import { DataContext } from "../workspace/dataContext"
 import { WorkspaceContext } from "../workspace/workspaceContext"
-import React, { useState, useEffect, useContext } from 'react';
-import {Row, Col, Card, Form, Offcanvas, Container, Alert} from 'react-bootstrap';
-import { toast } from 'react-toastify';
-import { requestBackend } from "../../utilities/requests";
-import { ProgressBar } from 'react-bootstrap';
-import Table from 'react-bootstrap/Table';
-import ModulePage from './moduleBasics/modulePage';
-import {Button} from 'primereact/button';
-import { MultiSelect } from 'primereact/multiselect';
-import { Dialog } from 'primereact/dialog';
-import { Galleria } from 'primereact/galleria';
-import { InputText } from 'primereact/inputtext';
-import { Tooltip } from 'primereact/tooltip';
-import { DataContext } from "../workspace/dataContext";
-
+import DocLink from "../extractionMEDimage/docLink"
 
 /**
  * @param {Object} nodeForm form associated to the discretization node
@@ -26,29 +27,66 @@ import { DataContext } from "../workspace/dataContext";
  */
 const DataManager = ({ pageId, configPath = "" }) => {
   const { port } = useContext(WorkspaceContext)
-  const { globalData, setGlobalData } = useContext(DataContext) // Get the workspace data
-  const [progress, setProgress] = useState(0);
-  const [refreshEnabled, setRefreshEnabled] = useState(false); // A boolean variable to control refresh
-  const [refreshEnabledPreChecks, setRefreshEnabledPreChecks] = useState(false); // A boolean variable to control refresh for preChecks
-  const [selectedDcmFolder, setSelectedDcmFolder] = useState('');
-  const [selectedNiftiFolder, setSelectedNiftiFolder] = useState('');
-  const [selectedSaveFolder, setSelectedSaveFolder] = useState('');
-  const [selectedSave, setSelectedSave] = useState(true);
-  const [selectedNpyFolder, setSelectedNpyFolder] = useState('');
-  const [selectedNBatch, setSelectedNBatch] = useState(12);
-  const [selectedCSVFile, setSelectedCSVFile] = useState('');
-  const [selectedPreChecksOptions, setSelectedPreChecksOptions] = useState(null);
-  const [selectedInstitutions, setSelectedInstitutions] = useState([]);
-  const [selectedStudies, setSelectedStudies] = useState([]);
-  const [selectedModalities, setSelectedModalities] = useState([]);
-  const [costumWildCard, setCostumWildCard] = useState(null); // A boolean variable to control refresh
-  const [summary, setSummary] = useState(''); // A string variable to store the summary of the node
+  const { setError } = useContext(ErrorRequestContext)
+  const { globalData } = useContext(DataContext) // Get the workspace data
+  const [progress, setProgress] = useState(0)
+  const [refreshEnabled, setRefreshEnabled] = useState(false) // A boolean variable to control refresh
+  const [refreshEnabledPreChecks, setRefreshEnabledPreChecks] = useState(false) // A boolean variable to control refresh for preChecks
+  const [selectedDcmFolder, setSelectedDcmFolder] = useState('')
+  const [listWSFolders, setListWSFolders] = useState([])
+  const [listCSVFiles, setListCSVFiles] = useState([])
+  const [selectedNiftiFolder, setSelectedNiftiFolder] = useState('')
+  const [selectedSaveFolder, setSelectedSaveFolder] = useState('')
+  const [selectedSavePreChecksFolder, setSelectedSavePreChecksFolder] = useState('')
+  const [selectedNpyFolder, setSelectedNpyFolder] = useState('')
+  const [selectedNBatch, setSelectedNBatch] = useState(12)
+  const [selectedCSVFile, setSelectedCSVFile] = useState('')
+  const [selectedPreChecksOptions, setSelectedPreChecksOptions] = useState(null)
+  const [selectedInstitutions, setSelectedInstitutions] = useState([])
+  const [selectedStudies, setSelectedStudies] = useState([])
+  const [selectedModalities, setSelectedModalities] = useState([])
+  const [costumWildCard, setCostumWildCard] = useState(null) // A boolean variable to control refresh
+  const [summary, setSummary] = useState('') // A string variable to store the summary of the node
   const [showOffCanvas, setShowOffCanvas] = useState(false) // used to display the offcanvas
   const [showPreChecksImages, setShowPreChecksImages] = useState(false) // used to display the offcanvas
   const handleOffCanvasClose = () => setShowOffCanvas(false) // used to close the offcanvas
   const handleOffCanvasShow = () => setShowOffCanvas(true) // used to show the offcanvas
+  const [preChecksImages, setPreChecksImages] = useState([]) // used to display the offcanvas  
 
-  const [preChecksImages, setPreChecksImages] = useState([]) // used to display the offcanvas
+  useEffect(() => {
+    updateWSfolder()
+    updateCSVFilesList()
+  }, [])
+  
+  useEffect(() => {
+    updateWSfolder()
+    }, [globalData])
+
+  const updateWSfolder = () => {
+    if (globalData !== undefined) {
+      let keys = Object.keys(globalData)
+      let wsFolders = []
+      keys.forEach((key) => {
+        if (globalData[key].type === "directory" && !globalData[key].name.startsWith(".")) {
+          wsFolders.push({ name: globalData[key].name, value: globalData[key].path })
+        }
+      })
+      setListWSFolders(wsFolders)
+    }
+  }
+
+  const updateCSVFilesList = () => {
+    if (globalData !== undefined) {
+      let keys = Object.keys(globalData)
+      let csvFiles = []
+      keys.forEach((key) => {
+        if (globalData[key].type === "csv") {
+          csvFiles.push({ name: globalData[key].name, value: globalData[key].path })
+        }
+      })
+      setListCSVFiles(csvFiles)
+    }
+  }
 
   const handleDcmFolderChange = (event) => {
     var fileList = event.target.files
@@ -117,11 +155,6 @@ const DataManager = ({ pageId, configPath = "" }) => {
     setSelectedNpyFolder(selectedSaveFolder);
   };
 
-  const handleSaveChange = (event) => {
-    const save = (event.target.value === 'true');
-    setSelectedSave(save);
-  };
-
   const handleNBatchChange = (event) => {
     const nBatch = event.target.value;
     setSelectedNBatch(parseInt(nBatch));
@@ -161,8 +194,10 @@ const DataManager = ({ pageId, configPath = "" }) => {
   };
 
   const itemTemplate = (item) => {
-    return <img src={item.itemImageSrc} alt={item.alt} style={{ width: '100%', display: 'block' }} />;
-  };
+    const nativeImage = require("electron").nativeImage
+    const image = nativeImage.createFromPath(item.itemImageSrc)
+    return <Image src={image.toDataURL()} height="500" alt={item.alt} preview downloadable/>
+  }
 
   const fs = require('fs');
 
@@ -308,7 +343,7 @@ const DataManager = ({ pageId, configPath = "" }) => {
       });
       institutions = institutions.map((value, key) => ({ label: value}));
     } catch (error) {
-      console.error('Error counting studies:', error);
+      console.error('Error counting institutions:', error);
     }
 
     // get unique modalities
@@ -322,7 +357,7 @@ const DataManager = ({ pageId, configPath = "" }) => {
       modalities = modalities.map((value, key) => ({ label: value}));
       console.log("modalities: ", modalities);
     } catch (error) {
-      console.error('Error counting studies:', error);
+      console.error('Error counting modalities:', error);
     }
 
     // Update pre checks options
@@ -338,19 +373,17 @@ const DataManager = ({ pageId, configPath = "" }) => {
    * @description Handles the click on the process button of the DICOM or NIfTI data.
   */
   const handleProcessClick = () => {
-    
-    // Simulate page refresh
-    setRefreshEnabled(true);
-    setProgress(0);
-
     // Create an object with the input values
     let requestData = {
       pathDicoms: selectedDcmFolder,
       pathNiftis: selectedNiftiFolder,
       pathSave: selectedSaveFolder,
-      save: selectedSave,
       nBatch: parseInt(selectedNBatch),
-    };
+    }
+
+    // Simulate page refresh
+    setRefreshEnabled(true)
+    setProgress(0)
 
     // Make a POST request to the backend API
     requestBackend(
@@ -358,19 +391,18 @@ const DataManager = ({ pageId, configPath = "" }) => {
       '/extraction_MEDimage/run_all/dm',
       requestData, 
       (response) => {
-        if (response.error) {
-          // Cancel the refresh
-          setRefreshEnabled(false);
-          
-          // show error message
-          toast.error(response.error)
+        console.log("response", response)
+        setRefreshEnabled(false)
+        if (response.error) {          
+          setProgress(0)
+          toast.error(response.error.message)
+          setError(response.error)
           console.log("error", response.error)
 
         } else {
           // Handle the response from the backend if needed
-          console.log('Response from backend:', response);
-          setRefreshEnabled(false);
-          setProgress(100);
+          console.log('Response from backend:', response)
+          setProgress(100)
 
           // Update summary
           setSummary(response);
@@ -383,6 +415,12 @@ const DataManager = ({ pageId, configPath = "" }) => {
 
           toast.success('Data processed!')
         }
+      },
+      (error) => {
+        toast.error("Error processing data : ", error)
+        // Update progress
+        setRefreshEnabled(false)
+        setProgress(0)
       }
     )
   };
@@ -417,9 +455,8 @@ const DataManager = ({ pageId, configPath = "" }) => {
     let requestData = {
       pathDicoms: selectedDcmFolder,
       pathNiftis: selectedNiftiFolder,
-      pathNpy: selectedSaveFolder ? selectedSaveFolder : selectedNpyFolder,
-      pathSave: globalData.UUID_ROOT.path,
-      save: selectedSave,
+      pathNpy: selectedNpyFolder,
+      pathSave: selectedSavePreChecksFolder,
       pathCSV: selectedCSVFile,
       wildcards_dimensions: finalwildcard,
       wildcards_window: finalwildcard,
@@ -432,6 +469,7 @@ const DataManager = ({ pageId, configPath = "" }) => {
       port, 
       '/extraction_MEDimage/run_all/prechecks', 
       requestData, (response) => {
+        console.log("response", response)
         if (response.error) {
           // Handle errors if the request fails
           console.log("Error on response pre checks")
@@ -524,22 +562,21 @@ const DataManager = ({ pageId, configPath = "" }) => {
     )
  
     return(
-      <div>
-          <Table striped hover size="sm">
-              <thead>
-                  <tr>
-                  <th>Study</th>
-                  <th>Insitution</th>
-                  <th>Scan type</th>
-                  <th>ROI type</th>
-                  <th>Count</th>
-                  </tr>
-              </thead>
-              <tbody> 
-                  {DisplayData}
-              </tbody>
-              </Table>
-            
+      <div className="tree-menu-container">
+        <Table striped hover size="sm">
+          <thead>
+              <tr>
+              <th>Study</th>
+              <th>Insitution</th>
+              <th>Scan type</th>
+              <th>ROI type</th>
+              <th>Count</th>
+              </tr>
+          </thead>
+          <tbody> 
+              {DisplayData}
+          </tbody>
+        </Table>
       </div>
     )
  }
@@ -553,11 +590,16 @@ const DataManager = ({ pageId, configPath = "" }) => {
   const renderTree = () => {
     // Check if data.internal.settings.results is available
     if (summary) {
-      return (
-        <div className="tree-menu-container">
-          {JsonDataDisplay(summary)}
-        </div>
-      )
+      let summaryTable = null
+      try{
+        summaryTable = JsonDataDisplay(summary)
+      } catch (error) {
+        console.error('Error displaying summary:', error)
+        summaryTable = <Alert variant="danger" className="warning-message">
+          <b>No summary available</b>
+        </Alert>
+      }
+      return summaryTable
     } else {
       // Show the warning message if data.internal.settings.results is undefined or empty
       return (
@@ -570,15 +612,19 @@ const DataManager = ({ pageId, configPath = "" }) => {
 
   return (
     <>
-    <ModulePage pageId={pageId} configPath={configPath}>
+    {console.log("selected save folder", selectedSaveFolder)}
     <div>
     <Card>
       <Card.Body>
         <Card.Header>
             <h4>Data Manager - Process data</h4>
+            <DocLink 
+              linkString={"https://medimage.readthedocs.io/en/latest/tutorials.html#datamanager"} 
+              name={"What is DataManager?"} 
+              image={"https://www.svgrepo.com/show/521262/warning-circle.svg"} 
+            />
         </Card.Header>
-
-      <Form method="post" encType="multipart/form-data" className="inputFile">
+      <Form className="inputFile">
       {/* UPLOAD DICOM DATASET FOLDER*/}
         <Row className="form-group-box">
           <Tooltip target=".dcm-path"/>
@@ -590,6 +636,20 @@ const DataManager = ({ pageId, configPath = "" }) => {
               DICOM dataset folder
           </Form.Label>
           <Col style={{ width: "150px" }}>
+            <h6>Load from workspace</h6>
+            <Dropdown
+              style={{ maxWidth: "100%", height: "auto", width: "auto" }}
+              filter
+              value={selectedDcmFolder}
+              onChange={(e) => setSelectedDcmFolder(e.value)}
+              options={listWSFolders}
+              optionLabel="name"
+              display="chip"
+              placeholder="Select a folder"
+            />
+          </Col>
+          <Col style={{ width: "150px" }}>
+            <h6>Load from a local path</h6>
             <Form.Group controlId="enterFile">
               <Form.Control
                 name="pathDicoms"
@@ -613,6 +673,20 @@ const DataManager = ({ pageId, configPath = "" }) => {
               NIfTI dataset folder
           </Form.Label>
           <Col style={{ width: "150px" }}>
+            <h6>Load from workspace</h6>
+            <Dropdown
+              style={{ maxWidth: "100%", height: "auto", width: "auto" }}
+              filter
+              value={selectedNiftiFolder}
+              onChange={(e) => setSelectedNiftiFolder(e.value)}
+              options={listWSFolders}
+              optionLabel="name"
+              display="chip"
+              placeholder="Select a folder"
+            />
+          </Col>
+          <Col style={{ width: "150px" }}>
+            <h6>Load from a local path</h6>
             <Form.Group controlId="enterFile">
               <Form.Control
                 name="pathNiftis"
@@ -633,9 +707,23 @@ const DataManager = ({ pageId, configPath = "" }) => {
             data-pr-tooltip="Folder to where the processed data will be saved"
             data-pr-position="bottom"
             htmlFor="file">
-              Save folder
+              Saving Options
           </Form.Label>
           <Col style={{ width: "150px" }}>
+            <h6>Save in workspace</h6>
+            <Dropdown
+              style={{ maxWidth: "100%", height: "auto", width: "auto" }}
+              filter
+              value={selectedSaveFolder}
+              onChange={(e) => setSelectedSaveFolder(e.value)}
+              options={listWSFolders}
+              optionLabel="name"
+              display="chip"
+              placeholder="Select Saving Folder"
+            />
+          </Col>
+          <Col style={{ width: "150px" }}>
+            <h6>Save in a local path</h6>
             <Form.Group controlId="enterFile">
               <Form.Control
                 name="pathSave"
@@ -646,41 +734,16 @@ const DataManager = ({ pageId, configPath = "" }) => {
               />
             </Form.Group>
           </Col>
-        </Row>
-      </Form>
-
-      {/* SAVE OR NO*/}
-      <Row className="form-group-box">
-        <Col>
-        <Form.Group controlId="save" style={{ paddingTop: "10px" }}>
-          <Tooltip target=".save"/>
-          <Form.Label 
-            className="save" 
-            data-pr-tooltip="Whether to save the processed data or not (Always True for now)"
-            data-pr-position="bottom">
-              Save :
-          </Form.Label>
-            <Form.Control
-              as="select"
-              name="save"
-              value={selectedSave}
-              onChange={handleSaveChange}
-            >
-              <option value="false">False</option>
-              <option value="true">True</option>
-            </Form.Control>
-        </Form.Group>
-        </Col>
-      {/* NUMBER OF BATCH*/}
-        <Col>
-        <Form.Group controlId="nBatch" style={{ paddingTop: "10px" }}>
-          <Tooltip target=".nbatch"/>
-          <Form.Label 
-            className="nbatch" 
-            data-pr-tooltip="Number of cores to use for the parallel processing"
-            data-pr-position="bottom">
+          {/* NUMBER OF BATCH*/}
+          <Col>
+            <Tooltip target=".nbatch"/>
+            <h6 
+              className="nbatch"
+              data-pr-tooltip="Number of cores to use for the parallel processing"
+              data-pr-position="bottom"
+              >
               Number of cores to use :
-          </Form.Label>
+            </h6>
             <Form.Control
               name="nBatch"
               type="number"
@@ -688,9 +751,9 @@ const DataManager = ({ pageId, configPath = "" }) => {
               placeholder={"Default: " + 12}
               onChange={handleNBatchChange}
             />
-        </Form.Group>
-        </Col>
-      </Row>
+          </Col>
+        </Row>
+      </Form>
 
       {/* PROCESS BUTTON*/}
       <Row className="form-group-box">
@@ -767,9 +830,80 @@ const DataManager = ({ pageId, configPath = "" }) => {
       <Card.Body>
         <Card.Header>
             <h4>Data Manager - Radiomics Pre-checks</h4>
+            <DocLink 
+              linkString={"https://medomics-udes.gitbook.io/medimage-app-docs/radiomics/data-processing/radiomics-pre-checks"} 
+              name={"What are Radiomics Pre-Checks?"} 
+              image={"https://www.svgrepo.com/show/521262/warning-circle.svg"} 
+            />
         </Card.Header>
 
         <Row className="form-group-box">
+          <h6>Use Workspace Data</h6>
+          <Col style={{ width: "150px" }}>
+            <Tooltip target=".csv-file-ws"/>
+            <h6 
+              className="csv-file-ws"
+              data-pr-tooltip="CSV file containing the scans to check and their associated ROI (Region of Interest)"
+              data-pr-position="bottom"
+            >
+              CSV from workspace
+            </h6>
+            <Dropdown
+              style={{ maxWidth: "100%", height: "auto", width: "auto" }}
+              filter
+              value={selectedCSVFile}
+              onChange={(e) => setSelectedCSVFile(e.value)}
+              options={listCSVFiles}
+              optionLabel="name"
+              display="chip"
+              placeholder="Select a file"
+            />
+          </Col>
+          <Col style={{ width: "150px" }}>
+            <Tooltip target=".npy-dataset-ws"/>
+            <h6 
+              className="npy-dataset-ws"
+              data-pr-tooltip="Folder containing the .npy files to check"
+              data-pr-position="bottom"
+            >
+              NPY dataset from workspace
+            </h6>
+            <Dropdown
+              style={{ maxWidth: "100%", height: "auto", width: "auto" }}
+              filter
+              value={selectedNpyFolder}
+              onChange={(e) => setSelectedNpyFolder(e.value)}
+              options={listWSFolders}
+              optionLabel="name"
+              display="chip"
+              placeholder="Select a folder"
+            />
+          </Col>
+          <Col style={{ width: "150px" }}>
+            <Tooltip target=".npy-dataset-ws"/>
+            <h6 
+              className="npy-dataset-ws"
+              data-pr-tooltip="Folder containing the .npy files to check"
+              data-pr-position="bottom"
+            >
+              Save in workspace
+            </h6>
+            <Dropdown
+              style={{ maxWidth: "100%", height: "auto", width: "auto" }}
+              filter
+              value={selectedSavePreChecksFolder}
+              onChange={(e) => setSelectedSavePreChecksFolder(e.value)}
+              options={listWSFolders}
+              optionLabel="name"
+              display="chip"
+              placeholder="Select Saving Folder"
+            />
+          </Col>
+
+          {/* ADD SEPERATOR*/}
+          <hr style={{display:"inline-block", marginTop:"15px"}}></hr>
+          <h6>Or - Use Local Data</h6>
+
           <Col style={{ width: "150px" }}>
             <Form method="post" encType="multipart/form-data" className="inputFile">
               {/* UPLOAD CSV FILE*/}
@@ -779,7 +913,7 @@ const DataManager = ({ pageId, configPath = "" }) => {
                 data-pr-tooltip="CSV file containing the scans to check and their associated ROI (Region of Interest)"
                 data-pr-position="bottom"
                 htmlFor="file">
-                  CSV File
+                  Local CSV File
               </Form.Label>
               <Form.Group controlId="enterFile">
                 <Form.Control
@@ -821,8 +955,8 @@ const DataManager = ({ pageId, configPath = "" }) => {
             <Tooltip target=".checks-options"/>
             <Form.Label 
               className="checks-options" 
-              data-pr-tooltip="Options to determine the scans to check (studies, institutions and modalities).
-               If empty, use a costum wildcard (For example: 'STS*CECT*.npy')"
+              data-pr-tooltip="Options to select the scans to check (institutions, modalities, etc.).
+               If empty, use a costum wildcard (e.g. 'STS*CECT*.npy')"
               data-pr-position="bottom"
               htmlFor="file">
                 Pre-checks options
@@ -917,7 +1051,6 @@ const DataManager = ({ pageId, configPath = "" }) => {
     </Dialog>
 
   </div>
-  </ModulePage>
   </>
   );
 }

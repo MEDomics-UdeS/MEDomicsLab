@@ -14,12 +14,10 @@ import DocLink from "../../docLink"
 const GaborFilter = ({ changeFilterForm, data }) => {
   return (
     <Form.Group as={Row} controlId="filter-gabor">
-      <DocLink
-        linkString={
-          "https://medimage.readthedocs.io/en/latest/configuration_file.html#gabor"
-        }
-        name={"Gabor filter documentation"}
-        image={"../icon/extraction_img/exclamation.svg"}
+      <DocLink 
+        linkString={"https://medimage.readthedocs.io/en/latest/configurations_file.html#gabor"} 
+        name={"Gabor filter documentation"} 
+        image={"https://www.svgrepo.com/show/521262/warning-circle.svg"} 
       />
       <Form.Group as={Row} controlId="sigma">
         <Form.Label column>Sigma:</Form.Label>
@@ -28,13 +26,8 @@ const GaborFilter = ({ changeFilterForm, data }) => {
             name="sigma"
             type="number"
             value={data.internal.settings.gabor.sigma}
-            placeholder={
-              "Default: " +
-              data.setupParam.possibleSettings.defaultSettings.gabor.sigma
-            }
-            onChange={(event) =>
-              changeFilterForm(event.target.name, event.target.value)
-            }
+            placeholder={"Default: " + data.setupParam.possibleSettings.defaultSettings.gabor.sigma}
+            onChange={changeFilterForm}
           />
         </Col>
       </Form.Group>
@@ -46,13 +39,8 @@ const GaborFilter = ({ changeFilterForm, data }) => {
             name="lambda"
             type="number"
             value={data.internal.settings.gabor.lambda}
-            placeholder={
-              "Default: " +
-              data.setupParam.possibleSettings.defaultSettings.gabor.lambda
-            }
-            onChange={(event) =>
-              changeFilterForm(event.target.name, event.target.value)
-            }
+            placeholder={"Default: " + data.setupParam.possibleSettings.defaultSettings.gabor.lambda}
+            onChange={changeFilterForm}
           />
         </Col>
       </Form.Group>
@@ -64,13 +52,8 @@ const GaborFilter = ({ changeFilterForm, data }) => {
             name="gamma"
             type="number"
             value={data.internal.settings.gabor.gamma}
-            placeholder={
-              "Default: " +
-              data.setupParam.possibleSettings.defaultSettings.gabor.gamma
-            }
-            onChange={(event) =>
-              changeFilterForm(event.target.name, event.target.value)
-            }
+            placeholder={"Default: " + data.setupParam.possibleSettings.defaultSettings.gabor.gamma}
+            onChange={changeFilterForm}
           />
         </Col>
       </Form.Group>
@@ -82,13 +65,8 @@ const GaborFilter = ({ changeFilterForm, data }) => {
             name="theta"
             type="text"
             value={data.internal.settings.gabor.theta}
-            placeholder={
-              "Default: " +
-              data.setupParam.possibleSettings.defaultSettings.gabor.theta
-            }
-            onChange={(event) =>
-              changeFilterForm(event.target.name, event.target.value)
-            }
+            placeholder={"Default: " + data.setupParam.possibleSettings.defaultSettings.gabor.theta}
+            onChange={changeFilterForm}
           />
         </Col>
       </Form.Group>
@@ -96,14 +74,7 @@ const GaborFilter = ({ changeFilterForm, data }) => {
       <Form.Group as={Row} controlId="rot_invariance">
         <Form.Label column>Rotational invariance:</Form.Label>
         <Col>
-          <Form.Control
-            as="select"
-            name="rot_invariance"
-            value={data.internal.settings.gabor.rot_invariance}
-            onChange={(event) =>
-              changeFilterForm(event.target.name, event.target.value)
-            }
-          >
+          <Form.Control as="select" name="rot_invariance" value={data.internal.settings.gabor.rot_invariance} onChange={changeFilterForm}>
             <option value="false">False</option>
             <option value="true">True</option>
           </Form.Control>
@@ -113,14 +84,7 @@ const GaborFilter = ({ changeFilterForm, data }) => {
       <Form.Group as={Row} controlId="orthogonal_rot">
         <Form.Label column>Orthogonal rotation:</Form.Label>
         <Col>
-          <Form.Control
-            as="select"
-            name="orthogonal_rot"
-            value={data.internal.settings.gabor.orthogonal_rot}
-            onChange={(event) =>
-              changeFilterForm(event.target.name, event.target.value)
-            }
-          >
+          <Form.Control as="select" name="orthogonal_rot" value={data.internal.settings.gabor.orthogonal_rot} onChange={changeFilterForm}>
             <option value="false">False</option>
             <option value="true">True</option>
           </Form.Control>
@@ -130,14 +94,7 @@ const GaborFilter = ({ changeFilterForm, data }) => {
       <Form.Group as={Row} controlId="padding">
         <Form.Label column>Padding:</Form.Label>
         <Col>
-          <Form.Control
-            as="select"
-            name="padding"
-            value={data.internal.settings.gabor.padding}
-            onChange={(event) =>
-              changeFilterForm(event.target.name, event.target.value)
-            }
-          >
+          <Form.Control as="select" name="padding" value={data.internal.settings.gabor.padding} onChange={changeFilterForm}>
             <option value="constant">Constant</option>
             <option value="edge">Edge</option>
             <option value="linear_ramp">Linear ramp</option>
@@ -160,12 +117,8 @@ const GaborFilter = ({ changeFilterForm, data }) => {
             name="name_save"
             type="text"
             value={data.internal.settings.gabor.name_save}
-            placeholder={
-              data.setupParam.possibleSettings.defaultSettings.gabor.name_save
-            }
-            onChange={(event) =>
-              changeFilterForm(event.target.name, event.target.value)
-            }
+            placeholder={data.setupParam.possibleSettings.defaultSettings.gabor.name_save}
+            onChange={changeFilterForm}
           />
         </Col>
       </Form.Group>

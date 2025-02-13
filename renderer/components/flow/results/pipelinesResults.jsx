@@ -1,21 +1,23 @@
-import React, { useEffect, useCallback, useState, useContext } from "react"
+import { randomUUID } from "crypto"
+import Path from "path"
 import { Accordion, AccordionTab } from "primereact/accordion"
+import { Button } from "primereact/button"
+import { SelectButton } from "primereact/selectbutton"
+import process from "process"
+import React, { useCallback, useContext, useEffect, useState } from "react"
+import * as Icon from "react-bootstrap-icons"
+import { toast } from "react-toastify"
+import { getPathSeparator, loadJsonPath } from "../../../utilities/fileManagementUtils"
 import { deepCopy } from "../../../utilities/staticFunctions"
+import AnalyseResults from "../../learning/results/node/analyseResults"
 import DataParamResults from "../../learning/results/node/dataParamResults"
 import ModelsResults from "../../learning/results/node/modelsResults"
-import AnalyseResults from "../../learning/results/node/analyseResults"
 import SaveModelResults from "../../learning/results/node/saveModelResults"
-import { SelectButton } from "primereact/selectbutton"
-import MedDataObject from "../../workspace/medDataObject"
-import { FlowResultsContext } from "../context/flowResultsContext"
+import { connectToMongoDB, insertMEDDataObjectIfNotExists, updateMEDDataObjectUsedInList } from "../../mongoDB/mongoDBUtils"
+import { MEDDataObject } from "../../workspace/NewMedDataObject"
+import { EXPERIMENTS, WorkspaceContext } from "../../workspace/workspaceContext"
 import { FlowInfosContext } from "../context/flowInfosContext"
-import { Button } from "primereact/button"
-import { toast } from "react-toastify"
-import * as Icon from "react-bootstrap-icons"
-import { WorkspaceContext, EXPERIMENTS } from "../../workspace/workspaceContext"
-import { loadJsonPath } from "../../../utilities/fileManagementUtils"
-import process from "process"
-import Path from "path"
+import { FlowResultsContext } from "../context/flowResultsContext"
 
 /**
  *
@@ -92,7 +94,7 @@ const PipelineResult = ({ pipeline, selectionMode, flowContent }) => {
         let type = selectedNode.data.internal.type
         console.log("type", type)
         if (type == "dataset" || type == "clean") {
-          toReturn = <DataParamResults selectedResults={selectedResults} />
+          toReturn = <DataParamResults selectedResults={selectedResults} type={type}/>
         } else if (["train_model", "compare_models", "stack_models", "ensemble_model", "tune_model", "blend_models", "calibrate_model"].includes(type)) {
           toReturn = <ModelsResults selectedResults={selectedResults} />
         } else if (type == "analyze") {
@@ -149,6 +151,38 @@ const PipelinesResults = ({ pipelines, selectionMode, flowContent }) => {
   }, [showResultsPane])
 
   /**
+   * @param {Array} results The results of the pipeline
+   * @param {string} notebookID The id of the notebook
+   * @returns {boolean} true if the results are in the correct format, false otherwise
+   * @description This function is used to lock the dataset to avoid the user to modify or delete it
+   */
+  const lockDataset = (results, notebookID) => {
+    let datasetId = null
+    if (!results) {
+      // if results are null, return false
+      toast.error("The results are not in the correct format")
+      return false
+    }
+    // check if the results are in the correct format
+    const isValidFormat = (results) => {
+      let key = selectedResultsId ? selectedResultsId : Object.keys(results)[0]
+      return results[key].results ? true : false
+    }
+    // get the dataset id
+    if (isValidFormat(results)) {
+      let key = selectedResultsId ? selectedResultsId : Object.keys(results)[0]
+      if (results[key].results && results[key].results.data && results[key].results.data.paths) {
+        if (results[key].results.data.paths[0].id) {
+          datasetId = results[key].results.data.paths[0].id
+        }
+      }
+    }
+    // lock and update the dataset
+    MEDDataObject.lockMedDataObject(datasetId)
+    updateMEDDataObjectUsedInList(datasetId, notebookID)
+  }
+
+  /**
    * @returns {JSX.Element} The title of the accordion tab
    *
    * @description
@@ -192,7 +226,7 @@ const PipelinesResults = ({ pipelines, selectionMode, flowContent }) => {
        * This function is used to generate the notebook corresponding to the pipeline.
        * It first gets the code and the imports of each node in the pipeline and then call the createNoteBookDoc function.
        */
-      const codeGeneration = (e) => {
+      const codeGeneration = async (e) => {
         e.preventDefault()
         e.stopPropagation()
         let finalCode = []
@@ -214,7 +248,8 @@ const PipelinesResults = ({ pipelines, selectionMode, flowContent }) => {
         })
         console.log("final code:")
         console.log(finalImports)
-        createNoteBookDoc(finalCode, finalImports)
+        let notebookID = await createNoteBookDoc(finalCode, finalImports)
+        lockDataset(flowResults, notebookID)  // Lock the dataset to avoid the user to modify or delete it
       }
 
       /**
@@ -227,9 +262,9 @@ const PipelinesResults = ({ pipelines, selectionMode, flowContent }) => {
        * This function is used to create the notebook document corresponding to the pipeline's code and imports.
        * It first loads the existing notebook or get an empty one and then fills it with the code and the imports.
        */
-      const createNoteBookDoc = (code, imports) => {
+      const createNoteBookDoc = async (code, imports) => {
         let newLineChar = "\n" // before was process.platform === "linux" ? "\n" : ""
-        let notebook = loadJsonPath([getBasePath(EXPERIMENTS), sceneName, "notebooks", pipeline.map((id) => getName(id)).join("-")].join(MedDataObject.getPathSeparator()) + ".ipynb")
+        let notebook = loadJsonPath([getBasePath(EXPERIMENTS), sceneName, "notebooks", pipeline.map((id) => getName(id)).join("-")].join(getPathSeparator()) + ".ipynb")
         notebook = notebook ? deepCopy(notebook) : deepCopy(loadJsonPath(isProd ? Path.join(process.resourcesPath, "baseFiles", "emptyNotebook.ipynb") : "./baseFiles/emptyNotebook.ipynb"))
         notebook.cells = []
         let lastType = "md"
@@ -283,9 +318,40 @@ const PipelinesResults = ({ pipelines, selectionMode, flowContent }) => {
         })
         compileLines(linesOfSameType)
 
-        MedDataObject.writeFileSync(notebook, [getBasePath(EXPERIMENTS), sceneName, "notebooks"], pipeline.map((id) => getName(id)).join("-"), "ipynb").then(() => {
-          toast.success("Notebook generated and saved !")
+        // Save the notebook locally
+        const pathToCreate = MEDDataObject.writeFileSync(
+          notebook,
+          [getBasePath(EXPERIMENTS), sceneName, "notebooks"],
+          pipeline.map((id) => getName(id)).join("-"),
+          "ipynb"
+        )
+
+        // Update the notebooks MEDDATAObject path
+        const db = await connectToMongoDB()
+        const collection = db.collection("medDataObjects")
+        const notebooksFolder = await collection.findOne({ name: "notebooks", type: "directory" })
+        await collection.updateOne({ id: notebooksFolder.id }, { $set: { path: pathToCreate } })
+
+        // Save the notebook in the database
+        const notebookObj = new MEDDataObject({
+          id: randomUUID(),
+          name: pipeline.map((id) => getName(id)).join("-") + ".ipynb",
+          type: "ipynb",
+          parentID: notebooksFolder.id,
+          childrenIDs: [],
+          path: pathToCreate,
+          isLocked: false,
+          inWorkspace: true
         })
+
+        // Insert the notebook in the database
+        let notebookID = await insertMEDDataObjectIfNotExists(notebookObj)
+        MEDDataObject.updateWorkspaceDataObject()
+
+        // If the file is written successfully, display the success toast
+        toast.success("Notebook generated and saved locally!")
+
+        return notebookID
       }
 
       return (
