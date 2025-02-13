@@ -226,6 +226,7 @@ const HoldoutSetCreationToolsDB = ({ currentCollection }) => {
               value={selectedColumns}
               options={columns.filter((col) => col !== "_id")}
               onChange={(e) => setSelectedColumns(e.value)}
+              filter
               placeholder="Select Columns"
               disabled={!(shuffle && stratify)}
               style={{ marginLeft: "30px", marginTop: "10px" }}
