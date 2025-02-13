@@ -21,6 +21,8 @@ func AddHandleFunc() {
 	Utils.CreateHandleFunc(prePath+"/create_tags/", handleCreateTags)
 	Utils.CreateHandleFunc(prePath+"/delete_tag_from_column/", handleDeleteTagFromColumn)
 	Utils.CreateHandleFunc(prePath+"/handle_pkl/", handlePKL)
+	Utils.CreateHandleFunc(prePath+"/delete_columns/", deleteColumns)
+	Utils.CreateHandleFunc(prePath+"/transform_columns/", transformColumns)
 }
 
 
@@ -168,6 +170,30 @@ func handleDeleteTagFromColumn(jsonConfig string, id string) (string, error) {
 func handlePKL(jsonConfig string, id string) (string, error) {
 	log.Println("handling .pkl filetype", id)
 	response, err := Utils.StartPythonScripts(jsonConfig, "../pythonCode/modules/input/handle_pkl.py", id)
+	Utils.RemoveIdFromScripts(id)
+	if err != nil {
+		return "", err
+	}
+	return response, nil
+}
+
+// deleteColumns handles the request to delete columns from the DB
+// It returns the response from the python script
+func deleteColumns(jsonConfig string, id string) (string, error) {
+	log.Println("Deleting Columns", id)
+	response, err := Utils.StartPythonScripts(jsonConfig, "../pythonCode/modules/input/delete_columns.py", id)
+	Utils.RemoveIdFromScripts(id)
+	if err != nil {
+		return "", err
+	}
+	return response, nil
+}
+
+// transformColumns handles the request to transform columns from the DB
+// It returns the response from the python script
+func transformColumns(jsonConfig string, id string) (string, error) {
+	log.Println("Transforming Columns", id)
+	response, err := Utils.StartPythonScripts(jsonConfig, "../pythonCode/modules/input/transform_columns.py", id)
 	Utils.RemoveIdFromScripts(id)
 	if err != nil {
 		return "", err

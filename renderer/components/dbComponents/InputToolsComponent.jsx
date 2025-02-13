@@ -28,7 +28,7 @@ import { getCollectionSize } from "../mongoDB/mongoDBUtils.js"
  * @param {Object[]} props.innerData - Inner data
  * @param {Object} props.lastEdit - Last edit
  */
-const InputToolsComponent = ({ exportOptions, transformData, lastEdit }) => {
+const InputToolsComponent = ({ exportOptions, lastEdit }) => {
   const { globalData } = useContext(DataContext) // We get the global data from the context
   const [collectionId, setCollectionId] = useState(null)
   const [collectionSize, setCollectionSize] = useState(0)
@@ -99,7 +99,7 @@ const InputToolsComponent = ({ exportOptions, transformData, lastEdit }) => {
             <DropDuplicatesToolsDB exportOptions={exportOptions} currentCollection={!collectionId ? null : collectionId} />
           </Panel>
           <Panel header="Transform Column Tools" toggleable collapsed={true}>
-            <TransformColumnToolsDB transformData={transformData} currentCollection={!collectionId ? null : collectionId} />
+            <TransformColumnToolsDB currentCollection={!collectionId ? null : collectionId} />
           </Panel>
           <Panel header="Merge Tools" toggleable collapsed={true}>
             <MergeToolsDB currentCollection={!collectionId ? null : collectionId} />

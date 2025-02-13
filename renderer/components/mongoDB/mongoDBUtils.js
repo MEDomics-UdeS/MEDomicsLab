@@ -1,4 +1,4 @@
-const { MongoClient, GridFSBucket } = require("mongodb")
+const { MongoClient } = require("mongodb")
 const fs = require("fs")
 const Papa = require("papaparse")
 
@@ -418,35 +418,16 @@ export async function deleteMEDDataObject(id) {
  * @returns {Array} An array of column names
  */
 export async function getCollectionColumns(collectionId) {
-  const db = await connectToMongoDB()
-  const collection = db.collection(collectionId)
+  try {
+    const db = await connectToMongoDB()
+    const collection = db.collection(collectionId)
+    const document = await collection.findOne({}) // Fetch first document
 
-  // Use aggregation to get keys in the order they appear
-  const result = await collection
-    .aggregate([
-      { $project: { keys: { $objectToArray: "$$ROOT" } } },
-      { $unwind: "$keys" },
-      { $group: { _id: null, keys: { $push: "$keys.k" } } },
-      {
-        $project: {
-          _id: 0,
-          keys: {
-            $reduce: {
-              input: "$keys",
-              initialValue: [],
-              in: { $cond: [{ $in: ["$$this", "$$value"] }, "$$value", { $concatArrays: ["$$value", ["$$this"]] }] }
-            }
-          }
-        }
-      }
-    ])
-    .toArray()
-
-  if (result.length > 0) {
-    return result[0].keys.filter((key) => key !== "_id")
+    return document ? Object.keys(document) : [] // Return column names or empty array
+  } catch (error) {
+    console.error("Error fetching collection columns:", error)
+    return [] // Return empty array to avoid breaking UI
   }
-
-  return []
 }
 
 /**
