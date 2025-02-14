@@ -47,25 +47,35 @@ class GoExecScriptGetMissingValues(GoExecutionScript):
         collection = db[collection_id]
 
         # Fetch all documents from the collection by using a batch method
-        # This way, i parallelize the process of fetching the data and it's way faster
         batch_size = 10000
         columns_data = []
         row_data = []
         total_rows = collection.count_documents({})
 
+        def is_nan(value):
+            """Check if a value is NaN, None, or an empty string"""
+            if value in [None, ""]:
+                return True
+            if isinstance(value, dict) and "$numberDouble" in value and value["$numberDouble"] == "NaN":
+                return True
+            if isinstance(value, float) and np.isnan(value):
+                return True
+            return False
+
         def process_batch(batch):
             batch_columns_data = []
             batch_row_data = []
             columns = batch[0].keys() if batch else []
+
             for column in columns:
                 if column == "_id":
                     continue
-                NaNValues = sum(1 for row in batch if row.get(column) in [None, ""])
+                NaNValues = sum(1 for row in batch if is_nan(row.get(column)))
                 percentage = (NaNValues / len(batch)) * 100 if batch else 0
                 batch_columns_data.append({"column": column, "numEmpty": NaNValues, "percentage": f"{percentage:.2f}%"})
 
             for index, row in enumerate(batch):
-                NaNValues = sum(1 for value in row.values() if value in [None, "", ""])
+                NaNValues = sum(1 for value in row.values() if is_nan(value))
                 percentage = (NaNValues / (len(row) - 1)) * 100 if len(row) > 1 else 0
                 batch_row_data.append({"rowIndex": index, "numEmpty": NaNValues, "percentage": f"{percentage:.2f}%"})
 
