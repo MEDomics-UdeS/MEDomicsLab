@@ -12,7 +12,7 @@ import * as React from "react"
 import { useContext, useEffect, useState } from "react"
 import { Row } from "react-bootstrap"
 import { toast } from "react-toastify"
-import { insertMEDDataObjectIfNotExists } from "../../mongoDB/mongoDBUtils"
+import { insertMEDDataObjectIfNotExists, connectToMongoDB } from "../../mongoDB/mongoDBUtils"
 import { MEDDataObject } from "../../workspace/NewMedDataObject"
 import { DataContext } from "../../workspace/dataContext"
 import { getCollectionColumnTypes } from "../utils"
@@ -87,14 +87,13 @@ const SubsetCreationToolsDB = ({ currentCollection, refreshData }) => {
 
   // Overwrites the current collection with the filtered data
   const overwriteCollection = async () => {
-    let jsonToSend = {}
+    /**
+     * COMMENTED FOR NOW BECAUSE THE CLI LIMIT ON WINDOWS IS NOT WORKING
+     */
+    /*let jsonToSend = {}
     jsonToSend["collection"] = currentCollection
     jsonToSend["database_name"] = "data"
-
-    // remove this
     jsonToSend["data"] = filteredData
-
-    // jsonToSend["query"] = query...
 
     setLoadingButtonOverwrite(true)
 
@@ -111,7 +110,23 @@ const SubsetCreationToolsDB = ({ currentCollection, refreshData }) => {
         toast.error("Failed to overwrite collection.")
         console.error("Failed to overwrite collection:", error)
       }
-    )
+    )*/
+
+    // THIS METHOD IS NOT OPTIMAL BUT IT IS WORKING FOR BIG FILES TOO BECAUSE
+    // THE FILTERED DATA IS LOADED IN THE BACKEND, SO NO CLIENT-SIDE LOADING
+    try {
+      setLoadingButtonOverwrite(true)
+      const db = await connectToMongoDB()
+      const collection = db.collection(currentCollection)
+      await collection.deleteMany({})
+      await collection.insertMany(filteredData)
+      toast.success(`${globalData[currentCollection].name} overwritten with filtered data.`)
+      setLoadingButtonOverwrite(false)
+    } catch (error) {
+      setLoadingButtonOverwrite(false)
+      toast.error("Failed to overwrite collection")
+      console.error("Failed to overwrite collection:", error)
+    }
   }
 
   // Creates a new collection subset with the filtered data
@@ -154,14 +169,15 @@ const SubsetCreationToolsDB = ({ currentCollection, refreshData }) => {
       return
     }
 
-    let jsonToSend = {}
+    /**
+     * COMMENTED FOR NOW BECAUSE THE CLI LIMIT ON WINDOWS IS NOT WORKING
+     */
+
+    /*let jsonToSend = {}
     jsonToSend["collection"] = currentCollection
     jsonToSend["database_name"] = "data"
     jsonToSend["new_collection_name"] = id
-
-    // remove this
     jsonToSend["data"] = filteredData
-    // jsonToSend["query"] = query...
 
     setLoadingButtonNewCollection(true)
 
@@ -171,15 +187,32 @@ const SubsetCreationToolsDB = ({ currentCollection, refreshData }) => {
       jsonToSend,
       (response) => {
         setLoadingButtonNewCollection(false)
+        insertMEDDataObjectIfNotExists(object)
+        MEDDataObject.updateWorkspaceDataObject()
         toast.success(`New subset ${collectionName} created with filtered data.`)
       },
       (error) => {
         setLoadingButtonNewCollection(false)
+        toast.error("Failed to create new collection")
         console.error("Failed to create new collection:", error)
       }
-    )
-    await insertMEDDataObjectIfNotExists(object)
-    MEDDataObject.updateWorkspaceDataObject()
+    )*/
+
+    // THIS METHOD IS NOT OPTIMAL BUT IT IS WORKING FOR BIG FILES TOO BECAUSE
+    // THE FILTERED DATA IS LOADED IN THE BACKEND, SO NO CLIENT-SIDE LOADING
+    try {
+      setLoadingButtonNewCollection(true)
+      const db = await connectToMongoDB()
+      const collection = db.collection(id)
+      await collection.insertMany(filteredData)
+      insertMEDDataObjectIfNotExists(object)
+      MEDDataObject.updateWorkspaceDataObject()
+      toast.success(`New subset ${collectionName} created with filtered data.`)
+      setLoadingButtonNewCollection(false)
+    } catch (error) {
+      toast.error("Failed to create new collection")
+      console.error("Failed to create new collection:", error)
+    }
   }
 
   return (
