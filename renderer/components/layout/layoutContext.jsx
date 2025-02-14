@@ -173,7 +173,7 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
         name: object.data,
         id: object.index,
         component: component,
-        config: { id: object.index, name: object.data, extension: object.type }
+        config: { id: object.index, name: object.data, extension: object.type, fileSize: getCollectionSize(object.index) }
       }
       let layoutRequestQueueCopy = [...layoutRequestQueue]
       layoutRequestQueueCopy.push({ type: "ADD_TAB", payload: newChild })
@@ -485,20 +485,20 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
       openInTab(action, "dataTableFromDB")
       return
     }
-    const doesCollectionExists = await collectionExists(object.index)
+    // const doesCollectionExists = await collectionExists(object.index)
 
-    // 16mb max BSON size
-    const maxBSONSize = 16777216
-    const fileSize = await getCollectionSize(object.index)
-    console.log("size", fileSize)
+    // // 16mb max BSON size
+    // const maxBSONSize = 16777216
+    // const fileSize = await getCollectionSize(object.index)
+    // console.log("size", fileSize)
 
-    if (!doesCollectionExists) {
-      toast.error("The collection does not exist in the database. Try reloading the page.")
-    } else if (fileSize > maxBSONSize) {
-      toast.warn("The file is too large to be displayed in the data table, but you can still use it freely in the application.")
-    } else {
-      openInTab(action, "dataTableFromDB")
-    }
+    // if (!doesCollectionExists) {
+    //   toast.error("The collection does not exist in the database. Try reloading the page.")
+    // } else if (fileSize > maxBSONSize) {
+    //   toast.warn("The file is too large to be displayed in the data table, but you can still use it freely in the application.")
+    // } else {
+    openInTab(action, "dataTableFromDB")
+    // }
   }
 
   /**

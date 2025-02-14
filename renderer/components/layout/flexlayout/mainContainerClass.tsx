@@ -51,7 +51,7 @@ import NotebookEditor from "../../mainPages/notebookEditor"
 import OutputPage from "../../mainPages/output"
 import SettingsPage from "../../mainPages/settings"
 import TerminalPage from "../../mainPages/terminal"
-import { updateMEDDataObjectName, updateMEDDataObjectPath } from "../../mongoDB/mongoDBUtils"
+import { getCollectionSize, updateMEDDataObjectName, updateMEDDataObjectPath } from "../../mongoDB/mongoDBUtils"
 import { DataContext } from "../../workspace/dataContext"
 import { MEDDataObject } from "../../workspace/NewMedDataObject"
 import { LayoutModelContext } from "../layoutContext"
@@ -665,6 +665,29 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
       )
     } else if (component === "dataTableFromDB") {
       const config = node.getConfig()
+      if (!config.fileSize || typeof config.fileSize.then === "function") {
+        getCollectionSize(config.id)
+          .then((size) => {
+            config.fileSize = size
+
+            // 16mb max BSON size
+            const maxBSONSize = 16777216
+
+            // Check if the file size is greater than maxBSONSize
+            const isReadOnly = config.fileSize > maxBSONSize
+
+            //console log that explains that it will be read only because of the file size
+            if (isReadOnly) {
+              toast.warn("This file remains usable in the various tools but is read-only due to its size.")
+            }
+
+            this.forceUpdate() // Force a re-render to update the component with the new fileSize
+          })
+          .catch((error) => {
+            console.error("Error getting collection size:", error)
+          })
+      }
+
       if (node.getExtraData().data == null) {
         const whenDataLoaded = (data) => {
           node.getExtraData().data = data
@@ -674,7 +697,7 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
 
       return (
         <>
-          <DataTableFromDB data={node.getConfig()} isReadOnly={(node.getConfig().extension === "view") ? true : false} />
+          <DataTableFromDB data={config} isReadOnly={config.fileSize > 16777216 || config.extension === "view"} />
         </>
       )
     } else if (component === "learningPage") {
