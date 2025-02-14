@@ -117,7 +117,7 @@ const InputToolsComponent = ({ exportOptions }) => {
             <GroupingTaggingToolsDB />
           </Panel>
           <Panel header="Feature Reduction Tools" toggleable collapsed={true}>
-            <FeatureReductionToolsDB />
+            <FeatureReductionToolsDB currentCollection={!collectionId ? null : collectionId} />
           </Panel>
           <Panel header="MEDprofiles" toggleable collapsed={true}>
             <ModulePage>
