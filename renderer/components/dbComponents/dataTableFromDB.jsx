@@ -18,6 +18,7 @@ import { ServerConnectionContext } from "../serverConnection/connectionContext"
 import { MEDDataObject } from "../workspace/NewMedDataObject"
 import InputToolsComponent from "./InputToolsComponent"
 import { collectionExists, getCollectionData } from "./utils"
+import { set } from "lodash"
 
 /**
  * DataTableFromDB component
@@ -42,6 +43,7 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
   const [columnToDelete, setColumnToDelete] = useState(null)
   const [lastPipeline, setLastPipeline] = useState([])
   const [loadingData, setLoadingData] = useState(true)
+  const [loadingTag, setloadingTag] = useState(false)
   const items = Array.from({ length: 7 }, (v, i) => i) //  Fake items for the skeleton upload
   const forbiddenCharacters = /[\\."$*<>:|?]/
   const exportOptions = [
@@ -411,17 +413,31 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
       tagCollection: tagId,
       databaseName: "data"
     }
-    console.log("id", tagId)
-    requestBackend(port, "/input/delete_tag_from_column/", jsonToSend, (jsonResponse) => {
-      console.log("jsonResponse", jsonResponse)
-    })
-    // Delete the tag from the column in the frontend
-    const updatedMap = { ...columnNameToTagsMap }
-    const tags = updatedMap[hoveredTag.field]
-    const updatedTags = tags.split(", ").filter((t) => t !== tag)
-    updatedMap[hoveredTag.field] = updatedTags.join(", ")
-    setColumnNameToTagsMap(updatedMap)
-    toast.success("Tag deleted successfully.")
+
+    setloadingTag(true)
+
+    requestBackend(
+      port,
+      "/input/delete_tag_from_column/",
+      jsonToSend,
+      (jsonResponse) => {
+        console.log("jsonResponse", jsonResponse)
+
+        setloadingTag(false)
+
+        const updatedMap = { ...columnNameToTagsMap }
+        const tags = updatedMap[hoveredTag.field]
+        const updatedTags = tags.split(", ").filter((t) => t !== tag)
+        updatedMap[hoveredTag.field] = updatedTags.join(", ")
+        setColumnNameToTagsMap(updatedMap)
+        toast.success("Tag deleted successfully.")
+      },
+      (error) => {
+        console.error("Error deleting tag:", error)
+        setloadingTag(false)
+        toast.error("Failed to delete tag.")
+      }
+    )
   }
 
   const [tagColorMap, setTagColorMap] = useState(() => {
@@ -816,6 +832,7 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
                                     </div>
                                     <Chip
                                       label={tag}
+                                      loading={loadingTag}
                                       style={{
                                         backgroundColor: getColorForTag(tag),
                                         fontSize: "0.75rem",

@@ -12,16 +12,19 @@ import * as React from "react"
 import { useContext, useEffect, useState } from "react"
 import { Row } from "react-bootstrap"
 import { toast } from "react-toastify"
-import { connectToMongoDB, insertMEDDataObjectIfNotExists } from "../../mongoDB/mongoDBUtils"
+import { insertMEDDataObjectIfNotExists } from "../../mongoDB/mongoDBUtils"
 import { MEDDataObject } from "../../workspace/NewMedDataObject"
 import { DataContext } from "../../workspace/dataContext"
-import { getCollectionColumnTypes, getCollectionData } from "../utils"
+import { getCollectionColumnTypes } from "../utils"
+import { ServerConnectionContext } from "../../serverConnection/connectionContext"
+import { requestBackend } from "../../../utilities/requests"
+
+// the python script command send by CLI when i do requestbacked with alot of filtered data is not working
+// I need to fix this issue by sending the query instead of the full filtered data.
 
 /**
  * @description
  * This component provides tools to create a subset from a dataset.
- * @param {Object} props
- * @param {Function} props.refreshData - Function to refresh the data
  * @param {string} props.currentCollection - Current collection
  */
 const SubsetCreationToolsDB = ({ currentCollection, refreshData }) => {
@@ -33,41 +36,43 @@ const SubsetCreationToolsDB = ({ currentCollection, refreshData }) => {
   const [filteredData, setFilteredData] = useState([])
   const { globalData } = useContext(DataContext)
   const filterDisplay = "menu"
+  const [loadingData, setLoadingData] = useState(false)
+  const [loadingButtonOverwrite, setLoadingButtonOverwrite] = useState(false)
+  const [loadingButtonNewCollection, setLoadingButtonNewCollection] = useState(false)
+  const { port } = useContext(ServerConnectionContext)
 
+  // Fetches the data from the current collection in the backend directly.
+  // Returns the data and columns of the current collection. This is called everytime you open the tool.
   useEffect(() => {
     const fetchData = async () => {
-      const collectionData = await getCollectionData(currentCollection)
-      const formattedData = collectionData.map((row) => {
-        return {
-          ...row
+      const jsonToSend = {}
+      jsonToSend["collection"] = currentCollection
+      jsonToSend["database_name"] = "data"
+
+      setLoadingData(true)
+
+      const response = await requestBackend(
+        port,
+        "/input/get_subset_data/",
+        jsonToSend,
+        async (response) => {
+          setLoadingData(false)
+          setData(response.data)
+          setColumns(response.columns)
+          const collectionColumnTypes = await getCollectionColumnTypes(currentCollection)
+          setColumnTypes(collectionColumnTypes)
+          initFiltersDynamically(response.columns, collectionColumnTypes)
+        },
+        (error) => {
+          setLoadingData(false)
+          console.error("Failed to fetch missing values data:", error)
         }
-      })
-      setData(formattedData)
-      setFilteredData(formattedData)
-      console.log(formattedData)
-
-      const columns = Object.keys(formattedData[0])
-        .filter((key) => key !== "_id")
-        .map((key) => ({
-          field: key,
-          header: key.charAt(0).toUpperCase() + key.slice(1)
-        }))
-      setColumns(columns)
-      console.log(columns)
-
-      const collectionColumnTypes = await getCollectionColumnTypes(currentCollection)
-      setColumnTypes(collectionColumnTypes)
-      console.log(collectionColumnTypes)
-
-      initFiltersDynamically(columns, columnTypes)
+      )
     }
     fetchData()
   }, [currentCollection])
 
-  useEffect(() => {
-    console.log("filteredData", filteredData)
-  }, [filteredData])
-
+  // Initializes the filters dynamically based on the column types
   const initFiltersDynamically = (columns, columnTypes) => {
     columns.reduce((acc, col) => {
       const type = columnTypes[col.field]
@@ -80,14 +85,36 @@ const SubsetCreationToolsDB = ({ currentCollection, refreshData }) => {
     }, {})
   }
 
+  // Overwrites the current collection with the filtered data
   const overwriteCollection = async () => {
-    const db = await connectToMongoDB()
-    const collection = db.collection(currentCollection)
-    await collection.deleteMany({})
-    await collection.insertMany(filteredData)
-    toast.success(`Data in ${globalData[currentCollection].name} overwritten with filtered data.`)
+    let jsonToSend = {}
+    jsonToSend["collection"] = currentCollection
+    jsonToSend["database_name"] = "data"
+
+    // remove this
+    jsonToSend["data"] = filteredData
+
+    // jsonToSend["query"] = query...
+
+    setLoadingButtonOverwrite(true)
+
+    requestBackend(
+      port,
+      "/input/overwrite_collection/",
+      jsonToSend,
+      (response) => {
+        setLoadingButtonOverwrite(false)
+        toast.success(`Data in ${globalData[currentCollection].name} overwritten with filtered data.`)
+      },
+      (error) => {
+        setLoadingButtonOverwrite(false)
+        toast.error("Failed to overwrite collection.")
+        console.error("Failed to overwrite collection:", error)
+      }
+    )
   }
 
+  // Creates a new collection subset with the filtered data
   const createNewCollectionSubset = async (newCollectionName) => {
     let collectionName = newCollectionName + ".csv"
     const id = randomUUID()
@@ -103,7 +130,7 @@ const SubsetCreationToolsDB = ({ currentCollection, refreshData }) => {
     // Check if the collection already exists
     let exists = false
     for (const item of Object.keys(globalData)) {
-      if (globalData[item].name && globalData[item].name === globalData[currentCollection].name) {
+      if (globalData[item].name && globalData[item].name === collectionName) {
         exists = true
         break
       }
@@ -127,12 +154,32 @@ const SubsetCreationToolsDB = ({ currentCollection, refreshData }) => {
       return
     }
 
-    const db = await connectToMongoDB()
-    const newCollection = await db.createCollection(id)
-    await newCollection.insertMany(filteredData)
+    let jsonToSend = {}
+    jsonToSend["collection"] = currentCollection
+    jsonToSend["database_name"] = "data"
+    jsonToSend["new_collection_name"] = id
+
+    // remove this
+    jsonToSend["data"] = filteredData
+    // jsonToSend["query"] = query...
+
+    setLoadingButtonNewCollection(true)
+
+    requestBackend(
+      port,
+      "/input/create_new_collection/",
+      jsonToSend,
+      (response) => {
+        setLoadingButtonNewCollection(false)
+        toast.success(`New subset ${collectionName} created with filtered data.`)
+      },
+      (error) => {
+        setLoadingButtonNewCollection(false)
+        console.error("Failed to create new collection:", error)
+      }
+    )
     await insertMEDDataObjectIfNotExists(object)
     MEDDataObject.updateWorkspaceDataObject()
-    toast.success(`New subset ${collectionName} created with filtered data.`)
   }
 
   return (
@@ -151,7 +198,7 @@ const SubsetCreationToolsDB = ({ currentCollection, refreshData }) => {
         text="The Subset Creation tool enables the creation of a subset of rows from a dataset by applying filters to columns."
       />
       <Message style={{ marginBottom: "15px" }} severity="success" text={`Current Collection: ${globalData[currentCollection].name}`} />
-      <Card style={{width: "900px"}}>
+      <Card style={{ width: "900px" }}>
         <DataTable
           onValueChange={(e) => {
             setFilteredData(e)
@@ -162,6 +209,7 @@ const SubsetCreationToolsDB = ({ currentCollection, refreshData }) => {
           rows={7}
           rowsPerPageOptions={[5, 10, 15, 20]}
           size={"small"}
+          loading={loadingData}
           removableSort={true}
           filters={filters}
           filterDisplay={filterDisplay}
@@ -186,21 +234,13 @@ const SubsetCreationToolsDB = ({ currentCollection, refreshData }) => {
           onClick={overwriteCollection}
           tooltip="Overwrite current collection with filtered data"
           tooltipOptions={{ position: "top" }}
+          loading={loadingButtonOverwrite}
         />
         <div className="p-inputgroup w-full md:w-30rem" style={{ margin: "10px", fontSize: "1rem", width: "230px", marginTop: "5px" }}>
-          <InputText 
-            value={newCollectionName} 
-            onChange={(e) => setNewCollectionName(e.target.value)} 
-            placeholder="New subset name"
-          />
+          <InputText value={newCollectionName} onChange={(e) => setNewCollectionName(e.target.value)} placeholder="New subset name" />
           <span className="p-inputgroup-addon">.csv</span>
         </div>
-        <Button
-          icon="pi pi-plus"
-          onClick={() => createNewCollectionSubset(newCollectionName)}
-          tooltip="Create subset"
-          tooltipOptions={{ position: "top" }}
-        />
+        <Button loading={loadingButtonNewCollection} icon="pi pi-plus" onClick={() => createNewCollectionSubset(newCollectionName)} tooltip="Create subset" tooltipOptions={{ position: "top" }} />
       </div>
     </div>
   )

@@ -22,8 +22,6 @@ import { getCollectionColumns } from "../../mongoDB/mongoDBUtils"
 /**
  * @description
  * This component provides tools to create a holdout set from a dataset.
- * @param {Object} props
- * @param {Function} props.refreshData - Function to refresh the data
  * @param {string} props.currentCollection - Current collection
  *
  */
@@ -41,6 +39,7 @@ const HoldoutSetCreationToolsDB = ({ currentCollection }) => {
   const { globalData } = useContext(DataContext)
   const { port } = useContext(ServerConnectionContext)
 
+  // Fetch the columns of the current collection without fetching the whole dataset
   useEffect(() => {
     const fetchData = async () => {
       const collectionColumns = await getCollectionColumns(currentCollection)
@@ -62,8 +61,6 @@ const HoldoutSetCreationToolsDB = ({ currentCollection }) => {
 
   /**
    * Function to create the holdout set, send the request to the backend
-   * @returns {Void}
-   * @async
    */
   const createHoldoutSet = async () => {
     let collectionName = newCollectionName + ".csv"

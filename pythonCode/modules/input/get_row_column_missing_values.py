@@ -18,7 +18,7 @@ go_print("running script.py:" + id_)
 
 class GoExecScriptGetMissingValues(GoExecutionScript):
     """
-        This class is used to execute the tags creation script
+        This class is used to execute the missing values script
 
         Args:
             json_params: The input json params
