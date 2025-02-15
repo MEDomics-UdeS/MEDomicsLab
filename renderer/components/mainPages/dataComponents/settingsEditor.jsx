@@ -30,7 +30,7 @@ function TextureParams({ModSettings, activeIndex, setActiveIndex, discretisation
                 placeholder={ModSettings.discretisation.texture.type[indexAlgo]}
                 onChange={(event) => {
                     console.log(ModSettings);
-                    ModSettings.discretisation.texture.type[indexAlgo] = event.target.value;
+                    ModSettings.discretisation.texture.type[indexAlgo] = event.target.value.name;
                     setActiveIndex(!activeIndex);
                 }}/>
         </Col>
@@ -1243,7 +1243,7 @@ const renderParamsPanel = (activeIndex, setActiveIndex, setShowEdit, ModSettings
                             placeholder={ModSettings.discretisation.IH.type} 
                             onChange={(event) => {
                                 console.log(event.target.value);
-                                ModSettings.discretisation.IH.type = event.target.value;
+                                ModSettings.discretisation.IH.type = event.target.value.name;
                                 setActiveIndex(!activeIndex);
                             }} 
                         />
@@ -1285,8 +1285,13 @@ const renderParamsPanel = (activeIndex, setActiveIndex, setShowEdit, ModSettings
                             optionLabel="name" 
                             placeholder={ModSettings.discretisation.IVH.type} 
                             onChange={(event) => {
-                                ModSettings.discretisation.IVH.type = event.target.value;
-                                setActiveIndex(!activeIndex);
+                                if (!event.target.value) {
+                                    ModSettings.discretisation.IVH = {}
+                                }
+                                else {
+                                    ModSettings.discretisation.IVH.type = event.target.value.name;
+                                    setActiveIndex(!activeIndex);
+                                }
                             }} 
                         />
                     </Col>
@@ -1298,8 +1303,12 @@ const renderParamsPanel = (activeIndex, setActiveIndex, setShowEdit, ModSettings
                             id='valueIVH'
                             value={ModSettings.discretisation.IVH.val}
                             onValueChange={(event) => {
-                                ModSettings.discretisation.IVH.val = event.target.value;
-                                setActiveIndex(!activeIndex);
+                                if (!event.target.value) {
+                                    ModSettings.discretisation.IVH = {}
+                                } else {
+                                    ModSettings.discretisation.IVH.val = event.target.value;
+                                    setActiveIndex(!activeIndex);
+                                }
                             }} 
                             mode="decimal"
                         />
@@ -1447,8 +1456,7 @@ const renderParamsPanel = (activeIndex, setActiveIndex, setShowEdit, ModSettings
                         checked={ModSettings.extract.Morph}
                         onChange={(e) => {
                             console.log(e)
-                            console.log("ModSettings", ModSettings.extract)
-                            console.log("ModSettings", ModSettings.extract.Morph)
+                            console.log("ModSettings", ModSettings)
                             ModSettings.extract.Morph = e.value
                             setActiveIndex(!activeIndex)
                         }} 
