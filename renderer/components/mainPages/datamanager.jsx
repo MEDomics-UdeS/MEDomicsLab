@@ -60,6 +60,7 @@ const DataManager = ({ pageId, configPath = "" }) => {
   
   useEffect(() => {
     updateWSfolder()
+    updateCSVFilesList()
     }, [globalData])
 
   const updateWSfolder = () => {
