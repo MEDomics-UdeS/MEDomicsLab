@@ -82,7 +82,7 @@ const ExtractionNode = ({ id, data }) => {
    */
   const renderTree = () => {
     // Check if data.internal.settings.results is available
-    if (data.internal.results && Object.keys(data.internal.results).length > 1) {
+    if (data.internal.results && Object.keys(data.internal.results).length > 0) {
       const nodes = convertDataToNodes(data.internal.results)
 
       return (

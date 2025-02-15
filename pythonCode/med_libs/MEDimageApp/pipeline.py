@@ -136,7 +136,7 @@ class Pipeline:
         for i in range(len(self.nodes)):
             self.nodes[i].change_params(new_pipeline.nodes[i].params)
     
-    def run(self, set_progress: dict, node_id: str = "all") -> dict:
+    def run(self, set_progress: dict, node_id: str = "all", pipeline_number: int = 1) -> dict:
         """
         Runs the pipeline up to the node associated with node_id and collects the results
         in a dictionary.
@@ -165,12 +165,18 @@ class Pipeline:
 
         # Run each node in the pipeline in order up to node_id
         for index, node in enumerate(self.nodes, start = 1):
-            node.run(self)
             
             # Update the progress bar
-            progress = int(index * 100 / number_nodes)
-            set_progress(now=progress, label=f"Pipeline " + self.pipeline_name + " | Running node : " + node.name)
+            if node.name.lower() != "extraction":
+                progress = int(index * 100 / number_nodes)
+                set_progress(now=progress, label=f"Pipeline " + str(pipeline_number) + " | Running node : " + node.name)
 
+            # Run node
+            if node.name.lower() == "extraction":
+                node.run(self, pipeline_number, set_progress, progress)
+            else:
+                node.run(self)
+            
             if node.id == node_id:
                 break
         
@@ -184,8 +190,5 @@ class Pipeline:
         self.MEDimg = None
         self.latest_node_output = {key: None for key in ["vol", "roi"]}
         self.latest_node_output_texture = {key: None for key in ["vol", "roi"]}
-
-        # The pipeline is done executing, set the progress to 100%
-        set_progress(now=100, label=f"Ending pipeline : " + self.pipeline_name)
 
         return results

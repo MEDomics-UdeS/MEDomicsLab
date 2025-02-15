@@ -155,10 +155,10 @@ class ExtractionWorkflow:
         node_pipelines = [pipeline for pipeline in self.pipelines if node_id == "all" or pipeline.contains_node(node_id)]
         
         # Go over each pipeline
-        for pipeline in node_pipelines:
+        for idx, pipeline in enumerate(node_pipelines):
             
             # Run the pipeline
-            res = pipeline.run(set_progress, node_id)
+            res = pipeline.run(set_progress, node_id, idx+1)
             
             # Get the filepath associated with the pipeline
             filepath = pipeline.nodes[0].filepath  # A pipeline starts with an input node, the filepath is stored in the input node
