@@ -57,6 +57,10 @@ const SubsetCreationToolsDB = ({ currentCollection, refreshData }) => {
         jsonToSend,
         async (response) => {
           setLoadingData(false)
+          if (!response || !response.data) {
+            console.error("Received an invalid response", response)
+            return
+          }
           setData(response.data)
           setColumns(response.columns)
           const collectionColumnTypes = await getCollectionColumnTypes(currentCollection)

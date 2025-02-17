@@ -1,81 +1,79 @@
 import json
 import sys
-import numpy as np
 import os
 import pandas as pd
 from pathlib import Path
-sys.path.append(
-    str(Path(os.path.dirname(os.path.abspath(__file__))).parent.parent))
-from concurrent.futures import ThreadPoolExecutor, as_completed
+sys.path.append(str(Path(os.path.dirname(os.path.abspath(__file__))).parent.parent))
 from med_libs.GoExecutionScript import GoExecutionScript, parse_arguments
 from med_libs.server_utils import go_print
-
-# To deal with the DB
 from pymongo import MongoClient
 
 json_params_dict, id_ = parse_arguments()
-go_print("running script.py:" + id_)
+go_print(f"Starting get_subset_data.py for ID: {id_}")
 
 class GoExecScriptGetSubsetData(GoExecutionScript):
-    """
-        This class is used to execute the get subset data script
-
-        Args:
-            json_params: The input json params
-            _id: The id of the page that made the request if any
-    """
-
     def __init__(self, json_params: dict, _id: str = None):
         super().__init__(json_params, _id)
-        self.results = {"data": "nothing to return"}
+        self.results = {"data": [], "columns": []}
 
     def _custom_process(self, json_config: dict) -> dict:
-        """
-        This function is used to get the subset data from the database
+        try:
+            # 1. Get Parameters with validation
+            database_name = json_config.get("database_name", "data")
+            collection_id = json_config.get("collection")
+            if not collection_id:
+                raise ValueError("Missing collection parameter")
 
-        Args:
-            json_config: The input json params
-        """
+            # 2. MongoDB Connection with batch processing
+            client = MongoClient('localhost', 54017)
+            db = client[database_name]
+            collection = db[collection_id]
 
-        # Get the Data from the JsonToSend
-        database_name = json_config["database_name"]
-        collection_id = json_config["collection"]
-        
-        # Connect to the database and connect to the tag_collection
-        client = MongoClient('localhost', 54017)
-        db = client[database_name]
-        collection = db[collection_id]
+            # 3. Batch processing with cursor
+            batch_size = 500  # Adjust based on column count
+            cursor = collection.find({}).batch_size(batch_size)
+            
+            # 4. Stream data into DataFrame
+            data_chunks = []
+            for doc in cursor:
+                # Remove _id immediately to reduce memory
+                doc.pop('_id', None)  
+                data_chunks.append(doc)
 
-        def fetch_data():
-            return list(collection.find({}))
+            # 5. Create DataFrame with NaN handling
+            df = pd.DataFrame(data_chunks)
+            go_print(f"DataFrame created with shape: {df.shape}")
 
-        def process_data(data):
-            data = pd.DataFrame(data)
-            data = data.drop("_id", axis=1)
-            return data
+            # 6. Convert NaN/NaT to None for JSON compatibility
+            df = df.where(pd.notnull(df), None)
 
-        def transform_data(data):
-            return data.to_dict(orient='records')
+            # 7. Prepare response data
+            transformed_data = df.to_dict(orient='records')
+            columns = [{"field": col, "header": col} for col in df.columns]
 
-        def extract_columns(data):
-            return [{"field": col, "header": col} for col in data.columns]
+            go_print(f"Returning {len(transformed_data)} rows with {len(columns)} columns")
+            
+            return {
+                "data": transformed_data,
+                "columns": columns,
+                "metadata": {
+                    "row_count": len(transformed_data),
+                    "column_count": len(columns)
+                }
+            }
 
-        # Use ThreadPoolExecutor to fetch and process data in parallel
-        with ThreadPoolExecutor() as executor:
-            future_data = executor.submit(fetch_data)
-            data = future_data.result()
+        except Exception as e:
+            go_print(f"Error processing data: {str(e)}")
+            return {
+                "data": [],
+                "columns": [],
+                "error": str(e)
+            }
 
-            future_processed_data = executor.submit(process_data, data)
-            data = future_processed_data.result()
-
-            future_transformed_data = executor.submit(transform_data, data)
-            transformed_data = future_transformed_data.result()
-
-            future_columns = executor.submit(extract_columns, data)
-            columns = future_columns.result()
-
-        # Return the transformed data and columns
-        return {"data": transformed_data, "columns": columns}
-
-script = GoExecScriptGetSubsetData(json_params_dict, id_)
-script.start()
+# Execution
+try:
+    script = GoExecScriptGetSubsetData(json_params_dict, id_)
+    script.start()
+except Exception as e:
+    go_print(f"Fatal error in script execution: {str(e)}")
+    sys.exit(1)
