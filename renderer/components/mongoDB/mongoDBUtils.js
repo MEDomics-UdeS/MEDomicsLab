@@ -178,62 +178,70 @@ async function insertPKLIntoCollection(filePath, collectionName) {
 
 /**
  * Uploads a large CSV file to MongoDB by storing it in chunks.
+ * Ensures only valid columns are inserted (based on first row).
+ *
  * @param {String} filePath - The path to the CSV file.
- * @param {String} collectionName - The name of the MongoDB collection to store the chunks.
+ * @param {String} collectionName - The name of the MongoDB collection.
  */
 async function insertBigCSVIntoCollection(filePath, collectionName) {
   const db = await connectToMongoDB()
   const collection = db.collection(collectionName)
 
-  const maxBSONSize = 16 * 1024 * 1024 // 16MB
-  const readStream = fs.createReadStream(filePath)
-  let buffer = ""
-  let chunkSize = 0
-  const maxChunkSize = maxBSONSize - 1024 * 1024 // 1MB buffer for safety
+  let allowedColumns = null
+  const batchSize = 1000 // Represents the number of rows that will be inserted in the MongoDB every step.
+  let batch = []
 
-  readStream.on("data", (chunk) => {
-    buffer += chunk
-    chunkSize += chunk.length
+  Papa.parse(fs.createReadStream(filePath), {
+    header: true,
+    dynamicTyping: true,
+    skipEmptyLines: true,
+    step: (results, parser) => {
+      const row = results.data
 
-    if (chunkSize >= maxChunkSize) {
-      readStream.pause()
-      Papa.parse(buffer, {
-        header: true,
-        dynamicTyping: true,
-        complete: async (results) => {
-          try {
-            await collection.insertMany(results.data)
-            buffer = ""
-            chunkSize = 0
-            readStream.resume()
-          } catch (error) {
-            console.error("Error inserting chunk", error)
-            readStream.destroy()
-          }
-        }
-      })
+      // We look at the columns and then we know which ones we want (makes it so no new useless columns gets added)
+      if (!allowedColumns && Object.keys(row).length > 0) {
+        allowedColumns = Object.keys(row)
+      }
+
+      // Filter out any keys not in allowedColumns (usually not necessary since header:true)
+      const cleanedRow = Object.fromEntries(Object.entries(row).filter(([key]) => allowedColumns.includes(key)))
+      batch.push(cleanedRow)
+
+      // Once the batch size is reached (number of rows is reached), pause parsing and insert the batch.
+      if (batch.length >= batchSize) {
+        parser.pause()
+        collection
+          .insertMany(batch)
+          .then(() => {
+            // Clear the batch and resume parsing
+            batch = []
+            parser.resume()
+          })
+          .catch((error) => {
+            console.error("Error inserting batch:", error)
+            parser.abort()
+          })
+      }
+    },
+    complete: () => {
+      // When parsing is complete, check if any rows remain to be inserted.
+      if (batch.length > 0) {
+        collection
+          .insertMany(batch)
+          .then(() => {
+            console.log("Final batch inserted")
+            console.log("CSV parsing complete")
+          })
+          .catch((error) => {
+            console.error("Error inserting final batch:", error)
+          })
+      } else {
+        console.log("CSV parsing complete")
+      }
+    },
+    error: (error) => {
+      console.error("Error parsing CSV:", error)
     }
-  })
-
-  readStream.on("end", () => {
-    if (buffer.length > 0) {
-      Papa.parse(buffer, {
-        header: true,
-        dynamicTyping: true,
-        complete: async (results) => {
-          try {
-            await collection.insertMany(results.data)
-            console.log("Final chunk inserted")
-          } catch (error) {
-            console.error("Error inserting final chunk", error)
-          }
-        }
-      })
-    }
-  })
-
-  readStream.on("error", (error) => {
-    console.error("Error reading file", error)
   })
 }
 
