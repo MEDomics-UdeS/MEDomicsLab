@@ -5,6 +5,7 @@
   "version": "1.0.0",
   "author": "MEDomicsLab Team",
   "main": "app/background.js",
+  "repository": "https://github.com/NicoLongfield/MEDomicsLab_Automation",
   "build": {
     "appId": "com.medomicslab.medapp",
     "productName": "MEDomicsLab",
@@ -38,8 +39,14 @@
       "entitlements": "build/entitlements.mac.plist",
       "entitlementsInherit": "build/entitlements.mac.plist",
       "category": "public.app-category.developer-tools",
-      "target": "pkg",
-      "notarize": true
+      "target": [
+        "dmg",
+        "zip",
+        "pkg"
+      ],
+      "notarize": {
+        "teamId": "5ML683U677"
+      }
     },
     "pkg": {
       "isRelocatable": false
@@ -58,7 +65,12 @@
       "afterInstall": "build/after-install.sh"
     },
     "afterPack": "build/afterPack.js",
-    "publish": null
+    "publish": {
+          "provider": "github",
+          "owner": "NicoLongfield",
+          "repo": "MEDomicsLab_Automation",
+          "releaseType": "draft"
+        }
   },
   "scripts": {
     "dev": "nextron",
