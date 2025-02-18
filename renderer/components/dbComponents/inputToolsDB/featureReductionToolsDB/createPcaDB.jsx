@@ -213,9 +213,7 @@ const CreatePCADB = ({ currentCollection }) => {
           <hr />
         </div>
         <div className="margin-top-15 center">
-          <Button disabled={!selectedColumns} onClick={computeEigenvalues} loading={loadingEigen}>
-            Compute eigenvalues
-          </Button>
+          <Button label="Compute eigenvalues" disabled={!selectedColumns} onClick={computeEigenvalues} loading={loadingEigen}/>
         </div>
         <hr></hr>
         <div className="margin-top-15 center">
