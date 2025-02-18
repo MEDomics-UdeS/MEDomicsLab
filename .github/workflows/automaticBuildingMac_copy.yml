@@ -198,7 +198,18 @@ jobs:
           APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         run: |
-          xcrun notarytool submit build/dist/MEDomicsLab-${{ env.VERSION }}-mac.pkg --apple-id $APPLE_ID --password $APPLE_APP_SPECIFIC_PASSWORD --team-id $APPLE_TEAM_ID --wait
+          xcrun notarytool submit build/dist/MEDomicsLab-${{ env.VERSION }}-mac-signed.pkg --keychain-profile "notarytool-password"  --wait
+          # Staple the notarization ticket to the app
+          xcrun stapler staple build/dist/MEDomicsLab-${{ env.VERSION }}-mac-signed.pkg
+
+      # - name: notarize
+      #   env:
+      #     VERSION: ${{ steps.get-tag.outputs.VERSION }}
+      #     APPLE_ID: ${{ secrets.APPLE_ID }}
+      #     APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
+      #     APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+      #   run: |
+      #     xcrun notarytool submit build/dist/MEDomicsLab-${{ env.VERSION }}-mac.pkg --apple-id $APPLE_ID --password $APPLE_APP_SPECIFIC_PASSWORD --team-id $APPLE_TEAM_ID --wait
       
       # - name: Check signing
       #   run: |
@@ -245,14 +256,44 @@ jobs:
       #     VERSION: ${{ steps.get-tag.outputs.VERSION }}
 
       - name: Archive Mac
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: mac-built
           # path: ./build/dist/MEDomicsLab-${{ env.VERSION }}-signed.pkg
           path: ./build/dist/MEDomicsLab-${{ env.VERSION }}-mac.pkg
+          compression-level: 0
         env:
           VERSION: ${{ steps.get-tag.outputs.VERSION }}
   
+      - name: Archive Mac
+        uses: actions/upload-artifact@v4
+        with:
+          name: mac-built-pkg
+          # path: ./build/dist/MEDomicsLab-${{ env.VERSION }}-signed.pkg
+          path: ./build/dist/MEDomicsLab-${{ env.VERSION }}-mac-signed.pkg
+          compression-level: 0
+        env:
+          VERSION: ${{ steps.get-tag.outputs.VERSION }}
+
+      - name: Archive Mac DMG
+        uses: actions/upload-artifact@v4
+        with:
+          name: mac-built-dmg
+          # path: ./build/dist/MEDomicsLab-${{ env.VERSION }}-signed.pkg
+          path: ./build/dist/MEDomicsLab-${{ env.VERSION }}-mac.dmg
+          compression-level: 0
+        env:
+          VERSION: ${{ steps.get-tag.outputs.VERSION }}
+
+      - name: Archive Mac DMG
+        uses: actions/upload-artifact@v4
+        with:
+          name: mac-built-zip
+          # path: ./build/dist/MEDomicsLab-${{ env.VERSION }}-signed.pkg
+          path: ./build/dist/MEDomicsLab-${{ env.VERSION }}-mac.zip
+          compression-level: 0
+        env:
+          VERSION: ${{ steps.get-tag.outputs.VERSION }}
       # - name: Folder tree
       #   run: ls -R
 
@@ -265,12 +306,28 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Download Mac
-        uses: actions/download-artifact@v3
+      # - name: Download Mac
+      #   uses: actions/download-artifact@v4
+      #   with:
+      #     name: mac-built
+      #     # name: mac-signed
+
+      - name: Download Mac PKG
+        uses: actions/download-artifact@v4
         with:
-          name: mac-built
+          name: mac-built-pkg
           # name: mac-signed
-          
+      - name: Download Mac DMG
+        uses: actions/download-artifact@v4
+        with:
+          name: mac-built-dmg
+          # name: mac-signed
+      - name: Download Mac ZIP
+        uses: actions/download-artifact@v4
+        with:
+          name: mac-built-zip
+          # name: mac-signed
+  
       - name: Install zip
         run: sudo apt-get install zip
 
@@ -287,17 +344,21 @@ jobs:
 
       - name: zip Mac
         run: zip -r MEDomicsLab-PythonEnv-mac.zip ./create_conda_env_mac.sh ./requirements_mac.txt
+        
       - name: Get tag name
         id: get-tag
         run: |
           VERSION=${GITHUB_REF/refs\/tags\//}
-          echo "::set-output name=VERSION::${VERSION#v}"
+          echo "VERSION=${VERSION#v}" >> "$GITHUB_OUTPUT"
 
       - name: Publish to GitHub
         uses: softprops/action-gh-release@v1
         with:
+          # ./MEDomicsLab-${{ env.VERSION }}-mac.pkg
           files: |
-            ./MEDomicsLab-${{ env.VERSION }}-mac.pkg
+            ./MEDomicsLab-${{ env.VERSION }}-mac-signed.pkg
+            ./MEDomicsLab-${{ env.VERSION }}-mac.dmg
+            ./MEDomicsLab-${{ env.VERSION }}-mac.zip
           name: MEDomicsLab-${{ env.VERSION }}
           body: |
             MEDomicsLab-${{ env.VERSION }}
@@ -308,4 +369,7 @@ jobs:
           prerelease: false
           token: ${{ secrets.GITHUB_TOKEN }}
         env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VERSION: ${{ steps.get-tag.outputs.VERSION }}
+
