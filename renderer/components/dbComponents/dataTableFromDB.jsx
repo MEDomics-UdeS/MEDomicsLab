@@ -18,7 +18,6 @@ import { ServerConnectionContext } from "../serverConnection/connectionContext"
 import { MEDDataObject } from "../workspace/NewMedDataObject"
 import InputToolsComponent from "./InputToolsComponent"
 import { collectionExists, getCollectionData } from "./utils"
-import { set } from "lodash"
 
 /**
  * DataTableFromDB component

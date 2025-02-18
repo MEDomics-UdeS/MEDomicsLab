@@ -15,9 +15,10 @@ import { toast } from "react-toastify"
 import { insertMEDDataObjectIfNotExists, connectToMongoDB } from "../../mongoDB/mongoDBUtils"
 import { MEDDataObject } from "../../workspace/NewMedDataObject"
 import { DataContext } from "../../workspace/dataContext"
-import { getCollectionColumnTypes } from "../utils"
+import { getCollectionColumnTypes, getCollectionData } from "../utils"
 import { ServerConnectionContext } from "../../serverConnection/connectionContext"
 import { requestBackend } from "../../../utilities/requests"
+import { getCollectionColumns } from "../../mongoDB/mongoDBUtils"
 
 // the python script command send by CLI when i do requestbacked with alot of filtered data is not working
 // I need to fix this issue by sending the query instead of the full filtered data.
@@ -41,40 +42,74 @@ const SubsetCreationToolsDB = ({ currentCollection, refreshData }) => {
   const [loadingButtonNewCollection, setLoadingButtonNewCollection] = useState(false)
   const { port } = useContext(ServerConnectionContext)
 
+  // THIS IS COMMENTED FOR NOW BECAUSE IT DOESN'T FOR HUGE CSV FILES WITH ALOT OF COLUMNS.. Python
+  // can't seem to return the data, it's always undefined for big big big files.
   // Fetches the data from the current collection in the backend directly.
   // Returns the data and columns of the current collection. This is called everytime you open the tool.
+  // useEffect(() => {
+  //   const fetchData = async () => {
+  //     const jsonToSend = {}
+  //     jsonToSend["collection"] = currentCollection
+  //     jsonToSend["database_name"] = "data"
+
+  //     setLoadingData(true)
+
+  //     const response = await requestBackend(
+  //       port,
+  //       "/input/get_subset_data/",
+  //       jsonToSend,
+  //       async (response) => {
+  //         setLoadingData(false)
+  //         if (!response || !response.data) {
+  //           console.error("Received an invalid response", response)
+  //           return
+  //         }
+  //         setData(response.data)
+  //         setColumns(response.columns)
+  //         const collectionColumnTypes = await getCollectionColumnTypes(currentCollection)
+  //         setColumnTypes(collectionColumnTypes)
+  //         initFiltersDynamically(response.columns, collectionColumnTypes)
+  //       },
+  //       (error) => {
+  //         setLoadingData(false)
+  //         console.error("Failed to fetch missing values data:", error)
+  //       }
+  //     )
+  //   }
+  //   fetchData()
+  // }, [currentCollection])
+
+  // For some reason this works even on big files with ALOT of columns, so i will use this for now.
+  // Returns the data and columns of the current collection. This is called every time you open the tool.
   useEffect(() => {
     const fetchData = async () => {
-      const jsonToSend = {}
-      jsonToSend["collection"] = currentCollection
-      jsonToSend["database_name"] = "data"
-
       setLoadingData(true)
-
-      const response = await requestBackend(
-        port,
-        "/input/get_subset_data/",
-        jsonToSend,
-        async (response) => {
-          setLoadingData(false)
-          if (!response || !response.data) {
-            console.error("Received an invalid response", response)
-            return
-          }
-          setData(response.data)
-          setColumns(response.columns)
-          const collectionColumnTypes = await getCollectionColumnTypes(currentCollection)
-          setColumnTypes(collectionColumnTypes)
-          initFiltersDynamically(response.columns, collectionColumnTypes)
-        },
-        (error) => {
-          setLoadingData(false)
-          console.error("Failed to fetch missing values data:", error)
+      const collectionData = await getCollectionData(currentCollection)
+      const formattedData = collectionData.map((row) => {
+        return {
+          ...row
         }
-      )
+      })
+      const collectionColumnTypes = await getCollectionColumnTypes(currentCollection)
+      setData(formattedData)
+      setFilteredData(formattedData)
+      const columns = Object.keys(formattedData[0])
+        .filter((key) => key !== "_id")
+        .map((key) => ({
+          field: key,
+          header: key.charAt(0).toUpperCase() + key.slice(1)
+        }))
+      setColumns(columns)
+      setColumnTypes(collectionColumnTypes)
+      initFiltersDynamically(columns, columnTypes)
+      setLoadingData(false)
     }
     fetchData()
   }, [currentCollection])
+
+  useEffect(() => {
+    console.log("filteredData", filteredData)
+  }, [filteredData])
 
   // Initializes the filters dynamically based on the column types
   const initFiltersDynamically = (columns, columnTypes) => {
