@@ -25,6 +25,7 @@ import GroupNode from "../flow/groupNode"
 import OptimizeIO from "./nodesTypes/optimizeIO"
 import DatasetNode from "./nodesTypes/datasetNode"
 import LoadModelNode from "./nodesTypes/loadModelNode"
+import TrainModelNode from "./nodesTypes/trainModelNode.jsx"
 
 // here are the parameters of the nodes
 import nodesParams from "../../public/setupVariables/allNodesParams"
@@ -83,7 +84,8 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
       groupNode: GroupNode,
       optimizeIO: OptimizeIO,
       datasetNode: DatasetNode,
-      loadModelNode: LoadModelNode
+      loadModelNode: LoadModelNode,
+      trainModelNode: TrainModelNode
     }),
     []
   )
