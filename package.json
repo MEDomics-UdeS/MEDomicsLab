@@ -44,9 +44,7 @@
         "zip",
         "pkg"
       ],
-      "notarize": {
-        "teamId": "5ML683U677"
-      }
+      "notarize": true
     },
     "pkg": {
       "isRelocatable": false
