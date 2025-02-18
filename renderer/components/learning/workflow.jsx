@@ -790,6 +790,7 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
       } else {
         toast.error("Error while saving scene")
       }
+      console.log("scene saved", flow)
     }
   }, [reactFlowInstance, MLType, intersections])
 
