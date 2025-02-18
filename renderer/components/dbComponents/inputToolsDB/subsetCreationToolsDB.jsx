@@ -84,32 +84,31 @@ const SubsetCreationToolsDB = ({ currentCollection, refreshData }) => {
   useEffect(() => {
     const fetchData = async () => {
       setLoadingData(true)
-      const collectionData = await getCollectionData(currentCollection)
-      const formattedData = collectionData.map((row) => {
-        return {
-          ...row
-        }
-      })
-      const collectionColumnTypes = await getCollectionColumnTypes(currentCollection)
-      setData(formattedData)
-      setFilteredData(formattedData)
-      const columns = Object.keys(formattedData[0])
+      const [collectionData, collectionColumnTypes] = await Promise.all([
+        getCollectionData(currentCollection),
+        getCollectionColumnTypes(currentCollection)
+      ])
+      
+      setData(collectionData)
+      setFilteredData(collectionData)
+      
+      const columns = Object.keys(collectionData[0])
         .filter((key) => key !== "_id")
-        .map((key) => ({
-          field: key,
-          header: key.charAt(0).toUpperCase() + key.slice(1)
-        }))
+        .reduce((acc, key) => {
+          acc.push({
+            field: key,
+            header: key.charAt(0).toUpperCase() + key.slice(1)
+          })
+          return acc
+        }, [])
+      
       setColumns(columns)
       setColumnTypes(collectionColumnTypes)
-      initFiltersDynamically(columns, columnTypes)
+      initFiltersDynamically(columns, collectionColumnTypes)
       setLoadingData(false)
     }
     fetchData()
   }, [currentCollection])
-
-  useEffect(() => {
-    console.log("filteredData", filteredData)
-  }, [filteredData])
 
   // Initializes the filters dynamically based on the column types
   const initFiltersDynamically = (columns, columnTypes) => {
