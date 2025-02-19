@@ -5,7 +5,7 @@
   "version": "1.0.0",
   "author": "MEDomicsLab Team",
   "main": "app/background.js",
-  "repository": "https://github.com/NicoLongfield/MEDomicsLab_Automation",
+  "repository": "https://github.com/MEDomics-UdeS/MEDomicsLab",
   "build": {
     "appId": "com.medomicslab.medapp",
     "productName": "MEDomicsLab",
@@ -65,12 +65,12 @@
     "afterPack": "build/afterPack.js",
     "publish": {
           "provider": "github",
-          "owner": "NicoLongfield",
-          "repo": "MEDomicsLab_Automation",
+          "owner": "MEDomics-UdeS",
+          "repo": "MEDomicsLab",
           "releaseType": "draft"
         },
     "afterAllArtifactBuild": "build/afterAllArtifactBuild.js"
-    },
+  },
   "scripts": {
     "dev": "nextron",
     "build": "nextron build",

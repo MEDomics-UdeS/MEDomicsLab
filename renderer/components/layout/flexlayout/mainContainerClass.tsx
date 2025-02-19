@@ -915,7 +915,7 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
       let icon = <span style={{ marginRight: 3 }}>{iconToReturn}</span>
       return icon
     } else {
-      if (component === "InputToolsDB" || component === "inputPage") {
+      if (component === "InputToolsDB" || component === "inputPage" || component === "dataTableFromDB") {
         return <span style={{ marginRight: 3 }}>🛢️</span>
       }
       if (component === "exploratoryPage") {

@@ -36,6 +36,7 @@ autoUpdater.autoDownload = false;
 autoUpdater.autoInstallOnAppQuit = true;
 
 
+
 //**** LOG ****// This is used to send the console.log messages to the main window
 const originalConsoleLog = console.log
 /**
@@ -53,6 +54,16 @@ console.log = function () {
     console.error(error)
   }
 }
+
+
+//**** AUTO UPDATER ****//
+const { autoUpdater } = require('electron-updater')
+const log = require('electron-log');
+
+autoUpdater.logger = log;
+autoUpdater.logger.transports.file.level = 'info';
+autoUpdater.autoDownload = false;
+autoUpdater.autoInstallOnAppQuit = true;
 
 //**** AUTO-UPDATER ****//
 
@@ -90,6 +101,7 @@ autoUpdater.on('download-progress', (progressObj) => {
 autoUpdater.on('update-downloaded', (info) => {
   sendStatusToWindow('Update downloaded');
 });
+
 
 
 if (isProd) {
@@ -313,11 +325,13 @@ if (isProd) {
   })
 
   /**
-   * 
+   * @description Returns the version of the app
+   * @returns {Promise<String>} The version of the app
    */
   ipcMain.handle("getAppVersion", async () => {
     return app.getVersion()
   })
+
 
   /**
    * @description Copies the source file to the destination file set by the user in the dialog
