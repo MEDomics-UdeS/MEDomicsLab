@@ -8,12 +8,8 @@ permissions:
 jobs:
   build-mac:
     runs-on: macos-latest
-    # runs-on: self-hosted
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    #   APPLE_ID: ${{ secrets.APPLE_ID }}
-    #   APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
-    #   APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
       
     steps:
       - name: Checkout code
@@ -29,10 +25,6 @@ jobs:
           DEVELOPER_APP_CER: ${{ secrets.CSC_LINK}}
           DEVELOPER_APP_KEY: ${{ secrets.CSC_KEY_PASSWORD }}
 
-          # echo ${{ secrets.APPLE_CERT_DATA }} | base64 --decode > certificate_installer.cer
-          # echo ${{ secrets.APPLE_CERT_PASSWORD }} | base64 --decode > certificate_installer.key
-          # echo ${{ secrets.DEVELOPER_APP_CER }} | base64 --decode > certificate_application.cer
-          # echo ${{ secrets.DEVELOPER_APP_KEY }} | base64 --decode > certificate_application.key
         run: |
           CERTIFICATE_PATH=$RUNNER_TEMP/build_certificate.p12
           echo -n "$APPLE_CERT_DATA" | base64 --decode -o certificate_installer.p12
@@ -169,7 +161,6 @@ jobs:
           CSC_INSTALLER_KEY_PASSWORD: ${{ secrets.CSC_INSTALLER_KEY_PASSWORD }}
         run: |
           npm run build
-  
       
       - name: notarize
         env:
@@ -190,64 +181,10 @@ jobs:
         run: |
           xcrun stapler staple build/dist/MEDomicsLab-${{ env.VERSION }}-mac-signed.pkg
 
-      # - name: notarize
-      #   env:
-      #     VERSION: ${{ steps.get-tag.outputs.VERSION }}
-      #     APPLE_ID: ${{ secrets.APPLE_ID }}
-      #     APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
-      #     APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-      #   run: |
-      #     xcrun notarytool submit build/dist/MEDomicsLab-${{ env.VERSION }}-mac.pkg --apple-id $APPLE_ID --password $APPLE_APP_SPECIFIC_PASSWORD --team-id $APPLE_TEAM_ID --wait
-      
-      # - name: Check signing
-      #   run: |
-      #     codesign -vvv --deep --strict ./build/dist/mac-arm64/MEDomicsLab.app
-
-            
-      # - name: Build for Mac
-      #   run: npm run build:mac-alone
-
-      # - name: Sign the .pkg
-      #   env:
-      #     VERSION: ${{ steps.get-tag.outputs.VERSION }}
-      #     DEVELOPER_ID_INSTALLER: ${{ secrets.DEVELOPER_ID_INSTALLER }}
-      #   run: |
-      #     productsign --sign "$DEVELOPER_ID_INSTALLER" build/dist/MEDomicsLab-${{ env.VERSION }}-mac.pkg build/dist/MEDomicsLab-${{ env.VERSION }}-signed.pkg
-      
-      # - name: Check signing
-      #   continue-on-error: true
-      #   env:
-      #     VERSION: ${{ steps.get-tag.outputs.VERSION }}
-      #   run: |
-      #     spctl -a -vvv build/dist/MEDomicsLab-${{ env.VERSION }}-signed.pkg
-
-      # - name: Notarize
-      #   continue-on-error: true
-      #   env:
-      #     VERSION: ${{ steps.get-tag.outputs.VERSION }}
-      #   run: |
-      #     export DEBUG=electron-notarize*
-      #     xcrun notarytool submit -v build/dist/MEDomicsLab-${{ env.VERSION }}-signed.pkg --keychain-profile "notarytool-password"  --wait
-      #     xcrun stapler staple build/dist/MEDomicsLab-${{ env.VERSION }}-signed.pkg
-      # - name: "Notarize and Staple Release Build"
-      #   uses: GuillaumeFalourd/notary-tools@v1
-      #   continue-on-error: true  # Added continue-on-error
-      #   with:
-      #     product_path: ./build/dist/MEDomicsLab-${{ env.VERSION }}-signed.pkg
-      #     # product_path: MEDomicsLab-${{ env.VERSION }}.pkg
-      #     apple_id: ${{ secrets.APPLE_NOTARY_USER }}
-      #     password: ${{ secrets.APPLE_NOTARY_PASSWORD }}
-      #     team_id: ${{ secrets.APPLE_TEAM_ID }}
-      #     staple: true
-      #     xcode_path: "/Applications/Xcode.app"
-      #   env:
-      #     VERSION: ${{ steps.get-tag.outputs.VERSION }}
-
       - name: Archive Mac
         uses: actions/upload-artifact@v4
         with:
           name: mac-built
-          # path: ./build/dist/MEDomicsLab-${{ env.VERSION }}-signed.pkg
           path: ./build/dist/MEDomicsLab-${{ env.VERSION }}-mac.pkg
           compression-level: 0
         env:
@@ -257,7 +194,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: mac-built-pkg
-          # path: ./build/dist/MEDomicsLab-${{ env.VERSION }}-signed.pkg
           path: ./build/dist/MEDomicsLab-${{ env.VERSION }}-mac-signed.pkg
           compression-level: 0
         env:
@@ -267,7 +203,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: mac-built-dmg
-          # path: ./build/dist/MEDomicsLab-${{ env.VERSION }}-signed.pkg
           path: ./build/dist/MEDomicsLab-${{ env.VERSION }}-mac.dmg
           compression-level: 0
         env:
@@ -277,13 +212,11 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: mac-built-zip
-          # path: ./build/dist/MEDomicsLab-${{ env.VERSION }}-signed.pkg
           path: ./build/dist/MEDomicsLab-${{ env.VERSION }}-mac.zip
           compression-level: 0
         env:
           VERSION: ${{ steps.get-tag.outputs.VERSION }}
-      # - name: Folder tree
-      #   run: ls -R
+
 
 
   # Publish to GitHub
@@ -294,27 +227,20 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # - name: Download Mac
-      #   uses: actions/download-artifact@v4
-      #   with:
-      #     name: mac-built
-      #     # name: mac-signed
-
       - name: Download Mac PKG
         uses: actions/download-artifact@v4
         with:
           name: mac-built-pkg
-          # name: mac-signed
+
       - name: Download Mac DMG
         uses: actions/download-artifact@v4
         with:
           name: mac-built-dmg
-          # name: mac-signed
+
       - name: Download Mac ZIP
         uses: actions/download-artifact@v4
         with:
           name: mac-built-zip
-          # name: mac-signed
   
       - name: Install zip
         run: sudo apt-get install zip
@@ -342,7 +268,6 @@ jobs:
       - name: Publish to GitHub
         uses: softprops/action-gh-release@v1
         with:
-          # ./MEDomicsLab-${{ env.VERSION }}-mac.pkg
           files: |
             ./MEDomicsLab-${{ env.VERSION }}-mac-signed.pkg
             ./MEDomicsLab-${{ env.VERSION }}-mac.dmg
