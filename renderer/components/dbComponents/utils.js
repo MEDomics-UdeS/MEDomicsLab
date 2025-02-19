@@ -27,14 +27,21 @@ export const collectionExists = async (collectionName, dbname = "data") => {
  * @param {String} collectionName
  * @returns fetchedData
  */
-export const getCollectionData = async (collectionName, dbname = "data") => {
+export const getCollectionData = async (collectionName, first = null, rows = null, sortCriteria = null, dbname = "data") => {
   const client = new MongoClient(mongoUrl)
+  let fetchedData = []
   try {
     await client.connect()
     const db = client.db(dbname)
     const collection = db.collection(collectionName)
-    let fetchedData = await collection.find({}).toArray()
-
+    if (!first && rows) {
+      fetchedData = sortCriteria ? await collection.find({}).sort(sortCriteria).limit(rows).toArray() : await collection.find({}).limit(rows).toArray()
+    } else if (first && rows) {
+      fetchedData = sortCriteria ? await collection.find({}).sort(sortCriteria).skip(first).limit(rows).toArray() : await collection.find({}).skip(first).limit(rows).toArray()
+    }
+    else {
+      fetchedData = sortCriteria ? await collection.find({}).sort(sortCriteria).toArray() : await collection.find({}).toArray()
+    }
     // Convert Date objects to strings
     fetchedData = fetchedData.map((item) => {
       let keys = Object.keys(item)
