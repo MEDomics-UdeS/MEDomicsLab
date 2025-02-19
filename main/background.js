@@ -28,6 +28,7 @@ const isProd = process.env.NODE_ENV === "production"
 let splashScreen // The splash screen is the window that is displayed while the application is loading
 export var mainWindow // The main window is the window of the application
 
+
 //**** LOG ****// This is used to send the console.log messages to the main window
 const originalConsoleLog = console.log
 /**
@@ -45,6 +46,55 @@ console.log = function () {
     console.error(error)
   }
 }
+
+
+//**** AUTO UPDATER ****//
+const { autoUpdater } = require('electron-updater')
+const log = require('electron-log');
+
+autoUpdater.logger = log;
+autoUpdater.logger.transports.file.level = 'info';
+autoUpdater.autoDownload = false;
+autoUpdater.autoInstallOnAppQuit = true;
+
+//**** AUTO-UPDATER ****//
+
+function sendStatusToWindow(text) {
+  if (mainWindow && mainWindow.webContents) {
+    mainWindow.showMessage(text);
+  }
+}
+autoUpdater.on('checking-for-update', () => {
+  console.log('DEBUG: checking for update')
+  sendStatusToWindow('Checking for update...');
+})
+autoUpdater.on('update-available', (info) => {
+  info = JSON.stringify(info)
+  console.log('DEBUG: update available')
+  sendStatusToWindow(`Update available. ${info}`);
+  let pth = autoUpdater.downloadUpdate()
+  console.log('DEBUG: pth:', pth)
+  sendStatusToWindow(`Downloading update... ${pth}`);
+})
+autoUpdater.on('update-not-available', (info) => {
+  info = JSON.stringify(info)
+  sendStatusToWindow(`Update not available. ${info}`);
+  sendStatusToWindow(`Current version: ${app.getVersion()}`);
+})
+autoUpdater.on('error', (err) => {
+  sendStatusToWindow('Error in auto-updater. ' + err);
+})
+autoUpdater.on('download-progress', (progressObj) => {
+  let log_message = "Download speed: " + progressObj.bytesPerSecond;
+  log_message = log_message + ' - Downloaded ' + progressObj.percent + '%';
+  log_message = log_message + ' (' + progressObj.transferred + "/" + progressObj.total + ')';
+  sendStatusToWindow(log_message);
+})
+autoUpdater.on('update-downloaded', (info) => {
+  sendStatusToWindow('Update downloaded');
+});
+
+
 
 if (isProd) {
   serve({ directory: "app" })
@@ -265,6 +315,15 @@ if (isProd) {
   ipcMain.handle("appGetPath", async (_event, path) => {
     return app.getPath(path)
   })
+
+  /**
+   * @description Returns the version of the app
+   * @returns {Promise<String>} The version of the app
+   */
+    ipcMain.handle("getAppVersion", async () => {
+      return app.getVersion()
+    })
+  
 
   /**
    * @description Copies the source file to the destination file set by the user in the dialog
@@ -533,15 +592,16 @@ app.on("window-all-closed", () => {
   app.quit()
 })
 
+app.on("ready", async () => {
 if (MEDconfig.useReactDevTools) {
-  app.on("ready", async () => {
     await installExtension(REACT_DEVELOPER_TOOLS, {
       loadExtensionOptions: {
         allowFileAccess: true
       }
     })
-  })
-}
+  }
+  autoUpdater.checkForUpdatesAndNotify()
+})
 
 /**
  * @description Open a new window from an URL

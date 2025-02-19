@@ -7,6 +7,10 @@ __pycache__/*
 # C extensions
 *.so
 
+# Security
+*.env
+
+
 # Distribution / packaging
 libmongocrypt/
 .Python
