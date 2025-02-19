@@ -158,27 +158,6 @@ jobs:
           echo "DEVELOPER_ID_APP='${{ secrets.DEVELOPER_ID_APP }}'" >> .env
           echo "DEVELOPER_ID_INSTALLER='${{ secrets.DEVELOPER_ID_INSTALLER }}'" >> .env
         
-      # - name: Run prebuild script for Mac
-      #   run: npm run prebuild:mac
-
-      # - name: Sign all the files
-      #   env: 
-      #     VERSION: ${{ steps.get-tag.outputs.VERSION }}
-      #   run : |
-      #     # Recursively sign all files in the specified directories
-      #     find . -type f \( -name "*.app" -o -name "*.dylib" -o -name "*.so" -o -name "*.node" \) -exec codesign -s "${{ secrets.DEVELOPER_ID_APP }}" -f --timestamp --options runtime --entitlements ./build/entitlements.mac.plist {} \;
-
-      # - name: Build for Mac
-      #   env:
-      #     APPLE_ID: ${{ secrets.APPLE_ID }}
-      #     APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
-      #     APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-      #   run: |
-      #     export APPLE_API_KEY_ID=${{ secrets.APPLE_API_KEY_ID }}
-      #     export APPLE_API_ISSUER=${{ secrets.APPLE_API_ISSUER }}
-      #     export APPLE_API_KEY=$PWD/AuthKey_${{ secrets.APPLE_API_KEY_ID }}.p8
-      #     npm run build
-      
       - name: Build for Mac
         env:
           APPLE_ID: ${{ secrets.APPLE_ID }}
@@ -191,6 +170,7 @@ jobs:
         run: |
           npm run build
   
+      
       - name: notarize
         env:
           VERSION: ${{ steps.get-tag.outputs.VERSION }}
@@ -199,7 +179,15 @@ jobs:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         run: |
           xcrun notarytool submit build/dist/MEDomicsLab-${{ env.VERSION }}-mac-signed.pkg --keychain-profile "notarytool-password"  --wait
-          # Staple the notarization ticket to the app
+      
+      - name: staple
+        continue-on-error: true
+        env:
+          VERSION: ${{ steps.get-tag.outputs.VERSION }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
           xcrun stapler staple build/dist/MEDomicsLab-${{ env.VERSION }}-mac-signed.pkg
 
       # - name: notarize
