@@ -139,14 +139,14 @@ const InputToolsComponent = ({ data, exportOptions, refreshData, columns, transf
           <Panel header="Holdout Set Creation Tools" toggleable collapsed={true}>
             <HoldoutSetCreationToolsDB refreshData={refreshData} data={altData} currentCollection={!altData ? null : altData.id} />
           </Panel>
-          <Panel header="Subset Creation Tools" toggleable collapsed={true}>
+          <Panel header="Sample | Row Grouping Tools" toggleable collapsed={true}>
             <SubsetCreationToolsDB currentCollection={!altData ? null : altData.id} data={altData} refreshData={refreshData} />
+          </Panel>
+          <Panel header="Feature | Column Tagging Tools" toggleable collapsed={true}>
+            <GroupingTaggingToolsDB refreshData={refreshData} />
           </Panel>
           <Panel header="Feature Reduction Tools" toggleable collapsed={true}>
             <FeatureReductionToolsDB data={altData} refreshData={refreshData} />
-          </Panel>
-          <Panel header="Grouping/Tagging Tools" toggleable collapsed={true}>
-            <GroupingTaggingToolsDB refreshData={refreshData} />
           </Panel>
           <Panel header="MEDprofiles" toggleable collapsed={true}>
             <ModulePage>

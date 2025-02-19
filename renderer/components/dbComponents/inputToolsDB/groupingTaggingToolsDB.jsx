@@ -31,6 +31,7 @@ const GroupingTaggingToolsDB = ({ refreshData }) => {
   const [columnsByCollection, setColumnsByCollection] = useState([])
   const [selectedColumnsToTag, setSelectedColumnsToTag] = useState([])
   const [selectedTags, setSelectedTags] = useState([])
+  const [loading, setLoading] = useState(false)
   const { port } = useContext(ServerConnectionContext)
   const op = useRef(null)
   const [tagId, setTagId] = useState(localStorage.getItem("myUUID"))
@@ -194,15 +195,27 @@ const GroupingTaggingToolsDB = ({ refreshData }) => {
       databaseName: "data"
     }
     console.log("id", tagId)
-    requestBackend(port, "/input/create_tags/", jsonToSend, (jsonResponse) => {
-      if (jsonResponse.error) {
+    setLoading(true)
+    requestBackend(
+      port, 
+      "/input/create_tags/", 
+      jsonToSend, 
+      (jsonResponse) => {
+        console.log("jsonResponse", jsonResponse)
+        if (jsonResponse.error) {
+          toast.error("Error detected while creating tags.")
+          console.log("error while creating tags", jsonResponse.error)
+          return
+        }
+        toast.success("Tags created successfully.")
+        setLoading(false)
+      },
+      (error) => {
         toast.error("Error detected while creating tags.")
-        console.log("error while creating tags", jsonResponse.error)
-        return
+        console.log("error while creating tags", error)
+        setLoading(false)
       }
-      console.log("jsonResponse", jsonResponse)
-      toast.success("Tags created successfully.")
-    })
+    )
   }
 
   const handleTagSelection = (selectedTag) => {
@@ -363,6 +376,7 @@ const GroupingTaggingToolsDB = ({ refreshData }) => {
               className="p-button-success"
               style={{ width: "100px" }}
               tooltip="Apply tags to selected columns"
+              loading={loading}
               tooltipOptions={{ position: "top" }}
               disabled={Object.keys(selectedColumnsToTag).length === 0 || selectedTags.length === 0}
             />

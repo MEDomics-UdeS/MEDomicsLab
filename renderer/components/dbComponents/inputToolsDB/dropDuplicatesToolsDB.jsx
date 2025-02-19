@@ -6,6 +6,7 @@ import { Button } from "primereact/button"
 import { toast } from "react-toastify"
 import { connectToMongoDB } from "../../mongoDB/mongoDBUtils"
 import { DataContext } from "../../workspace/dataContext"
+import { Card } from "primereact/card"
 
 const DropDuplicatesToolsDB = ({ currentCollection }) => {
   const { globalData } = useContext(DataContext)
@@ -50,6 +51,12 @@ const DropDuplicatesToolsDB = ({ currentCollection }) => {
 
   const findDuplicateColumns = async (allKeys, collection) => {
     let duplicatePairs = []
+    const documentCount = await collection.countDocuments()
+
+    if (documentCount <= 1) {
+      setDuplicateColumns(duplicatePairs)
+      return
+    }
 
     try {
       for (let i = 0; i < allKeys.length; i++) {
@@ -112,19 +119,21 @@ const DropDuplicatesToolsDB = ({ currentCollection }) => {
       <Message severity="info" text="This tool identifies duplicate columns in your dataset and allows you to choose one for deletion." style={{ marginBottom: "15px" }} />
       <Message severity="success" text={`Current Collection: ${globalData[currentCollection]?.name || "None"}`} style={{ marginBottom: "15px" }} />
       {data.length > 0 && (
-        <DataTable value={data} paginator rows={5} rowsPerPageOptions={[5, 10, 15]} className="p-datatable-gridlines">
-          {columns.map((col) => (
-            <Column
-              key={col.field}
-              field={col.field}
-              header={col.header}
-              sortable
-              style={{
-                backgroundColor: col.field === selectedColumn ? "#ee6b6e" : "transparent"
-              }} // Highlight the selected column
-            />
-          ))}
-        </DataTable>
+        <Card style={{ width: "900px" }}>
+          <DataTable value={data} paginator rows={5} rowsPerPageOptions={[5, 10, 15]} className="p-datatable-gridlines">
+            {columns.map((col) => (
+              <Column
+                key={col.field}
+                field={col.field}
+                header={col.header}
+                sortable
+                style={{
+                  backgroundColor: col.field === selectedColumn ? "#ee6b6e" : "transparent"
+                }} // Highlight the selected column
+              />
+            ))}
+          </DataTable>
+        </Card>
       )}
       {duplicateColumns.length > 0 && (
         <div style={{ marginTop: "20px" }}>

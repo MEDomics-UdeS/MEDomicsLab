@@ -1,7 +1,7 @@
 colorama==0.4.6
 dask==2023.9.3
 dtale==3.7.0
-explainerdashboard==0.4.0
+explainerdashboard==0.4.2.1
 isort==5.10.1
 joblib==1.2.0
 matplotlib==3.6.0
