@@ -670,22 +670,16 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
           .then((size) => {
             config.fileSize = size
 
-            // 16mb max BSON size
-            const maxBSONSize = 16777216
-
-            // Check if the file size is greater than maxBSONSize
-            const isReadOnly = config.fileSize > maxBSONSize
-
-            //console log that explains that it will be read only because of the file size
-            if (isReadOnly) {
-              toast.warn("This file remains usable in the various tools but is read-only due to its size.")
-            }
-
             this.forceUpdate() // Force a re-render to update the component with the new fileSize
           })
           .catch((error) => {
             console.error("Error getting collection size:", error)
           })
+      }
+
+      // toast message saying the file will be read only
+      if (config.extension === "view") {
+        toast.info("File opened in read-only mode.")
       }
 
       if (node.getExtraData().data == null) {
@@ -697,7 +691,7 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
 
       return (
         <>
-          <DataTableFromDB data={config} isReadOnly={config.fileSize > 16777216 || config.extension === "view"} />
+          <DataTableFromDB data={config} isReadOnly={config.extension === "view"} />
         </>
       )
     } else if (component === "learningPage") {
