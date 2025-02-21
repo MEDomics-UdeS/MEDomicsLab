@@ -34,6 +34,16 @@ const SettingsPage = (pageId = "settings") => {
   const [showPythonPackages, setShowPythonPackages] = useState(false) // Boolean to know if python packages are shown
 
   /**
+   * Handle downloading the log file
+   * @returns {void}
+   */
+  const downloadLogFile = () => {
+    ipcRenderer.invoke("download-log-file").then((path) => {
+      console.log("Log file downloaded at: ", path)
+    })
+  }
+
+  /**
    * Check if the mongo server is running and set the state
    * @returns {void}
    */
@@ -212,18 +222,17 @@ const SettingsPage = (pageId = "settings") => {
           return binPath
         }
       }
-      console.error("mongod not found in PATH"+paths)
+      console.error("mongod not found in PATH" + paths)
       // Check if mongod is in the default installation path on Linux - /usr/bin/mongod
       if (fs.existsSync("/usr/bin/mongod")) {
         return "/usr/bin/mongod"
       }
       console.error("mongod not found in /usr/bin/mongod")
-      
-      if (fs.existsSync("/home/"+process.env.USER+"/.medomics/mongodb/bin/mongod")) {
-        return "/home/"+process.env.USER+"/.medomics/mongodb/bin/mongod"
+
+      if (fs.existsSync("/home/" + process.env.USER + "/.medomics/mongodb/bin/mongod")) {
+        return "/home/" + process.env.USER + "/.medomics/mongodb/bin/mongod"
       }
       return null
-
     }
   }
 
@@ -327,18 +336,30 @@ const SettingsPage = (pageId = "settings") => {
                   />
                   {process.env.NODE_ENV === "development" && (
                     <>
-                  <Button
-                    label="Show first setup modal"
-                    className="p-button-info"
-                    onClick={() => {
-                      console.log("show first setup modal")
-                      setFirstSetupModalVisible(true)
+                      <Button
+                        label="Show first setup modal"
+                        className="p-button-info"
+                        onClick={() => {
+                          console.log("show first setup modal")
+                          setFirstSetupModalVisible(true)
+                        }}
+                        // style={{ backgroundColor: serverIsRunning ? "#d55757" : "grey", borderColor: serverIsRunning ? "#d55757" : "grey" }}
+                        // disabled={!serverIsRunning}
+                      />
+                    </>
+                  )}
+                </Col>
+                <Col xs={12} md={10} style={{ display: "flex", flexDirection: "row", justifyContent: "flex-start", alignItems: "center", flexWrap: "wrap", marginTop: ".75rem" }}>
+                  <h5 style={{ marginBottom: "0rem" }}>Application log file: </h5>
 
+                  <Button
+                    label="Download"
+                    className=" p-button-info"
+                    onClick={() => {
+                      downloadLogFile()
                     }}
-                    // style={{ backgroundColor: serverIsRunning ? "#d55757" : "grey", borderColor: serverIsRunning ? "#d55757" : "grey" }}
-                    // disabled={!serverIsRunning}
+                    style={{ marginLeft: "1rem" }}
                   />
-                  </>)}
                 </Col>
                 <Col xs={12} md={12} style={{ display: "flex", flexDirection: "row", justifyContent: "flex-start", alignItems: "center", flexWrap: "wrap", marginTop: ".75rem" }}>
                   <Col xs={12} md="auto" style={{ display: "flex", flexDirection: "row", justifyContent: "flex-start", alignItems: "center", flexWrap: "wrap" }}>

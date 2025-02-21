@@ -28,8 +28,27 @@ const isProd = process.env.NODE_ENV === "production"
 let splashScreen // The splash screen is the window that is displayed while the application is loading
 export var mainWindow // The main window is the window of the application
 
+//**** AUTO UPDATER ****//
+const { autoUpdater } = require("electron-updater")
+const log = require("electron-log")
 
-//**** LOG ****// This is used to send the console.log messages to the main window
+autoUpdater.logger = log
+autoUpdater.logger.transports.file.level = "info"
+autoUpdater.autoDownload = false
+autoUpdater.autoInstallOnAppQuit = true
+
+//*********** LOG **************// This is used to send the console.log messages to the main window
+//**** ELECTRON-LOG ****//
+// Electron log path
+// By default, it writes logs to the following locations:
+// on Linux: ~/.config/{app name}/logs/main.log
+// on macOS: ~/Library/Logs/{app name}/main.log
+// on Windows: %USERPROFILE%\AppData\Roaming\{app name}\logs\main.log
+const APP_NAME = isProd ? "medomicslab-application" : "medomicslab-application (development)"
+const WINDOWS_ELECTRON_LOG_PATH = path.join(process.env.USERPROFILE, "AppData", "Roaming", APP_NAME, "logs", "main.log")
+const MAC_ELECTRON_LOG_PATH = path.join(process.env.HOME, "Library", "Logs", APP_NAME, "main.log")
+const LINUX_ELECTRON_LOG_PATH = path.join(process.env.HOME, ".config", APP_NAME, "logs", "main.log")
+
 const originalConsoleLog = console.log
 /**
  * @description Sends the console.log messages to the main window
@@ -39,6 +58,7 @@ const originalConsoleLog = console.log
 console.log = function () {
   try {
     originalConsoleLog(...arguments)
+    log.log(...arguments)
     if (mainWindow !== undefined) {
       mainWindow.webContents.send("log", ...arguments)
     }
@@ -47,54 +67,42 @@ console.log = function () {
   }
 }
 
-
-//**** AUTO UPDATER ****//
-const { autoUpdater } = require('electron-updater')
-const log = require('electron-log');
-
-autoUpdater.logger = log;
-autoUpdater.logger.transports.file.level = 'info';
-autoUpdater.autoDownload = false;
-autoUpdater.autoInstallOnAppQuit = true;
-
 //**** AUTO-UPDATER ****//
 
 function sendStatusToWindow(text) {
   if (mainWindow && mainWindow.webContents) {
-    mainWindow.showMessage(text);
+    mainWindow.showMessage(text)
   }
 }
-autoUpdater.on('checking-for-update', () => {
-  console.log('DEBUG: checking for update')
-  sendStatusToWindow('Checking for update...');
+autoUpdater.on("checking-for-update", () => {
+  console.log("DEBUG: checking for update")
+  sendStatusToWindow("Checking for update...")
 })
-autoUpdater.on('update-available', (info) => {
+autoUpdater.on("update-available", (info) => {
   info = JSON.stringify(info)
-  console.log('DEBUG: update available')
-  sendStatusToWindow(`Update available. ${info}`);
+  console.log("DEBUG: update available")
+  sendStatusToWindow(`Update available. ${info}`)
   let pth = autoUpdater.downloadUpdate()
-  console.log('DEBUG: pth:', pth)
-  sendStatusToWindow(`Downloading update... ${pth}`);
+  console.log("DEBUG: pth:", pth)
+  sendStatusToWindow(`Downloading update... ${pth}`)
 })
-autoUpdater.on('update-not-available', (info) => {
+autoUpdater.on("update-not-available", (info) => {
   info = JSON.stringify(info)
-  sendStatusToWindow(`Update not available. ${info}`);
-  sendStatusToWindow(`Current version: ${app.getVersion()}`);
+  sendStatusToWindow(`Update not available. ${info}`)
+  sendStatusToWindow(`Current version: ${app.getVersion()}`)
 })
-autoUpdater.on('error', (err) => {
-  sendStatusToWindow('Error in auto-updater. ' + err);
+autoUpdater.on("error", (err) => {
+  sendStatusToWindow("Error in auto-updater. " + err)
 })
-autoUpdater.on('download-progress', (progressObj) => {
-  let log_message = "Download speed: " + progressObj.bytesPerSecond;
-  log_message = log_message + ' - Downloaded ' + progressObj.percent + '%';
-  log_message = log_message + ' (' + progressObj.transferred + "/" + progressObj.total + ')';
-  sendStatusToWindow(log_message);
+autoUpdater.on("download-progress", (progressObj) => {
+  let log_message = "Download speed: " + progressObj.bytesPerSecond
+  log_message = log_message + " - Downloaded " + progressObj.percent + "%"
+  log_message = log_message + " (" + progressObj.transferred + "/" + progressObj.total + ")"
+  sendStatusToWindow(log_message)
 })
-autoUpdater.on('update-downloaded', (info) => {
-  sendStatusToWindow('Update downloaded');
-});
-
-
+autoUpdater.on("update-downloaded", (info) => {
+  sendStatusToWindow("Update downloaded")
+})
 
 if (isProd) {
   serve({ directory: "app" })
@@ -222,7 +230,7 @@ if (isProd) {
   console.log("process.resourcesPath: ", process.resourcesPath)
   console.log(MEDconfig.runServerAutomatically ? "Server will start automatically here (in background of the application)" : "Server must be started manually")
   let bundledPythonPath = getBundledPythonEnvironment()
-    if (MEDconfig.runServerAutomatically && bundledPythonPath !== null) {
+  if (MEDconfig.runServerAutomatically && bundledPythonPath !== null) {
     // Find the bundled python environment
     if (bundledPythonPath !== null) {
       runServer(isProd, serverPort, serverProcess, serverState, bundledPythonPath)
@@ -286,8 +294,7 @@ if (isProd) {
             console.error(`stderr: ${stderr}`)
             resolve()
           })
-        }
-      )
+        })
       } else {
         try {
           execSync("killall mongod")
@@ -320,10 +327,9 @@ if (isProd) {
    * @description Returns the version of the app
    * @returns {Promise<String>} The version of the app
    */
-    ipcMain.handle("getAppVersion", async () => {
-      return app.getVersion()
-    })
-  
+  ipcMain.handle("getAppVersion", async () => {
+    return app.getVersion()
+  })
 
   /**
    * @description Copies the source file to the destination file set by the user in the dialog
@@ -577,6 +583,21 @@ ipcMain.handle("checkMongoIsRunning", async (event) => {
   return isRunning
 })
 
+/**
+ * @description Prompts the user to download the log file
+ */
+ipcMain.handle("download-log-file", async (event) => {
+  const { filePath } = await dialog.showSaveDialog({
+    title: "Save log file",
+    defaultPath: "medomicslab-log.txt",
+    filters: [{ name: "Text", extensions: ["txt"] }]
+  })
+  if (filePath) {
+    fs.copyFileSync(log.transports.file.getFile().path, filePath)
+    return filePath
+  }
+})
+
 app.on("window-all-closed", () => {
   console.log("app quit")
   stopMongoDB(mongoProcess)
@@ -593,7 +614,7 @@ app.on("window-all-closed", () => {
 })
 
 app.on("ready", async () => {
-if (MEDconfig.useReactDevTools) {
+  if (MEDconfig.useReactDevTools) {
     await installExtension(REACT_DEVELOPER_TOOLS, {
       loadExtensionOptions: {
         allowFileAccess: true
@@ -636,7 +657,7 @@ function startMongoDB(workspacePath) {
       if (fs.existsSync(getMongoDBPath())) {
         mongoProcess = spawn(getMongoDBPath(), ["--config", mongoConfigPath])
       } else {
-      mongoProcess = spawn("/opt/homebrew/Cellar/mongodb-community/7.0.12/bin/mongod", ["--config", mongoConfigPath], { shell: true })
+        mongoProcess = spawn("/opt/homebrew/Cellar/mongodb-community/7.0.12/bin/mongod", ["--config", mongoConfigPath], { shell: true })
       }
     }
     mongoProcess.stdout.on("data", (data) => {
@@ -713,29 +734,28 @@ export function getMongoDBPath() {
     console.error("mongod not found")
     return null
   } else if (process.platform === "darwin") {
-    // Check if it is installed in the .medomics directory    
-      const binPath = path.join(process.env.HOME, ".medomics", "mongodb", "bin", "mongod")
-      if (fs.existsSync(binPath)) {
-        console.log("mongod found in .medomics directory")
-        return binPath
-      }
-    if (process.env.NODE_ENV !== "production") {
-
-    // Check if mongod is in the process.env.PATH
-    const paths = process.env.PATH.split(path.delimiter)
-    for (let i = 0; i < paths.length; i++) {
-      const binPath = path.join(paths[i], "mongod")
-      if (fs.existsSync(binPath)) {
-        console.log("mongod found in PATH")
-        return binPath
-      }
-    }
-    // Check if mongod is in the default installation path on macOS - /usr/local/bin/mongod
-    const binPath = "/usr/local/bin/mongod"
+    // Check if it is installed in the .medomics directory
+    const binPath = path.join(process.env.HOME, ".medomics", "mongodb", "bin", "mongod")
     if (fs.existsSync(binPath)) {
+      console.log("mongod found in .medomics directory")
       return binPath
     }
-  }
+    if (process.env.NODE_ENV !== "production") {
+      // Check if mongod is in the process.env.PATH
+      const paths = process.env.PATH.split(path.delimiter)
+      for (let i = 0; i < paths.length; i++) {
+        const binPath = path.join(paths[i], "mongod")
+        if (fs.existsSync(binPath)) {
+          console.log("mongod found in PATH")
+          return binPath
+        }
+      }
+      // Check if mongod is in the default installation path on macOS - /usr/local/bin/mongod
+      const binPath = "/usr/local/bin/mongod"
+      if (fs.existsSync(binPath)) {
+        return binPath
+      }
+    }
     console.error("mongod not found")
     return null
   } else if (process.platform === "linux") {
@@ -747,18 +767,17 @@ export function getMongoDBPath() {
         return binPath
       }
     }
-    console.error("mongod not found in PATH"+paths)
+    console.error("mongod not found in PATH" + paths)
     // Check if mongod is in the default installation path on Linux - /usr/bin/mongod
     if (fs.existsSync("/usr/bin/mongod")) {
       return "/usr/bin/mongod"
     }
     console.error("mongod not found in /usr/bin/mongod")
-    
-    if (fs.existsSync("/home/"+process.env.USER+"/.medomics/mongodb/bin/mongod")) {
-      return "/home/"+process.env.USER+"/.medomics/mongodb/bin/mongod"
+
+    if (fs.existsSync("/home/" + process.env.USER + "/.medomics/mongodb/bin/mongod")) {
+      return "/home/" + process.env.USER + "/.medomics/mongodb/bin/mongod"
     }
     return null
-
   } else {
     return "mongod"
   }
