@@ -75,7 +75,7 @@ export default function createWindow(windowName, options) {
     win.webContents.send('logging', message)
     console.log("[DEBUG] Message sent to renderer, message: ", message)
   }
-  
+
   win.on("close", saveState)
 
   return win

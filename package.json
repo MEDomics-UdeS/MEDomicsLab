@@ -77,6 +77,8 @@
     "build:linux": "bash ./utilScripts/build_preparation_linux.sh && nextron build --linux",
     "build:win": ".\\utilScripts\\build_preparation_win.bat && nextron build --win",
     "build:mac": "bash ./utilScripts/build_preparation_mac.sh && nextron build --mac",
+    "prebuild:mac": "bash ./utilScripts/build_preparation_mac.sh",
+    "build:mac-alone": "nextron build --mac",
     "publish:linux": "bash ./utilScripts/build_preparation_linux.sh && nextron build --linux --publish always",
     "publish:win": ".\\utilScripts\\build_preparation_win.bat && nextron build --win --publish always",
     "publish:mac": "nextron build --mac --publish always"

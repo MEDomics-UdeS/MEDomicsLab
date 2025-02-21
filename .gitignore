@@ -10,7 +10,6 @@ __pycache__/*
 # Security
 *.env
 
-
 # Distribution / packaging
 libmongocrypt/
 .Python

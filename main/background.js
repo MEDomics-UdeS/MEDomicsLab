@@ -27,6 +27,14 @@ var hasBeenSet = false
 const isProd = process.env.NODE_ENV === "production"
 let splashScreen // The splash screen is the window that is displayed while the application is loading
 export var mainWindow // The main window is the window of the application
+const { autoUpdater } = require('electron-updater')
+const log = require('electron-log');
+
+autoUpdater.logger = log;
+autoUpdater.logger.transports.file.level = 'info';
+autoUpdater.autoDownload = false;
+autoUpdater.autoInstallOnAppQuit = true;
+
 
 
 //**** LOG ****// This is used to send the console.log messages to the main window
@@ -320,10 +328,10 @@ if (isProd) {
    * @description Returns the version of the app
    * @returns {Promise<String>} The version of the app
    */
-    ipcMain.handle("getAppVersion", async () => {
-      return app.getVersion()
-    })
-  
+  ipcMain.handle("getAppVersion", async () => {
+    return app.getVersion()
+  })
+
 
   /**
    * @description Copies the source file to the destination file set by the user in the dialog

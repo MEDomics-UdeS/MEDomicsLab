@@ -15,6 +15,7 @@ const HomePage = () => {
   const [hasBeenSet, setHasBeenSet] = useState(workspace.hasBeenSet)
   const [appVersion, setAppVersion] = useState("")
 
+
   const [requirementsMet, setRequirementsMet] = useState(true)
 
   async function handleWorkspaceChange() {
