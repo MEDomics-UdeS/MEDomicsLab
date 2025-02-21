@@ -2,7 +2,7 @@
   "private": true,
   "name": "medomicslab-application",
   "description": "MEDomicsLab application",
-  "version": "1.0.0",
+  "version": "1.0.3",
   "author": "MEDomicsLab Team",
   "main": "app/background.js",
   "repository": "https://github.com/MEDomics-UdeS/MEDomicsLab",
@@ -64,11 +64,11 @@
     },
     "afterPack": "build/afterPack.js",
     "publish": {
-          "provider": "github",
-          "owner": "MEDomics-UdeS",
-          "repo": "MEDomicsLab",
-          "releaseType": "draft"
-        },
+      "provider": "github",
+      "owner": "MEDomics-UdeS",
+      "repo": "MEDomicsLab",
+      "releaseType": "draft"
+    },
     "afterAllArtifactBuild": "build/afterAllArtifactBuild.js"
   },
   "scripts": {

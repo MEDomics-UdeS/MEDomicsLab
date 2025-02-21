@@ -67,6 +67,24 @@ jobs:
         env:
           VERSION: ${{ steps.get-tag.outputs.VERSION }}
 
+      - name: Archive Windows blockmap
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-built-blockmap
+          path: ./build/dist/MEDomicsLab-${{ env.VERSION }}-win.exe.blockmap
+          compression-level: 0
+        env:
+          VERSION: ${{ steps.get-tag.outputs.VERSION }}
+
+      - name: Archive Windows latest.yml file
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-built-latest
+          path: ./build/dist/latest.yml
+          compression-level: 0
+        env:
+          VERSION: ${{ steps.get-tag.outputs.VERSION }}
+
   # Publish to GitHub
   publish:
     needs: [build-windows]
@@ -79,6 +97,16 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: windows-built
+
+      - name: Download Windows blockmap
+        uses: actions/download-artifact@v4
+        with:
+          name: windows-built-blockmap
+
+      - name: Download Windows latest.yml file
+        uses: actions/download-artifact@v4
+        with:
+          name: windows-built-latest
 
       - name: Install zip
         run: sudo apt-get install zip
@@ -108,6 +136,8 @@ jobs:
         with:
           files: |
             ./MEDomicsLab-${{ env.VERSION }}-win.exe
+            ./MEDomicsLab-${{ env.VERSION }}-win.exe.blockmap
+            ./latest.yml
             ./MEDomicsLab-PythonEnv-win.zip
           name: MEDomicsLab-${{ env.VERSION }}
           body: |

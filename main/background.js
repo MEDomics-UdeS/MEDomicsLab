@@ -45,9 +45,6 @@ autoUpdater.autoInstallOnAppQuit = true
 // on macOS: ~/Library/Logs/{app name}/main.log
 // on Windows: %USERPROFILE%\AppData\Roaming\{app name}\logs\main.log
 const APP_NAME = isProd ? "medomicslab-application" : "medomicslab-application (development)"
-const WINDOWS_ELECTRON_LOG_PATH = path.join(process.env.USERPROFILE, "AppData", "Roaming", APP_NAME, "logs", "main.log")
-const MAC_ELECTRON_LOG_PATH = path.join(process.env.HOME, "Library", "Logs", APP_NAME, "main.log")
-const LINUX_ELECTRON_LOG_PATH = path.join(process.env.HOME, ".config", APP_NAME, "logs", "main.log")
 
 const originalConsoleLog = console.log
 /**
@@ -83,7 +80,7 @@ autoUpdater.on("update-available", (info) => {
   console.log("DEBUG: update available")
   sendStatusToWindow(`Update available. ${info}`)
   let pth = autoUpdater.downloadUpdate()
-  console.log("DEBUG: pth:", pth)
+  console.log("DEBUG: pth:" + pth)
   sendStatusToWindow(`Downloading update... ${pth}`)
 })
 autoUpdater.on("update-not-available", (info) => {
