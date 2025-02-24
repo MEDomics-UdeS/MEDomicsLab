@@ -1,4 +1,5 @@
 /* eslint-disable no-unused-vars */
+import React, { useContext, useEffect, useState } from "react"
 import { randomUUID } from "crypto"
 import { FilterMatchMode, FilterOperator } from "primereact/api"
 import { Button } from "primereact/button"
@@ -8,88 +9,197 @@ import { confirmDialog } from "primereact/confirmdialog"
 import { DataTable } from "primereact/datatable"
 import { InputText } from "primereact/inputtext"
 import { Message } from "primereact/message"
-import * as React from "react"
-import { useContext, useEffect, useState } from "react"
 import { Row } from "react-bootstrap"
 import { toast } from "react-toastify"
 import { connectToMongoDB, insertMEDDataObjectIfNotExists } from "../../mongoDB/mongoDBUtils"
 import { MEDDataObject } from "../../workspace/NewMedDataObject"
 import { DataContext } from "../../workspace/dataContext"
-import { getCollectionColumnTypes, getCollectionData } from "../utils"
+import { getCollectionColumnTypes, getCollectionData, getCollectionDataCount, getCollectionDataFilterd } from "../utils"
+import { set } from "lodash"
 
-/**
- * @description
- * This component provides tools to create a subset from a dataset.
- * @param {Object} props
- * @param {Function} props.refreshData - Function to refresh the data
- * @param {string} props.currentCollection - Current collection
- */
 const SubsetCreationToolsDB = ({ currentCollection, refreshData }) => {
+  const [lazyParams, setLazyParams] = useState({
+    first: 0,
+    rows: 10,
+    page: 1,
+    sortField: null,
+    sortOrder: null,
+    filters: {},
+  })
   const [data, setData] = useState([])
   const [columns, setColumns] = useState([])
   const [columnTypes, setColumnTypes] = useState({})
+  const [totalCount, setTotalCount] = useState(0)
+  const [currentCount, setCurrentCount] = useState(0)
   const [filters, setFilters] = useState({})
+  const [query, setQuery] = useState({})
+  const [sortCriteria, setSortCriteria] = useState({})
   const [newCollectionName, setNewCollectionName] = useState("")
   const [filteredData, setFilteredData] = useState([])
+  const [loadingData, setLoadingData] = useState(false)
+  const [loadingButtonOverwrite, setLoadingButtonOverwrite] = useState(false)
+  const [loadingButtonNewCollection, setLoadingButtonNewCollection] = useState(false)
+
   const { globalData } = useContext(DataContext)
   const filterDisplay = "menu"
 
-  useEffect(() => {
-    const fetchData = async () => {
-      const collectionData = await getCollectionData(currentCollection)
-      const formattedData = collectionData.map((row) => {
-        return {
-          ...row
-        }
-      })
-      setData(formattedData)
-      setFilteredData(formattedData)
-      console.log(formattedData)
+  // Manage events from DataTable
+  const onPage = (event) => {
+    setLazyParams(event)
+    fetchLazyData(event)
+  }
 
-      const columns = Object.keys(formattedData[0])
-        .filter((key) => key !== "_id")
-        .map((key) => ({
-          field: key,
-          header: key.charAt(0).toUpperCase() + key.slice(1)
-        }))
-      setColumns(columns)
-      console.log(columns)
+  const onSort = (event) => {
+    setLazyParams(event)
+    fetchLazyData(event)
+  }
 
-      const collectionColumnTypes = await getCollectionColumnTypes(currentCollection)
-      setColumnTypes(collectionColumnTypes)
-      console.log(collectionColumnTypes)
+  const onFilter = async (event) => {
+    setLazyParams(event)
+    setFilters(event.filters)
+    fetchLazyData(event)
+  }
 
-      initFiltersDynamically(columns, columnTypes)
-    }
-    fetchData()
-  }, [currentCollection])
-
-  useEffect(() => {
-    console.log("filteredData", filteredData)
-  }, [filteredData])
-
+  // Initialize filters dynamically
   const initFiltersDynamically = (columns, columnTypes) => {
-    columns.reduce((acc, col) => {
+    return columns.reduce((acc, col) => {
       const type = columnTypes[col.field]
-      if (type === "string" || type === "date") {
+      if (type.some((v) => ["string", "date"].includes(v))) {
         acc[col.field] = { operator: FilterOperator.AND, constraints: [{ value: "", matchMode: FilterMatchMode.STARTS_WITH }] }
-      } else if (type === "number" || type === "integer" || type === "float" || type === "int32") {
+      } else if (type.some((v) => ["number", "integer", "float", "int32"].includes(v))) {
         acc[col.field] = { operator: FilterOperator.AND, constraints: [{ value: "", matchMode: FilterMatchMode.EQUALS }] }
       }
-      setFilters(acc)
+      return acc
     }, {})
   }
 
-  const overwriteCollection = async () => {
-    const db = await connectToMongoDB()
-    const collection = db.collection(currentCollection)
-    await collection.deleteMany({})
-    await collection.insertMany(filteredData)
-    toast.success(`Data in ${globalData[currentCollection].name} overwritten with filtered data.`)
+  // Fetch data from the database
+  const fetchData = async () => {
+    setLoadingData(true)
+    try {
+      const db = await connectToMongoDB()
+      const collection = db.collection(currentCollection)
+      const count = await collection.countDocuments()
+      setTotalCount(count)
+      setCurrentCount(count)
+
+      const [collectionData, collectionColumnTypes] = await Promise.all([
+        getCollectionData(currentCollection, lazyParams.first, lazyParams.rows),
+        getCollectionColumnTypes(currentCollection),
+      ])
+
+      const columns = Object.keys(collectionData[0] || {})
+        .filter((key) => key !== "_id")
+        .map((key) => ({
+          field: key,
+          header: key.charAt(0).toUpperCase() + key.slice(1),
+        }))
+
+      setData(collectionData)
+      setFilteredData(collectionData)
+      setColumns(columns)
+      setColumnTypes(collectionColumnTypes)
+      setFilters(initFiltersDynamically(columns, collectionColumnTypes))
+      setSortCriteria({})
+      setQuery({})
+    } catch (error) {
+      setLoadingData(false)
+      console.error("Failed to fetch data:", error)
+      toast.error("Failed to fetch data")
+    } finally {
+      setLoadingData(false)
+    }
   }
 
+  // Fetch lazy data with filters and sorting
+  const fetchLazyData = async (event = {}) => {
+    setLoadingData(true)
+    try {
+      const sortCriteria = event.sortField ? { [event.sortField]: event.sortOrder === 1 ? 1 : -1 } : {}
+      setSortCriteria(sortCriteria)
+
+      const query = event.filters ? convertFiltersToQuery(event.filters) : {}
+      setQuery(query)
+
+      const [collectionData, dataCount] = await Promise.all([
+        getCollectionDataFilterd(currentCollection, query, event.first, event.rows, sortCriteria),
+        getCollectionDataCount(currentCollection, query),
+      ])
+
+      setData(collectionData)
+      setFilteredData(collectionData)
+      setCurrentCount(dataCount)
+    } catch (error) {
+      setLoadingData(false)
+      console.error("Failed to fetch lazy data:", error)
+      toast.error("Failed to fetch lazy data")
+    } finally {
+      setLoadingData(false)
+    }
+  }
+
+  // Convert filters to MongoDB query
+  const convertFiltersToQuery = (filters) => {
+    let query = {}
+    for (const [field, filter] of Object.entries(filters || {})) {
+      if (filter.constraints && filter.constraints.length > 0) {
+        const conditions = filter.constraints
+          .map(({ matchMode, value }) => {
+            if (value === null || value === "") return null
+
+            const parsedValue = isNaN(value) ? value : Number(value)
+
+            switch (matchMode) {
+              case "equals":
+                return { $eq: [{ $toString: `$${field}` }, { $toString: parsedValue }] }
+              case "notEquals":
+                return { $ne: [{ $toString: `$${field}` }, { $toString: parsedValue }] }
+              case "contains":
+                return { $regexMatch: { input: { $toString: `$${field}` }, regex: value, options: "i" } }
+              case "notContains":
+                return { $not: { $regexMatch: { input: { $toString: `$${field}` }, regex: value, options: "i" } } }
+              case "startsWith":
+                return { $regexMatch: { input: { $toString: `$${field}` }, regex: `^${value}`, options: "i" } }
+              case "endsWith":
+                return { $regexMatch: { input: { $toString: `$${field}` }, regex: `${value}$`, options: "i" } }
+              default:
+                return null
+            }
+          })
+          .filter(Boolean)
+
+        if (conditions.length > 0) {
+          query.$expr = query.$expr || { $and: [] }
+          query.$expr.$and.push(...conditions)
+        }
+      }
+    }
+    return query
+  }
+
+  // Overwrite collection with filtered data
+  const overwriteCollection = async () => {
+    setLoadingButtonOverwrite(true)
+    try {
+      const db = await connectToMongoDB()
+      const collection = db.collection(currentCollection)
+      await collection.deleteMany({})
+      await batchInsert(collection, filteredData)
+      toast.success(`${globalData[currentCollection].name} overwritten with filtered data.`)
+    } catch (error) {
+      setLoadingButtonOverwrite(false)
+      console.error("Failed to overwrite collection:", error)
+      toast.error("Failed to overwrite collection")
+    } finally {
+      setLoadingButtonOverwrite(false)
+    }
+  }
+
+  // Create new collection subset
   const createNewCollectionSubset = async (newCollectionName) => {
-    let collectionName = newCollectionName + ".csv"
+    setLoadingButtonNewCollection(true)
+    let finalData = filteredData
+    const collectionName = newCollectionName + ".csv"
     const id = randomUUID()
     const object = new MEDDataObject({
       id: id,
@@ -97,21 +207,15 @@ const SubsetCreationToolsDB = ({ currentCollection, refreshData }) => {
       type: "csv",
       parentID: globalData[currentCollection].parentID,
       childrenIDs: [],
-      inWorkspace: false
+      inWorkspace: false,
     })
 
     // Check if the collection already exists
-    let exists = false
-    for (const item of Object.keys(globalData)) {
-      if (globalData[item].name && globalData[item].name === globalData[currentCollection].name) {
-        exists = true
-        break
-      }
-    }
+    const existsId = Object.keys(globalData).find((item) => globalData[item].name === collectionName)
 
     // If the collection already exists, ask the user if they want to overwrite it
     let overwriteConfirmation = true
-    if (exists) {
+    if (existsId) {
       overwriteConfirmation = await new Promise((resolve) => {
         confirmDialog({
           closable: false,
@@ -122,60 +226,109 @@ const SubsetCreationToolsDB = ({ currentCollection, refreshData }) => {
           reject: () => resolve(false)
         })
       })
+      if (!overwriteConfirmation) {
+        setLoadingButtonNewCollection(false)
+        return
+      }
     }
-    if (!overwriteConfirmation) {
+    // Get filtered data
+    if (query){
+      try {
+        finalData = sortCriteria ? 
+          await getCollectionDataFilterd(currentCollection, query, null, null, sortCriteria) : 
+          await getCollectionDataFilterd(currentCollection, query)
+      } catch (error) {
+        toast.error("Failed to get filtered data")
+        console.error("Failed to get filtered data:", error)
+        return
+      }
+    }
+    
+    // Update the existing or the new collection
+    try {        
+      const db = await connectToMongoDB()
+      let collection = null
+      if (existsId) {
+        collection = db.collection(existsId)
+        await collection.deleteMany({})
+      } else {
+        collection = db.collection(id)
+      }
+      await batchInsert(collection, finalData)
+      finalData = null
+      if (!existsId) await insertMEDDataObjectIfNotExists(object)
+      MEDDataObject.updateWorkspaceDataObject()
+      toast.success(`Subset ${collectionName} updated with new data.`)
+      setLoadingButtonNewCollection(false)
+      return
+    } catch (error) {
+      toast.error("Failed update the data")
+      console.error("Failed to update the data:", error)
+      setLoadingButtonNewCollection(false)
       return
     }
-
-    const db = await connectToMongoDB()
-    const newCollection = await db.createCollection(id)
-    await newCollection.insertMany(filteredData)
-    await insertMEDDataObjectIfNotExists(object)
-    MEDDataObject.updateWorkspaceDataObject()
-    toast.success(`New subset ${collectionName} created with filtered data.`)
   }
 
+  // Batch insert data
+  const batchInsert = async (collection, data) => {
+    for (let i = 0; i < data.length; i += 1000) {
+      await collection.insertMany(data.slice(i, i + 1000))
+    }
+  }
+
+  // Fetch data on collection change
+  useEffect(() => {
+    fetchData()
+  }, [currentCollection])
+
   return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "center",
-        alignItems: "center",
-        padding: "5px"
-      }}
-    >
+    <div style={{ display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", padding: "5px" }}>
       <Message
         className="margin-top-15 margin-bottom-15 center"
         severity="info"
         text="The Subset Creation tool enables the creation of a subset of rows from a dataset by applying filters to columns."
       />
       <Message style={{ marginBottom: "15px" }} severity="success" text={`Current Collection: ${globalData[currentCollection].name}`} />
-      <Card style={{width: "900px"}}>
+      <Card style={{ width: "900px" }}>
         <DataTable
-          onValueChange={(e) => {
-            setFilteredData(e)
-          }}
-          className="p-datatable-striped p-datatable-gridlines"
           value={data}
-          paginator={true}
-          rows={7}
-          rowsPerPageOptions={[5, 10, 15, 20]}
+          className="p-datatable-striped p-datatable-gridlines"
+          paginator
+          lazy
+          totalRecords={currentCount ? currentCount : totalCount}
+          first={lazyParams.first}
+          rows={10}
           size={"small"}
+          loading={loadingData}
           removableSort={true}
           filters={filters}
           filterDisplay={filterDisplay}
           globalFilterFields={columns.map((col) => col.field)}
+          onPage={onPage}
+          onSort={onSort}
+          onFilter={onFilter}
+          sortField={lazyParams.sortField}
+          sortOrder={lazyParams.sortOrder}
+          onValueChange={(e) => setFilteredData(e)}
         >
-          {columns.length > 0 &&
-            columns.map((col) => <Column key={col} field={col.field} header={col.header} sortable={true} filter filterPlaceholder={`Search by ${col.header}`} filterField={col.field} />)}
+          {columns.map((col) => (
+            <Column
+              key={col.field}
+              field={col.field}
+              header={col.header}
+              sortable
+              filter
+              filterPlaceholder={`Search by ${col.header}`}
+              filterField={col.field}
+            />
+          ))}
         </DataTable>
       </Card>
 
       <Row className={"card"} style={{ display: "flex", justifyContent: "space-evenly", flexDirection: "row", marginTop: "0.5rem", backgroundColor: "transparent", padding: "0.5rem" }}>
         <h6>
-          Rows selected : <b>{filteredData.length}</b>&nbsp; of &nbsp;
-          <b>{data ? data.length : 0}</b>
+          Rows count : <b>{currentCount || filteredData.length}</b>&nbsp; of &nbsp;
+          <b>{totalCount || data.length}</b>
         </h6>
       </Row>
       <div style={{ display: "flex", justifyContent: "center", alignItems: "center", marginTop: "1rem" }}>
@@ -186,16 +339,15 @@ const SubsetCreationToolsDB = ({ currentCollection, refreshData }) => {
           onClick={overwriteCollection}
           tooltip="Overwrite current collection with filtered data"
           tooltipOptions={{ position: "top" }}
+          loading={loadingButtonOverwrite}
         />
         <div className="p-inputgroup w-full md:w-30rem" style={{ margin: "10px", fontSize: "1rem", width: "230px", marginTop: "5px" }}>
-          <InputText 
-            value={newCollectionName} 
-            onChange={(e) => setNewCollectionName(e.target.value)} 
-            placeholder="New subset name"
-          />
+          <InputText value={newCollectionName} onChange={(e) => setNewCollectionName(e.target.value)} placeholder="New subset name" />
           <span className="p-inputgroup-addon">.csv</span>
         </div>
         <Button
+          loading={loadingButtonNewCollection}
+          disabled={!newCollectionName}
           icon="pi pi-plus"
           onClick={() => createNewCollectionSubset(newCollectionName)}
           tooltip="Create subset"

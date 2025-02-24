@@ -51,7 +51,7 @@ import NotebookEditor from "../../mainPages/notebookEditor"
 import OutputPage from "../../mainPages/output"
 import SettingsPage from "../../mainPages/settings"
 import TerminalPage from "../../mainPages/terminal"
-import { updateMEDDataObjectName, updateMEDDataObjectPath } from "../../mongoDB/mongoDBUtils"
+import { getCollectionSize, updateMEDDataObjectName, updateMEDDataObjectPath } from "../../mongoDB/mongoDBUtils"
 import { DataContext } from "../../workspace/dataContext"
 import { MEDDataObject } from "../../workspace/NewMedDataObject"
 import { LayoutModelContext } from "../layoutContext"
@@ -665,6 +665,23 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
       )
     } else if (component === "dataTableFromDB") {
       const config = node.getConfig()
+      if (!config.fileSize || typeof config.fileSize.then === "function") {
+        getCollectionSize(config.id)
+          .then((size) => {
+            config.fileSize = size
+
+            this.forceUpdate() // Force a re-render to update the component with the new fileSize
+          })
+          .catch((error) => {
+            console.error("Error getting collection size:", error)
+          })
+      }
+
+      // toast message saying the file will be read only
+      if (config.extension === "view") {
+        toast.info("File opened in read-only mode.")
+      }
+
       if (node.getExtraData().data == null) {
         const whenDataLoaded = (data) => {
           node.getExtraData().data = data
@@ -674,7 +691,7 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
 
       return (
         <>
-          <DataTableFromDB data={node.getConfig()} isReadOnly={(node.getConfig().extension === "view") ? true : false} />
+          <DataTableFromDB data={config} isReadOnly={config.extension === "view"} />
         </>
       )
     } else if (component === "learningPage") {

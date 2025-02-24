@@ -21,6 +21,12 @@ func AddHandleFunc() {
 	Utils.CreateHandleFunc(prePath+"/create_tags/", handleCreateTags)
 	Utils.CreateHandleFunc(prePath+"/delete_tag_from_column/", handleDeleteTagFromColumn)
 	Utils.CreateHandleFunc(prePath+"/handle_pkl/", handlePKL)
+	Utils.CreateHandleFunc(prePath+"/delete_columns/", deleteColumns)
+	Utils.CreateHandleFunc(prePath+"/transform_columns/", transformColumns)
+	Utils.CreateHandleFunc(prePath+"/get_row_column_missing_values/", handleGetMissingValues)
+	Utils.CreateHandleFunc(prePath+"/get_subset_data/", handleGetSubsetData)
+	Utils.CreateHandleFunc(prePath+"/create_new_collection/", handleCreateNewCollection)
+	Utils.CreateHandleFunc(prePath+"/overwrite_collection/", handleOverwriteCollection)
 }
 
 
@@ -168,6 +174,78 @@ func handleDeleteTagFromColumn(jsonConfig string, id string) (string, error) {
 func handlePKL(jsonConfig string, id string) (string, error) {
 	log.Println("handling .pkl filetype", id)
 	response, err := Utils.StartPythonScripts(jsonConfig, "../pythonCode/modules/input/handle_pkl.py", id)
+	Utils.RemoveIdFromScripts(id)
+	if err != nil {
+		return "", err
+	}
+	return response, nil
+}
+
+// deleteColumns handles the request to delete columns from the DB
+// It returns the response from the python script
+func deleteColumns(jsonConfig string, id string) (string, error) {
+	log.Println("Deleting Columns", id)
+	response, err := Utils.StartPythonScripts(jsonConfig, "../pythonCode/modules/input/delete_columns.py", id)
+	Utils.RemoveIdFromScripts(id)
+	if err != nil {
+		return "", err
+	}
+	return response, nil
+}
+
+// transformColumns handles the request to transform columns from the DB
+// It returns the response from the python script
+func transformColumns(jsonConfig string, id string) (string, error) {
+	log.Println("Transforming Columns", id)
+	response, err := Utils.StartPythonScripts(jsonConfig, "../pythonCode/modules/input/transform_columns.py", id)
+	Utils.RemoveIdFromScripts(id)
+	if err != nil {
+		return "", err
+	}
+	return response, nil
+}
+
+// handleGetMissingValues handles the request to get the missing values from the DB
+// It returns the response from the python script
+func handleGetMissingValues(jsonConfig string, id string) (string, error) {
+	log.Println("Getting Missing Values", id)
+	response, err := Utils.StartPythonScripts(jsonConfig, "../pythonCode/modules/input/get_row_column_missing_values.py", id)
+	Utils.RemoveIdFromScripts(id)
+	if err != nil {
+		return "", err
+	}
+	return response, nil
+}
+
+// handleGetSubsetData handles the request to get the subset data from the DB
+// It returns the response from the python script
+func handleGetSubsetData(jsonConfig string, id string) (string, error) {
+	log.Println("Getting Subset Data", id)
+	response, err := Utils.StartPythonScripts(jsonConfig, "../pythonCode/modules/input/get_subset_data.py", id)
+	Utils.RemoveIdFromScripts(id)
+	if err != nil {
+		return "", err
+	}
+	return response, nil
+}
+
+// handleCreateNewCollection handles the request to create a new collection from the DB
+// It returns the response from the python script
+func handleCreateNewCollection(jsonConfig string, id string) (string, error) {
+	log.Println("Creating New Collection", id)
+	response, err := Utils.StartPythonScripts(jsonConfig, "../pythonCode/modules/input/create_new_collection.py", id)
+	Utils.RemoveIdFromScripts(id)
+	if err != nil {
+		return "", err
+	}
+	return response, nil
+}
+
+// handleOverwriteCollection handles the request to overwrite the collection from the DB
+// It returns the response from the python script
+func handleOverwriteCollection(jsonConfig string, id string) (string, error) {
+	log.Println("Overwriting Collection", id)
+	response, err := Utils.StartPythonScripts(jsonConfig, "../pythonCode/modules/input/overwrite_collection.py", id)
 	Utils.RemoveIdFromScripts(id)
 	if err != nil {
 		return "", err
