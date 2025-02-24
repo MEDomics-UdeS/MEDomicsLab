@@ -1,4 +1,5 @@
 /* eslint-disable no-unused-vars */
+import React, { useContext, useEffect, useState } from "react"
 import { randomUUID } from "crypto"
 import { FilterMatchMode, FilterOperator } from "primereact/api"
 import { Button } from "primereact/button"
@@ -8,168 +9,197 @@ import { confirmDialog } from "primereact/confirmdialog"
 import { DataTable } from "primereact/datatable"
 import { InputText } from "primereact/inputtext"
 import { Message } from "primereact/message"
-import * as React from "react"
-import { useContext, useEffect, useState } from "react"
 import { Row } from "react-bootstrap"
 import { toast } from "react-toastify"
-import { insertMEDDataObjectIfNotExists, connectToMongoDB } from "../../mongoDB/mongoDBUtils"
+import { connectToMongoDB, insertMEDDataObjectIfNotExists } from "../../mongoDB/mongoDBUtils"
 import { MEDDataObject } from "../../workspace/NewMedDataObject"
 import { DataContext } from "../../workspace/dataContext"
-import { getCollectionColumnTypes, getCollectionData } from "../utils"
-import { ServerConnectionContext } from "../../serverConnection/connectionContext"
-import { requestBackend } from "../../../utilities/requests"
-import { getCollectionColumns } from "../../mongoDB/mongoDBUtils"
+import { getCollectionColumnTypes, getCollectionData, getCollectionDataCount, getCollectionDataFilterd } from "../utils"
+import { set } from "lodash"
 
-// the python script command send by CLI when i do requestbacked with alot of filtered data is not working
-// I need to fix this issue by sending the query instead of the full filtered data.
-
-/**
- * @description
- * This component provides tools to create a subset from a dataset.
- * @param {string} props.currentCollection - Current collection
- */
 const SubsetCreationToolsDB = ({ currentCollection, refreshData }) => {
+  const [lazyParams, setLazyParams] = useState({
+    first: 0,
+    rows: 10,
+    page: 1,
+    sortField: null,
+    sortOrder: null,
+    filters: {},
+  })
   const [data, setData] = useState([])
   const [columns, setColumns] = useState([])
   const [columnTypes, setColumnTypes] = useState({})
+  const [totalCount, setTotalCount] = useState(0)
+  const [currentCount, setCurrentCount] = useState(0)
   const [filters, setFilters] = useState({})
+  const [query, setQuery] = useState({})
+  const [sortCriteria, setSortCriteria] = useState({})
   const [newCollectionName, setNewCollectionName] = useState("")
   const [filteredData, setFilteredData] = useState([])
-  const { globalData } = useContext(DataContext)
-  const filterDisplay = "menu"
   const [loadingData, setLoadingData] = useState(false)
   const [loadingButtonOverwrite, setLoadingButtonOverwrite] = useState(false)
   const [loadingButtonNewCollection, setLoadingButtonNewCollection] = useState(false)
-  const { port } = useContext(ServerConnectionContext)
 
-  // THIS IS COMMENTED FOR NOW BECAUSE IT DOESN'T FOR HUGE CSV FILES WITH ALOT OF COLUMNS.. Python
-  // can't seem to return the data, it's always undefined for big big big files.
-  // Fetches the data from the current collection in the backend directly.
-  // Returns the data and columns of the current collection. This is called everytime you open the tool.
-  // useEffect(() => {
-  //   const fetchData = async () => {
-  //     const jsonToSend = {}
-  //     jsonToSend["collection"] = currentCollection
-  //     jsonToSend["database_name"] = "data"
+  const { globalData } = useContext(DataContext)
+  const filterDisplay = "menu"
 
-  //     setLoadingData(true)
+  // Manage events from DataTable
+  const onPage = (event) => {
+    setLazyParams(event)
+    fetchLazyData(event)
+  }
 
-  //     const response = await requestBackend(
-  //       port,
-  //       "/input/get_subset_data/",
-  //       jsonToSend,
-  //       async (response) => {
-  //         setLoadingData(false)
-  //         if (!response || !response.data) {
-  //           console.error("Received an invalid response", response)
-  //           return
-  //         }
-  //         setData(response.data)
-  //         setColumns(response.columns)
-  //         const collectionColumnTypes = await getCollectionColumnTypes(currentCollection)
-  //         setColumnTypes(collectionColumnTypes)
-  //         initFiltersDynamically(response.columns, collectionColumnTypes)
-  //       },
-  //       (error) => {
-  //         setLoadingData(false)
-  //         console.error("Failed to fetch missing values data:", error)
-  //       }
-  //     )
-  //   }
-  //   fetchData()
-  // }, [currentCollection])
+  const onSort = (event) => {
+    setLazyParams(event)
+    fetchLazyData(event)
+  }
 
-  // For some reason this works even on big files with ALOT of columns, so i will use this for now.
-  // Returns the data and columns of the current collection. This is called every time you open the tool.
-  useEffect(() => {
-    const fetchData = async () => {
-      setLoadingData(true)
-      const [collectionData, collectionColumnTypes] = await Promise.all([
-        getCollectionData(currentCollection),
-        getCollectionColumnTypes(currentCollection)
-      ])
-      
-      setData(collectionData)
-      setFilteredData(collectionData)
-      
-      const columns = Object.keys(collectionData[0])
-        .filter((key) => key !== "_id")
-        .reduce((acc, key) => {
-          acc.push({
-            field: key,
-            header: key.charAt(0).toUpperCase() + key.slice(1)
-          })
-          return acc
-        }, [])
-      
-      setColumns(columns)
-      setColumnTypes(collectionColumnTypes)
-      initFiltersDynamically(columns, collectionColumnTypes)
-      setLoadingData(false)
-    }
-    fetchData()
-  }, [currentCollection])
+  const onFilter = async (event) => {
+    setLazyParams(event)
+    setFilters(event.filters)
+    fetchLazyData(event)
+  }
 
-  // Initializes the filters dynamically based on the column types
+  // Initialize filters dynamically
   const initFiltersDynamically = (columns, columnTypes) => {
-    columns.reduce((acc, col) => {
+    return columns.reduce((acc, col) => {
       const type = columnTypes[col.field]
-      if (type === "string" || type === "date") {
+      if (type.some((v) => ["string", "date"].includes(v))) {
         acc[col.field] = { operator: FilterOperator.AND, constraints: [{ value: "", matchMode: FilterMatchMode.STARTS_WITH }] }
-      } else if (type === "number" || type === "integer" || type === "float" || type === "int32") {
+      } else if (type.some((v) => ["number", "integer", "float", "int32"].includes(v))) {
         acc[col.field] = { operator: FilterOperator.AND, constraints: [{ value: "", matchMode: FilterMatchMode.EQUALS }] }
       }
-      setFilters(acc)
+      return acc
     }, {})
   }
 
-  // Overwrites the current collection with the filtered data
-  const overwriteCollection = async () => {
-    /**
-     * COMMENTED FOR NOW BECAUSE THE CLI LIMIT ON WINDOWS IS NOT WORKING
-     */
-    /*let jsonToSend = {}
-    jsonToSend["collection"] = currentCollection
-    jsonToSend["database_name"] = "data"
-    jsonToSend["data"] = filteredData
-
-    setLoadingButtonOverwrite(true)
-
-    requestBackend(
-      port,
-      "/input/overwrite_collection/",
-      jsonToSend,
-      (response) => {
-        setLoadingButtonOverwrite(false)
-        toast.success(`Data in ${globalData[currentCollection].name} overwritten with filtered data.`)
-      },
-      (error) => {
-        setLoadingButtonOverwrite(false)
-        toast.error("Failed to overwrite collection.")
-        console.error("Failed to overwrite collection:", error)
-      }
-    )*/
-
-    // THIS METHOD IS NOT OPTIMAL BUT IT IS WORKING FOR BIG FILES TOO BECAUSE
-    // THE FILTERED DATA IS LOADED IN THE BACKEND, SO NO CLIENT-SIDE LOADING
+  // Fetch data from the database
+  const fetchData = async () => {
+    setLoadingData(true)
     try {
-      setLoadingButtonOverwrite(true)
       const db = await connectToMongoDB()
       const collection = db.collection(currentCollection)
-      await collection.deleteMany({})
-      await collection.insertMany(filteredData)
-      toast.success(`${globalData[currentCollection].name} overwritten with filtered data.`)
-      setLoadingButtonOverwrite(false)
+      const count = await collection.countDocuments()
+      setTotalCount(count)
+      setCurrentCount(count)
+
+      const [collectionData, collectionColumnTypes] = await Promise.all([
+        getCollectionData(currentCollection, lazyParams.first, lazyParams.rows),
+        getCollectionColumnTypes(currentCollection),
+      ])
+
+      const columns = Object.keys(collectionData[0] || {})
+        .filter((key) => key !== "_id")
+        .map((key) => ({
+          field: key,
+          header: key.charAt(0).toUpperCase() + key.slice(1),
+        }))
+
+      setData(collectionData)
+      setFilteredData(collectionData)
+      setColumns(columns)
+      setColumnTypes(collectionColumnTypes)
+      setFilters(initFiltersDynamically(columns, collectionColumnTypes))
+      setSortCriteria({})
+      setQuery({})
     } catch (error) {
-      setLoadingButtonOverwrite(false)
-      toast.error("Failed to overwrite collection")
-      console.error("Failed to overwrite collection:", error)
+      setLoadingData(false)
+      console.error("Failed to fetch data:", error)
+      toast.error("Failed to fetch data")
+    } finally {
+      setLoadingData(false)
     }
   }
 
-  // Creates a new collection subset with the filtered data
+  // Fetch lazy data with filters and sorting
+  const fetchLazyData = async (event = {}) => {
+    setLoadingData(true)
+    try {
+      const sortCriteria = event.sortField ? { [event.sortField]: event.sortOrder === 1 ? 1 : -1 } : {}
+      setSortCriteria(sortCriteria)
+
+      const query = event.filters ? convertFiltersToQuery(event.filters) : {}
+      setQuery(query)
+
+      const [collectionData, dataCount] = await Promise.all([
+        getCollectionDataFilterd(currentCollection, query, event.first, event.rows, sortCriteria),
+        getCollectionDataCount(currentCollection, query),
+      ])
+
+      setData(collectionData)
+      setFilteredData(collectionData)
+      setCurrentCount(dataCount)
+    } catch (error) {
+      setLoadingData(false)
+      console.error("Failed to fetch lazy data:", error)
+      toast.error("Failed to fetch lazy data")
+    } finally {
+      setLoadingData(false)
+    }
+  }
+
+  // Convert filters to MongoDB query
+  const convertFiltersToQuery = (filters) => {
+    let query = {}
+    for (const [field, filter] of Object.entries(filters || {})) {
+      if (filter.constraints && filter.constraints.length > 0) {
+        const conditions = filter.constraints
+          .map(({ matchMode, value }) => {
+            if (value === null || value === "") return null
+
+            const parsedValue = isNaN(value) ? value : Number(value)
+
+            switch (matchMode) {
+              case "equals":
+                return { $eq: [{ $toString: `$${field}` }, { $toString: parsedValue }] }
+              case "notEquals":
+                return { $ne: [{ $toString: `$${field}` }, { $toString: parsedValue }] }
+              case "contains":
+                return { $regexMatch: { input: { $toString: `$${field}` }, regex: value, options: "i" } }
+              case "notContains":
+                return { $not: { $regexMatch: { input: { $toString: `$${field}` }, regex: value, options: "i" } } }
+              case "startsWith":
+                return { $regexMatch: { input: { $toString: `$${field}` }, regex: `^${value}`, options: "i" } }
+              case "endsWith":
+                return { $regexMatch: { input: { $toString: `$${field}` }, regex: `${value}$`, options: "i" } }
+              default:
+                return null
+            }
+          })
+          .filter(Boolean)
+
+        if (conditions.length > 0) {
+          query.$expr = query.$expr || { $and: [] }
+          query.$expr.$and.push(...conditions)
+        }
+      }
+    }
+    return query
+  }
+
+  // Overwrite collection with filtered data
+  const overwriteCollection = async () => {
+    setLoadingButtonOverwrite(true)
+    try {
+      const db = await connectToMongoDB()
+      const collection = db.collection(currentCollection)
+      await collection.deleteMany({})
+      await batchInsert(collection, filteredData)
+      toast.success(`${globalData[currentCollection].name} overwritten with filtered data.`)
+    } catch (error) {
+      setLoadingButtonOverwrite(false)
+      console.error("Failed to overwrite collection:", error)
+      toast.error("Failed to overwrite collection")
+    } finally {
+      setLoadingButtonOverwrite(false)
+    }
+  }
+
+  // Create new collection subset
   const createNewCollectionSubset = async (newCollectionName) => {
-    let collectionName = newCollectionName + ".csv"
+    setLoadingButtonNewCollection(true)
+    let finalData = filteredData
+    const collectionName = newCollectionName + ".csv"
     const id = randomUUID()
     const object = new MEDDataObject({
       id: id,
@@ -177,21 +207,15 @@ const SubsetCreationToolsDB = ({ currentCollection, refreshData }) => {
       type: "csv",
       parentID: globalData[currentCollection].parentID,
       childrenIDs: [],
-      inWorkspace: false
+      inWorkspace: false,
     })
 
     // Check if the collection already exists
-    let exists = false
-    for (const item of Object.keys(globalData)) {
-      if (globalData[item].name && globalData[item].name === collectionName) {
-        exists = true
-        break
-      }
-    }
+    const existsId = Object.keys(globalData).find((item) => globalData[item].name === collectionName)
 
     // If the collection already exists, ask the user if they want to overwrite it
     let overwriteConfirmation = true
-    if (exists) {
+    if (existsId) {
       overwriteConfirmation = await new Promise((resolve) => {
         confirmDialog({
           closable: false,
@@ -202,67 +226,63 @@ const SubsetCreationToolsDB = ({ currentCollection, refreshData }) => {
           reject: () => resolve(false)
         })
       })
-    }
-    if (!overwriteConfirmation) {
-      return
-    }
-
-    /**
-     * COMMENTED FOR NOW BECAUSE THE CLI LIMIT ON WINDOWS IS NOT WORKING
-     */
-
-    /*let jsonToSend = {}
-    jsonToSend["collection"] = currentCollection
-    jsonToSend["database_name"] = "data"
-    jsonToSend["new_collection_name"] = id
-    jsonToSend["data"] = filteredData
-
-    setLoadingButtonNewCollection(true)
-
-    requestBackend(
-      port,
-      "/input/create_new_collection/",
-      jsonToSend,
-      (response) => {
+      if (!overwriteConfirmation) {
         setLoadingButtonNewCollection(false)
-        insertMEDDataObjectIfNotExists(object)
-        MEDDataObject.updateWorkspaceDataObject()
-        toast.success(`New subset ${collectionName} created with filtered data.`)
-      },
-      (error) => {
-        setLoadingButtonNewCollection(false)
-        toast.error("Failed to create new collection")
-        console.error("Failed to create new collection:", error)
+        return
       }
-    )*/
-
-    // THIS METHOD IS NOT OPTIMAL BUT IT IS WORKING FOR BIG FILES TOO BECAUSE
-    // THE FILTERED DATA IS LOADED IN THE BACKEND, SO NO CLIENT-SIDE LOADING
-    try {
-      setLoadingButtonNewCollection(true)
+    }
+    // Get filtered data
+    if (query){
+      try {
+        finalData = sortCriteria ? 
+          await getCollectionDataFilterd(currentCollection, query, null, null, sortCriteria) : 
+          await getCollectionDataFilterd(currentCollection, query)
+      } catch (error) {
+        toast.error("Failed to get filtered data")
+        console.error("Failed to get filtered data:", error)
+        return
+      }
+    }
+    
+    // Update the existing or the new collection
+    try {        
       const db = await connectToMongoDB()
-      const collection = db.collection(id)
-      await collection.insertMany(filteredData)
-      insertMEDDataObjectIfNotExists(object)
+      let collection = null
+      if (existsId) {
+        collection = db.collection(existsId)
+        await collection.deleteMany({})
+      } else {
+        collection = db.collection(id)
+      }
+      await batchInsert(collection, finalData)
+      finalData = null
+      if (!existsId) await insertMEDDataObjectIfNotExists(object)
       MEDDataObject.updateWorkspaceDataObject()
-      toast.success(`New subset ${collectionName} created with filtered data.`)
+      toast.success(`Subset ${collectionName} updated with new data.`)
       setLoadingButtonNewCollection(false)
+      return
     } catch (error) {
-      toast.error("Failed to create new collection")
-      console.error("Failed to create new collection:", error)
+      toast.error("Failed update the data")
+      console.error("Failed to update the data:", error)
+      setLoadingButtonNewCollection(false)
+      return
     }
   }
 
+  // Batch insert data
+  const batchInsert = async (collection, data) => {
+    for (let i = 0; i < data.length; i += 1000) {
+      await collection.insertMany(data.slice(i, i + 1000))
+    }
+  }
+
+  // Fetch data on collection change
+  useEffect(() => {
+    fetchData()
+  }, [currentCollection])
+
   return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "center",
-        alignItems: "center",
-        padding: "5px"
-      }}
-    >
+    <div style={{ display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", padding: "5px" }}>
       <Message
         className="margin-top-15 margin-bottom-15 center"
         severity="info"
@@ -271,30 +291,44 @@ const SubsetCreationToolsDB = ({ currentCollection, refreshData }) => {
       <Message style={{ marginBottom: "15px" }} severity="success" text={`Current Collection: ${globalData[currentCollection].name}`} />
       <Card style={{ width: "900px" }}>
         <DataTable
-          onValueChange={(e) => {
-            setFilteredData(e)
-          }}
-          className="p-datatable-striped p-datatable-gridlines"
           value={data}
-          paginator={true}
-          rows={7}
-          rowsPerPageOptions={[5, 10, 15, 20]}
+          className="p-datatable-striped p-datatable-gridlines"
+          paginator
+          lazy
+          totalRecords={currentCount ? currentCount : totalCount}
+          first={lazyParams.first}
+          rows={10}
           size={"small"}
           loading={loadingData}
           removableSort={true}
           filters={filters}
           filterDisplay={filterDisplay}
           globalFilterFields={columns.map((col) => col.field)}
+          onPage={onPage}
+          onSort={onSort}
+          onFilter={onFilter}
+          sortField={lazyParams.sortField}
+          sortOrder={lazyParams.sortOrder}
+          onValueChange={(e) => setFilteredData(e)}
         >
-          {columns.length > 0 &&
-            columns.map((col) => <Column key={col} field={col.field} header={col.header} sortable={true} filter filterPlaceholder={`Search by ${col.header}`} filterField={col.field} />)}
+          {columns.map((col) => (
+            <Column
+              key={col.field}
+              field={col.field}
+              header={col.header}
+              sortable
+              filter
+              filterPlaceholder={`Search by ${col.header}`}
+              filterField={col.field}
+            />
+          ))}
         </DataTable>
       </Card>
 
       <Row className={"card"} style={{ display: "flex", justifyContent: "space-evenly", flexDirection: "row", marginTop: "0.5rem", backgroundColor: "transparent", padding: "0.5rem" }}>
         <h6>
-          Rows selected : <b>{filteredData.length}</b>&nbsp; of &nbsp;
-          <b>{data ? data.length : 0}</b>
+          Rows count : <b>{currentCount || filteredData.length}</b>&nbsp; of &nbsp;
+          <b>{totalCount || data.length}</b>
         </h6>
       </Row>
       <div style={{ display: "flex", justifyContent: "center", alignItems: "center", marginTop: "1rem" }}>
@@ -311,7 +345,14 @@ const SubsetCreationToolsDB = ({ currentCollection, refreshData }) => {
           <InputText value={newCollectionName} onChange={(e) => setNewCollectionName(e.target.value)} placeholder="New subset name" />
           <span className="p-inputgroup-addon">.csv</span>
         </div>
-        <Button loading={loadingButtonNewCollection} icon="pi pi-plus" onClick={() => createNewCollectionSubset(newCollectionName)} tooltip="Create subset" tooltipOptions={{ position: "top" }} />
+        <Button
+          loading={loadingButtonNewCollection}
+          disabled={!newCollectionName}
+          icon="pi pi-plus"
+          onClick={() => createNewCollectionSubset(newCollectionName)}
+          tooltip="Create subset"
+          tooltipOptions={{ position: "top" }}
+        />
       </div>
     </div>
   )
