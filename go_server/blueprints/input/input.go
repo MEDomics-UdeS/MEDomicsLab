@@ -1,6 +1,7 @@
 package input
 
 import (
+	"fmt"
 	Utils "go_module/src"
 	"log"
 )
@@ -27,8 +28,9 @@ func AddHandleFunc() {
 	Utils.CreateHandleFunc(prePath+"/get_subset_data/", handleGetSubsetData)
 	Utils.CreateHandleFunc(prePath+"/create_new_collection/", handleCreateNewCollection)
 	Utils.CreateHandleFunc(prePath+"/overwrite_collection/", handleOverwriteCollection)
+	Utils.CreateHandleFunc(prePath+"/overwrite_encoded_data", handleOverwriteEncodedData)
+	Utils.CreateHandleFunc(prePath+"/append_encoded_data", handleAppendEncodedData)
 }
-
 
 // handleMerge handles the request to merge the datasets for the DB
 // It returns the response from the python script
@@ -66,7 +68,6 @@ func handleCleanDB(jsonConfig string, id string) (string, error) {
 	return response, nil
 }
 
-
 // handleComputeEigenvaluesDB handles the request to compute the eigenvalues for the DB
 // It returns the response from the python script
 func handleComputeEigenvaluesDB(jsonConfig string, id string) (string, error) {
@@ -78,7 +79,6 @@ func handleComputeEigenvaluesDB(jsonConfig string, id string) (string, error) {
 	}
 	return response, nil
 }
-
 
 // handleCreatePCADB handles the request to compute pca for the db
 // It returns the response from the python script
@@ -92,7 +92,6 @@ func handleCreatePCADB(jsonConfig string, id string) (string, error) {
 	return response, nil
 }
 
-
 // handleApplyPCA handles the request to compute pca with DB
 // It returns the response from the python script
 func handleApplyPCADB(jsonConfig string, id string) (string, error) {
@@ -104,7 +103,6 @@ func handleApplyPCADB(jsonConfig string, id string) (string, error) {
 	}
 	return response, nil
 }
-
 
 // handleComputeCorrelations handles the request to compute correlations for the DB
 // It returns the response from the python script
@@ -118,7 +116,6 @@ func handleComputeCorrelationsDB(jsonConfig string, id string) (string, error) {
 	return response, nil
 }
 
-
 // handleComputeSpearman handles the request to compute Spearman for the DB
 // It returns the response from the python script
 func handleComputeSpearmanDB(jsonConfig string, id string) (string, error) {
@@ -130,7 +127,6 @@ func handleComputeSpearmanDB(jsonConfig string, id string) (string, error) {
 	}
 	return response, nil
 }
-
 
 // handleProgress handles the request to get the progress of the experiment
 // It returns the progress of the experiment
@@ -250,5 +246,38 @@ func handleOverwriteCollection(jsonConfig string, id string) (string, error) {
 	if err != nil {
 		return "", err
 	}
+	return response, nil
+}
+func handleOverwriteEncodedData(jsonConfig string, id string) (string, error) {
+
+	response, err := Utils.StartPythonScripts(jsonConfig, "../pythonCode/modules/input/overwrite_encoded_data.py", id)
+	if err != nil {
+		log.Println("Error executing Python script:", err)
+		return "", err
+	}
+
+	// Log to verify response
+	log.Println("Python script response:", response)
+
+	if response == "" {
+		return "", fmt.Errorf("empty response from Python script")
+	}
+
+	return response, nil
+}
+
+func handleAppendEncodedData(jsonConfig string, id string) (string, error) {
+	response, err := Utils.StartPythonScripts(jsonConfig, "../pythonCode/modules/input/append_encoded_data.py", id)
+	if err != nil {
+		log.Println("Error executing Python script:", err)
+		return "", err
+	}
+
+	log.Println("Python script response:", response)
+
+	if response == "" {
+		return "", fmt.Errorf("empty response from Python script")
+	}
+
 	return response, nil
 }
