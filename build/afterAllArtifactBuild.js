@@ -31,7 +31,7 @@ exports.default = async function(context) {
         console.log('Pkg file:', pkgFile);
 
         // Get the signed .pkg file
-        const signedPkgFile = pkgFile.replace('.pkg', '-signed.pkg');
+        const signedPkgFile = pkgFile.replace('.pkg', '-installer.pkg');
         console.log('Signed pkg file:', signedPkgFile);
 
         // Sign the pkg file
