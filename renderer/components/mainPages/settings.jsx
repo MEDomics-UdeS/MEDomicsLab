@@ -343,8 +343,6 @@ const SettingsPage = (pageId = "settings") => {
                           console.log("show first setup modal")
                           setFirstSetupModalVisible(true)
                         }}
-                        // style={{ backgroundColor: serverIsRunning ? "#d55757" : "grey", borderColor: serverIsRunning ? "#d55757" : "grey" }}
-                        // disabled={!serverIsRunning}
                       />
                     </>
                   )}
