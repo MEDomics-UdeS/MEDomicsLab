@@ -2,7 +2,7 @@ name: Full build and publish with versioning
 on:
   push:
     tags:
-      - "v*" # Push events to matching v*, i.e. v1.0, v20.15.10
+      - "m*" # Push events to matching v*, i.e. v1.0, v20.15.10
 permissions:
   contents: write
 jobs:
@@ -10,14 +10,14 @@ jobs:
     runs-on: macos-latest
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           submodules: recursive
           fetch-depth: 0 # Fetch full history for branches
-      
+
       - name: Keys and certificates
         env:
           APPLE_CERT_DATA: ${{ secrets.CSC_INSTALLER_LINK }}
@@ -47,8 +47,7 @@ jobs:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         run: |
           xcrun notarytool store-credentials "notarytool-password" --apple-id "$APPLE_NOTARY_USER" --team-id "$APPLE_TEAM_ID" --password "$APPLE_NOTARY_PASSWORD"
-    
-      
+
       - name: Checking out the correct branches for submodules
         run: |
           git submodule foreach '
@@ -84,7 +83,7 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: 3.9
-      
+
       - name: Bash python version
         run: |
           echo $PATH
@@ -103,7 +102,6 @@ jobs:
 
       - name: Install dependencies
         run: npm install
-
 
       - name: Cache node modules
         id: cache-npm
@@ -144,12 +142,12 @@ jobs:
         run: |
           VERSION=${GITHUB_REF/refs\/tags\//}
           echo "VERSION=${VERSION#v}" >> "$GITHUB_OUTPUT"
-      
+
       - name: dotenv file
         run: |
           echo "DEVELOPER_ID_APP='${{ secrets.DEVELOPER_ID_APP }}'" >> .env
           echo "DEVELOPER_ID_INSTALLER='${{ secrets.DEVELOPER_ID_INSTALLER }}'" >> .env
-        
+
       - name: Build for Mac
         env:
           APPLE_ID: ${{ secrets.APPLE_ID }}
@@ -161,7 +159,7 @@ jobs:
           CSC_INSTALLER_KEY_PASSWORD: ${{ secrets.CSC_INSTALLER_KEY_PASSWORD }}
         run: |
           npm run build
-      
+
       - name: notarize
         env:
           VERSION: ${{ steps.get-tag.outputs.VERSION }}
@@ -170,7 +168,7 @@ jobs:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         run: |
           xcrun notarytool submit build/dist/MEDomicsLab-${{ env.VERSION }}-mac-installer.pkg --keychain-profile "notarytool-password"  --wait
-      
+
       - name: staple
         continue-on-error: true
         env:
@@ -189,7 +187,7 @@ jobs:
           compression-level: 0
         env:
           VERSION: ${{ steps.get-tag.outputs.VERSION }}
-  
+
       - name: Archive Mac
         uses: actions/upload-artifact@v4
         with:
@@ -217,8 +215,6 @@ jobs:
         env:
           VERSION: ${{ steps.get-tag.outputs.VERSION }}
 
-
-
   # Publish to GitHub
   publish:
     needs: [build-mac]
@@ -241,7 +237,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: mac-built-zip
-  
+
       - name: Install zip
         run: sudo apt-get install zip
 
@@ -258,7 +254,7 @@ jobs:
 
       - name: zip Mac
         run: zip -r MEDomicsLab-PythonEnv-mac.zip ./create_conda_env_mac.sh ./requirements_mac.txt
-        
+
       - name: Get tag name
         id: get-tag
         run: |
@@ -285,4 +281,3 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VERSION: ${{ steps.get-tag.outputs.VERSION }}
-
