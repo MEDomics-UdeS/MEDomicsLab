@@ -63,12 +63,6 @@
       "afterInstall": "build/after-install.sh"
     },
     "afterPack": "build/afterPack.js",
-    "publish": {
-      "provider": "github",
-      "owner": "MEDomics-UdeS",
-      "repo": "MEDomicsLab",
-      "releaseType": "draft"
-    },
     "afterAllArtifactBuild": "build/afterAllArtifactBuild.js"
   },
   "scripts": {
