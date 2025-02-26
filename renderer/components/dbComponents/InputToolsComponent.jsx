@@ -97,7 +97,7 @@ const InputToolsComponent = ({ exportOptions }) => {
             <BasicToolsDB collectionSize={collectionSize} currentCollection={!collectionId ? null : collectionId} />
           </Panel>
           <Panel header="Convert Categorical Column Into Numeric" toggleable collapsed={true}>
-            <ConvertCategoricalColumnIntoNumericDB exportOptions={exportOptions} currentCollection={!altData ? null : altData.id} />
+            <ConvertCategoricalColumnIntoNumericDB exportOptions={exportOptions} currentCollection={!collectionId ? null : collectionId.id} />
           </Panel>
           <Panel header="Drop Duplicates Tools" toggleable collapsed={true}>
             <DropDuplicatesToolsDB exportOptions={exportOptions} currentCollection={!collectionId ? null : collectionId} />

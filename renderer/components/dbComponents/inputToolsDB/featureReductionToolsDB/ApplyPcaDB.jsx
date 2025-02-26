@@ -99,7 +99,6 @@ const ApplyPCADB = ({ currentCollection }) => {
       keepUnselectedColumns: keepUnselectedColumns,
       overwrite: overwrite,
       collectionName: globalData[currentCollection].id,
-      databaseName: "data",
       newCollectionName: id,
       transformationCollection: transformationCollection
     }
@@ -159,6 +158,7 @@ const ApplyPCADB = ({ currentCollection }) => {
           <MultiSelect
             className="maxwidth-80"
             display="chip"
+            filter
             value={selectedColumns}
             onChange={(e) => setSelectedColumns(e.value)}
             options={columns.filter((col) => col !== "_id")}

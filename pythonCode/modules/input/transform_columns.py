@@ -1,16 +1,12 @@
-import json
-import sys
-import numpy as np
 import os
-import pandas as pd
+import sys
 from pathlib import Path
+
 sys.path.append(
     str(Path(os.path.dirname(os.path.abspath(__file__))).parent.parent))
 from med_libs.GoExecutionScript import GoExecutionScript, parse_arguments
+from med_libs.mongodb_utils import connect_to_mongo
 from med_libs.server_utils import go_print
-
-# To deal with the DB
-from pymongo import MongoClient
 
 json_params_dict, id_ = parse_arguments()
 go_print("running script.py:" + id_)
@@ -41,12 +37,10 @@ class GoExecScriptTransformColumns(GoExecutionScript):
         # Get the Data from the JsonToSend
         columns = json_config["columns"]
         collection_id = json_config["collection"]
-        database = json_config["databasename"]
         type = json_config["type"]
 
         # Connect to the database
-        client = MongoClient('localhost', 54017)
-        db = client[database]
+        db = connect_to_mongo()
         collection = db[collection_id]
 
         # if the type is binary, replace every cell that has a value with 1, and every cell that is empty with 0

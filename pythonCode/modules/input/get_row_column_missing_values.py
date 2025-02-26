@@ -1,17 +1,16 @@
-import json
-import sys
-import numpy as np
 import os
-import pandas as pd
+import sys
 from pathlib import Path
+
+import numpy as np
+
 sys.path.append(
     str(Path(os.path.dirname(os.path.abspath(__file__))).parent.parent))
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from med_libs.GoExecutionScript import GoExecutionScript, parse_arguments
-from med_libs.server_utils import go_print
 
-# To deal with the DB
-from pymongo import MongoClient
+from med_libs.GoExecutionScript import GoExecutionScript, parse_arguments
+from med_libs.mongodb_utils import connect_to_mongo
+from med_libs.server_utils import go_print
 
 json_params_dict, id_ = parse_arguments()
 go_print("running script.py:" + id_)
@@ -38,12 +37,10 @@ class GoExecScriptGetMissingValues(GoExecutionScript):
         """
 
         # Get the Data from the JsonToSend
-        database_name = json_config["databaseName"]
         collection_id = json_config["collectionName"]
         
         # Connect to the database and connect to the tag_collection
-        client = MongoClient('localhost', 54017)
-        db = client[database_name]
+        db = connect_to_mongo()
         collection = db[collection_id]
 
         # Fetch all documents from the collection by using a batch method

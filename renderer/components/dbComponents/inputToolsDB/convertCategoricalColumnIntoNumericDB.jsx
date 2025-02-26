@@ -255,7 +255,6 @@ const ConvertCategoricalColumnIntoNumericDB = ({ currentCollection }) => {
       }
 
       const requestBody = {
-        databaseName: "data",
         collectionName: globalData[currentCollection]?.id,
         data
       }
@@ -294,7 +293,6 @@ const ConvertCategoricalColumnIntoNumericDB = ({ currentCollection }) => {
       }
 
       const requestBody = {
-        databaseName: "data",
         collectionName: globalData[currentCollection]?.id,
         data
       }

@@ -73,7 +73,6 @@ const CreatePCADB = ({ currentCollection }) => {
       "/input/compute_eigenvaluesDB/",
       {
         columns: selectedColumns,
-        databaseName: "data",
         collectionName: currentCollection
       },
 
@@ -141,7 +140,6 @@ const CreatePCADB = ({ currentCollection }) => {
       overwrite: overwrite,
       exportTransformation: exportTransformation,
       collectionName: currentCollection,
-      databaseName: "data",
       newCollectionName: id,
       newPCATransformationName: id2
     }

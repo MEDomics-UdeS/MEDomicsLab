@@ -1,21 +1,23 @@
 /* eslint-disable no-unused-vars */
-import React, { useContext, useEffect, useState } from "react"
 import { randomUUID } from "crypto"
 import { FilterMatchMode, FilterOperator } from "primereact/api"
 import { Button } from "primereact/button"
 import { Card } from "primereact/card"
+import { Checkbox } from "primereact/checkbox"
 import { Column } from "primereact/column"
 import { confirmDialog } from "primereact/confirmdialog"
 import { DataTable } from "primereact/datatable"
 import { InputText } from "primereact/inputtext"
 import { Message } from "primereact/message"
+import React, { useContext, useEffect, useState } from "react"
 import { Row } from "react-bootstrap"
 import { toast } from "react-toastify"
+import { requestBackend } from "../../../utilities/requests"
 import { connectToMongoDB, insertMEDDataObjectIfNotExists } from "../../mongoDB/mongoDBUtils"
+import { ServerConnectionContext } from "../../serverConnection/connectionContext"
 import { MEDDataObject } from "../../workspace/NewMedDataObject"
 import { DataContext } from "../../workspace/dataContext"
 import { getCollectionColumnTypes, getCollectionData, getCollectionDataCount, getCollectionDataFilterd } from "../utils"
-import { set } from "lodash"
 
 const SubsetCreationToolsDB = ({ currentCollection, refreshData }) => {
   const [lazyParams, setLazyParams] = useState({
@@ -39,8 +41,13 @@ const SubsetCreationToolsDB = ({ currentCollection, refreshData }) => {
   const [loadingData, setLoadingData] = useState(false)
   const [loadingButtonOverwrite, setLoadingButtonOverwrite] = useState(false)
   const [loadingButtonNewCollection, setLoadingButtonNewCollection] = useState(false)
+  const [groupName, setGroupName] = useState("")
+  const [isGroupNameEnabled, setIsGroupNameEnabled] = useState(false)
+  const [showInfoBox, setShowInfoBox] = useState(false)
+  const [loading, setLoading] = useState(false)
 
   const { globalData } = useContext(DataContext)
+  const { port } = useContext(ServerConnectionContext)
   const filterDisplay = "menu"
 
   // Manage events from DataTable
@@ -180,11 +187,24 @@ const SubsetCreationToolsDB = ({ currentCollection, refreshData }) => {
   // Overwrite collection with filtered data
   const overwriteCollection = async () => {
     setLoadingButtonOverwrite(true)
+    let finalData = filteredData
     try {
+      // Get latest filtered data
+      if (query){
+        try {
+          finalData = sortCriteria ? 
+            await getCollectionDataFilterd(currentCollection, query, null, null, sortCriteria) : 
+            await getCollectionDataFilterd(currentCollection, query)
+        } catch (error) {
+          toast.error("Failed to get filtered data")
+          console.error("Failed to get filtered data:", error)
+          return
+        }
+      }
       const db = await connectToMongoDB()
       const collection = db.collection(currentCollection)
       await collection.deleteMany({})
-      await batchInsert(collection, filteredData)
+      await batchInsert(collection, finalData)
       toast.success(`${globalData[currentCollection].name} overwritten with filtered data.`)
     } catch (error) {
       setLoadingButtonOverwrite(false)
@@ -276,6 +296,49 @@ const SubsetCreationToolsDB = ({ currentCollection, refreshData }) => {
     }
   }
 
+  // Create group with selected rows
+  async function createGroup(groupName) {
+    // Check if filteredData is empty
+    if (filteredData.length === 0) {
+      toast.error("No rows selected.")
+      return
+    }
+    let jsonToSend = {}
+    jsonToSend = {
+      collectionName: currentCollection,
+      groupName: groupName,
+      query: query,
+      sortCriteria: sortCriteria,
+    }
+    console.log("create_group_DB jsonToSend", jsonToSend)
+    setLoading(true)
+    requestBackend(
+      port,
+      "/input/create_group_DB/",
+      jsonToSend,
+      async (jsonResponse) => {
+        console.log("jsonResponse", jsonResponse)
+        setLoading(false)
+        if (jsonResponse.error) {
+          if (jsonResponse.error.message) {
+            console.error(jsonResponse.error.message)
+            toast.error(jsonResponse.error.message)
+          } else {
+            console.error(jsonResponse.error)
+            toast.error(jsonResponse.error)
+          }
+        } else {
+          toast.success("Group created successfully.")
+        }
+      },
+      (error) => {
+        console.error("Failed to create group:", error)
+        setLoading(false)
+        toast.error("Failed to create group")
+      }
+    )
+  }
+
   // Fetch data on collection change
   useEffect(() => {
     fetchData()
@@ -331,6 +394,46 @@ const SubsetCreationToolsDB = ({ currentCollection, refreshData }) => {
           <b>{totalCount || data.length}</b>
         </h6>
       </Row>
+      {showInfoBox && (
+        <Message
+            style={{ marginBottom: "15px", marginTop: "2rem", textAlign: "justify" }}
+            severity="info"
+            text="Enabling this will add a tag to the selected rows in the dataset."
+            icon="pi pi-info-circle"
+            iconpos="left"
+            iconstyle={{ fontSize: "2rem" }}
+        />
+      )}
+      <div style={{display: "flex", alignItems: "center", marginTop: "1rem"}}>
+        <Checkbox
+            inputId="groupNameCheckbox"
+            checked={isGroupNameEnabled}
+            onChange={(e) => {
+              setIsGroupNameEnabled(e.checked);
+              setShowInfoBox(e.checked);
+              if (!e.checked) {
+                setGroupName("");
+              }
+            }}
+            style={{marginRight: "0.5rem"}}
+            tooltip={"Enable to create a group with the selected rows"}
+              tooltipOptions={{position: "top"}}
+        />
+        <InputText
+            value={groupName}
+            onChange={(e) => setGroupName(e.target.value)}
+            placeholder="Group Name"
+            style={{margin: "5px", fontSize: "1rem", padding: "6px 10px"}}
+            disabled={!isGroupNameEnabled}
+        />
+        <Button
+            label="Create Group"
+            onClick={() => {createGroup(groupName)}}
+            style={{ marginLeft: "0.5rem", fontSize: "1rem", padding: "6px 10px" }}
+            disabled={!isGroupNameEnabled || !groupName}
+            loading={loading}
+        />
+      </div>
       <div style={{ display: "flex", justifyContent: "center", alignItems: "center", marginTop: "1rem" }}>
         <Button
           className="p-button-danger"

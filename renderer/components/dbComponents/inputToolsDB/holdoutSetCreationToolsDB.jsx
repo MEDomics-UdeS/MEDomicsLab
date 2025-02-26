@@ -86,7 +86,6 @@ const HoldoutSetCreationToolsDB = ({ currentCollection }) => {
 
     let JSONToSend = {}
     JSONToSend = {
-      databaseName: "data",
       collectionName: globalData[currentCollection].id,
       name: id,
       name2: id2,

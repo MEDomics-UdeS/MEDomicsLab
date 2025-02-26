@@ -18,10 +18,6 @@ import { insertMEDDataObjectIfNotExists } from "../../mongoDB/mongoDBUtils"
 import { ServerConnectionContext } from "../../serverConnection/connectionContext"
 import { DataContext } from "../../workspace/dataContext"
 import { MEDDataObject } from "../../workspace/NewMedDataObject"
-import { getCollectionData } from "../utils"
-import { request } from "http"
-import { set } from "lodash"
-import { table } from "console"
 
 /**
  * @description
@@ -53,7 +49,6 @@ const SimpleCleaningToolsDB = ({ currentCollection }) => {
   useEffect(() => {
     async function fetchData() {
       let jsonToSend = {}
-      jsonToSend["databaseName"] = "data"
       jsonToSend["collectionName"] = currentCollection
 
       setLoadingDB(true)
@@ -154,7 +149,6 @@ const SimpleCleaningToolsDB = ({ currentCollection }) => {
         type: type,
         cleanMethod: cleaningOption,
         overwrite: overwrite,
-        databaseName: "data",
         collectionName: globalData[currentCollection].id,
         rowThreshold: rowThreshold,
         columnThreshold: columnThreshold,
@@ -168,7 +162,6 @@ const SimpleCleaningToolsDB = ({ currentCollection }) => {
         type: type,
         cleanMethod: cleaningOption,
         overwrite: overwrite,
-        databaseName: "data",
         collectionName: globalData[currentCollection].id,
         rowThreshold: rowThreshold,
         columnThreshold: columnThreshold,

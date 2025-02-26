@@ -59,7 +59,6 @@ const TransformColumnToolsDB = ({ currentCollection }) => {
     let jsonToSend = {}
     jsonToSend["collection"] = currentCollection
     jsonToSend["columns"] = selectedColumns
-    jsonToSend["databasename"] = "data"
 
     setLoadingDelButton(true)
     const response = await requestBackend(
@@ -98,7 +97,6 @@ const TransformColumnToolsDB = ({ currentCollection }) => {
     let jsonToSend = {}
     jsonToSend["collection"] = collection
     jsonToSend["columns"] = selectedColumns
-    jsonToSend["databasename"] = "data"
     jsonToSend["type"] = type
 
     setLoading(true)

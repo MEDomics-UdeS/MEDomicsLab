@@ -63,7 +63,7 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
       }
     }
   ]
-
+  const [rowTags, setRowTags] = useState([])
   const buttonStyle = (id) => ({
     borderRadius: "10px",
     backgroundColor: hoveredButton === id ? "#d32f2f" : "#cccccc",
@@ -78,6 +78,18 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
     height: "100%",
     overflow: "auto"
   }
+
+  const fetchRowTags = async () => {
+    const db = await connectToMongoDB();
+    const tags = await db.collection('row_tags').find({}).toArray();
+    setRowTags(tags);
+    console.log(tags)
+  };
+
+  // Fetch the row tags when the component mounts
+  useEffect(() => {
+    fetchRowTags();
+  }, []);
 
   // Fetch data from MongoDB on component mount
   useEffect(() => {
@@ -97,7 +109,7 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
             let values = Object.values(item)
             let dataObject = {}
             for (let i = 0; i < keys.length; i++) {
-              dataObject[keys[i]] = keys[i] === "_id" ? item[keys[i]].toString() : values[i]
+              dataObject[keys[i]] = keys[i] === "_id" ? item[keys[i]].toString() : values[i];
             }
             return dataObject
           })
@@ -114,7 +126,7 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
     if (data && data.id) {
       getData()
     } else {
-      console.warn("Invalid data prop:", data)
+      console.warn("Invalid data prop:", data);
     }
   }, [data, lazyParams])
 
@@ -163,7 +175,7 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
   }
 
   // Update data in MongoDB
-  const updateDatabaseData = async (dbname, collectionName, id, field, newValue) => {
+  const updateDatabaseData = async (collectionName, id, field, newValue) => {
     try {
       setLoadingData(true)
       const db = await connectToMongoDB()
@@ -182,7 +194,7 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
   }
 
   // Delete data from MongoDB
-  const deleteDatabaseData = async (dbname, collectionName, id) => {
+  const deleteDatabaseData = async (collectionName, id) => {
     try {
       setLoadingData(true)
       const db = await connectToMongoDB()
@@ -203,7 +215,7 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
   }
 
   // Insert data into MongoDB
-  const insertDatabaseData = async (dbname, collectionName, data) => {
+  const insertDatabaseData = async (collectionName, data) => {
     try {
       setLoadingData(true)
       const db = await connectToMongoDB()
@@ -315,7 +327,7 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
   }
 
   // Refresh data from MongoDB
-  const refreshData = () => {
+  const refreshData = async () => {
     if (data && data.id) {
       setLoadingData(true)
       getCollectionData(data.id, lazyParams.first, lazyParams.rows)
@@ -338,6 +350,13 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
     } else {
       console.warn("Invalid data prop:", data)
     }
+    // Refresh row tags
+    const db = await connectToMongoDB()
+    const tags = await db.collection('row_tags').find({}).toArray()
+    setRowTags(tags)
+
+    // Refresh column tags
+
   }
 
   // Export data to CSV or JSON
@@ -418,38 +437,34 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
 
   // Backend to delete a tag from a column
   const DeleteTagFromColumn = async (tag) => {
-    let jsonToSend = {}
-    jsonToSend = {
-      tagToDelete: tag,
-      columnName: hoveredTag.field,
-      tagCollection: tagId,
-      databaseName: "data"
+    // Connect to db
+    const db = await connectToMongoDB()
+    const tagsCollection = await db.collection(tagId)
+    const listTags = await tagsCollection.find({"column_name": hoveredTag.field, "collection_id": data.id}).toArray()
+    const tagToDelete = listTags.find((item) => item.tags.includes(tag))
+    if (!tagToDelete) {
+      console.error("Tag not found in column")
+      toast.error("Failed to delete tag.")
+      return
     }
 
-    setloadingTag(true)
-
-    requestBackend(
-      port,
-      "/input/delete_tag_from_column/",
-      jsonToSend,
-      (jsonResponse) => {
-        console.log("jsonResponse", jsonResponse)
-
-        setloadingTag(false)
-
-        const updatedMap = { ...columnNameToTagsMap }
-        const tags = updatedMap[hoveredTag.field]
-        const updatedTags = tags.split(", ").filter((t) => t !== tag)
-        updatedMap[hoveredTag.field] = updatedTags.join(", ")
-        setColumnNameToTagsMap(updatedMap)
-        toast.success("Tag deleted successfully.")
-      },
-      (error) => {
-        console.error("Error deleting tag:", error)
-        setloadingTag(false)
-        toast.error("Failed to delete tag.")
-      }
+    const result = await tagsCollection.updateOne(
+      { "column_name": hoveredTag.field, "collection_id": data.id },
+      { $pull: { tags: tag } }
     )
+    if (result.modifiedCount === 0) {
+      console.error("No documents were updated")
+      toast.error("Failed to delete row tag.")
+    } else {
+      console.log("Row tag deleted successfully")
+      toast.success("Row tag deleted successfully.")
+      const updatedMap = { ...columnNameToTagsMap }
+      const tags = updatedMap[hoveredTag.field]
+      const updatedTags = tags.split(", ").filter((t) => t !== tag)
+      updatedMap[hoveredTag.field] = updatedTags.join(", ")
+      setColumnNameToTagsMap(updatedMap)
+    }
+    return
   }
 
   const [tagColorMap, setTagColorMap] = useState(() => {
@@ -733,9 +748,110 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
     localStorage.setItem("tagColorMap", JSON.stringify(tagColorMap))
   }, [tagColorMap])
 
+  async function DeleteTagFromRow(group, id) {
+    console.log("Deleting tag from row:", group)
+    console.log("Row ID:", id)
+    console.log("data", data)
+
+    // Connect to db and delete the tag
+    const db = await connectToMongoDB()
+    const tagsCollection = await db.collection("row_tags")
+    const result = await tagsCollection.updateOne(
+        { "data.row._id": new ObjectId(id) },
+        { $pull: { "data.$.groupNames": group } }
+    )
+    if (result.modifiedCount === 0) {
+      console.error("No documents were updated")
+      toast.error("Failed to delete row tag.")
+    } else {
+      console.log("Row tag deleted successfully")
+      toast.success("Row tag deleted successfully.")
+      refreshData()
+    }
+    return
+  }
+
+  const renderDeleteIconRowRowTags = (rowData) => {
+    let groupNames = new Set(); // Use a Set to ensure uniqueness
+
+    // Loop through each tag to find the group names for the current rowData
+    rowTags.forEach(tag => {
+      tag.data.forEach(item => {
+        if (item.row._id.toString() === rowData._id.toString()) { 
+          item.groupNames.forEach(groupName => groupNames.add(groupName)); 
+        }
+      });
+    });
+
+    // Convert the Set back to an array
+    const uniqueGroupNames = Array.from(groupNames);
+
+    return (
+        <div style={{display: "flex", flexDirection: "row", gap: "5px", alignItems: "center"}}>
+          <Button
+              icon="pi pi-trash"
+              style={buttonStyle(rowData._id)}
+              onClick={() => viewRowDeletion(rowData)}
+              onMouseEnter={() => setHoveredButton(rowData._id)}
+              onMouseLeave={() => setHoveredButton(null)}
+          />
+          {uniqueGroupNames.length > 0 && (
+              <div style={{
+                width: "2px",
+                height: "24px",
+                backgroundColor: "lightgrey",
+                margin: "0 10px",
+                borderRadius: "2px"
+              }}></div>
+          )}
+          {uniqueGroupNames.map((group, index) => (
+              <div
+                  key={index}
+                  onMouseEnter={() => setHoveredTag({field: rowData._id, index})}
+                  onMouseLeave={() => setHoveredTag({field: null, index: null})}
+                  style={{position: "relative", display: "inline-block"}}
+              >
+                <div
+                    style={{
+                      position: "absolute",
+                      top: "0",
+                      right: "0",
+                      background: "rgba(255, 0, 0, 1)",
+                      borderRadius: "50%",
+                      width: "16px",
+                      height: "16px",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      cursor: "pointer",
+                      opacity: hoveredTag.field === rowData._id && hoveredTag.index === index ? 1 : 0,
+                      transition: "opacity 0.2s, transform 0.2s",
+                      transform: hoveredTag.field === rowData._id && hoveredTag.index === index ? "scale(1.2)" : "scale(1)",
+                      color: "black"
+                    }}
+                    onClick={() => DeleteTagFromRow(group, rowData._id)}
+                >
+                  x
+                </div>
+                <Chip
+                    label={group}
+                    style={{
+                      backgroundColor: getColorForTag(group),
+                      fontSize: "0.75rem",
+                      padding: "0px 8px",
+                      margin: "2px",
+                      border: "0.5px solid black"
+                    }}
+                />
+              </div>
+          ))}
+        </div>
+    );
+  };
+
   return (
-    <>
-      <Dialog visible={viewMode} header="Preview changes" style={{ width: "80%", height: "80%" }} modal={true} onHide={() => onCancelChanges()}>
+      <>
+        <Dialog visible={viewMode} header="Preview changes" style={{ width: "80%", height: "80%" }} modal={true} onHide={() => onCancelChanges()}>
         <DataTable
           className="p-datatable-striped p-datatable-gridlines"
           lazy
@@ -822,18 +938,9 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
             {...tablePropsData}
           >
             {!isReadOnly && (
-              <Column
-                field="delete"
-                body={(rowData) => (
-                  <Button
-                    icon="pi pi-trash"
-                    style={buttonStyle(rowData._id)}
-                    onClick={() => viewRowDeletion(rowData)}
-                    onMouseEnter={() => setHoveredButton(rowData._id)}
-                    onMouseLeave={() => setHoveredButton(null)}
-                  />
-                )}
-              />
+                <Column
+                    body={renderDeleteIconRowRowTags}
+                />
             )}
             {columns.length > 0
               ? columns.map((col) => (

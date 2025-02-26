@@ -2,7 +2,6 @@
 import React, { useEffect, useState, useContext } from "react"
 import { Message } from "primereact/message"
 import { MultiSelect } from "primereact/multiselect"
-import { getCollectionData } from "../../utils"
 import { Dropdown } from "primereact/dropdown"
 import { Button } from "primereact/button"
 import { DataTable } from "primereact/datatable"
@@ -66,7 +65,6 @@ const SpearmanDB = ({ currentCollection }) => {
       columns: selectedColumns,
       target: selectedTarget,
       collection: currentCollection,
-      databaseName: "data"
     }
 
     setLoadingCompute(true)
@@ -129,7 +127,6 @@ const SpearmanDB = ({ currentCollection }) => {
       keepUnselectedColumns: keepUnselectedColumns,
       keepTarget: keepTarget,
       collection: currentCollection,
-      databaseName: "data",
       newCollectionName: id,
       overwrite: overwrite
     }
@@ -187,6 +184,7 @@ const SpearmanDB = ({ currentCollection }) => {
             placeholder="Select columns"
             style={{ marginTop: "10px", maxWidth: "900px" }}
             display="chip"
+            filter
           />
           <hr></hr>
         </div>

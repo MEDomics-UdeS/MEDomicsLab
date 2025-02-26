@@ -196,7 +196,6 @@ const GroupingTaggingToolsDB = () => {
       collections: selectedCollections,
       columns: selectedColumns,
       tags: selectedTags,
-      databaseName: "data"
     }
     console.log("id", tagId)
     setLoading(true)
@@ -243,6 +242,7 @@ const GroupingTaggingToolsDB = () => {
               <h6 style={{ paddingBottom: "0.25rem", margin: "0rem", marginInline: "0.5rem", height: "1.5rem" }}>Datasets to tag</h6>
               <MultiSelect
                 display="chip"
+                filter 
                 value={selectedCollections}
                 options={options}
                 onChange={(e) => handleSelectChange(e.value)}

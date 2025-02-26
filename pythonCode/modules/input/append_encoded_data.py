@@ -1,13 +1,13 @@
 import json
-import sys
 import os
+import sys
 from pathlib import Path
+
 sys.path.append(
     str(Path(os.path.dirname(os.path.abspath(__file__))).parent.parent))
-from med_libs.input_utils.dataframe_utilities import load_data_file, save_dataframe, handle_tags_in_dataframe
 from med_libs.GoExecutionScript import GoExecutionScript, parse_arguments
 from med_libs.server_utils import go_print
-from pymongo import MongoClient
+from med_libs.mongodb_utils import connect_to_mongo
 
 # Parse arguments
 json_params_dict, id_ = parse_arguments()
@@ -37,13 +37,11 @@ class GoExecScriptAppend(GoExecutionScript):
         go_print(json.dumps(json_config, indent=4))  # Log input JSON
 
         # Extract data from the JSON config
-        database_name = json_config["databaseName"]
         collection_name = json_config["collectionName"]
         new_data = json_config["data"]
 
         # Connect to MongoDB
-        client = MongoClient('localhost', 54017)
-        db = client[database_name]
+        db = connect_to_mongo()
         collection = db[collection_name]
 
         # Append data while avoiding duplicates (_id conflicts)

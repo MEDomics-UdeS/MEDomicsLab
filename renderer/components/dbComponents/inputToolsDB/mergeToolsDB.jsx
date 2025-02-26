@@ -105,7 +105,6 @@ const MergeToolsDB = ({ currentCollection }) => {
       newCollectionName: id,
       mergeType: selectedMergeType,
       columns: selectedColumns,
-      databaseName: "data",
       collection1: globalData[selectedCollections[0]].id,
       collection2: globalData[selectedCollections[1]].id
     }
@@ -160,8 +159,9 @@ const MergeToolsDB = ({ currentCollection }) => {
         }}
       >
         <div style={{ display: "flex", alignItems: "center", margin: "5px" }}>
-          <MultiSelect value={selectedCollections} options={options} onChange={(e) => handleSelectChange(e.value)} placeholder={"Select Collections"} style={{ width: "200px", marginRight: "10px" }} />
+          <MultiSelect value={selectedCollections} options={options} filter onChange={(e) => handleSelectChange(e.value)} placeholder={"Select Collections"} style={{ width: "200px", marginRight: "10px" }} />
           <MultiSelect
+            filter
             value={selectedColumns}
             options={collectionColumns}
             onChange={(e) => setSelectedColumns(e.value)}

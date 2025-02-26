@@ -1,18 +1,13 @@
 import json
-import sys
 import os
-import collections
+import sys
 from pathlib import Path
+
 sys.path.append(
     str(Path(os.path.dirname(os.path.abspath(__file__))).parent.parent))
-from med_libs.input_utils.dataframe_utilities import load_data_file, save_dataframe, handle_tags_in_dataframe
 from med_libs.GoExecutionScript import GoExecutionScript, parse_arguments
+from med_libs.mongodb_utils import connect_to_mongo
 from med_libs.server_utils import go_print
-import pandas as pd
-
-# To deal with the DB
-from pymongo import MongoClient
-import math
 
 json_params_dict, id_ = parse_arguments()
 go_print("running script.py:" + id_)
@@ -44,7 +39,6 @@ class GoExecScriptOverwrite(GoExecutionScript):
             go_print(json.dumps(json_config, indent=4))
 
             # Set local variables
-            database_name = json_config["databaseName"]
             collection_name = json_config["collectionName"]
             new_data = json_config["data"]
 
@@ -61,8 +55,7 @@ class GoExecScriptOverwrite(GoExecutionScript):
             #     transformed_data.append(transformed_record)
 
             # Connect to MongoDB
-            client = MongoClient('localhost', 54017)
-            db = client[database_name]
+            db = connect_to_mongo()
             collection = db[collection_name]
 
 

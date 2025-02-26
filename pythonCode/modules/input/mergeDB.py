@@ -1,18 +1,15 @@
 import json
-import sys
 import os
-import collections
+import sys
 from pathlib import Path
+
 sys.path.append(
     str(Path(os.path.dirname(os.path.abspath(__file__))).parent.parent))
-from med_libs.input_utils.dataframe_utilities import load_data_file, save_dataframe, handle_tags_in_dataframe
-from med_libs.GoExecutionScript import GoExecutionScript, parse_arguments
-from med_libs.server_utils import go_print
-import pandas as pd
 
-# To deal with the DB
-from pymongo import MongoClient
-import math
+import pandas as pd
+from med_libs.GoExecutionScript import GoExecutionScript, parse_arguments
+from med_libs.mongodb_utils import connect_to_mongo
+from med_libs.server_utils import go_print
 
 json_params_dict, id_ = parse_arguments()
 go_print("running script.py:" + id_)
@@ -47,11 +44,9 @@ class GoExecScriptMerge(GoExecutionScript):
         merge_on = json_config["columns"]
         collection_1 = json_config["collection1"]
         collection_2 = json_config["collection2"]
-        database_name = json_config["databaseName"]
 
         # Connect to MongoDB
-        client = MongoClient('localhost', 54017)
-        db = client[database_name]
+        db = connect_to_mongo()
         collection1 = db[collection_1]
         collection2 = db[collection_2]
 

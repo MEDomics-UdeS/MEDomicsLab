@@ -72,7 +72,7 @@ export const axiosPostJsonGo = async (port, topic, json2send, jsonReceivedCB, on
       url = topic
     }
     console.log(url)
-    const response = await axios.post(url, { message: JSON.stringify(json2send) }, { headers: { "Content-Type": "application/json" }, timeout: 600000 })
+    const response = await axios.post(url, { message: JSON.stringify(json2send) }, { headers: { "Content-Type": "application/json" } })
     if (response.data.type == "toParse") {
       let cleanResponse = {}
       try {

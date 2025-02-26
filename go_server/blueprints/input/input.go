@@ -20,7 +20,6 @@ func AddHandleFunc() {
 	Utils.CreateHandleFunc(prePath+"/compute_correlationsDB/", handleComputeCorrelationsDB)
 	Utils.CreateHandleFunc(prePath+"/compute_spearmanDB/", handleComputeSpearmanDB)
 	Utils.CreateHandleFunc(prePath+"/create_tags/", handleCreateTags)
-	Utils.CreateHandleFunc(prePath+"/delete_tag_from_column/", handleDeleteTagFromColumn)
 	Utils.CreateHandleFunc(prePath+"/handle_pkl/", handlePKL)
 	Utils.CreateHandleFunc(prePath+"/delete_columns/", deleteColumns)
 	Utils.CreateHandleFunc(prePath+"/transform_columns/", transformColumns)
@@ -30,6 +29,7 @@ func AddHandleFunc() {
 	Utils.CreateHandleFunc(prePath+"/overwrite_collection/", handleOverwriteCollection)
 	Utils.CreateHandleFunc(prePath+"/overwrite_encoded_data", handleOverwriteEncodedData)
 	Utils.CreateHandleFunc(prePath+"/append_encoded_data", handleAppendEncodedData)
+	Utils.CreateHandleFunc(prePath+"/create_group_DB/", handleCreateGroupDB)
 }
 
 // handleMerge handles the request to merge the datasets for the DB
@@ -153,18 +153,6 @@ func handleCreateTags(jsonConfig string, id string) (string, error) {
 	return response, nil
 }
 
-// handleDeleteTagFromColumn handles the request to tag deletion for the DB
-// It returns the response from the python script
-func handleDeleteTagFromColumn(jsonConfig string, id string) (string, error) {
-	log.Println("Compute Tag Deletion", id)
-	response, err := Utils.StartPythonScripts(jsonConfig, "../pythonCode/modules/input/delete_tag_from_column.py", id)
-	Utils.RemoveIdFromScripts(id)
-	if err != nil {
-		return "", err
-	}
-	return response, nil
-}
-
 // handlePKL handles the request to handle the pkl file
 // It returns the response from the python script
 func handlePKL(jsonConfig string, id string) (string, error) {
@@ -279,5 +267,17 @@ func handleAppendEncodedData(jsonConfig string, id string) (string, error) {
 		return "", fmt.Errorf("empty response from Python script")
 	}
 
+	return response, nil
+}
+
+// handleCreateGroupDB handles the request to create the group for the DB
+// It returns the response from the python script
+func handleCreateGroupDB(jsonConfig string, id string) (string, error) {
+	log.Println("Create Group DB", id)
+	response, err := Utils.StartPythonScripts(jsonConfig, "../pythonCode/modules/input/create_group_DB.py", id)
+	Utils.RemoveIdFromScripts(id)
+	if err != nil {
+		return "", err
+	}
 	return response, nil
 }
