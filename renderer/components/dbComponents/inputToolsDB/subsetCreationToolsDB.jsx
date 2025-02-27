@@ -19,7 +19,7 @@ import { MEDDataObject } from "../../workspace/NewMedDataObject"
 import { DataContext } from "../../workspace/dataContext"
 import { getCollectionColumnTypes, getCollectionData, getCollectionDataCount, getCollectionDataFilterd } from "../utils"
 
-const SubsetCreationToolsDB = ({ currentCollection, refreshData }) => {
+const SubsetCreationToolsDB = ({ currentCollection }) => {
   const [lazyParams, setLazyParams] = useState({
     first: 0,
     rows: 10,
