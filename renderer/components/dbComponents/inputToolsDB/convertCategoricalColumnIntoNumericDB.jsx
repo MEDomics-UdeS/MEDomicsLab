@@ -9,7 +9,6 @@ import { DataContext } from "../../workspace/dataContext"
 import { Card } from "primereact/card"
 import { Slider } from "primereact/slider"
 import { InputNumber } from "primereact/inputnumber"
-import { ObjectId } from "mongodb"
 import { requestBackend } from "../../../utilities/requests"
 import { ServerConnectionContext } from "../../serverConnection/connectionContext"
 
@@ -19,13 +18,15 @@ const ConvertCategoricalColumnIntoNumericDB = ({ currentCollection }) => {
   const [columns, setColumns] = useState([])
   const [categoricalColumns, setCategoricalColumns] = useState([])
   const [loadingData, setLoadingData] = useState(false)
+  const [loadingOW, setLoadingOW] = useState(false)
+  const [loadingAP, setLoadingAP] = useState(false)
   const [originalData, setOriginalData] = useState([])
   const [modifiedColumns, setModifiedColumns] = useState([])
   const [highlightedColumns, setHighlightedColumns] = useState([])
   const [previousData, setPreviousData] = useState(null)
   const [previousColumns, setPreviousColumns] = useState(null)
   const [categoricalThreshold, setCategoricalThreshold] = useState(20)
-  const [categoricalThresholdPercentage, setCategoricalThresholdPercentage] = useState("100%")
+  const [categoricalThresholdPercentage, setCategoricalThresholdPercentage] = useState("20%")
   const [allKeys, setAllKeys] = useState([])
   const [cleanedDocuments, setCleanedDocuments] = useState([])
   const { port } = useContext(ServerConnectionContext)
@@ -95,8 +96,7 @@ const ConvertCategoricalColumnIntoNumericDB = ({ currentCollection }) => {
   // Identify categorical columns
   const identifyCategoricalColumns = (allKeys, documents) => {
     const detectedColumns = allKeys.filter((key) => {
-      const uniqueValues = [...new Set(documents.map((doc) => doc[key]))]
-      console.log("THRESHOLD", categoricalThreshold)
+      const uniqueValues = [...new Set(documents.filter((doc) => doc[key]).map((doc) => doc[key]))]
       // Categorical threshold represent the minimum number of different value a column must have to be consider categorical
       return uniqueValues.length <= categoricalThreshold && uniqueValues.some((val) => isNaN(parseFloat(val)))
     })
@@ -133,7 +133,7 @@ const ConvertCategoricalColumnIntoNumericDB = ({ currentCollection }) => {
 
       const encodedData = oneHotEncodeColumn(data, column)
 
-      const uniqueValues = [...new Set(data.map((row) => row[column]))]
+      const uniqueValues = [...new Set(data.filter((row) => row[column]).map((row) => row[column]))]
       const newColumns = uniqueValues.map((value) => ({
         field: `${column}__${value}`,
         header: `${column}__${value}`
@@ -258,12 +258,13 @@ const ConvertCategoricalColumnIntoNumericDB = ({ currentCollection }) => {
         collectionName: globalData[currentCollection]?.id,
         data
       }
-
+      setLoadingOW(true)
       requestBackend(
         port,
         "/input/overwrite_encoded_data",
         requestBody,
         (response) => {
+          setLoadingOW(false)
           console.log("Response from backend:", response)
           if (response?.status === "success") {
             toast.success("Encoded data has been overwritten in the database!")
@@ -277,10 +278,12 @@ const ConvertCategoricalColumnIntoNumericDB = ({ currentCollection }) => {
           }
         },
         (error) => {
+          setLoadingOW(false)
           console.error("Error from backend:", error)
         }
       )
     } catch (error) {
+      setLoadingOW(false)
       console.error("Error overwriting encoded data:", error)
       toast.error("An unexpected error occurred.")
     }
@@ -296,12 +299,13 @@ const ConvertCategoricalColumnIntoNumericDB = ({ currentCollection }) => {
         collectionName: globalData[currentCollection]?.id,
         data
       }
-
+      setLoadingAP(true)
       requestBackend(
         port,
         "/input/append_encoded_data",
         requestBody,
         (response) => {
+          setLoadingAP(false)
           console.log("Response from backendS:", response)
           if (response?.status === "success") {
             toast.success("Encoded data has been append in the database!")
@@ -315,10 +319,12 @@ const ConvertCategoricalColumnIntoNumericDB = ({ currentCollection }) => {
           }
         },
         (error) => {
+          setLoadingAP(false)
           console.error("Error from backend:", error)
         }
       )
     } catch (error) {
+      setLoadingAP(false)
       console.error("Error appending encoded data:", error)
       toast.error("An unexpected error occurred.")
     }
@@ -360,7 +366,7 @@ const ConvertCategoricalColumnIntoNumericDB = ({ currentCollection }) => {
           }}
           style={{ width: "70%", marginLeft: "10px", marginRight: "10px" }}
           min={1}
-          max={20}
+          max={100}
         />
         <InputNumber
           value={categoricalThresholdPercentage.replace("%", "")}
@@ -371,7 +377,7 @@ const ConvertCategoricalColumnIntoNumericDB = ({ currentCollection }) => {
           }}
           mode="decimal"
           min={1}
-          max={20}
+          max={100}
           useGrouping={false}
           showButtons
           style={{ width: "80px", marginLeft: "10px" }}
@@ -428,8 +434,8 @@ const ConvertCategoricalColumnIntoNumericDB = ({ currentCollection }) => {
         </div>
       )}
       {modifiedColumns.length > 0 && <Button label={`Undo Changes:  ${modifiedColumns}`} className="p-button-danger" onClick={undoChanges} style={{ marginTop: "20px", marginRight: "10px" }} />}
-      {isDataModified() && <Button label="OVERWRITE Modified Data and Save it into MongoDB" className="p-button-success" onClick={overwriteEncodedDataToDB} style={{ marginTop: "20px" }} />}{" "}
-      {isDataModified() && <Button label="Save New Columns and Append to MongoDB" className="p-button-success" onClick={appendEncodedDataToDB} style={{ marginTop: "20px" }} />}{" "}
+      {isDataModified() && <Button label="Overwrite Current Dataset" className="p-button-success" loading={loadingOW} onClick={overwriteEncodedDataToDB} style={{ marginTop: "20px" }} />}{" "}
+      {isDataModified() && <Button label="Append New Columns to Dataset" className="p-button-success" loading={loadingAP} onClick={appendEncodedDataToDB} style={{ marginTop: "20px" }} />}{" "}
     </div>
   )
 }
