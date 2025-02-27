@@ -5,6 +5,7 @@
   "version": "1.0.0",
   "author": "MEDomicsLab Team",
   "main": "app/background.js",
+  "repository": "https://github.com/MEDomics-UdeS/MEDomicsLab",
   "build": {
     "appId": "com.medomicslab.medapp",
     "productName": "MEDomicsLab",
@@ -35,8 +36,15 @@
     "mac": {
       "hardenedRuntime": true,
       "gatekeeperAssess": false,
+      "entitlements": "build/entitlements.mac.plist",
+      "entitlementsInherit": "build/entitlements.mac.plist",
       "category": "public.app-category.developer-tools",
-      "target": "pkg"
+      "target": [
+        "dmg",
+        "zip",
+        "pkg"
+      ],
+      "notarize": true
     },
     "pkg": {
       "isRelocatable": false
@@ -54,7 +62,8 @@
     "deb": {
       "afterInstall": "build/after-install.sh"
     },
-    "publish": null
+    "afterPack": "build/afterPack.js",
+    "afterAllArtifactBuild": "build/afterAllArtifactBuild.js"
   },
   "scripts": {
     "dev": "nextron",
@@ -92,8 +101,10 @@
     "echarts-for-react": "^3.0.2",
     "electron-extension-installer": "^1.2.0",
     "electron-loading": "^0.3.0",
+    "electron-log": "^5.3.0",
     "electron-serve": "^1.1.0",
     "electron-store": "^8.1.0",
+    "electron-updater": "^6.3.9",
     "eslint-config-next": "^13.5.3",
     "eslint-config-prettier": "^8.10.0",
     "eslint-plugin-prettier": "^5.1.3",
@@ -146,11 +157,13 @@
   },
   "devDependencies": {
     "@babel/eslint-parser": "^7.23.3",
+    "@electron/notarize": "^2.5.0",
     "@next/eslint-plugin-next": "^14.0.2",
     "bootstrap": "^5.2.3",
     "bootswatch": "^5.2.3",
+    "dotenv": "^16.4.7",
     "electron": "^21.4.4",
-    "electron-builder": "^23.6.0",
+    "electron-builder": "^25.1.8",
     "eslint": "^8.44.0",
     "eslint-plugin-react": "^7.32.2",
     "next": "^13.5.3",
