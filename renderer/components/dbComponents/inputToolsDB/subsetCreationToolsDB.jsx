@@ -1,21 +1,21 @@
 /* eslint-disable no-unused-vars */
-import { useState, useEffect, useContext } from "react"
+import { randomUUID } from "crypto"
+import { FilterMatchMode, FilterOperator } from "primereact/api"
+import { Button } from "primereact/button"
+import { Card } from "primereact/card"
+import { Column } from "primereact/column"
+import { confirmDialog } from "primereact/confirmdialog"
+import { DataTable } from "primereact/datatable"
+import { InputText } from "primereact/inputtext"
 import { Message } from "primereact/message"
 import * as React from "react"
-import { getCollectionData, getCollectionColumnTypes } from "../utils"
-import { DataTable } from "primereact/datatable"
-import { Column } from "primereact/column"
-import { InputText } from "primereact/inputtext"
-import { FilterMatchMode, FilterOperator } from "primereact/api"
+import { useContext, useEffect, useState } from "react"
 import { Row } from "react-bootstrap"
-import { Button } from "primereact/button"
 import { toast } from "react-toastify"
-import { connectToMongoDB } from "../../mongoDB/mongoDBUtils"
+import { connectToMongoDB, insertMEDDataObjectIfNotExists } from "../../mongoDB/mongoDBUtils"
 import { MEDDataObject } from "../../workspace/NewMedDataObject"
 import { DataContext } from "../../workspace/dataContext"
-import { randomUUID } from "crypto"
-import { insertMEDDataObjectIfNotExists } from "../../mongoDB/mongoDBUtils"
-import { Card } from "primereact/card"
+import { getCollectionColumnTypes, getCollectionData } from "../utils"
 
 /**
  * @description
@@ -89,29 +89,50 @@ const SubsetCreationToolsDB = ({ currentCollection, refreshData }) => {
   }
 
   const createNewCollectionSubset = async (newCollectionName) => {
+    let collectionName = newCollectionName + ".csv"
     const id = randomUUID()
     const object = new MEDDataObject({
       id: id,
-      name: newCollectionName,
+      name: collectionName,
       type: "csv",
-      parentID: "ROOT",
+      parentID: globalData[currentCollection].parentID,
       childrenIDs: [],
       inWorkspace: false
     })
-    const db = await connectToMongoDB()
-    const collections = await db.listCollections().toArray()
-    const collectionExists = collections.some((collection) => collection.name === id)
 
-    if (collectionExists) {
-      toast.warn(`A subset with the name ${globalData[id].name} already exists.`)
+    // Check if the collection already exists
+    let exists = false
+    for (const item of Object.keys(globalData)) {
+      if (globalData[item].name && globalData[item].name === globalData[currentCollection].name) {
+        exists = true
+        break
+      }
+    }
+
+    // If the collection already exists, ask the user if they want to overwrite it
+    let overwriteConfirmation = true
+    if (exists) {
+      overwriteConfirmation = await new Promise((resolve) => {
+        confirmDialog({
+          closable: false,
+          message: `A dataset with the name "${collectionName}" already exists in the database. Do you want to overwrite it?`,
+          header: "Confirmation",
+          icon: "pi pi-exclamation-triangle",
+          accept: () => resolve(true),
+          reject: () => resolve(false)
+        })
+      })
+    }
+    if (!overwriteConfirmation) {
       return
     }
 
+    const db = await connectToMongoDB()
     const newCollection = await db.createCollection(id)
     await newCollection.insertMany(filteredData)
     await insertMEDDataObjectIfNotExists(object)
     MEDDataObject.updateWorkspaceDataObject()
-    toast.success(`New subset ${newCollectionName} created with filtered data.`)
+    toast.success(`New subset ${collectionName} created with filtered data.`)
   }
 
   return (
@@ -166,10 +187,16 @@ const SubsetCreationToolsDB = ({ currentCollection, refreshData }) => {
           tooltip="Overwrite current collection with filtered data"
           tooltipOptions={{ position: "top" }}
         />
-        <InputText value={newCollectionName} onChange={(e) => setNewCollectionName(e.target.value)} placeholder="New subset name" style={{ margin: "5px", fontSize: "1rem", width: "205px" }} />
+        <div className="p-inputgroup w-full md:w-30rem" style={{ margin: "10px", fontSize: "1rem", width: "230px", marginTop: "5px" }}>
+          <InputText 
+            value={newCollectionName} 
+            onChange={(e) => setNewCollectionName(e.target.value)} 
+            placeholder="New subset name"
+          />
+          <span className="p-inputgroup-addon">.csv</span>
+        </div>
         <Button
           icon="pi pi-plus"
-          style={{ margin: "5px", fontSize: "1rem", padding: "6px 10px", width: "100px", marginTop: "0.25rem" }}
           onClick={() => createNewCollectionSubset(newCollectionName)}
           tooltip="Create subset"
           tooltipOptions={{ position: "top" }}
