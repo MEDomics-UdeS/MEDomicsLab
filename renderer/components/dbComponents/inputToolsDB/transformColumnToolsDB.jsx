@@ -77,22 +77,6 @@ const TransformColumnToolsDB = ({ currentCollection }) => {
     )
   }
 
-  // Handle file upload
-  const handleFileUpload = (event) => {
-    const file = event.target.files[0]
-    if (file) {
-      const reader = new FileReader()
-      reader.onload = (e) => {
-        const text = e.target.result
-        const uploadedColumns = text.split(",").map((col) => col.trim())
-        const validColumns = uploadedColumns.filter((col) => columns.includes(col))
-        setSelectedColumns(validColumns)
-        setFileName(file.name)
-      }
-      reader.readAsText(file)
-    }
-  }
-
   const transformData = async (type, collection) => {
     let jsonToSend = {}
     jsonToSend["collection"] = collection
@@ -200,10 +184,6 @@ const TransformColumnToolsDB = ({ currentCollection }) => {
           tooltip="Delete selected columns"
           tooltipOptions={{ position: "top" }}
         />
-        <label htmlFor="fileUpload" style={customFileUpload} onMouseEnter={() => setIsHovered(true)} onMouseLeave={() => setIsHovered(false)}>
-          {fileName}
-        </label>
-        <input id="fileUpload" type="file" accept=".csv" style={{ display: "none" }} onChange={handleFileUpload} />
       </div>
     </>
   )
