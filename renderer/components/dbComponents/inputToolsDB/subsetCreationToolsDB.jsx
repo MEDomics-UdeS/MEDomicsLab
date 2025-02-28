@@ -16,6 +16,9 @@ import { connectToMongoDB, insertMEDDataObjectIfNotExists } from "../../mongoDB/
 import { MEDDataObject } from "../../workspace/NewMedDataObject"
 import { DataContext } from "../../workspace/dataContext"
 import { getCollectionColumnTypes, getCollectionData } from "../utils"
+import { Checkbox } from "primereact/checkbox"
+import { requestBackend } from "../../../utilities/requests"
+import {ServerConnectionContext} from "../../serverConnection/connectionContext";
 
 /**
  * @description
@@ -32,7 +35,12 @@ const SubsetCreationToolsDB = ({ currentCollection, refreshData }) => {
   const [newCollectionName, setNewCollectionName] = useState("")
   const [filteredData, setFilteredData] = useState([])
   const { globalData } = useContext(DataContext)
+  const { port } = useContext(ServerConnectionContext)
   const filterDisplay = "menu"
+  const [groupName, setGroupName] = useState("")
+  const [isGroupNameEnabled, setIsGroupNameEnabled] = useState(false)
+  const [showInfoBox, setShowInfoBox] = useState(false)
+  const [loading, setLoading] = useState(false)
 
   useEffect(() => {
     const fetchData = async () => {
@@ -89,8 +97,8 @@ const SubsetCreationToolsDB = ({ currentCollection, refreshData }) => {
   }
 
   const createNewCollectionSubset = async (newCollectionName) => {
-    let collectionName = newCollectionName + ".csv"
-    const id = randomUUID()
+    let collectionName = newCollectionName + ".csv";
+    const id = randomUUID();
     const object = new MEDDataObject({
       id: id,
       name: collectionName,
@@ -98,19 +106,19 @@ const SubsetCreationToolsDB = ({ currentCollection, refreshData }) => {
       parentID: globalData[currentCollection].parentID,
       childrenIDs: [],
       inWorkspace: false
-    })
+    });
 
     // Check if the collection already exists
-    let exists = false
+    let exists = false;
     for (const item of Object.keys(globalData)) {
-      if (globalData[item].name && globalData[item].name === globalData[currentCollection].name) {
-        exists = true
-        break
+      if (globalData[item].name && globalData[item].name === collectionName) {
+        exists = true;
+        break;
       }
     }
 
     // If the collection already exists, ask the user if they want to overwrite it
-    let overwriteConfirmation = true
+    let overwriteConfirmation = true;
     if (exists) {
       overwriteConfirmation = await new Promise((resolve) => {
         confirmDialog({
@@ -120,89 +128,181 @@ const SubsetCreationToolsDB = ({ currentCollection, refreshData }) => {
           icon: "pi pi-exclamation-triangle",
           accept: () => resolve(true),
           reject: () => resolve(false)
-        })
-      })
+        });
+      });
     }
     if (!overwriteConfirmation) {
+      return;
+    }
+
+    const db = await connectToMongoDB();
+    const newCollection = await db.createCollection(id);
+    await newCollection.insertMany(filteredData);
+    await insertMEDDataObjectIfNotExists(object);
+    MEDDataObject.updateWorkspaceDataObject();
+    toast.success(`New subset ${collectionName} created with filtered data.`);
+  };
+
+  
+  function createGroup(groupName) {
+
+    // Check if filteredData is empty
+    if (filteredData.length === 0) {
+      toast.error("No rows selected.")
       return
     }
 
-    const db = await connectToMongoDB()
-    const newCollection = await db.createCollection(id)
-    await newCollection.insertMany(filteredData)
-    await insertMEDDataObjectIfNotExists(object)
-    MEDDataObject.updateWorkspaceDataObject()
-    toast.success(`New subset ${collectionName} created with filtered data.`)
+    let jsonToSend = {}
+    jsonToSend = {
+        collectionName: currentCollection,
+        groupName: groupName,
+        data: filteredData,
+        databaseName: "data",
+    }
+
+    setLoading(true)
+
+    requestBackend(
+        port,
+        "/input/create_group_DB/",
+        jsonToSend,
+        async (jsonResponse) => {
+          console.log("jsonResponse", jsonResponse)
+          setLoading(false)
+          if (jsonResponse.error) {
+            if (jsonResponse.error.message) {
+              console.error(jsonResponse.error.message)
+              toast.error(jsonResponse.error.message)
+            } else {
+              console.error(jsonResponse.error)
+              toast.error(jsonResponse.error)
+            }
+          } else {
+            toast.success("Group created successfully.")
+          }
+        }
+    )
+
   }
 
   return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "center",
-        alignItems: "center",
-        padding: "5px"
-      }}
-    >
-      <Message
-        className="margin-top-15 margin-bottom-15 center"
-        severity="info"
-        text="The Subset Creation tool enables the creation of a subset of rows from a dataset by applying filters to columns."
-      />
-      <Message style={{ marginBottom: "15px" }} severity="success" text={`Current Collection: ${globalData[currentCollection].name}`} />
-      <Card style={{width: "900px"}}>
-        <DataTable
-          onValueChange={(e) => {
-            setFilteredData(e)
+      <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+            alignItems: "center",
+            padding: "5px"
           }}
-          className="p-datatable-striped p-datatable-gridlines"
-          value={data}
-          paginator={true}
-          rows={7}
-          rowsPerPageOptions={[5, 10, 15, 20]}
-          size={"small"}
-          removableSort={true}
-          filters={filters}
-          filterDisplay={filterDisplay}
-          globalFilterFields={columns.map((col) => col.field)}
-        >
-          {columns.length > 0 &&
-            columns.map((col) => <Column key={col} field={col.field} header={col.header} sortable={true} filter filterPlaceholder={`Search by ${col.header}`} filterField={col.field} />)}
-        </DataTable>
-      </Card>
+      >
+        <Message
+            className="margin-top-15 margin-bottom-15 center"
+            severity="info"
+            text="The Subset Creation tool enables the creation of a subset of rows from a dataset by applying filters to columns."
+        />
+        <Message style={{marginBottom: "15px"}} severity="success"
+                 text={`Current Collection: ${globalData[currentCollection].name}`}/>
+        <Card style={{width: "900px"}}>
+          <DataTable
+              onValueChange={(e) => {
+                setFilteredData(e)
+              }}
+              className="p-datatable-striped p-datatable-gridlines"
+              value={data}
+              paginator={true}
+              rows={7}
+              rowsPerPageOptions={[5, 10, 15, 20]}
+              size={"small"}
+              removableSort={true}
+              filters={filters}
+              filterDisplay={filterDisplay}
+              globalFilterFields={columns.map((col) => col.field)}
+          >
+            {columns.length > 0 &&
+                columns.map((col) => <Column key={col} field={col.field} header={col.header} sortable={true} filter
+                                             filterPlaceholder={`Search by ${col.header}`} filterField={col.field}/>)}
+          </DataTable>
+        </Card>
 
-      <Row className={"card"} style={{ display: "flex", justifyContent: "space-evenly", flexDirection: "row", marginTop: "0.5rem", backgroundColor: "transparent", padding: "0.5rem" }}>
-        <h6>
-          Rows selected : <b>{filteredData.length}</b>&nbsp; of &nbsp;
-          <b>{data ? data.length : 0}</b>
-        </h6>
-      </Row>
-      <div style={{ display: "flex", justifyContent: "center", alignItems: "center", marginTop: "1rem" }}>
-        <Button
-          className="p-button-danger"
-          label="Overwrite"
-          style={{ margin: "5px", fontSize: "1rem", padding: "6px 10px" }}
-          onClick={overwriteCollection}
-          tooltip="Overwrite current collection with filtered data"
-          tooltipOptions={{ position: "top" }}
-        />
-        <div className="p-inputgroup w-full md:w-30rem" style={{ margin: "10px", fontSize: "1rem", width: "230px", marginTop: "5px" }}>
-          <InputText 
-            value={newCollectionName} 
-            onChange={(e) => setNewCollectionName(e.target.value)} 
-            placeholder="New subset name"
+        <Row className={"card"} style={{
+          display: "flex",
+          justifyContent: "space-evenly",
+          flexDirection: "row",
+          marginTop: "0.5rem",
+          backgroundColor: "transparent",
+          padding: "0.5rem"
+        }}>
+          <h6>
+            Rows selected : <b>{filteredData.length}</b>&nbsp; of &nbsp;
+            <b>{data ? data.length : 0}</b>
+          </h6>
+        </Row>
+        {showInfoBox && (
+            <Message
+                style={{ marginBottom: "15px", marginTop: "2rem", textAlign: "justify" }}
+                severity="info"
+                text="Enabling this will add a tag to the selected rows in the dataset."
+                icon="pi pi-info-circle"
+                iconPos="left"
+                iconstyle={{ fontSize: "2rem" }}
+            />
+        )}
+        <div style={{display: "flex", alignItems: "center", marginTop: "1rem"}}>
+          <Checkbox
+              inputId="groupNameCheckbox"
+              checked={isGroupNameEnabled}
+              onChange={(e) => {
+                setIsGroupNameEnabled(e.checked);
+                setShowInfoBox(e.checked);
+                if (!e.checked) {
+                  setGroupName("");
+                }
+              }}
+              style={{marginRight: "0.5rem"}}
+              tooltip={"Enable to create a group with the selected rows"}
+                tooltipOptions={{position: "top"}}
           />
-          <span className="p-inputgroup-addon">.csv</span>
+          <InputText
+              value={groupName}
+              onChange={(e) => setGroupName(e.target.value)}
+              placeholder="Group Name"
+              style={{margin: "5px", fontSize: "1rem", padding: "6px 10px"}}
+              disabled={!isGroupNameEnabled}
+          />
+          <Button
+              label="Create Group"
+              onClick={() => {createGroup(groupName)}}
+              style={{ marginLeft: "0.5rem", fontSize: "1rem", padding: "6px 10px" }}
+              disabled={!isGroupNameEnabled || !groupName}
+              loading={loading}
+          />
         </div>
-        <Button
-          icon="pi pi-plus"
-          onClick={() => createNewCollectionSubset(newCollectionName)}
-          tooltip="Create subset"
-          tooltipOptions={{ position: "top" }}
-        />
+        <div style={{display: "flex", justifyContent: "center", alignItems: "center", marginTop: "1rem"}}>
+          <Button
+              className="p-button-danger"
+              label="Overwrite"
+              style={{margin: "5px", fontSize: "1rem", padding: "6px 10px"}}
+              onClick={overwriteCollection}
+              tooltip="Overwrite current collection with filtered data"
+              tooltipOptions={{position: "top"}}
+          />
+          <div className="p-inputgroup w-full md:w-30rem"
+               style={{margin: "10px", fontSize: "1rem", width: "230px", marginTop: "5px"}}>
+            <InputText
+                value={newCollectionName}
+                onChange={(e) => setNewCollectionName(e.target.value)}
+                placeholder="New subset name"
+            />
+            <span className="p-inputgroup-addon">.csv</span>
+          </div>
+          <Button
+              icon="pi pi-plus"
+              onClick={() => createNewCollectionSubset(newCollectionName)}
+              tooltip="Create subset"
+              tooltipOptions={{position: "top"}}
+          />
+        </div>
       </div>
-    </div>
   )
 }
 

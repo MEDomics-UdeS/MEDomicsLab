@@ -50,7 +50,7 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
       }
     }
   ]
-
+  const [loading, setLoading] = useState(false)
   const [viewData, setViewData] = useState([])
   const [viewMode, setViewMode] = useState(false)
   const [viewName, setViewName] = useState("")
@@ -59,7 +59,7 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
   const [columnToDelete, setColumnToDelete] = useState(null)
   const [lastPipeline, setLastPipeline] = useState([])
   const [loadingData, setLoadingData] = useState(true)
-  const [hasWarned, setHasWarned] = useState(false)
+  const [rowTags, setRowTags] = useState([]);
   const items = Array.from({ length: 7 }, (v, i) => i) //  Fake items for the skeleton upload
   const forbiddenCharacters = /[\\."$*<>:|?]/
   const buttonStyle = (id) => ({
@@ -77,36 +77,56 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
     overflow: "auto"
   }
 
+  const fetchRowTags = async () => {
+    const db = await connectToMongoDB();
+    const tags = await db.collection('row_tags').find({}).toArray();
+    setRowTags(tags);
+    console.log(tags)
+  };
+
+  // Fetch the row tags when the component mounts
+  useEffect(() => {
+    fetchRowTags();
+  }, []);
+
   // Fetch data from MongoDB on component mount
   useEffect(() => {
     if (data && data.id) {
-      console.log("Fetching data with:", data)
-      let collectionName = data.extension === "view" ? data.name : data.id
-      getCollectionData(collectionName)
-        .then((fetchedData) => {
-          console.log("Fetched data:", fetchedData)
-          let collData = fetchedData.map((item) => {
-            let keys = Object.keys(item)
-            let values = Object.values(item)
-            let dataObject = {}
+      console.log("Fetching data with:", data);
+      let collectionName = data.extension === "view" ? data.name : data.id;
+
+      const fetchData = async () => {
+        setLoadingData(true);
+        try {
+          const fetchedData = await getCollectionData(collectionName);
+
+          console.log("Fetched data:", fetchedData);
+
+          const collData = fetchedData.map((item) => {
+            let keys = Object.keys(item);
+            let values = Object.values(item);
+            let dataObject = {};
             for (let i = 0; i < keys.length; i++) {
-              dataObject[keys[i]] = keys[i] === "_id" ? item[keys[i]].toString() : values[i]
+              dataObject[keys[i]] = keys[i] === "_id" ? item[keys[i]].toString() : values[i];
             }
-            return dataObject
-          })
-          setInnerData(collData)
-        })
-        .catch((error) => {
-          console.error("Failed to fetch data:", error)
-        })
-        .finally(() => {
-          // Set loading to false after data has been fetched (whether successful or failed)
-          setLoadingData(false)
-        })
+            return dataObject;
+          });
+          setInnerData(collData);
+
+        } catch (error) {
+          console.error("Failed to fetch data:", error);
+          toast.error("Error fetching data");
+        } finally {
+          setLoadingData(false);
+        }
+      };
+
+      fetchData();
     } else {
-      console.warn("Invalid data prop:", data)
+      console.warn("Invalid data prop:", data);
     }
-  }, [data])
+  }, [data, data.id]);
+
 
   // Update columns when innerData changes
   useEffect(() => {
@@ -121,10 +141,9 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
       // Check if any column name has an empty space
       let hasEmptySpace = newColumns.filter((column) => column.field.includes(" "))
       hasEmptySpace = hasEmptySpace.map((column) => column.field)
-      if (hasEmptySpace.length > 0 && !hasWarned) {
+      if (hasEmptySpace.length > 0) {
         toast.warn("Warning: column names should not contain empty spaces. Check console for more details.")
         console.warn("The following column names contain empty spaces:", hasEmptySpace, " This will cause issues for machine learning modules.")
-        setHasWarned(true)
       }
       setColumns(newColumns)
     }
@@ -662,9 +681,124 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
     localStorage.setItem("tagColorMap", JSON.stringify(tagColorMap))
   }, [tagColorMap])
 
+  function DeleteTagFromRow(group, id) {
+    console.log("Deleting tag from row:", group)
+    console.log("Row ID:", id)
+
+    let jsonToSend = {}
+    jsonToSend = {
+      tagToDelete: group,
+      rowId: id,
+      databaseName: "data"
+    }
+
+    setLoading(true)
+
+    requestBackend(
+        port,
+        "/input/delete_row_tag_DB/",
+        jsonToSend,
+        async (jsonResponse) => {
+          console.log("jsonResponse", jsonResponse)
+          setLoading(false)
+          if (jsonResponse.error) {
+            if (jsonResponse.error.message) {
+              console.error(jsonResponse.error.message)
+              toast.error(jsonResponse.error.message)
+            } else {
+              console.error(jsonResponse.error)
+              toast.error(jsonResponse.error)
+            }
+          } else {
+            toast.success("Row tag deleted successfully.")
+            refreshData()
+          }
+        }
+    )
+  }
+
+  const renderDeleteIconRowRowTags = (rowData) => {
+    let groupNames = new Set(); // Use a Set to ensure uniqueness
+
+    // Loop through each tag to find the group names for the current rowData
+    rowTags.forEach(tag => {
+      tag.data.forEach(item => {
+        if (item.row._id === rowData._id) {
+          item.groupNames.forEach(groupName => groupNames.add(groupName));
+        }
+      });
+    });
+
+    // Convert the Set back to an array
+    const uniqueGroupNames = Array.from(groupNames);
+
+    return (
+        <div style={{display: "flex", flexDirection: "row", gap: "5px", alignItems: "center"}}>
+          <Button
+              icon="pi pi-trash"
+              style={buttonStyle(rowData._id)}
+              onClick={() => viewRowDeletion(rowData)}
+              onMouseEnter={() => setHoveredButton(rowData._id)}
+              onMouseLeave={() => setHoveredButton(null)}
+          />
+          {uniqueGroupNames.length > 0 && (
+              <div style={{
+                width: "2px",
+                height: "24px",
+                backgroundColor: "lightgrey",
+                margin: "0 10px",
+                borderRadius: "2px"
+              }}></div>
+          )}
+          {uniqueGroupNames.map((group, index) => (
+              <div
+                  key={index}
+                  onMouseEnter={() => setHoveredTag({field: rowData._id, index})}
+                  onMouseLeave={() => setHoveredTag({field: null, index: null})}
+                  style={{position: "relative", display: "inline-block"}}
+              >
+                <div
+                    style={{
+                      position: "absolute",
+                      top: "0",
+                      right: "0",
+                      background: "rgba(255, 0, 0, 1)",
+                      borderRadius: "50%",
+                      width: "16px",
+                      height: "16px",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      cursor: "pointer",
+                      opacity: hoveredTag.field === rowData._id && hoveredTag.index === index ? 1 : 0,
+                      transition: "opacity 0.2s, transform 0.2s",
+                      transform: hoveredTag.field === rowData._id && hoveredTag.index === index ? "scale(1.2)" : "scale(1)",
+                      color: "black"
+                    }}
+                    onClick={() => DeleteTagFromRow(group, rowData._id)}
+                    loading={loading}
+                >
+                  x
+                </div>
+                <Chip
+                    label={group}
+                    style={{
+                      backgroundColor: getColorForTag(group),
+                      fontSize: "0.75rem",
+                      padding: "0px 8px",
+                      margin: "2px",
+                      border: "0.5px solid black"
+                    }}
+                />
+              </div>
+          ))}
+        </div>
+    );
+  };
+
   return (
-    <>
-      <Dialog visible={viewMode} header="Preview changes" style={{ width: "80%", height: "80%" }} modal={true} onHide={() => onCancelChanges()}>
+      <>
+        <Dialog visible={viewMode} header="Preview changes" style={{ width: "80%", height: "80%" }} modal={true} onHide={() => onCancelChanges()}>
         <DataTable
           className="p-datatable-striped p-datatable-gridlines"
           value={viewData}
@@ -742,18 +876,9 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
             }
           >
             {!isReadOnly && (
-              <Column
-                field="delete"
-                body={(rowData) => (
-                  <Button
-                    icon="pi pi-trash"
-                    style={buttonStyle(rowData._id)}
-                    onClick={() => viewRowDeletion(rowData)}
-                    onMouseEnter={() => setHoveredButton(rowData._id)}
-                    onMouseLeave={() => setHoveredButton(null)}
-                  />
-                )}
-              />
+                <Column
+                    body={renderDeleteIconRowRowTags}
+                />
             )}
             {columns.length > 0
               ? columns.map((col) => (
