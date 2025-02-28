@@ -59,6 +59,7 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
   const [columnToDelete, setColumnToDelete] = useState(null)
   const [lastPipeline, setLastPipeline] = useState([])
   const [loadingData, setLoadingData] = useState(true)
+  const [hasWarned, setHasWarned] = useState(false)
   const items = Array.from({ length: 7 }, (v, i) => i) //  Fake items for the skeleton upload
   const forbiddenCharacters = /[\\."$*<>:|?]/
   const buttonStyle = (id) => ({
@@ -120,9 +121,10 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
       // Check if any column name has an empty space
       let hasEmptySpace = newColumns.filter((column) => column.field.includes(" "))
       hasEmptySpace = hasEmptySpace.map((column) => column.field)
-      if (hasEmptySpace.length > 0) {
+      if (hasEmptySpace.length > 0 && !hasWarned) {
         toast.warn("Warning: column names should not contain empty spaces. Check console for more details.")
         console.warn("The following column names contain empty spaces:", hasEmptySpace, " This will cause issues for machine learning modules.")
+        setHasWarned(true)
       }
       setColumns(newColumns)
     }

@@ -715,16 +715,19 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
     } else if (component === "imageViewer") {
       if (node.getExtraData().data == null) {
         const config = node.getConfig()
-        if (config.path !== null) {
-          console.log("config.path", config.path)
+        console.log("imageViewer config", config)
+        if (config.path) {
           const nativeImage = require("electron").nativeImage
           const image = nativeImage.createFromPath(config.path)
-          console.log("image", image)
 
           let height = image.getSize().height / 3
           let width = image.getSize().width / 3
 
           return <ZoomPanPinchComponent imagePath={config.path} image={image.toDataURL()} width={width} height={height} options={""} />
+        } else if (config.uuid){
+          return <ZoomPanPinchComponent imageID={config.uuid} />
+        } else {
+          return <h4>IMAGE VIEWER - Could not load image</h4>
         }
       }
     } else if (component === "evaluationPage") {
@@ -915,7 +918,7 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
       let icon = <span style={{ marginRight: 3 }}>{iconToReturn}</span>
       return icon
     } else {
-      if (component === "InputToolsDB" || component === "inputPage") {
+      if (component === "InputToolsDB" || component === "inputPage" || component === "dataTableFromDB") {
         return <span style={{ marginRight: 3 }}>🛢️</span>
       }
       if (component === "exploratoryPage") {

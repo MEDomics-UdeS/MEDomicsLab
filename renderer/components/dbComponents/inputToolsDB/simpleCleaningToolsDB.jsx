@@ -1,23 +1,24 @@
 /* eslint-disable no-unused-vars */
-import React, { useContext, useEffect, useState } from "react"
-import { Message } from "primereact/message"
-import { DataTable } from "primereact/datatable"
-import { Column } from "primereact/column"
-import { getCollectionData } from "../utils"
-import { Slider } from "primereact/slider"
-import { InputText } from "primereact/inputtext"
+import { randomUUID } from "crypto"
 import { Button } from "primereact/button"
-import { toast } from "react-toastify"
-import { OverlayPanel } from "primereact/overlaypanel"
-import { InputNumber } from "primereact/inputnumber"
+import { Column } from "primereact/column"
+import { confirmDialog } from "primereact/confirmdialog"
+import { DataTable } from "primereact/datatable"
 import { Dropdown } from "primereact/dropdown"
+import { InputNumber } from "primereact/inputnumber"
+import { InputText } from "primereact/inputtext"
+import { Message } from "primereact/message"
+import { OverlayPanel } from "primereact/overlaypanel"
 import { SelectButton } from "primereact/selectbutton"
+import { Slider } from "primereact/slider"
+import React, { useContext, useEffect, useRef, useState } from "react"
+import { toast } from "react-toastify"
 import { requestBackend } from "../../../utilities/requests"
+import { insertMEDDataObjectIfNotExists } from "../../mongoDB/mongoDBUtils"
 import { ServerConnectionContext } from "../../serverConnection/connectionContext"
 import { DataContext } from "../../workspace/dataContext"
-import { randomUUID } from "crypto"
 import { MEDDataObject } from "../../workspace/NewMedDataObject"
-import { insertMEDDataObjectIfNotExists } from "../../mongoDB/mongoDBUtils"
+import { getCollectionData } from "../utils"
 
 /**
  * @description
@@ -41,7 +42,8 @@ const SimpleCleaningToolsDB = ({ lastEdit, data, columns, currentCollection, ref
   const [rowsToClean, setRowsToClean] = useState([])
   const [newCollectionName, setNewCollectionName] = useState("")
   const [cleanType, setCleanType] = useState("columns")
-  const op = React.useRef(null)
+  const [loading, setLoading] = useState(false)
+  const op = useRef(null)
   const [cleaningOption, setCleaningOption] = useState("drop")
   const cleaningOptions = ["drop", "random fill", "mean fill", "median fill", "mode fill", "bfill", "ffill"]
   const [startWith, setStartWith] = useState("Columns")
@@ -112,12 +114,40 @@ const SimpleCleaningToolsDB = ({ lastEdit, data, columns, currentCollection, ref
   }
 
   const clean = async (type, overwrite) => {
+    // Check if the collection already exists
+    let collectionName = newCollectionName + ".csv"
+    let exists = false
+    for (const item of Object.keys(globalData)) {
+      if (globalData[item].name && globalData[item].name === collectionName) {
+        exists = true
+        break
+      }
+    }
+    // If the collection already exists, ask the user if they want to overwrite it
+    let overwriteConfirmation = true
+    if (exists) {
+      overwriteConfirmation = await new Promise((resolve) => {
+        confirmDialog({
+          closable: false,
+          message: `A dataset with the name "${collectionName}" already exists in the database. Do you want to overwrite it?`,
+          header: "Confirmation",
+          icon: "pi pi-exclamation-triangle",
+          accept: () => resolve(true),
+          reject: () => resolve(false)
+        })
+      })
+    }
+    if (!overwriteConfirmation) {
+      return
+    }
+
+    // If the collection does not exist, create a new one
     const id = randomUUID()
     const object = new MEDDataObject({
       id: id,
-      name: newCollectionName,
+      name: collectionName,
       type: "csv",
-      parentID: "ROOT",
+      parentID: globalData[currentCollection].parentID,
       childrenIDs: [],
       inWorkspace: false
     })
@@ -151,11 +181,13 @@ const SimpleCleaningToolsDB = ({ lastEdit, data, columns, currentCollection, ref
         newDatasetName: id
       }
     }
+    setLoading(true)
     requestBackend(
       port,
       "/input/cleanDB/",
       jsonToSend,
       async (jsonResponse) => {
+        setLoading(false)
         console.log("jsonResponse", jsonResponse)
         if (jsonResponse.error) {
           if (jsonResponse.error.message) {
@@ -172,6 +204,7 @@ const SimpleCleaningToolsDB = ({ lastEdit, data, columns, currentCollection, ref
         }
       },
       (error) => {
+        setLoading(false)
         console.log(error)
         toast.error("Error cleaning data:" + error)
       }
@@ -381,28 +414,38 @@ const SimpleCleaningToolsDB = ({ lastEdit, data, columns, currentCollection, ref
         </div>
       </div>
       <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
-        <InputText
-          value={newCollectionName}
-          onChange={(e) => setNewCollectionName(e.target.value)}
-          placeholder="New clean dataset name"
-          style={{ margin: "5px", fontSize: "1rem", width: "205px", marginTop: "20px" }}
-        />
+        <div className="p-inputgroup w-full md:w-30rem" style={{ margin: "5px", fontSize: "1rem", width: "205px", marginTop: "20px" }}>
+          <InputText
+            value={newCollectionName}
+            onChange={(e) => setNewCollectionName(e.target.value)}
+            placeholder="New clean dataset name"
+          />
+          <span className="p-inputgroup-addon">.csv</span>
+        </div>
         <Button
           icon="pi pi-plus"
-          style={{ margin: "5px", fontSize: "1rem", padding: "6px 10px", width: "150px", marginTop: "20px" }}
+          style={{ margin: "5px", fontSize: "1rem", padding: "6px 10px", width: "150px", height : "50px", marginTop: "20px" }}
+          loading={loading}
           onClick={() => cleanAll(false)}
           tooltip="Create Clean Dataset"
           tooltipOptions={{ position: "top" }}
         />
       </div>
-      <OverlayPanel ref={op} showCloseIcon={true} dismissable={true} style={{ width: "420px", padding: "10px" }} onHide={() => setNewCollectionName("")}>
+      <OverlayPanel ref={op} showCloseIcon={true} dismissable={true} style={{ width: "430px", padding: "10px" }} onHide={() => setNewCollectionName("")}>
         <h4 style={{ fontSize: "0.8rem", margin: "10px 0" }}>
           Do you want to <b>overwrite</b> the dataset or <b>create a new one</b> ?
         </h4>
         <div style={{ display: "flex", justifyContent: "space-between" }}>
           <Button className="p-button-danger" label="Overwrite" style={{ margin: "5px", fontSize: "0.8rem", padding: "6px 10px" }} onClick={() => cleanRowsOrColumns(true)} />
-          <InputText value={newCollectionName} onChange={(e) => setNewCollectionName(e.target.value)} placeholder="Enter new collection name" style={{ margin: "5px", fontSize: "0.8rem" }} />
-          <Button label="Create New" style={{ margin: "5px", fontSize: "0.8rem", padding: "6px 10px" }} onClick={() => cleanRowsOrColumns(false)} />
+          <div className="p-inputgroup w-full md:w-30rem" style={{ margin: "5px", fontSize: "0.8rem" }} >
+            <InputText 
+              value={newCollectionName} 
+              onChange={(e) => setNewCollectionName(e.target.value)} 
+              placeholder="New collection name"
+            />
+            <span className="p-inputgroup-addon">.csv</span>
+          </div>
+          <Button label="Create New" loading={loading} style={{ margin: "5px", fontSize: "0.8rem", padding: "6px 10px" }} onClick={() => cleanRowsOrColumns(false)} />
         </div>
       </OverlayPanel>
     </>
