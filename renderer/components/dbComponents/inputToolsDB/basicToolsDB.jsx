@@ -1,5 +1,4 @@
-/* eslint-disable no-unused-vars */
-import React, { useContext, useState } from "react"
+import React, { useContext, useEffect, useState } from "react"
 import { InputText } from "primereact/inputtext"
 import { Button } from "primereact/button"
 import { SplitButton } from "primereact/splitbutton"
@@ -12,24 +11,76 @@ import { DataContext } from "../../workspace/dataContext"
  * @description
  * This component provides basic tools to add rows and columns to a dataset, and export the dataset.
  * @param {Object} props
- * @param {Object[]} props.exportOptions - Export options
- * @param {Function} props.refreshData - Function to refresh the data
  * @param {string} props.currentCollection - Current collection
  */
-const BasicToolsDB = ({ exportOptions, refreshData, currentCollection }) => {
+const BasicToolsDB = ({ collectionSize, currentCollection }) => {
   const [newColumnName, setNewColumnName] = useState("")
   const [numRows, setNumRows] = useState("")
   const [columns, setColumns] = useState([])
   const [innerData, setInnerData] = useState([])
   const { globalData } = useContext(DataContext)
 
-  // Add a new column to the table
+  // Export options with the split button
+  const exportOptions = [
+    {
+      label: "CSV",
+      command: () => {
+        handleExport("CSV").then((r) => console.log(r))
+      }
+    },
+    {
+      label: "JSON",
+      command: () => {
+        handleExport("JSON").then((r) => console.log(r))
+      }
+    }
+  ]
+
+  // Monitor the current collection and collection size
+  useEffect(() => {
+    console.log("currentCollection", currentCollection)
+    console.log("collectionSize", collectionSize)
+  }, [currentCollection, collectionSize])
+
+  /**
+   * @description Export the dataset in CSV or JSON format
+   * @param format - Format to export the dataset
+   */
+  const handleExport = async (format) => {
+    const db = await connectToMongoDB()
+    const collection = db.collection(currentCollection)
+    const data = await collection.find({}).toArray()
+
+    if (format === "CSV") {
+      const csv = data.map((row) => Object.values(row).join(",")).join("\n")
+      const blob = new Blob([csv], { type: "text/csv" })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement("a")
+      a.href = url
+      a.download = globalData[currentCollection].name + ".csv"
+      a.click()
+    }
+
+    if (format === "JSON") {
+      const json = JSON.stringify(data, null, 2)
+      const blob = new Blob([json], { type: "application/json" })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement("a")
+      a.href = url
+      a.download = globalData[currentCollection].name + ".json"
+      a.click()
+    }
+  }
+
+  /**
+   * @description Add a new column to the table
+   */
   const handleAddColumn = async () => {
     if (newColumnName !== "") {
       try {
         console.log("currentCollection", currentCollection)
         const db = await connectToMongoDB()
-        const collection = db.collection(globalData[currentCollection].id)
+        const collection = db.collection(currentCollection)
         const existingDocument = await collection.findOne({})
         if (existingDocument && newColumnName in existingDocument) {
           toast.warn("Column name already exists, please use a different column name")
@@ -51,7 +102,9 @@ const BasicToolsDB = ({ exportOptions, refreshData, currentCollection }) => {
     }
   }
 
-  // Add a new row to the table
+  /**
+   * @description Add rows to the table
+   */
   const handleAddRow = async () => {
     if (!numRows || isNaN(numRows)) {
       toast.warn("Please enter a valid number for # of rows")
@@ -65,7 +118,7 @@ const BasicToolsDB = ({ exportOptions, refreshData, currentCollection }) => {
 
     try {
       const db = await connectToMongoDB()
-      const collection = db.collection(globalData[currentCollection].id)
+      const collection = db.collection(currentCollection)
       await collection.insertMany(newRows)
       setNumRows("")
       setInnerData([...innerData, ...newRows])
