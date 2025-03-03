@@ -18,6 +18,7 @@ const BasicToolsDB = ({ collectionSize, currentCollection }) => {
   const [numRows, setNumRows] = useState("")
   const [columns, setColumns] = useState([])
   const [innerData, setInnerData] = useState([])
+  const [loading, setLoading] = useState(false)
   const { globalData } = useContext(DataContext)
 
   // Export options with the split button
@@ -78,6 +79,7 @@ const BasicToolsDB = ({ collectionSize, currentCollection }) => {
   const handleAddColumn = async () => {
     if (newColumnName !== "") {
       try {
+        setLoading(true)
         console.log("currentCollection", currentCollection)
         const db = await connectToMongoDB()
         const collection = db.collection(currentCollection)
@@ -90,12 +92,14 @@ const BasicToolsDB = ({ collectionSize, currentCollection }) => {
         setColumns([...columns, newColumn])
         const newInnerData = innerData.map((row) => ({ ...row, [newColumn.field]: "" }))
         setInnerData(newInnerData)
-        setNewColumnName("")
         await collection.updateMany({}, { $set: { [newColumnName]: "" } })
         toast.success("Column " + newColumnName + " added successfully")
+        setNewColumnName("")
+        setLoading(false)
       } catch (error) {
         console.error("Error adding column:", error)
         toast.error("Error adding column")
+        setLoading(false)
       }
     } else {
       toast.warn("New column name cannot be empty")
@@ -110,22 +114,24 @@ const BasicToolsDB = ({ collectionSize, currentCollection }) => {
       toast.warn("Please enter a valid number for # of rows")
       return
     }
-    const newRows = Array.from({ length: numRows }, () => {
-      const newRow = {}
-      columns.forEach((col) => (newRow[col.field] = ""))
-      return newRow
-    })
-
     try {
+      setLoading(true)
+      const newRows = Array.from({ length: numRows }, () => {
+        const newRow = {}
+        columns.forEach((col) => (newRow[col.field] = ""))
+        return newRow
+      })
       const db = await connectToMongoDB()
       const collection = db.collection(currentCollection)
       await collection.insertMany(newRows)
-      setNumRows("")
       setInnerData([...innerData, ...newRows])
       toast.success(numRows + " rows added successfully")
+      setNumRows("")
+      setLoading(false)
     } catch (error) {
       console.error("Error adding rows:", error)
       toast.error("Error adding rows")
+      setLoading(false)
     }
   }
 
@@ -151,6 +157,7 @@ const BasicToolsDB = ({ collectionSize, currentCollection }) => {
             style={{
               width: "50px"
             }}
+            loading={loading}
           />
         </div>
         <div style={{ display: "flex" }}>
@@ -161,6 +168,7 @@ const BasicToolsDB = ({ collectionSize, currentCollection }) => {
             style={{
               width: "50px"
             }}
+            loading={loading}
           />
         </div>
         <SplitButton icon="pi pi-file-export" model={exportOptions} className="p-button-success" style={{ marginRight: "100px" }} tooltip="Export the dataset" tooltipOptions={{ position: "top" }} />
