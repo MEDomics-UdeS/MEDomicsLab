@@ -2,7 +2,7 @@ import React, { createContext, useState, useContext } from "react"
 import { useEffect } from "react"
 import { toast } from "react-toastify"
 import { DataContext } from "../workspace/dataContext"
-import { overwriteMEDDataObjectProperties, collectionExists, getCollectionSize } from "../mongoDB/mongoDBUtils"
+import { overwriteMEDDataObjectProperties, collectionExists } from "../mongoDB/mongoDBUtils"
 
 /**
  * @typedef {React.Context} LayoutModelContext
@@ -173,7 +173,7 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
         name: object.data,
         id: object.index,
         component: component,
-        config: { id: object.index, name: object.data, extension: object.type, fileSize: getCollectionSize(object.index) }
+        config: { id: object.index, name: object.data, extension: object.type }
       }
       let layoutRequestQueueCopy = [...layoutRequestQueue]
       layoutRequestQueueCopy.push({ type: "ADD_TAB", payload: newChild })
@@ -485,20 +485,18 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
       openInTab(action, "dataTableFromDB")
       return
     }
-    // const doesCollectionExists = await collectionExists(object.index)
+    const doesCollectionExists = await collectionExists(object.index)
 
-    // // 16mb max BSON size
-    // const maxBSONSize = 16777216
-    // const fileSize = await getCollectionSize(object.index)
-    // console.log("size", fileSize)
-
-    // if (!doesCollectionExists) {
-    //   toast.error("The collection does not exist in the database. Try reloading the page.")
-    // } else if (fileSize > maxBSONSize) {
-    //   toast.warn("The file is too large to be displayed in the data table, but you can still use it freely in the application.")
-    // } else {
-    openInTab(action, "dataTableFromDB")
-    // }
+    if (!doesCollectionExists) {
+      toast.error("The collection does not exist in the database. Try reloading the page.")
+      /* if (fileSize > maxBSONSize) {
+        // await ConvertBinaryToOriginalData(globalData, object)
+        // setTimeout(() => openInTab(action, "dataTableFromDB"), 1500)
+        toast.warn("The file is too large to be displayed in the data table.")
+      } */
+    } else {
+      openInTab(action, "dataTableFromDB")
+    }
   }
 
   /**
