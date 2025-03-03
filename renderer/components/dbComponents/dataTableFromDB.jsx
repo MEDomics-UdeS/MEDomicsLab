@@ -64,6 +64,17 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
     }
   ]
   const [rowTags, setRowTags] = useState([])
+  const [loading, setLoading] = useState(false)
+  const [viewData, setViewData] = useState([])
+  const [viewMode, setViewMode] = useState(false)
+  const [viewName, setViewName] = useState("")
+  const [userSetViewName, setUserSetViewName] = useState("")
+  const [rowToDelete, setRowToDelete] = useState(null)
+  const [columnToDelete, setColumnToDelete] = useState(null)
+  const [lastPipeline, setLastPipeline] = useState([])
+  const [loadingData, setLoadingData] = useState(true)
+  const items = Array.from({ length: 7 }, (v, i) => i) //  Fake items for the skeleton upload
+  const forbiddenCharacters = /[\\."$*<>:|?]/
   const buttonStyle = (id) => ({
     borderRadius: "10px",
     backgroundColor: hoveredButton === id ? "#d32f2f" : "#cccccc",
