@@ -10,11 +10,9 @@ import { Dialog } from "primereact/dialog"
 import { InputText } from "primereact/inputtext"
 import { Message } from "primereact/message"
 import { Skeleton } from "primereact/skeleton"
-import React, { useContext, useEffect, useState } from "react"
+import React, { useEffect, useState } from "react"
 import { toast } from "react-toastify"
-import { requestBackend } from "../../utilities/requests"
 import { connectToMongoDB, getCollectionTags, insertMEDDataObjectIfNotExists } from "../mongoDB/mongoDBUtils"
-import { ServerConnectionContext } from "../serverConnection/connectionContext"
 import { MEDDataObject } from "../workspace/NewMedDataObject"
 import InputToolsComponent from "./InputToolsComponent"
 import { collectionExists, getCollectionData } from "./utils"
@@ -34,7 +32,6 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
   const [hoveredButton, setHoveredButton] = useState(null)
   const [hoveredTag, setHoveredTag] = useState({ field: null, index: null })
   const [lastEdit, setLastEdit] = useState(Date.now())
-  const { port } = useContext(ServerConnectionContext)
   const [viewData, setViewData] = useState([])
   const [viewMode, setViewMode] = useState(false)
   const [viewName, setViewName] = useState("")
@@ -42,6 +39,7 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
   const [userSetViewName, setUserSetViewName] = useState("")
   const [rowToDelete, setRowToDelete] = useState(null)
   const [columnToDelete, setColumnToDelete] = useState(null)
+  const [rowTags, setRowTags] = useState([])
   const [lastPipeline, setLastPipeline] = useState([])
   const [loadingData, setLoadingData] = useState(true)
   const [loadingTag, setloadingTag] = useState(false)
@@ -63,18 +61,6 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
       }
     }
   ]
-  const [rowTags, setRowTags] = useState([])
-  const [loading, setLoading] = useState(false)
-  const [viewData, setViewData] = useState([])
-  const [viewMode, setViewMode] = useState(false)
-  const [viewName, setViewName] = useState("")
-  const [userSetViewName, setUserSetViewName] = useState("")
-  const [rowToDelete, setRowToDelete] = useState(null)
-  const [columnToDelete, setColumnToDelete] = useState(null)
-  const [lastPipeline, setLastPipeline] = useState([])
-  const [loadingData, setLoadingData] = useState(true)
-  const items = Array.from({ length: 7 }, (v, i) => i) //  Fake items for the skeleton upload
-  const forbiddenCharacters = /[\\."$*<>:|?]/
   const buttonStyle = (id) => ({
     borderRadius: "10px",
     backgroundColor: hoveredButton === id ? "#d32f2f" : "#cccccc",
