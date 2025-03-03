@@ -1,17 +1,17 @@
 import json
-import os
 import sys
-from pathlib import Path
-
 import numpy as np
+import os
 import pandas as pd
-
+from pathlib import Path
 sys.path.append(
     str(Path(os.path.dirname(os.path.abspath(__file__))).parent.parent))
-
 from med_libs.GoExecutionScript import GoExecutionScript, parse_arguments
-from med_libs.mongodb_utils import connect_to_mongo
 from med_libs.server_utils import go_print
+
+# To deal with the DB
+from pymongo import MongoClient
+import math
 
 json_params_dict, id_ = parse_arguments()
 go_print("running script.py:" + id_)
@@ -48,12 +48,14 @@ class GoExecScriptCreatePCA(GoExecutionScript):
         keep_unselected_columns = json_config["keepUnselectedColumns"]
         overwrite = json_config["overwrite"]
         export_transformation = json_config["exportTransformation"]
+        database_name = json_config["databaseName"]
         collection_name = json_config["collectionName"]
         new_collection_name = json_config["newCollectionName"]
         new_PCA_collection_name = json_config["newPCATransformationName"]
 
         # Connect to MongoDB
-        db = connect_to_mongo()
+        client = MongoClient('localhost', 54017)
+        db = client[database_name]
         collection = db[collection_name]
 
         # Fetch data and convert to DataFrame 
