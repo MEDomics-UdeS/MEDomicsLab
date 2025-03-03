@@ -1,7 +1,6 @@
 package input
 
 import (
-	"fmt"
 	Utils "go_module/src"
 	"log"
 )
@@ -27,8 +26,6 @@ func AddHandleFunc() {
 	Utils.CreateHandleFunc(prePath+"/get_subset_data/", handleGetSubsetData)
 	Utils.CreateHandleFunc(prePath+"/create_new_collection/", handleCreateNewCollection)
 	Utils.CreateHandleFunc(prePath+"/overwrite_collection/", handleOverwriteCollection)
-	Utils.CreateHandleFunc(prePath+"/overwrite_encoded_data", handleOverwriteEncodedData)
-	Utils.CreateHandleFunc(prePath+"/append_encoded_data", handleAppendEncodedData)
 	Utils.CreateHandleFunc(prePath+"/create_group_DB/", handleCreateGroupDB)
 	Utils.CreateHandleFunc(prePath+"/delete_row_tag_DB/", handleDeleteRowTagDB)
 }
@@ -235,39 +232,6 @@ func handleOverwriteCollection(jsonConfig string, id string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return response, nil
-}
-func handleOverwriteEncodedData(jsonConfig string, id string) (string, error) {
-
-	response, err := Utils.StartPythonScripts(jsonConfig, "../pythonCode/modules/input/overwrite_encoded_data.py", id)
-	if err != nil {
-		log.Println("Error executing Python script:", err)
-		return "", err
-	}
-
-	// Log to verify response
-	log.Println("Python script response:", response)
-
-	if response == "" {
-		return "", fmt.Errorf("empty response from Python script")
-	}
-
-	return response, nil
-}
-
-func handleAppendEncodedData(jsonConfig string, id string) (string, error) {
-	response, err := Utils.StartPythonScripts(jsonConfig, "../pythonCode/modules/input/append_encoded_data.py", id)
-	if err != nil {
-		log.Println("Error executing Python script:", err)
-		return "", err
-	}
-
-	log.Println("Python script response:", response)
-
-	if response == "" {
-		return "", fmt.Errorf("empty response from Python script")
-	}
-
 	return response, nil
 }
 
