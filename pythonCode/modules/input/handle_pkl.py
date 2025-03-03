@@ -1,15 +1,18 @@
 import json
-import os
 import sys
+import os
 from pathlib import Path
-
 import pandas as pd
-
 sys.path.append(
     str(Path(os.path.dirname(os.path.abspath(__file__))).parent.parent))
 from med_libs.GoExecutionScript import GoExecutionScript, parse_arguments
-from med_libs.mongodb_utils import connect_to_mongo
 from med_libs.server_utils import go_print
+from med_libs.input_utils.dataframe_utilities import clean_columns, clean_rows, save_dataframe
+
+# To deal with the DB
+from pymongo import MongoClient
+import math
+
 
 json_params_dict, id_ = parse_arguments()
 go_print("running script.py:" + id_)
@@ -41,10 +44,12 @@ class GoExecScriptHandlePKL(GoExecutionScript):
        
         # Set local variables
         path = json_config["path"]
+        database_name = json_config["databaseName"]
         new_collection_name = json_config["newCollectionName"]
 
         # Connect to MongoDB
-        db = connect_to_mongo()
+        client = MongoClient('localhost', 54017)
+        db = client[database_name]
 
         # Attempt to create a dataframe from the pkl file
         try:

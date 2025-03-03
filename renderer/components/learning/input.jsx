@@ -301,7 +301,6 @@ const Input = ({ name, settingInfos, currentValue, onInputChange, disabled = fal
               key={name}
               disabled={disabled}
               value={currentValue ? currentValue : []}
-              filter
               onChange={(newValue) =>
               {
                 setInputUpdate({

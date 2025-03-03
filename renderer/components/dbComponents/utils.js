@@ -23,78 +23,17 @@ export const collectionExists = async (collectionName, dbname = "data") => {
 
 /**
  * @description Get data from collectionName in dbname
- * @param {String} collectionName
- * @param {Number} first
- * @param {Number} rows
  * @param {String} dbname
- * @returns {Array} fetchedData
+ * @param {String} collectionName
+ * @returns fetchedData
  */
-export const getCollectionData = async (collectionName, first = null, rows = null, dbname = "data") => {
+export const getCollectionData = async (collectionName, dbname = "data") => {
   const client = new MongoClient(mongoUrl)
-  let fetchedData = []
   try {
     await client.connect()
     const db = client.db(dbname)
     const collection = db.collection(collectionName)
-    if (!first && rows) {
-      fetchedData = await collection.find({}).limit(rows).toArray()
-    } else if (first && rows) {
-      fetchedData = await collection.find({}).skip(first).limit(rows).toArray()
-    }
-    else {
-      fetchedData = await collection.find({}).toArray()
-    }
-    // Convert Date objects to strings
-    fetchedData = fetchedData.map((item) => {
-      let keys = Object.keys(item)
-      let values = Object.values(item)
-      let dataObject = {}
-      for (let i = 0; i < keys.length; i++) {
-        // Check if the value is a Date object
-        if (values[i] instanceof Date) {
-          // If it is, convert it to a string
-          dataObject[keys[i]] = values[i].toISOString()
-        } else {
-          dataObject[keys[i]] = values[i]
-        }
-      }
-      return dataObject
-    })
-
-    return fetchedData
-  } catch (error) {
-    console.error("Error fetching data:", error)
-    throw error
-  } finally {
-    await client.close()
-  }
-}
-
-/**
- * 
- * @param {String} collectionName 
- * @param {*Object} filter 
- * @param {*integer} first 
- * @param {*integer} rows 
- * @param {*Object} sortCriteria 
- * @param {*String} dbname 
- * @returns {Array} fetchedDataFiltered
- */
-export const getCollectionDataFilterd = async (collectionName, filter, first = null, rows = null, sortCriteria = null, dbname = "data") => {
-  const client = new MongoClient(mongoUrl)
-  let fetchedData = []
-  try {
-    await client.connect()
-    const db = client.db(dbname)
-    const collection = db.collection(collectionName)
-    if (!first && rows) {
-      fetchedData = sortCriteria ? await collection.find(filter).sort(sortCriteria).limit(rows).toArray() : await collection.find(filter).limit(rows).toArray()
-    } else if (first && rows) {
-      fetchedData = sortCriteria ? await collection.find(filter).sort(sortCriteria).skip(first).limit(rows).toArray() : await collection.find(filter).skip(first).limit(rows).toArray()
-    }
-    else {
-      fetchedData = sortCriteria ? await collection.find(filter).sort(sortCriteria).toArray() : await collection.find(filter).toArray()
-    }
+    let fetchedData = await collection.find({}).toArray()
 
     // Convert Date objects to strings
     fetchedData = fetchedData.map((item) => {
@@ -114,25 +53,6 @@ export const getCollectionDataFilterd = async (collectionName, filter, first = n
     })
 
     return fetchedData
-  } catch (error) {
-    console.error("Error fetching data:", error)
-    throw error
-  } finally {
-    await client.close()
-  }
-}
-
-/**
- * @description Get documents count with filter use
- */
-export const getCollectionDataCount = async (collectionName, filter, dbname = "data") => {
-  const client = new MongoClient(mongoUrl)
-  try {
-    await client.connect()
-    const db = client.db(dbname)
-    const collection = db.collection(collectionName)
-    const count = await collection.countDocuments(filter)
-    return count
   } catch (error) {
     console.error("Error fetching data:", error)
     throw error

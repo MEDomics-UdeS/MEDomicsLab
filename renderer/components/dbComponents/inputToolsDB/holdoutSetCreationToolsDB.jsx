@@ -17,15 +17,17 @@ import { insertMEDDataObjectIfNotExists } from "../../mongoDB/mongoDBUtils"
 import { ServerConnectionContext } from "../../serverConnection/connectionContext"
 import { MEDDataObject } from "../../workspace/NewMedDataObject"
 import { DataContext } from "../../workspace/dataContext"
-import { getCollectionColumns } from "../../mongoDB/mongoDBUtils"
+import { getCollectionData } from "../utils"
 
 /**
  * @description
  * This component provides tools to create a holdout set from a dataset.
+ * @param {Object} props
+ * @param {Function} props.refreshData - Function to refresh the data
  * @param {string} props.currentCollection - Current collection
  *
  */
-const HoldoutSetCreationToolsDB = ({ currentCollection }) => {
+const HoldoutSetCreationToolsDB = ({ refreshData, currentCollection }) => {
   const [shuffle, setShuffle] = useState(false)
   const [stratify, setStratify] = useState(false)
   const [selectedColumns, setSelectedColumns] = useState([])
@@ -39,12 +41,11 @@ const HoldoutSetCreationToolsDB = ({ currentCollection }) => {
   const { globalData } = useContext(DataContext)
   const { port } = useContext(ServerConnectionContext)
 
-  // Fetch the columns of the current collection without fetching the whole dataset
   useEffect(() => {
     const fetchData = async () => {
-      const collectionColumns = await getCollectionColumns(currentCollection)
-      if (collectionColumns && collectionColumns.length > 0) {
-        setColumns(collectionColumns)
+      const collectionData = await getCollectionData(currentCollection)
+      if (collectionData && collectionData.length > 0) {
+        setColumns(Object.keys(collectionData[0]))
       }
     }
     fetchData()
@@ -61,6 +62,8 @@ const HoldoutSetCreationToolsDB = ({ currentCollection }) => {
 
   /**
    * Function to create the holdout set, send the request to the backend
+   * @returns {Void}
+   * @async
    */
   const createHoldoutSet = async () => {
     let collectionName = newCollectionName + ".csv"
@@ -86,6 +89,7 @@ const HoldoutSetCreationToolsDB = ({ currentCollection }) => {
 
     let JSONToSend = {}
     JSONToSend = {
+      databaseName: "data",
       collectionName: globalData[currentCollection].id,
       name: id,
       name2: id2,
@@ -174,19 +178,17 @@ const HoldoutSetCreationToolsDB = ({ currentCollection }) => {
             <div>
               <i className="pi pi-info-circle" />
               &nbsp; The Holdout Set Creation tool serves as a visual representation of the{" "}
-              <i>
-                <b>
-                  <a href="https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.train_test_split.html" target="_blank">
-                    scikit-learn Python package's model_selection train_test_split function
-                  </a>
-                </b>
-              </i>
+              <i><b>
+                <a href="https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.train_test_split.html" target="_blank">
+                  scikit-learn Python package's model_selection train_test_split function
+                </a>
+              </b></i>
               . This tool will create a folder containing your holdout and learning sets.
             </div>
           }
         />
         <Message className="margin-top-15 margin-bottom-15 center" severity="success" text={`Current collection: ${globalData[currentCollection].name}`} style={{ marginTop: "10px" }} />
-        <div style={{ marginTop: "10px", justifyContent: "center", alignItems: "center" }}>
+        <div style={{ marginTop: "10px", justifyContent: "center", alignItems: "center"}}>
           <div style={{ marginTop: "10px", display: "flex", justifyContent: "center", alignItems: "center" }}>
             <Checkbox
               inputId="shuffle"
@@ -222,7 +224,6 @@ const HoldoutSetCreationToolsDB = ({ currentCollection }) => {
               value={selectedColumns}
               options={columns.filter((col) => col !== "_id")}
               onChange={(e) => setSelectedColumns(e.value)}
-              filter
               placeholder="Select Columns"
               disabled={!(shuffle && stratify)}
               style={{ marginLeft: "30px", marginTop: "10px" }}
@@ -279,12 +280,16 @@ const HoldoutSetCreationToolsDB = ({ currentCollection }) => {
               style={{ margin: "10px" }}
             />
             <div className="p-inputgroup w-full md:w-30rem" style={{ margin: "10px", fontSize: "1rem", width: "230px", marginTop: "5px" }}>
-              <InputText value={newCollectionName} onChange={(e) => setNewCollectionName(e.target.value)} placeholder="New set name" />
+              <InputText
+                value={newCollectionName}
+                onChange={(e) => setNewCollectionName(e.target.value)}
+                placeholder="New set name"
+              />
               <span className="p-inputgroup-addon">.csv</span>
             </div>
             <Button
               icon="pi pi-plus"
-              style={{ margin: "10px" }}
+              style={{ margin: "10px"}}
               onClick={() => {
                 createHoldoutSet()
               }}

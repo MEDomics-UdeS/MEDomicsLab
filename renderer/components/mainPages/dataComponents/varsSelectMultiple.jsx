@@ -91,7 +91,6 @@ const VarsSelectMultiple = ({ key, onChange, selectedVars, selectedTags, selecte
           options={varsList}
           optionLabel="name"
           display="chip"
-          filter
         />
       }
     </>

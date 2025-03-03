@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import React, { useEffect, useState, useContext } from "react"
 import { Message } from "primereact/message"
 import { Dropdown } from "primereact/dropdown"
@@ -13,9 +14,8 @@ import { MEDDataObject } from "../../../workspace/NewMedDataObject"
 import { insertMEDDataObjectIfNotExists } from "../../../mongoDB/mongoDBUtils"
 import { randomUUID } from "crypto"
 import { DataContext } from "../../../workspace/dataContext"
-import { getCollectionColumns } from "../../../mongoDB/mongoDBUtils"
 
-const ApplyPCADB = ({ currentCollection }) => {
+const ApplyPCADB = ({ currentCollection, refreshData }) => {
   const { globalData } = useContext(DataContext)
   const [transformationCollection, setTransformationSelected] = useState("")
   const [collections, setCollections] = useState([])
@@ -25,9 +25,15 @@ const ApplyPCADB = ({ currentCollection }) => {
   const [keepUnselectedColumns, setKeepUnselectedColumns] = useState(false)
   const [newCollectionName, setNewCollectionName] = useState("")
   const { port } = useContext(ServerConnectionContext)
-  const [loadingApplyPCA, setLoadingApplyPCA] = useState(false)
 
-  // Set the number of coefficients in the transformation collection
+  useEffect(() => {
+    console.log("selectedColumns", selectedColumns.length)
+  }, [selectedColumns])
+
+  useEffect(() => {
+    console.log("setNumOfCoefficients", numOfCoefficients)
+  }, [numOfCoefficients])
+
   useEffect(() => {
     const fetchData = async () => {
       if (transformationCollection) {
@@ -50,7 +56,6 @@ const ApplyPCADB = ({ currentCollection }) => {
     fetchData()
   }, [transformationCollection, getCollectionData])
 
-  // Fetch the collections that has PCA transformations in the name
   useEffect(() => {
     async function getCollections() {
       try {
@@ -70,25 +75,28 @@ const ApplyPCADB = ({ currentCollection }) => {
     getCollections()
   }, [])
 
-  // Fetch the columns of the current collection
   useEffect(() => {
     const fetchData = async () => {
-      const columns = await getCollectionColumns(currentCollection)
-      if (columns && columns.length > 0) {
-        setColumns(columns)
+      const collectionData = await getCollectionData(currentCollection)
+      if (collectionData && collectionData.length > 0) {
+        setColumns(Object.keys(collectionData[0]))
       }
     }
     fetchData()
   }, [currentCollection])
 
-  // Compute PCA in the backend
+  /**
+   * @description
+   * Call the server to compute pca
+   * @param {Boolean} overwrite - True if the dataset should be overwritten, false otherwise
+   */
   const computePCA = async (overwrite) => {
     const id = randomUUID()
     const object = new MEDDataObject({
       id: id,
-      name: newCollectionName + "_reduced_features" + ".csv",
+      name: newCollectionName + "_reduced_features",
       type: "csv",
-      parentID: globalData[currentCollection].parentID,
+      parentID: "ROOT",
       childrenIDs: [],
       inWorkspace: false
     })
@@ -99,21 +107,19 @@ const ApplyPCADB = ({ currentCollection }) => {
       keepUnselectedColumns: keepUnselectedColumns,
       overwrite: overwrite,
       collectionName: globalData[currentCollection].id,
+      databaseName: "data",
       newCollectionName: id,
       transformationCollection: transformationCollection
     }
 
     // Send the request to the backend
-    setLoadingApplyPCA(true)
     requestBackend(
       port,
       "/input/apply_pcaDB/",
       jsonToSend,
       async (jsonResponse) => {
-        setLoadingApplyPCA(false)
         console.log("jsonResponse", jsonResponse)
         if (jsonResponse.error) {
-          setLoadingApplyPCA(false)
           if (jsonResponse.error.message) {
             console.error(jsonResponse.error.message)
             toast.error(jsonResponse.error.message)
@@ -132,7 +138,6 @@ const ApplyPCADB = ({ currentCollection }) => {
         }
       },
       (error) => {
-        setLoadingApplyPCA(false)
         console.log(error)
         toast.error("Error applying PCA" + error)
       }
@@ -158,7 +163,6 @@ const ApplyPCADB = ({ currentCollection }) => {
           <MultiSelect
             className="maxwidth-80"
             display="chip"
-            filter
             value={selectedColumns}
             onChange={(e) => setSelectedColumns(e.value)}
             options={columns.filter((col) => col !== "_id")}
@@ -190,7 +194,6 @@ const ApplyPCADB = ({ currentCollection }) => {
           onClick={() => computePCA(true)}
           tooltip="Overwrite current collection with PCA results"
           tooltipOptions={{ position: "top" }}
-          loading={loadingApplyPCA}
         />
         <InputText value={newCollectionName} onChange={(e) => setNewCollectionName(e.target.value)} placeholder="New name" style={{ margin: "5px", fontSize: "1rem", width: "205px" }} />
         <Button
@@ -199,7 +202,6 @@ const ApplyPCADB = ({ currentCollection }) => {
           onClick={() => computePCA(false)}
           tooltip="Create new collection with PCA results"
           tooltipOptions={{ position: "top" }}
-          loading={loadingApplyPCA}
         />
       </div>
     </>

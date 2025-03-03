@@ -1,16 +1,18 @@
 import json
-import os
 import sys
+import os
 from pathlib import Path
-
 import pandas as pd
-
 sys.path.append(
     str(Path(os.path.dirname(os.path.abspath(__file__))).parent.parent))
 from med_libs.GoExecutionScript import GoExecutionScript, parse_arguments
-from med_libs.input_utils.dataframe_utilities import clean_columns, clean_rows
-from med_libs.mongodb_utils import connect_to_mongo
 from med_libs.server_utils import go_print
+from med_libs.input_utils.dataframe_utilities import clean_columns, clean_rows, save_dataframe
+
+# To deal with the DB
+from pymongo import MongoClient
+import math
+
 
 json_params_dict, id_ = parse_arguments()
 go_print("running script.py:" + id_)
@@ -44,13 +46,15 @@ class GoExecScriptClean(GoExecutionScript):
         processing_type = json_config["type"]
         clean_method = json_config["cleanMethod"]
         overwrite = json_config["overwrite"]
+        database_name = json_config["databaseName"]
         collection_name = json_config["collectionName"]
         dataset_name = json_config["newDatasetName"]
         columns_to_clean = json_config["columnsToClean"]
         rows_to_clean = json_config["rowsToClean"]
 
         # Connect to MongoDB
-        db = connect_to_mongo()
+        client = MongoClient('localhost', 54017)
+        db = client[database_name]
         collection = db[collection_name]
 
         # Fetch data and convert to DataFrame 

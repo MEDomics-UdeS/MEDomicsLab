@@ -10,7 +10,7 @@ import { insertMEDDataObjectIfNotExists } from "../../mongoDB/mongoDBUtils"
 import { ServerConnectionContext } from "../../serverConnection/connectionContext"
 import { DataContext } from "../../workspace/dataContext"
 import { MEDDataObject } from "../../workspace/NewMedDataObject"
-import { getCollectionColumns } from "../../mongoDB/mongoDBUtils" // Updated import
+import { getCollectionData } from "../utils"
 
 /**
  * @description MergeToolsDB component
@@ -35,7 +35,6 @@ const MergeToolsDB = ({ currentCollection }) => {
     { value: "cross", label: "Cross" }
   ]
 
-  // This useEffect is used to fetch the collections and columns from the database to display in the MultiSelect dropdowns
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -48,8 +47,10 @@ const MergeToolsDB = ({ currentCollection }) => {
         setOptions(newOptions)
 
         if (selectedCollections.length === 2) {
-          const columns1 = await getCollectionColumns(selectedCollections[0])
-          const columns2 = await getCollectionColumns(selectedCollections[1])
+          const data1 = await getCollectionData(selectedCollections[0])
+          const data2 = await getCollectionData(selectedCollections[1])
+          const columns1 = Object.keys(data1[0])
+          const columns2 = Object.keys(data2[0])
           const matchingColumns = columns1.filter((column) => columns2.includes(column) && column !== "_id")
           setCollectionColumns(matchingColumns)
           if (matchingColumns.length === 0) {
@@ -61,10 +62,10 @@ const MergeToolsDB = ({ currentCollection }) => {
         toast.error("Failed to fetch collection data.")
       }
     }
+
     fetchData()
   }, [globalData, selectedCollections])
 
-  // This function is called when the user selects a collection in the MultiSelect dropdown
   const handleSelectChange = (newSelection) => {
     if (newSelection.length < selectedCollections.length) {
       setCollectionColumns([])
@@ -93,7 +94,7 @@ const MergeToolsDB = ({ currentCollection }) => {
     const id = randomUUID()
     const object = new MEDDataObject({
       id: id,
-      name: globalData[selectedCollections[0]].name.replace(".csv", "") + "_" + globalData[selectedCollections[1]].name.replace(".csv", "") + "_" + selectedMergeType + ".csv",
+      name: globalData[selectedCollections[0]].name.replace(".csv", "") + "_" + globalData[selectedCollections[1]].name.replace(".csv", "") + "_" + selectedMergeType,
       type: "csv",
       parentID: globalData[selectedCollections[0]].parentID,
       childrenIDs: [],
@@ -105,10 +106,11 @@ const MergeToolsDB = ({ currentCollection }) => {
       newCollectionName: id,
       mergeType: selectedMergeType,
       columns: selectedColumns,
+      databaseName: "data",
       collection1: globalData[selectedCollections[0]].id,
       collection2: globalData[selectedCollections[1]].id
     }
-
+    
     // Change loading state
     setLoading(true)
 
@@ -159,9 +161,8 @@ const MergeToolsDB = ({ currentCollection }) => {
         }}
       >
         <div style={{ display: "flex", alignItems: "center", margin: "5px" }}>
-          <MultiSelect value={selectedCollections} options={options} filter onChange={(e) => handleSelectChange(e.value)} placeholder={"Select Collections"} style={{ width: "200px", marginRight: "10px" }} />
+          <MultiSelect value={selectedCollections} options={options} onChange={(e) => handleSelectChange(e.value)} placeholder={"Select Collections"} style={{ width: "200px", marginRight: "10px" }} />
           <MultiSelect
-            filter
             value={selectedColumns}
             options={collectionColumns}
             onChange={(e) => setSelectedColumns(e.value)}
