@@ -64,54 +64,53 @@ class GoExecScriptCreateGroupDB(GoExecutionScript):
         # Create a document to hold the group information
         group_document = {
             "collectionName": collectionName,
-            "data": [{"row": row, "groupNames": [groupName]} for row in data]  # Store groupName as a list
+            "data": [{"_id": row["_id"], "groupNames": [groupName]} for row in data]  # Store groupName as a list
         }
 
         # Check if a document for this collectionName already exists
         existing_document = row_tags_collection.find_one({"collectionName": collectionName})
-        existings_rows = []
+        existings_tags = []
         if existing_document:
-            # Retrieve existing rows
+            # Retrieve existing tags
             for new_entry in existing_document["data"]:
-                if '_id' in new_entry["row"]:
-                    new_entry["row"]["_id"] = str(new_entry["row"]["_id"])
-                existings_rows.append(new_entry["row"])
-            
+                if '_id' in new_entry:
+                    new_entry["_id"] = str(new_entry["_id"])
+                existings_tags.append({"_id": str(new_entry["_id"])})
             # Update existing documents
             for new_entry in group_document["data"]:
-                if '_id' in new_entry["row"]:
-                    new_entry["row"]["_id"] = str(new_entry["row"]["_id"])
-                # Check if the row already exists
-                if new_entry["row"] in existings_rows:
-                    existing_row = next((item for item in existing_document["data"] if item["row"] == new_entry["row"]), None)
-                    if existing_row is None:
-                        raise Exception("Row not found in the DB")
+                if '_id' in new_entry:
+                    new_entry["_id"] = str(new_entry["_id"])
+                # Check if the tag already exists
+                if {"_id": str(new_entry["_id"])} in existings_tags:
+                    existing_tag = next((item for item in existing_document["data"] if item["_id"] == new_entry["_id"]), None)
+                    if existing_tag is None:
+                        raise Exception(f"Tag with id {new_entry['_id']} not found in the DB")
                     # If so, add the new group name to the list
-                    existing_group_names = existing_row.get("groupNames", [])
+                    existing_group_names = existing_tag.get("groupNames", [])
                     # Only add the group name if it's not already present
                     if groupName not in existing_group_names:
                         existing_group_names.append(groupName)
                     else:
                         continue
                     # Update the existing document
-                    if '_id' in new_entry["row"] and type(new_entry["row"]["_id"]) == str:
-                        new_entry["row"]["_id"] = ObjectId(new_entry["row"]["_id"])
+                    if '_id' in new_entry and type(new_entry["_id"]) == str:
+                        new_entry["_id"] = ObjectId(new_entry["_id"])
                     result = row_tags_collection.update_one(
-                        {"collectionName": collectionName, "data.row": new_entry["row"]},
+                        {"collectionName": collectionName, "data._id": new_entry["_id"]},
                         {"$set": {"data.$.groupNames": existing_group_names}}
                     )
                     if result.matched_count <= 0:
                         raise Exception("Failed to update the group name")
                 else:
-                    if '_id' in new_entry["row"] and type(new_entry["row"]["_id"]) == str:
-                        new_entry["row"]["_id"] = ObjectId(new_entry["row"]["_id"])
-                    # If the row does not exist, insert it as a new entry
+                    if '_id' in new_entry and type(new_entry["_id"]) == str:
+                        new_entry["_id"] = ObjectId(new_entry["_id"])
+                    # If the tag does not exist, insert it as a new entry
                     result = row_tags_collection.update_one(
                         {"collectionName": collectionName},
                         {"$addToSet": {"data": new_entry}}  # Use $addToSet to avoid duplicates
                     )
                     if result.modified_count <= 0:
-                        raise Exception("Failed to insert the new row")
+                        raise Exception(f"Failed to insert the new tag: {new_entry}")
         else:
             # Insert the new document
             row_tags_collection.insert_one(group_document)
