@@ -19,10 +19,14 @@ func AddHandleFunc() {
 	Utils.CreateHandleFunc(prePath+"/compute_correlationsDB/", handleComputeCorrelationsDB)
 	Utils.CreateHandleFunc(prePath+"/compute_spearmanDB/", handleComputeSpearmanDB)
 	Utils.CreateHandleFunc(prePath+"/create_tags/", handleCreateTags)
-	Utils.CreateHandleFunc(prePath+"/delete_tag_from_column/", handleDeleteTagFromColumn)
 	Utils.CreateHandleFunc(prePath+"/handle_pkl/", handlePKL)
+	Utils.CreateHandleFunc(prePath+"/delete_columns/", deleteColumns)
+	Utils.CreateHandleFunc(prePath+"/transform_columns/", transformColumns)
+	Utils.CreateHandleFunc(prePath+"/get_row_column_missing_values/", handleGetMissingValues)
+	Utils.CreateHandleFunc(prePath+"/get_subset_data/", handleGetSubsetData)
+	Utils.CreateHandleFunc(prePath+"/create_new_collection/", handleCreateNewCollection)
+	Utils.CreateHandleFunc(prePath+"/overwrite_collection/", handleOverwriteCollection)
 	Utils.CreateHandleFunc(prePath+"/create_group_DB/", handleCreateGroupDB)
-	Utils.CreateHandleFunc(prePath+"/delete_row_tag_DB/", handleDeleteRowTagDB)
 }
 
 // handleMerge handles the request to merge the datasets for the DB
@@ -146,18 +150,6 @@ func handleCreateTags(jsonConfig string, id string) (string, error) {
 	return response, nil
 }
 
-// handleDeleteTagFromColumn handles the request to tag deletion for the DB
-// It returns the response from the python script
-func handleDeleteTagFromColumn(jsonConfig string, id string) (string, error) {
-	log.Println("Compute Tag Deletion", id)
-	response, err := Utils.StartPythonScripts(jsonConfig, "../pythonCode/modules/input/delete_tag_from_column.py", id)
-	Utils.RemoveIdFromScripts(id)
-	if err != nil {
-		return "", err
-	}
-	return response, nil
-}
-
 // handlePKL handles the request to handle the pkl file
 // It returns the response from the python script
 func handlePKL(jsonConfig string, id string) (string, error) {
@@ -170,11 +162,11 @@ func handlePKL(jsonConfig string, id string) (string, error) {
 	return response, nil
 }
 
-// handleCreateGroupDB handles the request to create the group for the DB
+// deleteColumns handles the request to delete columns from the DB
 // It returns the response from the python script
-func handleCreateGroupDB(jsonConfig string, id string) (string, error) {
-	log.Println("Create Group DB", id)
-	response, err := Utils.StartPythonScripts(jsonConfig, "../pythonCode/modules/input/create_group_DB.py", id)
+func deleteColumns(jsonConfig string, id string) (string, error) {
+	log.Println("Deleting Columns", id)
+	response, err := Utils.StartPythonScripts(jsonConfig, "../pythonCode/modules/input/delete_columns.py", id)
 	Utils.RemoveIdFromScripts(id)
 	if err != nil {
 		return "", err
@@ -182,11 +174,71 @@ func handleCreateGroupDB(jsonConfig string, id string) (string, error) {
 	return response, nil
 }
 
-// deleteRowTagDB handles the request to delete the row tag for the DB
+// transformColumns handles the request to transform columns from the DB
 // It returns the response from the python script
-func handleDeleteRowTagDB(jsonConfig string, id string) (string, error) {
-	log.Println("Delete Row Tag DB", id)
-	response, err := Utils.StartPythonScripts(jsonConfig, "../pythonCode/modules/input/delete_row_tag_DB.py", id)
+func transformColumns(jsonConfig string, id string) (string, error) {
+	log.Println("Transforming Columns", id)
+	response, err := Utils.StartPythonScripts(jsonConfig, "../pythonCode/modules/input/transform_columns.py", id)
+	Utils.RemoveIdFromScripts(id)
+	if err != nil {
+		return "", err
+	}
+	return response, nil
+}
+
+// handleGetMissingValues handles the request to get the missing values from the DB
+// It returns the response from the python script
+func handleGetMissingValues(jsonConfig string, id string) (string, error) {
+	log.Println("Getting Missing Values", id)
+	response, err := Utils.StartPythonScripts(jsonConfig, "../pythonCode/modules/input/get_row_column_missing_values.py", id)
+	Utils.RemoveIdFromScripts(id)
+	if err != nil {
+		return "", err
+	}
+	return response, nil
+}
+
+// handleGetSubsetData handles the request to get the subset data from the DB
+// It returns the response from the python script
+func handleGetSubsetData(jsonConfig string, id string) (string, error) {
+	log.Println("Getting Subset Data", id)
+	response, err := Utils.StartPythonScripts(jsonConfig, "../pythonCode/modules/input/get_subset_data.py", id)
+	Utils.RemoveIdFromScripts(id)
+	if err != nil {
+		return "", err
+	}
+	return response, nil
+}
+
+// handleCreateNewCollection handles the request to create a new collection from the DB
+// It returns the response from the python script
+func handleCreateNewCollection(jsonConfig string, id string) (string, error) {
+	log.Println("Creating New Collection", id)
+	response, err := Utils.StartPythonScripts(jsonConfig, "../pythonCode/modules/input/create_new_collection.py", id)
+	Utils.RemoveIdFromScripts(id)
+	if err != nil {
+		return "", err
+	}
+	return response, nil
+}
+
+// handleOverwriteCollection handles the request to overwrite the collection from the DB
+// It returns the response from the python script
+func handleOverwriteCollection(jsonConfig string, id string) (string, error) {
+	log.Println("Overwriting Collection", id)
+	response, err := Utils.StartPythonScripts(jsonConfig, "../pythonCode/modules/input/overwrite_collection.py", id)
+	Utils.RemoveIdFromScripts(id)
+	if err != nil {
+		return "", err
+	}
+	return response, nil
+}
+
+// handleCreateGroupDB handles the request to create the group for the DB
+// It returns the response from the python script
+func handleCreateGroupDB(jsonConfig string, id string) (string, error) {
+	log.Println("Create Group DB", id)
+	response, err := Utils.StartPythonScripts(jsonConfig, "../pythonCode/modules/input/create_group_DB.py", id)
 	Utils.RemoveIdFromScripts(id)
 	if err != nil {
 		return "", err

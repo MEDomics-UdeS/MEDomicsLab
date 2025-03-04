@@ -1,24 +1,16 @@
-import json
-import sys
-import numpy as np
 import os
-import pandas as pd
+import sys
 from pathlib import Path
+
 sys.path.append(
     str(Path(os.path.dirname(os.path.abspath(__file__))).parent.parent))
-from med_libs.GoExecutionScript import GoExecutionScript, parse_arguments
-from med_libs.server_utils import go_print
-
-# To deal with the DB
-from pymongo import MongoClient
-import math
-
-# to deal with the ObjectID
 from bson import ObjectId
+from med_libs.GoExecutionScript import GoExecutionScript, parse_arguments
+from med_libs.mongodb_utils import connect_to_mongo
+from med_libs.server_utils import go_print
 
 json_params_dict, id_ = parse_arguments()
 go_print("running script.py:" + id_)
-
 
 
 class GoExecScriptCreateGroupDB(GoExecutionScript):
@@ -44,49 +36,81 @@ class GoExecScriptCreateGroupDB(GoExecutionScript):
 
         collectionName = json_config["collectionName"]
         groupName = json_config["groupName"]
-        data = json_config["data"]
-        db_name = json_config["databaseName"]
+        data_query = json_config["query"]
+        sort_query = json_config["sortCriteria"]
 
         print("Starting creating group DB script")
 
         # Connect to MongoDB
-        client = MongoClient('localhost', 54017)
-        db = client[db_name]
+        db = connect_to_mongo()
+
+        # Get data from the collection
+        collection = db[collectionName]
+        data = None
+        if data_query:
+            data = list(collection.find(data_query) if not sort_query else collection.find(data_query).sort(sort_query))
+        else:
+            data = list(collection.find() if not sort_query else collection.find().sort(sort_query))
+        if not data:
+            raise Exception("No data found in the collection")
 
         # Create or get the 'row_tags' collection
+        list_collections = db.list_collection_names()
+        if "row_tags" not in list_collections:
+            row_tags_collection = db.create_collection("row_tags")
         row_tags_collection = db["row_tags"]
+
 
         # Create a document to hold the group information
         group_document = {
             "collectionName": collectionName,
-            "data": [{"row": row, "groupNames": [groupName]} for row in data]  # Store groupName as a list
+            "data": [{"_id": row["_id"], "groupNames": [groupName]} for row in data]  # Store groupName as a list
         }
 
         # Check if a document for this collectionName already exists
         existing_document = row_tags_collection.find_one({"collectionName": collectionName})
-
+        existings_tags = []
         if existing_document:
-            # Prepare to update existing document
-            for i, new_entry in enumerate(group_document["data"]):
-                existing_row = existing_document["data"][i]
-                # Check if the row already exists
-                if existing_row["row"] == new_entry["row"]:
+            # Retrieve existing tags
+            for new_entry in existing_document["data"]:
+                if '_id' in new_entry:
+                    new_entry["_id"] = str(new_entry["_id"])
+                existings_tags.append({"_id": str(new_entry["_id"])})
+            # Update existing documents
+            for new_entry in group_document["data"]:
+                if '_id' in new_entry:
+                    new_entry["_id"] = str(new_entry["_id"])
+                # Check if the tag already exists
+                if {"_id": str(new_entry["_id"])} in existings_tags:
+                    existing_tag = next((item for item in existing_document["data"] if item["_id"] == new_entry["_id"]), None)
+                    if existing_tag is None:
+                        raise Exception(f"Tag with id {new_entry['_id']} not found in the DB")
                     # If so, add the new group name to the list
-                    existing_group_names = existing_row.get("groupNames", [])
+                    existing_group_names = existing_tag.get("groupNames", [])
                     # Only add the group name if it's not already present
                     if groupName not in existing_group_names:
                         existing_group_names.append(groupName)
+                    else:
+                        continue
                     # Update the existing document
-                    row_tags_collection.update_one(
-                        {"collectionName": collectionName, "data.row": new_entry["row"]},
+                    if '_id' in new_entry and type(new_entry["_id"]) == str:
+                        new_entry["_id"] = ObjectId(new_entry["_id"])
+                    result = row_tags_collection.update_one(
+                        {"collectionName": collectionName, "data._id": new_entry["_id"]},
                         {"$set": {"data.$.groupNames": existing_group_names}}
                     )
+                    if result.matched_count <= 0:
+                        raise Exception("Failed to update the group name")
                 else:
-                    # If the row does not exist, insert it as a new entry
-                    row_tags_collection.update_one(
+                    if '_id' in new_entry and type(new_entry["_id"]) == str:
+                        new_entry["_id"] = ObjectId(new_entry["_id"])
+                    # If the tag does not exist, insert it as a new entry
+                    result = row_tags_collection.update_one(
                         {"collectionName": collectionName},
                         {"$addToSet": {"data": new_entry}}  # Use $addToSet to avoid duplicates
                     )
+                    if result.modified_count <= 0:
+                        raise Exception(f"Failed to insert the new tag: {new_entry}")
         else:
             # Insert the new document
             row_tags_collection.insert_one(group_document)
