@@ -8,6 +8,7 @@ import { DataContext } from "../workspace/dataContext"
 import BasicToolsDB from "./inputToolsDB/basicToolsDB"
 import DropDuplicatesToolsDB from "./inputToolsDB/dropDuplicatesToolsDB"
 import FeatureReductionToolsDB from "./inputToolsDB/featureReductionToolsDB/featureReductionToolsDB"
+import ConvertCategoricalColumnIntoNumericDB from "./inputToolsDB/convertCategoricalColumnIntoNumericDB"
 import GroupingTaggingToolsDB from "./inputToolsDB/groupingTaggingToolsDB"
 import HoldoutSetCreationToolsDB from "./inputToolsDB/holdoutSetCreationToolsDB"
 import MergeToolsDB from "./inputToolsDB/mergeToolsDB"
@@ -94,6 +95,9 @@ const InputToolsComponent = ({ exportOptions }) => {
         <>
           <Panel header="Basic Tools" toggleable collapsed={true}>
             <BasicToolsDB collectionSize={collectionSize} currentCollection={!collectionId ? null : collectionId} />
+          </Panel>
+          <Panel header="Convert Categorical Column Into Numeric" toggleable collapsed={true}>
+            <ConvertCategoricalColumnIntoNumericDB exportOptions={exportOptions} currentCollection={!collectionId ? null : collectionId} />
           </Panel>
           <Panel header="Drop Duplicates Tools" toggleable collapsed={true}>
             <DropDuplicatesToolsDB exportOptions={exportOptions} currentCollection={!collectionId ? null : collectionId} />
