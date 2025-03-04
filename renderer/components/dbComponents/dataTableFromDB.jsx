@@ -42,7 +42,6 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
   const [rowTags, setRowTags] = useState([])
   const [lastPipeline, setLastPipeline] = useState([])
   const [loadingData, setLoadingData] = useState(true)
-  const [loadingTag, setloadingTag] = useState(false)
   const [lazyParams, setLazyParams] = useState({ first: 0, rows: 10 })
   const [viewLazyParams, setViewLazyParams] = useState({ first: 0, rows: 10 })
   const items = Array.from({ length: 7 }, (v, i) => i) //  Fake items for the skeleton upload
@@ -1014,7 +1013,6 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
                                     </div>
                                     <Chip
                                       label={tag}
-                                      loading={loadingTag}
                                       style={{
                                         backgroundColor: getColorForTag(tag),
                                         fontSize: "0.75rem",
