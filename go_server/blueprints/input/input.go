@@ -30,7 +30,6 @@ func AddHandleFunc() {
 	Utils.CreateHandleFunc(prePath+"/overwrite_encoded_data", handleOverwriteEncodedData)
 	Utils.CreateHandleFunc(prePath+"/append_encoded_data", handleAppendEncodedData)
 	Utils.CreateHandleFunc(prePath+"/create_group_DB/", handleCreateGroupDB)
-	Utils.CreateHandleFunc(prePath+"/delete_row_tag_DB/", handleDeleteRowTagDB)
 }
 
 // handleMerge handles the request to merge the datasets for the DB
@@ -237,6 +236,7 @@ func handleOverwriteCollection(jsonConfig string, id string) (string, error) {
 	}
 	return response, nil
 }
+
 func handleOverwriteEncodedData(jsonConfig string, id string) (string, error) {
 
 	response, err := Utils.StartPythonScripts(jsonConfig, "../pythonCode/modules/input/overwrite_encoded_data.py", id)
@@ -276,18 +276,6 @@ func handleAppendEncodedData(jsonConfig string, id string) (string, error) {
 func handleCreateGroupDB(jsonConfig string, id string) (string, error) {
 	log.Println("Create Group DB", id)
 	response, err := Utils.StartPythonScripts(jsonConfig, "../pythonCode/modules/input/create_group_DB.py", id)
-	Utils.RemoveIdFromScripts(id)
-	if err != nil {
-		return "", err
-	}
-	return response, nil
-}
-
-// deleteRowTagDB handles the request to delete the row tag for the DB
-// It returns the response from the python script
-func handleDeleteRowTagDB(jsonConfig string, id string) (string, error) {
-	log.Println("Delete Row Tag DB", id)
-	response, err := Utils.StartPythonScripts(jsonConfig, "../pythonCode/modules/input/delete_row_tag_DB.py", id)
 	Utils.RemoveIdFromScripts(id)
 	if err != nil {
 		return "", err

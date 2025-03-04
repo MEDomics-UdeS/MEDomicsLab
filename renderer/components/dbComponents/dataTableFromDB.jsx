@@ -42,7 +42,6 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
   const [rowTags, setRowTags] = useState([])
   const [lastPipeline, setLastPipeline] = useState([])
   const [loadingData, setLoadingData] = useState(true)
-  const [loadingTag, setloadingTag] = useState(false)
   const [lazyParams, setLazyParams] = useState({ first: 0, rows: 10 })
   const [viewLazyParams, setViewLazyParams] = useState({ first: 0, rows: 10 })
   const items = Array.from({ length: 7 }, (v, i) => i) //  Fake items for the skeleton upload
@@ -351,9 +350,6 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
     const db = await connectToMongoDB()
     const tags = await db.collection('row_tags').find({}).toArray()
     setRowTags(tags)
-
-    // Refresh column tags
-
   }
 
   // Export data to CSV or JSON
@@ -754,7 +750,7 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
     const db = await connectToMongoDB()
     const tagsCollection = await db.collection("row_tags")
     const result = await tagsCollection.updateOne(
-        { "data.row._id": new ObjectId(id) },
+        { "data._id": new ObjectId(id) },
         { $pull: { "data.$.groupNames": group } }
     )
     if (result.modifiedCount === 0) {
@@ -768,13 +764,13 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
     return
   }
 
-  const renderDeleteIconRowRowTags = (rowData) => {
+  const renderDeleteIconRowTags = (rowData) => {
     let groupNames = new Set(); // Use a Set to ensure uniqueness
 
     // Loop through each tag to find the group names for the current rowData
     rowTags.forEach(tag => {
       tag.data.forEach(item => {
-        if (item.row._id.toString() === rowData._id.toString()) { 
+        if (item._id.toString() === rowData._id.toString()) { 
           item.groupNames.forEach(groupName => groupNames.add(groupName)); 
         }
       });
@@ -848,6 +844,7 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
 
   return (
       <>
+      {console.log("TESDTY", rowTags[0])}
         <Dialog visible={viewMode} header="Preview changes" style={{ width: "80%", height: "80%" }} modal={true} onHide={() => onCancelChanges()}>
         <DataTable
           className="p-datatable-striped p-datatable-gridlines"
@@ -936,7 +933,7 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
           >
             {!isReadOnly && (
                 <Column
-                    body={renderDeleteIconRowRowTags}
+                    body={renderDeleteIconRowTags}
                 />
             )}
             {columns.length > 0
@@ -1014,7 +1011,6 @@ const DataTableFromDB = ({ data, tablePropsData, tablePropsColumn, isReadOnly })
                                     </div>
                                     <Chip
                                       label={tag}
-                                      loading={loadingTag}
                                       style={{
                                         backgroundColor: getColorForTag(tag),
                                         fontSize: "0.75rem",
