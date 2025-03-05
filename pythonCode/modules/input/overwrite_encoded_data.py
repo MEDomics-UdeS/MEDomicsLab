@@ -36,28 +36,13 @@ class GoExecScriptOverwrite(GoExecutionScript):
             json_config: Input JSON parameters
         """
         try:
-            go_print(json.dumps(json_config, indent=4))
-
             # Set local variables
             collection_name = json_config["collectionName"]
             new_data = json_config["data"]
 
-            # column_to_transform = json_config.get("columnToTransform", "")
-            # transformed_data = []
-            # for record in new_data:
-            #     transformed_record = {}
-            #     for key, value in record.items():
-            #         # Ajouter un préfixe uniquement si nécessaire
-            #         if key.startswith(column_to_transform):
-            #             transformed_record[f"{column_to_transform}__{key}"] = value
-            #         else:
-            #             transformed_record[key] = value
-            #     transformed_data.append(transformed_record)
-
             # Connect to MongoDB
             db = connect_to_mongo()
             collection = db[collection_name]
-
 
             # Overwrite the data
             go_print(f"Overwriting data in collection: {collection_name}")
