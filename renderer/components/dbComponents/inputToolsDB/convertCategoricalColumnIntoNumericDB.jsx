@@ -31,7 +31,7 @@ const ConvertCategoricalColumnIntoNumericDB = ({ currentCollection }) => {
   const [cleanedDocuments, setCleanedDocuments] = useState([])
   const { port } = useContext(ServerConnectionContext)
   const [removedColumns, setRemovedColumns] = useState([])
-  const [jambon, setJambon] = useState([])
+  const [alreadyEncodedColumn, setAlreadyEncodedColumn] = useState([])
 
   const fetchData = async () => {
     setLoadingData(true)
@@ -62,9 +62,9 @@ const ConvertCategoricalColumnIntoNumericDB = ({ currentCollection }) => {
       setAllKeys(allKeys)
       setCleanedDocuments(cleanedDocuments)
       identifyCategoricalColumns(allKeys, cleanedDocuments)
-      superJambon(allKeys)
+      identifyAlreadyEncodedColumn(allKeys)
 
-      console.log("TESSSSST", jambon)
+      console.log("TESSSSST", alreadyEncodedColumn)
     } catch (error) {
       console.error("Error fetching data:", error)
       toast.error("An error occurred while fetching data.")
@@ -109,10 +109,10 @@ const ConvertCategoricalColumnIntoNumericDB = ({ currentCollection }) => {
     setCategoricalColumns(detectedColumns)
   }
 
-  const superJambon = (allKeys) => {
-    const jambonColumns = allKeys.filter((key) => allKeys.some((col) => col.startsWith(`${key}__`)))
+  const identifyAlreadyEncodedColumn = (allKeys) => {
+    const alreadyEncodedColumn = allKeys.filter((key) => allKeys.some((col) => col.startsWith(`${key}__`)))
 
-    setJambon(jambonColumns)
+    setAlreadyEncodedColumn(alreadyEncodedColumn)
   }
 
   const oneHotEncodeColumn = (data, column) => {
@@ -356,16 +356,16 @@ const ConvertCategoricalColumnIntoNumericDB = ({ currentCollection }) => {
                 header={col.header}
                 sortable
                 style={{
-                  // Red if categorical
-                  color: categoricalColumns.includes(col.field) ? "red" : "inherit",
+                  // Red if categorical and NOT already encoded
+                  color: categoricalColumns.includes(col.field) && !alreadyEncodedColumn.includes(col.field) ? "red" : "inherit",
                   // Red if highlighted
                   color: highlightedColumns.includes(col.field) ? "red" : "inherit"
                 }}
                 bodyStyle={{
                   // Red for modified cells
                   color: highlightedColumns.includes(col.field) ? "red" : "inherit",
-                  // Red for highlighted cell
-                  background: categoricalColumns.includes(col.field) ? "red" : "inherit"
+                  // Red for highlighted cell if not already encoded
+                  background: categoricalColumns.includes(col.field) && !alreadyEncodedColumn.includes(col.field) ? "red" : "inherit"
                 }}
               />
             ))}
@@ -386,7 +386,7 @@ const ConvertCategoricalColumnIntoNumericDB = ({ currentCollection }) => {
               <span>
                 {" "}
                 {categoricalColumns
-                  .filter((col) => !jambon.includes(col))
+                  .filter((col) => !alreadyEncodedColumn.includes(col))
                   .map((col, index) => (
                     <li key={index} style={{ marginBottom: "10px" }}>
                       <span style={{ marginRight: "10px" }}>Convert Categorical Column into Numeric :</span>
