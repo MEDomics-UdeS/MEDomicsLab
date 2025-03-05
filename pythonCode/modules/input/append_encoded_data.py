@@ -13,9 +13,10 @@ from med_libs.mongodb_utils import connect_to_mongo
 json_params_dict, id_ = parse_arguments()
 go_print("running script.py:" + id_)
 
+
 class GoExecScriptAppend(GoExecutionScript):
     """
-    This class appends data to an existing MongoDB collection.
+    This class overwrites an existing MongoDB collection while keeping existing columns.
 
     Args:
         json_params: Input JSON parameters
@@ -24,41 +25,77 @@ class GoExecScriptAppend(GoExecutionScript):
 
     def __init__(self, json_params: dict, _id: str = None):
         super().__init__(json_params, _id)
-        self.results = {"status": "error", "message": "Process not completed."}  # Default error response
+        self.results = {"status": "error", "message": "Process not completed."}  # Default response
 
     def _custom_process(self, json_config: dict) -> dict:
         """
-        Appends new data to the specified collection.
-
-        Args:
-            json_config: Input JSON parameters
+        Overwrites the specified collection with new data while preserving existing columns.
         """
-        go_print("Received JSON Config:")
-        go_print(json.dumps(json_config, indent=4))  # Log input JSON
+        try:
+            go_print("🔍 Received JSON Config:")
+            go_print(json.dumps(json_config, indent=4))  # ✅ Affiche l'entrée JSON formatée
 
-        # Extract data from the JSON config
-        collection_name = json_config["collectionName"]
-        new_data = json_config["data"]
+            # Vérifier si les données sont bien passées
+            if "collectionName" not in json_config or "data" not in json_config:
+                raise ValueError("Invalid JSON format: 'collectionName' or 'data' missing.")
 
-        # Connect to MongoDB
-        db = connect_to_mongo()
-        collection = db[collection_name]
+            # Set local variables
+            collection_name = json_config["collectionName"]
+            new_data = json_config["data"]
 
-        # Append data while avoiding duplicates (_id conflicts)
-        go_print(f"Appending data to collection: {collection_name}")
-        for record in new_data:
-            if "_id" in record:
-                collection.update_one(
-                    {"_id": record["_id"]},
-                    {"$set": record},
-                    upsert=True  # Create a new document if no match is found
-                )
+            # ✅ Log des données à insérer pour voir si elles sont correctes
+            go_print("🔍 Data to be inserted:")
+            go_print(json.dumps(new_data, indent=4))
 
-        # Set the response result
-        self.results = {"status": "success", "message": "Data appended successfully."}
-        go_print(f"Final results: {json.dumps(self.results)}")  # Log final results
+            # Connect to MongoDB
+            db = connect_to_mongo()
+            collection = db[collection_name]
 
-        return self.results
+            # 🔹 1. Récupérer un document existant pour voir les colonnes actuelles
+            existing_doc = collection.find_one({}, {"_id": 0})
+            go_print("🔍 Existing document structure (before overwrite):")
+            go_print(json.dumps(existing_doc, indent=4) if existing_doc else "No existing document found.")
+
+            if existing_doc:
+                all_keys = set(existing_doc.keys())  # Récupère toutes les colonnes existantes
+            else:
+                all_keys = set()
+
+            # Ajouter toutes les clés des nouvelles données
+            for doc in new_data:
+                all_keys.update(doc.keys())
+
+            # 🔹 2. Afficher les clés fusionnées
+            go_print(f"🔍 All keys after merging old and new data: {all_keys}")
+
+            # 🔹 3. Créer un document temporaire avec toutes les colonnes
+            temp_doc = {key: None for key in all_keys}  
+            temp_id = collection.insert_one(temp_doc).inserted_id
+
+            # 🔹 4. Supprimer uniquement les documents, mais PAS la structure
+            go_print(f"🔍 Clearing data in collection: {collection_name} while keeping schema")
+            collection.delete_many({"_id": {"$ne": temp_id}})  
+
+            # 🔹 5. Insérer les nouvelles données
+            collection.insert_many(new_data)
+
+            # 🔹 6. Supprimer le document temporaire
+            collection.delete_one({"_id": temp_id})
+
+            # 🔹 7. Retourner le succès
+            self.results = {
+                "status": "success",
+                "message": "Data overwritten successfully while keeping existing schema."
+            }
+
+        except Exception as e:
+            # 🔹 8. Gestion des erreurs
+            self.results = {"status": "error", "message": str(e)}
+            go_print(f"❌ Error: {str(e)}")
+
+        return self.results  # ✅ Retourne bien les résultats
+
+
 
 
 if __name__ == "__main__":
