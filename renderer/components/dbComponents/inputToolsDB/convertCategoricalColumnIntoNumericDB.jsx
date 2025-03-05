@@ -31,6 +31,7 @@ const ConvertCategoricalColumnIntoNumericDB = ({ currentCollection }) => {
   const [cleanedDocuments, setCleanedDocuments] = useState([])
   const { port } = useContext(ServerConnectionContext)
   const [removedColumns, setRemovedColumns] = useState([])
+  const [jambon, setJambon] = useState([])
 
   const fetchData = async () => {
     setLoadingData(true)
@@ -61,6 +62,9 @@ const ConvertCategoricalColumnIntoNumericDB = ({ currentCollection }) => {
       setAllKeys(allKeys)
       setCleanedDocuments(cleanedDocuments)
       identifyCategoricalColumns(allKeys, cleanedDocuments)
+      superJambon(allKeys)
+
+      console.log("TESSSSST", jambon)
     } catch (error) {
       console.error("Error fetching data:", error)
       toast.error("An error occurred while fetching data.")
@@ -103,6 +107,12 @@ const ConvertCategoricalColumnIntoNumericDB = ({ currentCollection }) => {
     })
 
     setCategoricalColumns(detectedColumns)
+  }
+
+  const superJambon = (allKeys) => {
+    const jambonColumns = allKeys.filter((key) => allKeys.some((col) => col.startsWith(`${key}__`)))
+
+    setJambon(jambonColumns)
   }
 
   const oneHotEncodeColumn = (data, column) => {
@@ -375,12 +385,14 @@ const ConvertCategoricalColumnIntoNumericDB = ({ currentCollection }) => {
             {modifiedColumns.length == 0 && (
               <span>
                 {" "}
-                {categoricalColumns.map((col, index) => (
-                  <li key={index} style={{ marginBottom: "10px" }}>
-                    <span style={{ marginRight: "10px" }}>Convert Categorical Column into Numeric :</span>
-                    <Button label={col} onClick={() => convertColumnToOneHot(col)} style={{ marginLeft: "10px", marginTop: "5px", display: "inline-block" }} />
-                  </li>
-                ))}
+                {categoricalColumns
+                  .filter((col) => !jambon.includes(col))
+                  .map((col, index) => (
+                    <li key={index} style={{ marginBottom: "10px" }}>
+                      <span style={{ marginRight: "10px" }}>Convert Categorical Column into Numeric :</span>
+                      <Button label={col} onClick={() => convertColumnToOneHot(col)} style={{ marginLeft: "10px", marginTop: "5px", display: "inline-block" }} />
+                    </li>
+                  ))}
               </span>
             )}
           </ul>
