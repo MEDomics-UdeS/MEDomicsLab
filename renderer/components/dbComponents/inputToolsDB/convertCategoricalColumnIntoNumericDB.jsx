@@ -61,10 +61,11 @@ const ConvertCategoricalColumnIntoNumericDB = ({ currentCollection }) => {
       setColumns(columnStructure)
       setAllKeys(allKeys)
       setCleanedDocuments(cleanedDocuments)
+      // Detect categorical columns
       identifyCategoricalColumns(allKeys, cleanedDocuments)
-      identifyAlreadyEncodedColumn(allKeys)
 
-      console.log("TESSSSST", alreadyEncodedColumn)
+      // Detect if a column already been encoded
+      identifyAlreadyEncodedColumn(allKeys)
     } catch (error) {
       console.error("Error fetching data:", error)
       toast.error("An error occurred while fetching data.")
@@ -109,6 +110,7 @@ const ConvertCategoricalColumnIntoNumericDB = ({ currentCollection }) => {
     setCategoricalColumns(detectedColumns)
   }
 
+  // Detected encoded column if another column start with it's name follow by (2) underscore
   const identifyAlreadyEncodedColumn = (allKeys) => {
     const alreadyEncodedColumn = allKeys.filter((key) => allKeys.some((col) => col.startsWith(`${key}__`)))
 
@@ -121,7 +123,6 @@ const ConvertCategoricalColumnIntoNumericDB = ({ currentCollection }) => {
     return data.map((row) => {
       const encodedRow = { ...row }
 
-      // Ajoute les nouvelles colonnes encodées
       uniqueValues.forEach((value) => {
         const newColumnName = `${column}__${value}`
         encodedRow[newColumnName] = row[column] === value ? 1 : 0
@@ -136,7 +137,7 @@ const ConvertCategoricalColumnIntoNumericDB = ({ currentCollection }) => {
       setPreviousData([...data])
       setPreviousColumns([...columns])
 
-      const removeColumn = modifiedColumns.includes(column) // Supprime si déjà modifié
+      const removeColumn = modifiedColumns.includes(column)
       const encodedData = oneHotEncodeColumn(data, column, removeColumn)
 
       const uniqueValues = [...new Set(data.filter((row) => row[column]).map((row) => row[column]))]
@@ -150,7 +151,6 @@ const ConvertCategoricalColumnIntoNumericDB = ({ currentCollection }) => {
       setData(encodedData)
       setHighlightedColumns(newColumns.map((col) => col.field))
 
-      // ✅ Stocker la colonne supprimée
       setRemovedColumns((prev) => [...prev, column])
 
       markColumnAsModified(column)
@@ -183,19 +183,15 @@ const ConvertCategoricalColumnIntoNumericDB = ({ currentCollection }) => {
         throw new Error("Missing database configuration or data")
       }
 
-      // 🔹 Supprimer les colonnes originales uniquement lors de l'overwrite
       const cleanedData = data.map((row) => {
         let newRow = { ...row }
 
-        // Supprimer les colonnes originales qui ont été encodées
         modifiedColumns.forEach((col) => {
-          delete newRow[col] // Supprime `ColumnG`
+          delete newRow[col]
         })
 
         return newRow
       })
-
-      console.log("🛠 Cleaned Overwrite Data:", JSON.stringify(cleanedData, null, 2)) // DEBUG
 
       const requestBody = {
         collectionName: globalData[currentCollection]?.id,
@@ -209,7 +205,6 @@ const ConvertCategoricalColumnIntoNumericDB = ({ currentCollection }) => {
         requestBody,
         (response) => {
           setLoadingOW(false)
-          console.log("🛠 Overwrite Response:", response)
           if (response?.status === "success") {
             toast.success("Encoded data has been overwritten in the database!")
             setModifiedColumns([])
@@ -237,17 +232,14 @@ const ConvertCategoricalColumnIntoNumericDB = ({ currentCollection }) => {
         throw new Error("Missing database configuration or data")
       }
 
-      // ✅ Vérifier si un overwrite a été fait récemment et ne pas restaurer ces colonnes
       const restoredData = data.map((row) => {
         let restoredRow = { ...row }
 
         if (modifiedColumns.length > 0) {
-          // S'assurer qu'on n'a pas déjà effacé ces colonnes
           removedColumns.forEach((col) => {
             if (!(col in restoredRow)) {
               const originalValue = originalData.find((origRow) => origRow._id === row._id)?.[col]
 
-              // ✅ Vérifier si la colonne existait encore dans les données d'origine avant de la restaurer
               if (originalValue !== undefined) {
                 restoredRow[col] = originalValue
               }
@@ -270,7 +262,6 @@ const ConvertCategoricalColumnIntoNumericDB = ({ currentCollection }) => {
         requestBody,
         (response) => {
           setLoadingAP(false)
-          console.log("Response from backendS:", response)
           if (response?.status === "success") {
             toast.success("Encoded data has been appended to the database!")
             setModifiedColumns([])
