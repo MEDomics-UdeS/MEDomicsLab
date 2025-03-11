@@ -330,7 +330,7 @@ const ConvertCategoricalColumnIntoNumericDB = ({ currentCollection }) => {
       </div>
       {data.length > 0 && (
         <Card style={{ width: "900px" }}>
-          <DataTable value={data} paginator rows={5} rowsPerPageOptions={[5, 10, 15]} className="p-datatable-gridlines">
+          <DataTable value={data} paginator rows={5} rowsPerPageOptions={[5, 10]} className="p-datatable-gridlines">
             {columns.map((col) => (
               <Column
                 key={col.field}
