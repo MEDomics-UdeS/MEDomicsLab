@@ -31,7 +31,6 @@ const ConvertCategoricalColumnIntoNumericDB = ({ currentCollection }) => {
   const [cleanedDocuments, setCleanedDocuments] = useState([])
   const { port } = useContext(ServerConnectionContext)
   const [removedColumns, setRemovedColumns] = useState([])
-  const [alreadyEncodedColumn, setAlreadyEncodedColumn] = useState([])
 
   const fetchData = async () => {
     setLoadingData(true)
@@ -63,9 +62,6 @@ const ConvertCategoricalColumnIntoNumericDB = ({ currentCollection }) => {
       setCleanedDocuments(cleanedDocuments)
       // Detect categorical columns
       identifyCategoricalColumns(allKeys, cleanedDocuments)
-
-      // Detect if a column already been encoded
-      identifyAlreadyEncodedColumn(allKeys)
     } catch (error) {
       console.error("Error fetching data:", error)
       toast.error("An error occurred while fetching data.")
@@ -106,15 +102,10 @@ const ConvertCategoricalColumnIntoNumericDB = ({ currentCollection }) => {
       // Categorical threshold represent the minimum number of different value a column must have to be consider categorical
       return uniqueValues.length <= categoricalThreshold && uniqueValues.some((val) => isNaN(parseFloat(val)))
     })
-
-    setCategoricalColumns(detectedColumns)
-  }
-
-  // Detected encoded column if another column start with it's name follow by (2) underscore
-  const identifyAlreadyEncodedColumn = (allKeys) => {
+    // Identify already encoded columns
     const alreadyEncodedColumn = allKeys.filter((key) => allKeys.some((col) => col.startsWith(`${key}__`)))
 
-    setAlreadyEncodedColumn(alreadyEncodedColumn)
+    setCategoricalColumns(detectedColumns.filter((col) => !alreadyEncodedColumn.includes(col)))
   }
 
   const oneHotEncodeColumn = (data, column) => {
@@ -348,7 +339,7 @@ const ConvertCategoricalColumnIntoNumericDB = ({ currentCollection }) => {
                 sortable
                 style={{
                   // Red if categorical and NOT already encoded
-                  color: categoricalColumns.includes(col.field) && !alreadyEncodedColumn.includes(col.field) ? "red" : "inherit",
+                  color: categoricalColumns.includes(col.field) ? "red" : "inherit",
                   // Red if highlighted
                   color: highlightedColumns.includes(col.field) ? "red" : "inherit"
                 }}
@@ -356,12 +347,15 @@ const ConvertCategoricalColumnIntoNumericDB = ({ currentCollection }) => {
                   // Red for modified cells
                   color: highlightedColumns.includes(col.field) ? "red" : "inherit",
                   // Red for highlighted cell if not already encoded
-                  background: categoricalColumns.includes(col.field) && !alreadyEncodedColumn.includes(col.field) ? "red" : "inherit"
+                  background: categoricalColumns.includes(col.field) ? "red" : "inherit"
                 }}
               />
             ))}
           </DataTable>
         </Card>
+      )}
+      {categoricalColumns.length === 0 && (
+        <Message severity="warn" text="No categorical columns detected." style={{ marginTop: "15px" }} />
       )}
       {categoricalColumns.length > 0 && (
         <div style={{ marginTop: "20px" }}>
@@ -377,7 +371,6 @@ const ConvertCategoricalColumnIntoNumericDB = ({ currentCollection }) => {
               <span>
                 {" "}
                 {categoricalColumns
-                  .filter((col) => !alreadyEncodedColumn.includes(col))
                   .map((col, index) => (
                     <li key={index} style={{ marginBottom: "10px" }}>
                       <span style={{ marginRight: "10px" }}>Convert Categorical Column into Numeric :</span>
