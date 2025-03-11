@@ -52,6 +52,10 @@ class GoExecScriptMerge(GoExecutionScript):
             prog_lang = os.path.splitext(file_path)[1].lower().replace(".", "")
             if prog_lang == "py" or prog_lang == "ipynb":
                 prog_lang = "python"
+            elif prog_lang == "md":
+                prog_lang = "markdown"
+            elif prog_lang == "txt":
+                prog_lang = "text"
 
             # Return the file content and extension
             return {

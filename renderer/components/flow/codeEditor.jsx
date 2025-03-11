@@ -11,6 +11,8 @@ import "ace-builds/src-noconflict/ext-language_tools"
 import "ace-builds/src-noconflict/mode-javascript"
 import "ace-builds/src-noconflict/mode-json"
 import "ace-builds/src-noconflict/mode-python"
+import "ace-builds/src-noconflict/mode-markdown"
+import "ace-builds/src-noconflict/mode-text"
 import "ace-builds/src-noconflict/theme-ambiance"
 import "ace-builds/src-noconflict/theme-chaos"
 import "ace-builds/src-noconflict/theme-chrome"
@@ -52,6 +54,13 @@ import "ace-builds/src-noconflict/theme-sqlserver"
 import "ace-builds/src-noconflict/theme-terminal"
 import "ace-builds/src-noconflict/theme-textmate"
 import "ace-builds/src-noconflict/theme-tomorrow"
+import "ace-builds/src-noconflict/theme-tomorrow_night"
+import "ace-builds/src-noconflict/theme-tomorrow_night_blue"
+import "ace-builds/src-noconflict/theme-tomorrow_night_bright"
+import "ace-builds/src-noconflict/theme-tomorrow_night_eighties"
+import "ace-builds/src-noconflict/theme-twilight"
+import "ace-builds/src-noconflict/theme-vibrant_ink"
+import "ace-builds/src-noconflict/theme-xcode"
 
 
 
@@ -116,7 +125,11 @@ const CodeEditor = ({id, path, updateSavedCode}) => {
   // handle content change
   function onChange(value) {
     setSaved(false)
-    setContent(value)
+    if (value === "") {
+      setContent(" ")
+    } else {
+      setContent(value)
+    }
     updateSavedCode(false, id)
   }
 

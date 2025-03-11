@@ -94,8 +94,6 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
           return openImageViewer(action, globalData)
         case "openInPDFViewer":
           return openPDFViewer(action)
-        case "openInTextEditor":
-          return openTextEditor(action)
         case "openHtmlViewer":
           return openHtmlViewer(action)
         case "openInModelViewer":
@@ -420,14 +418,6 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
    */
   const openPDFViewer = (action) => {
     openInDotDotDot(action, "pdfViewer", globalData)
-  }
-
-  /**
-   * @summary Function that adds a tab with a text editor to the layout model
-   * @params {Object} action - The action passed on by the dispatchLayout function
-   */
-  const openTextEditor = (action) => {
-    openInDotDotDot(action, "textEditor", globalData)
   }
 
   /**

@@ -200,9 +200,6 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
         case "openInPDFViewer":
           dispatchLayout({ type: "openInPDFViewer", payload: props })
           break
-        case "openInTextEditor":
-          dispatchLayout({ type: "openInTextEditor", payload: props })
-          break
         case "openInModelViewer":
           dispatchLayout({ type: "openInModelViewer", payload: props })
           break
@@ -277,7 +274,7 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
         dispatchLayout({ type: "openInEvaluationModule", payload: item })
       } else if (item.type == "csv" || item.type == "tsv" || item.type == "xlsx" || item.type == "view") {
         dispatchLayout({ type: "openInDataTableFromDBViewer", payload: item })
-      } else if (item.type == "py" || item.type == "json") {
+      } else if (item.type == "py" || item.type == "json" || item.type == "txt" || item.type == "md") {
         dispatchLayout({ type: "openInCodeEditor", payload: item })
       } else if (item.type == "png" || item.type == "jpg" || item.type == "jpeg" || item.type == "gif" || item.type == "svg") {
         dispatchLayout({ type: "openInImageViewer", payload: item })
@@ -285,8 +282,6 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
         dispatchLayout({ type: "openInPDFViewer", payload: item })
       } else if (item.type == "html") {
         dispatchLayout({ type: "openHtmlViewer", payload: item })
-      } else if (item.type == "txt") {
-        dispatchLayout({ type: "openInTextEditor", payload: item })
       } else if (item.type == "medmodel") {
         dispatchLayout({ type: "openInModelViewer", payload: item })
       } else {
@@ -355,7 +350,7 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
         event: e,
         props: data
       })
-    } else if (data.type == "txt") {
+    } else if (data.type == "txt" || data.type == "md") {
       show({
         id: "MENU_TEXT",
         event: e,
@@ -837,7 +832,10 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
               </>
             }
           >
-            <Item>Text editor (default)</Item>
+            <Item id="openInCodeEditor" onClick={handleContextMenuAction}>
+              <PiPen size={"1rem"} className="context-menu-icon" />
+              Text editor (default)
+            </Item>
           </Submenu>
           <Item id="revealInFileExplorer" onClick={handleContextMenuAction}>
             <FiFolder size={"1rem"} className="context-menu-icon" />

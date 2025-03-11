@@ -24,6 +24,11 @@ const iconExtension = {
       <Icon.TextLeft className="icon-offset" />
     </span>
   ),
+  md: (
+    <span>
+      <Icon.FiletypeMd className="icon-offset" style={{ color: "white" }} />
+    </span>
+  ),
   pdf: <span className="emoji">📕</span>,
   html: <span className="emoji">🌐</span>,
   medomics: (

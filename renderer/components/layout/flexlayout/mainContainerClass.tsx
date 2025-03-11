@@ -881,7 +881,6 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
     } else if (component === "codeEditor") {
       if (node.getExtraData().data == null) {
         const config = node.getConfig()
-        console.log("codeEditor config", config)
         return <CodeEditor id={config.uuid} path={config.path} updateSavedCode={this.updateSavedCode}/>
       }
     } else if (component === "Settings") {
@@ -939,6 +938,8 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
           return <Icons.FiletypeJson />
         case "txt":
           return <Icons.FiletypeTxt />
+        case "md":
+          return <Icons.FiletypeMd />
         case "pdf":
           return <Icons.FiletypePdf />
         case "png":
