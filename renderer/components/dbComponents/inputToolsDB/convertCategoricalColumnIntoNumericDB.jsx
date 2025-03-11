@@ -339,7 +339,7 @@ const ConvertCategoricalColumnIntoNumericDB = ({ currentCollection }) => {
                 sortable
                 style={{
                   // Red if categorical and NOT already encoded
-                  color: categoricalColumns.includes(col.field) ? "red" : "inherit",
+                  background: categoricalColumns.includes(col.field) ? "red" : "inherit",
                   // Red if highlighted
                   color: highlightedColumns.includes(col.field) ? "red" : "inherit"
                 }}
