@@ -187,7 +187,7 @@ export function getBundledPythonEnvironment() {
 }
 
 export async function installRequiredPythonPackages(mainWindow) {
-  let requirementsFileName = process.platform === "darwin" ? "requirements_mac.txt" : "requirements.txt"
+  let requirementsFileName = "merged_requirements.txt"
   if (process.env.NODE_ENV === "production") {
     installPythonPackage(mainWindow, pythonExecutablePath, null, path.join(process.cwd(), "resources", "pythonEnv", requirementsFileName))
   } else {
@@ -360,9 +360,9 @@ export async function installBundledPythonExecutable(mainWindow) {
 
       // Install the required python packages
       if (process.env.NODE_ENV === "production") {
-        installPythonPackage(mainWindow, pythonExecutablePath, null, path.join(process.cwd(), "resources", "pythonEnv", "requirements.txt"))
+        installPythonPackage(mainWindow, pythonExecutablePath, null, path.join(process.cwd(), "resources", "pythonEnv", "merged_requirements.txt"))
       } else {
-        installPythonPackage(mainWindow, pythonExecutablePath, null, path.join(process.cwd(), "pythonEnv", "requirements.txt"))
+        installPythonPackage(mainWindow, pythonExecutablePath, null, path.join(process.cwd(), "pythonEnv", "merged_requirements.txt"))
       }
       let removeCommand = `rm ${outputFileName}`
       let removePromise = exec(removeCommand, { shell: "powershell.exe" })
