@@ -483,7 +483,7 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
                     dirTree
                   })
                 }
-                getItemTitle={(item) => item.data}
+                getItemTitle={(item) => item ? item.data : ""}
                 viewState={{
                   ["tree-2"]: {
                     focusedItem,
