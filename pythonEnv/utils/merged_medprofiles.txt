@@ -43,9 +43,6 @@
   seaborn==0.12.2
   setuptools~=57.0.0
   simplejson~=3.19.2
-  sphinx==6.2.1
-  sphinx-autodoc-typehints==1.23.0
-  sphinx-rtd-theme==1.2.2
   sweetviz==2.1.4
   torch==2.1.0
   tqdm==4.65.0
