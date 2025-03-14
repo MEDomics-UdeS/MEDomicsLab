@@ -149,6 +149,10 @@ pythonCode/submodules/MEDprofiles/*
 go_server/main
 go_server/main.exe
 
+# Go executables
+go_server/main
+go_server/main.exe
+
 # custom gitignore
 tmp
 test
