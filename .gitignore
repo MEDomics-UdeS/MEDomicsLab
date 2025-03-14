@@ -142,8 +142,6 @@ dmypy.json
 # submodules
 /flask_server/submodules/MEDimage/*
 /flask_server/submodules/MEDprofiles/*
-pythonCode/submodules/MEDimage/*
-pythonCode/submodules/MEDprofiles/*
 
 # Go executables
 go_server/main
