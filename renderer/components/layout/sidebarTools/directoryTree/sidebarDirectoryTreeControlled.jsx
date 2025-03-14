@@ -13,6 +13,8 @@ import { Tooltip } from "primereact/tooltip"
 import { WorkspaceContext } from "../../../workspace/workspaceContext"
 import { rename, onPaste, onDeleteSequentially, createFolder, onDrop, fromJSONtoTree, evaluateIfTargetIsAChild } from "./utils"
 import { MEDDataObject } from "../../../workspace/NewMedDataObject"
+import { PiImage, PiNotebook, PiPen } from "react-icons/pi"
+
 /**
  * @description - This component is the sidebar tools component that will be used in the sidebar component
  * @param {Object} props - Props passed from parent component
@@ -198,9 +200,6 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
         case "openInPDFViewer":
           dispatchLayout({ type: "openInPDFViewer", payload: props })
           break
-        case "openInTextEditor":
-          dispatchLayout({ type: "openInTextEditor", payload: props })
-          break
         case "openInModelViewer":
           dispatchLayout({ type: "openInModelViewer", payload: props })
           break
@@ -275,9 +274,7 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
         dispatchLayout({ type: "openInEvaluationModule", payload: item })
       } else if (item.type == "csv" || item.type == "tsv" || item.type == "xlsx" || item.type == "view") {
         dispatchLayout({ type: "openInDataTableFromDBViewer", payload: item })
-      } else if (item.type == "json") {
-        dispatchLayout({ type: "openInJSONViewer", payload: item })
-      } else if (item.type == "py" || item.type == "ipynb") {
+      } else if (item.type == "py" || item.type == "json" || item.type == "txt" || item.type == "md") {
         dispatchLayout({ type: "openInCodeEditor", payload: item })
       } else if (item.type == "png" || item.type == "jpg" || item.type == "jpeg" || item.type == "gif" || item.type == "svg") {
         dispatchLayout({ type: "openInImageViewer", payload: item })
@@ -285,8 +282,6 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
         dispatchLayout({ type: "openInPDFViewer", payload: item })
       } else if (item.type == "html") {
         dispatchLayout({ type: "openHtmlViewer", payload: item })
-      } else if (item.type == "txt") {
-        dispatchLayout({ type: "openInTextEditor", payload: item })
       } else if (item.type == "medmodel") {
         dispatchLayout({ type: "openInModelViewer", payload: item })
       } else {
@@ -331,9 +326,15 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
         event: e,
         props: data
       })
-    } else if (data.type == "py" || data.type == "ipynb") {
+    } else if (data.type == "py") {
       show({
         id: "MENU_CODE",
+        event: e,
+        props: data
+      })
+    } else if (data.type == "ipynb") {
+      show({
+        id: "MENU_JUPYTER",
         event: e,
         props: data
       })
@@ -349,7 +350,7 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
         event: e,
         props: data
       })
-    } else if (data.type == "txt") {
+    } else if (data.type == "txt" || data.type == "md") {
       show({
         id: "MENU_TEXT",
         event: e,
@@ -517,8 +518,8 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
               </>
             }
           >
-            <Item id="openInJSONViewer" onClick={handleContextMenuAction}>
-              JSON Viewer (default)
+            <Item id="openInCodeEditor" onClick={handleContextMenuAction}>
+              Code editor (default)
             </Item>
             <Item id="openInDataTableFromDBViewer" onClick={handleContextMenuAction}>
               DataTable Viewer
@@ -663,6 +664,7 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
             }
           >
             <Item id="openInCodeEditor" onClick={handleContextMenuAction}>
+              <PiPen size={"1rem"} className="context-menu-icon" />
               Code editor (default)
             </Item>
             <Item
@@ -671,6 +673,53 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
                 console.log("OPEN IN JUPYTER")
               }}
             >
+              <PiNotebook size={"1rem"} className="context-menu-icon" />
+              Jupyter Notebook
+            </Item>
+            <Item id="openInVSCode" onClick={() => openInVSCode(globalData[selectedItems[0]].path)}>
+              <FiFolder size={"1rem"} className="context-menu-icon" />
+              VSCode
+            </Item>
+          </Submenu>
+          <Item id="revealInFileExplorer" onClick={handleContextMenuAction}>
+            <FiFolder size={"1rem"} className="context-menu-icon" />
+            Reveal in File Explorer
+          </Item>
+          <Item id="sync" onClick={handleContextMenuAction}>
+            <ArrowRepeat size={"1rem"} className="context-menu-icon" />
+            Sync
+          </Item>
+          <Item id="rename" onClick={handleContextMenuAction}>
+            <Eraser size={"1rem"} className="context-menu-icon" />
+            Rename
+          </Item>
+          <Item id="delete" onClick={handleContextMenuAction}>
+            <Trash size={"1rem"} className="context-menu-icon" />
+            Delete
+          </Item>
+          <Item id="rmFromWs" onClick={handleContextMenuAction}>
+            <Trash size={"1rem"} className="context-menu-icon" />
+            Remove from Workspace
+          </Item>
+        </Menu>
+
+        <Menu id="MENU_JUPYTER">
+          <Submenu
+            className="context-submenu"
+            label={
+              <>
+                <BoxArrowUpRight size={"1rem"} className="context-menu-icon" />
+                Open in...
+              </>
+            }
+          >
+            <Item
+              id="openInJupyter"
+              onClick={() => {
+                console.log("OPEN IN JUPYTER")
+              }}
+            >
+              <PiNotebook size={"1rem"} className="context-menu-icon" />
               Jupyter Notebook
             </Item>
             <Item id="openInVSCode" onClick={() => openInVSCode(globalData[selectedItems[0]].path)}>
@@ -711,6 +760,7 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
             }
           >
             <Item id="openInImageViewer" onClick={handleContextMenuAction}>
+              <PiImage size={"1rem"} className="context-menu-icon" />
               Image viewer (default)
             </Item>
           </Submenu>
@@ -782,7 +832,10 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
               </>
             }
           >
-            <Item>Text editor (default)</Item>
+            <Item id="openInCodeEditor" onClick={handleContextMenuAction}>
+              <PiPen size={"1rem"} className="context-menu-icon" />
+              Text editor (default)
+            </Item>
           </Submenu>
           <Item id="revealInFileExplorer" onClick={handleContextMenuAction}>
             <FiFolder size={"1rem"} className="context-menu-icon" />
