@@ -112,20 +112,7 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
     // For mac, add Enter key to rename
     // If os is mac and enter key is pressed
     if (navigator.platform.indexOf("Mac") > -1) {
-      if (event.code === "Enter" && !isDialogShowing && isDirectoryTreeFocused) {
-        // We check if the dialog is showing to avoid renaming when the user is in the process of deleting a file
-        if (tree.current !== undefined) {
-          if (tree.current.isRenaming) {
-            tree.current.completeRenamingItem()
-          } else {
-            event.preventDefault()
-            event.stopPropagation()
-            if (selectedItems.length === 1) {
-              tree.current.startRenamingItem(selectedItems[0])
-            }
-          }
-        }
-      } else if (event.code === "Backspace" && event.metaKey) {
+      if (event.code === "Backspace" && event.metaKey) {
         if (selectedItems.length > 0) {
           onDeleteSequentially(globalData, workspace.workingDirectory.path, setIsDialogShowing, selectedItems)
         }
