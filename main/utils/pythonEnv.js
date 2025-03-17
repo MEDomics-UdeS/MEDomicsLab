@@ -208,6 +208,12 @@ function comparePythonInstalledPackages(pythonPackages, requirements) {
       if (pythonPackage.name === requirementName && pythonPackage.version === requirementVersion) {
         found = true
         break
+      } else if (pythonPackage.name.replace('-', '_') === requirementName && pythonPackage.version === requirementVersion) {
+        found = true
+        break
+      } else if (pythonPackage.name.replace('_', '-') === requirementName && pythonPackage.version === requirementVersion) {
+        found = true
+        break
       }
     }
     if (!found) {
