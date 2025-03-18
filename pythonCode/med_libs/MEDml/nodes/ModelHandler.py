@@ -73,7 +73,7 @@ class ModelHandler(Node):
                 trained_models = [experiment['pycaret_exp'].tune_model(trained_models[0], **self.settingsTuning)]
                 self.CodeHandler.add_line(
                     "code", 
-                    f"trained_models = [pycaret_exp.tune_model(trained_models[0])]"
+                    f"trained_models = [pycaret_exp.tune_model(trained_models[0], {self.CodeHandler.convert_dict_to_params(self.settingsTuning)})]"
                 )
         trained_models_copy = trained_models.copy()
 
