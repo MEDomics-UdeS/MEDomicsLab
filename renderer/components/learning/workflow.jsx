@@ -640,6 +640,7 @@ const Workflow = ({ setWorkflowType, workflowType }) => {
         const plotDirectoryID = await insertMEDDataObjectIfNotExists(plotsDirectory)
 
         // Clean everything before running a new experiment
+        console.log("sending flow ", flow)
         let { success, isValid } = await cleanJson2Send(flow, up2Id, plotDirectoryID)
         if (success) {
           requestBackendRunExperiment(port, backendMetadataFileID, isValid)
