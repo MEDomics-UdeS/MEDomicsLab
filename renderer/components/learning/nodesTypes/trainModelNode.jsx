@@ -24,6 +24,7 @@ const TrainModelNode = ({ id, data }) => {
   const [modalShow, setModalShow] = useState(false) // state of the modal
   const { updateNode } = useContext(FlowFunctionsContext)
   const [IntegrateTuning, setIntegrateTuning] = useState(data.internal.isTuningEnabled ?? false)
+  const [modalTuningBody, setModalTuningBody] = useState(null)
 
   // Check if isTuningEnabled exists in data.internal, if not initialize it
   useEffect(() => {
@@ -34,6 +35,7 @@ const TrainModelNode = ({ id, data }) => {
         updatedData: data.internal
       })
     }
+    console.log(data.internal)
   }, [])
 
   /**
@@ -44,6 +46,20 @@ const TrainModelNode = ({ id, data }) => {
    */
   const onInputChange = (inputUpdate) => {
     data.internal.settings[inputUpdate.name] = inputUpdate.value
+    updateNode({
+      id: id,
+      updatedData: data.internal
+    })
+  }
+
+  /**
+   *
+   * @param {Object} inputUpdate the object containing the name and the value of the input
+   * @description
+   * This function is used to update the settings of the node
+   */
+  const onInputChangeTuning = (inputUpdate) => {
+    data.internal.settingsTuning[inputUpdate.name] = inputUpdate.value
     updateNode({
       id: id,
       updatedData: data.internal
@@ -125,7 +141,14 @@ const TrainModelNode = ({ id, data }) => {
               <Icon.Plus width="30px" height="30px" className="img-fluid" />
             </Button>
             {/* the modal component*/}
-            <ModalSettingsChooser show={modalShow} onHide={() => setModalShow(false)} options={data.setupParam.possibleSettings.options} data={data} id={id} />
+            <ModalSettingsChooser
+              show={modalShow}
+              onHide={() => setModalShow(false)}
+              options={data.setupParam.possibleSettings.options}
+              data={data}
+              id={id}
+              optionsTuning={data.internal.isTuningEnabled ? data.setupParam.possibleSettingsTuning.options : null}
+            />
             {/* the inputs for the options */}
             {data.internal.checkedOptions.map((optionName) => {
               return (
@@ -138,6 +161,24 @@ const TrainModelNode = ({ id, data }) => {
                 />
               )
             })}
+            {data.internal.isTuningEnabled && data.internal.checkedOptionsTuning && data.internal.checkedOptionsTuning.length > 0 && (
+              <>
+                <hr />
+                <div style={{ fontWeight: "bold", margin: "10px 0" }}>Tune Model Options</div>
+                {data.internal.checkedOptionsTuning.map((optionName) => {
+                  console.log(data)
+                  return (
+                    <Input
+                      key={optionName}
+                      name={optionName}
+                      settingInfos={data.setupParam.possibleSettingsTuning.options[optionName]}
+                      currentValue={data.internal.settingsTuning[optionName]}
+                      onInputChange={onInputChangeTuning}
+                    />
+                  )
+                })}
+              </>
+            )}
           </>
         }
         // Link to documentation
