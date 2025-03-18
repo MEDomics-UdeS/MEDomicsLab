@@ -43,7 +43,7 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
   const [isDirectoryTreeFocused, setIsDirectoryTreeFocused] = useState(false); // New state to track focus
 
   const { globalData } = useContext(DataContext) // We get the global data from the context to retrieve the directory tree of the workspace, thus retrieving the data files
-  const { dispatchLayout, developerMode } = useContext(LayoutModelContext)
+  const { dispatchLayout, developerMode, isEditorOpen, setIsEditorOpen } = useContext(LayoutModelContext)
   const { workspace } = useContext(WorkspaceContext)
 
   const delayOptions = { showDelay: 750, hideDelay: 0 }
@@ -112,7 +112,20 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
     // For mac, add Enter key to rename
     // If os is mac and enter key is pressed
     if (navigator.platform.indexOf("Mac") > -1) {
-      if (event.code === "Backspace" && event.metaKey) {
+      if (event.code === "Enter" && !isDialogShowing && isDirectoryTreeFocused) {
+        // We check if the dialog is showing to avoid renaming when the user is in the process of deleting a file
+        if (tree.current !== undefined) {
+          if (tree.current.isRenaming) {
+            tree.current.completeRenamingItem()
+          } else {
+            event.preventDefault()
+            event.stopPropagation()
+            if (selectedItems.length === 1) {
+              tree.current.startRenamingItem(selectedItems[0])
+            }
+          }
+        }
+      } else if (event.code === "Backspace" && event.metaKey) {
         if (selectedItems.length > 0) {
           onDeleteSequentially(globalData, workspace.workingDirectory.path, setIsDialogShowing, selectedItems)
         }
@@ -124,6 +137,9 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
    * This useEffect hook attaches an event listener to the document to listen for key presses.
    */
   useEffect(() => {
+    if(isEditorOpen) {
+      return
+    }
     // attach the event listener
     document.addEventListener("keydown", handleKeyPress)
     // remove the event listener
@@ -149,6 +165,10 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
    * @param {String} newName
    */
   function handleNameChange(item, newName) {
+    if (isEditorOpen) {
+      toast.error("Please close the editor before renaming")
+      return
+    }
     rename(globalData, workspace.workingDirectory.path, item, newName)
   }
 
