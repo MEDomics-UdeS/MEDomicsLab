@@ -32,6 +32,23 @@ export async function updateMEDDataObjectName(id, newName) {
 }
 
 /**
+ * @description Update the type of a MEDDataObject specified by id in the DB
+ * @param {String} id Id of the MEDDataObject to update
+ * @param {String} newType New type for the MEDDataObject to update
+ * @returns bool true if succeed
+ */
+export async function updateMEDDataObjectType(id, newType) {
+  const db = await connectToMongoDB()
+  // Check if type has alphabetic characters only
+  if (newType.match(/[a-z]/)) {
+    console.error("Type can only contain alphabetic characters")
+    return false
+  }
+  const result = await db.collection("medDataObjects").updateOne({ id: id }, { $set: { type: newType } })
+  return result.modifiedCount > 0
+}
+
+/**
  * @description Update the usedIn list of a MEDDataObject specified by id in the DB
  * @param {String} id Id of the MEDDataObject to update
  * @param {String} usedIn New name for the MEDDataObject to update
