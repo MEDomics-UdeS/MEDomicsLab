@@ -43,7 +43,7 @@ const SidebarDirectoryTreeControlled = ({ setExternalSelectedItems, setExternalD
   const [isDirectoryTreeFocused, setIsDirectoryTreeFocused] = useState(false); // New state to track focus
 
   const { globalData } = useContext(DataContext) // We get the global data from the context to retrieve the directory tree of the workspace, thus retrieving the data files
-  const { dispatchLayout, developerMode, isEditorOpen, setIsEditorOpen } = useContext(LayoutModelContext)
+  const { dispatchLayout, developerMode, isEditorOpen } = useContext(LayoutModelContext)
   const { workspace } = useContext(WorkspaceContext)
 
   const delayOptions = { showDelay: 750, hideDelay: 0 }
