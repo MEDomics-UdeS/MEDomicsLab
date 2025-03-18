@@ -94,6 +94,20 @@ const InputToolsComponent = ({ data, exportOptions, refreshData, columns, transf
     <div style={panelContainerStyle}>
       <div style={{ textAlign: "center", marginTop: "20px", marginBottom: "20px" }}>
         <h1>Database Input Tools</h1>
+        <div style={{ textAlign: "center", marginBottom: "20px", maxWidth: "800px", margin: "0 auto" }}>
+        <p>
+          This module provides essential tools for preprocessing and structuring datasets 
+          before machine learning. It allows users to clean, transform, and organize data efficiently.
+        </p>
+        <p className="gitbook-link">
+          📖 Learn how to use these tools in <span> our </span> 
+            <a href="https://medomics-udes.gitbook.io/medomicslab-docs/tutorials/design/input-module" 
+              target="_blank" rel="noopener noreferrer" style={{ color: "#0056b3", textDecoration: "none"}} className="gitbook-anchor">
+              GitBook documentation
+            </a>. 🔗
+          </p>
+      </div>
+
       </div>
       {!data ? (
         <Card

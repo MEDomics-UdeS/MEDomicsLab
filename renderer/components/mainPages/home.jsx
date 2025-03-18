@@ -1,98 +1,156 @@
-import React, { useContext, useEffect, useState } from "react"
-import Image from "next/image"
-import myimage from "../../../resources/medomics_transparent_bg.png"
-import { Button, Stack } from "react-bootstrap"
-import { WorkspaceContext } from "../workspace/workspaceContext"
-import { ipcRenderer } from "electron"
-import FirstSetupModal from "../generalPurpose/installation/firstSetupModal"
+import React, { useContext, useEffect, useState } from "react";
+import Image from "next/image";
+import myimage from "../../../resources/medomics_transparent_bg.png";
+import { Button, Stack } from "react-bootstrap";
+import { WorkspaceContext } from "../workspace/workspaceContext";
+import { ipcRenderer } from "electron";
+import FirstSetupModal from "../generalPurpose/installation/firstSetupModal";
 
 /**
- *
  * @returns the home page component
  */
 const HomePage = () => {
-  const { workspace, setWorkspace, recentWorkspaces } = useContext(WorkspaceContext)
-  const [hasBeenSet, setHasBeenSet] = useState(workspace.hasBeenSet)
-
-  const [requirementsMet, setRequirementsMet] = useState(true)
+  const { workspace, setWorkspace, recentWorkspaces } = useContext(WorkspaceContext);
+  const [hasBeenSet, setHasBeenSet] = useState(workspace.hasBeenSet);
+  const [requirementsMet, setRequirementsMet] = useState(true);
 
   async function handleWorkspaceChange() {
-    ipcRenderer.send("messageFromNext", "requestDialogFolder")
+    ipcRenderer.send("messageFromNext", "requestDialogFolder");
   }
 
-  // Check if the requirements are met
   useEffect(() => {
     ipcRenderer.invoke("checkRequirements").then((data) => {
-      console.log("Requirements: ", data)
-      if (data.pythonInstalled && data.mongoDBInstalled) {
-        setRequirementsMet(true)
-      } else {
-        setRequirementsMet(false)
-      }
-    })
-  }, [])
+      setRequirementsMet(data.pythonInstalled && data.mongoDBInstalled);
+    });
+  }, []);
 
-  // We set the workspace hasBeenSet state
   useEffect(() => {
-    if (workspace.hasBeenSet == false) {
-      setHasBeenSet(true)
-    } else {
-      setHasBeenSet(false)
-    }
-  }, [workspace])
+    setHasBeenSet(!workspace.hasBeenSet);
+  }, [workspace]);
 
-  // We set the recent workspaces -> We send a message to the main process to get the recent workspaces, the workspace context will be updated by the main process in _app.js
   useEffect(() => {
-    ipcRenderer.send("messageFromNext", "getRecentWorkspaces")
-  }, [])
+    ipcRenderer.send("messageFromNext", "getRecentWorkspaces");
+  }, []);
 
   return (
-    <>
-      <div className="container" style={{ paddingTop: "1rem", display: "flex", flexDirection: "vertical", flexGrow: "10" }}>
-        <Stack direction="vertical" gap={1} style={{ padding: "0 0 0 0", alignContent: "center" }}>
-          <h2>Home page</h2>
-          <Stack direction="horizontal" gap={0} style={{ padding: "0 0 0 0", alignContent: "center" }}>
-            <h1 style={{ fontSize: "5rem" }}>MEDomicsLab </h1>
-
-            <Image src={myimage} alt="" style={{ height: "175px", width: "175px" }} />
-          </Stack>
-          {hasBeenSet ? (
-            <>
-              <h5>Set up your workspace to get started</h5>
-              <Button onClick={handleWorkspaceChange} style={{ margin: "1rem" }}>
-                Set Workspace
-              </Button>
-              <h5>Or open a recent workspace</h5>
-              <Stack direction="vertical" gap={0} style={{ padding: "0 0 0 0", alignContent: "center" }}>
-                {recentWorkspaces.map((workspace, index) => {
-                  if (index > 4) return
-                  return (
-                    <a
-                      key={index}
-                      onClick={() => {
-                        ipcRenderer.invoke("setWorkingDirectory", workspace.path).then((data) => {
-                          if (workspace !== data) {
-                            let workspaceToSet = { ...data }
-                            setWorkspace(workspaceToSet)
-                          }
-                        })
-                      }}
-                      style={{ margin: "0rem", color: "var(--blue-600)" }}
-                    >
-                      <h6>{workspace.path}</h6>
-                    </a>
-                  )
-                })}
-              </Stack>
-            </>
-          ) : (
-            <h5>Workspace is set to {workspace.workingDirectory.path}</h5>
-          )}
+    <div 
+      className="container"
+      style={{
+        paddingTop: "1rem",
+        display: "flex",
+        flexDirection: "column",
+        minHeight: "100vh",
+        overflowY: "auto",
+        scrollbarColor: "#b0b0b0 #f5f5f5"
+      }}
+    >
+      <Stack direction="vertical" gap={1} style={{ alignContent: "center", flexGrow: 1 }}>
+        <h2>Home Page</h2>
+        <Stack direction="horizontal" gap={0} style={{ alignContent: "center" }}>
+          <h1 style={{ fontSize: "5rem" }}>MEDomicsLab</h1>
+          <Image src={myimage} alt="" style={{ height: "175px", width: "175px" }} />
         </Stack>
-      </div>
-      {!requirementsMet && process.platform !=="darwin" && <FirstSetupModal visible={!requirementsMet} closable={false} setRequirementsMet={setRequirementsMet} />}
-    </>
-  )
-}
+        
+        <h5>Set up your workspace to get started</h5>
+        <Button onClick={handleWorkspaceChange} style={{ margin: "1rem" }}>
+          Set Workspace
+        </Button>
 
-export default HomePage
+        <h5>Or open a recent workspace:</h5>
+        <Stack direction="vertical" gap={0} style={{ alignContent: "center" }}>
+          {recentWorkspaces.map((workspace, index) => {
+            if (index > 4) return;
+            return (
+              <a
+                key={index}
+                onClick={() => {
+                  ipcRenderer.invoke("setWorkingDirectory", workspace.path).then((data) => {
+                    if (workspace !== data) {
+                      let workspaceToSet = { ...data };
+                      setWorkspace(workspaceToSet);
+                    }
+                  });
+                }}
+                style={{ margin: "0rem", color: "#0056b3", textDecoration: "none", cursor: "pointer" }}
+              >
+                <h6>{workspace.path}</h6>
+              </a>
+            );
+          })}
+        </Stack>
+
+        {/* Getting Started Section (Full Width) */}
+        <div
+          style={{
+            marginTop: "2rem",
+            padding: "2rem",
+            backgroundColor: "#f8f9fa",
+            borderRadius: "8px",
+            boxShadow: "0px 2px 5px rgba(0,0,0,0.1)",
+            textAlign: "left",
+            width: "100%",
+          }}
+        >
+          <h3 style={{ marginBottom: "1rem", color: "#0056b3" }}>
+            Getting Started 🚀
+          </h3>
+          
+          <p>
+            If you are new to MEDomicsLab, a great way to start is by following the <strong>Testing Phase</strong>. 
+            This guided phase walks you through the entire application, allowing you to explore its functionalities using real medical datasets.
+          </p>
+
+          <p>
+            The Testing Phase helps you understand how to manage datasets, run analyses, and evaluate machine learning models 
+            in a structured way. It is an ideal starting point for beginners who want to familiarize themselves with the platform.
+          </p>
+
+          <p>We provide dedicated tutorials and documentation to guide you step by step:</p>
+
+          <ul style={{ paddingLeft: "1.5rem", listStyleType: "none" }}>
+            <li>📖 Documentation:  
+              <a href="https://medomics-udes.gitbook.io/medomicslab-docs/medomicslab-docs-v0/tutorials" 
+                 target="_blank" rel="noopener noreferrer" style={{ color: "#0056b3", textDecoration: "none", marginLeft: "5px" }}>
+                MEDomicsLab Documentation
+              </a>
+            </li>
+
+            <li>🎥 Testing Phase Tutorials:  
+              <a href="https://www.youtube.com/playlist?list=PLEPy2VhC4-D4vuJO3X7fHboLv1k_HbGsW" 
+                 target="_blank" rel="noopener noreferrer" style={{ color: "#0056b3", textDecoration: "none", marginLeft: "5px" }}>
+                YouTube Playlist
+              </a>
+            </li>
+
+            <li>🎥 Module Tutorials:  
+              <a href="https://www.youtube.com/playlist?list=PLEPy2VhC4-D6B7o0MuNNEz2DeHDR8NICj" 
+                 target="_blank" rel="noopener noreferrer" style={{ color: "#0056b3", textDecoration: "none", marginLeft: "5px" }}>
+                YouTube Module Guides
+              </a>
+            </li>
+          </ul>
+
+          {/* Warning section */}
+          <div 
+            style={{
+              marginTop: "1rem",
+              padding: "1rem",
+              backgroundColor: "#ffeeba",
+              borderLeft: "4px solid #ffc107",
+              borderRadius: "5px"
+            }}
+          >
+            ⚠️ <strong>Warning:</strong> The Testing Phase includes tutorials on the official pre-released version of the platform, which was made available in January 2024. 
+            Although the platform has evolved, these tutorials remain a valuable resource to help you navigate MEDomicsLab as a beginner.
+          </div>
+        </div>
+      </Stack>
+
+      {!requirementsMet && process.platform !== "darwin" && (
+        <FirstSetupModal visible={!requirementsMet} closable={false} setRequirementsMet={setRequirementsMet} />
+      )}
+    </div>
+  );
+};
+
+export default HomePage;

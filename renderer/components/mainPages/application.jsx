@@ -369,13 +369,15 @@ const ApplicationPageWithModulePage = ({ pageId = "application-456" }) => {
             <p><span className="app-tool-name">➡ Test File Input:</span> Upload a dataset file (CSV format) to run batch predictions on multiple samples.</p>
 
             <p className="gitbook-link">
-            📖 Learn how to use this tool in  
-            <span> our </span> 
-            <a href="https://medomics-udes.gitbook.io/medomicslab-docs/tutorials/deployment/application-module" 
-              target="_blank" rel="noopener noreferrer" className="gitbook-anchor">
-              GitBook documentation
-            </a>. 🔗
-          </p>
+              📖 Learn how to use this tool in
+              <span> our </span> 
+              <a href="https://medomics-udes.gitbook.io/medomicslab-docs/tutorials/deployment/application-module"
+                target="_blank" rel="noopener noreferrer" 
+                className="gitbook-anchor" 
+                style={{ color: "#0056b3", textDecoration: "none" }}>
+                GitBook documentation
+              </a>. 🔗
+            </p>
           </div>
           <ApplicationPage pageId={pageId} />
         </div>

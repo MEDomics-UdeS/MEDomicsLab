@@ -36,7 +36,7 @@ const ExploratoryPage = () => {
             📖 Learn how to use these tools in  
             <span> our </span> 
             <a href="https://medomics-udes.gitbook.io/medomicslab-docs/tutorials/design/exploratory-module" 
-              target="_blank" rel="noopener noreferrer" className="gitbook-anchor">
+              target="_blank" rel="noopener noreferrer" className="gitbook-anchor" style={{ color: "#0056b3", textDecoration: "none"}}>
               GitBook documentation
             </a>. 🔗
           </p>
