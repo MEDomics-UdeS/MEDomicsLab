@@ -26,6 +26,7 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
   const [layoutMainState, setLayoutMainState] = useState(layoutModel)
   const [layoutRequestQueue, setLayoutRequestQueue] = useState([])
   const [developerMode, setDeveloperMode] = useState(false)
+  const [isEditorOpen, setIsEditorOpen] = useState(false)
 
   /**
    * @param {FlexLayout.Model.Action} action - The actions passed on by the flexlayout-react library
@@ -94,14 +95,10 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
           return openImageViewer(action, globalData)
         case "openInPDFViewer":
           return openPDFViewer(action)
-        case "openInTextEditor":
-          return openTextEditor(action)
         case "openHtmlViewer":
           return openHtmlViewer(action)
         case "openInModelViewer":
           return openModelViewer(action)
-        case "openInJSONViewer":
-          return openInJSONViewer(action)
         case "openPandasProfiling":
           return openInPandasProfiling(action)
         /*********** OPEN *****************/
@@ -289,15 +286,6 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
   }
 
   /**
-   * @summary Function that adds a tab of the JSON Viewer Module to the layout model
-   * @params {Object} action - The action passed on by the dispatchLayout function
-   */
-  const openInJSONViewer = (action) => {
-    console.log("OPEN IN JSON VIEWER", action)
-    openInDotDotDot(action, "jsonViewer")
-  }
-
-  /**
    * @summary Function that adds a tab of the Results Module to the layout model
    * @params {Object} action - The action passed on by the dispatchLayout function
    */
@@ -431,14 +419,6 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
    */
   const openPDFViewer = (action) => {
     openInDotDotDot(action, "pdfViewer", globalData)
-  }
-
-  /**
-   * @summary Function that adds a tab with a text editor to the layout model
-   * @params {Object} action - The action passed on by the dispatchLayout function
-   */
-  const openTextEditor = (action) => {
-    openInDotDotDot(action, "textEditor", globalData)
   }
 
   /**
@@ -601,7 +581,7 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
   // The children are wrapped by the LayoutModelContext.Provider and will have access to the layoutModel, the dispatchLayout function and the flexlayoutInterpreter function
   return (
     <LayoutModelContext.Provider
-      value={{ layoutModel, setLayoutModel, dispatchLayout, flexlayoutInterpreter, layoutMainState, setLayoutMainState, layoutRequestQueue, setLayoutRequestQueue, developerMode, setDeveloperMode }}
+      value={{ layoutModel, setLayoutModel, dispatchLayout, flexlayoutInterpreter, layoutMainState, setLayoutMainState, layoutRequestQueue, setLayoutRequestQueue, developerMode, setDeveloperMode, isEditorOpen, setIsEditorOpen }}
     >
       {children}
     </LayoutModelContext.Provider>
