@@ -511,7 +511,7 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
    * @param savedCode the new value of savedCode
    */
   updateSavedCode = (savedCode: boolean, nodeId: string) => {
-    const fileName = this.state.model?.getNodeById(nodeId)?.getHelpText()
+    const fileName = this.state.model?.getNodeById(nodeId)?.getHelpText() ?? this.state.model?.getNodeById(nodeId)?.getId()
     this.saved[nodeId] = savedCode
     if (fileName) this.state.model!.doAction(Actions.renameTab(nodeId, fileName + (savedCode ? "" : "*")))
   }
@@ -899,7 +899,7 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
         console.log("config", config)
         return <Iframe url={config.path} width="100%" height="100%" />
       }
-    } else if (component === "codeEditor") {
+    } else if (component === "codeEditor" || component === "Code Editor") {
       if (node.getExtraData().data == null) {
         const config = node.getConfig()
         return <CodeEditor id={config.uuid} path={config.path} updateSavedCode={this.updateSavedCode}/>

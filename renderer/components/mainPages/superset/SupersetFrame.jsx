@@ -43,6 +43,11 @@ const SupersetDashboard = () => {
   const { url, supersetPort, launched, setUrl, setSupersetPort, setLaunched } = useContext(SupersetRequestContext)
   const op = useRef(null)
 
+  const getDirectories = async source =>
+    (await readdir(source, { withFileTypes: true }))
+      .filter(dirent => (dirent.isDirectory() && dirent.name.startsWith("python")))
+      .map(dirent => dirent.name)
+
   async function getSupersetPath(){
     let pythonPath = await ipcRenderer.invoke("getBundledPythonEnvironment")
     let system = os.platform()
@@ -57,11 +62,6 @@ const SupersetDashboard = () => {
       SupersetLibPath = pythonPath.split(".medomics")[0] + ".medomics\\python\\Lib\\site-packages\\superset"
     } else {
       // Find python directory
-      const getDirectories = async source =>
-        (await readdir(source, { withFileTypes: true }))
-          .filter(dirent => (dirent.isDirectory() && dirent.name.startsWith("python")))
-          .map(dirent => dirent.name)
-        
       const pythonDirs = await getDirectories(pythonPath.split(".medomics")[0] + ".medomics/python/lib")
       if(pythonDirs.length === 0){
         console.error("Could not find python directory", pythonDirs)
@@ -326,17 +326,34 @@ const SupersetDashboard = () => {
     return
   }
 
-  function editConfig() {
+  async function editConfig() {
+    // Get config path
+    let configPath = null
+    let system = os.platform()
+    let pythonPath = await ipcRenderer.invoke("getBundledPythonEnvironment")
+    if (system === "win32") {
+      configPath = pythonPath.split(".medomics")[0] + ".medomics\\python\\Lib\\site-packages\\superset\\config.py"
+    } else {
+      // Find python directory
+      const pythonDirs = await getDirectories(pythonPath.split(".medomics")[0] + ".medomics/python/lib")
+      if(pythonDirs.length === 0){
+        console.error("Could not find python directory", pythonDirs)
+        toast.error("Could not find python directory", {autoClose: 5000})
+        return
+      }
+      configPath = pythonPath.split(".medomics")[0] + ".medomics/python/lib/" + pythonDirs[0] + "/site-packages/superset/config.py"
+    }
+
     // If object already in the DB, show a confirmation dialog to overwrite it
     const accept = () => {
-        toast.success('You have accepted', { life: 3000 })
+      dispatchLayout({ type: "openGenericCodeEditor", payload: {path: configPath} })
     }
 
     const reject = () => {
-        toast.warning('You have rejected', { life: 3000 })
+      return
     }
     confirmDialog({
-      message: `Editing the Superset default configuration is a dangerous operation. Are you sure you want to proceed?`, 
+      message: `Changing the default configuration can lead to issues running Superset. Are you sure you want to proceed?`, 
       header: "Confirmation",
       icon: "pi pi-exclamation-triangle",
       accept,
