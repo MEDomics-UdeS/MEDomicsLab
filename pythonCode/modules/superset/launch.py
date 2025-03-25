@@ -29,7 +29,6 @@ class GoExecScriptPredict(GoExecutionScript):
         """
             This function predicts from a model, a dataset, and a new dataset
         """
-        print("DEBUG json_config", json_config)
         # Map settings
         port = json_config["port"]
         scripts_path = json_config["scriptsPath"]
