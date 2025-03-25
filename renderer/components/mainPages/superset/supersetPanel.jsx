@@ -29,25 +29,39 @@ const Panel = () => {
 
   return (
     <>
-    <div className="flex-container" style={{ gap: "5px", maxHeight:"5px", paddingBottom: "45px"}}>
-      <hr color="white" style={{border: "2px solid white", width:"7vw", alignItems: "left"}}></hr>
-      <button onClick={toggleSuperset} style={{border: "0px"}}>
-        {toggle ? 
-          (<i className="pi pi-chevron-down" style={{color: "gray", fontSize: "2rem"}}></i>) 
-          : (<i className="pi pi-chevron-up" style={{color: "gray", fontSize: "2rem"}}></i>)}
-      </button>
-      <hr color="white" style={{border: "2px solid white", width:"7vw", alignItems: "right"}}></hr>
+    <div 
+      style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "10px 0",
+        cursor: "pointer",
+        backgroundColor: "rgb(40, 40, 40)",
+        borderRadius: "8px 8px 0 0"
+      }}
+      onClick={toggleSuperset}
+    >
+      <i 
+        className={`pi ${toggle ? "pi-chevron-down" : "pi-chevron-up"}`} 
+        style={{
+          color: "white",
+          fontSize: "1.5rem",
+          transition: "transform 0.3s ease-in-out",
+        }}
+      ></i>
     </div>
     {toggle && (
     <div style={{textAlign: "center", backgroundColor: "rgb(53, 53, 53)", padding: "5px"}}>
       <div style={{display: "flex", justifyContent: "center"}}>
-        <SiApachesuperset style={{color:"white", fontSize: "50px", marginRight:"5px"}}/>
-        <header style={{textAlign: "center", fontSize: "1.5rem", color: "white"}}>
-          <h1>Superset</h1>
+        <SiApachesuperset style={{color:"white", fontSize: "40px", marginRight:"5px"}}/>
+        <header style={{textAlign: "center", fontSize: "30px", color: "white"}}>
+          <p>Superset</p>
         </header>
       </div>
       <div className="card flex justify-content-center flex-column gap-1" style={{borderWidth: "0px", backgroundColor: "rgb(53, 53, 53)"}}>
-        <Button label="Launch Superset" severity="info"  onClick={() => dispatchLayout({ type: "openSupersetFrameModule"})}/>
+      {(launched && supersetPort) ? (
+        <Button label="Open Superset" severity="info"  onClick={() => dispatchLayout({ type: "openSupersetFrameModule"})}/>) : (
+        <Button label="Launch Superset" severity="info"  onClick={() => dispatchLayout({ type: "openSupersetFrameModule"})}/>)}
         {(launched && supersetPort) && (
           <div
           style={{
