@@ -62,7 +62,7 @@ import "ace-builds/src-noconflict/theme-twilight"
 import "ace-builds/src-noconflict/theme-vibrant_ink"
 import "ace-builds/src-noconflict/theme-xcode"
 
-
+import fs from 'fs';
 
 /**
  *  A code editor component
@@ -133,35 +133,25 @@ const CodeEditor = ({id, path, updateSavedCode}) => {
     updateSavedCode(false, id)
   }
 
+  const writeFileContent = async (filePath, newContent) => {
+    fs.writeFileSync(filePath, newContent, "utf-8"); // Overwrites the file
+  };
+
   // Add the handleSave function
   const saveChanges = useCallback(async () => {
-    let requestBody = {
-      filePath: path,
-      content: content
+    try{
+      setLoadingSave(true)
+      await writeFileContent(path, content)
+      setSaved(true)
+      updateSavedCode(true, id)
+      setLoadingSave(false)
+      toast.success("Saved file successfully")
+    } catch (error) {
+      console.error("Error saving file:", error)
+      setLoadingSave(false)
+      toast.error("Error saving file")
     }
-    setLoadingSave(true)
-    requestBackend(
-      port,
-      "/learning/save_file_content/",
-      requestBody,
-      (response) => {
-        setLoadingSave(false)
-        console.log("Response from backend:", response)
-        if (response.error){
-          throw new Error("Error in backend while saving file.")
-        }
-        else {
-          setSaved(true)
-          updateSavedCode(true, id)
-          toast.success("Saved file successfully")
-        }
-      },
-      (error) => {
-        setLoadingSave(false)
-        console.error("Error from backend:", error)
-        toast.error("Error saving file")
-      }
-    )
+    return
   })
 
   /**
