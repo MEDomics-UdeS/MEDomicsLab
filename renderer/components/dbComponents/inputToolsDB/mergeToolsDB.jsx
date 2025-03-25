@@ -1,16 +1,16 @@
-import React, { useState, useEffect, useContext } from "react"
-import { MultiSelect } from "primereact/multiselect"
+import { randomUUID } from "crypto"
 import { Button } from "primereact/button"
-import { toast } from "react-toastify"
-import { getCollectionData } from "../utils"
 import { Dropdown } from "primereact/dropdown"
 import { Message } from "primereact/message"
-import { DataContext } from "../../workspace/dataContext"
+import { MultiSelect } from "primereact/multiselect"
+import React, { useContext, useEffect, useState } from "react"
+import { toast } from "react-toastify"
 import { requestBackend } from "../../../utilities/requests"
-import { ServerConnectionContext } from "../../serverConnection/connectionContext"
-import { MEDDataObject } from "../../workspace/NewMedDataObject"
 import { insertMEDDataObjectIfNotExists } from "../../mongoDB/mongoDBUtils"
-import { randomUUID } from "crypto"
+import { ServerConnectionContext } from "../../serverConnection/connectionContext"
+import { DataContext } from "../../workspace/dataContext"
+import { MEDDataObject } from "../../workspace/NewMedDataObject"
+import { getCollectionColumns } from "../../mongoDB/mongoDBUtils" // Updated import
 
 /**
  * @description MergeToolsDB component
@@ -25,6 +25,7 @@ const MergeToolsDB = ({ currentCollection }) => {
   const [collectionColumns, setCollectionColumns] = useState([])
   const [selectedMergeType, setSelectedMergeType] = useState("")
   const [options, setOptions] = useState([])
+  const [loading, setLoading] = useState(false)
   const { port } = useContext(ServerConnectionContext)
   const mergeTypes = [
     { value: "left", label: "Left" },
@@ -34,6 +35,7 @@ const MergeToolsDB = ({ currentCollection }) => {
     { value: "cross", label: "Cross" }
   ]
 
+  // This useEffect is used to fetch the collections and columns from the database to display in the MultiSelect dropdowns
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -46,10 +48,8 @@ const MergeToolsDB = ({ currentCollection }) => {
         setOptions(newOptions)
 
         if (selectedCollections.length === 2) {
-          const data1 = await getCollectionData(selectedCollections[0])
-          const data2 = await getCollectionData(selectedCollections[1])
-          const columns1 = Object.keys(data1[0])
-          const columns2 = Object.keys(data2[0])
+          const columns1 = await getCollectionColumns(selectedCollections[0])
+          const columns2 = await getCollectionColumns(selectedCollections[1])
           const matchingColumns = columns1.filter((column) => columns2.includes(column) && column !== "_id")
           setCollectionColumns(matchingColumns)
           if (matchingColumns.length === 0) {
@@ -61,10 +61,10 @@ const MergeToolsDB = ({ currentCollection }) => {
         toast.error("Failed to fetch collection data.")
       }
     }
-
     fetchData()
   }, [globalData, selectedCollections])
 
+  // This function is called when the user selects a collection in the MultiSelect dropdown
   const handleSelectChange = (newSelection) => {
     if (newSelection.length < selectedCollections.length) {
       setCollectionColumns([])
@@ -93,9 +93,9 @@ const MergeToolsDB = ({ currentCollection }) => {
     const id = randomUUID()
     const object = new MEDDataObject({
       id: id,
-      name: globalData[selectedCollections[0]].name.replace(".csv", "") + "_" + globalData[selectedCollections[1]].name.replace(".csv", "") + "_" + selectedMergeType,
+      name: globalData[selectedCollections[0]].name.replace(".csv", "") + "_" + globalData[selectedCollections[1]].name.replace(".csv", "") + "_" + selectedMergeType + ".csv",
       type: "csv",
-      parentID: "ROOT",
+      parentID: globalData[selectedCollections[0]].parentID,
       childrenIDs: [],
       inWorkspace: false
     })
@@ -105,10 +105,13 @@ const MergeToolsDB = ({ currentCollection }) => {
       newCollectionName: id,
       mergeType: selectedMergeType,
       columns: selectedColumns,
-      databaseName: "data",
       collection1: globalData[selectedCollections[0]].id,
       collection2: globalData[selectedCollections[1]].id
     }
+
+    // Change loading state
+    setLoading(true)
+
     // Send the request to the backend
     requestBackend(
       port,
@@ -116,6 +119,7 @@ const MergeToolsDB = ({ currentCollection }) => {
       jsonToSend,
       async (jsonResponse) => {
         console.log("jsonResponse", jsonResponse)
+        setLoading(false)
         if (jsonResponse.error) {
           if (jsonResponse.error.message) {
             console.error(jsonResponse.error.message)
@@ -131,6 +135,7 @@ const MergeToolsDB = ({ currentCollection }) => {
         }
       },
       (error) => {
+        setLoading(false)
         console.log(error)
         toast.error("Error merging data " + error)
       }
@@ -154,8 +159,9 @@ const MergeToolsDB = ({ currentCollection }) => {
         }}
       >
         <div style={{ display: "flex", alignItems: "center", margin: "5px" }}>
-          <MultiSelect value={selectedCollections} options={options} onChange={(e) => handleSelectChange(e.value)} placeholder={"Select Collections"} style={{ width: "200px", marginRight: "10px" }} />
+          <MultiSelect value={selectedCollections} options={options} filter onChange={(e) => handleSelectChange(e.value)} placeholder={"Select Collections"} style={{ width: "200px", marginRight: "10px" }} />
           <MultiSelect
+            filter
             value={selectedColumns}
             options={collectionColumns}
             onChange={(e) => setSelectedColumns(e.value)}
@@ -172,6 +178,7 @@ const MergeToolsDB = ({ currentCollection }) => {
               width: "100px",
               marginRight: "10px"
             }}
+            loading={loading}
             tooltip="Merge"
             tooltipOptions={{ position: "top" }}
             disabled={selectedCollections.length !== 2 || selectedColumns.length === 0 || !selectedMergeType}

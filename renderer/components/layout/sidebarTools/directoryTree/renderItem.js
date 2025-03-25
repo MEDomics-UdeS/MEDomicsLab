@@ -10,6 +10,11 @@ const iconExtension = {
   folder: (isExpanded) => (isExpanded ? <span style={{ paddingBottom: "0.15rem" }}>📂</span> : <span style={{ paddingBottom: "0.15rem" }}>📁</span>),
   csv: <span className="emoji">🛢️</span>,
   view: <span className="emoji">👁️</span>,
+  py: (
+    <span className="emoji">
+      <Image src={"https://img.icons8.com/?size=100&id=13441&format=png&color=000000"} width={12} height={12} alt="python.svg" />
+    </span>
+  ),
   json: (
     <span>
       <Icon.Braces className="icon-offset" style={{ color: "yellow" }} />
@@ -18,6 +23,11 @@ const iconExtension = {
   txt: (
     <span>
       <Icon.TextLeft className="icon-offset" />
+    </span>
+  ),
+  md: (
+    <span>
+      <Icon.FiletypeMd className="icon-offset" style={{ color: "white" }} />
     </span>
   ),
   pdf: <span className="emoji">📕</span>,
