@@ -1,15 +1,19 @@
-import React, { useEffect, useState } from "react"
+import React, { useEffect, useState, useRef } from "react"
 import { toast } from "react-toastify"
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter"
 import { coy } from "react-syntax-highlighter/dist/cjs/styles/prism"
 import ReactMarkdown from "react-markdown"
 import fs from "fs"
+import AceEditor from "react-ace"
+import "ace-builds/src-noconflict/mode-python"
+import "ace-builds/src-noconflict/theme-tomorrow"
 import { FaCopy, FaArrowUp, FaArrowDown, FaPlusCircle, FaPlusSquare, FaTrash } from "react-icons/fa"
 
 const JupyterNotebookViewer = ({ path }) => {
   const [notebookContent, setNotebookContent] = useState(null)
   const [error, setError] = useState(null)
   const [editMode, setEditMode] = useState({})
+  const editorRefs = useRef({})
 
   useEffect(() => {
     if (!path) return
@@ -67,7 +71,16 @@ const JupyterNotebookViewer = ({ path }) => {
   }, [notebookContent])
 
   const toggleEditMode = (index) => {
-    setEditMode((prev) => ({ ...prev, [index]: !prev[index] }))
+    setEditMode((prev) => {
+      const newEditMode = { ...prev, [index]: !prev[index] }
+      if (!prev[index]) {
+        // Focus the editor when entering edit mode
+        setTimeout(() => {
+          editorRefs.current[index]?.editor?.focus()
+        }, 0)
+      }
+      return newEditMode
+    })
   }
 
   // Cell operations
@@ -160,13 +173,26 @@ const JupyterNotebookViewer = ({ path }) => {
 
           <div className={`cell ${isCodeCell ? "code-cell" : "markdown-cell"}`}>
             {editMode[index] ? (
-              <textarea
+              <AceEditor
+                ref={(ref) => (editorRefs.current[index] = ref)} // Assign ref to the editor
+                mode={isCodeCell ? "python" : "markdown"}
+                theme="tomorrow"
                 value={cellContent}
-                onChange={(e) => handleCellChange(index, e.target.value)}
+                onChange={(newContent) => handleCellChange(index, newContent)}
                 onBlur={() => toggleEditMode(index)}
-                className="cell-editor"
-                autoFocus
-                style={{ height: `${cellContent.split("\n").length * 1.5}rem` }} // Dynamically adjust height
+                name={`editor-${index}`}
+                editorProps={{ $blockScrolling: true }}
+                setOptions={{
+                  useWorker: false,
+                  enableBasicAutocompletion: true,
+                  enableLiveAutocompletion: true,
+                  enableSnippets: true,
+                  showLineNumbers: true
+                }}
+                width="100%"
+                height={`${Math.max(cellContent.split("\n").length * 1.5, 5)}em`}
+                fontSize={14}
+                style={{ border: "1px solid #ccc", borderRadius: "5px" }}
               />
             ) : isCodeCell ? (
               <div onClick={() => toggleEditMode(index)}>
