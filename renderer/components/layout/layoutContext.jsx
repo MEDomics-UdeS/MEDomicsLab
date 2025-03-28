@@ -91,6 +91,8 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
           return openDataTableFromDB(action)
         case "openInCodeEditor":
           return openCodeEditor(action)
+        case "openInJupyterNotebook":
+          return openJupyterNotebook(action)
         case "openInImageViewer":
           return openImageViewer(action, globalData)
         case "openInPDFViewer":
@@ -499,6 +501,14 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
   }
 
   /**
+   * @summary Function that adds a tab with a code editor to the layout model
+   * @params {Object} action - The action passed on by the dispatchLayout function
+   */
+  const openJupyterNotebook = (action) => {
+    openInDotDotDot(action, "jupyterNotebook", globalData)
+  }
+
+  /**
    * @summary Function that adds an exploratory page with a medDataObject to the layout model
    * @params {Object} action - The action passed on by the dispatchLayout function
    */
@@ -581,7 +591,20 @@ function LayoutModelProvider({ children, layoutModel, setLayoutModel }) {
   // The children are wrapped by the LayoutModelContext.Provider and will have access to the layoutModel, the dispatchLayout function and the flexlayoutInterpreter function
   return (
     <LayoutModelContext.Provider
-      value={{ layoutModel, setLayoutModel, dispatchLayout, flexlayoutInterpreter, layoutMainState, setLayoutMainState, layoutRequestQueue, setLayoutRequestQueue, developerMode, setDeveloperMode, isEditorOpen, setIsEditorOpen }}
+      value={{
+        layoutModel,
+        setLayoutModel,
+        dispatchLayout,
+        flexlayoutInterpreter,
+        layoutMainState,
+        setLayoutMainState,
+        layoutRequestQueue,
+        setLayoutRequestQueue,
+        developerMode,
+        setDeveloperMode,
+        isEditorOpen,
+        setIsEditorOpen
+      }}
     >
       {children}
     </LayoutModelContext.Provider>

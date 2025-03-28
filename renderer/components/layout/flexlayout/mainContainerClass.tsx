@@ -59,7 +59,9 @@ import { TabStorage } from "./tabStorage"
 import { Utils } from "./utils"
 import ZoomPanPinchComponent from "./zoomPanPinchComponent"
 import CodeEditor from "../../flow/codeEditor"
+import JupyterNotebook from "../../flow/JupyterNoteBookViewer"
 import { confirmDialog } from "primereact/confirmdialog"
+import JupyterNotebookViewer from "../../flow/JupyterNoteBookViewer"
 
 var fields = ["Name", "Field1", "Field2", "Field3", "Field4", "Field5"]
 
@@ -92,7 +94,16 @@ interface MyComponentState {
 const MainContainer = (props) => {
   const { layoutRequestQueue, setLayoutRequestQueue, isEditorOpen, setIsEditorOpen } = React.useContext(LayoutModelContext) as unknown as LayoutContextType
   const { globalData, setGlobalData } = React.useContext(DataContext) as unknown as DataContextType
-  return <MainInnerContainer layoutRequestQueue={layoutRequestQueue} setLayoutRequestQueue={setLayoutRequestQueue} isEditorOpen={isEditorOpen} setIsEditorOpen={setIsEditorOpen} globalData={globalData} setGlobalData={setGlobalData} />
+  return (
+    <MainInnerContainer
+      layoutRequestQueue={layoutRequestQueue}
+      setLayoutRequestQueue={setLayoutRequestQueue}
+      isEditorOpen={isEditorOpen}
+      setIsEditorOpen={setIsEditorOpen}
+      globalData={globalData}
+      setGlobalData={setGlobalData}
+    />
+  )
 }
 
 /**
@@ -105,7 +116,7 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
   showingPopupMenu: boolean = false
   htmlTimer?: any = null
   layoutRef?: React.RefObject<Layout>
-  saved : {[key: string]: boolean} = {}
+  saved: { [key: string]: boolean } = {}
   static contextType = LayoutModelContext
 
   constructor(props: any) {
@@ -525,7 +536,7 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
     const { isEditorOpen, setIsEditorOpen } = this.props as LayoutContextType
     console.log("MainContainer action: ", action, this.layoutRef, this.state.model, this.saved)
     if (action.type === Actions.RENAME_TAB) {
-      if(isEditorOpen) {
+      if (isEditorOpen) {
         console.error("Please close the editor before renaming")
         toast.error("Please close the editor before renaming")
         return Actions.RENAME_TAB
@@ -593,7 +604,7 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
         },
         reject: () => {
           return null // Return null to cancel the action
-        },
+        }
       })
     } else if (action.type === Actions.DELETE_TAB) {
       setIsEditorOpen(false)
@@ -801,7 +812,7 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
           let width = image.getSize().width / 3
 
           return <ZoomPanPinchComponent imagePath={config.path} image={image.toDataURL()} width={width} height={height} options={""} />
-        } else if (config.uuid){
+        } else if (config.uuid) {
           return <ZoomPanPinchComponent imageID={config.uuid} />
         } else {
           return <h4>IMAGE VIEWER - Could not load image</h4>
@@ -916,7 +927,12 @@ class MainInnerContainer extends React.Component<any, { layoutFile: string | nul
       if (node.getExtraData().data == null) {
         const config = node.getConfig()
         setIsEditorOpen(true)
-        return <CodeEditor id={config.uuid} path={config.path} updateSavedCode={this.updateSavedCode}/>
+        return <CodeEditor id={config.uuid} path={config.path} updateSavedCode={this.updateSavedCode} />
+      }
+    } else if (component === "jupyterNotebook") {
+      if (node.getExtraData().data == null) {
+        const config = node.getConfig()
+        return <JupyterNotebookViewer path={config.path} updateSavedCode={this.updateSavedCode} />
       }
     } else if (component === "Settings") {
       return <SettingsPage />
