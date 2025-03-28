@@ -216,11 +216,11 @@ const JupyterNotebookViewer = ({ path }) => {
       <style>
         {`
           .notebook-viewer {
-            padding: 1rem;
+            padding: 2rem;
             overflow: auto;
             height: 100%;
-            font-family: Arial, sans-serif;
-            background-color: #f5f5f5;
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(180deg, #f5f5f5 0%, #e0e0e0 100%);
           }
 
           .notebook-content {
@@ -240,10 +240,10 @@ const JupyterNotebookViewer = ({ path }) => {
             right: 0;
             display: flex;
             gap: 0.5rem;
-            background: #f5f5f5;
-            padding: 0.5rem; /* Add padding for spacing */
-            border: 1px solid #ddd; /* Add a subtle border */
-            border-radius: 5px; /* Match the cell's border radius */
+            background: rgba(255, 255, 255, 0.8);
+            padding: 0.5rem;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
             z-index: 1;
           }
 
@@ -254,11 +254,13 @@ const JupyterNotebookViewer = ({ path }) => {
             color: #666;
             padding: 0.25rem;
             border-radius: 3px;
+            transition: background 0.3s, transform 0.3s;
           }
 
           .cell-actions button:hover {
             color: #333;
             background: #e0e0e0;
+            transform: scale(1.05);
           }
 
           .cell {
@@ -266,6 +268,11 @@ const JupyterNotebookViewer = ({ path }) => {
             border: 1px solid #ddd;
             border-radius: 5px;
             position: relative;
+            transition: box-shadow 0.3s;
+          }
+
+          .cell:hover {
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
           }
 
           .code-cell {
@@ -295,13 +302,21 @@ const JupyterNotebookViewer = ({ path }) => {
           }
 
           .error-message {
-            color: red;
+            color: #d9534f;
             font-weight: bold;
+            padding: 1rem;
+            border: 1px solid #d9534f;
+            border-radius: 5px;
+            background-color: rgba(217, 83, 79, 0.1);
           }
 
           .loading-message {
             font-size: 1.2rem;
             color: #555;
+            padding: 1rem;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #f9f9f9;
           }
         `}
       </style>
