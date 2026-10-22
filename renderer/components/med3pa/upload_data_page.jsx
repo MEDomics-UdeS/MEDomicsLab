@@ -1,7 +1,8 @@
 
 import Input from "../learning/input";
 import { json } from "d3";
-import { useContext, useId, useState } from "react";
+import { useContext, useEffect, useId, useState } from "react";
+import { ipcRenderer } from "electron";
 import { Tooltip } from "react-tooltip";
 import { requestBackend } from "../../utilities/requests";
 import { PageInfosContext } from "../mainPages/moduleBasics/pageInfosContext";
@@ -91,7 +92,9 @@ const HINTS = {
   samplesRatioMax: "Highest population percentage threshold in the sweep. Only profiles covering at least this share survive at the top end.",
   samplesRatioStep: "Increment between successive thresholds in the sweep. Smaller steps give more profile sets and a longer run.",
   evaluateModels:
-    "Also score the IPC and APC models themselves and store the result under models_evaluation. Adds to the runtime; useful for checking that the confidence models actually fit."
+    "Also score the IPC and APC models themselves and store the result under models_evaluation. Adds to the runtime; useful for checking that the confidence models actually fit.",
+  randomState:
+    "Fixes every random step of the run — the train/test split and the IPC and APC estimators — so the same configuration reproduces the same profiles and metrics exactly. Blank means unseeded, and results will drift slightly between runs. The value is saved with the session, so any past run can be repeated. Defaults to the seed set in Settings."
 }
 
 /**
@@ -172,7 +175,23 @@ export default function Med3paConfigForm({ onAnalysisComplete = null, onNextStep
     mpc_strategy: DEFAULT_MPC_STRATEGY,
     samples_ratio: { min: 0, max: 10, step: 5 },
     evaluate_models: true,
+    // Filled from the app-wide seed in Settings on mount; null means the run is
+    // not reproducible. Stored with the session config, so a past run can be
+    // repeated exactly.
+    random_state: null,
   });
+
+  // Seed the form from the app-wide default in Settings. That field used to be
+  // written to settings.json and read by nothing, so setting it had no effect on
+  // any result; it now supplies the starting value here, and can still be
+  // overridden per analysis.
+  useEffect(() => {
+    ipcRenderer.invoke("get-settings").then((receivedSettings) => {
+      if (receivedSettings?.seed !== undefined && receivedSettings?.seed !== null) {
+        setMed3paParams((p) => (p.random_state === null ? { ...p, random_state: receivedSettings.seed } : p))
+      }
+    })
+  }, []);
 
   const [ipcCustomExpr, setIpcCustomExpr] = useState(false);
   const [mpcCustomExpr, setMpcCustomExpr] = useState(DEFAULT_MPC_STRATEGY);
@@ -803,6 +822,18 @@ export default function Med3paConfigForm({ onAnalysisComplete = null, onNextStep
               Evaluate models
               <Hint text={HINTS.evaluateModels} />
             </label>
+
+            <label style={{ fontSize: 11, color: "#6C757D", display: "block", margin: "10px 0 2px" }}>
+              Random seed
+              <Hint text={HINTS.randomState} />
+            </label>
+            <input
+              type="number"
+              placeholder="leave blank for a different result each run"
+              style={{ width: "100%", boxSizing: "border-box", height: 28 }}
+              value={med3pa_params.random_state ?? ""}
+              onChange={(e) => setTop("random_state", e.target.value === "" ? null : parseInt(e.target.value))}
+            />
           </Collapsible>
 
           <button

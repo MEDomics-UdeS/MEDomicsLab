@@ -310,6 +310,23 @@ class GoExecScriptRunMed3paAnalysis(GoExecutionScript):
 
         self.set_progress(label="Running MED3pa experiment", now=50)
 
+        # An empty field arrives as None or "", both of which mean "do not fix
+        # the seed". Anything else must be an int, so a typo is reported here
+        # rather than surfacing as an opaque failure inside scikit-learn.
+        random_state = params.get("random_state")
+        if random_state in (None, ""):
+            random_state = None
+            self.warn(
+                "No seed was set, so this run is not reproducible: re-running the "
+                "same configuration will give slightly different profiles and metrics."
+            )
+        else:
+            try:
+                random_state = int(random_state)
+            except (TypeError, ValueError):
+                raise ValueError(f"The seed must be a whole number, got: {random_state!r}")
+            go_print(f"MED3pa random state: {random_state}")
+
         samples_ratio = params.get("samples_ratio") or {}
         results = Med3paExperiment.run(
             datasets_manager=datasets,
@@ -325,6 +342,11 @@ class GoExecScriptRunMed3paAnalysis(GoExecutionScript):
             samples_ratio_step=samples_ratio.get("step", 5),
             evaluate_models=params.get("evaluate_models", True),
             mpc_strategy=mpc_strategy,
+            # None means "not fixed", which is MED3pa's own default. When set,
+            # it reaches the train/test split and both the IPC and APC
+            # estimators, so the whole experiment becomes reproducible. It is
+            # stored in the session's config, so a past run can be repeated.
+            random_state=random_state,
         )
 
         self.set_progress(label="Saving results", now=90)
